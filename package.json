@@ -1,0 +1,32 @@
+{
+    "private": true,
+    "name": "killreport",
+    "version": "0.0.1",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/umutyerebakmaz/killreport"
+    },
+    "keywords": [
+        "angular"
+    ],
+    "author": "Umut Yerebakmaz <umutyerebakmaz@gmail.com> (https://github.com/umutyerebakmaz)",
+    "bugs": {
+        "url": "https://github.com/umutyerebakmaz/killreport/issues"
+    },
+    "homepage": "https://github.com/umutyerebakmaz/killreport/blob/main/README.md",
+    "workspaces": [
+        "frontend",
+        "server"
+    ],
+    "scripts": {
+        "server:start": "cd server && yarn start",
+        "server:restart": "cd server && yarn restart",
+        "frontend:start": "cd frontend && yarn start",
+        "frontend:restart": "cd frontend && yarn restart",
+        "remove:frontend": "cd frontend && rm -rf node_modules .angular",
+        "remove:server": "cd server && rm -rf node_modules",
+        "remove:main": "rm -rf node_modules yarn.lock",
+        "remove:all": "yarn remove:frontend && yarn remove:server && yarn remove:main"
+    }
+}
