@@ -1,0 +1,7 @@
+body {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    width: 100%;
+    @apply bg-neutral-950 text-white;
+    user-select: none;
+}

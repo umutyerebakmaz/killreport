@@ -8,23 +8,11 @@
       "files": [
         "*.ts"
       ],
-      "parserOptions": {
-        "project": [
-          "frontend/tsconfig.json",
-          "frontend/e2e/tsconfig.json"
-        ],
-        "createDefaultProgram": true,
-        "ecmaVersion": "latest",
-        "parser": "@angular-eslint"
-      },
-      "env": {
-        "es6": true
-      },
       "extends": [
         "eslint:recommended",
+        "plugin:@typescript-eslint/recommended",
         "plugin:@angular-eslint/recommended",
-        "plugin:@angular-eslint/template/process-inline-templates",
-        "plugin:prettier/recommended"
+        "plugin:@angular-eslint/template/process-inline-templates"
       ],
       "rules": {
         "@angular-eslint/component-selector": [
