@@ -1,11 +1,31 @@
-<div class="flex items-start justify-between p-6 shadow bg-slate-700">
-    <div class="font-bold text-yellow-500">
-        KILLREPORT
-    </div>
+<div class="grid items-center grid-cols-3 p-6 shadow bg-neutral-800">
     <div>
-        MENU | TRACKER | POST
+        <div class="text-base font-bold text-gray-200">KILLREPORT</div>
     </div>
-    <div>
-        LOGIN
+    <div class="flex gap-2">
+        <button mat-flat-button [matMenuTriggerFor]="menu">
+          <mat-icon>menu</mat-icon>
+            MENU
+        </button>
+        <mat-menu #menu="matMenu">
+          <button mat-menu-item>Advanced Search</button>
+          <button mat-menu-item>Wars</button>
+          <button mat-menu-item>War Eligible</button>
+          <mat-divider></mat-divider>
+          <button mat-menu-item>Top Kills (5B+)</button>
+          <button mat-menu-item>Big Kills (10B+)</button>
+          <button mat-menu-item>Capitals</button>
+          <button mat-menu-item>Structures</button>
+          <button mat-menu-item>Abyssal</button>
+          <button mat-menu-item>Abyssal PVP</button>
+          <button mat-menu-item>Avox</button>
+          <mat-divider></mat-divider>
+        </mat-menu>
+
+        <button mat-flat-button>TRACKER</button>
+        <button mat-flat-button>POST</button>
+    </div>
+    <div class="flex justify-end">
+        <button mat-flat-button>POST</button>
     </div>
 </div>
