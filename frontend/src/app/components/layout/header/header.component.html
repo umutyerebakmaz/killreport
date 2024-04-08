@@ -34,13 +34,39 @@
             <button mat-menu-item>Hourly Stat</button>
             <button mat-menu-item>Top 10 Recent</button>
             <button mat-menu-item>Top 10 Alltime</button>
-            <mat-divider></mat-divider>
+            <button mat-menu-item>System Logs</button>
         </mat-menu>
 
-        <button mat-flat-button>TRACKER</button>
+        <button mat-flat-button [matMenuTriggerFor]="tracker">
+            <mat-icon>menu</mat-icon>
+                TRACKER
+        </button>
+        <mat-menu #tracker="matMenu">
+            <div class="px-4 py-1 text-xs text-yellow-400 bg-neutral-600">Alliances</div>
+            <button mat-menu-item>Alliance One</button>
+            <button mat-menu-item>Alliane Two</button>
+            <button mat-menu-item>Alliance Three</button>
+            <div class="px-4 py-1 text-xs text-yellow-400 bg-neutral-600">Corporations</div>
+            <button mat-menu-item>Corporation One</button>
+            <button mat-menu-item>Corporation Two</button>
+            <button mat-menu-item>Corporation Three</button>
+            <div class="px-4 py-1 text-xs text-yellow-400 bg-neutral-600">Characters</div>
+            <button mat-menu-item>Me</button>
+            <button mat-menu-item>Capsuleer One</button>
+            <button mat-menu-item>Capsuleer Two</button>
+            <button mat-menu-item>Capsuleer Three</button>
+        </mat-menu>
         <button mat-flat-button>POST</button>
     </div>
     <div class="flex justify-end">
-        <button mat-flat-button>POST</button>
+        <button mat-flat-button [matMenuTriggerFor]="login">LOGIN</button>
+        <mat-menu #login="matMenu">
+            <button mat-menu-item>Settings</button>
+            <div class="px-4 py-1 text-xs text-yellow-400 bg-neutral-600">Support</div>
+            <button mat-menu-item>Discord</button>
+            <button mat-menu-item>FAQ</button>
+            <mat-divider></mat-divider>
+            <button mat-menu-item>Logout</button>
+        </mat-menu>
     </div>
 </div>
