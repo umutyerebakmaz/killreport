@@ -5,10 +5,10 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDivider } from '@angular/material/divider';
 
 @Component({
-  selector: 'app-header',
-  standalone: true,
-  imports: [MatButtonModule, MatIconModule, MatMenuModule, MatDivider],
-  templateUrl: './header.component.html',
+    selector: 'app-header',
+    standalone: true,
+    imports: [MatButtonModule, MatIconModule, MatMenuModule, MatDivider],
+    templateUrl: './header.component.html',
 })
 export class HeaderComponent {
 
