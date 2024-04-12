@@ -10,7 +10,7 @@
         "editorRuler.foreground": "#585858"
     },
     "eslint.workingDirectories": [
-        "src"
+        "../frontend"
     ],
     "editor.linkedEditing": true,
     "html.autoClosingTags": true,
@@ -29,4 +29,7 @@
         }
     },
     "findUnusedExports.detectCircularImports": true,
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "workbench.editor.labelFormat": "short",
 }
