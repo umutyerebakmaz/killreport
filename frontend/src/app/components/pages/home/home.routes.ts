@@ -5,7 +5,7 @@ export const HOME_ROUTES: Routes = [
     loadComponent: () =>
       import('@page/home/home.component').then(c => c.HomeComponent),
     data: {
-      title: 'KILLREPORT HOME',
+      title: 'HOME',
     },
   },
 ];

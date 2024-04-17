@@ -6,7 +6,7 @@ export const KILL_ROUTES: Routes = [
     loadComponent: () =>
       import('@page/kill/kill.component').then(c => c.KillComponent),
     data: {
-      title: 'KILL PAGE',
+      title: 'KILL',
     },
   },
 ];
