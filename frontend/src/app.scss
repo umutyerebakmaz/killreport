@@ -5,3 +5,8 @@ body {
     @apply bg-neutral-950 text-white;
     // user-select: none;
 }
+
+.fill-height {
+    min-height: calc(100vh - 55px - 72px);
+    @apply flex items-center justify-center content-between text-5xl;
+}
