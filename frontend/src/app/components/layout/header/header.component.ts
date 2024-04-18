@@ -17,7 +17,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 })
 export class HeaderComponent implements OnInit {
     #statusService = inject(StatusService);
-    players!: number | undefined;
+    players?: number;
     utcDate!: Date;
 
     ngOnInit(): void {
