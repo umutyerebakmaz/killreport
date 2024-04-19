@@ -10,7 +10,7 @@
         "editorRuler.foreground": "#585858"
     },
     "eslint.workingDirectories": [
-        "../frontend"
+        "../frontend/*"
     ],
     "editor.linkedEditing": true,
     "html.autoClosingTags": true,

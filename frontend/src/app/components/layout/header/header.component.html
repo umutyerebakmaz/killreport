@@ -38,18 +38,24 @@
 
         <button mat-flat-button [matMenuTriggerFor]="tracker">
             <mat-icon>menu</mat-icon>
-                TRACKER
+            TRACKER
         </button>
         <mat-menu #tracker="matMenu">
-            <div class="px-4 py-1 text-xs text-yellow-400 bg-neutral-600">Alliances</div>
+            <div class="px-4 py-1 text-xs text-yellow-400 bg-neutral-600">
+                Alliances
+            </div>
             <button mat-menu-item>Alliance One</button>
             <button mat-menu-item>Alliane Two</button>
             <button mat-menu-item>Alliance Three</button>
-            <div class="px-4 py-1 text-xs text-yellow-400 bg-neutral-600">Corporations</div>
+            <div class="px-4 py-1 text-xs text-yellow-400 bg-neutral-600">
+                Corporations
+            </div>
             <button mat-menu-item>Corporation One</button>
             <button mat-menu-item>Corporation Two</button>
             <button mat-menu-item>Corporation Three</button>
-            <div class="px-4 py-1 text-xs text-yellow-400 bg-neutral-600">Characters</div>
+            <div class="px-4 py-1 text-xs text-yellow-400 bg-neutral-600">
+                Characters
+            </div>
             <button mat-menu-item>Me</button>
             <button mat-menu-item>Capsuleer One</button>
             <button mat-menu-item>Capsuleer Two</button>
@@ -59,17 +65,33 @@
     </div>
     <div class="flex items-center justify-end">
         <div class="flex justify-center gap-4 pr-4 text-base">
-            <div  matTooltip="513 new kills added">513</div>
-            <div matTooltip="{{ 'Tranquility ' + players + ' online players' }}" class="flex items-center justify-center text-green-500">
-                <mat-icon aria-hidden="false" aria-label="Tranquility online players count" fontIcon="supervised_user_circle"></mat-icon>
-                <span class="pl-2">Tranquility {{ players | number: '2.0-1' }}</span>
+            <div matTooltip="513 new kills added">513</div>
+            <div
+                matTooltip="{{ 'Tranquility ' + players + ' online players' }}"
+                class="flex items-center justify-center text-green-500">
+                <mat-icon
+                    aria-hidden="false"
+                    aria-label="Tranquility online players count"
+                    fontIcon="supervised_user_circle"></mat-icon>
+                <span class="pl-2"
+                    >Tranquility {{ players | number: '2.0-1' }}</span
+                >
             </div>
-            <div matTooltip="Current Eve Online ingame time">{{ utcDate | date: 'hh:mm' }}</div>
+            <div matTooltip="Current Eve Online ingame time">
+                {{ eveTime }} UTC
+            </div>
         </div>
-        <button mat-flat-button [matMenuTriggerFor]="login"(click)="getStatus()">LOGIN</button>
+        <button
+            mat-flat-button
+            [matMenuTriggerFor]="login"
+            (click)="getStatus()">
+            LOGIN
+        </button>
         <mat-menu #login="matMenu">
             <button mat-menu-item>Settings</button>
-            <div class="px-4 py-1 text-xs text-yellow-400 bg-neutral-600">Support</div>
+            <div class="px-4 py-1 text-xs text-yellow-400 bg-neutral-600">
+                Support
+            </div>
             <button mat-menu-item>Discord</button>
             <button mat-menu-item>FAQ</button>
             <mat-divider></mat-divider>

@@ -7,31 +7,44 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { StatusService } from '@app/services/esi/status.service';
 import { DatePipe, DecimalPipe } from '@angular/common';
 
-
-
 @Component({
     selector: 'app-header',
     standalone: true,
-    imports: [MatButtonModule, MatIcon, MatMenuModule, MatDivider, MatTooltipModule, DecimalPipe, DatePipe],
+    imports: [
+        MatButtonModule,
+        MatIcon,
+        MatMenuModule,
+        MatDivider,
+        MatTooltipModule,
+        DecimalPipe,
+        DatePipe,
+    ],
     templateUrl: './header.component.html',
 })
 export class HeaderComponent implements OnInit {
     #statusService = inject(StatusService);
     players?: number;
-    utcDate!: Date;
+    eveTime!: string;
 
     ngOnInit(): void {
         this.getStatus();
-        this.utcDate = new Date();
+        this.eveTime = this.getUTCDateTime();
     }
-
 
     getStatus(): void {
-        this.#statusService.getStatus()
-            .subscribe(data => {
-                this.players = data.players;
-                console.log(data);
-            });
+        this.#statusService.getStatus().subscribe(data => {
+            this.players = data.players;
+            console.log(data);
+        });
     }
 
+    getUTCDateTime() {
+        const now = new Date();
+        const utcString =
+            now.getUTCHours() +
+            ':' +
+            (now.getUTCMinutes() < 10 ? '0' : '') +
+            now.getUTCMinutes();
+        return utcString;
+    }
 }
