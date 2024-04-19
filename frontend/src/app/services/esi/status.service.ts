@@ -12,8 +12,7 @@ export type status = {
     providedIn: 'root',
 })
 export class StatusService {
-    private apiUrl =
-        'https://esi.evetech.net/latest/status/?datasource=tranquility';
+    private apiUrl = 'https://esi.evetech.net/latest/status/?datasource=tranquility';
 
     constructor(private http: HttpClient) {}
 

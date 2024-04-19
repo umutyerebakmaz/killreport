@@ -10,15 +10,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 @Component({
     selector: 'app-header',
     standalone: true,
-    imports: [
-        MatButtonModule,
-        MatIcon,
-        MatMenuModule,
-        MatDivider,
-        MatTooltipModule,
-        DecimalPipe,
-        DatePipe,
-    ],
+    imports: [MatButtonModule, MatIcon, MatMenuModule, MatDivider, MatTooltipModule, DecimalPipe, DatePipe],
     templateUrl: './header.component.html',
 })
 export class HeaderComponent implements OnInit {
@@ -40,11 +32,7 @@ export class HeaderComponent implements OnInit {
 
     getUTCDateTime() {
         const now = new Date();
-        const utcString =
-            now.getUTCHours() +
-            ':' +
-            (now.getUTCMinutes() < 10 ? '0' : '') +
-            now.getUTCMinutes();
+        const utcString = now.getUTCHours() + ':' + (now.getUTCMinutes() < 10 ? '0' : '') + now.getUTCMinutes();
         return utcString;
     }
 }
