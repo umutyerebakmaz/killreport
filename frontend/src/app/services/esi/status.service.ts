@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-export type status = {
+export type Status = {
     players?: number;
     server_version?: string;
     start_time?: string;
@@ -16,7 +16,7 @@ export class StatusService {
 
     constructor(private http: HttpClient) {}
 
-    getStatus(): Observable<status> {
-        return this.http.get<status>(this.apiUrl);
+    getStatus(): Observable<Status> {
+        return this.http.get<Status>(this.apiUrl);
     }
 }
