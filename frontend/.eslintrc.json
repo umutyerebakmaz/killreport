@@ -10,7 +10,7 @@
             ],
             "parserOptions": {
                 "project": [
-                    "../frontend/tsconfig.json"
+                    "frontend/tsconfig.json"
                 ],
                 "createDefaultProgram": true,
                 "ecmaVersion": "latest",

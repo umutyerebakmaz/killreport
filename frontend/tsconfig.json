@@ -2,7 +2,6 @@
 {
     "compileOnSave": false,
     "compilerOptions": {
-        "baseUrl": "./",
         "outDir": "./dist/out-tsc",
         "strict": true,
         "noImplicitOverride": true,
@@ -25,28 +24,28 @@
         ],
         "paths": {
             "@core/*": [
-                "src/app/core/*"
+                "./src/app/core/*"
             ],
             "@app/*": [
-                "src/app/*"
+                "./src/app/*"
             ],
             "@guard/*": [
-                "src/app/core/guards/*"
+                "./src/app/core/guards/*"
             ],
             "@helper/*": [
-                "src/app/core/helpers/*"
+                "./src/app/core/helpers/*"
             ],
             "@pipe/*": [
-                "src/app/core/pipes/*"
+                "./src/app/core/pipes/*"
             ],
             "@page/*": [
-                "src/app/components/pages/*"
+                "./src/app/components/pages/*"
             ],
             "@layout/*": [
-                "src/app/components/feature/layout/*"
+                "./src/app/components/feature/layout/*"
             ],
             "@service/*": [
-                "src/app/core/services/*"
+                "./src/app/core/services/*"
             ]
         }
     },
