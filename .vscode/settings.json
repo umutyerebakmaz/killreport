@@ -28,4 +28,5 @@
             "ngOnInit": true
         }
     },
+    "findUnusedExports.detectCircularImports": true,
 }

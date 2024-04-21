@@ -1,59 +1,58 @@
 /* To learn more about this file see: https://angular.io/config/tsconfig. */
 {
-  "compileOnSave": false,
-  "compilerOptions": {
-    "baseUrl": "./",
-    "outDir": "./dist/out-tsc",
-    "strict": true,
-    "noImplicitOverride": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "sourceMap": true,
-    "declaration": false,
-    "experimentalDecorators": true,
-    "moduleResolution": "node",
-    "importHelpers": true,
-    "target": "ES2022",
-    "module": "ES2022",
-    "useDefineForClassFields": false,
-    "lib": [
-      "ES2022",
-      "dom"
-    ],
-    "paths": {
-      "@core/*": [
-        "src/app/core/*"
-      ],
-      "@app/*": [
-        "src/app/*"
-      ],
-      "@guard/*": [
-        "src/app/core/guards/*"
-      ],
-      "@helper/*": [
-        "src/app/core/helpers/*"
-      ],
-      "@pipe/*": [
-        "src/app/core/pipes/*"
-      ],
-      "@page/*": [
-        "src/app/components/pages/*"
-      ],
-      "@layout/*": [
-        "src/app/components/feature/layout/*"
-      ],
-      "@service/*": [
-        "src/app/core/services/*"
-      ],
+    "compileOnSave": false,
+    "compilerOptions": {
+        "outDir": "./dist/out-tsc",
+        "strict": true,
+        "noImplicitOverride": true,
+        "noPropertyAccessFromIndexSignature": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "sourceMap": true,
+        "declaration": false,
+        "experimentalDecorators": true,
+        "moduleResolution": "node",
+        "importHelpers": true,
+        "target": "ES2022",
+        "module": "ES2022",
+        "useDefineForClassFields": false,
+        "lib": [
+            "ES2022",
+            "dom"
+        ],
+        "paths": {
+            "@core/*": [
+                "./src/app/core/*"
+            ],
+            "@app/*": [
+                "./src/app/*"
+            ],
+            "@guard/*": [
+                "./src/app/core/guards/*"
+            ],
+            "@helper/*": [
+                "./src/app/core/helpers/*"
+            ],
+            "@pipe/*": [
+                "./src/app/core/pipes/*"
+            ],
+            "@page/*": [
+                "./src/app/components/pages/*"
+            ],
+            "@layout/*": [
+                "./src/app/components/feature/layout/*"
+            ],
+            "@service/*": [
+                "./src/app/core/services/*"
+            ]
+        }
     },
-  },
-  "angularCompilerOptions": {
-    "enableI18nLegacyMessageIdFormat": false,
-    "strictInjectionParameters": true,
-    "strictInputAccessModifiers": true,
-    "strictTemplates": true
-  }
+    "angularCompilerOptions": {
+        "enableI18nLegacyMessageIdFormat": false,
+        "strictInjectionParameters": true,
+        "strictInputAccessModifiers": true,
+        "strictTemplates": true
+    }
 }

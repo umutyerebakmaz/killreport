@@ -1,1 +1,86 @@
-<div class="flex items-center justify-center p-6 shadow bg-slate-700">Menu Tracker Post HEADER WORKS!</div>
+<div class="grid items-center grid-cols-3 p-6 shadow bg-neutral-800">
+    <div>
+        <div class="text-base font-bold text-gray-200">KILLREPORT</div>
+    </div>
+    <div class="flex justify-center gap-2">
+        <button mat-flat-button [matMenuTriggerFor]="menu">
+            <mat-icon>menu</mat-icon>
+            MENU
+        </button>
+        <mat-menu #menu="matMenu">
+            <button mat-menu-item>Wars</button>
+            <button mat-menu-item>War Eligible</button>
+            <mat-divider></mat-divider>
+            <button mat-menu-item>Top Kills (5B+)</button>
+            <button mat-menu-item>Big Kills (10B+)</button>
+            <button mat-menu-item>Capitals</button>
+            <button mat-menu-item>Structures</button>
+            <button mat-menu-item>Abyssal</button>
+            <button mat-menu-item>Abyssal PVP</button>
+            <button mat-menu-item>Avox</button>
+            <button mat-menu-item>Ganked</button>
+            <button mat-menu-item>Solo</button>
+            <mat-divider></mat-divider>
+            <button mat-menu-item>Highsec</button>
+            <button mat-menu-item>Lowsec</button>
+            <button mat-menu-item>Nullsec</button>
+            <button mat-menu-item>Wormhole</button>
+            <mat-divider></mat-divider>
+            <button mat-menu-item>Caldari vs Gallente</button>
+            <button mat-menu-item>Amarr vs Minmatar</button>
+            <mat-divider></mat-divider>
+            <button mat-menu-item>Sponsored</button>
+            <button mat-menu-item>Hourly Stat</button>
+            <button mat-menu-item>Top 10 Recent</button>
+            <button mat-menu-item>Top 10 Alltime</button>
+            <button mat-menu-item>System Logs</button>
+        </mat-menu>
+
+        <button mat-flat-button [matMenuTriggerFor]="tracker">
+            <mat-icon>menu</mat-icon>
+            TRACKER
+        </button>
+        <mat-menu #tracker="matMenu">
+            <div class="px-4 py-1 text-xs text-yellow-400 bg-neutral-600">Alliances</div>
+            <button mat-menu-item>Alliance One</button>
+            <button mat-menu-item>Alliane Two</button>
+            <button mat-menu-item>Alliance Three</button>
+            <div class="px-4 py-1 text-xs text-yellow-400 bg-neutral-600">Corporations</div>
+            <button mat-menu-item>Corporation One</button>
+            <button mat-menu-item>Corporation Two</button>
+            <button mat-menu-item>Corporation Three</button>
+            <div class="px-4 py-1 text-xs text-yellow-400 bg-neutral-600">Characters</div>
+            <button mat-menu-item>Me</button>
+            <button mat-menu-item>Capsuleer One</button>
+            <button mat-menu-item>Capsuleer Two</button>
+            <button mat-menu-item>Capsuleer Three</button>
+        </mat-menu>
+        <button mat-flat-button>POST</button>
+    </div>
+    <div class="flex items-center justify-end">
+        <div class="flex justify-center gap-4 pr-4 text-base">
+            <div matTooltip="513 new kills added">513</div>
+            <div
+                matTooltip="{{ 'Tranquility ' + players + ' online players' }}"
+                class="flex items-center justify-center text-green-500"
+            >
+                <mat-icon
+                    aria-hidden="false"
+                    aria-label="Tranquility online players count"
+                    fontIcon="supervised_user_circle"
+                ></mat-icon>
+                <span class="pl-2">Tranquility {{ players | number: '2.0-1' }}</span>
+            </div>
+            <div matTooltip="Current Eve Online ingame time">{{ eveTime }} UTC</div>
+        </div>
+        <button mat-flat-button [matMenuTriggerFor]="login" (click)="getStatus()">LOGIN</button>
+        <mat-menu #login="matMenu">
+            <button mat-menu-item>Settings</button>
+            <div class="px-4 py-1 text-xs text-yellow-400 bg-neutral-600">Support</div>
+            <button mat-menu-item>Discord</button>
+            <button mat-menu-item>FAQ</button>
+            <mat-divider></mat-divider>
+            <button mat-menu-item>Logout</button>
+        </mat-menu>
+    </div>
+</div>
