@@ -8,5 +8,5 @@ body {
 
 .fill-height {
     min-height: calc(100vh - 55px - 72px);
-    @apply flex items-center justify-center content-between text-5xl;
+    @apply flex items-center justify-center content-between;
 }
