@@ -4,14 +4,14 @@
         class="px-2 py-1 text-sm text-white transition duration-300 ease-in-out rounded-md shadow-sm cursor-pointer bg-white/10 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 focus:ring-offset-black"
         (click)="tab = 1"
     >
-        Alltime
+        Alltimes
     </button>
     <button
         type="button"
         class="px-2 py-1 text-sm text-white transition duration-300 ease-in-out rounded-md shadow-sm cursor-pointer bg-white/10 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 focus:ring-offset-black"
         (click)="tab = 2"
     >
-        Recent
+        Monthly
     </button>
     <button
         type="button"
@@ -33,7 +33,7 @@
     <div *ngIf="tab === 1">
         <div><rank-table></rank-table></div>
     </div>
-    <div *ngIf="tab === 2">RECENT TAB</div>
+    <div *ngIf="tab === 2">MONTHLY TAB</div>
     <div *ngIf="tab === 3">WEEKLY TAB</div>
     <div *ngIf="tab === 4">DAILY TAB</div>
 </div>
