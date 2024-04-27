@@ -26,7 +26,6 @@ export class HeaderComponent implements OnInit {
     getStatus(): void {
         this.#statusService.getStatus().subscribe(data => {
             this.players = data.players;
-            console.log(data);
         });
     }
 
