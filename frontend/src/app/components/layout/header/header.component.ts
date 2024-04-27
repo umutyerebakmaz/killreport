@@ -4,7 +4,7 @@ import { MatIcon } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDivider } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { StatusService } from '@app/services/esi/status.service';
+import { StatusService } from '@app/service/esi/status.service';
 import { DatePipe, DecimalPipe } from '@angular/common';
 
 @Component({

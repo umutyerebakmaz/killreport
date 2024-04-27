@@ -30,22 +30,25 @@
                 "./src/app/*"
             ],
             "@guard/*": [
-                "./src/app/core/guards/*"
+                "./src/app/core/guard/*"
             ],
             "@helper/*": [
-                "./src/app/core/helpers/*"
+                "./src/app/core/helper/*"
             ],
             "@pipe/*": [
-                "./src/app/core/pipes/*"
+                "./src/app/core/pipe/*"
             ],
             "@page/*": [
-                "./src/app/components/pages/*"
+                "./src/app/components/page/*"
             ],
             "@layout/*": [
-                "./src/app/components/feature/layout/*"
+                "./src/app/components/layout/*"
+            ],
+            "@common/*": [
+                "./src/app/components/common/*"
             ],
             "@service/*": [
-                "./src/app/services/*"
+                "./src/app/service/*"
             ]
         }
     },
