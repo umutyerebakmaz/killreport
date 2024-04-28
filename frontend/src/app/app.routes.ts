@@ -6,7 +6,7 @@ import { ALLIANCE_ROUTES } from '@page/alliance/alliance.routes';
 
 export const routes: Routes = [
   ...HOME_ROUTES,
-  ...KILL_ROUTES,
   ...CHARACTER_ROUTES,
   ...ALLIANCE_ROUTES,
+  ...KILL_ROUTES,
 ];

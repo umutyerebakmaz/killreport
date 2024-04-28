@@ -1,12 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { MatTooltip } from '@angular/material/tooltip';
+import { Alliance } from '@page/alliance/alliance.component';
 
-type Alliance = {
-  name: string;
-  ticked: string;
-  executor: string;
-  members: string;
-};
 @Component({
   standalone: true,
   selector: 'alliance-info-card',
@@ -14,11 +9,5 @@ type Alliance = {
   imports: [MatTooltip]
 })
 export class AllianceInfoCardComponent {
-
-  alliance: Alliance = {
-    name: 'Fraternity.',
-    ticked: 'FRT',
-    executor: 'FRT Holding',
-    members: '36,213',
-  };
+  @Input() alliance!: Alliance;
 }
