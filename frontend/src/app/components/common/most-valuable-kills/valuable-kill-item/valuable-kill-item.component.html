@@ -1,6 +1,48 @@
-<div class="transition duration-700 ease-in-out cursor-pointer hover:scale-110 transform-gpu group">
-    <img [src]="item.image"  alt="Phoenix">
-    <div class="mt-3 text-lg font-semibold tracking-tight">{{ item.type }}</div>
-    <div class="mb-3 text-base text-gray-600">{{ item.character }}</div>
-    <span class="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-400 rounded-md bg-gray-400/10 ring-1 ring-inset ring-gray-400/20">{{ item.amount }}</span>
+<div class="flex cursor-pointer group">
+    <div class="flex">
+        <div class="flex-grow w-auto">
+
+            <ng-container *ngIf="item.index === 1">
+                <svg
+                width="100%" height="100%"
+                viewBox="-20 0 70 154"
+                class="z-10 flex-grow h-32">
+                    <path
+                    stroke="#595959"
+                    stroke-linejoin="square"
+                    stroke-width="4"
+                    d="M35.377 152H72V2.538L2 19.362v30.341l33.377-8.459V152z">
+                    </path>
+                </svg>
+            </ng-container>
+
+            <ng-container *ngIf="item.index === 2">
+                <svg
+                width="100%" height="100%"
+                viewBox="0 0 80 154"
+                class="z-10 flex-grow h-32">
+                <path stroke="#595959"
+                stroke-linejoin="square"
+                stroke-width="4"
+                d="M3.72 152H113v-30.174H50.484l4.355-3.55 29.453-24.012c5.088-4.124 9.748-8.459 13.983-13.004 4.16-4.464 7.481-9.339 9.972-14.629 2.449-5.203 3.678-11.113 3.678-17.749 0-9.428-2.294-17.627-6.875-24.645-4.597-7.042-10.941-12.494-19.07-16.376C77.803 3.957 68.496 2 58.036 2 47.591 2 38.37 4.023 30.347 8.06c-8.015 4.032-14.457 9.578-19.352 16.654-4.492 6.493-7.389 13.803-8.693 21.952h34.055c1.236-3.52 3.398-6.52 6.459-8.97 3.54-2.834 8.277-4.224 14.147-4.224 5.93 0 10.552 1.537 13.76 4.681 3.181 3.12 4.791 7.024 4.791 11.594 0 4.151-1.16 7.934-3.468 11.298-2.192 3.194-5.987 7.124-11.405 11.84L3.72 122.465V152z">
+                </path>
+                </svg>
+            </ng-container>
+
+            <ng-container *ngIf="item.index === 10">
+                <svg
+                width="100%"
+                height="100%"
+                viewBox="0 0 140 154"
+                class="z-10 flex-grow h-32"><path stroke="#13A7D0" stroke-linejoin="square" stroke-width="4" d="M34.757 151.55h35.869V2.976L2 19.687v30.14l32.757-8.41v110.132zm105.53 3.45c12.394 0 23.097-3.12 32.163-9.353 9.093-6.25 16.11-15.047 21.066-26.43C198.5 107.766 201 94.196 201 78.5c0-15.698-2.5-29.266-7.484-40.716-4.955-11.384-11.973-20.18-21.066-26.431C163.384 5.119 152.681 2 140.287 2c-12.393 0-23.096 3.12-32.162 9.353-9.093 6.25-16.11 15.047-21.066 26.43-4.984 11.45-7.484 25.02-7.484 40.717 0 15.698 2.5 29.266 7.484 40.716 4.955 11.384 11.973 20.18 21.066 26.431 9.066 6.234 19.769 9.353 32.162 9.353zm0-31.368c-7.827 0-13.942-4.147-18.15-12.178-4.053-7.736-6.047-18.713-6.047-32.954s1.994-25.218 6.047-32.954c4.208-8.03 10.323-12.178 18.15-12.178 7.827 0 13.943 4.147 18.15 12.178 4.053 7.736 6.048 18.713 6.048 32.954s-1.995 25.218-6.047 32.954c-4.208 8.03-10.324 12.178-18.15 12.178z"></path></svg>
+            </ng-container>
+        </div>
+        <div class="w-32">
+            <img [src]="item.image"  alt="Phoenix" class="w-32 h-32">
+            <div class="mt-3 text-lg font-semibold tracking-tight text-teal-500">{{ item.type }}</div>
+            <div class="mb-3 text-base text-gray-400 truncate">{{ item.character }}</div>
+            <span class="inline-flex items-center px-2 py-1 text-base font-medium text-gray-400 rounded-md bg-gray-400/10 ring-1 ring-inset ring-gray-400/20">{{ item.amount }}</span>
+        </div>
+    </div>
+
 </div>

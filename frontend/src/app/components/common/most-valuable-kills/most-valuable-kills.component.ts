@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { ValuableKillItemComponent } from './valuable-kill-item/valuable-kill-item.component';
+import { NgIf } from '@angular/common';
 
 @Component({
     selector: 'most-valuable-kills',
