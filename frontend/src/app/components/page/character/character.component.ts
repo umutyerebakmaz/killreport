@@ -4,6 +4,7 @@ import { RankInfoCardComponent } from '@common/rank-info-card/rank-info-card.com
 import { RankFilterService } from '@service/rank-filter.service';
 import { Subscription } from 'rxjs';
 import { MostValuableKillsComponent } from '@common/most-valuable-kills/most-valuable-kills.component';
+import { KillTableRowComponent } from '@app/components/common/kill-table-row/kill-table-row.component';
 
 export type Character = {
     name: string;
@@ -17,7 +18,7 @@ export type Character = {
     standalone: true,
     selector: 'character',
     templateUrl: './character.component.html',
-    imports: [CharacterInfoCardComponent, RankInfoCardComponent, MostValuableKillsComponent]
+    imports: [CharacterInfoCardComponent, RankInfoCardComponent, MostValuableKillsComponent, KillTableRowComponent]
 })
 export class CharacterComponent implements OnInit, OnDestroy {
 
