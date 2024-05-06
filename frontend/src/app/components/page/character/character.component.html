@@ -8,6 +8,16 @@
     </div>
     <div class="mt-8">
         <h2 class="font-semibold">Recent Activity</h2>
-        <kill-table-row></kill-table-row>
+
+        <div class="shadow ring-1 ring-neutral-600">
+            <kill-table-row></kill-table-row>
+        </div>
+        <kill-table></kill-table>
+
+        <mat-paginator #paginator
+        [pageSize]="10"
+        [pageSizeOptions]="[5, 10, 20]"
+        [showFirstLastButtons]="true">
+</mat-paginator>
     </div>
 </div>

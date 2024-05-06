@@ -5,6 +5,8 @@ import { RankFilterService } from '@service/rank-filter.service';
 import { Subscription } from 'rxjs';
 import { MostValuableKillsComponent } from '@common/most-valuable-kills/most-valuable-kills.component';
 import { KillTableRowComponent } from '@app/components/common/kill-table-row/kill-table-row.component';
+import { KillTableComponent } from '@app/components/common/kill-table/kill-table.component';
+import { MatPaginatorModule } from '@angular/material/paginator';
 
 export type Character = {
     name: string;
@@ -18,7 +20,7 @@ export type Character = {
     standalone: true,
     selector: 'character',
     templateUrl: './character.component.html',
-    imports: [CharacterInfoCardComponent, RankInfoCardComponent, MostValuableKillsComponent, KillTableRowComponent]
+    imports: [CharacterInfoCardComponent, RankInfoCardComponent, MostValuableKillsComponent, KillTableRowComponent, KillTableComponent, MatPaginatorModule]
 })
 export class CharacterComponent implements OnInit, OnDestroy {
 
