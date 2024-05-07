@@ -1,37 +1,51 @@
-<div class="example-container mat-elevation-z8">
-    <mat-table #table [dataSource]="dataSource">
+<div class="rounded-md ring-1 ring-gray-400/20">
+    <div *ngFor="let row of rows; index as i; first as first; last as last; even as even; odd as odd; trackBy: trackByFn"
+    class="grid grid-cols-3 gap-4 p-2 [&:not(:first-child)]:border-t border-gray-400/20"
+    [ngClass]="{ 'bg-gray-400/10': odd }">
+        <!-- 1 -->
+        <div class="flex">
+            <div class="flex flex-col items-start justify-center px-4">
+                <span class="text-gray-400">18:36</span>
+                <span class="text-teal-500">39.09m ISK</span>
+            </div>
 
-      <!-- Position Column -->
-      <ng-container matColumnDef="position">
-        <mat-header-cell *matHeaderCellDef> No. </mat-header-cell>
-        <mat-cell *matCellDef="let element"> {{element.position}} </mat-cell>
-      </ng-container>
+            <div>
+                <img src="https://images.evetech.net/types/621/render?size=64"  alt="Caracal" class="w-16 h-16">
+            </div>
 
-      <!-- Name Column -->
-      <ng-container matColumnDef="name">
-        <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
-        <mat-cell *matCellDef="let element"> {{element.name}} </mat-cell>
-      </ng-container>
+            <div class="flex flex-col items-start justify-center px-4">
+                <span class="flex">
+                    <span class="mr-2 text-gray-400">Z-8Q65</span><span class="text-red-500">(-0.8)</span>
+                </span>
+                <span class="text-gray-400">Vale of the Silent</span>
+                <span class="text-teal-500">Caracal</span>
+            </div>
+        </div>
 
-      <!-- Weight Column -->
-      <ng-container matColumnDef="weight">
-        <mat-header-cell *matHeaderCellDef> Weight </mat-header-cell>
-        <mat-cell *matCellDef="let element"> {{element.weight}} </mat-cell>
-      </ng-container>
+        <!-- 2 -->
+        <div class="flex px-4">
+            <img src="https://images.evetech.net/corporations/98768569/logo?size=64" alt="Hamster Black" class="w-16 h-16 mr-4">
+            <div class="flex flex-col justify-center">
+                <span class="text-gray-400">Deniseus Rin</span>
+                <span class="text-gray-400">Hamster Black</span>
+            </div>
+        </div>
 
-      <!-- Symbol Column -->
-      <ng-container matColumnDef="symbol">
-        <mat-header-cell *matHeaderCellDef> Symbol </mat-header-cell>
-        <mat-cell *matCellDef="let element"> {{element.symbol}} </mat-cell>
-      </ng-container>
+        <!-- 3 -->
+        <div class="flex px-4">
+            <img src="https://images.evetech.net/alliances/99003581/logo?size=64" alt="Hamster Black" class="w-16 h-16 mr-4">
 
-      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
-    </mat-table>
+            <div class="flex flex-col justify-center mr-4">
+                <span class="text-gray-400">CUNGER LAN</span>
+                <span class="text-gray-400">Fraternity.</span>
+            </div>
 
-    <mat-paginator #paginator
-                   [pageSize]="10"
-                   [pageSizeOptions]="[5, 10, 20]"
-                   [showFirstLastButtons]="true">
-    </mat-paginator>
-  </div>
+            <div class="flex items-center justify-center">
+                <span class="inline-flex items-center px-2 py-1 text-base text-purple-400 rounded-md bg-purple-400/10 ring-1 ring-inset ring-purple-400/30">16</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
