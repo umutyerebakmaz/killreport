@@ -5,6 +5,7 @@ import { RankFilterService } from '@service/rank-filter.service';
 import { Subscription } from 'rxjs';
 import { MostValuableKillsComponent } from '@common/most-valuable-kills/most-valuable-kills.component';
 import { KillTableComponent } from '@app/components/common/kill-table/kill-table.component';
+import { mostValuableKillsMockup } from '../../../mocks/mocks';
 
 export type Character = {
     name: string;
@@ -142,6 +143,8 @@ export class CharacterComponent implements OnInit, OnDestroy {
     rank!: any;
 
     rows = [1, 2, 4, 5, 6, 7, 8, 9, 10];
+
+    mostValuableKillsMockup = mostValuableKillsMockup;
 
     ngOnInit(): void {
         this.rankFilterSub = this.#rankFilterService.filter$.subscribe(filter => {

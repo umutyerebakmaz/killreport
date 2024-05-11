@@ -17,5 +17,6 @@ export type Item = {
 })
 export class ValuableKillItemComponent {
     @Input() item!: Item;
+    @Input() rank!: number;
 
 }
