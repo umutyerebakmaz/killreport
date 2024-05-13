@@ -44,8 +44,8 @@
             "@layout/*": [
                 "./src/app/components/layout/*"
             ],
-            "@common/*": [
-                "./src/app/components/common/*"
+            "@ui/*": [
+                "./src/app/components/ui/*"
             ],
             "@service/*": [
                 "./src/app/service/*"

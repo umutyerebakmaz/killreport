@@ -1,9 +1,9 @@
 body {
-    //-webkit-tap-highlight-color: transparent;
-    //-webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
     width: 100%;
     @apply bg-black text-white;
-    // user-select: none;
+    user-select: none;
 }
 
 .fill-height {
