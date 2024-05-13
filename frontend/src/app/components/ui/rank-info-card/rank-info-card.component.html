@@ -30,170 +30,169 @@
 </div>
 
 <div class="pt-4">
-<!-- ships -->
-<div class="bg-neutral-900">
-  <div class="overflow-x-auto">
-      <table class="w-full text-left table-fixed whitespace-nowrap">
-          <thead class="leading-6 text-white border-b border-white/10">
-              <tr>
-                  <th class="w-full py-2 pl-2"></th>
-                  <th class="w-full py-2">Destroyed</th>
-                  <th class="w-full py-2">Rank</th>
-                  <th class="w-full py-2">Lost</th>
-                  <th class="w-full py-2">Rank</th>
-                  <th class="w-full py-2">Efficiency %</th>
-                  <th class="w-full py-2">{{ rank?.rankTitle }}</th>
-              </tr>
-          </thead>
-          <tbody class="divide-y divide-white/5">
-              <!-- ship row-->
-              <tr role="row">
-                  <td class="flex justify-end w-full py-2 pl-2 pr-4">
-                      <span class="text-sm font-medium text-yellow-500">SHIPS</span>
-                  </td>
-                  <td class="w-full py-2">
-                      <span
-                          class="inline-flex items-center px-2 py-1 text-sm font-medium text-green-400 rounded-md bg-green-500/10 ring-1 ring-inset ring-green-500/20"
-                      >
-                          {{ rank?.ships.destroyed }}</span
-                      >
-                  </td>
-                  <td class="w-full py-2">
-                      <span
-                          class="inline-flex items-center px-2 py-1 text-sm font-medium text-green-400 rounded-md bg-green-500/10 ring-1 ring-inset ring-green-500/20"
-                      >
-                          {{ rank?.ships.destroyedRank }}</span
-                      >
-                  </td>
-                  <td class="w-full py-2">
-                      <span
-                          class="inline-flex items-center px-2 py-1 text-sm font-medium text-red-400 rounded-md bg-red-400/10 ring-1 ring-inset ring-red-400/20"
-                      >
-                          {{ rank?.ships.lost }}
-                      </span>
-                  </td>
-                  <td class="w-full py-2">
-                      <span
-                          class="inline-flex items-center px-2 py-1 text-sm font-medium text-red-400 rounded-md bg-red-400/10 ring-1 ring-inset ring-red-400/20"
-                      >
-                          {{ rank?.ships.lostRank }}
-                      </span>
-                  </td>
-                  <td class="w-full py-2">
-                      <span
-                          class="inline-flex items-center px-2 py-1 text-sm font-medium text-red-400 rounded-md bg-red-400/10 ring-1 ring-inset ring-red-400/20"
-                      >
-                          {{ rank?.ships.efficiency }}
-                      </span>
-                  </td>
-                  <td class="flex items-center justify-start w-full py-2">
-                      <span
-                          class="inline-flex items-center px-2 py-1 text-sm font-medium text-green-400 rounded-md bg-green-500/10 ring-1 ring-inset ring-green-500/20"
-                      >
-                          <span>{{ rank?.ships.allTimeRank }}</span>
-                          <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke-width="1.5"
-                              stroke="currentColor"
-                              class="w-6 h-6 pl-2 text-green-400"
-                          >
-                              <path
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"
-                              /></svg
-                      ></span>
-                  </td>
-              </tr>
-              <!-- point row-->
-              <tr role="row">
-                  <td class="flex justify-end w-full py-2 pl-2 pr-4">
-                      <span class="text-sm font-medium text-yellow-500">POINTS</span>
-                  </td>
-                  <td class="w-full py-2">
-                      <span
-                          class="inline-flex items-center px-2 py-1 text-sm font-medium text-green-400 rounded-md bg-green-500/10 ring-1 ring-inset ring-green-500/20"
-                      >
-                          {{ rank?.points.destroyed }}</span
-                      >
-                  </td>
-                  <td class="w-full py-2">
-                      <span
-                          class="inline-flex items-center px-2 py-1 text-sm font-medium text-green-400 rounded-md bg-green-500/10 ring-1 ring-inset ring-green-500/20"
-                      >
-                          {{ rank?.points.destroyedRank }}</span
-                      >
-                  </td>
-                  <td class="w-full py-2">
-                      <span
-                          class="inline-flex items-center px-2 py-1 text-sm font-medium text-red-400 rounded-md bg-red-400/10 ring-1 ring-inset ring-red-400/20"
-                      >
-                          {{ rank?.points.lost }}
-                      </span>
-                  </td>
-                  <td class="w-full py-2">
-                      <span
-                          class="inline-flex items-center px-2 py-1 text-sm font-medium text-red-400 rounded-md bg-red-400/10 ring-1 ring-inset ring-red-400/20"
-                      >
-                          {{ rank?.points.lostRank }}
-                      </span>
-                  </td>
-                  <td class="w-full py-2">
-                      <span
-                          class="inline-flex items-center px-2 py-1 text-sm font-medium text-green-400 rounded-md bg-green-500/10 ring-1 ring-inset ring-green-500/20"
-                      >
-                          {{ rank?.points.efficiency }}</span
-                      >
-                  </td>
-                  <td class="flex w-full py-2"></td>
-              </tr>
-              <!-- isk row-->
-              <tr role="row">
-                  <td class="flex justify-end w-full py-2 pl-2 pr-4">
-                      <span class="text-sm font-medium text-yellow-500">ISK</span>
-                  </td>
-                  <td class="w-full py-">
-                      <span
-                          class="inline-flex items-center px-2 py-1 text-sm font-medium text-green-400 rounded-md bg-green-500/10 ring-1 ring-inset ring-green-500/20"
-                      >
-                          {{ rank?.isk.destroyed }}</span
-                      >
-                  </td>
-                  <td class="w-full py-2">
-                      <span
-                          class="inline-flex items-center px-2 py-1 text-sm font-medium text-green-400 rounded-md bg-green-500/10 ring-1 ring-inset ring-green-500/20"
-                      >
-                          {{ rank?.isk.destroyedRank }}</span
-                      >
-                  </td>
-                  <td class="w-full py-2">
-                      <span
-                          class="inline-flex items-center px-2 py-1 text-sm font-medium text-green-400 rounded-md bg-green-500/10 ring-1 ring-inset ring-green-500/20"
-                      >
-                          {{ rank?.isk.lost }}</span
-                      >
-                  </td>
-                  <td class="w-full py-2">
-                      <span
-                          class="inline-flex items-center px-2 py-1 text-sm font-medium text-red-400 rounded-md bg-red-400/10 ring-1 ring-inset ring-red-400/20"
-                      >
-                          {{ rank?.isk.lostRank }}
-                      </span>
-                  </td>
-                  <td class="w-full py-2">
-                      <span
-                          class="inline-flex items-center px-2 py-1 text-sm font-medium text-green-400 rounded-md bg-green-500/10 ring-1 ring-inset ring-green-500/20"
-                      >
-                          {{ rank?.isk.efficiency }}</span
-                      >
-                  </td>
-                  <td class="flex items-center justify-start w-full py-2"></td>
-              </tr>
-          </tbody>
-      </table>
-  </div>
-</div>
-
+    <!-- ships -->
+    <div class="bg-neutral-900">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left table-fixed whitespace-nowrap">
+                <thead class="leading-6 text-white border-b border-white/10">
+                    <tr>
+                        <th class="w-full py-2 pl-2"></th>
+                        <th class="w-full py-2">Destroyed</th>
+                        <th class="w-full py-2">Rank</th>
+                        <th class="w-full py-2">Lost</th>
+                        <th class="w-full py-2">Rank</th>
+                        <th class="w-full py-2">Efficiency %</th>
+                        <th class="w-full py-2">{{ rank?.rankTitle }}</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    <!-- ship row-->
+                    <tr role="row">
+                        <td class="flex justify-end w-full py-2 pl-2 pr-4">
+                            <span class="text-sm font-medium text-yellow-500">SHIPS</span>
+                        </td>
+                        <td class="w-full py-2">
+                            <span
+                                class="inline-flex items-center px-2 py-1 text-sm font-medium text-green-400 rounded-md bg-green-500/10 ring-1 ring-inset ring-green-500/20"
+                            >
+                                {{ rank?.ships.destroyed }}</span
+                            >
+                        </td>
+                        <td class="w-full py-2">
+                            <span
+                                class="inline-flex items-center px-2 py-1 text-sm font-medium text-green-400 rounded-md bg-green-500/10 ring-1 ring-inset ring-green-500/20"
+                            >
+                                {{ rank?.ships.destroyedRank }}</span
+                            >
+                        </td>
+                        <td class="w-full py-2">
+                            <span
+                                class="inline-flex items-center px-2 py-1 text-sm font-medium text-red-400 rounded-md bg-red-400/10 ring-1 ring-inset ring-red-400/20"
+                            >
+                                {{ rank?.ships.lost }}
+                            </span>
+                        </td>
+                        <td class="w-full py-2">
+                            <span
+                                class="inline-flex items-center px-2 py-1 text-sm font-medium text-red-400 rounded-md bg-red-400/10 ring-1 ring-inset ring-red-400/20"
+                            >
+                                {{ rank?.ships.lostRank }}
+                            </span>
+                        </td>
+                        <td class="w-full py-2">
+                            <span
+                                class="inline-flex items-center px-2 py-1 text-sm font-medium text-red-400 rounded-md bg-red-400/10 ring-1 ring-inset ring-red-400/20"
+                            >
+                                {{ rank?.ships.efficiency }}
+                            </span>
+                        </td>
+                        <td class="flex items-center justify-start w-full py-2">
+                            <span
+                                class="inline-flex items-center px-2 py-1 text-sm font-medium text-green-400 rounded-md bg-green-500/10 ring-1 ring-inset ring-green-500/20"
+                            >
+                                <span>{{ rank?.ships.allTimeRank }}</span>
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="w-6 h-6 pl-2 text-green-400"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"
+                                    /></svg
+                            ></span>
+                        </td>
+                    </tr>
+                    <!-- point row-->
+                    <tr role="row">
+                        <td class="flex justify-end w-full py-2 pl-2 pr-4">
+                            <span class="text-sm font-medium text-yellow-500">POINTS</span>
+                        </td>
+                        <td class="w-full py-2">
+                            <span
+                                class="inline-flex items-center px-2 py-1 text-sm font-medium text-green-400 rounded-md bg-green-500/10 ring-1 ring-inset ring-green-500/20"
+                            >
+                                {{ rank?.points.destroyed }}</span
+                            >
+                        </td>
+                        <td class="w-full py-2">
+                            <span
+                                class="inline-flex items-center px-2 py-1 text-sm font-medium text-green-400 rounded-md bg-green-500/10 ring-1 ring-inset ring-green-500/20"
+                            >
+                                {{ rank?.points.destroyedRank }}</span
+                            >
+                        </td>
+                        <td class="w-full py-2">
+                            <span
+                                class="inline-flex items-center px-2 py-1 text-sm font-medium text-red-400 rounded-md bg-red-400/10 ring-1 ring-inset ring-red-400/20"
+                            >
+                                {{ rank?.points.lost }}
+                            </span>
+                        </td>
+                        <td class="w-full py-2">
+                            <span
+                                class="inline-flex items-center px-2 py-1 text-sm font-medium text-red-400 rounded-md bg-red-400/10 ring-1 ring-inset ring-red-400/20"
+                            >
+                                {{ rank?.points.lostRank }}
+                            </span>
+                        </td>
+                        <td class="w-full py-2">
+                            <span
+                                class="inline-flex items-center px-2 py-1 text-sm font-medium text-green-400 rounded-md bg-green-500/10 ring-1 ring-inset ring-green-500/20"
+                            >
+                                {{ rank?.points.efficiency }}</span
+                            >
+                        </td>
+                        <td class="flex w-full py-2"></td>
+                    </tr>
+                    <!-- isk row-->
+                    <tr role="row">
+                        <td class="flex justify-end w-full py-2 pl-2 pr-4">
+                            <span class="text-sm font-medium text-yellow-500">ISK</span>
+                        </td>
+                        <td class="w-full py-">
+                            <span
+                                class="inline-flex items-center px-2 py-1 text-sm font-medium text-green-400 rounded-md bg-green-500/10 ring-1 ring-inset ring-green-500/20"
+                            >
+                                {{ rank?.isk.destroyed }}</span
+                            >
+                        </td>
+                        <td class="w-full py-2">
+                            <span
+                                class="inline-flex items-center px-2 py-1 text-sm font-medium text-green-400 rounded-md bg-green-500/10 ring-1 ring-inset ring-green-500/20"
+                            >
+                                {{ rank?.isk.destroyedRank }}</span
+                            >
+                        </td>
+                        <td class="w-full py-2">
+                            <span
+                                class="inline-flex items-center px-2 py-1 text-sm font-medium text-green-400 rounded-md bg-green-500/10 ring-1 ring-inset ring-green-500/20"
+                            >
+                                {{ rank?.isk.lost }}</span
+                            >
+                        </td>
+                        <td class="w-full py-2">
+                            <span
+                                class="inline-flex items-center px-2 py-1 text-sm font-medium text-red-400 rounded-md bg-red-400/10 ring-1 ring-inset ring-red-400/20"
+                            >
+                                {{ rank?.isk.lostRank }}
+                            </span>
+                        </td>
+                        <td class="w-full py-2">
+                            <span
+                                class="inline-flex items-center px-2 py-1 text-sm font-medium text-green-400 rounded-md bg-green-500/10 ring-1 ring-inset ring-green-500/20"
+                            >
+                                {{ rank?.isk.efficiency }}</span
+                            >
+                        </td>
+                        <td class="flex items-center justify-start w-full py-2"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>

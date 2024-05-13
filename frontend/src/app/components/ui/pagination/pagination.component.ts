@@ -5,13 +5,10 @@ import { MatPaginatorModule } from '@angular/material/paginator';
     standalone: true,
     selector: 'pagination',
     templateUrl: './pagination.component.html',
-    imports: [MatPaginatorModule]
+    imports: [MatPaginatorModule],
 })
 export class PaginationComponent implements OnInit {
-
     constructor() {}
 
-    ngOnInit() {
-    }
-
+    ngOnInit() {}
 }

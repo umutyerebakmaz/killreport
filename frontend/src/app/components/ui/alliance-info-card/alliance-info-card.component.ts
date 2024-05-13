@@ -6,7 +6,7 @@ import { Alliance } from '@page/alliance/alliance.component';
     standalone: true,
     selector: 'alliance-info-card',
     templateUrl: './alliance-info-card.component.html',
-    imports: [MatTooltip]
+    imports: [MatTooltip],
 })
 export class AllianceInfoCardComponent {
     @Input() alliance!: Alliance;

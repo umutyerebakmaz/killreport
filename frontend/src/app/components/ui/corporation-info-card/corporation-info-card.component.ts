@@ -6,7 +6,7 @@ import { Corporation } from '@app/components/page/corporation/corporation.compon
     standalone: true,
     selector: 'corporation-info-card',
     templateUrl: './corporation-info-card.component.html',
-    imports: [MatTooltip]
+    imports: [MatTooltip],
 })
 export class CorporationInfoCardComponent {
     @Input() corporation!: Corporation;

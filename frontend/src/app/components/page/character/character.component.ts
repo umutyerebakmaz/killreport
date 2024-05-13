@@ -1,10 +1,10 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { CharacterInfoCardComponent } from '@app/components/common/character-info-card/character-info-card.component';
-import { RankInfoCardComponent } from '@common/rank-info-card/rank-info-card.component';
+import { CharacterInfoCardComponent } from '@ui/character-info-card/character-info-card.component';
+import { RankInfoCardComponent } from '@ui/rank-info-card/rank-info-card.component';
 import { RankFilterService } from '@service/rank-filter.service';
 import { Subscription } from 'rxjs';
-import { MostValuableKillsComponent } from '@common/most-valuable-kills/most-valuable-kills.component';
-import { KillTableComponent } from '@app/components/common/kill-table/kill-table.component';
+import { MostValuableKillsComponent } from '@ui/most-valuable-kills/most-valuable-kills.component';
+import { KillTableComponent } from '@ui/kill-table/kill-table.component';
 import { mostValuableKillsMockup } from '../../../mocks/mocks';
 
 export type Character = {
@@ -19,10 +19,9 @@ export type Character = {
     standalone: true,
     selector: 'character',
     templateUrl: './character.component.html',
-    imports: [CharacterInfoCardComponent, RankInfoCardComponent, MostValuableKillsComponent, KillTableComponent]
+    imports: [CharacterInfoCardComponent, RankInfoCardComponent, MostValuableKillsComponent, KillTableComponent],
 })
 export class CharacterComponent implements OnInit, OnDestroy {
-
     #rankFilterService = inject(RankFilterService);
 
     rankFilterSub!: Subscription;
@@ -158,5 +157,4 @@ export class CharacterComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         if (this.rankFilterSub) this.rankFilterSub.unsubscribe();
     }
-
 }

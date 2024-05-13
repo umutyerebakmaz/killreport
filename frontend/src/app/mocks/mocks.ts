@@ -37,8 +37,8 @@ export const mostValuableKillsMockup = [
     },
     {
         image: 'https://images.evetech.net/types/670/render?size=256',
-        type: 'Capsule', character:
-            'Amoli Panala',
+        type: 'Capsule',
+        character: 'Amoli Panala',
         amount: '664.78m ISK',
     },
     {
@@ -58,5 +58,5 @@ export const mostValuableKillsMockup = [
         type: 'Phoenix',
         character: 'Onion Lee',
         amount: '5.60b ISK',
-    }
+    },
 ];

@@ -1,7 +1,9 @@
 <div class="rounded-md ring-1 ring-gray-400/20">
-    <div *ngFor="let row of rows; index as i; first as first; last as last; even as even; odd as odd; trackBy: trackByFn"
-    class="grid grid-cols-3 gap-4 p-2 [&:not(:first-child)]:border-t border-gray-400/20"
-    [ngClass]="{ 'bg-gray-400/10': odd }">
+    <div
+        *ngFor="let row of rows; index as i; first as first; last as last; even as even; odd as odd; trackBy: trackByFn"
+        class="grid grid-cols-3 gap-4 p-2 [&:not(:first-child)]:border-t border-gray-400/20"
+        [ngClass]="{ 'bg-gray-400/10': odd }"
+    >
         <!-- 1 -->
         <div class="flex">
             <div class="flex flex-col items-start justify-center px-4">
@@ -10,7 +12,7 @@
             </div>
 
             <div>
-                <img src="https://images.evetech.net/types/621/render?size=64"  alt="Caracal" class="w-16 h-16">
+                <img src="https://images.evetech.net/types/621/render?size=64" alt="Caracal" class="w-16 h-16" />
             </div>
 
             <div class="flex flex-col items-start justify-center px-4">
@@ -24,7 +26,11 @@
 
         <!-- 2 -->
         <div class="flex px-4">
-            <img src="https://images.evetech.net/corporations/98768569/logo?size=64" alt="Hamster Black" class="w-16 h-16 mr-4">
+            <img
+                src="https://images.evetech.net/corporations/98768569/logo?size=64"
+                alt="Hamster Black"
+                class="w-16 h-16 mr-4"
+            />
             <div class="flex flex-col justify-center">
                 <span class="text-gray-400">Deniseus Rin</span>
                 <span class="text-gray-400">Hamster Black</span>
@@ -33,7 +39,11 @@
 
         <!-- 3 -->
         <div class="flex px-4">
-            <img src="https://images.evetech.net/alliances/99003581/logo?size=64" alt="Hamster Black" class="w-16 h-16 mr-4">
+            <img
+                src="https://images.evetech.net/alliances/99003581/logo?size=64"
+                alt="Hamster Black"
+                class="w-16 h-16 mr-4"
+            />
 
             <div class="flex flex-col justify-center mr-4">
                 <span class="text-gray-400">CUNGER LAN</span>
@@ -41,11 +51,11 @@
             </div>
 
             <div class="flex items-center justify-center">
-                <span class="inline-flex items-center px-2 py-1 text-base text-purple-400 rounded-md bg-purple-400/10 ring-1 ring-inset ring-purple-400/30">16</span>
+                <span
+                    class="inline-flex items-center px-2 py-1 text-base text-purple-400 rounded-md bg-purple-400/10 ring-1 ring-inset ring-purple-400/30"
+                    >16</span
+                >
             </div>
         </div>
     </div>
 </div>
-
-
-

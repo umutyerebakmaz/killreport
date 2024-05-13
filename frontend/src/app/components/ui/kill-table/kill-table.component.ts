@@ -13,5 +13,4 @@ export class KillTableComponent {
     trackByFn(index: number, name: any): number {
         return name.id;
     }
-
 }

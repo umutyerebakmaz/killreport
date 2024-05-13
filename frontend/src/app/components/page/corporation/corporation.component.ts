@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
-import { CorporationInfoCardComponent } from '@common/corporation-info-card/corporation-info-card.component';
-import { RankInfoCardComponent } from '@common/rank-info-card/rank-info-card.component';
+import { CorporationInfoCardComponent } from '@ui/corporation-info-card/corporation-info-card.component';
+import { RankInfoCardComponent } from '@ui/rank-info-card/rank-info-card.component';
 import { RankFilterService } from '@service/rank-filter.service';
 import { Subscription } from 'rxjs';
 
@@ -16,11 +16,9 @@ export type Corporation = {
     standalone: true,
     selector: 'corporation',
     templateUrl: './corporation.component.html',
-    imports: [CorporationInfoCardComponent, RankInfoCardComponent]
+    imports: [CorporationInfoCardComponent, RankInfoCardComponent],
 })
 export class CorporationComponent {
-
-
     #rankFilterService = inject(RankFilterService);
 
     rankFilterSub!: Subscription;
@@ -33,7 +31,6 @@ export class CorporationComponent {
         allianceTicked: 'FRT',
         members: '191',
     };
-
 
     allTime: any = {
         rankTitle: 'Alltime Rank',
@@ -153,6 +150,4 @@ export class CorporationComponent {
     ngOnDestroy(): void {
         if (this.rankFilterSub) this.rankFilterSub.unsubscribe();
     }
-
-
 }
