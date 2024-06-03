@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
-import { AllianceInfoCardComponent } from '@app/components/common/alliance-info-card/alliance-info-card.component';
-import { RankInfoCardComponent } from '@common/rank-info-card/rank-info-card.component';
+import { AllianceInfoCardComponent } from '@ui/alliance-info-card/alliance-info-card.component';
+import { RankInfoCardComponent } from '@ui/rank-info-card/rank-info-card.component';
 import { RankFilterService } from '@service/rank-filter.service';
 import { Subscription } from 'rxjs';
 
@@ -14,11 +14,9 @@ export type Alliance = {
     standalone: true,
     selector: 'alliance',
     templateUrl: './alliance.component.html',
-    imports: [AllianceInfoCardComponent, RankInfoCardComponent]
+    imports: [AllianceInfoCardComponent, RankInfoCardComponent],
 })
 export class AllianceComponent {
-
-
     #rankFilterService = inject(RankFilterService);
 
     rankFilterSub!: Subscription;
@@ -29,7 +27,6 @@ export class AllianceComponent {
         executor: 'FRT Holding',
         members: '36,213',
     };
-
 
     allTime: any = {
         rankTitle: 'Alltime Rank',
@@ -149,6 +146,4 @@ export class AllianceComponent {
     ngOnDestroy(): void {
         if (this.rankFilterSub) this.rankFilterSub.unsubscribe();
     }
-
-
 }

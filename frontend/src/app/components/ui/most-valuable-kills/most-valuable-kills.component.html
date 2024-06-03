@@ -1,0 +1,21 @@
+<div class="flex items-center justify-center p-2 text-lg">
+    Most Valuable Kills - Last 7 Days
+</div>
+
+<div class="relative flex overflow-hidden gap-x-2">
+    <app-chevron-left></app-chevron-left>
+    <app-chevron-right></app-chevron-right>
+    <valuable-kill-item *ngFor="let item of data; let i = index" [item]="item" [rank]="i + 1"></valuable-kill-item>
+</div>
+
+<div class="flex items-center justify-center gap-2 p-4">
+    <button
+    *ngFor="let item of data"
+    type="submit"
+    class="inline-flex items-center p-1 text-indigo-500 transition duration-150 ease-in-out bg-white border border-indigo-200 rounded-full shadow-sm  hover:bg-yellow-700 hover:text-white hover:border-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+        <span class="sr-only">Current</span>
+        <div class="w-5 h-5"></div>
+    </button>
+</div>
+
+

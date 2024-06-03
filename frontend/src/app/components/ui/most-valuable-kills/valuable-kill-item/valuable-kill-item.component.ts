@@ -7,7 +7,7 @@ export type Item = {
     character: string;
     amount: string;
     index: number;
-}
+};
 
 @Component({
     selector: 'valuable-kill-item',
@@ -17,5 +17,5 @@ export type Item = {
 })
 export class ValuableKillItemComponent {
     @Input() item!: Item;
-
+    @Input() rank!: number;
 }

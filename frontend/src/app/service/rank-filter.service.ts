@@ -7,7 +7,6 @@ export type RankFilter = 'ALLTIME' | 'MONTHLY' | 'WEEKLY' | 'DAILY';
     providedIn: 'root',
 })
 export class RankFilterService {
-
     #subject = new BehaviorSubject<RankFilter>('ALLTIME');
 
     filter$: Observable<RankFilter> = this.#subject.asObservable();
@@ -15,5 +14,4 @@ export class RankFilterService {
     set(filter: RankFilter) {
         this.#subject.next(filter);
     }
-
 }

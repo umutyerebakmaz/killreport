@@ -18,38 +18,17 @@
         "target": "ES2022",
         "module": "ES2022",
         "useDefineForClassFields": false,
-        "lib": [
-            "ES2022",
-            "dom"
-        ],
+        "lib": ["ES2022", "dom"],
         "paths": {
-            "@core/*": [
-                "./src/app/core/*"
-            ],
-            "@app/*": [
-                "./src/app/*"
-            ],
-            "@guard/*": [
-                "./src/app/core/guard/*"
-            ],
-            "@helper/*": [
-                "./src/app/core/helper/*"
-            ],
-            "@pipe/*": [
-                "./src/app/core/pipe/*"
-            ],
-            "@page/*": [
-                "./src/app/components/page/*"
-            ],
-            "@layout/*": [
-                "./src/app/components/layout/*"
-            ],
-            "@common/*": [
-                "./src/app/components/common/*"
-            ],
-            "@service/*": [
-                "./src/app/service/*"
-            ]
+            "@core/*": ["./src/app/core/*"],
+            "@app/*": ["./src/app/*"],
+            "@guard/*": ["./src/app/core/guard/*"],
+            "@helper/*": ["./src/app/core/helper/*"],
+            "@pipe/*": ["./src/app/core/pipe/*"],
+            "@page/*": ["./src/app/components/page/*"],
+            "@layout/*": ["./src/app/components/layout/*"],
+            "@ui/*": ["./src/app/components/ui/*"],
+            "@service/*": ["./src/app/service/*"]
         }
     },
     "angularCompilerOptions": {
