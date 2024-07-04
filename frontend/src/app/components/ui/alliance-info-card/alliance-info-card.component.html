@@ -4,7 +4,10 @@
     </div>
     <div class="px-2 text-yellow-500">
         <div class="flex items-center">
-            {{ alliance.name }} <span class="text-gray-500">&lt;{{ alliance.ticked }}&gt;</span>
+            <a class="transition duration-300 ease-in-out hover:text-yellow-300" routerLink="/alliance">
+                {{ alliance.name }}
+            </a>
+            <span class="text-gray-500">&lt;{{ alliance.ticked }}&gt;</span>
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -20,7 +23,12 @@
                 />
             </svg>
         </div>
-        <div class="text-yellow-500">{{ alliance.executor }}</div>
+        <div class="text-yellow-500">
+            <a class="transition duration-300 ease-in-out hover:text-yellow-300" routerLink="/corporation">
+                {{ alliance.executor }}
+            </a>
+
+        </div>
         <div matTooltip="{{ 'This alliance has ' + alliance.members + ' peope' }}">
             <span
                 class="inline-flex items-center px-2 py-1 text-sm font-medium text-teal-500 rounded-md bg-teal-400/10 ring-1 ring-inset ring-teal-400/20"

@@ -1,10 +1,9 @@
 <div class="rounded-md ring-1 ring-gray-400/20">
-    <div
-        *ngFor="let row of rows; index as i; first as first; last as last; even as even; odd as odd; trackBy: trackByFn"
-        class="grid grid-cols-3 gap-4 p-2 [&:not(:first-child)]:border-t border-gray-400/20"
+    @for(row of rows; track row; let index = $index; let first = $first; let last = $last; let even = $even; let odd = $odd) {
+        <div class="grid grid-cols-3 gap-4 p-2 [&:not(:first-child)]:border-t border-gray-400/20"
         [ngClass]="{ 'bg-gray-400/10': odd }"
     >
-        <!-- 1 -->
+        <!--    1 -->
         <div class="flex">
             <div class="flex flex-col items-start justify-center px-4">
                 <span class="text-gray-400">18:36</span>
@@ -46,8 +45,12 @@
             />
 
             <div class="flex flex-col justify-center mr-4">
-                <span class="text-gray-400">CUNGER LAN</span>
-                <span class="text-gray-400">Fraternity.</span>
+                <a class="text-gray-400 transition duration-300 ease-in-out cursor-pointer hover:text-gray-200" routerLink="/character">
+                    CUNGER LAN
+                </a>
+                <a class="text-gray-400 transition duration-300 ease-in-out cursor-pointer hover:text-gray-200" routerLink="/alliance">
+                    Fraternity.
+                </a>
             </div>
 
             <div class="flex items-center justify-center">
@@ -58,4 +61,6 @@
             </div>
         </div>
     </div>
+    }
+
 </div>

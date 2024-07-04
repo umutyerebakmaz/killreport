@@ -114,7 +114,11 @@
 
     <div class="pb-4 pl-4">
         <div class="mt-3 text-lg font-semibold text-yellow-500 truncate">{{ item.type }}</div>
-        <div class="mb-3 text-base text-gray-400 truncate">{{ item.character }}</div>
+        <div class="mb-3 text-base text-gray-400 truncate">
+            <a routerLink="/character" class="transition duration-300 ease-in-out hover:text-yellow-300">
+                {{ item.character }}
+            </a>
+        </div>
         <span
             class="inline-flex items-center px-2 py-1 text-base font-medium text-gray-400 rounded-md bg-gray-400/10 ring-1 ring-inset ring-gray-400/20"
             >{{ item.amount }}</span
