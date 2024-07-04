@@ -4,7 +4,9 @@
     </div>
     <div class="px-2 text-yellow-500">
         <div class="flex items-center">
-            {{ character.name }}
+            <a class="transition duration-300 ease-in-out hover:text-yellow-300" routerLink="/character">
+                {{ character.name }}
+            </a>
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -21,10 +23,16 @@
             </svg>
         </div>
         <div>
-            {{ character.corporation }} <span class="text-gray-500">{{ character.corporationTicked }}</span>
+            <a class="transition duration-300 ease-in-out hover:text-yellow-300" routerLink="/corporation">
+                {{ character.corporation }}
+            </a>
+             <span class="text-gray-500">{{ character.corporationTicked }}</span>
         </div>
         <div>
-            {{ character.alliance }} <span class="text-gray-500">&lt;{{ character.allianceTicked }}&gt;</span>
+            <a class="transition duration-300 ease-in-out hover:text-yellow-300" routerLink="/alliance">
+                {{ character.alliance }}
+            </a>
+             <span class="text-gray-500">&lt;{{ character.allianceTicked }}&gt;</span>
         </div>
         <div class="text-yellow-500">{{ character.security }}</div>
     </div>
