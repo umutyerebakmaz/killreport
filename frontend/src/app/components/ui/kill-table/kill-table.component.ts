@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 @Component({
     selector: 'kill-table',
     standalone: true,
-    imports: [NgFor, NgClass, RouterLink],
+    imports: [NgClass, RouterLink],
     templateUrl: './kill-table.component.html',
 })
 export class KillTableComponent {

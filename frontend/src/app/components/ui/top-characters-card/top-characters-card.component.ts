@@ -1,10 +1,10 @@
-import { NgClass, NgFor } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { Component } from '@angular/core';
 
 @Component({
     selector: 'top-characters-card',
     standalone: true,
-    imports: [NgClass, NgFor],
+    imports: [NgClass],
     templateUrl: './top-characters-card.component.html',
 })
 export class TopCharactersCardComponent {
