@@ -4,12 +4,13 @@ import { MostValuableKillsComponent } from '@ui/most-valuable-kills/most-valuabl
 import { PaginationComponent } from '@ui/pagination/pagination.component';
 import { mostValuableKillsMockup } from '../../../mocks/mocks';
 import { TopCharactersCardComponent } from "@app/components/ui/top-characters-card/top-characters-card.component";
+import { TopCorporationsCardComponent } from "@app/components/ui/top-corporations-card/top-corporations-card.component";
 
 @Component({
     standalone: true,
     selector: 'home',
     templateUrl: './home.component.html',
-    imports: [MostValuableKillsComponent, KillTableComponent, PaginationComponent, TopCharactersCardComponent],
+    imports: [MostValuableKillsComponent, KillTableComponent, PaginationComponent, TopCharactersCardComponent, TopCorporationsCardComponent],
 })
 export class HomeComponent implements OnInit {
     rows = [1, 2, 4, 5, 6, 7, 8, 9, 10];
