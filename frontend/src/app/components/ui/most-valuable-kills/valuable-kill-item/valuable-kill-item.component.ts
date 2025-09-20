@@ -1,5 +1,6 @@
 import { NgIf } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 
 export type Item = {
     image: string;
@@ -12,7 +13,7 @@ export type Item = {
 @Component({
     selector: 'valuable-kill-item',
     standalone: true,
-    imports: [NgIf],
+    imports: [NgIf, RouterLink],
     templateUrl: './valuable-kill-item.component.html',
 })
 export class ValuableKillItemComponent {

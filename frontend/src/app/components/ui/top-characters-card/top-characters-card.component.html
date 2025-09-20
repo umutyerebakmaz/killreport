@@ -1,0 +1,19 @@
+<div class="rounded-md ring-1 ring-gray-400/20">
+    <div class="flex">
+        <div>
+            <img src="https://images.evetech.net/characters/2122272722/portrait?size=64">
+        </div>
+        <div class="items-center justify-center px-4 text-lg font-bold text-gray-400 grow">
+            <div>{{ characters[0].character }}</div>
+            <div>{{ characters[0].point }}</div>
+        </div>
+
+    </div>
+    @for(character of characters; track character; let index = $index; let first = $first; let last = $last; let even = $even; let odd = $odd) {
+        <div class="flex gap-4 p-2 [&:not(:first-child)]:border-t border-gray-400/20 justify-between"
+        [ngClass]="{ 'bg-gray-400/10': odd }">
+        <div class="text-gray-400">{{ character.character }}</div>
+        <div class="text-gray-400">{{ character.point }}</div>
+    </div>
+    }
+</div>

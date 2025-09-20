@@ -3,6 +3,10 @@ import { AllianceInfoCardComponent } from '@ui/alliance-info-card/alliance-info-
 import { RankInfoCardComponent } from '@ui/rank-info-card/rank-info-card.component';
 import { RankFilterService } from '@service/rank-filter.service';
 import { Subscription } from 'rxjs';
+import { MostValuableKillsComponent } from '@app/components/ui/most-valuable-kills/most-valuable-kills.component';
+import { mostValuableKillsMockup } from '@app/mocks/mocks';
+import { KillTableComponent } from '@app/components/ui/kill-table/kill-table.component';
+import { TopCharactersCardComponent } from '@app/components/ui/top-characters-card/top-characters-card.component';
 
 export type Alliance = {
     name: string;
@@ -14,7 +18,7 @@ export type Alliance = {
     standalone: true,
     selector: 'alliance',
     templateUrl: './alliance.component.html',
-    imports: [AllianceInfoCardComponent, RankInfoCardComponent],
+    imports: [AllianceInfoCardComponent, RankInfoCardComponent, MostValuableKillsComponent, KillTableComponent, TopCharactersCardComponent],
 })
 export class AllianceComponent {
     #rankFilterService = inject(RankFilterService);
@@ -132,7 +136,12 @@ export class AllianceComponent {
         },
     };
 
+
     rank!: any;
+
+    rows = [0, 1, 2, 4, 5, 6, 7, 8, 9, 10];
+
+    mostValuableKillsMockup = mostValuableKillsMockup;
 
     ngOnInit(): void {
         this.rankFilterSub = this.#rankFilterService.filter$.subscribe(filter => {

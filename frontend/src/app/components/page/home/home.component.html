@@ -2,9 +2,16 @@
     <div>
         <most-valuable-kills [data]="mostValuableKillsMockup"></most-valuable-kills>
     </div>
-    <div class="mt-8">
-        <h2 class="font-semibold">Recent Activity</h2>
-        <kill-table [rows]="rows"></kill-table>
-        <pagination></pagination>
+
+    <div class="flex w-full gap-4">
+        <div class="flex-1 mt-8">
+            <h2 class="font-semibold">Recent Activity</h2>
+            <kill-table [rows]="rows"></kill-table>
+            <pagination></pagination>
+        </div>
+        <div class="mt-8 w-[200px] shrink-0">
+            <h2 class="font-semibold">Top Characters</h2>
+            <top-characters-card></top-characters-card>
+        </div>
     </div>
 </div>
