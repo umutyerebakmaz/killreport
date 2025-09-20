@@ -5,13 +5,13 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDivider } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { StatusService } from '@app/service/esi/status.service';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
 @Component({
     selector: 'app-header',
     standalone: true,
-    imports: [MatButtonModule, MatIcon, MatMenuModule, MatDivider, MatTooltipModule, DecimalPipe, DatePipe, RouterLink],
+    imports: [MatButtonModule, MatIcon, MatMenuModule, MatDivider, MatTooltipModule, DecimalPipe, RouterLink],
     templateUrl: './header.component.html',
 })
 export class HeaderComponent implements OnInit {

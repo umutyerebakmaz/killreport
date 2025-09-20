@@ -3,15 +3,23 @@
         <most-valuable-kills [data]="mostValuableKillsMockup"></most-valuable-kills>
     </div>
 
-    <div class="flex w-full gap-4">
+    <div class="flex flex-col w-full gap-4 md:flex-row">
         <div class="flex-1 mt-8">
             <h2 class="font-semibold">Recent Activity</h2>
             <kill-table [rows]="rows"></kill-table>
             <pagination></pagination>
         </div>
         <div class="mt-8 w-[200px] shrink-0">
-            <h2 class="font-semibold">Top Characters</h2>
-            <top-characters-card></top-characters-card>
+            <div>
+                <h2 class="font-semibold">Top Characters</h2>
+                <top-characters-card></top-characters-card>
+            </div>
+
+            <div class="pt-8">
+                <h2 class="font-semibold">Top Corporations</h2>
+                <top-corporations-card></top-corporations-card>
+            </div>
+
         </div>
     </div>
 </div>
