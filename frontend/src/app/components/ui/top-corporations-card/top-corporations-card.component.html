@@ -1,0 +1,19 @@
+<div class="rounded-md ring-1 ring-gray-400/20">
+    <div class="flex">
+        <div>
+            <img src="https://images.evetech.net/corporations/98535868/logo?size=128">
+        </div>
+        <div class="items-center justify-center px-4 text-lg font-bold text-gray-400 grow">
+            <div>{{ corporations[0].corporation }}</div>
+            <div>{{ corporations[0].point }}</div>
+        </div>
+
+    </div>
+    @for(corporation of corporations; track corporation; let index = $index; let first = $first; let last = $last; let even = $even; let odd = $odd) {
+        <div class="flex gap-4 p-2 [&:not(:first-child)]:border-t border-gray-400/20 justify-between"
+        [ngClass]="{ 'bg-gray-400/10': odd }">
+        <div class="text-gray-400">{{ corporation.corporation }}</div>
+        <div class="text-gray-400">{{ corporation.point }}</div>
+    </div>
+    }
+</div>
