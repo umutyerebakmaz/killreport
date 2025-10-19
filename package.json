@@ -1,8 +1,9 @@
 {
   "name": "killreport",
-  "version": "1.0.0",
-  "main": "index.js",
-  "repository": "git@github.com:umutyerebakmaz/killreport.git",
-  "author": "Umut Yerebakmaz <“umutyerebakmaz@users.norepyly.github.com”>",
-  "license": "MIT"
+  "packageManager": "yarn@4.10.3",
+  "private": true,
+  "workspaces": [
+    "frontend/*",
+    "backend/*"
+  ]
 }
