@@ -3,7 +3,12 @@
   "packageManager": "yarn@4.10.3",
   "private": true,
   "workspaces": [
-    "frontend/*",
-    "backend/*"
-  ]
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "yarn workspace frontend dev",
+    "dev:frontend": "yarn workspace frontend dev",
+    "dev:backend": "yarn workspace backend dev"
+  }
 }
