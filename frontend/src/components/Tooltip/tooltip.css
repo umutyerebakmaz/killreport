@@ -1,0 +1,31 @@
+@keyframes tooltip-in {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes tooltip-out {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+}
+
+.tooltip-anim {
+  transition: opacity 0.2s, transform 0.2s;
+}
+.tooltip-in {
+  animation: tooltip-in 0.2s ease forwards;
+}
+.tooltip-out {
+  animation: tooltip-out 0.2s ease forwards;
+}
