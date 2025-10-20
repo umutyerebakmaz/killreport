@@ -90,13 +90,13 @@ const navigation = {
 export default function Example() {
   return (
     <footer className="bg-gray-900">
-      <div className="mx-auto max-w-7xl px-6 pt-16 pb-8 sm:pt-24 lg:px-8 lg:pt-32">
+      <div className="px-6 pt-16 pb-8 mx-auto max-w-7xl sm:pt-24 lg:px-8 lg:pt-32">
         <div className="xl:grid xl:grid-cols-3 xl:gap-8">
           <div className="space-y-8">
-            <span className="font-extrabold text-2xl tracking-tight text-primary">
+            <span className="text-2xl font-extrabold tracking-tight text-gray-700">
               KILLREPORT
             </span>
-            <p className="text-sm/6 text-balance text-gray-400">
+            <p className="text-gray-400 text-sm/6 text-balance">
               Making the world a better place through constructing elegant
               hierarchies.
             </p>
@@ -113,10 +113,10 @@ export default function Example() {
               ))}
             </div>
           </div>
-          <div className="mt-16 grid grid-cols-2 gap-8 xl:col-span-2 xl:mt-0">
+          <div className="grid grid-cols-2 gap-8 mt-16 xl:col-span-2 xl:mt-0">
             <div className="md:grid md:grid-cols-2 md:gap-8">
               <div>
-                <h3 className="text-sm/6 font-semibold text-white">
+                <h3 className="font-semibold text-white text-sm/6">
                   Solutions
                 </h3>
                 <ul role="list" className="mt-6 space-y-4">
@@ -124,7 +124,7 @@ export default function Example() {
                     <li key={item.name}>
                       <a
                         href={item.href}
-                        className="text-sm/6 text-gray-400 hover:text-gray-300"
+                        className="text-gray-400 text-sm/6 hover:text-gray-300"
                       >
                         {item.name}
                       </a>
@@ -133,13 +133,13 @@ export default function Example() {
                 </ul>
               </div>
               <div className="mt-10 md:mt-0">
-                <h3 className="text-sm/6 font-semibold text-white">Support</h3>
+                <h3 className="font-semibold text-white text-sm/6">Support</h3>
                 <ul role="list" className="mt-6 space-y-4">
                   {navigation.support.map((item) => (
                     <li key={item.name}>
                       <a
                         href={item.href}
-                        className="text-sm/6 text-gray-400 hover:text-gray-300"
+                        className="text-gray-400 text-sm/6 hover:text-gray-300"
                       >
                         {item.name}
                       </a>
@@ -150,13 +150,13 @@ export default function Example() {
             </div>
             <div className="md:grid md:grid-cols-2 md:gap-8">
               <div>
-                <h3 className="text-sm/6 font-semibold text-white">Company</h3>
+                <h3 className="font-semibold text-white text-sm/6">Company</h3>
                 <ul role="list" className="mt-6 space-y-4">
                   {navigation.company.map((item) => (
                     <li key={item.name}>
                       <a
                         href={item.href}
-                        className="text-sm/6 text-gray-400 hover:text-gray-300"
+                        className="text-gray-400 text-sm/6 hover:text-gray-300"
                       >
                         {item.name}
                       </a>
@@ -165,13 +165,13 @@ export default function Example() {
                 </ul>
               </div>
               <div className="mt-10 md:mt-0">
-                <h3 className="text-sm/6 font-semibold text-white">Legal</h3>
+                <h3 className="font-semibold text-white text-sm/6">Legal</h3>
                 <ul role="list" className="mt-6 space-y-4">
                   {navigation.legal.map((item) => (
                     <li key={item.name}>
                       <a
                         href={item.href}
-                        className="text-sm/6 text-gray-400 hover:text-gray-300"
+                        className="text-gray-400 text-sm/6 hover:text-gray-300"
                       >
                         {item.name}
                       </a>
@@ -182,10 +182,33 @@ export default function Example() {
             </div>
           </div>
         </div>
-        <div className="mt-16 border-t border-white/10 pt-8 sm:mt-20 lg:mt-24">
-          <p className="text-sm/6 text-gray-400">
-            &copy; 2024 Your Company, Inc. All rights reserved.
+
+        <div className="flex flex-row items-start justify-between gap-4 pt-8 mt-16 border-t border-white/10 sm:mt-20 lg:mt-24">
+          <p className="text-gray-400 text-sm/6">
+            &copy; 2024 Your Company, Inc. All rights reserved. All{" "}
+            <a href="/legal" className="text-cyan-500 hover:underline">
+              EVE related materials
+            </a>{" "}
+            are property of{" "}
+            <a
+              href="https://www.ccpgames.com"
+              className="text-cyan-500 hover:underline"
+            >
+              CCP Games
+            </a>
           </p>
+
+          <a
+            target="_blank"
+            rel="noopener noreferrer"
+            href="https://www.eveonline.com/partners"
+          >
+            <img
+              src="/images/eve-online-partner.png"
+              style={{ width: "300px" }}
+              alt="Eve Online Partnership Program"
+            />
+          </a>
         </div>
       </div>
     </footer>

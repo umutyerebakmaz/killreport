@@ -1,51 +1,50 @@
 export default function Home() {
   return (
-    <section className="flex flex-col items-center justify-center text-center gap-8 py-16">
-      <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-2">
-        Welcome to <span className="text-blue-600">KillReport</span>
-      </h1>
-      <p className="text-lg text-gray-600 max-w-2xl mb-6">
-        KillReport is your modern platform for tracking, reporting, and
-        analyzing key metrics with ease. Start by exploring our features and see
-        how we can help you get insights faster.
-      </p>
-      <div className="flex flex-col sm:flex-row gap-4 justify-center">
-        <a
-          href="#"
-          className="inline-block rounded-lg bg-blue-600 px-6 py-3 text-white font-semibold shadow hover:bg-blue-700 transition"
-        >
-          Get Started
-        </a>
-        <a
-          href="#"
-          className="inline-block rounded-lg border border-blue-600 px-6 py-3 text-blue-600 font-semibold hover:bg-blue-50 transition"
-        >
-          Learn More
-        </a>
-      </div>
-      <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-8 w-full max-w-4xl">
-        <div className="bg-white rounded-xl shadow p-6 flex flex-col items-center">
-          <span className="mb-2 text-blue-600 text-3xl">📊</span>
-          <h2 className="font-semibold text-lg mb-1">Analytics</h2>
-          <p className="text-gray-500 text-sm">
-            Powerful analytics to help you make data-driven decisions.
+    <div className="relative overflow-hidden bg-gray-900 isolate">
+      <div className="px-6 py-24 sm:py-32 lg:px-8">
+        <div className="max-w-2xl mx-auto text-center">
+          <h2 className="text-4xl font-semibold tracking-tight text-white text-balance sm:text-5xl">
+            Boost your productivity. Start using our app today.
+          </h2>
+          <p className="max-w-xl mx-auto mt-6 text-gray-300 text-lg/8 text-pretty">
+            Incididunt sint fugiat pariatur cupidatat consectetur sit cillum
+            anim id veniam aliqua proident excepteur commodo do ea.
           </p>
-        </div>
-        <div className="bg-white rounded-xl shadow p-6 flex flex-col items-center">
-          <span className="mb-2 text-blue-600 text-3xl">⚡</span>
-          <h2 className="font-semibold text-lg mb-1">Fast Reporting</h2>
-          <p className="text-gray-500 text-sm">
-            Generate and share reports in seconds with our intuitive tools.
-          </p>
-        </div>
-        <div className="bg-white rounded-xl shadow p-6 flex flex-col items-center">
-          <span className="mb-2 text-blue-600 text-3xl">🔒</span>
-          <h2 className="font-semibold text-lg mb-1">Secure</h2>
-          <p className="text-gray-500 text-sm">
-            Your data is protected with industry-leading security practices.
-          </p>
+          <div className="flex items-center justify-center mt-10 gap-x-6">
+            <a
+              href="#"
+              className="rounded-md bg-white/15 px-3.5 py-2.5 text-sm font-semibold text-white inset-ring inset-ring-white/5 hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              Get started
+            </a>
+            <a
+              href="#"
+              className="font-semibold text-white text-sm/6 hover:text-gray-300"
+            >
+              Learn more <span aria-hidden="true">→</span>
+            </a>
+          </div>
         </div>
       </div>
-    </section>
+      <svg
+        viewBox="0 0 1024 1024"
+        aria-hidden="true"
+        className="absolute top-1/2 left-1/2 -z-10 size-256 -translate-x-1/2 mask-[radial-gradient(closest-side,white,transparent)]"
+      >
+        <circle
+          r={512}
+          cx={512}
+          cy={512}
+          fill="url(#8d958450-c69f-4251-94bc-4e091a323369)"
+          fillOpacity="0.7"
+        />
+        <defs>
+          <radialGradient id="8d958450-c69f-4251-94bc-4e091a323369">
+            <stop stopColor="#7775D6" />
+            <stop offset={1} stopColor="#E935C1" />
+          </radialGradient>
+        </defs>
+      </svg>
+    </div>
   );
 }
