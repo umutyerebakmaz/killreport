@@ -25,7 +25,10 @@ import {
   SquaresPlusIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import React, { useState } from "react";
+import { EveStatus } from "../EveStatus/EveStatus";
+import EveTime from "../EveTime/EveTime";
+import Tooltip from "../Tooltip/Tooltip";
 
 const products = [
   {
@@ -66,6 +69,26 @@ const callsToAction = [
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [status, setStatus] = useState<{ players?: number } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Sunucu durumu verisini çek
+  React.useEffect(() => {
+    fetch("https://esi.evetech.net/latest/status/?datasource=tranquility")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch server status");
+        return res.json();
+      })
+      .then((data) => {
+        setStatus(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
 
   return (
     <header className="bg-gray-900">
@@ -94,7 +117,7 @@ export default function Header() {
         <PopoverGroup className="hidden lg:flex lg:gap-x-12">
           <Popover className="relative">
             <PopoverButton className="flex items-center font-semibold text-white gap-x-1 text-sm/6">
-              Product
+              PRODUCT
               <ChevronDownIcon
                 aria-hidden="true"
                 className="flex-none text-gray-500 size-5"
@@ -149,18 +172,29 @@ export default function Header() {
           </Popover>
 
           <a href="#" className="font-semibold text-white text-sm/6">
-            Features
+            FEATURES
           </a>
           <a href="#" className="font-semibold text-white text-sm/6">
-            Marketplace
+            MARKETPLACE
           </a>
           <a href="#" className="font-semibold text-white text-sm/6">
-            Company
+            COMPANY
           </a>
         </PopoverGroup>
-        <div className="hidden lg:flex lg:flex-1 lg:justify-end">
+
+        <div className="hidden gap-4 lg:flex lg:flex-1 lg:justify-end">
+          <Tooltip
+            content={`Tranquility ${
+              status?.players?.toLocaleString() ?? "-"
+            } online players`}
+          >
+            <EveStatus players={status?.players} />
+          </Tooltip>
+          <Tooltip content="Current Eve Online ingame time">
+            <EveTime />
+          </Tooltip>
           <a href="#" className="font-semibold text-white text-sm/6">
-            Log in <span aria-hidden="true">&rarr;</span>
+            LOGIN
           </a>
         </div>
       </nav>
@@ -214,19 +248,19 @@ export default function Header() {
                   href="#"
                   className="block px-3 py-2 -mx-3 font-semibold text-white rounded-lg text-base/7 hover:bg-white/5"
                 >
-                  Features
+                  FEATURES
                 </a>
                 <a
                   href="#"
                   className="block px-3 py-2 -mx-3 font-semibold text-white rounded-lg text-base/7 hover:bg-white/5"
                 >
-                  Marketplace
+                  MARKETPLACE
                 </a>
                 <a
                   href="#"
                   className="block px-3 py-2 -mx-3 font-semibold text-white rounded-lg text-base/7 hover:bg-white/5"
                 >
-                  Company
+                  COMPANY
                 </a>
               </div>
               <div className="py-6">
@@ -234,7 +268,7 @@ export default function Header() {
                   href="#"
                   className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-white hover:bg-white/5"
                 >
-                  Log in
+                  LOGIN
                 </a>
               </div>
             </div>

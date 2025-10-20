@@ -14,7 +14,7 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ['Oswald', 'Arial', 'Helvetica', 'sans-serif'],
+        sans: ['Roboto', 'Arial', 'Helvetica', 'sans-serif'],
       },
     },
   },
