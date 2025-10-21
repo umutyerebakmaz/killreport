@@ -6,7 +6,7 @@ interface EveStatusProps {
 
 export const EveStatus: React.FC<EveStatusProps> = ({ players }) => {
   return (
-    <div className="flex items-center gap-2 text-green-500">
+    <div className="flex items-center gap-2 text-green-500 cursor-pointer">
       {/* Online players icon */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
