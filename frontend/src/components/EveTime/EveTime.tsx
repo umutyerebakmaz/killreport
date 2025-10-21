@@ -14,5 +14,5 @@ export default function EveTime() {
     return () => clearInterval(interval);
   }, []);
 
-  return <span className="text-white">{eveTime} UTC</span>;
+  return <span className="text-white cursor-pointer">{eveTime} UTC</span>;
 }
