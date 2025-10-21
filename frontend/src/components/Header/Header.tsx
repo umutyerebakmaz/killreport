@@ -116,8 +116,8 @@ export default function Header() {
         </div>
         <PopoverGroup className="hidden lg:flex lg:gap-x-12">
           <Popover className="relative">
-            <PopoverButton className="flex items-center font-semibold text-white gap-x-1 text-sm/6">
-              PRODUCT
+            <PopoverButton className="flex items-center font-semibold text-white cursor-pointer gap-x-1 text-sm/6">
+              PRODUCTS
               <ChevronDownIcon
                 aria-hidden="true"
                 className="flex-none text-gray-500 size-5"
