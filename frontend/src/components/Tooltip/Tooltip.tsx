@@ -16,7 +16,7 @@ export default function Tooltip({ content, children }: TooltipProps) {
   }
   function handleLeave() {
     setAnimating(false);
-    setTimeout(() => setShow(false), 200); // animasyon süresiyle uyumlu
+    setTimeout(() => setShow(false), 200);
   }
 
   return (
