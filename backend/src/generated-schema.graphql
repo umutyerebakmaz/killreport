@@ -1,0 +1,74 @@
+input AddCharacterInput {
+  corporation: String
+  name: String!
+  userId: ID!
+}
+
+type Attacker {
+  characterId: Int
+  characterName: String
+  corporationId: Int
+  finalBlow: Boolean
+  shipTypeId: Int
+  weaponTypeId: Int
+}
+
+type Character {
+  alliance: String
+  corporation: String
+  id: ID!
+  name: String!
+  securityStatus: Float
+  user: User
+}
+
+input CreateUserInput {
+  email: String!
+  name: String!
+}
+
+type Killmail {
+  attackers: [Attacker!]!
+  id: ID!
+  killmailHash: String!
+  killmailId: Int!
+  killmailTime: String!
+  totalValue: Float
+  victim: Victim!
+}
+
+type Mutation {
+  addCharacter(input: AddCharacterInput!): Character!
+  createUser(input: CreateUserInput!): User!
+  updateUser(id: ID!, input: UpdateUserInput!): User
+}
+
+type Query {
+  character(id: ID!): Character
+  charactersByUser(userId: ID!): [Character!]!
+  killmail(id: ID!): Killmail
+  killmails(limit: Int, offset: Int): [Killmail!]!
+  user(id: ID!): User
+  users: [User!]!
+}
+
+input UpdateUserInput {
+  email: String
+  name: String
+}
+
+type User {
+  createdAt: String!
+  email: String!
+  id: ID!
+  name: String!
+}
+
+type Victim {
+  characterId: Int
+  characterName: String
+  corporationId: Int
+  corporationName: String
+  damageTaken: Int
+  shipTypeId: Int
+}

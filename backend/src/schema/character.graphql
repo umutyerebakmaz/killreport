@@ -1,0 +1,23 @@
+extend type Query {
+  character(id: ID!): Character
+  charactersByUser(userId: ID!): [Character!]!
+}
+
+extend type Mutation {
+  addCharacter(input: AddCharacterInput!): Character!
+}
+
+type Character {
+  id: ID!
+  name: String!
+  corporation: String
+  alliance: String
+  securityStatus: Float
+  user: User
+}
+
+input AddCharacterInput {
+  name: String!
+  corporation: String
+  userId: ID!
+}
