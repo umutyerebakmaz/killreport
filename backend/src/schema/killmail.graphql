@@ -1,0 +1,32 @@
+extend type Query {
+  killmail(id: ID!): Killmail
+  killmails(limit: Int, offset: Int): [Killmail!]!
+}
+
+type Killmail {
+  id: ID!
+  killmailId: Int!
+  killmailHash: String!
+  killmailTime: String!
+  victim: Victim!
+  attackers: [Attacker!]!
+  totalValue: Float
+}
+
+type Victim {
+  characterId: Int
+  characterName: String
+  corporationId: Int
+  corporationName: String
+  shipTypeId: Int
+  damageTaken: Int
+}
+
+type Attacker {
+  characterId: Int
+  characterName: String
+  corporationId: Int
+  shipTypeId: Int
+  weaponTypeId: Int
+  finalBlow: Boolean
+}
