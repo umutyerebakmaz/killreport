@@ -1,14 +1,35 @@
-import { createYoga } from 'graphql-yoga'
-import { createServer } from 'node:http'
-import { schema } from './schema'
+import { loadFilesSync } from '@graphql-tools/load-files';
+import { mergeTypeDefs } from '@graphql-tools/merge';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { createYoga } from 'graphql-yoga';
+import { createServer } from 'node:http';
+import path from 'path';
 
-// Create a Yoga instance with a GraphQL schema.
-const yoga = createYoga({ schema })
+// Tüm resolver'ları modüler yapıdan import et
+import { resolvers } from './resolvers';
 
-// Pass it into a server to hook into request handlers.
-const server = createServer(yoga)
+// --- ADIM 1: SDL Dosyalarını Yükleme ---
+// Projedeki tüm .graphql dosyalarını bul ve yükle
+const typesArray = loadFilesSync(path.join(__dirname, 'schema/**/*.graphql'));
+const typeDefs = mergeTypeDefs(typesArray);
+// 'typeDefs' artık tüm şemalarınızı içeren BÜYÜK bir string (veya AST) içerir.
+// --- Bitti ---
 
-// Start the server and you're done!
-server.listen(4000, () => {
-  console.info('Server is running on http://localhost:4000/graphql')
-})
+// Executable schema oluştur
+const schema = makeExecutableSchema({
+  typeDefs,
+  resolvers,
+});
+
+// GraphQL Yoga instance'ı oluştur
+const yoga = createYoga({
+  schema,
+});
+
+// HTTP sunucusunu oluştur ve başlat
+const server = createServer(yoga);
+const port = 4000;
+
+server.listen(port, () => {
+  console.log(`🚀 Server is running on http://localhost:${port}/graphql`);
+});
