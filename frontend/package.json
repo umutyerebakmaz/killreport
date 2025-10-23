@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "kill-node": "pkill -9 node",
-    "kill": "kill -9 $(lsof -t -i:3000)"
+    "kill": "kill -9 $(lsof -t -i:3000)",
+    "remove:all": "rm -rf .next node_modules yarn.lock"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
