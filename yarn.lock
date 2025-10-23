@@ -1033,6 +1033,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@graphql-tools/load-files@npm:^7.0.1":
+  version: 7.0.1
+  resolution: "@graphql-tools/load-files@npm:7.0.1"
+  dependencies:
+    globby: "npm:11.1.0"
+    tslib: "npm:^2.4.0"
+    unixify: "npm:^1.0.0"
+  peerDependencies:
+    graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+  checksum: 10c0/2e0903363481aece6ce7e34a506cd6b4cdfcd046d1a69bb0b036f71a29856f309d6250e1241c20323412afa9c4a7a2679403423bab7b9b941799fc42ad188d85
+  languageName: node
+  linkType: hard
+
 "@graphql-tools/load@npm:^8.1.0":
   version: 8.1.2
   resolution: "@graphql-tools/load@npm:8.1.2"
@@ -3133,10 +3146,14 @@ __metadata:
   resolution: "backend@workspace:backend"
   dependencies:
     "@graphql-codegen/cli": "npm:^6.0.1"
+    "@graphql-codegen/schema-ast": "npm:^5.0.0"
     "@graphql-codegen/typescript": "npm:^5.0.2"
     "@graphql-codegen/typescript-resolvers": "npm:^5.1.0"
+    "@graphql-tools/load-files": "npm:^7.0.1"
+    "@graphql-tools/merge": "npm:^9.1.1"
     "@parcel/watcher": "npm:2.5.1"
     graphql: "npm:16.11.0"
+    graphql-codegen-schema-ast: "npm:^0.18.2"
     graphql-yoga: "npm:5.16.0"
     nodemon: "npm:3.1.10"
     ts-node: "npm:10.9.2"
@@ -4696,7 +4713,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"globby@npm:^11.0.3":
+"globby@npm:11.1.0, globby@npm:^11.0.3":
   version: 11.1.0
   resolution: "globby@npm:11.1.0"
   dependencies:
@@ -4728,6 +4745,15 @@ __metadata:
   version: 1.4.0
   resolution: "graphemer@npm:1.4.0"
   checksum: 10c0/e951259d8cd2e0d196c72ec711add7115d42eb9a8146c8eeda5b8d3ac91e5dd816b9cd68920726d9fd4490368e7ed86e9c423f40db87e2d8dfafa00fa17c3a31
+  languageName: node
+  linkType: hard
+
+"graphql-codegen-schema-ast@npm:^0.18.2":
+  version: 0.18.2
+  resolution: "graphql-codegen-schema-ast@npm:0.18.2"
+  peerDependencies:
+    graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0
+  checksum: 10c0/49fbbdba9ac061438365344bfcba40565929daa4288fbeebe5a6023a7b6ce6f1a058801dfbf00e30f78f81ea5cc42b886bac6cac5f4d3ff5e98b9457debb7af4
   languageName: node
   linkType: hard
 
