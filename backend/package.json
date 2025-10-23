@@ -1,8 +1,22 @@
 {
-    "name": "backend",
-    "version": "0.1.0",
-    "private": true,
-    "scripts": {
-        "remove:all": "rm -rf node_modules yarn.lock package-lock.json pnpm-lock.yaml"
-    }
+  "name": "backend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "NODE_ENV=development nodemon --watch 'src/**/*.ts' --ignore 'src/**/*.spec.ts' --exec ts-node src/server.ts",
+    "remove:all": "rm -rf node_modules yarn.lock package-lock.json pnpm-lock.yaml",
+    "codegen": "graphql-codegen"
+  },
+  "dependencies": {
+    "graphql": "16.11.0",
+    "graphql-yoga": "5.16.0"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^6.0.1",
+    "@graphql-codegen/typescript": "^5.0.2",
+    "@graphql-codegen/typescript-resolvers": "^5.1.0",
+    "@parcel/watcher": "2.5.1",
+    "nodemon": "3.1.10",
+    "ts-node": "10.9.2"
+  }
 }
