@@ -1,0 +1,66 @@
+extend type Query {
+  """
+  Generate EVE Online SSO login URL
+  """
+  eveLoginUrl(redirectUri: String!): AuthUrl!
+}
+
+extend type Mutation {
+  """
+  Handle EVE Online SSO callback and authenticate user
+  """
+  eveCallback(code: String!, state: String!, redirectUri: String!): AuthResponse!
+}
+
+type AuthUrl {
+  """
+  OAuth2 authorization URL for EVE Online SSO
+  """
+  url: String!
+  """
+  State parameter for CSRF protection
+  """
+  state: String!
+}
+
+type AuthResponse {
+  """
+  Access token from EVE Online SSO
+  """
+  accessToken: String!
+  """
+  Refresh token for renewing access
+  """
+  refreshToken: String!
+  """
+  Token expiration time in seconds
+  """
+  expiresIn: Int!
+  """
+  Authenticated character information
+  """
+  character: AuthenticatedCharacter!
+}
+
+type AuthenticatedCharacter {
+  """
+  Character ID from EVE Online
+  """
+  characterId: ID!
+  """
+  Character name
+  """
+  characterName: String!
+  """
+  Character owner hash for verification
+  """
+  characterOwnerHash: String!
+  """
+  Corporation ID
+  """
+  corporationId: ID
+  """
+  Alliance ID
+  """
+  allianceId: ID
+}

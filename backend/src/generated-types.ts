@@ -32,6 +32,40 @@ export type Attacker = {
   weaponTypeId?: Maybe<Scalars['Int']['output']>;
 };
 
+export type AuthResponse = {
+  __typename?: 'AuthResponse';
+  /** Access token from EVE Online SSO */
+  accessToken: Scalars['String']['output'];
+  /** Authenticated character information */
+  character: AuthenticatedCharacter;
+  /** Token expiration time in seconds */
+  expiresIn: Scalars['Int']['output'];
+  /** Refresh token for renewing access */
+  refreshToken: Scalars['String']['output'];
+};
+
+export type AuthUrl = {
+  __typename?: 'AuthUrl';
+  /** State parameter for CSRF protection */
+  state: Scalars['String']['output'];
+  /** OAuth2 authorization URL for EVE Online SSO */
+  url: Scalars['String']['output'];
+};
+
+export type AuthenticatedCharacter = {
+  __typename?: 'AuthenticatedCharacter';
+  /** Alliance ID */
+  allianceId?: Maybe<Scalars['ID']['output']>;
+  /** Character ID from EVE Online */
+  characterId: Scalars['ID']['output'];
+  /** Character name */
+  characterName: Scalars['String']['output'];
+  /** Character owner hash for verification */
+  characterOwnerHash: Scalars['String']['output'];
+  /** Corporation ID */
+  corporationId?: Maybe<Scalars['ID']['output']>;
+};
+
 export type Character = {
   __typename?: 'Character';
   alliance?: Maybe<Scalars['String']['output']>;
@@ -62,6 +96,8 @@ export type Mutation = {
   __typename?: 'Mutation';
   addCharacter: Character;
   createUser: User;
+  /** Handle EVE Online SSO callback and authenticate user */
+  eveCallback: AuthResponse;
   updateUser?: Maybe<User>;
 };
 
@@ -76,6 +112,13 @@ export type MutationCreateUserArgs = {
 };
 
 
+export type MutationEveCallbackArgs = {
+  code: Scalars['String']['input'];
+  redirectUri: Scalars['String']['input'];
+  state: Scalars['String']['input'];
+};
+
+
 export type MutationUpdateUserArgs = {
   id: Scalars['ID']['input'];
   input: UpdateUserInput;
@@ -85,6 +128,8 @@ export type Query = {
   __typename?: 'Query';
   character?: Maybe<Character>;
   charactersByUser: Array<Character>;
+  /** Generate EVE Online SSO login URL */
+  eveLoginUrl: AuthUrl;
   killmail?: Maybe<Killmail>;
   killmails: Array<Killmail>;
   user?: Maybe<User>;
@@ -99,6 +144,11 @@ export type QueryCharacterArgs = {
 
 export type QueryCharactersByUserArgs = {
   userId: Scalars['ID']['input'];
+};
+
+
+export type QueryEveLoginUrlArgs = {
+  redirectUri: Scalars['String']['input'];
 };
 
 
@@ -215,6 +265,9 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 export type ResolversTypes = {
   AddCharacterInput: AddCharacterInput;
   Attacker: ResolverTypeWrapper<Attacker>;
+  AuthResponse: ResolverTypeWrapper<AuthResponse>;
+  AuthUrl: ResolverTypeWrapper<AuthUrl>;
+  AuthenticatedCharacter: ResolverTypeWrapper<AuthenticatedCharacter>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Character: ResolverTypeWrapper<Character>;
   CreateUserInput: CreateUserInput;
@@ -234,6 +287,9 @@ export type ResolversTypes = {
 export type ResolversParentTypes = {
   AddCharacterInput: AddCharacterInput;
   Attacker: Attacker;
+  AuthResponse: AuthResponse;
+  AuthUrl: AuthUrl;
+  AuthenticatedCharacter: AuthenticatedCharacter;
   Boolean: Scalars['Boolean']['output'];
   Character: Character;
   CreateUserInput: CreateUserInput;
@@ -258,6 +314,26 @@ export type AttackerResolvers<ContextType = any, ParentType extends ResolversPar
   weaponTypeId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
 };
 
+export type AuthResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['AuthResponse'] = ResolversParentTypes['AuthResponse']> = {
+  accessToken?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  character?: Resolver<ResolversTypes['AuthenticatedCharacter'], ParentType, ContextType>;
+  expiresIn?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  refreshToken?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type AuthUrlResolvers<ContextType = any, ParentType extends ResolversParentTypes['AuthUrl'] = ResolversParentTypes['AuthUrl']> = {
+  state?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type AuthenticatedCharacterResolvers<ContextType = any, ParentType extends ResolversParentTypes['AuthenticatedCharacter'] = ResolversParentTypes['AuthenticatedCharacter']> = {
+  allianceId?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
+  characterId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  characterName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  characterOwnerHash?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  corporationId?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
+};
+
 export type CharacterResolvers<ContextType = any, ParentType extends ResolversParentTypes['Character'] = ResolversParentTypes['Character']> = {
   alliance?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   corporation?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -280,12 +356,14 @@ export type KillmailResolvers<ContextType = any, ParentType extends ResolversPar
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   addCharacter?: Resolver<ResolversTypes['Character'], ParentType, ContextType, RequireFields<MutationAddCharacterArgs, 'input'>>;
   createUser?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
+  eveCallback?: Resolver<ResolversTypes['AuthResponse'], ParentType, ContextType, RequireFields<MutationEveCallbackArgs, 'code' | 'redirectUri' | 'state'>>;
   updateUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'id' | 'input'>>;
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType, RequireFields<QueryCharacterArgs, 'id'>>;
   charactersByUser?: Resolver<Array<ResolversTypes['Character']>, ParentType, ContextType, RequireFields<QueryCharactersByUserArgs, 'userId'>>;
+  eveLoginUrl?: Resolver<ResolversTypes['AuthUrl'], ParentType, ContextType, RequireFields<QueryEveLoginUrlArgs, 'redirectUri'>>;
   killmail?: Resolver<Maybe<ResolversTypes['Killmail']>, ParentType, ContextType, RequireFields<QueryKillmailArgs, 'id'>>;
   killmails?: Resolver<Array<ResolversTypes['Killmail']>, ParentType, ContextType, Partial<QueryKillmailsArgs>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
@@ -310,6 +388,9 @@ export type VictimResolvers<ContextType = any, ParentType extends ResolversParen
 
 export type Resolvers<ContextType = any> = {
   Attacker?: AttackerResolvers<ContextType>;
+  AuthResponse?: AuthResponseResolvers<ContextType>;
+  AuthUrl?: AuthUrlResolvers<ContextType>;
+  AuthenticatedCharacter?: AuthenticatedCharacterResolvers<ContextType>;
   Character?: CharacterResolvers<ContextType>;
   Killmail?: KillmailResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
