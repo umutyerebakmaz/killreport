@@ -13,6 +13,45 @@ type Attacker {
   weaponTypeId: Int
 }
 
+type AuthResponse {
+  """Access token from EVE Online SSO"""
+  accessToken: String!
+
+  """Authenticated character information"""
+  character: AuthenticatedCharacter!
+
+  """Token expiration time in seconds"""
+  expiresIn: Int!
+
+  """Refresh token for renewing access"""
+  refreshToken: String!
+}
+
+type AuthUrl {
+  """State parameter for CSRF protection"""
+  state: String!
+
+  """OAuth2 authorization URL for EVE Online SSO"""
+  url: String!
+}
+
+type AuthenticatedCharacter {
+  """Alliance ID"""
+  allianceId: ID
+
+  """Character ID from EVE Online"""
+  characterId: ID!
+
+  """Character name"""
+  characterName: String!
+
+  """Character owner hash for verification"""
+  characterOwnerHash: String!
+
+  """Corporation ID"""
+  corporationId: ID
+}
+
 type Character {
   alliance: String
   corporation: String
@@ -40,12 +79,18 @@ type Killmail {
 type Mutation {
   addCharacter(input: AddCharacterInput!): Character!
   createUser(input: CreateUserInput!): User!
+
+  """Handle EVE Online SSO callback and authenticate user"""
+  eveCallback(code: String!, redirectUri: String!, state: String!): AuthResponse!
   updateUser(id: ID!, input: UpdateUserInput!): User
 }
 
 type Query {
   character(id: ID!): Character
   charactersByUser(userId: ID!): [Character!]!
+
+  """Generate EVE Online SSO login URL"""
+  eveLoginUrl(redirectUri: String!): AuthUrl!
   killmail(id: ID!): Killmail
   killmails(limit: Int, offset: Int): [Killmail!]!
   user(id: ID!): User
