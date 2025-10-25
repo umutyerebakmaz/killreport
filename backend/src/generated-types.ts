@@ -97,6 +97,7 @@ export type MutationUpdateUserArgs = {
 export type Query = {
   __typename?: 'Query';
   alliance?: Maybe<Alliance>;
+  alliances?: Maybe<Array<Maybe<Alliance>>>;
   character?: Maybe<Character>;
   charactersByUser: Array<Character>;
   killmail?: Maybe<Killmail>;
@@ -108,6 +109,12 @@ export type Query = {
 
 export type QueryAllianceArgs = {
   id: Scalars['Int']['input'];
+};
+
+
+export type QueryAlliancesArgs = {
+  after?: InputMaybe<Scalars['Int']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -318,6 +325,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType, RequireFields<QueryAllianceArgs, 'id'>>;
+  alliances?: Resolver<Maybe<Array<Maybe<ResolversTypes['Alliance']>>>, ParentType, ContextType, Partial<QueryAlliancesArgs>>;
   character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType, RequireFields<QueryCharacterArgs, 'id'>>;
   charactersByUser?: Resolver<Array<ResolversTypes['Character']>, ParentType, ContextType, RequireFields<QueryCharactersByUserArgs, 'userId'>>;
   killmail?: Resolver<Maybe<ResolversTypes['Killmail']>, ParentType, ContextType, RequireFields<QueryKillmailArgs, 'id'>>;
