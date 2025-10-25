@@ -11,6 +11,7 @@ type Alliance {
 
 type Query {
   alliance(id: Int!): Alliance
+  alliances(after: Int, limit: Int): [Alliance]
 }
 
 type Mutation {

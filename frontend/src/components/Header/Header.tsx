@@ -123,7 +123,6 @@ export default function Header() {
                 className="flex-none text-gray-500 size-5"
               />
             </PopoverButton>
-
             <PopoverPanel
               transition
               className="absolute z-10 w-screen max-w-md mt-3 overflow-hidden transition -translate-x-1/2 bg-gray-800 left-1/2 rounded-3xl outline-1 -outline-offset-1 outline-white/10 data-closed:translate-y-1 data-closed:opacity-0 data-enter:duration-200 data-enter:ease-out data-leave:duration-150 data-leave:ease-in"
@@ -170,9 +169,8 @@ export default function Header() {
               </div>
             </PopoverPanel>
           </Popover>
-
-          <a href="#" className="font-semibold text-white text-sm/6">
-            FEATURES
+          <a href="/alliances" className="font-semibold text-white text-sm/6">
+            ALLIANCES
           </a>
           <a href="#" className="font-semibold text-white text-sm/6">
             MARKETPLACE
@@ -245,10 +243,10 @@ export default function Header() {
                   </DisclosurePanel>
                 </Disclosure>
                 <a
-                  href="#"
+                  href="/alliances"
                   className="block px-3 py-2 -mx-3 font-semibold text-white rounded-lg text-base/7 hover:bg-white/5"
                 >
-                  FEATURES
+                  ALLIANCES
                 </a>
                 <a
                   href="#"
