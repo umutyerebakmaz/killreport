@@ -1,0 +1,12 @@
+query Alliance($id: Int!) {
+  alliance(id: $id) {
+    id
+    name
+    ticker
+    date_founded
+    creator_corporation_id
+    creator_id
+    executor_corporation_id
+    faction_id
+  }
+}
