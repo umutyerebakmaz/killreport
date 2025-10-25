@@ -4,6 +4,17 @@ input AddCharacterInput {
   userId: ID!
 }
 
+type Alliance {
+  creator_corporation_id: Int!
+  creator_id: Int!
+  date_founded: String!
+  executor_corporation_id: Int!
+  faction_id: Int
+  id: Int!
+  name: String!
+  ticker: String!
+}
+
 type Attacker {
   characterId: Int
   characterName: String
@@ -44,6 +55,7 @@ type Mutation {
 }
 
 type Query {
+  alliance(id: Int!): Alliance
   character(id: ID!): Character
   charactersByUser(userId: ID!): [Character!]!
   killmail(id: ID!): Killmail
