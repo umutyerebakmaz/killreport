@@ -74,6 +74,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   addCharacter: Character;
   createUser: User;
+  startAllianceSync?: Maybe<Scalars['Boolean']['output']>;
   updateUser?: Maybe<User>;
 };
 
@@ -311,6 +312,7 @@ export type KillmailResolvers<ContextType = any, ParentType extends ResolversPar
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   addCharacter?: Resolver<ResolversTypes['Character'], ParentType, ContextType, RequireFields<MutationAddCharacterArgs, 'input'>>;
   createUser?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
+  startAllianceSync?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   updateUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'id' | 'input'>>;
 };
 

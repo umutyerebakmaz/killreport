@@ -1,5 +1,5 @@
 import { Resolvers } from '../generated-types';
-import { allianceQueries } from './alliance.resolver';
+import { allianceQueries, allianceMutations } from './alliance.resolver';
 import { characterFieldResolvers, characterMutations, characterQueries } from './character.resolver';
 import { killmailQueries } from './killmail.resolver';
 import { userMutations, userQueries } from './user.resolver';
@@ -33,6 +33,9 @@ export const resolvers: Resolvers = {
 
     // Character mutations
     ...characterMutations,
+
+    // Alliance mutations
+    ...allianceMutations,
   },
 
   // Field Resolvers - Nested type'lar için
