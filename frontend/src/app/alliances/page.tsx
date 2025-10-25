@@ -55,7 +55,7 @@ export default function AlliancesPage() {
           </thead>
           <tbody>
             {alliances.map((a) => (
-              <tr key={a.id}>
+              <tr key={a.id} className="hover:bg-gray-50">
                 <td className="px-2 py-1 border">
                   <img
                     src={`https://images.evetech.net/Alliance/${a.id}_64.png`}
@@ -64,7 +64,14 @@ export default function AlliancesPage() {
                     height={32}
                   />
                 </td>
-                <td className="px-2 py-1 border">{a.name}</td>
+                <td className="px-2 py-1 border">
+                  <Link
+                    href={`/alliances/${a.id}`}
+                    className="text-blue-600 hover:underline"
+                  >
+                    {a.name}
+                  </Link>
+                </td>
                 <td className="px-2 py-1 border">{a.ticker}</td>
                 <td className="px-2 py-1 border">{a.id}</td>
               </tr>
