@@ -22,6 +22,18 @@ export type AddCharacterInput = {
   userId: Scalars['ID']['input'];
 };
 
+export type Alliance = {
+  __typename?: 'Alliance';
+  creator_corporation_id: Scalars['Int']['output'];
+  creator_id: Scalars['Int']['output'];
+  date_founded: Scalars['String']['output'];
+  executor_corporation_id: Scalars['Int']['output'];
+  faction_id?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  ticker: Scalars['String']['output'];
+};
+
 export type Attacker = {
   __typename?: 'Attacker';
   characterId?: Maybe<Scalars['Int']['output']>;
@@ -83,12 +95,18 @@ export type MutationUpdateUserArgs = {
 
 export type Query = {
   __typename?: 'Query';
+  alliance?: Maybe<Alliance>;
   character?: Maybe<Character>;
   charactersByUser: Array<Character>;
   killmail?: Maybe<Killmail>;
   killmails: Array<Killmail>;
   user?: Maybe<User>;
   users: Array<User>;
+};
+
+
+export type QueryAllianceArgs = {
+  id: Scalars['Int']['input'];
 };
 
 
@@ -214,6 +232,7 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
   AddCharacterInput: AddCharacterInput;
+  Alliance: ResolverTypeWrapper<Alliance>;
   Attacker: ResolverTypeWrapper<Attacker>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Character: ResolverTypeWrapper<Character>;
@@ -233,6 +252,7 @@ export type ResolversTypes = {
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
   AddCharacterInput: AddCharacterInput;
+  Alliance: Alliance;
   Attacker: Attacker;
   Boolean: Scalars['Boolean']['output'];
   Character: Character;
@@ -247,6 +267,17 @@ export type ResolversParentTypes = {
   UpdateUserInput: UpdateUserInput;
   User: User;
   Victim: Victim;
+};
+
+export type AllianceResolvers<ContextType = any, ParentType extends ResolversParentTypes['Alliance'] = ResolversParentTypes['Alliance']> = {
+  creator_corporation_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  creator_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  date_founded?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  executor_corporation_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  faction_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  ticker?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type AttackerResolvers<ContextType = any, ParentType extends ResolversParentTypes['Attacker'] = ResolversParentTypes['Attacker']> = {
@@ -284,6 +315,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
+  alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType, RequireFields<QueryAllianceArgs, 'id'>>;
   character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType, RequireFields<QueryCharacterArgs, 'id'>>;
   charactersByUser?: Resolver<Array<ResolversTypes['Character']>, ParentType, ContextType, RequireFields<QueryCharactersByUserArgs, 'userId'>>;
   killmail?: Resolver<Maybe<ResolversTypes['Killmail']>, ParentType, ContextType, RequireFields<QueryKillmailArgs, 'id'>>;
@@ -309,6 +341,7 @@ export type VictimResolvers<ContextType = any, ParentType extends ResolversParen
 };
 
 export type Resolvers<ContextType = any> = {
+  Alliance?: AllianceResolvers<ContextType>;
   Attacker?: AttackerResolvers<ContextType>;
   Character?: CharacterResolvers<ContextType>;
   Killmail?: KillmailResolvers<ContextType>;
