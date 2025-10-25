@@ -6,6 +6,7 @@
     "dev": "NODE_ENV=development nodemon --watch 'src/**/*.ts' --ignore 'src/**/*.spec.ts' --exec ts-node src/server.ts",
     "remove:all": "rm -rf node_modules yarn.lock package-lock.json pnpm-lock.yaml",
     "codegen": "graphql-codegen",
+    "codegen:watch": "graphql-codegen --watch",
     "worker": "ts-node src/alliance-worker.ts",
     "queue": "ts-node src/queue-alliances.ts",
     "prisma:generate": "prisma generate",
