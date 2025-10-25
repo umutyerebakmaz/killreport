@@ -1,48 +1,48 @@
-# Alliance Sync - Basitleştirilmiş Workflow
+# Alliance Sync - Simplified Workflow
 
-## 🎯 Ne Yapar?
+## 🎯 What Does It Do?
 
-1. **ESI'den tüm alliance listesini alır**
-2. **RabbitMQ queue'ya ekler**
-3. **Worker queue'dan okur**
-4. **Her alliance için:**
-   - Veritabanında var mı kontrol eder
-   - Yoksa ESI'den bilgilerini çeker
-   - Veritabanına kaydeder
-5. **Rate limite takılmadan çalışır**
+1. **Fetches the full alliance list from ESI**
+2. **Adds them to a RabbitMQ queue**
+3. **Worker reads from the queue**
+4. **For each alliance:**
+   - Checks if it exists in the database
+   - If not, fetches details from ESI
+   - Saves to the database
+5. **Works without hitting the rate limit**
 
-## 🚀 Kullanım
+## 🚀 Usage
 
-### 1. Queue'ya Alliance Ekle
+### 1. Add Alliances to the Queue
 
 ```bash
 cd backend
-npm run queue
+yarn queue
 ```
 
-Bu komut:
+This command:
 
-- ESI'den tüm alliance ID'lerini çeker (~4000+ alliance)
-- RabbitMQ queue'ya ekler
-- Çıkar
+- Fetches all alliance IDs from ESI (~4000+ alliances)
+- Adds them to the RabbitMQ queue
+- Exits
 
-### 2. Worker Başlat
+### 2. Start the Worker
 
 ```bash
-npm run worker
+yarn worker
 ```
 
-Bu komut:
+This command:
 
-- RabbitMQ'dan alliance ID'lerini okur
-- Her birini kontrol eder (veritabanında var mı?)
-- Yoksa ESI'den çeker ve kaydeder
-- Rate limite dikkat eder (saniyede 10 istek)
-- Ctrl+C ile durdurulana kadar çalışır
+- Reads alliance IDs from RabbitMQ
+- Checks each one (does it exist in the database?)
+- If not, fetches from ESI and saves
+- Respects the rate limit (10 requests per second)
+- Runs until you stop it with Ctrl+C
 
-### 3. İlerlemeyi İzle
+### 3. Monitor Progress
 
-Worker çalışırken konsolda göreceksin:
+While the worker is running, you'll see in the console:
 
 ```
 ✅ Saved alliance 1234567 - Test Alliance
@@ -50,13 +50,13 @@ Worker çalışırken konsolda göreceksin:
 📥 Processing alliance 9999999...
 ```
 
-### 4. Veritabanını Kontrol Et
+### 4. Check the Database
 
 ```bash
-npm run prisma:studio
+yarn prisma:studio
 ```
 
-Tarayıcıda `http://localhost:5555` açılır ve tablolarını görebilirsin.
+Opens `http://localhost:5555` in your browser so you can view your tables.
 
 ## 📊 Workflow
 
@@ -65,34 +65,34 @@ ESI API → queue-alliances.ts → RabbitMQ Queue
                                      ↓
                             alliance-worker.ts
                                      ↓
-                              PostgreSQL (Alliance tablosu)
+                              PostgreSQL (Alliance table)
 ```
 
-## 🔧 Ayarlar
+## 🔧 Settings
 
 ### Rate Limit
 
-`alliance-worker.ts` dosyasında:
+In `alliance-worker.ts`:
 
 ```typescript
-const RATE_LIMIT_DELAY = 100; // 100ms = saniyede 10 istek
+const RATE_LIMIT_DELAY = 100; // 100ms = 10 requests per second
 ```
 
-Daha yavaş yapmak için: `200` (saniyede 5 istek)
-Daha hızlı yapmak için: `50` (saniyede 20 istek) - Dikkatli ol!
+To slow down: `200` (5 requests per second)
+To speed up: `50` (20 requests per second) - Be careful!
 
 ### Batch Size
 
-`queue-alliances.ts` dosyasında:
+In `queue-alliances.ts`:
 
 ```typescript
-const BATCH_SIZE = 100; // Her seferde 100 alliance queue'ya ekle
+const BATCH_SIZE = 100; // Add 100 alliances to the queue at a time
 ```
 
-## 📝 Notlar
+## 📝 Notes
 
-- Worker aynı anda **1 mesaj** işler (prefetch=1)
-- Veritabanında varsa **atlar** (gereksiz ESI isteği yapmaz)
-- 404 (bulunamadı) hatalarını **görmezden gelir**
-- 420 (error limit) hatalarında **60 saniye bekler**
-- Ctrl+C ile **graceful shutdown** yapar
+- Worker processes **1 message** at a time (prefetch=1)
+- Skips if already in the database (avoids unnecessary ESI requests)
+- Ignores 404 (not found) errors
+- Waits 60 seconds on 420 (error limit) responses
+- Graceful shutdown with Ctrl+C
