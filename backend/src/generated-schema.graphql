@@ -51,6 +51,7 @@ type Killmail {
 type Mutation {
   addCharacter(input: AddCharacterInput!): Character!
   createUser(input: CreateUserInput!): User!
+  startAllianceSync: Boolean
   updateUser(id: ID!, input: UpdateUserInput!): User
 }
 
