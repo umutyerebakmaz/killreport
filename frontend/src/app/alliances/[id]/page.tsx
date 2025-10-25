@@ -1,31 +1,19 @@
 "use client";
 
-import { gql, useQuery } from "@apollo/client";
-
-const ALLIANCE_QUERY = gql`
-  query Alliance($id: Int!) {
-    alliance(id: $id) {
-      id
-      name
-      ticker
-      date_founded
-      creator_corporation_id
-      creator_id
-      executor_corporation_id
-      faction_id
-    }
-  }
-`;
+import { useAllianceQuery } from "@/generated/graphql";
+import { use } from "react";
 
 interface AllianceDetailPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default function AllianceDetailPage({
   params,
 }: AllianceDetailPageProps) {
-  const { data, loading, error } = useQuery(ALLIANCE_QUERY, {
-    variables: { id: parseInt(params.id) },
+  const { id } = use(params);
+
+  const { data, loading, error } = useAllianceQuery({
+    variables: { id: parseInt(id) },
   });
 
   if (loading) {

@@ -167,6 +167,13 @@ export type Victim = {
   shipTypeId?: Maybe<Scalars['Int']['output']>;
 };
 
+export type AllianceQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type AllianceQuery = { __typename?: 'Query', alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, creator_corporation_id: number, creator_id: number, executor_corporation_id: number, faction_id?: number | null } | null };
+
 export type AlliancesQueryVariables = Exact<{
   after?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -176,6 +183,53 @@ export type AlliancesQueryVariables = Exact<{
 export type AlliancesQuery = { __typename?: 'Query', alliances?: Array<{ __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, creator_corporation_id: number, creator_id: number, executor_corporation_id: number, faction_id?: number | null } | null> | null };
 
 
+export const AllianceDocument = gql`
+    query Alliance($id: Int!) {
+  alliance(id: $id) {
+    id
+    name
+    ticker
+    date_founded
+    creator_corporation_id
+    creator_id
+    executor_corporation_id
+    faction_id
+  }
+}
+    `;
+
+/**
+ * __useAllianceQuery__
+ *
+ * To run a query within a React component, call `useAllianceQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAllianceQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAllianceQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useAllianceQuery(baseOptions: Apollo.QueryHookOptions<AllianceQuery, AllianceQueryVariables> & ({ variables: AllianceQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<AllianceQuery, AllianceQueryVariables>(AllianceDocument, options);
+      }
+export function useAllianceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AllianceQuery, AllianceQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<AllianceQuery, AllianceQueryVariables>(AllianceDocument, options);
+        }
+export function useAllianceSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AllianceQuery, AllianceQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<AllianceQuery, AllianceQueryVariables>(AllianceDocument, options);
+        }
+export type AllianceQueryHookResult = ReturnType<typeof useAllianceQuery>;
+export type AllianceLazyQueryHookResult = ReturnType<typeof useAllianceLazyQuery>;
+export type AllianceSuspenseQueryHookResult = ReturnType<typeof useAllianceSuspenseQuery>;
+export type AllianceQueryResult = Apollo.QueryResult<AllianceQuery, AllianceQueryVariables>;
 export const AlliancesDocument = gql`
     query Alliances($after: Int, $limit: Int) {
   alliances(after: $after, limit: $limit) {
