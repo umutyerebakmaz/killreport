@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Alliance {
+  id                      Int      @id
+  name                    String
+  ticker                  String
+  date_founded            DateTime
+  creator_corporation_id  Int
+  creator_id              Int
+  executor_corporation_id Int
+  faction_id              Int?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Corporation {
+  id                Int       @id
+  name              String
+  ticker            String
+  member_count      Int
+  ceo_id            Int
+  creator_id        Int
+  date_founded      DateTime?
+  description       String?   @db.Text
+  alliance_id       Int?
+  faction_id        Int?
+  home_station_id   Int?
+  shares            BigInt?
+  tax_rate          Float
+  url               String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Character {
+  id              Int       @id
+  name            String
+  corporation_id  Int
+  alliance_id     Int?
+  birthday        DateTime
+  bloodline_id    Int
+  race_id         Int
+  gender          String
+  security_status Float?
+  description     String?   @db.Text
+  title           String?
+  faction_id      Int?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Killmail {
+  id               BigInt   @id
+  killmail_time    DateTime
+  solar_system_id  Int
+  victim_character_id    Int?
+  victim_corporation_id  Int
+  victim_alliance_id     Int?
+  victim_ship_type_id    Int
+  victim_damage_taken    Int
+  victim_position_x      Float?
+  victim_position_y      Float?
+  victim_position_z      Float?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Attacker {
+  id                 BigInt @id @default(autoincrement())
+  killmail_id        BigInt
+  character_id       Int?
+  corporation_id     Int?
+  alliance_id        Int?
+  ship_type_id       Int?
+  weapon_type_id     Int?
+  damage_done        Int
+  final_blow         Boolean
+  security_status    Float
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([killmail_id])
+}
+
+model SyncJob {
+  id          BigInt   @id @default(autoincrement())
+  entity_type String   // 'alliance', 'corporation', 'character', 'killmail'
+  entity_id   BigInt
+  status      String   // 'pending', 'processing', 'completed', 'failed'
+  retry_count Int      @default(0)
+  error       String?  @db.Text
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([entity_type, status])
+  @@index([entity_id, entity_type])
+}
