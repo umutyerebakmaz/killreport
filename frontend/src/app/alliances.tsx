@@ -1,24 +1,42 @@
-import { useEffect, useState } from "react";
+"use client";
+
+import { gql, useQuery } from "@apollo/client";
 
 interface Alliance {
-  alliance_id: number;
+  id: number;
   name: string;
   ticker: string;
+  date_founded: string;
+  creator_corporation_id: number;
+  creator_id: number;
+  executor_corporation_id: number;
   faction_id?: number;
 }
 
-export default function AlliancesPage() {
-  const [alliances, setAlliances] = useState<Alliance[]>([]);
-  const [loading, setLoading] = useState(true);
+const ALLIANCES_QUERY = gql`
+  query Alliances($after: Int, $limit: Int) {
+    alliances(after: $after, limit: $limit) {
+      id
+      name
+      ticker
+      date_founded
+      creator_corporation_id
+      creator_id
+      executor_corporation_id
+      faction_id
+    }
+  }
+`;
 
-  useEffect(() => {
-    fetch("/api/alliances")
-      .then((res) => res.json())
-      .then((data) => {
-        setAlliances(data);
-        setLoading(false);
-      });
-  }, []);
+export default function AlliancesPage() {
+  const { data, loading, error } = useQuery(ALLIANCES_QUERY, {
+    variables: { after: null, limit: 20 },
+  });
+
+  if (loading) return <div className="p-8">Loading...</div>;
+  if (error) return <div className="p-8">Error: {error.message}</div>;
+
+  const alliances: Alliance[] = data?.alliances || [];
 
   return (
     <main className="p-8">
@@ -37,10 +55,10 @@ export default function AlliancesPage() {
           </thead>
           <tbody>
             {alliances.map((a) => (
-              <tr key={a.alliance_id}>
+              <tr key={a.id}>
                 <td className="px-2 py-1 border">
                   <img
-                    src={`https://images.evetech.net/alliance/${a.alliance_id}_64.png`}
+                    src={`https://images.evetech.net/Alliance/${a.id}_64.png`}
                     alt={a.name}
                     width={32}
                     height={32}
@@ -48,7 +66,7 @@ export default function AlliancesPage() {
                 </td>
                 <td className="px-2 py-1 border">{a.name}</td>
                 <td className="px-2 py-1 border">{a.ticker}</td>
-                <td className="px-2 py-1 border">{a.alliance_id}</td>
+                <td className="px-2 py-1 border">{a.id}</td>
               </tr>
             ))}
           </tbody>
