@@ -7,6 +7,8 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
+    "codegen": "graphql-codegen",
+    "codegen:watch": "graphql-codegen --watch",
     "kill-node": "pkill -9 node",
     "kill": "kill -9 $(lsof -t -i:3000)",
     "remove:all": "rm -rf .next node_modules yarn.lock"
@@ -23,6 +25,10 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@graphql-codegen/cli": "^6.0.1",
+    "@graphql-codegen/typescript": "^5.0.2",
+    "@graphql-codegen/typescript-operations": "^5.0.2",
+    "@graphql-codegen/typescript-react-apollo": "^4.3.3",
     "@tailwindcss/postcss": "^4.1.15",
     "@types/node": "^22.0.0",
     "@types/react": "^19",
