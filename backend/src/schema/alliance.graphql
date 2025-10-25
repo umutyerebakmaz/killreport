@@ -1,0 +1,14 @@
+type Alliance {
+  id: Int!
+  name: String!
+  ticker: String!
+  date_founded: String!
+  creator_corporation_id: Int!
+  creator_id: Int!
+  executor_corporation_id: Int!
+  faction_id: Int
+}
+
+type Query {
+  alliance(id: Int!): Alliance
+}

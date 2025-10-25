@@ -1,4 +1,5 @@
 import { Resolvers } from '../generated-types';
+import { allianceQueries } from './alliance.resolver';
 import { characterFieldResolvers, characterMutations, characterQueries } from './character.resolver';
 import { killmailQueries } from './killmail.resolver';
 import { userMutations, userQueries } from './user.resolver';
@@ -23,6 +24,9 @@ export const resolvers: Resolvers = {
 
     // Killmail queries
     ...killmailQueries,
+
+    // Alliance queries
+    ...allianceQueries,
   }, Mutation: {
     // User mutations
     ...userMutations,
