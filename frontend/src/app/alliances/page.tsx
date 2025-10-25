@@ -1,6 +1,7 @@
 "use client";
 
 import { gql, useQuery } from "@apollo/client";
+import Link from "next/link";
 
 interface Alliance {
   id: number;
