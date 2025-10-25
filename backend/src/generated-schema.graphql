@@ -57,6 +57,7 @@ type Mutation {
 
 type Query {
   alliance(id: Int!): Alliance
+  alliances(after: Int, limit: Int): [Alliance]
   character(id: ID!): Character
   charactersByUser(userId: ID!): [Character!]!
   killmail(id: ID!): Killmail

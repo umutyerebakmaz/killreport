@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { Alliance, MutationResolvers, QueryResolvers } from '../generated-types';
+import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
 export const allianceQueries: QueryResolvers = {
@@ -22,6 +23,24 @@ export const allianceQueries: QueryResolvers = {
       console.error(`Error fetching alliance with id ${id}:`, error);
       return null;
     }
+  },
+
+  alliances: async (_, { after, limit }): Promise<Alliance[]> => {
+    // after: cursor (alliance id), limit: kaç veri döneceği
+    const take = limit ?? 20;
+    const cursorId = after ? Number(after) : undefined;
+
+    const alliances = await prisma.alliance.findMany({
+      take,
+      ...(cursorId && { skip: 1, cursor: { id: cursorId } }),
+      orderBy: { id: 'asc' },
+    });
+
+    // Prisma'dan gelen date_founded Date objesini string'e çevir
+    return alliances.map(a => ({
+      ...a,
+      date_founded: a.date_founded.toISOString(),
+    }));
   },
 };
 
