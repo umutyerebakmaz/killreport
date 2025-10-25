@@ -1,10 +1,11 @@
 import axios from 'axios';
-import { QueryResolvers, Alliance } from '../generated-types';
+import { Alliance, MutationResolvers, QueryResolvers } from '../generated-types';
+import { publishToQueue } from '../services/rabbitmq';
 
 export const allianceQueries: QueryResolvers = {
   alliance: async (_, { id }): Promise<Alliance | null> => {
     try {
-      const response = await axios.get(`https://esi.evetech.net/latest/alliances/${id}/`);
+      const response = await axios.get(`https://esi.evetech.net/alliances/${id}/`);
       const allianceData = response.data;
 
       return {
@@ -19,9 +20,29 @@ export const allianceQueries: QueryResolvers = {
       };
     } catch (error) {
       console.error(`Error fetching alliance with id ${id}:`, error);
-      // In a real app, you might want to handle different error types
-      // (e.g., 404 Not Found vs. other ESI errors)
       return null;
+    }
+  },
+};
+
+export const allianceMutations: MutationResolvers = {
+  startAllianceSync: async () => {
+    try {
+      console.log('Starting alliance sync...');
+      const response = await axios.get('https://esi.evetech.net/alliances/');
+      const allianceIds: number[] = response.data;
+
+      console.log(`Found ${allianceIds.length} alliances. Publishing to queue...`);
+
+      for (const id of allianceIds) {
+        await publishToQueue(String(id));
+      }
+
+      console.log('All alliance IDs published to queue.');
+      return true;
+    } catch (error) {
+      console.error('Error starting alliance sync:', error);
+      return false;
     }
   },
 };

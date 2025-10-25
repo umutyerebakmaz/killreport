@@ -12,3 +12,7 @@ type Alliance {
 type Query {
   alliance(id: Int!): Alliance
 }
+
+type Mutation {
+  startAllianceSync: Boolean
+}
