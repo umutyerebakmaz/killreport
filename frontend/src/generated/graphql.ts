@@ -35,6 +35,14 @@ export type Alliance = {
   ticker: Scalars['String']['output'];
 };
 
+export type AllianceFilter = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  ticker?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type AlliancesResponse = {
   __typename?: 'AlliancesResponse';
   data: Array<Alliance>;
@@ -131,8 +139,7 @@ export type QueryAllianceArgs = {
 
 
 export type QueryAlliancesArgs = {
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  page?: InputMaybe<Scalars['Int']['input']>;
+  filter?: InputMaybe<AllianceFilter>;
 };
 
 
@@ -192,8 +199,7 @@ export type AllianceQueryVariables = Exact<{
 export type AllianceQuery = { __typename?: 'Query', alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, creator_corporation_id: number, creator_id: number, executor_corporation_id: number, faction_id?: number | null } | null };
 
 export type AlliancesQueryVariables = Exact<{
-  page?: InputMaybe<Scalars['Int']['input']>;
-  limit?: InputMaybe<Scalars['Int']['input']>;
+  filter?: InputMaybe<AllianceFilter>;
 }>;
 
 
@@ -248,8 +254,8 @@ export type AllianceLazyQueryHookResult = ReturnType<typeof useAllianceLazyQuery
 export type AllianceSuspenseQueryHookResult = ReturnType<typeof useAllianceSuspenseQuery>;
 export type AllianceQueryResult = Apollo.QueryResult<AllianceQuery, AllianceQueryVariables>;
 export const AlliancesDocument = gql`
-    query Alliances($page: Int, $limit: Int) {
-  alliances(page: $page, limit: $limit) {
+    query Alliances($filter: AllianceFilter) {
+  alliances(filter: $filter) {
     data {
       id
       name
@@ -283,8 +289,7 @@ export const AlliancesDocument = gql`
  * @example
  * const { data, loading, error } = useAlliancesQuery({
  *   variables: {
- *      page: // value for 'page'
- *      limit: // value for 'limit'
+ *      filter: // value for 'filter'
  *   },
  * });
  */
