@@ -34,6 +34,12 @@ export type Alliance = {
   ticker: Scalars['String']['output'];
 };
 
+export type AlliancesResponse = {
+  __typename?: 'AlliancesResponse';
+  data: Array<Alliance>;
+  pageInfo: PageInfo;
+};
+
 export type Attacker = {
   __typename?: 'Attacker';
   characterId?: Maybe<Scalars['Int']['output']>;
@@ -94,10 +100,21 @@ export type MutationUpdateUserArgs = {
   input: UpdateUserInput;
 };
 
+export type PageInfo = {
+  __typename?: 'PageInfo';
+  currentPage: Scalars['Int']['output'];
+  hasNextPage: Scalars['Boolean']['output'];
+  hasPreviousPage: Scalars['Boolean']['output'];
+  nextCursor?: Maybe<Scalars['Int']['output']>;
+  previousCursor?: Maybe<Scalars['Int']['output']>;
+  totalCount: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
+};
+
 export type Query = {
   __typename?: 'Query';
   alliance?: Maybe<Alliance>;
-  alliances?: Maybe<Array<Maybe<Alliance>>>;
+  alliances: AlliancesResponse;
   character?: Maybe<Character>;
   charactersByUser: Array<Character>;
   killmail?: Maybe<Killmail>;
@@ -113,8 +130,8 @@ export type QueryAllianceArgs = {
 
 
 export type QueryAlliancesArgs = {
-  after?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -241,6 +258,7 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 export type ResolversTypes = {
   AddCharacterInput: AddCharacterInput;
   Alliance: ResolverTypeWrapper<Alliance>;
+  AlliancesResponse: ResolverTypeWrapper<AlliancesResponse>;
   Attacker: ResolverTypeWrapper<Attacker>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Character: ResolverTypeWrapper<Character>;
@@ -250,6 +268,7 @@ export type ResolversTypes = {
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   Killmail: ResolverTypeWrapper<Killmail>;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
+  PageInfo: ResolverTypeWrapper<PageInfo>;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   UpdateUserInput: UpdateUserInput;
@@ -261,6 +280,7 @@ export type ResolversTypes = {
 export type ResolversParentTypes = {
   AddCharacterInput: AddCharacterInput;
   Alliance: Alliance;
+  AlliancesResponse: AlliancesResponse;
   Attacker: Attacker;
   Boolean: Scalars['Boolean']['output'];
   Character: Character;
@@ -270,6 +290,7 @@ export type ResolversParentTypes = {
   Int: Scalars['Int']['output'];
   Killmail: Killmail;
   Mutation: Record<PropertyKey, never>;
+  PageInfo: PageInfo;
   Query: Record<PropertyKey, never>;
   String: Scalars['String']['output'];
   UpdateUserInput: UpdateUserInput;
@@ -286,6 +307,11 @@ export type AllianceResolvers<ContextType = any, ParentType extends ResolversPar
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   ticker?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type AlliancesResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['AlliancesResponse'] = ResolversParentTypes['AlliancesResponse']> = {
+  data?: Resolver<Array<ResolversTypes['Alliance']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
 };
 
 export type AttackerResolvers<ContextType = any, ParentType extends ResolversParentTypes['Attacker'] = ResolversParentTypes['Attacker']> = {
@@ -323,9 +349,19 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   updateUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'id' | 'input'>>;
 };
 
+export type PageInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['PageInfo'] = ResolversParentTypes['PageInfo']> = {
+  currentPage?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  hasNextPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  hasPreviousPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  nextCursor?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  previousCursor?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  totalPages?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType, RequireFields<QueryAllianceArgs, 'id'>>;
-  alliances?: Resolver<Maybe<Array<Maybe<ResolversTypes['Alliance']>>>, ParentType, ContextType, Partial<QueryAlliancesArgs>>;
+  alliances?: Resolver<ResolversTypes['AlliancesResponse'], ParentType, ContextType, Partial<QueryAlliancesArgs>>;
   character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType, RequireFields<QueryCharacterArgs, 'id'>>;
   charactersByUser?: Resolver<Array<ResolversTypes['Character']>, ParentType, ContextType, RequireFields<QueryCharactersByUserArgs, 'userId'>>;
   killmail?: Resolver<Maybe<ResolversTypes['Killmail']>, ParentType, ContextType, RequireFields<QueryKillmailArgs, 'id'>>;
@@ -352,10 +388,12 @@ export type VictimResolvers<ContextType = any, ParentType extends ResolversParen
 
 export type Resolvers<ContextType = any> = {
   Alliance?: AllianceResolvers<ContextType>;
+  AlliancesResponse?: AlliancesResponseResolvers<ContextType>;
   Attacker?: AttackerResolvers<ContextType>;
   Character?: CharacterResolvers<ContextType>;
   Killmail?: KillmailResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
+  PageInfo?: PageInfoResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
   Victim?: VictimResolvers<ContextType>;
