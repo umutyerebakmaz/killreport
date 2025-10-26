@@ -3,15 +3,41 @@
 import Paginator from "@/components/Paginator/Paginator";
 import { useAlliancesQuery } from "@/generated/graphql";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function AlliancesPage() {
-  const [currentPage, setCurrentPage] = useState(1);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const pageFromUrl = Number(searchParams.get("page")) || 1;
+  const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(25);
 
   const { data, loading, error, refetch } = useAlliancesQuery({
-    variables: { page: currentPage, limit: pageSize },
+    variables: {
+      filter: {
+        page: currentPage,
+        limit: pageSize,
+      },
+    },
   });
+
+  // URL'deki page parametresi değiştiğinde state'i güncelle
+  useEffect(() => {
+    const urlPage = Number(searchParams.get("page")) || 1;
+    if (urlPage !== currentPage) {
+      setCurrentPage(urlPage);
+    }
+  }, [searchParams]);
+
+  // currentPage değiştiğinde URL'i güncelle
+  useEffect(() => {
+    const urlPage = Number(searchParams.get("page")) || 1;
+    if (currentPage !== urlPage) {
+      router.push(`/alliances?page=${currentPage}`, { scroll: false });
+    }
+  }, [currentPage]);
 
   if (loading) return <div className="p-8">Loading...</div>;
   if (error) return <div className="p-8">Error: {error.message}</div>;
@@ -29,6 +55,16 @@ export default function AlliancesPage() {
   const handlePrev = () => {
     if (pageInfo?.hasPreviousPage) {
       setCurrentPage((prev) => prev - 1);
+    }
+  };
+
+  const handleFirst = () => {
+    setCurrentPage(1);
+  };
+
+  const handleLast = () => {
+    if (totalPages > 0) {
+      setCurrentPage(totalPages);
     }
   };
 
@@ -82,6 +118,8 @@ export default function AlliancesPage() {
         hasPrevPage={pageInfo?.hasPreviousPage ?? false}
         onNext={handleNext}
         onPrev={handlePrev}
+        onFirst={handleFirst}
+        onLast={handleLast}
         loading={loading}
         currentPage={currentPage}
         totalPages={totalPages}
