@@ -22,9 +22,17 @@ type PageInfo {
   hasPreviousPage: Boolean!
 }
 
+input AllianceFilter {
+  page: Int
+  limit: Int
+  search: String
+  name: String
+  ticker: String
+}
+
 type Query {
   alliance(id: Int!): Alliance
-  alliances(page: Int, limit: Int): AlliancesResponse!
+  alliances(filter: AllianceFilter): AlliancesResponse!
 }
 
 type Mutation {

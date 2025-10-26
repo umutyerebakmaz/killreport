@@ -1,5 +1,5 @@
-query Alliances($page: Int, $limit: Int) {
-  alliances(page: $page, limit: $limit) {
+query Alliances($filter: AllianceFilter) {
+  alliances(filter: $filter) {
     data {
       id
       name

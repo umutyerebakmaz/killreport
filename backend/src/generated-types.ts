@@ -34,6 +34,14 @@ export type Alliance = {
   ticker: Scalars['String']['output'];
 };
 
+export type AllianceFilter = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  ticker?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type AlliancesResponse = {
   __typename?: 'AlliancesResponse';
   data: Array<Alliance>;
@@ -130,8 +138,7 @@ export type QueryAllianceArgs = {
 
 
 export type QueryAlliancesArgs = {
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  page?: InputMaybe<Scalars['Int']['input']>;
+  filter?: InputMaybe<AllianceFilter>;
 };
 
 
@@ -258,6 +265,7 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 export type ResolversTypes = {
   AddCharacterInput: AddCharacterInput;
   Alliance: ResolverTypeWrapper<Alliance>;
+  AllianceFilter: AllianceFilter;
   AlliancesResponse: ResolverTypeWrapper<AlliancesResponse>;
   Attacker: ResolverTypeWrapper<Attacker>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
@@ -280,6 +288,7 @@ export type ResolversTypes = {
 export type ResolversParentTypes = {
   AddCharacterInput: AddCharacterInput;
   Alliance: Alliance;
+  AllianceFilter: AllianceFilter;
   AlliancesResponse: AlliancesResponse;
   Attacker: Attacker;
   Boolean: Scalars['Boolean']['output'];
