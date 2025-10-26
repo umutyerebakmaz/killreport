@@ -9,9 +9,22 @@ type Alliance {
   faction_id: Int
 }
 
+type AlliancesResponse {
+  data: [Alliance!]!
+  pageInfo: PageInfo!
+}
+
+type PageInfo {
+  currentPage: Int!
+  totalPages: Int!
+  totalCount: Int!
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+}
+
 type Query {
   alliance(id: Int!): Alliance
-  alliances(after: Int, limit: Int): [Alliance]
+  alliances(page: Int, limit: Int): AlliancesResponse!
 }
 
 type Mutation {

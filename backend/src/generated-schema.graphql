@@ -15,6 +15,11 @@ type Alliance {
   ticker: String!
 }
 
+type AlliancesResponse {
+  data: [Alliance!]!
+  pageInfo: PageInfo!
+}
+
 type Attacker {
   characterId: Int
   characterName: String
@@ -55,9 +60,19 @@ type Mutation {
   updateUser(id: ID!, input: UpdateUserInput!): User
 }
 
+type PageInfo {
+  currentPage: Int!
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  nextCursor: Int
+  previousCursor: Int
+  totalCount: Int!
+  totalPages: Int!
+}
+
 type Query {
   alliance(id: Int!): Alliance
-  alliances(after: Int, limit: Int): [Alliance]
+  alliances(limit: Int, page: Int): AlliancesResponse!
   character(id: ID!): Character
   charactersByUser(userId: ID!): [Character!]!
   killmail(id: ID!): Killmail
