@@ -1,10 +1,8 @@
-import React from "react";
-
 interface EveStatusProps {
   players?: number;
 }
 
-export const EveStatus: React.FC<EveStatusProps> = ({ players }) => {
+export default function EveStatus({ players }: EveStatusProps) {
   return (
     <div className="flex items-center gap-2 text-green-500 cursor-pointer">
       {/* Online players icon */}
@@ -25,4 +23,4 @@ export const EveStatus: React.FC<EveStatusProps> = ({ players }) => {
       Tranquility {players?.toLocaleString() ?? "-"}
     </div>
   );
-};
+}

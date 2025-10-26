@@ -26,7 +26,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import React, { useState } from "react";
-import { EveStatus } from "../EveStatus/EveStatus";
+import EveStatus from "../EveStatus/EveStatus";
 import EveTime from "../EveTime/EveTime";
 import Tooltip from "../Tooltip/Tooltip";
 
