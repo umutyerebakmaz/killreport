@@ -15,6 +15,14 @@ type Alliance {
   ticker: String!
 }
 
+input AllianceFilter {
+  limit: Int
+  name: String
+  page: Int
+  search: String
+  ticker: String
+}
+
 type AlliancesResponse {
   data: [Alliance!]!
   pageInfo: PageInfo!
@@ -72,7 +80,7 @@ type PageInfo {
 
 type Query {
   alliance(id: Int!): Alliance
-  alliances(limit: Int, page: Int): AlliancesResponse!
+  alliances(filter: AllianceFilter): AlliancesResponse!
   character(id: ID!): Character
   charactersByUser(userId: ID!): [Character!]!
   killmail(id: ID!): Killmail
