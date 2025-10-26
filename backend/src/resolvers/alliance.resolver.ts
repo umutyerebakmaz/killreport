@@ -15,20 +15,38 @@ export const allianceQueries: QueryResolvers = {
     };
   },
 
-  alliances: async (_, { page, limit }): Promise<AlliancesResponse> => {
-    const take = limit ?? 20;
-    const currentPage = page ?? 1;
+  alliances: async (_, { filter }): Promise<AlliancesResponse> => {
+    const take = filter?.limit ?? 25;
+    const currentPage = filter?.page ?? 1;
     const skip = (currentPage - 1) * take;
 
-    // Toplam kayıt sayısı
-    const totalCount = await prisma.alliance.count();
+    // Filter koşullarını oluştur
+    const where: any = {};
+    if (filter) {
+      if (filter.search) {
+        where.OR = [
+          { name: { contains: filter.search, mode: 'insensitive' } },
+          { ticker: { contains: filter.search, mode: 'insensitive' } },
+        ];
+      }
+      if (filter.name) {
+        where.name = { contains: filter.name, mode: 'insensitive' };
+      }
+      if (filter.ticker) {
+        where.ticker = { contains: filter.ticker, mode: 'insensitive' };
+      }
+    }
+
+    // Toplam kayıt sayısı (filtrelenmiş)
+    const totalCount = await prisma.alliance.count({ where });
     const totalPages = Math.ceil(totalCount / take);
 
     // Verileri çek
     const alliances = await prisma.alliance.findMany({
+      where,
       skip,
       take,
-      orderBy: { id: 'asc' },
+      orderBy: { name: 'asc' },
     });
 
     const pageInfo: PageInfo = {
