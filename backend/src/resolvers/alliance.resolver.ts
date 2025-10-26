@@ -1,46 +1,51 @@
 import axios from 'axios';
-import { Alliance, MutationResolvers, QueryResolvers } from '../generated-types';
+import { Alliance, AlliancesResponse, MutationResolvers, PageInfo, QueryResolvers } from '../generated-types';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
 export const allianceQueries: QueryResolvers = {
   alliance: async (_, { id }): Promise<Alliance | null> => {
-    try {
-      const response = await axios.get(`https://esi.evetech.net/alliances/${id}/`);
-      const allianceData = response.data;
-
-      return {
-        id,
-        name: allianceData.name,
-        ticker: allianceData.ticker,
-        date_founded: allianceData.date_founded,
-        creator_corporation_id: allianceData.creator_corporation_id,
-        creator_id: allianceData.creator_id,
-        executor_corporation_id: allianceData.executor_corporation_id,
-        faction_id: allianceData.faction_id || null,
-      };
-    } catch (error) {
-      console.error(`Error fetching alliance with id ${id}:`, error);
-      return null;
-    }
+    const alliance = await prisma.alliance.findUnique({
+      where: { id: Number(id) },
+    });
+    if (!alliance) return null;
+    return {
+      ...alliance,
+      date_founded: alliance.date_founded.toISOString(),
+    };
   },
 
-  alliances: async (_, { after, limit }): Promise<Alliance[]> => {
-    // after: cursor (alliance id), limit: kaç veri döneceği
+  alliances: async (_, { page, limit }): Promise<AlliancesResponse> => {
     const take = limit ?? 20;
-    const cursorId = after ? Number(after) : undefined;
+    const currentPage = page ?? 1;
+    const skip = (currentPage - 1) * take;
 
+    // Toplam kayıt sayısı
+    const totalCount = await prisma.alliance.count();
+    const totalPages = Math.ceil(totalCount / take);
+
+    // Verileri çek
     const alliances = await prisma.alliance.findMany({
+      skip,
       take,
-      ...(cursorId && { skip: 1, cursor: { id: cursorId } }),
       orderBy: { id: 'asc' },
     });
 
-    // Prisma'dan gelen date_founded Date objesini string'e çevir
-    return alliances.map(a => ({
-      ...a,
-      date_founded: a.date_founded.toISOString(),
-    }));
+    const pageInfo: PageInfo = {
+      currentPage,
+      totalPages,
+      totalCount,
+      hasNextPage: currentPage < totalPages,
+      hasPreviousPage: currentPage > 1,
+    };
+
+    return {
+      data: alliances.map(a => ({
+        ...a,
+        date_founded: a.date_founded.toISOString(),
+      })),
+      pageInfo,
+    };
   },
 };
 

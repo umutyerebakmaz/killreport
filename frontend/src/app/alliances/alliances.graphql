@@ -1,12 +1,21 @@
-query Alliances($after: Int, $limit: Int) {
-  alliances(after: $after, limit: $limit) {
-    id
-    name
-    ticker
-    date_founded
-    creator_corporation_id
-    creator_id
-    executor_corporation_id
-    faction_id
+query Alliances($page: Int, $limit: Int) {
+  alliances(page: $page, limit: $limit) {
+    data {
+      id
+      name
+      ticker
+      date_founded
+      creator_corporation_id
+      creator_id
+      executor_corporation_id
+      faction_id
+    }
+    pageInfo {
+      currentPage
+      totalPages
+      totalCount
+      hasNextPage
+      hasPreviousPage
+    }
   }
 }
