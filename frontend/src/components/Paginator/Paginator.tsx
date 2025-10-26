@@ -11,6 +11,8 @@ interface PaginatorProps {
   hasPrevPage?: boolean;
   onNext: () => void;
   onPrev?: () => void;
+  onFirst?: () => void;
+  onLast?: () => void;
   loading?: boolean;
   currentPage?: number;
   totalPages?: number;
@@ -23,6 +25,8 @@ export default function Paginator({
   hasPrevPage,
   onNext,
   onPrev,
+  onFirst,
+  onLast,
   loading,
   currentPage = 1,
   totalPages,
@@ -38,7 +42,8 @@ export default function Paginator({
         {/* First Page */}
         <button
           className="p-2 text-gray-400 transition-colors hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed"
-          disabled={true}
+          onClick={onFirst}
+          disabled={!hasPrevPage || loading}
           title="İlk Sayfa"
           style={{ margin: 0 }}
         >
@@ -70,7 +75,8 @@ export default function Paginator({
         {/* Last Page */}
         <button
           className="p-2 text-gray-400 transition-colors hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed"
-          disabled={true}
+          onClick={onLast}
+          disabled={!hasNextPage || loading}
           title="Son Sayfa"
           style={{ margin: 0 }}
         >
