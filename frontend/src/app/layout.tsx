@@ -17,14 +17,14 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className="flex flex-col min-h-screen antialiased bg-gray-50"
+        className="flex flex-col min-h-screen antialiased text-white bg-black"
         suppressHydrationWarning
       >
         <ApolloWrapper>
           <Header />
 
           {/* Main Content */}
-          <main className="flex-1 w-full px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
+          <main className="flex-1 w-full px-4 py-8 mx-auto text-gray-100 max-w-7xl sm:px-6 lg:px-8">
             {children}
           </main>
 
