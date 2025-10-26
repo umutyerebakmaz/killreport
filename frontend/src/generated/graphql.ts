@@ -35,6 +35,12 @@ export type Alliance = {
   ticker: Scalars['String']['output'];
 };
 
+export type AlliancesResponse = {
+  __typename?: 'AlliancesResponse';
+  data: Array<Alliance>;
+  pageInfo: PageInfo;
+};
+
 export type Attacker = {
   __typename?: 'Attacker';
   characterId?: Maybe<Scalars['Int']['output']>;
@@ -95,10 +101,21 @@ export type MutationUpdateUserArgs = {
   input: UpdateUserInput;
 };
 
+export type PageInfo = {
+  __typename?: 'PageInfo';
+  currentPage: Scalars['Int']['output'];
+  hasNextPage: Scalars['Boolean']['output'];
+  hasPreviousPage: Scalars['Boolean']['output'];
+  nextCursor?: Maybe<Scalars['Int']['output']>;
+  previousCursor?: Maybe<Scalars['Int']['output']>;
+  totalCount: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
+};
+
 export type Query = {
   __typename?: 'Query';
   alliance?: Maybe<Alliance>;
-  alliances?: Maybe<Array<Maybe<Alliance>>>;
+  alliances: AlliancesResponse;
   character?: Maybe<Character>;
   charactersByUser: Array<Character>;
   killmail?: Maybe<Killmail>;
@@ -114,8 +131,8 @@ export type QueryAllianceArgs = {
 
 
 export type QueryAlliancesArgs = {
-  after?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -175,12 +192,12 @@ export type AllianceQueryVariables = Exact<{
 export type AllianceQuery = { __typename?: 'Query', alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, creator_corporation_id: number, creator_id: number, executor_corporation_id: number, faction_id?: number | null } | null };
 
 export type AlliancesQueryVariables = Exact<{
-  after?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
 }>;
 
 
-export type AlliancesQuery = { __typename?: 'Query', alliances?: Array<{ __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, creator_corporation_id: number, creator_id: number, executor_corporation_id: number, faction_id?: number | null } | null> | null };
+export type AlliancesQuery = { __typename?: 'Query', alliances: { __typename?: 'AlliancesResponse', data: Array<{ __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, creator_corporation_id: number, creator_id: number, executor_corporation_id: number, faction_id?: number | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 
 export const AllianceDocument = gql`
@@ -231,16 +248,25 @@ export type AllianceLazyQueryHookResult = ReturnType<typeof useAllianceLazyQuery
 export type AllianceSuspenseQueryHookResult = ReturnType<typeof useAllianceSuspenseQuery>;
 export type AllianceQueryResult = Apollo.QueryResult<AllianceQuery, AllianceQueryVariables>;
 export const AlliancesDocument = gql`
-    query Alliances($after: Int, $limit: Int) {
-  alliances(after: $after, limit: $limit) {
-    id
-    name
-    ticker
-    date_founded
-    creator_corporation_id
-    creator_id
-    executor_corporation_id
-    faction_id
+    query Alliances($page: Int, $limit: Int) {
+  alliances(page: $page, limit: $limit) {
+    data {
+      id
+      name
+      ticker
+      date_founded
+      creator_corporation_id
+      creator_id
+      executor_corporation_id
+      faction_id
+    }
+    pageInfo {
+      currentPage
+      totalPages
+      totalCount
+      hasNextPage
+      hasPreviousPage
+    }
   }
 }
     `;
@@ -257,7 +283,7 @@ export const AlliancesDocument = gql`
  * @example
  * const { data, loading, error } = useAlliancesQuery({
  *   variables: {
- *      after: // value for 'after'
+ *      page: // value for 'page'
  *      limit: // value for 'limit'
  *   },
  * });
