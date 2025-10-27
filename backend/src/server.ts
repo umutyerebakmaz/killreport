@@ -7,6 +7,7 @@ import path from 'path';
 
 // Tüm resolver'ları modüler yapıdan import et
 import { resolvers } from './resolvers';
+import { verifyToken } from './services/eve-sso';
 
 // --- ADIM 1: SDL Dosyalarını Yükleme ---
 // Projedeki tüm .graphql dosyalarını bul ve yükle
@@ -17,13 +18,32 @@ const typeDefs = mergeTypeDefs(typesArray);
 
 // Executable schema oluştur
 const schema = makeExecutableSchema({
-  typeDefs,
-  resolvers,
+    typeDefs,
+    resolvers,
 });
 
 // GraphQL Yoga instance'ı oluştur
 const yoga = createYoga({
-  schema,
+    schema,
+    context: async ({ request }) => {
+        const authorization = request.headers.get('authorization');
+
+        // Bearer token varsa doğrula
+        if (authorization?.startsWith('Bearer ')) {
+            const token = authorization.slice(7);
+            try {
+                const character = await verifyToken(token);
+                return {
+                    user: character,
+                };
+            } catch (error) {
+                console.error('Token verification failed:', error);
+                // Token geçersiz ama request devam etsin
+            }
+        }
+
+        return {};
+    },
 });
 
 // HTTP sunucusunu oluştur ve başlat
@@ -31,5 +51,5 @@ const server = createServer(yoga);
 const port = 4000;
 
 server.listen(port, () => {
-  console.log(`🚀 Server is running on http://localhost:${port}/graphql`);
+    console.log(`🚀 Server is running on http://localhost:${port}/graphql`);
 });

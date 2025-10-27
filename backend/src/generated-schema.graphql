@@ -37,6 +37,28 @@ type Attacker {
   weaponTypeId: Int
 }
 
+type AuthPayload {
+  """JWT access token"""
+  accessToken: String!
+
+  """Token geçerlilik süresi (saniye)"""
+  expiresIn: Int!
+
+  """Token yenilemek için kullanılan refresh token"""
+  refreshToken: String
+
+  """Authenticated kullanıcı bilgileri"""
+  user: User!
+}
+
+type AuthUrl {
+  """CSRF koruması için state parametresi"""
+  state: String!
+
+  """Eve Online SSO authorization URL'i"""
+  url: String!
+}
+
 type Character {
   alliance: String
   corporation: String
@@ -63,7 +85,16 @@ type Killmail {
 
 type Mutation {
   addCharacter(input: AddCharacterInput!): Character!
+
+  """Authorization code ile authentication yapar ve token döner"""
+  authenticateWithCode(code: String!, state: String!): AuthPayload!
   createUser(input: CreateUserInput!): User!
+
+  """Eve Online SSO login için authorization URL'i oluşturur"""
+  login: AuthUrl!
+
+  """Refresh token kullanarak yeni access token alır"""
+  refreshToken(refreshToken: String!): AuthPayload!
   startAllianceSync: Boolean
   updateUser(id: ID!, input: UpdateUserInput!): User
 }
@@ -85,6 +116,9 @@ type Query {
   charactersByUser(userId: ID!): [Character!]!
   killmail(id: ID!): Killmail
   killmails(limit: Int, offset: Int): [Killmail!]!
+
+  """Mevcut authenticated kullanıcının bilgilerini döner"""
+  me: User
   user(id: ID!): User
   users: [User!]!
 }
