@@ -14,7 +14,7 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ['Roboto', 'Arial', 'Helvetica', 'sans-serif'],
+        sans: ['Mona Sans', 'Arial', 'Helvetica', 'sans-serif'],
       },
     },
   },
