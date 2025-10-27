@@ -22,6 +22,13 @@ export const config = {
     authUrl: 'https://login.eveonline.com/v2/oauth/authorize',
     tokenUrl: 'https://login.eveonline.com/v2/oauth/token',
     jwksUrl: 'https://login.eveonline.com/oauth/jwks',
-    scopes: ['publicData', 'esi-characters.read_corporation_roles.v1'],
+    scopes: [
+      'publicData',
+      'esi-killmails.read_killmails.v1',
+      'esi-killmails.read_corporation_killmails.v1',
+      'esi-fittings.read_fittings.v1',
+      'esi-fittings.write_fittings.v1',
+      'esi-characters.read_medals.v1',
+    ],
   },
 };

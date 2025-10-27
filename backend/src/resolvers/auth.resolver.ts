@@ -28,7 +28,7 @@ export const authQueries: QueryResolvers = {
       id: user.id.toString(),
       name: user.name,
       email: user.email || '',
-      createdAt: user.createdAt.toISOString(),
+      createdAt: user.created_at.toISOString(),
     };
   },
 };
@@ -74,7 +74,7 @@ export const authMutations: MutationResolvers = {
           id: user.id.toString(),
           name: user.name,
           email: user.email || '',
-          createdAt: user.createdAt.toISOString(),
+          createdAt: user.created_at.toISOString(),
         },
       } as any;
     } catch (error) {
@@ -108,7 +108,7 @@ export const authMutations: MutationResolvers = {
           id: user.id.toString(),
           name: user.name,
           email: user.email || '',
-          createdAt: user.createdAt.toISOString(),
+          createdAt: user.created_at.toISOString(),
         },
       } as any;
     } catch (error) {
