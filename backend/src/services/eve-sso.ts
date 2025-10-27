@@ -62,7 +62,7 @@ export async function exchangeCodeForToken(code: string): Promise<{
  */
 export async function verifyToken(token: string): Promise<EveCharacter> {
   const { payload } = await jwtVerify(token, JWKS, {
-    issuer: 'login.eveonline.com',
+    issuer: 'https://login.eveonline.com',
   });
 
   if (!payload.sub || !payload.name || !payload.owner) {
