@@ -1,0 +1,57 @@
+type Query {
+  """
+  Mevcut authenticated kullanıcının bilgilerini döner
+  """
+  me: User
+}
+
+type Mutation {
+  """
+  Eve Online SSO login için authorization URL'i oluşturur
+  """
+  login: AuthUrl!
+
+  """
+  Authorization code ile authentication yapar ve token döner
+  """
+  authenticateWithCode(code: String!, state: String!): AuthPayload!
+
+  """
+  Refresh token kullanarak yeni access token alır
+  """
+  refreshToken(refreshToken: String!): AuthPayload!
+}
+
+type AuthUrl {
+  """
+  Eve Online SSO authorization URL'i
+  """
+  url: String!
+
+  """
+  CSRF koruması için state parametresi
+  """
+  state: String!
+}
+
+type AuthPayload {
+  """
+  JWT access token
+  """
+  accessToken: String!
+
+  """
+  Token yenilemek için kullanılan refresh token
+  """
+  refreshToken: String
+
+  """
+  Token geçerlilik süresi (saniye)
+  """
+  expiresIn: Int!
+
+  """
+  Authenticated kullanıcı bilgileri
+  """
+  user: User!
+}
