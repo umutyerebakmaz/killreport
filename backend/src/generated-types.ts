@@ -58,6 +58,26 @@ export type Attacker = {
   weaponTypeId?: Maybe<Scalars['Int']['output']>;
 };
 
+export type AuthPayload = {
+  __typename?: 'AuthPayload';
+  /** JWT access token */
+  accessToken: Scalars['String']['output'];
+  /** Token geçerlilik süresi (saniye) */
+  expiresIn: Scalars['Int']['output'];
+  /** Token yenilemek için kullanılan refresh token */
+  refreshToken?: Maybe<Scalars['String']['output']>;
+  /** Authenticated kullanıcı bilgileri */
+  user: User;
+};
+
+export type AuthUrl = {
+  __typename?: 'AuthUrl';
+  /** CSRF koruması için state parametresi */
+  state: Scalars['String']['output'];
+  /** Eve Online SSO authorization URL'i */
+  url: Scalars['String']['output'];
+};
+
 export type Character = {
   __typename?: 'Character';
   alliance?: Maybe<Scalars['String']['output']>;
@@ -87,7 +107,13 @@ export type Killmail = {
 export type Mutation = {
   __typename?: 'Mutation';
   addCharacter: Character;
+  /** Authorization code ile authentication yapar ve token döner */
+  authenticateWithCode: AuthPayload;
   createUser: User;
+  /** Eve Online SSO login için authorization URL'i oluşturur */
+  login: AuthUrl;
+  /** Refresh token kullanarak yeni access token alır */
+  refreshToken: AuthPayload;
   startAllianceSync?: Maybe<Scalars['Boolean']['output']>;
   updateUser?: Maybe<User>;
 };
@@ -98,8 +124,19 @@ export type MutationAddCharacterArgs = {
 };
 
 
+export type MutationAuthenticateWithCodeArgs = {
+  code: Scalars['String']['input'];
+  state: Scalars['String']['input'];
+};
+
+
 export type MutationCreateUserArgs = {
   input: CreateUserInput;
+};
+
+
+export type MutationRefreshTokenArgs = {
+  refreshToken: Scalars['String']['input'];
 };
 
 
@@ -127,6 +164,8 @@ export type Query = {
   charactersByUser: Array<Character>;
   killmail?: Maybe<Killmail>;
   killmails: Array<Killmail>;
+  /** Mevcut authenticated kullanıcının bilgilerini döner */
+  me?: Maybe<User>;
   user?: Maybe<User>;
   users: Array<User>;
 };
@@ -268,6 +307,8 @@ export type ResolversTypes = {
   AllianceFilter: AllianceFilter;
   AlliancesResponse: ResolverTypeWrapper<AlliancesResponse>;
   Attacker: ResolverTypeWrapper<Attacker>;
+  AuthPayload: ResolverTypeWrapper<AuthPayload>;
+  AuthUrl: ResolverTypeWrapper<AuthUrl>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Character: ResolverTypeWrapper<Character>;
   CreateUserInput: CreateUserInput;
@@ -291,6 +332,8 @@ export type ResolversParentTypes = {
   AllianceFilter: AllianceFilter;
   AlliancesResponse: AlliancesResponse;
   Attacker: Attacker;
+  AuthPayload: AuthPayload;
+  AuthUrl: AuthUrl;
   Boolean: Scalars['Boolean']['output'];
   Character: Character;
   CreateUserInput: CreateUserInput;
@@ -332,6 +375,18 @@ export type AttackerResolvers<ContextType = any, ParentType extends ResolversPar
   weaponTypeId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
 };
 
+export type AuthPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['AuthPayload'] = ResolversParentTypes['AuthPayload']> = {
+  accessToken?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  expiresIn?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  refreshToken?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+};
+
+export type AuthUrlResolvers<ContextType = any, ParentType extends ResolversParentTypes['AuthUrl'] = ResolversParentTypes['AuthUrl']> = {
+  state?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
 export type CharacterResolvers<ContextType = any, ParentType extends ResolversParentTypes['Character'] = ResolversParentTypes['Character']> = {
   alliance?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   corporation?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -353,7 +408,10 @@ export type KillmailResolvers<ContextType = any, ParentType extends ResolversPar
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   addCharacter?: Resolver<ResolversTypes['Character'], ParentType, ContextType, RequireFields<MutationAddCharacterArgs, 'input'>>;
+  authenticateWithCode?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationAuthenticateWithCodeArgs, 'code' | 'state'>>;
   createUser?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
+  login?: Resolver<ResolversTypes['AuthUrl'], ParentType, ContextType>;
+  refreshToken?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationRefreshTokenArgs, 'refreshToken'>>;
   startAllianceSync?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   updateUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'id' | 'input'>>;
 };
@@ -375,6 +433,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   charactersByUser?: Resolver<Array<ResolversTypes['Character']>, ParentType, ContextType, RequireFields<QueryCharactersByUserArgs, 'userId'>>;
   killmail?: Resolver<Maybe<ResolversTypes['Killmail']>, ParentType, ContextType, RequireFields<QueryKillmailArgs, 'id'>>;
   killmails?: Resolver<Array<ResolversTypes['Killmail']>, ParentType, ContextType, Partial<QueryKillmailsArgs>>;
+  me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
   users?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
 };
@@ -399,6 +458,8 @@ export type Resolvers<ContextType = any> = {
   Alliance?: AllianceResolvers<ContextType>;
   AlliancesResponse?: AlliancesResponseResolvers<ContextType>;
   Attacker?: AttackerResolvers<ContextType>;
+  AuthPayload?: AuthPayloadResolvers<ContextType>;
+  AuthUrl?: AuthUrlResolvers<ContextType>;
   Character?: CharacterResolvers<ContextType>;
   Killmail?: KillmailResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
