@@ -1,5 +1,6 @@
 import { Resolvers } from '../generated-types';
-import { allianceQueries, allianceMutations } from './alliance.resolver';
+import { allianceMutations, allianceQueries } from './alliance.resolver';
+import { authMutations, authQueries } from './auth.resolver';
 import { characterFieldResolvers, characterMutations, characterQueries } from './character.resolver';
 import { killmailQueries } from './killmail.resolver';
 import { userMutations, userQueries } from './user.resolver';
@@ -15,29 +16,35 @@ import { userMutations, userQueries } from './user.resolver';
  * 4. Test edilebilirlik artar (her resolver ayrı test edilir)
  */
 export const resolvers: Resolvers = {
-  Query: {
-    // User queries
-    ...userQueries,
+    Query: {
+        // Auth queries
+        ...authQueries,
 
-    // Character queries
-    ...characterQueries,
+        // User queries
+        ...userQueries,
 
-    // Killmail queries
-    ...killmailQueries,
+        // Character queries
+        ...characterQueries,
 
-    // Alliance queries
-    ...allianceQueries,
-  }, Mutation: {
-    // User mutations
-    ...userMutations,
+        // Killmail queries
+        ...killmailQueries,
 
-    // Character mutations
-    ...characterMutations,
+        // Alliance queries
+        ...allianceQueries,
+    }, Mutation: {
+        // Auth mutations
+        ...authMutations,
 
-    // Alliance mutations
-    ...allianceMutations,
-  },
+        // User mutations
+        ...userMutations,
 
-  // Field Resolvers - Nested type'lar için
-  Character: characterFieldResolvers,
+        // Character mutations
+        ...characterMutations,
+
+        // Alliance mutations
+        ...allianceMutations,
+    },
+
+    // Field Resolvers - Nested type'lar için
+    Character: characterFieldResolvers,
 };
