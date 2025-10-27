@@ -59,6 +59,15 @@ model Character {
   updated_at DateTime @updatedAt
 }
 
+model User {
+  id         Int      @id
+  name       String
+  email      String?  @unique
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
 model Killmail {
   id               BigInt   @id
   killmail_time    DateTime
