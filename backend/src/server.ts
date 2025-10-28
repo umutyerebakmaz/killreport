@@ -82,23 +82,32 @@ const server = createServer(async (req, res) => {
       // Authorization code'u token ile değiştir
       const tokenData = await exchangeCodeForToken(code);
 
-      // Token'ı doğrula ve character bilgilerini al
+      // Verify token and get character info
       const character = await verifyToken(tokenData.access_token);
 
-      // User'ı database'de bul veya oluştur
+      // Calculate token expiry time
+      const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
+
+      // Find or create user in database
       const user = await prisma.user.upsert({
-        where: { id: character.characterId },
+        where: { characterId: character.characterId },
         update: {
-          name: character.characterName,
+          characterName: character.characterName,
+          accessToken: tokenData.access_token,
+          refreshToken: tokenData.refresh_token,
+          expiresAt,
         },
         create: {
-          id: character.characterId,
-          name: character.characterName,
-          email: `${character.characterId}@eveonline.com`,
+          characterId: character.characterId,
+          characterName: character.characterName,
+          characterOwnerHash: character.characterOwnerHash,
+          accessToken: tokenData.access_token,
+          refreshToken: tokenData.refresh_token,
+          expiresAt,
         },
       });
 
-      // Frontend'e redirect et (token ile)
+      // Redirect to frontend (with token)
       const redirectUrl = `${config.eveSso.frontendUrl}/auth/success?token=${encodeURIComponent(tokenData.access_token)}&refresh_token=${encodeURIComponent(tokenData.refresh_token || '')}&expires_in=${tokenData.expires_in}&character_name=${encodeURIComponent(character.characterName)}&character_id=${character.characterId}`;
 
       res.writeHead(302, {
