@@ -19,6 +19,7 @@ export const config = {
     clientId: process.env.EVE_CLIENT_ID!,
     clientSecret: process.env.EVE_CLIENT_SECRET!,
     callbackUrl: process.env.EVE_CALLBACK_URL || 'http://localhost:4000/auth/callback',
+    frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
     authUrl: 'https://login.eveonline.com/v2/oauth/authorize',
     tokenUrl: 'https://login.eveonline.com/v2/oauth/token',
     jwksUrl: 'https://login.eveonline.com/oauth/jwks',
