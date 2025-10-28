@@ -26,6 +26,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import React, { useState } from "react";
+import AuthButton from "../AuthButton/AuthButton";
 import EveStatus from "../EveStatus/EveStatus";
 import EveTime from "../EveTime/EveTime";
 import Tooltip from "../Tooltip/Tooltip";
@@ -91,15 +92,15 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="bg-gray-900">
+    <header className="sticky top-0 z-50 bg-custom-dark-90 backdrop-blur-sm">
       <nav
         aria-label="Global"
-        className="flex items-center justify-between p-6 mx-auto max-w-7xl lg:px-8"
+        className="flex items-center justify-between p-6 mx-auto lg:px-8 xl:px-12 2xl:px-16 max-w-[1920px]"
       >
         <div className="flex lg:flex-1">
           <a href="#" className="-m-1.5 p-1.5">
             <span className="sr-only">KillReport</span>
-            <span className="text-2xl font-extrabold tracking-tight text-gray-700">
+            <span className="text-2xl font-semibold tracking-tight text-gray-200">
               KILLREPORT
             </span>
           </a>
@@ -125,18 +126,18 @@ export default function Header() {
             </PopoverButton>
             <PopoverPanel
               transition
-              className="absolute z-10 w-screen max-w-md mt-3 overflow-hidden transition -translate-x-1/2 bg-gray-800 left-1/2 rounded-3xl outline-1 -outline-offset-1 outline-white/10 data-closed:translate-y-1 data-closed:opacity-0 data-enter:duration-200 data-enter:ease-out data-leave:duration-150 data-leave:ease-in"
+              className="absolute z-10 w-screen max-w-md mt-3 overflow-hidden transition -translate-x-1/2 bg-stone-900 left-1/2 outline-1 -outline-offset-1 outline-white/10 data-closed:translate-y-1 data-closed:opacity-0 data-enter:duration-200 data-enter:ease-out data-leave:duration-150 data-leave:ease-in"
             >
               <div className="p-4">
                 {products.map((item) => (
                   <div
                     key={item.name}
-                    className="relative flex items-center p-4 rounded-lg group gap-x-6 text-sm/6 hover:bg-white/5"
+                    className="relative flex items-center p-4 rounded-lg group gap-x-6 text-sm/6 hover:bg-cyan-900/50"
                   >
                     <div className="flex items-center justify-center flex-none rounded-lg size-11 bg-gray-700/50 group-hover:bg-gray-700">
                       <item.icon
                         aria-hidden="true"
-                        className="text-gray-400 size-6 group-hover:text-white"
+                        className="text-gray-400 size-6 group-hover:text-cyan-400"
                       />
                     </div>
                     <div className="flex-auto">
@@ -157,7 +158,7 @@ export default function Header() {
                   <a
                     key={item.name}
                     href={item.href}
-                    className="flex items-center justify-center gap-x-2.5 p-3 text-sm/6 font-semibold text-white hover:bg-gray-700/50"
+                    className="flex items-center justify-center gap-x-2.5 p-3 text-sm/6 font-semibold text-white hover:bg-cyan-900/50"
                   >
                     <item.icon
                       aria-hidden="true"
@@ -180,20 +181,20 @@ export default function Header() {
           </a>
         </PopoverGroup>
 
-        <div className="hidden gap-4 lg:flex lg:flex-1 lg:justify-end">
-          <Tooltip
-            content={`Tranquility ${
-              status?.players?.toLocaleString() ?? "-"
-            } online players`}
-          >
-            <EveStatus players={status?.players} />
-          </Tooltip>
-          <Tooltip content="Current Eve Online ingame time">
-            <EveTime />
-          </Tooltip>
-          <a href="#" className="font-semibold text-white text-sm/6">
-            LOGIN
-          </a>
+        <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:items-center lg:gap-6">
+          <div className="flex items-center gap-4">
+            <Tooltip
+              content={`Tranquility ${
+                status?.players?.toLocaleString() ?? "-"
+              } online players`}
+            >
+              <EveStatus players={status?.players} />
+            </Tooltip>
+            <Tooltip content="Current Eve Online ingame time">
+              <EveTime />
+            </Tooltip>
+          </div>
+          <AuthButton />
         </div>
       </nav>
       <Dialog
@@ -206,7 +207,7 @@ export default function Header() {
           <div className="flex items-center justify-between">
             <a href="#" className="-m-1.5 p-1.5">
               <span className="sr-only">KILLREPORT</span>
-              <span className="text-2xl font-extrabold tracking-tight text-amber-900">
+              <span className="text-2xl font-semibold tracking-tight text-gray-200">
                 KILLREPORT
               </span>
             </a>
@@ -262,12 +263,9 @@ export default function Header() {
                 </a>
               </div>
               <div className="py-6">
-                <a
-                  href="#"
-                  className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-white hover:bg-white/5"
-                >
-                  LOGIN
-                </a>
+                <div className="px-3">
+                  <AuthButton />
+                </div>
               </div>
             </div>
           </div>
