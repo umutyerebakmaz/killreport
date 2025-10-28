@@ -115,6 +115,11 @@ export type Mutation = {
   /** Refresh token kullanarak yeni access token alır */
   refreshToken: AuthPayload;
   startAllianceSync?: Maybe<Scalars['Boolean']['output']>;
+  /**
+   * Kullanıcının killmail'lerini ESI'dan çeker ve database'e kaydeder
+   * Requires: Authentication
+   */
+  syncMyKillmails: SyncResult;
   updateUser?: Maybe<User>;
 };
 
@@ -162,10 +167,17 @@ export type Query = {
   alliances: AlliancesResponse;
   character?: Maybe<Character>;
   charactersByUser: Array<Character>;
+  /** Tek bir killmail'i getirir */
   killmail?: Maybe<Killmail>;
+  /** Tüm killmail'leri listeler (pagination ile) */
   killmails: Array<Killmail>;
   /** Mevcut authenticated kullanıcının bilgilerini döner */
   me?: Maybe<User>;
+  /**
+   * Login olan kullanıcının kendi killmail'lerini getirir
+   * Requires: Authentication
+   */
+  myKillmails: Array<Killmail>;
   user?: Maybe<User>;
   users: Array<User>;
 };
@@ -202,8 +214,20 @@ export type QueryKillmailsArgs = {
 };
 
 
+export type QueryMyKillmailsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
 export type QueryUserArgs = {
   id: Scalars['ID']['input'];
+};
+
+export type SyncResult = {
+  __typename?: 'SyncResult';
+  message: Scalars['String']['output'];
+  success: Scalars['Boolean']['output'];
+  syncedCount: Scalars['Int']['output'];
 };
 
 export type UpdateUserInput = {
@@ -320,6 +344,7 @@ export type ResolversTypes = {
   PageInfo: ResolverTypeWrapper<PageInfo>;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
+  SyncResult: ResolverTypeWrapper<SyncResult>;
   UpdateUserInput: UpdateUserInput;
   User: ResolverTypeWrapper<User>;
   Victim: ResolverTypeWrapper<Victim>;
@@ -345,6 +370,7 @@ export type ResolversParentTypes = {
   PageInfo: PageInfo;
   Query: Record<PropertyKey, never>;
   String: Scalars['String']['output'];
+  SyncResult: SyncResult;
   UpdateUserInput: UpdateUserInput;
   User: User;
   Victim: Victim;
@@ -413,6 +439,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   login?: Resolver<ResolversTypes['AuthUrl'], ParentType, ContextType>;
   refreshToken?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationRefreshTokenArgs, 'refreshToken'>>;
   startAllianceSync?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  syncMyKillmails?: Resolver<ResolversTypes['SyncResult'], ParentType, ContextType>;
   updateUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'id' | 'input'>>;
 };
 
@@ -434,8 +461,15 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   killmail?: Resolver<Maybe<ResolversTypes['Killmail']>, ParentType, ContextType, RequireFields<QueryKillmailArgs, 'id'>>;
   killmails?: Resolver<Array<ResolversTypes['Killmail']>, ParentType, ContextType, Partial<QueryKillmailsArgs>>;
   me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  myKillmails?: Resolver<Array<ResolversTypes['Killmail']>, ParentType, ContextType, Partial<QueryMyKillmailsArgs>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
   users?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
+};
+
+export type SyncResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['SyncResult'] = ResolversParentTypes['SyncResult']> = {
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  syncedCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
 export type UserResolvers<ContextType = any, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
@@ -465,6 +499,7 @@ export type Resolvers<ContextType = any> = {
   Mutation?: MutationResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
+  SyncResult?: SyncResultResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
   Victim?: VictimResolvers<ContextType>;
 };
