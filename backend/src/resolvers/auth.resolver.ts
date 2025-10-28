@@ -1,119 +1,136 @@
 import { randomUUID } from 'crypto';
 import { MutationResolvers, QueryResolvers } from '../generated-types';
 import {
-  exchangeCodeForToken,
-  getAuthUrl,
-  refreshAccessToken,
-  verifyToken,
+    exchangeCodeForToken,
+    getAuthUrl,
+    refreshAccessToken,
+    verifyToken,
 } from '../services/eve-sso';
 import prisma from '../services/prisma';
 
 // Query Resolvers
 export const authQueries: QueryResolvers = {
-  me: async (_parent, _args, context: any) => {
-    if (!context.user) {
-      throw new Error('Not authenticated');
-    }
+    me: async (_parent, _args, context: any) => {
+        if (!context.user) {
+            throw new Error('Not authenticated');
+        }
 
-    // Database'den user bilgilerini al
-    const user = await prisma.user.findUnique({
-      where: { id: context.user.characterId },
-    });
+        // Get user info from database
+        const user = await prisma.user.findUnique({
+            where: { characterId: context.user.characterId },
+        });
 
-    if (!user) {
-      throw new Error('User not found');
-    }
+        if (!user) {
+            throw new Error('User not found');
+        }
 
-    return {
-      id: user.id.toString(),
-      name: user.name,
-      email: user.email || '',
-      createdAt: user.created_at.toISOString(),
-    };
-  },
+        return {
+            id: user.characterId.toString(),
+            name: user.characterName,
+            email: user.email || '',
+            createdAt: user.created_at.toISOString(),
+        };
+    },
 };
 
 // Mutation Resolvers
 export const authMutations: MutationResolvers = {
-  login: async () => {
-    const state = randomUUID();
-    const url = await getAuthUrl(state);
+    login: async () => {
+        const state = randomUUID();
+        const url = await getAuthUrl(state);
 
-    return {
-      url,
-      state,
-    } as any;
-  },
+        return {
+            url,
+            state,
+        } as any;
+    },
 
-  authenticateWithCode: async (_parent: any, { code, state }: any) => {
-    try {
-      // Authorization code'u token ile değiştir
-      const tokenData = await exchangeCodeForToken(code);
+    authenticateWithCode: async (_parent: any, { code, state }: any) => {
+        try {
+            // Exchange authorization code for token
+            const tokenData = await exchangeCodeForToken(code);
 
-      // Token'ı doğrula ve character bilgilerini al
-      const character = await verifyToken(tokenData.access_token);
+            // Verify token and get character info
+            const character = await verifyToken(tokenData.access_token);
 
-      // User'ı database'de bul veya oluştur
-      const user = await prisma.user.upsert({
-        where: { id: character.characterId },
-        update: {
-          name: character.characterName,
-        },
-        create: {
-          id: character.characterId,
-          name: character.characterName,
-          email: `${character.characterId}@eveonline.com`, // Eve'de email yok, placeholder
-        },
-      });
+            // Calculate token expiry time
+            const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
 
-      return {
-        accessToken: tokenData.access_token,
-        refreshToken: tokenData.refresh_token,
-        expiresIn: tokenData.expires_in,
-        user: {
-          id: user.id.toString(),
-          name: user.name,
-          email: user.email || '',
-          createdAt: user.created_at.toISOString(),
-        },
-      } as any;
-    } catch (error) {
-      console.error('Authentication error:', error);
-      throw new Error('Authentication failed');
-    }
-  },
+            // Find or create user in database
+            const user = await prisma.user.upsert({
+                where: { characterId: character.characterId },
+                update: {
+                    characterName: character.characterName,
+                    accessToken: tokenData.access_token,
+                    refreshToken: tokenData.refresh_token,
+                    expiresAt,
+                },
+                create: {
+                    characterId: character.characterId,
+                    characterName: character.characterName,
+                    characterOwnerHash: character.characterOwnerHash,
+                    accessToken: tokenData.access_token,
+                    refreshToken: tokenData.refresh_token,
+                    expiresAt,
+                },
+            });
 
-  refreshToken: async (_parent: any, { refreshToken }: any) => {
-    try {
-      // Refresh token ile yeni access token al
-      const tokenData = await refreshAccessToken(refreshToken);
+            return {
+                accessToken: tokenData.access_token,
+                refreshToken: tokenData.refresh_token,
+                expiresIn: tokenData.expires_in,
+                user: {
+                    id: user.characterId.toString(),
+                    name: user.characterName,
+                    email: user.email || '',
+                    createdAt: user.created_at.toISOString(),
+                },
+            } as any;
+        } catch (error) {
+            console.error('Authentication error:', error);
+            throw new Error('Authentication failed');
+        }
+    },
 
-      // Yeni token'ı doğrula ve character bilgilerini al
-      const character = await verifyToken(tokenData.access_token);
+    refreshToken: async (_parent: any, { refreshToken }: any) => {
+        try {
+            // Get new access token with refresh token
+            const tokenData = await refreshAccessToken(refreshToken);
 
-      // User'ı database'den al
-      const user = await prisma.user.findUnique({
-        where: { id: character.characterId },
-      });
+            // Verify new token and get character info
+            const character = await verifyToken(tokenData.access_token);
 
-      if (!user) {
-        throw new Error('User not found');
-      }
+            // Calculate token expiry time
+            const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
 
-      return {
-        accessToken: tokenData.access_token,
-        refreshToken: tokenData.refresh_token,
-        expiresIn: tokenData.expires_in,
-        user: {
-          id: user.id.toString(),
-          name: user.name,
-          email: user.email || '',
-          createdAt: user.created_at.toISOString(),
-        },
-      } as any;
-    } catch (error) {
-      console.error('Token refresh error:', error);
-      throw new Error('Token refresh failed');
-    }
-  },
+            // Update user in database
+            const user = await prisma.user.update({
+                where: { characterId: character.characterId },
+                data: {
+                    accessToken: tokenData.access_token,
+                    refreshToken: tokenData.refresh_token,
+                    expiresAt,
+                },
+            });
+
+            if (!user) {
+                throw new Error('User not found');
+            }
+
+            return {
+                accessToken: tokenData.access_token,
+                refreshToken: tokenData.refresh_token,
+                expiresIn: tokenData.expires_in,
+                user: {
+                    id: user.characterId.toString(),
+                    name: user.characterName,
+                    email: user.email || '',
+                    createdAt: user.created_at.toISOString(),
+                },
+            } as any;
+        } catch (error) {
+            console.error('Token refresh error:', error);
+            throw new Error('Token refresh failed');
+        }
+    },
 };
