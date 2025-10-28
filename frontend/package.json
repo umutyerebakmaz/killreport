@@ -15,7 +15,7 @@
     "remove:all": "rm -rf .next node_modules yarn.lock"
   },
   "dependencies": {
-    "@apollo/client": "^4.0.0",
+    "@apollo/client": "^3.11.0",
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
     "graphql": "^16.11.0",

@@ -46,24 +46,58 @@ export interface KillmailDetail {
  */
 export async function getCharacterKillmails(
   characterId: number,
-  token: string
+  token: string,
+  maxPages: number = 100 // Fetch up to 100 pages (2500 killmails max, 25 per page)
 ): Promise<EsiKillmail[]> {
-  const url = `${ESI_BASE_URL}/characters/${characterId}/killmails/recent/?datasource=tranquility`;
+  const allKillmails: EsiKillmail[] = [];
 
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  for (let page = 1; page <= maxPages; page++) {
+    const url = `${ESI_BASE_URL}/characters/${characterId}/killmails/recent/?datasource=tranquility&page=${page}`;
 
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(
-      `Failed to fetch character killmails: ${response.status} - ${error}`
-    );
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      // 404 means no more pages available - this is expected
+      if (response.status === 404) {
+        console.log(`     ✓ No more pages available (404)`);
+        break;
+      }
+
+      // Other errors should be thrown
+      const error = await response.text();
+      throw new Error(
+        `Failed to fetch character killmails: ${response.status} - ${error}`
+      );
+    }
+
+    const killmails: EsiKillmail[] = await response.json();
+
+    console.log(`     📄 Page ${page}: ${killmails.length} killmails`);
+
+    // If no killmails returned, we've reached the end
+    if (killmails.length === 0) {
+      console.log(`     ✓ Reached end of killmails (empty page)`);
+      break;
+    }
+
+    allKillmails.push(...killmails);
+
+    // If less than 25 returned, this is the last page
+    if (killmails.length < 25) {
+      console.log(`     ✓ Last page (${killmails.length} < 25)`);
+      break;
+    }
+
+    // Small delay to respect ESI rate limits (150 requests/second limit)
+    await new Promise(resolve => setTimeout(resolve, 50));
   }
 
-  return response.json();
+  console.log(`     ✅ Total: ${allKillmails.length} killmails from ESI`);
+  return allKillmails;
 }
 
 /**
