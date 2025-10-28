@@ -9,7 +9,9 @@
     "codegen": "graphql-codegen",
     "codegen:watch": "graphql-codegen --watch",
     "worker": "ts-node src/alliance-worker.ts",
+    "worker:killmail": "ts-node src/killmail-worker.ts",
     "queue": "ts-node src/queue-alliances.ts",
+    "queue:killmail": "ts-node src/queue-killmails.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
