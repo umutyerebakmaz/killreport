@@ -89,11 +89,11 @@ const navigation = {
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-900">
-      <div className="px-6 pt-16 pb-8 mx-auto max-w-7xl sm:pt-24 lg:px-8 lg:pt-32">
+    <footer className="bg-custom-dark">
+      <div className="px-6 pt-16 pb-8 mx-auto sm:pt-24 lg:px-8 xl:px-12 2xl:px-16 lg:pt-32 max-w-[1920px]">
         <div className="xl:grid xl:grid-cols-3 xl:gap-8">
           <div className="space-y-8">
-            <span className="text-2xl font-extrabold tracking-tight text-gray-700">
+            <span className="text-2xl font-semibold tracking-tight text-gray-200">
               KILLREPORT
             </span>
             <p className="text-gray-400 text-sm/6 text-balance">
