@@ -1,10 +1,10 @@
-# MODÜLER RESOLVER YAPISI - TEST QUERY'LERİ
+# MODULAR RESOLVER STRUCTURE - TEST QUERIES
 
-GraphQL Playground'da (http://localhost:4000/graphql) test edebileceğiniz query'ler:
+Queries you can test in GraphQL Playground (http://localhost:4000/graphql):
 
 ## 1️⃣ USER QUERIES
 
-### Tüm kullanıcıları listele
+### List all users
 
 ```graphql
 query GetAllUsers {
@@ -17,7 +17,7 @@ query GetAllUsers {
 }
 ```
 
-### Tek bir kullanıcı getir
+### Get a single user
 
 ```graphql
 query GetUser {
@@ -30,7 +30,7 @@ query GetUser {
 }
 ```
 
-### Yeni kullanıcı oluştur
+### Create a new user
 
 ```graphql
 mutation CreateUser {
@@ -43,7 +43,7 @@ mutation CreateUser {
 }
 ```
 
-### Kullanıcı güncelle
+### Update user
 
 ```graphql
 mutation UpdateUser {
@@ -59,7 +59,7 @@ mutation UpdateUser {
 
 ## 2️⃣ CHARACTER QUERIES
 
-### Tek bir character getir
+### Get a single character
 
 ```graphql
 query GetCharacter {
@@ -78,7 +78,7 @@ query GetCharacter {
 }
 ```
 
-### Bir kullanıcının tüm karakterlerini getir
+### Get all characters of a user
 
 ```graphql
 query GetUserCharacters {
@@ -92,7 +92,7 @@ query GetUserCharacters {
 }
 ```
 
-### Yeni character ekle
+### Add a new character
 
 ```graphql
 mutation AddCharacter {
@@ -113,7 +113,7 @@ mutation AddCharacter {
 
 ## 3️⃣ KILLMAIL QUERIES
 
-### Tek bir killmail getir
+### Get a single killmail
 
 ```graphql
 query GetKillmail {
@@ -140,7 +140,7 @@ query GetKillmail {
 }
 ```
 
-### Killmail listesi (pagination ile)
+### Killmail list (with pagination)
 
 ```graphql
 query GetKillmails {
@@ -159,9 +159,9 @@ query GetKillmails {
 
 ---
 
-## 4️⃣ KOMPLEKS NESTED QUERY
+## 4️⃣ COMPLEX NESTED QUERY
 
-User → Characters → Killmails gibi ilişkili datayı tek seferde çekebilirsiniz:
+You can fetch related data like User → Characters → Killmails in a single request:
 
 ```graphql
 query ComplexQuery {
@@ -191,9 +191,9 @@ query ComplexQuery {
 
 ---
 
-## 📝 NOTLAR
+## 📝 NOTES
 
-1. **Mock Data**: Şu anda tüm resolver'lar mock data kullanıyor
-2. **Gerçek Implementasyon**: Database bağlantısı ekleyince resolver'ları güncellemeniz yeterli
-3. **Field Resolvers**: `Character.user` gibi nested field'lar otomatik çözümleniyor
-4. **Type Safety**: Tüm resolver'lar TypeScript ile tip-güvenli
+1. **Mock Data**: Currently all resolvers use mock data
+2. **Real Implementation**: Once you add database connection, just update the resolvers
+3. **Field Resolvers**: Nested fields like `Character.user` are automatically resolved
+4. **Type Safety**: All resolvers are type-safe with TypeScript
