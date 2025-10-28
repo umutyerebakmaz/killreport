@@ -12,6 +12,8 @@ module.exports = {
           500: '#36b3b3',
           600: '#249393',
         },
+        'custom-dark': '#101010',
+        'custom-dark-90': 'rgba(16, 16, 16, 0.9)',
       },
       fontFamily: {
         sans: ['Mona Sans', 'Arial', 'Helvetica', 'sans-serif'],
