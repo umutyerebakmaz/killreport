@@ -116,7 +116,7 @@ export type Mutation = {
   refreshToken: AuthPayload;
   startAllianceSync?: Maybe<Scalars['Boolean']['output']>;
   /**
-   * Kullanıcının killmail'lerini ESI'dan çeker ve database'e kaydeder
+   * Fetches user's killmails from ESI and saves to database
    * Requires: Authentication
    */
   syncMyKillmails: SyncResult;
@@ -167,19 +167,19 @@ export type Query = {
   alliances: AlliancesResponse;
   character?: Maybe<Character>;
   charactersByUser: Array<Character>;
-  /** Tek bir killmail'i getirir */
+  /** Fetches a single killmail */
   killmail?: Maybe<Killmail>;
-  /** Tüm killmail'leri listeler (pagination ile) */
+  /** Lists all killmails (with pagination) */
   killmails: Array<Killmail>;
   /** Mevcut authenticated kullanıcının bilgilerini döner */
   me?: Maybe<User>;
   /**
-   * Login olan kullanıcının corporation killmail'lerini getirir
+   * Fetches the authenticated user's corporation killmails
    * Requires: Authentication + esi-killmails.read_corporation_killmails.v1 scope
    */
   myCorporationKillmails: Array<Killmail>;
   /**
-   * Login olan kullanıcının kendi killmail'lerini getirir
+   * Fetches the authenticated user's own killmails
    * Requires: Authentication
    */
   myKillmails: Array<Killmail>;
