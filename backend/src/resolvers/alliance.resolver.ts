@@ -58,7 +58,7 @@ export const allianceQueries: QueryResolvers = {
     };
 
     return {
-      data: alliances.map(a => ({
+      data: alliances.map((a: any) => ({
         ...a,
         date_founded: a.date_founded.toISOString(),
       })),
