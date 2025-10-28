@@ -7,13 +7,13 @@ const QUEUE_NAME = 'alliance_sync_queue';
 const BATCH_SIZE = 100;
 
 /**
- * ESI'den tüm alliance ID'lerini çeker ve RabbitMQ queue'ya ekler
+ * Fetches all alliance IDs from ESI and adds them to RabbitMQ queue
  */
 async function queueAlliances() {
   console.log('📡 Fetching all alliance IDs from ESI...\n');
 
   try {
-    // ESI'den tüm alliance ID'lerini al
+    // Get all alliance IDs from ESI
     const response = await axios.get(`${ESI_BASE_URL}/alliances/`);
     const allianceIds: number[] = response.data;
 
@@ -22,7 +22,7 @@ async function queueAlliances() {
 
     const channel = await getRabbitMQChannel();
 
-    // Batch halinde queue'ya ekle
+    // Add to queue in batches
     for (let i = 0; i < allianceIds.length; i += BATCH_SIZE) {
       const batch = allianceIds.slice(i, i + BATCH_SIZE);
 
