@@ -98,7 +98,7 @@ type Mutation {
   startAllianceSync: Boolean
 
   """
-  Kullanıcının killmail'lerini ESI'dan çeker ve database'e kaydeder
+  Fetches user's killmails from ESI and saves to database
   Requires: Authentication
   """
   syncMyKillmails: SyncResult!
@@ -121,23 +121,23 @@ type Query {
   character(id: ID!): Character
   charactersByUser(userId: ID!): [Character!]!
 
-  """Tek bir killmail'i getirir"""
+  """Fetches a single killmail"""
   killmail(id: ID!): Killmail
 
-  """Tüm killmail'leri listeler (pagination ile)"""
+  """Lists all killmails (with pagination)"""
   killmails(limit: Int, offset: Int): [Killmail!]!
 
   """Mevcut authenticated kullanıcının bilgilerini döner"""
   me: User
 
   """
-  Login olan kullanıcının corporation killmail'lerini getirir
+  Fetches the authenticated user's corporation killmails
   Requires: Authentication + esi-killmails.read_corporation_killmails.v1 scope
   """
   myCorporationKillmails(limit: Int): [Killmail!]!
 
   """
-  Login olan kullanıcının kendi killmail'lerini getirir
+  Fetches the authenticated user's own killmails
   Requires: Authentication
   """
   myKillmails(limit: Int): [Killmail!]!
