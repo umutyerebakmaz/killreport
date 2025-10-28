@@ -131,6 +131,12 @@ type Query {
   me: User
 
   """
+  Login olan kullanıcının corporation killmail'lerini getirir
+  Requires: Authentication + esi-killmails.read_corporation_killmails.v1 scope
+  """
+  myCorporationKillmails(limit: Int): [Killmail!]!
+
+  """
   Login olan kullanıcının kendi killmail'lerini getirir
   Requires: Authentication
   """
