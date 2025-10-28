@@ -20,105 +20,109 @@ const typeDefs = mergeTypeDefs(typesArray);
 
 // Executable schema oluştur
 const schema = makeExecutableSchema({
-    typeDefs,
-    resolvers,
+  typeDefs,
+  resolvers,
 });
 
 // GraphQL Yoga instance'ı oluştur
 const yoga = createYoga({
-    schema,
-    graphqlEndpoint: '/graphql',
-    context: async ({ request }) => {
-        const authorization = request.headers.get('authorization');
+  schema,
+  graphqlEndpoint: '/graphql',
+  context: async ({ request }) => {
+    const authorization = request.headers.get('authorization');
 
-        // Bearer token varsa doğrula
-        if (authorization?.startsWith('Bearer ')) {
-            const token = authorization.slice(7);
-            try {
-                const character = await verifyToken(token);
-                return {
-                    user: character,
-                };
-            } catch (error) {
-                console.error('Token verification failed:', error);
-                // Token geçersiz ama request devam etsin
-            }
-        }
+    // Bearer token varsa doğrula
+    if (authorization?.startsWith('Bearer ')) {
+      const token = authorization.slice(7);
+      console.log('🔑 Token received, length:', token.length);
+      try {
+        const character = await verifyToken(token);
+        console.log('✅ Token verified for character:', character.characterName);
+        return {
+          user: character,
+          token, // ESI API çağrıları için token'ı da context'e ekle
+        };
+      } catch (error) {
+        console.error('❌ Token verification failed:', error);
+        // Token geçersiz ama request devam etsin
+      }
+    }
 
-        return {};
-    },
+    console.log('⚠️  No token provided');
+    return {};
+  },
 });
 
 // HTTP sunucusunu oluştur
 const server = createServer(async (req, res) => {
-    // CORS headers ekle
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  // CORS headers ekle
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-    if (req.method === 'OPTIONS') {
-        res.writeHead(200);
-        res.end();
-        return;
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200);
+    res.end();
+    return;
+  }
+
+  // Eve SSO Callback endpoint
+  if (req.url?.startsWith('/auth/callback')) {
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const code = url.searchParams.get('code');
+    const state = url.searchParams.get('state');
+
+    if (!code || !state) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Missing code or state parameter' }));
+      return;
     }
 
-    // Eve SSO Callback endpoint
-    if (req.url?.startsWith('/auth/callback')) {
-        const url = new URL(req.url, `http://${req.headers.host}`);
-        const code = url.searchParams.get('code');
-        const state = url.searchParams.get('state');
+    try {
+      // Authorization code'u token ile değiştir
+      const tokenData = await exchangeCodeForToken(code);
 
-        if (!code || !state) {
-            res.writeHead(400, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Missing code or state parameter' }));
-            return;
-        }
+      // Token'ı doğrula ve character bilgilerini al
+      const character = await verifyToken(tokenData.access_token);
 
-        try {
-            // Authorization code'u token ile değiştir
-            const tokenData = await exchangeCodeForToken(code);
+      // User'ı database'de bul veya oluştur
+      const user = await prisma.user.upsert({
+        where: { id: character.characterId },
+        update: {
+          name: character.characterName,
+        },
+        create: {
+          id: character.characterId,
+          name: character.characterName,
+          email: `${character.characterId}@eveonline.com`,
+        },
+      });
 
-            // Token'ı doğrula ve character bilgilerini al
-            const character = await verifyToken(tokenData.access_token);
+      // Frontend'e redirect et (token ile)
+      const redirectUrl = `${config.eveSso.frontendUrl}/auth/success?token=${encodeURIComponent(tokenData.access_token)}&refresh_token=${encodeURIComponent(tokenData.refresh_token || '')}&expires_in=${tokenData.expires_in}&character_name=${encodeURIComponent(character.characterName)}&character_id=${character.characterId}`;
 
-            // User'ı database'de bul veya oluştur
-            const user = await prisma.user.upsert({
-                where: { id: character.characterId },
-                update: {
-                    name: character.characterName,
-                },
-                create: {
-                    id: character.characterId,
-                    name: character.characterName,
-                    email: `${character.characterId}@eveonline.com`,
-                },
-            });
-
-            // Frontend'e redirect et (token ile)
-            const redirectUrl = `${config.eveSso.frontendUrl}/auth/success?token=${encodeURIComponent(tokenData.access_token)}&refresh_token=${encodeURIComponent(tokenData.refresh_token || '')}&expires_in=${tokenData.expires_in}&character_name=${encodeURIComponent(character.characterName)}&character_id=${character.characterId}`;
-
-            res.writeHead(302, {
-                'Location': redirectUrl,
-            });
-            res.end();
-        } catch (error) {
-            console.error('Callback error:', error);
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({
-                error: 'Authentication failed',
-                message: error instanceof Error ? error.message : 'Unknown error'
-            }));
-        }
-        return;
+      res.writeHead(302, {
+        'Location': redirectUrl,
+      });
+      res.end();
+    } catch (error) {
+      console.error('Callback error:', error);
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: 'Authentication failed',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      }));
     }
+    return;
+  }
 
-    // GraphQL endpoint için Yoga'yı kullan
-    return yoga(req, res);
+  // GraphQL endpoint için Yoga'yı kullan
+  return yoga(req, res);
 });
 
 const port = 4000;
 
 server.listen(port, () => {
-    console.log(`🚀 Server is running on http://localhost:${port}/graphql`);
-    console.log(`🔐 Auth callback available at http://localhost:${port}/auth/callback`);
+  console.log(`🚀 Server is running on http://localhost:${port}/graphql`);
+  console.log(`🔐 Auth callback available at http://localhost:${port}/auth/callback`);
 });

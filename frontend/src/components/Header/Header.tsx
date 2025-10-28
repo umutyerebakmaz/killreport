@@ -132,9 +132,9 @@ export default function Header() {
                 {products.map((item) => (
                   <div
                     key={item.name}
-                    className="relative flex items-center p-4 rounded-lg group gap-x-6 text-sm/6 hover:bg-cyan-900/50"
+                    className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50"
                   >
-                    <div className="flex items-center justify-center flex-none rounded-lg size-11 bg-gray-700/50 group-hover:bg-gray-700">
+                    <div className="flex items-center justify-center flex-none size-11 bg-gray-700/50 group-hover:bg-gray-700">
                       <item.icon
                         aria-hidden="true"
                         className="text-gray-400 size-6 group-hover:text-cyan-400"
@@ -223,7 +223,7 @@ export default function Header() {
             <div className="-my-6 divide-y divide-white/10">
               <div className="py-6 space-y-2">
                 <Disclosure as="div" className="-mx-3">
-                  <DisclosureButton className="group flex w-full items-center justify-between rounded-lg py-2 pr-3.5 pl-3 text-base/7 font-semibold text-white hover:bg-white/5">
+                  <DisclosureButton className="group flex w-full items-center justify-between py-2 pr-3.5 pl-3 text-base/7 font-semibold text-white hover:bg-white/5">
                     Product
                     <ChevronDownIcon
                       aria-hidden="true"
@@ -236,7 +236,7 @@ export default function Header() {
                         key={item.name}
                         as="a"
                         href={item.href}
-                        className="block py-2 pl-6 pr-3 font-semibold text-white rounded-lg text-sm/7 hover:bg-white/5"
+                        className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
                       >
                         {item.name}
                       </DisclosureButton>
@@ -245,19 +245,19 @@ export default function Header() {
                 </Disclosure>
                 <a
                   href="/alliances"
-                  className="block px-3 py-2 -mx-3 font-semibold text-white rounded-lg text-base/7 hover:bg-white/5"
+                  className="block px-3 py-2 -mx-3 font-semibold text-white text-base/7 hover:bg-white/5"
                 >
                   ALLIANCES
                 </a>
                 <a
                   href="#"
-                  className="block px-3 py-2 -mx-3 font-semibold text-white rounded-lg text-base/7 hover:bg-white/5"
+                  className="block px-3 py-2 -mx-3 font-semibold text-white text-base/7 hover:bg-white/5"
                 >
                   MARKETPLACE
                 </a>
                 <a
                   href="#"
-                  className="block px-3 py-2 -mx-3 font-semibold text-white rounded-lg text-base/7 hover:bg-white/5"
+                  className="block px-3 py-2 -mx-3 font-semibold text-white text-base/7 hover:bg-white/5"
                 >
                   COMPANY
                 </a>
