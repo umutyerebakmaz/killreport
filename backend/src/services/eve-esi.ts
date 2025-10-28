@@ -39,10 +39,10 @@ export interface KillmailDetail {
 }
 
 /**
- * Karakterin son killmail'lerini getirir
+ * Fetches character's recent killmails
  * @param characterId - Character ID
  * @param token - Access token (Bearer token)
- * @returns Killmail listesi (ID ve hash)
+ * @returns Killmail list (ID and hash)
  */
 export async function getCharacterKillmails(
   characterId: number,
@@ -67,11 +67,11 @@ export async function getCharacterKillmails(
 }
 
 /**
- * Corporation'ın killmail'lerini getirir (yetki gerektirir)
+ * Fetches corporation killmails (requires authorization)
  * Scope: esi-killmails.read_corporation_killmails.v1
  * @param corporationId - Corporation ID
  * @param token - Access token
- * @returns Killmail listesi
+ * @returns Killmail list
  */
 export async function getCorporationKillmails(
   corporationId: number,
@@ -96,10 +96,10 @@ export async function getCorporationKillmails(
 }
 
 /**
- * Killmail detaylarını getirir (public endpoint, token gerekmez)
+ * Fetches killmail details (public endpoint, no token required)
  * @param killmailId - Killmail ID
  * @param killmailHash - Killmail hash
- * @returns Killmail detayları
+ * @returns Killmail details
  */
 export async function getKillmailDetail(
   killmailId: number,
@@ -120,9 +120,9 @@ export async function getKillmailDetail(
 }
 
 /**
- * Karakter bilgilerini getirir (public endpoint)
+ * Fetches character information (public endpoint)
  * @param characterId - Character ID
- * @returns Karakter bilgileri
+ * @returns Character information
  */
 export async function getCharacterInfo(characterId: number) {
   const url = `${ESI_BASE_URL}/characters/${characterId}/?datasource=tranquility`;
@@ -137,9 +137,9 @@ export async function getCharacterInfo(characterId: number) {
 }
 
 /**
- * Corporation bilgilerini getirir (public endpoint)
+ * Fetches corporation information (public endpoint)
  * @param corporationId - Corporation ID
- * @returns Corporation bilgileri
+ * @returns Corporation information
  */
 export async function getCorporationInfo(corporationId: number) {
   const url = `${ESI_BASE_URL}/corporations/${corporationId}/?datasource=tranquility`;
