@@ -60,18 +60,27 @@ model Character {
 }
 
 model User {
-  id         Int      @id
-  name       String
-  email      String?  @unique
+  id              Int       @id @default(autoincrement())
+  characterId     Int       @unique @map("character_id")
+  characterName   String    @map("character_name")
+  characterOwnerHash String @map("character_owner_hash")
+  accessToken     String    @map("access_token") @db.Text
+  refreshToken    String?   @map("refresh_token") @db.Text
+  expiresAt       DateTime  @map("expires_at")
+  email           String?   @unique
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+
+  @@index([characterId])
+  @@index([expiresAt])
 }
 
 model Killmail {
-  id               BigInt   @id
-  killmail_time    DateTime
-  solar_system_id  Int
+  killmailId             Int      @id @map("killmail_id")
+  killmailHash           String   @map("killmail_hash")
+  killmail_time          DateTime
+  solar_system_id        Int
   victim_character_id    Int?
   victim_corporation_id  Int
   victim_alliance_id     Int?
@@ -83,12 +92,16 @@ model Killmail {
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+
+  attackers Attacker[]
+
+  @@index([victim_character_id])
+  @@index([victim_corporation_id])
 }
 
 model Attacker {
-  id                 BigInt @id @default(autoincrement())
-  killmail_id        BigInt
-  character_id       Int?
+  killmail_id        Int
+  character_id       Int
   corporation_id     Int?
   alliance_id        Int?
   ship_type_id       Int?
@@ -100,7 +113,10 @@ model Attacker {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  @@index([killmail_id])
+  killmail Killmail @relation(fields: [killmail_id], references: [killmailId], onDelete: Cascade)
+
+  @@id([killmail_id, character_id])
+  @@index([character_id])
 }
 
 model SyncJob {
