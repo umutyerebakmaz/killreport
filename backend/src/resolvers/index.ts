@@ -1,7 +1,8 @@
 import { Resolvers } from '../generated-types';
-import { allianceMutations, allianceQueries } from './alliance.resolver';
+import { allianceFieldResolvers, allianceMutations, allianceQueries } from './alliance.resolver';
 import { authMutations, authQueries } from './auth.resolver';
 import { characterFieldResolvers, characterMutations, characterQueries } from './character.resolver';
+import { corporationFieldResolvers, corporationQueries } from './corporation.resolver';
 import { killmailMutations, killmailQueries } from './killmail.resolver';
 import { userMutations, userQueries } from './user.resolver';
 
@@ -16,38 +17,43 @@ import { userMutations, userQueries } from './user.resolver';
  * 4. Test edilebilirlik artar (her resolver ayrı test edilir)
  */
 export const resolvers: Resolvers = {
-    Query: {
-        // Auth queries
-        ...authQueries,
+  Query: {
+    // Auth queries
+    ...authQueries,
 
-        // User queries
-        ...userQueries,
+    // User queries
+    ...userQueries,
 
-        // Character queries
-        ...characterQueries,
+    // Character queries
+    ...characterQueries,
 
-        // Killmail queries
-        ...killmailQueries,
+    // Killmail queries
+    ...killmailQueries,
 
-        // Alliance queries
-        ...allianceQueries,
-    }, Mutation: {
-        // Auth mutations
-        ...authMutations,
+    // Alliance queries
+    ...allianceQueries,
 
-        // User mutations
-        ...userMutations,
+    // Corporation queries
+    ...corporationQueries,
+  }, Mutation: {
+    // Auth mutations
+    ...authMutations,
 
-        // Character mutations
-        ...characterMutations,
+    // User mutations
+    ...userMutations,
 
-        // Killmail mutations
-        ...killmailMutations,
+    // Character mutations
+    ...characterMutations,
 
-        // Alliance mutations
-        ...allianceMutations,
-    },
+    // Killmail mutations
+    ...killmailMutations,
 
-    // Field Resolvers - Nested type'lar için
-    Character: characterFieldResolvers,
+    // Alliance mutations
+    ...allianceMutations,
+  },
+
+  // Field Resolvers - Nested type'lar için lazy loading
+  Character: characterFieldResolvers,
+  Alliance: allianceFieldResolvers,
+  Corporation: corporationFieldResolvers,
 };
