@@ -84,6 +84,15 @@ type Corporation {
   url: String
 }
 
+type CorporationEdge {
+  node: Corporation!
+}
+
+type CorporationsResponse {
+  edges: [CorporationEdge!]!
+  pageInfo: PageInfo!
+}
+
 input CreateUserInput {
   email: String!
   name: String!
@@ -137,6 +146,7 @@ type Query {
   character(id: ID!): Character
   charactersByUser(userId: ID!): [Character!]!
   corporation(id: Int!): Corporation
+  corporations(after: String, first: Int): CorporationsResponse!
 
   """Fetches a single killmail"""
   killmail(id: ID!): Killmail

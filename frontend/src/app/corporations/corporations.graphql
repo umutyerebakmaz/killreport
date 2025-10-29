@@ -1,0 +1,21 @@
+query Corporations($first: Int) {
+  corporations(first: $first) {
+    edges {
+      node {
+        id
+        name
+        ticker
+        member_count
+        alliance {
+          id
+          name
+          ticker
+        }
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
