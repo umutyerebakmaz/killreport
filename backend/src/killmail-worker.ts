@@ -104,10 +104,10 @@ async function syncUserKillmails(message: QueueMessage): Promise<void> {
     }
 
     // Fetch killmails from zKillboard (includes ALL history)
-    console.log(`  📡 Fetching killmails from zKillboard (max ${MAX_PAGES} pages)...`);
+    console.log(`  📡 [${user.characterName}] Fetching killmails from zKillboard (max ${MAX_PAGES} pages)...`);
     const zkillPackages = await getCharacterKillmailsFromZKill(
       user.characterId,
-      { maxPages: MAX_PAGES }
+      { maxPages: MAX_PAGES, characterName: user.characterName }
     );
 
     if (zkillPackages.length === 0) {
