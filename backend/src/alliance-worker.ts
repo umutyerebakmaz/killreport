@@ -1,6 +1,6 @@
 import axios from 'axios';
 import './config';
-import { pool } from './services/database';
+import prisma from './services/prisma';
 import { getRabbitMQChannel } from './services/rabbitmq';
 
 const ESI_BASE_URL = 'https://esi.evetech.net/latest';
@@ -9,14 +9,13 @@ const RATE_LIMIT_DELAY = 100; // Wait 100ms between each request (10 requests pe
 
 /**
  * Checks if the alliance exists in the database
- * Optimized with EXISTS query
  */
 async function allianceExists(allianceId: number): Promise<boolean> {
-  const result = await pool.query(
-    'SELECT EXISTS(SELECT 1 FROM "Alliance" WHERE id = $1) as exists',
-    [allianceId]
-  );
-  return result.rows[0].exists;
+  const alliance = await prisma.alliance.findUnique({
+    where: { id: allianceId },
+    select: { id: true }, // Only select id for performance
+  });
+  return !!alliance;
 }
 
 /**
@@ -40,27 +39,29 @@ async function processAlliance(allianceId: number): Promise<boolean> {
       await sleep(2000); // Wait 2 seconds
     }
 
-    // Save to database
-    const query = `
-      INSERT INTO "Alliance" (
-        id, name, ticker, date_founded,
-        creator_corporation_id, creator_id, executor_corporation_id, faction_id,
-        created_at, updated_at
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
-      ON CONFLICT (id) DO NOTHING
-    `;
-
-    await pool.query(query, [
-      allianceId,
-      data.name,
-      data.ticker,
-      data.date_founded,
-      data.creator_corporation_id,
-      data.creator_id,
-      data.executor_corporation_id,
-      data.faction_id || null,
-    ]);
+    // Save to database using Prisma
+    await prisma.alliance.upsert({
+      where: { id: allianceId },
+      update: {
+        name: data.name,
+        ticker: data.ticker,
+        date_founded: new Date(data.date_founded),
+        creator_corporation_id: data.creator_corporation_id,
+        creator_id: data.creator_id,
+        executor_corporation_id: data.executor_corporation_id,
+        faction_id: data.faction_id || null,
+      },
+      create: {
+        id: allianceId,
+        name: data.name,
+        ticker: data.ticker,
+        date_founded: new Date(data.date_founded),
+        creator_corporation_id: data.creator_corporation_id,
+        creator_id: data.creator_id,
+        executor_corporation_id: data.executor_corporation_id,
+        faction_id: data.faction_id || null,
+      },
+    });
 
     console.log(`✅ Saved alliance ${allianceId} - ${data.name}`);
 
@@ -189,7 +190,7 @@ async function startWorker() {
     process.on('SIGINT', async () => {
       console.log('\n\n🛑 Shutting down worker...');
       await channel.close();
-      await pool.end();
+      await prisma.$disconnect();
       console.log('✅ Worker stopped gracefully');
       process.exit(0);
     });
@@ -203,4 +204,4 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-startWorker(); startWorker();
+startWorker();

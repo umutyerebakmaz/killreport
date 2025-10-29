@@ -24,6 +24,7 @@ export type AddCharacterInput = {
 
 export type Alliance = {
   __typename?: 'Alliance';
+  corporations?: Maybe<Array<Corporation>>;
   creator_corporation_id: Scalars['Int']['output'];
   creator_id: Scalars['Int']['output'];
   date_founded: Scalars['String']['output'];
@@ -86,6 +87,22 @@ export type Character = {
   name: Scalars['String']['output'];
   securityStatus?: Maybe<Scalars['Float']['output']>;
   user?: Maybe<User>;
+};
+
+export type Corporation = {
+  __typename?: 'Corporation';
+  alliance?: Maybe<Alliance>;
+  alliance_id?: Maybe<Scalars['Int']['output']>;
+  ceo_id: Scalars['Int']['output'];
+  creator_id: Scalars['Int']['output'];
+  date_founded?: Maybe<Scalars['String']['output']>;
+  faction_id?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['Int']['output'];
+  member_count: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  tax_rate: Scalars['Float']['output'];
+  ticker: Scalars['String']['output'];
+  url?: Maybe<Scalars['String']['output']>;
 };
 
 export type CreateUserInput = {
@@ -167,6 +184,7 @@ export type Query = {
   alliances: AlliancesResponse;
   character?: Maybe<Character>;
   charactersByUser: Array<Character>;
+  corporation?: Maybe<Corporation>;
   /** Fetches a single killmail */
   killmail?: Maybe<Killmail>;
   /** Lists all killmails (with pagination) */
@@ -205,6 +223,11 @@ export type QueryCharacterArgs = {
 
 export type QueryCharactersByUserArgs = {
   userId: Scalars['ID']['input'];
+};
+
+
+export type QueryCorporationArgs = {
+  id: Scalars['Int']['input'];
 };
 
 
@@ -345,6 +368,7 @@ export type ResolversTypes = {
   AuthUrl: ResolverTypeWrapper<AuthUrl>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Character: ResolverTypeWrapper<Character>;
+  Corporation: ResolverTypeWrapper<Corporation>;
   CreateUserInput: CreateUserInput;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
@@ -371,6 +395,7 @@ export type ResolversParentTypes = {
   AuthUrl: AuthUrl;
   Boolean: Scalars['Boolean']['output'];
   Character: Character;
+  Corporation: Corporation;
   CreateUserInput: CreateUserInput;
   Float: Scalars['Float']['output'];
   ID: Scalars['ID']['output'];
@@ -387,6 +412,7 @@ export type ResolversParentTypes = {
 };
 
 export type AllianceResolvers<ContextType = any, ParentType extends ResolversParentTypes['Alliance'] = ResolversParentTypes['Alliance']> = {
+  corporations?: Resolver<Maybe<Array<ResolversTypes['Corporation']>>, ParentType, ContextType>;
   creator_corporation_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   creator_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   date_founded?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -432,6 +458,21 @@ export type CharacterResolvers<ContextType = any, ParentType extends ResolversPa
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
 };
 
+export type CorporationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Corporation'] = ResolversParentTypes['Corporation']> = {
+  alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType>;
+  alliance_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  ceo_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  creator_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  date_founded?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  faction_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  member_count?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  tax_rate?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  ticker?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
 export type KillmailResolvers<ContextType = any, ParentType extends ResolversParentTypes['Killmail'] = ResolversParentTypes['Killmail']> = {
   attackers?: Resolver<Array<ResolversTypes['Attacker']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -468,6 +509,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   alliances?: Resolver<ResolversTypes['AlliancesResponse'], ParentType, ContextType, Partial<QueryAlliancesArgs>>;
   character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType, RequireFields<QueryCharacterArgs, 'id'>>;
   charactersByUser?: Resolver<Array<ResolversTypes['Character']>, ParentType, ContextType, RequireFields<QueryCharactersByUserArgs, 'userId'>>;
+  corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType, RequireFields<QueryCorporationArgs, 'id'>>;
   killmail?: Resolver<Maybe<ResolversTypes['Killmail']>, ParentType, ContextType, RequireFields<QueryKillmailArgs, 'id'>>;
   killmails?: Resolver<Array<ResolversTypes['Killmail']>, ParentType, ContextType, Partial<QueryKillmailsArgs>>;
   me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
@@ -506,6 +548,7 @@ export type Resolvers<ContextType = any> = {
   AuthPayload?: AuthPayloadResolvers<ContextType>;
   AuthUrl?: AuthUrlResolvers<ContextType>;
   Character?: CharacterResolvers<ContextType>;
+  Corporation?: CorporationResolvers<ContextType>;
   Killmail?: KillmailResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;

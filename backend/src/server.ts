@@ -8,6 +8,7 @@ import path from 'path';
 // Tüm resolver'ları modüler yapıdan import et
 import { config } from './config';
 import { resolvers } from './resolvers';
+import { createDataLoaders } from './services/dataloaders';
 import { exchangeCodeForToken, verifyToken } from './services/eve-sso';
 import prisma from './services/prisma';
 
@@ -29,6 +30,9 @@ const yoga = createYoga({
   schema,
   graphqlEndpoint: '/graphql',
   context: async ({ request }) => {
+    // Her request için yeni DataLoader instance'ları oluştur
+    const dataLoaders = createDataLoaders();
+
     const authorization = request.headers.get('authorization');
 
     // Bearer token varsa doğrula
@@ -41,6 +45,7 @@ const yoga = createYoga({
         return {
           user: character,
           token, // ESI API çağrıları için token'ı da context'e ekle
+          ...dataLoaders, // DataLoader'ları context'e ekle
         };
       } catch (error) {
         console.error('❌ Token verification failed:', error);
@@ -49,11 +54,11 @@ const yoga = createYoga({
     }
 
     console.log('⚠️  No token provided');
-    return {};
+    return {
+      ...dataLoaders, // Token olmasa da DataLoader'lar kullanılabilir
+    };
   },
-});
-
-// HTTP sunucusunu oluştur
+});// HTTP sunucusunu oluştur
 const server = createServer(async (req, res) => {
   // CORS headers ekle
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -88,7 +93,7 @@ const server = createServer(async (req, res) => {
       // Calculate token expiry time
       const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
 
-      // Find or create user in database
+      // Find or create user in database using Prisma
       const user = await prisma.user.upsert({
         where: { characterId: character.characterId },
         update: {

@@ -3815,6 +3815,7 @@ __metadata:
     "@types/pg": "npm:^8.15.5"
     amqplib: "npm:^0.10.9"
     axios: "npm:^1.12.2"
+    dataloader: "npm:^2.2.3"
     dotenv: "npm:^17.2.3"
     graphql: "npm:16.11.0"
     graphql-codegen-schema-ast: "npm:^0.18.2"

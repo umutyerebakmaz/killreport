@@ -5,6 +5,7 @@ input AddCharacterInput {
 }
 
 type Alliance {
+  corporations: [Corporation!]
   creator_corporation_id: Int!
   creator_id: Int!
   date_founded: String!
@@ -68,6 +69,21 @@ type Character {
   user: User
 }
 
+type Corporation {
+  alliance: Alliance
+  alliance_id: Int
+  ceo_id: Int!
+  creator_id: Int!
+  date_founded: String
+  faction_id: Int
+  id: Int!
+  member_count: Int!
+  name: String!
+  tax_rate: Float!
+  ticker: String!
+  url: String
+}
+
 input CreateUserInput {
   email: String!
   name: String!
@@ -120,6 +136,7 @@ type Query {
   alliances(filter: AllianceFilter): AlliancesResponse!
   character(id: ID!): Character
   charactersByUser(userId: ID!): [Character!]!
+  corporation(id: Int!): Corporation
 
   """Fetches a single killmail"""
   killmail(id: ID!): Killmail

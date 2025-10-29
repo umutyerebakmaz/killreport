@@ -7,6 +7,7 @@ type Alliance {
   creator_id: Int!
   executor_corporation_id: Int!
   faction_id: Int
+  corporations: [Corporation!]
 }
 
 type AlliancesResponse {
