@@ -20,7 +20,9 @@ model Alliance {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  @@map("alliance")
+  corporations Corporation[]
+
+  @@map("alliances")
 }
 
 model Corporation {
@@ -42,7 +44,10 @@ model Corporation {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  @@map("corporation")
+  alliance Alliance? @relation(fields: [alliance_id], references: [id])
+
+  @@index([alliance_id])
+  @@map("corporations")
 }
 
 model Character {
@@ -62,7 +67,7 @@ model Character {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  @@map("character")
+  @@map("characters")
 }
 
 model User {
@@ -80,7 +85,7 @@ model User {
 
   @@index([characterId])
   @@index([expiresAt])
-  @@map("user")
+  @@map("users")
 }
 
 model Killmail {
@@ -104,7 +109,7 @@ model Killmail {
 
   @@index([victim_character_id])
   @@index([victim_corporation_id])
-  @@map("killmail")
+  @@map("killmails")
 }
 
 model Attacker {
@@ -125,7 +130,7 @@ model Attacker {
 
   @@id([killmail_id, character_id])
   @@index([character_id])
-  @@map("attacker")
+  @@map("attackers")
 }
 
 model SyncJob {
@@ -141,5 +146,5 @@ model SyncJob {
 
   @@index([entity_type, status])
   @@index([entity_id, entity_type])
-  @@map("sync_job")
+  @@map("sync_jobs")
 }
