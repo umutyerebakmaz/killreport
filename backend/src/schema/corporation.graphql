@@ -13,6 +13,16 @@ type Corporation {
   alliance: Alliance
 }
 
+type CorporationEdge {
+  node: Corporation!
+}
+
+type CorporationsResponse {
+  edges: [CorporationEdge!]!
+  pageInfo: PageInfo!
+}
+
 extend type Query {
   corporation(id: Int!): Corporation
+  corporations(first: Int, after: String): CorporationsResponse!
 }
