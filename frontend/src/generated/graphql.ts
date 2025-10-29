@@ -25,6 +25,7 @@ export type AddCharacterInput = {
 
 export type Alliance = {
   __typename?: 'Alliance';
+  corporations?: Maybe<Array<Corporation>>;
   creator_corporation_id: Scalars['Int']['output'];
   creator_id: Scalars['Int']['output'];
   date_founded: Scalars['String']['output'];
@@ -59,6 +60,26 @@ export type Attacker = {
   weaponTypeId?: Maybe<Scalars['Int']['output']>;
 };
 
+export type AuthPayload = {
+  __typename?: 'AuthPayload';
+  /** JWT access token */
+  accessToken: Scalars['String']['output'];
+  /** Token geçerlilik süresi (saniye) */
+  expiresIn: Scalars['Int']['output'];
+  /** Token yenilemek için kullanılan refresh token */
+  refreshToken?: Maybe<Scalars['String']['output']>;
+  /** Authenticated kullanıcı bilgileri */
+  user: User;
+};
+
+export type AuthUrl = {
+  __typename?: 'AuthUrl';
+  /** CSRF koruması için state parametresi */
+  state: Scalars['String']['output'];
+  /** Eve Online SSO authorization URL'i */
+  url: Scalars['String']['output'];
+};
+
 export type Character = {
   __typename?: 'Character';
   alliance?: Maybe<Scalars['String']['output']>;
@@ -67,6 +88,22 @@ export type Character = {
   name: Scalars['String']['output'];
   securityStatus?: Maybe<Scalars['Float']['output']>;
   user?: Maybe<User>;
+};
+
+export type Corporation = {
+  __typename?: 'Corporation';
+  alliance?: Maybe<Alliance>;
+  alliance_id?: Maybe<Scalars['Int']['output']>;
+  ceo_id: Scalars['Int']['output'];
+  creator_id: Scalars['Int']['output'];
+  date_founded?: Maybe<Scalars['String']['output']>;
+  faction_id?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['Int']['output'];
+  member_count: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  tax_rate: Scalars['Float']['output'];
+  ticker: Scalars['String']['output'];
+  url?: Maybe<Scalars['String']['output']>;
 };
 
 export type CreateUserInput = {
@@ -88,8 +125,19 @@ export type Killmail = {
 export type Mutation = {
   __typename?: 'Mutation';
   addCharacter: Character;
+  /** Authorization code ile authentication yapar ve token döner */
+  authenticateWithCode: AuthPayload;
   createUser: User;
+  /** Eve Online SSO login için authorization URL'i oluşturur */
+  login: AuthUrl;
+  /** Refresh token kullanarak yeni access token alır */
+  refreshToken: AuthPayload;
   startAllianceSync?: Maybe<Scalars['Boolean']['output']>;
+  /**
+   * Fetches user's killmails from ESI and saves to database
+   * Requires: Authentication
+   */
+  syncMyKillmails: SyncResult;
   updateUser?: Maybe<User>;
 };
 
@@ -99,8 +147,19 @@ export type MutationAddCharacterArgs = {
 };
 
 
+export type MutationAuthenticateWithCodeArgs = {
+  code: Scalars['String']['input'];
+  state: Scalars['String']['input'];
+};
+
+
 export type MutationCreateUserArgs = {
   input: CreateUserInput;
+};
+
+
+export type MutationRefreshTokenArgs = {
+  refreshToken: Scalars['String']['input'];
 };
 
 
@@ -126,8 +185,23 @@ export type Query = {
   alliances: AlliancesResponse;
   character?: Maybe<Character>;
   charactersByUser: Array<Character>;
+  corporation?: Maybe<Corporation>;
+  /** Fetches a single killmail */
   killmail?: Maybe<Killmail>;
+  /** Lists all killmails (with pagination) */
   killmails: Array<Killmail>;
+  /** Mevcut authenticated kullanıcının bilgilerini döner */
+  me?: Maybe<User>;
+  /**
+   * Fetches the authenticated user's corporation killmails
+   * Requires: Authentication + esi-killmails.read_corporation_killmails.v1 scope
+   */
+  myCorporationKillmails: Array<Killmail>;
+  /**
+   * Fetches the authenticated user's own killmails
+   * Requires: Authentication
+   */
+  myKillmails: Array<Killmail>;
   user?: Maybe<User>;
   users: Array<User>;
 };
@@ -153,6 +227,11 @@ export type QueryCharactersByUserArgs = {
 };
 
 
+export type QueryCorporationArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
 export type QueryKillmailArgs = {
   id: Scalars['ID']['input'];
 };
@@ -164,8 +243,25 @@ export type QueryKillmailsArgs = {
 };
 
 
+export type QueryMyCorporationKillmailsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryMyKillmailsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
 export type QueryUserArgs = {
   id: Scalars['ID']['input'];
+};
+
+export type SyncResult = {
+  __typename?: 'SyncResult';
+  message: Scalars['String']['output'];
+  success: Scalars['Boolean']['output'];
+  syncedCount: Scalars['Int']['output'];
 };
 
 export type UpdateUserInput = {

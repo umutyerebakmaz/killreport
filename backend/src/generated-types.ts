@@ -105,6 +105,17 @@ export type Corporation = {
   url?: Maybe<Scalars['String']['output']>;
 };
 
+export type CorporationEdge = {
+  __typename?: 'CorporationEdge';
+  node: Corporation;
+};
+
+export type CorporationsResponse = {
+  __typename?: 'CorporationsResponse';
+  edges: Array<CorporationEdge>;
+  pageInfo: PageInfo;
+};
+
 export type CreateUserInput = {
   email: Scalars['String']['input'];
   name: Scalars['String']['input'];
@@ -185,6 +196,7 @@ export type Query = {
   character?: Maybe<Character>;
   charactersByUser: Array<Character>;
   corporation?: Maybe<Corporation>;
+  corporations: CorporationsResponse;
   /** Fetches a single killmail */
   killmail?: Maybe<Killmail>;
   /** Lists all killmails (with pagination) */
@@ -228,6 +240,12 @@ export type QueryCharactersByUserArgs = {
 
 export type QueryCorporationArgs = {
   id: Scalars['Int']['input'];
+};
+
+
+export type QueryCorporationsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -369,6 +387,8 @@ export type ResolversTypes = {
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Character: ResolverTypeWrapper<Character>;
   Corporation: ResolverTypeWrapper<Corporation>;
+  CorporationEdge: ResolverTypeWrapper<CorporationEdge>;
+  CorporationsResponse: ResolverTypeWrapper<CorporationsResponse>;
   CreateUserInput: CreateUserInput;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
@@ -396,6 +416,8 @@ export type ResolversParentTypes = {
   Boolean: Scalars['Boolean']['output'];
   Character: Character;
   Corporation: Corporation;
+  CorporationEdge: CorporationEdge;
+  CorporationsResponse: CorporationsResponse;
   CreateUserInput: CreateUserInput;
   Float: Scalars['Float']['output'];
   ID: Scalars['ID']['output'];
@@ -473,6 +495,15 @@ export type CorporationResolvers<ContextType = any, ParentType extends Resolvers
   url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
+export type CorporationEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['CorporationEdge'] = ResolversParentTypes['CorporationEdge']> = {
+  node?: Resolver<ResolversTypes['Corporation'], ParentType, ContextType>;
+};
+
+export type CorporationsResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['CorporationsResponse'] = ResolversParentTypes['CorporationsResponse']> = {
+  edges?: Resolver<Array<ResolversTypes['CorporationEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+};
+
 export type KillmailResolvers<ContextType = any, ParentType extends ResolversParentTypes['Killmail'] = ResolversParentTypes['Killmail']> = {
   attackers?: Resolver<Array<ResolversTypes['Attacker']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -510,6 +541,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType, RequireFields<QueryCharacterArgs, 'id'>>;
   charactersByUser?: Resolver<Array<ResolversTypes['Character']>, ParentType, ContextType, RequireFields<QueryCharactersByUserArgs, 'userId'>>;
   corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType, RequireFields<QueryCorporationArgs, 'id'>>;
+  corporations?: Resolver<ResolversTypes['CorporationsResponse'], ParentType, ContextType, Partial<QueryCorporationsArgs>>;
   killmail?: Resolver<Maybe<ResolversTypes['Killmail']>, ParentType, ContextType, RequireFields<QueryKillmailArgs, 'id'>>;
   killmails?: Resolver<Array<ResolversTypes['Killmail']>, ParentType, ContextType, Partial<QueryKillmailsArgs>>;
   me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
@@ -549,6 +581,8 @@ export type Resolvers<ContextType = any> = {
   AuthUrl?: AuthUrlResolvers<ContextType>;
   Character?: CharacterResolvers<ContextType>;
   Corporation?: CorporationResolvers<ContextType>;
+  CorporationEdge?: CorporationEdgeResolvers<ContextType>;
+  CorporationsResponse?: CorporationsResponseResolvers<ContextType>;
   Killmail?: KillmailResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;
