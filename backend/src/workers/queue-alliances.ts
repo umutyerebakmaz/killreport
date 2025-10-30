@@ -1,6 +1,6 @@
 import axios from 'axios';
-import './config';
-import { getRabbitMQChannel } from './services/rabbitmq';
+import '../config';
+import { getRabbitMQChannel } from '../services/rabbitmq';
 
 const ESI_BASE_URL = 'https://esi.evetech.net/latest';
 const QUEUE_NAME = 'alliance_sync_queue';
