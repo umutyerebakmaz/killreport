@@ -41,25 +41,56 @@ type Killmail {
   killmailId: Int!
   killmailHash: String!
   killmailTime: String!
+  solarSystemId: Int!
   victim: Victim!
   attackers: [Attacker!]!
+  items: [KillmailItem!]!
   totalValue: Float
+  createdAt: String!
 }
 
 type Victim {
   characterId: Int
   characterName: String
-  corporationId: Int
+  corporationId: Int!
   corporationName: String
-  shipTypeId: Int
-  damageTaken: Int
+  allianceId: Int
+  allianceName: String
+  factionId: Int
+  shipTypeId: Int!
+  shipTypeName: String
+  damageTaken: Int!
+  position: Position
+}
+
+type Position {
+  x: Float!
+  y: Float!
+  z: Float!
 }
 
 type Attacker {
   characterId: Int
   characterName: String
   corporationId: Int
+  corporationName: String
+  allianceId: Int
+  allianceName: String
+  factionId: Int
   shipTypeId: Int
+  shipTypeName: String
   weaponTypeId: Int
-  finalBlow: Boolean
+  weaponTypeName: String
+  damageDone: Int!
+  finalBlow: Boolean!
+  securityStatus: Float!
+}
+
+type KillmailItem {
+  itemTypeId: Int!
+  itemTypeName: String
+  flag: Int!
+  quantityDropped: Int
+  quantityDestroyed: Int
+  singleton: Int!
 }
