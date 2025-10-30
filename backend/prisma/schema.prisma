@@ -71,66 +71,105 @@ model Character {
 }
 
 model User {
-  id              Int       @id @default(autoincrement())
-  characterId     Int       @unique @map("character_id")
-  characterName   String    @map("character_name")
-  characterOwnerHash String @map("character_owner_hash")
-  accessToken     String    @map("access_token") @db.Text
-  refreshToken    String?   @map("refresh_token") @db.Text
-  expiresAt       DateTime  @map("expires_at")
-  email           String?   @unique
+  id                   Int      @id @default(autoincrement())
+  character_id         Int      @unique
+  character_name       String
+  character_owner_hash String
+  access_token         String   @db.Text
+  refresh_token        String?  @db.Text
+  expires_at           DateTime
+  email                String?  @unique
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  @@index([characterId])
-  @@index([expiresAt])
+  @@index([character_id])
+  @@index([expires_at])
   @@map("users")
 }
 
 model Killmail {
-  killmailId             Int      @id @map("killmail_id")
-  killmailHash           String   @map("killmail_hash")
-  killmail_time          DateTime
-  solar_system_id        Int
-  victim_character_id    Int?
-  victim_corporation_id  Int
-  victim_alliance_id     Int?
-  victim_ship_type_id    Int
-  victim_damage_taken    Int
-  victim_position_x      Float?
-  victim_position_y      Float?
-  victim_position_z      Float?
+  killmail_id      Int      @id
+  killmail_hash    String
+  killmail_time    DateTime
+  solar_system_id  Int
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
+  victim    Victim?
   attackers Attacker[]
+  items     KillmailItem[]
 
-  @@index([victim_character_id])
-  @@index([victim_corporation_id])
+  @@index([killmail_time])
+  @@index([solar_system_id])
   @@map("killmails")
 }
 
+model Victim {
+  killmail_id    Int   @id
+  character_id   Int?
+  corporation_id Int
+  alliance_id    Int?
+  faction_id     Int?
+  ship_type_id   Int
+  damage_taken   Int
+  position_x     Float?
+  position_y     Float?
+  position_z     Float?
+
+  created_at DateTime @default(now())
+
+  killmail Killmail @relation(fields: [killmail_id], references: [killmail_id], onDelete: Cascade)
+
+  @@index([character_id])
+  @@index([corporation_id])
+  @@index([alliance_id])
+  @@index([ship_type_id])
+  @@map("victims")
+}
+
 model Attacker {
-  killmail_id        Int
-  character_id       Int
-  corporation_id     Int?
-  alliance_id        Int?
-  ship_type_id       Int?
-  weapon_type_id     Int?
-  damage_done        Int
-  final_blow         Boolean
-  security_status    Float
+  id              BigInt  @id @default(autoincrement())
+  killmail_id     Int
+  character_id    Int?
+  corporation_id  Int?
+  alliance_id     Int?
+  faction_id      Int?
+  ship_type_id    Int?
+  weapon_type_id  Int?
+  damage_done     Int
+  final_blow      Boolean
+  security_status Float
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  killmail Killmail @relation(fields: [killmail_id], references: [killmailId], onDelete: Cascade)
+  killmail Killmail @relation(fields: [killmail_id], references: [killmail_id], onDelete: Cascade)
 
-  @@id([killmail_id, character_id])
+  @@index([killmail_id])
   @@index([character_id])
+  @@index([corporation_id])
+  @@index([alliance_id])
   @@map("attackers")
+}
+
+model KillmailItem {
+  id                 BigInt @id @default(autoincrement())
+  killmail_id        Int
+  item_type_id       Int
+  flag               Int
+  quantity_dropped   Int?
+  quantity_destroyed Int?
+  singleton          Int
+
+  created_at DateTime @default(now())
+
+  killmail Killmail @relation(fields: [killmail_id], references: [killmail_id], onDelete: Cascade)
+
+  @@index([killmail_id])
+  @@index([item_type_id])
+  @@map("killmail_items")
 }
 
 model SyncJob {

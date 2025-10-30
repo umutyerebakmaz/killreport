@@ -84,10 +84,10 @@ async function syncUserKillmails(message: QueueMessage): Promise<void> {
     const user = await prisma.user.findUnique({
       where: { id: message.userId },
       select: {
-        accessToken: true,
-        expiresAt: true,
-        characterId: true,
-        characterName: true,
+        access_token: true,
+        expires_at: true,
+        character_id: true,
+        character_name: true,
       },
     });
 
@@ -97,17 +97,17 @@ async function syncUserKillmails(message: QueueMessage): Promise<void> {
     }
 
     // Check if token is expired
-    if (user.expiresAt < new Date()) {
+    if (user.expires_at < new Date()) {
       console.log(`  ⚠️  Token expired - skipping`);
       // TODO: Implement token refresh logic here
       return;
     }
 
     // Fetch killmails from zKillboard (includes ALL history)
-    console.log(`  📡 [${user.characterName}] Fetching killmails from zKillboard (max ${MAX_PAGES} pages)...`);
+    console.log(`  📡 [${user.character_name}] Fetching killmails from zKillboard (max ${MAX_PAGES} pages)...`);
     const zkillPackages = await getCharacterKillmailsFromZKill(
-      user.characterId,
-      { maxPages: MAX_PAGES, characterName: user.characterName }
+      user.character_id,
+      { maxPages: MAX_PAGES, characterName: user.character_name }
     );
 
     if (zkillPackages.length === 0) {
@@ -134,36 +134,68 @@ async function syncUserKillmails(message: QueueMessage): Promise<void> {
         // Fetch killmail details from ESI
         const detail = await getKillmailDetail(zkillPkg.killmail_id, zkillPkg.zkb.hash);
 
-        // Try to create killmail
+        // Try to create killmail with all related data
         try {
-          await prisma.killmail.create({
-            data: {
-              killmailId: zkillPkg.killmail_id,
-              killmailHash: zkillPkg.zkb.hash,
-              killmail_time: new Date(detail.killmail_time),
-              solar_system_id: detail.solar_system_id,
-              victim_character_id: detail.victim.character_id,
-              victim_corporation_id: detail.victim.corporation_id,
-              victim_alliance_id: detail.victim.alliance_id,
-              victim_ship_type_id: detail.victim.ship_type_id,
-              victim_damage_taken: detail.victim.damage_taken,
-              victim_position_x: detail.victim.position?.x,
-              victim_position_y: detail.victim.position?.y,
-              victim_position_z: detail.victim.position?.z,
-              attackers: {
-                create: detail.attackers.map(attacker => ({
+          await prisma.$transaction(async (tx) => {
+            // 1. Create main killmail record
+            await tx.killmail.create({
+              data: {
+                killmail_id: zkillPkg.killmail_id,
+                killmail_hash: zkillPkg.zkb.hash,
+                killmail_time: new Date(detail.killmail_time),
+                solar_system_id: detail.solar_system_id,
+              },
+            });
+
+            // 2. Create victim record
+            await tx.victim.create({
+              data: {
+                killmail_id: zkillPkg.killmail_id,
+                character_id: detail.victim.character_id,
+                corporation_id: detail.victim.corporation_id,
+                alliance_id: detail.victim.alliance_id,
+                faction_id: detail.victim.faction_id,
+                ship_type_id: detail.victim.ship_type_id,
+                damage_taken: detail.victim.damage_taken,
+                position_x: detail.victim.position?.x,
+                position_y: detail.victim.position?.y,
+                position_z: detail.victim.position?.z,
+              },
+            });
+
+            // 3. Create attacker records (bulk insert)
+            if (detail.attackers.length > 0) {
+              await tx.attacker.createMany({
+                data: detail.attackers.map(attacker => ({
+                  killmail_id: zkillPkg.killmail_id,
                   character_id: attacker.character_id,
                   corporation_id: attacker.corporation_id,
                   alliance_id: attacker.alliance_id,
+                  faction_id: attacker.faction_id,
                   ship_type_id: attacker.ship_type_id,
                   weapon_type_id: attacker.weapon_type_id,
                   damage_done: attacker.damage_done,
                   final_blow: attacker.final_blow,
                   security_status: attacker.security_status,
                 })),
-              },
-            },
+              });
+            }
+
+            // 4. Create item records (bulk insert)
+            if (detail.victim.items && detail.victim.items.length > 0) {
+              await tx.killmailItem.createMany({
+                data: detail.victim.items.map(item => ({
+                  killmail_id: zkillPkg.killmail_id,
+                  item_type_id: item.item_type_id,
+                  flag: item.flag,
+                  quantity_dropped: item.quantity_dropped,
+                  quantity_destroyed: item.quantity_destroyed,
+                  singleton: item.singleton,
+                })),
+              });
+            }
           });
+
           savedCount++;
         } catch (createError: any) {
           // If duplicate (P2002), it's already in database - skip it
