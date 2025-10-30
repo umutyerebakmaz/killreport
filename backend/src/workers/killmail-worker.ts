@@ -1,8 +1,8 @@
-import './config';
-import { getKillmailDetail } from './services/eve-esi';
-import prisma from './services/prisma';
-import { getRabbitMQChannel } from './services/rabbitmq';
-import { getCharacterKillmailsFromZKill } from './services/zkillboard';
+import '../config';
+import { getKillmailDetail } from '../services/eve-esi';
+import prisma from '../services/prisma';
+import { getRabbitMQChannel } from '../services/rabbitmq';
+import { getCharacterKillmailsFromZKill } from '../services/zkillboard';
 
 const QUEUE_NAME = 'killmail_sync_queue';
 const PREFETCH_COUNT = 2; // Process 2 users at a time (rate limit consideration)
