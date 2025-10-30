@@ -30,12 +30,20 @@ type AlliancesResponse {
 }
 
 type Attacker {
+  allianceId: Int
+  allianceName: String
   characterId: Int
   characterName: String
   corporationId: Int
-  finalBlow: Boolean
+  corporationName: String
+  damageDone: Int!
+  factionId: Int
+  finalBlow: Boolean!
+  securityStatus: Float!
   shipTypeId: Int
+  shipTypeName: String
   weaponTypeId: Int
+  weaponTypeName: String
 }
 
 type AuthPayload {
@@ -100,12 +108,24 @@ input CreateUserInput {
 
 type Killmail {
   attackers: [Attacker!]!
+  createdAt: String!
   id: ID!
+  items: [KillmailItem!]!
   killmailHash: String!
   killmailId: Int!
   killmailTime: String!
+  solarSystemId: Int!
   totalValue: Float
   victim: Victim!
+}
+
+type KillmailItem {
+  flag: Int!
+  itemTypeId: Int!
+  itemTypeName: String
+  quantityDestroyed: Int
+  quantityDropped: Int
+  singleton: Int!
 }
 
 type Mutation {
@@ -138,6 +158,12 @@ type PageInfo {
   previousCursor: Int
   totalCount: Int!
   totalPages: Int!
+}
+
+type Position {
+  x: Float!
+  y: Float!
+  z: Float!
 }
 
 type Query {
@@ -191,10 +217,15 @@ type User {
 }
 
 type Victim {
+  allianceId: Int
+  allianceName: String
   characterId: Int
   characterName: String
-  corporationId: Int
+  corporationId: Int!
   corporationName: String
-  damageTaken: Int
-  shipTypeId: Int
+  damageTaken: Int!
+  factionId: Int
+  position: Position
+  shipTypeId: Int!
+  shipTypeName: String
 }

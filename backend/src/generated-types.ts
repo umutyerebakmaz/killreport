@@ -51,12 +51,20 @@ export type AlliancesResponse = {
 
 export type Attacker = {
   __typename?: 'Attacker';
+  allianceId?: Maybe<Scalars['Int']['output']>;
+  allianceName?: Maybe<Scalars['String']['output']>;
   characterId?: Maybe<Scalars['Int']['output']>;
   characterName?: Maybe<Scalars['String']['output']>;
   corporationId?: Maybe<Scalars['Int']['output']>;
-  finalBlow?: Maybe<Scalars['Boolean']['output']>;
+  corporationName?: Maybe<Scalars['String']['output']>;
+  damageDone: Scalars['Int']['output'];
+  factionId?: Maybe<Scalars['Int']['output']>;
+  finalBlow: Scalars['Boolean']['output'];
+  securityStatus: Scalars['Float']['output'];
   shipTypeId?: Maybe<Scalars['Int']['output']>;
+  shipTypeName?: Maybe<Scalars['String']['output']>;
   weaponTypeId?: Maybe<Scalars['Int']['output']>;
+  weaponTypeName?: Maybe<Scalars['String']['output']>;
 };
 
 export type AuthPayload = {
@@ -124,12 +132,25 @@ export type CreateUserInput = {
 export type Killmail = {
   __typename?: 'Killmail';
   attackers: Array<Attacker>;
+  createdAt: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  items: Array<KillmailItem>;
   killmailHash: Scalars['String']['output'];
   killmailId: Scalars['Int']['output'];
   killmailTime: Scalars['String']['output'];
+  solarSystemId: Scalars['Int']['output'];
   totalValue?: Maybe<Scalars['Float']['output']>;
   victim: Victim;
+};
+
+export type KillmailItem = {
+  __typename?: 'KillmailItem';
+  flag: Scalars['Int']['output'];
+  itemTypeId: Scalars['Int']['output'];
+  itemTypeName?: Maybe<Scalars['String']['output']>;
+  quantityDestroyed?: Maybe<Scalars['Int']['output']>;
+  quantityDropped?: Maybe<Scalars['Int']['output']>;
+  singleton: Scalars['Int']['output'];
 };
 
 export type Mutation = {
@@ -187,6 +208,13 @@ export type PageInfo = {
   previousCursor?: Maybe<Scalars['Int']['output']>;
   totalCount: Scalars['Int']['output'];
   totalPages: Scalars['Int']['output'];
+};
+
+export type Position = {
+  __typename?: 'Position';
+  x: Scalars['Float']['output'];
+  y: Scalars['Float']['output'];
+  z: Scalars['Float']['output'];
 };
 
 export type Query = {
@@ -296,12 +324,17 @@ export type User = {
 
 export type Victim = {
   __typename?: 'Victim';
+  allianceId?: Maybe<Scalars['Int']['output']>;
+  allianceName?: Maybe<Scalars['String']['output']>;
   characterId?: Maybe<Scalars['Int']['output']>;
   characterName?: Maybe<Scalars['String']['output']>;
-  corporationId?: Maybe<Scalars['Int']['output']>;
+  corporationId: Scalars['Int']['output'];
   corporationName?: Maybe<Scalars['String']['output']>;
-  damageTaken?: Maybe<Scalars['Int']['output']>;
-  shipTypeId?: Maybe<Scalars['Int']['output']>;
+  damageTaken: Scalars['Int']['output'];
+  factionId?: Maybe<Scalars['Int']['output']>;
+  position?: Maybe<Position>;
+  shipTypeId: Scalars['Int']['output'];
+  shipTypeName?: Maybe<Scalars['String']['output']>;
 };
 
 
@@ -394,8 +427,10 @@ export type ResolversTypes = {
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   Killmail: ResolverTypeWrapper<Killmail>;
+  KillmailItem: ResolverTypeWrapper<KillmailItem>;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   PageInfo: ResolverTypeWrapper<PageInfo>;
+  Position: ResolverTypeWrapper<Position>;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   SyncResult: ResolverTypeWrapper<SyncResult>;
@@ -423,8 +458,10 @@ export type ResolversParentTypes = {
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
   Killmail: Killmail;
+  KillmailItem: KillmailItem;
   Mutation: Record<PropertyKey, never>;
   PageInfo: PageInfo;
+  Position: Position;
   Query: Record<PropertyKey, never>;
   String: Scalars['String']['output'];
   SyncResult: SyncResult;
@@ -451,12 +488,20 @@ export type AlliancesResponseResolvers<ContextType = any, ParentType extends Res
 };
 
 export type AttackerResolvers<ContextType = any, ParentType extends ResolversParentTypes['Attacker'] = ResolversParentTypes['Attacker']> = {
+  allianceId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  allianceName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   characterId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   characterName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   corporationId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  finalBlow?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  corporationName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  damageDone?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  factionId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  finalBlow?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  securityStatus?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   shipTypeId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  shipTypeName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   weaponTypeId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  weaponTypeName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
 export type AuthPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['AuthPayload'] = ResolversParentTypes['AuthPayload']> = {
@@ -506,12 +551,24 @@ export type CorporationsResponseResolvers<ContextType = any, ParentType extends 
 
 export type KillmailResolvers<ContextType = any, ParentType extends ResolversParentTypes['Killmail'] = ResolversParentTypes['Killmail']> = {
   attackers?: Resolver<Array<ResolversTypes['Attacker']>, ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  items?: Resolver<Array<ResolversTypes['KillmailItem']>, ParentType, ContextType>;
   killmailHash?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   killmailId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   killmailTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  solarSystemId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   totalValue?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   victim?: Resolver<ResolversTypes['Victim'], ParentType, ContextType>;
+};
+
+export type KillmailItemResolvers<ContextType = any, ParentType extends ResolversParentTypes['KillmailItem'] = ResolversParentTypes['KillmailItem']> = {
+  flag?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  itemTypeId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  itemTypeName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  quantityDestroyed?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  quantityDropped?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  singleton?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
@@ -533,6 +590,12 @@ export type PageInfoResolvers<ContextType = any, ParentType extends ResolversPar
   previousCursor?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   totalPages?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type PositionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Position'] = ResolversParentTypes['Position']> = {
+  x?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  y?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  z?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
@@ -565,12 +628,17 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
 };
 
 export type VictimResolvers<ContextType = any, ParentType extends ResolversParentTypes['Victim'] = ResolversParentTypes['Victim']> = {
+  allianceId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  allianceName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   characterId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   characterName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  corporationId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  corporationId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   corporationName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  damageTaken?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  shipTypeId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  damageTaken?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  factionId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  position?: Resolver<Maybe<ResolversTypes['Position']>, ParentType, ContextType>;
+  shipTypeId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  shipTypeName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
 export type Resolvers<ContextType = any> = {
@@ -584,8 +652,10 @@ export type Resolvers<ContextType = any> = {
   CorporationEdge?: CorporationEdgeResolvers<ContextType>;
   CorporationsResponse?: CorporationsResponseResolvers<ContextType>;
   Killmail?: KillmailResolvers<ContextType>;
+  KillmailItem?: KillmailItemResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;
+  Position?: PositionResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   SyncResult?: SyncResultResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
