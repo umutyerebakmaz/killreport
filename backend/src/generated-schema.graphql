@@ -1,7 +1,13 @@
 input AddCharacterInput {
+  clientMutationId: String
   corporation: String
   name: String!
   userId: ID!
+}
+
+type AddCharacterPayload {
+  character: Character
+  clientMutationId: String
 }
 
 type Alliance {
@@ -108,8 +114,14 @@ type CorporationEdge {
 }
 
 input CreateUserInput {
+  clientMutationId: String
   email: String!
   name: String!
+}
+
+type CreateUserPayload {
+  clientMutationId: String
+  user: User
 }
 
 type Killmail {
@@ -145,25 +157,25 @@ type KillmailItem {
 }
 
 type Mutation {
-  addCharacter(input: AddCharacterInput!): Character!
+  addCharacter(input: AddCharacterInput!): AddCharacterPayload!
 
   """Authorization code ile authentication yapar ve token döner"""
   authenticateWithCode(code: String!, state: String!): AuthPayload!
-  createUser(input: CreateUserInput!): User!
+  createUser(input: CreateUserInput!): CreateUserPayload!
 
   """Eve Online SSO login için authorization URL'i oluşturur"""
   login: AuthUrl!
 
   """Refresh token kullanarak yeni access token alır"""
   refreshToken(refreshToken: String!): AuthPayload!
-  startAllianceSync: Boolean
+  startAllianceSync(input: StartAllianceSyncInput!): StartAllianceSyncPayload!
 
   """
   Fetches user's killmails from ESI and saves to database
   Requires: Authentication
   """
-  syncMyKillmails: SyncResult!
-  updateUser(id: ID!, input: UpdateUserInput!): User
+  syncMyKillmails(input: SyncMyKillmailsInput!): SyncMyKillmailsPayload!
+  updateUser(input: UpdateUserInput!): UpdateUserPayload!
 }
 
 type PageInfo {
@@ -214,15 +226,37 @@ type Query {
   users: [User!]!
 }
 
-type SyncResult {
+input StartAllianceSyncInput {
+  clientMutationId: String
+}
+
+type StartAllianceSyncPayload {
+  clientMutationId: String
+  message: String
+  success: Boolean!
+}
+
+input SyncMyKillmailsInput {
+  clientMutationId: String
+}
+
+type SyncMyKillmailsPayload {
+  clientMutationId: String
   message: String!
   success: Boolean!
   syncedCount: Int!
 }
 
 input UpdateUserInput {
+  clientMutationId: String
   email: String
+  id: ID!
   name: String
+}
+
+type UpdateUserPayload {
+  clientMutationId: String
+  user: User
 }
 
 type User {
