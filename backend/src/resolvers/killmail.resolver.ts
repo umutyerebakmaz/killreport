@@ -25,6 +25,9 @@ export const killmailQueries: QueryResolvers = {
 
     return {
       ...km,
+      solarSystemId: 30000142,
+      createdAt: new Date().toISOString(),
+      items: [],
       victim: {
         characterId: 12345,
         characterName: 'Victim Name',
@@ -40,7 +43,9 @@ export const killmailQueries: QueryResolvers = {
           corporationId: 11111,
           shipTypeId: 588,
           weaponTypeId: 2456,
+          damageDone: 10000,
           finalBlow: true,
+          securityStatus: -5.0,
         },
       ],
     };
@@ -52,6 +57,9 @@ export const killmailQueries: QueryResolvers = {
 
     return killmails.slice(offset, offset + limit).map((km) => ({
       ...km,
+      solarSystemId: 30000142,
+      createdAt: new Date().toISOString(),
+      items: [],
       victim: {
         characterId: 12345,
         characterName: 'Victim Name',
@@ -67,7 +75,9 @@ export const killmailQueries: QueryResolvers = {
           corporationId: 11111,
           shipTypeId: 588,
           weaponTypeId: 2456,
+          damageDone: 10000,
           finalBlow: true,
+          securityStatus: -5.0,
         },
       ],
     }));

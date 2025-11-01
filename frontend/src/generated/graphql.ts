@@ -52,12 +52,20 @@ export type AlliancesResponse = {
 
 export type Attacker = {
   __typename?: 'Attacker';
+  allianceId?: Maybe<Scalars['Int']['output']>;
+  allianceName?: Maybe<Scalars['String']['output']>;
   characterId?: Maybe<Scalars['Int']['output']>;
   characterName?: Maybe<Scalars['String']['output']>;
   corporationId?: Maybe<Scalars['Int']['output']>;
-  finalBlow?: Maybe<Scalars['Boolean']['output']>;
+  corporationName?: Maybe<Scalars['String']['output']>;
+  damageDone: Scalars['Int']['output'];
+  factionId?: Maybe<Scalars['Int']['output']>;
+  finalBlow: Scalars['Boolean']['output'];
+  securityStatus: Scalars['Float']['output'];
   shipTypeId?: Maybe<Scalars['Int']['output']>;
+  shipTypeName?: Maybe<Scalars['String']['output']>;
   weaponTypeId?: Maybe<Scalars['Int']['output']>;
+  weaponTypeName?: Maybe<Scalars['String']['output']>;
 };
 
 export type AuthPayload = {
@@ -106,6 +114,17 @@ export type Corporation = {
   url?: Maybe<Scalars['String']['output']>;
 };
 
+export type CorporationEdge = {
+  __typename?: 'CorporationEdge';
+  node: Corporation;
+};
+
+export type CorporationsResponse = {
+  __typename?: 'CorporationsResponse';
+  edges: Array<CorporationEdge>;
+  pageInfo: PageInfo;
+};
+
 export type CreateUserInput = {
   email: Scalars['String']['input'];
   name: Scalars['String']['input'];
@@ -114,12 +133,25 @@ export type CreateUserInput = {
 export type Killmail = {
   __typename?: 'Killmail';
   attackers: Array<Attacker>;
+  createdAt: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  items: Array<KillmailItem>;
   killmailHash: Scalars['String']['output'];
   killmailId: Scalars['Int']['output'];
   killmailTime: Scalars['String']['output'];
+  solarSystemId: Scalars['Int']['output'];
   totalValue?: Maybe<Scalars['Float']['output']>;
   victim: Victim;
+};
+
+export type KillmailItem = {
+  __typename?: 'KillmailItem';
+  flag: Scalars['Int']['output'];
+  itemTypeId: Scalars['Int']['output'];
+  itemTypeName?: Maybe<Scalars['String']['output']>;
+  quantityDestroyed?: Maybe<Scalars['Int']['output']>;
+  quantityDropped?: Maybe<Scalars['Int']['output']>;
+  singleton: Scalars['Int']['output'];
 };
 
 export type Mutation = {
@@ -179,6 +211,13 @@ export type PageInfo = {
   totalPages: Scalars['Int']['output'];
 };
 
+export type Position = {
+  __typename?: 'Position';
+  x: Scalars['Float']['output'];
+  y: Scalars['Float']['output'];
+  z: Scalars['Float']['output'];
+};
+
 export type Query = {
   __typename?: 'Query';
   alliance?: Maybe<Alliance>;
@@ -186,6 +225,7 @@ export type Query = {
   character?: Maybe<Character>;
   charactersByUser: Array<Character>;
   corporation?: Maybe<Corporation>;
+  corporations: CorporationsResponse;
   /** Fetches a single killmail */
   killmail?: Maybe<Killmail>;
   /** Lists all killmails (with pagination) */
@@ -229,6 +269,12 @@ export type QueryCharactersByUserArgs = {
 
 export type QueryCorporationArgs = {
   id: Scalars['Int']['input'];
+};
+
+
+export type QueryCorporationsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -279,12 +325,17 @@ export type User = {
 
 export type Victim = {
   __typename?: 'Victim';
+  allianceId?: Maybe<Scalars['Int']['output']>;
+  allianceName?: Maybe<Scalars['String']['output']>;
   characterId?: Maybe<Scalars['Int']['output']>;
   characterName?: Maybe<Scalars['String']['output']>;
-  corporationId?: Maybe<Scalars['Int']['output']>;
+  corporationId: Scalars['Int']['output'];
   corporationName?: Maybe<Scalars['String']['output']>;
-  damageTaken?: Maybe<Scalars['Int']['output']>;
-  shipTypeId?: Maybe<Scalars['Int']['output']>;
+  damageTaken: Scalars['Int']['output'];
+  factionId?: Maybe<Scalars['Int']['output']>;
+  position?: Maybe<Position>;
+  shipTypeId: Scalars['Int']['output'];
+  shipTypeName?: Maybe<Scalars['String']['output']>;
 };
 
 export type AllianceQueryVariables = Exact<{
@@ -300,6 +351,13 @@ export type AlliancesQueryVariables = Exact<{
 
 
 export type AlliancesQuery = { __typename?: 'Query', alliances: { __typename?: 'AlliancesResponse', data: Array<{ __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, creator_corporation_id: number, creator_id: number, executor_corporation_id: number, faction_id?: number | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
+export type CorporationsQueryVariables = Exact<{
+  first?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type CorporationsQuery = { __typename?: 'Query', corporations: { __typename?: 'CorporationsResponse', edges: Array<{ __typename?: 'CorporationEdge', node: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 
 export const AllianceDocument = gql`
@@ -405,3 +463,59 @@ export type AlliancesQueryHookResult = ReturnType<typeof useAlliancesQuery>;
 export type AlliancesLazyQueryHookResult = ReturnType<typeof useAlliancesLazyQuery>;
 export type AlliancesSuspenseQueryHookResult = ReturnType<typeof useAlliancesSuspenseQuery>;
 export type AlliancesQueryResult = Apollo.QueryResult<AlliancesQuery, AlliancesQueryVariables>;
+export const CorporationsDocument = gql`
+    query Corporations($first: Int) {
+  corporations(first: $first) {
+    edges {
+      node {
+        id
+        name
+        ticker
+        member_count
+        alliance {
+          id
+          name
+          ticker
+        }
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useCorporationsQuery__
+ *
+ * To run a query within a React component, call `useCorporationsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCorporationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCorporationsQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *   },
+ * });
+ */
+export function useCorporationsQuery(baseOptions?: Apollo.QueryHookOptions<CorporationsQuery, CorporationsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CorporationsQuery, CorporationsQueryVariables>(CorporationsDocument, options);
+      }
+export function useCorporationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CorporationsQuery, CorporationsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CorporationsQuery, CorporationsQueryVariables>(CorporationsDocument, options);
+        }
+export function useCorporationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CorporationsQuery, CorporationsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CorporationsQuery, CorporationsQueryVariables>(CorporationsDocument, options);
+        }
+export type CorporationsQueryHookResult = ReturnType<typeof useCorporationsQuery>;
+export type CorporationsLazyQueryHookResult = ReturnType<typeof useCorporationsLazyQuery>;
+export type CorporationsSuspenseQueryHookResult = ReturnType<typeof useCorporationsSuspenseQuery>;
+export type CorporationsQueryResult = Apollo.QueryResult<CorporationsQuery, CorporationsQueryVariables>;
