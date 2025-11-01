@@ -42,7 +42,7 @@ export default function AlliancesPage() {
   if (loading) return <div className="p-8">Loading...</div>;
   if (error) return <div className="p-8">Error: {error.message}</div>;
 
-  const alliances = data?.alliances.data || [];
+  const alliances = data?.alliances.edges.map((edge) => edge.node) || [];
   const pageInfo = data?.alliances.pageInfo;
   const totalPages = pageInfo?.totalPages || 0;
 

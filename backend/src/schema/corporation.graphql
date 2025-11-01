@@ -15,14 +15,15 @@ type Corporation {
 
 type CorporationEdge {
   node: Corporation!
+  cursor: String!
 }
 
-type CorporationsResponse {
+type CorporationConnection {
   edges: [CorporationEdge!]!
   pageInfo: PageInfo!
 }
 
 extend type Query {
   corporation(id: Int!): Corporation
-  corporations(first: Int, after: String): CorporationsResponse!
+  corporations(first: Int, after: String): CorporationConnection!
 }

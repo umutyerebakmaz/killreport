@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Alliance, AllianceResolvers, AlliancesResponse, MutationResolvers, PageInfo, QueryResolvers } from '../generated-types';
+import { Alliance, AllianceResolvers, MutationResolvers, PageInfo, QueryResolvers } from '../generated-types';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
@@ -17,7 +17,7 @@ export const allianceQueries: QueryResolvers = {
     };
   },
 
-  alliances: async (_, { filter }): Promise<AlliancesResponse> => {
+  alliances: async (_, { filter }) => {
     const take = filter?.limit ?? 25;
     const currentPage = filter?.page ?? 1;
     const skip = (currentPage - 1) * take;
@@ -60,9 +60,12 @@ export const allianceQueries: QueryResolvers = {
     };
 
     return {
-      data: alliances.map((a: any) => ({
-        ...a,
-        date_founded: a.date_founded.toISOString(),
+      edges: alliances.map((a: any, index: number) => ({
+        node: {
+          ...a,
+          date_founded: a.date_founded.toISOString(),
+        },
+        cursor: Buffer.from(`${skip + index}`).toString('base64'),
       })),
       pageInfo,
     };
