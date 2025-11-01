@@ -86,7 +86,7 @@ export default function Paginator({
 
       {/* Page Info */}
       {currentPage && (
-        <span className="px-2.5 py-1 text-xs text-gray-500 bg-gray-800/50 rounded-md">
+        <span className="px-4 py-2 text-sm font-medium text-gray-500 border bg-gray-900/50 border-gray-700/50">
           {totalPages
             ? `Page ${currentPage} of ${totalPages}`
             : `Page ${currentPage}`}
@@ -95,19 +95,25 @@ export default function Paginator({
 
       {/* Page Size Selector */}
       {onPageSizeChange && (
-        <div className="relative">
+        <div className="relative group">
           <select
-            className="px-3 py-1.5 pr-8 text-md text-gray-500 bg-gray-800/50 border border-gray-700/50 rounded-md appearance-none cursor-pointer hover:bg-gray-700/50 focus:outline-none focus:ring-1 focus:ring-gray-600"
+            className="px-4 py-2 pr-10 text-sm font-medium text-gray-500 transition-all duration-200 border appearance-none cursor-pointer bg-gray-900/50 border-gray-700/50 hover:bg-gray-800 hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500/50 focus:border-gray-600"
             value={pageSize}
             onChange={(e) => onPageSizeChange(Number(e.target.value))}
           >
             {pageSizeOptions.map((size) => (
-              <option key={size} value={size}>
-                Show {size}
+              <option
+                key={size}
+                value={size}
+                className="py-2 text-base font-medium text-gray-100 bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+              >
+                {size === pageSize ? "✓" : "\u00A0\u00A0"}
+                {"   "}
+                {size} per page
               </option>
             ))}
           </select>
-          <ChevronDownIcon className="absolute w-4 h-4 text-gray-500 pointer-events-none right-2.5 top-2.5" />
+          <ChevronDownIcon className="absolute w-5 h-5 text-gray-400 transition-transform duration-200 pointer-events-none right-3 top-2.5 group-hover:text-gray-300" />
         </div>
       )}
     </div>
