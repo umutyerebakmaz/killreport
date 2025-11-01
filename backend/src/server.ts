@@ -95,20 +95,20 @@ const server = createServer(async (req, res) => {
 
       // Find or create user in database using Prisma
       const user = await prisma.user.upsert({
-        where: { characterId: character.characterId },
+        where: { character_id: character.characterId },
         update: {
-          characterName: character.characterName,
-          accessToken: tokenData.access_token,
-          refreshToken: tokenData.refresh_token,
-          expiresAt,
+          character_name: character.characterName,
+          access_token: tokenData.access_token,
+          refresh_token: tokenData.refresh_token,
+          expires_at: expiresAt,
         },
         create: {
-          characterId: character.characterId,
-          characterName: character.characterName,
-          characterOwnerHash: character.characterOwnerHash,
-          accessToken: tokenData.access_token,
-          refreshToken: tokenData.refresh_token,
-          expiresAt,
+          character_id: character.characterId,
+          character_name: character.characterName,
+          character_owner_hash: character.characterOwnerHash,
+          access_token: tokenData.access_token,
+          refresh_token: tokenData.refresh_token,
+          expires_at: expiresAt,
         },
       });
 
