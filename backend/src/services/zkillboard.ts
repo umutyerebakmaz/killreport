@@ -64,7 +64,19 @@ export async function getCharacterKillmailsFromZKill(
                 throw new Error(`zKillboard API error: ${response.status}`);
             }
 
-            const killmails: ZKillPackage[] = await response.json();
+            let killmails: ZKillPackage[];
+            try {
+                killmails = await response.json();
+            } catch (jsonError) {
+                console.log(`     ⚠️  ${prefix} Failed to parse JSON on page ${currentPage}, stopping`);
+                break;
+            }
+
+            // Validate killmails is an array
+            if (!Array.isArray(killmails)) {
+                console.log(`     ⚠️  ${prefix} Invalid response format on page ${currentPage}, stopping`);
+                break;
+            }
 
             console.log(`     📄 ${prefix} Page ${currentPage}: ${killmails.length} killmails`);
 
