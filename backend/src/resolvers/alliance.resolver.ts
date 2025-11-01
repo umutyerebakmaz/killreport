@@ -73,7 +73,7 @@ export const allianceQueries: QueryResolvers = {
 };
 
 export const allianceMutations: MutationResolvers = {
-  startAllianceSync: async () => {
+  startAllianceSync: async (_, { input }) => {
     try {
       console.log('🚀 Starting alliance sync via GraphQL...');
 
@@ -100,10 +100,18 @@ export const allianceMutations: MutationResolvers = {
       }
 
       console.log(`✅ All ${allianceIds.length} alliances queued successfully!`);
-      return true;
+      return {
+        success: true,
+        message: `${allianceIds.length} alliances queued successfully`,
+        clientMutationId: input.clientMutationId || null,
+      };
     } catch (error) {
       console.error('❌ Error starting alliance sync:', error);
-      return false;
+      return {
+        success: false,
+        message: 'Failed to start alliance sync',
+        clientMutationId: input.clientMutationId || null,
+      };
     }
   },
 };
