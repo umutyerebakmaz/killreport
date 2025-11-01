@@ -4,8 +4,8 @@ type Query {
 }
 
 type Mutation {
-  createUser(input: CreateUserInput!): User!
-  updateUser(id: ID!, input: UpdateUserInput!): User
+  createUser(input: CreateUserInput!): CreateUserPayload!
+  updateUser(input: UpdateUserInput!): UpdateUserPayload!
 }
 
 type User {
@@ -18,9 +18,22 @@ type User {
 input CreateUserInput {
   name: String!
   email: String!
+  clientMutationId: String
 }
 
 input UpdateUserInput {
+  id: ID!
   name: String
   email: String
+  clientMutationId: String
+}
+
+type CreateUserPayload {
+  user: User
+  clientMutationId: String
+}
+
+type UpdateUserPayload {
+  user: User
+  clientMutationId: String
 }
