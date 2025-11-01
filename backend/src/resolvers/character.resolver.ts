@@ -53,7 +53,10 @@ export const characterMutations: MutationResolvers = {
             userId: input.userId,
         };
         characters.push(newCharacter);
-        return newCharacter;
+        return {
+            character: newCharacter,
+            clientMutationId: input.clientMutationId || null,
+        };
     },
 };
 

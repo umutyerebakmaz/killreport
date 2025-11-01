@@ -4,7 +4,7 @@ extend type Query {
 }
 
 extend type Mutation {
-  addCharacter(input: AddCharacterInput!): Character!
+  addCharacter(input: AddCharacterInput!): AddCharacterPayload!
 }
 
 type Character {
@@ -20,4 +20,10 @@ input AddCharacterInput {
   name: String!
   corporation: String
   userId: ID!
+  clientMutationId: String
+}
+
+type AddCharacterPayload {
+  character: Character
+  clientMutationId: String
 }
