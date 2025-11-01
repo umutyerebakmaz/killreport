@@ -1,8 +1,8 @@
 "use client";
 
+import AllianceCard from "@/components/Card/AllianceCard";
 import Paginator from "@/components/Paginator/Paginator";
 import { useAlliancesQuery } from "@/generated/graphql";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -74,58 +74,40 @@ export default function AlliancesPage() {
   };
 
   return (
-    <main className="p-8">
-      <h1 className="mb-4 text-2xl font-bold">Alliances</h1>
-      <table className="min-w-full border">
-        <thead>
-          <tr>
-            <th className="px-2 py-1 border">Logo</th>
-            <th className="px-2 py-1 border">Name</th>
-            <th className="px-2 py-1 border">Ticker</th>
-            <th className="px-2 py-1 border">Alliance ID</th>
-          </tr>
-        </thead>
-        <tbody>
-          {alliances.map((a) =>
-            a ? (
-              <tr key={a.id} className="hover:bg-gray-50">
-                <td className="px-2 py-1 border">
-                  <img
-                    src={`https://images.evetech.net/Alliance/${a.id}_64.png`}
-                    alt={a.name}
-                    width={64}
-                    height={64}
-                  />
-                </td>
-                <td className="px-2 py-1 border">
-                  <Link
-                    href={`/alliances/${a.id}`}
-                    className="text-blue-600 hover:underline"
-                  >
-                    {a.name}
-                  </Link>
-                </td>
-                <td className="px-2 py-1 border">{a.ticker}</td>
-                <td className="px-2 py-1 border">{a.id}</td>
-              </tr>
+    <div className="px-4 sm:px-6 lg:px-8">
+      <div className="sm:flex sm:items-center">
+        <div className="sm:flex-auto">
+          <h1 className="text-3xl font-semibold text-white">Alliances</h1>
+          <h2 className="mt-2 text-xl text-white">
+            A list of all EVE Online alliances including their logo and name.
+          </h2>
+        </div>
+      </div>
+      <div className="mt-8">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5">
+          {alliances.map((alliance) =>
+            alliance ? (
+              <AllianceCard key={alliance.id} alliance={alliance} />
             ) : null
           )}
-        </tbody>
-      </table>
+        </div>
+      </div>
 
-      <Paginator
-        hasNextPage={pageInfo?.hasNextPage ?? false}
-        hasPrevPage={pageInfo?.hasPreviousPage ?? false}
-        onNext={handleNext}
-        onPrev={handlePrev}
-        onFirst={handleFirst}
-        onLast={handleLast}
-        loading={loading}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        pageSize={pageSize}
-        onPageSizeChange={handlePageSizeChange}
-      />
-    </main>
+      <div className="mt-6">
+        <Paginator
+          hasNextPage={pageInfo?.hasNextPage ?? false}
+          hasPrevPage={pageInfo?.hasPreviousPage ?? false}
+          onNext={handleNext}
+          onPrev={handlePrev}
+          onFirst={handleFirst}
+          onLast={handleLast}
+          loading={loading}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          onPageSizeChange={handlePageSizeChange}
+        />
+      </div>
+    </div>
   );
 }

@@ -174,10 +174,10 @@ export default function Header() {
             ALLIANCES
           </a>
           <a href="#" className="font-semibold text-white text-sm/6">
-            MARKETPLACE
+            CORPORATIONS
           </a>
           <a href="#" className="font-semibold text-white text-sm/6">
-            COMPANY
+            CHARACTERS
           </a>
         </PopoverGroup>
 
@@ -253,13 +253,13 @@ export default function Header() {
                   href="#"
                   className="block px-3 py-2 -mx-3 font-semibold text-white text-base/7 hover:bg-white/5"
                 >
-                  MARKETPLACE
+                  CORPORATIONS
                 </a>
                 <a
                   href="#"
                   className="block px-3 py-2 -mx-3 font-semibold text-white text-base/7 hover:bg-white/5"
                 >
-                  COMPANY
+                  CHARACTERS
                 </a>
               </div>
               <div className="py-6">
