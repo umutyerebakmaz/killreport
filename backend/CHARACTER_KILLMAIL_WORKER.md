@@ -54,16 +54,16 @@ yarn sync:character <characterId> <maxPages>
 **Examples:**
 
 ```bash
-# CCP Falcon'un killmail'leri (default 50 sayfa)
+# CCP Falcon's killmails (default 50 pages)
 yarn sync:character 95465499
 
-# Sadece son 1,000 killmail (5 sayfa)
+# Only last 1,000 killmails (5 pages)
 yarn sync:character 95465499 5
 
-# Son 20,000 killmail (100 sayfa)
+# Last 20,000 killmails (100 pages)
 yarn sync:character 95465499 100
 
-# TÜM geçmiş (dikkatli kullanın, çok uzun sürebilir)
+# ALL history (use carefully, can take very long)
 yarn sync:character 95465499 999
 ```
 
@@ -103,7 +103,7 @@ yarn sync:character 95465499 999
 
 ### Method 2: Queue System (For multiple characters)
 
-Birden fazla character için veya background processing istiyorsan.
+Use for multiple characters or when background processing is desired.
 
 **Step 1: Queue character(s)**
 
@@ -124,13 +124,13 @@ yarn queue:character 123 456 789 101112 131415
 yarn worker:killmails
 ```
 
-Worker RabbitMQ queue'dan character'ları alıp işlemeye başlar.
+The worker will start processing characters from the RabbitMQ queue.
 
 ---
 
 ### Method 3: Logged-in Users (Existing system)
 
-Sadece login olmuş kullanıcılar için:
+For logged-in users only:
 
 ```bash
 # Queue all logged-in users
@@ -211,8 +211,8 @@ async function getCharacterKillmailsFromZKill(
 interface ZKillPackage {
   killmail_id: number;
   zkb: {
-    hash: string; // ESI için gerekli
-    totalValue: number; // ISK değeri
+    hash: string; // Required for ESI
+    totalValue: number; // ISK value
     locationID: number;
     fittedValue: number;
     droppedValue: number;
