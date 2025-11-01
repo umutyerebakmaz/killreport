@@ -6,7 +6,7 @@ import { getCharacterKillmailsFromZKill } from '../services/zkillboard';
 
 const QUEUE_NAME = 'killmail_sync_queue';
 const PREFETCH_COUNT = 2; // Process 2 users at a time (rate limit consideration)
-const MAX_PAGES = 5; // Fetch up to 5 pages from zKillboard (1000 killmails max)
+const MAX_PAGES = 50; // Fetch up to 50 pages from zKillboard (10,000 killmails max) - Set to 999 for ALL history
 
 interface QueueMessage {
   userId: number;
