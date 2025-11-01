@@ -88,6 +88,8 @@ const navigation = {
 };
 
 export default function Footer() {
+  const currentYear = new Date().getFullYear();
+
   return (
     <footer className="bg-custom-dark">
       <div className="px-6 pt-16 pb-8 mx-auto sm:pt-24 lg:px-8 xl:px-12 2xl:px-16 lg:pt-32 max-w-[1920px]">
@@ -185,7 +187,7 @@ export default function Footer() {
 
         <div className="flex flex-row items-start justify-between gap-4 pt-8 mt-16 border-t border-white/10 sm:mt-20 lg:mt-24">
           <p className="text-gray-400 text-sm/6">
-            &copy; 2024 Your Company, Inc. All rights reserved. All{" "}
+            &copy; {currentYear} Killreport, Inc. All rights reserved. All{" "}
             <a href="/legal" className="text-cyan-500 hover:underline">
               EVE related materials
             </a>{" "}
