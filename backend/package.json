@@ -10,11 +10,11 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "queue:alliance": "ts-node src/queue-alliances.ts",
-    "queue:killmail": "ts-node src/queue-killmails.ts",
+    "queue:alliances": "ts-node src/workers/queue-alliances.ts",
+    "queue:killmails": "ts-node src/workers/queue-killmails.ts",
     "remove:all": "rm -rf node_modules yarn.lock package-lock.json pnpm-lock.yaml",
-    "worker:alliance": "ts-node src/alliance-worker.ts",
-    "worker:killmail": "ts-node src/killmail-worker.ts"
+    "worker:alliances": "ts-node src/workers/alliances-worker.ts",
+    "worker:killmails": "ts-node src/workers/killmails-worker.ts"
   },
   "dependencies": {
     "@graphql-tools/load-files": "^7.0.1",
