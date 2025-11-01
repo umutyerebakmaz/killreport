@@ -42,5 +42,15 @@ type Query {
 }
 
 type Mutation {
-  startAllianceSync: Boolean
+  startAllianceSync(input: StartAllianceSyncInput!): StartAllianceSyncPayload!
+}
+
+input StartAllianceSyncInput {
+  clientMutationId: String
+}
+
+type StartAllianceSyncPayload {
+  success: Boolean!
+  message: String
+  clientMutationId: String
 }

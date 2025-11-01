@@ -37,13 +37,18 @@ extend type Mutation {
   Fetches user's killmails from ESI and saves to database
   Requires: Authentication
   """
-  syncMyKillmails: SyncResult!
+  syncMyKillmails(input: SyncMyKillmailsInput!): SyncMyKillmailsPayload!
 }
 
-type SyncResult {
+input SyncMyKillmailsInput {
+  clientMutationId: String
+}
+
+type SyncMyKillmailsPayload {
   success: Boolean!
   message: String!
   syncedCount: Int!
+  clientMutationId: String
 }
 
 type Killmail {

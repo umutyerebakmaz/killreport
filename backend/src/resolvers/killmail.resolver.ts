@@ -253,7 +253,7 @@ export const killmailQueries: QueryResolvers = {
 
 // Mutation Resolvers
 export const killmailMutations: MutationResolvers = {
-  syncMyKillmails: async (_, __, context: any) => {
+  syncMyKillmails: async (_, { input }, context: any) => {
     if (!context.user) {
       throw new Error('Not authenticated');
     }
@@ -272,6 +272,7 @@ export const killmailMutations: MutationResolvers = {
         success: true,
         message: `Successfully fetched ${killmailList.length} killmails`,
         syncedCount: killmailList.length,
+        clientMutationId: input.clientMutationId || null,
       };
     } catch (error) {
       console.error('Sync failed:', error);
@@ -279,6 +280,7 @@ export const killmailMutations: MutationResolvers = {
         success: false,
         message: error instanceof Error ? error.message : 'Sync failed',
         syncedCount: 0,
+        clientMutationId: input.clientMutationId || null,
       };
     }
   },

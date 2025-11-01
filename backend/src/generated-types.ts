@@ -17,9 +17,16 @@ export type Scalars = {
 };
 
 export type AddCharacterInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
   corporation?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
   userId: Scalars['ID']['input'];
+};
+
+export type AddCharacterPayload = {
+  __typename?: 'AddCharacterPayload';
+  character?: Maybe<Character>;
+  clientMutationId?: Maybe<Scalars['String']['output']>;
 };
 
 export type Alliance = {
@@ -132,8 +139,15 @@ export type CorporationEdge = {
 };
 
 export type CreateUserInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
   email: Scalars['String']['input'];
   name: Scalars['String']['input'];
+};
+
+export type CreateUserPayload = {
+  __typename?: 'CreateUserPayload';
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  user?: Maybe<User>;
 };
 
 export type Killmail = {
@@ -174,21 +188,21 @@ export type KillmailItem = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  addCharacter: Character;
+  addCharacter: AddCharacterPayload;
   /** Authorization code ile authentication yapar ve token döner */
   authenticateWithCode: AuthPayload;
-  createUser: User;
+  createUser: CreateUserPayload;
   /** Eve Online SSO login için authorization URL'i oluşturur */
   login: AuthUrl;
   /** Refresh token kullanarak yeni access token alır */
   refreshToken: AuthPayload;
-  startAllianceSync?: Maybe<Scalars['Boolean']['output']>;
+  startAllianceSync: StartAllianceSyncPayload;
   /**
    * Fetches user's killmails from ESI and saves to database
    * Requires: Authentication
    */
-  syncMyKillmails: SyncResult;
-  updateUser?: Maybe<User>;
+  syncMyKillmails: SyncMyKillmailsPayload;
+  updateUser: UpdateUserPayload;
 };
 
 
@@ -213,8 +227,17 @@ export type MutationRefreshTokenArgs = {
 };
 
 
+export type MutationStartAllianceSyncArgs = {
+  input: StartAllianceSyncInput;
+};
+
+
+export type MutationSyncMyKillmailsArgs = {
+  input: SyncMyKillmailsInput;
+};
+
+
 export type MutationUpdateUserArgs = {
-  id: Scalars['ID']['input'];
   input: UpdateUserInput;
 };
 
@@ -321,16 +344,40 @@ export type QueryUserArgs = {
   id: Scalars['ID']['input'];
 };
 
-export type SyncResult = {
-  __typename?: 'SyncResult';
+export type StartAllianceSyncInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type StartAllianceSyncPayload = {
+  __typename?: 'StartAllianceSyncPayload';
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type SyncMyKillmailsInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type SyncMyKillmailsPayload = {
+  __typename?: 'SyncMyKillmailsPayload';
+  clientMutationId?: Maybe<Scalars['String']['output']>;
   message: Scalars['String']['output'];
   success: Scalars['Boolean']['output'];
   syncedCount: Scalars['Int']['output'];
 };
 
 export type UpdateUserInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
   email?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateUserPayload = {
+  __typename?: 'UpdateUserPayload';
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  user?: Maybe<User>;
 };
 
 export type User = {
@@ -430,6 +477,7 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
   AddCharacterInput: AddCharacterInput;
+  AddCharacterPayload: ResolverTypeWrapper<AddCharacterPayload>;
   Alliance: ResolverTypeWrapper<Alliance>;
   AllianceConnection: ResolverTypeWrapper<AllianceConnection>;
   AllianceEdge: ResolverTypeWrapper<AllianceEdge>;
@@ -443,6 +491,7 @@ export type ResolversTypes = {
   CorporationConnection: ResolverTypeWrapper<CorporationConnection>;
   CorporationEdge: ResolverTypeWrapper<CorporationEdge>;
   CreateUserInput: CreateUserInput;
+  CreateUserPayload: ResolverTypeWrapper<CreateUserPayload>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
@@ -454,9 +503,13 @@ export type ResolversTypes = {
   PageInfo: ResolverTypeWrapper<PageInfo>;
   Position: ResolverTypeWrapper<Position>;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
+  StartAllianceSyncInput: StartAllianceSyncInput;
+  StartAllianceSyncPayload: ResolverTypeWrapper<StartAllianceSyncPayload>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
-  SyncResult: ResolverTypeWrapper<SyncResult>;
+  SyncMyKillmailsInput: SyncMyKillmailsInput;
+  SyncMyKillmailsPayload: ResolverTypeWrapper<SyncMyKillmailsPayload>;
   UpdateUserInput: UpdateUserInput;
+  UpdateUserPayload: ResolverTypeWrapper<UpdateUserPayload>;
   User: ResolverTypeWrapper<User>;
   Victim: ResolverTypeWrapper<Victim>;
 };
@@ -464,6 +517,7 @@ export type ResolversTypes = {
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
   AddCharacterInput: AddCharacterInput;
+  AddCharacterPayload: AddCharacterPayload;
   Alliance: Alliance;
   AllianceConnection: AllianceConnection;
   AllianceEdge: AllianceEdge;
@@ -477,6 +531,7 @@ export type ResolversParentTypes = {
   CorporationConnection: CorporationConnection;
   CorporationEdge: CorporationEdge;
   CreateUserInput: CreateUserInput;
+  CreateUserPayload: CreateUserPayload;
   Float: Scalars['Float']['output'];
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
@@ -488,11 +543,20 @@ export type ResolversParentTypes = {
   PageInfo: PageInfo;
   Position: Position;
   Query: Record<PropertyKey, never>;
+  StartAllianceSyncInput: StartAllianceSyncInput;
+  StartAllianceSyncPayload: StartAllianceSyncPayload;
   String: Scalars['String']['output'];
-  SyncResult: SyncResult;
+  SyncMyKillmailsInput: SyncMyKillmailsInput;
+  SyncMyKillmailsPayload: SyncMyKillmailsPayload;
   UpdateUserInput: UpdateUserInput;
+  UpdateUserPayload: UpdateUserPayload;
   User: User;
   Victim: Victim;
+};
+
+export type AddCharacterPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['AddCharacterPayload'] = ResolversParentTypes['AddCharacterPayload']> = {
+  character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
+  clientMutationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
 export type AllianceResolvers<ContextType = any, ParentType extends ResolversParentTypes['Alliance'] = ResolversParentTypes['Alliance']> = {
@@ -580,6 +644,11 @@ export type CorporationEdgeResolvers<ContextType = any, ParentType extends Resol
   node?: Resolver<ResolversTypes['Corporation'], ParentType, ContextType>;
 };
 
+export type CreateUserPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['CreateUserPayload'] = ResolversParentTypes['CreateUserPayload']> = {
+  clientMutationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+};
+
 export type KillmailResolvers<ContextType = any, ParentType extends ResolversParentTypes['Killmail'] = ResolversParentTypes['Killmail']> = {
   attackers?: Resolver<Array<ResolversTypes['Attacker']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -613,14 +682,14 @@ export type KillmailItemResolvers<ContextType = any, ParentType extends Resolver
 };
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
-  addCharacter?: Resolver<ResolversTypes['Character'], ParentType, ContextType, RequireFields<MutationAddCharacterArgs, 'input'>>;
+  addCharacter?: Resolver<ResolversTypes['AddCharacterPayload'], ParentType, ContextType, RequireFields<MutationAddCharacterArgs, 'input'>>;
   authenticateWithCode?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationAuthenticateWithCodeArgs, 'code' | 'state'>>;
-  createUser?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
+  createUser?: Resolver<ResolversTypes['CreateUserPayload'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   login?: Resolver<ResolversTypes['AuthUrl'], ParentType, ContextType>;
   refreshToken?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationRefreshTokenArgs, 'refreshToken'>>;
-  startAllianceSync?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  syncMyKillmails?: Resolver<ResolversTypes['SyncResult'], ParentType, ContextType>;
-  updateUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'id' | 'input'>>;
+  startAllianceSync?: Resolver<ResolversTypes['StartAllianceSyncPayload'], ParentType, ContextType, RequireFields<MutationStartAllianceSyncArgs, 'input'>>;
+  syncMyKillmails?: Resolver<ResolversTypes['SyncMyKillmailsPayload'], ParentType, ContextType, RequireFields<MutationSyncMyKillmailsArgs, 'input'>>;
+  updateUser?: Resolver<ResolversTypes['UpdateUserPayload'], ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'input'>>;
 };
 
 export type PageInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['PageInfo'] = ResolversParentTypes['PageInfo']> = {
@@ -655,10 +724,22 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   users?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
 };
 
-export type SyncResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['SyncResult'] = ResolversParentTypes['SyncResult']> = {
+export type StartAllianceSyncPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['StartAllianceSyncPayload'] = ResolversParentTypes['StartAllianceSyncPayload']> = {
+  clientMutationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+};
+
+export type SyncMyKillmailsPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['SyncMyKillmailsPayload'] = ResolversParentTypes['SyncMyKillmailsPayload']> = {
+  clientMutationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   syncedCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type UpdateUserPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['UpdateUserPayload'] = ResolversParentTypes['UpdateUserPayload']> = {
+  clientMutationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
 };
 
 export type UserResolvers<ContextType = any, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
@@ -683,6 +764,7 @@ export type VictimResolvers<ContextType = any, ParentType extends ResolversParen
 };
 
 export type Resolvers<ContextType = any> = {
+  AddCharacterPayload?: AddCharacterPayloadResolvers<ContextType>;
   Alliance?: AllianceResolvers<ContextType>;
   AllianceConnection?: AllianceConnectionResolvers<ContextType>;
   AllianceEdge?: AllianceEdgeResolvers<ContextType>;
@@ -693,6 +775,7 @@ export type Resolvers<ContextType = any> = {
   Corporation?: CorporationResolvers<ContextType>;
   CorporationConnection?: CorporationConnectionResolvers<ContextType>;
   CorporationEdge?: CorporationEdgeResolvers<ContextType>;
+  CreateUserPayload?: CreateUserPayloadResolvers<ContextType>;
   Killmail?: KillmailResolvers<ContextType>;
   KillmailConnection?: KillmailConnectionResolvers<ContextType>;
   KillmailEdge?: KillmailEdgeResolvers<ContextType>;
@@ -701,7 +784,9 @@ export type Resolvers<ContextType = any> = {
   PageInfo?: PageInfoResolvers<ContextType>;
   Position?: PositionResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
-  SyncResult?: SyncResultResolvers<ContextType>;
+  StartAllianceSyncPayload?: StartAllianceSyncPayloadResolvers<ContextType>;
+  SyncMyKillmailsPayload?: SyncMyKillmailsPayloadResolvers<ContextType>;
+  UpdateUserPayload?: UpdateUserPayloadResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
   Victim?: VictimResolvers<ContextType>;
 };
