@@ -1,14 +1,17 @@
 query Alliances($filter: AllianceFilter) {
   alliances(filter: $filter) {
-    data {
-      id
-      name
-      ticker
-      date_founded
-      creator_corporation_id
-      creator_id
-      executor_corporation_id
-      faction_id
+    edges {
+      node {
+        id
+        name
+        ticker
+        date_founded
+        creator_corporation_id
+        creator_id
+        executor_corporation_id
+        faction_id
+      }
+      cursor
     }
     pageInfo {
       currentPage

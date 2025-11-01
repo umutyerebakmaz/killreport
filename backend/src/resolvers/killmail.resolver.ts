@@ -52,10 +52,10 @@ export const killmailQueries: QueryResolvers = {
   },
 
   killmails: (_, args) => {
-    const limit = args.limit ?? 10;
-    const offset = args.offset ?? 0;
+    const first = args.first ?? 10;
+    const after = args.after ? parseInt(Buffer.from(args.after, 'base64').toString()) : 0;
 
-    return killmails.slice(offset, offset + limit).map((km) => ({
+    const data = killmails.slice(after, after + first).map((km, index) => ({
       ...km,
       solarSystemId: 30000142,
       createdAt: new Date().toISOString(),
@@ -81,6 +81,22 @@ export const killmailQueries: QueryResolvers = {
         },
       ],
     }));
+
+    const edges = data.map((km, index) => ({
+      node: km,
+      cursor: Buffer.from(`${after + index + 1}`).toString('base64'),
+    }));
+
+    return {
+      edges,
+      pageInfo: {
+        hasNextPage: after + first < killmails.length,
+        hasPreviousPage: after > 0,
+        currentPage: Math.floor(after / first) + 1,
+        totalPages: Math.ceil(killmails.length / first),
+        totalCount: killmails.length,
+      },
+    };
   },
 
   myKillmails: async (_, { limit }, context: any) => {

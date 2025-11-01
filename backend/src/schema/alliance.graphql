@@ -10,8 +10,13 @@ type Alliance {
   corporations: [Corporation!]
 }
 
-type AlliancesResponse {
-  data: [Alliance!]!
+type AllianceEdge {
+  node: Alliance!
+  cursor: String!
+}
+
+type AllianceConnection {
+  edges: [AllianceEdge!]!
   pageInfo: PageInfo!
 }
 
@@ -33,7 +38,7 @@ input AllianceFilter {
 
 type Query {
   alliance(id: Int!): Alliance
-  alliances(filter: AllianceFilter): AlliancesResponse!
+  alliances(filter: AllianceFilter): AllianceConnection!
 }
 
 type Mutation {

@@ -16,17 +16,22 @@ type Alliance {
   ticker: String!
 }
 
+type AllianceConnection {
+  edges: [AllianceEdge!]!
+  pageInfo: PageInfo!
+}
+
+type AllianceEdge {
+  cursor: String!
+  node: Alliance!
+}
+
 input AllianceFilter {
   limit: Int
   name: String
   page: Int
   search: String
   ticker: String
-}
-
-type AlliancesResponse {
-  data: [Alliance!]!
-  pageInfo: PageInfo!
 }
 
 type Attacker {
@@ -92,13 +97,14 @@ type Corporation {
   url: String
 }
 
-type CorporationEdge {
-  node: Corporation!
-}
-
-type CorporationsResponse {
+type CorporationConnection {
   edges: [CorporationEdge!]!
   pageInfo: PageInfo!
+}
+
+type CorporationEdge {
+  cursor: String!
+  node: Corporation!
 }
 
 input CreateUserInput {
@@ -117,6 +123,16 @@ type Killmail {
   solarSystemId: Int!
   totalValue: Float
   victim: Victim!
+}
+
+type KillmailConnection {
+  edges: [KillmailEdge!]!
+  pageInfo: PageInfo!
+}
+
+type KillmailEdge {
+  cursor: String!
+  node: Killmail!
 }
 
 type KillmailItem {
@@ -168,17 +184,17 @@ type Position {
 
 type Query {
   alliance(id: Int!): Alliance
-  alliances(filter: AllianceFilter): AlliancesResponse!
+  alliances(filter: AllianceFilter): AllianceConnection!
   character(id: ID!): Character
   charactersByUser(userId: ID!): [Character!]!
   corporation(id: Int!): Corporation
-  corporations(after: String, first: Int): CorporationsResponse!
+  corporations(after: String, first: Int): CorporationConnection!
 
   """Fetches a single killmail"""
   killmail(id: ID!): Killmail
 
-  """Lists all killmails (with pagination)"""
-  killmails(limit: Int, offset: Int): [Killmail!]!
+  """Lists all killmails (with pagination using Relay-style connection)"""
+  killmails(after: String, first: Int): KillmailConnection!
 
   """Mevcut authenticated kullanıcının bilgilerini döner"""
   me: User

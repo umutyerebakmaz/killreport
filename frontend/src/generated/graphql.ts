@@ -36,18 +36,24 @@ export type Alliance = {
   ticker: Scalars['String']['output'];
 };
 
+export type AllianceConnection = {
+  __typename?: 'AllianceConnection';
+  edges: Array<AllianceEdge>;
+  pageInfo: PageInfo;
+};
+
+export type AllianceEdge = {
+  __typename?: 'AllianceEdge';
+  cursor: Scalars['String']['output'];
+  node: Alliance;
+};
+
 export type AllianceFilter = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
   ticker?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type AlliancesResponse = {
-  __typename?: 'AlliancesResponse';
-  data: Array<Alliance>;
-  pageInfo: PageInfo;
 };
 
 export type Attacker = {
@@ -221,7 +227,7 @@ export type Position = {
 export type Query = {
   __typename?: 'Query';
   alliance?: Maybe<Alliance>;
-  alliances: AlliancesResponse;
+  alliances: AllianceConnection;
   character?: Maybe<Character>;
   charactersByUser: Array<Character>;
   corporation?: Maybe<Corporation>;
@@ -350,7 +356,7 @@ export type AlliancesQueryVariables = Exact<{
 }>;
 
 
-export type AlliancesQuery = { __typename?: 'Query', alliances: { __typename?: 'AlliancesResponse', data: Array<{ __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, creator_corporation_id: number, creator_id: number, executor_corporation_id: number, faction_id?: number | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type AlliancesQuery = { __typename?: 'Query', alliances: { __typename?: 'AllianceConnection', edges: Array<{ __typename?: 'AllianceEdge', cursor: string, node: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, creator_corporation_id: number, creator_id: number, executor_corporation_id: number, faction_id?: number | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type CorporationsQueryVariables = Exact<{
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -410,15 +416,18 @@ export type AllianceQueryResult = Apollo.QueryResult<AllianceQuery, AllianceQuer
 export const AlliancesDocument = gql`
     query Alliances($filter: AllianceFilter) {
   alliances(filter: $filter) {
-    data {
-      id
-      name
-      ticker
-      date_founded
-      creator_corporation_id
-      creator_id
-      executor_corporation_id
-      faction_id
+    edges {
+      node {
+        id
+        name
+        ticker
+        date_founded
+        creator_corporation_id
+        creator_id
+        executor_corporation_id
+        faction_id
+      }
+      cursor
     }
     pageInfo {
       currentPage
