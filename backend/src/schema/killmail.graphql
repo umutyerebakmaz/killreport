@@ -1,3 +1,13 @@
+type KillmailEdge {
+  node: Killmail!
+  cursor: String!
+}
+
+type KillmailConnection {
+  edges: [KillmailEdge!]!
+  pageInfo: PageInfo!
+}
+
 extend type Query {
   """
   Fetches a single killmail
@@ -5,9 +15,9 @@ extend type Query {
   killmail(id: ID!): Killmail
 
   """
-  Lists all killmails (with pagination)
+  Lists all killmails (with pagination using Relay-style connection)
   """
-  killmails(limit: Int, offset: Int): [Killmail!]!
+  killmails(first: Int, after: String): KillmailConnection!
 
   """
   Fetches the authenticated user's own killmails
