@@ -6,7 +6,7 @@ import { getCharacterKillmailsFromZKill } from '../services/zkillboard';
 
 const QUEUE_NAME = 'killmail_sync_queue';
 const PREFETCH_COUNT = 2; // Process 2 users at a time (rate limit consideration)
-const MAX_PAGES = 50; // Fetch up to 50 pages from zKillboard (10,000 killmails max) - Set to 999 for ALL history
+const MAX_PAGES = 100; // Fetch up to 100 pages from zKillboard (20,000 killmails max) - Set to 999 for ALL history
 
 interface QueueMessage {
   userId: number;
@@ -76,38 +76,58 @@ async function killmailWorker() {
 }
 
 /**
- * Sync killmails for a single user
+ * Sync killmails for a single user or character
  */
 async function syncUserKillmails(message: QueueMessage): Promise<void> {
   try {
-    // Get user from database with token
-    const user = await prisma.user.findUnique({
-      where: { id: message.userId },
-      select: {
-        access_token: true,
-        expires_at: true,
-        character_id: true,
-        character_name: true,
-      },
-    });
+    let characterId: number;
+    let characterName: string;
+    let hasAuth = false;
 
-    if (!user) {
-      console.log(`  ⚠️  User not found in database`);
-      return;
+    // Check if this is a logged-in user or external character
+    if (message.userId) {
+      // Get user from database with token
+      const user = await prisma.user.findUnique({
+        where: { id: message.userId },
+        select: {
+          access_token: true,
+          expires_at: true,
+          character_id: true,
+          character_name: true,
+        },
+      });
+
+      if (!user) {
+        console.log(`  ⚠️  User not found in database`);
+        return;
+      }
+
+      // Check if token is expired
+      if (user.expires_at < new Date()) {
+        console.log(`  ⚠️  Token expired for ${user.character_name}`);
+        return;
+      }
+
+      characterId = user.character_id;
+      characterName = user.character_name;
+      hasAuth = true;
+    } else {
+      // External character (no authentication)
+      characterId = message.characterId;
+      characterName = message.characterName;
+      hasAuth = false;
     }
 
-    // Check if token is expired
-    if (user.expires_at < new Date()) {
-      console.log(`  ⚠️  Token expired - skipping`);
-      // TODO: Implement token refresh logic here
-      return;
-    }
+    console.log(`\n${'='.repeat(60)}`);
+    console.log(`🚀 Processing Character: ${characterName} (${characterId})`);
+    console.log(`   Auth: ${hasAuth ? 'Yes (logged-in user)' : 'No (external character)'}`);
+    console.log(`${'='.repeat(60)}\n`);
 
     // Fetch killmails from zKillboard (includes ALL history)
-    console.log(`  📡 [${user.character_name}] Fetching killmails from zKillboard (max ${MAX_PAGES} pages)...`);
+    console.log(`  📡 [${characterName}] Fetching killmails from zKillboard (max ${MAX_PAGES} pages)...`);
     const zkillPackages = await getCharacterKillmailsFromZKill(
-      user.character_id,
-      { maxPages: MAX_PAGES, characterName: user.character_name }
+      characterId,
+      { maxPages: MAX_PAGES, characterName: characterName }
     );
 
     if (zkillPackages.length === 0) {
