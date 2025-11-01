@@ -1,12 +1,26 @@
 import { ReactNode, useState } from "react";
 import "./tooltip.css";
 
+type TooltipPosition = "top" | "bottom" | "left" | "right";
+
 interface TooltipProps {
   content: ReactNode;
   children: ReactNode;
+  position?: TooltipPosition;
 }
 
-export default function Tooltip({ content, children }: TooltipProps) {
+const positionClasses: Record<TooltipPosition, string> = {
+  top: "bottom-full mb-3 left-1/2 -translate-x-1/2",
+  bottom: "top-full mt-3 left-1/2 -translate-x-1/2",
+  left: "right-full mr-3 top-1/2 -translate-y-1/2",
+  right: "left-full ml-3 top-1/2 -translate-y-1/2",
+};
+
+export default function Tooltip({
+  content,
+  children,
+  position = "bottom",
+}: TooltipProps) {
   const [show, setShow] = useState(false);
   const [animating, setAnimating] = useState(false);
 
@@ -28,7 +42,9 @@ export default function Tooltip({ content, children }: TooltipProps) {
       {children}
       {(show || animating) && (
         <span
-          className={`absolute z-10 left-1/2 -translate-x-1/2 top-full mt-3 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg whitespace-nowrap tooltip-anim${
+          className={`absolute z-10 ${
+            positionClasses[position]
+          } px-2 py-1 text-sm text-gray-300 font-bold bg-black outline-1 -outline-offset-1 outline-white/10 rounded shadow-lg whitespace-nowrap tooltip-anim${
             show ? " tooltip-in" : " tooltip-out"
           }`}
         >
