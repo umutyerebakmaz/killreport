@@ -224,6 +224,23 @@ type Query {
   myKillmails(limit: Int): [Killmail!]!
   user(id: ID!): User
   users: [User!]!
+
+  """Get current status of all workers and queues"""
+  workerStatus: WorkerStatus!
+}
+
+type QueueStatus {
+  """Is the queue currently active"""
+  active: Boolean!
+
+  """Number of messages currently being processed"""
+  consumerCount: Int!
+
+  """Number of messages waiting to be processed"""
+  messageCount: Int!
+
+  """Name of the queue"""
+  name: String!
 }
 
 input StartAllianceSyncInput {
@@ -234,6 +251,14 @@ type StartAllianceSyncPayload {
   clientMutationId: String
   message: String
   success: Boolean!
+}
+
+type Subscription {
+  """
+  Subscribe to real-time worker status updates
+  Emits updates every 5 seconds
+  """
+  workerStatusUpdates: WorkerStatus!
 }
 
 input SyncMyKillmailsInput {
@@ -278,4 +303,15 @@ type Victim {
   position: Position
   shipTypeId: Int!
   shipTypeName: String
+}
+
+type WorkerStatus {
+  """Overall system health"""
+  healthy: Boolean!
+
+  """Status of individual queues"""
+  queues: [QueueStatus!]!
+
+  """Timestamp of the status check"""
+  timestamp: String!
 }

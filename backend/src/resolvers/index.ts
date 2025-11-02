@@ -5,6 +5,7 @@ import { characterFieldResolvers, characterMutations, characterQueries } from '.
 import { corporationFieldResolvers, corporationQueries } from './corporation.resolver';
 import { killmailMutations, killmailQueries } from './killmail.resolver';
 import { userMutations, userQueries } from './user.resolver';
+import { workerResolvers } from './worker.resolver';
 
 /**
  * TÜM RESOLVER'LARI BİRLEŞTİRME
@@ -35,6 +36,9 @@ export const resolvers: Resolvers = {
 
     // Corporation queries
     ...corporationQueries,
+
+    // Worker queries
+    ...workerResolvers.Query,
   }, Mutation: {
     // Auth mutations
     ...authMutations,
@@ -50,6 +54,11 @@ export const resolvers: Resolvers = {
 
     // Alliance mutations
     ...allianceMutations,
+  },
+
+  // Subscriptions - Real-time updates
+  Subscription: {
+    ...workerResolvers.Subscription,
   },
 
   // Field Resolvers - Nested type'lar için lazy loading

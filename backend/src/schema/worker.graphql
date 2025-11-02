@@ -1,0 +1,53 @@
+type Query {
+  """
+  Get current status of all workers and queues
+  """
+  workerStatus: WorkerStatus!
+}
+
+type Subscription {
+  """
+  Subscribe to real-time worker status updates
+  Emits updates every 5 seconds
+  """
+  workerStatusUpdates: WorkerStatus!
+}
+
+type WorkerStatus {
+  """
+  Timestamp of the status check
+  """
+  timestamp: String!
+
+  """
+  Status of individual queues
+  """
+  queues: [QueueStatus!]!
+
+  """
+  Overall system health
+  """
+  healthy: Boolean!
+}
+
+type QueueStatus {
+  """
+  Name of the queue
+  """
+  name: String!
+
+  """
+  Number of messages waiting to be processed
+  """
+  messageCount: Int!
+
+  """
+  Number of messages currently being processed
+  """
+  consumerCount: Int!
+
+  """
+  Is the queue currently active
+  """
+  active: Boolean!
+}
