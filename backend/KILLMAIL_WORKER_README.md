@@ -31,12 +31,12 @@ Automated background service that syncs killmails from Eve Online ESI API to the
 
 ## How It Works
 
-### 1. Queue Producer (`queue-killmails.ts`)
+### 1. Queue Producer (`queue-zkillboard-sync.ts`)
 
 Finds all users with valid tokens and adds them to the queue:
 
 ```bash
-yarn queue:killmail
+yarn queue:zkillboard
 ```
 
 This will:
@@ -45,12 +45,12 @@ This will:
 - Add each user as a message to RabbitMQ queue
 - Messages persist even if RabbitMQ restarts
 
-### 2. Worker Consumer (`killmail-worker.ts`)
+### 2. Worker Consumer (`worker-zkillboard-sync.ts`)
 
 Processes messages from the queue:
 
 ```bash
-yarn worker:killmail
+yarn worker:zkillboard
 ```
 
 This will:
@@ -112,7 +112,7 @@ docker start rabbitmq
 
 ```bash
 cd backend
-yarn queue:killmail
+yarn queue:zkillboard
 ```
 
 Output:
@@ -124,30 +124,30 @@ Output:
 📤 Adding to queue...
 
 ✅ All 42 users queued successfully!
-💡 Now run the worker to process them: yarn worker:killmail
+💡 Now run the worker to process them: yarn worker:zkillboard
 ```
 
 ### Step 3: Start Worker(s)
 
 ```bash
 # Single worker
-yarn worker:killmail
+yarn worker:zkillboard
 
 # Multiple workers (for scaling)
-yarn worker:killmail &
-yarn worker:killmail &
-yarn worker:killmail &
+yarn worker:zkillboard &
+yarn worker:zkillboard &
+yarn worker:zkillboard &
 ```
 
 ### Production Mode
 
 ```bash
 # Using PM2 (recommended)
-pm2 start dist/queue-killmails.js --name "km-queue" --cron "*/5 * * * *"
-pm2 start dist/killmail-worker.js --name "km-worker" -i 3
+pm2 start dist/queue-zkillboard-sync.js --name "zkill-queue" --cron "*/5 * * * *"
+pm2 start dist/worker-zkillboard-sync.js --name "zkill-worker" -i 3
 
 # Or with Node.js + cron
-# Add to crontab: */5 * * * * cd /app && yarn queue:killmail
+# Add to crontab: */5 * * * * cd /app && yarn queue:zkillboard
 node dist/killmail-worker.js
 ```
 
@@ -155,17 +155,18 @@ node dist/killmail-worker.js
 
 Edit constants in respective files:
 
-**`src/queue-killmails.ts`:**
+**`src/workers/queue-zkillboard-sync.ts`:**
 
 ```typescript
 const QUEUE_NAME = "killmail_sync_queue";
 ```
 
-**`src/killmail-worker.ts`:**
+**`src/workers/worker-zkillboard-sync.ts`:**
 
 ```typescript
 const QUEUE_NAME = "killmail_sync_queue";
-const PREFETCH_COUNT = 5; // Concurrent users per worker
+const PREFETCH_COUNT = 1; // Concurrent users per worker
+const MAX_PAGES = 100; // Max pages to fetch from zKillboard
 ```
 
 ### Recommended Settings
@@ -189,15 +190,15 @@ const PREFETCH_COUNT = 5; // Concurrent users per worker
 📤 Adding to queue...
 
 ✅ All 42 users queued successfully!
-💡 Now run the worker to process them: yarn worker:killmail
+💡 Now run the worker to process them: yarn worker:zkillboard
 ```
 
 ### Worker Consumer
 
 ```
-�🔄 Killmail Worker Started
+🔄 Killmail Worker Started
 📦 Queue: killmail_sync_queue
-⚡ Prefetch: 5 concurrent users
+⚡ Prefetch: 1 concurrent users
 
 ✅ Connected to RabbitMQ
 ⏳ Waiting for killmail sync jobs...
