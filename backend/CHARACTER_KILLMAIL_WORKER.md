@@ -32,7 +32,7 @@ zKillboard API → ESI API → Database
 backend/src/workers/
 ├── sync-character-killmails.ts      # Direct sync (tek character)
 ├── queue-character-killmails.ts     # Queue sistemi (multi-character)
-└── worker-killmails.ts              # Worker (queue processor)
+└── worker-zkillboard-sync.ts        # Worker (queue processor)
 ```
 
 ## Usage
@@ -121,7 +121,7 @@ yarn queue:character 123 456 789 101112 131415
 **Step 2: Start worker**
 
 ```bash
-yarn worker:killmails
+yarn worker:zkillboard
 ```
 
 The worker will start processing characters from the RabbitMQ queue.
@@ -134,10 +134,10 @@ For logged-in users only:
 
 ```bash
 # Queue all logged-in users
-yarn queue:killmails
+yarn queue:zkillboard
 
 # Start worker
-yarn worker:killmails
+yarn worker:zkillboard
 ```
 
 ## Configuration
@@ -172,11 +172,11 @@ yarn worker:killmails
 
 ### Worker Configuration
 
-**File:** `worker-killmails.ts`
+**File:** `worker-zkillboard-sync.ts`
 
 ```typescript
-const MAX_PAGES = 50; // Default pages for logged-in users
-const PREFETCH_COUNT = 2; // Concurrent users to process
+const MAX_PAGES = 100; // Default pages for logged-in users
+const PREFETCH_COUNT = 1; // Concurrent users to process
 ```
 
 **File:** `sync-character-killmails.ts`
@@ -431,7 +431,7 @@ yarn sync:character 443630591 50
 # Get member list first (from ESI or alliance page)
 # Then queue all members
 yarn queue:character 123 456 789 ... (all member IDs)
-yarn worker:killmails
+yarn worker:zkillboard
 ```
 
 ### Example 3: Re-sync with updates
