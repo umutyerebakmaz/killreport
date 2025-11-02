@@ -16,8 +16,7 @@
 ### 1. Add Alliances to the Queue
 
 ```bash
-cd backend
-yarn queue
+cd backend && yarn queue:alliances
 ```
 
 This command:
@@ -29,7 +28,7 @@ This command:
 ### 2. Start the Worker
 
 ```bash
-yarn worker
+yarn worker:alliances
 ```
 
 This command:
@@ -63,7 +62,7 @@ Opens `http://localhost:5555` in your browser so you can view your tables.
 ```
 ESI API → queue-alliances.ts → RabbitMQ Queue
                                      ↓
-                            alliance-worker.ts
+                            worker-alliances.ts
                                      ↓
                               PostgreSQL (Alliance table)
 ```
@@ -72,7 +71,7 @@ ESI API → queue-alliances.ts → RabbitMQ Queue
 
 ### Rate Limit
 
-In `alliance-worker.ts`:
+In `worker-alliances.ts`:
 
 ```typescript
 const RATE_LIMIT_DELAY = 100; // 100ms = 10 requests per second
