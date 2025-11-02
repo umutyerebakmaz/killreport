@@ -5,6 +5,35 @@
 
 
 const ZKILL_BASE_URL = 'https://zkillboard.com/api';
+const REQUEST_TIMEOUT = 30000; // 30 seconds
+const RETRY_ATTEMPTS = 3;
+const RETRY_DELAY = 2000; // 2 seconds between retries
+const PAGE_DELAY = 1000; // 1 second between pages (zKillboard recommendation)
+
+/**
+ * Sleep for specified milliseconds
+ */
+function sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Fetch with timeout
+ */
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number): Promise<Response> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+        const response = await fetch(url, {
+            ...options,
+            signal: controller.signal,
+        });
+        return response;
+    } finally {
+        clearTimeout(timeout);
+    }
+}
 
 export interface ZKillPackage {
     killmail_id: number;
@@ -48,14 +77,38 @@ export async function getCharacterKillmailsFromZKill(
     for (let currentPage = page; currentPage <= maxPages; currentPage++) {
         const url = `${ZKILL_BASE_URL}/characterID/${characterId}/page/${currentPage}/`;
 
-        try {
-            const response = await fetch(url, {
-                headers: {
-                    'User-Agent': 'Killreport App - Contact: your@email.com',
-                    'Accept-Encoding': 'gzip',
-                },
-            });
+        let lastError: Error | null = null;
+        let response: Response | null = null;
 
+        // Retry logic
+        for (let attempt = 1; attempt <= RETRY_ATTEMPTS; attempt++) {
+            try {
+                response = await fetchWithTimeout(url, {
+                    headers: {
+                        'User-Agent': 'Killreport App - Contact: your@email.com',
+                        'Accept-Encoding': 'gzip',
+                    },
+                }, REQUEST_TIMEOUT);
+
+                lastError = null;
+                break; // Success, exit retry loop
+            } catch (error) {
+                lastError = error as Error;
+                if (attempt < RETRY_ATTEMPTS) {
+                    console.log(`     ⚠️  ${prefix} Attempt ${attempt}/${RETRY_ATTEMPTS} failed, retrying in ${RETRY_DELAY}ms...`);
+                    await sleep(RETRY_DELAY);
+                } else {
+                    console.log(`     ❌ ${prefix} All ${RETRY_ATTEMPTS} attempts failed for page ${currentPage}`);
+                }
+            }
+        }
+
+        // If all retries failed, throw the last error
+        if (lastError || !response) {
+            throw lastError || new Error('Failed to fetch from zKillboard');
+        }
+
+        try {
             if (!response.ok) {
                 if (response.status === 404) {
                     console.log(`     ✓ ${prefix} No more pages available`);
@@ -87,13 +140,15 @@ export async function getCharacterKillmailsFromZKill(
 
             allKillmails.push(...killmails);
 
-            // zKillboard rate limit: 1 request per second
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
             // Stop if we got less than expected (last page)
             if (killmails.length < limit) {
                 console.log(`     ✓ ${prefix} Last page (${killmails.length} < ${limit})`);
                 break;
+            }
+
+            // zKillboard rate limit: 1 request per second between pages
+            if (currentPage < maxPages) {
+                await sleep(PAGE_DELAY);
             }
         } catch (error) {
             console.error(`     ❌ ${prefix} Error fetching page ${currentPage}:`, error);
