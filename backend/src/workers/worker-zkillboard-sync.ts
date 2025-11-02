@@ -123,7 +123,7 @@ async function syncUserKillmails(message: QueueMessage): Promise<void> {
     console.log(`   Auth: ${hasAuth ? 'Yes (logged-in user)' : 'No (external character)'}`);
     console.log(`${'='.repeat(60)}\n`);
 
-    // Fetch killmails from zKillboard (includes ALL history)
+    // Fetch killmails from zKillboard (includes ALL history up to MAX_PAGES)
     console.log(`  📡 [${characterName}] Fetching killmails from zKillboard (max ${MAX_PAGES} pages)...`);
     const zkillPackages = await getCharacterKillmailsFromZKill(
       characterId,
