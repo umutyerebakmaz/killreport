@@ -63,7 +63,7 @@ yarn prisma:studio    # Open Prisma Studio GUI
 # Queue data for syncing
 yarn queue:alliances      # Queue all alliances
 yarn queue:corporations   # Queue NPC corporations
-yarn queue:killmails      # Queue logged-in users' killmails
+yarn queue:zkillboard     # Queue logged-in users' killmails from zKillboard
 yarn queue:character <id> # Queue specific character(s)
 ```
 
@@ -73,7 +73,7 @@ yarn queue:character <id> # Queue specific character(s)
 # Start background workers
 yarn worker:alliances     # Process alliance queue
 yarn worker:corporations  # Process corporation queue
-yarn worker:killmails     # Process killmail queue
+yarn worker:zkillboard    # Process zKillboard killmail sync queue
 ```
 
 ### Direct Sync (No Queue)
@@ -140,11 +140,11 @@ backend/
 │   │   ├── queue-alliances.ts
 │   │   ├── queue-character-killmails.ts
 │   │   ├── queue-corporations.ts
-│   │   ├── queue-killmails.ts
+│   │   ├── queue-zkillboard-sync.ts
 │   │   ├── sync-character-killmails.ts
 │   │   ├── worker-alliances.ts
 │   │   ├── worker-corporations.ts
-│   │   └── worker-killmails.ts
+│   │   └── worker-zkillboard-sync.ts
 │   ├── config.ts               # Configuration
 │   ├── server.ts               # Main server file
 │   ├── generated-schema.graphql
@@ -193,7 +193,7 @@ yarn sync:character 95465499
 
 # Method 2: Queue system (for multiple)
 yarn queue:character 95465499 123456 789012
-yarn worker:killmails
+yarn worker:zkillboard
 ```
 
 ### Check Database
