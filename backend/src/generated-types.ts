@@ -285,6 +285,8 @@ export type Query = {
   myKillmails: Array<Killmail>;
   user?: Maybe<User>;
   users: Array<User>;
+  /** Get current status of all workers and queues */
+  workerStatus: WorkerStatus;
 };
 
 
@@ -344,6 +346,18 @@ export type QueryUserArgs = {
   id: Scalars['ID']['input'];
 };
 
+export type QueueStatus = {
+  __typename?: 'QueueStatus';
+  /** Is the queue currently active */
+  active: Scalars['Boolean']['output'];
+  /** Number of messages currently being processed */
+  consumerCount: Scalars['Int']['output'];
+  /** Number of messages waiting to be processed */
+  messageCount: Scalars['Int']['output'];
+  /** Name of the queue */
+  name: Scalars['String']['output'];
+};
+
 export type StartAllianceSyncInput = {
   clientMutationId?: InputMaybe<Scalars['String']['input']>;
 };
@@ -353,6 +367,15 @@ export type StartAllianceSyncPayload = {
   clientMutationId?: Maybe<Scalars['String']['output']>;
   message?: Maybe<Scalars['String']['output']>;
   success: Scalars['Boolean']['output'];
+};
+
+export type Subscription = {
+  __typename?: 'Subscription';
+  /**
+   * Subscribe to real-time worker status updates
+   * Emits updates every 5 seconds
+   */
+  workerStatusUpdates: WorkerStatus;
 };
 
 export type SyncMyKillmailsInput = {
@@ -401,6 +424,16 @@ export type Victim = {
   position?: Maybe<Position>;
   shipTypeId: Scalars['Int']['output'];
   shipTypeName?: Maybe<Scalars['String']['output']>;
+};
+
+export type WorkerStatus = {
+  __typename?: 'WorkerStatus';
+  /** Overall system health */
+  healthy: Scalars['Boolean']['output'];
+  /** Status of individual queues */
+  queues: Array<QueueStatus>;
+  /** Timestamp of the status check */
+  timestamp: Scalars['String']['output'];
 };
 
 
@@ -503,15 +536,18 @@ export type ResolversTypes = {
   PageInfo: ResolverTypeWrapper<PageInfo>;
   Position: ResolverTypeWrapper<Position>;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
+  QueueStatus: ResolverTypeWrapper<QueueStatus>;
   StartAllianceSyncInput: StartAllianceSyncInput;
   StartAllianceSyncPayload: ResolverTypeWrapper<StartAllianceSyncPayload>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
+  Subscription: ResolverTypeWrapper<Record<PropertyKey, never>>;
   SyncMyKillmailsInput: SyncMyKillmailsInput;
   SyncMyKillmailsPayload: ResolverTypeWrapper<SyncMyKillmailsPayload>;
   UpdateUserInput: UpdateUserInput;
   UpdateUserPayload: ResolverTypeWrapper<UpdateUserPayload>;
   User: ResolverTypeWrapper<User>;
   Victim: ResolverTypeWrapper<Victim>;
+  WorkerStatus: ResolverTypeWrapper<WorkerStatus>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -543,15 +579,18 @@ export type ResolversParentTypes = {
   PageInfo: PageInfo;
   Position: Position;
   Query: Record<PropertyKey, never>;
+  QueueStatus: QueueStatus;
   StartAllianceSyncInput: StartAllianceSyncInput;
   StartAllianceSyncPayload: StartAllianceSyncPayload;
   String: Scalars['String']['output'];
+  Subscription: Record<PropertyKey, never>;
   SyncMyKillmailsInput: SyncMyKillmailsInput;
   SyncMyKillmailsPayload: SyncMyKillmailsPayload;
   UpdateUserInput: UpdateUserInput;
   UpdateUserPayload: UpdateUserPayload;
   User: User;
   Victim: Victim;
+  WorkerStatus: WorkerStatus;
 };
 
 export type AddCharacterPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['AddCharacterPayload'] = ResolversParentTypes['AddCharacterPayload']> = {
@@ -722,12 +761,24 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   myKillmails?: Resolver<Array<ResolversTypes['Killmail']>, ParentType, ContextType, Partial<QueryMyKillmailsArgs>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
   users?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
+  workerStatus?: Resolver<ResolversTypes['WorkerStatus'], ParentType, ContextType>;
+};
+
+export type QueueStatusResolvers<ContextType = any, ParentType extends ResolversParentTypes['QueueStatus'] = ResolversParentTypes['QueueStatus']> = {
+  active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  consumerCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  messageCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type StartAllianceSyncPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['StartAllianceSyncPayload'] = ResolversParentTypes['StartAllianceSyncPayload']> = {
   clientMutationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+};
+
+export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
+  workerStatusUpdates?: SubscriptionResolver<ResolversTypes['WorkerStatus'], "workerStatusUpdates", ParentType, ContextType>;
 };
 
 export type SyncMyKillmailsPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['SyncMyKillmailsPayload'] = ResolversParentTypes['SyncMyKillmailsPayload']> = {
@@ -763,6 +814,12 @@ export type VictimResolvers<ContextType = any, ParentType extends ResolversParen
   shipTypeName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
+export type WorkerStatusResolvers<ContextType = any, ParentType extends ResolversParentTypes['WorkerStatus'] = ResolversParentTypes['WorkerStatus']> = {
+  healthy?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  queues?: Resolver<Array<ResolversTypes['QueueStatus']>, ParentType, ContextType>;
+  timestamp?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
 export type Resolvers<ContextType = any> = {
   AddCharacterPayload?: AddCharacterPayloadResolvers<ContextType>;
   Alliance?: AllianceResolvers<ContextType>;
@@ -784,10 +841,13 @@ export type Resolvers<ContextType = any> = {
   PageInfo?: PageInfoResolvers<ContextType>;
   Position?: PositionResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
+  QueueStatus?: QueueStatusResolvers<ContextType>;
   StartAllianceSyncPayload?: StartAllianceSyncPayloadResolvers<ContextType>;
+  Subscription?: SubscriptionResolvers<ContextType>;
   SyncMyKillmailsPayload?: SyncMyKillmailsPayloadResolvers<ContextType>;
   UpdateUserPayload?: UpdateUserPayloadResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
   Victim?: VictimResolvers<ContextType>;
+  WorkerStatus?: WorkerStatusResolvers<ContextType>;
 };
 
