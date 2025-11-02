@@ -11,7 +11,7 @@ yarn sync:character <characterId> <pages>
 
 # Queue multiple characters
 yarn queue:character <id1> <id2> <id3>
-yarn worker:killmails
+yarn worker:zkillboard
 ```
 
 ## Common Use Cases
@@ -19,8 +19,7 @@ yarn worker:killmails
 ### 1. Sync a Single Character (Fastest)
 
 ```bash
-cd /root/killreport/backend
-yarn sync:character 95465499
+cd backend && yarn sync:character 95465499
 ```
 
 ### 2. Recent Activity Only (5 pages = 1k killmails)
@@ -39,7 +38,7 @@ yarn sync:character 95465499 999
 
 ```bash
 yarn queue:character 123 456 789
-yarn worker:killmails
+yarn worker:zkillboard
 ```
 
 ## Page Guide
