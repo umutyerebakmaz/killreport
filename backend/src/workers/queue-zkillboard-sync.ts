@@ -56,7 +56,7 @@ async function queueKillmailSync() {
     }
 
     console.log(`✅ All ${users.length} users queued successfully!`);
-    console.log('💡 Now run the worker to process them: yarn worker:killmail\n');
+    console.log('💡 Now run the worker to process them: yarn worker:zkillboard\n');
 
     await channel.close();
     process.exit(0);
