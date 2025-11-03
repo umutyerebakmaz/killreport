@@ -84,12 +84,12 @@ yarn worker:zkillboard
 
 ## Troubleshooting
 
-| Problem               | Solution                                     |
-| --------------------- | -------------------------------------------- |
-| No killmails found    | Verify character ID at zkillboard.com        |
-| 420 Error Limited     | Worker auto-waits 60s                        |
-| Worker not processing | Check RabbitMQ: `docker ps \| grep rabbitmq` |
-| Duplicate errors      | Normal, worker skips them                    |
+| Problem               | Solution                                                |
+| --------------------- | ------------------------------------------------------- |
+| No killmails found    | Verify character ID at zkillboard.com                   |
+| 420 Error Limited     | Worker auto-waits 60s                                   |
+| Worker not processing | Check RabbitMQ: `sudo systemctl status rabbitmq-server` |
+| Duplicate errors      | Normal, worker skips them                               |
 
 ## Famous Pilots
 
