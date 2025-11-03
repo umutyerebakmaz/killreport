@@ -22,7 +22,6 @@ backend/
 │
 ├── codegen.ts                     # GraphQL Code Generator configuration
 ├── package.json
-└── TEST_QUERIES.md                # Test queries
 
 🤖 = Automatically generated files (do not edit manually!)
 🔥 = Critical file
