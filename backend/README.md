@@ -39,6 +39,7 @@ Server runs on: http://localhost:4000/graphql
 - [EVE ESI API](./src/services/eve-esi.ts)
 - [zKillboard API](./src/services/zkillboard.ts)
 - [RabbitMQ Queue System](./src/services/rabbitmq.ts)
+- [Killmail Enrichment Service](./src/services/enrichment.ts) - [Documentation](./ENRICHMENT_README.md)
 
 ## Available Scripts
 
