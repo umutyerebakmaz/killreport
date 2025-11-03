@@ -16,6 +16,7 @@
         "queue:zkillboard": "ts-node src/workers/queue-zkillboard-sync.ts",
         "remove:all": "rm -rf node_modules yarn.lock package-lock.json pnpm-lock.yaml",
         "sync:character": "ts-node src/workers/sync-character-killmails.ts",
+        "test:enrichment": "ts-node test-enrichment.ts",
         "worker:alliances": "ts-node src/workers/worker-alliances.ts",
         "worker:corporations": "ts-node src/workers/worker-corporations.ts",
         "worker:zkillboard": "ts-node src/workers/worker-zkillboard-sync.ts"
