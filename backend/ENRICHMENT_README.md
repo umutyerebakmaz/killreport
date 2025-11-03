@@ -58,19 +58,24 @@ Ships, weapons, and items are all stored in the `Type` table.
 
 ### Other Tables
 
-- `Character` - Pilots
-- `Corporation` - Corporations
-- `Alliance` - Alliances
+- `characters` - Pilots
+- `corporations` - Corporations
+- `alliances` - Alliances
 
 ## Usage
 
 ### Automatic with Worker
 
+```bash
+cd backend
+yarn run worker:killmails
+```
+
 When the worker runs, enrichment is performed automatically for each killmail:
 
 ```bash
 cd backend
-npm run worker:killmails
+yarn run worker:killmails
 ```
 
 ### Manual Test
