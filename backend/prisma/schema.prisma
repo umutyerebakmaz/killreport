@@ -172,6 +172,24 @@ model KillmailItem {
   @@map("killmail_items")
 }
 
+model Type {
+  id          Int     @id
+  name        String
+  description String? @db.Text
+  group_id    Int
+  published   Boolean @default(true)
+  volume      Float?
+  capacity    Float?
+  mass        Float?
+  icon_id     Int?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([group_id])
+  @@map("types")
+}
+
 model SyncJob {
   id          BigInt   @id @default(autoincrement())
   entity_type String   // 'alliance', 'corporation', 'character', 'killmail'
