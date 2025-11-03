@@ -129,7 +129,6 @@ yarn sync:character
 
 - **[Modular Architecture](./backend/MODULAR_ARCHITECTURE.md)** - GraphQL resolver and schema organization
 - **[Database Schema](./backend/prisma/schema.prisma)** - Prisma data models and relations
-- **[Schema Migration Summary](./backend/SCHEMA_MIGRATION_SUMMARY.md)** - Database migration history
 
 #### Workers & Background Jobs
 
@@ -141,7 +140,6 @@ yarn sync:character
 #### Quick References
 
 - **[Character Sync Quick Reference](./backend/CHARACTER_SYNC_QUICKREF.md)** - Quick commands for character sync
-- **[Test Queries](./backend/TEST_QUERIES.md)** - GraphQL query examples
 - **[EVE SSO Documentation](./backend/EVE_SSO_README.md)** - Deep dive into SSO integration
 
 ---
@@ -311,30 +309,6 @@ NEXT_PUBLIC_GRAPHQL_URL="http://localhost:4000/graphql"
 ### GraphQL Playground
 
 Visit `http://localhost:4000/graphql` to access the GraphQL Playground and test queries.
-
-Example queries available in [TEST_QUERIES.md](./backend/TEST_QUERIES.md):
-
-```graphql
-# Get killmails with filters
-query GetKillmails {
-  killmails(page: 1, limit: 20, filters: { minValue: 1000000 }) {
-    killmails {
-      killmailId
-      killmailTime
-      totalValue
-      victim {
-        characterName
-        shipType
-      }
-    }
-    pageInfo {
-      currentPage
-      totalPages
-      totalCount
-    }
-  }
-}
-```
 
 ---
 
