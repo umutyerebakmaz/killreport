@@ -195,3 +195,37 @@ export async function getCorporationInfo(corporationId: number) {
 
     return response.json();
 }
+
+/**
+ * Fetches alliance information (public endpoint)
+ * @param allianceId - Alliance ID
+ * @returns Alliance information
+ */
+export async function getAllianceInfo(allianceId: number) {
+    const url = `${ESI_BASE_URL}/alliances/${allianceId}/?datasource=tranquility`;
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+        throw new Error(`Failed to fetch alliance info: ${response.status}`);
+    }
+
+    return response.json();
+}
+
+/**
+ * Fetches type/item information (public endpoint)
+ * @param typeId - Type ID
+ * @returns Type information
+ */
+export async function getTypeInfo(typeId: number) {
+    const url = `${ESI_BASE_URL}/universe/types/${typeId}/?datasource=tranquility`;
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+        throw new Error(`Failed to fetch type info: ${response.status}`);
+    }
+
+    return response.json();
+}
