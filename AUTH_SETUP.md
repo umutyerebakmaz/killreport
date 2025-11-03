@@ -210,6 +210,8 @@ location.reload();
 
 ### Test Protected Query
 
+You can test the following query in the GraphQL Yoga Playground at [http://localhost:4000/graphql](http://localhost:4000/graphql)
+
 ```graphql
 query {
   me {
@@ -220,4 +222,4 @@ query {
 }
 ```
 
-This should work when logged in, fail when logged out.
+This should work when logged in, and fail when logged out.
