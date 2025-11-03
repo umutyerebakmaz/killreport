@@ -2,7 +2,7 @@
 
 ## Overview
 
-Bu proje Eve Online SSO authentication kullanıyor. Kullanıcılar Eve Online hesaplarıyla login olabilir ve killmail verilerine erişebilir.
+This project uses Eve Online SSO authentication. Users can log in with their Eve Online accounts and access killmail data.
 
 ## Architecture
 
