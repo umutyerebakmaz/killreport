@@ -25,6 +25,7 @@ Server runs on: http://localhost:4000/graphql
 - [EVE SSO Authentication](./EVE_SSO_README.md)
 - [GraphQL Schema](./generated-schema.graphql)
 - [Database Schema](./prisma/schema.prisma)
+- [**Killmail Enrichment System**](./ENRICHMENT_README.md) - Automatic data enrichment for killmails
 
 ### Workers & Background Jobs
 
@@ -88,6 +89,12 @@ yarn sync:character 95465499 10   # Only 10 pages
 yarn sync:character 95465499 999  # ALL history
 ```
 
+### Testing
+
+```bash
+yarn test:enrichment  # Test killmail enrichment system
+```
+
 ### Utilities
 
 ```bash
@@ -131,6 +138,7 @@ backend/
 │   ├── services/               # External services
 │   │   ├── database.ts         # Database connection
 │   │   ├── dataloaders.ts      # DataLoader for N+1 queries
+│   │   ├── enrichment.ts       # Killmail data enrichment
 │   │   ├── eve-esi.ts          # EVE ESI API client
 │   │   ├── eve-sso.ts          # EVE SSO authentication
 │   │   ├── prisma.ts           # Prisma client
