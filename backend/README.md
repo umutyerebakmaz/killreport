@@ -224,20 +224,25 @@ yarn kill:port
 ### Database connection issues
 
 ```bash
-# Check PostgreSQL is running
-docker ps | grep postgres
+# Check PostgreSQL is running (Linux/macOS)
+sudo systemctl status postgresql
+# or
+pg_isready
 
 # Verify DATABASE_URL in .env
+cat .env | grep DATABASE_URL
 ```
 
 ### RabbitMQ connection issues
 
 ```bash
-# Check RabbitMQ is running
-docker ps | grep rabbitmq
+# Check RabbitMQ is running (Linux/macOS)
+sudo systemctl status rabbitmq-server
+# or
+sudo rabbitmqctl status
 
 # Restart RabbitMQ
-docker restart rabbitmq
+sudo systemctl restart rabbitmq-server
 ```
 
 ### Prisma client errors
