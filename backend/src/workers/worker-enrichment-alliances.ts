@@ -1,0 +1,147 @@
+/**
+ * Alliance Enrichment Worker
+ * Fetches alliance information from ESI and saves to database
+ */
+
+import '../config';
+import { getAllianceInfo } from '../services/eve-esi';
+import prisma from '../services/prisma';
+import { getRabbitMQChannel } from '../services/rabbitmq';
+
+const QUEUE_NAME = 'alliance_enrichment_queue';
+const PREFETCH_COUNT = 3; // Process 3 alliances concurrently
+
+interface EntityQueueMessage {
+  entityId: number;
+  queuedAt: string;
+  source: string;
+}
+
+async function allianceEnrichmentWorker() {
+  console.log('🤝 Alliance Enrichment Worker Started');
+  console.log(`📦 Queue: ${QUEUE_NAME}`);
+  console.log(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
+
+  try {
+    const channel = await getRabbitMQChannel();
+
+    await channel.assertQueue(QUEUE_NAME, {
+      durable: true,
+      arguments: { 'x-max-priority': 10 },
+    });
+
+    channel.prefetch(PREFETCH_COUNT);
+
+    console.log('✅ Connected to RabbitMQ');
+    console.log('⏳ Waiting for alliances...\n');
+
+    let totalProcessed = 0;
+    let totalAdded = 0;
+    let totalSkipped = 0;
+    let totalErrors = 0;
+    let lastMessageTime = Date.now();
+
+    // Check if queue is empty every 5 seconds
+    const emptyCheckInterval = setInterval(async () => {
+      const timeSinceLastMessage = Date.now() - lastMessageTime;
+      if (timeSinceLastMessage > 5000 && totalProcessed > 0) {
+        console.log('\n' + '━'.repeat(60));
+        console.log('✅ Queue completed!');
+        console.log(`📊 Final: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
+        console.log('━'.repeat(60) + '\n');
+        console.log('⏳ Waiting for new messages...\n');
+      }
+    }, 5000);
+
+    channel.consume(
+      QUEUE_NAME,
+      async (msg) => {
+        if (msg) lastMessageTime = Date.now();
+        if (!msg) return;
+
+        const message: EntityQueueMessage = JSON.parse(msg.content.toString());
+        const allianceId = message.entityId;
+
+        try {
+
+          // Check if already exists
+          const existing = await prisma.alliance.findUnique({
+            where: { id: allianceId },
+          });
+
+          if (existing) {
+            channel.ack(msg);
+            totalSkipped++;
+            totalProcessed++;
+            console.log(`  - [${totalProcessed}] Alliance ${allianceId} (exists)`);
+            return;
+          }
+
+          // Fetch from ESI
+          const allianceInfo = await getAllianceInfo(allianceId);
+
+          // Save to database (upsert to prevent race condition)
+          await prisma.alliance.upsert({
+            where: { id: allianceId },
+            create: {
+              id: allianceId,
+              name: allianceInfo.name,
+              ticker: allianceInfo.ticker,
+              date_founded: new Date(allianceInfo.date_founded),
+              creator_corporation_id: allianceInfo.creator_corporation_id,
+              creator_id: allianceInfo.creator_id,
+              executor_corporation_id: allianceInfo.executor_corporation_id,
+              faction_id: allianceInfo.faction_id,
+            },
+            update: {}, // Don't update if exists
+          });
+
+          totalAdded++;
+          channel.ack(msg);
+          totalProcessed++;
+          console.log(`  ✓ [${totalProcessed}] ${allianceInfo.name} [${allianceInfo.ticker}]`);
+
+          if (totalProcessed % 20 === 0) {
+            console.log(`📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
+          }
+
+        } catch (error: any) {
+          totalErrors++;
+          totalProcessed++;
+
+          if (error.message?.includes('404')) {
+            console.log(`  ! [${totalProcessed}] Alliance ${message.entityId} (404)`);
+            channel.ack(msg);
+          } else {
+            console.error(`  × [${totalProcessed}] Alliance ${message.entityId}: ${error.message}`);
+            channel.nack(msg, false, true);
+          }
+
+          if (totalProcessed % 20 === 0) {
+            console.log(`📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
+          }
+        }
+      },
+      { noAck: false }
+    );
+
+  } catch (error) {
+    console.error('💥 Worker failed to start:', error);
+    await prisma.$disconnect();
+    process.exit(1);
+  }
+}
+
+function setupShutdownHandlers() {
+  const shutdown = async () => {
+    console.log('\n\n⚠️  Shutting down...');
+    await prisma.$disconnect();
+    process.exit(0);
+  };
+
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
+}
+
+setupShutdownHandlers();
+allianceEnrichmentWorker();
