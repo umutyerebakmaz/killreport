@@ -65,6 +65,7 @@ yarn prisma:studio    # Open Prisma Studio GUI
 # Queue data for syncing
 yarn queue:alliances      # Queue all alliances
 yarn queue:corporations   # Queue NPC corporations
+yarn queue:enrichment     # Queue all killmails for enrichment
 yarn queue:zkillboard     # Queue logged-in users' killmails from zKillboard
 yarn queue:character <id> # Queue specific character(s)
 ```
@@ -75,6 +76,7 @@ yarn queue:character <id> # Queue specific character(s)
 # Start background workers
 yarn worker:alliances     # Process alliance queue
 yarn worker:corporations  # Process corporation queue
+yarn worker:enrichment    # Process enrichment queue (adds missing data)
 yarn worker:zkillboard    # Process zKillboard killmail sync queue
 ```
 
@@ -144,6 +146,7 @@ backend/
 │   │   ├── eve-sso.ts          # EVE SSO authentication
 │   │   ├── prisma.ts           # Prisma client
 │   │   ├── rabbitmq.ts         # RabbitMQ queue
+│   │   ├── rate-limiter.ts     # ESI rate limiting
 │   │   └── zkillboard.ts       # zKillboard API client
 │   ├── workers/                # Background workers
 │   │   ├── queue-alliances.ts

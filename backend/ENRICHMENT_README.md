@@ -2,38 +2,46 @@
 
 ## Overview
 
-When a new killmail is added to the database, information about **characters**, **corporations**, **alliances**, and **items (types)** are automatically fetched from ESI and saved to the database.
+When a new killmail is added to the database, information about **characters**, **corporations**, **alliances**, and **items (types)** are automatically fetched from ESI and saved to the database using a **microservice architecture** with specialized workers.
 
-## How It Works
+## Architecture
 
-### 1. Killmail is Saved
+### Microservice Approach
 
-`worker-killmails.ts` saves a killmail to the database (killmail, victim, attackers, items).
+The enrichment system uses 4 specialized workers for maximum scalability:
 
-### 2. Automatic Enrichment
-
-Once the killmail is successfully saved, the `enrichment.ts` service kicks in:
-
-```typescript
-const enrichResult = await enrichKillmail(zkillPkg.killmail_id);
+```
+┌─────────────────┐
+│  Killmails      │
+│  Database       │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────────────────┐
+│  Scan Killmail Entities     │ ◄── Detects missing entities
+│  (scan-killmail-entities)   │
+└─────────┬───────────────────┘
+          │
+          ├──► character_enrichment_queue ──► Worker (10 concurrent)
+          ├──► corporation_enrichment_queue ──► Worker (5 concurrent)
+          ├──► alliance_enrichment_queue ──► Worker (3 concurrent)
+          └──► type_enrichment_queue ──► Worker (10 concurrent)
 ```
 
-### 3. Unknown Data is Detected
+### How It Works
 
-The enrichment service:
+1. **Scanner**: `scan-killmail-entities.ts` scans all killmails and detects missing entities
+2. **Queuing**: Missing entities are queued to 4 separate RabbitMQ queues
+3. **Workers**: Specialized workers process their respective queues independently
+4. **ESI Fetching**: All workers use rate-limited ESI calls (50 req/sec max)
+5. **Database**: Enriched data is saved to PostgreSQL
 
-- Collects all character, corporation, alliance, and type IDs from the killmail
-- Checks which ones don't exist in the database
-- Fetches missing ones from ESI and saves them
+### Benefits
 
-### 4. Data is Fetched from ESI
-
-For each missing entity:
-
-- `getCharacterInfo(id)` - Character information
-- `getCorporationInfo(id)` - Corporation information
-- `getAllianceInfo(id)` - Alliance information
-- `getTypeInfo(id)` - Item/Ship/Weapon information
+- **Independent Scaling**: Each worker can run multiple instances
+- **Fault Tolerance**: One entity type failure doesn't block others
+- **Monitoring**: Progress tracking per entity type
+- **Efficiency**: Only processes missing entities (skip already enriched)
 
 ## Database Tables
 
@@ -64,23 +72,72 @@ Ships, weapons, and items are all stored in the `Type` table.
 
 ## Usage
 
-### Automatic with Worker
+### Step 1: Scan Killmails for Missing Entities
+
+Run the scanner to detect missing entities and queue them:
 
 ```bash
 cd backend
-yarn run worker:killmails
+yarn scan:entities
 ```
 
-When the worker runs, enrichment is performed automatically for each killmail:
+This will:
+
+- Scan all killmails in batches of 100
+- Filter out NPCs automatically
+- Check which entities are missing from database
+- Queue missing entities to specialized queues
+
+### Step 2: Start Specialized Workers
+
+Start all 4 enrichment workers (each in a separate terminal):
 
 ```bash
-cd backend
-yarn run worker:killmails
+# Terminal 1: Character enrichment (10 concurrent)
+yarn worker:enrichment:characters
+
+# Terminal 2: Corporation enrichment (5 concurrent)
+yarn worker:enrichment:corporations
+
+# Terminal 3: Alliance enrichment (3 concurrent)
+yarn worker:enrichment:alliances
+
+# Terminal 4: Type enrichment (10 concurrent)
+yarn worker:enrichment:types
 ```
 
-### Manual Test
+Each worker will:
 
-To test enrichment for a specific killmail:
+- Process its own queue independently
+- Skip entities that already exist in database
+- Fetch data from ESI with rate limiting (50 req/sec shared)
+- Save to database
+- Show progress every N items (varies by worker)
+- Handle 404 errors (deleted entities) gracefully
+- Requeue on other errors for retry
+
+### Production Deployment
+
+You can scale each worker independently based on load:
+
+```bash
+# Run 3 instances of character worker
+yarn worker:enrichment:characters &
+yarn worker:enrichment:characters &
+yarn worker:enrichment:characters &
+
+# Run 2 instances of corporation worker
+yarn worker:enrichment:corporations &
+yarn worker:enrichment:corporations &
+
+# Single instance for others (lower load)
+yarn worker:enrichment:alliances &
+yarn worker:enrichment:types &
+```
+
+### Legacy: Single Killmail Enrichment
+
+For testing or backward compatibility, you can still enrich a single killmail:
 
 ```bash
 cd backend
@@ -115,12 +172,67 @@ npx tsx test-enrichment.ts
 
 All endpoints are **public** and **don't require authentication**.
 
+## Monitoring & Progress Tracking
+
+Each worker logs progress at different intervals:
+
+- **Characters**: Every 50 items
+- **Corporations**: Every 50 items
+- **Alliances**: Every 20 items
+- **Types**: Every 100 items
+
+Example output:
+
+```
+🚀 Character Enrichment Worker started
+📦 Waiting for character IDs to enrich...
+✅ Character Enrichment: Processed 50 (Added: 48, Skipped: 2, Errors: 0)
+✅ Character Enrichment: Processed 100 (Added: 95, Skipped: 5, Errors: 0)
+```
+
+## Queue Information
+
+| Queue Name                     | Worker Script                       | Concurrency | Progress Interval |
+| ------------------------------ | ----------------------------------- | ----------- | ----------------- |
+| `character_enrichment_queue`   | `worker-enrichment-characters.ts`   | 10          | Every 50          |
+| `corporation_enrichment_queue` | `worker-enrichment-corporations.ts` | 5           | Every 50          |
+| `alliance_enrichment_queue`    | `worker-enrichment-alliances.ts`    | 3           | Every 20          |
+| `type_enrichment_queue`        | `worker-enrichment-types.ts`        | 10          | Every 100         |
+
 ## Future Improvements (Optional)
 
 1. **Bulk API usage**: ESI supports bulk queries for some endpoints
 2. **Cache layer**: Cache frequently used types in Redis
-3. **Queue system**: Move enrichment to a separate RabbitMQ queue
-4. **Background job**: Periodically enrich old killmails
+3. **Auto-scaling**: Automatically scale workers based on queue depth
+4. **Metrics**: Prometheus/Grafana integration for monitoring
+
+## Error Handling
+
+The enrichment system gracefully handles common errors:
+
+- **404 errors**: Silently skipped (deleted/invalid characters, corporations, alliances, or types)
+- **NPC filtering**: Automatically filters NPC characters and corporations
+- **Smart rate limiting**: Built-in rate limiter ensures we never exceed ESI limits (50 req/sec max, ESI allows 150)
+- **Partial failures**: Other entities continue processing even if one fails
+- **Conservative processing**: 2 killmails processed concurrently to avoid overwhelming ESI
+- **Guaranteed compliance**: 100ms minimum delay between ESI requests, automatic queue management
+
+### NPC Detection
+
+NPCs are automatically detected and skipped to prevent unnecessary ESI calls:
+
+**NPC Characters** (rats, mission agents, CONCORD, etc.):
+
+- System NPCs: ID < 1,000,000
+- Standard NPCs: ID 3,000,000 - 4,000,000
+- Note: NPC attackers in killmails appear without `character_id` (ship only)
+
+**NPC Corporations** (empire factions, pirate factions, etc.):
+
+- NPC corps: ID < 2,000,000
+- Player corps: ID ≥ 2,000,000
+
+This prevents unnecessary ESI calls for entities that don't exist in the database
 
 ## Troubleshooting
 
@@ -137,6 +249,10 @@ npx prisma generate
 cd backend
 npx prisma migrate dev
 ```
+
+**Q: Seeing 404 errors in results**
+
+This is normal! Characters, corporations, or alliances may have been deleted from EVE Online. The system skips these and continues with valid entities
 
 **Q: Enrichment not working**
 
