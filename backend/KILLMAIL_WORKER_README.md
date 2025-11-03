@@ -100,13 +100,20 @@ model Attacker {
 
 ### Step 1: Start RabbitMQ
 
-```bash
-# Using Docker (recommended)
-docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
+Make sure RabbitMQ is installed and running on your system:
 
-# Or if already running
-docker start rabbitmq
+```bash
+# Check if RabbitMQ is running
+sudo systemctl status rabbitmq-server
+
+# Start RabbitMQ if not running
+sudo systemctl start rabbitmq-server
+
+# Enable RabbitMQ management plugin for web UI
+sudo rabbitmq-plugins enable rabbitmq_management
 ```
+
+Access the management UI at http://localhost:15672 (default credentials: guest/guest)
 
 ### Step 2: Queue Users
 
@@ -293,17 +300,26 @@ type WorkerStatus {
 
 ## Deployment Considerations
 
-### Docker
+### Production Setup
 
-```dockerfile
-# Separate service for worker
-FROM node:20-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-CMD ["node", "dist/killmail-worker.js"]
-```
+For production deployment, consider:
+
+1. **Process Manager**: Use PM2 or similar to keep workers running
+
+   ```bash
+   npm install -g pm2
+   pm2 start dist/killmail-worker.js --name killmail-worker
+   pm2 startup
+   pm2 save
+   ```
+
+2. **Multiple Workers**: Run multiple worker instances for better throughput
+
+   ```bash
+   pm2 start dist/killmail-worker.js -i 3 --name killmail-worker
+   ```
+
+3. **Monitoring**: Set up logging and monitoring for worker health
 
 ### Kubernetes
 
