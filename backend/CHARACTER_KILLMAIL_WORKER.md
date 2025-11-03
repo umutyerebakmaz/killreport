@@ -378,10 +378,13 @@ Based on real-world testing:
 
 ```bash
 # Is RabbitMQ running?
-docker ps | grep rabbitmq
+sudo systemctl status rabbitmq-server
 
-# Check queue
-# Management UI: http://localhost:15672
+# Check queue status
+sudo rabbitmqctl list_queues
+
+# Check queue via Management UI
+# Open: http://localhost:15672
 # Username: guest / Password: guest
 ```
 
