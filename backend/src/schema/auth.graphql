@@ -1,11 +1,11 @@
-type Query {
+extend type Query {
   """
   Mevcut authenticated kullanıcının bilgilerini döner
   """
   me: User
 }
 
-type Mutation {
+extend type Mutation {
   """
   Eve Online SSO login için authorization URL'i oluşturur
   """
