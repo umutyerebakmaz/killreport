@@ -1,0 +1,14 @@
+# Base types for GraphQL schema
+# Other schema files extend these types
+
+type Query {
+  _empty: String
+}
+
+type Mutation {
+  _empty: String
+}
+
+type Subscription {
+  _empty: String
+}

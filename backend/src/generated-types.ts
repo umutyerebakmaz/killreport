@@ -31,6 +31,7 @@ export type AddCharacterPayload = {
 
 export type Alliance = {
   __typename?: 'Alliance';
+  corporationCount: Scalars['Int']['output'];
   corporations?: Maybe<Array<Corporation>>;
   creator_corporation_id: Scalars['Int']['output'];
   creator_id: Scalars['Int']['output'];
@@ -38,6 +39,7 @@ export type Alliance = {
   executor_corporation_id: Scalars['Int']['output'];
   faction_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
+  memberCount: Scalars['Int']['output'];
   name: Scalars['String']['output'];
   ticker: Scalars['String']['output'];
 };
@@ -188,6 +190,7 @@ export type KillmailItem = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  _empty?: Maybe<Scalars['String']['output']>;
   addCharacter: AddCharacterPayload;
   /** Authorization code ile authentication yapar ve token döner */
   authenticateWithCode: AuthPayload;
@@ -261,6 +264,7 @@ export type Position = {
 
 export type Query = {
   __typename?: 'Query';
+  _empty?: Maybe<Scalars['String']['output']>;
   alliance?: Maybe<Alliance>;
   alliances: AllianceConnection;
   character?: Maybe<Character>;
@@ -371,6 +375,7 @@ export type StartAllianceSyncPayload = {
 
 export type Subscription = {
   __typename?: 'Subscription';
+  _empty?: Maybe<Scalars['String']['output']>;
   /**
    * Subscribe to real-time worker status updates
    * Emits updates every 5 seconds
@@ -599,6 +604,7 @@ export type AddCharacterPayloadResolvers<ContextType = any, ParentType extends R
 };
 
 export type AllianceResolvers<ContextType = any, ParentType extends ResolversParentTypes['Alliance'] = ResolversParentTypes['Alliance']> = {
+  corporationCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   corporations?: Resolver<Maybe<Array<ResolversTypes['Corporation']>>, ParentType, ContextType>;
   creator_corporation_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   creator_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -606,6 +612,7 @@ export type AllianceResolvers<ContextType = any, ParentType extends ResolversPar
   executor_corporation_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   faction_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  memberCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   ticker?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
@@ -721,6 +728,7 @@ export type KillmailItemResolvers<ContextType = any, ParentType extends Resolver
 };
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
+  _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   addCharacter?: Resolver<ResolversTypes['AddCharacterPayload'], ParentType, ContextType, RequireFields<MutationAddCharacterArgs, 'input'>>;
   authenticateWithCode?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationAuthenticateWithCodeArgs, 'code' | 'state'>>;
   createUser?: Resolver<ResolversTypes['CreateUserPayload'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
@@ -748,6 +756,7 @@ export type PositionResolvers<ContextType = any, ParentType extends ResolversPar
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
+  _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType, RequireFields<QueryAllianceArgs, 'id'>>;
   alliances?: Resolver<ResolversTypes['AllianceConnection'], ParentType, ContextType, Partial<QueryAlliancesArgs>>;
   character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType, RequireFields<QueryCharacterArgs, 'id'>>;
@@ -778,6 +787,7 @@ export type StartAllianceSyncPayloadResolvers<ContextType = any, ParentType exte
 };
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
+  _empty?: SubscriptionResolver<Maybe<ResolversTypes['String']>, "_empty", ParentType, ContextType>;
   workerStatusUpdates?: SubscriptionResolver<ResolversTypes['WorkerStatus'], "workerStatusUpdates", ParentType, ContextType>;
 };
 

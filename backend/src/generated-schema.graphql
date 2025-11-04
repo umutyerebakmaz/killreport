@@ -11,6 +11,7 @@ type AddCharacterPayload {
 }
 
 type Alliance {
+  corporationCount: Int!
   corporations: [Corporation!]
   creator_corporation_id: Int!
   creator_id: Int!
@@ -18,6 +19,7 @@ type Alliance {
   executor_corporation_id: Int!
   faction_id: Int
   id: Int!
+  memberCount: Int!
   name: String!
   ticker: String!
 }
@@ -157,6 +159,7 @@ type KillmailItem {
 }
 
 type Mutation {
+  _empty: String
   addCharacter(input: AddCharacterInput!): AddCharacterPayload!
 
   """Authorization code ile authentication yapar ve token döner"""
@@ -195,6 +198,7 @@ type Position {
 }
 
 type Query {
+  _empty: String
   alliance(id: Int!): Alliance
   alliances(filter: AllianceFilter): AllianceConnection!
   character(id: ID!): Character
@@ -254,6 +258,8 @@ type StartAllianceSyncPayload {
 }
 
 type Subscription {
+  _empty: String
+
   """
   Subscribe to real-time worker status updates
   Emits updates every 5 seconds

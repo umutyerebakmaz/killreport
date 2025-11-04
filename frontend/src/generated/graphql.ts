@@ -18,13 +18,21 @@ export type Scalars = {
 };
 
 export type AddCharacterInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
   corporation?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
   userId: Scalars['ID']['input'];
 };
 
+export type AddCharacterPayload = {
+  __typename?: 'AddCharacterPayload';
+  character?: Maybe<Character>;
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+};
+
 export type Alliance = {
   __typename?: 'Alliance';
+  corporationCount: Scalars['Int']['output'];
   corporations?: Maybe<Array<Corporation>>;
   creator_corporation_id: Scalars['Int']['output'];
   creator_id: Scalars['Int']['output'];
@@ -32,6 +40,7 @@ export type Alliance = {
   executor_corporation_id: Scalars['Int']['output'];
   faction_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
+  memberCount: Scalars['Int']['output'];
   name: Scalars['String']['output'];
   ticker: Scalars['String']['output'];
 };
@@ -120,20 +129,28 @@ export type Corporation = {
   url?: Maybe<Scalars['String']['output']>;
 };
 
-export type CorporationEdge = {
-  __typename?: 'CorporationEdge';
-  node: Corporation;
-};
-
-export type CorporationsResponse = {
-  __typename?: 'CorporationsResponse';
+export type CorporationConnection = {
+  __typename?: 'CorporationConnection';
   edges: Array<CorporationEdge>;
   pageInfo: PageInfo;
 };
 
+export type CorporationEdge = {
+  __typename?: 'CorporationEdge';
+  cursor: Scalars['String']['output'];
+  node: Corporation;
+};
+
 export type CreateUserInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
   email: Scalars['String']['input'];
   name: Scalars['String']['input'];
+};
+
+export type CreateUserPayload = {
+  __typename?: 'CreateUserPayload';
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  user?: Maybe<User>;
 };
 
 export type Killmail = {
@@ -150,6 +167,18 @@ export type Killmail = {
   victim: Victim;
 };
 
+export type KillmailConnection = {
+  __typename?: 'KillmailConnection';
+  edges: Array<KillmailEdge>;
+  pageInfo: PageInfo;
+};
+
+export type KillmailEdge = {
+  __typename?: 'KillmailEdge';
+  cursor: Scalars['String']['output'];
+  node: Killmail;
+};
+
 export type KillmailItem = {
   __typename?: 'KillmailItem';
   flag: Scalars['Int']['output'];
@@ -162,21 +191,22 @@ export type KillmailItem = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  addCharacter: Character;
+  _empty?: Maybe<Scalars['String']['output']>;
+  addCharacter: AddCharacterPayload;
   /** Authorization code ile authentication yapar ve token döner */
   authenticateWithCode: AuthPayload;
-  createUser: User;
+  createUser: CreateUserPayload;
   /** Eve Online SSO login için authorization URL'i oluşturur */
   login: AuthUrl;
   /** Refresh token kullanarak yeni access token alır */
   refreshToken: AuthPayload;
-  startAllianceSync?: Maybe<Scalars['Boolean']['output']>;
+  startAllianceSync: StartAllianceSyncPayload;
   /**
    * Fetches user's killmails from ESI and saves to database
    * Requires: Authentication
    */
-  syncMyKillmails: SyncResult;
-  updateUser?: Maybe<User>;
+  syncMyKillmails: SyncMyKillmailsPayload;
+  updateUser: UpdateUserPayload;
 };
 
 
@@ -201,8 +231,17 @@ export type MutationRefreshTokenArgs = {
 };
 
 
+export type MutationStartAllianceSyncArgs = {
+  input: StartAllianceSyncInput;
+};
+
+
+export type MutationSyncMyKillmailsArgs = {
+  input: SyncMyKillmailsInput;
+};
+
+
 export type MutationUpdateUserArgs = {
-  id: Scalars['ID']['input'];
   input: UpdateUserInput;
 };
 
@@ -226,16 +265,17 @@ export type Position = {
 
 export type Query = {
   __typename?: 'Query';
+  _empty?: Maybe<Scalars['String']['output']>;
   alliance?: Maybe<Alliance>;
   alliances: AllianceConnection;
   character?: Maybe<Character>;
   charactersByUser: Array<Character>;
   corporation?: Maybe<Corporation>;
-  corporations: CorporationsResponse;
+  corporations: CorporationConnection;
   /** Fetches a single killmail */
   killmail?: Maybe<Killmail>;
-  /** Lists all killmails (with pagination) */
-  killmails: Array<Killmail>;
+  /** Lists all killmails (with pagination using Relay-style connection) */
+  killmails: KillmailConnection;
   /** Mevcut authenticated kullanıcının bilgilerini döner */
   me?: Maybe<User>;
   /**
@@ -250,6 +290,8 @@ export type Query = {
   myKillmails: Array<Killmail>;
   user?: Maybe<User>;
   users: Array<User>;
+  /** Get current status of all workers and queues */
+  workerStatus: WorkerStatus;
 };
 
 
@@ -290,8 +332,8 @@ export type QueryKillmailArgs = {
 
 
 export type QueryKillmailsArgs = {
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
+  after?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -309,16 +351,62 @@ export type QueryUserArgs = {
   id: Scalars['ID']['input'];
 };
 
-export type SyncResult = {
-  __typename?: 'SyncResult';
+export type QueueStatus = {
+  __typename?: 'QueueStatus';
+  /** Is the queue currently active */
+  active: Scalars['Boolean']['output'];
+  /** Number of messages currently being processed */
+  consumerCount: Scalars['Int']['output'];
+  /** Number of messages waiting to be processed */
+  messageCount: Scalars['Int']['output'];
+  /** Name of the queue */
+  name: Scalars['String']['output'];
+};
+
+export type StartAllianceSyncInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type StartAllianceSyncPayload = {
+  __typename?: 'StartAllianceSyncPayload';
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type Subscription = {
+  __typename?: 'Subscription';
+  _empty?: Maybe<Scalars['String']['output']>;
+  /**
+   * Subscribe to real-time worker status updates
+   * Emits updates every 5 seconds
+   */
+  workerStatusUpdates: WorkerStatus;
+};
+
+export type SyncMyKillmailsInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type SyncMyKillmailsPayload = {
+  __typename?: 'SyncMyKillmailsPayload';
+  clientMutationId?: Maybe<Scalars['String']['output']>;
   message: Scalars['String']['output'];
   success: Scalars['Boolean']['output'];
   syncedCount: Scalars['Int']['output'];
 };
 
 export type UpdateUserInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
   email?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateUserPayload = {
+  __typename?: 'UpdateUserPayload';
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  user?: Maybe<User>;
 };
 
 export type User = {
@@ -344,6 +432,16 @@ export type Victim = {
   shipTypeName?: Maybe<Scalars['String']['output']>;
 };
 
+export type WorkerStatus = {
+  __typename?: 'WorkerStatus';
+  /** Overall system health */
+  healthy: Scalars['Boolean']['output'];
+  /** Status of individual queues */
+  queues: Array<QueueStatus>;
+  /** Timestamp of the status check */
+  timestamp: Scalars['String']['output'];
+};
+
 export type AllianceQueryVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
@@ -356,14 +454,14 @@ export type AlliancesQueryVariables = Exact<{
 }>;
 
 
-export type AlliancesQuery = { __typename?: 'Query', alliances: { __typename?: 'AllianceConnection', edges: Array<{ __typename?: 'AllianceEdge', cursor: string, node: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, creator_corporation_id: number, creator_id: number, executor_corporation_id: number, faction_id?: number | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type AlliancesQuery = { __typename?: 'Query', alliances: { __typename?: 'AllianceConnection', edges: Array<{ __typename?: 'AllianceEdge', cursor: string, node: { __typename?: 'Alliance', id: number, name: string, memberCount: number, corporationCount: number } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type CorporationsQueryVariables = Exact<{
   first?: InputMaybe<Scalars['Int']['input']>;
 }>;
 
 
-export type CorporationsQuery = { __typename?: 'Query', corporations: { __typename?: 'CorporationsResponse', edges: Array<{ __typename?: 'CorporationEdge', node: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CorporationsQuery = { __typename?: 'Query', corporations: { __typename?: 'CorporationConnection', edges: Array<{ __typename?: 'CorporationEdge', node: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 
 export const AllianceDocument = gql`
@@ -420,12 +518,8 @@ export const AlliancesDocument = gql`
       node {
         id
         name
-        ticker
-        date_founded
-        creator_corporation_id
-        creator_id
-        executor_corporation_id
-        faction_id
+        memberCount
+        corporationCount
       }
       cursor
     }

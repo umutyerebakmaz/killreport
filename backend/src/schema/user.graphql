@@ -1,13 +1,3 @@
-type Query {
-  user(id: ID!): User
-  users: [User!]!
-}
-
-type Mutation {
-  createUser(input: CreateUserInput!): CreateUserPayload!
-  updateUser(input: UpdateUserInput!): UpdateUserPayload!
-}
-
 type User {
   id: ID!
   name: String!
@@ -36,4 +26,14 @@ type CreateUserPayload {
 type UpdateUserPayload {
   user: User
   clientMutationId: String
+}
+
+extend type Query {
+  user(id: ID!): User
+  users: [User!]!
+}
+
+extend type Mutation {
+  createUser(input: CreateUserInput!): CreateUserPayload!
+  updateUser(input: UpdateUserInput!): UpdateUserPayload!
 }
