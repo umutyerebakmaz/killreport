@@ -4,12 +4,8 @@ query Alliances($filter: AllianceFilter) {
       node {
         id
         name
-        ticker
-        date_founded
-        creator_corporation_id
-        creator_id
-        executor_corporation_id
-        faction_id
+        memberCount
+        corporationCount
       }
       cursor
     }
