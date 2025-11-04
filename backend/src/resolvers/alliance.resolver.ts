@@ -1,20 +1,20 @@
 import axios from 'axios';
-import { Alliance, AllianceResolvers, MutationResolvers, PageInfo, QueryResolvers } from '../generated-types';
+import { AllianceResolvers, MutationResolvers, PageInfo, QueryResolvers } from '../generated-types';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
 export const allianceQueries: QueryResolvers = {
-  alliance: async (_, { id }): Promise<Alliance | null> => {
+  alliance: async (_, { id }) => {
     const alliance = await prisma.alliance.findUnique({
       where: { id: Number(id) },
     });
     if (!alliance) return null;
 
+    // Field resolver'lar eksik field'ları otomatik doldurur
     return {
       ...alliance,
       date_founded: alliance.date_founded.toISOString(),
-      corporations: [], // Field resolver handles this
-    };
+    } as any;
   },
 
   alliances: async (_, { filter }) => {
@@ -64,6 +64,7 @@ export const allianceQueries: QueryResolvers = {
         node: {
           ...a,
           date_founded: a.date_founded.toISOString(),
+          // Field resolver'lar eksik field'ları otomatik doldurur
         },
         cursor: Buffer.from(`${skip + index}`).toString('base64'),
       })),
@@ -131,5 +132,23 @@ export const allianceFieldResolvers: AllianceResolvers = {
       date_founded: corp.date_founded?.toISOString() || null,
       alliance: null, // Circular reference'ı önlemek için null
     }));
+  },
+
+  corporationCount: async (parent) => {
+    // Alliance'a ait corporation sayısı
+    return await prisma.corporation.count({
+      where: { alliance_id: parent.id },
+    });
+  },
+
+  memberCount: async (parent) => {
+    // Alliance'daki tüm corporation'ların toplam üye sayısı
+    const result = await prisma.corporation.aggregate({
+      where: { alliance_id: parent.id },
+      _sum: {
+        member_count: true,
+      },
+    });
+    return result._sum.member_count || 0;
   },
 };

@@ -1,12 +1,3 @@
-extend type Query {
-  character(id: ID!): Character
-  charactersByUser(userId: ID!): [Character!]!
-}
-
-extend type Mutation {
-  addCharacter(input: AddCharacterInput!): AddCharacterPayload!
-}
-
 type Character {
   id: ID!
   name: String!
@@ -26,4 +17,13 @@ input AddCharacterInput {
 type AddCharacterPayload {
   character: Character
   clientMutationId: String
+}
+
+extend type Query {
+  character(id: ID!): Character
+  charactersByUser(userId: ID!): [Character!]!
+}
+
+extend type Mutation {
+  addCharacter(input: AddCharacterInput!): AddCharacterPayload!
 }
