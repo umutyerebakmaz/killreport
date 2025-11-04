@@ -1,9 +1,16 @@
 import Tooltip from "@/components/Tooltip/Tooltip";
-import { Alliance } from "@/generated/graphql";
-import { ArrowTrendingUpIcon, UsersIcon } from "@heroicons/react/24/outline";
+import { AlliancesQuery } from "@/generated/graphql";
+import {
+  ArrowTrendingUpIcon,
+  StarIcon,
+  UsersIcon,
+} from "@heroicons/react/24/outline";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+
+// useAlliancesQuery'nin döndüğü Alliance type'ını extract et
+type Alliance = AlliancesQuery["alliances"]["edges"][number]["node"];
 
 type AllianceCardProps = {
   alliance: Alliance;
@@ -11,7 +18,6 @@ type AllianceCardProps = {
 
 export default function AllianceCard({ alliance }: AllianceCardProps) {
   // Mock data - gerçek veri backend'e eklendikten sonra kaldırılacak
-  const memberCount = Math.floor(Math.random() * 5000) + 100;
   const delta = Math.floor(Math.random() * 200) - 100; // -100 ile +100 arası
   const deltaColor = delta >= 0 ? "text-green-400" : "text-red-400";
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -50,9 +56,17 @@ export default function AllianceCard({ alliance }: AllianceCardProps) {
           <div className="flex items-center justify-between w-full gap-4 pt-3 border-t border-white/10">
             <Tooltip content="Total Members" position="top">
               <div className="flex items-center gap-2">
-                <UsersIcon className="w-5 h-5 text-gray-400" />
-                <span className="text-sm font-medium text-gray-300">
-                  {memberCount.toLocaleString()}
+                <UsersIcon className="w-5 h-5 text-blue-400" />
+                <span className="text-sm font-medium text-blue-300">
+                  {alliance.memberCount}
+                </span>
+              </div>
+            </Tooltip>
+            <Tooltip content="Total Corporations" position="top">
+              <div className="flex items-center gap-2">
+                <StarIcon className="w-5 h-5 text-yellow-500" />
+                <span className="text-sm font-medium text-yellow-500">
+                  {alliance.corporationCount}
                 </span>
               </div>
             </Tooltip>

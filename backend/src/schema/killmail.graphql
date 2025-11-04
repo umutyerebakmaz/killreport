@@ -8,38 +8,6 @@ type KillmailConnection {
   pageInfo: PageInfo!
 }
 
-extend type Query {
-  """
-  Fetches a single killmail
-  """
-  killmail(id: ID!): Killmail
-
-  """
-  Lists all killmails (with pagination using Relay-style connection)
-  """
-  killmails(first: Int, after: String): KillmailConnection!
-
-  """
-  Fetches the authenticated user's own killmails
-  Requires: Authentication
-  """
-  myKillmails(limit: Int): [Killmail!]!
-
-  """
-  Fetches the authenticated user's corporation killmails
-  Requires: Authentication + esi-killmails.read_corporation_killmails.v1 scope
-  """
-  myCorporationKillmails(limit: Int): [Killmail!]!
-}
-
-extend type Mutation {
-  """
-  Fetches user's killmails from ESI and saves to database
-  Requires: Authentication
-  """
-  syncMyKillmails(input: SyncMyKillmailsInput!): SyncMyKillmailsPayload!
-}
-
 input SyncMyKillmailsInput {
   clientMutationId: String
 }
@@ -108,4 +76,36 @@ type KillmailItem {
   quantityDropped: Int
   quantityDestroyed: Int
   singleton: Int!
+}
+
+extend type Query {
+  """
+  Fetches a single killmail
+  """
+  killmail(id: ID!): Killmail
+
+  """
+  Lists all killmails (with pagination using Relay-style connection)
+  """
+  killmails(first: Int, after: String): KillmailConnection!
+
+  """
+  Fetches the authenticated user's own killmails
+  Requires: Authentication
+  """
+  myKillmails(limit: Int): [Killmail!]!
+
+  """
+  Fetches the authenticated user's corporation killmails
+  Requires: Authentication + esi-killmails.read_corporation_killmails.v1 scope
+  """
+  myCorporationKillmails(limit: Int): [Killmail!]!
+}
+
+extend type Mutation {
+  """
+  Fetches user's killmails from ESI and saves to database
+  Requires: Authentication
+  """
+  syncMyKillmails(input: SyncMyKillmailsInput!): SyncMyKillmailsPayload!
 }
