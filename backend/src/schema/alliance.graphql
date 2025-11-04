@@ -8,6 +8,8 @@ type Alliance {
   executor_corporation_id: Int!
   faction_id: Int
   corporations: [Corporation!]
+  corporationCount: Int!
+  memberCount: Int!
 }
 
 type AllianceEdge {
@@ -36,15 +38,6 @@ input AllianceFilter {
   ticker: String
 }
 
-type Query {
-  alliance(id: Int!): Alliance
-  alliances(filter: AllianceFilter): AllianceConnection!
-}
-
-type Mutation {
-  startAllianceSync(input: StartAllianceSyncInput!): StartAllianceSyncPayload!
-}
-
 input StartAllianceSyncInput {
   clientMutationId: String
 }
@@ -53,4 +46,13 @@ type StartAllianceSyncPayload {
   success: Boolean!
   message: String
   clientMutationId: String
+}
+
+extend type Query {
+  alliance(id: Int!): Alliance
+  alliances(filter: AllianceFilter): AllianceConnection!
+}
+
+extend type Mutation {
+  startAllianceSync(input: StartAllianceSyncInput!): StartAllianceSyncPayload!
 }
