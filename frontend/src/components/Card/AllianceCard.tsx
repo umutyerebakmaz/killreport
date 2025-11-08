@@ -17,10 +17,30 @@ type AllianceCardProps = {
 };
 
 export default function AllianceCard({ alliance }: AllianceCardProps) {
-  // Mock data - gerçek veri backend'e eklendikten sonra kaldırılacak
-  const delta = Math.floor(Math.random() * 200) - 100; // -100 ile +100 arası
-  const deltaColor = delta >= 0 ? "text-green-400" : "text-red-400";
   const [imageLoaded, setImageLoaded] = useState(false);
+
+  // Delta verilerini al
+  const memberDelta30d = alliance.metrics?.memberCountDelta30d ?? null;
+  const memberGrowthRate30d =
+    alliance.metrics?.memberCountGrowthRate30d ?? null;
+
+  // Delta rengi belirle
+  const deltaColor =
+    memberDelta30d && memberDelta30d >= 0 ? "text-green-400" : "text-red-400";
+
+  // Tooltip içeriği
+  const tooltipContent =
+    memberDelta30d !== null
+      ? `Member Change (30 days): ${
+          memberDelta30d >= 0 ? "+" : ""
+        }${memberDelta30d}${
+          memberGrowthRate30d !== null
+            ? ` (${
+                memberGrowthRate30d >= 0 ? "+" : ""
+              }${memberGrowthRate30d.toFixed(1)}%)`
+            : ""
+        }`
+      : "No data available";
 
   return (
     <div className="bg-neutral-900 outline-1 -outline-offset-1 outline-white/10">
@@ -70,12 +90,26 @@ export default function AllianceCard({ alliance }: AllianceCardProps) {
                 </span>
               </div>
             </Tooltip>
-            <Tooltip content="Member Change (30 days)" position="top">
+            <Tooltip content={tooltipContent} position="top">
               <div className="flex items-center gap-2">
-                <ArrowTrendingUpIcon className={`w-5 h-5 ${deltaColor}`} />
-                <span className={`text-sm font-medium ${deltaColor}`}>
-                  {delta >= 0 ? "+" : ""}
-                  {delta}
+                <ArrowTrendingUpIcon
+                  className={`w-5 h-5 ${
+                    memberDelta30d !== null ? deltaColor : "text-gray-500"
+                  }`}
+                />
+                <span
+                  className={`text-sm font-medium ${
+                    memberDelta30d !== null ? deltaColor : "text-gray-500"
+                  }`}
+                >
+                  {memberDelta30d !== null ? (
+                    <>
+                      {memberDelta30d >= 0 ? "+" : ""}
+                      {memberDelta30d}
+                    </>
+                  ) : (
+                    "N/A"
+                  )}
                 </span>
               </div>
             </Tooltip>
