@@ -1,6 +1,7 @@
 "use client";
 
 import AllianceCard from "@/components/Card/AllianceCard";
+import AllianceFilters from "@/components/Filters/AllianceFilters";
 import Paginator from "@/components/Paginator/Paginator";
 import { useAlliancesQuery } from "@/generated/graphql";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -13,12 +14,18 @@ export default function AlliancesPage() {
   const pageFromUrl = Number(searchParams.get("page")) || 1;
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(25);
+  const [filters, setFilters] = useState<{
+    search?: string;
+    name?: string;
+    ticker?: string;
+  }>({});
 
   const { data, loading, error, refetch } = useAlliancesQuery({
     variables: {
       filter: {
         page: currentPage,
         limit: pageSize,
+        ...filters,
       },
     },
   });
@@ -73,6 +80,20 @@ export default function AlliancesPage() {
     setCurrentPage(1);
   };
 
+  const handleFilterChange = (newFilters: {
+    search?: string;
+    name?: string;
+    ticker?: string;
+  }) => {
+    setFilters(newFilters);
+    setCurrentPage(1); // Reset to first page when filters change
+  };
+
+  const handleClearFilters = () => {
+    setFilters({});
+    setCurrentPage(1);
+  };
+
   return (
     <div className="px-4 sm:px-6 lg:px-8">
       <div className="sm:flex sm:items-center">
@@ -83,7 +104,16 @@ export default function AlliancesPage() {
           </h2>
         </div>
       </div>
-      <div className="mt-8">
+
+      {/* Filters */}
+      <div className="mt-6">
+        <AllianceFilters
+          onFilterChange={handleFilterChange}
+          onClearFilters={handleClearFilters}
+        />
+      </div>
+
+      <div className="mt-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5">
           {alliances.map((alliance) =>
             alliance ? (
