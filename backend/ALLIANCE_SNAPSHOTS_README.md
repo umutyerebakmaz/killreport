@@ -158,16 +158,16 @@ yarn snapshot:alliances
 **Output:**
 
 ```
-📸 Alliance Snapshot Worker başlatıldı...
-✓ 3540 alliance bulundu
-  ⏳ İşlenen: 50/3540 (50 yeni, 0 mevcut)
-  ⏳ İşlenen: 100/3540 (100 yeni, 0 mevcut)
-✅ Snapshot alma tamamlandı!
-   • Toplam işlenen: 3540
-   • Yeni snapshot: 3540
-   • Zaten mevcut: 0
-   • Süre: 45.23 saniye
-   • Tarih: 2025-11-08
+📸 Alliance Snapshot Worker started...
+✓ Found 3540 alliances
+  ⏳ Processed: 50/3540 (50 new, 0 existing)
+  ⏳ Processed: 100/3540 (100 new, 0 existing)
+✅ Snapshot creation completed!
+   • Total processed: 3540
+   • New snapshots: 3540
+   • Already existing: 0
+   • Duration: 45.23 seconds
+   • Date: 2025-11-08
 ```
 
 ### ⏰ Automated Cron Job Setup
