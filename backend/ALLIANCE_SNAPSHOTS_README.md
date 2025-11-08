@@ -255,8 +255,8 @@ await prisma.allianceSnapshot.create({
     alliance_id: 99003214,
     member_count: 30523,
     corporation_count: 150,
-    snapshot_date: new Date('2025-11-08')
-  }
+    snapshot_date: new Date("2025-11-08"),
+  },
 });
 
 // Second run today - SKIPPED ⏭️
@@ -265,12 +265,12 @@ const existing = await prisma.allianceSnapshot.findUnique({
   where: {
     alliance_id_snapshot_date: {
       alliance_id: 99003214,
-      snapshot_date: new Date('2025-11-08')
-    }
-  }
+      snapshot_date: new Date("2025-11-08"),
+    },
+  },
 });
 if (existing) {
-  console.log('Snapshot already exists, skipping...');
+  console.log("Snapshot already exists, skipping...");
 }
 ```
 
@@ -284,20 +284,23 @@ cd backend
 ```
 
 **Expected Output:**
+
 ```json
 {
   "data": {
     "alliances": {
-      "edges": [{
-        "node": {
-          "id": 99003214,
-          "name": "Goonswarm Federation",
-          "metrics": {
-            "memberCountDelta30d": -1250,
-            "memberCountGrowthRate30d": -3.93
+      "edges": [
+        {
+          "node": {
+            "id": 99003214,
+            "name": "Goonswarm Federation",
+            "metrics": {
+              "memberCountDelta30d": -1250,
+              "memberCountGrowthRate30d": -3.93
+            }
           }
         }
-      }]
+      ]
     }
   }
 }
@@ -335,17 +338,30 @@ yarn prisma:studio
 
 ### AllianceCard Component
 
-Delta verilerini gösterir:
+Displays delta data with color-coded indicators:
 
 ```tsx
 const memberDelta30d = alliance.metrics?.memberCountDelta30d ?? null;
 const memberGrowthRate30d = alliance.metrics?.memberCountGrowthRate30d ?? null;
 
-// Pozitif: yeşil, Negatif: kırmızı
-const deltaColor = memberDelta30d >= 0 ? "text-green-400" : "text-red-400";
+// Color coding: Green for growth, Red for decline
+const deltaColor =
+  memberDelta30d && memberDelta30d >= 0 ? "text-green-400" : "text-red-400";
+
+// Display with icon
+<div className={deltaColor}>
+  <ArrowTrendingUpIcon className="w-5 h-5" />
+  <span>
+    {memberDelta30d >= 0 ? "+" : ""}
+    {memberDelta30d}
+  </span>
+  {memberGrowthRate30d && (
+    <span className="text-xs">({memberGrowthRate30d.toFixed(1)}%)</span>
+  )}
+</div>;
 ```
 
-### Query
+### GraphQL Query
 
 ```graphql
 query Alliances {
@@ -354,8 +370,12 @@ query Alliances {
       node {
         id
         name
+        memberCount
+        corporationCount
         metrics {
+          memberCountDelta7d
           memberCountDelta30d
+          memberCountGrowthRate7d
           memberCountGrowthRate30d
         }
       }
@@ -364,7 +384,16 @@ query Alliances {
 }
 ```
 
-## Performance Considerations
+### UI Display Examples
+
+| Delta | Growth Rate | Display          | Color    |
+| ----- | ----------- | ---------------- | -------- |
+| +234  | +0.77%      | ↗️ +234 (+0.8%)  | 🟢 Green |
+| -1250 | -3.93%      | ↘️ -1250 (-3.9%) | 🔴 Red   |
+| 0     | 0.00%       | → 0 (0.0%)       | ⚪ Gray  |
+| null  | null        | N/A              | ⚫ Gray  |
+
+## ⚡ Performance Considerations
 
 ### N+1 Query Prevention
 
