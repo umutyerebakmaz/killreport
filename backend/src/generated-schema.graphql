@@ -20,7 +20,9 @@ type Alliance {
   faction_id: Int
   id: Int!
   memberCount: Int!
+  metrics: AllianceMetrics
   name: String!
+  snapshots(days: Int): [AllianceSnapshot!]!
   ticker: String!
 }
 
@@ -40,6 +42,23 @@ input AllianceFilter {
   page: Int
   search: String
   ticker: String
+}
+
+type AllianceMetrics {
+  corporationCountDelta7d: Int
+  corporationCountDelta30d: Int
+  corporationCountGrowthRate7d: Float
+  corporationCountGrowthRate30d: Float
+  memberCountDelta7d: Int
+  memberCountDelta30d: Int
+  memberCountGrowthRate7d: Float
+  memberCountGrowthRate30d: Float
+}
+
+type AllianceSnapshot {
+  corporationCount: Int!
+  date: String!
+  memberCount: Int!
 }
 
 type Attacker {

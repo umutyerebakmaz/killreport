@@ -40,8 +40,15 @@ export type Alliance = {
   faction_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
   memberCount: Scalars['Int']['output'];
+  metrics?: Maybe<AllianceMetrics>;
   name: Scalars['String']['output'];
+  snapshots: Array<AllianceSnapshot>;
   ticker: Scalars['String']['output'];
+};
+
+
+export type AllianceSnapshotsArgs = {
+  days?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type AllianceConnection = {
@@ -62,6 +69,25 @@ export type AllianceFilter = {
   page?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
   ticker?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type AllianceMetrics = {
+  __typename?: 'AllianceMetrics';
+  corporationCountDelta7d?: Maybe<Scalars['Int']['output']>;
+  corporationCountDelta30d?: Maybe<Scalars['Int']['output']>;
+  corporationCountGrowthRate7d?: Maybe<Scalars['Float']['output']>;
+  corporationCountGrowthRate30d?: Maybe<Scalars['Float']['output']>;
+  memberCountDelta7d?: Maybe<Scalars['Int']['output']>;
+  memberCountDelta30d?: Maybe<Scalars['Int']['output']>;
+  memberCountGrowthRate7d?: Maybe<Scalars['Float']['output']>;
+  memberCountGrowthRate30d?: Maybe<Scalars['Float']['output']>;
+};
+
+export type AllianceSnapshot = {
+  __typename?: 'AllianceSnapshot';
+  corporationCount: Scalars['Int']['output'];
+  date: Scalars['String']['output'];
+  memberCount: Scalars['Int']['output'];
 };
 
 export type Attacker = {
@@ -520,6 +546,8 @@ export type ResolversTypes = {
   AllianceConnection: ResolverTypeWrapper<AllianceConnection>;
   AllianceEdge: ResolverTypeWrapper<AllianceEdge>;
   AllianceFilter: AllianceFilter;
+  AllianceMetrics: ResolverTypeWrapper<AllianceMetrics>;
+  AllianceSnapshot: ResolverTypeWrapper<AllianceSnapshot>;
   Attacker: ResolverTypeWrapper<Attacker>;
   AuthPayload: ResolverTypeWrapper<AuthPayload>;
   AuthUrl: ResolverTypeWrapper<AuthUrl>;
@@ -563,6 +591,8 @@ export type ResolversParentTypes = {
   AllianceConnection: AllianceConnection;
   AllianceEdge: AllianceEdge;
   AllianceFilter: AllianceFilter;
+  AllianceMetrics: AllianceMetrics;
+  AllianceSnapshot: AllianceSnapshot;
   Attacker: Attacker;
   AuthPayload: AuthPayload;
   AuthUrl: AuthUrl;
@@ -613,7 +643,9 @@ export type AllianceResolvers<ContextType = any, ParentType extends ResolversPar
   faction_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   memberCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  metrics?: Resolver<Maybe<ResolversTypes['AllianceMetrics']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  snapshots?: Resolver<Array<ResolversTypes['AllianceSnapshot']>, ParentType, ContextType, Partial<AllianceSnapshotsArgs>>;
   ticker?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
@@ -625,6 +657,23 @@ export type AllianceConnectionResolvers<ContextType = any, ParentType extends Re
 export type AllianceEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['AllianceEdge'] = ResolversParentTypes['AllianceEdge']> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Alliance'], ParentType, ContextType>;
+};
+
+export type AllianceMetricsResolvers<ContextType = any, ParentType extends ResolversParentTypes['AllianceMetrics'] = ResolversParentTypes['AllianceMetrics']> = {
+  corporationCountDelta7d?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  corporationCountDelta30d?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  corporationCountGrowthRate7d?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  corporationCountGrowthRate30d?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  memberCountDelta7d?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  memberCountDelta30d?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  memberCountGrowthRate7d?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  memberCountGrowthRate30d?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+};
+
+export type AllianceSnapshotResolvers<ContextType = any, ParentType extends ResolversParentTypes['AllianceSnapshot'] = ResolversParentTypes['AllianceSnapshot']> = {
+  corporationCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  date?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  memberCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
 export type AttackerResolvers<ContextType = any, ParentType extends ResolversParentTypes['Attacker'] = ResolversParentTypes['Attacker']> = {
@@ -835,6 +884,8 @@ export type Resolvers<ContextType = any> = {
   Alliance?: AllianceResolvers<ContextType>;
   AllianceConnection?: AllianceConnectionResolvers<ContextType>;
   AllianceEdge?: AllianceEdgeResolvers<ContextType>;
+  AllianceMetrics?: AllianceMetricsResolvers<ContextType>;
+  AllianceSnapshot?: AllianceSnapshotResolvers<ContextType>;
   Attacker?: AttackerResolvers<ContextType>;
   AuthPayload?: AuthPayloadResolvers<ContextType>;
   AuthUrl?: AuthUrlResolvers<ContextType>;
