@@ -6,6 +6,14 @@ query Alliances($filter: AllianceFilter) {
         name
         memberCount
         corporationCount
+        metrics {
+          memberCountDelta7d
+          memberCountDelta30d
+          corporationCountDelta7d
+          corporationCountDelta30d
+          memberCountGrowthRate7d
+          memberCountGrowthRate30d
+        }
       }
       cursor
     }

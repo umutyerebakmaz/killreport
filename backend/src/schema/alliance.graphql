@@ -10,6 +10,25 @@ type Alliance {
   corporations: [Corporation!]
   corporationCount: Int!
   memberCount: Int!
+  metrics: AllianceMetrics
+  snapshots(days: Int): [AllianceSnapshot!]!
+}
+
+type AllianceMetrics {
+  memberCountDelta7d: Int
+  memberCountDelta30d: Int
+  corporationCountDelta7d: Int
+  corporationCountDelta30d: Int
+  memberCountGrowthRate7d: Float
+  memberCountGrowthRate30d: Float
+  corporationCountGrowthRate7d: Float
+  corporationCountGrowthRate30d: Float
+}
+
+type AllianceSnapshot {
+  date: String!
+  memberCount: Int!
+  corporationCount: Int!
 }
 
 type AllianceEdge {
