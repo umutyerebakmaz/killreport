@@ -8,7 +8,7 @@ datasource db {
 }
 
 model Alliance {
-  id                      Int      @id
+  id                      Int                @id
   name                    String
   ticker                  String
   date_founded            DateTime
@@ -16,12 +16,10 @@ model Alliance {
   creator_id              Int
   executor_corporation_id Int
   faction_id              Int?
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  corporations Corporation[]
-  snapshots    AllianceSnapshot[]
+  created_at              DateTime           @default(now())
+  updated_at              DateTime           @updatedAt
+  snapshots               AllianceSnapshot[]
+  corporations            Corporation[]
 
   @@map("alliances")
 }
@@ -43,32 +41,30 @@ model AllianceSnapshot {
 }
 
 model Corporation {
-  id                Int       @id
-  name              String
-  ticker            String
-  member_count      Int
-  ceo_id            Int
-  creator_id        Int
-  date_founded      DateTime?
-  description       String?   @db.Text
-  alliance_id       Int?
-  faction_id        Int?
-  home_station_id   Int?
-  shares            BigInt?
-  tax_rate          Float
-  url               String?
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  alliance Alliance? @relation(fields: [alliance_id], references: [id])
+  id              Int       @id
+  name            String
+  ticker          String
+  member_count    Int
+  ceo_id          Int
+  creator_id      Int
+  date_founded    DateTime?
+  description     String?
+  alliance_id     Int?
+  faction_id      Int?
+  home_station_id Int?
+  shares          BigInt?
+  tax_rate        Float
+  url             String?
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+  alliance        Alliance? @relation(fields: [alliance_id], references: [id])
 
   @@index([alliance_id])
   @@map("corporations")
 }
 
 model Character {
-  id              Int       @id
+  id              Int      @id
   name            String
   corporation_id  Int
   alliance_id     Int?
@@ -77,12 +73,11 @@ model Character {
   race_id         Int
   gender          String
   security_status Float?
-  description     String?   @db.Text
+  description     String?
   title           String?
   faction_id      Int?
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
 
   @@map("characters")
 }
@@ -92,13 +87,12 @@ model User {
   character_id         Int      @unique
   character_name       String
   character_owner_hash String
-  access_token         String   @db.Text
-  refresh_token        String?  @db.Text
+  access_token         String
+  refresh_token        String?
   expires_at           DateTime
   email                String?  @unique
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
 
   @@index([character_id])
   @@index([expires_at])
@@ -106,17 +100,15 @@ model User {
 }
 
 model Killmail {
-  killmail_id      Int      @id
-  killmail_hash    String
-  killmail_time    DateTime
-  solar_system_id  Int
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  victim    Victim?
-  attackers Attacker[]
-  items     KillmailItem[]
+  killmail_id     Int            @id
+  killmail_hash   String
+  killmail_time   DateTime
+  solar_system_id Int
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
+  attackers       Attacker[]
+  items           KillmailItem[]
+  victim          Victim?
 
   @@index([killmail_time])
   @@index([solar_system_id])
@@ -124,7 +116,7 @@ model Killmail {
 }
 
 model Victim {
-  killmail_id    Int   @id
+  killmail_id    Int      @id
   character_id   Int?
   corporation_id Int
   alliance_id    Int?
@@ -134,10 +126,8 @@ model Victim {
   position_x     Float?
   position_y     Float?
   position_z     Float?
-
-  created_at DateTime @default(now())
-
-  killmail Killmail @relation(fields: [killmail_id], references: [killmail_id], onDelete: Cascade)
+  created_at     DateTime @default(now())
+  killmail       Killmail @relation(fields: [killmail_id], references: [killmail_id], onDelete: Cascade)
 
   @@index([character_id])
   @@index([corporation_id])
@@ -147,22 +137,20 @@ model Victim {
 }
 
 model Attacker {
-  id              BigInt  @id @default(autoincrement())
   killmail_id     Int
   character_id    Int?
   corporation_id  Int?
   alliance_id     Int?
-  faction_id      Int?
   ship_type_id    Int?
   weapon_type_id  Int?
   damage_done     Int
   final_blow      Boolean
   security_status Float
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  killmail Killmail @relation(fields: [killmail_id], references: [killmail_id], onDelete: Cascade)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  faction_id      Int?
+  id              BigInt   @id @default(autoincrement())
+  killmail        Killmail @relation(fields: [killmail_id], references: [killmail_id], onDelete: Cascade)
 
   @@index([killmail_id])
   @@index([character_id])
@@ -172,17 +160,15 @@ model Attacker {
 }
 
 model KillmailItem {
-  id                 BigInt @id @default(autoincrement())
+  id                 BigInt   @id @default(autoincrement())
   killmail_id        Int
   item_type_id       Int
   flag               Int
   quantity_dropped   Int?
   quantity_destroyed Int?
   singleton          Int
-
-  created_at DateTime @default(now())
-
-  killmail Killmail @relation(fields: [killmail_id], references: [killmail_id], onDelete: Cascade)
+  created_at         DateTime @default(now())
+  killmail           Killmail @relation(fields: [killmail_id], references: [killmail_id], onDelete: Cascade)
 
   @@index([killmail_id])
   @@index([item_type_id])
@@ -190,18 +176,17 @@ model KillmailItem {
 }
 
 model Type {
-  id          Int     @id
+  id          Int      @id
   name        String
-  description String? @db.Text
+  description String?
   group_id    Int
-  published   Boolean @default(true)
+  published   Boolean  @default(true)
   volume      Float?
   capacity    Float?
   mass        Float?
   icon_id     Int?
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 
   @@index([group_id])
   @@map("types")
@@ -209,14 +194,13 @@ model Type {
 
 model SyncJob {
   id          BigInt   @id @default(autoincrement())
-  entity_type String   // 'alliance', 'corporation', 'character', 'killmail'
+  entity_type String
   entity_id   BigInt
-  status      String   // 'pending', 'processing', 'completed', 'failed'
+  status      String
   retry_count Int      @default(0)
-  error       String?  @db.Text
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  error       String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 
   @@index([entity_type, status])
   @@index([entity_id, entity_type])

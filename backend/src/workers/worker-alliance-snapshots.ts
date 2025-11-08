@@ -2,45 +2,43 @@
 /**
  * Alliance Snapshot Worker
  *
- * Bu worker her gün çalıştırılmalı (cron job ile) ve tüm alliance'ların
- * o günkü member_count ve corporation_count değerlerini snapshot olarak kaydeder.
+ * This worker should run daily (via cron job) and records the current
+ * member_count and corporation_count values for all alliances as snapshots.
  *
- * Çalıştırma:
+ * Usage:
  *   yarn snapshot:alliances
  *
- * Cron örneği (her gün gece yarısı):
+ * Cron example (every day at midnight):
  *   0 0 * * * cd /root/killreport/backend && yarn snapshot:alliances
  */
 
 import prisma from '../services/prisma';
 
 async function takeAllianceSnapshots() {
-  console.log('📸 Alliance Snapshot Worker başlatıldı...');
+  console.log('📸 Alliance Snapshot Worker started...');
 
   const startTime = new Date();
   const today = new Date();
-  today.setHours(0, 0, 0, 0); // Günün başlangıcı
+  today.setHours(0, 0, 0, 0); // Start of day
 
   try {
-    // Tüm alliance'ları al
+    // Get all alliances
     const alliances = await prisma.alliance.findMany({
       select: { id: true },
     });
 
-    console.log(`✓ ${alliances.length} alliance bulundu`);
+    console.log(`✓ Found ${alliances.length} alliances`);
 
     let processed = 0;
     let created = 0;
     let skipped = 0;
 
     for (const alliance of alliances) {
-      // Bu alliance için bugünün snapshot'ı var mı kontrol et
-      const existingSnapshot = await prisma.allianceSnapshot.findUnique({
+      // Check if snapshot for today already exists for this alliance
+      const existingSnapshot = await prisma.allianceSnapshot.findFirst({
         where: {
-          alliance_id_snapshot_date: {
-            alliance_id: alliance.id,
-            snapshot_date: today,
-          },
+          alliance_id: alliance.id,
+          snapshot_date: today,
         },
       });
 
@@ -50,7 +48,7 @@ async function takeAllianceSnapshots() {
         continue;
       }
 
-      // Mevcut değerleri hesapla
+      // Calculate current values
       const corporationCount = await prisma.corporation.count({
         where: { alliance_id: alliance.id },
       });
@@ -64,7 +62,7 @@ async function takeAllianceSnapshots() {
 
       const memberCount = memberResult._sum.member_count || 0;
 
-      // Snapshot oluştur
+      // Create snapshot
       await prisma.allianceSnapshot.create({
         data: {
           alliance_id: alliance.id,
@@ -77,35 +75,37 @@ async function takeAllianceSnapshots() {
       created++;
       processed++;
 
-      // Her 50 alliance'da bir progress göster
+      // Show progress every 50 alliances
       if (processed % 50 === 0) {
-        console.log(`  ⏳ İşlenen: ${processed}/${alliances.length} (${created} yeni, ${skipped} mevcut)`);
+        console.log(`  ⏳ Processed: ${processed}/${alliances.length} (${created} new, ${skipped} existing)`);
       }
     }
 
     const endTime = new Date();
     const duration = ((endTime.getTime() - startTime.getTime()) / 1000).toFixed(2);
 
-    console.log(`✅ Snapshot alma tamamlandı!`);
-    console.log(`   • Toplam işlenen: ${processed}`);
-    console.log(`   • Yeni snapshot: ${created}`);
-    console.log(`   • Zaten mevcut: ${skipped}`);
-    console.log(`   • Süre: ${duration} saniye`);
-    console.log(`   • Tarih: ${today.toISOString().split('T')[0]}`);
+    console.log(`✅ Snapshot creation completed!`);
+    console.log(`   • Total processed: ${processed}`);
+    console.log(`   • New snapshots: ${created}`);
+    console.log(`   • Already existing: ${skipped}`);
+    console.log(`   • Duration: ${duration} seconds`);
+    console.log(`   • Date: ${today.toISOString().split('T')[0]}`);
 
   } catch (error) {
-    console.error('❌ Snapshot alma hatası:', error);
+    console.error('❌ Snapshot creation error:', error);
     throw error;
   } finally {
     await prisma.$disconnect();
   }
-}// Worker'ı başlat
+}
+
+// Start worker
 takeAllianceSnapshots()
   .then(() => {
-    console.log('👋 Worker sonlandı');
+    console.log('👋 Worker terminated');
     process.exit(0);
   })
   .catch((error) => {
-    console.error('💥 Worker hatası:', error);
+    console.error('💥 Worker error:', error);
     process.exit(1);
   });
