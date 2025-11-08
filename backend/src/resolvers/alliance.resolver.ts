@@ -151,4 +151,107 @@ export const allianceFieldResolvers: AllianceResolvers = {
     });
     return result._sum.member_count || 0;
   },
+
+  metrics: async (parent) => {
+    const now = new Date();
+    const date7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const date30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    // Mevcut değerleri al - eğer parent'ta varsa kullan, yoksa hesapla
+    // Bu sayede aynı query'de hem memberCount hem metrics istenirse tek hesaplama yapılır
+    let currentMemberCount = (parent as any).memberCount;
+    let currentCorpCount = (parent as any).corporationCount;
+
+    if (!currentMemberCount || !currentCorpCount) {
+      // Parent'ta yoksa hesapla
+      const [corpCount, memberResult] = await Promise.all([
+        prisma.corporation.count({
+          where: { alliance_id: parent.id },
+        }),
+        prisma.corporation.aggregate({
+          where: { alliance_id: parent.id },
+          _sum: { member_count: true },
+        }),
+      ]);
+      currentCorpCount = corpCount;
+      currentMemberCount = memberResult._sum.member_count || 0;
+    }
+
+    // 7 gün önceki snapshot
+    const snapshot7d = await prisma.allianceSnapshot.findFirst({
+      where: {
+        alliance_id: parent.id,
+        snapshot_date: { lte: date7d },
+      },
+      orderBy: { snapshot_date: 'desc' },
+    });
+
+    // 30 gün önceki snapshot
+    const snapshot30d = await prisma.allianceSnapshot.findFirst({
+      where: {
+        alliance_id: parent.id,
+        snapshot_date: { lte: date30d },
+      },
+      orderBy: { snapshot_date: 'desc' },
+    });
+
+    // Delta hesaplamaları
+    const memberCountDelta7d = snapshot7d
+      ? currentMemberCount - snapshot7d.member_count
+      : null;
+    const memberCountDelta30d = snapshot30d
+      ? currentMemberCount - snapshot30d.member_count
+      : null;
+    const corporationCountDelta7d = snapshot7d
+      ? currentCorpCount - snapshot7d.corporation_count
+      : null;
+    const corporationCountDelta30d = snapshot30d
+      ? currentCorpCount - snapshot30d.corporation_count
+      : null;
+
+    // Growth rate hesaplamaları (yüzde)
+    const memberCountGrowthRate7d = snapshot7d && snapshot7d.member_count > 0
+      ? ((currentMemberCount - snapshot7d.member_count) / snapshot7d.member_count) * 100
+      : null;
+    const memberCountGrowthRate30d = snapshot30d && snapshot30d.member_count > 0
+      ? ((currentMemberCount - snapshot30d.member_count) / snapshot30d.member_count) * 100
+      : null;
+    const corporationCountGrowthRate7d = snapshot7d && snapshot7d.corporation_count > 0
+      ? ((currentCorpCount - snapshot7d.corporation_count) / snapshot7d.corporation_count) * 100
+      : null;
+    const corporationCountGrowthRate30d = snapshot30d && snapshot30d.corporation_count > 0
+      ? ((currentCorpCount - snapshot30d.corporation_count) / snapshot30d.corporation_count) * 100
+      : null;
+
+    return {
+      memberCountDelta7d,
+      memberCountDelta30d,
+      corporationCountDelta7d,
+      corporationCountDelta30d,
+      memberCountGrowthRate7d,
+      memberCountGrowthRate30d,
+      corporationCountGrowthRate7d,
+      corporationCountGrowthRate30d,
+    };
+  },
+
+  snapshots: async (parent, args) => {
+    const days = args.days ?? 30;
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+
+    const snapshots = await prisma.allianceSnapshot.findMany({
+      where: {
+        alliance_id: parent.id,
+        snapshot_date: { gte: since },
+      },
+      orderBy: { snapshot_date: 'asc' },
+    });
+
+    return snapshots.map(s => ({
+      date: s.snapshot_date.toISOString().split('T')[0], // YYYY-MM-DD formatında
+      memberCount: s.member_count,
+      corporationCount: s.corporation_count,
+    }));
+  },
 };

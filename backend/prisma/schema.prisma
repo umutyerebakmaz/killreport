@@ -21,8 +21,25 @@ model Alliance {
   updated_at DateTime @updatedAt
 
   corporations Corporation[]
+  snapshots    AllianceSnapshot[]
 
   @@map("alliances")
+}
+
+model AllianceSnapshot {
+  id                BigInt   @id @default(autoincrement())
+  alliance_id       Int
+  member_count      Int
+  corporation_count Int
+  snapshot_date     DateTime @db.Date
+  created_at        DateTime @default(now())
+
+  alliance Alliance @relation(fields: [alliance_id], references: [id], onDelete: Cascade)
+
+  @@unique([alliance_id, snapshot_date])
+  @@index([snapshot_date])
+  @@index([alliance_id])
+  @@map("alliance_snapshots")
 }
 
 model Corporation {
