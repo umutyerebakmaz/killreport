@@ -70,11 +70,11 @@ export default function AllianceFilters({
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className={`inline-flex items-center gap-x-1.5 px-3 py-2.5 text-sm font-semibold shadow-sm cursor-pointer ${
+          className={`inline-flex items-center gap-x-1.5 px-3.5 py-2.5 text-sm font-semibold text-white ring-1 ring-inset transition-colors cursor-pointer ${
             hasActiveFilters
-              ? "bg-indigo-600 text-white hover:bg-indigo-500"
-              : "bg-white/10 text-white hover:bg-white/20"
-          } transition-colors`}
+              ? "bg-indigo-600 ring-indigo-500/50 hover:bg-indigo-500"
+              : "bg-white/10 ring-white/5 hover:bg-white/20"
+          }`}
         >
           <FunnelIcon className="w-5 h-5" />
           Filters
