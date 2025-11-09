@@ -43,7 +43,7 @@ export default function Paginator({
         {/* First Page */}
         <Tooltip content="First Page">
           <button
-            className="p-2 text-gray-400 transition-colors cursor-pointer hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="p-2 text-gray-400 transition-colors cursor-pointer hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed focus:outline-none"
             onClick={onFirst}
             disabled={!hasPrevPage || loading}
             style={{ margin: 0 }}
@@ -55,7 +55,7 @@ export default function Paginator({
         {/* Previous Page */}
         <Tooltip content="Previous Page">
           <button
-            className="p-2 text-gray-400 transition-colors hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="p-2 text-gray-400 transition-colors hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed focus:outline-none"
             onClick={onPrev}
             disabled={!hasPrevPage || loading}
             style={{ margin: 0 }}
@@ -67,7 +67,7 @@ export default function Paginator({
         {/* Next Page */}
         <Tooltip content="Next Page">
           <button
-            className="p-2 text-gray-400 transition-colors cursor-pointer hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:text-gray-600"
+            className="p-2 text-gray-400 transition-colors cursor-pointer hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:text-gray-600 focus:outline-none"
             onClick={onNext}
             disabled={!hasNextPage || loading}
             style={{ margin: 0 }}
