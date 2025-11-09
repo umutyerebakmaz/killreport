@@ -13,6 +13,8 @@ type AddCharacterPayload {
 type Alliance {
   corporationCount: Int!
   corporations: [Corporation!]
+  createdBy: Character
+  createdByCorporation: Corporation
   creator_corporation_id: Int!
   creator_id: Int!
   date_founded: String!
