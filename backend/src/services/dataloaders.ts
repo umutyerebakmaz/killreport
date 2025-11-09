@@ -25,6 +25,29 @@ export const createAllianceLoader = () => {
 };
 
 /**
+ * Corporation DataLoader - Batch loading için
+ *
+ * Örnek: 10 alliance'ın executor corporation'ını çekiyoruz
+ * ❌ Önceki: 10 ayrı SELECT query
+ * ✅ DataLoader: 1 SELECT WHERE id IN (1,2,3...) query
+ */
+export const createCorporationLoader = () => {
+    return new DataLoader<number, any>(async (corporationIds) => {
+        console.log(`🔄 DataLoader: Batching ${corporationIds.length} corporation queries`);
+
+        const corporations = await prisma.corporation.findMany({
+            where: {
+                id: { in: [...corporationIds] },
+            },
+        });
+
+        // DataLoader expects results in same order as keys
+        const corporationMap = new Map(corporations.map(c => [c.id, c]));
+        return corporationIds.map(id => corporationMap.get(id) || null);
+    });
+};
+
+/**
  * Corporations by Alliance DataLoader
  *
  * Örnek: 5 alliance'ın corporation'larını çekiyoruz
@@ -63,6 +86,7 @@ export const createCorporationsByAllianceLoader = () => {
 export interface DataLoaderContext {
     loaders: {
         alliance: DataLoader<number, any>;
+        corporation: DataLoader<number, any>;
         corporationsByAlliance: DataLoader<number, any[]>;
     };
 }
@@ -70,6 +94,7 @@ export interface DataLoaderContext {
 export const createDataLoaders = (): DataLoaderContext => ({
     loaders: {
         alliance: createAllianceLoader(),
+        corporation: createCorporationLoader(),
         corporationsByAlliance: createCorporationsByAllianceLoader(),
     },
 });
