@@ -22,5 +22,6 @@ query Alliance($id: Int!) {
     }
     createdBy {
       name
+    }
   }
 }
