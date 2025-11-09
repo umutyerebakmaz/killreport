@@ -16,6 +16,7 @@ type Alliance {
   creator_corporation_id: Int!
   creator_id: Int!
   date_founded: String!
+  executor: Corporation
   executor_corporation_id: Int!
   faction_id: Int
   id: Int!

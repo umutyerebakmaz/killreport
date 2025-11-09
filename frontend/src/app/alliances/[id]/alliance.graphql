@@ -4,9 +4,20 @@ query Alliance($id: Int!) {
     name
     ticker
     date_founded
-    creator_corporation_id
-    creator_id
-    executor_corporation_id
-    faction_id
+    memberCount
+    corporationCount
+    metrics {
+      memberCountDelta7d
+      memberCountDelta30d
+      corporationCountDelta7d
+      corporationCountDelta30d
+      memberCountGrowthRate7d
+      memberCountGrowthRate30d
+    }
+    executor {
+      id
+      name
+      ticker
+    }
   }
 }
