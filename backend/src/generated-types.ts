@@ -33,6 +33,8 @@ export type Alliance = {
   __typename?: 'Alliance';
   corporationCount: Scalars['Int']['output'];
   corporations?: Maybe<Array<Corporation>>;
+  createdBy?: Maybe<Character>;
+  createdByCorporation?: Maybe<Corporation>;
   creator_corporation_id: Scalars['Int']['output'];
   creator_id: Scalars['Int']['output'];
   date_founded: Scalars['String']['output'];
@@ -637,6 +639,8 @@ export type AddCharacterPayloadResolvers<ContextType = any, ParentType extends R
 export type AllianceResolvers<ContextType = any, ParentType extends ResolversParentTypes['Alliance'] = ResolversParentTypes['Alliance']> = {
   corporationCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   corporations?: Resolver<Maybe<Array<ResolversTypes['Corporation']>>, ParentType, ContextType>;
+  createdBy?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
+  createdByCorporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType>;
   creator_corporation_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   creator_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   date_founded?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
