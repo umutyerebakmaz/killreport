@@ -40,7 +40,7 @@ async function queueAlliances() {
     }
 
     console.log(`\n✅ All ${allianceIds.length} alliances queued successfully!`);
-    console.log('💡 Now run the worker to process them: yarn worker\n');
+    console.log('💡 Now run the worker to process them: yarn worker:alliances\n');
 
     await channel.close();
     process.exit(0);
