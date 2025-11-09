@@ -5,6 +5,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "@heroicons/react/20/solid";
+import Tooltip from "../Tooltip/Tooltip";
 
 interface PaginatorProps {
   hasNextPage: boolean;
@@ -40,50 +41,53 @@ export default function Paginator({
       {/* Navigation Buttons */}
       <div className="flex items-center gap-0">
         {/* First Page */}
-        <button
-          className="p-2 text-gray-400 transition-colors hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed"
-          onClick={onFirst}
-          disabled={!hasPrevPage || loading}
-          title="İlk Sayfa"
-          style={{ margin: 0 }}
-        >
-          <ChevronDoubleLeftIcon className="w-5 h-5" />
-        </button>
+        <Tooltip content="First Page">
+          <button
+            className="p-2 text-gray-400 transition-colors cursor-pointer hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed"
+            onClick={onFirst}
+            disabled={!hasPrevPage || loading}
+            style={{ margin: 0 }}
+          >
+            <ChevronDoubleLeftIcon className="w-5 h-5" />
+          </button>
+        </Tooltip>
 
         {/* Previous Page */}
-        <button
-          className="p-2 text-gray-400 transition-colors hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed"
-          onClick={onPrev}
-          disabled={!hasPrevPage || loading}
-          title="Önceki Sayfa"
-          style={{ margin: 0 }}
-        >
-          <ChevronLeftIcon className="w-5 h-5" />
-        </button>
+        <Tooltip content="Previous Page">
+          <button
+            className="p-2 text-gray-400 transition-colors hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed"
+            onClick={onPrev}
+            disabled={!hasPrevPage || loading}
+            style={{ margin: 0 }}
+          >
+            <ChevronLeftIcon className="w-5 h-5" />
+          </button>
+        </Tooltip>
 
         {/* Next Page */}
-        <button
-          className="p-2 text-gray-400 transition-colors hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:text-gray-600"
-          onClick={onNext}
-          disabled={!hasNextPage || loading}
-          title="Sonraki Sayfa"
-          style={{ margin: 0 }}
-        >
-          <ChevronRightIcon className="w-5 h-5" />
-        </button>
+        <Tooltip content="Next Page">
+          <button
+            className="p-2 text-gray-400 transition-colors cursor-pointer hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:text-gray-600"
+            onClick={onNext}
+            disabled={!hasNextPage || loading}
+            style={{ margin: 0 }}
+          >
+            <ChevronRightIcon className="w-5 h-5" />
+          </button>
+        </Tooltip>
 
         {/* Last Page */}
-        <button
-          className="p-2 text-gray-400 transition-colors hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed"
-          onClick={onLast}
-          disabled={!hasNextPage || loading}
-          title="Son Sayfa"
-          style={{ margin: 0 }}
-        >
-          <ChevronDoubleRightIcon className="w-5 h-5" />
-        </button>
+        <Tooltip content="Last Page">
+          <button
+            className="p-2 text-gray-400 transition-colors cursor-pointer hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed"
+            onClick={onLast}
+            disabled={!hasNextPage || loading}
+            style={{ margin: 0 }}
+          >
+            <ChevronDoubleRightIcon className="w-5 h-5" />
+          </button>
+        </Tooltip>
       </div>
-
       {/* Page Info */}
       {currentPage && (
         <span className="px-4 py-2 text-sm font-medium text-gray-500 border bg-gray-900/50 border-gray-700/50">

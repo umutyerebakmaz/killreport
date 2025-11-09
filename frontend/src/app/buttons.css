@@ -1,0 +1,19 @@
+.secondary-button-xs {
+  @apply inline-flex bg-white/10 px-2 py-1 text-xs font-semibold text-white ring-1 ring-inset ring-white/5 hover:bg-white/20;
+}
+
+.secondary-button-sm {
+  @apply inline-flex bg-white/10 px-2 py-1 text-sm font-semibold text-white ring-1 ring-inset ring-white/5 hover:bg-white/20;
+}
+
+.secondary-button-md {
+  @apply inline-flex bg-white/10 px-2.5 py-1.5 text-sm font-semibold text-white ring-1 ring-inset ring-white/5 hover:bg-white/20;
+}
+
+.secondary-button-lg {
+  @apply inline-flex bg-white/10 px-3 py-2 text-sm font-semibold text-white ring-1 ring-inset ring-white/5 hover:bg-white/20;
+}
+
+.secondary-button-xl {
+  @apply inline-flex bg-white/10 px-3.5 py-2.5 text-sm font-semibold text-white ring-1 ring-inset ring-white/5 hover:bg-white/20;
+}
