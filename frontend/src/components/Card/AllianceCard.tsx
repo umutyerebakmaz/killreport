@@ -43,7 +43,7 @@ export default function AllianceCard({ alliance }: AllianceCardProps) {
       : "No data available";
 
   return (
-    <div className="bg-neutral-900 outline-1 -outline-offset-1 outline-white/10">
+    <div className="alliance-card">
       <div className="px-4 py-5 sm:p-6">
         <div className="flex flex-col items-center gap-4">
           <div className="relative w-24 h-24">
@@ -74,6 +74,7 @@ export default function AllianceCard({ alliance }: AllianceCardProps) {
           </Link>
 
           <div className="flex items-center justify-between w-full gap-4 pt-3 border-t border-white/10">
+            {/*  member count */}
             <Tooltip content="Total Members" position="top">
               <div className="flex items-center gap-2">
                 <UsersIcon className="w-5 h-5 text-blue-400" />
@@ -82,6 +83,7 @@ export default function AllianceCard({ alliance }: AllianceCardProps) {
                 </span>
               </div>
             </Tooltip>
+            {/* corporation count */}
             <Tooltip content="Total Corporations" position="top">
               <div className="flex items-center gap-2">
                 <StarIcon className="w-5 h-5 text-yellow-500" />
@@ -90,6 +92,7 @@ export default function AllianceCard({ alliance }: AllianceCardProps) {
                 </span>
               </div>
             </Tooltip>
+            {/* member delta 30d */}
             <Tooltip content={tooltipContent} position="top">
               <div className="flex items-center gap-2">
                 <ArrowTrendingUpIcon
