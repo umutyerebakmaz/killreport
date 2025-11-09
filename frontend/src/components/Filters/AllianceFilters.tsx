@@ -56,7 +56,7 @@ export default function AllianceFilters({
             placeholder="Search alliances..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="block w-full border-0 bg-white/5 py-2.5 pl-10 pr-3 text-white placeholder:text-gray-400 focus:bg-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
+            className="block w-full border-0 bg-white/5 py-2.5 pl-10 pr-3 text-white placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm sm:leading-6"
           />
         </div>
 
@@ -120,7 +120,7 @@ export default function AllianceFilters({
                 placeholder="e.g., Goonswarm Federation"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="block w-full px-3 py-2 text-white border-0 bg-white/5 placeholder:text-gray-400 focus:bg-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
+                className="block w-full px-3 py-2 text-white border-0 bg-white/5 placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm sm:leading-6"
               />
             </div>
 
@@ -138,7 +138,7 @@ export default function AllianceFilters({
                 placeholder="e.g., CONDI"
                 value={ticker}
                 onChange={(e) => setTicker(e.target.value)}
-                className="block w-full px-3 py-2 text-white border-0 bg-white/5 placeholder:text-gray-400 focus:bg-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
+                className="block w-full px-3 py-2 text-white border-0 bg-white/5 placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm sm:leading-6"
               />
             </div>
           </div>
