@@ -13,13 +13,13 @@ interface AllianceDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-type TabType = "description" | "attributes" | "war-history" | "members";
+type TabType = "attributes" | "war-history" | "members";
 
 export default function AllianceDetailPage({
   params,
 }: AllianceDetailPageProps) {
   const { id } = use(params);
-  const [activeTab, setActiveTab] = useState<TabType>("description");
+  const [activeTab, setActiveTab] = useState<TabType>("attributes");
 
   const { data, loading, error } = useAllianceQuery({
     variables: { id: parseInt(id) },
@@ -94,8 +94,7 @@ export default function AllianceDetailPage({
               className="shadow-md"
             />
             <div className="flex-1">
-              <h1 className="mb-2 text-4xl font-bold">{alliance.name}</h1>
-              <p className="text-xl text-gray-400">[{alliance.ticker}]</p>
+              <h1 className="text-4xl font-bold">{alliance.name}</h1>
             </div>
           </div>
 
@@ -172,8 +171,10 @@ export default function AllianceDetailPage({
               <h2 className="mb-4 text-2xl font-bold">Attributes</h2>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <span className="text-gray-400">Alliance ID</span>
-                  <span className="ml-2 font-semibold">{alliance.id}</span>
+                  <span className="text-gray-400">Executor</span>
+                  <span className="ml-2 font-semibold">
+                    {alliance.executor?.name}
+                  </span>
                 </div>
                 <div>
                   <span className="text-gray-400">Short Name</span>
@@ -181,11 +182,13 @@ export default function AllianceDetailPage({
                 </div>
                 <div>
                   <span className="text-gray-400">Created By Corporation</span>
-                  <span className="ml-2 font-semibold">{alliance.ticker}</span>
+                  <span className="ml-2 font-semibold">
+                    {alliance.createdByCorporation?.name}
+                  </span>
                 </div>
                 <div>
                   <span className="text-gray-400">Created By</span>
-                  <span className="ml-2 font-semibold">{alliance.ticker}</span>
+                  <span className="ml-2 font-semibold">-</span>
                 </div>
                 <div>
                   <span className="text-gray-400">Start Date:</span>

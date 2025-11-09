@@ -7,6 +7,8 @@ type Alliance {
   creator_id: Int!
   executor_corporation_id: Int!
   executor: Corporation
+  createdByCorporation: Corporation
+  createdBy: Character
   faction_id: Int
   corporations: [Corporation!]
   corporationCount: Int!
