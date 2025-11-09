@@ -36,6 +36,7 @@ export type Alliance = {
   creator_corporation_id: Scalars['Int']['output'];
   creator_id: Scalars['Int']['output'];
   date_founded: Scalars['String']['output'];
+  executor?: Maybe<Corporation>;
   executor_corporation_id: Scalars['Int']['output'];
   faction_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
@@ -639,6 +640,7 @@ export type AllianceResolvers<ContextType = any, ParentType extends ResolversPar
   creator_corporation_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   creator_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   date_founded?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  executor?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType>;
   executor_corporation_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   faction_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
