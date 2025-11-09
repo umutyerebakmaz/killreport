@@ -34,6 +34,7 @@ export type Alliance = {
   __typename?: 'Alliance';
   corporationCount: Scalars['Int']['output'];
   corporations?: Maybe<Array<Corporation>>;
+  createdByCorporation?: Maybe<Corporation>;
   creator_corporation_id: Scalars['Int']['output'];
   creator_id: Scalars['Int']['output'];
   date_founded: Scalars['String']['output'];
@@ -474,7 +475,7 @@ export type AllianceQueryVariables = Exact<{
 }>;
 
 
-export type AllianceQuery = { __typename?: 'Query', alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, memberCount: number, corporationCount: number, metrics?: { __typename?: 'AllianceMetrics', memberCountDelta7d?: number | null, memberCountDelta30d?: number | null, corporationCountDelta7d?: number | null, corporationCountDelta30d?: number | null, memberCountGrowthRate7d?: number | null, memberCountGrowthRate30d?: number | null } | null, executor?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null } | null };
+export type AllianceQuery = { __typename?: 'Query', alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, memberCount: number, corporationCount: number, metrics?: { __typename?: 'AllianceMetrics', memberCountDelta7d?: number | null, memberCountDelta30d?: number | null, corporationCountDelta7d?: number | null, corporationCountDelta30d?: number | null, memberCountGrowthRate7d?: number | null, memberCountGrowthRate30d?: number | null } | null, executor?: { __typename?: 'Corporation', name: string } | null, createdByCorporation?: { __typename?: 'Corporation', name: string } | null } | null };
 
 export type AlliancesQueryVariables = Exact<{
   filter?: InputMaybe<AllianceFilter>;
@@ -509,9 +510,10 @@ export const AllianceDocument = gql`
       memberCountGrowthRate30d
     }
     executor {
-      id
       name
-      ticker
+    }
+    createdByCorporation {
+      name
     }
   }
 }
