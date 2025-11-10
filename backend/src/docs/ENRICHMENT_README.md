@@ -192,8 +192,8 @@ Example output:
 
 ## Queue Information
 
-| Queue Name                     | Worker Script                       | Concurrency | Progress Interval |
-| ------------------------------ | ----------------------------------- | ----------- | ----------------- |
+| Queue Name                   | Worker Script                 | Concurrency | Progress Interval |
+| ---------------------------- | ----------------------------- | ----------- | ----------------- |
 | `esi_character_info_queue`   | `worker-info-characters.ts`   | 10          | Every 50          |
 | `esi_corporation_info_queue` | `worker-info-corporations.ts` | 5           | Every 50          |
 | `esi_alliance_info_queue`    | `worker-info-alliances.ts`    | 3           | Every 20          |
