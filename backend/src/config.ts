@@ -13,7 +13,7 @@ export const config = {
   },
   rabbitmq: {
     url: process.env.RABBITMQ_URL || 'amqp://localhost',
-    queue: 'alliance_sync_queue',
+    queue: 'alliance_queue',
   },
   eveSso: {
     clientId: process.env.EVE_CLIENT_ID!,

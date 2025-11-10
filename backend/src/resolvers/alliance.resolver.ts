@@ -85,7 +85,7 @@ export const allianceMutations: MutationResolvers = {
       console.log(`✓ Found ${allianceIds.length} alliances`);
       console.log(`📤 Publishing to queue...`);            // RabbitMQ'ya ekle
       const channel = await getRabbitMQChannel();
-      const QUEUE_NAME = 'alliance_sync_queue';
+      const QUEUE_NAME = 'alliance_queue';
 
       let publishedCount = 0;
       for (const id of allianceIds) {

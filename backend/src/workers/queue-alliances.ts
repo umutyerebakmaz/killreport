@@ -3,7 +3,7 @@ import '../config';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
 const ESI_BASE_URL = 'https://esi.evetech.net/latest';
-const QUEUE_NAME = 'alliance_sync_queue';
+const QUEUE_NAME = 'alliance_queue';
 const BATCH_SIZE = 100;
 
 /**

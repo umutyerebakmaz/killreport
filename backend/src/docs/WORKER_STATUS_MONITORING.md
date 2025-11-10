@@ -44,7 +44,7 @@ query GetWorkerStatus {
           "active": true
         },
         {
-          "name": "alliance_sync_queue",
+          "name": "alliance_queue",
           "messageCount": 0,
           "consumerCount": 0,
           "active": false
@@ -189,7 +189,7 @@ function WorkerMonitor() {
 | Queue Name               | Purpose                  | Worker Command             |
 | ------------------------ | ------------------------ | -------------------------- |
 | `killmail_sync_queue`    | zKillboard killmail sync | `yarn worker:zkillboard`   |
-| `alliance_sync_queue`    | Alliance data sync       | `yarn worker:alliances`    |
+| `alliance_queue`         | Alliance data sync       | `yarn worker:alliances`    |
 | `corporation_sync_queue` | Corporation data sync    | `yarn worker:corporations` |
 
 ## Monitoring Dashboard Ideas
