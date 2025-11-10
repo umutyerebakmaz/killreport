@@ -43,7 +43,7 @@ This command:
 
 While the worker is running, you'll see in the console:
 
-```
+```terminal
 ✅ Saved alliance 1234567 - Test Alliance
 ⏭️  Alliance 7654321 already exists, skipping...
 📥 Processing alliance 9999999...
@@ -59,7 +59,7 @@ Opens `http://localhost:5555` in your browser so you can view your tables.
 
 ## 📊 Workflow
 
-```
+```terminal
 ESI API → queue-alliances.ts → RabbitMQ Queue
                                      ↓
                             worker-alliances.ts
