@@ -103,14 +103,23 @@ yarn dev:frontend # Terminal 2 - Starts on http://localhost:3000
 # Start workers in separate terminals
 cd backend
 
-# Worker for processing killmail sync jobs
-yarn worker:zkillboard
+# Enrichment Workers (add missing entity data)
+yarn scan:entities              # Scan killmails for missing entities
+yarn worker:info:alliances      # Process alliance info (3 concurrent)
+yarn worker:info:corporations   # Process corporation info (5 concurrent)
+yarn worker:info:characters     # Process character info (10 concurrent)
+yarn worker:info:types          # Process type/ship info (10 concurrent)
 
-# Queue jobs for authenticated users
-yarn queue:zkillboard
+# Killmail Sync Workers
+yarn worker:zkillboard          # Process zKillboard sync jobs (2 concurrent)
 
-# Sync specific character killmails (direct)
-yarn sync:character
+# Bulk Sync Workers
+yarn worker:alliances           # Bulk alliance sync (1 concurrent)
+yarn worker:corporations        # Bulk corporation sync (1 concurrent)
+yarn worker:alliance-corporations # Alliance corporations (5 concurrent)
+
+# Direct character sync (no queue)
+yarn sync:character 95465499 50 # Sync specific character (50 pages)
 ```
 
 ---
@@ -127,20 +136,21 @@ yarn sync:character
 
 #### Architecture & Design
 
-- **[Modular Architecture](./backend/MODULAR_ARCHITECTURE.md)** - GraphQL resolver and schema organization
 - **[Database Schema](./backend/prisma/schema.prisma)** - Prisma data models and relations
+- **[GraphQL Schema](./backend/src/generated-schema.graphql)** - Auto-generated GraphQL schema
 
 #### Workers & Background Jobs
 
-- **[Character Killmail Worker](./backend/CHARACTER_KILLMAIL_WORKER.md)** - Sync killmails for any character
-- **[Killmail Worker System](./backend/KILLMAIL_WORKER_README.md)** - RabbitMQ-based background processing
-- **[Alliance Workflow](./backend/ALLIANCE_WORKFLOW.md)** - Alliance data synchronization
-- **[Worker Status Monitoring](./backend/WORKER_STATUS_MONITORING.md)** - Real-time worker health checks
+- **[Complete Workers Documentation](./backend/src/docs/WORKERS_DOCUMENTATION.md)** - All workers and queues
+- **[Character Killmail Worker](./backend/src/docs/CHARACTER_KILLMAIL_WORKER.md)** - Sync killmails for any character
+- **[Killmail Enrichment](./backend/src/docs/ENRICHMENT_README.md)** - Auto-populate missing entity data
+- **[Worker Status Monitoring](./backend/src/docs/WORKER_STATUS_MONITORING.md)** - Real-time worker health checks
+- **[Queue Naming Standards](./backend/src/docs/QUEUE_NAMING_CHANGES.md)** - Queue naming conventions
 
 #### Quick References
 
-- **[Character Sync Quick Reference](./backend/CHARACTER_SYNC_QUICKREF.md)** - Quick commands for character sync
-- **[EVE SSO Documentation](./backend/EVE_SSO_README.md)** - Deep dive into SSO integration
+- **[Character Sync Quick Reference](./backend/src/docs/CHARACTER_SYNC_QUICKREF.md)** - Quick commands for character sync
+- **[EVE SSO Documentation](./backend/src/docs/EVE_SSO_README.md)** - Deep dive into SSO integration
 
 ---
 
