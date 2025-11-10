@@ -5,7 +5,7 @@ import { getRabbitMQChannel } from '../services/rabbitmq';
 import { getCharacterKillmailsFromZKill } from '../services/zkillboard';
 
 const QUEUE_NAME = 'zkillboard_character_queue';
-const PREFETCH_COUNT = 2; // Process 2 users at a time (rate limit consideration)
+const PREFETCH_COUNT = 1; // Process 1 user at a time (strict zKillboard rate limit: 10s between same endpoint)
 const MAX_PAGES = 100; // Fetch up to 100 pages from zKillboard (20,000 killmails max) - Set to 999 for ALL history
 
 interface QueueMessage {
