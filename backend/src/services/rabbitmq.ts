@@ -91,7 +91,7 @@ export async function getAllQueueStats(): Promise<Array<{
 }>> {
   const queues = [
     'killmail_sync_queue',
-    'alliance_sync_queue',
+    'alliance_queue',
     // 'corporation_sync_queue', // TODO: Create this queue first
   ];
 
