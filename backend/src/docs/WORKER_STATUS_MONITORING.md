@@ -38,19 +38,19 @@ query GetWorkerStatus {
       "healthy": true,
       "queues": [
         {
-          "name": "killmail_sync_queue",
+          "name": "zkillboard_character_queue",
           "messageCount": 5,
           "consumerCount": 1,
           "active": true
         },
         {
-          "name": "alliance_queue",
+          "name": "esi_alliance_sync_queue",
           "messageCount": 0,
           "consumerCount": 0,
           "active": false
         },
         {
-          "name": "corporation_sync_queue",
+          "name": "esi_corporation_sync_queue",
           "messageCount": 0,
           "consumerCount": 0,
           "active": false
@@ -186,11 +186,11 @@ function WorkerMonitor() {
 
 ## Queue Names
 
-| Queue Name               | Purpose                  | Worker Command             |
-| ------------------------ | ------------------------ | -------------------------- |
-| `killmail_sync_queue`    | zKillboard killmail sync | `yarn worker:zkillboard`   |
-| `alliance_queue`         | Alliance data sync       | `yarn worker:alliances`    |
-| `corporation_sync_queue` | Corporation data sync    | `yarn worker:corporations` |
+| Queue Name                   | Purpose                  | Worker Command             |
+| ---------------------------- | ------------------------ | -------------------------- |
+| `zkillboard_character_queue` | zKillboard killmail sync | `yarn worker:zkillboard`   |
+| `esi_alliance_sync_queue`             | Alliance data sync       | `yarn worker:alliances`    |
+| `esi_corporation_sync_queue`     | Corporation data sync    | `yarn worker:corporations` |
 
 ## Monitoring Dashboard Ideas
 

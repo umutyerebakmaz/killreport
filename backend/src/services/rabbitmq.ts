@@ -90,9 +90,14 @@ export async function getAllQueueStats(): Promise<Array<{
   active: boolean;
 }>> {
   const queues = [
-    'killmail_sync_queue',
-    'alliance_queue',
-    // 'corporation_sync_queue', // TODO: Create this queue first
+    'esi_alliance_enrichment_queue',
+    'esi_character_enrichment_queue',
+    'esi_corporation_enrichment_queue',
+    'esi_type_enrichment_queue',
+    'esi_alliance_corporations_queue',
+    'esi_alliance_sync_queue',
+    'esi_corporation_sync_queue',
+    'zkillboard_character_queue',
   ];
 
   const results: Array<{

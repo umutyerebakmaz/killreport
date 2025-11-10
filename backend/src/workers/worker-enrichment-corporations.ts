@@ -8,7 +8,7 @@ import { getCorporationInfo } from '../services/eve-esi';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
-const QUEUE_NAME = 'corporation_enrichment_queue';
+const QUEUE_NAME = 'esi_corporation_enrichment_queue';
 const PREFETCH_COUNT = 5; // Process 5 corporations concurrently
 
 interface EntityQueueMessage {

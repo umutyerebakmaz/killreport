@@ -4,7 +4,7 @@ import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
 const ESI_BASE_URL = 'https://esi.evetech.net/latest';
-const QUEUE_NAME = 'alliance_queue';
+const QUEUE_NAME = 'esi_alliance_sync_queue';
 const RATE_LIMIT_DELAY = 100; // Wait 100ms between each request (10 requests per second)
 
 /**
