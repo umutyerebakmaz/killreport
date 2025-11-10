@@ -8,7 +8,7 @@ When a new killmail is added to the database, information about **characters**, 
 
 ### Microservice Approach
 
-The enrichment system uses 4 specialized workers for maximum scalability:
+The info fetch system uses 4 specialized workers for maximum scalability:
 
 ```
 ┌─────────────────┐
@@ -22,10 +22,10 @@ The enrichment system uses 4 specialized workers for maximum scalability:
 │  (scan-killmail-entities)   │
 └─────────┬───────────────────┘
           │
-          ├──► esi_character_enrichment_queue ──► Worker (10 concurrent)
-          ├──► esi_corporation_enrichment_queue ──► Worker (5 concurrent)
-          ├──► esi_alliance_enrichment_queue ──► Worker (3 concurrent)
-          └──► esi_type_enrichment_queue ──► Worker (10 concurrent)
+          ├──► esi_character_info_queue ──► Worker (10 concurrent)
+          ├──► esi_corporation_info_queue ──► Worker (5 concurrent)
+          ├──► esi_alliance_info_queue ──► Worker (3 concurrent)
+          └──► esi_type_info_queue ──► Worker (10 concurrent)
 ```
 
 ### How It Works
@@ -90,20 +90,20 @@ This will:
 
 ### Step 2: Start Specialized Workers
 
-Start all 4 enrichment workers (each in a separate terminal):
+Start all 4 info workers (each in a separate terminal):
 
 ```bash
 # Terminal 1: Character enrichment (10 concurrent)
-yarn worker:enrichment:characters
+yarn worker:info:characters
 
 # Terminal 2: Corporation enrichment (5 concurrent)
-yarn worker:enrichment:corporations
+yarn worker:info:corporations
 
 # Terminal 3: Alliance enrichment (3 concurrent)
-yarn worker:enrichment:alliances
+yarn worker:info:alliances
 
 # Terminal 4: Type enrichment (10 concurrent)
-yarn worker:enrichment:types
+yarn worker:info:types
 ```
 
 Each worker will:
@@ -122,17 +122,17 @@ You can scale each worker independently based on load:
 
 ```bash
 # Run 3 instances of character worker
-yarn worker:enrichment:characters &
-yarn worker:enrichment:characters &
-yarn worker:enrichment:characters &
+yarn worker:info:characters &
+yarn worker:info:characters &
+yarn worker:info:characters &
 
 # Run 2 instances of corporation worker
-yarn worker:enrichment:corporations &
-yarn worker:enrichment:corporations &
+yarn worker:info:corporations &
+yarn worker:info:corporations &
 
 # Single instance for others (lower load)
-yarn worker:enrichment:alliances &
-yarn worker:enrichment:types &
+yarn worker:info:alliances &
+yarn worker:info:types &
 ```
 
 ### Legacy: Single Killmail Enrichment
@@ -184,7 +184,7 @@ Each worker logs progress at different intervals:
 Example output:
 
 ```
-🚀 Character Enrichment Worker started
+🚀 Character Info Worker started
 📦 Waiting for character IDs to enrich...
 ✅ Character Enrichment: Processed 50 (Added: 48, Skipped: 2, Errors: 0)
 ✅ Character Enrichment: Processed 100 (Added: 95, Skipped: 5, Errors: 0)
@@ -194,10 +194,10 @@ Example output:
 
 | Queue Name                     | Worker Script                       | Concurrency | Progress Interval |
 | ------------------------------ | ----------------------------------- | ----------- | ----------------- |
-| `esi_character_enrichment_queue`   | `worker-enrichment-characters.ts`   | 10          | Every 50          |
-| `esi_corporation_enrichment_queue` | `worker-enrichment-corporations.ts` | 5           | Every 50          |
-| `esi_alliance_enrichment_queue`    | `worker-enrichment-alliances.ts`    | 3           | Every 20          |
-| `esi_type_enrichment_queue`        | `worker-enrichment-types.ts`        | 10          | Every 100         |
+| `esi_character_info_queue`   | `worker-info-characters.ts`   | 10          | Every 50          |
+| `esi_corporation_info_queue` | `worker-info-corporations.ts` | 5           | Every 50          |
+| `esi_alliance_info_queue`    | `worker-info-alliances.ts`    | 3           | Every 20          |
+| `esi_type_info_queue`        | `worker-info-types.ts`        | 10          | Every 100         |
 
 ## Future Improvements (Optional)
 
@@ -208,7 +208,7 @@ Example output:
 
 ## Error Handling
 
-The enrichment system gracefully handles common errors:
+The info fetch system gracefully handles common errors:
 
 - **404 errors**: Silently skipped (deleted/invalid characters, corporations, alliances, or types)
 - **NPC filtering**: Automatically filters NPC characters and corporations

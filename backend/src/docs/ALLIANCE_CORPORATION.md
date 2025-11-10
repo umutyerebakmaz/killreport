@@ -33,12 +33,12 @@ This workflow automatically discovers and adds all corporations belonging to all
              │
              ▼
 ┌─────────────────────────────┐
-│ esi_corporation_enrichment_queue│ RabbitMQ Queue
+│ esi_corporation_info_queue│ RabbitMQ Queue
 └────────────┬────────────────┘
              │
              ▼
 ┌─────────────────────────────┐
-│ worker-enrichment-          │ Worker (yarn worker:enrichment:corporations)
+│ worker-info-          │ Worker (yarn worker:info:corporations)
 │    corporations             │
 │ Fetches corp details from   │
 │ ESI and saves to database   │
@@ -89,7 +89,7 @@ yarn queue:alliance-corporations
 
 💡 Next Steps:
    1. Start worker: yarn worker:alliance-corporations
-   2. Start enrichment: yarn worker:enrichment:corporations
+   2. Start enrichment: yarn worker:info:corporations
 ```
 
 ### Step 2: Start Alliance Corporation Worker
@@ -105,7 +105,7 @@ yarn worker:alliance-corporations
 
 - Consumes alliance IDs from `esi_alliance_corporations_queue`
 - Fetches corporation IDs from ESI for each alliance
-- Queues each corporation ID to `esi_corporation_enrichment_queue`
+- Queues each corporation ID to `esi_corporation_info_queue`
 - Processes 5 alliances concurrently (PREFETCH_COUNT=5)
 
 **Example Output:**
@@ -113,7 +113,7 @@ yarn worker:alliance-corporations
 ```terminal
 🤝 Alliance Corporation Worker Started
 📦 Input Queue: esi_alliance_corporations_queue
-📦 Output Queue: esi_corporation_enrichment_queue
+📦 Output Queue: esi_corporation_info_queue
 ⚡ Prefetch: 5 concurrent
 
 ✅ Connected to RabbitMQ
@@ -125,18 +125,18 @@ yarn worker:alliance-corporations
   ...
 ```
 
-### Step 3: Start Corporation Enrichment Worker
+### Step 3: Start Corporation Info Worker
 
 **Open a new terminal:**
 
 ```bash
 cd backend
-yarn worker:enrichment:corporations
+yarn worker:info:corporations
 ```
 
 **What it does:**
 
-- Consumes corporation IDs from `esi_corporation_enrichment_queue`
+- Consumes corporation IDs from `esi_corporation_info_queue`
 - Fetches detailed information from ESI for each corporation
 - Saves to database (skips if already exists)
 - Processes 5 corporations concurrently (PREFETCH_COUNT=5)
@@ -144,8 +144,8 @@ yarn worker:enrichment:corporations
 **Example Output:**
 
 ```terminal
-🏢 Corporation Enrichment Worker Started
-📦 Queue: esi_corporation_enrichment_queue
+🏢 Corporation Info Worker Started
+📦 Queue: esi_corporation_info_queue
 ⚡ Prefetch: 5 concurrent
 
 ✅ Connected to RabbitMQ
@@ -186,7 +186,7 @@ yarn worker:enrichment:corporations
 | Queue Name                     | Purpose                                |
 | ------------------------------ | -------------------------------------- |
 | `esi_alliance_corporations_queue`   | Holds alliance IDs                     |
-| `esi_corporation_enrichment_queue` | Holds corporation IDs (for enrichment) |
+| `esi_corporation_info_queue` | Holds corporation IDs (for enrichment) |
 
 ### Message Format
 
@@ -202,7 +202,7 @@ interface EntityQueueMessage {
 
 - **queue-alliance-corporations**: Batch size 100
 - **worker-alliance-corporations**: 5 concurrent (PREFETCH_COUNT=5)
-- **worker-enrichment-corporations**: 5 concurrent (PREFETCH_COUNT=5)
+- **worker-info-corporations**: 5 concurrent (PREFETCH_COUNT=5)
 
 ### Rate Limiting
 
@@ -260,7 +260,7 @@ yarn worker:alliance-corporations
 
 # Terminal 3: Start corporation enrichment worker
 cd backend
-yarn worker:enrichment:corporations
+yarn worker:info:corporations
 # This worker fetches corporation details and saves to database
 
 # Result: All corporations belonging to alliances are in the database
@@ -309,10 +309,10 @@ yarn worker:alliance-corporations
 yarn worker:alliance-corporations
 
 # Terminal 3
-yarn worker:enrichment:corporations
+yarn worker:info:corporations
 
 # Terminal 4
-yarn worker:enrichment:corporations
+yarn worker:info:corporations
 ```
 
 **WARNING:** Monitor total PREFETCH count to avoid exceeding ESI rate limits!
@@ -324,7 +324,7 @@ yarn worker:enrichment:corporations
 ```bash
 # First fetch alliances:
 yarn queue:alliances
-yarn worker:enrichment:alliances
+yarn worker:info:alliances
 ```
 
 ### RabbitMQ Connection Error
