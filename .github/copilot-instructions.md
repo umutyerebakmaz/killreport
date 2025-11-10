@@ -56,13 +56,21 @@ yarn prisma:studio       # GUI for data inspection
 
 **Pattern**: Each queue has dedicated worker. Never mix concerns.
 
-**Queue Names** (hardcoded in workers):
+**Queue Names** (hardcoded in workers with source prefix):
 
-- `alliance_enrichment_queue` → `worker:enrichment:alliances` (3 concurrent)
-- `character_enrichment_queue` → `worker:enrichment:characters` (10 concurrent)
-- `corporation_enrichment_queue` → `worker:enrichment:corporations` (5 concurrent)
-- `type_enrichment_queue` → `worker:enrichment:types` (10 concurrent)
-- `killmail_sync_queue` → `worker:zkillboard`
+**ESI Queues** (EVE ESI API):
+
+- `esi_alliance_enrichment_queue` → `worker:enrichment:alliances` (3 concurrent)
+- `esi_character_enrichment_queue` → `worker:enrichment:characters` (10 concurrent)
+- `esi_corporation_enrichment_queue` → `worker:enrichment:corporations` (5 concurrent)
+- `esi_type_enrichment_queue` → `worker:enrichment:types` (10 concurrent)
+- `esi_alliance_sync_queue` → `worker:alliances`
+- `esi_corporation_sync_queue` → `worker:corporations`
+- `esi_alliance_corporations_queue` → `worker:alliance-corporations`
+
+**zKillboard Queues**:
+
+- `zkillboard_character_queue` → `worker:zkillboard`
 
 **Workflow**:
 

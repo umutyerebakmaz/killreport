@@ -22,10 +22,10 @@ The enrichment system uses 4 specialized workers for maximum scalability:
 │  (scan-killmail-entities)   │
 └─────────┬───────────────────┘
           │
-          ├──► character_enrichment_queue ──► Worker (10 concurrent)
-          ├──► corporation_enrichment_queue ──► Worker (5 concurrent)
-          ├──► alliance_enrichment_queue ──► Worker (3 concurrent)
-          └──► type_enrichment_queue ──► Worker (10 concurrent)
+          ├──► esi_character_enrichment_queue ──► Worker (10 concurrent)
+          ├──► esi_corporation_enrichment_queue ──► Worker (5 concurrent)
+          ├──► esi_alliance_enrichment_queue ──► Worker (3 concurrent)
+          └──► esi_type_enrichment_queue ──► Worker (10 concurrent)
 ```
 
 ### How It Works
@@ -194,10 +194,10 @@ Example output:
 
 | Queue Name                     | Worker Script                       | Concurrency | Progress Interval |
 | ------------------------------ | ----------------------------------- | ----------- | ----------------- |
-| `character_enrichment_queue`   | `worker-enrichment-characters.ts`   | 10          | Every 50          |
-| `corporation_enrichment_queue` | `worker-enrichment-corporations.ts` | 5           | Every 50          |
-| `alliance_enrichment_queue`    | `worker-enrichment-alliances.ts`    | 3           | Every 20          |
-| `type_enrichment_queue`        | `worker-enrichment-types.ts`        | 10          | Every 100         |
+| `esi_character_enrichment_queue`   | `worker-enrichment-characters.ts`   | 10          | Every 50          |
+| `esi_corporation_enrichment_queue` | `worker-enrichment-corporations.ts` | 5           | Every 50          |
+| `esi_alliance_enrichment_queue`    | `worker-enrichment-alliances.ts`    | 3           | Every 20          |
+| `esi_type_enrichment_queue`        | `worker-enrichment-types.ts`        | 10          | Every 100         |
 
 ## Future Improvements (Optional)
 
