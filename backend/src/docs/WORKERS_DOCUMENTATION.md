@@ -14,6 +14,67 @@ KillReport kullanır bir dağıtılmış worker sistemi RabbitMQ tabanlı. Her w
 
 Kuyruktan gelen mesajları sürekli olarak dinleyen ve işleyen servisler. Arka planda sürekli çalışır.
 
+## ⚠️ Önemli: Bulk Sync vs Enrichment Worker Farkları
+
+Proje içinde **2 farklı worker tipi** bulunur ve farklı amaçlar için kullanılır:
+
+### Bulk Sync Workers (Toplu Senkronizasyon)
+
+**Alliance Bulk Worker** - `worker-alliances.ts`:
+
+- **Amaç**: İlk kurulumda TÜM EVE alliance'larını toplu olarak çekmek
+- **Queue**: `esi_all_alliances_queue`
+- **Kullanım**: `yarn worker:alliances`
+- **Özellikler**:
+  - Tek seferde 1 mesaj işler (sıralı)
+  - Mevcut kayıtları da günceller (update + create)
+  - Manuel rate limiting (100ms, 10 req/sec)
+  - Manuel axios çağrıları
+  - Daha yavaş ama kapsamlı
+
+**Corporation Bulk Worker** - `worker-corporations.ts`:
+
+- **Amaç**: İlk kurulumda TÜM EVE corporation'larını toplu olarak çekmek
+- **Queue**: `esi_all_corporations_queue`
+- **Kullanım**: `yarn worker:corporations`
+- **Özellikler**:
+  - Tek seferde 1 mesaj işler (sıralı)
+  - Mevcut kayıtları da günceller (update + create)
+  - Manuel rate limiting (100ms, 10 req/sec)
+  - Manuel axios çağrıları
+  - Daha yavaş ama kapsamlı
+
+### Info Workers (Enrichment - Otomatik Tamamlama)
+
+**Alliance Info Worker** - `worker-info-alliances.ts`:
+
+- **Amaç**: Killmail'lerden gelen eksik alliance bilgilerini otomatik doldurmak
+- **Queue**: `esi_alliance_info_queue`
+- **Kullanım**: `yarn worker:info:alliances`
+- **Özellikler**:
+  - 3 mesaj paralel işler (concurrent)
+  - Sadece yeni kayıt ekler (update yapmaz)
+  - Merkezi rate limiter (50 req/sec)
+  - Servis abstraction (`getAllianceInfo()`)
+  - Daha hızlı ve verimli
+
+**Corporation Info Worker** - `worker-info-corporations.ts`:
+
+- **Amaç**: Killmail'lerden gelen eksik corporation bilgilerini otomatik doldurmak
+- **Queue**: `esi_corporation_info_queue`
+- **Kullanım**: `yarn worker:info:corporations`
+- **Özellikler**:
+  - 5 mesaj paralel işler (concurrent)
+  - Sadece yeni kayıt ekler (update yapmaz)
+  - Merkezi rate limiter (50 req/sec)
+  - Servis abstraction (`getCorporationInfo()`)
+  - Daha hızlı ve verimli
+
+**Ne zaman hangisi?**
+
+- **İlk kurulum / Bulk import** → Bulk workers (`worker-alliances.ts`, `worker-corporations.ts`)
+- **Runtime enrichment / Eksik verileri doldurma** → Info workers (`worker-info-*`)
+
 ---
 
 ## Queue Scripts
@@ -131,10 +192,10 @@ yarn scan:entities
 
 **Kuyruklar**:
 
-- `esi_esi_character_info_queue`
-- `esi_esi_corporation_info_queue`
-- `esi_esi_alliance_info_queue`
-- `esi_esi_type_info_queue`
+- `esi_character_info_queue`
+- `esi_corporation_info_queue`
+- `esi_alliance_info_queue`
+- `esi_type_info_queue`
 
 **Sonraki Adım**: İlgili enrichment worker'lar ile işlenir
 
@@ -152,7 +213,7 @@ yarn scan:entities
 yarn worker:info:alliances
 ```
 
-**Kuyruk**: `esi_esi_alliance_info_queue`
+**Kuyruk**: `esi_alliance_info_queue`
 
 **Concurrency**: 3 (aynı anda 3 alliance işler)
 
@@ -179,7 +240,7 @@ yarn worker:info:alliances
 yarn worker:info:corporations
 ```
 
-**Kuyruk**: `esi_esi_corporation_info_queue`
+**Kuyruk**: `esi_corporation_info_queue`
 
 **Concurrency**: 5 (aynı anda 5 corporation işler)
 
@@ -206,7 +267,7 @@ yarn worker:info:corporations
 yarn worker:info:characters
 ```
 
-**Kuyruk**: `esi_esi_character_info_queue`
+**Kuyruk**: `esi_character_info_queue`
 
 **Concurrency**: 10 (aynı anda 10 character işler)
 
@@ -234,7 +295,7 @@ yarn worker:info:characters
 yarn worker:info:types
 ```
 
-**Kuyruk**: `esi_esi_type_info_queue`
+**Kuyruk**: `esi_type_info_queue`
 
 **Concurrency**: 10 (aynı anda 10 type işler)
 
@@ -286,7 +347,7 @@ yarn worker:zkillboard
 
 ### `worker-alliances.ts`
 
-**Amaç**: Alliance sync işlemlerini gerçekleştirir.
+**Amaç**: EVE Online'daki TÜM alliance'ları toplu olarak senkronize eder.
 
 **Kullanım**:
 
@@ -296,13 +357,33 @@ yarn worker:alliances
 
 **Kuyruk**: `esi_all_alliances_queue`
 
-**Not**: Detayları için worker dosyasına bakın.
+**Concurrency**: 1 (sıralı işleme)
+
+**İşleyiş**:
+
+1. Kuyruktan alliance ID alır
+2. Veritabanında zaten varsa atlar (ESI çağrısı yapmaz)
+3. ESI'dan alliance bilgilerini çeker (manuel axios)
+4. Rate limit header'larını kontrol eder (420 hatası için 60s bekler)
+5. `upsert` ile veritabanına kaydeder (hem update hem create yapar)
+6. Her başarılı ESI çağrısından sonra 100ms bekler (10 req/sec)
+
+**ESI Endpoint**: `/alliances/{alliance_id}/`
+
+**Rate Limit**: Manuel 100ms delay (10 req/sec)
+
+**Farkı**: `worker-info-alliances.ts`'ten farkı:
+
+- Toplu senkronizasyon için (ilk kurulum)
+- Mevcut kayıtları da günceller
+- Manuel rate limiting
+- Daha düşük concurrency
 
 ---
 
 ### `worker-corporations.ts`
 
-**Amaç**: Corporation sync işlemlerini gerçekleştirir.
+**Amaç**: EVE Online'daki TÜM corporation'ları toplu olarak senkronize eder.
 
 **Kullanım**:
 
@@ -310,7 +391,29 @@ yarn worker:alliances
 yarn worker:corporations
 ```
 
-**Not**: Detayları için worker dosyasına bakın.
+**Kuyruk**: `esi_all_corporations_queue`
+
+**Concurrency**: 1 (sıralı işleme)
+
+**İşleyiş**:
+
+1. Kuyruktan corporation ID alır
+2. Veritabanında zaten varsa atlar (ESI çağrısı yapmaz)
+3. ESI'dan corporation bilgilerini çeker (manuel axios)
+4. Rate limit header'larını kontrol eder (420 hatası için 60s bekler)
+5. `upsert` ile veritabanına kaydeder (hem update hem create yapar)
+6. Her başarılı ESI çağrısından sonra 100ms bekler (10 req/sec)
+
+**ESI Endpoint**: `/corporations/{corporation_id}/`
+
+**Rate Limit**: Manuel 100ms delay (10 req/sec)
+
+**Farkı**: `worker-info-corporations.ts`'ten farkı:
+
+- Toplu senkronizasyon için (ilk kurulum)
+- Mevcut kayıtları da günceller
+- Manuel rate limiting
+- Daha düşük concurrency
 
 ---
 
@@ -346,7 +449,7 @@ yarn worker:alliance-corporations
 
 1. Kuyruktan alliance ID alır
 2. ESI'dan alliance'ın corporation ID'lerini çeker (`/alliances/{alliance_id}/corporations/`)
-3. Her corporation ID'sini `esi_esi_corporation_info_queue` kuyruğuna ekler
+3. Her corporation ID'sini `esi_corporation_info_queue` kuyruğuna ekler
 4. Böylece `worker-info-corporations.ts` bu ID'leri işler
 
 **ESI Endpoint**: `/alliances/{alliance_id}/corporations/`
@@ -561,15 +664,16 @@ interface EntityQueueMessage {
 
 ### Kuyruk İsimleri
 
-| Kuyruk Adı                     | Amacı                          |
-| ------------------------------ | ------------------------------ |
-| `esi_esi_alliance_info_queue`    | Alliance bilgilerini çekmek    |
-| `esi_esi_corporation_info_queue` | Corporation bilgilerini çekmek |
-| `esi_esi_character_info_queue`   | Character bilgilerini çekmek   |
-| `esi_esi_type_info_queue`        | Type bilgilerini çekmek        |
-| `zkillboard_character_queue`   | zKillboard killmail çekme      |
-| `esi_all_alliances_queue`               | Alliance senkronizasyonu       |
-| `esi_alliance_corporations_queue`   | Alliance corp ID'lerini çekmek |
+| Kuyruk Adı                        | Amacı                            |
+| --------------------------------- | -------------------------------- |
+| `esi_alliance_info_queue`         | Alliance bilgilerini çekmek      |
+| `esi_corporation_info_queue`      | Corporation bilgilerini çekmek   |
+| `esi_character_info_queue`        | Character bilgilerini çekmek     |
+| `esi_type_info_queue`             | Type bilgilerini çekmek          |
+| `zkillboard_character_queue`      | zKillboard killmail çekme        |
+| `esi_all_alliances_queue`         | Alliance bulk senkronizasyonu    |
+| `esi_all_corporations_queue`      | Corporation bulk senkronizasyonu |
+| `esi_alliance_corporations_queue` | Alliance corp ID'lerini çekmek   |
 
 ---
 
@@ -582,6 +686,8 @@ interface EntityQueueMessage {
 | enrichment-characters   | 10       | Yüksek concurrency              |
 | enrichment-types        | 10       | Yüksek concurrency              |
 | zkillboard-sync         | 2        | zKillboard rate limit nedeniyle |
+| alliances (bulk)        | 1        | Sıralı bulk sync                |
+| corporations (bulk)     | 1        | Sıralı bulk sync                |
 | alliance-corporations   | 5        | ESI rate limit için güvenli     |
 
 ---

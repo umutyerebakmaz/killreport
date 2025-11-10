@@ -22,24 +22,24 @@ Server runs on: http://localhost:4000/graphql
 
 ### Core Features
 
-- [EVE SSO Authentication](./EVE_SSO_README.md)
-- [GraphQL Schema](./generated-schema.graphql)
+- [EVE SSO Authentication](./src/docs/EVE_SSO_README.md)
+- [GraphQL Schema](./src/generated-schema.graphql)
 - [Database Schema](./prisma/schema.prisma)
-- [**Killmail Enrichment System**](./ENRICHMENT_README.md) - Automatic data enrichment for killmails
+- [**Killmail Enrichment System**](./src/docs/ENRICHMENT_README.md) - Automatic data enrichment for killmails
 
 ### Workers & Background Jobs
 
-- [Alliance Worker](./ALLIANCE_WORKFLOW.md) - Sync alliance data from ESI
-- [Corporation Worker](./CORPORATION_WORKER.md) - Sync corporation data
-- [**Character Killmail Worker**](./CHARACTER_KILLMAIL_WORKER.md) - Sync killmails for any character
-- [Modular Architecture](./MODULAR_ARCHITECTURE.md)
+- [**Complete Workers Documentation**](./src/docs/WORKERS_DOCUMENTATION.md) - All workers and queue systems
+- [**Character Killmail Worker**](./src/docs/CHARACTER_KILLMAIL_WORKER.md) - Sync killmails for any character
+- [Alliance Documentation](./src/docs/ALLIANCE.md) - Alliance data management
+- [Alliance Corporations](./src/docs/ALLIANCE_CORPORATION.md) - Alliance corporation syncing
 
 ### API Integration
 
 - [EVE ESI API](./src/services/eve-esi.ts)
 - [zKillboard API](./src/services/zkillboard.ts)
 - [RabbitMQ Queue System](./src/services/rabbitmq.ts)
-- [Killmail Enrichment Service](./src/services/enrichment.ts) - [Documentation](./ENRICHMENT_README.md)
+- [Rate Limiter](./src/services/rate-limiter.ts)
 
 ## Available Scripts
 
@@ -63,21 +63,35 @@ yarn prisma:studio    # Open Prisma Studio GUI
 
 ```bash
 # Queue data for syncing
-yarn queue:alliances      # Queue all alliances
-yarn queue:corporations   # Queue NPC corporations
-yarn queue:enrichment     # Queue all killmails for enrichment
-yarn queue:zkillboard     # Queue logged-in users' killmails from zKillboard
-yarn queue:character <id> # Queue specific character(s)
+yarn queue:alliances              # Queue all alliances
+yarn queue:corporations           # Queue NPC corporations
+yarn queue:alliance-corporations  # Queue alliance corporations
+yarn queue:zkillboard             # Queue logged-in users' killmails
+yarn queue:character <id>         # Queue specific character(s)
+
+# Enrichment - scan killmails for missing entities
+yarn scan:entities                # Queue missing characters/corps/alliances/types
 ```
 
 ### Workers
 
 ```bash
-# Start background workers
-yarn worker:alliances     # Process alliance queue
-yarn worker:corporations  # Process corporation queue
-yarn worker:enrichment    # Process enrichment queue (adds missing data)
-yarn worker:zkillboard    # Process zKillboard killmail sync queue
+# Info Workers (Enrichment - add missing data)
+yarn worker:info:alliances        # Process alliance info queue (3 concurrent)
+yarn worker:info:corporations     # Process corporation info queue (5 concurrent)
+yarn worker:info:characters       # Process character info queue (10 concurrent)
+yarn worker:info:types            # Process type info queue (10 concurrent)
+
+# Bulk Sync Workers
+yarn worker:alliances             # Process alliance bulk sync (1 concurrent)
+yarn worker:corporations          # Process corporation bulk sync (1 concurrent)
+yarn worker:alliance-corporations # Process alliance corporations (5 concurrent)
+
+# Killmail Workers
+yarn worker:zkillboard            # Process zKillboard killmail sync (2 concurrent)
+
+# Snapshot Workers
+yarn snapshot:alliances           # Generate alliance snapshots
 ```
 
 ### Direct Sync (No Queue)
@@ -141,7 +155,6 @@ backend/
 │   ├── services/               # External services
 │   │   ├── database.ts         # Database connection
 │   │   ├── dataloaders.ts      # DataLoader for N+1 queries
-│   │   ├── enrichment.ts       # Killmail data enrichment
 │   │   ├── eve-esi.ts          # EVE ESI API client
 │   │   ├── eve-sso.ts          # EVE SSO authentication
 │   │   ├── prisma.ts           # Prisma client
@@ -150,12 +163,20 @@ backend/
 │   │   └── zkillboard.ts       # zKillboard API client
 │   ├── workers/                # Background workers
 │   │   ├── queue-alliances.ts
+│   │   ├── queue-alliance-corporations.ts
 │   │   ├── queue-character-killmails.ts
 │   │   ├── queue-corporations.ts
 │   │   ├── queue-zkillboard-sync.ts
+│   │   ├── scan-killmail-entities.ts
 │   │   ├── sync-character-killmails.ts
-│   │   ├── worker-alliances.ts
+│   │   ├── worker-alliance-corporations.ts
+│   │   ├── worker-alliance-snapshots.ts
 │   │   ├── worker-corporations.ts
+│   │   ├── worker-info-alliances.ts
+│   │   ├── worker-info-characters.ts
+│   │   ├── worker-info-corporations.ts
+│   │   ├── worker-info-types.ts
+│   │   ├── worker-killmails.ts
 │   │   └── worker-zkillboard-sync.ts
 │   ├── config.ts               # Configuration
 │   ├── server.ts               # Main server file
@@ -187,14 +208,28 @@ FRONTEND_URL="http://localhost:3000"
 
 ## Common Tasks
 
-### Sync Alliance Data
+### Enrich Killmail Data (Add Missing Entities)
 
 ```bash
-# 1. Queue all alliances
-yarn queue:alliances
+# 1. Scan killmails for missing data
+yarn scan:entities
 
-# 2. Start worker to process
-yarn worker:alliances
+# 2. Start info workers (separate terminals)
+yarn worker:info:alliances
+yarn worker:info:corporations
+yarn worker:info:characters
+yarn worker:info:types
+```
+
+### Sync All Alliance Corporations
+
+```bash
+# 1. Queue all alliance IDs
+yarn queue:alliance-corporations
+
+# 2. Start workers (separate terminals)
+yarn worker:alliance-corporations
+yarn worker:info:corporations
 ```
 
 ### Sync Character Killmails
