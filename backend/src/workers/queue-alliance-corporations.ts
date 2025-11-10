@@ -35,7 +35,7 @@ async function queueAllianceCorporations() {
 
     if (alliances.length === 0) {
       console.log('\n⚠️  No alliances found in database');
-      console.log('💡 Run yarn queue:alliances and yarn worker:enrichment:alliances first\n');
+      console.log('💡 Run yarn queue:alliances and yarn worker:info:alliances first\n');
       process.exit(0);
     }
 
@@ -91,7 +91,7 @@ async function queueAllianceCorporations() {
     console.log('━'.repeat(70));
     console.log('\n💡 Next Steps:');
     console.log('   1. Start worker: yarn worker:alliance-corporations');
-    console.log('   2. Start enrichment: yarn worker:enrichment:corporations\n');
+    console.log('   2. Start enrichment: yarn worker:info:corporations\n');
 
     await channel.close();
     process.exit(0);

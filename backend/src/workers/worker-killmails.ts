@@ -220,7 +220,7 @@ async function syncUserKillmails(message: QueueMessage): Promise<void> {
 
           // Note: Enrichment is now handled by separate microservices
           // Run scan-killmail-entities.ts to queue missing entities
-          // Then start specialized enrichment workers
+          // Then start specialized info workers
         } catch (createError: any) {
           // If duplicate (P2002), it's already in database - skip it
           if (createError.code === 'P2002') {

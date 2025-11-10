@@ -1,15 +1,15 @@
 /**
- * Alliance Enrichment Worker
- * Fetches alliance information from ESI and saves to database
+ * Character Info Worker
+ * Fetches character information from ESI and saves to database
  */
 
 import '../config';
-import { getAllianceInfo } from '../services/eve-esi';
+import { getCharacterInfo } from '../services/eve-esi';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
-const QUEUE_NAME = 'esi_alliance_enrichment_queue';
-const PREFETCH_COUNT = 3; // Process 3 alliances concurrently
+const QUEUE_NAME = 'esi_character_info_queue';
+const PREFETCH_COUNT = 10; // Process 10 characters concurrently
 
 interface EntityQueueMessage {
   entityId: number;
@@ -17,8 +17,8 @@ interface EntityQueueMessage {
   source: string;
 }
 
-async function allianceEnrichmentWorker() {
-  console.log('🤝 Alliance Enrichment Worker Started');
+async function characterInfoWorker() {
+  console.log('👤 Character Info Worker Started');
   console.log(`📦 Queue: ${QUEUE_NAME}`);
   console.log(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
@@ -33,7 +33,7 @@ async function allianceEnrichmentWorker() {
     channel.prefetch(PREFETCH_COUNT);
 
     console.log('✅ Connected to RabbitMQ');
-    console.log('⏳ Waiting for alliances...\n');
+    console.log('⏳ Waiting for characters...\n');
 
     let totalProcessed = 0;
     let totalAdded = 0;
@@ -60,38 +60,40 @@ async function allianceEnrichmentWorker() {
         if (!msg) return;
 
         const message: EntityQueueMessage = JSON.parse(msg.content.toString());
-        const allianceId = message.entityId;
+        const characterId = message.entityId;
 
         try {
 
           // Check if already exists
-          const existing = await prisma.alliance.findUnique({
-            where: { id: allianceId },
+          const existing = await prisma.character.findUnique({
+            where: { id: characterId },
           });
 
           if (existing) {
             channel.ack(msg);
             totalSkipped++;
             totalProcessed++;
-            console.log(`  - [${totalProcessed}] Alliance ${allianceId} (exists)`);
+            console.log(`  - [${totalProcessed}] Character ${characterId} (exists)`);
             return;
-          }
-
-          // Fetch from ESI
-          const allianceInfo = await getAllianceInfo(allianceId);
+          }          // Fetch from ESI
+          const charInfo = await getCharacterInfo(characterId);
 
           // Save to database (upsert to prevent race condition)
-          await prisma.alliance.upsert({
-            where: { id: allianceId },
+          await prisma.character.upsert({
+            where: { id: characterId },
             create: {
-              id: allianceId,
-              name: allianceInfo.name,
-              ticker: allianceInfo.ticker,
-              date_founded: new Date(allianceInfo.date_founded),
-              creator_corporation_id: allianceInfo.creator_corporation_id,
-              creator_id: allianceInfo.creator_id,
-              executor_corporation_id: allianceInfo.executor_corporation_id,
-              faction_id: allianceInfo.faction_id,
+              id: characterId,
+              name: charInfo.name,
+              corporation_id: charInfo.corporation_id,
+              alliance_id: charInfo.alliance_id,
+              birthday: new Date(charInfo.birthday),
+              bloodline_id: charInfo.bloodline_id,
+              race_id: charInfo.race_id,
+              gender: charInfo.gender,
+              security_status: charInfo.security_status,
+              description: charInfo.description,
+              title: charInfo.title,
+              faction_id: charInfo.faction_id,
             },
             update: {}, // Don't update if exists
           });
@@ -99,9 +101,9 @@ async function allianceEnrichmentWorker() {
           totalAdded++;
           channel.ack(msg);
           totalProcessed++;
-          console.log(`  ✓ [${totalProcessed}] ${allianceInfo.name} [${allianceInfo.ticker}]`);
+          console.log(`  ✓ [${totalProcessed}] ${charInfo.name}`);
 
-          if (totalProcessed % 20 === 0) {
+          if (totalProcessed % 50 === 0) {
             console.log(`📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
           }
 
@@ -109,15 +111,17 @@ async function allianceEnrichmentWorker() {
           totalErrors++;
           totalProcessed++;
 
+          // 404 = deleted character, don't requeue
           if (error.message?.includes('404')) {
-            console.log(`  ! [${totalProcessed}] Alliance ${message.entityId} (404)`);
+            console.log(`  ! [${totalProcessed}] Character ${message.entityId} (404)`);
             channel.ack(msg);
           } else {
-            console.error(`  × [${totalProcessed}] Alliance ${message.entityId}: ${error.message}`);
+            // Other errors: requeue
+            console.error(`  × [${totalProcessed}] Character ${message.entityId}: ${error.message}`);
             channel.nack(msg, false, true);
           }
 
-          if (totalProcessed % 20 === 0) {
+          if (totalProcessed % 50 === 0) {
             console.log(`📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
           }
         }
@@ -144,4 +148,4 @@ function setupShutdownHandlers() {
 }
 
 setupShutdownHandlers();
-allianceEnrichmentWorker();
+characterInfoWorker();

@@ -1,15 +1,15 @@
 /**
- * Character Enrichment Worker
- * Fetches character information from ESI and saves to database
+ * Type Info Worker
+ * Fetches type/item information from ESI and saves to database
  */
 
 import '../config';
-import { getCharacterInfo } from '../services/eve-esi';
+import { getTypeInfo } from '../services/eve-esi';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
-const QUEUE_NAME = 'esi_character_enrichment_queue';
-const PREFETCH_COUNT = 10; // Process 10 characters concurrently
+const QUEUE_NAME = 'esi_type_info_queue';
+const PREFETCH_COUNT = 10; // Process 10 types concurrently
 
 interface EntityQueueMessage {
   entityId: number;
@@ -17,8 +17,8 @@ interface EntityQueueMessage {
   source: string;
 }
 
-async function characterEnrichmentWorker() {
-  console.log('👤 Character Enrichment Worker Started');
+async function typeInfoWorker() {
+  console.log('📦 Type Info Worker Started');
   console.log(`📦 Queue: ${QUEUE_NAME}`);
   console.log(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
@@ -33,7 +33,7 @@ async function characterEnrichmentWorker() {
     channel.prefetch(PREFETCH_COUNT);
 
     console.log('✅ Connected to RabbitMQ');
-    console.log('⏳ Waiting for characters...\n');
+    console.log('⏳ Waiting for types...\n');
 
     let totalProcessed = 0;
     let totalAdded = 0;
@@ -60,40 +60,37 @@ async function characterEnrichmentWorker() {
         if (!msg) return;
 
         const message: EntityQueueMessage = JSON.parse(msg.content.toString());
-        const characterId = message.entityId;
+        const typeId = message.entityId;
 
         try {
 
           // Check if already exists
-          const existing = await prisma.character.findUnique({
-            where: { id: characterId },
+          const existing = await prisma.type.findUnique({
+            where: { id: typeId },
           });
 
           if (existing) {
             channel.ack(msg);
             totalSkipped++;
             totalProcessed++;
-            console.log(`  - [${totalProcessed}] Character ${characterId} (exists)`);
+            console.log(`  - [${totalProcessed}] Type ${typeId} (exists)`);
             return;
           }          // Fetch from ESI
-          const charInfo = await getCharacterInfo(characterId);
+          const typeInfo = await getTypeInfo(typeId);
 
           // Save to database (upsert to prevent race condition)
-          await prisma.character.upsert({
-            where: { id: characterId },
+          const result = await prisma.type.upsert({
+            where: { id: typeId },
             create: {
-              id: characterId,
-              name: charInfo.name,
-              corporation_id: charInfo.corporation_id,
-              alliance_id: charInfo.alliance_id,
-              birthday: new Date(charInfo.birthday),
-              bloodline_id: charInfo.bloodline_id,
-              race_id: charInfo.race_id,
-              gender: charInfo.gender,
-              security_status: charInfo.security_status,
-              description: charInfo.description,
-              title: charInfo.title,
-              faction_id: charInfo.faction_id,
+              id: typeId,
+              name: typeInfo.name,
+              description: typeInfo.description,
+              group_id: typeInfo.group_id,
+              published: typeInfo.published,
+              volume: typeInfo.volume,
+              capacity: typeInfo.capacity,
+              mass: typeInfo.mass,
+              icon_id: typeInfo.icon_id,
             },
             update: {}, // Don't update if exists
           });
@@ -101,27 +98,24 @@ async function characterEnrichmentWorker() {
           totalAdded++;
           channel.ack(msg);
           totalProcessed++;
-          console.log(`  ✓ [${totalProcessed}] ${charInfo.name}`);
+          console.log(`  ✓ [${totalProcessed}] ${typeInfo.name}`);
 
-          if (totalProcessed % 50 === 0) {
+          if (totalProcessed % 100 === 0) {
             console.log(`📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
           }
-
         } catch (error: any) {
           totalErrors++;
           totalProcessed++;
 
-          // 404 = deleted character, don't requeue
           if (error.message?.includes('404')) {
-            console.log(`  ! [${totalProcessed}] Character ${message.entityId} (404)`);
+            console.log(`  ! [${totalProcessed}] Type ${message.entityId} (404)`);
             channel.ack(msg);
           } else {
-            // Other errors: requeue
-            console.error(`  × [${totalProcessed}] Character ${message.entityId}: ${error.message}`);
+            console.error(`  × [${totalProcessed}] Type ${message.entityId}: ${error.message}`);
             channel.nack(msg, false, true);
           }
 
-          if (totalProcessed % 50 === 0) {
+          if (totalProcessed % 100 === 0) {
             console.log(`📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
           }
         }
@@ -148,4 +142,4 @@ function setupShutdownHandlers() {
 }
 
 setupShutdownHandlers();
-characterEnrichmentWorker();
+typeInfoWorker();

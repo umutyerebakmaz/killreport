@@ -1,12 +1,12 @@
 /**
  * Alliance Corporation Worker
- * Fetches corporation IDs from ESI for each alliance and queues them for enrichment
+ * Fetches corporation IDs from ESI for each alliance and queues them for info fetch
  *
  * Workflow:
- * 1. Consumes alliance IDs from alliance_corporation_queue
+ * 1. Consumes alliance IDs from esi_alliance_corporations_queue
  * 2. Fetches corporation IDs from ESI (/alliances/{alliance_id}/corporations/)
- * 3. Queues each corporation ID to corporation_enrichment_queue
- * 4. worker-enrichment-corporations.ts then processes these IDs
+ * 3. Queues each corporation ID to esi_corporation_info_queue
+ * 4. worker-info-corporations.ts then processes these IDs
  *
  * Usage: yarn worker:alliance-corporations
  */
@@ -17,7 +17,7 @@ import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
 const QUEUE_NAME = 'esi_alliance_corporations_queue';
-const CORPORATION_QUEUE = 'esi_corporation_enrichment_queue';
+const CORPORATION_QUEUE = 'esi_corporation_info_queue';
 const PREFETCH_COUNT = 5; // Process 5 alliances concurrently
 
 interface EntityQueueMessage {
@@ -100,7 +100,7 @@ async function allianceCorporationWorker() {
             return;
           }
 
-          // Queue each corporation ID for enrichment
+          // Queue each corporation ID for info fetch
           let queuedCount = 0;
           for (const corpId of corporationIds) {
             const corpMessage: EntityQueueMessage = {
