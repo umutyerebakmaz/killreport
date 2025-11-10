@@ -7,10 +7,10 @@ import '../config';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
-const CHARACTER_QUEUE = 'character_enrichment_queue';
-const CORPORATION_QUEUE = 'corporation_enrichment_queue';
-const ALLIANCE_QUEUE = 'alliance_enrichment_queue';
-const TYPE_QUEUE = 'type_enrichment_queue';
+const CHARACTER_QUEUE = 'esi_character_enrichment_queue';
+const CORPORATION_QUEUE = 'esi_corporation_enrichment_queue';
+const ALLIANCE_QUEUE = 'esi_alliance_enrichment_queue';
+const TYPE_QUEUE = 'esi_type_enrichment_queue';
 
 const BATCH_SIZE = 100;
 

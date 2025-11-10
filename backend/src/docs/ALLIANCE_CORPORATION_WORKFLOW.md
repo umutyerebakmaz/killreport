@@ -20,7 +20,7 @@ This workflow automatically discovers and adds all corporations belonging to all
              │
              ▼
 ┌─────────────────────────────┐
-│ alliance_corporation_queue  │ RabbitMQ Queue
+│ esi_alliance_corporations_queue  │ RabbitMQ Queue
 └────────────┬────────────────┘
              │
              ▼
@@ -33,7 +33,7 @@ This workflow automatically discovers and adds all corporations belonging to all
              │
              ▼
 ┌─────────────────────────────┐
-│ corporation_enrichment_queue│ RabbitMQ Queue
+│ esi_corporation_enrichment_queue│ RabbitMQ Queue
 └────────────┬────────────────┘
              │
              ▼
@@ -63,7 +63,7 @@ yarn queue:alliance-corporations
 **What it does:**
 
 - Fetches all alliance IDs from database
-- Adds each one to `alliance_corporation_queue`
+- Adds each one to `esi_alliance_corporations_queue`
 - Shows progress (batches of 100)
 
 **Example Output:**
@@ -76,7 +76,7 @@ yarn queue:alliance-corporations
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ✅ Connected to RabbitMQ
-📦 Queue: alliance_corporation_queue
+📦 Queue: esi_alliance_corporations_queue
 
 📤 Adding alliances to queue...
 
@@ -103,17 +103,17 @@ yarn worker:alliance-corporations
 
 **What it does:**
 
-- Consumes alliance IDs from `alliance_corporation_queue`
+- Consumes alliance IDs from `esi_alliance_corporations_queue`
 - Fetches corporation IDs from ESI for each alliance
-- Queues each corporation ID to `corporation_enrichment_queue`
+- Queues each corporation ID to `esi_corporation_enrichment_queue`
 - Processes 5 alliances concurrently (PREFETCH_COUNT=5)
 
 **Example Output:**
 
 ```terminal
 🤝 Alliance Corporation Worker Started
-📦 Input Queue: alliance_corporation_queue
-📦 Output Queue: corporation_enrichment_queue
+📦 Input Queue: esi_alliance_corporations_queue
+📦 Output Queue: esi_corporation_enrichment_queue
 ⚡ Prefetch: 5 concurrent
 
 ✅ Connected to RabbitMQ
@@ -136,7 +136,7 @@ yarn worker:enrichment:corporations
 
 **What it does:**
 
-- Consumes corporation IDs from `corporation_enrichment_queue`
+- Consumes corporation IDs from `esi_corporation_enrichment_queue`
 - Fetches detailed information from ESI for each corporation
 - Saves to database (skips if already exists)
 - Processes 5 corporations concurrently (PREFETCH_COUNT=5)
@@ -145,7 +145,7 @@ yarn worker:enrichment:corporations
 
 ```terminal
 🏢 Corporation Enrichment Worker Started
-📦 Queue: corporation_enrichment_queue
+📦 Queue: esi_corporation_enrichment_queue
 ⚡ Prefetch: 5 concurrent
 
 ✅ Connected to RabbitMQ
@@ -185,8 +185,8 @@ yarn worker:enrichment:corporations
 
 | Queue Name                     | Purpose                                |
 | ------------------------------ | -------------------------------------- |
-| `alliance_corporation_queue`   | Holds alliance IDs                     |
-| `corporation_enrichment_queue` | Holds corporation IDs (for enrichment) |
+| `esi_alliance_corporations_queue`   | Holds alliance IDs                     |
+| `esi_corporation_enrichment_queue` | Holds corporation IDs (for enrichment) |
 
 ### Message Format
 
@@ -194,7 +194,7 @@ yarn worker:enrichment:corporations
 interface EntityQueueMessage {
   entityId: number; // Alliance or Corporation ID
   queuedAt: string; // ISO timestamp
-  source: string; // "alliance_corporation_queue" or "alliance_{id}"
+  source: string; // "esi_alliance_corporations_queue" or "alliance_{id}"
 }
 ```
 
