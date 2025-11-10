@@ -6,7 +6,7 @@ This workflow automatically discovers and adds all corporations belonging to all
 
 ## Workflow
 
-```
+```terminal
 ┌─────────────────────────────┐
 │ 1. Database                 │
 │    (Alliance IDs)           │
@@ -68,7 +68,7 @@ yarn queue:alliance-corporations
 
 **Example Output:**
 
-```
+```terminal
 🤝 Alliance Corporation Queue Script Started
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📊 Fetching alliance IDs from database...
@@ -110,7 +110,7 @@ yarn worker:alliance-corporations
 
 **Example Output:**
 
-```
+```terminal
 🤝 Alliance Corporation Worker Started
 📦 Input Queue: alliance_corporation_queue
 📦 Output Queue: corporation_enrichment_queue
@@ -143,7 +143,7 @@ yarn worker:enrichment:corporations
 
 **Example Output:**
 
-```
+```terminal
 🏢 Corporation Enrichment Worker Started
 📦 Queue: corporation_enrichment_queue
 ⚡ Prefetch: 5 concurrent
@@ -163,7 +163,7 @@ yarn worker:enrichment:corporations
 
 1. **Alliance Corporations List:**
 
-   ```
+   ```terminal
    GET https://esi.evetech.net/latest/alliances/{alliance_id}/corporations/
    ```
 
@@ -172,9 +172,11 @@ yarn worker:enrichment:corporations
    - Public endpoint (no auth required)
 
 2. **Corporation Information:**
-   ```
+
+   ```terminal
    GET https://esi.evetech.net/latest/corporations/{corporation_id}/
    ```
+
    - Rate limit: ESI rate limiter (50 req/sec)
    - Response: Corporation details
    - Public endpoint (no auth required)
@@ -268,7 +270,7 @@ yarn worker:enrichment:corporations
 
 ### Alliance Has No Corporations
 
-```
+```terminal
 ⚠️ [15] Test Alliance (12345) - No corporations found
 ```
 
@@ -276,7 +278,7 @@ Normal situation, worker continues.
 
 ### ESI Error
 
-```
+```terminal
 ❌ [23] Alliance 456789 - Error: Failed to fetch alliance corporations: 500
 ```
 
