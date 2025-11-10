@@ -165,13 +165,13 @@ Edit constants in respective files:
 **`src/workers/queue-zkillboard-sync.ts`:**
 
 ```typescript
-const QUEUE_NAME = "killmail_sync_queue";
+const QUEUE_NAME = "zkillboard_character_queue";
 ```
 
 **`src/workers/worker-zkillboard-sync.ts`:**
 
 ```typescript
-const QUEUE_NAME = "killmail_sync_queue";
+const QUEUE_NAME = "zkillboard_character_queue";
 const PREFETCH_COUNT = 1; // Concurrent users per worker
 const MAX_PAGES = 100; // Max pages to fetch from zKillboard
 ```
@@ -204,7 +204,7 @@ const MAX_PAGES = 100; // Max pages to fetch from zKillboard
 
 ```
 🔄 Killmail Worker Started
-📦 Queue: killmail_sync_queue
+📦 Queue: zkillboard_character_queue
 ⚡ Prefetch: 1 concurrent users
 
 ✅ Connected to RabbitMQ

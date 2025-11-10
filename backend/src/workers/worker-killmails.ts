@@ -4,7 +4,7 @@ import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 import { getCharacterKillmailsFromZKill } from '../services/zkillboard';
 
-const QUEUE_NAME = 'killmail_sync_queue';
+const QUEUE_NAME = 'zkillboard_character_queue';
 const PREFETCH_COUNT = 2; // Process 2 users at a time (rate limit consideration)
 const MAX_PAGES = 100; // Fetch up to 100 pages from zKillboard (20,000 killmails max) - Set to 999 for ALL history
 

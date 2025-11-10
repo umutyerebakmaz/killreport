@@ -1,7 +1,7 @@
 import '../config';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
-const QUEUE_NAME = 'killmail_sync_queue';
+const QUEUE_NAME = 'zkillboard_character_queue';
 
 /**
  * Queue specific character IDs for killmail sync
