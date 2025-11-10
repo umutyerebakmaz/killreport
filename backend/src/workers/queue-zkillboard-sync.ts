@@ -2,7 +2,7 @@ import '../config';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
-const QUEUE_NAME = 'killmail_sync_queue';
+const QUEUE_NAME = 'zkillboard_character_queue';
 
 /**
  * Queue all active users for killmail sync

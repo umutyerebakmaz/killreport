@@ -20,7 +20,7 @@ Kuyruktan gelen mesajları sürekli olarak dinleyen ve işleyen servisler. Arka 
 
 ### `queue-alliances.ts`
 
-**Amaç**: ESI'dan tüm alliance ID'lerini alıp `alliance_queue` kuyruğuna ekler.
+**Amaç**: ESI'dan tüm alliance ID'lerini alıp `esi_alliance_sync_queue` kuyruğuna ekler.
 
 **Kullanım**:
 
@@ -31,10 +31,10 @@ yarn queue:alliances
 **İşleyiş**:
 
 1. ESI'dan tüm alliance ID'lerini çeker (`/alliances/` endpoint)
-2. Her alliance ID'sini `alliance_queue` kuyruğuna ekler
+2. Her alliance ID'sini `esi_alliance_sync_queue` kuyruğuna ekler
 3. 100'lük batch'ler halinde işler
 
-**Kuyruk**: `alliance_queue`
+**Kuyruk**: `esi_alliance_sync_queue`
 
 **Sonraki Adım**: `worker-alliances.ts` ile işlenir
 
@@ -56,7 +56,7 @@ yarn queue:corporations
 
 ### `queue-character-killmails.ts`
 
-**Amaç**: Veritabanındaki kullanıcıların karakterlerini `killmail_sync_queue` kuyruğuna ekler.
+**Amaç**: Veritabanındaki kullanıcıların karakterlerini `zkillboard_character_queue` kuyruğuna ekler.
 
 **Kullanım**:
 
@@ -68,9 +68,9 @@ yarn queue:character
 
 1. Veritabanından tüm kullanıcıları çeker
 2. Her kullanıcı için karakter bilgilerini hazırlar
-3. `killmail_sync_queue` kuyruğuna ekler
+3. `zkillboard_character_queue` kuyruğuna ekler
 
-**Kuyruk**: `killmail_sync_queue`
+**Kuyruk**: `zkillboard_character_queue`
 
 **Sonraki Adım**: `worker-zkillboard-sync.ts` ile işlenir
 
@@ -86,13 +86,13 @@ yarn queue:character
 yarn queue:zkillboard
 ```
 
-**Kuyruk**: `killmail_sync_queue`
+**Kuyruk**: `zkillboard_character_queue`
 
 ---
 
 ### `queue-alliance-corporations.ts` ⭐ YENİ
 
-**Amaç**: Veritabanındaki tüm alliance'ların ID'lerini `alliance_corporation_queue` kuyruğuna ekler.
+**Amaç**: Veritabanındaki tüm alliance'ların ID'lerini `esi_alliance_corporations_queue` kuyruğuna ekler.
 
 **Kullanım**:
 
@@ -103,9 +103,9 @@ yarn queue:alliance-corporations
 **İşleyiş**:
 
 1. Veritabanından tüm alliance ID'lerini çeker
-2. Her alliance ID'sini `alliance_corporation_queue` kuyruğuna ekler
+2. Her alliance ID'sini `esi_alliance_corporations_queue` kuyruğuna ekler
 
-**Kuyruk**: `alliance_corporation_queue`
+**Kuyruk**: `esi_alliance_corporations_queue`
 
 **Sonraki Adım**: `worker-alliance-corporations.ts` ile işlenir
 
@@ -131,10 +131,10 @@ yarn scan:entities
 
 **Kuyruklar**:
 
-- `character_enrichment_queue`
-- `corporation_enrichment_queue`
-- `alliance_enrichment_queue`
-- `type_enrichment_queue`
+- `esi_esi_character_enrichment_queue`
+- `esi_esi_corporation_enrichment_queue`
+- `esi_esi_alliance_enrichment_queue`
+- `esi_esi_type_enrichment_queue`
 
 **Sonraki Adım**: İlgili enrichment worker'lar ile işlenir
 
@@ -152,7 +152,7 @@ yarn scan:entities
 yarn worker:enrichment:alliances
 ```
 
-**Kuyruk**: `alliance_enrichment_queue`
+**Kuyruk**: `esi_esi_alliance_enrichment_queue`
 
 **Concurrency**: 3 (aynı anda 3 alliance işler)
 
@@ -179,7 +179,7 @@ yarn worker:enrichment:alliances
 yarn worker:enrichment:corporations
 ```
 
-**Kuyruk**: `corporation_enrichment_queue`
+**Kuyruk**: `esi_esi_corporation_enrichment_queue`
 
 **Concurrency**: 5 (aynı anda 5 corporation işler)
 
@@ -206,7 +206,7 @@ yarn worker:enrichment:corporations
 yarn worker:enrichment:characters
 ```
 
-**Kuyruk**: `character_enrichment_queue`
+**Kuyruk**: `esi_esi_character_enrichment_queue`
 
 **Concurrency**: 10 (aynı anda 10 character işler)
 
@@ -234,7 +234,7 @@ yarn worker:enrichment:characters
 yarn worker:enrichment:types
 ```
 
-**Kuyruk**: `type_enrichment_queue`
+**Kuyruk**: `esi_esi_type_enrichment_queue`
 
 **Concurrency**: 10 (aynı anda 10 type işler)
 
@@ -261,7 +261,7 @@ yarn worker:enrichment:types
 yarn worker:zkillboard
 ```
 
-**Kuyruk**: `killmail_sync_queue`
+**Kuyruk**: `zkillboard_character_queue`
 
 **Concurrency**: 2 (rate limit nedeniyle)
 
@@ -294,7 +294,7 @@ yarn worker:zkillboard
 yarn worker:alliances
 ```
 
-**Kuyruk**: `alliance_queue`
+**Kuyruk**: `esi_alliance_sync_queue`
 
 **Not**: Detayları için worker dosyasına bakın.
 
@@ -330,7 +330,7 @@ yarn snapshot:alliances
 
 ### `worker-alliance-corporations.ts` ⭐ YENİ
 
-**Amaç**: Alliance'lara ait corporation ID'lerini ESI'dan alıp `corporation_enrichment_queue` kuyruğuna ekler.
+**Amaç**: Alliance'lara ait corporation ID'lerini ESI'dan alıp `esi_esi_corporation_enrichment_queue` kuyruğuna ekler.
 
 **Kullanım**:
 
@@ -338,7 +338,7 @@ yarn snapshot:alliances
 yarn worker:alliance-corporations
 ```
 
-**Kuyruk**: `alliance_corporation_queue`
+**Kuyruk**: `esi_alliance_corporations_queue`
 
 **Concurrency**: 5 (aynı anda 5 alliance işler)
 
@@ -346,7 +346,7 @@ yarn worker:alliance-corporations
 
 1. Kuyruktan alliance ID alır
 2. ESI'dan alliance'ın corporation ID'lerini çeker (`/alliances/{alliance_id}/corporations/`)
-3. Her corporation ID'sini `corporation_enrichment_queue` kuyruğuna ekler
+3. Her corporation ID'sini `esi_esi_corporation_enrichment_queue` kuyruğuna ekler
 4. Böylece `worker-enrichment-corporations.ts` bu ID'leri işler
 
 **ESI Endpoint**: `/alliances/{alliance_id}/corporations/`
@@ -484,7 +484,7 @@ yarn sync:character 95465499 999    # TÜM geçmiş
              ▼
 ┌─────────────────────────┐
 │ worker:alliance-        │ - Alliance corp ID'lerini ESI'dan çek
-│    corporations         │ - corporation_enrichment_queue'ya ekle
+│    corporations         │ - esi_corporation_enrichment_queue'ya ekle
 └────────────┬────────────┘
              │
              ▼
@@ -563,13 +563,13 @@ interface EntityQueueMessage {
 
 | Kuyruk Adı                     | Amacı                          |
 | ------------------------------ | ------------------------------ |
-| `alliance_enrichment_queue`    | Alliance bilgilerini çekmek    |
-| `corporation_enrichment_queue` | Corporation bilgilerini çekmek |
-| `character_enrichment_queue`   | Character bilgilerini çekmek   |
-| `type_enrichment_queue`        | Type bilgilerini çekmek        |
-| `killmail_sync_queue`          | Killmail senkronizasyonu       |
-| `alliance_queue`               | Alliance senkronizasyonu       |
-| `alliance_corporation_queue`   | Alliance corp ID'lerini çekmek |
+| `esi_esi_alliance_enrichment_queue`    | Alliance bilgilerini çekmek    |
+| `esi_esi_corporation_enrichment_queue` | Corporation bilgilerini çekmek |
+| `esi_esi_character_enrichment_queue`   | Character bilgilerini çekmek   |
+| `esi_esi_type_enrichment_queue`        | Type bilgilerini çekmek        |
+| `zkillboard_character_queue`   | zKillboard killmail çekme      |
+| `esi_alliance_sync_queue`               | Alliance senkronizasyonu       |
+| `esi_alliance_corporations_queue`   | Alliance corp ID'lerini çekmek |
 
 ---
 
