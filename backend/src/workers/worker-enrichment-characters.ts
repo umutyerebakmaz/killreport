@@ -8,7 +8,7 @@ import { getCharacterInfo } from '../services/eve-esi';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
-const QUEUE_NAME = 'character_enrichment_queue';
+const QUEUE_NAME = 'esi_character_enrichment_queue';
 const PREFETCH_COUNT = 10; // Process 10 characters concurrently
 
 interface EntityQueueMessage {
