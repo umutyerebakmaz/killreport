@@ -20,7 +20,7 @@ Kuyruktan gelen mesajları sürekli olarak dinleyen ve işleyen servisler. Arka 
 
 ### `queue-alliances.ts`
 
-**Amaç**: ESI'dan tüm alliance ID'lerini alıp `esi_alliance_sync_queue` kuyruğuna ekler.
+**Amaç**: ESI'dan tüm alliance ID'lerini alıp `esi_all_alliances_queue` kuyruğuna ekler.
 
 **Kullanım**:
 
@@ -31,10 +31,10 @@ yarn queue:alliances
 **İşleyiş**:
 
 1. ESI'dan tüm alliance ID'lerini çeker (`/alliances/` endpoint)
-2. Her alliance ID'sini `esi_alliance_sync_queue` kuyruğuna ekler
+2. Her alliance ID'sini `esi_all_alliances_queue` kuyruğuna ekler
 3. 100'lük batch'ler halinde işler
 
-**Kuyruk**: `esi_alliance_sync_queue`
+**Kuyruk**: `esi_all_alliances_queue`
 
 **Sonraki Adım**: `worker-alliances.ts` ile işlenir
 
@@ -131,10 +131,10 @@ yarn scan:entities
 
 **Kuyruklar**:
 
-- `esi_esi_character_enrichment_queue`
-- `esi_esi_corporation_enrichment_queue`
-- `esi_esi_alliance_enrichment_queue`
-- `esi_esi_type_enrichment_queue`
+- `esi_esi_character_info_queue`
+- `esi_esi_corporation_info_queue`
+- `esi_esi_alliance_info_queue`
+- `esi_esi_type_info_queue`
 
 **Sonraki Adım**: İlgili enrichment worker'lar ile işlenir
 
@@ -142,17 +142,17 @@ yarn scan:entities
 
 ## Worker Scripts
 
-### `worker-enrichment-alliances.ts`
+### `worker-info-alliances.ts`
 
 **Amaç**: Alliance ID'lerini ESI'dan çekip veritabanına kaydeder.
 
 **Kullanım**:
 
 ```bash
-yarn worker:enrichment:alliances
+yarn worker:info:alliances
 ```
 
-**Kuyruk**: `esi_esi_alliance_enrichment_queue`
+**Kuyruk**: `esi_esi_alliance_info_queue`
 
 **Concurrency**: 3 (aynı anda 3 alliance işler)
 
@@ -169,17 +169,17 @@ yarn worker:enrichment:alliances
 
 ---
 
-### `worker-enrichment-corporations.ts`
+### `worker-info-corporations.ts`
 
 **Amaç**: Corporation ID'lerini ESI'dan çekip veritabanına kaydeder.
 
 **Kullanım**:
 
 ```bash
-yarn worker:enrichment:corporations
+yarn worker:info:corporations
 ```
 
-**Kuyruk**: `esi_esi_corporation_enrichment_queue`
+**Kuyruk**: `esi_esi_corporation_info_queue`
 
 **Concurrency**: 5 (aynı anda 5 corporation işler)
 
@@ -196,17 +196,17 @@ yarn worker:enrichment:corporations
 
 ---
 
-### `worker-enrichment-characters.ts`
+### `worker-info-characters.ts`
 
 **Amaç**: Character ID'lerini ESI'dan çekip veritabanına kaydeder.
 
 **Kullanım**:
 
 ```bash
-yarn worker:enrichment:characters
+yarn worker:info:characters
 ```
 
-**Kuyruk**: `esi_esi_character_enrichment_queue`
+**Kuyruk**: `esi_esi_character_info_queue`
 
 **Concurrency**: 10 (aynı anda 10 character işler)
 
@@ -224,17 +224,17 @@ yarn worker:enrichment:characters
 
 ---
 
-### `worker-enrichment-types.ts`
+### `worker-info-types.ts`
 
 **Amaç**: Type/Item ID'lerini ESI'dan çekip veritabanına kaydeder.
 
 **Kullanım**:
 
 ```bash
-yarn worker:enrichment:types
+yarn worker:info:types
 ```
 
-**Kuyruk**: `esi_esi_type_enrichment_queue`
+**Kuyruk**: `esi_esi_type_info_queue`
 
 **Concurrency**: 10 (aynı anda 10 type işler)
 
@@ -294,7 +294,7 @@ yarn worker:zkillboard
 yarn worker:alliances
 ```
 
-**Kuyruk**: `esi_alliance_sync_queue`
+**Kuyruk**: `esi_all_alliances_queue`
 
 **Not**: Detayları için worker dosyasına bakın.
 
@@ -330,7 +330,7 @@ yarn snapshot:alliances
 
 ### `worker-alliance-corporations.ts` ⭐ YENİ
 
-**Amaç**: Alliance'lara ait corporation ID'lerini ESI'dan alıp `esi_esi_corporation_enrichment_queue` kuyruğuna ekler.
+**Amaç**: Alliance'lara ait corporation ID'lerini ESI'dan alıp `esi_esi_corporation_info_queue` kuyruğuna ekler.
 
 **Kullanım**:
 
@@ -346,14 +346,14 @@ yarn worker:alliance-corporations
 
 1. Kuyruktan alliance ID alır
 2. ESI'dan alliance'ın corporation ID'lerini çeker (`/alliances/{alliance_id}/corporations/`)
-3. Her corporation ID'sini `esi_esi_corporation_enrichment_queue` kuyruğuna ekler
-4. Böylece `worker-enrichment-corporations.ts` bu ID'leri işler
+3. Her corporation ID'sini `esi_esi_corporation_info_queue` kuyruğuna ekler
+4. Böylece `worker-info-corporations.ts` bu ID'leri işler
 
 **ESI Endpoint**: `/alliances/{alliance_id}/corporations/`
 
 **Rate Limit**: `esiRateLimiter` ile 50 req/sec
 
-**Sonraki Adım**: `worker-enrichment-corporations.ts` ile işlenir
+**Sonraki Adım**: `worker-info-corporations.ts` ile işlenir
 
 ---
 
@@ -408,7 +408,7 @@ yarn sync:character 95465499 999    # TÜM geçmiş
            │                                  │
            ▼                                  ▼
 ┌──────────────────────┐          ┌────────────────────────┐
-│ worker:enrichment:   │          │ worker:enrichment:     │
+│ worker:info:   │          │ worker:info:     │
 │    characters        │          │    corporations        │
 └──────────────────────┘          └────────────────────────┘
            │                                  │
@@ -423,10 +423,10 @@ yarn sync:character 95465499 999    # TÜM geçmiş
 **Adımlar**:
 
 1. `yarn scan:entities` - Killmail'lerdeki eksik entity'leri tespit et
-2. `yarn worker:enrichment:characters` - Character bilgilerini çek
-3. `yarn worker:enrichment:corporations` - Corporation bilgilerini çek
-4. `yarn worker:enrichment:alliances` - Alliance bilgilerini çek
-5. `yarn worker:enrichment:types` - Type bilgilerini çek
+2. `yarn worker:info:characters` - Character bilgilerini çek
+3. `yarn worker:info:corporations` - Corporation bilgilerini çek
+4. `yarn worker:info:alliances` - Alliance bilgilerini çek
+5. `yarn worker:info:types` - Type bilgilerini çek
 
 ---
 
@@ -484,7 +484,7 @@ yarn sync:character 95465499 999    # TÜM geçmiş
              ▼
 ┌─────────────────────────┐
 │ worker:alliance-        │ - Alliance corp ID'lerini ESI'dan çek
-│    corporations         │ - esi_corporation_enrichment_queue'ya ekle
+│    corporations         │ - esi_corporation_info_queue'ya ekle
 └────────────┬────────────┘
              │
              ▼
@@ -495,7 +495,7 @@ yarn sync:character 95465499 999    # TÜM geçmiş
              │
              ▼
 ┌─────────────────────────┐
-│ worker:enrichment:      │ - Corporation bilgilerini ESI'dan çek
+│ worker:info:      │ - Corporation bilgilerini ESI'dan çek
 │    corporations         │
 └────────────┬────────────┘
              │
@@ -510,7 +510,7 @@ yarn sync:character 95465499 999    # TÜM geçmiş
 
 1. `yarn queue:alliance-corporations` - Alliance ID'lerini kuyruğa ekle
 2. `yarn worker:alliance-corporations` - Her alliance için corp ID'lerini al ve kuyruğa ekle
-3. `yarn worker:enrichment:corporations` - Corporation bilgilerini çek ve kaydet
+3. `yarn worker:info:corporations` - Corporation bilgilerini çek ve kaydet
 
 ---
 
@@ -563,12 +563,12 @@ interface EntityQueueMessage {
 
 | Kuyruk Adı                     | Amacı                          |
 | ------------------------------ | ------------------------------ |
-| `esi_esi_alliance_enrichment_queue`    | Alliance bilgilerini çekmek    |
-| `esi_esi_corporation_enrichment_queue` | Corporation bilgilerini çekmek |
-| `esi_esi_character_enrichment_queue`   | Character bilgilerini çekmek   |
-| `esi_esi_type_enrichment_queue`        | Type bilgilerini çekmek        |
+| `esi_esi_alliance_info_queue`    | Alliance bilgilerini çekmek    |
+| `esi_esi_corporation_info_queue` | Corporation bilgilerini çekmek |
+| `esi_esi_character_info_queue`   | Character bilgilerini çekmek   |
+| `esi_esi_type_info_queue`        | Type bilgilerini çekmek        |
 | `zkillboard_character_queue`   | zKillboard killmail çekme      |
-| `esi_alliance_sync_queue`               | Alliance senkronizasyonu       |
+| `esi_all_alliances_queue`               | Alliance senkronizasyonu       |
 | `esi_alliance_corporations_queue`   | Alliance corp ID'lerini çekmek |
 
 ---
@@ -624,10 +624,10 @@ Enrichment işlemleri için:
 yarn scan:entities
 
 # 2. Worker'ları başlat (ayrı terminaller)
-yarn worker:enrichment:alliances
-yarn worker:enrichment:corporations
-yarn worker:enrichment:characters
-yarn worker:enrichment:types
+yarn worker:info:alliances
+yarn worker:info:corporations
+yarn worker:info:characters
+yarn worker:info:types
 ```
 
 ### 2. Alliance Corporation Enrichment
@@ -638,7 +638,7 @@ yarn queue:alliance-corporations
 
 # 2. Worker'ları başlat (ayrı terminaller)
 yarn worker:alliance-corporations
-yarn worker:enrichment:corporations
+yarn worker:info:corporations
 ```
 
 ### 3. Hata Durumunda
