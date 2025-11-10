@@ -60,12 +60,12 @@ yarn prisma:studio       # GUI for data inspection
 
 **ESI Queues** (EVE ESI API):
 
-- `esi_alliance_enrichment_queue` → `worker:enrichment:alliances` (3 concurrent)
-- `esi_character_enrichment_queue` → `worker:enrichment:characters` (10 concurrent)
-- `esi_corporation_enrichment_queue` → `worker:enrichment:corporations` (5 concurrent)
-- `esi_type_enrichment_queue` → `worker:enrichment:types` (10 concurrent)
-- `esi_alliance_sync_queue` → `worker:alliances`
-- `esi_corporation_sync_queue` → `worker:corporations`
+- `esi_alliance_info_queue` → `worker:info:alliances` (3 concurrent)
+- `esi_character_info_queue` → `worker:info:characters` (10 concurrent)
+- `esi_corporation_info_queue` → `worker:info:corporations` (5 concurrent)
+- `esi_type_info_queue` → `worker:info:types` (10 concurrent)
+- `esi_all_alliances_queue` → `worker:alliances`
+- `esi_all_corporations_queue` → `worker:corporations`
 - `esi_alliance_corporations_queue` → `worker:alliance-corporations`
 
 **zKillboard Queues**:
@@ -74,8 +74,8 @@ yarn prisma:studio       # GUI for data inspection
 
 **Workflow**:
 
-1. Queue jobs: `yarn queue:alliances` or `yarn sync:character <id>`
-2. Start workers (separate terminals): `yarn worker:enrichment:characters`
+1. Queue jobs: `yarn queue:alliances` or `yarn scan:entities`
+2. Start workers (separate terminals): `yarn worker:info:characters`
 3. Workers use `channel.prefetch(N)` for concurrency control
 4. All ESI calls go through `esiRateLimiter.execute()` (50 req/sec max)
 

@@ -7,10 +7,10 @@ import '../config';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
-const CHARACTER_QUEUE = 'esi_character_enrichment_queue';
-const CORPORATION_QUEUE = 'esi_corporation_enrichment_queue';
-const ALLIANCE_QUEUE = 'esi_alliance_enrichment_queue';
-const TYPE_QUEUE = 'esi_type_enrichment_queue';
+const CHARACTER_QUEUE = 'esi_character_info_queue';
+const CORPORATION_QUEUE = 'esi_corporation_info_queue';
+const ALLIANCE_QUEUE = 'esi_alliance_info_queue';
+const TYPE_QUEUE = 'esi_type_info_queue';
 
 const BATCH_SIZE = 100;
 
@@ -159,7 +159,7 @@ async function scanAndQueueEntities() {
     const missingAllianceIds = Array.from(allianceIds).filter(id => !existingAllianceIds.has(id));
     const missingTypeIds = Array.from(typeIds).filter(id => !existingTypeIds.has(id));
 
-    console.log('📋 Missing entities (need enrichment):');
+    console.log('📋 Missing entities (need info fetch):');
     console.log(`   Characters: ${missingCharIds.length}`);
     console.log(`   Corporations: ${missingCorpIds.length}`);
     console.log(`   Alliances: ${missingAllianceIds.length}`);
@@ -227,10 +227,10 @@ async function scanAndQueueEntities() {
     console.log('━'.repeat(70));
     console.log('✅ Scanning complete!\n');
     console.log('🚀 Start specialized workers:');
-    console.log('   yarn worker:enrichment:characters');
-    console.log('   yarn worker:enrichment:corporations');
-    console.log('   yarn worker:enrichment:alliances');
-    console.log('   yarn worker:enrichment:types\n');
+    console.log('   yarn worker:info:characters');
+    console.log('   yarn worker:info:corporations');
+    console.log('   yarn worker:info:alliances');
+    console.log('   yarn worker:info:types\n');
 
     await prisma.$disconnect();
   } catch (error) {

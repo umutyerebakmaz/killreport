@@ -1,15 +1,15 @@
 /**
- * Type Enrichment Worker
- * Fetches type/item information from ESI and saves to database
+ * Alliance Info Worker
+ * Fetches alliance information from ESI and saves to database
  */
 
 import '../config';
-import { getTypeInfo } from '../services/eve-esi';
+import { getAllianceInfo } from '../services/eve-esi';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
-const QUEUE_NAME = 'esi_type_enrichment_queue';
-const PREFETCH_COUNT = 10; // Process 10 types concurrently
+const QUEUE_NAME = 'esi_alliance_info_queue';
+const PREFETCH_COUNT = 3; // Process 3 alliances concurrently
 
 interface EntityQueueMessage {
   entityId: number;
@@ -17,8 +17,8 @@ interface EntityQueueMessage {
   source: string;
 }
 
-async function typeEnrichmentWorker() {
-  console.log('📦 Type Enrichment Worker Started');
+async function allianceInfoWorker() {
+  console.log('🤝 Alliance Info Worker Started');
   console.log(`📦 Queue: ${QUEUE_NAME}`);
   console.log(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
@@ -33,7 +33,7 @@ async function typeEnrichmentWorker() {
     channel.prefetch(PREFETCH_COUNT);
 
     console.log('✅ Connected to RabbitMQ');
-    console.log('⏳ Waiting for types...\n');
+    console.log('⏳ Waiting for alliances...\n');
 
     let totalProcessed = 0;
     let totalAdded = 0;
@@ -60,37 +60,38 @@ async function typeEnrichmentWorker() {
         if (!msg) return;
 
         const message: EntityQueueMessage = JSON.parse(msg.content.toString());
-        const typeId = message.entityId;
+        const allianceId = message.entityId;
 
         try {
 
           // Check if already exists
-          const existing = await prisma.type.findUnique({
-            where: { id: typeId },
+          const existing = await prisma.alliance.findUnique({
+            where: { id: allianceId },
           });
 
           if (existing) {
             channel.ack(msg);
             totalSkipped++;
             totalProcessed++;
-            console.log(`  - [${totalProcessed}] Type ${typeId} (exists)`);
+            console.log(`  - [${totalProcessed}] Alliance ${allianceId} (exists)`);
             return;
-          }          // Fetch from ESI
-          const typeInfo = await getTypeInfo(typeId);
+          }
+
+          // Fetch from ESI
+          const allianceInfo = await getAllianceInfo(allianceId);
 
           // Save to database (upsert to prevent race condition)
-          const result = await prisma.type.upsert({
-            where: { id: typeId },
+          await prisma.alliance.upsert({
+            where: { id: allianceId },
             create: {
-              id: typeId,
-              name: typeInfo.name,
-              description: typeInfo.description,
-              group_id: typeInfo.group_id,
-              published: typeInfo.published,
-              volume: typeInfo.volume,
-              capacity: typeInfo.capacity,
-              mass: typeInfo.mass,
-              icon_id: typeInfo.icon_id,
+              id: allianceId,
+              name: allianceInfo.name,
+              ticker: allianceInfo.ticker,
+              date_founded: new Date(allianceInfo.date_founded),
+              creator_corporation_id: allianceInfo.creator_corporation_id,
+              creator_id: allianceInfo.creator_id,
+              executor_corporation_id: allianceInfo.executor_corporation_id,
+              faction_id: allianceInfo.faction_id,
             },
             update: {}, // Don't update if exists
           });
@@ -98,24 +99,25 @@ async function typeEnrichmentWorker() {
           totalAdded++;
           channel.ack(msg);
           totalProcessed++;
-          console.log(`  ✓ [${totalProcessed}] ${typeInfo.name}`);
+          console.log(`  ✓ [${totalProcessed}] ${allianceInfo.name} [${allianceInfo.ticker}]`);
 
-          if (totalProcessed % 100 === 0) {
+          if (totalProcessed % 20 === 0) {
             console.log(`📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
           }
+
         } catch (error: any) {
           totalErrors++;
           totalProcessed++;
 
           if (error.message?.includes('404')) {
-            console.log(`  ! [${totalProcessed}] Type ${message.entityId} (404)`);
+            console.log(`  ! [${totalProcessed}] Alliance ${message.entityId} (404)`);
             channel.ack(msg);
           } else {
-            console.error(`  × [${totalProcessed}] Type ${message.entityId}: ${error.message}`);
+            console.error(`  × [${totalProcessed}] Alliance ${message.entityId}: ${error.message}`);
             channel.nack(msg, false, true);
           }
 
-          if (totalProcessed % 100 === 0) {
+          if (totalProcessed % 20 === 0) {
             console.log(`📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
           }
         }
@@ -142,4 +144,4 @@ function setupShutdownHandlers() {
 }
 
 setupShutdownHandlers();
-typeEnrichmentWorker();
+allianceInfoWorker();

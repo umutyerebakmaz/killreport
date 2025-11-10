@@ -1,5 +1,5 @@
 /**
- * Corporation Enrichment Worker
+ * Corporation Info Worker
  * Fetches corporation information from ESI and saves to database
  */
 
@@ -8,7 +8,7 @@ import { getCorporationInfo } from '../services/eve-esi';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
-const QUEUE_NAME = 'esi_corporation_enrichment_queue';
+const QUEUE_NAME = 'esi_corporation_info_queue';
 const PREFETCH_COUNT = 5; // Process 5 corporations concurrently
 
 interface EntityQueueMessage {
@@ -17,8 +17,8 @@ interface EntityQueueMessage {
   source: string;
 }
 
-async function corporationEnrichmentWorker() {
-  console.log('🏢 Corporation Enrichment Worker Started');
+async function corporationInfoWorker() {
+  console.log('🏢 Corporation Info Worker Started');
   console.log(`📦 Queue: ${QUEUE_NAME}`);
   console.log(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
@@ -148,4 +148,4 @@ function setupShutdownHandlers() {
 }
 
 setupShutdownHandlers();
-corporationEnrichmentWorker();
+corporationInfoWorker();
