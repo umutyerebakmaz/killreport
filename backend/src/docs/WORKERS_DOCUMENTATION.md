@@ -20,7 +20,7 @@ Kuyruktan gelen mesajları sürekli olarak dinleyen ve işleyen servisler. Arka 
 
 ### `queue-alliances.ts`
 
-**Amaç**: ESI'dan tüm alliance ID'lerini alıp `alliance_sync_queue` kuyruğuna ekler.
+**Amaç**: ESI'dan tüm alliance ID'lerini alıp `alliance_queue` kuyruğuna ekler.
 
 **Kullanım**:
 
@@ -31,10 +31,10 @@ yarn queue:alliances
 **İşleyiş**:
 
 1. ESI'dan tüm alliance ID'lerini çeker (`/alliances/` endpoint)
-2. Her alliance ID'sini `alliance_sync_queue` kuyruğuna ekler
+2. Her alliance ID'sini `alliance_queue` kuyruğuna ekler
 3. 100'lük batch'ler halinde işler
 
-**Kuyruk**: `alliance_sync_queue`
+**Kuyruk**: `alliance_queue`
 
 **Sonraki Adım**: `worker-alliances.ts` ile işlenir
 
@@ -294,7 +294,7 @@ yarn worker:zkillboard
 yarn worker:alliances
 ```
 
-**Kuyruk**: `alliance_sync_queue`
+**Kuyruk**: `alliance_queue`
 
 **Not**: Detayları için worker dosyasına bakın.
 
@@ -568,7 +568,7 @@ interface EntityQueueMessage {
 | `character_enrichment_queue`   | Character bilgilerini çekmek   |
 | `type_enrichment_queue`        | Type bilgilerini çekmek        |
 | `killmail_sync_queue`          | Killmail senkronizasyonu       |
-| `alliance_sync_queue`          | Alliance senkronizasyonu       |
+| `alliance_queue`               | Alliance senkronizasyonu       |
 | `alliance_corporation_queue`   | Alliance corp ID'lerini çekmek |
 
 ---
