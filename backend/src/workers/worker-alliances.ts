@@ -99,6 +99,11 @@ async function startWorker() {
     console.log(`📡 Listening to queue: ${QUEUE_NAME}`);
     console.log(`⏱️  Rate limit: ${1000 / RATE_LIMIT_DELAY} requests/second\n`);
 
+    // Ensure queue exists
+    await channel.assertQueue(QUEUE_NAME, {
+      durable: true,
+    });
+
     // Check initial queue status
     const queueInfo = await channel.checkQueue(QUEUE_NAME);
     console.log(`📊 Queue status: ${queueInfo.messageCount} messages waiting\n`);

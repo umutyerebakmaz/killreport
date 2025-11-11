@@ -22,6 +22,11 @@ async function queueAlliances() {
 
     const channel = await getRabbitMQChannel();
 
+    // Ensure queue exists
+    await channel.assertQueue(QUEUE_NAME, {
+      durable: true,
+    });
+
     // Add to queue in batches
     for (let i = 0; i < allianceIds.length; i += BATCH_SIZE) {
       const batch = allianceIds.slice(i, i + BATCH_SIZE);
