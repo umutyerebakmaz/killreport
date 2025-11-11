@@ -58,6 +58,8 @@ input AllianceFilter {
   search: String
   name: String
   ticker: String
+  dateFoundedFrom: String
+  dateFoundedTo: String
 }
 
 input StartAllianceSyncInput {

@@ -40,6 +40,8 @@ type AllianceEdge {
 }
 
 input AllianceFilter {
+  dateFoundedFrom: String
+  dateFoundedTo: String
   limit: Int
   name: String
   page: Int

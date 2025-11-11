@@ -67,6 +67,8 @@ export type AllianceEdge = {
 };
 
 export type AllianceFilter = {
+  dateFoundedFrom?: InputMaybe<Scalars['String']['input']>;
+  dateFoundedTo?: InputMaybe<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;

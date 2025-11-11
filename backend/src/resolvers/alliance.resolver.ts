@@ -37,6 +37,15 @@ export const allianceQueries: QueryResolvers = {
       if (filter.ticker) {
         where.ticker = { contains: filter.ticker, mode: 'insensitive' };
       }
+      if (filter.dateFoundedFrom || filter.dateFoundedTo) {
+        where.date_founded = {};
+        if (filter.dateFoundedFrom) {
+          where.date_founded.gte = new Date(filter.dateFoundedFrom);
+        }
+        if (filter.dateFoundedTo) {
+          where.date_founded.lte = new Date(filter.dateFoundedTo);
+        }
+      }
     }
 
     // Total record count (filtered)
