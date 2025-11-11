@@ -18,6 +18,8 @@ export default function AlliancesPage() {
     search?: string;
     name?: string;
     ticker?: string;
+    dateFoundedFrom?: string;
+    dateFoundedTo?: string;
   }>({});
 
   const { data, loading, error, refetch } = useAlliancesQuery({
@@ -84,6 +86,8 @@ export default function AlliancesPage() {
     search?: string;
     name?: string;
     ticker?: string;
+    dateFoundedFrom?: string;
+    dateFoundedTo?: string;
   }) => {
     setFilters(newFilters);
     setCurrentPage(1); // Reset to first page when filters change
