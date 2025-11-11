@@ -12,6 +12,8 @@ interface AllianceFiltersProps {
     search?: string;
     name?: string;
     ticker?: string;
+    dateFoundedFrom?: string;
+    dateFoundedTo?: string;
   }) => void;
   onClearFilters: () => void;
 }
@@ -24,8 +26,11 @@ export default function AllianceFilters({
   const [search, setSearch] = useState("");
   const [name, setName] = useState("");
   const [ticker, setTicker] = useState("");
+  const [dateFoundedFrom, setDateFoundedFrom] = useState("");
+  const [dateFoundedTo, setDateFoundedTo] = useState("");
 
-  const hasActiveFilters = search || name || ticker;
+  const hasActiveFilters =
+    search || name || ticker || dateFoundedFrom || dateFoundedTo;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +38,8 @@ export default function AllianceFilters({
       search: search || undefined,
       name: name || undefined,
       ticker: ticker || undefined,
+      dateFoundedFrom: dateFoundedFrom || undefined,
+      dateFoundedTo: dateFoundedTo || undefined,
     });
   };
 
@@ -40,6 +47,8 @@ export default function AllianceFilters({
     setSearch("");
     setName("");
     setTicker("");
+    setDateFoundedFrom("");
+    setDateFoundedTo("");
     onClearFilters();
   };
 
@@ -80,7 +89,10 @@ export default function AllianceFilters({
           Filters
           {hasActiveFilters && (
             <span className="inline-flex items-center justify-center w-5 h-5 ml-1 text-xs font-bold text-indigo-600 bg-white rounded-full">
-              {[name, ticker].filter(Boolean).length}
+              {
+                [name, ticker, dateFoundedFrom, dateFoundedTo].filter(Boolean)
+                  .length
+              }
             </span>
           )}
         </button>
@@ -139,6 +151,42 @@ export default function AllianceFilters({
                 value={ticker}
                 onChange={(e) => setTicker(e.target.value)}
                 className="block w-full px-3 py-2 text-white border-0 bg-white/5 placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm sm:leading-6"
+              />
+            </div>
+
+            {/* Date Founded From Filter */}
+            <div>
+              <label
+                htmlFor="date-founded-from-filter"
+                className="block mb-2 text-sm font-medium text-gray-300"
+              >
+                Founded From (yyyy-mm-dd)
+              </label>
+              <input
+                type="date"
+                id="date-founded-from-filter"
+                value={dateFoundedFrom}
+                onChange={(e) => setDateFoundedFrom(e.target.value)}
+                placeholder="yyyy-mm-dd"
+                className="block w-full px-3 py-2 text-white border-0 bg-white/5 placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm sm:leading-6 scheme-dark"
+              />
+            </div>
+
+            {/* Date Founded To Filter */}
+            <div>
+              <label
+                htmlFor="date-founded-to-filter"
+                className="block mb-2 text-sm font-medium text-gray-300"
+              >
+                Founded To (yyyy-mm-dd)
+              </label>
+              <input
+                type="date"
+                id="date-founded-to-filter"
+                value={dateFoundedTo}
+                onChange={(e) => setDateFoundedTo(e.target.value)}
+                placeholder="yyyy-mm-dd"
+                className="block w-full px-3 py-2 text-white border-0 bg-white/5 placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm sm:leading-6 scheme-dark"
               />
             </div>
           </div>
