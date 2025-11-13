@@ -29,42 +29,42 @@ model AllianceSnapshot {
   alliance_id       Int
   member_count      Int
   corporation_count Int
-  snapshot_date     DateTime @db.Date
   created_at        DateTime @default(now())
-
-  alliance Alliance @relation(fields: [alliance_id], references: [id], onDelete: Cascade)
+  snapshot_date     DateTime @db.Date
+  alliance          Alliance @relation(fields: [alliance_id], references: [id], onDelete: Cascade)
 
   @@unique([alliance_id, snapshot_date])
   @@index([snapshot_date])
   @@index([alliance_id])
+  @@index([created_at])
   @@map("alliance_snapshots")
 }
 
 model Corporation {
-  id                    Int        @id
-  name                  String
-  ticker                String
-  member_count          Int
-  ceo_id                Int
-  creator_id            Int
-  date_founded          DateTime?
-  description           String?
-  alliance_id           Int?
-  faction_id            Int?
-  home_station_id       Int?
-  shares                BigInt?
-  tax_rate              Float
-  url                   String?
-  created_at            DateTime   @default(now())
-  updated_at            DateTime   @updatedAt
-  alliance              Alliance?  @relation("AllianceCorporations", fields: [alliance_id], references: [id])
+  id                       Int        @id
+  name                     String
+  ticker                   String
+  member_count             Int
+  ceo_id                   Int
+  creator_id               Int
+  date_founded             DateTime?
+  description              String?
+  alliance_id              Int?
+  faction_id               Int?
+  home_station_id          Int?
+  shares                   BigInt?
+  tax_rate                 Float
+  url                      String?
+  created_at               DateTime   @default(now())
+  updated_at               DateTime   @updatedAt
+  alliance                 Alliance?  @relation("AllianceCorporations", fields: [alliance_id], references: [id])
 
   @@index([alliance_id])
   @@map("corporations")
 }
 
 model Character {
-  id              Int      @id
+  id              Int        @id
   name            String
   corporation_id  Int
   alliance_id     Int?
@@ -76,8 +76,8 @@ model Character {
   description     String?
   title           String?
   faction_id      Int?
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
+  created_at      DateTime   @default(now())
+  updated_at      DateTime   @updatedAt
 
   @@map("characters")
 }
