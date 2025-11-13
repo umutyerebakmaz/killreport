@@ -20,8 +20,8 @@ CREATE TABLE "alliance_snapshots" (
     "alliance_id" INTEGER NOT NULL,
     "member_count" INTEGER NOT NULL,
     "corporation_count" INTEGER NOT NULL,
-    "snapshot_date" DATE NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "snapshot_date" DATE NOT NULL,
 
     CONSTRAINT "alliance_snapshots_pkey" PRIMARY KEY ("id")
 );
@@ -184,6 +184,9 @@ CREATE INDEX "alliance_snapshots_snapshot_date_idx" ON "alliance_snapshots"("sna
 CREATE INDEX "alliance_snapshots_alliance_id_idx" ON "alliance_snapshots"("alliance_id");
 
 -- CreateIndex
+CREATE INDEX "alliance_snapshots_created_at_idx" ON "alliance_snapshots"("created_at");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "alliance_snapshots_alliance_id_snapshot_date_key" ON "alliance_snapshots"("alliance_id", "snapshot_date");
 
 -- CreateIndex
@@ -260,4 +263,3 @@ ALTER TABLE "attackers" ADD CONSTRAINT "attackers_killmail_id_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "killmail_items" ADD CONSTRAINT "killmail_items_killmail_id_fkey" FOREIGN KEY ("killmail_id") REFERENCES "killmails"("killmail_id") ON DELETE CASCADE ON UPDATE CASCADE;
-

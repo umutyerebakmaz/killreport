@@ -188,7 +188,9 @@ export default function AllianceDetailPage({
                 </div>
                 <div>
                   <span className="text-gray-400">Created By</span>
-                  <span className="ml-2 font-semibold">-</span>
+                  <span className="ml-2 font-semibold">
+                    {alliance.createdBy?.name}
+                  </span>
                 </div>
                 <div>
                   <span className="text-gray-400">Start Date:</span>
