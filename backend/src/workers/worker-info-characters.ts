@@ -9,7 +9,7 @@ import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
 const QUEUE_NAME = 'esi_character_info_queue';
-const PREFETCH_COUNT = 10; // Process 10 characters concurrently
+const PREFETCH_COUNT = 20; // Process 20 characters concurrently (increased from 10)
 
 interface EntityQueueMessage {
   entityId: number;
@@ -101,7 +101,7 @@ async function characterInfoWorker() {
           totalAdded++;
           channel.ack(msg);
           totalProcessed++;
-          console.log(`  ✓ [${totalProcessed}] ${charInfo.name}`);
+          console.log(`  ✅ [${totalProcessed}] ${charInfo.name}`);
 
           if (totalProcessed % 50 === 0) {
             console.log(`📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
@@ -113,11 +113,13 @@ async function characterInfoWorker() {
 
           // 404 = deleted character, don't requeue
           if (error.message?.includes('404')) {
-            console.log(`  ! [${totalProcessed}] Character ${message.entityId} (404)`);
+            console.log(`  ! [${totalProcessed}] Character ${message.entityId} (404 - Deleted)`);
             channel.ack(msg);
           } else {
             // Other errors: requeue
-            console.error(`  × [${totalProcessed}] Character ${message.entityId}: ${error.message}`);
+            console.error(`  × [${totalProcessed}] Character ${message.entityId} ERROR:`);
+            console.error(`     Message: ${error.message}`);
+            console.error(`     Stack: ${error.stack?.split('\n')[0]}`);
             channel.nack(msg, false, true);
           }
 
