@@ -221,6 +221,7 @@ export const allianceFieldResolvers: AllianceResolvers = {
 
   metrics: async (parent) => {
     const now = new Date();
+    const date1d = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000);
     const date7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const date30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
@@ -244,6 +245,15 @@ export const allianceFieldResolvers: AllianceResolvers = {
       currentMemberCount = memberResult._sum.member_count || 0;
     }
 
+    // 1 gün önceki snapshot
+    const snapshot1d = await prisma.allianceSnapshot.findFirst({
+      where: {
+        alliance_id: parent.id,
+        snapshot_date: { lte: date1d },
+      },
+      orderBy: { snapshot_date: 'desc' },
+    });
+
     // 7 gün önceki snapshot
     const snapshot7d = await prisma.allianceSnapshot.findFirst({
       where: {
@@ -263,11 +273,17 @@ export const allianceFieldResolvers: AllianceResolvers = {
     });
 
     // Delta hesaplamaları
+    const memberCountDelta1d = snapshot1d
+      ? currentMemberCount - snapshot1d.member_count
+      : null;
     const memberCountDelta7d = snapshot7d
       ? currentMemberCount - snapshot7d.member_count
       : null;
     const memberCountDelta30d = snapshot30d
       ? currentMemberCount - snapshot30d.member_count
+      : null;
+    const corporationCountDelta1d = snapshot1d
+      ? currentCorpCount - snapshot1d.corporation_count
       : null;
     const corporationCountDelta7d = snapshot7d
       ? currentCorpCount - snapshot7d.corporation_count
@@ -277,11 +293,17 @@ export const allianceFieldResolvers: AllianceResolvers = {
       : null;
 
     // Growth rate hesaplamaları (yüzde)
+    const memberCountGrowthRate1d = snapshot1d && snapshot1d.member_count > 0
+      ? ((currentMemberCount - snapshot1d.member_count) / snapshot1d.member_count) * 100
+      : null;
     const memberCountGrowthRate7d = snapshot7d && snapshot7d.member_count > 0
       ? ((currentMemberCount - snapshot7d.member_count) / snapshot7d.member_count) * 100
       : null;
     const memberCountGrowthRate30d = snapshot30d && snapshot30d.member_count > 0
       ? ((currentMemberCount - snapshot30d.member_count) / snapshot30d.member_count) * 100
+      : null;
+    const corporationCountGrowthRate1d = snapshot1d && snapshot1d.corporation_count > 0
+      ? ((currentCorpCount - snapshot1d.corporation_count) / snapshot1d.corporation_count) * 100
       : null;
     const corporationCountGrowthRate7d = snapshot7d && snapshot7d.corporation_count > 0
       ? ((currentCorpCount - snapshot7d.corporation_count) / snapshot7d.corporation_count) * 100
@@ -291,12 +313,16 @@ export const allianceFieldResolvers: AllianceResolvers = {
       : null;
 
     return {
+      memberCountDelta1d,
       memberCountDelta7d,
       memberCountDelta30d,
+      corporationCountDelta1d,
       corporationCountDelta7d,
       corporationCountDelta30d,
+      memberCountGrowthRate1d,
       memberCountGrowthRate7d,
       memberCountGrowthRate30d,
+      corporationCountGrowthRate1d,
       corporationCountGrowthRate7d,
       corporationCountGrowthRate30d,
     };
