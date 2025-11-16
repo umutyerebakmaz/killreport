@@ -8,7 +8,9 @@ body {
   font-weight: 400;
 }
 
-.alliance-card {
+.alliance-card,
+.corporation-card,
+.character-card {
   @apply border bg-white/5 border-white/10;
 }
 
