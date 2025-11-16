@@ -25,7 +25,7 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
     : "Unknown";
 
   return (
-    <div className="alliance-card">
+    <div className="corporation-card">
       <div className="px-4 py-5 sm:p-6">
         <div className="flex flex-col items-center gap-4">
           <div className="relative w-24 h-24">
@@ -56,7 +56,7 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
           </Link>
 
           {/* Ticker Badge */}
-          <div className="px-3 py-1 text-xs font-bold rounded-full bg-green-500/20 text-green-400">
+          <div className="px-3 py-1 text-xs font-bold text-green-400 rounded-full bg-green-500/20">
             [{corporation.ticker}]
           </div>
 
