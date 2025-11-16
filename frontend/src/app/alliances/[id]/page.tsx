@@ -7,6 +7,7 @@ import {
   StarIcon,
   UsersIcon,
 } from "@heroicons/react/24/outline";
+import Link from "next/link";
 import { use, useState } from "react";
 
 interface AllianceDetailPageProps {
@@ -95,6 +96,11 @@ export default function AllianceDetailPage({
             />
             <div className="flex-1">
               <h1 className="text-4xl font-bold">{alliance.name}</h1>
+              <div className="mt-2">
+                <span className="px-3 py-1 text-sm font-bold text-yellow-400">
+                  [{alliance.ticker}]
+                </span>
+              </div>
             </div>
           </div>
 
@@ -173,7 +179,16 @@ export default function AllianceDetailPage({
                 <div>
                   <span className="text-gray-400">Executor</span>
                   <span className="ml-2 font-semibold">
-                    {alliance.executor?.name}
+                    {alliance.executor ? (
+                      <Link
+                        href={`/corporations/${alliance.executor.id}`}
+                        className="text-cyan-400 hover:text-cyan-300"
+                      >
+                        {alliance.executor.name}
+                      </Link>
+                    ) : (
+                      "N/A"
+                    )}
                   </span>
                 </div>
                 <div>
@@ -183,13 +198,31 @@ export default function AllianceDetailPage({
                 <div>
                   <span className="text-gray-400">Created By Corporation</span>
                   <span className="ml-2 font-semibold">
-                    {alliance.createdByCorporation?.name}
+                    {alliance.createdByCorporation ? (
+                      <Link
+                        href={`/corporations/${alliance.createdByCorporation.id}`}
+                        className="text-cyan-400 hover:text-cyan-300"
+                      >
+                        {alliance.createdByCorporation.name}
+                      </Link>
+                    ) : (
+                      "N/A"
+                    )}
                   </span>
                 </div>
                 <div>
                   <span className="text-gray-400">Created By</span>
                   <span className="ml-2 font-semibold">
-                    {alliance.createdBy?.name}
+                    {alliance.createdBy ? (
+                      <Link
+                        href={`/characters/${alliance.createdBy.id}`}
+                        className="text-cyan-400 hover:text-cyan-300"
+                      >
+                        {alliance.createdBy.name}
+                      </Link>
+                    ) : (
+                      "N/A"
+                    )}
                   </span>
                 </div>
                 <div>

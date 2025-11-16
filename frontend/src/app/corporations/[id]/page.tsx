@@ -54,12 +54,12 @@ export default function CorporationDetailPage({
     { id: "members" as TabType, label: "Members" },
   ];
 
-  // Date founded'ı formatla
+  // Date founded'ı formatla (DD.MM.YYYY)
   const foundedDate = corporation.date_founded
-    ? new Date(corporation.date_founded).toLocaleDateString("en-US", {
+    ? new Date(corporation.date_founded).toLocaleDateString("tr-TR", {
         year: "numeric",
-        month: "long",
-        day: "numeric",
+        month: "2-digit",
+        day: "2-digit",
       })
     : "Unknown";
 
@@ -79,7 +79,7 @@ export default function CorporationDetailPage({
             <div className="flex-1">
               <h1 className="text-4xl font-bold">{corporation.name}</h1>
               <div className="mt-2">
-                <span className="px-3 py-1 text-sm font-bold rounded-full bg-green-500/20 text-green-400">
+                <span className="px-3 py-1 text-sm font-bold text-green-400">
                   [{corporation.ticker}]
                 </span>
               </div>
@@ -106,7 +106,7 @@ export default function CorporationDetailPage({
               >
                 <Link
                   href={`/alliances/${corporation.alliance.id}`}
-                  className="flex items-center gap-2 px-3 py-1 text-sm transition-colors rounded bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30"
+                  className="flex items-center gap-2 px-3 py-1 text-sm text-yellow-400 transition-colors rounded bg-yellow-500/20 hover:bg-yellow-500/30"
                 >
                   <BuildingOffice2Icon className="w-5 h-5" />[
                   {corporation.alliance.ticker}] {corporation.alliance.name}
