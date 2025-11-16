@@ -44,6 +44,7 @@ input AllianceFilter {
   dateFoundedTo: String
   limit: Int
   name: String
+  orderBy: AllianceOrderBy
   page: Int
   search: String
   ticker: String
@@ -58,6 +59,13 @@ type AllianceMetrics {
   memberCountDelta30d: Int
   memberCountGrowthRate7d: Float
   memberCountGrowthRate30d: Float
+}
+
+enum AllianceOrderBy {
+  memberCountAsc
+  memberCountDesc
+  nameAsc
+  nameDesc
 }
 
 type AllianceSnapshot {
@@ -149,6 +157,7 @@ input CorporationFilter {
   dateFoundedTo: String
   limit: Int
   name: String
+  orderBy: CorporationOrderBy
   page: Int
   search: String
   ticker: String
@@ -159,6 +168,13 @@ type CorporationMetrics {
   memberCountDelta30d: Int
   memberCountGrowthRate7d: Float
   memberCountGrowthRate30d: Float
+}
+
+enum CorporationOrderBy {
+  memberCountAsc
+  memberCountDesc
+  nameAsc
+  nameDesc
 }
 
 type CorporationSnapshot {

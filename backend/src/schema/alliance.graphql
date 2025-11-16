@@ -17,6 +17,13 @@ type Alliance {
   snapshots(days: Int): [AllianceSnapshot!]!
 }
 
+enum AllianceOrderBy {
+  nameAsc
+  nameDesc
+  memberCountAsc
+  memberCountDesc
+}
+
 type AllianceMetrics {
   memberCountDelta7d: Int
   memberCountDelta30d: Int
@@ -60,6 +67,7 @@ input AllianceFilter {
   ticker: String
   dateFoundedFrom: String
   dateFoundedTo: String
+  orderBy: AllianceOrderBy
 }
 
 input StartAllianceSyncInput {

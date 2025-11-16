@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ChevronDownIcon,
   FunnelIcon,
   MagnifyingGlassIcon,
   XMarkIcon,
@@ -16,11 +17,15 @@ interface CorporationFiltersProps {
     dateFoundedTo?: string;
   }) => void;
   onClearFilters: () => void;
+  orderBy: string;
+  onOrderByChange: (orderBy: string) => void;
 }
 
 export default function CorporationFilters({
   onFilterChange,
   onClearFilters,
+  orderBy,
+  onOrderByChange,
 }: CorporationFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -70,7 +75,10 @@ export default function CorporationFilters({
         </div>
 
         {/* Search Button */}
-        <button type="submit" className="secondary-button-xl">
+        <button
+          type="submit"
+          className="inline-flex items-center gap-x-1.5 px-4 py-2 text-sm font-medium text-gray-300 transition-all duration-200 border cursor-pointer bg-gray-900/50 border-gray-700/50 hover:bg-gray-800 hover:border-gray-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-600"
+        >
           <MagnifyingGlassIcon className="w-5 h-5" />
           Search
         </button>
@@ -79,11 +87,11 @@ export default function CorporationFilters({
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className={`inline-flex items-center gap-x-1.5 px-3.5 py-2.5 text-sm font-semibold text-white ring-1 ring-inset transition-colors cursor-pointer ${
+          className={`inline-flex items-center gap-x-1.5 px-4 py-2 text-sm font-medium transition-all duration-200 border cursor-pointer ${
             hasActiveFilters
-              ? "bg-indigo-600 ring-indigo-500/50 hover:bg-indigo-500"
-              : "bg-white/10 ring-white/5 hover:bg-white/20"
-          }`}
+              ? "bg-indigo-600/80 border-indigo-500/50 text-white hover:bg-indigo-600 hover:border-indigo-500"
+              : "bg-gray-900/50 border-gray-700/50 text-gray-300 hover:bg-gray-800 hover:border-gray-600 hover:text-white"
+          } focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-600`}
         >
           <FunnelIcon className="w-5 h-5" />
           Filters
@@ -96,6 +104,49 @@ export default function CorporationFilters({
             </span>
           )}
         </button>
+
+        {/* Order By Selector */}
+        <div className="relative group">
+          <select
+            value={orderBy}
+            onChange={(e) => onOrderByChange(e.target.value)}
+            className="px-4 py-2 pr-10 text-sm font-medium text-gray-500 transition-all duration-200 border appearance-none cursor-pointer bg-gray-900/50 border-gray-700/50 hover:bg-gray-800 hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500/50 focus:border-gray-600"
+          >
+            <option
+              value="memberCountDesc"
+              className="py-2 text-base font-medium text-gray-100 bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+            >
+              {orderBy === "memberCountDesc" ? "✓" : "\u00A0\u00A0"}
+              {"   "}
+              Most Members
+            </option>
+            <option
+              value="memberCountAsc"
+              className="py-2 text-base font-medium text-gray-100 bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+            >
+              {orderBy === "memberCountAsc" ? "✓" : "\u00A0\u00A0"}
+              {"   "}
+              Least Members
+            </option>
+            <option
+              value="nameAsc"
+              className="py-2 text-base font-medium text-gray-100 bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+            >
+              {orderBy === "nameAsc" ? "✓" : "\u00A0\u00A0"}
+              {"   "}
+              Name (A to Z)
+            </option>
+            <option
+              value="nameDesc"
+              className="py-2 text-base font-medium text-gray-100 bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+            >
+              {orderBy === "nameDesc" ? "✓" : "\u00A0\u00A0"}
+              {"   "}
+              Name (Z to A)
+            </option>
+          </select>
+          <ChevronDownIcon className="absolute w-5 h-5 text-gray-400 transition-transform duration-200 pointer-events-none right-3 top-2.5 group-hover:text-gray-300" />
+        </div>
 
         {/* Clear All Button */}
         {hasActiveFilters && (

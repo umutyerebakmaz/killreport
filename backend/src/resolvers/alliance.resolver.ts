@@ -52,12 +52,33 @@ export const allianceQueries: QueryResolvers = {
     const totalCount = await prisma.alliance.count({ where });
     const totalPages = Math.ceil(totalCount / take);
 
+    // OrderBy logic
+    let orderBy: any = { name: 'asc' }; // default
+    if (filter?.orderBy) {
+      switch (filter.orderBy) {
+        case 'nameAsc':
+          orderBy = { name: 'asc' };
+          break;
+        case 'nameDesc':
+          orderBy = { name: 'desc' };
+          break;
+        case 'memberCountAsc':
+          orderBy = { member_count: 'asc' };
+          break;
+        case 'memberCountDesc':
+          orderBy = { member_count: 'desc' };
+          break;
+        default:
+          orderBy = { name: 'asc' };
+      }
+    }
+
     // Fetch data
     const alliances = await prisma.alliance.findMany({
       where,
       skip,
       take,
-      orderBy: { name: 'asc' },
+      orderBy,
     });
 
     const pageInfo: PageInfo = {
