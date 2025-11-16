@@ -1,19 +1,24 @@
-query Corporations($first: Int) {
-  corporations(first: $first) {
+query Corporations($filter: CorporationFilter) {
+  corporations(filter: $filter) {
     edges {
       node {
         id
         name
         ticker
         member_count
+        date_founded
         alliance {
           id
           name
           ticker
         }
       }
+      cursor
     }
     pageInfo {
+      currentPage
+      totalPages
+      totalCount
       hasNextPage
       hasPreviousPage
     }
