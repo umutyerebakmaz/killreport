@@ -12,8 +12,10 @@ export default function CorporationsPage() {
   const searchParams = useSearchParams();
 
   const pageFromUrl = Number(searchParams.get("page")) || 1;
+  const orderByFromUrl = searchParams.get("orderBy") || "memberCountDesc";
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(25);
+  const [orderBy, setOrderBy] = useState<string>(orderByFromUrl);
   const [filters, setFilters] = useState<{
     search?: string;
     name?: string;
@@ -27,26 +29,35 @@ export default function CorporationsPage() {
       filter: {
         page: currentPage,
         limit: pageSize,
+        orderBy: orderBy as any,
         ...filters,
       },
     },
   });
 
-  // URL'deki page parametresi değiştiğinde state'i güncelle
+  // URL'deki parametreler değiştiğinde state'i güncelle
   useEffect(() => {
     const urlPage = Number(searchParams.get("page")) || 1;
+    const urlOrderBy = searchParams.get("orderBy") || "memberCountDesc";
     if (urlPage !== currentPage) {
       setCurrentPage(urlPage);
     }
+    if (urlOrderBy !== orderBy) {
+      setOrderBy(urlOrderBy);
+    }
   }, [searchParams]);
 
-  // currentPage değiştiğinde URL'i güncelle
+  // currentPage veya orderBy değiştiğinde URL'i güncelle
   useEffect(() => {
     const urlPage = Number(searchParams.get("page")) || 1;
-    if (currentPage !== urlPage) {
-      router.push(`/corporations?page=${currentPage}`, { scroll: false });
+    const urlOrderBy = searchParams.get("orderBy") || "memberCountDesc";
+    if (currentPage !== urlPage || orderBy !== urlOrderBy) {
+      const params = new URLSearchParams();
+      params.set("page", currentPage.toString());
+      params.set("orderBy", orderBy);
+      router.push(`/corporations?${params.toString()}`, { scroll: false });
     }
-  }, [currentPage]);
+  }, [currentPage, orderBy]);
 
   if (loading) return <div className="p-8">Loading...</div>;
   if (error) return <div className="p-8">Error: {error.message}</div>;
@@ -115,6 +126,8 @@ export default function CorporationsPage() {
         <CorporationFilters
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}
+          orderBy={orderBy}
+          onOrderByChange={setOrderBy}
         />
       </div>
 
