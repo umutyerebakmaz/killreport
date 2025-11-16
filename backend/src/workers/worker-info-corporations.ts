@@ -103,7 +103,7 @@ async function corporationInfoWorker() {
           totalAdded++;
           channel.ack(msg);
           totalProcessed++;
-          console.log(`  ✓ [${totalProcessed}] ${corpInfo.name} [${corpInfo.ticker}]`);
+          console.log(`  ✅ [${totalProcessed}] ${corpInfo.name} [${corpInfo.ticker}]`);
 
           if (totalProcessed % 50 === 0) {
             console.log(`📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
