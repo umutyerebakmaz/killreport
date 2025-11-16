@@ -79,12 +79,16 @@ export type AllianceFilter = {
 
 export type AllianceMetrics = {
   __typename?: 'AllianceMetrics';
+  corporationCountDelta1d?: Maybe<Scalars['Int']['output']>;
   corporationCountDelta7d?: Maybe<Scalars['Int']['output']>;
   corporationCountDelta30d?: Maybe<Scalars['Int']['output']>;
+  corporationCountGrowthRate1d?: Maybe<Scalars['Float']['output']>;
   corporationCountGrowthRate7d?: Maybe<Scalars['Float']['output']>;
   corporationCountGrowthRate30d?: Maybe<Scalars['Float']['output']>;
+  memberCountDelta1d?: Maybe<Scalars['Int']['output']>;
   memberCountDelta7d?: Maybe<Scalars['Int']['output']>;
   memberCountDelta30d?: Maybe<Scalars['Int']['output']>;
+  memberCountGrowthRate1d?: Maybe<Scalars['Float']['output']>;
   memberCountGrowthRate7d?: Maybe<Scalars['Float']['output']>;
   memberCountGrowthRate30d?: Maybe<Scalars['Float']['output']>;
 };
@@ -202,8 +206,10 @@ export type CorporationFilter = {
 
 export type CorporationMetrics = {
   __typename?: 'CorporationMetrics';
+  memberCountDelta1d?: Maybe<Scalars['Int']['output']>;
   memberCountDelta7d?: Maybe<Scalars['Int']['output']>;
   memberCountDelta30d?: Maybe<Scalars['Int']['output']>;
+  memberCountGrowthRate1d?: Maybe<Scalars['Float']['output']>;
   memberCountGrowthRate7d?: Maybe<Scalars['Float']['output']>;
   memberCountGrowthRate30d?: Maybe<Scalars['Float']['output']>;
 };
@@ -725,12 +731,16 @@ export type AllianceEdgeResolvers<ContextType = any, ParentType extends Resolver
 };
 
 export type AllianceMetricsResolvers<ContextType = any, ParentType extends ResolversParentTypes['AllianceMetrics'] = ResolversParentTypes['AllianceMetrics']> = {
+  corporationCountDelta1d?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   corporationCountDelta7d?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   corporationCountDelta30d?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  corporationCountGrowthRate1d?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   corporationCountGrowthRate7d?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   corporationCountGrowthRate30d?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  memberCountDelta1d?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   memberCountDelta7d?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   memberCountDelta30d?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  memberCountGrowthRate1d?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   memberCountGrowthRate7d?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   memberCountGrowthRate30d?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
 };
@@ -809,8 +819,10 @@ export type CorporationEdgeResolvers<ContextType = any, ParentType extends Resol
 };
 
 export type CorporationMetricsResolvers<ContextType = any, ParentType extends ResolversParentTypes['CorporationMetrics'] = ResolversParentTypes['CorporationMetrics']> = {
+  memberCountDelta1d?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   memberCountDelta7d?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   memberCountDelta30d?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  memberCountGrowthRate1d?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   memberCountGrowthRate7d?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   memberCountGrowthRate30d?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
 };
