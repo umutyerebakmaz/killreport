@@ -51,12 +51,16 @@ input AllianceFilter {
 }
 
 type AllianceMetrics {
+  corporationCountDelta1d: Int
   corporationCountDelta7d: Int
   corporationCountDelta30d: Int
+  corporationCountGrowthRate1d: Float
   corporationCountGrowthRate7d: Float
   corporationCountGrowthRate30d: Float
+  memberCountDelta1d: Int
   memberCountDelta7d: Int
   memberCountDelta30d: Int
+  memberCountGrowthRate1d: Float
   memberCountGrowthRate7d: Float
   memberCountGrowthRate30d: Float
 }
@@ -164,8 +168,10 @@ input CorporationFilter {
 }
 
 type CorporationMetrics {
+  memberCountDelta1d: Int
   memberCountDelta7d: Int
   memberCountDelta30d: Int
+  memberCountGrowthRate1d: Float
   memberCountGrowthRate7d: Float
   memberCountGrowthRate30d: Float
 }
