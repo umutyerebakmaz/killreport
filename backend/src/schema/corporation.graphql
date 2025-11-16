@@ -29,6 +29,13 @@ type CorporationSnapshot {
   memberCount: Int!
 }
 
+enum CorporationOrderBy {
+  nameAsc
+  nameDesc
+  memberCountAsc
+  memberCountDesc
+}
+
 type CorporationEdge {
   node: Corporation!
   cursor: String!
@@ -48,6 +55,7 @@ input CorporationFilter {
   dateFoundedFrom: String
   dateFoundedTo: String
   allianceId: Int
+  orderBy: CorporationOrderBy
 }
 
 extend type Query {
