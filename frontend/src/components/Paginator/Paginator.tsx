@@ -99,25 +99,21 @@ export default function Paginator({
 
       {/* Page Size Selector */}
       {onPageSizeChange && (
-        <div className="relative group">
+        <div className="select-option-container">
           <select
-            className="px-4 py-2 pr-10 text-sm font-medium text-gray-500 transition-all duration-200 border appearance-none cursor-pointer bg-gray-900/50 border-gray-700/50 hover:bg-gray-800 hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500/50 focus:border-gray-600"
+            className="select"
             value={pageSize}
             onChange={(e) => onPageSizeChange(Number(e.target.value))}
           >
             {pageSizeOptions.map((size) => (
-              <option
-                key={size}
-                value={size}
-                className="py-2 text-base font-medium text-gray-100 bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-              >
+              <option key={size} value={size} className="option">
                 {size === pageSize ? "✓" : "\u00A0\u00A0"}
                 {"   "}
                 {size} per page
               </option>
             ))}
           </select>
-          <ChevronDownIcon className="absolute w-5 h-5 text-gray-400 transition-transform duration-200 pointer-events-none right-3 top-2.5 group-hover:text-gray-300" />
+          <ChevronDownIcon className="chevron-down-icon" />
         </div>
       )}
     </div>
