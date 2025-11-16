@@ -12,6 +12,12 @@ query Corporations($filter: CorporationFilter) {
           name
           ticker
         }
+        metrics {
+          memberCountDelta7d
+          memberCountDelta30d
+          memberCountGrowthRate7d
+          memberCountGrowthRate30d
+        }
       }
       cursor
     }

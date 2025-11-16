@@ -154,10 +154,17 @@ export type Corporation = {
   faction_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
   member_count: Scalars['Int']['output'];
+  metrics?: Maybe<CorporationMetrics>;
   name: Scalars['String']['output'];
+  snapshots: Array<CorporationSnapshot>;
   tax_rate: Scalars['Float']['output'];
   ticker: Scalars['String']['output'];
   url?: Maybe<Scalars['String']['output']>;
+};
+
+
+export type CorporationSnapshotsArgs = {
+  days?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type CorporationConnection = {
@@ -181,6 +188,20 @@ export type CorporationFilter = {
   page?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
   ticker?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type CorporationMetrics = {
+  __typename?: 'CorporationMetrics';
+  memberCountDelta7d?: Maybe<Scalars['Int']['output']>;
+  memberCountDelta30d?: Maybe<Scalars['Int']['output']>;
+  memberCountGrowthRate7d?: Maybe<Scalars['Float']['output']>;
+  memberCountGrowthRate30d?: Maybe<Scalars['Float']['output']>;
+};
+
+export type CorporationSnapshot = {
+  __typename?: 'CorporationSnapshot';
+  date: Scalars['String']['output'];
+  memberCount: Scalars['Int']['output'];
 };
 
 export type CreateUserInput = {
@@ -509,7 +530,7 @@ export type CorporationsQueryVariables = Exact<{
 }>;
 
 
-export type CorporationsQuery = { __typename?: 'Query', corporations: { __typename?: 'CorporationConnection', edges: Array<{ __typename?: 'CorporationEdge', cursor: string, node: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, date_founded?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CorporationsQuery = { __typename?: 'Query', corporations: { __typename?: 'CorporationConnection', edges: Array<{ __typename?: 'CorporationEdge', cursor: string, node: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, date_founded?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, metrics?: { __typename?: 'CorporationMetrics', memberCountDelta7d?: number | null, memberCountDelta30d?: number | null, memberCountGrowthRate7d?: number | null, memberCountGrowthRate30d?: number | null } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 
 export const AllianceDocument = gql`
@@ -702,6 +723,12 @@ export const CorporationsDocument = gql`
           id
           name
           ticker
+        }
+        metrics {
+          memberCountDelta7d
+          memberCountDelta30d
+          memberCountGrowthRate7d
+          memberCountGrowthRate30d
         }
       }
       cursor
