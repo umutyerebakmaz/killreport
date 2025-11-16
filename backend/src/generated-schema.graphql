@@ -117,7 +117,9 @@ type Character {
 type Corporation {
   alliance: Alliance
   alliance_id: Int
+  ceo: Character
   ceo_id: Int!
+  creator: Character
   creator_id: Int!
   date_founded: String
   faction_id: Int
