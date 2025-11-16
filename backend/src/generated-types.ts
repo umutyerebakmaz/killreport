@@ -171,6 +171,17 @@ export type CorporationEdge = {
   node: Corporation;
 };
 
+export type CorporationFilter = {
+  allianceId?: InputMaybe<Scalars['Int']['input']>;
+  dateFoundedFrom?: InputMaybe<Scalars['String']['input']>;
+  dateFoundedTo?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  ticker?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type CreateUserInput = {
   clientMutationId?: InputMaybe<Scalars['String']['input']>;
   email: Scalars['String']['input'];
@@ -351,8 +362,7 @@ export type QueryCorporationArgs = {
 
 
 export type QueryCorporationsArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
+  filter?: InputMaybe<CorporationFilter>;
 };
 
 
@@ -561,6 +571,7 @@ export type ResolversTypes = {
   Corporation: ResolverTypeWrapper<Corporation>;
   CorporationConnection: ResolverTypeWrapper<CorporationConnection>;
   CorporationEdge: ResolverTypeWrapper<CorporationEdge>;
+  CorporationFilter: CorporationFilter;
   CreateUserInput: CreateUserInput;
   CreateUserPayload: ResolverTypeWrapper<CreateUserPayload>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
@@ -606,6 +617,7 @@ export type ResolversParentTypes = {
   Corporation: Corporation;
   CorporationConnection: CorporationConnection;
   CorporationEdge: CorporationEdge;
+  CorporationFilter: CorporationFilter;
   CreateUserInput: CreateUserInput;
   CreateUserPayload: CreateUserPayload;
   Float: Scalars['Float']['output'];

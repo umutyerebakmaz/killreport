@@ -173,7 +173,10 @@ export default function Header() {
           <a href="/alliances" className="font-semibold text-white text-sm/6">
             ALLIANCES
           </a>
-          <a href="#" className="font-semibold text-white text-sm/6">
+          <a
+            href="/corporations"
+            className="font-semibold text-white text-sm/6"
+          >
             CORPORATIONS
           </a>
           <a href="#" className="font-semibold text-white text-sm/6">
