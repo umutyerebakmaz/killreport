@@ -56,7 +56,7 @@ async function queueSpecificCharacters() {
         { persistent: true }
       );
 
-      console.log(`  ✓ Queued character ID: ${characterId}`);
+      console.log(`  ⏳ Queued character ID: ${characterId}`);
       successCount++;
     }
 
