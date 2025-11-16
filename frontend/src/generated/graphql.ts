@@ -148,7 +148,9 @@ export type Corporation = {
   __typename?: 'Corporation';
   alliance?: Maybe<Alliance>;
   alliance_id?: Maybe<Scalars['Int']['output']>;
+  ceo?: Maybe<Character>;
   ceo_id: Scalars['Int']['output'];
+  creator?: Maybe<Character>;
   creator_id: Scalars['Int']['output'];
   date_founded?: Maybe<Scalars['String']['output']>;
   faction_id?: Maybe<Scalars['Int']['output']>;
@@ -523,7 +525,7 @@ export type CorporationQueryVariables = Exact<{
 }>;
 
 
-export type CorporationQuery = { __typename?: 'Query', corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, date_founded?: string | null, member_count: number, tax_rate: number, url?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } | null };
+export type CorporationQuery = { __typename?: 'Query', corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, date_founded?: string | null, member_count: number, tax_rate: number, url?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, ceo?: { __typename?: 'Character', id: string, name: string } | null, creator?: { __typename?: 'Character', id: string, name: string } | null } | null };
 
 export type CorporationsQueryVariables = Exact<{
   filter?: InputMaybe<CorporationFilter>;
@@ -677,6 +679,14 @@ export const CorporationDocument = gql`
       id
       name
       ticker
+    }
+    ceo {
+      id
+      name
+    }
+    creator {
+      id
+      name
     }
   }
 }
