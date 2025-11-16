@@ -11,6 +11,8 @@ type Corporation {
   tax_rate: Float!
   url: String
   alliance: Alliance
+  ceo: Character
+  creator: Character
   metrics: CorporationMetrics
   snapshots(days: Int): [CorporationSnapshot!]!
 }
