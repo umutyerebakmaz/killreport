@@ -1,6 +1,10 @@
 import Tooltip from "@/components/Tooltip/Tooltip";
 import { CorporationsQuery } from "@/generated/graphql";
-import { BuildingOffice2Icon, UsersIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowTrendingUpIcon,
+  BuildingOffice2Icon,
+  UsersIcon,
+} from "@heroicons/react/24/outline";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -14,6 +18,29 @@ type CorporationCardProps = {
 
 export default function CorporationCard({ corporation }: CorporationCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
+
+  // Delta verilerini al
+  const memberDelta30d = corporation.metrics?.memberCountDelta30d ?? null;
+  const memberGrowthRate30d =
+    corporation.metrics?.memberCountGrowthRate30d ?? null;
+
+  // Delta rengi belirle
+  const deltaColor =
+    memberDelta30d && memberDelta30d >= 0 ? "text-green-400" : "text-red-400";
+
+  // Tooltip içeriği
+  const tooltipContent =
+    memberDelta30d !== null
+      ? `Member Change (30 days): ${
+          memberDelta30d >= 0 ? "+" : ""
+        }${memberDelta30d}${
+          memberGrowthRate30d !== null
+            ? ` (${
+                memberGrowthRate30d >= 0 ? "+" : ""
+              }${memberGrowthRate30d.toFixed(1)}%)`
+            : ""
+        }`
+      : "No data available";
 
   // Date founded'ı formatla
   const foundedDate = corporation.date_founded
@@ -60,7 +87,7 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
             [{corporation.ticker}]
           </div>
 
-          <div className="flex flex-col items-center justify-center w-full gap-3 pt-3 border-t border-white/10">
+          <div className="flex items-center justify-between w-full gap-4 pt-3 border-t border-white/10">
             {/* Member count */}
             <Tooltip content="Total Members" position="top">
               <div className="flex items-center gap-2">
@@ -71,6 +98,33 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
               </div>
             </Tooltip>
 
+            {/* Member delta 30d */}
+            <Tooltip content={tooltipContent} position="top">
+              <div className="flex items-center gap-2">
+                <ArrowTrendingUpIcon
+                  className={`w-5 h-5 ${
+                    memberDelta30d !== null ? deltaColor : "text-gray-500"
+                  }`}
+                />
+                <span
+                  className={`text-sm font-medium ${
+                    memberDelta30d !== null ? deltaColor : "text-gray-500"
+                  }`}
+                >
+                  {memberDelta30d !== null ? (
+                    <>
+                      {memberDelta30d >= 0 ? "+" : ""}
+                      {memberDelta30d}
+                    </>
+                  ) : (
+                    "N/A"
+                  )}
+                </span>
+              </div>
+            </Tooltip>
+          </div>
+
+          <div className="flex flex-col items-center justify-center w-full gap-3 pt-3 border-t border-white/10">
             {/* Alliance info */}
             {corporation.alliance ? (
               <Tooltip
