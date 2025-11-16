@@ -1,121 +1,147 @@
 "use client";
 
+import CorporationCard from "@/components/Card/CorporationCard";
+import CorporationFilters from "@/components/Filters/CorporationFilters";
+import Paginator from "@/components/Paginator/Paginator";
 import { useCorporationsQuery } from "@/generated/graphql";
-import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function CorporationsPage() {
-  const { data, loading, error } = useCorporationsQuery({
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const pageFromUrl = Number(searchParams.get("page")) || 1;
+  const [currentPage, setCurrentPage] = useState(pageFromUrl);
+  const [pageSize, setPageSize] = useState(25);
+  const [filters, setFilters] = useState<{
+    search?: string;
+    name?: string;
+    ticker?: string;
+    dateFoundedFrom?: string;
+    dateFoundedTo?: string;
+  }>({});
+
+  const { data, loading, error, refetch } = useCorporationsQuery({
     variables: {
-      first: 20,
+      filter: {
+        page: currentPage,
+        limit: pageSize,
+        ...filters,
+      },
     },
   });
 
-  if (loading) {
-    return (
-      <div className="min-h-screen p-8">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold mb-6">Corporations</h1>
-          <div className="animate-pulse">Loading corporations...</div>
-        </div>
-      </div>
-    );
-  }
+  // URL'deki page parametresi değiştiğinde state'i güncelle
+  useEffect(() => {
+    const urlPage = Number(searchParams.get("page")) || 1;
+    if (urlPage !== currentPage) {
+      setCurrentPage(urlPage);
+    }
+  }, [searchParams]);
 
-  if (error) {
-    return (
-      <div className="min-h-screen p-8">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold mb-6">Corporations</h1>
-          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded">
-            Error: {error.message}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // currentPage değiştiğinde URL'i güncelle
+  useEffect(() => {
+    const urlPage = Number(searchParams.get("page")) || 1;
+    if (currentPage !== urlPage) {
+      router.push(`/corporations?page=${currentPage}`, { scroll: false });
+    }
+  }, [currentPage]);
 
-  const corporations = data?.corporations.edges || [];
+  if (loading) return <div className="p-8">Loading...</div>;
+  if (error) return <div className="p-8">Error: {error.message}</div>;
+
+  const corporations = data?.corporations.edges.map((edge) => edge.node) || [];
+  const pageInfo = data?.corporations.pageInfo;
+  const totalPages = pageInfo?.totalPages || 0;
+
+  const handleNext = () => {
+    if (pageInfo?.hasNextPage) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (pageInfo?.hasPreviousPage) {
+      setCurrentPage((prev) => prev - 1);
+    }
+  };
+
+  const handleFirst = () => {
+    setCurrentPage(1);
+  };
+
+  const handleLast = () => {
+    if (totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setCurrentPage(1);
+  };
+
+  const handleFilterChange = (newFilters: {
+    search?: string;
+    name?: string;
+    ticker?: string;
+    dateFoundedFrom?: string;
+    dateFoundedTo?: string;
+  }) => {
+    setFilters(newFilters);
+    setCurrentPage(1); // Reset to first page when filters change
+  };
+
+  const handleClearFilters = () => {
+    setFilters({});
+    setCurrentPage(1);
+  };
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Corporations</h1>
-
-        <div className="bg-blue-50 border border-blue-200 text-blue-700 p-4 rounded mb-6">
-          <p className="font-semibold">💡 DataLoader Test</p>
-          <p className="text-sm mt-1">
-            Bu sayfa {corporations.length} corporation'ı alliance bilgileri ile
-            birlikte gösteriyor. Backend console'da "🔄 DataLoader: Batching X
-            alliance queries" mesajını göreceksin!
-          </p>
+    <div className="px-4 sm:px-6 lg:px-8">
+      <div className="sm:flex sm:items-center">
+        <div className="sm:flex-auto">
+          <h1 className="text-3xl font-semibold text-white">Corporations</h1>
+          <h2 className="mt-2 text-xl text-white">
+            A list of all EVE Online corporations including their logo, name,
+            and alliance.
+          </h2>
         </div>
+      </div>
 
-        <div className="bg-white shadow-md rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  ID
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Corporation
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Ticker
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Members
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Alliance
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {corporations.map((corp) => (
-                <tr key={corp.node.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {corp.node.id}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {corp.node.name}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                      {corp.node.ticker}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {corp.node.member_count?.toLocaleString() || "N/A"}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {corp.node.alliance ? (
-                      <Link
-                        href={`/alliances/${corp.node.alliance.id}`}
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        [{corp.node.alliance.ticker}] {corp.node.alliance.name}
-                      </Link>
-                    ) : (
-                      <span className="text-gray-400">No Alliance</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {/* Filters */}
+      <div className="mt-6">
+        <CorporationFilters
+          onFilterChange={handleFilterChange}
+          onClearFilters={handleClearFilters}
+        />
+      </div>
 
-        <div className="mt-6">
-          <Link
-            href="/"
-            className="text-blue-600 hover:text-blue-800 font-medium"
-          >
-            ← Back to Home
-          </Link>
+      <div className="mt-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5">
+          {corporations.map((corporation) =>
+            corporation ? (
+              <CorporationCard key={corporation.id} corporation={corporation} />
+            ) : null
+          )}
         </div>
+      </div>
+
+      <div className="mt-6">
+        <Paginator
+          hasNextPage={pageInfo?.hasNextPage ?? false}
+          hasPrevPage={pageInfo?.hasPreviousPage ?? false}
+          onNext={handleNext}
+          onPrev={handlePrev}
+          onFirst={handleFirst}
+          onLast={handleLast}
+          loading={loading}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          onPageSizeChange={handlePageSizeChange}
+        />
       </div>
     </div>
   );
