@@ -172,6 +172,17 @@ export type CorporationEdge = {
   node: Corporation;
 };
 
+export type CorporationFilter = {
+  allianceId?: InputMaybe<Scalars['Int']['input']>;
+  dateFoundedFrom?: InputMaybe<Scalars['String']['input']>;
+  dateFoundedTo?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  ticker?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type CreateUserInput = {
   clientMutationId?: InputMaybe<Scalars['String']['input']>;
   email: Scalars['String']['input'];
@@ -352,8 +363,7 @@ export type QueryCorporationArgs = {
 
 
 export type QueryCorporationsArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
+  filter?: InputMaybe<CorporationFilter>;
 };
 
 
@@ -487,12 +497,19 @@ export type AlliancesQueryVariables = Exact<{
 
 export type AlliancesQuery = { __typename?: 'Query', alliances: { __typename?: 'AllianceConnection', edges: Array<{ __typename?: 'AllianceEdge', cursor: string, node: { __typename?: 'Alliance', id: number, name: string, memberCount: number, corporationCount: number, metrics?: { __typename?: 'AllianceMetrics', memberCountDelta7d?: number | null, memberCountDelta30d?: number | null, corporationCountDelta7d?: number | null, corporationCountDelta30d?: number | null, memberCountGrowthRate7d?: number | null, memberCountGrowthRate30d?: number | null } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
-export type CorporationsQueryVariables = Exact<{
-  first?: InputMaybe<Scalars['Int']['input']>;
+export type CorporationQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
 }>;
 
 
-export type CorporationsQuery = { __typename?: 'Query', corporations: { __typename?: 'CorporationConnection', edges: Array<{ __typename?: 'CorporationEdge', node: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CorporationQuery = { __typename?: 'Query', corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, date_founded?: string | null, member_count: number, tax_rate: number, url?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } | null };
+
+export type CorporationsQueryVariables = Exact<{
+  filter?: InputMaybe<CorporationFilter>;
+}>;
+
+
+export type CorporationsQuery = { __typename?: 'Query', corporations: { __typename?: 'CorporationConnection', edges: Array<{ __typename?: 'CorporationEdge', cursor: string, node: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, date_founded?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 
 export const AllianceDocument = gql`
@@ -620,23 +637,79 @@ export type AlliancesQueryHookResult = ReturnType<typeof useAlliancesQuery>;
 export type AlliancesLazyQueryHookResult = ReturnType<typeof useAlliancesLazyQuery>;
 export type AlliancesSuspenseQueryHookResult = ReturnType<typeof useAlliancesSuspenseQuery>;
 export type AlliancesQueryResult = Apollo.QueryResult<AlliancesQuery, AlliancesQueryVariables>;
+export const CorporationDocument = gql`
+    query Corporation($id: Int!) {
+  corporation(id: $id) {
+    id
+    name
+    ticker
+    date_founded
+    member_count
+    tax_rate
+    url
+    alliance {
+      id
+      name
+      ticker
+    }
+  }
+}
+    `;
+
+/**
+ * __useCorporationQuery__
+ *
+ * To run a query within a React component, call `useCorporationQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCorporationQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCorporationQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useCorporationQuery(baseOptions: Apollo.QueryHookOptions<CorporationQuery, CorporationQueryVariables> & ({ variables: CorporationQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CorporationQuery, CorporationQueryVariables>(CorporationDocument, options);
+      }
+export function useCorporationLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CorporationQuery, CorporationQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CorporationQuery, CorporationQueryVariables>(CorporationDocument, options);
+        }
+export function useCorporationSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CorporationQuery, CorporationQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CorporationQuery, CorporationQueryVariables>(CorporationDocument, options);
+        }
+export type CorporationQueryHookResult = ReturnType<typeof useCorporationQuery>;
+export type CorporationLazyQueryHookResult = ReturnType<typeof useCorporationLazyQuery>;
+export type CorporationSuspenseQueryHookResult = ReturnType<typeof useCorporationSuspenseQuery>;
+export type CorporationQueryResult = Apollo.QueryResult<CorporationQuery, CorporationQueryVariables>;
 export const CorporationsDocument = gql`
-    query Corporations($first: Int) {
-  corporations(first: $first) {
+    query Corporations($filter: CorporationFilter) {
+  corporations(filter: $filter) {
     edges {
       node {
         id
         name
         ticker
         member_count
+        date_founded
         alliance {
           id
           name
           ticker
         }
       }
+      cursor
     }
     pageInfo {
+      currentPage
+      totalPages
+      totalCount
       hasNextPage
       hasPreviousPage
     }
@@ -656,7 +729,7 @@ export const CorporationsDocument = gql`
  * @example
  * const { data, loading, error } = useCorporationsQuery({
  *   variables: {
- *      first: // value for 'first'
+ *      filter: // value for 'filter'
  *   },
  * });
  */

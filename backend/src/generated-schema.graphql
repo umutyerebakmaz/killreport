@@ -139,6 +139,17 @@ type CorporationEdge {
   node: Corporation!
 }
 
+input CorporationFilter {
+  allianceId: Int
+  dateFoundedFrom: String
+  dateFoundedTo: String
+  limit: Int
+  name: String
+  page: Int
+  search: String
+  ticker: String
+}
+
 input CreateUserInput {
   clientMutationId: String
   email: String!
@@ -228,7 +239,7 @@ type Query {
   character(id: ID!): Character
   charactersByUser(userId: ID!): [Character!]!
   corporation(id: Int!): Corporation
-  corporations(after: String, first: Int): CorporationConnection!
+  corporations(filter: CorporationFilter): CorporationConnection!
 
   """Fetches a single killmail"""
   killmail(id: ID!): Killmail

@@ -23,7 +23,18 @@ type CorporationConnection {
   pageInfo: PageInfo!
 }
 
+input CorporationFilter {
+  page: Int
+  limit: Int
+  search: String
+  name: String
+  ticker: String
+  dateFoundedFrom: String
+  dateFoundedTo: String
+  allianceId: Int
+}
+
 extend type Query {
   corporation(id: Int!): Corporation
-  corporations(first: Int, after: String): CorporationConnection!
+  corporations(filter: CorporationFilter): CorporationConnection!
 }

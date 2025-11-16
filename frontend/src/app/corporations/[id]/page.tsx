@@ -1,0 +1,226 @@
+"use client";
+
+import Tooltip from "@/components/Tooltip/Tooltip";
+import { useCorporationQuery } from "@/generated/graphql";
+import { BuildingOffice2Icon, UsersIcon } from "@heroicons/react/24/outline";
+import Link from "next/link";
+import { use, useState } from "react";
+
+interface CorporationDetailPageProps {
+  params: Promise<{ id: string }>;
+}
+
+type TabType = "attributes" | "killmails" | "members";
+
+export default function CorporationDetailPage({
+  params,
+}: CorporationDetailPageProps) {
+  const { id } = use(params);
+  const [activeTab, setActiveTab] = useState<TabType>("attributes");
+
+  const { data, loading, error } = useCorporationQuery({
+    variables: { id: parseInt(id) },
+  });
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg text-red-600">Error: {error.message}</div>
+      </div>
+    );
+  }
+
+  const corporation = data?.corporation;
+
+  if (!corporation) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Corporation not found</div>
+      </div>
+    );
+  }
+
+  const tabs = [
+    { id: "attributes" as TabType, label: "Attributes" },
+    { id: "killmails" as TabType, label: "Killmails" },
+    { id: "members" as TabType, label: "Members" },
+  ];
+
+  // Date founded'ı formatla
+  const foundedDate = corporation.date_founded
+    ? new Date(corporation.date_founded).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : "Unknown";
+
+  return (
+    <main>
+      <div className="alliance-detail-card">
+        {/* Logo and Corporation Name */}
+        <div className="flex flex-row items-center justify-between">
+          <div className="flex items-center justify-center gap-6">
+            <img
+              src={`https://images.evetech.net/corporations/${corporation.id}/logo?size=128`}
+              alt={corporation.name}
+              width={128}
+              height={128}
+              className="shadow-md"
+            />
+            <div className="flex-1">
+              <h1 className="text-4xl font-bold">{corporation.name}</h1>
+              <div className="mt-2">
+                <span className="px-3 py-1 text-sm font-bold rounded-full bg-green-500/20 text-green-400">
+                  [{corporation.ticker}]
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Metric Container */}
+          <div className="flex items-center gap-4">
+            {/* member count */}
+            <Tooltip content="Total Members" position="top">
+              <div className="flex items-center gap-2">
+                <UsersIcon className="w-5 h-5 text-blue-400" />
+                <span className="text-sm font-medium text-blue-300">
+                  {corporation.member_count?.toLocaleString() || "N/A"}
+                </span>
+              </div>
+            </Tooltip>
+
+            {/* Alliance Link */}
+            {corporation.alliance && (
+              <Tooltip
+                content={`Alliance: ${corporation.alliance.name}`}
+                position="top"
+              >
+                <Link
+                  href={`/alliances/${corporation.alliance.id}`}
+                  className="flex items-center gap-2 px-3 py-1 text-sm transition-colors rounded bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30"
+                >
+                  <BuildingOffice2Icon className="w-5 h-5" />[
+                  {corporation.alliance.ticker}] {corporation.alliance.name}
+                </Link>
+              </Tooltip>
+            )}
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="mb-6 border-b border-white/10">
+          <nav className="flex gap-4" aria-label="Tabs">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-3 text-sm font-semibold transition-colors border-b-2 cursor-pointer ${
+                  activeTab === tab.id
+                    ? "border-cyan-500 text-cyan-500"
+                    : "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        {/* Tab Content */}
+        <div className="mt-6">
+          {activeTab === "attributes" && (
+            <div className="p-6 bg-white/5 border-white/10">
+              <h2 className="mb-4 text-2xl font-bold">Attributes</h2>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-gray-400">Corporation Name</span>
+                  <span className="ml-2 font-semibold">{corporation.name}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400">Ticker</span>
+                  <span className="ml-2 font-semibold">
+                    {corporation.ticker}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-400">Member Count</span>
+                  <span className="ml-2 font-semibold">
+                    {corporation.member_count?.toLocaleString() || "N/A"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-400">Tax Rate</span>
+                  <span className="ml-2 font-semibold">
+                    {corporation.tax_rate
+                      ? `${(corporation.tax_rate * 100).toFixed(1)}%`
+                      : "N/A"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-400">Founded</span>
+                  <span className="ml-2 font-semibold">{foundedDate}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400">Alliance</span>
+                  <span className="ml-2 font-semibold">
+                    {corporation.alliance ? (
+                      <Link
+                        href={`/alliances/${corporation.alliance.id}`}
+                        className="text-cyan-400 hover:text-cyan-300"
+                      >
+                        [{corporation.alliance.ticker}]{" "}
+                        {corporation.alliance.name}
+                      </Link>
+                    ) : (
+                      <span className="text-gray-500">No Alliance</span>
+                    )}
+                  </span>
+                </div>
+                {corporation.url && (
+                  <div className="col-span-2">
+                    <span className="text-gray-400">Website</span>
+                    <a
+                      href={corporation.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-2 font-semibold text-cyan-400 hover:text-cyan-300"
+                    >
+                      {corporation.url}
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === "killmails" && (
+            <div className="p-6 bg-white/5 border-white/10">
+              <h2 className="mb-4 text-2xl font-bold">Killmails</h2>
+              <p className="text-gray-400">
+                Killmail history will be displayed here
+              </p>
+            </div>
+          )}
+
+          {activeTab === "members" && (
+            <div className="p-6 bg-white/5 border-white/10">
+              <h2 className="mb-4 text-2xl font-bold">Members</h2>
+              <p className="text-gray-400">
+                Corporation members will be displayed here
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </main>
+  );
+}

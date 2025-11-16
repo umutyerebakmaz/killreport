@@ -1,0 +1,16 @@
+query Corporation($id: Int!) {
+  corporation(id: $id) {
+    id
+    name
+    ticker
+    date_founded
+    member_count
+    tax_rate
+    url
+    alliance {
+      id
+      name
+      ticker
+    }
+  }
+}
