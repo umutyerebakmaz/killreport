@@ -15,12 +15,15 @@ query Alliance($id: Int!) {
       memberCountGrowthRate30d
     }
     executor {
+      id
       name
     }
     createdByCorporation {
+      id
       name
     }
     createdBy {
+      id
       name
     }
   }

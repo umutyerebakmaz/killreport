@@ -84,7 +84,7 @@ export default function AllianceCard({ alliance }: AllianceCardProps) {
 
           {/* Ticker Badge */}
           <Tooltip content="Alliance Ticker" position="top">
-            <div className="px-3 py-1 text-xs font-bold text-yellow-400 rounded-full bg-yellow-500/20">
+            <div className="px-3 py-1 text-xs font-bold text-yellow-400">
               [{alliance.ticker}]
             </div>
           </Tooltip>
