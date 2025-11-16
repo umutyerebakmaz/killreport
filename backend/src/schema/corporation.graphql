@@ -11,6 +11,20 @@ type Corporation {
   tax_rate: Float!
   url: String
   alliance: Alliance
+  metrics: CorporationMetrics
+  snapshots(days: Int): [CorporationSnapshot!]!
+}
+
+type CorporationMetrics {
+  memberCountDelta7d: Int
+  memberCountDelta30d: Int
+  memberCountGrowthRate7d: Float
+  memberCountGrowthRate30d: Float
+}
+
+type CorporationSnapshot {
+  date: String!
+  memberCount: Int!
 }
 
 type CorporationEdge {
