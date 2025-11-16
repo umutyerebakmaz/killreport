@@ -72,6 +72,7 @@ export type AllianceFilter = {
   dateFoundedTo?: InputMaybe<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<AllianceOrderBy>;
   page?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
   ticker?: InputMaybe<Scalars['String']['input']>;
@@ -88,6 +89,13 @@ export type AllianceMetrics = {
   memberCountGrowthRate7d?: Maybe<Scalars['Float']['output']>;
   memberCountGrowthRate30d?: Maybe<Scalars['Float']['output']>;
 };
+
+export enum AllianceOrderBy {
+  MemberCountAsc = 'memberCountAsc',
+  MemberCountDesc = 'memberCountDesc',
+  NameAsc = 'nameAsc',
+  NameDesc = 'nameDesc'
+}
 
 export type AllianceSnapshot = {
   __typename?: 'AllianceSnapshot';
@@ -187,6 +195,7 @@ export type CorporationFilter = {
   dateFoundedTo?: InputMaybe<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<CorporationOrderBy>;
   page?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
   ticker?: InputMaybe<Scalars['String']['input']>;
@@ -199,6 +208,13 @@ export type CorporationMetrics = {
   memberCountGrowthRate7d?: Maybe<Scalars['Float']['output']>;
   memberCountGrowthRate30d?: Maybe<Scalars['Float']['output']>;
 };
+
+export enum CorporationOrderBy {
+  MemberCountAsc = 'memberCountAsc',
+  MemberCountDesc = 'memberCountDesc',
+  NameAsc = 'nameAsc',
+  NameDesc = 'nameDesc'
+}
 
 export type CorporationSnapshot = {
   __typename?: 'CorporationSnapshot';
