@@ -4,6 +4,8 @@ query Alliances($filter: AllianceFilter) {
       node {
         id
         name
+        ticker
+        date_founded
         memberCount
         corporationCount
         metrics {
