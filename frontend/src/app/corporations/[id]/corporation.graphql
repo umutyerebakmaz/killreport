@@ -12,5 +12,13 @@ query Corporation($id: Int!) {
       name
       ticker
     }
+    ceo {
+      id
+      name
+    }
+    creator {
+      id
+      name
+    }
   }
 }

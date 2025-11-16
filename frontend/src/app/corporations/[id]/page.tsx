@@ -152,6 +152,36 @@ export default function CorporationDetailPage({
                   </span>
                 </div>
                 <div>
+                  <span className="text-gray-400">CEO</span>
+                  <span className="ml-2 font-semibold">
+                    {corporation.ceo ? (
+                      <Link
+                        href={`/characters/${corporation.ceo.id}`}
+                        className="text-cyan-400 hover:text-cyan-300"
+                      >
+                        {corporation.ceo.name}
+                      </Link>
+                    ) : (
+                      "N/A"
+                    )}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-400">Creator</span>
+                  <span className="ml-2 font-semibold">
+                    {corporation.creator ? (
+                      <Link
+                        href={`/characters/${corporation.creator.id}`}
+                        className="text-cyan-400 hover:text-cyan-300"
+                      >
+                        {corporation.creator.name}
+                      </Link>
+                    ) : (
+                      "N/A"
+                    )}
+                  </span>
+                </div>
+                <div>
                   <span className="text-gray-400">Member Count</span>
                   <span className="ml-2 font-semibold">
                     {corporation.member_count?.toLocaleString() || "N/A"}
