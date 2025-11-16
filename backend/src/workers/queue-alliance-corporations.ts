@@ -82,7 +82,7 @@ async function queueAllianceCorporations() {
       const batchNum = Math.floor(i / BATCH_SIZE) + 1;
       const totalBatches = Math.ceil(alliances.length / BATCH_SIZE);
       console.log(
-        `  ✅ Batch ${batchNum}/${totalBatches}: ${batch.length} alliances queued`
+        `  ⏳ Batch ${batchNum}/${totalBatches}: ${batch.length} alliances queued`
       );
     }
 

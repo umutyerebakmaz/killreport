@@ -125,7 +125,7 @@ async function allianceCorporationWorker() {
           totalProcessed++;
 
           console.log(
-            `  ✅ [${totalProcessed}] ${allianceName} (${allianceId}) - Queued ${queuedCount} corporations`
+            `  ⏳ [${totalProcessed}] ${allianceName} (${allianceId}) - Queued ${queuedCount} corporations`
           );
 
           channel.ack(msg);
