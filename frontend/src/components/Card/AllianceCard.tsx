@@ -42,6 +42,15 @@ export default function AllianceCard({ alliance }: AllianceCardProps) {
         }`
       : "No data available";
 
+  // Date founded'ı formatla
+  const foundedDate = alliance.date_founded
+    ? new Date(alliance.date_founded).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+    : "Unknown";
+
   return (
     <div className="alliance-card">
       <div className="px-4 py-5 sm:p-6">
@@ -72,6 +81,13 @@ export default function AllianceCard({ alliance }: AllianceCardProps) {
           >
             {alliance.name}
           </Link>
+
+          {/* Ticker Badge */}
+          <Tooltip content="Alliance Ticker" position="top">
+            <div className="px-3 py-1 text-xs font-bold text-yellow-400 rounded-full bg-yellow-500/20">
+              [{alliance.ticker}]
+            </div>
+          </Tooltip>
 
           <div className="flex items-center justify-between w-full gap-4 pt-3 border-t border-white/10">
             {/*  member count */}
@@ -115,6 +131,13 @@ export default function AllianceCard({ alliance }: AllianceCardProps) {
                   )}
                 </span>
               </div>
+            </Tooltip>
+          </div>
+
+          {/* Founded date section */}
+          <div className="flex flex-col items-center justify-center w-full gap-3 pt-3 border-t border-white/10">
+            <Tooltip content="Date Founded" position="top">
+              <div className="text-xs text-gray-400">{foundedDate}</div>
             </Tooltip>
           </div>
         </div>
