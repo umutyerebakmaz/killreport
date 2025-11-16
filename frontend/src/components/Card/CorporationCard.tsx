@@ -83,9 +83,11 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
           </Link>
 
           {/* Ticker Badge */}
-          <div className="px-3 py-1 text-xs font-bold text-green-400 rounded-full bg-green-500/20">
-            [{corporation.ticker}]
-          </div>
+          <Tooltip content="Corporation Ticker" position="top">
+            <div className="px-3 py-1 text-xs font-bold text-green-400 rounded-full bg-green-500/20">
+              [{corporation.ticker}]
+            </div>
+          </Tooltip>
 
           <div className="flex items-center justify-between w-full gap-4 pt-3 border-t border-white/10">
             {/* Member count */}
