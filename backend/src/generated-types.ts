@@ -147,7 +147,9 @@ export type Corporation = {
   __typename?: 'Corporation';
   alliance?: Maybe<Alliance>;
   alliance_id?: Maybe<Scalars['Int']['output']>;
+  ceo?: Maybe<Character>;
   ceo_id: Scalars['Int']['output'];
+  creator?: Maybe<Character>;
   creator_id: Scalars['Int']['output'];
   date_founded?: Maybe<Scalars['String']['output']>;
   faction_id?: Maybe<Scalars['Int']['output']>;
@@ -762,7 +764,9 @@ export type CharacterResolvers<ContextType = any, ParentType extends ResolversPa
 export type CorporationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Corporation'] = ResolversParentTypes['Corporation']> = {
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType>;
   alliance_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  ceo?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
   ceo_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  creator?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
   creator_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   date_founded?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   faction_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
