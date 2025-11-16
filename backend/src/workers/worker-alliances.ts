@@ -24,8 +24,6 @@ async function allianceExists(allianceId: number): Promise<boolean> {
  */
 async function processAlliance(allianceId: number): Promise<boolean> {
   try {
-    console.log(`📥 Processing alliance ${allianceId}...`);
-
     // Fetch alliance information from ESI
     const response = await axios.get(`${ESI_BASE_URL}/alliances/${allianceId}/`);
     const data = response.data;
@@ -80,6 +78,29 @@ async function processAlliance(allianceId: number): Promise<boolean> {
     }
     throw error;
   }
+}
+
+/**
+ * Prints completion summary when queue is empty
+ */
+function printCompletionSummary(
+  processedCount: number,
+  skippedCount: number,
+  errorCount: number,
+  startTime: number
+) {
+  const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+  console.log('\n' + '='.repeat(60));
+  console.log('🎉 ALL TASKS COMPLETED!');
+  console.log('='.repeat(60));
+  console.log(`✅ Processed: ${processedCount}`);
+  console.log(`⏭️  Skipped (already exists): ${skippedCount}`);
+  console.log(`❌ Errors: ${errorCount}`);
+  console.log(`📊 Total: ${processedCount + skippedCount + errorCount}`);
+  console.log(`⏱️  Duration: ${duration}s`);
+  console.log('='.repeat(60));
+  console.log('\n💡 Queue is empty, waiting for new messages...');
+  console.log('   Press CTRL+C to stop.\n');
 }
 
 /**
@@ -140,18 +161,7 @@ async function startWorker() {
             // Check if queue is empty
             const currentQueue = await channel.checkQueue(QUEUE_NAME);
             if (currentQueue.messageCount === 0) {
-              const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-              console.log('\n' + '='.repeat(60));
-              console.log('🎉 ALL TASKS COMPLETED!');
-              console.log('='.repeat(60));
-              console.log(`✅ Processed: ${processedCount}`);
-              console.log(`⏭️  Skipped (already exists): ${skippedCount}`);
-              console.log(`❌ Errors: ${errorCount}`);
-              console.log(`📊 Total: ${processedCount + skippedCount + errorCount}`);
-              console.log(`⏱️  Duration: ${duration}s`);
-              console.log('='.repeat(60));
-              console.log('\n💡 Queue is empty, waiting for new messages...');
-              console.log('   Press CTRL+C to stop.\n');
+              printCompletionSummary(processedCount, skippedCount, errorCount, startTime);
             }
             return;
           }
@@ -159,32 +169,15 @@ async function startWorker() {
           // New alliance - fetch from ESI and save
           await processAlliance(allianceId);
           processedCount++;
-          console.log(
-            `   Progress: ${processedCount} processed, ${skippedCount} skipped, ${errorCount} errors`
-          );
           channel.ack(msg);
 
           // Check if queue is empty
           const currentQueue = await channel.checkQueue(QUEUE_NAME);
           if (currentQueue.messageCount === 0) {
-            const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-            console.log('\n' + '='.repeat(60));
-            console.log('🎉 ALL TASKS COMPLETED!');
-            console.log('='.repeat(60));
-            console.log(`✅ Processed: ${processedCount}`);
-            console.log(`⏭️  Skipped (already exists): ${skippedCount}`);
-            console.log(`❌ Errors: ${errorCount}`);
-            console.log(`📊 Total: ${processedCount + skippedCount + errorCount}`);
-            console.log(`⏱️  Duration: ${duration}s`);
-            console.log('='.repeat(60));
-            console.log('\n💡 Queue is empty, waiting for new messages...');
-            console.log('   Press CTRL+C to stop.\n');
+            printCompletionSummary(processedCount, skippedCount, errorCount, startTime);
           }
         } catch (error) {
           errorCount++;
-          console.log(
-            `   Progress: ${processedCount} processed, ${skippedCount} skipped, ${errorCount} errors`
-          );
           channel.nack(msg, false, false);
         }
       },
