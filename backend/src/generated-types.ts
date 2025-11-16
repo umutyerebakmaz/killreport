@@ -153,10 +153,17 @@ export type Corporation = {
   faction_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
   member_count: Scalars['Int']['output'];
+  metrics?: Maybe<CorporationMetrics>;
   name: Scalars['String']['output'];
+  snapshots: Array<CorporationSnapshot>;
   tax_rate: Scalars['Float']['output'];
   ticker: Scalars['String']['output'];
   url?: Maybe<Scalars['String']['output']>;
+};
+
+
+export type CorporationSnapshotsArgs = {
+  days?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type CorporationConnection = {
@@ -180,6 +187,20 @@ export type CorporationFilter = {
   page?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
   ticker?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type CorporationMetrics = {
+  __typename?: 'CorporationMetrics';
+  memberCountDelta7d?: Maybe<Scalars['Int']['output']>;
+  memberCountDelta30d?: Maybe<Scalars['Int']['output']>;
+  memberCountGrowthRate7d?: Maybe<Scalars['Float']['output']>;
+  memberCountGrowthRate30d?: Maybe<Scalars['Float']['output']>;
+};
+
+export type CorporationSnapshot = {
+  __typename?: 'CorporationSnapshot';
+  date: Scalars['String']['output'];
+  memberCount: Scalars['Int']['output'];
 };
 
 export type CreateUserInput = {
@@ -572,6 +593,8 @@ export type ResolversTypes = {
   CorporationConnection: ResolverTypeWrapper<CorporationConnection>;
   CorporationEdge: ResolverTypeWrapper<CorporationEdge>;
   CorporationFilter: CorporationFilter;
+  CorporationMetrics: ResolverTypeWrapper<CorporationMetrics>;
+  CorporationSnapshot: ResolverTypeWrapper<CorporationSnapshot>;
   CreateUserInput: CreateUserInput;
   CreateUserPayload: ResolverTypeWrapper<CreateUserPayload>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
@@ -618,6 +641,8 @@ export type ResolversParentTypes = {
   CorporationConnection: CorporationConnection;
   CorporationEdge: CorporationEdge;
   CorporationFilter: CorporationFilter;
+  CorporationMetrics: CorporationMetrics;
+  CorporationSnapshot: CorporationSnapshot;
   CreateUserInput: CreateUserInput;
   CreateUserPayload: CreateUserPayload;
   Float: Scalars['Float']['output'];
@@ -743,7 +768,9 @@ export type CorporationResolvers<ContextType = any, ParentType extends Resolvers
   faction_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   member_count?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  metrics?: Resolver<Maybe<ResolversTypes['CorporationMetrics']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  snapshots?: Resolver<Array<ResolversTypes['CorporationSnapshot']>, ParentType, ContextType, Partial<CorporationSnapshotsArgs>>;
   tax_rate?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   ticker?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -757,6 +784,18 @@ export type CorporationConnectionResolvers<ContextType = any, ParentType extends
 export type CorporationEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['CorporationEdge'] = ResolversParentTypes['CorporationEdge']> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Corporation'], ParentType, ContextType>;
+};
+
+export type CorporationMetricsResolvers<ContextType = any, ParentType extends ResolversParentTypes['CorporationMetrics'] = ResolversParentTypes['CorporationMetrics']> = {
+  memberCountDelta7d?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  memberCountDelta30d?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  memberCountGrowthRate7d?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  memberCountGrowthRate30d?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+};
+
+export type CorporationSnapshotResolvers<ContextType = any, ParentType extends ResolversParentTypes['CorporationSnapshot'] = ResolversParentTypes['CorporationSnapshot']> = {
+  date?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  memberCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
 export type CreateUserPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['CreateUserPayload'] = ResolversParentTypes['CreateUserPayload']> = {
@@ -913,6 +952,8 @@ export type Resolvers<ContextType = any> = {
   Corporation?: CorporationResolvers<ContextType>;
   CorporationConnection?: CorporationConnectionResolvers<ContextType>;
   CorporationEdge?: CorporationEdgeResolvers<ContextType>;
+  CorporationMetrics?: CorporationMetricsResolvers<ContextType>;
+  CorporationSnapshot?: CorporationSnapshotResolvers<ContextType>;
   CreateUserPayload?: CreateUserPayloadResolvers<ContextType>;
   Killmail?: KillmailResolvers<ContextType>;
   KillmailConnection?: KillmailConnectionResolvers<ContextType>;

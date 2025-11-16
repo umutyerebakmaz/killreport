@@ -123,7 +123,9 @@ type Corporation {
   faction_id: Int
   id: Int!
   member_count: Int!
+  metrics: CorporationMetrics
   name: String!
+  snapshots(days: Int): [CorporationSnapshot!]!
   tax_rate: Float!
   ticker: String!
   url: String
@@ -148,6 +150,18 @@ input CorporationFilter {
   page: Int
   search: String
   ticker: String
+}
+
+type CorporationMetrics {
+  memberCountDelta7d: Int
+  memberCountDelta30d: Int
+  memberCountGrowthRate7d: Float
+  memberCountGrowthRate30d: Float
+}
+
+type CorporationSnapshot {
+  date: String!
+  memberCount: Int!
 }
 
 input CreateUserInput {
