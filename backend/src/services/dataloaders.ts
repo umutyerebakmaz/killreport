@@ -71,6 +71,25 @@ export const createCharacterLoader = () => {
 };
 
 /**
+ * Race DataLoader - Batch loading için
+ */
+export const createRaceLoader = () => {
+  return new DataLoader<number, any>(async (raceIds) => {
+    console.log(`🔄 DataLoader: Batching ${raceIds.length} race queries`);
+
+    const races = await prisma.race.findMany({
+      where: {
+        id: { in: [...raceIds] },
+      },
+    });
+
+    // DataLoader expects results in same order as keys
+    const raceMap = new Map(races.map(r => [r.id, r]));
+    return raceIds.map(id => raceMap.get(id) || null);
+  });
+};
+
+/**
  * Corporations by Alliance DataLoader
  *
  * Örnek: 5 alliance'ın corporation'larını çekiyoruz
@@ -111,6 +130,7 @@ export interface DataLoaderContext {
     alliance: DataLoader<number, any>;
     corporation: DataLoader<number, any>;
     character: DataLoader<number, any>;
+    race: DataLoader<number, any>;
     corporationsByAlliance: DataLoader<number, any[]>;
   };
 }
@@ -120,6 +140,7 @@ export const createDataLoaders = (): DataLoaderContext => ({
     alliance: createAllianceLoader(),
     corporation: createCorporationLoader(),
     character: createCharacterLoader(),
+    race: createRaceLoader(),
     corporationsByAlliance: createCorporationsByAllianceLoader(),
   },
 });

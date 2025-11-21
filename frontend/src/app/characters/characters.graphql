@@ -51,5 +51,10 @@ query Character($id: Int!) {
       ticker
       memberCount
     }
+    race {
+      id
+      name
+      description
+    }
   }
 }
