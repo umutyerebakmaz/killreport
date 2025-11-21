@@ -145,6 +145,7 @@ export type Character = {
   gender: Scalars['String']['output'];
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
+  race?: Maybe<Race>;
   race_id: Scalars['Int']['output'];
   security_status?: Maybe<Scalars['Float']['output']>;
   title?: Maybe<Scalars['String']['output']>;
@@ -392,6 +393,8 @@ export type Query = {
    * Requires: Authentication
    */
   myKillmails: Array<Killmail>;
+  race?: Maybe<Race>;
+  races: Array<Race>;
   user?: Maybe<User>;
   users: Array<User>;
   /** Get current status of all workers and queues */
@@ -450,6 +453,11 @@ export type QueryMyKillmailsArgs = {
 };
 
 
+export type QueryRaceArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
 export type QueryUserArgs = {
   id: Scalars['ID']['input'];
 };
@@ -463,6 +471,13 @@ export type QueueStatus = {
   /** Number of messages waiting to be processed */
   messageCount: Scalars['Int']['output'];
   /** Name of the queue */
+  name: Scalars['String']['output'];
+};
+
+export type Race = {
+  __typename?: 'Race';
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
 };
 
@@ -655,6 +670,7 @@ export type ResolversTypes = {
   Position: ResolverTypeWrapper<Position>;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   QueueStatus: ResolverTypeWrapper<QueueStatus>;
+  Race: ResolverTypeWrapper<Race>;
   StartAllianceSyncInput: StartAllianceSyncInput;
   StartAllianceSyncPayload: ResolverTypeWrapper<StartAllianceSyncPayload>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
@@ -704,6 +720,7 @@ export type ResolversParentTypes = {
   Position: Position;
   Query: Record<PropertyKey, never>;
   QueueStatus: QueueStatus;
+  Race: Race;
   StartAllianceSyncInput: StartAllianceSyncInput;
   StartAllianceSyncPayload: StartAllianceSyncPayload;
   String: Scalars['String']['output'];
@@ -808,6 +825,7 @@ export type CharacterResolvers<ContextType = any, ParentType extends ResolversPa
   gender?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  race?: Resolver<Maybe<ResolversTypes['Race']>, ParentType, ContextType>;
   race_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   security_status?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -943,6 +961,8 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   myCorporationKillmails?: Resolver<Array<ResolversTypes['Killmail']>, ParentType, ContextType, Partial<QueryMyCorporationKillmailsArgs>>;
   myKillmails?: Resolver<Array<ResolversTypes['Killmail']>, ParentType, ContextType, Partial<QueryMyKillmailsArgs>>;
+  race?: Resolver<Maybe<ResolversTypes['Race']>, ParentType, ContextType, RequireFields<QueryRaceArgs, 'id'>>;
+  races?: Resolver<Array<ResolversTypes['Race']>, ParentType, ContextType>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
   users?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
   workerStatus?: Resolver<ResolversTypes['WorkerStatus'], ParentType, ContextType>;
@@ -952,6 +972,12 @@ export type QueueStatusResolvers<ContextType = any, ParentType extends Resolvers
   active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   consumerCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   messageCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type RaceResolvers<ContextType = any, ParentType extends ResolversParentTypes['Race'] = ResolversParentTypes['Race']> = {
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
@@ -1032,6 +1058,7 @@ export type Resolvers<ContextType = any> = {
   Position?: PositionResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   QueueStatus?: QueueStatusResolvers<ContextType>;
+  Race?: RaceResolvers<ContextType>;
   StartAllianceSyncPayload?: StartAllianceSyncPayloadResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
   SyncMyKillmailsPayload?: SyncMyKillmailsPayloadResolvers<ContextType>;

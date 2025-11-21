@@ -246,9 +246,9 @@ export default function CharacterDetailPage({
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-400">Race ID</span>
+                  <span className="text-gray-400">Race</span>
                   <span className="ml-2 font-semibold">
-                    {character.race_id}
+                    {character.race?.name || "N/A"}
                   </span>
                 </div>
                 {character.title && (
