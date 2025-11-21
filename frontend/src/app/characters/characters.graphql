@@ -1,0 +1,55 @@
+query Characters($filter: CharacterFilter) {
+  characters(filter: $filter) {
+    edges {
+      node {
+        id
+        name
+        security_status
+        corporation {
+          id
+          name
+          ticker
+        }
+        alliance {
+          id
+          name
+          ticker
+        }
+      }
+      cursor
+    }
+    pageInfo {
+      currentPage
+      totalPages
+      totalCount
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+
+query Character($id: Int!) {
+  character(id: $id) {
+    id
+    name
+    birthday
+    security_status
+    gender
+    bloodline_id
+    race_id
+    description
+    title
+    corporation {
+      id
+      name
+      ticker
+      member_count
+    }
+    alliance {
+      id
+      name
+      ticker
+      memberCount
+    }
+  }
+}
