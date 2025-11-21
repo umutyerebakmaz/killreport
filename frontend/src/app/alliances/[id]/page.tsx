@@ -59,24 +59,23 @@ export default function AllianceDetailPage({
   ];
 
   // Delta verilerini al
-  const memberDelta30d = alliance.metrics?.memberCountDelta30d ?? null;
-  const memberGrowthRate30d =
-    alliance.metrics?.memberCountGrowthRate30d ?? null;
+  const memberDelta1d = alliance.metrics?.memberCountDelta1d ?? null;
+  const memberGrowthRate1d = alliance.metrics?.memberCountGrowthRate1d ?? null;
 
   // Delta rengi belirle
   const deltaColor =
-    memberDelta30d && memberDelta30d >= 0 ? "text-green-400" : "text-red-400";
+    memberDelta1d && memberDelta1d >= 0 ? "text-green-400" : "text-red-400";
 
   // Tooltip içeriği
   const tooltipContent =
-    memberDelta30d !== null
-      ? `Member Change (30 days): ${
-          memberDelta30d >= 0 ? "+" : ""
-        }${memberDelta30d}${
-          memberGrowthRate30d !== null
+    memberDelta1d !== null
+      ? `Member Change (Daily): ${
+          memberDelta1d >= 0 ? "+" : ""
+        }${memberDelta1d}${
+          memberGrowthRate1d !== null
             ? ` (${
-                memberGrowthRate30d >= 0 ? "+" : ""
-              }${memberGrowthRate30d.toFixed(1)}%)`
+                memberGrowthRate1d >= 0 ? "+" : ""
+              }${memberGrowthRate1d.toFixed(1)}%)`
             : ""
         }`
       : "No data available";
@@ -97,7 +96,7 @@ export default function AllianceDetailPage({
             <div className="flex-1">
               <h1 className="text-4xl font-bold">{alliance.name}</h1>
               <div className="mt-2">
-                <span className="px-3 py-1 text-sm font-bold text-yellow-400">
+                <span className="py-1 text-base font-bold text-yellow-400">
                   [{alliance.ticker}]
                 </span>
               </div>
@@ -124,23 +123,23 @@ export default function AllianceDetailPage({
                 </span>
               </div>
             </Tooltip>
-            {/* member delta 30d */}
+            {/* member delta 1d */}
             <Tooltip content={tooltipContent} position="top">
               <div className="flex items-center gap-2">
                 <ArrowTrendingUpIcon
                   className={`w-5 h-5 ${
-                    memberDelta30d !== null ? deltaColor : "text-gray-500"
+                    memberDelta1d !== null ? deltaColor : "text-gray-500"
                   }`}
                 />
                 <span
                   className={`text-sm font-medium ${
-                    memberDelta30d !== null ? deltaColor : "text-gray-500"
+                    memberDelta1d !== null ? deltaColor : "text-gray-500"
                   }`}
                 >
-                  {memberDelta30d !== null ? (
+                  {memberDelta1d !== null ? (
                     <>
-                      {memberDelta30d >= 0 ? "+" : ""}
-                      {memberDelta30d}
+                      {memberDelta1d >= 0 ? "+" : ""}
+                      {memberDelta1d}
                     </>
                   ) : (
                     "N/A"
