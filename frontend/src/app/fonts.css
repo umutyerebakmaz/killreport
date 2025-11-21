@@ -1,0 +1,148 @@
+/* Shentox Font Family - All Weights & Styles */
+
+/* Thin - 100 */
+@font-face {
+  font-family: "Shentox";
+  src: url("/fonts/shentox/Shentox-Thin.woff2") format("woff2"),
+    url("/fonts/shentox/Shentox-Thin.woff") format("woff"),
+    url("/fonts/shentox/Shentox-Thin.ttf") format("truetype");
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Shentox";
+  src: url("/fonts/shentox/Shentox-ThinItalic.woff2") format("woff2"),
+    url("/fonts/shentox/Shentox-ThinItalic.woff") format("woff"),
+    url("/fonts/shentox/Shentox-ThinItalic.ttf") format("truetype");
+  font-weight: 100;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* UltraLight - 200 */
+@font-face {
+  font-family: "Shentox";
+  src: url("/fonts/shentox/Shentox-UltraLight.woff2") format("woff2"),
+    url("/fonts/shentox/Shentox-UltraLight.woff") format("woff"),
+    url("/fonts/shentox/Shentox-UltraLight.ttf") format("truetype");
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Shentox";
+  src: url("/fonts/shentox/Shentox-UltraLightItalic.woff2") format("woff2"),
+    url("/fonts/shentox/Shentox-UltraLightItalic.woff") format("woff"),
+    url("/fonts/shentox/Shentox-UltraLightItalic.ttf") format("truetype");
+  font-weight: 200;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Light - 300 */
+@font-face {
+  font-family: "Shentox";
+  src: url("/fonts/shentox/Shentox-Light.woff2") format("woff2"),
+    url("/fonts/shentox/Shentox-Light.woff") format("woff"),
+    url("/fonts/shentox/Shentox-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Shentox";
+  src: url("/fonts/shentox/Shentox-LightItalic.woff2") format("woff2"),
+    url("/fonts/shentox/Shentox-LightItalic.woff") format("woff"),
+    url("/fonts/shentox/Shentox-LightItalic.ttf") format("truetype");
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Regular - 400 */
+@font-face {
+  font-family: "Shentox";
+  src: url("/fonts/shentox/Shentox-Regular.woff2") format("woff2"),
+    url("/fonts/shentox/Shentox-Regular.woff") format("woff"),
+    url("/fonts/shentox/Shentox-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Shentox";
+  src: url("/fonts/shentox/Shentox-RegularItalic.woff2") format("woff2"),
+    url("/fonts/shentox/Shentox-RegularItalic.woff") format("woff"),
+    url("/fonts/shentox/Shentox-RegularItalic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Medium - 500 */
+@font-face {
+  font-family: "Shentox";
+  src: url("/fonts/shentox/Shentox-Medium.woff2") format("woff2"),
+    url("/fonts/shentox/Shentox-Medium.woff") format("woff"),
+    url("/fonts/shentox/Shentox-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Shentox";
+  src: url("/fonts/shentox/Shentox-MediumItalic.woff2") format("woff2"),
+    url("/fonts/shentox/Shentox-MediumItalic.woff") format("woff"),
+    url("/fonts/shentox/Shentox-MediumItalic.ttf") format("truetype");
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* SemiBold - 600 */
+@font-face {
+  font-family: "Shentox";
+  src: url("/fonts/shentox/Shentox-SemiBold.woff2") format("woff2"),
+    url("/fonts/shentox/Shentox-SemiBold.woff") format("woff"),
+    url("/fonts/shentox/Shentox-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Shentox";
+  src: url("/fonts/shentox/Shentox-SemiBoldItalic.woff2") format("woff2"),
+    url("/fonts/shentox/Shentox-SemiBoldItalic.woff") format("woff"),
+    url("/fonts/shentox/Shentox-SemiBoldItalic.ttf") format("truetype");
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Bold - 700 */
+@font-face {
+  font-family: "Shentox";
+  src: url("/fonts/shentox/Shentox-Bold.woff2") format("woff2"),
+    url("/fonts/shentox/Shentox-Bold.woff") format("woff"),
+    url("/fonts/shentox/Shentox-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Shentox";
+  src: url("/fonts/shentox/Shentox-BoldItalic.woff2") format("woff2"),
+    url("/fonts/shentox/Shentox-BoldItalic.woff") format("woff"),
+    url("/fonts/shentox/Shentox-BoldItalic.ttf") format("truetype");
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
