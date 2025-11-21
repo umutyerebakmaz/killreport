@@ -117,6 +117,7 @@ type Character {
   gender: String!
   id: Int!
   name: String!
+  race: Race
   race_id: Int!
   security_status: Float
   title: String
@@ -321,6 +322,8 @@ type Query {
   Requires: Authentication
   """
   myKillmails(limit: Int): [Killmail!]!
+  race(id: Int!): Race
+  races: [Race!]!
   user(id: ID!): User
   users: [User!]!
 
@@ -339,6 +342,12 @@ type QueueStatus {
   messageCount: Int!
 
   """Name of the queue"""
+  name: String!
+}
+
+type Race {
+  description: String
+  id: Int!
   name: String!
 }
 
