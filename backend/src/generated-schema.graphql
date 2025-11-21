@@ -1,15 +1,3 @@
-input AddCharacterInput {
-  clientMutationId: String
-  corporation: String
-  name: String!
-  userId: ID!
-}
-
-type AddCharacterPayload {
-  character: Character
-  clientMutationId: String
-}
-
 type Alliance {
   corporationCount: Int!
   corporations: [Corporation!]
@@ -118,12 +106,47 @@ type AuthUrl {
 }
 
 type Character {
-  alliance: String
-  corporation: String
-  id: ID!
+  alliance: Alliance
+  alliance_id: Int
+  birthday: String!
+  bloodline_id: Int!
+  corporation: Corporation
+  corporation_id: Int!
+  description: String
+  faction_id: Int
+  gender: String!
+  id: Int!
   name: String!
-  securityStatus: Float
-  user: User
+  race_id: Int!
+  security_status: Float
+  title: String
+}
+
+type CharacterConnection {
+  edges: [CharacterEdge!]!
+  pageInfo: PageInfo!
+}
+
+type CharacterEdge {
+  cursor: String!
+  node: Character!
+}
+
+input CharacterFilter {
+  alliance_id: Int
+  corporation_id: Int
+  limit: Int
+  name: String
+  orderBy: CharacterOrderBy
+  page: Int
+  search: String
+}
+
+enum CharacterOrderBy {
+  nameAsc
+  nameDesc
+  securityStatusAsc
+  securityStatusDesc
 }
 
 type Corporation {
@@ -233,7 +256,6 @@ type KillmailItem {
 
 type Mutation {
   _empty: String
-  addCharacter(input: AddCharacterInput!): AddCharacterPayload!
 
   """Authorization code ile authentication yapar ve token döner"""
   authenticateWithCode(code: String!, state: String!): AuthPayload!
@@ -274,8 +296,8 @@ type Query {
   _empty: String
   alliance(id: Int!): Alliance
   alliances(filter: AllianceFilter): AllianceConnection!
-  character(id: ID!): Character
-  charactersByUser(userId: ID!): [Character!]!
+  character(id: Int!): Character
+  characters(filter: CharacterFilter): CharacterConnection!
   corporation(id: Int!): Corporation
   corporations(filter: CorporationFilter): CorporationConnection!
 

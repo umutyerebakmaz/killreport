@@ -179,7 +179,7 @@ export default function Header() {
           >
             CORPORATIONS
           </a>
-          <a href="#" className="font-semibold text-white text-sm/6">
+          <a href="/characters" className="font-semibold text-white text-sm/6">
             CHARACTERS
           </a>
         </PopoverGroup>
@@ -253,13 +253,13 @@ export default function Header() {
                   ALLIANCES
                 </a>
                 <a
-                  href="#"
+                  href="/corporations"
                   className="block px-3 py-2 -mx-3 font-semibold text-white text-base/7 hover:bg-white/5"
                 >
                   CORPORATIONS
                 </a>
                 <a
-                  href="#"
+                  href="/characters"
                   className="block px-3 py-2 -mx-3 font-semibold text-white text-base/7 hover:bg-white/5"
                 >
                   CHARACTERS
