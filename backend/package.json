@@ -31,7 +31,8 @@
     "worker:info:characters": "ts-node src/workers/worker-info-characters.ts",
     "worker:info:corporations": "ts-node src/workers/worker-info-corporations.ts",
     "worker:info:types": "ts-node src/workers/worker-info-types.ts",
-    "worker:zkillboard": "ts-node src/workers/worker-zkillboard-sync.ts"
+    "worker:zkillboard": "ts-node src/workers/worker-zkillboard-sync.ts",
+    "sync:races": "ts-node src/workers/sync-races.ts"
   },
   "dependencies": {
     "@graphql-tools/load-files": "^7.0.1",

@@ -210,6 +210,16 @@ model Type {
   @@map("types")
 }
 
+model Race {
+  id          Int      @id
+  name        String
+  description String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@map("races")
+}
+
 model SyncJob {
   id          BigInt   @id @default(autoincrement())
   entity_type String

@@ -115,4 +115,9 @@ export const characterFieldResolvers: CharacterResolvers = {
             date_founded: alliance.date_founded.toISOString(),
         };
     },
+
+    race: async (parent, _args, context) => {
+        const race = await context.loaders.race.load(parent.race_id);
+        return race || null;
+    },
 };
