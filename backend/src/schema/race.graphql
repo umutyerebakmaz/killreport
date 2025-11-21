@@ -1,0 +1,10 @@
+type Race {
+  id: Int!
+  name: String!
+  description: String
+}
+
+extend type Query {
+  race(id: Int!): Race
+  races: [Race!]!
+}

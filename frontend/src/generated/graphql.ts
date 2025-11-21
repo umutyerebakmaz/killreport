@@ -146,6 +146,7 @@ export type Character = {
   gender: Scalars['String']['output'];
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
+  race?: Maybe<Race>;
   race_id: Scalars['Int']['output'];
   security_status?: Maybe<Scalars['Float']['output']>;
   title?: Maybe<Scalars['String']['output']>;
@@ -393,6 +394,8 @@ export type Query = {
    * Requires: Authentication
    */
   myKillmails: Array<Killmail>;
+  race?: Maybe<Race>;
+  races: Array<Race>;
   user?: Maybe<User>;
   users: Array<User>;
   /** Get current status of all workers and queues */
@@ -451,6 +454,11 @@ export type QueryMyKillmailsArgs = {
 };
 
 
+export type QueryRaceArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
 export type QueryUserArgs = {
   id: Scalars['ID']['input'];
 };
@@ -464,6 +472,13 @@ export type QueueStatus = {
   /** Number of messages waiting to be processed */
   messageCount: Scalars['Int']['output'];
   /** Name of the queue */
+  name: Scalars['String']['output'];
+};
+
+export type Race = {
+  __typename?: 'Race';
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
 };
 
@@ -572,7 +587,7 @@ export type CharacterQueryVariables = Exact<{
 }>;
 
 
-export type CharacterQuery = { __typename?: 'Query', character?: { __typename?: 'Character', id: number, name: string, birthday: string, security_status?: number | null, gender: string, bloodline_id: number, race_id: number, description?: string | null, title?: string | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, memberCount: number } | null } | null };
+export type CharacterQuery = { __typename?: 'Query', character?: { __typename?: 'Character', id: number, name: string, birthday: string, security_status?: number | null, gender: string, bloodline_id: number, race_id: number, description?: string | null, title?: string | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, memberCount: number } | null, race?: { __typename?: 'Race', id: number, name: string, description?: string | null } | null } | null };
 
 export type CorporationQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -815,6 +830,11 @@ export const CharacterDocument = gql`
       name
       ticker
       memberCount
+    }
+    race {
+      id
+      name
+      description
     }
   }
 }
