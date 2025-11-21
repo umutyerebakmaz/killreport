@@ -74,21 +74,16 @@ export default function AllianceCard({ alliance }: AllianceCardProps) {
               unoptimized
             />
           </div>
-          <Link
-            href={`/alliances/${alliance.id}`}
-            className="flex items-center justify-center h-12 text-sm font-semibold text-center text-gray-200 hover:text-cyan-400 line-clamp-2"
-          >
+          <Link href={`/alliances/${alliance.id}`} className="alliance-name">
             {alliance.name}
           </Link>
 
           {/* Ticker Badge */}
           <Tooltip content="Alliance Ticker" position="top">
-            <div className="px-3 py-1 text-xs font-bold text-yellow-400">
-              [{alliance.ticker}]
-            </div>
+            <div className="alliance-ticker">[{alliance.ticker}]</div>
           </Tooltip>
 
-          <div className="flex items-center justify-between w-full gap-4 pt-3 border-t border-white/10">
+          <div className="card-metrics">
             {/*  member count */}
             <Tooltip content="Total Members" position="top">
               <div className="flex items-center gap-2">
@@ -134,7 +129,7 @@ export default function AllianceCard({ alliance }: AllianceCardProps) {
           </div>
 
           {/* Founded date section */}
-          <div className="flex flex-col items-center justify-center w-full gap-3 pt-3 border-t border-white/10">
+          <div className="date-founded-section">
             <Tooltip content="Date Founded" position="top">
               <div className="text-xs text-gray-400">{foundedDate}</div>
             </Tooltip>

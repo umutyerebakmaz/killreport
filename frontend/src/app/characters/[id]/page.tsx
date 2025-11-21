@@ -2,8 +2,8 @@
 
 import Tooltip from "@/components/Tooltip/Tooltip";
 import { useCharacterQuery } from "@/generated/graphql";
+import { getSecurityStatusColor } from "@/utils/securityStatus";
 import {
-  BuildingOfficeIcon,
   CakeIcon,
   ShieldCheckIcon,
   UserIcon,
@@ -59,16 +59,6 @@ export default function CharacterDetailPage({
     { id: "statistics" as TabType, label: "Statistics" },
   ];
 
-  // Security status rengi belirle
-  const getSecurityStatusColor = (status: number | null | undefined) => {
-    if (status === null || status === undefined) return "text-gray-400";
-    if (status >= 5) return "text-blue-400";
-    if (status >= 0) return "text-green-400";
-    if (status >= -2) return "text-yellow-400";
-    if (status >= -5) return "text-orange-400";
-    return "text-red-400";
-  };
-
   const securityStatus = character.security_status?.toFixed(1) ?? "N/A";
   const securityColor = getSecurityStatusColor(character.security_status);
 
@@ -96,37 +86,38 @@ export default function CharacterDetailPage({
             />
             <div className="flex-1">
               <h1 className="text-4xl font-bold">{character.name}</h1>
-              <div className="flex items-center gap-4 mt-3">
-                {/* Corporation */}
-                {character.corporation && (
+
+              {/* Corporation */}
+              {character.corporation && (
+                <div className="mt-3">
                   <Tooltip content="Corporation" position="top">
                     <Link
                       href={`/corporations/${character.corporation.id}`}
-                      className="flex items-center gap-2 text-purple-400 hover:text-purple-300"
+                      className="inline-flex items-center gap-2 text-green-400 hover:text-green-300"
                     >
-                      <BuildingOfficeIcon className="w-5 h-5" />
-                      <span className="text-sm font-medium">
-                        {character.corporation.name} [
-                        {character.corporation.ticker}]
+                      <span className="text-base font-bold">
+                        {character.corporation.name}
                       </span>
                     </Link>
                   </Tooltip>
-                )}
+                </div>
+              )}
 
-                {/* Alliance */}
-                {character.alliance && (
+              {/* Alliance */}
+              {character.alliance && (
+                <div className="mt-2">
                   <Tooltip content="Alliance" position="top">
                     <Link
                       href={`/alliances/${character.alliance.id}`}
-                      className="flex items-center gap-2 text-yellow-400 hover:text-yellow-300"
+                      className="inline-flex items-center gap-2 text-yellow-400 hover:text-yellow-300"
                     >
-                      <span className="text-sm font-bold">
-                        [{character.alliance.ticker}]
+                      <span className="text-base font-bold">
+                        {character.alliance.name}
                       </span>
                     </Link>
                   </Tooltip>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -150,9 +141,28 @@ export default function CharacterDetailPage({
             </Tooltip>
 
             {/* Gender Icon */}
-            <Tooltip content={`Gender: ${character.gender}`} position="top">
+            <Tooltip
+              content={`Gender: ${character.gender || "Unknown"}`}
+              position="top"
+            >
               <div className="flex items-center gap-2">
-                <UserIcon className="w-6 h-6 text-cyan-400" />
+                {character.gender === "male" ? (
+                  <svg
+                    className="w-6 h-6 text-cyan-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7l-1.5 1.5m0 0l-3 3m3-3v3m0-3h-3m6-3h2v2m-5-5l5 5"
+                    />
+                  </svg>
+                ) : (
+                  <UserIcon className="w-6 h-6 text-gray-400" />
+                )}
               </div>
             </Tooltip>
           </div>
