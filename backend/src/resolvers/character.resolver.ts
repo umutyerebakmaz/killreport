@@ -1,78 +1,118 @@
-import { CharacterResolvers, MutationResolvers, QueryResolvers } from '../generated-types';
+import { CharacterResolvers, PageInfo, QueryResolvers } from '../generated-types';
+import prisma from '../services/prisma';
 
-// Mock data - internal type için userId ekliyoruz
-type CharacterWithUserId = {
-    id: string;
-    name: string;
-    corporation: string | null;
-    alliance: string | null;
-    securityStatus: number | null;
-    userId: string;
-};
-
-const characters: CharacterWithUserId[] = [
-    {
-        id: '1',
-        name: 'Captain Awesome',
-        corporation: 'Test Corp',
-        alliance: 'Test Alliance',
-        securityStatus: 5.0,
-        userId: '1'
-    },
-    {
-        id: '2',
-        name: 'Pirate Pete',
-        corporation: 'Evil Corp',
-        alliance: null,
-        securityStatus: -10.0,
-        userId: '2'
-    },
-];
-
-// Query Resolvers
 export const characterQueries: QueryResolvers = {
-    character: (_, { id }) => {
-        const character = characters.find(c => c.id === id);
-        return character || null;
-    },
+    character: async (_, { id }) => {
+        const character = await prisma.character.findUnique({
+            where: { id: Number(id) },
+        });
+        if (!character) return null;
 
-    charactersByUser: (_, { userId }) => {
-        return characters.filter(c => c.userId === userId);
-    },
-};
-
-// Mutation Resolvers
-export const characterMutations: MutationResolvers = {
-    addCharacter: (_, { input }) => {
-        const newCharacter = {
-            id: String(characters.length + 1),
-            name: input.name,
-            corporation: input.corporation || null,
-            alliance: null,
-            securityStatus: 0,
-            userId: input.userId,
-        };
-        characters.push(newCharacter);
         return {
-            character: newCharacter,
-            clientMutationId: input.clientMutationId || null,
+            ...character,
+            birthday: character.birthday.toISOString(),
+        } as any;
+    },
+
+    characters: async (_, { filter }) => {
+        const take = filter?.limit ?? 25;
+        const currentPage = filter?.page ?? 1;
+        const skip = (currentPage - 1) * take;
+
+        // Filter koşullarını oluştur
+        const where: any = {};
+        if (filter) {
+            if (filter.search) {
+                where.name = { contains: filter.search, mode: 'insensitive' };
+            }
+            if (filter.name) {
+                where.name = { contains: filter.name, mode: 'insensitive' };
+            }
+            if (filter.corporation_id) {
+                where.corporation_id = filter.corporation_id;
+            }
+            if (filter.alliance_id) {
+                where.alliance_id = filter.alliance_id;
+            }
+        }
+
+        // Total record count (filtered)
+        const totalCount = await prisma.character.count({ where });
+        const totalPages = Math.ceil(totalCount / take);
+
+        // OrderBy logic
+        let orderBy: any = { name: 'asc' }; // default
+        if (filter?.orderBy) {
+            switch (filter.orderBy) {
+                case 'nameAsc':
+                    orderBy = { name: 'asc' };
+                    break;
+                case 'nameDesc':
+                    orderBy = { name: 'desc' };
+                    break;
+                case 'securityStatusAsc':
+                    orderBy = { security_status: 'asc' };
+                    break;
+                case 'securityStatusDesc':
+                    orderBy = { security_status: 'desc' };
+                    break;
+                default:
+                    orderBy = { name: 'asc' };
+            }
+        }
+
+        // Fetch data
+        const characters = await prisma.character.findMany({
+            where,
+            skip,
+            take,
+            orderBy,
+        });
+
+        const pageInfo: PageInfo = {
+            currentPage,
+            totalPages,
+            totalCount,
+            hasNextPage: currentPage < totalPages,
+            hasPreviousPage: currentPage > 1,
+        };
+
+        return {
+            edges: characters.map((c: any, index: number) => ({
+                node: {
+                    ...c,
+                    birthday: c.birthday.toISOString(),
+                },
+                cursor: Buffer.from(`${skip + index}`).toString('base64'),
+            })),
+            pageInfo,
         };
     },
 };
 
-// Field Resolvers - for Character type fields
+/**
+ * Field Resolvers - Nested fields için lazy loading + DataLoader
+ */
 export const characterFieldResolvers: CharacterResolvers = {
-    user: (parent) => {
-        // Find userId from internal data using parent character
-        // In real project, user relation would be fetched from database using parent.id
-        const characterData = characters.find(c => c.id === parent.id);
-        if (!characterData) return null;
+    corporation: async (parent, _args, context) => {
+        const corporation = await context.loaders.corporation.load(parent.corporation_id);
+        if (!corporation) return null;
 
         return {
-            id: characterData.userId,
-            name: 'User Name',
-            email: 'user@example.com',
-            createdAt: new Date().toISOString(),
+            ...corporation,
+            date_founded: corporation.date_founded?.toISOString() || null,
+        };
+    },
+
+    alliance: async (parent, _args, context) => {
+        if (!parent.alliance_id) return null;
+
+        const alliance = await context.loaders.alliance.load(parent.alliance_id);
+        if (!alliance) return null;
+
+        return {
+            ...alliance,
+            date_founded: alliance.date_founded.toISOString(),
         };
     },
 };

@@ -16,7 +16,8 @@ module.exports = {
         'custom-dark-90': 'rgba(16, 16, 16, 0.9)',
       },
       fontFamily: {
-        sans: ['Mona Sans', 'Arial', 'Helvetica', 'sans-serif'],
+        sans: ['Shentox', 'Mona Sans', 'Arial', 'Helvetica', 'sans-serif'],
+        shentox: ['Shentox', 'sans-serif'],
       },
     },
   },
