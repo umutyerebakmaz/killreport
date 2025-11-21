@@ -77,19 +77,35 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
           </div>
           <Link
             href={`/corporations/${corporation.id}`}
-            className="flex items-center justify-center h-12 text-sm font-semibold text-center text-gray-200 hover:text-cyan-400 line-clamp-2"
+            className="corporation-name"
           >
             {corporation.name}
           </Link>
 
           {/* Ticker Badge */}
           <Tooltip content="Corporation Ticker" position="top">
-            <div className="px-3 py-1 text-xs font-bold text-green-400">
-              [{corporation.ticker}]
-            </div>
+            <div className="corporation-ticker">[{corporation.ticker}]</div>
           </Tooltip>
 
-          <div className="flex items-center justify-between w-full gap-4 pt-3 border-t border-white/10">
+          {/* Alliance */}
+          <div className="flex flex-col items-center w-full gap-2 min-h-5">
+            <div className="h-5">
+              {corporation.alliance && (
+                <Tooltip content="Alliance" position="top">
+                  <Link
+                    href={`/alliances/${corporation.alliance.id}`}
+                    className="flex items-center gap-2 hover:text-cyan-400"
+                  >
+                    <span className="text-base text-yellow-400 line-clamp-1">
+                      {corporation.alliance.name}
+                    </span>
+                  </Link>
+                </Tooltip>
+              )}
+            </div>
+          </div>
+
+          <div className="card-metrics">
             {/* Member count */}
             <Tooltip content="Total Members" position="top">
               <div className="flex items-center gap-2">
@@ -126,24 +142,7 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
             </Tooltip>
           </div>
 
-          <div className="flex flex-col items-center justify-center w-full gap-3 pt-3 border-t border-white/10">
-            {/* Alliance info */}
-            {corporation.alliance ? (
-              <Tooltip
-                content={`Alliance: ${corporation.alliance.name}`}
-                position="top"
-              >
-                <Link
-                  href={`/alliances/${corporation.alliance.id}`}
-                  className="text-xs text-yellow-400 hover:text-yellow-300 line-clamp-1"
-                >
-                  [{corporation.alliance.ticker}] {corporation.alliance.name}
-                </Link>
-              </Tooltip>
-            ) : (
-              <span className="text-xs text-gray-500">No Alliance</span>
-            )}
-
+          <div className="date-founded-section">
             {/* Founded date */}
             <Tooltip content="Date Founded" position="top">
               <div className="text-xs text-gray-400">{foundedDate}</div>
