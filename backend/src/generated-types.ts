@@ -16,19 +16,6 @@ export type Scalars = {
   Float: { input: number; output: number; }
 };
 
-export type AddCharacterInput = {
-  clientMutationId?: InputMaybe<Scalars['String']['input']>;
-  corporation?: InputMaybe<Scalars['String']['input']>;
-  name: Scalars['String']['input'];
-  userId: Scalars['ID']['input'];
-};
-
-export type AddCharacterPayload = {
-  __typename?: 'AddCharacterPayload';
-  character?: Maybe<Character>;
-  clientMutationId?: Maybe<Scalars['String']['output']>;
-};
-
 export type Alliance = {
   __typename?: 'Alliance';
   corporationCount: Scalars['Int']['output'];
@@ -147,13 +134,50 @@ export type AuthUrl = {
 
 export type Character = {
   __typename?: 'Character';
-  alliance?: Maybe<Scalars['String']['output']>;
-  corporation?: Maybe<Scalars['String']['output']>;
-  id: Scalars['ID']['output'];
+  alliance?: Maybe<Alliance>;
+  alliance_id?: Maybe<Scalars['Int']['output']>;
+  birthday: Scalars['String']['output'];
+  bloodline_id: Scalars['Int']['output'];
+  corporation?: Maybe<Corporation>;
+  corporation_id: Scalars['Int']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  faction_id?: Maybe<Scalars['Int']['output']>;
+  gender: Scalars['String']['output'];
+  id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
-  securityStatus?: Maybe<Scalars['Float']['output']>;
-  user?: Maybe<User>;
+  race_id: Scalars['Int']['output'];
+  security_status?: Maybe<Scalars['Float']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
 };
+
+export type CharacterConnection = {
+  __typename?: 'CharacterConnection';
+  edges: Array<CharacterEdge>;
+  pageInfo: PageInfo;
+};
+
+export type CharacterEdge = {
+  __typename?: 'CharacterEdge';
+  cursor: Scalars['String']['output'];
+  node: Character;
+};
+
+export type CharacterFilter = {
+  alliance_id?: InputMaybe<Scalars['Int']['input']>;
+  corporation_id?: InputMaybe<Scalars['Int']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<CharacterOrderBy>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+};
+
+export enum CharacterOrderBy {
+  NameAsc = 'nameAsc',
+  NameDesc = 'nameDesc',
+  SecurityStatusAsc = 'securityStatusAsc',
+  SecurityStatusDesc = 'securityStatusDesc'
+}
 
 export type Corporation = {
   __typename?: 'Corporation';
@@ -278,7 +302,6 @@ export type KillmailItem = {
 export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
-  addCharacter: AddCharacterPayload;
   /** Authorization code ile authentication yapar ve token döner */
   authenticateWithCode: AuthPayload;
   createUser: CreateUserPayload;
@@ -293,11 +316,6 @@ export type Mutation = {
    */
   syncMyKillmails: SyncMyKillmailsPayload;
   updateUser: UpdateUserPayload;
-};
-
-
-export type MutationAddCharacterArgs = {
-  input: AddCharacterInput;
 };
 
 
@@ -355,7 +373,7 @@ export type Query = {
   alliance?: Maybe<Alliance>;
   alliances: AllianceConnection;
   character?: Maybe<Character>;
-  charactersByUser: Array<Character>;
+  characters: CharacterConnection;
   corporation?: Maybe<Corporation>;
   corporations: CorporationConnection;
   /** Fetches a single killmail */
@@ -392,12 +410,12 @@ export type QueryAlliancesArgs = {
 
 
 export type QueryCharacterArgs = {
-  id: Scalars['ID']['input'];
+  id: Scalars['Int']['input'];
 };
 
 
-export type QueryCharactersByUserArgs = {
-  userId: Scalars['ID']['input'];
+export type QueryCharactersArgs = {
+  filter?: InputMaybe<CharacterFilter>;
 };
 
 
@@ -600,8 +618,6 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
-  AddCharacterInput: AddCharacterInput;
-  AddCharacterPayload: ResolverTypeWrapper<AddCharacterPayload>;
   Alliance: ResolverTypeWrapper<Alliance>;
   AllianceConnection: ResolverTypeWrapper<AllianceConnection>;
   AllianceEdge: ResolverTypeWrapper<AllianceEdge>;
@@ -614,6 +630,10 @@ export type ResolversTypes = {
   AuthUrl: ResolverTypeWrapper<AuthUrl>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Character: ResolverTypeWrapper<Character>;
+  CharacterConnection: ResolverTypeWrapper<CharacterConnection>;
+  CharacterEdge: ResolverTypeWrapper<CharacterEdge>;
+  CharacterFilter: CharacterFilter;
+  CharacterOrderBy: CharacterOrderBy;
   Corporation: ResolverTypeWrapper<Corporation>;
   CorporationConnection: ResolverTypeWrapper<CorporationConnection>;
   CorporationEdge: ResolverTypeWrapper<CorporationEdge>;
@@ -650,8 +670,6 @@ export type ResolversTypes = {
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
-  AddCharacterInput: AddCharacterInput;
-  AddCharacterPayload: AddCharacterPayload;
   Alliance: Alliance;
   AllianceConnection: AllianceConnection;
   AllianceEdge: AllianceEdge;
@@ -663,6 +681,9 @@ export type ResolversParentTypes = {
   AuthUrl: AuthUrl;
   Boolean: Scalars['Boolean']['output'];
   Character: Character;
+  CharacterConnection: CharacterConnection;
+  CharacterEdge: CharacterEdge;
+  CharacterFilter: CharacterFilter;
   Corporation: Corporation;
   CorporationConnection: CorporationConnection;
   CorporationEdge: CorporationEdge;
@@ -694,11 +715,6 @@ export type ResolversParentTypes = {
   User: User;
   Victim: Victim;
   WorkerStatus: WorkerStatus;
-};
-
-export type AddCharacterPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['AddCharacterPayload'] = ResolversParentTypes['AddCharacterPayload']> = {
-  character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
-  clientMutationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
 export type AllianceResolvers<ContextType = any, ParentType extends ResolversParentTypes['Alliance'] = ResolversParentTypes['Alliance']> = {
@@ -781,12 +797,30 @@ export type AuthUrlResolvers<ContextType = any, ParentType extends ResolversPare
 };
 
 export type CharacterResolvers<ContextType = any, ParentType extends ResolversParentTypes['Character'] = ResolversParentTypes['Character']> = {
-  alliance?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  corporation?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType>;
+  alliance_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  birthday?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  bloodline_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType>;
+  corporation_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  faction_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  gender?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  securityStatus?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
-  user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  race_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  security_status?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
+export type CharacterConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['CharacterConnection'] = ResolversParentTypes['CharacterConnection']> = {
+  edges?: Resolver<Array<ResolversTypes['CharacterEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+};
+
+export type CharacterEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['CharacterEdge'] = ResolversParentTypes['CharacterEdge']> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['Character'], ParentType, ContextType>;
 };
 
 export type CorporationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Corporation'] = ResolversParentTypes['Corporation']> = {
@@ -871,7 +905,6 @@ export type KillmailItemResolvers<ContextType = any, ParentType extends Resolver
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  addCharacter?: Resolver<ResolversTypes['AddCharacterPayload'], ParentType, ContextType, RequireFields<MutationAddCharacterArgs, 'input'>>;
   authenticateWithCode?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationAuthenticateWithCodeArgs, 'code' | 'state'>>;
   createUser?: Resolver<ResolversTypes['CreateUserPayload'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   login?: Resolver<ResolversTypes['AuthUrl'], ParentType, ContextType>;
@@ -902,7 +935,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType, RequireFields<QueryAllianceArgs, 'id'>>;
   alliances?: Resolver<ResolversTypes['AllianceConnection'], ParentType, ContextType, Partial<QueryAlliancesArgs>>;
   character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType, RequireFields<QueryCharacterArgs, 'id'>>;
-  charactersByUser?: Resolver<Array<ResolversTypes['Character']>, ParentType, ContextType, RequireFields<QueryCharactersByUserArgs, 'userId'>>;
+  characters?: Resolver<ResolversTypes['CharacterConnection'], ParentType, ContextType, Partial<QueryCharactersArgs>>;
   corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType, RequireFields<QueryCorporationArgs, 'id'>>;
   corporations?: Resolver<ResolversTypes['CorporationConnection'], ParentType, ContextType, Partial<QueryCorporationsArgs>>;
   killmail?: Resolver<Maybe<ResolversTypes['Killmail']>, ParentType, ContextType, RequireFields<QueryKillmailArgs, 'id'>>;
@@ -973,7 +1006,6 @@ export type WorkerStatusResolvers<ContextType = any, ParentType extends Resolver
 };
 
 export type Resolvers<ContextType = any> = {
-  AddCharacterPayload?: AddCharacterPayloadResolvers<ContextType>;
   Alliance?: AllianceResolvers<ContextType>;
   AllianceConnection?: AllianceConnectionResolvers<ContextType>;
   AllianceEdge?: AllianceEdgeResolvers<ContextType>;
@@ -983,6 +1015,8 @@ export type Resolvers<ContextType = any> = {
   AuthPayload?: AuthPayloadResolvers<ContextType>;
   AuthUrl?: AuthUrlResolvers<ContextType>;
   Character?: CharacterResolvers<ContextType>;
+  CharacterConnection?: CharacterConnectionResolvers<ContextType>;
+  CharacterEdge?: CharacterEdgeResolvers<ContextType>;
   Corporation?: CorporationResolvers<ContextType>;
   CorporationConnection?: CorporationConnectionResolvers<ContextType>;
   CorporationEdge?: CorporationEdgeResolvers<ContextType>;
