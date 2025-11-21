@@ -2,7 +2,7 @@
 
 import Tooltip from "@/components/Tooltip/Tooltip";
 import { useCorporationQuery } from "@/generated/graphql";
-import { BuildingOffice2Icon, UsersIcon } from "@heroicons/react/24/outline";
+import { UsersIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { use, useState } from "react";
 
@@ -79,10 +79,26 @@ export default function CorporationDetailPage({
             <div className="flex-1">
               <h1 className="text-4xl font-bold">{corporation.name}</h1>
               <div className="mt-2">
-                <span className="px-3 py-1 text-sm font-bold text-green-400">
-                  [{corporation.ticker}]
-                </span>
+                <Tooltip content="Corporation Ticker" position="top">
+                  <span className="py-1 text-base font-bold text-green-500">
+                    [{corporation.ticker}]
+                  </span>
+                </Tooltip>
               </div>
+
+              {/* Alliance Link */}
+              {corporation.alliance && (
+                <div className="mt-3">
+                  <Tooltip content="Alliance" position="top">
+                    <Link
+                      href={`/alliances/${corporation.alliance.id}`}
+                      className="inline-flex items-center gap-2 text-base font-bold text-yellow-400 hover:text-yellow-300"
+                    >
+                      {corporation.alliance.name}
+                    </Link>
+                  </Tooltip>
+                </div>
+              )}
             </div>
           </div>
 
@@ -97,22 +113,6 @@ export default function CorporationDetailPage({
                 </span>
               </div>
             </Tooltip>
-
-            {/* Alliance Link */}
-            {corporation.alliance && (
-              <Tooltip
-                content={`Alliance: ${corporation.alliance.name}`}
-                position="top"
-              >
-                <Link
-                  href={`/alliances/${corporation.alliance.id}`}
-                  className="flex items-center gap-2 px-3 py-1 text-sm text-yellow-400 transition-colors rounded bg-yellow-500/20 hover:bg-yellow-500/30"
-                >
-                  <BuildingOffice2Icon className="w-5 h-5" />[
-                  {corporation.alliance.ticker}] {corporation.alliance.name}
-                </Link>
-              </Tooltip>
-            )}
           </div>
         </div>
 
