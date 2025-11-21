@@ -17,19 +17,6 @@ export type Scalars = {
   Float: { input: number; output: number; }
 };
 
-export type AddCharacterInput = {
-  clientMutationId?: InputMaybe<Scalars['String']['input']>;
-  corporation?: InputMaybe<Scalars['String']['input']>;
-  name: Scalars['String']['input'];
-  userId: Scalars['ID']['input'];
-};
-
-export type AddCharacterPayload = {
-  __typename?: 'AddCharacterPayload';
-  character?: Maybe<Character>;
-  clientMutationId?: Maybe<Scalars['String']['output']>;
-};
-
 export type Alliance = {
   __typename?: 'Alliance';
   corporationCount: Scalars['Int']['output'];
@@ -148,13 +135,50 @@ export type AuthUrl = {
 
 export type Character = {
   __typename?: 'Character';
-  alliance?: Maybe<Scalars['String']['output']>;
-  corporation?: Maybe<Scalars['String']['output']>;
-  id: Scalars['ID']['output'];
+  alliance?: Maybe<Alliance>;
+  alliance_id?: Maybe<Scalars['Int']['output']>;
+  birthday: Scalars['String']['output'];
+  bloodline_id: Scalars['Int']['output'];
+  corporation?: Maybe<Corporation>;
+  corporation_id: Scalars['Int']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  faction_id?: Maybe<Scalars['Int']['output']>;
+  gender: Scalars['String']['output'];
+  id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
-  securityStatus?: Maybe<Scalars['Float']['output']>;
-  user?: Maybe<User>;
+  race_id: Scalars['Int']['output'];
+  security_status?: Maybe<Scalars['Float']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
 };
+
+export type CharacterConnection = {
+  __typename?: 'CharacterConnection';
+  edges: Array<CharacterEdge>;
+  pageInfo: PageInfo;
+};
+
+export type CharacterEdge = {
+  __typename?: 'CharacterEdge';
+  cursor: Scalars['String']['output'];
+  node: Character;
+};
+
+export type CharacterFilter = {
+  alliance_id?: InputMaybe<Scalars['Int']['input']>;
+  corporation_id?: InputMaybe<Scalars['Int']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<CharacterOrderBy>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+};
+
+export enum CharacterOrderBy {
+  NameAsc = 'nameAsc',
+  NameDesc = 'nameDesc',
+  SecurityStatusAsc = 'securityStatusAsc',
+  SecurityStatusDesc = 'securityStatusDesc'
+}
 
 export type Corporation = {
   __typename?: 'Corporation';
@@ -279,7 +303,6 @@ export type KillmailItem = {
 export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
-  addCharacter: AddCharacterPayload;
   /** Authorization code ile authentication yapar ve token döner */
   authenticateWithCode: AuthPayload;
   createUser: CreateUserPayload;
@@ -294,11 +317,6 @@ export type Mutation = {
    */
   syncMyKillmails: SyncMyKillmailsPayload;
   updateUser: UpdateUserPayload;
-};
-
-
-export type MutationAddCharacterArgs = {
-  input: AddCharacterInput;
 };
 
 
@@ -356,7 +374,7 @@ export type Query = {
   alliance?: Maybe<Alliance>;
   alliances: AllianceConnection;
   character?: Maybe<Character>;
-  charactersByUser: Array<Character>;
+  characters: CharacterConnection;
   corporation?: Maybe<Corporation>;
   corporations: CorporationConnection;
   /** Fetches a single killmail */
@@ -393,12 +411,12 @@ export type QueryAlliancesArgs = {
 
 
 export type QueryCharacterArgs = {
-  id: Scalars['ID']['input'];
+  id: Scalars['Int']['input'];
 };
 
 
-export type QueryCharactersByUserArgs = {
-  userId: Scalars['ID']['input'];
+export type QueryCharactersArgs = {
+  filter?: InputMaybe<CharacterFilter>;
 };
 
 
@@ -533,7 +551,7 @@ export type AllianceQueryVariables = Exact<{
 }>;
 
 
-export type AllianceQuery = { __typename?: 'Query', alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, memberCount: number, corporationCount: number, metrics?: { __typename?: 'AllianceMetrics', memberCountDelta7d?: number | null, memberCountDelta30d?: number | null, corporationCountDelta7d?: number | null, corporationCountDelta30d?: number | null, memberCountGrowthRate7d?: number | null, memberCountGrowthRate30d?: number | null } | null, executor?: { __typename?: 'Corporation', id: number, name: string } | null, createdByCorporation?: { __typename?: 'Corporation', id: number, name: string } | null, createdBy?: { __typename?: 'Character', id: string, name: string } | null } | null };
+export type AllianceQuery = { __typename?: 'Query', alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, memberCount: number, corporationCount: number, metrics?: { __typename?: 'AllianceMetrics', memberCountDelta7d?: number | null, memberCountDelta30d?: number | null, corporationCountDelta7d?: number | null, corporationCountDelta30d?: number | null, memberCountGrowthRate7d?: number | null, memberCountGrowthRate30d?: number | null } | null, executor?: { __typename?: 'Corporation', id: number, name: string } | null, createdByCorporation?: { __typename?: 'Corporation', id: number, name: string } | null, createdBy?: { __typename?: 'Character', id: number, name: string } | null } | null };
 
 export type AlliancesQueryVariables = Exact<{
   filter?: InputMaybe<AllianceFilter>;
@@ -542,12 +560,26 @@ export type AlliancesQueryVariables = Exact<{
 
 export type AlliancesQuery = { __typename?: 'Query', alliances: { __typename?: 'AllianceConnection', edges: Array<{ __typename?: 'AllianceEdge', cursor: string, node: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, memberCount: number, corporationCount: number, metrics?: { __typename?: 'AllianceMetrics', memberCountDelta1d?: number | null, memberCountDelta7d?: number | null, memberCountDelta30d?: number | null, corporationCountDelta1d?: number | null, corporationCountDelta7d?: number | null, corporationCountDelta30d?: number | null, memberCountGrowthRate1d?: number | null, memberCountGrowthRate7d?: number | null, memberCountGrowthRate30d?: number | null } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
+export type CharactersQueryVariables = Exact<{
+  filter?: InputMaybe<CharacterFilter>;
+}>;
+
+
+export type CharactersQuery = { __typename?: 'Query', characters: { __typename?: 'CharacterConnection', edges: Array<{ __typename?: 'CharacterEdge', cursor: string, node: { __typename?: 'Character', id: number, name: string, security_status?: number | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
+export type CharacterQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type CharacterQuery = { __typename?: 'Query', character?: { __typename?: 'Character', id: number, name: string, birthday: string, security_status?: number | null, gender: string, bloodline_id: number, race_id: number, description?: string | null, title?: string | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, memberCount: number } | null } | null };
+
 export type CorporationQueryVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
 
 
-export type CorporationQuery = { __typename?: 'Query', corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, date_founded?: string | null, member_count: number, tax_rate: number, url?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, ceo?: { __typename?: 'Character', id: string, name: string } | null, creator?: { __typename?: 'Character', id: string, name: string } | null } | null };
+export type CorporationQuery = { __typename?: 'Query', corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, date_founded?: string | null, member_count: number, tax_rate: number, url?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, ceo?: { __typename?: 'Character', id: number, name: string } | null, creator?: { __typename?: 'Character', id: number, name: string } | null } | null };
 
 export type CorporationsQueryVariables = Exact<{
   filter?: InputMaybe<CorporationFilter>;
@@ -690,6 +722,130 @@ export type AlliancesQueryHookResult = ReturnType<typeof useAlliancesQuery>;
 export type AlliancesLazyQueryHookResult = ReturnType<typeof useAlliancesLazyQuery>;
 export type AlliancesSuspenseQueryHookResult = ReturnType<typeof useAlliancesSuspenseQuery>;
 export type AlliancesQueryResult = Apollo.QueryResult<AlliancesQuery, AlliancesQueryVariables>;
+export const CharactersDocument = gql`
+    query Characters($filter: CharacterFilter) {
+  characters(filter: $filter) {
+    edges {
+      node {
+        id
+        name
+        security_status
+        corporation {
+          id
+          name
+          ticker
+        }
+        alliance {
+          id
+          name
+          ticker
+        }
+      }
+      cursor
+    }
+    pageInfo {
+      currentPage
+      totalPages
+      totalCount
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useCharactersQuery__
+ *
+ * To run a query within a React component, call `useCharactersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCharactersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCharactersQuery({
+ *   variables: {
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useCharactersQuery(baseOptions?: Apollo.QueryHookOptions<CharactersQuery, CharactersQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CharactersQuery, CharactersQueryVariables>(CharactersDocument, options);
+      }
+export function useCharactersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CharactersQuery, CharactersQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CharactersQuery, CharactersQueryVariables>(CharactersDocument, options);
+        }
+export function useCharactersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CharactersQuery, CharactersQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CharactersQuery, CharactersQueryVariables>(CharactersDocument, options);
+        }
+export type CharactersQueryHookResult = ReturnType<typeof useCharactersQuery>;
+export type CharactersLazyQueryHookResult = ReturnType<typeof useCharactersLazyQuery>;
+export type CharactersSuspenseQueryHookResult = ReturnType<typeof useCharactersSuspenseQuery>;
+export type CharactersQueryResult = Apollo.QueryResult<CharactersQuery, CharactersQueryVariables>;
+export const CharacterDocument = gql`
+    query Character($id: Int!) {
+  character(id: $id) {
+    id
+    name
+    birthday
+    security_status
+    gender
+    bloodline_id
+    race_id
+    description
+    title
+    corporation {
+      id
+      name
+      ticker
+      member_count
+    }
+    alliance {
+      id
+      name
+      ticker
+      memberCount
+    }
+  }
+}
+    `;
+
+/**
+ * __useCharacterQuery__
+ *
+ * To run a query within a React component, call `useCharacterQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCharacterQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCharacterQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useCharacterQuery(baseOptions: Apollo.QueryHookOptions<CharacterQuery, CharacterQueryVariables> & ({ variables: CharacterQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CharacterQuery, CharacterQueryVariables>(CharacterDocument, options);
+      }
+export function useCharacterLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CharacterQuery, CharacterQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CharacterQuery, CharacterQueryVariables>(CharacterDocument, options);
+        }
+export function useCharacterSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CharacterQuery, CharacterQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CharacterQuery, CharacterQueryVariables>(CharacterDocument, options);
+        }
+export type CharacterQueryHookResult = ReturnType<typeof useCharacterQuery>;
+export type CharacterLazyQueryHookResult = ReturnType<typeof useCharacterLazyQuery>;
+export type CharacterSuspenseQueryHookResult = ReturnType<typeof useCharacterSuspenseQuery>;
+export type CharacterQueryResult = Apollo.QueryResult<CharacterQuery, CharacterQueryVariables>;
 export const CorporationDocument = gql`
     query Corporation($id: Int!) {
   corporation(id: $id) {
