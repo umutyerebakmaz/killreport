@@ -1,29 +1,48 @@
 type Character {
-  id: ID!
+  id: Int!
   name: String!
-  corporation: String
-  alliance: String
-  securityStatus: Float
-  user: User
+  corporation_id: Int!
+  alliance_id: Int
+  birthday: String!
+  bloodline_id: Int!
+  race_id: Int!
+  gender: String!
+  security_status: Float
+  description: String
+  title: String
+  faction_id: Int
+  corporation: Corporation
+  alliance: Alliance
 }
 
-input AddCharacterInput {
-  name: String!
-  corporation: String
-  userId: ID!
-  clientMutationId: String
+enum CharacterOrderBy {
+  nameAsc
+  nameDesc
+  securityStatusAsc
+  securityStatusDesc
 }
 
-type AddCharacterPayload {
-  character: Character
-  clientMutationId: String
+type CharacterEdge {
+  node: Character!
+  cursor: String!
+}
+
+type CharacterConnection {
+  edges: [CharacterEdge!]!
+  pageInfo: PageInfo!
+}
+
+input CharacterFilter {
+  page: Int
+  limit: Int
+  search: String
+  name: String
+  corporation_id: Int
+  alliance_id: Int
+  orderBy: CharacterOrderBy
 }
 
 extend type Query {
-  character(id: ID!): Character
-  charactersByUser(userId: ID!): [Character!]!
-}
-
-extend type Mutation {
-  addCharacter(input: AddCharacterInput!): AddCharacterPayload!
+  character(id: Int!): Character
+  characters(filter: CharacterFilter): CharacterConnection!
 }
