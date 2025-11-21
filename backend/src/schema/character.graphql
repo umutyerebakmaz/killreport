@@ -6,6 +6,7 @@ type Character {
   birthday: String!
   bloodline_id: Int!
   race_id: Int!
+  race: Race
   gender: String!
   security_status: Float
   description: String
