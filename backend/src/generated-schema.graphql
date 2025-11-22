@@ -105,10 +105,18 @@ type AuthUrl {
   url: String!
 }
 
+type Bloodline {
+  description: String
+  id: Int!
+  name: String!
+  race_id: Int!
+}
+
 type Character {
   alliance: Alliance
   alliance_id: Int
   birthday: String!
+  bloodline: Bloodline
   bloodline_id: Int!
   corporation: Corporation
   corporation_id: Int!
@@ -297,6 +305,8 @@ type Query {
   _empty: String
   alliance(id: Int!): Alliance
   alliances(filter: AllianceFilter): AllianceConnection!
+  bloodline(id: Int!): Bloodline
+  bloodlines: [Bloodline!]!
   character(id: Int!): Character
   characters(filter: CharacterFilter): CharacterConnection!
   corporation(id: Int!): Corporation
