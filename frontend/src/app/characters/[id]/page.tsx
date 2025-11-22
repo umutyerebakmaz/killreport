@@ -3,11 +3,6 @@
 import Tooltip from "@/components/Tooltip/Tooltip";
 import { useCharacterQuery } from "@/generated/graphql";
 import { getSecurityStatusColor } from "@/utils/securityStatus";
-import {
-  CakeIcon,
-  ShieldCheckIcon,
-  UserIcon,
-} from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { use, useState } from "react";
 
@@ -75,96 +70,48 @@ export default function CharacterDetailPage({
     <main>
       <div className="alliance-detail-card">
         {/* Portrait and Character Name */}
-        <div className="flex flex-row items-center justify-between">
-          <div className="flex items-center justify-center gap-6">
-            <img
-              src={`https://images.evetech.net/characters/${character.id}/portrait?size=256`}
-              alt={character.name}
-              width={128}
-              height={128}
-              className="rounded shadow-md"
-            />
-            <div className="flex-1">
-              <h1 className="text-4xl font-bold">{character.name}</h1>
+        <div className="flex items-center justify-center gap-6">
+          <img
+            src={`https://images.evetech.net/characters/${character.id}/portrait?size=256`}
+            alt={character.name}
+            width={128}
+            height={128}
+            className="rounded shadow-md"
+          />
+          <div className="flex-1">
+            <h1 className="text-4xl font-bold">{character.name}</h1>
 
-              {/* Corporation */}
-              {character.corporation && (
-                <div className="mt-3">
-                  <Tooltip content="Corporation" position="top">
-                    <Link
-                      href={`/corporations/${character.corporation.id}`}
-                      className="inline-flex items-center gap-2 text-green-400 hover:text-green-300"
-                    >
-                      <span className="text-base font-bold">
-                        {character.corporation.name}
-                      </span>
-                    </Link>
-                  </Tooltip>
-                </div>
-              )}
-
-              {/* Alliance */}
-              {character.alliance && (
-                <div className="mt-2">
-                  <Tooltip content="Alliance" position="top">
-                    <Link
-                      href={`/alliances/${character.alliance.id}`}
-                      className="inline-flex items-center gap-2 text-yellow-400 hover:text-yellow-300"
-                    >
-                      <span className="text-base font-bold">
-                        {character.alliance.name}
-                      </span>
-                    </Link>
-                  </Tooltip>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Metric Container */}
-          <div className="flex items-center gap-4">
-            {/* Security Status */}
-            <Tooltip content="Security Status" position="top">
-              <div className="flex items-center gap-2">
-                <ShieldCheckIcon className={`w-6 h-6 ${securityColor}`} />
-                <span className={`text-lg font-bold ${securityColor}`}>
-                  {securityStatus}
-                </span>
-              </div>
-            </Tooltip>
-
-            {/* Birthday */}
-            <Tooltip content={`Birthday: ${birthday}`} position="top">
-              <div className="flex items-center gap-2">
-                <CakeIcon className="w-6 h-6 text-pink-400" />
-              </div>
-            </Tooltip>
-
-            {/* Gender Icon */}
-            <Tooltip
-              content={`Gender: ${character.gender || "Unknown"}`}
-              position="top"
-            >
-              <div className="flex items-center gap-2">
-                {character.gender === "male" ? (
-                  <svg
-                    className="w-6 h-6 text-cyan-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+            {/* Corporation */}
+            {character.corporation && (
+              <div className="mt-3">
+                <Tooltip content="Corporation" position="top">
+                  <Link
+                    href={`/corporations/${character.corporation.id}`}
+                    className="inline-flex items-center gap-2 text-green-400 hover:text-green-300"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7l-1.5 1.5m0 0l-3 3m3-3v3m0-3h-3m6-3h2v2m-5-5l5 5"
-                    />
-                  </svg>
-                ) : (
-                  <UserIcon className="w-6 h-6 text-gray-400" />
-                )}
+                    <span className="text-base font-bold">
+                      {character.corporation.name}
+                    </span>
+                  </Link>
+                </Tooltip>
               </div>
-            </Tooltip>
+            )}
+
+            {/* Alliance */}
+            {character.alliance && (
+              <div className="mt-2">
+                <Tooltip content="Alliance" position="top">
+                  <Link
+                    href={`/alliances/${character.alliance.id}`}
+                    className="inline-flex items-center gap-2 text-yellow-400 hover:text-yellow-300"
+                  >
+                    <span className="text-base font-bold">
+                      {character.alliance.name}
+                    </span>
+                  </Link>
+                </Tooltip>
+              </div>
+            )}
           </div>
         </div>
 
@@ -240,15 +187,15 @@ export default function CharacterDetailPage({
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-400">Bloodline ID</span>
-                  <span className="ml-2 font-semibold">
-                    {character.bloodline_id}
-                  </span>
-                </div>
-                <div>
                   <span className="text-gray-400">Race</span>
                   <span className="ml-2 font-semibold">
                     {character.race?.name || "N/A"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-400">Bloodline</span>
+                  <span className="ml-2 font-semibold">
+                    {character.bloodline?.name || "N/A"}
                   </span>
                 </div>
                 {character.title && (

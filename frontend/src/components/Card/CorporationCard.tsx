@@ -55,7 +55,7 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
     <div className="corporation-card">
       <div className="px-4 py-5 sm:p-6">
         <div className="flex flex-col items-center gap-4">
-          <div className="relative w-24 h-24">
+          <div className="relative w-32 h-32">
             {!imageLoaded && (
               <div className="absolute inset-0 rounded animate-pulse bg-gray-800/50">
                 <div className="flex items-center justify-center w-full h-full">
@@ -66,8 +66,8 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
             <Image
               src={`https://images.evetech.net/corporations/${corporation.id}/logo?size=128`}
               alt={corporation.name}
-              width={96}
-              height={96}
+              width={128}
+              height={128}
               className={`rounded transition-opacity duration-300 ${
                 imageLoaded ? "opacity-100" : "opacity-0"
               }`}
