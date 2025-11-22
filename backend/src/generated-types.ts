@@ -132,11 +132,20 @@ export type AuthUrl = {
   url: Scalars['String']['output'];
 };
 
+export type Bloodline = {
+  __typename?: 'Bloodline';
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  race_id: Scalars['Int']['output'];
+};
+
 export type Character = {
   __typename?: 'Character';
   alliance?: Maybe<Alliance>;
   alliance_id?: Maybe<Scalars['Int']['output']>;
   birthday: Scalars['String']['output'];
+  bloodline?: Maybe<Bloodline>;
   bloodline_id: Scalars['Int']['output'];
   corporation?: Maybe<Corporation>;
   corporation_id: Scalars['Int']['output'];
@@ -373,6 +382,8 @@ export type Query = {
   _empty?: Maybe<Scalars['String']['output']>;
   alliance?: Maybe<Alliance>;
   alliances: AllianceConnection;
+  bloodline?: Maybe<Bloodline>;
+  bloodlines: Array<Bloodline>;
   character?: Maybe<Character>;
   characters: CharacterConnection;
   corporation?: Maybe<Corporation>;
@@ -409,6 +420,11 @@ export type QueryAllianceArgs = {
 
 export type QueryAlliancesArgs = {
   filter?: InputMaybe<AllianceFilter>;
+};
+
+
+export type QueryBloodlineArgs = {
+  id: Scalars['Int']['input'];
 };
 
 
@@ -643,6 +659,7 @@ export type ResolversTypes = {
   Attacker: ResolverTypeWrapper<Attacker>;
   AuthPayload: ResolverTypeWrapper<AuthPayload>;
   AuthUrl: ResolverTypeWrapper<AuthUrl>;
+  Bloodline: ResolverTypeWrapper<Bloodline>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Character: ResolverTypeWrapper<Character>;
   CharacterConnection: ResolverTypeWrapper<CharacterConnection>;
@@ -695,6 +712,7 @@ export type ResolversParentTypes = {
   Attacker: Attacker;
   AuthPayload: AuthPayload;
   AuthUrl: AuthUrl;
+  Bloodline: Bloodline;
   Boolean: Scalars['Boolean']['output'];
   Character: Character;
   CharacterConnection: CharacterConnection;
@@ -813,10 +831,18 @@ export type AuthUrlResolvers<ContextType = any, ParentType extends ResolversPare
   url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
+export type BloodlineResolvers<ContextType = any, ParentType extends ResolversParentTypes['Bloodline'] = ResolversParentTypes['Bloodline']> = {
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  race_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
 export type CharacterResolvers<ContextType = any, ParentType extends ResolversParentTypes['Character'] = ResolversParentTypes['Character']> = {
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType>;
   alliance_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   birthday?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  bloodline?: Resolver<Maybe<ResolversTypes['Bloodline']>, ParentType, ContextType>;
   bloodline_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType>;
   corporation_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -952,6 +978,8 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType, RequireFields<QueryAllianceArgs, 'id'>>;
   alliances?: Resolver<ResolversTypes['AllianceConnection'], ParentType, ContextType, Partial<QueryAlliancesArgs>>;
+  bloodline?: Resolver<Maybe<ResolversTypes['Bloodline']>, ParentType, ContextType, RequireFields<QueryBloodlineArgs, 'id'>>;
+  bloodlines?: Resolver<Array<ResolversTypes['Bloodline']>, ParentType, ContextType>;
   character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType, RequireFields<QueryCharacterArgs, 'id'>>;
   characters?: Resolver<ResolversTypes['CharacterConnection'], ParentType, ContextType, Partial<QueryCharactersArgs>>;
   corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType, RequireFields<QueryCorporationArgs, 'id'>>;
@@ -1040,6 +1068,7 @@ export type Resolvers<ContextType = any> = {
   Attacker?: AttackerResolvers<ContextType>;
   AuthPayload?: AuthPayloadResolvers<ContextType>;
   AuthUrl?: AuthUrlResolvers<ContextType>;
+  Bloodline?: BloodlineResolvers<ContextType>;
   Character?: CharacterResolvers<ContextType>;
   CharacterConnection?: CharacterConnectionResolvers<ContextType>;
   CharacterEdge?: CharacterEdgeResolvers<ContextType>;
