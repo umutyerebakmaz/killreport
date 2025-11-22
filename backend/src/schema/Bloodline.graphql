@@ -1,0 +1,11 @@
+type Bloodline {
+  id: Int!
+  name: String!
+  description: String
+  race_id: Int!
+}
+
+extend type Query {
+  bloodline(id: Int!): Bloodline
+  bloodlines: [Bloodline!]!
+}
