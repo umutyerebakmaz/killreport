@@ -27,34 +27,3 @@ query Characters($filter: CharacterFilter) {
     }
   }
 }
-
-query Character($id: Int!) {
-  character(id: $id) {
-    id
-    name
-    birthday
-    security_status
-    gender
-    bloodline_id
-    race_id
-    description
-    title
-    corporation {
-      id
-      name
-      ticker
-      member_count
-    }
-    alliance {
-      id
-      name
-      ticker
-      memberCount
-    }
-    race {
-      id
-      name
-      description
-    }
-  }
-}

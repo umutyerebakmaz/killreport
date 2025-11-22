@@ -90,6 +90,25 @@ export const createRaceLoader = () => {
 };
 
 /**
+ * Bloodline DataLoader - Batch loading için
+ */
+export const createBloodlineLoader = () => {
+  return new DataLoader<number, any>(async (bloodlineIds) => {
+    console.log(`🔄 DataLoader: Batching ${bloodlineIds.length} bloodline queries`);
+
+    const bloodlines = await prisma.bloodline.findMany({
+      where: {
+        id: { in: [...bloodlineIds] },
+      },
+    });
+
+    // DataLoader expects results in same order as keys
+    const bloodlineMap = new Map(bloodlines.map(b => [b.id, b]));
+    return bloodlineIds.map(id => bloodlineMap.get(id) || null);
+  });
+};
+
+/**
  * Corporations by Alliance DataLoader
  *
  * Örnek: 5 alliance'ın corporation'larını çekiyoruz
@@ -131,6 +150,7 @@ export interface DataLoaderContext {
     corporation: DataLoader<number, any>;
     character: DataLoader<number, any>;
     race: DataLoader<number, any>;
+    bloodline: DataLoader<number, any>;
     corporationsByAlliance: DataLoader<number, any[]>;
   };
 }
@@ -141,6 +161,7 @@ export const createDataLoaders = (): DataLoaderContext => ({
     corporation: createCorporationLoader(),
     character: createCharacterLoader(),
     race: createRaceLoader(),
+    bloodline: createBloodlineLoader(),
     corporationsByAlliance: createCorporationsByAllianceLoader(),
   },
 });
