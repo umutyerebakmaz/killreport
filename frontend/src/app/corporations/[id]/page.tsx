@@ -134,7 +134,6 @@ export default function CorporationDetailPage({
             ))}
           </nav>
         </div>
-
         {/* Tab Content */}
         <div className="mt-6">
           {activeTab === "attributes" && (
