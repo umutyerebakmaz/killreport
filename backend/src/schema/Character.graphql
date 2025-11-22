@@ -5,6 +5,7 @@ type Character {
   alliance_id: Int
   birthday: String!
   bloodline_id: Int!
+  bloodline: Bloodline
   race_id: Int!
   race: Race
   gender: String!
@@ -14,6 +15,16 @@ type Character {
   faction_id: Int
   corporation: Corporation
   alliance: Alliance
+}
+
+input CharacterFilter {
+  page: Int
+  limit: Int
+  search: String
+  name: String
+  corporation_id: Int
+  alliance_id: Int
+  orderBy: CharacterOrderBy
 }
 
 enum CharacterOrderBy {
@@ -31,16 +42,6 @@ type CharacterEdge {
 type CharacterConnection {
   edges: [CharacterEdge!]!
   pageInfo: PageInfo!
-}
-
-input CharacterFilter {
-  page: Int
-  limit: Int
-  search: String
-  name: String
-  corporation_id: Int
-  alliance_id: Int
-  orderBy: CharacterOrderBy
 }
 
 extend type Query {
