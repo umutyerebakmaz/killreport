@@ -227,10 +227,11 @@ export const allianceFieldResolvers: AllianceResolvers = {
 
     // Mevcut değerleri al - eğer parent'ta varsa kullan, yoksa hesapla
     // Bu sayede aynı query'de hem memberCount hem metrics istenirse tek hesaplama yapılır
-    let currentMemberCount = (parent as any).memberCount;
-    let currentCorpCount = (parent as any).corporationCount;
+    // Not: Prisma'dan gelen data snake_case kullanıyor (member_count, corporation_count)
+    let currentMemberCount = (parent as any).member_count;
+    let currentCorpCount = (parent as any).corporation_count;
 
-    if (!currentMemberCount || !currentCorpCount) {
+    if (!currentMemberCount && currentMemberCount !== 0 || !currentCorpCount && currentCorpCount !== 0) {
       // Parent'ta yoksa hesapla
       const [corpCount, memberResult] = await Promise.all([
         prisma.corporation.count({
@@ -252,9 +253,7 @@ export const allianceFieldResolvers: AllianceResolvers = {
         snapshot_date: { lte: date1d },
       },
       orderBy: { snapshot_date: 'desc' },
-    });
-
-    // 7 gün önceki snapshot
+    });        // 7 gün önceki snapshot
     const snapshot7d = await prisma.allianceSnapshot.findFirst({
       where: {
         alliance_id: parent.id,
