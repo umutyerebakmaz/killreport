@@ -24,7 +24,7 @@ export default function AlliancesPage() {
     dateFoundedTo?: string;
   }>({});
 
-  const { data, loading, error, refetch } = useAlliancesQuery({
+  const { data, loading, error } = useAlliancesQuery({
     variables: {
       filter: {
         page: currentPage,
