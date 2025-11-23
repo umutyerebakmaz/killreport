@@ -58,24 +58,24 @@ export default function AllianceDetailPage({
     { id: "members" as TabType, label: "Members" },
   ];
 
-  // Delta verilerini al
-  const memberDelta1d = alliance.metrics?.memberCountDelta1d ?? null;
-  const memberGrowthRate1d = alliance.metrics?.memberCountGrowthRate1d ?? null;
+  // Delta verilerini al (haftalık değişim)
+  const memberDelta7d = alliance.metrics?.memberCountDelta7d ?? null;
+  const memberGrowthRate7d = alliance.metrics?.memberCountGrowthRate7d ?? null;
 
   // Delta rengi belirle
   const deltaColor =
-    memberDelta1d && memberDelta1d >= 0 ? "text-green-400" : "text-red-400";
+    memberDelta7d && memberDelta7d >= 0 ? "text-green-400" : "text-red-400";
 
   // Tooltip içeriği
   const tooltipContent =
-    memberDelta1d !== null
-      ? `Member Change (Daily): ${
-          memberDelta1d >= 0 ? "+" : ""
-        }${memberDelta1d}${
-          memberGrowthRate1d !== null
+    memberDelta7d !== null
+      ? `Member Change (7 Days): ${
+          memberDelta7d >= 0 ? "+" : ""
+        }${memberDelta7d}${
+          memberGrowthRate7d !== null
             ? ` (${
-                memberGrowthRate1d >= 0 ? "+" : ""
-              }${memberGrowthRate1d.toFixed(1)}%)`
+                memberGrowthRate7d >= 0 ? "+" : ""
+              }${memberGrowthRate7d.toFixed(1)}%)`
             : ""
         }`
       : "No data available";
@@ -123,23 +123,23 @@ export default function AllianceDetailPage({
                 </span>
               </div>
             </Tooltip>
-            {/* member delta 1d */}
+            {/* member delta 7d */}
             <Tooltip content={tooltipContent} position="top">
               <div className="flex items-center gap-2">
                 <ArrowTrendingUpIcon
                   className={`w-5 h-5 ${
-                    memberDelta1d !== null ? deltaColor : "text-gray-500"
+                    memberDelta7d !== null ? deltaColor : "text-gray-500"
                   }`}
                 />
                 <span
                   className={`text-sm font-medium ${
-                    memberDelta1d !== null ? deltaColor : "text-gray-500"
+                    memberDelta7d !== null ? deltaColor : "text-gray-500"
                   }`}
                 >
-                  {memberDelta1d !== null ? (
+                  {memberDelta7d !== null ? (
                     <>
-                      {memberDelta1d >= 0 ? "+" : ""}
-                      {memberDelta1d}
+                      {memberDelta7d >= 0 ? "+" : ""}
+                      {memberDelta7d}
                     </>
                   ) : (
                     "N/A"
