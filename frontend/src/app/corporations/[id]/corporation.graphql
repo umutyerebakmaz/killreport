@@ -20,5 +20,9 @@ query Corporation($id: Int!) {
       id
       name
     }
+    metrics {
+      memberCountDelta7d
+      memberCountGrowthRate7d
+    }
   }
 }
