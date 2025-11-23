@@ -2,7 +2,7 @@
 
 import Tooltip from "@/components/Tooltip/Tooltip";
 import { useCorporationQuery } from "@/generated/graphql";
-import { UsersIcon } from "@heroicons/react/24/outline";
+import { ArrowTrendingUpIcon, UsersIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { use, useState } from "react";
 
@@ -53,6 +53,29 @@ export default function CorporationDetailPage({
     { id: "killmails" as TabType, label: "Killmails" },
     { id: "members" as TabType, label: "Members" },
   ];
+
+  // Delta verilerini al (haftalık değişim)
+  const memberDelta7d = corporation.metrics?.memberCountDelta7d ?? null;
+  const memberGrowthRate7d =
+    corporation.metrics?.memberCountGrowthRate7d ?? null;
+
+  // Delta rengi belirle
+  const deltaColor =
+    memberDelta7d && memberDelta7d >= 0 ? "text-green-400" : "text-red-400";
+
+  // Tooltip içeriği
+  const tooltipContent =
+    memberDelta7d !== null
+      ? `Member Change (7 Days): ${
+          memberDelta7d >= 0 ? "+" : ""
+        }${memberDelta7d}${
+          memberGrowthRate7d !== null
+            ? ` (${
+                memberGrowthRate7d >= 0 ? "+" : ""
+              }${memberGrowthRate7d.toFixed(1)}%)`
+            : ""
+        }`
+      : "No data available";
 
   // Date founded'ı formatla (DD.MM.YYYY)
   const foundedDate = corporation.date_founded
@@ -110,6 +133,31 @@ export default function CorporationDetailPage({
                 <UsersIcon className="w-5 h-5 text-blue-400" />
                 <span className="text-sm font-medium text-blue-300">
                   {corporation.member_count?.toLocaleString() || "N/A"}
+                </span>
+              </div>
+            </Tooltip>
+
+            {/* member delta 7d */}
+            <Tooltip content={tooltipContent} position="top">
+              <div className="flex items-center gap-2">
+                <ArrowTrendingUpIcon
+                  className={`w-5 h-5 ${
+                    memberDelta7d !== null ? deltaColor : "text-gray-500"
+                  }`}
+                />
+                <span
+                  className={`text-sm font-medium ${
+                    memberDelta7d !== null ? deltaColor : "text-gray-500"
+                  }`}
+                >
+                  {memberDelta7d !== null ? (
+                    <>
+                      {memberDelta7d >= 0 ? "+" : ""}
+                      {memberDelta7d}
+                    </>
+                  ) : (
+                    "N/A"
+                  )}
                 </span>
               </div>
             </Tooltip>
