@@ -57,14 +57,52 @@ export default function CharacterDetailPage({
   const securityStatus = character.security_status?.toFixed(1) ?? "N/A";
   const securityColor = getSecurityStatusColor(character.security_status);
 
-  // Birthday formatla
-  const birthday = character.birthday
-    ? new Date(character.birthday).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
-    : "Unknown";
+  // Born tarihi formatı: 2023.12.10 17:30
+  const formatBornDate = (dateString: string | null | undefined) => {
+    if (!dateString) return "Unknown";
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${year}.${month}.${day} ${hours}:${minutes}`;
+  };
+
+  // Yaş hesaplama: 2 years, 4 months and 17 days
+  const calculateAge = (dateString: string | null | undefined) => {
+    if (!dateString) return "Unknown";
+    const birthDate = new Date(dateString);
+    const now = new Date();
+
+    let years = now.getFullYear() - birthDate.getFullYear();
+    let months = now.getMonth() - birthDate.getMonth();
+    let days = now.getDate() - birthDate.getDate();
+
+    if (days < 0) {
+      months--;
+      const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+      days += prevMonth.getDate();
+    }
+
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+
+    const parts = [];
+    if (years > 0) parts.push(`${years} year${years !== 1 ? "s" : ""}`);
+    if (months > 0) parts.push(`${months} month${months !== 1 ? "s" : ""}`);
+    if (days > 0) parts.push(`${days} day${days !== 1 ? "s" : ""}`);
+
+    if (parts.length === 0) return "Today";
+    if (parts.length === 1) return parts[0];
+    if (parts.length === 2) return parts.join(" and ");
+    return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
+  };
+
+  const bornDate = formatBornDate(character.birthday);
+  const age = calculateAge(character.birthday);
 
   return (
     <main>
@@ -87,10 +125,10 @@ export default function CharacterDetailPage({
                 <Tooltip content="Corporation" position="top">
                   <Link
                     href={`/corporations/${character.corporation.id}`}
-                    className="inline-flex items-center gap-2 text-green-400 hover:text-green-300"
+                    className="inline-flex items-center gap-2 hover:text-gray-300"
                   >
-                    <span className="text-base font-bold">
-                      {character.corporation.name}
+                    <span className="text-base font-semibold">
+                      {`Member of ${character.corporation.name} [${character.corporation.ticker}]`}
                     </span>
                   </Link>
                 </Tooltip>
@@ -112,6 +150,11 @@ export default function CharacterDetailPage({
                 </Tooltip>
               </div>
             )}
+
+            {/* Age */}
+            <div className="mt-2">
+              <span className="text-sm text-gray-400">{age}</span>
+            </div>
           </div>
         </div>
 
@@ -171,8 +214,8 @@ export default function CharacterDetailPage({
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-400">Birthday</span>
-                  <span className="ml-2 font-semibold">{birthday}</span>
+                  <span className="text-gray-400">Born</span>
+                  <span className="ml-2 font-semibold">{bornDate}</span>
                 </div>
                 <div>
                   <span className="text-gray-400">Security Status</span>
