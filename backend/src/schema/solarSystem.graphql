@@ -1,0 +1,63 @@
+type Position {
+  x: Float!
+  y: Float!
+  z: Float!
+}
+
+type SolarSystem {
+  id: Int!
+  name: String!
+  constellation_id: Int
+  security_status: Float
+  security_class: String
+  star_id: Int
+  position: Position
+}
+
+enum SolarSystemOrderBy {
+  nameAsc
+  nameDesc
+  securityStatusAsc
+  securityStatusDesc
+}
+
+type SolarSystemEdge {
+  node: SolarSystem!
+  cursor: String!
+}
+
+type SolarSystemConnection {
+  edges: [SolarSystemEdge!]!
+  pageInfo: PageInfo!
+}
+
+input SolarSystemFilter {
+  page: Int
+  limit: Int
+  search: String
+  name: String
+  securityStatusMin: Float
+  securityStatusMax: Float
+  orderBy: SolarSystemOrderBy
+}
+
+input StartSolarSystemSyncInput {
+  clientMutationId: String
+}
+
+type StartSolarSystemSyncPayload {
+  success: Boolean!
+  message: String
+  clientMutationId: String
+}
+
+extend type Query {
+  solarSystem(id: Int!): SolarSystem
+  solarSystems(filter: SolarSystemFilter): SolarSystemConnection!
+}
+
+extend type Mutation {
+  startSolarSystemSync(
+    input: StartSolarSystemSyncInput!
+  ): StartSolarSystemSyncPayload!
+}

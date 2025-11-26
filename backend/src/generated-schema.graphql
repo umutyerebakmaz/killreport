@@ -158,6 +158,37 @@ enum CharacterOrderBy {
   securityStatusDesc
 }
 
+type Constellation {
+  id: Int!
+  name: String!
+  position: Position
+  region_id: Int
+}
+
+type ConstellationConnection {
+  edges: [ConstellationEdge!]!
+  pageInfo: PageInfo!
+}
+
+type ConstellationEdge {
+  cursor: String!
+  node: Constellation!
+}
+
+input ConstellationFilter {
+  limit: Int
+  name: String
+  orderBy: ConstellationOrderBy
+  page: Int
+  region_id: Int
+  search: String
+}
+
+enum ConstellationOrderBy {
+  nameAsc
+  nameDesc
+}
+
 type Corporation {
   alliance: Alliance
   alliance_id: Int
@@ -276,7 +307,9 @@ type Mutation {
   """Refresh token kullanarak yeni access token alır"""
   refreshToken(refreshToken: String!): AuthPayload!
   startAllianceSync(input: StartAllianceSyncInput!): StartAllianceSyncPayload!
+  startConstellationSync(input: StartConstellationSyncInput!): StartConstellationSyncPayload!
   startRegionSync(input: StartRegionSyncInput!): StartRegionSyncPayload!
+  startSolarSystemSync(input: StartSolarSystemSyncInput!): StartSolarSystemSyncPayload!
 
   """
   Fetches user's killmails from ESI and saves to database
@@ -310,6 +343,8 @@ type Query {
   bloodlines: [Bloodline!]!
   character(id: Int!): Character
   characters(filter: CharacterFilter): CharacterConnection!
+  constellation(id: Int!): Constellation
+  constellations(filter: ConstellationFilter): ConstellationConnection!
   corporation(id: Int!): Corporation
   corporations(filter: CorporationFilter): CorporationConnection!
 
@@ -337,6 +372,8 @@ type Query {
   races: [Race!]!
   region(id: Int!): Region
   regions(filter: RegionFilter): RegionConnection!
+  solarSystem(id: Int!): SolarSystem
+  solarSystems(filter: SolarSystemFilter): SolarSystemConnection!
   user(id: ID!): User
   users: [User!]!
 
@@ -393,6 +430,43 @@ enum RegionOrderBy {
   nameDesc
 }
 
+type SolarSystem {
+  constellation_id: Int
+  id: Int!
+  name: String!
+  position: Position
+  security_class: String
+  security_status: Float
+  star_id: Int
+}
+
+type SolarSystemConnection {
+  edges: [SolarSystemEdge!]!
+  pageInfo: PageInfo!
+}
+
+type SolarSystemEdge {
+  cursor: String!
+  node: SolarSystem!
+}
+
+input SolarSystemFilter {
+  limit: Int
+  name: String
+  orderBy: SolarSystemOrderBy
+  page: Int
+  search: String
+  securityStatusMax: Float
+  securityStatusMin: Float
+}
+
+enum SolarSystemOrderBy {
+  nameAsc
+  nameDesc
+  securityStatusAsc
+  securityStatusDesc
+}
+
 input StartAllianceSyncInput {
   clientMutationId: String
 }
@@ -403,11 +477,31 @@ type StartAllianceSyncPayload {
   success: Boolean!
 }
 
+input StartConstellationSyncInput {
+  clientMutationId: String
+}
+
+type StartConstellationSyncPayload {
+  clientMutationId: String
+  message: String
+  success: Boolean!
+}
+
 input StartRegionSyncInput {
   clientMutationId: String
 }
 
 type StartRegionSyncPayload {
+  clientMutationId: String
+  message: String
+  success: Boolean!
+}
+
+input StartSolarSystemSyncInput {
+  clientMutationId: String
+}
+
+type StartSolarSystemSyncPayload {
   clientMutationId: String
   message: String
   success: Boolean!
