@@ -231,6 +231,14 @@ model Bloodline {
   @@map("bloodlines")
 }
 
+model Region {
+  id          Int     @id @map("region_id")
+  name        String
+  description String?
+
+  @@map("regions")
+}
+
 model SyncJob {
   id          BigInt   @id @default(autoincrement())
   entity_type String
