@@ -276,6 +276,7 @@ type Mutation {
   """Refresh token kullanarak yeni access token alır"""
   refreshToken(refreshToken: String!): AuthPayload!
   startAllianceSync(input: StartAllianceSyncInput!): StartAllianceSyncPayload!
+  startRegionSync(input: StartRegionSyncInput!): StartRegionSyncPayload!
 
   """
   Fetches user's killmails from ESI and saves to database
@@ -334,6 +335,8 @@ type Query {
   myKillmails(limit: Int): [Killmail!]!
   race(id: Int!): Race
   races: [Race!]!
+  region(id: Int!): Region
+  regions(filter: RegionFilter): RegionConnection!
   user(id: ID!): User
   users: [User!]!
 
@@ -361,11 +364,50 @@ type Race {
   name: String!
 }
 
+type Region {
+  description: String
+  id: Int!
+  name: String!
+}
+
+type RegionConnection {
+  edges: [RegionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type RegionEdge {
+  cursor: String!
+  node: Region!
+}
+
+input RegionFilter {
+  limit: Int
+  name: String
+  orderBy: RegionOrderBy
+  page: Int
+  search: String
+}
+
+enum RegionOrderBy {
+  nameAsc
+  nameDesc
+}
+
 input StartAllianceSyncInput {
   clientMutationId: String
 }
 
 type StartAllianceSyncPayload {
+  clientMutationId: String
+  message: String
+  success: Boolean!
+}
+
+input StartRegionSyncInput {
+  clientMutationId: String
+}
+
+type StartRegionSyncPayload {
   clientMutationId: String
   message: String
   success: Boolean!
