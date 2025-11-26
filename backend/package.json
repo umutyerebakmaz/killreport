@@ -11,7 +11,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio",
-    "db:backup": "pg_dump $DATABASE_URL > db_backups/backup_$(date +%Y%m%d_%H%M%S).sql && echo '✅ Backup created in db_backups/'",
+    "db:backup": "bash scripts/backup-db.sh",
     "queue:alliances": "ts-node src/workers/queue-alliances.ts",
     "queue:alliance-corporations": "ts-node src/workers/queue-alliance-corporations.ts",
     "queue:alliance-corp-characters": "ts-node src/workers/queue-alliance-corporation-characters.ts",
