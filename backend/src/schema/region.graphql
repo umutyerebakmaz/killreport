@@ -1,0 +1,47 @@
+type Region {
+  id: Int!
+  name: String!
+  description: String
+}
+
+enum RegionOrderBy {
+  nameAsc
+  nameDesc
+}
+
+type RegionEdge {
+  node: Region!
+  cursor: String!
+}
+
+type RegionConnection {
+  edges: [RegionEdge!]!
+  pageInfo: PageInfo!
+}
+
+input RegionFilter {
+  page: Int
+  limit: Int
+  search: String
+  name: String
+  orderBy: RegionOrderBy
+}
+
+input StartRegionSyncInput {
+  clientMutationId: String
+}
+
+type StartRegionSyncPayload {
+  success: Boolean!
+  message: String
+  clientMutationId: String
+}
+
+extend type Query {
+  region(id: Int!): Region
+  regions(filter: RegionFilter): RegionConnection!
+}
+
+extend type Mutation {
+  startRegionSync(input: StartRegionSyncInput!): StartRegionSyncPayload!
+}

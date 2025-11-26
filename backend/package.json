@@ -17,6 +17,7 @@
     "queue:character": "ts-node src/workers/queue-character-killmails.ts",
     "queue:character:zkillboard": "ts-node src/workers/queue-character-zkillboard.ts",
     "queue:corporations": "ts-node src/workers/queue-corporations.ts",
+    "queue:regions": "ts-node src/workers/queue-regions.ts",
     "queue:zkillboard": "ts-node src/workers/queue-zkillboard-sync.ts",
     "remove:all": "rm -rf node_modules yarn.lock package-lock.json pnpm-lock.yaml",
     "scan:entities": "ts-node src/workers/scan-killmail-entities.ts",
@@ -31,6 +32,7 @@
     "worker:info:characters": "ts-node src/workers/worker-info-characters.ts",
     "worker:info:corporations": "ts-node src/workers/worker-info-corporations.ts",
     "worker:info:types": "ts-node src/workers/worker-info-types.ts",
+    "worker:regions": "ts-node src/workers/worker-regions.ts",
     "worker:zkillboard": "ts-node src/workers/worker-zkillboard-sync.ts",
     "sync:races": "ts-node src/workers/sync-races.ts",
     "sync:bloodlines": "ts-node src/workers/sync-bloodlines.ts"
