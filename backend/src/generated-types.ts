@@ -320,6 +320,7 @@ export type Mutation = {
   /** Refresh token kullanarak yeni access token alır */
   refreshToken: AuthPayload;
   startAllianceSync: StartAllianceSyncPayload;
+  startRegionSync: StartRegionSyncPayload;
   /**
    * Fetches user's killmails from ESI and saves to database
    * Requires: Authentication
@@ -347,6 +348,11 @@ export type MutationRefreshTokenArgs = {
 
 export type MutationStartAllianceSyncArgs = {
   input: StartAllianceSyncInput;
+};
+
+
+export type MutationStartRegionSyncArgs = {
+  input: StartRegionSyncInput;
 };
 
 
@@ -406,6 +412,8 @@ export type Query = {
   myKillmails: Array<Killmail>;
   race?: Maybe<Race>;
   races: Array<Race>;
+  region?: Maybe<Region>;
+  regions: RegionConnection;
   user?: Maybe<User>;
   users: Array<User>;
   /** Get current status of all workers and queues */
@@ -474,6 +482,16 @@ export type QueryRaceArgs = {
 };
 
 
+export type QueryRegionArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type QueryRegionsArgs = {
+  filter?: InputMaybe<RegionFilter>;
+};
+
+
 export type QueryUserArgs = {
   id: Scalars['ID']['input'];
 };
@@ -497,12 +515,55 @@ export type Race = {
   name: Scalars['String']['output'];
 };
 
+export type Region = {
+  __typename?: 'Region';
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+};
+
+export type RegionConnection = {
+  __typename?: 'RegionConnection';
+  edges: Array<RegionEdge>;
+  pageInfo: PageInfo;
+};
+
+export type RegionEdge = {
+  __typename?: 'RegionEdge';
+  cursor: Scalars['String']['output'];
+  node: Region;
+};
+
+export type RegionFilter = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<RegionOrderBy>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+};
+
+export enum RegionOrderBy {
+  NameAsc = 'nameAsc',
+  NameDesc = 'nameDesc'
+}
+
 export type StartAllianceSyncInput = {
   clientMutationId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type StartAllianceSyncPayload = {
   __typename?: 'StartAllianceSyncPayload';
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type StartRegionSyncInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type StartRegionSyncPayload = {
+  __typename?: 'StartRegionSyncPayload';
   clientMutationId?: Maybe<Scalars['String']['output']>;
   message?: Maybe<Scalars['String']['output']>;
   success: Scalars['Boolean']['output'];
@@ -688,8 +749,15 @@ export type ResolversTypes = {
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   QueueStatus: ResolverTypeWrapper<QueueStatus>;
   Race: ResolverTypeWrapper<Race>;
+  Region: ResolverTypeWrapper<Region>;
+  RegionConnection: ResolverTypeWrapper<RegionConnection>;
+  RegionEdge: ResolverTypeWrapper<RegionEdge>;
+  RegionFilter: RegionFilter;
+  RegionOrderBy: RegionOrderBy;
   StartAllianceSyncInput: StartAllianceSyncInput;
   StartAllianceSyncPayload: ResolverTypeWrapper<StartAllianceSyncPayload>;
+  StartRegionSyncInput: StartRegionSyncInput;
+  StartRegionSyncPayload: ResolverTypeWrapper<StartRegionSyncPayload>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Subscription: ResolverTypeWrapper<Record<PropertyKey, never>>;
   SyncMyKillmailsInput: SyncMyKillmailsInput;
@@ -739,8 +807,14 @@ export type ResolversParentTypes = {
   Query: Record<PropertyKey, never>;
   QueueStatus: QueueStatus;
   Race: Race;
+  Region: Region;
+  RegionConnection: RegionConnection;
+  RegionEdge: RegionEdge;
+  RegionFilter: RegionFilter;
   StartAllianceSyncInput: StartAllianceSyncInput;
   StartAllianceSyncPayload: StartAllianceSyncPayload;
+  StartRegionSyncInput: StartRegionSyncInput;
+  StartRegionSyncPayload: StartRegionSyncPayload;
   String: Scalars['String']['output'];
   Subscription: Record<PropertyKey, never>;
   SyncMyKillmailsInput: SyncMyKillmailsInput;
@@ -954,6 +1028,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   login?: Resolver<ResolversTypes['AuthUrl'], ParentType, ContextType>;
   refreshToken?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationRefreshTokenArgs, 'refreshToken'>>;
   startAllianceSync?: Resolver<ResolversTypes['StartAllianceSyncPayload'], ParentType, ContextType, RequireFields<MutationStartAllianceSyncArgs, 'input'>>;
+  startRegionSync?: Resolver<ResolversTypes['StartRegionSyncPayload'], ParentType, ContextType, RequireFields<MutationStartRegionSyncArgs, 'input'>>;
   syncMyKillmails?: Resolver<ResolversTypes['SyncMyKillmailsPayload'], ParentType, ContextType, RequireFields<MutationSyncMyKillmailsArgs, 'input'>>;
   updateUser?: Resolver<ResolversTypes['UpdateUserPayload'], ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'input'>>;
 };
@@ -991,6 +1066,8 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   myKillmails?: Resolver<Array<ResolversTypes['Killmail']>, ParentType, ContextType, Partial<QueryMyKillmailsArgs>>;
   race?: Resolver<Maybe<ResolversTypes['Race']>, ParentType, ContextType, RequireFields<QueryRaceArgs, 'id'>>;
   races?: Resolver<Array<ResolversTypes['Race']>, ParentType, ContextType>;
+  region?: Resolver<Maybe<ResolversTypes['Region']>, ParentType, ContextType, RequireFields<QueryRegionArgs, 'id'>>;
+  regions?: Resolver<ResolversTypes['RegionConnection'], ParentType, ContextType, Partial<QueryRegionsArgs>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
   users?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
   workerStatus?: Resolver<ResolversTypes['WorkerStatus'], ParentType, ContextType>;
@@ -1009,7 +1086,29 @@ export type RaceResolvers<ContextType = any, ParentType extends ResolversParentT
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
+export type RegionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Region'] = ResolversParentTypes['Region']> = {
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type RegionConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['RegionConnection'] = ResolversParentTypes['RegionConnection']> = {
+  edges?: Resolver<Array<ResolversTypes['RegionEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+};
+
+export type RegionEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['RegionEdge'] = ResolversParentTypes['RegionEdge']> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['Region'], ParentType, ContextType>;
+};
+
 export type StartAllianceSyncPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['StartAllianceSyncPayload'] = ResolversParentTypes['StartAllianceSyncPayload']> = {
+  clientMutationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+};
+
+export type StartRegionSyncPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['StartRegionSyncPayload'] = ResolversParentTypes['StartRegionSyncPayload']> = {
   clientMutationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -1088,7 +1187,11 @@ export type Resolvers<ContextType = any> = {
   Query?: QueryResolvers<ContextType>;
   QueueStatus?: QueueStatusResolvers<ContextType>;
   Race?: RaceResolvers<ContextType>;
+  Region?: RegionResolvers<ContextType>;
+  RegionConnection?: RegionConnectionResolvers<ContextType>;
+  RegionEdge?: RegionEdgeResolvers<ContextType>;
   StartAllianceSyncPayload?: StartAllianceSyncPayloadResolvers<ContextType>;
+  StartRegionSyncPayload?: StartRegionSyncPayloadResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
   SyncMyKillmailsPayload?: SyncMyKillmailsPayloadResolvers<ContextType>;
   UpdateUserPayload?: UpdateUserPayloadResolvers<ContextType>;
