@@ -1,0 +1,57 @@
+type Position {
+  x: Float!
+  y: Float!
+  z: Float!
+}
+
+type Constellation {
+  id: Int!
+  name: String!
+  region_id: Int
+  position: Position
+}
+
+enum ConstellationOrderBy {
+  nameAsc
+  nameDesc
+}
+
+type ConstellationEdge {
+  node: Constellation!
+  cursor: String!
+}
+
+type ConstellationConnection {
+  edges: [ConstellationEdge!]!
+  pageInfo: PageInfo!
+}
+
+input ConstellationFilter {
+  page: Int
+  limit: Int
+  search: String
+  name: String
+  region_id: Int
+  orderBy: ConstellationOrderBy
+}
+
+input StartConstellationSyncInput {
+  clientMutationId: String
+}
+
+type StartConstellationSyncPayload {
+  success: Boolean!
+  message: String
+  clientMutationId: String
+}
+
+extend type Query {
+  constellation(id: Int!): Constellation
+  constellations(filter: ConstellationFilter): ConstellationConnection!
+}
+
+extend type Mutation {
+  startConstellationSync(
+    input: StartConstellationSyncInput!
+  ): StartConstellationSyncPayload!
+}

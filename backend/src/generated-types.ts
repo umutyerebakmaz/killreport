@@ -189,6 +189,40 @@ export enum CharacterOrderBy {
   SecurityStatusDesc = 'securityStatusDesc'
 }
 
+export type Constellation = {
+  __typename?: 'Constellation';
+  id: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  position?: Maybe<Position>;
+  region_id?: Maybe<Scalars['Int']['output']>;
+};
+
+export type ConstellationConnection = {
+  __typename?: 'ConstellationConnection';
+  edges: Array<ConstellationEdge>;
+  pageInfo: PageInfo;
+};
+
+export type ConstellationEdge = {
+  __typename?: 'ConstellationEdge';
+  cursor: Scalars['String']['output'];
+  node: Constellation;
+};
+
+export type ConstellationFilter = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<ConstellationOrderBy>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  region_id?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+};
+
+export enum ConstellationOrderBy {
+  NameAsc = 'nameAsc',
+  NameDesc = 'nameDesc'
+}
+
 export type Corporation = {
   __typename?: 'Corporation';
   alliance?: Maybe<Alliance>;
@@ -320,7 +354,9 @@ export type Mutation = {
   /** Refresh token kullanarak yeni access token alır */
   refreshToken: AuthPayload;
   startAllianceSync: StartAllianceSyncPayload;
+  startConstellationSync: StartConstellationSyncPayload;
   startRegionSync: StartRegionSyncPayload;
+  startSolarSystemSync: StartSolarSystemSyncPayload;
   /**
    * Fetches user's killmails from ESI and saves to database
    * Requires: Authentication
@@ -351,8 +387,18 @@ export type MutationStartAllianceSyncArgs = {
 };
 
 
+export type MutationStartConstellationSyncArgs = {
+  input: StartConstellationSyncInput;
+};
+
+
 export type MutationStartRegionSyncArgs = {
   input: StartRegionSyncInput;
+};
+
+
+export type MutationStartSolarSystemSyncArgs = {
+  input: StartSolarSystemSyncInput;
 };
 
 
@@ -392,6 +438,8 @@ export type Query = {
   bloodlines: Array<Bloodline>;
   character?: Maybe<Character>;
   characters: CharacterConnection;
+  constellation?: Maybe<Constellation>;
+  constellations: ConstellationConnection;
   corporation?: Maybe<Corporation>;
   corporations: CorporationConnection;
   /** Fetches a single killmail */
@@ -414,6 +462,8 @@ export type Query = {
   races: Array<Race>;
   region?: Maybe<Region>;
   regions: RegionConnection;
+  solarSystem?: Maybe<SolarSystem>;
+  solarSystems: SolarSystemConnection;
   user?: Maybe<User>;
   users: Array<User>;
   /** Get current status of all workers and queues */
@@ -443,6 +493,16 @@ export type QueryCharacterArgs = {
 
 export type QueryCharactersArgs = {
   filter?: InputMaybe<CharacterFilter>;
+};
+
+
+export type QueryConstellationArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type QueryConstellationsArgs = {
+  filter?: InputMaybe<ConstellationFilter>;
 };
 
 
@@ -489,6 +549,16 @@ export type QueryRegionArgs = {
 
 export type QueryRegionsArgs = {
   filter?: InputMaybe<RegionFilter>;
+};
+
+
+export type QuerySolarSystemArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type QuerySolarSystemsArgs = {
+  filter?: InputMaybe<SolarSystemFilter>;
 };
 
 
@@ -547,6 +617,46 @@ export enum RegionOrderBy {
   NameDesc = 'nameDesc'
 }
 
+export type SolarSystem = {
+  __typename?: 'SolarSystem';
+  constellation_id?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  position?: Maybe<Position>;
+  security_class?: Maybe<Scalars['String']['output']>;
+  security_status?: Maybe<Scalars['Float']['output']>;
+  star_id?: Maybe<Scalars['Int']['output']>;
+};
+
+export type SolarSystemConnection = {
+  __typename?: 'SolarSystemConnection';
+  edges: Array<SolarSystemEdge>;
+  pageInfo: PageInfo;
+};
+
+export type SolarSystemEdge = {
+  __typename?: 'SolarSystemEdge';
+  cursor: Scalars['String']['output'];
+  node: SolarSystem;
+};
+
+export type SolarSystemFilter = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<SolarSystemOrderBy>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  securityStatusMax?: InputMaybe<Scalars['Float']['input']>;
+  securityStatusMin?: InputMaybe<Scalars['Float']['input']>;
+};
+
+export enum SolarSystemOrderBy {
+  NameAsc = 'nameAsc',
+  NameDesc = 'nameDesc',
+  SecurityStatusAsc = 'securityStatusAsc',
+  SecurityStatusDesc = 'securityStatusDesc'
+}
+
 export type StartAllianceSyncInput = {
   clientMutationId?: InputMaybe<Scalars['String']['input']>;
 };
@@ -558,12 +668,34 @@ export type StartAllianceSyncPayload = {
   success: Scalars['Boolean']['output'];
 };
 
+export type StartConstellationSyncInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type StartConstellationSyncPayload = {
+  __typename?: 'StartConstellationSyncPayload';
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
 export type StartRegionSyncInput = {
   clientMutationId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type StartRegionSyncPayload = {
   __typename?: 'StartRegionSyncPayload';
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type StartSolarSystemSyncInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type StartSolarSystemSyncPayload = {
+  __typename?: 'StartSolarSystemSyncPayload';
   clientMutationId?: Maybe<Scalars['String']['output']>;
   message?: Maybe<Scalars['String']['output']>;
   success: Scalars['Boolean']['output'];
@@ -727,6 +859,11 @@ export type ResolversTypes = {
   CharacterEdge: ResolverTypeWrapper<CharacterEdge>;
   CharacterFilter: CharacterFilter;
   CharacterOrderBy: CharacterOrderBy;
+  Constellation: ResolverTypeWrapper<Constellation>;
+  ConstellationConnection: ResolverTypeWrapper<ConstellationConnection>;
+  ConstellationEdge: ResolverTypeWrapper<ConstellationEdge>;
+  ConstellationFilter: ConstellationFilter;
+  ConstellationOrderBy: ConstellationOrderBy;
   Corporation: ResolverTypeWrapper<Corporation>;
   CorporationConnection: ResolverTypeWrapper<CorporationConnection>;
   CorporationEdge: ResolverTypeWrapper<CorporationEdge>;
@@ -754,10 +891,19 @@ export type ResolversTypes = {
   RegionEdge: ResolverTypeWrapper<RegionEdge>;
   RegionFilter: RegionFilter;
   RegionOrderBy: RegionOrderBy;
+  SolarSystem: ResolverTypeWrapper<SolarSystem>;
+  SolarSystemConnection: ResolverTypeWrapper<SolarSystemConnection>;
+  SolarSystemEdge: ResolverTypeWrapper<SolarSystemEdge>;
+  SolarSystemFilter: SolarSystemFilter;
+  SolarSystemOrderBy: SolarSystemOrderBy;
   StartAllianceSyncInput: StartAllianceSyncInput;
   StartAllianceSyncPayload: ResolverTypeWrapper<StartAllianceSyncPayload>;
+  StartConstellationSyncInput: StartConstellationSyncInput;
+  StartConstellationSyncPayload: ResolverTypeWrapper<StartConstellationSyncPayload>;
   StartRegionSyncInput: StartRegionSyncInput;
   StartRegionSyncPayload: ResolverTypeWrapper<StartRegionSyncPayload>;
+  StartSolarSystemSyncInput: StartSolarSystemSyncInput;
+  StartSolarSystemSyncPayload: ResolverTypeWrapper<StartSolarSystemSyncPayload>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Subscription: ResolverTypeWrapper<Record<PropertyKey, never>>;
   SyncMyKillmailsInput: SyncMyKillmailsInput;
@@ -786,6 +932,10 @@ export type ResolversParentTypes = {
   CharacterConnection: CharacterConnection;
   CharacterEdge: CharacterEdge;
   CharacterFilter: CharacterFilter;
+  Constellation: Constellation;
+  ConstellationConnection: ConstellationConnection;
+  ConstellationEdge: ConstellationEdge;
+  ConstellationFilter: ConstellationFilter;
   Corporation: Corporation;
   CorporationConnection: CorporationConnection;
   CorporationEdge: CorporationEdge;
@@ -811,10 +961,18 @@ export type ResolversParentTypes = {
   RegionConnection: RegionConnection;
   RegionEdge: RegionEdge;
   RegionFilter: RegionFilter;
+  SolarSystem: SolarSystem;
+  SolarSystemConnection: SolarSystemConnection;
+  SolarSystemEdge: SolarSystemEdge;
+  SolarSystemFilter: SolarSystemFilter;
   StartAllianceSyncInput: StartAllianceSyncInput;
   StartAllianceSyncPayload: StartAllianceSyncPayload;
+  StartConstellationSyncInput: StartConstellationSyncInput;
+  StartConstellationSyncPayload: StartConstellationSyncPayload;
   StartRegionSyncInput: StartRegionSyncInput;
   StartRegionSyncPayload: StartRegionSyncPayload;
+  StartSolarSystemSyncInput: StartSolarSystemSyncInput;
+  StartSolarSystemSyncPayload: StartSolarSystemSyncPayload;
   String: Scalars['String']['output'];
   Subscription: Record<PropertyKey, never>;
   SyncMyKillmailsInput: SyncMyKillmailsInput;
@@ -941,6 +1099,23 @@ export type CharacterEdgeResolvers<ContextType = any, ParentType extends Resolve
   node?: Resolver<ResolversTypes['Character'], ParentType, ContextType>;
 };
 
+export type ConstellationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Constellation'] = ResolversParentTypes['Constellation']> = {
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  position?: Resolver<Maybe<ResolversTypes['Position']>, ParentType, ContextType>;
+  region_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+};
+
+export type ConstellationConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['ConstellationConnection'] = ResolversParentTypes['ConstellationConnection']> = {
+  edges?: Resolver<Array<ResolversTypes['ConstellationEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+};
+
+export type ConstellationEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['ConstellationEdge'] = ResolversParentTypes['ConstellationEdge']> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['Constellation'], ParentType, ContextType>;
+};
+
 export type CorporationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Corporation'] = ResolversParentTypes['Corporation']> = {
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType>;
   alliance_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
@@ -1028,7 +1203,9 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   login?: Resolver<ResolversTypes['AuthUrl'], ParentType, ContextType>;
   refreshToken?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationRefreshTokenArgs, 'refreshToken'>>;
   startAllianceSync?: Resolver<ResolversTypes['StartAllianceSyncPayload'], ParentType, ContextType, RequireFields<MutationStartAllianceSyncArgs, 'input'>>;
+  startConstellationSync?: Resolver<ResolversTypes['StartConstellationSyncPayload'], ParentType, ContextType, RequireFields<MutationStartConstellationSyncArgs, 'input'>>;
   startRegionSync?: Resolver<ResolversTypes['StartRegionSyncPayload'], ParentType, ContextType, RequireFields<MutationStartRegionSyncArgs, 'input'>>;
+  startSolarSystemSync?: Resolver<ResolversTypes['StartSolarSystemSyncPayload'], ParentType, ContextType, RequireFields<MutationStartSolarSystemSyncArgs, 'input'>>;
   syncMyKillmails?: Resolver<ResolversTypes['SyncMyKillmailsPayload'], ParentType, ContextType, RequireFields<MutationSyncMyKillmailsArgs, 'input'>>;
   updateUser?: Resolver<ResolversTypes['UpdateUserPayload'], ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'input'>>;
 };
@@ -1057,6 +1234,8 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   bloodlines?: Resolver<Array<ResolversTypes['Bloodline']>, ParentType, ContextType>;
   character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType, RequireFields<QueryCharacterArgs, 'id'>>;
   characters?: Resolver<ResolversTypes['CharacterConnection'], ParentType, ContextType, Partial<QueryCharactersArgs>>;
+  constellation?: Resolver<Maybe<ResolversTypes['Constellation']>, ParentType, ContextType, RequireFields<QueryConstellationArgs, 'id'>>;
+  constellations?: Resolver<ResolversTypes['ConstellationConnection'], ParentType, ContextType, Partial<QueryConstellationsArgs>>;
   corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType, RequireFields<QueryCorporationArgs, 'id'>>;
   corporations?: Resolver<ResolversTypes['CorporationConnection'], ParentType, ContextType, Partial<QueryCorporationsArgs>>;
   killmail?: Resolver<Maybe<ResolversTypes['Killmail']>, ParentType, ContextType, RequireFields<QueryKillmailArgs, 'id'>>;
@@ -1068,6 +1247,8 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   races?: Resolver<Array<ResolversTypes['Race']>, ParentType, ContextType>;
   region?: Resolver<Maybe<ResolversTypes['Region']>, ParentType, ContextType, RequireFields<QueryRegionArgs, 'id'>>;
   regions?: Resolver<ResolversTypes['RegionConnection'], ParentType, ContextType, Partial<QueryRegionsArgs>>;
+  solarSystem?: Resolver<Maybe<ResolversTypes['SolarSystem']>, ParentType, ContextType, RequireFields<QuerySolarSystemArgs, 'id'>>;
+  solarSystems?: Resolver<ResolversTypes['SolarSystemConnection'], ParentType, ContextType, Partial<QuerySolarSystemsArgs>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
   users?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
   workerStatus?: Resolver<ResolversTypes['WorkerStatus'], ParentType, ContextType>;
@@ -1102,13 +1283,45 @@ export type RegionEdgeResolvers<ContextType = any, ParentType extends ResolversP
   node?: Resolver<ResolversTypes['Region'], ParentType, ContextType>;
 };
 
+export type SolarSystemResolvers<ContextType = any, ParentType extends ResolversParentTypes['SolarSystem'] = ResolversParentTypes['SolarSystem']> = {
+  constellation_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  position?: Resolver<Maybe<ResolversTypes['Position']>, ParentType, ContextType>;
+  security_class?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  security_status?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  star_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+};
+
+export type SolarSystemConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['SolarSystemConnection'] = ResolversParentTypes['SolarSystemConnection']> = {
+  edges?: Resolver<Array<ResolversTypes['SolarSystemEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+};
+
+export type SolarSystemEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['SolarSystemEdge'] = ResolversParentTypes['SolarSystemEdge']> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['SolarSystem'], ParentType, ContextType>;
+};
+
 export type StartAllianceSyncPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['StartAllianceSyncPayload'] = ResolversParentTypes['StartAllianceSyncPayload']> = {
   clientMutationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
 };
 
+export type StartConstellationSyncPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['StartConstellationSyncPayload'] = ResolversParentTypes['StartConstellationSyncPayload']> = {
+  clientMutationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+};
+
 export type StartRegionSyncPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['StartRegionSyncPayload'] = ResolversParentTypes['StartRegionSyncPayload']> = {
+  clientMutationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+};
+
+export type StartSolarSystemSyncPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['StartSolarSystemSyncPayload'] = ResolversParentTypes['StartSolarSystemSyncPayload']> = {
   clientMutationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -1171,6 +1384,9 @@ export type Resolvers<ContextType = any> = {
   Character?: CharacterResolvers<ContextType>;
   CharacterConnection?: CharacterConnectionResolvers<ContextType>;
   CharacterEdge?: CharacterEdgeResolvers<ContextType>;
+  Constellation?: ConstellationResolvers<ContextType>;
+  ConstellationConnection?: ConstellationConnectionResolvers<ContextType>;
+  ConstellationEdge?: ConstellationEdgeResolvers<ContextType>;
   Corporation?: CorporationResolvers<ContextType>;
   CorporationConnection?: CorporationConnectionResolvers<ContextType>;
   CorporationEdge?: CorporationEdgeResolvers<ContextType>;
@@ -1190,8 +1406,13 @@ export type Resolvers<ContextType = any> = {
   Region?: RegionResolvers<ContextType>;
   RegionConnection?: RegionConnectionResolvers<ContextType>;
   RegionEdge?: RegionEdgeResolvers<ContextType>;
+  SolarSystem?: SolarSystemResolvers<ContextType>;
+  SolarSystemConnection?: SolarSystemConnectionResolvers<ContextType>;
+  SolarSystemEdge?: SolarSystemEdgeResolvers<ContextType>;
   StartAllianceSyncPayload?: StartAllianceSyncPayloadResolvers<ContextType>;
+  StartConstellationSyncPayload?: StartConstellationSyncPayloadResolvers<ContextType>;
   StartRegionSyncPayload?: StartRegionSyncPayloadResolvers<ContextType>;
+  StartSolarSystemSyncPayload?: StartSolarSystemSyncPayloadResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
   SyncMyKillmailsPayload?: SyncMyKillmailsPayloadResolvers<ContextType>;
   UpdateUserPayload?: UpdateUserPayloadResolvers<ContextType>;

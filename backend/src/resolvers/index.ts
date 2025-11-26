@@ -3,9 +3,12 @@ import { allianceFieldResolvers, allianceMutations, allianceQueries } from './al
 import { authMutations, authQueries } from './auth.resolver';
 import { bloodlineQueries } from './bloodline.resolver';
 import { characterFieldResolvers, characterQueries } from './character.resolver';
+import { constellationFieldResolvers, constellationMutations, constellationQueries } from './constellation.resolver';
 import { corporationFieldResolvers, corporationQueries } from './corporation.resolver';
 import { killmailMutations, killmailQueries } from './killmail.resolver';
 import { raceQueries } from './race.resolver';
+import { regionFieldResolvers, regionMutations, regionQueries } from './region.resolver';
+import { solarSystemFieldResolvers, solarSystemMutations, solarSystemQueries } from './solarSystem.resolver';
 import { userMutations, userQueries } from './user.resolver';
 import { workerResolvers } from './worker.resolver';
 
@@ -19,7 +22,9 @@ export const resolvers: Resolvers = {
         ...corporationQueries,
         ...raceQueries,
         ...bloodlineQueries,
+        ...constellationQueries,
         ...regionQueries,
+        ...solarSystemQueries,
         ...workerResolvers.Query,
     },
     Mutation: {
@@ -27,7 +32,9 @@ export const resolvers: Resolvers = {
         ...userMutations,
         ...killmailMutations,
         ...allianceMutations,
+        ...constellationMutations,
         ...regionMutations,
+        ...solarSystemMutations,
     },
     Subscription: {
         ...workerResolvers.Subscription,
@@ -35,5 +42,7 @@ export const resolvers: Resolvers = {
     Character: characterFieldResolvers,
     Alliance: allianceFieldResolvers,
     Corporation: corporationFieldResolvers,
+    Constellation: constellationFieldResolvers,
     Region: regionFieldResolvers,
+    SolarSystem: solarSystemFieldResolvers,
 };

@@ -239,6 +239,31 @@ model Region {
   @@map("regions")
 }
 
+model Constellation {
+  id          Int     @id @map("constellation_id")
+  name        String
+  region_id   Int?
+  position_x  Float?
+  position_y  Float?
+  position_z  Float?
+
+  @@map("constellations")
+}
+
+model SolarSystem {
+  id               Int     @id @map("system_id")
+  name             String
+  constellation_id Int?
+  security_status  Float?
+  security_class   String?
+  star_id          Int?
+  position_x       Float?
+  position_y       Float?
+  position_z       Float?
+
+  @@map("solar_systems")
+}
+
 model SyncJob {
   id          BigInt   @id @default(autoincrement())
   entity_type String
