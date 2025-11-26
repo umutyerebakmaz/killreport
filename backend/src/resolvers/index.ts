@@ -10,27 +10,30 @@ import { userMutations, userQueries } from './user.resolver';
 import { workerResolvers } from './worker.resolver';
 
 export const resolvers: Resolvers = {
-  Query: {
-    ...authQueries,
-    ...userQueries,
-    ...characterQueries,
-    ...killmailQueries,
-    ...allianceQueries,
-    ...corporationQueries,
-    ...raceQueries,
-    ...bloodlineQueries,
-    ...workerResolvers.Query,
-  },
-  Mutation: {
-    ...authMutations,
-    ...userMutations,
-    ...killmailMutations,
-    ...allianceMutations,
-  },
-  Subscription: {
-    ...workerResolvers.Subscription,
-  },
-  Character: characterFieldResolvers,
-  Alliance: allianceFieldResolvers,
-  Corporation: corporationFieldResolvers,
+    Query: {
+        ...authQueries,
+        ...userQueries,
+        ...characterQueries,
+        ...killmailQueries,
+        ...allianceQueries,
+        ...corporationQueries,
+        ...raceQueries,
+        ...bloodlineQueries,
+        ...regionQueries,
+        ...workerResolvers.Query,
+    },
+    Mutation: {
+        ...authMutations,
+        ...userMutations,
+        ...killmailMutations,
+        ...allianceMutations,
+        ...regionMutations,
+    },
+    Subscription: {
+        ...workerResolvers.Subscription,
+    },
+    Character: characterFieldResolvers,
+    Alliance: allianceFieldResolvers,
+    Corporation: corporationFieldResolvers,
+    Region: regionFieldResolvers,
 };
