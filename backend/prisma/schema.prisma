@@ -232,26 +232,30 @@ model Bloodline {
 }
 
 model Region {
-  id          Int     @id @map("region_id")
-  name        String
-  description String?
+  id             Int             @id @map("region_id")
+  name           String
+  description    String?
+  constellations Constellation[]
 
   @@map("regions")
 }
 
 model Constellation {
-  id          Int     @id @map("constellation_id")
-  name        String
-  region_id   Int?
-  position_x  Float?
-  position_y  Float?
-  position_z  Float?
+  id           Int           @id @map("constellation_id")
+  name         String
+  region_id    Int?
+  position_x   Float?
+  position_y   Float?
+  position_z   Float?
+  region       Region?       @relation(fields: [region_id], references: [id])
+  solarSystems SolarSystem[]
 
+  @@index([region_id])
   @@map("constellations")
 }
 
 model SolarSystem {
-  id               Int     @id @map("system_id")
+  id               Int            @id @map("system_id")
   name             String
   constellation_id Int?
   security_status  Float?
@@ -260,7 +264,9 @@ model SolarSystem {
   position_x       Float?
   position_y       Float?
   position_z       Float?
+  constellation    Constellation? @relation(fields: [constellation_id], references: [id])
 
+  @@index([constellation_id])
   @@map("solar_systems")
 }
 

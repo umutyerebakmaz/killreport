@@ -1,0 +1,39 @@
+query Regions($filter: RegionFilter) {
+  regions(filter: $filter) {
+    edges {
+      node {
+        id
+        name
+        description
+        constellations {
+          id
+          name
+          position {
+            x
+            y
+            z
+          }
+          solarSystems {
+            id
+            name
+            security_status
+            security_class
+            position {
+              x
+              y
+              z
+            }
+          }
+        }
+      }
+      cursor
+    }
+    pageInfo {
+      currentPage
+      totalPages
+      totalCount
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
