@@ -142,6 +142,98 @@ export const createCorporationsByAllianceLoader = () => {
 };
 
 /**
+ * Region DataLoader - Batch loading için
+ */
+export const createRegionLoader = () => {
+  return new DataLoader<number, any>(async (regionIds) => {
+    console.log(`🔄 DataLoader: Batching ${regionIds.length} region queries`);
+
+    const regions = await prisma.region.findMany({
+      where: {
+        id: { in: [...regionIds] },
+      },
+    });
+
+    const regionMap = new Map(regions.map(r => [r.id, r]));
+    return regionIds.map(id => regionMap.get(id) || null);
+  });
+};
+
+/**
+ * Constellation DataLoader - Batch loading için
+ */
+export const createConstellationLoader = () => {
+  return new DataLoader<number, any>(async (constellationIds) => {
+    console.log(`🔄 DataLoader: Batching ${constellationIds.length} constellation queries`);
+
+    const constellations = await prisma.constellation.findMany({
+      where: {
+        id: { in: [...constellationIds] },
+      },
+    });
+
+    const constellationMap = new Map(constellations.map(c => [c.id, c]));
+    return constellationIds.map(id => constellationMap.get(id) || null);
+  });
+};
+
+/**
+ * Constellations by Region DataLoader
+ */
+export const createConstellationsByRegionLoader = () => {
+  return new DataLoader<number, any[]>(async (regionIds) => {
+    console.log(`🔄 DataLoader: Batching ${regionIds.length} constellations by region queries`);
+
+    const constellations = await prisma.constellation.findMany({
+      where: {
+        region_id: { in: [...regionIds] },
+      },
+    });
+
+    const constsByRegion = new Map<number, any[]>();
+    regionIds.forEach(id => constsByRegion.set(id, []));
+
+    constellations.forEach(const_ => {
+      if (const_.region_id) {
+        const existing = constsByRegion.get(const_.region_id) || [];
+        existing.push(const_);
+        constsByRegion.set(const_.region_id, existing);
+      }
+    });
+
+    return regionIds.map(id => constsByRegion.get(id) || []);
+  });
+};
+
+/**
+ * Solar Systems by Constellation DataLoader
+ */
+export const createSolarSystemsByConstellationLoader = () => {
+  return new DataLoader<number, any[]>(async (constellationIds) => {
+    console.log(`🔄 DataLoader: Batching ${constellationIds.length} solar systems by constellation queries`);
+
+    const systems = await prisma.solarSystem.findMany({
+      where: {
+        constellation_id: { in: [...constellationIds] },
+      },
+    });
+
+    const systemsByConst = new Map<number, any[]>();
+    constellationIds.forEach(id => systemsByConst.set(id, []));
+
+    systems.forEach(sys => {
+      if (sys.constellation_id) {
+        const existing = systemsByConst.get(sys.constellation_id) || [];
+        existing.push(sys);
+        systemsByConst.set(sys.constellation_id, existing);
+      }
+    });
+
+    return constellationIds.map(id => systemsByConst.get(id) || []);
+  });
+};
+
+/**
  * DataLoader Context - Her request için yeni instance
  */
 export interface DataLoaderContext {
@@ -152,6 +244,10 @@ export interface DataLoaderContext {
     race: DataLoader<number, any>;
     bloodline: DataLoader<number, any>;
     corporationsByAlliance: DataLoader<number, any[]>;
+    region: DataLoader<number, any>;
+    constellation: DataLoader<number, any>;
+    constellationsByRegion: DataLoader<number, any[]>;
+    solarSystemsByConstellation: DataLoader<number, any[]>;
   };
 }
 
@@ -163,5 +259,9 @@ export const createDataLoaders = (): DataLoaderContext => ({
     race: createRaceLoader(),
     bloodline: createBloodlineLoader(),
     corporationsByAlliance: createCorporationsByAllianceLoader(),
+    region: createRegionLoader(),
+    constellation: createConstellationLoader(),
+    constellationsByRegion: createConstellationsByRegionLoader(),
+    solarSystemsByConstellation: createSolarSystemsByConstellationLoader(),
   },
 });
