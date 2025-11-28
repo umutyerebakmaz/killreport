@@ -11,9 +11,9 @@
     }
   },
   "discord.enabled": true,
-  "discord.detailsEditing": "🚀 Working on {file_name}",
-  "discord.detailsViewing": "👀 Viewing {file_name}",
-  "discord.detailsDebugging": "🐛 Debugging {file_name}",
+  "discord.detailsEditing": "🚀 Working on {file_name} in {dir_name}",
+  "discord.detailsViewing": "👀 Viewing {file_name} in {dir_name}",
+  "discord.detailsDebugging": "🐛 Debugging {file_name} in {dir_name}",
   "discord.detailsIdle": "💤 Taking a break",
   "discord.lowerDetailsEditing": "📂 {workspace} • {file_size}",
   "discord.lowerDetailsViewing": "📂 {workspace} • {file_size}",

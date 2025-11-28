@@ -191,8 +191,11 @@ export const allianceFieldResolvers: AllianceResolvers = {
 
 
   corporations: async (parent, _args, context) => {
-    // DataLoader kullan - otomatik batch yapacak
-    const corporations = await context.loaders.corporationsByAlliance.load(parent.id);
+    // Tek alliance sorgulanıyor, direkt Prisma kullan ve database'de sırala
+    const corporations = await prisma.corporation.findMany({
+      where: { alliance_id: parent.id },
+      orderBy: { member_count: 'desc' }, // Database seviyesinde sıralama
+    });
 
     return corporations.map((corp: any) => ({
       ...corp,
