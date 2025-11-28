@@ -2,6 +2,7 @@ type Region {
   id: Int!
   name: String!
   description: String
+  constellations: [Constellation!]!
 }
 
 enum RegionOrderBy {

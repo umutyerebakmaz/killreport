@@ -9,6 +9,8 @@ type Constellation {
   name: String!
   region_id: Int
   position: Position
+  region: Region
+  solarSystems: [SolarSystem!]!
 }
 
 enum ConstellationOrderBy {

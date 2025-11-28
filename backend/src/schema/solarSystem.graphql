@@ -12,6 +12,7 @@ type SolarSystem {
   security_class: String
   star_id: Int
   position: Position
+  constellation: Constellation
 }
 
 enum SolarSystemOrderBy {

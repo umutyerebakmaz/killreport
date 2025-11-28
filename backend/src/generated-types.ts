@@ -194,7 +194,9 @@ export type Constellation = {
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
   position?: Maybe<Position>;
+  region?: Maybe<Region>;
   region_id?: Maybe<Scalars['Int']['output']>;
+  solarSystems: Array<SolarSystem>;
 };
 
 export type ConstellationConnection = {
@@ -587,6 +589,7 @@ export type Race = {
 
 export type Region = {
   __typename?: 'Region';
+  constellations: Array<Constellation>;
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
@@ -619,6 +622,7 @@ export enum RegionOrderBy {
 
 export type SolarSystem = {
   __typename?: 'SolarSystem';
+  constellation?: Maybe<Constellation>;
   constellation_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
@@ -1103,7 +1107,9 @@ export type ConstellationResolvers<ContextType = any, ParentType extends Resolve
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   position?: Resolver<Maybe<ResolversTypes['Position']>, ParentType, ContextType>;
+  region?: Resolver<Maybe<ResolversTypes['Region']>, ParentType, ContextType>;
   region_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  solarSystems?: Resolver<Array<ResolversTypes['SolarSystem']>, ParentType, ContextType>;
 };
 
 export type ConstellationConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['ConstellationConnection'] = ResolversParentTypes['ConstellationConnection']> = {
@@ -1268,6 +1274,7 @@ export type RaceResolvers<ContextType = any, ParentType extends ResolversParentT
 };
 
 export type RegionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Region'] = ResolversParentTypes['Region']> = {
+  constellations?: Resolver<Array<ResolversTypes['Constellation']>, ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1284,6 +1291,7 @@ export type RegionEdgeResolvers<ContextType = any, ParentType extends ResolversP
 };
 
 export type SolarSystemResolvers<ContextType = any, ParentType extends ResolversParentTypes['SolarSystem'] = ResolversParentTypes['SolarSystem']> = {
+  constellation?: Resolver<Maybe<ResolversTypes['Constellation']>, ParentType, ContextType>;
   constellation_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
