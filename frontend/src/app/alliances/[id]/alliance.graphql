@@ -32,5 +32,15 @@ query Alliance($id: Int!) {
       id
       name
     }
+    corporations {
+      id
+      name
+      ticker
+      member_count
+      ceo {
+        id
+        name
+      }
+    }
   }
 }
