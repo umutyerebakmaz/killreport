@@ -245,10 +245,80 @@ export default function AllianceDetailPage({
 
           {activeTab === "members" && (
             <div className="p-6 bg-white/5 border-white/10">
-              <h2 className="mb-4 text-2xl font-bold">Members</h2>
-              <p className="text-gray-300">
-                Member corporations will be displayed here.
-              </p>
+              <h2 className="mb-4 text-2xl font-bold">
+                Member Corporations ({alliance.corporations?.length || 0})
+              </h2>
+              {alliance.corporations && alliance.corporations.length > 0 ? (
+                <div className="overflow-hidden border border-white/10">
+                  <table className="min-w-full divide-y divide-white/10">
+                    <thead className="bg-white/5">
+                      <tr>
+                        <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-300 uppercase">
+                          Corporation
+                        </th>
+                        <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-300 uppercase">
+                          Ticker
+                        </th>
+                        <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-300 uppercase">
+                          Members
+                        </th>
+                        <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-300 uppercase">
+                          CEO
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/10">
+                      {alliance.corporations.map((corp) => (
+                        <tr
+                          key={corp.id}
+                          className="transition-colors hover:bg-white/5"
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center gap-3">
+                              <img
+                                src={`https://images.evetech.net/Corporation/${corp.id}_64.png`}
+                                alt={corp.name}
+                                width={32}
+                                height={32}
+                                className="rounded"
+                              />
+                              <Link
+                                href={`/corporations/${corp.id}`}
+                                className="text-cyan-400 hover:text-cyan-300"
+                              >
+                                {corp.name}
+                              </Link>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-yellow-400 whitespace-nowrap">
+                            [{corp.ticker}]
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-300 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <UsersIcon className="w-4 h-4 text-blue-400" />
+                              {corp.member_count}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm whitespace-nowrap">
+                            {corp.ceo ? (
+                              <Link
+                                href={`/characters/${corp.ceo.id}`}
+                                className="text-cyan-400 hover:text-cyan-300"
+                              >
+                                {corp.ceo.name}
+                              </Link>
+                            ) : (
+                              <span className="text-gray-500">N/A</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-gray-400">No corporations found.</p>
+              )}
             </div>
           )}
         </div>
