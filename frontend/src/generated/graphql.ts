@@ -190,6 +190,42 @@ export enum CharacterOrderBy {
   SecurityStatusDesc = 'securityStatusDesc'
 }
 
+export type Constellation = {
+  __typename?: 'Constellation';
+  id: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  position?: Maybe<Position>;
+  region?: Maybe<Region>;
+  region_id?: Maybe<Scalars['Int']['output']>;
+  solarSystems: Array<SolarSystem>;
+};
+
+export type ConstellationConnection = {
+  __typename?: 'ConstellationConnection';
+  edges: Array<ConstellationEdge>;
+  pageInfo: PageInfo;
+};
+
+export type ConstellationEdge = {
+  __typename?: 'ConstellationEdge';
+  cursor: Scalars['String']['output'];
+  node: Constellation;
+};
+
+export type ConstellationFilter = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<ConstellationOrderBy>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  region_id?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+};
+
+export enum ConstellationOrderBy {
+  NameAsc = 'nameAsc',
+  NameDesc = 'nameDesc'
+}
+
 export type Corporation = {
   __typename?: 'Corporation';
   alliance?: Maybe<Alliance>;
@@ -321,6 +357,9 @@ export type Mutation = {
   /** Refresh token kullanarak yeni access token alır */
   refreshToken: AuthPayload;
   startAllianceSync: StartAllianceSyncPayload;
+  startConstellationSync: StartConstellationSyncPayload;
+  startRegionSync: StartRegionSyncPayload;
+  startSolarSystemSync: StartSolarSystemSyncPayload;
   /**
    * Fetches user's killmails from ESI and saves to database
    * Requires: Authentication
@@ -348,6 +387,21 @@ export type MutationRefreshTokenArgs = {
 
 export type MutationStartAllianceSyncArgs = {
   input: StartAllianceSyncInput;
+};
+
+
+export type MutationStartConstellationSyncArgs = {
+  input: StartConstellationSyncInput;
+};
+
+
+export type MutationStartRegionSyncArgs = {
+  input: StartRegionSyncInput;
+};
+
+
+export type MutationStartSolarSystemSyncArgs = {
+  input: StartSolarSystemSyncInput;
 };
 
 
@@ -387,6 +441,8 @@ export type Query = {
   bloodlines: Array<Bloodline>;
   character?: Maybe<Character>;
   characters: CharacterConnection;
+  constellation?: Maybe<Constellation>;
+  constellations: ConstellationConnection;
   corporation?: Maybe<Corporation>;
   corporations: CorporationConnection;
   /** Fetches a single killmail */
@@ -407,6 +463,10 @@ export type Query = {
   myKillmails: Array<Killmail>;
   race?: Maybe<Race>;
   races: Array<Race>;
+  region?: Maybe<Region>;
+  regions: RegionConnection;
+  solarSystem?: Maybe<SolarSystem>;
+  solarSystems: SolarSystemConnection;
   user?: Maybe<User>;
   users: Array<User>;
   /** Get current status of all workers and queues */
@@ -436,6 +496,16 @@ export type QueryCharacterArgs = {
 
 export type QueryCharactersArgs = {
   filter?: InputMaybe<CharacterFilter>;
+};
+
+
+export type QueryConstellationArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type QueryConstellationsArgs = {
+  filter?: InputMaybe<ConstellationFilter>;
 };
 
 
@@ -475,6 +545,26 @@ export type QueryRaceArgs = {
 };
 
 
+export type QueryRegionArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type QueryRegionsArgs = {
+  filter?: InputMaybe<RegionFilter>;
+};
+
+
+export type QuerySolarSystemArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type QuerySolarSystemsArgs = {
+  filter?: InputMaybe<SolarSystemFilter>;
+};
+
+
 export type QueryUserArgs = {
   id: Scalars['ID']['input'];
 };
@@ -498,12 +588,119 @@ export type Race = {
   name: Scalars['String']['output'];
 };
 
+export type Region = {
+  __typename?: 'Region';
+  constellations: Array<Constellation>;
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+};
+
+export type RegionConnection = {
+  __typename?: 'RegionConnection';
+  edges: Array<RegionEdge>;
+  pageInfo: PageInfo;
+};
+
+export type RegionEdge = {
+  __typename?: 'RegionEdge';
+  cursor: Scalars['String']['output'];
+  node: Region;
+};
+
+export type RegionFilter = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<RegionOrderBy>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+};
+
+export enum RegionOrderBy {
+  NameAsc = 'nameAsc',
+  NameDesc = 'nameDesc'
+}
+
+export type SolarSystem = {
+  __typename?: 'SolarSystem';
+  constellation?: Maybe<Constellation>;
+  constellation_id?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  position?: Maybe<Position>;
+  security_class?: Maybe<Scalars['String']['output']>;
+  security_status?: Maybe<Scalars['Float']['output']>;
+  star_id?: Maybe<Scalars['Int']['output']>;
+};
+
+export type SolarSystemConnection = {
+  __typename?: 'SolarSystemConnection';
+  edges: Array<SolarSystemEdge>;
+  pageInfo: PageInfo;
+};
+
+export type SolarSystemEdge = {
+  __typename?: 'SolarSystemEdge';
+  cursor: Scalars['String']['output'];
+  node: SolarSystem;
+};
+
+export type SolarSystemFilter = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: InputMaybe<SolarSystemOrderBy>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  securityStatusMax?: InputMaybe<Scalars['Float']['input']>;
+  securityStatusMin?: InputMaybe<Scalars['Float']['input']>;
+};
+
+export enum SolarSystemOrderBy {
+  NameAsc = 'nameAsc',
+  NameDesc = 'nameDesc',
+  SecurityStatusAsc = 'securityStatusAsc',
+  SecurityStatusDesc = 'securityStatusDesc'
+}
+
 export type StartAllianceSyncInput = {
   clientMutationId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type StartAllianceSyncPayload = {
   __typename?: 'StartAllianceSyncPayload';
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type StartConstellationSyncInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type StartConstellationSyncPayload = {
+  __typename?: 'StartConstellationSyncPayload';
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type StartRegionSyncInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type StartRegionSyncPayload = {
+  __typename?: 'StartRegionSyncPayload';
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type StartSolarSystemSyncInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type StartSolarSystemSyncPayload = {
+  __typename?: 'StartSolarSystemSyncPayload';
   clientMutationId?: Maybe<Scalars['String']['output']>;
   message?: Maybe<Scalars['String']['output']>;
   success: Scalars['Boolean']['output'];
@@ -618,6 +815,13 @@ export type CorporationsQueryVariables = Exact<{
 
 
 export type CorporationsQuery = { __typename?: 'Query', corporations: { __typename?: 'CorporationConnection', edges: Array<{ __typename?: 'CorporationEdge', cursor: string, node: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, date_founded?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, metrics?: { __typename?: 'CorporationMetrics', memberCountDelta1d?: number | null, memberCountDelta7d?: number | null, memberCountDelta30d?: number | null, memberCountGrowthRate1d?: number | null, memberCountGrowthRate7d?: number | null, memberCountGrowthRate30d?: number | null } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
+export type RegionsQueryVariables = Exact<{
+  filter?: InputMaybe<RegionFilter>;
+}>;
+
+
+export type RegionsQuery = { __typename?: 'Query', regions: { __typename?: 'RegionConnection', edges: Array<{ __typename?: 'RegionEdge', cursor: string, node: { __typename?: 'Region', id: number, name: string, description?: string | null, constellations: Array<{ __typename?: 'Constellation', id: number, name: string, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, solarSystems: Array<{ __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, security_class?: string | null, position?: { __typename?: 'Position', x: number, y: number, z: number } | null }> }> } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 
 export const AllianceDocument = gql`
@@ -1025,3 +1229,77 @@ export type CorporationsQueryHookResult = ReturnType<typeof useCorporationsQuery
 export type CorporationsLazyQueryHookResult = ReturnType<typeof useCorporationsLazyQuery>;
 export type CorporationsSuspenseQueryHookResult = ReturnType<typeof useCorporationsSuspenseQuery>;
 export type CorporationsQueryResult = Apollo.QueryResult<CorporationsQuery, CorporationsQueryVariables>;
+export const RegionsDocument = gql`
+    query Regions($filter: RegionFilter) {
+  regions(filter: $filter) {
+    edges {
+      node {
+        id
+        name
+        description
+        constellations {
+          id
+          name
+          position {
+            x
+            y
+            z
+          }
+          solarSystems {
+            id
+            name
+            security_status
+            security_class
+            position {
+              x
+              y
+              z
+            }
+          }
+        }
+      }
+      cursor
+    }
+    pageInfo {
+      currentPage
+      totalPages
+      totalCount
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useRegionsQuery__
+ *
+ * To run a query within a React component, call `useRegionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRegionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useRegionsQuery({
+ *   variables: {
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useRegionsQuery(baseOptions?: Apollo.QueryHookOptions<RegionsQuery, RegionsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<RegionsQuery, RegionsQueryVariables>(RegionsDocument, options);
+      }
+export function useRegionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RegionsQuery, RegionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<RegionsQuery, RegionsQueryVariables>(RegionsDocument, options);
+        }
+export function useRegionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RegionsQuery, RegionsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<RegionsQuery, RegionsQueryVariables>(RegionsDocument, options);
+        }
+export type RegionsQueryHookResult = ReturnType<typeof useRegionsQuery>;
+export type RegionsLazyQueryHookResult = ReturnType<typeof useRegionsLazyQuery>;
+export type RegionsSuspenseQueryHookResult = ReturnType<typeof useRegionsSuspenseQuery>;
+export type RegionsQueryResult = Apollo.QueryResult<RegionsQuery, RegionsQueryVariables>;
