@@ -8,7 +8,7 @@ export const constellationQueries: QueryResolvers = {
     const constellation = await prisma.constellation.findUnique({
       where: { id: Number(id) },
     });
-    return constellation;
+    return constellation as any;
   },
 
   constellations: async (_, { filter }) => {
@@ -132,5 +132,14 @@ export const constellationFieldResolvers: ConstellationResolvers = {
       y: prismaParent.position_y,
       z: prismaParent.position_z,
     };
+  },
+  region: async (parent: any, _: any, context: any) => {
+    const prismaParent = parent as any;
+    if (!prismaParent.region_id) return null;
+    return context.loaders.region.load(prismaParent.region_id);
+  },
+  solarSystems: async (parent: any, _: any, context: any) => {
+    if (!parent.id) return [];
+    return context.loaders.solarSystemsByConstellation.load(parent.id);
   },
 };

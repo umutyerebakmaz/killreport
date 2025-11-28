@@ -162,7 +162,9 @@ type Constellation {
   id: Int!
   name: String!
   position: Position
+  region: Region
   region_id: Int
+  solarSystems: [SolarSystem!]!
 }
 
 type ConstellationConnection {
@@ -402,6 +404,7 @@ type Race {
 }
 
 type Region {
+  constellations: [Constellation!]!
   description: String
   id: Int!
   name: String!
@@ -431,6 +434,7 @@ enum RegionOrderBy {
 }
 
 type SolarSystem {
+  constellation: Constellation
   constellation_id: Int
   id: Int!
   name: String!
