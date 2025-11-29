@@ -11,11 +11,17 @@ body {
 
 .alliance-card,
 .corporation-card,
-.character-card {
+.character-card,
+.region-card,
+.constellation-card,
+.system-card {
   @apply border bg-white/5 border-white/10;
 }
 
-.alliance-detail-card {
+.alliance-detail-card,
+.region-detail-card,
+.constellation-detail-card,
+.system-detail-card {
   @apply border bg-white/5 border-white/10 p-4 flex flex-col;
 }
 
@@ -41,7 +47,10 @@ body {
 
 .alliance-name,
 .corporation-name,
-.character-name {
+.character-name,
+.region-name,
+.constellation-name,
+.system-name {
   @apply flex items-center justify-center h-12 font-semibold text-center text-gray-200 text-base hover:text-cyan-400 line-clamp-2;
 }
 
