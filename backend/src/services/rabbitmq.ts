@@ -95,8 +95,6 @@ export async function getAllQueueStats(): Promise<Array<{
     'esi_corporation_info_queue',
     'esi_type_info_queue',
     'esi_alliance_corporations_queue',
-    'esi_all_alliances_queue',
-    'esi_all_corporations_queue',
     'zkillboard_character_queue',
   ];
 
