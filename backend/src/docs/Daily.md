@@ -1,6 +1,6 @@
-## Daily Workflows (Backend)
+# Daily Workflows (Backend)
 
-### 📋 Simple Daily Sequence
+## 📋 Simple Daily Sequence
 
 ```bash
 # 1. Update Alliance & Corporation Data
@@ -16,7 +16,7 @@ yarn snapshot:corporations
 yarn snapshot:alliances
 ```
 
-### 📖 What Each Command Does
+## 📖 What Each Command Does
 
 **`yarn queue:alliances`**
 
