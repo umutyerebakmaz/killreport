@@ -158,7 +158,7 @@ export default function Header() {
                   <a
                     key={item.name}
                     href={item.href}
-                    className="flex items-center justify-center gap-x-2.5 p-3 text-sm/6 font-semibold text-white hover:bg-cyan-900/50"
+                    className="flex items-center justify-center gap-x-2.5 p-3 text-base font-semibold text-white hover:bg-cyan-900/50"
                   >
                     <item.icon
                       aria-hidden="true"
@@ -170,16 +170,13 @@ export default function Header() {
               </div>
             </PopoverPanel>
           </Popover>
-          <a href="/alliances" className="font-semibold text-white text-sm/6">
+          <a href="/alliances" className="font-semibold text-white">
             ALLIANCES
           </a>
-          <a
-            href="/corporations"
-            className="font-semibold text-white text-sm/6"
-          >
+          <a href="/corporations" className="font-semibold text-white">
             CORPORATIONS
           </a>
-          <a href="/characters" className="font-semibold text-white text-sm/6">
+          <a href="/characters" className="font-semibold text-white">
             CHARACTERS
           </a>
         </PopoverGroup>
