@@ -37,3 +37,20 @@ query Regions($filter: RegionFilter) {
     }
   }
 }
+
+query Region($id: Int!) {
+  region(id: $id) {
+    id
+    name
+    description
+    constellations {
+      id
+      name
+      solarSystems {
+        id
+        name
+        security_status
+      }
+    }
+  }
+}
