@@ -17,12 +17,10 @@ import {
   PlayCircleIcon,
 } from "@heroicons/react/20/solid";
 import {
-  ArrowPathIcon,
   Bars3Icon,
   ChartPieIcon,
   CursorArrowRaysIcon,
   FingerPrintIcon,
-  SquaresPlusIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import React, { useState } from "react";
@@ -33,34 +31,22 @@ import Tooltip from "../Tooltip/Tooltip";
 
 const products = [
   {
-    name: "Analytics",
-    description: "Get a better understanding of your traffic",
-    href: "#",
+    name: "REGIONS",
+    description: "A list of all EVE Online regions in New Eden.",
+    href: "/regions",
     icon: ChartPieIcon,
   },
   {
-    name: "Engagement",
-    description: "Speak directly to your customers",
-    href: "#",
+    name: "CONSTELLATIONS",
+    description: "A list of all EVE Online constellations in New Eden.",
+    href: "/constellations",
     icon: CursorArrowRaysIcon,
   },
   {
-    name: "Security",
-    description: "Your customers’ data will be safe and secure",
-    href: "#",
+    name: "SOLAR SYSTEMS",
+    description: "A list of all EVE Online solar systems in New Eden.",
+    href: "/solar-systems",
     icon: FingerPrintIcon,
-  },
-  {
-    name: "Integrations",
-    description: "Connect with third-party tools",
-    href: "#",
-    icon: SquaresPlusIcon,
-  },
-  {
-    name: "Automations",
-    description: "Build strategic funnels that will convert",
-    href: "#",
-    icon: ArrowPathIcon,
   },
 ];
 const callsToAction = [
@@ -117,8 +103,8 @@ export default function Header() {
         </div>
         <PopoverGroup className="hidden lg:flex lg:gap-x-12">
           <Popover className="relative">
-            <PopoverButton className="flex items-center font-semibold text-white cursor-pointer gap-x-1 text-sm/6">
-              PRODUCTS
+            <PopoverButton className="flex items-center font-semibold text-white cursor-pointer gap-x-1">
+              UNIVERSE
               <ChevronDownIcon
                 aria-hidden="true"
                 className="flex-none text-gray-500 size-5"
@@ -224,7 +210,7 @@ export default function Header() {
               <div className="py-6 space-y-2">
                 <Disclosure as="div" className="-mx-3">
                   <DisclosureButton className="group flex w-full items-center justify-between py-2 pr-3.5 pl-3 text-base/7 font-semibold text-white hover:bg-white/5">
-                    Product
+                    UNIVERSE
                     <ChevronDownIcon
                       aria-hidden="true"
                       className="flex-none size-5 group-data-open:rotate-180"
