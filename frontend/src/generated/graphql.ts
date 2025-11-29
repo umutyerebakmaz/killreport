@@ -823,6 +823,13 @@ export type RegionsQueryVariables = Exact<{
 
 export type RegionsQuery = { __typename?: 'Query', regions: { __typename?: 'RegionConnection', edges: Array<{ __typename?: 'RegionEdge', cursor: string, node: { __typename?: 'Region', id: number, name: string, description?: string | null, constellations: Array<{ __typename?: 'Constellation', id: number, name: string, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, solarSystems: Array<{ __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, security_class?: string | null, position?: { __typename?: 'Position', x: number, y: number, z: number } | null }> }> } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
+export type RegionQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type RegionQuery = { __typename?: 'Query', region?: { __typename?: 'Region', id: number, name: string, description?: string | null, constellations: Array<{ __typename?: 'Constellation', id: number, name: string, solarSystems: Array<{ __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null }> }> } | null };
+
 
 export const AllianceDocument = gql`
     query Alliance($id: Int!) {
@@ -1313,3 +1320,54 @@ export type RegionsQueryHookResult = ReturnType<typeof useRegionsQuery>;
 export type RegionsLazyQueryHookResult = ReturnType<typeof useRegionsLazyQuery>;
 export type RegionsSuspenseQueryHookResult = ReturnType<typeof useRegionsSuspenseQuery>;
 export type RegionsQueryResult = Apollo.QueryResult<RegionsQuery, RegionsQueryVariables>;
+export const RegionDocument = gql`
+    query Region($id: Int!) {
+  region(id: $id) {
+    id
+    name
+    description
+    constellations {
+      id
+      name
+      solarSystems {
+        id
+        name
+        security_status
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useRegionQuery__
+ *
+ * To run a query within a React component, call `useRegionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRegionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useRegionQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useRegionQuery(baseOptions: Apollo.QueryHookOptions<RegionQuery, RegionQueryVariables> & ({ variables: RegionQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<RegionQuery, RegionQueryVariables>(RegionDocument, options);
+      }
+export function useRegionLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RegionQuery, RegionQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<RegionQuery, RegionQueryVariables>(RegionDocument, options);
+        }
+export function useRegionSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RegionQuery, RegionQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<RegionQuery, RegionQueryVariables>(RegionDocument, options);
+        }
+export type RegionQueryHookResult = ReturnType<typeof useRegionQuery>;
+export type RegionLazyQueryHookResult = ReturnType<typeof useRegionLazyQuery>;
+export type RegionSuspenseQueryHookResult = ReturnType<typeof useRegionSuspenseQuery>;
+export type RegionQueryResult = Apollo.QueryResult<RegionQuery, RegionQueryVariables>;
