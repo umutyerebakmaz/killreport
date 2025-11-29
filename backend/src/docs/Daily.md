@@ -1,47 +1,58 @@
 ## Daily Workflows (Backend)
 
-```bash
-yarn queue:alliances
-```
-
-This command: get all alliance IDs from ESI and adds them to the RabbitMQ queue.
+### 📋 Simple Daily Sequence
 
 ```bash
-yarn worker:alliances
-```
+# 1. Update Alliance & Corporation Data
+yarn queue:alliances              # ESI'dan tüm alliance ID'lerini kuyruğa ekle
+yarn worker:info:alliances        # Alliance detaylarını çek ve GÜNCELLE
 
-this command: processes alliance IDs from the RabbitMQ queue, fetching and saving them to the database if they don't already exist.
+yarn queue:alliance-corporations  # Alliance'ları kuyruğa ekle (corporation keşfi için)
+yarn worker:discover-corporations # Her alliance'ın corp ID'lerini ESI'dan çek ve kuyruğa ekle
+yarn worker:info:corporations     # Corporation detaylarını ESI'dan çek ve GÜNCELLE
 
-```bash
-yarn queue:alliance-corporations
-```
-
-This command: get all alliance IDs from the database and adds them to the RabbitMQ queue for corporation discovery.
-
-```bash
-yarn worker:alliance-corporations
-```
-
-This command: processes alliance IDs from the RabbitMQ queue, fetching corporation IDs from ESI and adding them to the corporation enrichment queue.
-
-```bash
-yarn worker:info:corporations
-```
-
-This command: processes corporation IDs from the corporation enrichment queue, fetching detailed corporation information from ESI and saving it to the database.
-
-```bash
+# 2. Take Snapshots
+yarn snapshot:corporations
 yarn snapshot:alliances
 ```
 
-This command: creates a snapshot of all alliances in the database.
+### 📖 What Each Command Does
 
-```bash
-yarn snapshot:corporations
-```
+**`yarn queue:alliances`**
 
-This command: creates a snapshot of all corporations in the database.
+- ESI'dan TÜM alliance ID'lerini çeker
+- `esi_alliance_info_queue` kuyruğuna ekler
 
-```bash
-yarn update:alliance-counts
-```
+**`yarn worker:info:alliances`**
+
+- Kuyruktan alliance ID'leri alır
+- Her alliance için ESI'dan detay çeker
+- Database'de **UPSERT** yapar (var olanları günceller, yoksa ekler)
+- Güncellenen alanlar: name, ticker, executor_corporation_id, faction_id
+
+**`yarn queue:alliance-corporations`**
+
+- Database'deki TÜM alliance'ları alır
+- Her alliance ID'sini `esi_alliance_corporations_queue` kuyruğuna ekler
+
+**`yarn worker:discover-corporations`**
+
+- Kuyruktan alliance ID'leri alır
+- Her alliance için ESI'dan corporation ID'lerini çeker (`GET /alliances/{id}/corporations/`)
+- Corporation ID'lerini `esi_corporation_info_queue` kuyruğuna ekler
+- **ÖNEMLİ:** Bu olmadan corporation'lar keşfedilemez!
+
+**`yarn worker:info:corporations`**
+
+- Kuyruktan corporation ID'leri alır
+- Her corporation için ESI'dan detay çeker
+- Database'de **UPSERT** yapar (var olanları günceller, yoksa ekler)
+- Güncellenen alanlar: name, ticker, member_count, ceo_id, alliance_id, tax_rate
+
+**`yarn snapshot:corporations`**
+
+- Tüm corporation'ların anlık görüntüsünü alır
+
+**`yarn snapshot:alliances`**
+
+- Tüm alliance'ların anlık görüntüsünü alır

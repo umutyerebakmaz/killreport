@@ -36,8 +36,8 @@ async function corporationInfoWorker() {
     console.log('⏳ Waiting for corporations...\n');
 
     let totalProcessed = 0;
-    let totalAdded = 0;
-    let totalSkipped = 0;
+    let totalCreated = 0;
+    let totalUpdated = 0;
     let totalErrors = 0;
     let lastMessageTime = Date.now();
 
@@ -47,7 +47,7 @@ async function corporationInfoWorker() {
       if (timeSinceLastMessage > 5000 && totalProcessed > 0) {
         console.log('\n' + '━'.repeat(60));
         console.log('✅ Queue completed!');
-        console.log(`📊 Final: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
+        console.log(`📊 Final: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)`);
         console.log('━'.repeat(60) + '\n');
         console.log('⏳ Waiting for new messages...\n');
       }
@@ -69,13 +69,7 @@ async function corporationInfoWorker() {
             where: { id: corporationId },
           });
 
-          if (existing) {
-            channel.ack(msg);
-            totalSkipped++;
-            totalProcessed++;
-            console.log(`  - [${totalProcessed}] Corporation ${corporationId} (exists)`);
-            return;
-          }          // Fetch from ESI
+          // Fetch from ESI (her zaman güncel bilgiyi al)
           const corpInfo = await getCorporationInfo(corporationId);
 
           // Save to database (upsert to prevent race condition)
@@ -97,17 +91,28 @@ async function corporationInfoWorker() {
               tax_rate: corpInfo.tax_rate,
               url: corpInfo.url,
             },
-            update: {}, // Don't update if exists
+            update: {
+              // ✅ Güncel bilgileri güncelle
+              name: corpInfo.name,
+              ticker: corpInfo.ticker,
+              member_count: corpInfo.member_count,
+              ceo_id: corpInfo.ceo_id,
+              alliance_id: corpInfo.alliance_id,
+              tax_rate: corpInfo.tax_rate,
+              description: corpInfo.description,
+              url: corpInfo.url,
+              // date_founded, creator_id değişmez, güncellemeye gerek yok
+            },
           });
 
-          totalAdded++;
-          channel.ack(msg);
+          if (existing) {
+            totalUpdated++;
+            console.log(`  ✅ [${totalProcessed + 1}][${corporationId}] ${corpInfo.name} [${corpInfo.ticker}] \x1b[36m(updated)\x1b[0m`);
+          } else {
+            totalCreated++;
+            console.log(`  ✅ [${totalProcessed + 1}][${corporationId}] ${corpInfo.name} [${corpInfo.ticker}] \x1b[32m(created)\x1b[0m`);
+          } channel.ack(msg);
           totalProcessed++;
-          console.log(`  ✅ [${totalProcessed}] ${corpInfo.name} [${corpInfo.ticker}]`);
-
-          if (totalProcessed % 50 === 0) {
-            console.log(`📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
-          }
 
         } catch (error: any) {
           totalErrors++;
@@ -119,10 +124,6 @@ async function corporationInfoWorker() {
           } else {
             console.error(`  × [${totalProcessed}] Corporation ${message.entityId}: ${error.message}`);
             channel.nack(msg, false, true);
-          }
-
-          if (totalProcessed % 50 === 0) {
-            console.log(`📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
           }
         }
       },
