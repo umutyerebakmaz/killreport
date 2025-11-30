@@ -23,6 +23,9 @@ export const solarSystemQueries: QueryResolvers = {
             if (filter.name) {
                 where.name = { contains: filter.name, mode: 'insensitive' };
             }
+            if (filter.constellation_id) {
+                where.constellation_id = filter.constellation_id;
+            }
             if (filter.securityStatusMin !== undefined || filter.securityStatusMax !== undefined) {
                 where.security_status = {};
                 if (filter.securityStatusMin !== undefined) {

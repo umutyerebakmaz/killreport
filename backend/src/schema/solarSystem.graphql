@@ -37,6 +37,7 @@ input SolarSystemFilter {
   limit: Int
   search: String
   name: String
+  constellation_id: Int
   securityStatusMin: Float
   securityStatusMax: Float
   orderBy: SolarSystemOrderBy
