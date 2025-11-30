@@ -11,6 +11,8 @@ type Constellation {
   position: Position
   region: Region
   solarSystems: [SolarSystem!]!
+  solarSystemCount: Int!
+  securityStats: SecurityStats!
 }
 
 enum ConstellationOrderBy {
