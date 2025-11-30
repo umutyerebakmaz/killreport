@@ -1,0 +1,62 @@
+query Constellations($filter: ConstellationFilter) {
+  constellations(filter: $filter) {
+    edges {
+      node {
+        id
+        name
+        region_id
+        solarSystemCount
+        securityStats {
+          highSec
+          lowSec
+          nullSec
+          wormhole
+          avgSecurity
+        }
+        region {
+          id
+          name
+        }
+      }
+      cursor
+    }
+    pageInfo {
+      currentPage
+      totalPages
+      totalCount
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+
+query Constellation($id: Int!) {
+  constellation(id: $id) {
+    id
+    name
+    region_id
+    solarSystemCount
+    securityStats {
+      highSec
+      lowSec
+      nullSec
+      wormhole
+      avgSecurity
+    }
+    position {
+      x
+      y
+      z
+    }
+    region {
+      id
+      name
+    }
+    solarSystems {
+      id
+      name
+      security_status
+      security_class
+    }
+  }
+}
