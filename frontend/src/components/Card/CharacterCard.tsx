@@ -25,7 +25,7 @@ export default function CharacterCard({ character }: CharacterCardProps) {
         <div className="flex flex-col items-center gap-4">
           <div className="relative w-24 h-24">
             {!imageLoaded && (
-              <div className="absolute inset-0 rounded animate-pulse bg-gray-800/50">
+              <div className="absolute inset-0 animate-pulse bg-gray-800/50">
                 <div className="flex items-center justify-center w-full h-full">
                   <UserIcon className="w-12 h-12 text-gray-700" />
                 </div>

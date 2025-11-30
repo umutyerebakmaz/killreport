@@ -18,9 +18,9 @@ import {
 } from "@heroicons/react/20/solid";
 import {
   Bars3Icon,
-  ChartPieIcon,
-  CursorArrowRaysIcon,
-  FingerPrintIcon,
+  GlobeAltIcon,
+  MapIcon,
+  MapPinIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import React, { useState } from "react";
@@ -32,21 +32,21 @@ import Tooltip from "../Tooltip/Tooltip";
 const products = [
   {
     name: "REGIONS",
-    description: "A list of all EVE Online regions in New Eden.",
+    description: "Explore all regions in New Eden with security statistics.",
     href: "/regions",
-    icon: ChartPieIcon,
+    icon: GlobeAltIcon,
   },
   {
     name: "CONSTELLATIONS",
-    description: "A list of all EVE Online constellations in New Eden.",
+    description: "Browse constellations and their solar systems.",
     href: "/constellations",
-    icon: CursorArrowRaysIcon,
+    icon: MapIcon,
   },
   {
     name: "SOLAR SYSTEMS",
-    description: "A list of all EVE Online solar systems in New Eden.",
+    description: "Search and filter solar systems by security status.",
     href: "/solar-systems",
-    icon: FingerPrintIcon,
+    icon: MapPinIcon,
   },
 ];
 const callsToAction = [

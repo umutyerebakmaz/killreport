@@ -5,25 +5,14 @@ query Regions($filter: RegionFilter) {
         id
         name
         description
-        constellations {
-          id
-          name
-          position {
-            x
-            y
-            z
-          }
-          solarSystems {
-            id
-            name
-            security_status
-            security_class
-            position {
-              x
-              y
-              z
-            }
-          }
+        constellationCount
+        solarSystemCount
+        securityStats {
+          highSec
+          lowSec
+          nullSec
+          wormhole
+          avgSecurity
         }
       }
       cursor
@@ -43,13 +32,24 @@ query Region($id: Int!) {
     id
     name
     description
+    constellationCount
+    solarSystemCount
+    securityStats {
+      highSec
+      lowSec
+      nullSec
+      wormhole
+      avgSecurity
+    }
     constellations {
       id
       name
-      solarSystems {
-        id
-        name
-        security_status
+      solarSystemCount
+      securityStats {
+        highSec
+        lowSec
+        nullSec
+        avgSecurity
       }
     }
   }

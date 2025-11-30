@@ -197,6 +197,8 @@ export type Constellation = {
   position?: Maybe<Position>;
   region?: Maybe<Region>;
   region_id?: Maybe<Scalars['Int']['output']>;
+  securityStats: SecurityStats;
+  solarSystemCount: Scalars['Int']['output'];
   solarSystems: Array<SolarSystem>;
 };
 
@@ -590,10 +592,13 @@ export type Race = {
 
 export type Region = {
   __typename?: 'Region';
+  constellationCount: Scalars['Int']['output'];
   constellations: Array<Constellation>;
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
+  securityStats: SecurityStats;
+  solarSystemCount: Scalars['Int']['output'];
 };
 
 export type RegionConnection = {
@@ -621,6 +626,15 @@ export enum RegionOrderBy {
   NameDesc = 'nameDesc'
 }
 
+export type SecurityStats = {
+  __typename?: 'SecurityStats';
+  avgSecurity?: Maybe<Scalars['Float']['output']>;
+  highSec: Scalars['Int']['output'];
+  lowSec: Scalars['Int']['output'];
+  nullSec: Scalars['Int']['output'];
+  wormhole: Scalars['Int']['output'];
+};
+
 export type SolarSystem = {
   __typename?: 'SolarSystem';
   constellation?: Maybe<Constellation>;
@@ -646,6 +660,7 @@ export type SolarSystemEdge = {
 };
 
 export type SolarSystemFilter = {
+  constellation_id?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   orderBy?: InputMaybe<SolarSystemOrderBy>;
@@ -802,6 +817,20 @@ export type CharacterQueryVariables = Exact<{
 
 export type CharacterQuery = { __typename?: 'Query', character?: { __typename?: 'Character', id: number, name: string, birthday: string, security_status?: number | null, gender: string, bloodline_id: number, race_id: number, description?: string | null, title?: string | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, memberCount: number } | null, race?: { __typename?: 'Race', id: number, name: string, description?: string | null } | null, bloodline?: { __typename?: 'Bloodline', id: number, name: string, description?: string | null } | null } | null };
 
+export type ConstellationsQueryVariables = Exact<{
+  filter?: InputMaybe<ConstellationFilter>;
+}>;
+
+
+export type ConstellationsQuery = { __typename?: 'Query', constellations: { __typename?: 'ConstellationConnection', edges: Array<{ __typename?: 'ConstellationEdge', cursor: string, node: { __typename?: 'Constellation', id: number, name: string, region_id?: number | null, solarSystemCount: number, securityStats: { __typename?: 'SecurityStats', highSec: number, lowSec: number, nullSec: number, wormhole: number, avgSecurity?: number | null }, region?: { __typename?: 'Region', id: number, name: string } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
+export type ConstellationQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type ConstellationQuery = { __typename?: 'Query', constellation?: { __typename?: 'Constellation', id: number, name: string, region_id?: number | null, solarSystemCount: number, securityStats: { __typename?: 'SecurityStats', highSec: number, lowSec: number, nullSec: number, wormhole: number, avgSecurity?: number | null }, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, region?: { __typename?: 'Region', id: number, name: string } | null, solarSystems: Array<{ __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, security_class?: string | null }> } | null };
+
 export type CorporationQueryVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
@@ -821,14 +850,28 @@ export type RegionsQueryVariables = Exact<{
 }>;
 
 
-export type RegionsQuery = { __typename?: 'Query', regions: { __typename?: 'RegionConnection', edges: Array<{ __typename?: 'RegionEdge', cursor: string, node: { __typename?: 'Region', id: number, name: string, description?: string | null, constellations: Array<{ __typename?: 'Constellation', id: number, name: string, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, solarSystems: Array<{ __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, security_class?: string | null, position?: { __typename?: 'Position', x: number, y: number, z: number } | null }> }> } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type RegionsQuery = { __typename?: 'Query', regions: { __typename?: 'RegionConnection', edges: Array<{ __typename?: 'RegionEdge', cursor: string, node: { __typename?: 'Region', id: number, name: string, description?: string | null, constellationCount: number, solarSystemCount: number, securityStats: { __typename?: 'SecurityStats', highSec: number, lowSec: number, nullSec: number, wormhole: number, avgSecurity?: number | null } } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type RegionQueryVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
 
 
-export type RegionQuery = { __typename?: 'Query', region?: { __typename?: 'Region', id: number, name: string, description?: string | null, constellations: Array<{ __typename?: 'Constellation', id: number, name: string, solarSystems: Array<{ __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null }> }> } | null };
+export type RegionQuery = { __typename?: 'Query', region?: { __typename?: 'Region', id: number, name: string, description?: string | null, constellationCount: number, solarSystemCount: number, securityStats: { __typename?: 'SecurityStats', highSec: number, lowSec: number, nullSec: number, wormhole: number, avgSecurity?: number | null }, constellations: Array<{ __typename?: 'Constellation', id: number, name: string, solarSystemCount: number, securityStats: { __typename?: 'SecurityStats', highSec: number, lowSec: number, nullSec: number, avgSecurity?: number | null } }> } | null };
+
+export type SolarSystemsQueryVariables = Exact<{
+  filter?: InputMaybe<SolarSystemFilter>;
+}>;
+
+
+export type SolarSystemsQuery = { __typename?: 'Query', solarSystems: { __typename?: 'SolarSystemConnection', edges: Array<{ __typename?: 'SolarSystemEdge', cursor: string, node: { __typename?: 'SolarSystem', id: number, name: string, constellation_id?: number | null, security_status?: number | null, security_class?: string | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
+export type SolarSystemQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type SolarSystemQuery = { __typename?: 'Query', solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, constellation_id?: number | null, security_status?: number | null, security_class?: string | null, star_id?: number | null, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } | null };
 
 
 export const AllianceDocument = gql`
@@ -1114,6 +1157,137 @@ export type CharacterQueryHookResult = ReturnType<typeof useCharacterQuery>;
 export type CharacterLazyQueryHookResult = ReturnType<typeof useCharacterLazyQuery>;
 export type CharacterSuspenseQueryHookResult = ReturnType<typeof useCharacterSuspenseQuery>;
 export type CharacterQueryResult = Apollo.QueryResult<CharacterQuery, CharacterQueryVariables>;
+export const ConstellationsDocument = gql`
+    query Constellations($filter: ConstellationFilter) {
+  constellations(filter: $filter) {
+    edges {
+      node {
+        id
+        name
+        region_id
+        solarSystemCount
+        securityStats {
+          highSec
+          lowSec
+          nullSec
+          wormhole
+          avgSecurity
+        }
+        region {
+          id
+          name
+        }
+      }
+      cursor
+    }
+    pageInfo {
+      currentPage
+      totalPages
+      totalCount
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useConstellationsQuery__
+ *
+ * To run a query within a React component, call `useConstellationsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useConstellationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useConstellationsQuery({
+ *   variables: {
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useConstellationsQuery(baseOptions?: Apollo.QueryHookOptions<ConstellationsQuery, ConstellationsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ConstellationsQuery, ConstellationsQueryVariables>(ConstellationsDocument, options);
+      }
+export function useConstellationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ConstellationsQuery, ConstellationsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ConstellationsQuery, ConstellationsQueryVariables>(ConstellationsDocument, options);
+        }
+export function useConstellationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ConstellationsQuery, ConstellationsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ConstellationsQuery, ConstellationsQueryVariables>(ConstellationsDocument, options);
+        }
+export type ConstellationsQueryHookResult = ReturnType<typeof useConstellationsQuery>;
+export type ConstellationsLazyQueryHookResult = ReturnType<typeof useConstellationsLazyQuery>;
+export type ConstellationsSuspenseQueryHookResult = ReturnType<typeof useConstellationsSuspenseQuery>;
+export type ConstellationsQueryResult = Apollo.QueryResult<ConstellationsQuery, ConstellationsQueryVariables>;
+export const ConstellationDocument = gql`
+    query Constellation($id: Int!) {
+  constellation(id: $id) {
+    id
+    name
+    region_id
+    solarSystemCount
+    securityStats {
+      highSec
+      lowSec
+      nullSec
+      wormhole
+      avgSecurity
+    }
+    position {
+      x
+      y
+      z
+    }
+    region {
+      id
+      name
+    }
+    solarSystems {
+      id
+      name
+      security_status
+      security_class
+    }
+  }
+}
+    `;
+
+/**
+ * __useConstellationQuery__
+ *
+ * To run a query within a React component, call `useConstellationQuery` and pass it any options that fit your needs.
+ * When your component renders, `useConstellationQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useConstellationQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useConstellationQuery(baseOptions: Apollo.QueryHookOptions<ConstellationQuery, ConstellationQueryVariables> & ({ variables: ConstellationQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ConstellationQuery, ConstellationQueryVariables>(ConstellationDocument, options);
+      }
+export function useConstellationLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ConstellationQuery, ConstellationQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ConstellationQuery, ConstellationQueryVariables>(ConstellationDocument, options);
+        }
+export function useConstellationSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ConstellationQuery, ConstellationQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ConstellationQuery, ConstellationQueryVariables>(ConstellationDocument, options);
+        }
+export type ConstellationQueryHookResult = ReturnType<typeof useConstellationQuery>;
+export type ConstellationLazyQueryHookResult = ReturnType<typeof useConstellationLazyQuery>;
+export type ConstellationSuspenseQueryHookResult = ReturnType<typeof useConstellationSuspenseQuery>;
+export type ConstellationQueryResult = Apollo.QueryResult<ConstellationQuery, ConstellationQueryVariables>;
 export const CorporationDocument = gql`
     query Corporation($id: Int!) {
   corporation(id: $id) {
@@ -1254,25 +1428,14 @@ export const RegionsDocument = gql`
         id
         name
         description
-        constellations {
-          id
-          name
-          position {
-            x
-            y
-            z
-          }
-          solarSystems {
-            id
-            name
-            security_status
-            security_class
-            position {
-              x
-              y
-              z
-            }
-          }
+        constellationCount
+        solarSystemCount
+        securityStats {
+          highSec
+          lowSec
+          nullSec
+          wormhole
+          avgSecurity
         }
       }
       cursor
@@ -1326,13 +1489,24 @@ export const RegionDocument = gql`
     id
     name
     description
+    constellationCount
+    solarSystemCount
+    securityStats {
+      highSec
+      lowSec
+      nullSec
+      wormhole
+      avgSecurity
+    }
     constellations {
       id
       name
-      solarSystems {
-        id
-        name
-        security_status
+      solarSystemCount
+      securityStats {
+        highSec
+        lowSec
+        nullSec
+        avgSecurity
       }
     }
   }
@@ -1371,3 +1545,125 @@ export type RegionQueryHookResult = ReturnType<typeof useRegionQuery>;
 export type RegionLazyQueryHookResult = ReturnType<typeof useRegionLazyQuery>;
 export type RegionSuspenseQueryHookResult = ReturnType<typeof useRegionSuspenseQuery>;
 export type RegionQueryResult = Apollo.QueryResult<RegionQuery, RegionQueryVariables>;
+export const SolarSystemsDocument = gql`
+    query SolarSystems($filter: SolarSystemFilter) {
+  solarSystems(filter: $filter) {
+    edges {
+      node {
+        id
+        name
+        constellation_id
+        security_status
+        security_class
+        constellation {
+          id
+          name
+          region {
+            id
+            name
+          }
+        }
+      }
+      cursor
+    }
+    pageInfo {
+      currentPage
+      totalPages
+      totalCount
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useSolarSystemsQuery__
+ *
+ * To run a query within a React component, call `useSolarSystemsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSolarSystemsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSolarSystemsQuery({
+ *   variables: {
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useSolarSystemsQuery(baseOptions?: Apollo.QueryHookOptions<SolarSystemsQuery, SolarSystemsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SolarSystemsQuery, SolarSystemsQueryVariables>(SolarSystemsDocument, options);
+      }
+export function useSolarSystemsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SolarSystemsQuery, SolarSystemsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SolarSystemsQuery, SolarSystemsQueryVariables>(SolarSystemsDocument, options);
+        }
+export function useSolarSystemsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SolarSystemsQuery, SolarSystemsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SolarSystemsQuery, SolarSystemsQueryVariables>(SolarSystemsDocument, options);
+        }
+export type SolarSystemsQueryHookResult = ReturnType<typeof useSolarSystemsQuery>;
+export type SolarSystemsLazyQueryHookResult = ReturnType<typeof useSolarSystemsLazyQuery>;
+export type SolarSystemsSuspenseQueryHookResult = ReturnType<typeof useSolarSystemsSuspenseQuery>;
+export type SolarSystemsQueryResult = Apollo.QueryResult<SolarSystemsQuery, SolarSystemsQueryVariables>;
+export const SolarSystemDocument = gql`
+    query SolarSystem($id: Int!) {
+  solarSystem(id: $id) {
+    id
+    name
+    constellation_id
+    security_status
+    security_class
+    star_id
+    position {
+      x
+      y
+      z
+    }
+    constellation {
+      id
+      name
+      region {
+        id
+        name
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useSolarSystemQuery__
+ *
+ * To run a query within a React component, call `useSolarSystemQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSolarSystemQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSolarSystemQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useSolarSystemQuery(baseOptions: Apollo.QueryHookOptions<SolarSystemQuery, SolarSystemQueryVariables> & ({ variables: SolarSystemQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SolarSystemQuery, SolarSystemQueryVariables>(SolarSystemDocument, options);
+      }
+export function useSolarSystemLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SolarSystemQuery, SolarSystemQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SolarSystemQuery, SolarSystemQueryVariables>(SolarSystemDocument, options);
+        }
+export function useSolarSystemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SolarSystemQuery, SolarSystemQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SolarSystemQuery, SolarSystemQueryVariables>(SolarSystemDocument, options);
+        }
+export type SolarSystemQueryHookResult = ReturnType<typeof useSolarSystemQuery>;
+export type SolarSystemLazyQueryHookResult = ReturnType<typeof useSolarSystemLazyQuery>;
+export type SolarSystemSuspenseQueryHookResult = ReturnType<typeof useSolarSystemSuspenseQuery>;
+export type SolarSystemQueryResult = Apollo.QueryResult<SolarSystemQuery, SolarSystemQueryVariables>;
