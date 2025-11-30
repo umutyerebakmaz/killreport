@@ -1,7 +1,5 @@
 "use client";
 
-import Tooltip from "@/components/Tooltip/Tooltip";
-
 interface SecurityStats {
   highSec: number;
   lowSec: number;
@@ -24,7 +22,7 @@ export default function SecurityStatsBar({
     stats.highSec + stats.lowSec + stats.nullSec + (stats.wormhole || 0);
 
   if (total === 0) {
-    return <span className="text-gray-500 text-sm">No data</span>;
+    return <span className="text-sm text-gray-500">No data</span>;
   }
 
   const highSecPercent = (stats.highSec / total) * 100;
@@ -32,112 +30,103 @@ export default function SecurityStatsBar({
   const nullSecPercent = (stats.nullSec / total) * 100;
   const wormholePercent = ((stats.wormhole || 0) / total) * 100;
 
+  // Tooltip içeriği
+  const tooltipContent = [
+    stats.highSec > 0 ? `High: ${stats.highSec}` : null,
+    stats.lowSec > 0 ? `Low: ${stats.lowSec}` : null,
+    stats.nullSec > 0 ? `Null: ${stats.nullSec}` : null,
+    (stats.wormhole || 0) > 0 ? `WH: ${stats.wormhole}` : null,
+  ]
+    .filter(Boolean)
+    .join(" | ");
+
   if (compact) {
     return (
       <div className="flex items-center gap-3 text-xs">
         {stats.highSec > 0 && (
-          <Tooltip
-            content={`High Sec: ${stats.highSec} systems`}
-            position="top"
-          >
-            <span className="text-green-400">{stats.highSec}</span>
-          </Tooltip>
+          <span className="text-green-400">{stats.highSec}</span>
         )}
         {stats.lowSec > 0 && (
-          <Tooltip content={`Low Sec: ${stats.lowSec} systems`} position="top">
-            <span className="text-yellow-400">{stats.lowSec}</span>
-          </Tooltip>
+          <span className="text-yellow-400">{stats.lowSec}</span>
         )}
         {stats.nullSec > 0 && (
-          <Tooltip
-            content={`Null Sec: ${stats.nullSec} systems`}
-            position="top"
-          >
-            <span className="text-red-400">{stats.nullSec}</span>
-          </Tooltip>
+          <span className="text-red-400">{stats.nullSec}</span>
         )}
         {(stats.wormhole || 0) > 0 && (
-          <Tooltip
-            content={`Wormhole: ${stats.wormhole} systems`}
-            position="top"
-          >
-            <span className="text-purple-400">{stats.wormhole}</span>
-          </Tooltip>
+          <span className="text-purple-400">{stats.wormhole}</span>
         )}
       </div>
     );
   }
 
   return (
-    <div className="w-full">
-      {/* Progress Bar with inline numbers */}
-      <Tooltip
-        content={`High: ${stats.highSec} | Low: ${stats.lowSec} | Null: ${
-          stats.nullSec
-        }${stats.wormhole ? ` | WH: ${stats.wormhole}` : ""}`}
-        position="top"
+    <div className="w-full min-w-[120px]">
+      {/* Progress Bar */}
+      <div
+        className="relative w-full h-4 overflow-hidden bg-gray-700 cursor-pointer"
+        title={tooltipContent}
       >
-        <div className="flex h-5 w-full overflow-hidden bg-gray-800 cursor-pointer">
-          {highSecPercent > 0 && (
-            <div
-              className="bg-green-500/80 h-full flex items-center justify-center text-[10px] font-medium text-white overflow-hidden"
-              style={{ width: `${highSecPercent}%` }}
-            >
-              {highSecPercent >= 15 && stats.highSec}
-            </div>
-          )}
-          {lowSecPercent > 0 && (
-            <div
-              className="bg-yellow-500/80 h-full flex items-center justify-center text-[10px] font-medium text-gray-900 overflow-hidden"
-              style={{ width: `${lowSecPercent}%` }}
-            >
-              {lowSecPercent >= 15 && stats.lowSec}
-            </div>
-          )}
-          {nullSecPercent > 0 && (
-            <div
-              className="bg-red-500/80 h-full flex items-center justify-center text-[10px] font-medium text-white overflow-hidden"
-              style={{ width: `${nullSecPercent}%` }}
-            >
-              {nullSecPercent >= 15 && stats.nullSec}
-            </div>
-          )}
-          {wormholePercent > 0 && (
-            <div
-              className="bg-purple-500/80 h-full flex items-center justify-center text-[10px] font-medium text-white overflow-hidden"
-              style={{ width: `${wormholePercent}%` }}
-            >
-              {wormholePercent >= 15 && stats.wormhole}
-            </div>
-          )}
-        </div>
-      </Tooltip>
+        {/* Stacked bars using absolute positioning */}
+        {highSecPercent > 0 && (
+          <div
+            className="absolute top-0 left-0 h-full bg-green-500"
+            style={{ width: `${highSecPercent}%` }}
+          />
+        )}
+        {lowSecPercent > 0 && (
+          <div
+            className="absolute top-0 h-full bg-yellow-500"
+            style={{
+              left: `${highSecPercent}%`,
+              width: `${lowSecPercent}%`,
+            }}
+          />
+        )}
+        {nullSecPercent > 0 && (
+          <div
+            className="absolute top-0 h-full bg-red-500"
+            style={{
+              left: `${highSecPercent + lowSecPercent}%`,
+              width: `${nullSecPercent}%`,
+            }}
+          />
+        )}
+        {wormholePercent > 0 && (
+          <div
+            className="absolute top-0 h-full bg-purple-500"
+            style={{
+              left: `${highSecPercent + lowSecPercent + nullSecPercent}%`,
+              width: `${wormholePercent}%`,
+            }}
+          />
+        )}
+      </div>
 
       {/* Labels */}
       {showLabels && (
-        <div className="flex items-center gap-4 mt-2 text-xs">
+        <div className="flex flex-wrap items-center gap-3 mt-2 text-xs">
           {stats.highSec > 0 && (
             <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-green-500" />
-              <span className="text-gray-400">High: {stats.highSec}</span>
+              <div className="w-2 h-2 bg-green-500" />
+              <span className="text-gray-400">{stats.highSec}</span>
             </div>
           )}
           {stats.lowSec > 0 && (
             <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-yellow-500" />
-              <span className="text-gray-400">Low: {stats.lowSec}</span>
+              <div className="w-2 h-2 bg-yellow-500" />
+              <span className="text-gray-400">{stats.lowSec}</span>
             </div>
           )}
           {stats.nullSec > 0 && (
             <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-red-500" />
-              <span className="text-gray-400">Null: {stats.nullSec}</span>
+              <div className="w-2 h-2 bg-red-500" />
+              <span className="text-gray-400">{stats.nullSec}</span>
             </div>
           )}
           {(stats.wormhole || 0) > 0 && (
             <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-purple-500" />
-              <span className="text-gray-400">WH: {stats.wormhole}</span>
+              <div className="w-2 h-2 bg-purple-500" />
+              <span className="text-gray-400">{stats.wormhole}</span>
             </div>
           )}
         </div>

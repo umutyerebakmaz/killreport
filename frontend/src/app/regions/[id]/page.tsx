@@ -117,7 +117,7 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
                     Average Security:
                   </span>
                   <span
-                    className={`font-mono font-medium ${
+                    className={`font-medium ${
                       region.securityStats.avgSecurity >= 0.5
                         ? "text-green-400"
                         : region.securityStats.avgSecurity > 0
@@ -162,7 +162,7 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
                 <dl className="space-y-3">
                   <div className="flex justify-between">
                     <dt className="text-gray-400">Region ID</dt>
-                    <dd className="font-mono text-gray-200">{region.id}</dd>
+                    <dd className="text-gray-200">{region.id}</dd>
                   </div>
                   <div className="flex justify-between">
                     <dt className="text-gray-400">Constellations</dt>
@@ -291,7 +291,7 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
                           constellation.securityStats?.avgSecurity !==
                             undefined ? (
                             <span
-                              className={`font-mono ${
+                              className={`${
                                 constellation.securityStats.avgSecurity >= 0.5
                                   ? "text-green-400"
                                   : constellation.securityStats.avgSecurity > 0
