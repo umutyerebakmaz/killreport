@@ -114,7 +114,7 @@ export default function CharacterDetailPage({
             alt={character.name}
             width={128}
             height={128}
-            className="rounded shadow-md"
+            className="shadow-md"
           />
           <div className="flex-1">
             <h1 className="text-4xl font-bold">{character.name}</h1>

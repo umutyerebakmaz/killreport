@@ -196,6 +196,8 @@ export type Constellation = {
   position?: Maybe<Position>;
   region?: Maybe<Region>;
   region_id?: Maybe<Scalars['Int']['output']>;
+  securityStats: SecurityStats;
+  solarSystemCount: Scalars['Int']['output'];
   solarSystems: Array<SolarSystem>;
 };
 
@@ -589,10 +591,13 @@ export type Race = {
 
 export type Region = {
   __typename?: 'Region';
+  constellationCount: Scalars['Int']['output'];
   constellations: Array<Constellation>;
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
+  securityStats: SecurityStats;
+  solarSystemCount: Scalars['Int']['output'];
 };
 
 export type RegionConnection = {
@@ -620,6 +625,15 @@ export enum RegionOrderBy {
   NameDesc = 'nameDesc'
 }
 
+export type SecurityStats = {
+  __typename?: 'SecurityStats';
+  avgSecurity?: Maybe<Scalars['Float']['output']>;
+  highSec: Scalars['Int']['output'];
+  lowSec: Scalars['Int']['output'];
+  nullSec: Scalars['Int']['output'];
+  wormhole: Scalars['Int']['output'];
+};
+
 export type SolarSystem = {
   __typename?: 'SolarSystem';
   constellation?: Maybe<Constellation>;
@@ -645,6 +659,7 @@ export type SolarSystemEdge = {
 };
 
 export type SolarSystemFilter = {
+  constellation_id?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   orderBy?: InputMaybe<SolarSystemOrderBy>;
@@ -895,6 +910,7 @@ export type ResolversTypes = {
   RegionEdge: ResolverTypeWrapper<RegionEdge>;
   RegionFilter: RegionFilter;
   RegionOrderBy: RegionOrderBy;
+  SecurityStats: ResolverTypeWrapper<SecurityStats>;
   SolarSystem: ResolverTypeWrapper<SolarSystem>;
   SolarSystemConnection: ResolverTypeWrapper<SolarSystemConnection>;
   SolarSystemEdge: ResolverTypeWrapper<SolarSystemEdge>;
@@ -965,6 +981,7 @@ export type ResolversParentTypes = {
   RegionConnection: RegionConnection;
   RegionEdge: RegionEdge;
   RegionFilter: RegionFilter;
+  SecurityStats: SecurityStats;
   SolarSystem: SolarSystem;
   SolarSystemConnection: SolarSystemConnection;
   SolarSystemEdge: SolarSystemEdge;
@@ -1109,6 +1126,8 @@ export type ConstellationResolvers<ContextType = any, ParentType extends Resolve
   position?: Resolver<Maybe<ResolversTypes['Position']>, ParentType, ContextType>;
   region?: Resolver<Maybe<ResolversTypes['Region']>, ParentType, ContextType>;
   region_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  securityStats?: Resolver<ResolversTypes['SecurityStats'], ParentType, ContextType>;
+  solarSystemCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   solarSystems?: Resolver<Array<ResolversTypes['SolarSystem']>, ParentType, ContextType>;
 };
 
@@ -1274,10 +1293,13 @@ export type RaceResolvers<ContextType = any, ParentType extends ResolversParentT
 };
 
 export type RegionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Region'] = ResolversParentTypes['Region']> = {
+  constellationCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   constellations?: Resolver<Array<ResolversTypes['Constellation']>, ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  securityStats?: Resolver<ResolversTypes['SecurityStats'], ParentType, ContextType>;
+  solarSystemCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
 export type RegionConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['RegionConnection'] = ResolversParentTypes['RegionConnection']> = {
@@ -1288,6 +1310,14 @@ export type RegionConnectionResolvers<ContextType = any, ParentType extends Reso
 export type RegionEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['RegionEdge'] = ResolversParentTypes['RegionEdge']> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Region'], ParentType, ContextType>;
+};
+
+export type SecurityStatsResolvers<ContextType = any, ParentType extends ResolversParentTypes['SecurityStats'] = ResolversParentTypes['SecurityStats']> = {
+  avgSecurity?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  highSec?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  lowSec?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  nullSec?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  wormhole?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
 export type SolarSystemResolvers<ContextType = any, ParentType extends ResolversParentTypes['SolarSystem'] = ResolversParentTypes['SolarSystem']> = {
@@ -1414,6 +1444,7 @@ export type Resolvers<ContextType = any> = {
   Region?: RegionResolvers<ContextType>;
   RegionConnection?: RegionConnectionResolvers<ContextType>;
   RegionEdge?: RegionEdgeResolvers<ContextType>;
+  SecurityStats?: SecurityStatsResolvers<ContextType>;
   SolarSystem?: SolarSystemResolvers<ContextType>;
   SolarSystemConnection?: SolarSystemConnectionResolvers<ContextType>;
   SolarSystemEdge?: SolarSystemEdgeResolvers<ContextType>;

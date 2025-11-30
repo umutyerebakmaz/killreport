@@ -21,8 +21,10 @@ body {
 .alliance-detail-card,
 .region-detail-card,
 .constellation-detail-card,
-.system-detail-card {
-  @apply border bg-white/5 border-white/10 p-4 flex flex-col;
+.system-detail-card,
+.corporation-detail-card,
+.character-detail-card {
+  @apply border bg-white/5 border-white/10 p-6 flex flex-col;
 }
 
 .text-input {

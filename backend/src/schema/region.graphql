@@ -1,8 +1,19 @@
+type SecurityStats {
+  highSec: Int!
+  lowSec: Int!
+  nullSec: Int!
+  wormhole: Int!
+  avgSecurity: Float
+}
+
 type Region {
   id: Int!
   name: String!
   description: String
   constellations: [Constellation!]!
+  constellationCount: Int!
+  solarSystemCount: Int!
+  securityStats: SecurityStats!
 }
 
 enum RegionOrderBy {
