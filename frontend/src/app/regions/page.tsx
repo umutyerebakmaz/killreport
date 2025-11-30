@@ -251,7 +251,7 @@ export default function RegionsPage() {
                     {region.securityStats?.avgSecurity !== null &&
                     region.securityStats?.avgSecurity !== undefined ? (
                       <span
-                        className={`font-mono ${
+                        className={`${
                           region.securityStats.avgSecurity >= 0.5
                             ? "text-green-400"
                             : region.securityStats.avgSecurity > 0
