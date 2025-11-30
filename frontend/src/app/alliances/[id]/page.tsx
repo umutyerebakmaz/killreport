@@ -280,7 +280,6 @@ export default function AllianceDetailPage({
                                 alt={corp.name}
                                 width={32}
                                 height={32}
-                                className="rounded"
                               />
                               <Link
                                 href={`/corporations/${corp.id}`}
