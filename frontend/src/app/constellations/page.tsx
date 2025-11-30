@@ -212,7 +212,7 @@ export default function ConstellationsPage() {
                     {constellation.securityStats?.avgSecurity !== null &&
                     constellation.securityStats?.avgSecurity !== undefined ? (
                       <span
-                        className={`font-mono ${
+                        className={`${
                           constellation.securityStats.avgSecurity >= 0.5
                             ? "text-green-400"
                             : constellation.securityStats.avgSecurity > 0
