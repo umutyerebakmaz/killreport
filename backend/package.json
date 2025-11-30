@@ -64,7 +64,7 @@
     "@types/amqplib": "^0.10.8",
     "@types/pg": "^8.15.5",
     "graphql-codegen-schema-ast": "^0.18.2",
-    "nodemon": "3.1.10",
+    "nodemon": "3.1.11",
     "prisma": "^6.18.0",
     "ts-node": "10.9.2"
   }
