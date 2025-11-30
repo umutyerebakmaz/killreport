@@ -142,7 +142,7 @@ export default function SolarSystemDetailPage({
             <dl className="space-y-2">
               <div className="flex justify-between">
                 <dt className="text-gray-400">Security</dt>
-                <dd className={`font-mono font-medium ${securityColor}`}>
+                <dd className={`font-medium ${securityColor}`}>
                   {system.security_status != null
                     ? system.security_status.toFixed(2)
                     : "W-Space"}
@@ -175,11 +175,11 @@ export default function SolarSystemDetailPage({
             <dl className="space-y-3">
               <div className="flex justify-between">
                 <dt className="text-gray-400">System ID</dt>
-                <dd className="font-mono text-gray-200">{system.id}</dd>
+                <dd className="text-gray-200">{system.id}</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-gray-400">Security Status</dt>
-                <dd className={`font-mono ${securityColor}`}>
+                <dd className={`${securityColor}`}>
                   {system.security_status != null
                     ? system.security_status.toFixed(5)
                     : "N/A"}
@@ -194,7 +194,7 @@ export default function SolarSystemDetailPage({
               {system.star_id && (
                 <div className="flex justify-between">
                   <dt className="text-gray-400">Star ID</dt>
-                  <dd className="font-mono text-gray-200">{system.star_id}</dd>
+                  <dd className="text-gray-200">{system.star_id}</dd>
                 </div>
               )}
             </dl>
@@ -266,19 +266,19 @@ export default function SolarSystemDetailPage({
               <dl className="space-y-4">
                 <div>
                   <dt className="text-sm text-gray-400">X Coordinate</dt>
-                  <dd className="font-mono text-lg text-gray-200">
+                  <dd className="text-lg text-gray-200">
                     {system.position.x.toExponential(4)}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-sm text-gray-400">Y Coordinate</dt>
-                  <dd className="font-mono text-lg text-gray-200">
+                  <dd className="text-lg text-gray-200">
                     {system.position.y.toExponential(4)}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-sm text-gray-400">Z Coordinate</dt>
-                  <dd className="font-mono text-lg text-gray-200">
+                  <dd className="text-lg text-gray-200">
                     {system.position.z.toExponential(4)}
                   </dd>
                 </div>
