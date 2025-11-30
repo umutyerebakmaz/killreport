@@ -1,0 +1,53 @@
+query SolarSystems($filter: SolarSystemFilter) {
+  solarSystems(filter: $filter) {
+    edges {
+      node {
+        id
+        name
+        constellation_id
+        security_status
+        security_class
+        constellation {
+          id
+          name
+          region {
+            id
+            name
+          }
+        }
+      }
+      cursor
+    }
+    pageInfo {
+      currentPage
+      totalPages
+      totalCount
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+
+query SolarSystem($id: Int!) {
+  solarSystem(id: $id) {
+    id
+    name
+    constellation_id
+    security_status
+    security_class
+    star_id
+    position {
+      x
+      y
+      z
+    }
+    constellation {
+      id
+      name
+      region {
+        id
+        name
+      }
+    }
+  }
+}
