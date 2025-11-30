@@ -9,8 +9,6 @@ import {
   ChevronDownIcon,
   GlobeAltIcon,
   MagnifyingGlassIcon,
-  MapIcon,
-  MapPinIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -80,7 +78,7 @@ export default function RegionsPage() {
       <div className="sm:flex sm:items-center sm:justify-between">
         <div className="sm:flex-auto">
           <h1 className="flex items-center gap-3 text-3xl font-semibold text-white">
-            <GlobeAltIcon className="w-8 h-8 text-cyan-500" />
+            <GlobeAltIcon className="w-8 h-8 text-cyan-400" />
             Regions
           </h1>
           <p className="mt-2 text-gray-400">
@@ -145,25 +143,19 @@ export default function RegionsPage() {
         <table className="min-w-full divide-y divide-white/10">
           <thead className="bg-white/5">
             <tr>
-              <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-300 uppercase">
+              <th className="px-6 py-4 text-base font-medium tracking-wider text-left text-gray-300 uppercase">
                 Region
               </th>
-              <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-300 uppercase">
-                <div className="flex items-center gap-2">
-                  <MapIcon className="w-4 h-4 text-purple-400" />
-                  Constellations
-                </div>
+              <th className="px-6 py-4 text-base font-medium tracking-wider text-left text-gray-300 uppercase">
+                <div className="flex items-center">Constellations</div>
               </th>
-              <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-300 uppercase">
-                <div className="flex items-center gap-2">
-                  <MapPinIcon className="w-4 h-4 text-orange-400" />
-                  Systems
-                </div>
+              <th className="px-6 py-4 text-base font-medium tracking-wider text-left text-gray-300 uppercase">
+                <div className="flex items-center">Systems</div>
               </th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[200px]">
+              <th className="px-6 py-4 text-left text-base font-medium text-gray-300 uppercase tracking-wider min-w-[200px]">
                 Security Distribution
               </th>
-              <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-300 uppercase">
+              <th className="px-6 py-4 text-base font-medium tracking-wider text-left text-gray-300 uppercase">
                 Avg Security
               </th>
             </tr>
@@ -196,45 +188,35 @@ export default function RegionsPage() {
                   key={region.id}
                   className="transition-colors hover:bg-white/5"
                 >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <GlobeAltIcon className="w-6 h-6 text-cyan-500 shrink-0" />
-                      <div>
-                        <Link
-                          href={`/regions/${region.id}`}
-                          className="font-medium transition-colors text-cyan-400 hover:text-cyan-300"
-                        >
-                          {region.name}
-                        </Link>
-                        {region.description && (
-                          <p className="text-xs text-gray-500 mt-0.5 line-clamp-1 max-w-xs">
-                            {region.description}
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                  <td className="px-6 py-4 text-base">
+                    <Link
+                      href={`/regions/${region.id}`}
+                      className="font-medium transition-colors text-cyan-400 hover:text-cyan-300"
+                    >
+                      {region.name}
+                    </Link>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 text-base">
                     <Tooltip
                       content="Constellations in this region"
                       position="top"
                     >
-                      <span className="font-medium text-purple-300">
+                      <span className="font-medium text-white">
                         {region.constellationCount}
                       </span>
                     </Tooltip>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 text-base">
                     <Tooltip
                       content="Solar systems in this region"
                       position="top"
                     >
-                      <span className="font-medium text-orange-300">
+                      <span className="font-medium text-white">
                         {region.solarSystemCount}
                       </span>
                     </Tooltip>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 text-base">
                     {region.securityStats && (
                       <SecurityStatsBar
                         stats={{
@@ -247,7 +229,7 @@ export default function RegionsPage() {
                       />
                     )}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 text-base">
                     {region.securityStats?.avgSecurity !== null &&
                     region.securityStats?.avgSecurity !== undefined ? (
                       <span
