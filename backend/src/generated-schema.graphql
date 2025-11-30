@@ -164,6 +164,8 @@ type Constellation {
   position: Position
   region: Region
   region_id: Int
+  securityStats: SecurityStats!
+  solarSystemCount: Int!
   solarSystems: [SolarSystem!]!
 }
 
@@ -404,10 +406,13 @@ type Race {
 }
 
 type Region {
+  constellationCount: Int!
   constellations: [Constellation!]!
   description: String
   id: Int!
   name: String!
+  securityStats: SecurityStats!
+  solarSystemCount: Int!
 }
 
 type RegionConnection {
@@ -433,6 +438,14 @@ enum RegionOrderBy {
   nameDesc
 }
 
+type SecurityStats {
+  avgSecurity: Float
+  highSec: Int!
+  lowSec: Int!
+  nullSec: Int!
+  wormhole: Int!
+}
+
 type SolarSystem {
   constellation: Constellation
   constellation_id: Int
@@ -455,6 +468,7 @@ type SolarSystemEdge {
 }
 
 input SolarSystemFilter {
+  constellation_id: Int
   limit: Int
   name: String
   orderBy: SolarSystemOrderBy
