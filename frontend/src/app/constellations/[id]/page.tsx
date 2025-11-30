@@ -131,7 +131,7 @@ export default function ConstellationDetailPage({
                     Average Security:
                   </span>
                   <span
-                    className={`font-mono font-medium ${
+                    className={`font-medium ${
                       constellation.securityStats.avgSecurity >= 0.5
                         ? "text-green-400"
                         : constellation.securityStats.avgSecurity > 0
@@ -178,9 +178,7 @@ export default function ConstellationDetailPage({
                 <dl className="space-y-3">
                   <div className="flex justify-between">
                     <dt className="text-gray-400">Constellation ID</dt>
-                    <dd className="font-mono text-gray-200">
-                      {constellation.id}
-                    </dd>
+                    <dd className="text-gray-200">{constellation.id}</dd>
                   </div>
                   {constellation.region && (
                     <div className="flex justify-between">
@@ -258,19 +256,19 @@ export default function ConstellationDetailPage({
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div>
                       <div className="text-sm text-gray-400">X</div>
-                      <div className="font-mono text-gray-200">
+                      <div className="text-gray-200">
                         {constellation.position.x.toExponential(2)}
                       </div>
                     </div>
                     <div>
                       <div className="text-sm text-gray-400">Y</div>
-                      <div className="font-mono text-gray-200">
+                      <div className="text-gray-200">
                         {constellation.position.y.toExponential(2)}
                       </div>
                     </div>
                     <div>
                       <div className="text-sm text-gray-400">Z</div>
-                      <div className="font-mono text-gray-200">
+                      <div className="text-gray-200">
                         {constellation.position.z.toExponential(2)}
                       </div>
                     </div>
