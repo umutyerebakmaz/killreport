@@ -20,7 +20,7 @@ export default function RegionCard({ region }: RegionCardProps) {
       <div className="px-4 py-5 sm:p-6">
         <div className="flex flex-col items-center gap-4">
           {/* Region Icon */}
-          <div className="flex items-center justify-center w-32 h-32 rounded bg-gray-800/50">
+          <div className="flex items-center justify-center w-32 h-32 bg-gray-800/50">
             <GlobeAltIcon className="w-16 h-16 text-cyan-500" />
           </div>
 
