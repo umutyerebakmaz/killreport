@@ -10,24 +10,4 @@
       ]
     }
   },
-  "discord.enabled": true,
-  "discord.detailsEditing": "🚀 Working on {file_name} in {dir_name}",
-  "discord.detailsViewing": "👀 Viewing {file_name} in {dir_name}",
-  "discord.detailsDebugging": "🐛 Debugging {file_name} in {dir_name}",
-  "discord.detailsIdle": "💤 Taking a break",
-  "discord.lowerDetailsEditing": "📂 {workspace} • {file_size}",
-  "discord.lowerDetailsViewing": "📂 {workspace} • {file_size}",
-  "discord.lowerDetailsDebugging": "📂 {workspace} • {problems} problems",
-  "discord.lowerDetailsIdle": "Workspace: {workspace}",
-  "discord.largeImage": "{lang}",
-  "discord.largeImageIdling": "VS Code",
-  "discord.smallImage": "{app_name}",
-  "discord.showElapsedTime": true,
-  "discord.workspaceElapsedTime": false,
-  "discord.workspaceExcludePatterns": [],
-  "discord.suppressNotifications": true,
-  "discord.buttonEnabled": true,
-  "discord.removeDetails": false,
-  "discord.removeLowerDetails": false,
-  "discord.removeTimestamp": false
 }
