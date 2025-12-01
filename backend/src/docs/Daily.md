@@ -12,8 +12,8 @@ yarn worker:discover-corporations # Her alliance'ın corp ID'lerini ESI'dan çek
 yarn worker:info:corporations     # Corporation detaylarını ESI'dan çek ve GÜNCELLE
 
 # 2. Take Snapshots
-yarn snapshot:corporations
 yarn snapshot:alliances
+yarn snapshot:corporations
 ```
 
 ## 📖 What Each Command Does
