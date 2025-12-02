@@ -106,10 +106,6 @@ async function allianceInfoWorker() {
                     channel.ack(msg);
                     totalProcessed++;
 
-                    if (totalProcessed % 20 === 0) {
-                        console.log(`📊 Summary: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)`);
-                    }
-
                 } catch (error: any) {
                     totalErrors++;
                     totalProcessed++;
@@ -120,10 +116,6 @@ async function allianceInfoWorker() {
                     } else {
                         console.error(`  × [${totalProcessed}] Alliance ${message.entityId}: ${error.message}`);
                         channel.nack(msg, false, true);
-                    }
-
-                    if (totalProcessed % 20 === 0) {
-                        console.log(`📊 Summary: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)`);
                     }
                 }
             },
