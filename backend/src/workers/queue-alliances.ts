@@ -1,8 +1,7 @@
-import axios from 'axios';
 import '../config';
+import { AllianceService } from '../services/alliance';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
-const ESI_BASE_URL = 'https://esi.evetech.net/latest';
 const QUEUE_NAME = 'esi_alliance_info_queue';
 const BATCH_SIZE = 100;
 
@@ -15,8 +14,7 @@ async function queueAlliances() {
 
   try {
     // Get all alliance IDs from ESI
-    const response = await axios.get(`${ESI_BASE_URL}/alliances/`);
-    const allianceIds: number[] = response.data;
+    const allianceIds = await AllianceService.getAllAllianceIds();
 
     console.log(`✓ Found ${allianceIds.length} alliances`);
     console.log(`📤 Adding to queue: ${QUEUE_NAME}\n`);

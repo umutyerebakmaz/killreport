@@ -1,10 +1,7 @@
 import { MutationResolvers, QueryResolvers } from '../generated-types';
-import {
-  getCharacterInfo,
-  getCharacterKillmails,
-  getCorporationKillmails,
-  getKillmailDetail,
-} from '../services/eve-esi';
+import { CharacterService } from '../services/character';
+import { CorporationService } from '../services/corporation';
+import { KillmailService } from '../services/killmail';
 
 // Mock data
 const killmails = [
@@ -109,7 +106,7 @@ export const killmailQueries: QueryResolvers = {
 
     try {
       // Fetch user's killmails from ESI
-      const killmailList = await getCharacterKillmails(
+      const killmailList = await CharacterService.getCharacterKillmails(
         context.user.characterId,
         context.token
       );
@@ -121,7 +118,7 @@ export const killmailQueries: QueryResolvers = {
       const killmailsWithDetails = await Promise.all(
         limitedList.map(async (km) => {
           try {
-            const detail = await getKillmailDetail(
+            const detail = await KillmailService.getKillmailDetail(
               km.killmail_id,
               km.killmail_hash
             );
@@ -177,7 +174,7 @@ export const killmailQueries: QueryResolvers = {
 
     try {
       // First get user's corporation ID
-      const characterInfo = await getCharacterInfo(context.user.characterId);
+      const characterInfo = await CharacterService.getCharacterInfo(context.user.characterId);
 
       if (!characterInfo.corporation_id) {
         throw new Error('Character has no corporation');
@@ -186,7 +183,7 @@ export const killmailQueries: QueryResolvers = {
       console.log(`📊 Fetching corporation killmails for corp ${characterInfo.corporation_id}`);
 
       // Fetch corporation killmails from ESI
-      const killmailList = await getCorporationKillmails(
+      const killmailList = await CorporationService.getCorporationKillmails(
         characterInfo.corporation_id,
         context.token
       );
@@ -200,7 +197,7 @@ export const killmailQueries: QueryResolvers = {
       const killmailsWithDetails = await Promise.all(
         limitedList.map(async (km) => {
           try {
-            const detail = await getKillmailDetail(
+            const detail = await KillmailService.getKillmailDetail(
               km.killmail_id,
               km.killmail_hash
             );
@@ -260,7 +257,7 @@ export const killmailMutations: MutationResolvers = {
 
     try {
       // Fetch killmails from ESI
-      const killmailList = await getCharacterKillmails(
+      const killmailList = await CharacterService.getCharacterKillmails(
         context.user.characterId,
         context.token
       );

@@ -4,9 +4,9 @@
  */
 
 import '../config';
-import { getTypeInfo } from '../services/eve-esi';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
+import { TypeService } from '../services/type';
 
 const QUEUE_NAME = 'esi_type_info_queue';
 const PREFETCH_COUNT = 10; // Process 10 types concurrently
@@ -80,7 +80,7 @@ async function typeInfoWorker() {
                     }
 
                     // Fetch from ESI
-                    const typeInfo = await getTypeInfo(typeId);
+                    const typeInfo = await TypeService.getTypeInfo(typeId);
 
                     // Save to database (upsert to prevent race condition)
                     const result = await prisma.type.upsert({
