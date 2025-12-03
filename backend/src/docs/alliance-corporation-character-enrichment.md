@@ -57,13 +57,13 @@ Step 2: Worker (worker-info-characters.ts)
 
 ## 📋 Character IDs Collected
 
-### From `alliances` Table:
+### From `alliances` Table
 
 | Field        | Description                        | Example  |
 | ------------ | ---------------------------------- | -------- |
 | `creator_id` | Character who created the alliance | 95465499 |
 
-### From `corporations` Table:
+### From `corporations` Table
 
 | Field        | Description                           | Example  |
 | ------------ | ------------------------------------- | -------- |
@@ -83,7 +83,7 @@ cd backend
 yarn queue:alliance-corp-characters
 ```
 
-#### What it does:
+#### What it does
 
 1. Fetches all alliances and corporations from database
 2. Collects unique character IDs (creator_id, ceo_id)
@@ -93,9 +93,9 @@ yarn queue:alliance-corp-characters
 4. Checks which characters already exist in database
 5. Queues only missing characters to RabbitMQ
 
-#### Expected Output:
+#### Expected Output
 
-```
+```bash
 🤝 Alliance-Corporation Character Queue Script Started
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📊 Fetching data from database...
@@ -139,7 +139,7 @@ yarn queue:alliance-corp-characters
 yarn worker:info:characters
 ```
 
-#### What it does:
+#### What it does
 
 1. Connects to RabbitMQ queue
 2. Processes 20 characters concurrently (configurable)
@@ -152,7 +152,7 @@ yarn worker:info:characters
    - 404 errors → Character deleted, acknowledge and skip
    - Other errors → Requeue for retry
 
-#### Expected Output:
+#### Expected Output
 
 ```
 👤 Character Info Worker Started
@@ -212,7 +212,7 @@ const QUEUE_NAME = "esi_character_info_queue";
 const PREFETCH_COUNT = 20; // Process 20 characters concurrently
 ```
 
-#### Performance Tuning:
+#### Performance Tuning
 
 | PREFETCH_COUNT | Speed      | Risk      | Recommendation           |
 | -------------- | ---------- | --------- | ------------------------ |
@@ -250,7 +250,7 @@ class RateLimiter {
 }
 ```
 
-### Safety Features:
+### Safety Features
 
 - ✅ Queue-based request management
 - ✅ Automatic window reset (1 second)
@@ -362,7 +362,7 @@ CREATE TABLE characters (
 );
 ```
 
-### Data Saved from ESI:
+### Data Saved from ESI
 
 | Field           | Type     | Source                      |
 | --------------- | -------- | --------------------------- |
@@ -392,7 +392,7 @@ CREATE TABLE characters (
 }
 ```
 
-### Script Descriptions:
+### Script Descriptions
 
 | Script                           | Purpose                      | When to Use                      |
 | -------------------------------- | ---------------------------- | -------------------------------- |
@@ -403,7 +403,7 @@ CREATE TABLE characters (
 
 ## 🎯 Use Cases
 
-### When to Run This System:
+### When to Run This System
 
 1. **Initial Setup**
 
@@ -436,10 +436,12 @@ CREATE TABLE characters (
    - Updates relationships
 
 4. **Manual Enrichment**
+
    ```bash
    # Check and fill missing characters
    yarn queue:alliance-corp-characters
    ```
+
    - On-demand character data updates
    - Fill gaps in existing data
 
@@ -511,7 +513,7 @@ yarn worker:info:characters
 
 - No action needed - messages are automatically requeued
 - Worker will retry them later
-- If persistent, check ESI status: https://esi.evetech.net/
+- If persistent, check ESI status: <https://esi.evetech.net/>
 
 ---
 
@@ -574,7 +576,7 @@ yarn queue:alliance-corp-characters
 
 ## 📈 Performance Metrics
 
-### Expected Processing Speed:
+### Expected Processing Speed
 
 | Configuration     | Characters/Second | Time for 1000 chars |
 | ----------------- | ----------------- | ------------------- |
@@ -594,13 +596,13 @@ yarn queue:alliance-corp-characters
 
 ## 🔗 Related Systems
 
-### Dependencies:
+### Dependencies
 
 - **Alliance Info Worker:** `worker-info-alliances.ts`
 - **Corporation Info Worker:** `worker-info-corporations.ts`
 - **Killmail Entity Scanner:** `scan-killmail-entities.ts`
 
-### Workflow Integration:
+### Workflow Integration
 
 ```
 1. Queue & Process Alliances
@@ -616,7 +618,7 @@ yarn queue:alliance-corp-characters
 
 ## 📞 Support & Debugging
 
-### Enable Debug Logging:
+### Enable Debug Logging
 
 ```typescript
 // Add to worker-info-characters.ts
@@ -624,14 +626,14 @@ console.log("Debug: Processing character", characterId);
 console.log("Debug: ESI Response:", charInfo);
 ```
 
-### Check RabbitMQ Queue:
+### Check RabbitMQ Queue
 
 ```bash
 # In RabbitMQ management UI or CLI
 rabbitmqctl list_queues
 ```
 
-### Check Database:
+### Check Database
 
 ```sql
 -- Count characters from alliances/corporations

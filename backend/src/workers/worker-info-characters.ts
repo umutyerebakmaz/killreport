@@ -4,7 +4,7 @@
  */
 
 import '../config';
-import { getCharacterInfo } from '../services/eve-esi';
+import { CharacterService } from '../services/character';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
@@ -70,7 +70,7 @@ async function characterInfoWorker() {
                     });
 
                     // Fetch from ESI (her zaman güncel bilgiyi al)
-                    const charInfo = await getCharacterInfo(characterId);
+                    const charInfo = await CharacterService.getCharacterInfo(characterId);
 
                     // Save to database (upsert to prevent race condition)
                     await prisma.character.upsert({
