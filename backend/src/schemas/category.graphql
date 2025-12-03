@@ -1,0 +1,43 @@
+type Category {
+  id: Int!
+  name: String!
+  published: Boolean!
+  created_at: String!
+  updated_at: String!
+}
+
+type CategoryEdge {
+  node: Category!
+  cursor: String!
+}
+
+type CategoryConnection {
+  edges: [CategoryEdge!]!
+  pageInfo: PageInfo!
+}
+
+input CategoryFilter {
+  page: Int
+  limit: Int
+  search: String
+  published: Boolean
+}
+
+input StartCategorySyncInput {
+  clientMutationId: String
+}
+
+type StartCategorySyncPayload {
+  success: Boolean!
+  message: String
+  clientMutationId: String
+}
+
+extend type Query {
+  category(id: Int!): Category
+  categories(filter: CategoryFilter): CategoryConnection!
+}
+
+extend type Mutation {
+  startCategorySync(input: StartCategorySyncInput!): StartCategorySyncPayload!
+}
