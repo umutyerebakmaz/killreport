@@ -10,7 +10,7 @@ When a new killmail is added to the database, information about **characters**, 
 
 The info fetch system uses 4 specialized workers for maximum scalability:
 
-```
+```bash
 ┌─────────────────┐
 │  Killmails      │
 │  Database       │
@@ -144,7 +144,7 @@ cd backend
 npx tsx test-enrichment.ts
 ```
 
-## Benefits
+## Key Benefits
 
 ✅ **Automatic**: Runs automatically when each killmail is saved
 ✅ **Lazy Loading**: Only unknown data is fetched
@@ -154,7 +154,7 @@ npx tsx test-enrichment.ts
 
 ## Example Log Output
 
-```
+```bash
 📥 Found 150 killmails
 💾 Processing killmails...
      📊 Progress: 50/150 (Saved: 48, Skipped: 2, Errors: 0)
@@ -183,7 +183,7 @@ Each worker logs progress at different intervals:
 
 Example output:
 
-```
+```bash
 🚀 Character Info Worker started
 📦 Waiting for character IDs to enrich...
 ✅ Character Enrichment: Processed 50 (Added: 48, Skipped: 2, Errors: 0)
@@ -236,25 +236,25 @@ This prevents unnecessary ESI calls for entities that don't exist in the databas
 
 ## Troubleshooting
 
-**Q: Getting type errors**
+### Q: Getting type errors
 
 ```bash
 cd backend
 npx prisma generate
 ```
 
-**Q: Migration errors**
+## Q: Migration errors
 
 ```bash
 cd backend
 npx prisma migrate dev
 ```
 
-**Q: Seeing 404 errors in results**
+### Q: Seeing 404 errors in results\*\*
 
 This is normal! Characters, corporations, or alliances may have been deleted from EVE Online. The system skips these and continues with valid entities
 
-**Q: Enrichment not working**
+### Q: Enrichment not working
 
 - Check worker logs
 - Test ESI accessibility: `curl https://esi.evetech.net/latest/status/`

@@ -19,7 +19,7 @@ Alliance and Corporation tables contain character IDs (creators, CEOs) that may 
 
 ## 🔄 System Architecture
 
-```
+```bash
 ┌─────────────────────────────────────────────────────────────────┐
 │                    ENRICHMENT WORKFLOW                          │
 └─────────────────────────────────────────────────────────────────┘
@@ -154,7 +154,7 @@ yarn worker:info:characters
 
 #### Expected Output
 
-```
+```bash
 👤 Character Info Worker Started
 📦 Queue: esi_character_info_queue
 ⚡ Prefetch: 20 concurrent
