@@ -112,6 +112,31 @@ type Bloodline {
   race_id: Int!
 }
 
+type Category {
+  created_at: String!
+  id: Int!
+  name: String!
+  published: Boolean!
+  updated_at: String!
+}
+
+type CategoryConnection {
+  edges: [CategoryEdge!]!
+  pageInfo: PageInfo!
+}
+
+type CategoryEdge {
+  cursor: String!
+  node: Category!
+}
+
+input CategoryFilter {
+  limit: Int
+  page: Int
+  published: Boolean
+  search: String
+}
+
 type Character {
   alliance: Alliance
   alliance_id: Int
@@ -311,6 +336,7 @@ type Mutation {
   """Refresh token kullanarak yeni access token alır"""
   refreshToken(refreshToken: String!): AuthPayload!
   startAllianceSync(input: StartAllianceSyncInput!): StartAllianceSyncPayload!
+  startCategorySync(input: StartCategorySyncInput!): StartCategorySyncPayload!
   startConstellationSync(input: StartConstellationSyncInput!): StartConstellationSyncPayload!
   startRegionSync(input: StartRegionSyncInput!): StartRegionSyncPayload!
   startSolarSystemSync(input: StartSolarSystemSyncInput!): StartSolarSystemSyncPayload!
@@ -345,6 +371,8 @@ type Query {
   alliances(filter: AllianceFilter): AllianceConnection!
   bloodline(id: Int!): Bloodline
   bloodlines: [Bloodline!]!
+  categories(filter: CategoryFilter): CategoryConnection!
+  category(id: Int!): Category
   character(id: Int!): Character
   characters(filter: CharacterFilter): CharacterConnection!
   constellation(id: Int!): Constellation
@@ -490,6 +518,16 @@ input StartAllianceSyncInput {
 }
 
 type StartAllianceSyncPayload {
+  clientMutationId: String
+  message: String
+  success: Boolean!
+}
+
+input StartCategorySyncInput {
+  clientMutationId: String
+}
+
+type StartCategorySyncPayload {
   clientMutationId: String
   message: String
   success: Boolean!
