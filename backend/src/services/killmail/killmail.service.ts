@@ -2,7 +2,7 @@
  * Killmail service for ESI API interactions
  */
 
-const ESI_BASE_URL = 'https://esi.evetech.net/latest';
+const ESI_BASE_URL = 'https://esi.evetech.net';
 
 export interface EsiKillmail {
   killmail_id: number;
@@ -60,7 +60,7 @@ export class KillmailService {
     killmailId: number,
     killmailHash: string
   ): Promise<KillmailDetail> {
-    const url = `${ESI_BASE_URL}/killmails/${killmailId}/${killmailHash}/?datasource=tranquility`;
+    const url = `${ESI_BASE_URL}/killmails/${killmailId}/${killmailHash}/`;
 
     const response = await fetch(url);
 

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { esiRateLimiter } from '../rate-limiter';
 
-const ESI_BASE_URL = 'https://esi.evetech.net/latest';
+const ESI_BASE_URL = 'https://esi.evetech.net';
 
 /**
  * Alliance service for ESI API interactions
@@ -13,7 +13,7 @@ export class AllianceService {
    */
   static async getAllAllianceIds(): Promise<number[]> {
     return esiRateLimiter.execute(async () => {
-      const response = await axios.get(`${ESI_BASE_URL}/alliances/`);
+      const response = await axios.get(`${ESI_BASE_URL}/alliances`);
       return response.data;
     });
   }
@@ -26,7 +26,7 @@ export class AllianceService {
   static async getAllianceInfo(allianceId: number) {
     return esiRateLimiter.execute(async () => {
       const response = await axios.get(
-        `${ESI_BASE_URL}/alliances/${allianceId}/?datasource=tranquility`
+        `${ESI_BASE_URL}/alliances/${allianceId}`
       );
       return response.data;
     });
@@ -40,7 +40,25 @@ export class AllianceService {
   static async getAllianceCorporations(allianceId: number): Promise<number[]> {
     return esiRateLimiter.execute(async () => {
       const response = await axios.get(
-        `${ESI_BASE_URL}/alliances/${allianceId}/corporations/?datasource=tranquility`
+        `${ESI_BASE_URL}/alliances/${allianceId}/corporations`
+      );
+      return response.data;
+    });
+  }
+
+  /**
+   * Fetches alliance icon URLs (public endpoint)
+   * @param allianceId - Alliance ID
+   * @returns Alliance icon URLs (px64x64, px128x128, px256x256)
+   */
+  static async getAllianceIcon(allianceId: number): Promise<{
+    px64x64?: string;
+    px128x128?: string;
+    px256x256?: string;
+  }> {
+    return esiRateLimiter.execute(async () => {
+      const response = await axios.get(
+        `${ESI_BASE_URL}/alliances/${allianceId}/icons`
       );
       return response.data;
     });
