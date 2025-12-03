@@ -12,7 +12,7 @@
  */
 
 import '../config';
-import { getAllianceCorporations } from '../services/eve-esi';
+import { AllianceService } from '../services/alliance';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
@@ -90,7 +90,7 @@ async function allianceCorporationWorker() {
                     const allianceTicker = alliance?.ticker || '???';
 
                     // Fetch corporation IDs from ESI
-                    const corporationIds = await getAllianceCorporations(allianceId);
+                    const corporationIds = await AllianceService.getAllianceCorporations(allianceId);
 
                     if (corporationIds.length === 0) {
                         console.log(
