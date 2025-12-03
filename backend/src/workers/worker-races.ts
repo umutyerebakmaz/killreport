@@ -1,29 +1,17 @@
 /**
- * Race Info Worker - ESI'den race bilgilerini çeker ve veritabanına kaydeder
- *
- * ESI endpoint: https://esi.evetech.net/latest/universe/races/
+ * Race Worker - ESI'den race bilgilerini çeker ve veritabanına kaydeder
  *
  * Bu worker EVE Online'daki tüm ırkların bilgilerini çeker.
  */
 
-import axios from 'axios';
 import prisma from '../services/prisma';
-
-interface ESIRace {
-    race_id: number;
-    name: string;
-    description: string;
-}
+import { RaceService } from '../services/race/race.service';
 
 async function fetchAndSaveRaces() {
     try {
         console.log('🚀 Starting race sync...');
 
-        const response = await axios.get<ESIRace[]>(
-            'https://esi.evetech.net/latest/universe/races/'
-        );
-
-        const races = response.data;
+        const races = await RaceService.getRaces();
         console.log(`✓ Fetched ${races.length} races from ESI`);
 
         for (const race of races) {
