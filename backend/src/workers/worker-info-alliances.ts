@@ -4,7 +4,7 @@
  */
 
 import '../config';
-import { getAllianceInfo } from '../services/eve-esi';
+import { AllianceService } from '../services/alliance';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
@@ -70,7 +70,7 @@ async function allianceInfoWorker() {
                     });
 
                     // Fetch from ESI (her zaman güncel bilgiyi al)
-                    const allianceInfo = await getAllianceInfo(allianceId);
+                    const allianceInfo = await AllianceService.getAllianceInfo(allianceId);
 
                     // Save to database (upsert to prevent race condition)
                     await prisma.alliance.upsert({
