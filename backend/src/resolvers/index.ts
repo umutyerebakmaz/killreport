@@ -6,6 +6,7 @@ import { categoryFieldResolvers, categoryMutations, categoryQueries } from './ca
 import { characterFieldResolvers, characterQueries } from './character.resolver';
 import { constellationFieldResolvers, constellationMutations, constellationQueries } from './constellation.resolver';
 import { corporationFieldResolvers, corporationQueries } from './corporation.resolver';
+import { itemGroupFieldResolvers, itemGroupMutations, itemGroupQueries } from './item-group.resolver';
 import { killmailMutations, killmailQueries } from './killmail.resolver';
 import { raceQueries } from './race.resolver';
 import { regionFieldResolvers, regionMutations, regionQueries } from './region.resolver';
@@ -24,6 +25,7 @@ export const resolvers: Resolvers = {
         ...raceQueries,
         ...bloodlineQueries,
         ...categoryQueries,
+        ...itemGroupQueries,
         ...constellationQueries,
         ...regionQueries,
         ...solarSystemQueries,
@@ -35,6 +37,7 @@ export const resolvers: Resolvers = {
         ...killmailMutations,
         ...allianceMutations,
         ...categoryMutations,
+        ...itemGroupMutations,
         ...constellationMutations,
         ...regionMutations,
         ...solarSystemMutations,
@@ -45,6 +48,7 @@ export const resolvers: Resolvers = {
     Character: characterFieldResolvers,
     Alliance: allianceFieldResolvers,
     Category: categoryFieldResolvers,
+    ItemGroup: itemGroupFieldResolvers,
     Corporation: corporationFieldResolvers,
     Constellation: constellationFieldResolvers,
     Region: regionFieldResolvers,

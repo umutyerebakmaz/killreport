@@ -143,6 +143,7 @@ export type Bloodline = {
 export type Category = {
   __typename?: 'Category';
   created_at: Scalars['String']['output'];
+  groups: Array<ItemGroup>;
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
   published: Scalars['Boolean']['output'];
@@ -339,6 +340,37 @@ export type CreateUserPayload = {
   user?: Maybe<User>;
 };
 
+export type ItemGroup = {
+  __typename?: 'ItemGroup';
+  category?: Maybe<Category>;
+  category_id: Scalars['Int']['output'];
+  created_at: Scalars['String']['output'];
+  id: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  published: Scalars['Boolean']['output'];
+  updated_at: Scalars['String']['output'];
+};
+
+export type ItemGroupConnection = {
+  __typename?: 'ItemGroupConnection';
+  edges: Array<ItemGroupEdge>;
+  pageInfo: PageInfo;
+};
+
+export type ItemGroupEdge = {
+  __typename?: 'ItemGroupEdge';
+  cursor: Scalars['String']['output'];
+  node: ItemGroup;
+};
+
+export type ItemGroupFilter = {
+  category_id?: InputMaybe<Scalars['Int']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  published?: InputMaybe<Scalars['Boolean']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type Killmail = {
   __typename?: 'Killmail';
   attackers: Array<Attacker>;
@@ -388,6 +420,7 @@ export type Mutation = {
   startAllianceSync: StartAllianceSyncPayload;
   startCategorySync: StartCategorySyncPayload;
   startConstellationSync: StartConstellationSyncPayload;
+  startItemGroupSync: StartItemGroupSyncPayload;
   startRegionSync: StartRegionSyncPayload;
   startSolarSystemSync: StartSolarSystemSyncPayload;
   /**
@@ -427,6 +460,11 @@ export type MutationStartCategorySyncArgs = {
 
 export type MutationStartConstellationSyncArgs = {
   input: StartConstellationSyncInput;
+};
+
+
+export type MutationStartItemGroupSyncArgs = {
+  input: StartItemGroupSyncInput;
 };
 
 
@@ -482,6 +520,8 @@ export type Query = {
   constellations: ConstellationConnection;
   corporation?: Maybe<Corporation>;
   corporations: CorporationConnection;
+  itemGroup?: Maybe<ItemGroup>;
+  itemGroups: ItemGroupConnection;
   /** Fetches a single killmail */
   killmail?: Maybe<Killmail>;
   /** Lists all killmails (with pagination using Relay-style connection) */
@@ -563,6 +603,16 @@ export type QueryCorporationArgs = {
 
 export type QueryCorporationsArgs = {
   filter?: InputMaybe<CorporationFilter>;
+};
+
+
+export type QueryItemGroupArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type QueryItemGroupsArgs = {
+  filter?: InputMaybe<ItemGroupFilter>;
 };
 
 
@@ -750,6 +800,17 @@ export type StartConstellationSyncInput = {
 
 export type StartConstellationSyncPayload = {
   __typename?: 'StartConstellationSyncPayload';
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type StartItemGroupSyncInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type StartItemGroupSyncPayload = {
+  __typename?: 'StartItemGroupSyncPayload';
   clientMutationId?: Maybe<Scalars['String']['output']>;
   message?: Maybe<Scalars['String']['output']>;
   success: Scalars['Boolean']['output'];
@@ -956,6 +1017,10 @@ export type ResolversTypes = {
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
+  ItemGroup: ResolverTypeWrapper<ItemGroup>;
+  ItemGroupConnection: ResolverTypeWrapper<ItemGroupConnection>;
+  ItemGroupEdge: ResolverTypeWrapper<ItemGroupEdge>;
+  ItemGroupFilter: ItemGroupFilter;
   Killmail: ResolverTypeWrapper<Killmail>;
   KillmailConnection: ResolverTypeWrapper<KillmailConnection>;
   KillmailEdge: ResolverTypeWrapper<KillmailEdge>;
@@ -983,6 +1048,8 @@ export type ResolversTypes = {
   StartCategorySyncPayload: ResolverTypeWrapper<StartCategorySyncPayload>;
   StartConstellationSyncInput: StartConstellationSyncInput;
   StartConstellationSyncPayload: ResolverTypeWrapper<StartConstellationSyncPayload>;
+  StartItemGroupSyncInput: StartItemGroupSyncInput;
+  StartItemGroupSyncPayload: ResolverTypeWrapper<StartItemGroupSyncPayload>;
   StartRegionSyncInput: StartRegionSyncInput;
   StartRegionSyncPayload: ResolverTypeWrapper<StartRegionSyncPayload>;
   StartSolarSystemSyncInput: StartSolarSystemSyncInput;
@@ -1034,6 +1101,10 @@ export type ResolversParentTypes = {
   Float: Scalars['Float']['output'];
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
+  ItemGroup: ItemGroup;
+  ItemGroupConnection: ItemGroupConnection;
+  ItemGroupEdge: ItemGroupEdge;
+  ItemGroupFilter: ItemGroupFilter;
   Killmail: Killmail;
   KillmailConnection: KillmailConnection;
   KillmailEdge: KillmailEdge;
@@ -1059,6 +1130,8 @@ export type ResolversParentTypes = {
   StartCategorySyncPayload: StartCategorySyncPayload;
   StartConstellationSyncInput: StartConstellationSyncInput;
   StartConstellationSyncPayload: StartConstellationSyncPayload;
+  StartItemGroupSyncInput: StartItemGroupSyncInput;
+  StartItemGroupSyncPayload: StartItemGroupSyncPayload;
   StartRegionSyncInput: StartRegionSyncInput;
   StartRegionSyncPayload: StartRegionSyncPayload;
   StartSolarSystemSyncInput: StartSolarSystemSyncInput;
@@ -1162,6 +1235,7 @@ export type BloodlineResolvers<ContextType = any, ParentType extends ResolversPa
 
 export type CategoryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Category'] = ResolversParentTypes['Category']> = {
   created_at?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  groups?: Resolver<Array<ResolversTypes['ItemGroup']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   published?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -1276,6 +1350,26 @@ export type CreateUserPayloadResolvers<ContextType = any, ParentType extends Res
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
 };
 
+export type ItemGroupResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemGroup'] = ResolversParentTypes['ItemGroup']> = {
+  category?: Resolver<Maybe<ResolversTypes['Category']>, ParentType, ContextType>;
+  category_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  created_at?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  published?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  updated_at?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type ItemGroupConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemGroupConnection'] = ResolversParentTypes['ItemGroupConnection']> = {
+  edges?: Resolver<Array<ResolversTypes['ItemGroupEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+};
+
+export type ItemGroupEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemGroupEdge'] = ResolversParentTypes['ItemGroupEdge']> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['ItemGroup'], ParentType, ContextType>;
+};
+
 export type KillmailResolvers<ContextType = any, ParentType extends ResolversParentTypes['Killmail'] = ResolversParentTypes['Killmail']> = {
   attackers?: Resolver<Array<ResolversTypes['Attacker']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1317,6 +1411,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   startAllianceSync?: Resolver<ResolversTypes['StartAllianceSyncPayload'], ParentType, ContextType, RequireFields<MutationStartAllianceSyncArgs, 'input'>>;
   startCategorySync?: Resolver<ResolversTypes['StartCategorySyncPayload'], ParentType, ContextType, RequireFields<MutationStartCategorySyncArgs, 'input'>>;
   startConstellationSync?: Resolver<ResolversTypes['StartConstellationSyncPayload'], ParentType, ContextType, RequireFields<MutationStartConstellationSyncArgs, 'input'>>;
+  startItemGroupSync?: Resolver<ResolversTypes['StartItemGroupSyncPayload'], ParentType, ContextType, RequireFields<MutationStartItemGroupSyncArgs, 'input'>>;
   startRegionSync?: Resolver<ResolversTypes['StartRegionSyncPayload'], ParentType, ContextType, RequireFields<MutationStartRegionSyncArgs, 'input'>>;
   startSolarSystemSync?: Resolver<ResolversTypes['StartSolarSystemSyncPayload'], ParentType, ContextType, RequireFields<MutationStartSolarSystemSyncArgs, 'input'>>;
   syncMyKillmails?: Resolver<ResolversTypes['SyncMyKillmailsPayload'], ParentType, ContextType, RequireFields<MutationSyncMyKillmailsArgs, 'input'>>;
@@ -1353,6 +1448,8 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   constellations?: Resolver<ResolversTypes['ConstellationConnection'], ParentType, ContextType, Partial<QueryConstellationsArgs>>;
   corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType, RequireFields<QueryCorporationArgs, 'id'>>;
   corporations?: Resolver<ResolversTypes['CorporationConnection'], ParentType, ContextType, Partial<QueryCorporationsArgs>>;
+  itemGroup?: Resolver<Maybe<ResolversTypes['ItemGroup']>, ParentType, ContextType, RequireFields<QueryItemGroupArgs, 'id'>>;
+  itemGroups?: Resolver<ResolversTypes['ItemGroupConnection'], ParentType, ContextType, Partial<QueryItemGroupsArgs>>;
   killmail?: Resolver<Maybe<ResolversTypes['Killmail']>, ParentType, ContextType, RequireFields<QueryKillmailArgs, 'id'>>;
   killmails?: Resolver<ResolversTypes['KillmailConnection'], ParentType, ContextType, Partial<QueryKillmailsArgs>>;
   me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
@@ -1449,6 +1546,12 @@ export type StartConstellationSyncPayloadResolvers<ContextType = any, ParentType
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
 };
 
+export type StartItemGroupSyncPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['StartItemGroupSyncPayload'] = ResolversParentTypes['StartItemGroupSyncPayload']> = {
+  clientMutationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+};
+
 export type StartRegionSyncPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['StartRegionSyncPayload'] = ResolversParentTypes['StartRegionSyncPayload']> = {
   clientMutationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1530,6 +1633,9 @@ export type Resolvers<ContextType = any> = {
   CorporationMetrics?: CorporationMetricsResolvers<ContextType>;
   CorporationSnapshot?: CorporationSnapshotResolvers<ContextType>;
   CreateUserPayload?: CreateUserPayloadResolvers<ContextType>;
+  ItemGroup?: ItemGroupResolvers<ContextType>;
+  ItemGroupConnection?: ItemGroupConnectionResolvers<ContextType>;
+  ItemGroupEdge?: ItemGroupEdgeResolvers<ContextType>;
   Killmail?: KillmailResolvers<ContextType>;
   KillmailConnection?: KillmailConnectionResolvers<ContextType>;
   KillmailEdge?: KillmailEdgeResolvers<ContextType>;
@@ -1550,6 +1656,7 @@ export type Resolvers<ContextType = any> = {
   StartAllianceSyncPayload?: StartAllianceSyncPayloadResolvers<ContextType>;
   StartCategorySyncPayload?: StartCategorySyncPayloadResolvers<ContextType>;
   StartConstellationSyncPayload?: StartConstellationSyncPayloadResolvers<ContextType>;
+  StartItemGroupSyncPayload?: StartItemGroupSyncPayloadResolvers<ContextType>;
   StartRegionSyncPayload?: StartRegionSyncPayloadResolvers<ContextType>;
   StartSolarSystemSyncPayload?: StartSolarSystemSyncPayloadResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
