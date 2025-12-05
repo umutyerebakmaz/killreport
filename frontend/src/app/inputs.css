@@ -1,0 +1,7 @@
+.search-input {
+  @apply block w-full border-0 bg-white/5 py-2.5 pl-10 pr-3 text-white placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm sm:leading-6;
+}
+
+.input {
+  @apply block w-full px-3 py-2 text-white border-0 bg-white/5 placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm sm:leading-6 scheme-dark;
+}
