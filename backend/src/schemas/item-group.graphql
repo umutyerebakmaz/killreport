@@ -1,0 +1,48 @@
+type ItemGroup {
+  id: Int!
+  name: String!
+  category_id: Int!
+  published: Boolean!
+  created_at: String!
+  updated_at: String!
+  category: Category
+}
+
+type ItemGroupConnection {
+  edges: [ItemGroupEdge!]!
+  pageInfo: PageInfo!
+}
+
+type ItemGroupEdge {
+  node: ItemGroup!
+  cursor: String!
+}
+
+input ItemGroupFilter {
+  search: String
+  category_id: Int
+  published: Boolean
+  page: Int
+  limit: Int
+}
+
+extend type Query {
+  itemGroup(id: Int!): ItemGroup
+  itemGroups(filter: ItemGroupFilter): ItemGroupConnection!
+}
+
+extend type Mutation {
+  startItemGroupSync(
+    input: StartItemGroupSyncInput!
+  ): StartItemGroupSyncPayload!
+}
+
+input StartItemGroupSyncInput {
+  clientMutationId: String
+}
+
+type StartItemGroupSyncPayload {
+  success: Boolean!
+  message: String
+  clientMutationId: String
+}

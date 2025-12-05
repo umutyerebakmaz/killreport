@@ -114,6 +114,7 @@ type Bloodline {
 
 type Category {
   created_at: String!
+  groups: [ItemGroup!]!
   id: Int!
   name: String!
   published: Boolean!
@@ -291,6 +292,34 @@ type CreateUserPayload {
   user: User
 }
 
+type ItemGroup {
+  category: Category
+  category_id: Int!
+  created_at: String!
+  id: Int!
+  name: String!
+  published: Boolean!
+  updated_at: String!
+}
+
+type ItemGroupConnection {
+  edges: [ItemGroupEdge!]!
+  pageInfo: PageInfo!
+}
+
+type ItemGroupEdge {
+  cursor: String!
+  node: ItemGroup!
+}
+
+input ItemGroupFilter {
+  category_id: Int
+  limit: Int
+  page: Int
+  published: Boolean
+  search: String
+}
+
 type Killmail {
   attackers: [Attacker!]!
   createdAt: String!
@@ -338,6 +367,7 @@ type Mutation {
   startAllianceSync(input: StartAllianceSyncInput!): StartAllianceSyncPayload!
   startCategorySync(input: StartCategorySyncInput!): StartCategorySyncPayload!
   startConstellationSync(input: StartConstellationSyncInput!): StartConstellationSyncPayload!
+  startItemGroupSync(input: StartItemGroupSyncInput!): StartItemGroupSyncPayload!
   startRegionSync(input: StartRegionSyncInput!): StartRegionSyncPayload!
   startSolarSystemSync(input: StartSolarSystemSyncInput!): StartSolarSystemSyncPayload!
 
@@ -379,6 +409,8 @@ type Query {
   constellations(filter: ConstellationFilter): ConstellationConnection!
   corporation(id: Int!): Corporation
   corporations(filter: CorporationFilter): CorporationConnection!
+  itemGroup(id: Int!): ItemGroup
+  itemGroups(filter: ItemGroupFilter): ItemGroupConnection!
 
   """Fetches a single killmail"""
   killmail(id: ID!): Killmail
@@ -538,6 +570,16 @@ input StartConstellationSyncInput {
 }
 
 type StartConstellationSyncPayload {
+  clientMutationId: String
+  message: String
+  success: Boolean!
+}
+
+input StartItemGroupSyncInput {
+  clientMutationId: String
+}
+
+type StartItemGroupSyncPayload {
   clientMutationId: String
   message: String
   success: Boolean!

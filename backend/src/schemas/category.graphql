@@ -4,6 +4,7 @@ type Category {
   published: Boolean!
   created_at: String!
   updated_at: String!
+  groups: [ItemGroup!]!
 }
 
 type CategoryEdge {
