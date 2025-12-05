@@ -65,15 +65,12 @@ export default function CharacterFilters({
             placeholder="Search characters..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="block w-full border-0 bg-white/5 py-2.5 pl-10 pr-3 text-white placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm sm:leading-6"
+            className="search-input"
           />
         </div>
 
         {/* Search Button */}
-        <button
-          type="submit"
-          className="inline-flex items-center gap-x-1.5 px-4 py-2 text-sm font-medium text-gray-300 transition-all duration-200 border cursor-pointer bg-gray-900/50 border-gray-700/50 hover:bg-gray-800 hover:border-gray-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-600"
-        >
+        <button type="submit" className="button">
           <MagnifyingGlassIcon className="w-5 h-5" />
           Search
         </button>
@@ -82,16 +79,12 @@ export default function CharacterFilters({
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className={`inline-flex items-center gap-x-1.5 px-4 py-2 text-sm font-medium transition-all duration-200 border cursor-pointer ${
-            hasActiveFilters
-              ? "bg-indigo-600/80 border-indigo-500/50 text-white hover:bg-indigo-600 hover:border-indigo-500"
-              : "bg-gray-900/50 border-gray-700/50 text-gray-300 hover:bg-gray-800 hover:border-gray-600 hover:text-white"
-          } focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-600`}
+          className={`button ${hasActiveFilters ? "active-filter-button" : ""}`}
         >
           <FunnelIcon className="w-5 h-5" />
           Filters
           {hasActiveFilters && (
-            <span className="inline-flex items-center justify-center w-5 h-5 ml-1 text-xs font-bold text-indigo-600 bg-white rounded-full">
+            <span className="badge">
               {[name, corporationId, allianceId].filter(Boolean).length}
             </span>
           )}
@@ -102,7 +95,7 @@ export default function CharacterFilters({
           <button
             type="button"
             onClick={handleClearAll}
-            className="inline-flex items-center gap-x-1.5 bg-red-600/20 border border-red-500/30 px-3 py-2.5 text-sm font-medium text-red-400 hover:bg-red-600/30 transition-colors cursor-pointer"
+            className="clear-filter-button"
           >
             <XMarkIcon className="w-5 h-5" />
             Clear
@@ -143,7 +136,7 @@ export default function CharacterFilters({
 
       {/* Advanced Filters Panel */}
       {isOpen && (
-        <div className="p-6 mt-4 space-y-4 bg-gray-900/30 border border-gray-700/50">
+        <div className="p-6 mt-4 space-y-4 border bg-gray-900/30 border-gray-700/50">
           <h3 className="text-sm font-medium text-gray-300">
             Advanced Filters
           </h3>
@@ -163,7 +156,7 @@ export default function CharacterFilters({
                 placeholder="Character name..."
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="block w-full border-0 bg-white/5 py-2 px-3 text-white placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm"
+                className="input"
               />
             </div>
 
@@ -181,7 +174,7 @@ export default function CharacterFilters({
                 placeholder="Corporation ID..."
                 value={corporationId}
                 onChange={(e) => setCorporationId(e.target.value)}
-                className="block w-full border-0 bg-white/5 py-2 px-3 text-white placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm"
+                className="input"
               />
             </div>
 
@@ -199,16 +192,13 @@ export default function CharacterFilters({
                 placeholder="Alliance ID..."
                 value={allianceId}
                 onChange={(e) => setAllianceId(e.target.value)}
-                className="block w-full border-0 bg-white/5 py-2 px-3 text-white placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm"
+                className="input"
               />
             </div>
           </div>
 
           <div className="flex justify-end pt-4 border-t border-gray-700/50">
-            <button
-              type="submit"
-              className="inline-flex items-center gap-x-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-colors cursor-pointer"
-            >
+            <button type="submit" className="apply-filter-button">
               Apply Filters
             </button>
           </div>
