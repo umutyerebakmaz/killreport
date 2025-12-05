@@ -3,6 +3,7 @@
 
 @import "./fonts.css";
 @import "./buttons.css";
+@import "./inputs.css";
 
 body {
   font-family: "Shentox", "Mona Sans", sans-serif;
@@ -25,10 +26,6 @@ body {
 .corporation-detail-card,
 .character-detail-card {
   @apply border bg-white/5 border-white/10 p-6 flex flex-col;
-}
-
-.text-input {
-  @apply transition-all duration-300 ease-in-out block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6;
 }
 
 .select-option-container {

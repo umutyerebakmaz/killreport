@@ -99,7 +99,7 @@ export default function RegionsPage() {
             placeholder="Search regions..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="block w-full border-0 bg-white/5 py-2.5 pl-10 pr-3 text-white placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm sm:leading-6"
+            className="search-input"
           />
         </div>
 
@@ -189,19 +189,22 @@ export default function RegionsPage() {
                   className="transition-colors hover:bg-white/5"
                 >
                   <td className="px-6 py-4 text-base">
-                    <Link
-                      href={`/regions/${region.id}`}
-                      className="font-medium transition-colors text-cyan-400 hover:text-cyan-300"
-                    >
-                      {region.name}
-                    </Link>
+                    <div className="flex items-center gap-3">
+                      <GlobeAltIcon className="w-5 h-5 text-cyan-500" />
+                      <Link
+                        href={`/regions/${region.id}`}
+                        className="font-medium transition-colors text-cyan-400 hover:text-cyan-300"
+                      >
+                        {region.name}
+                      </Link>
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-base">
                     <Tooltip
                       content="Constellations in this region"
                       position="top"
                     >
-                      <span className="font-medium text-white">
+                      <span className="font-medium text-purple-400">
                         {region.constellationCount}
                       </span>
                     </Tooltip>
@@ -211,7 +214,7 @@ export default function RegionsPage() {
                       content="Solar systems in this region"
                       position="top"
                     >
-                      <span className="font-medium text-white">
+                      <span className="font-medium text-orange-400">
                         {region.solarSystemCount}
                       </span>
                     </Tooltip>

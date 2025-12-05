@@ -70,15 +70,12 @@ export default function AllianceFilters({
             placeholder="Search alliances..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="block w-full border-0 bg-white/5 py-2.5 pl-10 pr-3 text-white placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm sm:leading-6"
+            className="search-input"
           />
         </div>
 
         {/* Search Button */}
-        <button
-          type="submit"
-          className="inline-flex items-center gap-x-1.5 px-4 py-2 text-sm font-medium text-gray-300 transition-all duration-200 border cursor-pointer bg-gray-900/50 border-gray-700/50 hover:bg-gray-800 hover:border-gray-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-600"
-        >
+        <button type="submit" className="button">
           <MagnifyingGlassIcon className="w-5 h-5" />
           Search
         </button>
@@ -87,16 +84,12 @@ export default function AllianceFilters({
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className={`inline-flex items-center gap-x-1.5 px-4 py-2 text-sm font-medium transition-all duration-200 border cursor-pointer ${
-            hasActiveFilters
-              ? "bg-indigo-600/80 border-indigo-500/50 text-white hover:bg-indigo-600 hover:border-indigo-500"
-              : "bg-gray-900/50 border-gray-700/50 text-gray-300 hover:bg-gray-800 hover:border-gray-600 hover:text-white"
-          } focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-600`}
+          className={`button ${hasActiveFilters ? "active-filter-button" : ""}`}
         >
           <FunnelIcon className="w-5 h-5" />
           Filters
           {hasActiveFilters && (
-            <span className="inline-flex items-center justify-center w-5 h-5 ml-1 text-xs font-bold text-indigo-600 bg-white rounded-full">
+            <span className="badge">
               {
                 [name, ticker, dateFoundedFrom, dateFoundedTo].filter(Boolean)
                   .length
@@ -110,7 +103,7 @@ export default function AllianceFilters({
           <button
             type="button"
             onClick={handleClearAll}
-            className="inline-flex items-center gap-x-1.5 bg-red-600/20 border border-red-500/30 px-3 py-2.5 text-sm font-medium text-red-400 hover:bg-red-600/30 transition-colors cursor-pointer"
+            className="clear-filter-button"
           >
             <XMarkIcon className="w-5 h-5" />
             Clear
@@ -171,7 +164,7 @@ export default function AllianceFilters({
                 placeholder="e.g., Goonswarm Federation"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="block w-full px-3 py-2 text-white border-0 bg-white/5 placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm sm:leading-6"
+                className="input"
               />
             </div>
 
@@ -189,7 +182,7 @@ export default function AllianceFilters({
                 placeholder="e.g., CONDI"
                 value={ticker}
                 onChange={(e) => setTicker(e.target.value)}
-                className="block w-full px-3 py-2 text-white border-0 bg-white/5 placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm sm:leading-6"
+                className="input"
               />
             </div>
 
@@ -207,7 +200,7 @@ export default function AllianceFilters({
                 value={dateFoundedFrom}
                 onChange={(e) => setDateFoundedFrom(e.target.value)}
                 placeholder="yyyy-mm-dd"
-                className="block w-full px-3 py-2 text-white border-0 bg-white/5 placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm sm:leading-6 scheme-dark"
+                className="input"
               />
             </div>
 
@@ -225,17 +218,14 @@ export default function AllianceFilters({
                 value={dateFoundedTo}
                 onChange={(e) => setDateFoundedTo(e.target.value)}
                 placeholder="yyyy-mm-dd"
-                className="block w-full px-3 py-2 text-white border-0 bg-white/5 placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm sm:leading-6 scheme-dark"
+                className="input"
               />
             </div>
           </div>
 
           {/* Apply Button in Advanced Filters */}
           <div className="flex gap-3 mt-4">
-            <button
-              type="submit"
-              className="flex-1 inline-flex justify-center items-center gap-x-1.5 bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors cursor-pointer"
-            >
+            <button type="submit" className="apply-filter-button">
               <MagnifyingGlassIcon className="w-5 h-5" />
               Apply Filters
             </button>

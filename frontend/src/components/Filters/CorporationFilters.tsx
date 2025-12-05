@@ -70,15 +70,12 @@ export default function CorporationFilters({
             placeholder="Search corporations..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="block w-full border-0 bg-white/5 py-2.5 pl-10 pr-3 text-white placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm sm:leading-6"
+            className="search-input"
           />
         </div>
 
         {/* Search Button */}
-        <button
-          type="submit"
-          className="inline-flex items-center gap-x-1.5 px-4 py-2 text-sm font-medium text-gray-300 transition-all duration-200 border cursor-pointer bg-gray-900/50 border-gray-700/50 hover:bg-gray-800 hover:border-gray-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-600"
-        >
+        <button type="submit" className="button">
           <MagnifyingGlassIcon className="w-5 h-5" />
           Search
         </button>
@@ -87,16 +84,12 @@ export default function CorporationFilters({
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className={`inline-flex items-center gap-x-1.5 px-4 py-2 text-sm font-medium transition-all duration-200 border cursor-pointer ${
-            hasActiveFilters
-              ? "bg-indigo-600/80 border-indigo-500/50 text-white hover:bg-indigo-600 hover:border-indigo-500"
-              : "bg-gray-900/50 border-gray-700/50 text-gray-300 hover:bg-gray-800 hover:border-gray-600 hover:text-white"
-          } focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-600`}
+          className={`button ${hasActiveFilters ? "active-filter-button" : ""}`}
         >
           <FunnelIcon className="w-5 h-5" />
           Filters
           {hasActiveFilters && (
-            <span className="inline-flex items-center justify-center w-5 h-5 ml-1 text-xs font-bold text-indigo-600 bg-white rounded-full">
+            <span className="badge">
               {
                 [name, ticker, dateFoundedFrom, dateFoundedTo].filter(Boolean)
                   .length
@@ -110,36 +103,24 @@ export default function CorporationFilters({
           <select
             value={orderBy}
             onChange={(e) => onOrderByChange(e.target.value)}
-            className="px-4 py-2 pr-10 text-sm font-medium text-gray-500 transition-all duration-200 border appearance-none cursor-pointer bg-gray-900/50 border-gray-700/50 hover:bg-gray-800 hover:border-gray-600 focus:outline-none"
+            className="select"
           >
-            <option
-              value="memberCountDesc"
-              className="py-2 text-base font-medium text-gray-100 bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-            >
+            <option value="memberCountDesc" className="option">
               {orderBy === "memberCountDesc" ? "✓" : "\u00A0\u00A0"}
               {"   "}
               Most Members
             </option>
-            <option
-              value="memberCountAsc"
-              className="py-2 text-base font-medium text-gray-100 bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-            >
+            <option value="memberCountAsc" className="option">
               {orderBy === "memberCountAsc" ? "✓" : "\u00A0\u00A0"}
               {"   "}
               Least Members
             </option>
-            <option
-              value="nameAsc"
-              className="py-2 text-base font-medium text-gray-100 bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-            >
+            <option value="nameAsc" className="option">
               {orderBy === "nameAsc" ? "✓" : "\u00A0\u00A0"}
               {"   "}
               Name (A to Z)
             </option>
-            <option
-              value="nameDesc"
-              className="py-2 text-base font-medium text-gray-100 bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-            >
+            <option value="nameDesc" className="option">
               {orderBy === "nameDesc" ? "✓" : "\u00A0\u00A0"}
               {"   "}
               Name (Z to A)
@@ -183,7 +164,7 @@ export default function CorporationFilters({
                 placeholder="e.g., Pandemic Horde"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="block w-full px-3 py-2 text-white border-0 bg-white/5 placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm sm:leading-6"
+                className="input"
               />
             </div>
 
@@ -201,7 +182,7 @@ export default function CorporationFilters({
                 placeholder="e.g., HORDE"
                 value={ticker}
                 onChange={(e) => setTicker(e.target.value)}
-                className="block w-full px-3 py-2 text-white border-0 bg-white/5 placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm sm:leading-6"
+                className="input"
               />
             </div>
 
@@ -219,7 +200,7 @@ export default function CorporationFilters({
                 value={dateFoundedFrom}
                 onChange={(e) => setDateFoundedFrom(e.target.value)}
                 placeholder="yyyy-mm-dd"
-                className="block w-full px-3 py-2 text-white border-0 bg-white/5 placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm sm:leading-6 scheme-dark"
+                className="input scheme-dark"
               />
             </div>
 
@@ -237,17 +218,14 @@ export default function CorporationFilters({
                 value={dateFoundedTo}
                 onChange={(e) => setDateFoundedTo(e.target.value)}
                 placeholder="yyyy-mm-dd"
-                className="block w-full px-3 py-2 text-white border-0 bg-white/5 placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm sm:leading-6 scheme-dark"
+                className="input scheme-dark"
               />
             </div>
           </div>
 
           {/* Apply Button in Advanced Filters */}
           <div className="flex gap-3 mt-4">
-            <button
-              type="submit"
-              className="flex-1 inline-flex justify-center items-center gap-x-1.5 bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors cursor-pointer"
-            >
+            <button type="submit" className="apply-filter-button">
               <MagnifyingGlassIcon className="w-5 h-5" />
               Apply Filters
             </button>
