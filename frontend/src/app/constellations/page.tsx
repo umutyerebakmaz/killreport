@@ -93,7 +93,7 @@ export default function ConstellationsPage() {
             placeholder="Search constellations..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="text-input"
+            className="search-input"
           />
         </div>
         <div className="select-option-container">
@@ -166,7 +166,7 @@ export default function ConstellationsPage() {
                       <MapIcon className="w-5 h-5 text-purple-500" />
                       <Link
                         href={`/constellations/${constellation.id}`}
-                        className="font-medium transition-colors text-cyan-400 hover:text-cyan-300"
+                        className="font-medium text-purple-500 transition-colors hover:text-purple-400"
                       >
                         {constellation.name}
                       </Link>
@@ -176,7 +176,7 @@ export default function ConstellationsPage() {
                     {constellation.region ? (
                       <Link
                         href={`/regions/${constellation.region.id}`}
-                        className="flex items-center gap-2 text-gray-300 transition-colors hover:text-cyan-400"
+                        className="flex items-center gap-2 transition-colors text-cyan-500 hover:text-cyan-400"
                       >
                         <GlobeAltIcon className="w-4 h-4 text-cyan-500" />
                         {constellation.region.name}
