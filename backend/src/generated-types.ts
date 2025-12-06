@@ -96,18 +96,23 @@ export type AllianceSnapshot = {
 
 export type Attacker = {
   __typename?: 'Attacker';
+  alliance?: Maybe<Alliance>;
   allianceId?: Maybe<Scalars['Int']['output']>;
   allianceName?: Maybe<Scalars['String']['output']>;
+  character?: Maybe<Character>;
   characterId?: Maybe<Scalars['Int']['output']>;
   characterName?: Maybe<Scalars['String']['output']>;
+  corporation?: Maybe<Corporation>;
   corporationId?: Maybe<Scalars['Int']['output']>;
   corporationName?: Maybe<Scalars['String']['output']>;
   damageDone: Scalars['Int']['output'];
   factionId?: Maybe<Scalars['Int']['output']>;
   finalBlow: Scalars['Boolean']['output'];
   securityStatus: Scalars['Float']['output'];
+  shipType?: Maybe<Type>;
   shipTypeId?: Maybe<Scalars['Int']['output']>;
   shipTypeName?: Maybe<Scalars['String']['output']>;
+  weaponType?: Maybe<Type>;
   weaponTypeId?: Maybe<Scalars['Int']['output']>;
   weaponTypeName?: Maybe<Scalars['String']['output']>;
 };
@@ -348,6 +353,7 @@ export type ItemGroup = {
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
   published: Scalars['Boolean']['output'];
+  types: Array<Type>;
   updated_at: Scalars['String']['output'];
 };
 
@@ -380,6 +386,7 @@ export type Killmail = {
   killmailHash: Scalars['String']['output'];
   killmailId: Scalars['Int']['output'];
   killmailTime: Scalars['String']['output'];
+  solarSystem?: Maybe<SolarSystem>;
   solarSystemId: Scalars['Int']['output'];
   totalValue?: Maybe<Scalars['Float']['output']>;
   victim: Victim;
@@ -400,6 +407,7 @@ export type KillmailEdge = {
 export type KillmailItem = {
   __typename?: 'KillmailItem';
   flag: Scalars['Int']['output'];
+  itemType?: Maybe<Type>;
   itemTypeId: Scalars['Int']['output'];
   itemTypeName?: Maybe<Scalars['String']['output']>;
   quantityDestroyed?: Maybe<Scalars['Int']['output']>;
@@ -423,6 +431,7 @@ export type Mutation = {
   startItemGroupSync: StartItemGroupSyncPayload;
   startRegionSync: StartRegionSyncPayload;
   startSolarSystemSync: StartSolarSystemSyncPayload;
+  startTypeSync: StartTypeSyncPayload;
   /**
    * Fetches user's killmails from ESI and saves to database
    * Requires: Authentication
@@ -475,6 +484,11 @@ export type MutationStartRegionSyncArgs = {
 
 export type MutationStartSolarSystemSyncArgs = {
   input: StartSolarSystemSyncInput;
+};
+
+
+export type MutationStartTypeSyncArgs = {
+  input: StartTypeSyncInput;
 };
 
 
@@ -544,6 +558,8 @@ export type Query = {
   regions: RegionConnection;
   solarSystem?: Maybe<SolarSystem>;
   solarSystems: SolarSystemConnection;
+  type?: Maybe<Type>;
+  types: TypeConnection;
   user?: Maybe<User>;
   users: Array<User>;
   /** Get current status of all workers and queues */
@@ -659,6 +675,16 @@ export type QuerySolarSystemArgs = {
 
 export type QuerySolarSystemsArgs = {
   filter?: InputMaybe<SolarSystemFilter>;
+};
+
+
+export type QueryTypeArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type QueryTypesArgs = {
+  filter?: InputMaybe<TypeFilter>;
 };
 
 
@@ -838,6 +864,17 @@ export type StartSolarSystemSyncPayload = {
   success: Scalars['Boolean']['output'];
 };
 
+export type StartTypeSyncInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type StartTypeSyncPayload = {
+  __typename?: 'StartTypeSyncPayload';
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
 export type Subscription = {
   __typename?: 'Subscription';
   _empty?: Maybe<Scalars['String']['output']>;
@@ -858,6 +895,42 @@ export type SyncMyKillmailsPayload = {
   message: Scalars['String']['output'];
   success: Scalars['Boolean']['output'];
   syncedCount: Scalars['Int']['output'];
+};
+
+export type Type = {
+  __typename?: 'Type';
+  capacity?: Maybe<Scalars['Float']['output']>;
+  created_at: Scalars['String']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  group?: Maybe<ItemGroup>;
+  group_id: Scalars['Int']['output'];
+  icon_id?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['Int']['output'];
+  mass?: Maybe<Scalars['Float']['output']>;
+  name: Scalars['String']['output'];
+  published: Scalars['Boolean']['output'];
+  updated_at: Scalars['String']['output'];
+  volume?: Maybe<Scalars['Float']['output']>;
+};
+
+export type TypeConnection = {
+  __typename?: 'TypeConnection';
+  edges: Array<TypeEdge>;
+  pageInfo: PageInfo;
+};
+
+export type TypeEdge = {
+  __typename?: 'TypeEdge';
+  cursor: Scalars['String']['output'];
+  node: Type;
+};
+
+export type TypeFilter = {
+  group_id?: InputMaybe<Scalars['Int']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  published?: InputMaybe<Scalars['Boolean']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateUserInput = {
@@ -883,15 +956,19 @@ export type User = {
 
 export type Victim = {
   __typename?: 'Victim';
+  alliance?: Maybe<Alliance>;
   allianceId?: Maybe<Scalars['Int']['output']>;
   allianceName?: Maybe<Scalars['String']['output']>;
+  character?: Maybe<Character>;
   characterId?: Maybe<Scalars['Int']['output']>;
   characterName?: Maybe<Scalars['String']['output']>;
+  corporation?: Maybe<Corporation>;
   corporationId: Scalars['Int']['output'];
   corporationName?: Maybe<Scalars['String']['output']>;
   damageTaken: Scalars['Int']['output'];
   factionId?: Maybe<Scalars['Int']['output']>;
   position?: Maybe<Position>;
+  shipType?: Maybe<Type>;
   shipTypeId: Scalars['Int']['output'];
   shipTypeName?: Maybe<Scalars['String']['output']>;
 };
@@ -1054,10 +1131,16 @@ export type ResolversTypes = {
   StartRegionSyncPayload: ResolverTypeWrapper<StartRegionSyncPayload>;
   StartSolarSystemSyncInput: StartSolarSystemSyncInput;
   StartSolarSystemSyncPayload: ResolverTypeWrapper<StartSolarSystemSyncPayload>;
+  StartTypeSyncInput: StartTypeSyncInput;
+  StartTypeSyncPayload: ResolverTypeWrapper<StartTypeSyncPayload>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Subscription: ResolverTypeWrapper<Record<PropertyKey, never>>;
   SyncMyKillmailsInput: SyncMyKillmailsInput;
   SyncMyKillmailsPayload: ResolverTypeWrapper<SyncMyKillmailsPayload>;
+  Type: ResolverTypeWrapper<Type>;
+  TypeConnection: ResolverTypeWrapper<TypeConnection>;
+  TypeEdge: ResolverTypeWrapper<TypeEdge>;
+  TypeFilter: TypeFilter;
   UpdateUserInput: UpdateUserInput;
   UpdateUserPayload: ResolverTypeWrapper<UpdateUserPayload>;
   User: ResolverTypeWrapper<User>;
@@ -1136,10 +1219,16 @@ export type ResolversParentTypes = {
   StartRegionSyncPayload: StartRegionSyncPayload;
   StartSolarSystemSyncInput: StartSolarSystemSyncInput;
   StartSolarSystemSyncPayload: StartSolarSystemSyncPayload;
+  StartTypeSyncInput: StartTypeSyncInput;
+  StartTypeSyncPayload: StartTypeSyncPayload;
   String: Scalars['String']['output'];
   Subscription: Record<PropertyKey, never>;
   SyncMyKillmailsInput: SyncMyKillmailsInput;
   SyncMyKillmailsPayload: SyncMyKillmailsPayload;
+  Type: Type;
+  TypeConnection: TypeConnection;
+  TypeEdge: TypeEdge;
+  TypeFilter: TypeFilter;
   UpdateUserInput: UpdateUserInput;
   UpdateUserPayload: UpdateUserPayload;
   User: User;
@@ -1198,18 +1287,23 @@ export type AllianceSnapshotResolvers<ContextType = any, ParentType extends Reso
 };
 
 export type AttackerResolvers<ContextType = any, ParentType extends ResolversParentTypes['Attacker'] = ResolversParentTypes['Attacker']> = {
+  alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType>;
   allianceId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   allianceName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
   characterId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   characterName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType>;
   corporationId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   corporationName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   damageDone?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   factionId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   finalBlow?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   securityStatus?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  shipType?: Resolver<Maybe<ResolversTypes['Type']>, ParentType, ContextType>;
   shipTypeId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   shipTypeName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  weaponType?: Resolver<Maybe<ResolversTypes['Type']>, ParentType, ContextType>;
   weaponTypeId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   weaponTypeName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
@@ -1357,6 +1451,7 @@ export type ItemGroupResolvers<ContextType = any, ParentType extends ResolversPa
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   published?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  types?: Resolver<Array<ResolversTypes['Type']>, ParentType, ContextType>;
   updated_at?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
@@ -1378,6 +1473,7 @@ export type KillmailResolvers<ContextType = any, ParentType extends ResolversPar
   killmailHash?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   killmailId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   killmailTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  solarSystem?: Resolver<Maybe<ResolversTypes['SolarSystem']>, ParentType, ContextType>;
   solarSystemId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   totalValue?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   victim?: Resolver<ResolversTypes['Victim'], ParentType, ContextType>;
@@ -1395,6 +1491,7 @@ export type KillmailEdgeResolvers<ContextType = any, ParentType extends Resolver
 
 export type KillmailItemResolvers<ContextType = any, ParentType extends ResolversParentTypes['KillmailItem'] = ResolversParentTypes['KillmailItem']> = {
   flag?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  itemType?: Resolver<Maybe<ResolversTypes['Type']>, ParentType, ContextType>;
   itemTypeId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   itemTypeName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   quantityDestroyed?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
@@ -1414,6 +1511,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   startItemGroupSync?: Resolver<ResolversTypes['StartItemGroupSyncPayload'], ParentType, ContextType, RequireFields<MutationStartItemGroupSyncArgs, 'input'>>;
   startRegionSync?: Resolver<ResolversTypes['StartRegionSyncPayload'], ParentType, ContextType, RequireFields<MutationStartRegionSyncArgs, 'input'>>;
   startSolarSystemSync?: Resolver<ResolversTypes['StartSolarSystemSyncPayload'], ParentType, ContextType, RequireFields<MutationStartSolarSystemSyncArgs, 'input'>>;
+  startTypeSync?: Resolver<ResolversTypes['StartTypeSyncPayload'], ParentType, ContextType, RequireFields<MutationStartTypeSyncArgs, 'input'>>;
   syncMyKillmails?: Resolver<ResolversTypes['SyncMyKillmailsPayload'], ParentType, ContextType, RequireFields<MutationSyncMyKillmailsArgs, 'input'>>;
   updateUser?: Resolver<ResolversTypes['UpdateUserPayload'], ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'input'>>;
 };
@@ -1461,6 +1559,8 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   regions?: Resolver<ResolversTypes['RegionConnection'], ParentType, ContextType, Partial<QueryRegionsArgs>>;
   solarSystem?: Resolver<Maybe<ResolversTypes['SolarSystem']>, ParentType, ContextType, RequireFields<QuerySolarSystemArgs, 'id'>>;
   solarSystems?: Resolver<ResolversTypes['SolarSystemConnection'], ParentType, ContextType, Partial<QuerySolarSystemsArgs>>;
+  type?: Resolver<Maybe<ResolversTypes['Type']>, ParentType, ContextType, RequireFields<QueryTypeArgs, 'id'>>;
+  types?: Resolver<ResolversTypes['TypeConnection'], ParentType, ContextType, Partial<QueryTypesArgs>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
   users?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
   workerStatus?: Resolver<ResolversTypes['WorkerStatus'], ParentType, ContextType>;
@@ -1564,6 +1664,12 @@ export type StartSolarSystemSyncPayloadResolvers<ContextType = any, ParentType e
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
 };
 
+export type StartTypeSyncPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['StartTypeSyncPayload'] = ResolversParentTypes['StartTypeSyncPayload']> = {
+  clientMutationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+};
+
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
   _empty?: SubscriptionResolver<Maybe<ResolversTypes['String']>, "_empty", ParentType, ContextType>;
   workerStatusUpdates?: SubscriptionResolver<ResolversTypes['WorkerStatus'], "workerStatusUpdates", ParentType, ContextType>;
@@ -1574,6 +1680,31 @@ export type SyncMyKillmailsPayloadResolvers<ContextType = any, ParentType extend
   message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   syncedCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type TypeResolvers<ContextType = any, ParentType extends ResolversParentTypes['Type'] = ResolversParentTypes['Type']> = {
+  capacity?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  created_at?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  group?: Resolver<Maybe<ResolversTypes['ItemGroup']>, ParentType, ContextType>;
+  group_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  icon_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  mass?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  published?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  updated_at?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  volume?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+};
+
+export type TypeConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['TypeConnection'] = ResolversParentTypes['TypeConnection']> = {
+  edges?: Resolver<Array<ResolversTypes['TypeEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+};
+
+export type TypeEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['TypeEdge'] = ResolversParentTypes['TypeEdge']> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['Type'], ParentType, ContextType>;
 };
 
 export type UpdateUserPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['UpdateUserPayload'] = ResolversParentTypes['UpdateUserPayload']> = {
@@ -1589,15 +1720,19 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
 };
 
 export type VictimResolvers<ContextType = any, ParentType extends ResolversParentTypes['Victim'] = ResolversParentTypes['Victim']> = {
+  alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType>;
   allianceId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   allianceName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
   characterId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   characterName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType>;
   corporationId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   corporationName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   damageTaken?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   factionId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   position?: Resolver<Maybe<ResolversTypes['Position']>, ParentType, ContextType>;
+  shipType?: Resolver<Maybe<ResolversTypes['Type']>, ParentType, ContextType>;
   shipTypeId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   shipTypeName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
@@ -1659,8 +1794,12 @@ export type Resolvers<ContextType = any> = {
   StartItemGroupSyncPayload?: StartItemGroupSyncPayloadResolvers<ContextType>;
   StartRegionSyncPayload?: StartRegionSyncPayloadResolvers<ContextType>;
   StartSolarSystemSyncPayload?: StartSolarSystemSyncPayloadResolvers<ContextType>;
+  StartTypeSyncPayload?: StartTypeSyncPayloadResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
   SyncMyKillmailsPayload?: SyncMyKillmailsPayloadResolvers<ContextType>;
+  Type?: TypeResolvers<ContextType>;
+  TypeConnection?: TypeConnectionResolvers<ContextType>;
+  TypeEdge?: TypeEdgeResolvers<ContextType>;
   UpdateUserPayload?: UpdateUserPayloadResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
   Victim?: VictimResolvers<ContextType>;
