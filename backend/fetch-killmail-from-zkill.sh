@@ -30,11 +30,12 @@ if [ -z "$ZKILL_DATA" ] || [ "$ZKILL_DATA" = "[]" ]; then
     exit 1
 fi
 
-# Extract hash using jq
-KILLMAIL_HASH=$(echo "$ZKILL_DATA" | jq -r '.[0].zkb.hash // empty')
+# Extract hash using grep and sed (no jq dependency)
+KILLMAIL_HASH=$(echo "$ZKILL_DATA" | grep -o '"hash":"[^"]*"' | head -1 | sed 's/"hash":"//;s/"$//')
 
 if [ -z "$KILLMAIL_HASH" ]; then
     echo "❌ Could not extract killmail hash from zKillboard response"
+    echo "   Response: $ZKILL_DATA"
     echo ""
     exit 1
 fi
