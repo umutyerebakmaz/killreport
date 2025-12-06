@@ -1,0 +1,51 @@
+type Type {
+  id: Int!
+  name: String!
+  description: String
+  group_id: Int!
+  published: Boolean!
+  volume: Float
+  capacity: Float
+  mass: Float
+  icon_id: Int
+  created_at: String!
+  updated_at: String!
+  group: ItemGroup
+}
+
+type TypeEdge {
+  node: Type!
+  cursor: String!
+}
+
+type TypeConnection {
+  edges: [TypeEdge!]!
+  pageInfo: PageInfo!
+}
+
+input TypeFilter {
+  page: Int
+  limit: Int
+  search: String
+  group_id: Int
+  published: Boolean
+}
+
+input StartTypeSyncInput {
+  clientMutationId: String
+}
+
+type StartTypeSyncPayload {
+  success: Boolean!
+  message: String
+  clientMutationId: String
+}
+
+extend type Query {
+  type(id: Int!): Type
+  types(filter: TypeFilter): TypeConnection!
+}
+
+extend type Mutation {
+  startTypeSync(input: StartTypeSyncInput!): StartTypeSyncPayload!
+}
