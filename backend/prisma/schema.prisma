@@ -194,17 +194,18 @@ model KillmailItem {
 }
 
 model Type {
-  id          Int      @id
+  id          Int       @id
   name        String
   description String?
   group_id    Int
-  published   Boolean  @default(true)
+  published   Boolean   @default(true)
   volume      Float?
   capacity    Float?
   mass        Float?
   icon_id     Int?
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  group       ItemGroup @relation(fields: [group_id], references: [id])
 
   @@index([group_id])
   @@map("types")
@@ -229,6 +230,7 @@ model ItemGroup {
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
   category    Category @relation(fields: [category_id], references: [id])
+  types       Type[]
 
   @@index([category_id])
   @@map("item_groups")

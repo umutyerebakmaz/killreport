@@ -67,18 +67,23 @@ type AllianceSnapshot {
 }
 
 type Attacker {
+  alliance: Alliance
   allianceId: Int
   allianceName: String
+  character: Character
   characterId: Int
   characterName: String
+  corporation: Corporation
   corporationId: Int
   corporationName: String
   damageDone: Int!
   factionId: Int
   finalBlow: Boolean!
   securityStatus: Float!
+  shipType: Type
   shipTypeId: Int
   shipTypeName: String
+  weaponType: Type
   weaponTypeId: Int
   weaponTypeName: String
 }
@@ -299,6 +304,7 @@ type ItemGroup {
   id: Int!
   name: String!
   published: Boolean!
+  types: [Type!]!
   updated_at: String!
 }
 
@@ -328,6 +334,7 @@ type Killmail {
   killmailHash: String!
   killmailId: Int!
   killmailTime: String!
+  solarSystem: SolarSystem
   solarSystemId: Int!
   totalValue: Float
   victim: Victim!
@@ -345,6 +352,7 @@ type KillmailEdge {
 
 type KillmailItem {
   flag: Int!
+  itemType: Type
   itemTypeId: Int!
   itemTypeName: String
   quantityDestroyed: Int
@@ -370,6 +378,7 @@ type Mutation {
   startItemGroupSync(input: StartItemGroupSyncInput!): StartItemGroupSyncPayload!
   startRegionSync(input: StartRegionSyncInput!): StartRegionSyncPayload!
   startSolarSystemSync(input: StartSolarSystemSyncInput!): StartSolarSystemSyncPayload!
+  startTypeSync(input: StartTypeSyncInput!): StartTypeSyncPayload!
 
   """
   Fetches user's killmails from ESI and saves to database
@@ -438,6 +447,8 @@ type Query {
   regions(filter: RegionFilter): RegionConnection!
   solarSystem(id: Int!): SolarSystem
   solarSystems(filter: SolarSystemFilter): SolarSystemConnection!
+  type(id: Int!): Type
+  types(filter: TypeFilter): TypeConnection!
   user(id: ID!): User
   users: [User!]!
 
@@ -605,6 +616,16 @@ type StartSolarSystemSyncPayload {
   success: Boolean!
 }
 
+input StartTypeSyncInput {
+  clientMutationId: String
+}
+
+type StartTypeSyncPayload {
+  clientMutationId: String
+  message: String
+  success: Boolean!
+}
+
 type Subscription {
   _empty: String
 
@@ -624,6 +645,39 @@ type SyncMyKillmailsPayload {
   message: String!
   success: Boolean!
   syncedCount: Int!
+}
+
+type Type {
+  capacity: Float
+  created_at: String!
+  description: String
+  group: ItemGroup
+  group_id: Int!
+  icon_id: Int
+  id: Int!
+  mass: Float
+  name: String!
+  published: Boolean!
+  updated_at: String!
+  volume: Float
+}
+
+type TypeConnection {
+  edges: [TypeEdge!]!
+  pageInfo: PageInfo!
+}
+
+type TypeEdge {
+  cursor: String!
+  node: Type!
+}
+
+input TypeFilter {
+  group_id: Int
+  limit: Int
+  page: Int
+  published: Boolean
+  search: String
 }
 
 input UpdateUserInput {
@@ -646,15 +700,19 @@ type User {
 }
 
 type Victim {
+  alliance: Alliance
   allianceId: Int
   allianceName: String
+  character: Character
   characterId: Int
   characterName: String
+  corporation: Corporation
   corporationId: Int!
   corporationName: String
   damageTaken: Int!
   factionId: Int
   position: Position
+  shipType: Type
   shipTypeId: Int!
   shipTypeName: String
 }

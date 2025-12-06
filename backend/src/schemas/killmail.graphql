@@ -25,6 +25,7 @@ type Killmail {
   killmailHash: String!
   killmailTime: String!
   solarSystemId: Int!
+  solarSystem: SolarSystem
   victim: Victim!
   attackers: [Attacker!]!
   items: [KillmailItem!]!
@@ -35,13 +36,17 @@ type Killmail {
 type Victim {
   characterId: Int
   characterName: String
+  character: Character
   corporationId: Int!
   corporationName: String
+  corporation: Corporation
   allianceId: Int
   allianceName: String
+  alliance: Alliance
   factionId: Int
   shipTypeId: Int!
   shipTypeName: String
+  shipType: Type
   damageTaken: Int!
   position: Position
 }
@@ -55,15 +60,20 @@ type Position {
 type Attacker {
   characterId: Int
   characterName: String
+  character: Character
   corporationId: Int
   corporationName: String
+  corporation: Corporation
   allianceId: Int
   allianceName: String
+  alliance: Alliance
   factionId: Int
   shipTypeId: Int
   shipTypeName: String
+  shipType: Type
   weaponTypeId: Int
   weaponTypeName: String
+  weaponType: Type
   damageDone: Int!
   finalBlow: Boolean!
   securityStatus: Float!
@@ -72,6 +82,7 @@ type Attacker {
 type KillmailItem {
   itemTypeId: Int!
   itemTypeName: String
+  itemType: Type
   flag: Int!
   quantityDropped: Int
   quantityDestroyed: Int
