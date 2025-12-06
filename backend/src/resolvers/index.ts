@@ -7,10 +7,18 @@ import { characterFieldResolvers, characterQueries } from './character.resolver'
 import { constellationFieldResolvers, constellationMutations, constellationQueries } from './constellation.resolver';
 import { corporationFieldResolvers, corporationQueries } from './corporation.resolver';
 import { itemGroupFieldResolvers, itemGroupMutations, itemGroupQueries } from './item-group.resolver';
-import { killmailMutations, killmailQueries } from './killmail.resolver';
+import {
+    attackerFieldResolvers,
+    killmailFieldResolvers,
+    killmailItemFieldResolvers,
+    killmailMutations,
+    killmailQueries,
+    victimFieldResolvers,
+} from './killmail.resolver';
 import { raceQueries } from './race.resolver';
 import { regionFieldResolvers, regionMutations, regionQueries } from './region.resolver';
 import { solarSystemFieldResolvers, solarSystemMutations, solarSystemQueries } from './solarSystem.resolver';
+import { typeFieldResolvers, typeMutations, typeQueries } from './type.resolver';
 import { userMutations, userQueries } from './user.resolver';
 import { workerResolvers } from './worker.resolver';
 
@@ -26,6 +34,7 @@ export const resolvers: Resolvers = {
         ...bloodlineQueries,
         ...categoryQueries,
         ...itemGroupQueries,
+        ...typeQueries,
         ...constellationQueries,
         ...regionQueries,
         ...solarSystemQueries,
@@ -38,6 +47,7 @@ export const resolvers: Resolvers = {
         ...allianceMutations,
         ...categoryMutations,
         ...itemGroupMutations,
+        ...typeMutations,
         ...constellationMutations,
         ...regionMutations,
         ...solarSystemMutations,
@@ -49,8 +59,13 @@ export const resolvers: Resolvers = {
     Alliance: allianceFieldResolvers,
     Category: categoryFieldResolvers,
     ItemGroup: itemGroupFieldResolvers,
+    Type: typeFieldResolvers,
     Corporation: corporationFieldResolvers,
     Constellation: constellationFieldResolvers,
     Region: regionFieldResolvers,
     SolarSystem: solarSystemFieldResolvers,
+    Killmail: killmailFieldResolvers,
+    Victim: victimFieldResolvers,
+    Attacker: attackerFieldResolvers,
+    KillmailItem: killmailItemFieldResolvers,
 };
