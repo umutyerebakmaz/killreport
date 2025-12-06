@@ -101,6 +101,33 @@ extend type Query {
   killmails(first: Int, after: String): KillmailConnection!
 
   """
+  Fetches killmails for a specific character
+  """
+  characterKillmails(
+    characterId: Int!
+    first: Int
+    after: String
+  ): KillmailConnection!
+
+  """
+  Fetches killmails for a specific corporation
+  """
+  corporationKillmails(
+    corporationId: Int!
+    first: Int
+    after: String
+  ): KillmailConnection!
+
+  """
+  Fetches killmails for a specific alliance
+  """
+  allianceKillmails(
+    allianceId: Int!
+    first: Int
+    after: String
+  ): KillmailConnection!
+
+  """
   Fetches the authenticated user's own killmails
   Requires: Authentication
   """

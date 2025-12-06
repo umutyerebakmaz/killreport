@@ -407,16 +407,25 @@ type Position {
 type Query {
   _empty: String
   alliance(id: Int!): Alliance
+
+  """Fetches killmails for a specific alliance"""
+  allianceKillmails(after: String, allianceId: Int!, first: Int): KillmailConnection!
   alliances(filter: AllianceFilter): AllianceConnection!
   bloodline(id: Int!): Bloodline
   bloodlines: [Bloodline!]!
   categories(filter: CategoryFilter): CategoryConnection!
   category(id: Int!): Category
   character(id: Int!): Character
+
+  """Fetches killmails for a specific character"""
+  characterKillmails(after: String, characterId: Int!, first: Int): KillmailConnection!
   characters(filter: CharacterFilter): CharacterConnection!
   constellation(id: Int!): Constellation
   constellations(filter: ConstellationFilter): ConstellationConnection!
   corporation(id: Int!): Corporation
+
+  """Fetches killmails for a specific corporation"""
+  corporationKillmails(after: String, corporationId: Int!, first: Int): KillmailConnection!
   corporations(filter: CorporationFilter): CorporationConnection!
   itemGroup(id: Int!): ItemGroup
   itemGroups(filter: ItemGroupFilter): ItemGroupConnection!
