@@ -23,6 +23,7 @@
         "queue:item-groups": "ts-node src/queues/queue-item-groups.ts",
         "queue:regions": "ts-node src/queues/queue-regions.ts",
         "queue:systems": "ts-node src/queues/queue-systems.ts",
+        "queue:types": "ts-node src/queues/queue-types.ts",
         "queue:zkillboard": "ts-node src/queues/queue-zkillboard-sync.ts",
         "remove:all": "rm -rf node_modules yarn.lock package-lock.json pnpm-lock.yaml",
         "scan:entities": "ts-node src/workers/scan-killmail-entities.ts",
