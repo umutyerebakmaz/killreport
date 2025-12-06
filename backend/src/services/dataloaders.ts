@@ -178,6 +178,24 @@ export const createConstellationLoader = () => {
 };
 
 /**
+ * SolarSystem DataLoader - Batch loading için
+ */
+export const createSolarSystemLoader = () => {
+    return new DataLoader<number, any>(async (systemIds) => {
+        console.log(`🔄 DataLoader: Batching ${systemIds.length} solar system queries`);
+
+        const systems = await prisma.solarSystem.findMany({
+            where: {
+                id: { in: [...systemIds] },
+            },
+        });
+
+        const systemMap = new Map(systems.map(s => [s.id, s]));
+        return systemIds.map(id => systemMap.get(id) || null);
+    });
+};
+
+/**
  * Constellations by Region DataLoader
  */
 export const createConstellationsByRegionLoader = () => {
@@ -270,6 +288,24 @@ export const createItemGroupLoader = () => {
 };
 
 /**
+ * Type DataLoader - Batch loading için
+ */
+export const createTypeLoader = () => {
+    return new DataLoader<number, any>(async (typeIds) => {
+        console.log(`🔄 DataLoader: Batching ${typeIds.length} type queries`);
+
+        const types = await prisma.type.findMany({
+            where: {
+                id: { in: [...typeIds] },
+            },
+        });
+
+        const typeMap = new Map(types.map(t => [t.id, t]));
+        return typeIds.map(id => typeMap.get(id) || null);
+    });
+};
+
+/**
  * Item Groups by Category DataLoader
  */
 export const createItemGroupsByCategoryLoader = () => {
@@ -308,10 +344,12 @@ export interface DataLoaderContext {
         corporationsByAlliance: DataLoader<number, any[]>;
         region: DataLoader<number, any>;
         constellation: DataLoader<number, any>;
+        solarSystem: DataLoader<number, any>;
         constellationsByRegion: DataLoader<number, any[]>;
         solarSystemsByConstellation: DataLoader<number, any[]>;
         category: DataLoader<number, any>;
         itemGroup: DataLoader<number, any>;
+        type: DataLoader<number, any>;
         itemGroupsByCategory: DataLoader<number, any[]>;
     };
 }
@@ -326,10 +364,12 @@ export const createDataLoaders = (): DataLoaderContext => ({
         corporationsByAlliance: createCorporationsByAllianceLoader(),
         region: createRegionLoader(),
         constellation: createConstellationLoader(),
+        solarSystem: createSolarSystemLoader(),
         constellationsByRegion: createConstellationsByRegionLoader(),
         solarSystemsByConstellation: createSolarSystemsByConstellationLoader(),
         category: createCategoryLoader(),
         itemGroup: createItemGroupLoader(),
+        type: createTypeLoader(),
         itemGroupsByCategory: createItemGroupsByCategoryLoader(),
     },
 });
