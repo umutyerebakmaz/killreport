@@ -6,6 +6,7 @@
         "codegen": "graphql-codegen",
         "codegen:watch": "graphql-codegen --watch",
         "dev": "NODE_ENV=development nodemon --watch 'src/**/*.ts' --ignore 'src/**/*.spec.ts' --exec ts-node src/server.ts",
+        "fetch:killmail": "ts-node src/workers/fetch-single-killmail.ts",
         "kill:port": "lsof -ti:4000 | xargs kill -9 || true",
         "prisma:generate": "prisma generate",
         "prisma:migrate": "prisma migrate dev",

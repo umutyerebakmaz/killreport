@@ -15,6 +15,12 @@ export default function Home() {
           </p>
           <div className="flex items-center justify-center mt-10 gap-x-6">
             <Link
+              href="/killmails"
+              className="rounded-md bg-white/20 px-3.5 py-2.5 text-sm font-semibold text-white inset-ring inset-ring-white/10 hover:bg-white/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              Browse Killmails
+            </Link>
+            <Link
               href="/alliances"
               className="rounded-md bg-white/15 px-3.5 py-2.5 text-sm font-semibold text-white inset-ring inset-ring-white/5 hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >

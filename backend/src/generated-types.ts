@@ -523,16 +523,22 @@ export type Query = {
   __typename?: 'Query';
   _empty?: Maybe<Scalars['String']['output']>;
   alliance?: Maybe<Alliance>;
+  /** Fetches killmails for a specific alliance */
+  allianceKillmails: KillmailConnection;
   alliances: AllianceConnection;
   bloodline?: Maybe<Bloodline>;
   bloodlines: Array<Bloodline>;
   categories: CategoryConnection;
   category?: Maybe<Category>;
   character?: Maybe<Character>;
+  /** Fetches killmails for a specific character */
+  characterKillmails: KillmailConnection;
   characters: CharacterConnection;
   constellation?: Maybe<Constellation>;
   constellations: ConstellationConnection;
   corporation?: Maybe<Corporation>;
+  /** Fetches killmails for a specific corporation */
+  corporationKillmails: KillmailConnection;
   corporations: CorporationConnection;
   itemGroup?: Maybe<ItemGroup>;
   itemGroups: ItemGroupConnection;
@@ -572,6 +578,13 @@ export type QueryAllianceArgs = {
 };
 
 
+export type QueryAllianceKillmailsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  allianceId: Scalars['Int']['input'];
+  first?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
 export type QueryAlliancesArgs = {
   filter?: InputMaybe<AllianceFilter>;
 };
@@ -597,6 +610,13 @@ export type QueryCharacterArgs = {
 };
 
 
+export type QueryCharacterKillmailsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  characterId: Scalars['Int']['input'];
+  first?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
 export type QueryCharactersArgs = {
   filter?: InputMaybe<CharacterFilter>;
 };
@@ -614,6 +634,13 @@ export type QueryConstellationsArgs = {
 
 export type QueryCorporationArgs = {
   id: Scalars['Int']['input'];
+};
+
+
+export type QueryCorporationKillmailsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  corporationId: Scalars['Int']['input'];
+  first?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1535,16 +1562,19 @@ export type PositionResolvers<ContextType = any, ParentType extends ResolversPar
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType, RequireFields<QueryAllianceArgs, 'id'>>;
+  allianceKillmails?: Resolver<ResolversTypes['KillmailConnection'], ParentType, ContextType, RequireFields<QueryAllianceKillmailsArgs, 'allianceId'>>;
   alliances?: Resolver<ResolversTypes['AllianceConnection'], ParentType, ContextType, Partial<QueryAlliancesArgs>>;
   bloodline?: Resolver<Maybe<ResolversTypes['Bloodline']>, ParentType, ContextType, RequireFields<QueryBloodlineArgs, 'id'>>;
   bloodlines?: Resolver<Array<ResolversTypes['Bloodline']>, ParentType, ContextType>;
   categories?: Resolver<ResolversTypes['CategoryConnection'], ParentType, ContextType, Partial<QueryCategoriesArgs>>;
   category?: Resolver<Maybe<ResolversTypes['Category']>, ParentType, ContextType, RequireFields<QueryCategoryArgs, 'id'>>;
   character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType, RequireFields<QueryCharacterArgs, 'id'>>;
+  characterKillmails?: Resolver<ResolversTypes['KillmailConnection'], ParentType, ContextType, RequireFields<QueryCharacterKillmailsArgs, 'characterId'>>;
   characters?: Resolver<ResolversTypes['CharacterConnection'], ParentType, ContextType, Partial<QueryCharactersArgs>>;
   constellation?: Resolver<Maybe<ResolversTypes['Constellation']>, ParentType, ContextType, RequireFields<QueryConstellationArgs, 'id'>>;
   constellations?: Resolver<ResolversTypes['ConstellationConnection'], ParentType, ContextType, Partial<QueryConstellationsArgs>>;
   corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType, RequireFields<QueryCorporationArgs, 'id'>>;
+  corporationKillmails?: Resolver<ResolversTypes['KillmailConnection'], ParentType, ContextType, RequireFields<QueryCorporationKillmailsArgs, 'corporationId'>>;
   corporations?: Resolver<ResolversTypes['CorporationConnection'], ParentType, ContextType, Partial<QueryCorporationsArgs>>;
   itemGroup?: Resolver<Maybe<ResolversTypes['ItemGroup']>, ParentType, ContextType, RequireFields<QueryItemGroupArgs, 'id'>>;
   itemGroups?: Resolver<ResolversTypes['ItemGroupConnection'], ParentType, ContextType, Partial<QueryItemGroupsArgs>>;
