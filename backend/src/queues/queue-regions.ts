@@ -1,8 +1,7 @@
-import axios from 'axios';
 import '../config';
 import { getRabbitMQChannel } from '../services/rabbitmq';
+import { RegionService } from '../services/region';
 
-const ESI_BASE_URL = 'https://esi.evetech.net/latest';
 const QUEUE_NAME = 'esi_all_regions_queue';
 const BATCH_SIZE = 100;
 
@@ -14,8 +13,7 @@ async function queueRegions() {
 
   try {
     // Get all region IDs from ESI
-    const response = await axios.get(`${ESI_BASE_URL}/universe/regions/`);
-    const regionIds: number[] = response.data;
+    const regionIds = await RegionService.getAllRegionIds();
 
     console.log(`✓ Found ${regionIds.length} regions`);
     console.log(`📤 Adding to queue...\n`);
