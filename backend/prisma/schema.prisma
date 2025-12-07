@@ -7,25 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Alliance {
-  id                      Int                @id
-  name                    String
-  ticker                  String
-  date_founded            DateTime
-  creator_corporation_id  Int
-  creator_id              Int
-  executor_corporation_id Int
-  faction_id              Int?
-  member_count            Int                @default(0)
-  corporation_count       Int                @default(0)
-  created_at              DateTime           @default(now())
-  updated_at              DateTime           @updatedAt
-  snapshots               AllianceSnapshot[]
-  corporations            Corporation[]      @relation("AllianceCorporations")
-
-  @@map("alliances")
-}
-
 model AllianceSnapshot {
   id                BigInt   @id @default(autoincrement())
   alliance_id       Int
@@ -36,122 +17,29 @@ model AllianceSnapshot {
   alliance          Alliance @relation(fields: [alliance_id], references: [id], onDelete: Cascade)
 
   @@unique([alliance_id, snapshot_date])
-  @@index([snapshot_date])
   @@index([alliance_id])
   @@index([created_at])
+  @@index([snapshot_date])
   @@map("alliance_snapshots")
 }
 
-model Corporation {
-  id                       Int                   @id
-  name                     String
-  ticker                   String
-  member_count             Int
-  ceo_id                   Int
-  creator_id               Int
-  date_founded             DateTime?
-  description              String?
-  alliance_id              Int?
-  faction_id               Int?
-  home_station_id          Int?
-  shares                   BigInt?
-  tax_rate                 Float
-  url                      String?
-  created_at               DateTime              @default(now())
-  updated_at               DateTime              @updatedAt
-  snapshots                CorporationSnapshot[]
-  alliance                 Alliance?             @relation("AllianceCorporations", fields: [alliance_id], references: [id])
+model Alliance {
+  id                      Int                @id
+  name                    String
+  ticker                  String
+  date_founded            DateTime
+  creator_corporation_id  Int
+  creator_id              Int
+  executor_corporation_id Int
+  faction_id              Int?
+  created_at              DateTime           @default(now())
+  updated_at              DateTime           @updatedAt
+  corporation_count       Int                @default(0)
+  member_count            Int                @default(0)
+  snapshots               AllianceSnapshot[]
+  corporations            Corporation[]      @relation("AllianceCorporations")
 
-  @@index([alliance_id])
-  @@map("corporations")
-}
-
-model CorporationSnapshot {
-  id            BigInt      @id @default(autoincrement())
-  corporation_id Int
-  member_count  Int
-  created_at    DateTime    @default(now())
-  snapshot_date DateTime    @db.Date
-  corporation   Corporation @relation(fields: [corporation_id], references: [id], onDelete: Cascade)
-
-  @@unique([corporation_id, snapshot_date])
-  @@index([snapshot_date])
-  @@index([corporation_id])
-  @@index([created_at])
-  @@map("corporation_snapshots")
-}
-
-model Character {
-  id              Int        @id
-  name            String
-  corporation_id  Int
-  alliance_id     Int?
-  birthday        DateTime
-  bloodline_id    Int
-  race_id         Int
-  gender          String
-  security_status Float?
-  description     String?
-  title           String?
-  faction_id      Int?
-  created_at      DateTime   @default(now())
-  updated_at      DateTime   @updatedAt
-
-  @@map("characters")
-}
-
-model User {
-  id                   Int      @id @default(autoincrement())
-  character_id         Int      @unique
-  character_name       String
-  character_owner_hash String
-  access_token         String
-  refresh_token        String?
-  expires_at           DateTime
-  email                String?  @unique
-  created_at           DateTime @default(now())
-  updated_at           DateTime @updatedAt
-
-  @@index([character_id])
-  @@index([expires_at])
-  @@map("users")
-}
-
-model Killmail {
-  killmail_id     Int            @id
-  killmail_hash   String
-  killmail_time   DateTime
-  solar_system_id Int
-  created_at      DateTime       @default(now())
-  updated_at      DateTime       @updatedAt
-  attackers       Attacker[]
-  items           KillmailItem[]
-  victim          Victim?
-
-  @@index([killmail_time])
-  @@index([solar_system_id])
-  @@map("killmails")
-}
-
-model Victim {
-  killmail_id    Int      @id
-  character_id   Int?
-  corporation_id Int
-  alliance_id    Int?
-  faction_id     Int?
-  ship_type_id   Int
-  damage_taken   Int
-  position_x     Float?
-  position_y     Float?
-  position_z     Float?
-  created_at     DateTime @default(now())
-  killmail       Killmail @relation(fields: [killmail_id], references: [killmail_id], onDelete: Cascade)
-
-  @@index([character_id])
-  @@index([corporation_id])
-  @@index([alliance_id])
-  @@index([ship_type_id])
-  @@map("victims")
+  @@map("alliances")
 }
 
 model Attacker {
@@ -170,45 +58,22 @@ model Attacker {
   id              BigInt   @id @default(autoincrement())
   killmail        Killmail @relation(fields: [killmail_id], references: [killmail_id], onDelete: Cascade)
 
-  @@index([killmail_id])
+  @@index([alliance_id])
   @@index([character_id])
   @@index([corporation_id])
-  @@index([alliance_id])
+  @@index([killmail_id])
   @@map("attackers")
 }
 
-model KillmailItem {
-  id                 BigInt   @id @default(autoincrement())
-  killmail_id        Int
-  item_type_id       Int
-  flag               Int
-  quantity_dropped   Int?
-  quantity_destroyed Int?
-  singleton          Int
-  created_at         DateTime @default(now())
-  killmail           Killmail @relation(fields: [killmail_id], references: [killmail_id], onDelete: Cascade)
-
-  @@index([killmail_id])
-  @@index([item_type_id])
-  @@map("killmail_items")
-}
-
-model Type {
-  id          Int       @id
+model Bloodline {
+  id          Int      @id
   name        String
   description String?
-  group_id    Int
-  published   Boolean   @default(true)
-  volume      Float?
-  capacity    Float?
-  mass        Float?
-  icon_id     Int?
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
-  group       ItemGroup @relation(fields: [group_id], references: [id])
+  race_id     Int
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 
-  @@index([group_id])
-  @@map("types")
+  @@map("bloodlines")
 }
 
 model Category {
@@ -220,6 +85,78 @@ model Category {
   groups     ItemGroup[]
 
   @@map("categories")
+}
+
+model Character {
+  id              Int      @id
+  name            String
+  corporation_id  Int
+  alliance_id     Int?
+  birthday        DateTime
+  bloodline_id    Int
+  race_id         Int
+  gender          String
+  security_status Float?
+  description     String?
+  title           String?
+  faction_id      Int?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  @@map("characters")
+}
+
+model Constellation {
+  id           Int           @id @map("constellation_id")
+  name         String
+  region_id    Int?
+  position_x   Float?
+  position_y   Float?
+  position_z   Float?
+  region       Region?       @relation(fields: [region_id], references: [id])
+  solarSystems SolarSystem[]
+
+  @@index([region_id])
+  @@map("constellations")
+}
+
+model CorporationSnapshot {
+  id            BigInt      @id @default(autoincrement())
+  corporation_id Int
+  member_count  Int
+  created_at    DateTime    @default(now())
+  snapshot_date DateTime    @db.Date
+  corporation   Corporation @relation(fields: [corporation_id], references: [id], onDelete: Cascade)
+
+  @@unique([corporation_id, snapshot_date])
+  @@index([corporation_id])
+  @@index([created_at])
+  @@index([snapshot_date])
+  @@map("corporation_snapshots")
+}
+
+model Corporation {
+  id                    Int                     @id
+  name                  String
+  ticker                String
+  member_count          Int
+  ceo_id                Int
+  creator_id            Int
+  date_founded          DateTime?
+  description           String?
+  alliance_id           Int?
+  faction_id            Int?
+  home_station_id       Int?
+  shares                BigInt?
+  tax_rate              Float
+  url                   String?
+  created_at            DateTime                @default(now())
+  updated_at            DateTime                @updatedAt
+  snapshots             CorporationSnapshot[]
+  alliance              Alliance?               @relation("AllianceCorporations", fields: [alliance_id], references: [id])
+
+  @@index([alliance_id])
+  @@map("corporations")
 }
 
 model ItemGroup {
@@ -236,6 +173,38 @@ model ItemGroup {
   @@map("item_groups")
 }
 
+model KillmailItem {
+  id                 BigInt   @id @default(autoincrement())
+  killmail_id        Int
+  item_type_id       Int
+  flag               Int
+  quantity_dropped   Int?
+  quantity_destroyed Int?
+  singleton          Int
+  created_at         DateTime @default(now())
+  killmail           Killmail @relation(fields: [killmail_id], references: [killmail_id], onDelete: Cascade)
+
+  @@index([item_type_id])
+  @@index([killmail_id])
+  @@map("killmail_items")
+}
+
+model Killmail {
+  killmail_id     Int            @id
+  killmail_hash   String
+  killmail_time   DateTime
+  solar_system_id Int
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
+  attackers       Attacker[]
+  items           KillmailItem[]
+  victim          Victim?
+
+  @@index([killmail_time])
+  @@index([solar_system_id])
+  @@map("killmails")
+}
+
 model Race {
   id          Int      @id
   name        String
@@ -246,17 +215,6 @@ model Race {
   @@map("races")
 }
 
-model Bloodline {
-  id          Int      @id
-  name        String
-  description String?
-  race_id     Int
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
-
-  @@map("bloodlines")
-}
-
 model Region {
   id             Int             @id @map("region_id")
   name           String
@@ -264,20 +222,6 @@ model Region {
   constellations Constellation[]
 
   @@map("regions")
-}
-
-model Constellation {
-  id           Int           @id @map("constellation_id")
-  name         String
-  region_id    Int?
-  position_x   Float?
-  position_y   Float?
-  position_z   Float?
-  region       Region?       @relation(fields: [region_id], references: [id])
-  solarSystems SolarSystem[]
-
-  @@index([region_id])
-  @@map("constellations")
 }
 
 model SolarSystem {
@@ -306,7 +250,63 @@ model SyncJob {
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
-  @@index([entity_type, status])
   @@index([entity_id, entity_type])
+  @@index([entity_type, status])
   @@map("sync_jobs")
+}
+
+model Type {
+  id          Int       @id
+  name        String
+  description String?
+  group_id    Int
+  published   Boolean   @default(true)
+  volume      Float?
+  capacity    Float?
+  mass        Float?
+  icon_id     Int?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  group       ItemGroup @relation(fields: [group_id], references: [id])
+
+  @@index([group_id])
+  @@map("types")
+}
+
+model User {
+  id                   Int      @id @default(autoincrement())
+  character_id         Int      @unique
+  character_name       String
+  character_owner_hash String
+  access_token         String
+  refresh_token        String?
+  expires_at           DateTime
+  email                String?  @unique
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+
+  @@index([character_id])
+  @@index([expires_at])
+  @@map("users")
+}
+
+model Victim {
+  killmail_id    Int      @id
+  character_id   Int?
+  corporation_id Int
+  alliance_id    Int?
+  faction_id     Int?
+  ship_type_id   Int
+  damage_taken   Int
+  position_x     Float?
+  position_y     Float?
+  position_z     Float?
+  created_at     DateTime @default(now())
+  killmail       Killmail @relation(fields: [killmail_id], references: [killmail_id], onDelete: Cascade)
+
+  @@index([alliance_id])
+  @@index([character_id])
+  @@index([corporation_id])
+  @@index([ship_type_id])
+  @@map("victims")
 }
