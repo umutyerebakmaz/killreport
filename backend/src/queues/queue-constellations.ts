@@ -1,8 +1,7 @@
-import axios from 'axios';
 import '../config';
+import { ConstellationService } from '../services/constellation';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
-const ESI_BASE_URL = 'https://esi.evetech.net/latest';
 const QUEUE_NAME = 'esi_all_constellations_queue';
 const BATCH_SIZE = 100;
 
@@ -14,8 +13,7 @@ async function queueConstellations() {
 
     try {
         // Get all constellation IDs from ESI
-        const response = await axios.get(`${ESI_BASE_URL}/universe/constellations/`);
-        const constellationIds: number[] = response.data;
+        const constellationIds = await ConstellationService.getAllConstellationIds();
 
         console.log(`✓ Found ${constellationIds.length} constellations`);
         console.log(`📤 Adding to queue...\n`);
