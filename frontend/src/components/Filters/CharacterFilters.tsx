@@ -109,22 +109,22 @@ export default function CharacterFilters({
             onChange={(e) => onOrderByChange(e.target.value)}
             className="select"
           >
-            <option value="nameAsc" className="option">
+            <option value="nameAsc">
               {orderBy === "nameAsc" ? "✓" : "\u00A0\u00A0"}
               {"   "}
               Name A-Z
             </option>
-            <option value="nameDesc" className="option">
+            <option value="nameDesc">
               {orderBy === "nameDesc" ? "✓" : "\u00A0\u00A0"}
               {"   "}
               Name Z-A
             </option>
-            <option value="securityStatusDesc" className="option">
+            <option value="securityStatusDesc">
               {orderBy === "securityStatusDesc" ? "✓" : "\u00A0\u00A0"}
               {"   "}
               Highest Security
             </option>
-            <option value="securityStatusAsc" className="option">
+            <option value="securityStatusAsc">
               {orderBy === "securityStatusAsc" ? "✓" : "\u00A0\u00A0"}
               {"   "}
               Lowest Security
