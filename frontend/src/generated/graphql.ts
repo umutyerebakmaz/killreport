@@ -814,6 +814,7 @@ export type SolarSystemFilter = {
   name?: InputMaybe<Scalars['String']['input']>;
   orderBy?: InputMaybe<SolarSystemOrderBy>;
   page?: InputMaybe<Scalars['Int']['input']>;
+  region_id?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
   securityStatusMax?: InputMaybe<Scalars['Float']['input']>;
   securityStatusMin?: InputMaybe<Scalars['Float']['input']>;
