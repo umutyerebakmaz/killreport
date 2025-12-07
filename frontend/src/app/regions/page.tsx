@@ -1,8 +1,9 @@
 "use client";
 
+import AvgSecurity from "@/components/AvgSecurity/AvgSecurity";
 import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
 import Paginator from "@/components/Paginator/Paginator";
-import SecurityStatsBar from "@/components/SecurityBadge/SecurityStatsBar";
+import SecurityStatsBar from "@/components/SecurityStatus/SecurityStatsBar";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import { useRegionsQuery } from "@/generated/graphql";
 import {
@@ -233,22 +234,9 @@ export default function RegionsPage() {
                     )}
                   </td>
                   <td className="px-6 py-4 text-base">
-                    {region.securityStats?.avgSecurity !== null &&
-                    region.securityStats?.avgSecurity !== undefined ? (
-                      <span
-                        className={`${
-                          region.securityStats.avgSecurity >= 0.5
-                            ? "text-green-400"
-                            : region.securityStats.avgSecurity > 0
-                            ? "text-yellow-400"
-                            : "text-red-400"
-                        }`}
-                      >
-                        {region.securityStats.avgSecurity.toFixed(2)}
-                      </span>
-                    ) : (
-                      <span className="text-purple-400">W-Space</span>
-                    )}
+                    <AvgSecurity
+                      avgSecurity={region.securityStats?.avgSecurity ?? null}
+                    />
                   </td>
                 </tr>
               ))

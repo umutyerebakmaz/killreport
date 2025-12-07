@@ -9,17 +9,17 @@ import {
   getSecurityLabel,
 } from "@/utils/security";
 
-interface SecurityBadgeProps {
+interface SecurityStatusProps {
   securityStatus: number | null | undefined;
   showLabel?: boolean;
   size?: "sm" | "md" | "lg";
 }
 
-export default function SecurityBadge({
+export default function SecurityStatus({
   securityStatus,
   showLabel = false,
   size = "md",
-}: SecurityBadgeProps) {
+}: SecurityStatusProps) {
   const textColor = getSecurityColor(securityStatus);
   const bgColor = getSecurityBgColor(securityStatus);
   const borderColor = getSecurityBorderColor(securityStatus);

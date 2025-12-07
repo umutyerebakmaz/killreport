@@ -105,22 +105,22 @@ export default function CorporationFilters({
             onChange={(e) => onOrderByChange(e.target.value)}
             className="select"
           >
-            <option value="memberCountDesc" className="option">
+            <option value="memberCountDesc">
               {orderBy === "memberCountDesc" ? "✓" : "\u00A0\u00A0"}
               {"   "}
               Most Members
             </option>
-            <option value="memberCountAsc" className="option">
+            <option value="memberCountAsc">
               {orderBy === "memberCountAsc" ? "✓" : "\u00A0\u00A0"}
               {"   "}
               Least Members
             </option>
-            <option value="nameAsc" className="option">
+            <option value="nameAsc">
               {orderBy === "nameAsc" ? "✓" : "\u00A0\u00A0"}
               {"   "}
               Name (A to Z)
             </option>
-            <option value="nameDesc" className="option">
+            <option value="nameDesc">
               {orderBy === "nameDesc" ? "✓" : "\u00A0\u00A0"}
               {"   "}
               Name (Z to A)

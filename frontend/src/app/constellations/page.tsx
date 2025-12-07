@@ -1,8 +1,10 @@
 "use client";
 
+import AvgSecurity from "@/components/AvgSecurity/AvgSecurity";
 import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
+import ConstellationFilters from "@/components/Filters/ConstellationFilters";
 import Paginator from "@/components/Paginator/Paginator";
-import SecurityStatsBar from "@/components/SecurityBadge/SecurityStatsBar";
+import SecurityStatsBar from "@/components/SecurityStatus/SecurityStatsBar";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import { useConstellationsQuery } from "@/generated/graphql";
 import { GlobeAltIcon, MapIcon, MapPinIcon } from "@heroicons/react/24/outline";
@@ -17,21 +19,14 @@ export default function ConstellationsPage() {
   const pageFromUrl = Number(searchParams.get("page")) || 1;
   const orderByFromUrl = searchParams.get("orderBy") || "nameAsc";
   const searchFromUrl = searchParams.get("search") || "";
+  const regionIdFromUrl = searchParams.get("regionId") || "";
 
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(25);
   const [orderBy, setOrderBy] = useState<string>(orderByFromUrl);
   const [searchTerm, setSearchTerm] = useState(searchFromUrl);
-  const [debouncedSearch, setDebouncedSearch] = useState(searchFromUrl);
-
-  // Debounce search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-      setCurrentPage(1);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
+  const [selectedRegionId, setSelectedRegionId] =
+    useState<string>(regionIdFromUrl);
 
   const { data, loading, error } = useConstellationsQuery({
     variables: {
@@ -39,7 +34,8 @@ export default function ConstellationsPage() {
         page: currentPage,
         limit: pageSize,
         orderBy: orderBy as any,
-        search: debouncedSearch || undefined,
+        search: searchTerm || undefined,
+        region_id: selectedRegionId ? parseInt(selectedRegionId) : undefined,
       },
     },
   });
@@ -49,9 +45,30 @@ export default function ConstellationsPage() {
     const params = new URLSearchParams();
     params.set("page", currentPage.toString());
     params.set("orderBy", orderBy);
-    if (debouncedSearch) params.set("search", debouncedSearch);
+    if (searchTerm) params.set("search", searchTerm);
+    if (selectedRegionId) params.set("regionId", selectedRegionId);
     router.push(`/constellations?${params.toString()}`, { scroll: false });
-  }, [currentPage, orderBy, debouncedSearch]);
+  }, [currentPage, orderBy, searchTerm, selectedRegionId]);
+
+  const handleFilterChange = (filters: {
+    search?: string;
+    region_id?: number;
+  }) => {
+    setSearchTerm(filters.search || "");
+    setSelectedRegionId(filters.region_id ? filters.region_id.toString() : "");
+    setCurrentPage(1);
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setSelectedRegionId("");
+    setCurrentPage(1);
+  };
+
+  const handleOrderByChange = (newOrderBy: string) => {
+    setOrderBy(newOrderBy);
+    setCurrentPage(1);
+  };
 
   if (error)
     return <div className="p-8 text-red-500">Error: {error.message}</div>;
@@ -85,26 +102,34 @@ export default function ConstellationsPage() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-4 mt-6">
-        <div className="flex-1 min-w-[200px] max-w-md">
-          <input
-            type="text"
-            placeholder="Search constellations..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
+      <div className="mt-6">
+        <ConstellationFilters
+          onFilterChange={handleFilterChange}
+          onClearFilters={handleClearFilters}
+          orderBy={orderBy}
+          onOrderByChange={handleOrderByChange}
+          initialSearch={searchTerm}
+          initialRegionId={selectedRegionId}
+        />
+      </div>
+      {/* Legend */}
+      <div className="flex items-center gap-6 mt-4 text-xs text-gray-400">
+        <span className="font-medium text-gray-300">Security:</span>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 bg-green-500 rounded-full" />
+          <span>High Sec (≥0.5)</span>
         </div>
-        <div className="select-option-container">
-          <select
-            value={orderBy}
-            onChange={(e) => setOrderBy(e.target.value)}
-            className="select"
-          >
-            <option value="nameAsc">Name A-Z</option>
-            <option value="nameDesc">Name Z-A</option>
-          </select>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 bg-yellow-500 rounded-full" />
+          <span>Low Sec (0.1-0.4)</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 bg-red-500 rounded-full" />
+          <span>Null Sec (≤0.0)</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 bg-purple-500 rounded-full" />
+          <span>Wormhole</span>
         </div>
       </div>
 
@@ -113,22 +138,22 @@ export default function ConstellationsPage() {
         <table className="min-w-full divide-y divide-white/10">
           <thead className="bg-white/5">
             <tr>
-              <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-300 uppercase">
+              <th className="px-6 py-4 text-base font-medium tracking-wider text-left text-gray-300 uppercase">
                 Constellation
               </th>
-              <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-300 uppercase">
+              <th className="px-6 py-4 text-base font-medium tracking-wider text-left text-gray-300 uppercase">
                 Region
               </th>
-              <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-300 uppercase">
+              <th className="px-6 py-4 text-base font-medium tracking-wider text-left text-gray-300 uppercase">
                 <div className="flex items-center gap-2">
                   <MapPinIcon className="w-4 h-4 text-orange-400" />
                   Systems
                 </div>
               </th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider min-w-[180px]">
+              <th className="px-6 py-4 text-left text-base font-medium text-gray-300 uppercase tracking-wider min-w-[180px]">
                 Security Distribution
               </th>
-              <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-300 uppercase">
+              <th className="px-6 py-4 text-base font-medium tracking-wider text-left text-gray-300 uppercase">
                 Avg Security
               </th>
             </tr>
@@ -209,22 +234,11 @@ export default function ConstellationsPage() {
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    {constellation.securityStats?.avgSecurity !== null &&
-                    constellation.securityStats?.avgSecurity !== undefined ? (
-                      <span
-                        className={`${
-                          constellation.securityStats.avgSecurity >= 0.5
-                            ? "text-green-400"
-                            : constellation.securityStats.avgSecurity > 0
-                            ? "text-yellow-400"
-                            : "text-red-400"
-                        }`}
-                      >
-                        {constellation.securityStats.avgSecurity.toFixed(2)}
-                      </span>
-                    ) : (
-                      <span className="text-purple-400">W-Space</span>
-                    )}
+                    <AvgSecurity
+                      avgSecurity={
+                        constellation.securityStats?.avgSecurity ?? null
+                      }
+                    />
                   </td>
                 </tr>
               ))

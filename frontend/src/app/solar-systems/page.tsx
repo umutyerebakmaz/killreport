@@ -1,8 +1,9 @@
 "use client";
 
 import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
+import SolarSystemFilters from "@/components/Filters/SolarSystemFilters";
 import Paginator from "@/components/Paginator/Paginator";
-import SecurityBadge from "@/components/SecurityBadge/SecurityBadge";
+import SecurityBadge from "@/components/SecurityStatus/SecurityStatus";
 import { useSolarSystemsQuery } from "@/generated/graphql";
 import { GlobeAltIcon, MapIcon, MapPinIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
@@ -17,36 +18,24 @@ export default function SolarSystemsPage() {
   const orderByFromUrl = searchParams.get("orderBy") || "nameAsc";
   const searchFromUrl = searchParams.get("search") || "";
   const securityFromUrl = searchParams.get("security") || "all";
+  const regionIdFromUrl = searchParams.get("regionId") || "";
+  const constellationIdFromUrl = searchParams.get("constellationId") || "";
 
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(25);
   const [orderBy, setOrderBy] = useState<string>(orderByFromUrl);
   const [searchTerm, setSearchTerm] = useState(searchFromUrl);
-  const [debouncedSearch, setDebouncedSearch] = useState(searchFromUrl);
   const [securityFilter, setSecurityFilter] = useState(securityFromUrl);
-
-  // Debounce search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-      setCurrentPage(1);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-
-  // Build filter based on security selection
-  const getSecurityFilter = () => {
-    switch (securityFilter) {
-      case "highsec":
-        return { securityStatusMin: 0.5 };
-      case "lowsec":
-        return { securityStatusMin: 0.1, securityStatusMax: 0.4 };
-      case "nullsec":
-        return { securityStatusMax: 0.0 };
-      default:
-        return {};
-    }
-  };
+  const [selectedRegionId, setSelectedRegionId] =
+    useState<string>(regionIdFromUrl);
+  const [selectedConstellationId, setSelectedConstellationId] =
+    useState<string>(constellationIdFromUrl);
+  const [securityStatusMin, setSecurityStatusMin] = useState<
+    number | undefined
+  >();
+  const [securityStatusMax, setSecurityStatusMax] = useState<
+    number | undefined
+  >();
 
   const { data, loading, error } = useSolarSystemsQuery({
     variables: {
@@ -54,8 +43,13 @@ export default function SolarSystemsPage() {
         page: currentPage,
         limit: pageSize,
         orderBy: orderBy as any,
-        search: debouncedSearch || undefined,
-        ...getSecurityFilter(),
+        search: searchTerm || undefined,
+        region_id: selectedRegionId ? parseInt(selectedRegionId) : undefined,
+        constellation_id: selectedConstellationId
+          ? parseInt(selectedConstellationId)
+          : undefined,
+        securityStatusMin,
+        securityStatusMax,
       },
     },
   });
@@ -65,10 +59,67 @@ export default function SolarSystemsPage() {
     const params = new URLSearchParams();
     params.set("page", currentPage.toString());
     params.set("orderBy", orderBy);
-    if (debouncedSearch) params.set("search", debouncedSearch);
+    if (searchTerm) params.set("search", searchTerm);
     if (securityFilter !== "all") params.set("security", securityFilter);
+    if (selectedRegionId) params.set("regionId", selectedRegionId);
+    if (selectedConstellationId)
+      params.set("constellationId", selectedConstellationId);
     router.push(`/solar-systems?${params.toString()}`, { scroll: false });
-  }, [currentPage, orderBy, debouncedSearch, securityFilter]);
+  }, [
+    currentPage,
+    orderBy,
+    searchTerm,
+    securityFilter,
+    selectedRegionId,
+    selectedConstellationId,
+  ]);
+
+  const handleFilterChange = (filters: {
+    search?: string;
+    region_id?: number;
+    constellation_id?: number;
+    securityStatusMin?: number;
+    securityStatusMax?: number;
+  }) => {
+    setSearchTerm(filters.search || "");
+    setSelectedRegionId(filters.region_id ? filters.region_id.toString() : "");
+    setSelectedConstellationId(
+      filters.constellation_id ? filters.constellation_id.toString() : ""
+    );
+    setSecurityStatusMin(filters.securityStatusMin);
+    setSecurityStatusMax(filters.securityStatusMax);
+
+    // Update security filter state for URL sync
+    if (filters.securityStatusMin === 0.5) {
+      setSecurityFilter("highsec");
+    } else if (
+      filters.securityStatusMin === 0.1 &&
+      filters.securityStatusMax === 0.4
+    ) {
+      setSecurityFilter("lowsec");
+    } else if (filters.securityStatusMax === 0.0) {
+      setSecurityFilter("nullsec");
+    } else {
+      setSecurityFilter("all");
+    }
+
+    setCurrentPage(1);
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setSelectedRegionId("");
+    setSelectedConstellationId("");
+    setSecurityFilter("all");
+    setSecurityStatusMin(undefined);
+    setSecurityStatusMax(undefined);
+    setCurrentPage(1);
+  };
+
+  const handleOrderByChange = (newOrderBy: string) => {
+    setOrderBy(newOrderBy);
+    setCurrentPage(1);
+  };
 
   if (error)
     return <div className="p-8 text-red-500">Error: {error.message}</div>;
@@ -100,65 +151,36 @@ export default function SolarSystemsPage() {
           </p>
         </div>
       </div>
-
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-4 mt-6">
-        <div className="flex-1 min-w-[200px] max-w-md">
-          <input
-            type="text"
-            placeholder="Search solar systems..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="text-input"
-          />
-        </div>
-        <div className="select-option-container">
-          <select
-            value={securityFilter}
-            onChange={(e) => {
-              setSecurityFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="select"
-          >
-            <option value="all">All Security</option>
-            <option value="highsec">High Sec (≥0.5)</option>
-            <option value="lowsec">Low Sec (0.1-0.4)</option>
-            <option value="nullsec">Null Sec (≤0.0)</option>
-          </select>
-        </div>
-        <div className="select-option-container">
-          <select
-            value={orderBy}
-            onChange={(e) => setOrderBy(e.target.value)}
-            className="select"
-          >
-            <option value="nameAsc">Name A-Z</option>
-            <option value="nameDesc">Name Z-A</option>
-            <option value="securityStatusDesc">Security ↓</option>
-            <option value="securityStatusAsc">Security ↑</option>
-          </select>
-        </div>
+      <div className="mt-6">
+        <SolarSystemFilters
+          onFilterChange={handleFilterChange}
+          onClearFilters={handleClearFilters}
+          orderBy={orderBy}
+          onOrderByChange={handleOrderByChange}
+          initialSearch={searchTerm}
+          initialRegionId={selectedRegionId}
+          initialConstellationId={selectedConstellationId}
+          initialSecurity={securityFilter}
+        />
       </div>
-
       {/* Table */}
       <div className="mt-6 overflow-hidden border border-white/10">
         <table className="min-w-full divide-y divide-white/10">
           <thead className="bg-white/5">
             <tr>
-              <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-300 uppercase">
+              <th className="px-6 py-4 text-base font-medium tracking-wider text-left text-gray-300 uppercase">
                 Solar System
               </th>
-              <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-300 uppercase">
+              <th className="px-6 py-4 text-base font-medium tracking-wider text-left text-gray-300 uppercase">
                 Constellation
               </th>
-              <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-300 uppercase">
+              <th className="px-6 py-4 text-base font-medium tracking-wider text-left text-gray-300 uppercase">
                 Region
               </th>
-              <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-300 uppercase">
+              <th className="px-6 py-4 text-base font-medium tracking-wider text-left text-gray-300 uppercase">
                 Security Status
               </th>
-              <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-300 uppercase">
+              <th className="px-6 py-4 text-base font-medium tracking-wider text-left text-gray-300 uppercase">
                 Security Class
               </th>
             </tr>
@@ -196,7 +218,7 @@ export default function SolarSystemsPage() {
                       <MapPinIcon className="w-5 h-5 text-orange-500 shrink-0" />
                       <Link
                         href={`/solar-systems/${system.id}`}
-                        className="font-medium transition-colors text-cyan-400 hover:text-cyan-300"
+                        className="font-medium text-orange-400 transition-colors hover:text-orange-300"
                       >
                         {system.name}
                       </Link>
