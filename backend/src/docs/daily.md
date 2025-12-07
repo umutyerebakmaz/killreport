@@ -5,11 +5,11 @@
 ```bash
 # 1. Update Alliance & Corporation Data
 +yarn queue:alliances              # ESI'dan tüm alliance ID'lerini kuyruğa ekle
-+yarn worker:info:alliances        # Alliance detaylarını çek ve GÜNCELLE
++yarn worker:info:alliances        # Alliance detaylarını çek ve GÜNCELLE - 3547
 
-+yarn queue:alliance-corporations  # Alliance'ları kuyruğa ekle (corporation keşfi için) - 3602
-+yarn worker:alliance-corporations # Her alliance'ın corp ID'lerini ESI'dan çek ve kuyruğa ekle - 17,764
-+yarn worker:info:corporations     # Corporation detaylarını ESI'dan çek ve GÜNCELLE
++yarn queue:alliance-corporations  # Alliance'ları kuyruğa ekle (corporation keşfi için)
+yarn worker:alliance-corporations # Her alliance'ın corp ID'lerini ESI'dan çek ve kuyruğa ekle - 17,764
+yarn worker:info:corporations     # Corporation detaylarını ESI'dan çek ve GÜNCELLE
 
 # 2. Take Snapshots
 yarn snapshot:alliances
