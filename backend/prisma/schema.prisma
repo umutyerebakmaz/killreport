@@ -113,7 +113,7 @@ model Constellation {
   position_x   Float?
   position_y   Float?
   position_z   Float?
-  region       Region?       @relation(fields: [region_id], references: [id])
+  region       Region?       @relation(fields: [region_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
   solarSystems SolarSystem[]
 
   @@index([region_id])
@@ -234,7 +234,7 @@ model SolarSystem {
   position_x       Float?
   position_y       Float?
   position_z       Float?
-  constellation    Constellation? @relation(fields: [constellation_id], references: [id])
+  constellation    Constellation? @relation(fields: [constellation_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
   @@index([constellation_id])
   @@map("solar_systems")
