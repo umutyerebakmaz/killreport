@@ -29,31 +29,6 @@ import EveStatus from "../EveStatus/EveStatus";
 import EveTime from "../EveTime/EveTime";
 import Tooltip from "../Tooltip/Tooltip";
 
-const products = [
-  {
-    name: "REGIONS",
-    description: "Explore all regions in New Eden with security statistics.",
-    href: "/regions",
-    icon: GlobeAltIcon,
-  },
-  {
-    name: "CONSTELLATIONS",
-    description: "Browse constellations and their solar systems.",
-    href: "/constellations",
-    icon: MapIcon,
-  },
-  {
-    name: "SOLAR SYSTEMS",
-    description: "Search and filter solar systems by security status.",
-    href: "/solar-systems",
-    icon: MapPinIcon,
-  },
-];
-const callsToAction = [
-  { name: "Watch demo", href: "#", icon: PlayCircleIcon },
-  { name: "Contact sales", href: "#", icon: PhoneIcon },
-];
-
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [status, setStatus] = useState<{ players?: number } | null>(null);
@@ -115,47 +90,95 @@ export default function Header() {
               className="absolute z-10 w-screen max-w-md mt-3 overflow-hidden transition -translate-x-1/2 bg-stone-900 left-1/2 outline-1 -outline-offset-1 outline-white/10 data-closed:translate-y-1 data-closed:opacity-0 data-enter:duration-200 data-enter:ease-out data-leave:duration-150 data-leave:ease-in"
             >
               <div className="p-4">
-                {products.map((item) => (
-                  <div
-                    key={item.name}
-                    className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50"
-                  >
-                    <div className="flex items-center justify-center flex-none size-11 bg-gray-700/50 group-hover:bg-gray-700">
-                      <item.icon
-                        aria-hidden="true"
-                        className="text-gray-400 size-6 group-hover:text-cyan-400"
-                      />
-                    </div>
-                    <div className="flex-auto">
-                      <a
-                        href={item.href}
-                        className="block font-semibold text-white"
-                      >
-                        {item.name}
-                        <span className="absolute inset-0" />
-                      </a>
-                      <p className="mt-1 text-gray-400">{item.description}</p>
-                    </div>
+                <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
+                  <div className="flex items-center justify-center flex-none size-11 bg-gray-700/50 group-hover:bg-gray-700">
+                    <GlobeAltIcon
+                      aria-hidden="true"
+                      className="text-gray-400 size-6 group-hover:text-cyan-400"
+                    />
                   </div>
-                ))}
+                  <div className="flex-auto">
+                    <a
+                      href="/regions"
+                      className="block font-semibold text-white"
+                    >
+                      REGIONS
+                      <span className="absolute inset-0" />
+                    </a>
+                    <p className="mt-1 text-gray-400">
+                      64 Regions across New Eden - High, Low, Null, and Wormhole
+                      space
+                    </p>
+                  </div>
+                </div>
+                <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
+                  <div className="flex items-center justify-center flex-none size-11 bg-gray-700/50 group-hover:bg-gray-700">
+                    <MapIcon
+                      aria-hidden="true"
+                      className="text-gray-400 size-6 group-hover:text-cyan-400"
+                    />
+                  </div>
+                  <div className="flex-auto">
+                    <a
+                      href="/constellations"
+                      className="block font-semibold text-white"
+                    >
+                      CONSTELLATIONS
+                      <span className="absolute inset-0" />
+                    </a>
+                    <p className="mt-1 text-gray-400">
+                      1,090+ Constellations connecting solar systems
+                    </p>
+                  </div>
+                </div>
+                <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
+                  <div className="flex items-center justify-center flex-none size-11 bg-gray-700/50 group-hover:bg-gray-700">
+                    <MapPinIcon
+                      aria-hidden="true"
+                      className="text-gray-400 size-6 group-hover:text-cyan-400"
+                    />
+                  </div>
+                  <div className="flex-auto">
+                    <a
+                      href="/solar-systems"
+                      className="block font-semibold text-white"
+                    >
+                      SOLAR SYSTEMS
+                      <span className="absolute inset-0" />
+                    </a>
+                    <p className="mt-1 text-gray-400">
+                      8,000+ Solar Systems with security ratings and statistics
+                    </p>
+                  </div>
+                </div>
               </div>
               <div className="grid grid-cols-2 divide-x divide-white/10 bg-gray-700/50">
-                {callsToAction.map((item) => (
-                  <a
-                    key={item.name}
-                    href={item.href}
-                    className="flex items-center justify-center gap-x-2.5 p-3 text-base font-semibold text-white hover:bg-cyan-900/50"
-                  >
-                    <item.icon
-                      aria-hidden="true"
-                      className="flex-none text-gray-500 size-5"
-                    />
-                    {item.name}
-                  </a>
-                ))}
+                <a
+                  href="/killmails"
+                  className="flex items-center justify-center gap-x-2.5 p-3 text-base font-semibold text-white hover:bg-cyan-900/50"
+                >
+                  <PlayCircleIcon
+                    aria-hidden="true"
+                    className="flex-none text-gray-500 size-5"
+                  />
+                  Browse Killmails
+                </a>
+                <a
+                  href="/stats"
+                  className="flex items-center justify-center gap-x-2.5 p-3 text-base font-semibold text-white hover:bg-cyan-900/50"
+                >
+                  <PhoneIcon
+                    aria-hidden="true"
+                    className="flex-none text-gray-500 size-5"
+                  />
+                  View Statistics
+                </a>
               </div>
             </PopoverPanel>
           </Popover>
+          <a href="/killmails" className="font-semibold text-white">
+            KILLMAILS
+          </a>
           <a href="/alliances" className="font-semibold text-white">
             ALLIANCES
           </a>
@@ -217,18 +240,49 @@ export default function Header() {
                     />
                   </DisclosureButton>
                   <DisclosurePanel className="mt-2 space-y-2">
-                    {[...products, ...callsToAction].map((item) => (
-                      <DisclosureButton
-                        key={item.name}
-                        as="a"
-                        href={item.href}
-                        className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
-                      >
-                        {item.name}
-                      </DisclosureButton>
-                    ))}
+                    <DisclosureButton
+                      as="a"
+                      href="/regions"
+                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
+                    >
+                      REGIONS
+                    </DisclosureButton>
+                    <DisclosureButton
+                      as="a"
+                      href="/constellations"
+                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
+                    >
+                      CONSTELLATIONS
+                    </DisclosureButton>
+                    <DisclosureButton
+                      as="a"
+                      href="/solar-systems"
+                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
+                    >
+                      SOLAR SYSTEMS
+                    </DisclosureButton>
+                    <DisclosureButton
+                      as="a"
+                      href="/killmails"
+                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
+                    >
+                      Browse Killmails
+                    </DisclosureButton>
+                    <DisclosureButton
+                      as="a"
+                      href="/stats"
+                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
+                    >
+                      View Statistics
+                    </DisclosureButton>
                   </DisclosurePanel>
                 </Disclosure>
+                <a
+                  href="/killmails"
+                  className="block px-3 py-2 -mx-3 font-semibold text-white text-base/7 hover:bg-white/5"
+                >
+                  KILLMAILS
+                </a>
                 <a
                   href="/alliances"
                   className="block px-3 py-2 -mx-3 font-semibold text-white text-base/7 hover:bg-white/5"
