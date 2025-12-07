@@ -1,7 +1,7 @@
 "use client";
 
 import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
-import SecurityStatsBar from "@/components/SecurityBadge/SecurityStatsBar";
+import SecurityStatsBar from "@/components/SecurityStatus/SecurityStatsBar";
 import { useRegionQuery } from "@/generated/graphql";
 import { GlobeAltIcon, MapIcon, MapPinIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
