@@ -1,7 +1,7 @@
 "use client";
 
 import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
-import SecurityBadge from "@/components/SecurityBadge/SecurityBadge";
+import SecurityBadge from "@/components/SecurityStatus/SecurityStatus";
 import { useSolarSystemQuery } from "@/generated/graphql";
 import { getSecurityColor, getSecurityLabel } from "@/utils/security";
 import {

@@ -106,7 +106,7 @@ export default function Paginator({
             onChange={(e) => onPageSizeChange(Number(e.target.value))}
           >
             {pageSizeOptions.map((size) => (
-              <option key={size} value={size} className="option">
+              <option key={size} value={size}>
                 {size === pageSize ? "✓" : "\u00A0\u00A0"}
                 {"   "}
                 {size} per page
