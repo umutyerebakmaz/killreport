@@ -1,5 +1,6 @@
 "use client";
 
+import { useRegionsQuery } from "@/generated/graphql";
 import {
   ChevronDownIcon,
   MagnifyingGlassIcon,
@@ -7,38 +8,57 @@ import {
 } from "@heroicons/react/24/outline";
 import { useState } from "react";
 
-interface RegionFiltersProps {
-  onFilterChange: (filters: { search?: string; name?: string }) => void;
+interface ConstellationFiltersProps {
+  onFilterChange: (filters: { search?: string; region_id?: number }) => void;
   onClearFilters: () => void;
   orderBy?: string;
   onOrderByChange: (orderBy: string) => void;
+  initialSearch?: string;
+  initialRegionId?: string;
 }
 
-export default function RegionFilters({
+export default function ConstellationFilters({
   onFilterChange,
   onClearFilters,
   orderBy = "nameAsc",
   onOrderByChange,
-}: RegionFiltersProps) {
-  const [search, setSearch] = useState("");
+  initialSearch = "",
+  initialRegionId = "",
+}: ConstellationFiltersProps) {
+  const [search, setSearch] = useState(initialSearch);
+  const [selectedRegionId, setSelectedRegionId] = useState(initialRegionId);
 
-  const hasActiveFilters = !!search;
+  // Fetch all regions for filter dropdown
+  const { data: regionsData } = useRegionsQuery({
+    variables: {
+      filter: {
+        page: 1,
+        limit: 500,
+        orderBy: "nameAsc" as any,
+      },
+    },
+  });
+
+  const regions = regionsData?.regions.edges.map((edge) => edge.node) || [];
+  const hasActiveFilters = !!search || !!selectedRegionId;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onFilterChange({
       search: search || undefined,
+      region_id: selectedRegionId ? parseInt(selectedRegionId) : undefined,
     });
   };
 
   const handleClearAll = () => {
     setSearch("");
+    setSelectedRegionId("");
     onClearFilters();
   };
 
   return (
     <form onSubmit={handleSubmit} className="mb-6">
-      {/* Search Bar and OrderBy */}
+      {/* Search Bar, Region Filter, and OrderBy */}
       <div className="flex items-center gap-3">
         <div className="relative flex-1">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -46,11 +66,28 @@ export default function RegionFilters({
           </div>
           <input
             type="text"
-            placeholder="Search regions..."
+            placeholder="Search constellations..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="search-input"
           />
+        </div>
+
+        {/* Region Filter Dropdown */}
+        <div className="select-option-container">
+          <select
+            value={selectedRegionId}
+            onChange={(e) => setSelectedRegionId(e.target.value)}
+            className="select min-w-[180px]"
+          >
+            <option value="">All Regions</option>
+            {regions.map((region) => (
+              <option key={region.id} value={region.id}>
+                {region.name}
+              </option>
+            ))}
+          </select>
+          <ChevronDownIcon className="chevron-down-icon" />
         </div>
 
         {/* Search Button */}
