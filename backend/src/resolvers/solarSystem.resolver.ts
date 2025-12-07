@@ -23,6 +23,11 @@ export const solarSystemQueries: QueryResolvers = {
             if (filter.name) {
                 where.name = { contains: filter.name, mode: 'insensitive' };
             }
+            if (filter.region_id) {
+                where.constellation = {
+                    region_id: filter.region_id
+                };
+            }
             if (filter.constellation_id) {
                 where.constellation_id = filter.constellation_id;
             }

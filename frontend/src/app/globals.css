@@ -33,15 +33,48 @@ body {
 }
 
 .select {
-  @apply px-4 py-2 pr-10 text-sm font-medium text-gray-300 transition-all duration-200 border appearance-none cursor-pointer bg-gray-900/50 border-gray-700/50 hover:bg-gray-800 hover:border-gray-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-600;
+  @apply px-4 py-2.5 pr-10 text-sm font-medium text-white transition-all duration-200 border appearance-none cursor-pointer bg-gray-900/70 border-gray-700/70 shadow-sm hover:bg-gray-800/80 hover:border-cyan-500/50 hover:shadow-cyan-500/10 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500;
 }
 
-.select .option {
-  @apply py-2 text-base font-medium text-gray-100 bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-cyan-500;
+.select:disabled {
+  @apply opacity-50 cursor-not-allowed bg-gray-900/30 text-gray-500 hover:bg-gray-900/30 hover:border-gray-700/70 hover:shadow-none;
+}
+
+.select option {
+  @apply py-3 px-3 text-sm font-medium text-gray-200 bg-gray-900 transition-colors duration-150;
+}
+
+.select option:hover {
+  @apply bg-linear-to-r from-gray-800 to-gray-800/90 text-cyan-400 cursor-pointer;
+}
+
+.select option:checked {
+  @apply bg-linear-to-r from-cyan-900/30 to-cyan-800/20 text-cyan-300 font-semibold;
+}
+
+/* Custom scrollbar for select dropdowns */
+.select::-webkit-scrollbar {
+  width: 8px;
+}
+
+.select::-webkit-scrollbar-track {
+  @apply bg-gray-900;
+}
+
+.select::-webkit-scrollbar-thumb {
+  @apply bg-gray-700 rounded-full hover:bg-gray-600;
+}
+
+.select::-webkit-scrollbar-thumb:hover {
+  @apply bg-cyan-600;
 }
 
 .select-option-container .chevron-down-icon {
-  @apply absolute w-5 h-5 text-gray-400 transition-transform duration-200 pointer-events-none right-3 top-2.5 group-hover:text-gray-300;
+  @apply absolute w-5 h-5 text-gray-400 transition-all duration-200 pointer-events-none right-3 top-2.5;
+}
+
+.select-option-container:hover .chevron-down-icon {
+  @apply text-cyan-400;
 }
 
 .alliance-name,

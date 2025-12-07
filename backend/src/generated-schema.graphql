@@ -553,6 +553,7 @@ input SolarSystemFilter {
   name: String
   orderBy: SolarSystemOrderBy
   page: Int
+  region_id: Int
   search: String
   securityStatusMax: Float
   securityStatusMin: Float
