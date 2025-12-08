@@ -2621,6 +2621,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@prisma/adapter-pg@npm:^7.1.0":
+  version: 7.1.0
+  resolution: "@prisma/adapter-pg@npm:7.1.0"
+  dependencies:
+    "@prisma/driver-adapter-utils": "npm:7.1.0"
+    pg: "npm:^8.16.3"
+    postgres-array: "npm:3.0.4"
+  checksum: 10c0/57f4bb9529fa9df002e5ab739ff542325983429afb23a10d291d2716679bbfafee75e9a7481a56327fc41b56f959beb8d4aa87b49e22c9b115c15f0cca1896f8
+  languageName: node
+  linkType: hard
+
 "@prisma/client-runtime-utils@npm:7.1.0":
   version: 7.1.0
   resolution: "@prisma/client-runtime-utils@npm:7.1.0"
@@ -2693,6 +2704,15 @@ __metadata:
     valibot: "npm:1.2.0"
     zeptomatch: "npm:2.0.2"
   checksum: 10c0/92355ea9ac62bb9ea8bbe3efb8fc694443abc61b0f0685d36cea20b2d9eb9e8a6f8c196bf0ebfb9d56f63fb858461b32b016fbbcf0652d2ef495909370a6dce6
+  languageName: node
+  linkType: hard
+
+"@prisma/driver-adapter-utils@npm:7.1.0":
+  version: 7.1.0
+  resolution: "@prisma/driver-adapter-utils@npm:7.1.0"
+  dependencies:
+    "@prisma/debug": "npm:7.1.0"
+  checksum: 10c0/1ea60ff05b5f03f484f509a53ca0051d50a1905de802bf7fd8394526d2a4157488b726631ff09bc036727518d46ef9b1d0e71f8e69e7cc3f630a1cb2cbaa5a73
   languageName: node
   linkType: hard
 
@@ -3966,6 +3986,7 @@ __metadata:
     "@graphql-tools/load-files": "npm:^7.0.1"
     "@graphql-tools/merge": "npm:^9.1.1"
     "@parcel/watcher": "npm:2.5.1"
+    "@prisma/adapter-pg": "npm:^7.1.0"
     "@prisma/client": "npm:^7.1.0"
     "@types/amqplib": "npm:^0.10.8"
     "@types/pg": "npm:^8.15.5"
@@ -8022,6 +8043,13 @@ __metadata:
     picocolors: "npm:^1.1.1"
     source-map-js: "npm:^1.2.1"
   checksum: 10c0/5127cc7c91ed7a133a1b7318012d8bfa112da9ef092dddf369ae699a1f10ebbd89b1b9f25f3228795b84585c72aabd5ced5fc11f2ba467eedf7b081a66fad024
+  languageName: node
+  linkType: hard
+
+"postgres-array@npm:3.0.4":
+  version: 3.0.4
+  resolution: "postgres-array@npm:3.0.4"
+  checksum: 10c0/47f3e648da512bacdd6a5ed55cf770605ec271330789faeece0fd13805a49f376d6e5c9e0e353377be11a9545e727dceaa2473566c505432bf06366ccd04c6b2
   languageName: node
   linkType: hard
 
