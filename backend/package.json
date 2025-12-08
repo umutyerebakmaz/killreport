@@ -51,7 +51,7 @@
   "dependencies": {
     "@graphql-tools/load-files": "^7.0.1",
     "@graphql-tools/merge": "^9.1.1",
-    "@prisma/client": "^6.18.0",
+    "@prisma/client": "^7.1.0",
     "amqplib": "^0.10.9",
     "axios": "^1.12.2",
     "dataloader": "^2.2.3",
@@ -71,7 +71,7 @@
     "@types/pg": "^8.15.5",
     "graphql-codegen-schema-ast": "^0.18.2",
     "nodemon": "3.1.10",
-    "prisma": "^6.18.0",
+    "prisma": "^7.1.0",
     "ts-node": "10.9.2"
   }
 }
