@@ -6,22 +6,6 @@ datasource db {
   provider = "postgresql"
 }
 
-model AllianceSnapshot {
-  id                BigInt   @id @default(autoincrement())
-  alliance_id       Int
-  member_count      Int
-  corporation_count Int
-  created_at        DateTime @default(now())
-  snapshot_date     DateTime @db.Date
-  alliance          Alliance @relation(fields: [alliance_id], references: [id], onDelete: Cascade)
-
-  @@unique([alliance_id, snapshot_date])
-  @@index([alliance_id])
-  @@index([created_at])
-  @@index([snapshot_date])
-  @@map("alliance_snapshots")
-}
-
 model Alliance {
   id                      Int                @id
   name                    String
@@ -39,6 +23,22 @@ model Alliance {
   corporations            Corporation[]      @relation("AllianceCorporations")
 
   @@map("alliances")
+}
+
+model AllianceSnapshot {
+  id                BigInt   @id @default(autoincrement())
+  alliance_id       Int
+  member_count      Int
+  corporation_count Int
+  created_at        DateTime @default(now())
+  snapshot_date     DateTime @db.Date
+  alliance          Alliance @relation(fields: [alliance_id], references: [id], onDelete: Cascade)
+
+  @@unique([alliance_id, snapshot_date])
+  @@index([alliance_id])
+  @@index([created_at])
+  @@index([snapshot_date])
+  @@map("alliance_snapshots")
 }
 
 model Attacker {
@@ -119,21 +119,6 @@ model Constellation {
   @@map("constellations")
 }
 
-model CorporationSnapshot {
-  id            BigInt      @id @default(autoincrement())
-  corporation_id Int
-  member_count  Int
-  created_at    DateTime    @default(now())
-  snapshot_date DateTime    @db.Date
-  corporation   Corporation @relation(fields: [corporation_id], references: [id], onDelete: Cascade)
-
-  @@unique([corporation_id, snapshot_date])
-  @@index([corporation_id])
-  @@index([created_at])
-  @@index([snapshot_date])
-  @@map("corporation_snapshots")
-}
-
 model Corporation {
   id                    Int                     @id
   name                  String
@@ -158,6 +143,21 @@ model Corporation {
   @@map("corporations")
 }
 
+model CorporationSnapshot {
+  id            BigInt      @id @default(autoincrement())
+  corporation_id Int
+  member_count  Int
+  created_at    DateTime    @default(now())
+  snapshot_date DateTime    @db.Date
+  corporation   Corporation @relation(fields: [corporation_id], references: [id], onDelete: Cascade)
+
+  @@unique([corporation_id, snapshot_date])
+  @@index([corporation_id])
+  @@index([created_at])
+  @@index([snapshot_date])
+  @@map("corporation_snapshots")
+}
+
 model ItemGroup {
   id          Int      @id
   name        String
@@ -170,22 +170,6 @@ model ItemGroup {
 
   @@index([category_id])
   @@map("item_groups")
-}
-
-model KillmailItem {
-  id                 BigInt   @id @default(autoincrement())
-  killmail_id        Int
-  item_type_id       Int
-  flag               Int
-  quantity_dropped   Int?
-  quantity_destroyed Int?
-  singleton          Int
-  created_at         DateTime @default(now())
-  killmail           Killmail @relation(fields: [killmail_id], references: [killmail_id], onDelete: Cascade)
-
-  @@index([item_type_id])
-  @@index([killmail_id])
-  @@map("killmail_items")
 }
 
 model Killmail {
@@ -202,6 +186,22 @@ model Killmail {
   @@index([killmail_time])
   @@index([solar_system_id])
   @@map("killmails")
+}
+
+model KillmailItem {
+  id                 BigInt   @id @default(autoincrement())
+  killmail_id        Int
+  item_type_id       Int
+  flag               Int
+  quantity_dropped   Int?
+  quantity_destroyed Int?
+  singleton          Int
+  created_at         DateTime @default(now())
+  killmail           Killmail @relation(fields: [killmail_id], references: [killmail_id], onDelete: Cascade)
+
+  @@index([item_type_id])
+  @@index([killmail_id])
+  @@map("killmail_items")
 }
 
 model Race {
