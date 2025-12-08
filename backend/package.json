@@ -13,6 +13,7 @@
     "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio",
     "db:backup": "bash scripts/backup-db.sh",
+    "db:restore": "bash scripts/restore-db.sh",
     "queue:alliances": "ts-node src/queues/queue-alliances.ts",
     "queue:alliance-corporations": "ts-node src/queues/queue-alliance-corporations.ts",
     "queue:alliance-corp-characters": "ts-node src/queues/queue-alliance-corporation-characters.ts",
