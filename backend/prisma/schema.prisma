@@ -1,10 +1,10 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model Alliance {
@@ -27,7 +27,7 @@ model Alliance {
 }
 
 model AllianceSnapshot {
-  id                BigInt   @id @default(autoincrement())
+  id                BigInt   @id @default(autoincrement()) @db.BigInt
   alliance_id       Int
   member_count      Int
   corporation_count Int
@@ -145,7 +145,7 @@ model Corporation {
 }
 
 model CorporationSnapshot {
-  id            BigInt      @id @default(autoincrement())
+  id            BigInt      @id @default(autoincrement()) @db.BigInt
   corporation_id Int
   member_count  Int
   created_at    DateTime    @default(now())
