@@ -1,13 +1,13 @@
 {
-  "prisma.pinToPrisma6": true,
-  "github.copilot.chat.mcp.servers": {
-    "postgres-killreport": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-postgres",
-        "postgresql://postgres:postgres@localhost:5432/killreport"
-      ]
-    }
-  },
+    "prisma.pinToPrisma6": false,
+    "github.copilot.chat.mcp.servers": {
+        "postgres-killreport": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-postgres",
+                "postgresql://postgres:postgres@localhost:5432/killreport"
+            ]
+        }
+    },
 }
