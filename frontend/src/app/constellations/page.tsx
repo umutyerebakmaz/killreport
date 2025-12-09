@@ -7,7 +7,7 @@ import Paginator from "@/components/Paginator/Paginator";
 import SecurityStatsBar from "@/components/SecurityStatus/SecurityStatsBar";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import { useConstellationsQuery } from "@/generated/graphql";
-import { GlobeAltIcon, MapIcon, MapPinIcon } from "@heroicons/react/24/outline";
+import { GlobeAltIcon, MapIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -135,27 +135,14 @@ export default function ConstellationsPage() {
 
       {/* Table */}
       <div className="mt-6 overflow-hidden border border-white/10">
-        <table className="min-w-full divide-y divide-white/10">
+        <table className="table">
           <thead className="bg-white/5">
             <tr>
-              <th className="px-6 py-4 text-base font-medium tracking-wider text-left text-gray-300 uppercase">
-                Constellation
-              </th>
-              <th className="px-6 py-4 text-base font-medium tracking-wider text-left text-gray-300 uppercase">
-                Region
-              </th>
-              <th className="px-6 py-4 text-base font-medium tracking-wider text-left text-gray-300 uppercase">
-                <div className="flex items-center gap-2">
-                  <MapPinIcon className="w-4 h-4 text-orange-400" />
-                  Systems
-                </div>
-              </th>
-              <th className="px-6 py-4 text-left text-base font-medium text-gray-300 uppercase tracking-wider min-w-[180px]">
-                Security Distribution
-              </th>
-              <th className="px-6 py-4 text-base font-medium tracking-wider text-left text-gray-300 uppercase">
-                Avg Security
-              </th>
+              <th className="th-cell">Constellation</th>
+              <th className="th-cell">Region</th>
+              <th className="th-cell">Systems</th>
+              <th className="th-cell">Security Distribution</th>
+              <th className="th-cell">Avg Security</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/10">

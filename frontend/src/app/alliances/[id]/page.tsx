@@ -172,7 +172,7 @@ export default function AllianceDetailPage({
         {/* Tab Content */}
         <div className="mt-6">
           {activeTab === "attributes" && (
-            <div className="p-6 bg-white/5 border-white/10">
+            <div className="detail-tab-content">
               <h2 className="mb-4 text-2xl font-bold">Attributes</h2>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -235,7 +235,7 @@ export default function AllianceDetailPage({
           )}
 
           {activeTab === "war-history" && (
-            <div className="p-6 bg-white/5 border-white/10">
+            <div className="detail-tab-content">
               <h2 className="mb-4 text-2xl font-bold">War History</h2>
               <p className="text-gray-300">
                 War history information will be displayed here.
@@ -244,27 +244,19 @@ export default function AllianceDetailPage({
           )}
 
           {activeTab === "members" && (
-            <div className="p-6 bg-white/5 border-white/10">
+            <div className="detail-tab-content">
               <h2 className="mb-4 text-2xl font-bold">
                 Member Corporations ({alliance.corporations?.length || 0})
               </h2>
               {alliance.corporations && alliance.corporations.length > 0 ? (
                 <div className="overflow-hidden border border-white/10">
-                  <table className="min-w-full divide-y divide-white/10">
+                  <table className="table">
                     <thead className="bg-white/5">
                       <tr>
-                        <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-300 uppercase">
-                          Corporation
-                        </th>
-                        <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-300 uppercase">
-                          Ticker
-                        </th>
-                        <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-300 uppercase">
-                          Members
-                        </th>
-                        <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-300 uppercase">
-                          CEO
-                        </th>
+                        <th className="th-cell">Corporation</th>
+                        <th className="th-cell">Ticker</th>
+                        <th className="th-cell">Members</th>
+                        <th className="th-cell">CEO</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/10">
