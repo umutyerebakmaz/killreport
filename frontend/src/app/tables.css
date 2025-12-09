@@ -1,0 +1,7 @@
+.table {
+  @apply min-w-full divide-y divide-white/10 bg-black;
+}
+
+.th-cell {
+  @apply px-6 py-4 text-base font-medium tracking-wider text-left text-gray-300 uppercase;
+}
