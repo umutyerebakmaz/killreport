@@ -141,24 +141,14 @@ export default function RegionsPage() {
 
       {/* Table */}
       <div className="mt-6 overflow-hidden border border-white/10">
-        <table className="min-w-full divide-y divide-white/10">
+        <table className="table">
           <thead className="bg-white/5">
             <tr>
-              <th className="px-6 py-4 text-base font-medium tracking-wider text-left text-gray-300 uppercase">
-                Region
-              </th>
-              <th className="px-6 py-4 text-base font-medium tracking-wider text-left text-gray-300 uppercase">
-                <div className="flex items-center">Constellations</div>
-              </th>
-              <th className="px-6 py-4 text-base font-medium tracking-wider text-left text-gray-300 uppercase">
-                <div className="flex items-center">Systems</div>
-              </th>
-              <th className="px-6 py-4 text-left text-base font-medium text-gray-300 uppercase tracking-wider min-w-[200px]">
-                Security Distribution
-              </th>
-              <th className="px-6 py-4 text-base font-medium tracking-wider text-left text-gray-300 uppercase">
-                Avg Security
-              </th>
+              <th className="th-cell">Region</th>
+              <th className="th-cell">Constellations</th>
+              <th className="th-cell">Systems</th>
+              <th className="th-cell">Security Distribution</th>
+              <th className="th-cell">Avg Security</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/10">
