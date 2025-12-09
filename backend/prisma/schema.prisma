@@ -51,7 +51,7 @@ model Attacker {
   weapon_type_id  Int?
   damage_done     Int
   final_blow      Boolean
-  security_status Float
+  security_status Float?
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
   faction_id      Int?
@@ -77,12 +77,11 @@ model Bloodline {
 }
 
 model Category {
-  id         Int         @id
+  id         Int      @id
   name       String
-  published  Boolean     @default(true)
-  created_at DateTime    @default(now())
-  updated_at DateTime    @updatedAt
-  groups     ItemGroup[]
+  published  Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@map("categories")
 }
@@ -166,8 +165,6 @@ model ItemGroup {
   published   Boolean  @default(true)
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
-  category    Category @relation(fields: [category_id], references: [id])
-  types       Type[]
 
   @@index([category_id])
   @@map("item_groups")
@@ -256,18 +253,17 @@ model SyncJob {
 }
 
 model Type {
-  id          Int       @id
+  id          Int      @id
   name        String
   description String?
   group_id    Int
-  published   Boolean   @default(true)
+  published   Boolean  @default(true)
   volume      Float?
   capacity    Float?
   mass        Float?
   icon_id     Int?
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
-  group       ItemGroup @relation(fields: [group_id], references: [id])
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 
   @@index([group_id])
   @@map("types")
