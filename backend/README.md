@@ -30,6 +30,7 @@ Server runs on: http://localhost:4000/graphql
 ### Workers & Background Jobs
 
 - [**Complete Workers Documentation**](./src/docs/WORKERS_DOCUMENTATION.md) - All workers and queue systems
+- [**RedisQ Real-Time Stream**](./src/docs/redisq-stream.md) - Live killmail feed from zKillboard
 - [**Character Killmail Worker**](./src/docs/CHARACTER_KILLMAIL_WORKER.md) - Sync killmails for any character
 - [Alliance Documentation](./src/docs/ALLIANCE.md) - Alliance data management
 - [Alliance Corporations](./src/docs/ALLIANCE_CORPORATION.md) - Alliance corporation syncing
@@ -89,6 +90,7 @@ yarn worker:alliance-corporations # Process alliance corporations (5 concurrent)
 
 # Killmail Workers
 yarn worker:zkillboard            # Process zKillboard killmail sync (2 concurrent)
+yarn worker:redisq                # Real-time RedisQ stream (live feed)
 
 # Snapshot Workers
 yarn snapshot:alliances           # Generate alliance snapshots
