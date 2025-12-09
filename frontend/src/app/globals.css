@@ -4,6 +4,7 @@
 @import "./fonts.css";
 @import "./buttons.css";
 @import "./inputs.css";
+@import "./tables";
 
 body {
   font-family: "Shentox", "Mona Sans", sans-serif;
@@ -100,4 +101,8 @@ body {
 
 .corporation-ticker {
   @apply px-3 py-1 text-base font-bold text-green-500;
+}
+
+.detail-tab-content {
+  @apply p-6 border-white/10;
 }
