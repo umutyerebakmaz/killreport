@@ -4332,7 +4332,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"baseline-browser-mapping@npm:^2.9.0":
+"baseline-browser-mapping@npm:^2.9.0, baseline-browser-mapping@npm:^2.9.5":
   version: 2.9.5
   resolution: "baseline-browser-mapping@npm:2.9.5"
   bin:
@@ -7159,6 +7159,8 @@ __metadata:
 "killreport@workspace:.":
   version: 0.0.0-use.local
   resolution: "killreport@workspace:."
+  dependencies:
+    baseline-browser-mapping: "npm:^2.9.5"
   languageName: unknown
   linkType: soft
 
