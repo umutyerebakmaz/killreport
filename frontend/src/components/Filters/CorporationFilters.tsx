@@ -161,7 +161,7 @@ export default function CorporationFilters({
               <input
                 type="text"
                 id="name-filter"
-                placeholder="e.g., Pandemic Horde"
+                placeholder="e.g., Kenshin."
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="input"
@@ -179,7 +179,7 @@ export default function CorporationFilters({
               <input
                 type="text"
                 id="ticker-filter"
-                placeholder="e.g., HORDE"
+                placeholder="e.g., 300M"
                 value={ticker}
                 onChange={(e) => setTicker(e.target.value)}
                 className="input"
