@@ -161,7 +161,7 @@ export default function AllianceFilters({
               <input
                 type="text"
                 id="name-filter"
-                placeholder="e.g., Goonswarm Federation"
+                placeholder="e.g., Fraternity."
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="input"
@@ -179,7 +179,7 @@ export default function AllianceFilters({
               <input
                 type="text"
                 id="ticker-filter"
-                placeholder="e.g., CONDI"
+                placeholder="e.g., FRT"
                 value={ticker}
                 onChange={(e) => setTicker(e.target.value)}
                 className="input"
