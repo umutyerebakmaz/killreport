@@ -1,8 +1,9 @@
 "use client";
 
+import MemberDeltaBadge from "@/components/MemberDeltaBadge/MemberDeltaBadge";
 import Tooltip from "@/components/Tooltip/Tooltip";
+import TotalMemberBadge from "@/components/TotalMemberBadge/TotalMemberBadge";
 import { useCorporationQuery } from "@/generated/graphql";
-import { ArrowTrendingUpIcon, UsersIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { use, useState } from "react";
 
@@ -58,25 +59,6 @@ export default function CorporationDetailPage({
   const memberDelta7d = corporation.metrics?.memberCountDelta7d ?? null;
   const memberGrowthRate7d =
     corporation.metrics?.memberCountGrowthRate7d ?? null;
-
-  // Delta rengi belirle
-  const deltaColor =
-    memberDelta7d && memberDelta7d >= 0 ? "text-green-400" : "text-red-400";
-
-  // Tooltip içeriği
-  const tooltipContent =
-    memberDelta7d !== null
-      ? `Member Change (7 Days): ${
-          memberDelta7d >= 0 ? "+" : ""
-        }${memberDelta7d}${
-          memberGrowthRate7d !== null
-            ? ` (${
-                memberGrowthRate7d >= 0 ? "+" : ""
-              }${memberGrowthRate7d.toFixed(1)}%)`
-            : ""
-        }`
-      : "No data available";
-
   // Date founded'ı formatla (DD.MM.YYYY)
   const foundedDate = corporation.date_founded
     ? new Date(corporation.date_founded).toLocaleDateString("tr-TR", {
@@ -128,39 +110,13 @@ export default function CorporationDetailPage({
           {/* Metric Container */}
           <div className="flex items-center gap-4">
             {/* member count */}
-            <Tooltip content="Total Members" position="top">
-              <div className="flex items-center gap-2">
-                <UsersIcon className="w-5 h-5 text-blue-400" />
-                <span className="text-sm font-medium text-blue-300">
-                  {corporation.member_count?.toLocaleString() || "N/A"}
-                </span>
-              </div>
-            </Tooltip>
+            <TotalMemberBadge count={corporation.member_count} />
 
             {/* member delta 7d */}
-            <Tooltip content={tooltipContent} position="top">
-              <div className="flex items-center gap-2">
-                <ArrowTrendingUpIcon
-                  className={`w-5 h-5 ${
-                    memberDelta7d !== null ? deltaColor : "text-gray-500"
-                  }`}
-                />
-                <span
-                  className={`text-sm font-medium ${
-                    memberDelta7d !== null ? deltaColor : "text-gray-500"
-                  }`}
-                >
-                  {memberDelta7d !== null ? (
-                    <>
-                      {memberDelta7d >= 0 ? "+" : ""}
-                      {memberDelta7d}
-                    </>
-                  ) : (
-                    "N/A"
-                  )}
-                </span>
-              </div>
-            </Tooltip>
+            <MemberDeltaBadge
+              memberDelta={memberDelta7d}
+              memberGrowthRate={memberGrowthRate7d}
+            />
           </div>
         </div>
 

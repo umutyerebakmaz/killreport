@@ -1,12 +1,9 @@
 "use client";
 
-import Tooltip from "@/components/Tooltip/Tooltip";
+import MemberDeltaBadge from "@/components/MemberDeltaBadge/MemberDeltaBadge";
+import TotalCorporationBadge from "@/components/TotalCorporationMember/TotalCorporationBadge";
+import TotalMemberBadge from "@/components/TotalMemberBadge/TotalMemberBadge";
 import { useAllianceQuery } from "@/generated/graphql";
-import {
-  ArrowTrendingUpIcon,
-  StarIcon,
-  UsersIcon,
-} from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { use, useState } from "react";
 
@@ -62,24 +59,6 @@ export default function AllianceDetailPage({
   const memberDelta7d = alliance.metrics?.memberCountDelta7d ?? null;
   const memberGrowthRate7d = alliance.metrics?.memberCountGrowthRate7d ?? null;
 
-  // Delta rengi belirle
-  const deltaColor =
-    memberDelta7d && memberDelta7d >= 0 ? "text-green-400" : "text-red-400";
-
-  // Tooltip içeriği
-  const tooltipContent =
-    memberDelta7d !== null
-      ? `Member Change (7 Days): ${
-          memberDelta7d >= 0 ? "+" : ""
-        }${memberDelta7d}${
-          memberGrowthRate7d !== null
-            ? ` (${
-                memberGrowthRate7d >= 0 ? "+" : ""
-              }${memberGrowthRate7d.toFixed(1)}%)`
-            : ""
-        }`
-      : "No data available";
-
   return (
     <main>
       <div className="alliance-detail-card">
@@ -106,47 +85,14 @@ export default function AllianceDetailPage({
           {/* Metric Container */}
           <div className="flex items-center gap-4">
             {/*  member count */}
-            <Tooltip content="Total Members" position="top">
-              <div className="flex items-center gap-2">
-                <UsersIcon className="w-5 h-5 text-blue-400" />
-                <span className="text-sm font-medium text-blue-300">
-                  {alliance.memberCount}
-                </span>
-              </div>
-            </Tooltip>
+            <TotalMemberBadge count={alliance.memberCount} />
             {/* corporation count */}
-            <Tooltip content="Total Corporations" position="top">
-              <div className="flex items-center gap-2">
-                <StarIcon className="w-5 h-5 text-yellow-500" />
-                <span className="text-sm font-medium text-yellow-500">
-                  {alliance.corporationCount}
-                </span>
-              </div>
-            </Tooltip>
+            <TotalCorporationBadge count={alliance.corporationCount} />
             {/* member delta 7d */}
-            <Tooltip content={tooltipContent} position="top">
-              <div className="flex items-center gap-2">
-                <ArrowTrendingUpIcon
-                  className={`w-5 h-5 ${
-                    memberDelta7d !== null ? deltaColor : "text-gray-500"
-                  }`}
-                />
-                <span
-                  className={`text-sm font-medium ${
-                    memberDelta7d !== null ? deltaColor : "text-gray-500"
-                  }`}
-                >
-                  {memberDelta7d !== null ? (
-                    <>
-                      {memberDelta7d >= 0 ? "+" : ""}
-                      {memberDelta7d}
-                    </>
-                  ) : (
-                    "N/A"
-                  )}
-                </span>
-              </div>
-            </Tooltip>
+            <MemberDeltaBadge
+              memberDelta={memberDelta7d}
+              memberGrowthRate={memberGrowthRate7d}
+            />
           </div>
         </div>
 
@@ -285,10 +231,7 @@ export default function AllianceDetailPage({
                             [{corp.ticker}]
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-300 whitespace-nowrap">
-                            <div className="flex items-center gap-2">
-                              <UsersIcon className="w-4 h-4 text-blue-400" />
-                              {corp.member_count}
-                            </div>
+                            <TotalMemberBadge count={corp.member_count} />
                           </td>
                           <td className="px-6 py-4 text-sm whitespace-nowrap">
                             {corp.ceo ? (
