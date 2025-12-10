@@ -1,13 +1,11 @@
 import Tooltip from "@/components/Tooltip/Tooltip";
 import { CorporationsQuery } from "@/generated/graphql";
-import {
-  ArrowTrendingUpIcon,
-  BuildingOffice2Icon,
-  UsersIcon,
-} from "@heroicons/react/24/outline";
+import { BuildingOffice2Icon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import MemberDeltaBadge from "../MemberDeltaBadge/MemberDeltaBadge";
+import TotalMemberBadge from "../TotalMemberBadge/TotalMemberBadge";
 
 // useCorporationsQuery'nin döndüğü Corporation type'ını extract et
 type Corporation = CorporationsQuery["corporations"]["edges"][number]["node"];
@@ -107,39 +105,12 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
 
           <div className="card-metrics">
             {/* Member count */}
-            <Tooltip content="Total Members" position="top">
-              <div className="flex items-center gap-2">
-                <UsersIcon className="w-5 h-5 text-blue-400" />
-                <span className="text-sm font-medium text-blue-300">
-                  {corporation.member_count?.toLocaleString() || "N/A"}
-                </span>
-              </div>
-            </Tooltip>
-
+            <TotalMemberBadge count={corporation.member_count} />
             {/* Member delta 7d */}
-            <Tooltip content={tooltipContent} position="top">
-              <div className="flex items-center gap-2">
-                <ArrowTrendingUpIcon
-                  className={`w-5 h-5 ${
-                    memberDelta7d !== null ? deltaColor : "text-gray-500"
-                  }`}
-                />
-                <span
-                  className={`text-sm font-medium ${
-                    memberDelta7d !== null ? deltaColor : "text-gray-500"
-                  }`}
-                >
-                  {memberDelta7d !== null ? (
-                    <>
-                      {memberDelta7d >= 0 ? "+" : ""}
-                      {memberDelta7d}
-                    </>
-                  ) : (
-                    "N/A"
-                  )}
-                </span>
-              </div>
-            </Tooltip>
+            <MemberDeltaBadge
+              memberDelta={memberDelta7d}
+              memberGrowthRate={memberGrowthRate7d}
+            />
           </div>
 
           <div className="date-founded-section">
