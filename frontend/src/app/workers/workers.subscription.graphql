@@ -8,5 +8,11 @@ subscription WorkerStatusSubscription {
       consumerCount
       active
     }
+    standaloneWorkers {
+      name
+      running
+      pid
+      description
+    }
   }
 }

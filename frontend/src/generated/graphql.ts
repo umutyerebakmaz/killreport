@@ -1165,7 +1165,7 @@ export type WorkerStatusUpdatesSubscription = { __typename?: 'Subscription', wor
 export type WorkerStatusSubscriptionSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type WorkerStatusSubscriptionSubscription = { __typename?: 'Subscription', workerStatusUpdates: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean }> } };
+export type WorkerStatusSubscriptionSubscription = { __typename?: 'Subscription', workerStatusUpdates: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean }>, standaloneWorkers: Array<{ __typename?: 'StandaloneWorkerStatus', name: string, running: boolean, pid?: number | null, description: string }> } };
 
 
 export const AllianceDocument = gql`
@@ -2510,6 +2510,12 @@ export const WorkerStatusSubscriptionDocument = gql`
       messageCount
       consumerCount
       active
+    }
+    standaloneWorkers {
+      name
+      running
+      pid
+      description
     }
   }
 }
