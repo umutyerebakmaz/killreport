@@ -188,6 +188,9 @@ export default function Header() {
           <a href="/characters" className="font-semibold text-white">
             CHARACTERS
           </a>
+          <a href="/workers" className="font-semibold text-white">
+            WORKERS
+          </a>
         </PopoverGroup>
 
         <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:items-center lg:gap-6">
@@ -300,6 +303,12 @@ export default function Header() {
                   className="block px-3 py-2 -mx-3 font-semibold text-white text-base/7 hover:bg-white/5"
                 >
                   CHARACTERS
+                </a>
+                <a
+                  href="/workers"
+                  className="block px-3 py-2 -mx-3 font-semibold text-white text-base/7 hover:bg-white/5"
+                >
+                  WORKERS
                 </a>
               </div>
               <div className="py-6">

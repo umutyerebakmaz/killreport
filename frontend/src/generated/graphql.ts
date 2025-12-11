@@ -1138,6 +1138,16 @@ export type SolarSystemQueryVariables = Exact<{
 
 export type SolarSystemQuery = { __typename?: 'Query', solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, constellation_id?: number | null, security_status?: number | null, security_class?: string | null, star_id?: number | null, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } | null };
 
+export type WorkerStatusQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type WorkerStatusQuery = { __typename?: 'Query', workerStatus: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean }> } };
+
+export type WorkerStatusUpdatesSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type WorkerStatusUpdatesSubscription = { __typename?: 'Subscription', workerStatusUpdates: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean }> } };
+
 
 export const AllianceDocument = gql`
     query Alliance($id: Int!) {
@@ -2389,3 +2399,85 @@ export type SolarSystemQueryHookResult = ReturnType<typeof useSolarSystemQuery>;
 export type SolarSystemLazyQueryHookResult = ReturnType<typeof useSolarSystemLazyQuery>;
 export type SolarSystemSuspenseQueryHookResult = ReturnType<typeof useSolarSystemSuspenseQuery>;
 export type SolarSystemQueryResult = Apollo.QueryResult<SolarSystemQuery, SolarSystemQueryVariables>;
+export const WorkerStatusDocument = gql`
+    query WorkerStatus {
+  workerStatus {
+    timestamp
+    healthy
+    queues {
+      name
+      messageCount
+      consumerCount
+      active
+    }
+  }
+}
+    `;
+
+/**
+ * __useWorkerStatusQuery__
+ *
+ * To run a query within a React component, call `useWorkerStatusQuery` and pass it any options that fit your needs.
+ * When your component renders, `useWorkerStatusQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useWorkerStatusQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useWorkerStatusQuery(baseOptions?: Apollo.QueryHookOptions<WorkerStatusQuery, WorkerStatusQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<WorkerStatusQuery, WorkerStatusQueryVariables>(WorkerStatusDocument, options);
+      }
+export function useWorkerStatusLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WorkerStatusQuery, WorkerStatusQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<WorkerStatusQuery, WorkerStatusQueryVariables>(WorkerStatusDocument, options);
+        }
+export function useWorkerStatusSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WorkerStatusQuery, WorkerStatusQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<WorkerStatusQuery, WorkerStatusQueryVariables>(WorkerStatusDocument, options);
+        }
+export type WorkerStatusQueryHookResult = ReturnType<typeof useWorkerStatusQuery>;
+export type WorkerStatusLazyQueryHookResult = ReturnType<typeof useWorkerStatusLazyQuery>;
+export type WorkerStatusSuspenseQueryHookResult = ReturnType<typeof useWorkerStatusSuspenseQuery>;
+export type WorkerStatusQueryResult = Apollo.QueryResult<WorkerStatusQuery, WorkerStatusQueryVariables>;
+export const WorkerStatusUpdatesDocument = gql`
+    subscription WorkerStatusUpdates {
+  workerStatusUpdates {
+    timestamp
+    healthy
+    queues {
+      name
+      messageCount
+      consumerCount
+      active
+    }
+  }
+}
+    `;
+
+/**
+ * __useWorkerStatusUpdatesSubscription__
+ *
+ * To run a query within a React component, call `useWorkerStatusUpdatesSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useWorkerStatusUpdatesSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useWorkerStatusUpdatesSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useWorkerStatusUpdatesSubscription(baseOptions?: Apollo.SubscriptionHookOptions<WorkerStatusUpdatesSubscription, WorkerStatusUpdatesSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<WorkerStatusUpdatesSubscription, WorkerStatusUpdatesSubscriptionVariables>(WorkerStatusUpdatesDocument, options);
+      }
+export type WorkerStatusUpdatesSubscriptionHookResult = ReturnType<typeof useWorkerStatusUpdatesSubscription>;
+export type WorkerStatusUpdatesSubscriptionResult = Apollo.SubscriptionResult<WorkerStatusUpdatesSubscription>;
