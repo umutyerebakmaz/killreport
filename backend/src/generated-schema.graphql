@@ -566,6 +566,20 @@ enum SolarSystemOrderBy {
   securityStatusDesc
 }
 
+type StandaloneWorkerStatus {
+  """Description of what this worker does"""
+  description: String!
+
+  """Name of the worker"""
+  name: String!
+
+  """Process ID if running"""
+  pid: Int
+
+  """Is the worker currently running"""
+  running: Boolean!
+}
+
 input StartAllianceSyncInput {
   clientMutationId: String
 }
@@ -731,8 +745,11 @@ type WorkerStatus {
   """Overall system health"""
   healthy: Boolean!
 
-  """Status of individual queues"""
+  """Status of individual queues (RabbitMQ-based workers)"""
   queues: [QueueStatus!]!
+
+  """Status of standalone workers (non-RabbitMQ)"""
+  standaloneWorkers: [StandaloneWorkerStatus!]!
 
   """Timestamp of the status check"""
   timestamp: String!
