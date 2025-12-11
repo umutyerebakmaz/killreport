@@ -10,6 +10,16 @@ interface QueueInfo {
   active: boolean;
 }
 
+// Format queue name for display
+function formatQueueName(name: string): string {
+  return name
+    .replace(/_queue$/, "") // Remove _queue suffix
+    .replace(/^(esi|zkillboard|redisq)_/, "") // Remove prefix
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 export default function WorkersPage() {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [refreshInterval, setRefreshInterval] = useState(2000);
@@ -49,13 +59,37 @@ export default function WorkersPage() {
   const workerStatus = data?.workerStatus;
   const queues = workerStatus?.queues || [];
 
-  const esiQueues = queues.filter((q: QueueInfo) => q.name.startsWith("esi_"));
-  const zkillQueues = queues.filter((q: QueueInfo) =>
-    q.name.startsWith("zkillboard_")
+  // Group queues by type
+  const esiInfoQueues = queues.filter(
+    (q: QueueInfo) =>
+      q.name.includes("_info_queue") && q.name.startsWith("esi_")
   );
+
+  const esiBulkQueues = queues.filter(
+    (q: QueueInfo) =>
+      (q.name.includes("_all_") ||
+        q.name.includes("_alliance_corporations_")) &&
+      q.name.startsWith("esi_")
+  );
+
+  const esiUniverseQueues = queues.filter(
+    (q: QueueInfo) =>
+      (q.name.includes("_regions_") ||
+        q.name.includes("_constellations_") ||
+        q.name.includes("_systems_")) &&
+      q.name.startsWith("esi_")
+  );
+
+  const zkillQueues = queues.filter(
+    (q: QueueInfo) =>
+      q.name.startsWith("zkillboard_") || q.name.startsWith("redisq_")
+  );
+
   const otherQueues = queues.filter(
     (q: QueueInfo) =>
-      !q.name.startsWith("esi_") && !q.name.startsWith("zkillboard_")
+      !q.name.startsWith("esi_") &&
+      !q.name.startsWith("zkillboard_") &&
+      !q.name.startsWith("redisq_")
   );
 
   return (
@@ -159,16 +193,40 @@ export default function WorkersPage() {
         </div>
       </div>
 
-      {esiQueues.length > 0 && (
-        <QueueSection title="EVE ESI Queues" queues={esiQueues} />
+      {esiInfoQueues.length > 0 && (
+        <QueueSection
+          title="ESI Info Workers"
+          subtitle="Entity enrichment (characters, corporations, alliances, types)"
+          queues={esiInfoQueues}
+        />
+      )}
+
+      {esiBulkQueues.length > 0 && (
+        <QueueSection
+          title="ESI Bulk Sync Workers"
+          subtitle="Full alliance/corporation synchronization"
+          queues={esiBulkQueues}
+        />
+      )}
+
+      {esiUniverseQueues.length > 0 && (
+        <QueueSection
+          title="ESI Universe Workers"
+          subtitle="Regions, constellations, solar systems"
+          queues={esiUniverseQueues}
+        />
       )}
 
       {zkillQueues.length > 0 && (
-        <QueueSection title="zKillboard Queues" queues={zkillQueues} />
+        <QueueSection
+          title="zKillboard Workers"
+          subtitle="Killmail streaming and historical sync"
+          queues={zkillQueues}
+        />
       )}
 
       {otherQueues.length > 0 && (
-        <QueueSection title="Other Queues" queues={otherQueues} />
+        <QueueSection title="Other Workers" queues={otherQueues} />
       )}
 
       {queues.length === 0 && (
@@ -196,10 +254,13 @@ function StatCard({ label, value, color }: any) {
   );
 }
 
-function QueueSection({ title, queues }: any) {
+function QueueSection({ title, subtitle, queues }: any) {
   return (
     <div className="mb-6">
-      <h2 className="mb-4 text-xl font-semibold text-white">{title}</h2>
+      <div className="mb-4">
+        <h2 className="text-xl font-semibold text-white">{title}</h2>
+        {subtitle && <p className="mt-1 text-sm text-gray-400">{subtitle}</p>}
+      </div>
       <div className="overflow-hidden border border-gray-800 rounded-lg">
         <table className="w-full">
           <thead className="bg-gray-900/50">
@@ -220,7 +281,10 @@ function QueueSection({ title, queues }: any) {
           </thead>
           <tbody className="divide-y divide-gray-800">
             {queues.map((queue: QueueInfo) => (
-              <tr key={queue.name} className="transition-colors hover:bg-gray-900/30">
+              <tr
+                key={queue.name}
+                className="transition-colors hover:bg-gray-900/30"
+              >
                 <td className="px-4 py-4">
                   <div className="flex items-center gap-2">
                     <div
@@ -238,7 +302,12 @@ function QueueSection({ title, queues }: any) {
                   </div>
                 </td>
                 <td className="px-4 py-4">
-                  <div className="font-mono text-sm text-gray-300">{queue.name}</div>
+                  <div className="text-sm font-medium text-gray-300">
+                    {formatQueueName(queue.name)}
+                  </div>
+                  <div className="mt-0.5 text-xs font-mono text-gray-500">
+                    {queue.name}
+                  </div>
                 </td>
                 <td className="px-4 py-4 text-center">
                   <span
