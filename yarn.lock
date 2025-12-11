@@ -3549,7 +3549,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/ws@npm:^8.0.0":
+"@types/ws@npm:^8.0.0, @types/ws@npm:^8.18.1":
   version: 8.18.1
   resolution: "@types/ws@npm:8.18.1"
   dependencies:
@@ -4317,12 +4317,14 @@ __metadata:
     "@types/amqplib": "npm:^0.10.8"
     "@types/node": "npm:^24.10.1"
     "@types/pg": "npm:^8.15.5"
+    "@types/ws": "npm:^8.18.1"
     amqplib: "npm:^0.10.9"
     axios: "npm:^1.12.2"
     dataloader: "npm:^2.2.3"
     dotenv: "npm:^17.2.3"
     graphql: "npm:16.11.0"
     graphql-codegen-schema-ast: "npm:^0.18.2"
+    graphql-ws: "npm:^6.0.6"
     graphql-yoga: "npm:5.16.0"
     jose: "npm:^6.1.0"
     nodemon: "npm:3.1.10"
@@ -4331,6 +4333,7 @@ __metadata:
     ts-node: "npm:10.9.2"
     tsx: "npm:^4.21.0"
     typescript: "npm:^5.9.3"
+    ws: "npm:^8.18.3"
   languageName: unknown
   linkType: soft
 
@@ -6006,6 +6009,7 @@ __metadata:
     eslint: "npm:^9"
     eslint-config-next: "npm:16.0.0"
     graphql: "npm:^16.11.0"
+    graphql-sse: "npm:^2.6.0"
     next: "npm:16.0.0"
     postcss: "npm:^8.5.6"
     react: "npm:19.2.0"
@@ -6322,6 +6326,15 @@ __metadata:
     cosmiconfig-toml-loader:
       optional: true
   checksum: 10c0/05e2a895dd899709da0a6f24c0248d858c23767c4848f27f68935a6fe44d00dfd804c38ef59157193ad30e54d4e0773d9ec562842fe00ce7aaa0330bca5053cd
+  languageName: node
+  linkType: hard
+
+"graphql-sse@npm:^2.6.0":
+  version: 2.6.0
+  resolution: "graphql-sse@npm:2.6.0"
+  peerDependencies:
+    graphql: ">=0.11 <=16"
+  checksum: 10c0/e05f0b5c8539d61e5ce34af8e0bb418c02bf922d6a7f9232a9abd53c77df5654684ca14f674ac771645c8fba9c37ce666c5d06f46eef54ea07e63653468065b0
   languageName: node
   linkType: hard
 
