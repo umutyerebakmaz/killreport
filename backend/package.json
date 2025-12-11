@@ -14,6 +14,7 @@
     "prisma:studio": "prisma studio",
     "db:backup": "bash scripts/backup-db.sh",
     "db:restore": "bash scripts/restore-db.sh",
+    "rabbitmq:reset": "bash scripts/reset-rabbitmq.sh",
     "queue:alliances": "tsx src/queues/queue-alliances.ts",
     "queue:alliance-corporations": "tsx src/queues/queue-alliance-corporations.ts",
     "queue:alliance-corp-characters": "tsx src/queues/queue-alliance-corporation-characters.ts",
