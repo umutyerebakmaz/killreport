@@ -826,6 +826,18 @@ export enum SolarSystemOrderBy {
   SecurityStatusDesc = 'securityStatusDesc'
 }
 
+export type StandaloneWorkerStatus = {
+  __typename?: 'StandaloneWorkerStatus';
+  /** Description of what this worker does */
+  description: Scalars['String']['output'];
+  /** Name of the worker */
+  name: Scalars['String']['output'];
+  /** Process ID if running */
+  pid?: Maybe<Scalars['Int']['output']>;
+  /** Is the worker currently running */
+  running: Scalars['Boolean']['output'];
+};
+
 export type StartAllianceSyncInput = {
   clientMutationId?: InputMaybe<Scalars['String']['input']>;
 };
@@ -1005,8 +1017,10 @@ export type WorkerStatus = {
   __typename?: 'WorkerStatus';
   /** Overall system health */
   healthy: Scalars['Boolean']['output'];
-  /** Status of individual queues */
+  /** Status of individual queues (RabbitMQ-based workers) */
   queues: Array<QueueStatus>;
+  /** Status of standalone workers (non-RabbitMQ) */
+  standaloneWorkers: Array<StandaloneWorkerStatus>;
   /** Timestamp of the status check */
   timestamp: Scalars['String']['output'];
 };
@@ -1147,6 +1161,7 @@ export type ResolversTypes = {
   SolarSystemEdge: ResolverTypeWrapper<SolarSystemEdge>;
   SolarSystemFilter: SolarSystemFilter;
   SolarSystemOrderBy: SolarSystemOrderBy;
+  StandaloneWorkerStatus: ResolverTypeWrapper<StandaloneWorkerStatus>;
   StartAllianceSyncInput: StartAllianceSyncInput;
   StartAllianceSyncPayload: ResolverTypeWrapper<StartAllianceSyncPayload>;
   StartCategorySyncInput: StartCategorySyncInput;
@@ -1235,6 +1250,7 @@ export type ResolversParentTypes = {
   SolarSystemConnection: SolarSystemConnection;
   SolarSystemEdge: SolarSystemEdge;
   SolarSystemFilter: SolarSystemFilter;
+  StandaloneWorkerStatus: StandaloneWorkerStatus;
   StartAllianceSyncInput: StartAllianceSyncInput;
   StartAllianceSyncPayload: StartAllianceSyncPayload;
   StartCategorySyncInput: StartCategorySyncInput;
@@ -1659,6 +1675,13 @@ export type SolarSystemEdgeResolvers<ContextType = any, ParentType extends Resol
   node?: Resolver<ResolversTypes['SolarSystem'], ParentType, ContextType>;
 };
 
+export type StandaloneWorkerStatusResolvers<ContextType = any, ParentType extends ResolversParentTypes['StandaloneWorkerStatus'] = ResolversParentTypes['StandaloneWorkerStatus']> = {
+  description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  pid?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  running?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+};
+
 export type StartAllianceSyncPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['StartAllianceSyncPayload'] = ResolversParentTypes['StartAllianceSyncPayload']> = {
   clientMutationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1771,6 +1794,7 @@ export type VictimResolvers<ContextType = any, ParentType extends ResolversParen
 export type WorkerStatusResolvers<ContextType = any, ParentType extends ResolversParentTypes['WorkerStatus'] = ResolversParentTypes['WorkerStatus']> = {
   healthy?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   queues?: Resolver<Array<ResolversTypes['QueueStatus']>, ParentType, ContextType>;
+  standaloneWorkers?: Resolver<Array<ResolversTypes['StandaloneWorkerStatus']>, ParentType, ContextType>;
   timestamp?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
@@ -1819,6 +1843,7 @@ export type Resolvers<ContextType = any> = {
   SolarSystem?: SolarSystemResolvers<ContextType>;
   SolarSystemConnection?: SolarSystemConnectionResolvers<ContextType>;
   SolarSystemEdge?: SolarSystemEdgeResolvers<ContextType>;
+  StandaloneWorkerStatus?: StandaloneWorkerStatusResolvers<ContextType>;
   StartAllianceSyncPayload?: StartAllianceSyncPayloadResolvers<ContextType>;
   StartCategorySyncPayload?: StartCategorySyncPayloadResolvers<ContextType>;
   StartConstellationSyncPayload?: StartConstellationSyncPayloadResolvers<ContextType>;

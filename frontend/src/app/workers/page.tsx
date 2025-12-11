@@ -31,7 +31,7 @@ export default function WorkersPage() {
         console.log("✅ SSE connected - receiving real-time updates");
       }
     },
-    onError: (err) => {
+    onError: (err: any) => {
       setIsConnected(false);
       console.error("❌ SSE error:", err);
     },
@@ -67,6 +67,7 @@ export default function WorkersPage() {
 
   const workerStatus = data?.workerStatusUpdates;
   const queues = workerStatus?.queues || [];
+  const standaloneWorkers = workerStatus?.standaloneWorkers || [];
 
   // Group queues by type
   const esiInfoQueues = queues.filter(
@@ -216,9 +217,13 @@ export default function WorkersPage() {
         <QueueSection title="Other Workers" queues={otherQueues} />
       )}
 
-      {queues.length === 0 && (
+      {standaloneWorkers.length > 0 && (
+        <StandaloneWorkerSection workers={standaloneWorkers} />
+      )}
+
+      {queues.length === 0 && standaloneWorkers.length === 0 && (
         <div className="p-12 text-center border border-gray-800 rounded-lg bg-gray-900/50">
-          <p className="text-gray-400">No queues found</p>
+          <p className="text-gray-400">No workers found</p>
         </div>
       )}
     </div>
@@ -237,6 +242,83 @@ function StatCard({ label, value, color }: any) {
     <div className={`p-4 border rounded-lg ${colorClasses[color]}`}>
       <div className="text-sm font-medium text-gray-400">{label}</div>
       <div className="mt-1 text-3xl font-bold">{value.toLocaleString()}</div>
+    </div>
+  );
+}
+
+function StandaloneWorkerSection({ workers }: any) {
+  return (
+    <div className="mb-6">
+      <div className="mb-4">
+        <h2 className="text-xl font-semibold text-white">Standalone Workers</h2>
+        <p className="mt-1 text-sm text-gray-400">
+          Long-running processes (not RabbitMQ-based)
+        </p>
+      </div>
+      <div className="overflow-hidden border border-gray-800 rounded-lg">
+        <table className="w-full">
+          <thead className="bg-gray-900/50">
+            <tr>
+              <th className="px-4 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase">
+                Status
+              </th>
+              <th className="px-4 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase">
+                Worker Name
+              </th>
+              <th className="px-4 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase">
+                Description
+              </th>
+              <th className="px-4 py-3 text-xs font-semibold tracking-wider text-center text-gray-400 uppercase">
+                Process ID
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-800">
+            {workers.map((worker: any) => (
+              <tr
+                key={worker.name}
+                className="transition-colors hover:bg-gray-900/30"
+              >
+                <td className="px-4 py-4">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-3 h-3 rounded-full ${
+                        worker.running ? "bg-green-500" : "bg-gray-500"
+                      }`}
+                    ></div>
+                    <span
+                      className={`text-sm font-medium ${
+                        worker.running ? "text-green-400" : "text-gray-500"
+                      }`}
+                    >
+                      {worker.running ? "Running" : "Stopped"}
+                    </span>
+                  </div>
+                </td>
+                <td className="px-4 py-4">
+                  <div className="text-sm font-medium text-gray-300">
+                    {worker.name}
+                  </div>
+                </td>
+                <td className="px-4 py-4">
+                  <span className="text-sm text-gray-400">
+                    {worker.description}
+                  </span>
+                </td>
+                <td className="px-4 py-4 text-center">
+                  {worker.pid ? (
+                    <span className="inline-flex items-center px-3 py-1 text-sm font-mono font-semibold rounded-full bg-blue-500/20 text-blue-400">
+                      {worker.pid}
+                    </span>
+                  ) : (
+                    <span className="text-sm text-gray-500">-</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

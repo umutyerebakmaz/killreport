@@ -827,6 +827,18 @@ export enum SolarSystemOrderBy {
   SecurityStatusDesc = 'securityStatusDesc'
 }
 
+export type StandaloneWorkerStatus = {
+  __typename?: 'StandaloneWorkerStatus';
+  /** Description of what this worker does */
+  description: Scalars['String']['output'];
+  /** Name of the worker */
+  name: Scalars['String']['output'];
+  /** Process ID if running */
+  pid?: Maybe<Scalars['Int']['output']>;
+  /** Is the worker currently running */
+  running: Scalars['Boolean']['output'];
+};
+
 export type StartAllianceSyncInput = {
   clientMutationId?: InputMaybe<Scalars['String']['input']>;
 };
@@ -1006,8 +1018,10 @@ export type WorkerStatus = {
   __typename?: 'WorkerStatus';
   /** Overall system health */
   healthy: Scalars['Boolean']['output'];
-  /** Status of individual queues */
+  /** Status of individual queues (RabbitMQ-based workers) */
   queues: Array<QueueStatus>;
+  /** Status of standalone workers (non-RabbitMQ) */
+  standaloneWorkers: Array<StandaloneWorkerStatus>;
   /** Timestamp of the status check */
   timestamp: Scalars['String']['output'];
 };
