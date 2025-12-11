@@ -1,6 +1,6 @@
 "use client";
 
-import { useWorkerStatusQuery } from "@/generated/graphql";
+import { useWorkerStatusSubscriptionSubscription } from "@/generated/graphql";
 import { useState } from "react";
 
 interface QueueInfo {
@@ -21,11 +21,20 @@ function formatQueueName(name: string): string {
 }
 
 export default function WorkersPage() {
-  const [autoRefresh, setAutoRefresh] = useState(true);
-  const [refreshInterval, setRefreshInterval] = useState(2000);
+  const [isConnected, setIsConnected] = useState(false);
 
-  const { data, loading, error, refetch } = useWorkerStatusQuery({
-    pollInterval: autoRefresh ? refreshInterval : 0,
+  // GraphQL Yoga SSE subscription - real-time updates
+  const { data, loading, error } = useWorkerStatusSubscriptionSubscription({
+    onData: () => {
+      if (!isConnected) {
+        setIsConnected(true);
+        console.log("✅ SSE connected - receiving real-time updates");
+      }
+    },
+    onError: (err) => {
+      setIsConnected(false);
+      console.error("❌ SSE error:", err);
+    },
   });
 
   if (loading && !data) {
@@ -33,7 +42,7 @@ export default function WorkersPage() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="inline-block w-8 h-8 border-4 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
-          <p className="mt-4 text-gray-400">Loading worker status...</p>
+          <p className="mt-4 text-gray-400">Connecting to SSE stream...</p>
         </div>
       </div>
     );
@@ -43,20 +52,20 @@ export default function WorkersPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <p className="text-red-500">Error loading worker status</p>
+          <p className="text-red-500">Error connecting to SSE stream</p>
           <p className="mt-2 text-sm text-gray-400">{error.message}</p>
           <button
-            onClick={() => refetch()}
+            onClick={() => window.location.reload()}
             className="px-4 py-2 mt-4 text-white bg-blue-600 rounded hover:bg-blue-700"
           >
-            Retry
+            Reconnect
           </button>
         </div>
       </div>
     );
   }
 
-  const workerStatus = data?.workerStatus;
+  const workerStatus = data?.workerStatusUpdates;
   const queues = workerStatus?.queues || [];
 
   // Group queues by type
@@ -100,43 +109,21 @@ export default function WorkersPage() {
             Worker Status Monitor
           </h1>
           <p className="text-gray-400">
-            Real-time monitoring of background job queues
+            Real-time monitoring via SSE (Server-Sent Events)
           </p>
         </div>
 
         <div className="flex items-center gap-4">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={autoRefresh}
-              onChange={(e) => setAutoRefresh(e.target.checked)}
-              className="w-4 h-4 rounded cursor-pointer"
-            />
+          <div className="flex items-center gap-2 px-3 py-2 bg-gray-800 border border-gray-700 rounded">
+            <div
+              className={`w-3 h-3 rounded-full ${
+                isConnected ? "bg-green-500 animate-pulse" : "bg-yellow-500"
+              }`}
+            ></div>
             <span className="text-sm text-gray-300">
-              {autoRefresh ? "🔴 Auto-refresh" : "⏸️ Paused"}
+              {isConnected ? "🔴 Live" : "🔄 Connecting..."}
             </span>
-          </label>
-
-          {autoRefresh && (
-            <select
-              value={refreshInterval}
-              onChange={(e) => setRefreshInterval(Number(e.target.value))}
-              className="px-3 py-1 text-sm text-white bg-gray-800 border border-gray-700 rounded cursor-pointer hover:bg-gray-700"
-            >
-              <option value={1000}>1s</option>
-              <option value={2000}>2s</option>
-              <option value={5000}>5s</option>
-              <option value={10000}>10s</option>
-            </select>
-          )}
-
-          <button
-            onClick={() => refetch()}
-            className="px-4 py-2 text-sm text-white transition-colors bg-blue-600 rounded hover:bg-blue-700"
-            disabled={loading}
-          >
-            {loading ? "Refreshing..." : "Refresh Now"}
-          </button>
+          </div>
         </div>
       </div>
 
