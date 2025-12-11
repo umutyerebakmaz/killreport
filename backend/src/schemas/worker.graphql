@@ -20,9 +20,14 @@ type WorkerStatus {
   timestamp: String!
 
   """
-  Status of individual queues
+  Status of individual queues (RabbitMQ-based workers)
   """
   queues: [QueueStatus!]!
+
+  """
+  Status of standalone workers (non-RabbitMQ)
+  """
+  standaloneWorkers: [StandaloneWorkerStatus!]!
 
   """
   Overall system health
@@ -50,4 +55,26 @@ type QueueStatus {
   Is the queue currently active
   """
   active: Boolean!
+}
+
+type StandaloneWorkerStatus {
+  """
+  Name of the worker
+  """
+  name: String!
+
+  """
+  Is the worker currently running
+  """
+  running: Boolean!
+
+  """
+  Process ID if running
+  """
+  pid: Int
+
+  """
+  Description of what this worker does
+  """
+  description: String!
 }
