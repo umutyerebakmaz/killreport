@@ -1148,6 +1148,11 @@ export type WorkerStatusUpdatesSubscriptionVariables = Exact<{ [key: string]: ne
 
 export type WorkerStatusUpdatesSubscription = { __typename?: 'Subscription', workerStatusUpdates: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean }> } };
 
+export type WorkerStatusSubscriptionSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type WorkerStatusSubscriptionSubscription = { __typename?: 'Subscription', workerStatusUpdates: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean }> } };
+
 
 export const AllianceDocument = gql`
     query Alliance($id: Int!) {
@@ -2481,3 +2486,39 @@ export function useWorkerStatusUpdatesSubscription(baseOptions?: Apollo.Subscrip
       }
 export type WorkerStatusUpdatesSubscriptionHookResult = ReturnType<typeof useWorkerStatusUpdatesSubscription>;
 export type WorkerStatusUpdatesSubscriptionResult = Apollo.SubscriptionResult<WorkerStatusUpdatesSubscription>;
+export const WorkerStatusSubscriptionDocument = gql`
+    subscription WorkerStatusSubscription {
+  workerStatusUpdates {
+    timestamp
+    healthy
+    queues {
+      name
+      messageCount
+      consumerCount
+      active
+    }
+  }
+}
+    `;
+
+/**
+ * __useWorkerStatusSubscriptionSubscription__
+ *
+ * To run a query within a React component, call `useWorkerStatusSubscriptionSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useWorkerStatusSubscriptionSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useWorkerStatusSubscriptionSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useWorkerStatusSubscriptionSubscription(baseOptions?: Apollo.SubscriptionHookOptions<WorkerStatusSubscriptionSubscription, WorkerStatusSubscriptionSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<WorkerStatusSubscriptionSubscription, WorkerStatusSubscriptionSubscriptionVariables>(WorkerStatusSubscriptionDocument, options);
+      }
+export type WorkerStatusSubscriptionSubscriptionHookResult = ReturnType<typeof useWorkerStatusSubscriptionSubscription>;
+export type WorkerStatusSubscriptionSubscriptionResult = Apollo.SubscriptionResult<WorkerStatusSubscriptionSubscription>;

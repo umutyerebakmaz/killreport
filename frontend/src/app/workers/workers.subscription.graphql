@@ -1,0 +1,12 @@
+subscription WorkerStatusSubscription {
+  workerStatusUpdates {
+    timestamp
+    healthy
+    queues {
+      name
+      messageCount
+      consumerCount
+      active
+    }
+  }
+}
