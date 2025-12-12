@@ -405,6 +405,15 @@ export type KillmailEdge = {
   node: Killmail;
 };
 
+export type KillmailFilter = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<KillmailOrderBy>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  regionId?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  systemId?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type KillmailItem = {
   __typename?: 'KillmailItem';
   flag: Scalars['Int']['output'];
@@ -415,6 +424,11 @@ export type KillmailItem = {
   quantityDropped?: Maybe<Scalars['Int']['output']>;
   singleton: Scalars['Int']['output'];
 };
+
+export enum KillmailOrderBy {
+  TimeAsc = 'timeAsc',
+  TimeDesc = 'timeDesc'
+}
 
 export type Mutation = {
   __typename?: 'Mutation';
@@ -666,8 +680,7 @@ export type QueryKillmailArgs = {
 
 
 export type QueryKillmailsArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
+  filter?: InputMaybe<KillmailFilter>;
 };
 
 
@@ -1083,8 +1096,7 @@ export type CorporationsQueryVariables = Exact<{
 export type CorporationsQuery = { __typename?: 'Query', corporations: { __typename?: 'CorporationConnection', edges: Array<{ __typename?: 'CorporationEdge', cursor: string, node: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, date_founded?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, metrics?: { __typename?: 'CorporationMetrics', memberCountDelta1d?: number | null, memberCountDelta7d?: number | null, memberCountDelta30d?: number | null, memberCountGrowthRate1d?: number | null, memberCountGrowthRate7d?: number | null, memberCountGrowthRate30d?: number | null } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type KillmailsQueryVariables = Exact<{
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<KillmailFilter>;
 }>;
 
 
@@ -1715,8 +1727,8 @@ export type CorporationsLazyQueryHookResult = ReturnType<typeof useCorporationsL
 export type CorporationsSuspenseQueryHookResult = ReturnType<typeof useCorporationsSuspenseQuery>;
 export type CorporationsQueryResult = Apollo.QueryResult<CorporationsQuery, CorporationsQueryVariables>;
 export const KillmailsDocument = gql`
-    query Killmails($first: Int, $after: String) {
-  killmails(first: $first, after: $after) {
+    query Killmails($filter: KillmailFilter) {
+  killmails(filter: $filter) {
     edges {
       node {
         id
@@ -1805,8 +1817,7 @@ export const KillmailsDocument = gql`
  * @example
  * const { data, loading, error } = useKillmailsQuery({
  *   variables: {
- *      first: // value for 'first'
- *      after: // value for 'after'
+ *      filter: // value for 'filter'
  *   },
  * });
  */

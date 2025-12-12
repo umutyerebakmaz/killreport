@@ -350,6 +350,15 @@ type KillmailEdge {
   node: Killmail!
 }
 
+input KillmailFilter {
+  limit: Int
+  orderBy: KillmailOrderBy
+  page: Int
+  regionId: Int
+  search: String
+  systemId: Int
+}
+
 type KillmailItem {
   flag: Int!
   itemType: Type
@@ -358,6 +367,11 @@ type KillmailItem {
   quantityDestroyed: Int
   quantityDropped: Int
   singleton: Int!
+}
+
+enum KillmailOrderBy {
+  timeAsc
+  timeDesc
 }
 
 type Mutation {
@@ -434,7 +448,7 @@ type Query {
   killmail(id: ID!): Killmail
 
   """Lists all killmails (with pagination using Relay-style connection)"""
-  killmails(after: String, first: Int): KillmailConnection!
+  killmails(filter: KillmailFilter): KillmailConnection!
 
   """Mevcut authenticated kullanıcının bilgilerini döner"""
   me: User
