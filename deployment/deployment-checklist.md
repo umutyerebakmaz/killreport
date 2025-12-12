@@ -1,0 +1,345 @@
+# 🚀 KillReport DigitalOcean Deployment Checklist
+
+## Pre-Deployment
+
+- [ ] EVE Online Developer Application oluştur (https://developers.eveonline.com)
+
+  - [ ] Callback URL: `https://api.your-domain.com/auth/callback`
+  - [ ] Client ID ve Secret'i kaydet
+
+- [ ] Domain satın al veya hazırla
+
+  - [ ] `your-domain.com` (Frontend)
+  - [ ] `api.your-domain.com` (Backend)
+
+- [ ] DigitalOcean hesabı aç ve ödeme yöntemi ekle
+
+---
+
+## Phase 1: Database Setup (15 dakika)
+
+- [ ] PostgreSQL Managed Database oluştur
+
+  - [ ] Frankfurt/Amsterdam region seç
+  - [ ] Basic plan (1 vCPU, 1 GB RAM)
+  - [ ] Database name: `killreport_production`
+
+- [ ] Database connection string'i kopyala
+- [ ] Trusted Sources'a droplet IP'sini ekle (droplet oluşturduktan sonra)
+
+- [ ] Local'den ilk migration'ı çalıştır:
+  ```bash
+  cd backend
+  DATABASE_URL="postgresql://..." yarn prisma:migrate deploy
+  ```
+
+---
+
+## Phase 2: Droplet Setup (30 dakika)
+
+- [ ] CPU-Optimized Droplet oluştur (4 vCPU, 8 GB RAM)
+
+  - [ ] Ubuntu 24.04 LTS
+  - [ ] Frankfurt FRA1 region
+  - [ ] SSH key ekle
+
+- [ ] Droplet'e SSH ile bağlan:
+
+  ```bash
+  ssh root@YOUR_DROPLET_IP
+  ```
+
+- [ ] Node.js, Yarn, PM2 kurulumları:
+
+  ```bash
+  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+  sudo apt install -y nodejs
+  sudo npm install -g yarn pm2
+  ```
+
+- [ ] RabbitMQ kurulumu:
+
+  ```bash
+  sudo apt install -y rabbitmq-server
+  sudo systemctl enable rabbitmq-server
+  sudo systemctl start rabbitmq-server
+  ```
+
+- [ ] Nginx kurulumu:
+  ```bash
+  sudo apt install -y nginx certbot python3-certbot-nginx
+  ```
+
+---
+
+## Phase 3: Application Deployment (45 dakika)
+
+- [ ] Git repository clone:
+
+  ```bash
+  cd /var/www
+  sudo git clone https://github.com/YOUR_USERNAME/killreport.git
+  sudo chown -R $USER:$USER killreport
+  cd killreport
+  ```
+
+- [ ] Environment variables oluştur:
+
+  - [ ] `backend/.env` dosyası (DATABASE_URL, EVE_CLIENT_ID, etc.)
+  - [ ] `frontend/.env.local` dosyası (NEXT_PUBLIC_GRAPHQL_URL)
+
+- [ ] Dependencies kurulumu:
+
+  ```bash
+  yarn install
+  cd backend && yarn install
+  cd ../frontend && yarn install
+  ```
+
+- [ ] Backend build:
+
+  ```bash
+  cd backend
+  yarn prisma:generate
+  yarn build
+  ```
+
+- [ ] Frontend build:
+
+  ```bash
+  cd frontend
+  yarn build
+  ```
+
+- [ ] PM2 ile başlat:
+  ```bash
+  cd /var/www/killreport
+  pm2 start ecosystem.config.js
+  pm2 save
+  pm2 startup
+  ```
+
+---
+
+## Phase 4: Nginx & SSL Setup (20 dakika)
+
+- [ ] Nginx config dosyasını kopyala:
+
+  ```bash
+  sudo cp deployment/nginx.conf /etc/nginx/sites-available/killreport
+  sudo ln -s /etc/nginx/sites-available/killreport /etc/nginx/sites-enabled/
+  ```
+
+- [ ] Config'de domain adlarını değiştir:
+
+  ```bash
+  sudo nano /etc/nginx/sites-available/killreport
+  # your-domain.com ve api.your-domain.com'u değiştir
+  ```
+
+- [ ] Nginx test ve restart:
+
+  ```bash
+  sudo nginx -t
+  sudo systemctl restart nginx
+  ```
+
+- [ ] DNS A Records ekle (Domain sağlayıcıdan):
+
+  - `your-domain.com` → `DROPLET_IP`
+  - `api.your-domain.com` → `DROPLET_IP`
+  - `www.your-domain.com` → `DROPLET_IP`
+
+- [ ] DNS propagation bekle (5-30 dakika)
+
+- [ ] SSL certificate al:
+
+  ```bash
+  sudo certbot --nginx -d your-domain.com -d api.your-domain.com -d www.your-domain.com
+  ```
+
+- [ ] Nginx config'de HTTPS kısımlarını aktifleştir (uncomment)
+
+---
+
+## Phase 5: Database Trusted Sources (5 dakika)
+
+- [ ] DigitalOcean Console → Databases → killreport_production
+- [ ] Settings → Trusted Sources
+- [ ] Droplet IP adresini ekle
+- [ ] Test et: Droplet'ten `psql $DATABASE_URL` ile bağlan
+
+---
+
+## Phase 6: Verification (15 dakika)
+
+- [ ] Frontend erişilebilir mi? `https://your-domain.com`
+- [ ] Backend health check: `https://api.your-domain.com/health`
+- [ ] GraphQL Playground: `https://api.your-domain.com/graphql`
+
+- [ ] PM2 process'leri çalışıyor mu?
+
+  ```bash
+  pm2 list
+  ```
+
+- [ ] Worker loglarını kontrol et:
+
+  ```bash
+  pm2 logs worker-redisq
+  pm2 logs worker-characters
+  ```
+
+- [ ] RabbitMQ çalışıyor mu?
+
+  ```bash
+  sudo systemctl status rabbitmq-server
+  ```
+
+- [ ] EVE SSO login test et:
+  - Frontend'e git → Login butonuna tıkla
+  - EVE SSO'ya yönlendir
+  - Callback sonrası token alındı mı kontrol et
+
+---
+
+## Phase 7: Initial Data Seeding (Opsiyonel)
+
+- [ ] Alliance ve Corporation listelerini sync et:
+
+  ```bash
+  cd /var/www/killreport/backend
+  node -r ts-node/register src/queues/queue-alliances.ts
+  node -r ts-node/register src/queues/queue-corporations.ts
+  ```
+
+- [ ] PM2'den bulk sync worker'ları başlat:
+
+  ```bash
+  pm2 start worker-bulk-alliances
+  pm2 start worker-bulk-corporations
+  ```
+
+- [ ] İlerlemeyi izle:
+  ```bash
+  pm2 logs worker-bulk-alliances
+  ```
+
+---
+
+## Post-Deployment
+
+- [ ] Monitoring setup:
+
+  ```bash
+  pm2 install pm2-logrotate
+  pm2 set pm2-logrotate:max_size 100M
+  pm2 set pm2-logrotate:retain 7
+  ```
+
+- [ ] Firewall kuralları (UFW):
+
+  ```bash
+  sudo ufw allow 22/tcp   # SSH
+  sudo ufw allow 80/tcp   # HTTP
+  sudo ufw allow 443/tcp  # HTTPS
+  sudo ufw enable
+  ```
+
+- [ ] Droplet snapshot al (ilk çalışan durumu kaydet)
+
+- [ ] PostgreSQL backup test et:
+  ```bash
+  pg_dump "$DATABASE_URL" > test_backup.sql
+  ```
+
+---
+
+## Maintenance Schedule
+
+### Günlük:
+
+- [ ] `pm2 list` ile process health check
+- [ ] `df -h` ile disk kullanımı kontrol
+
+### Haftalık:
+
+- [ ] `pm2 logs --lines 100` ile error loglarını gözden geçir
+- [ ] PostgreSQL backup kontrolü (DigitalOcean otomatik)
+
+### Aylık:
+
+- [ ] `sudo apt update && sudo apt upgrade -y`
+- [ ] Droplet snapshot al
+- [ ] Database boyutu kontrol et → Gerekirse plan upgrade
+
+---
+
+## Troubleshooting Commands
+
+```bash
+# PM2 restart all
+pm2 restart all
+
+# Backend logs
+pm2 logs backend --lines 200
+
+# Worker logs
+pm2 logs worker-characters --lines 100
+
+# RabbitMQ status
+sudo rabbitmqctl list_queues
+
+# Nginx error logs
+sudo tail -f /var/log/nginx/error.log
+
+# Database connection test
+psql "$DATABASE_URL" -c "SELECT version();"
+
+# Disk space
+df -h
+
+# Memory usage
+free -h
+
+# Network connections
+ss -tulpn
+```
+
+---
+
+## Scaling Triggers
+
+Scale PostgreSQL to 4 GB when:
+
+- [ ] Database size > 5 GB
+- [ ] Connection pool constantly maxed out
+- [ ] Query response times > 500ms consistently
+
+Add Worker Droplet when:
+
+- [ ] PM2 CPU usage > 80% sustained
+- [ ] RabbitMQ queues backing up (> 10k messages)
+- [ ] Processing > 100k killmails/day
+
+---
+
+## Emergency Rollback
+
+```bash
+# Stop all PM2 processes
+pm2 stop all
+
+# Checkout previous git commit
+cd /var/www/killreport
+git log --oneline -10
+git checkout <previous_commit_hash>
+
+# Rebuild
+cd backend && yarn build
+cd ../frontend && yarn build
+
+# Restart
+cd ..
+pm2 restart all
+```
