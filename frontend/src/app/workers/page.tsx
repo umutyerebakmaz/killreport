@@ -307,7 +307,7 @@ function StandaloneWorkerSection({ workers }: any) {
                 </td>
                 <td className="px-4 py-4 text-center">
                   {worker.pid ? (
-                    <span className="inline-flex items-center px-3 py-1 text-sm font-mono font-semibold rounded-full bg-blue-500/20 text-blue-400">
+                    <span className="inline-flex items-center px-3 py-1 font-mono text-sm font-semibold text-blue-400 rounded-full bg-blue-500/20">
                       {worker.pid}
                     </span>
                   ) : (
