@@ -404,6 +404,15 @@ export type KillmailEdge = {
   node: Killmail;
 };
 
+export type KillmailFilter = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<KillmailOrderBy>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  regionId?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  systemId?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type KillmailItem = {
   __typename?: 'KillmailItem';
   flag: Scalars['Int']['output'];
@@ -414,6 +423,11 @@ export type KillmailItem = {
   quantityDropped?: Maybe<Scalars['Int']['output']>;
   singleton: Scalars['Int']['output'];
 };
+
+export enum KillmailOrderBy {
+  TimeAsc = 'timeAsc',
+  TimeDesc = 'timeDesc'
+}
 
 export type Mutation = {
   __typename?: 'Mutation';
@@ -665,8 +679,7 @@ export type QueryKillmailArgs = {
 
 
 export type QueryKillmailsArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
+  filter?: InputMaybe<KillmailFilter>;
 };
 
 
@@ -1143,7 +1156,9 @@ export type ResolversTypes = {
   Killmail: ResolverTypeWrapper<Killmail>;
   KillmailConnection: ResolverTypeWrapper<KillmailConnection>;
   KillmailEdge: ResolverTypeWrapper<KillmailEdge>;
+  KillmailFilter: KillmailFilter;
   KillmailItem: ResolverTypeWrapper<KillmailItem>;
+  KillmailOrderBy: KillmailOrderBy;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   PageInfo: ResolverTypeWrapper<PageInfo>;
   Position: ResolverTypeWrapper<Position>;
@@ -1234,6 +1249,7 @@ export type ResolversParentTypes = {
   Killmail: Killmail;
   KillmailConnection: KillmailConnection;
   KillmailEdge: KillmailEdge;
+  KillmailFilter: KillmailFilter;
   KillmailItem: KillmailItem;
   Mutation: Record<PropertyKey, never>;
   PageInfo: PageInfo;

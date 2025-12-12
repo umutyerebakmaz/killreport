@@ -1,176 +1,330 @@
 "use client";
 
+import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
+import Paginator from "@/components/Paginator/Paginator";
 import { useKillmailsQuery } from "@/generated/graphql";
+import {
+  ChevronDownIcon,
+  FireIcon,
+  MagnifyingGlassIcon,
+} from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function KillmailsPage() {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(25);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const pageFromUrl = Number(searchParams.get("page")) || 1;
+  const orderByFromUrl = searchParams.get("orderBy") || "timeDesc";
+  const searchFromUrl = searchParams.get("search") || "";
+
+  const [currentPage, setCurrentPage] = useState(pageFromUrl);
+  const [pageSize, setPageSize] = useState(25);
+  const [orderBy, setOrderBy] = useState<string>(orderByFromUrl);
+  const [searchTerm, setSearchTerm] = useState(searchFromUrl);
+  const [debouncedSearch, setDebouncedSearch] = useState(searchFromUrl);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const { data, loading, error } = useKillmailsQuery({
     variables: {
-      first: pageSize,
+      filter: {
+        page: currentPage,
+        limit: pageSize,
+        orderBy: orderBy as any,
+        search: debouncedSearch || undefined,
+      },
     },
   });
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl text-gray-300">Loading killmails...</div>
-      </div>
-    );
-  }
+  // URL sync
+  useEffect(() => {
+    const params = new URLSearchParams();
+    params.set("page", currentPage.toString());
+    params.set("orderBy", orderBy);
+    if (debouncedSearch) params.set("search", debouncedSearch);
+    router.push(`/killmails?${params.toString()}`, { scroll: false });
+  }, [currentPage, orderBy, debouncedSearch, router]);
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl text-red-400">Error: {error.message}</div>
-      </div>
-    );
-  }
+  if (error)
+    return <div className="p-8 text-red-500">Error: {error.message}</div>;
 
-  const killmails = data?.killmails?.edges || [];
-  const pageInfo = data?.killmails?.pageInfo;
+  const killmails = data?.killmails.edges.map((edge) => edge.node) || [];
+  const pageInfo = data?.killmails.pageInfo;
+  const totalPages = pageInfo?.totalPages || 0;
+
+  // Group killmails by date
+  const groupedKillmails = killmails.reduce((groups, km) => {
+    const dateObj = new Date(km.killmailTime);
+    const date = dateObj.toISOString().split("T")[0]; // YYYY-MM-DD format
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(km);
+    return groups;
+  }, {} as Record<string, typeof killmails>);
+
+  const handleNext = () =>
+    pageInfo?.hasNextPage && setCurrentPage((prev) => prev + 1);
+  const handlePrev = () =>
+    pageInfo?.hasPreviousPage && setCurrentPage((prev) => prev - 1);
+  const handleFirst = () => setCurrentPage(1);
+  const handleLast = () => totalPages > 0 && setCurrentPage(totalPages);
 
   return (
-    <div className="px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white">Recent Killmails</h1>
-        <p className="mt-2 text-gray-400">
-          Latest killmails from EVE Online universe
-        </p>
-        {pageInfo && (
-          <p className="mt-1 text-sm text-gray-500">
-            Total: {pageInfo.totalCount?.toLocaleString()} killmails
+    <div className="px-4 sm:px-6 lg:px-8">
+      <Breadcrumb items={[{ label: "Killmails" }]} />
+
+      <div className="sm:flex sm:items-center sm:justify-between">
+        <div className="sm:flex-auto">
+          <h1 className="flex items-center gap-3 text-3xl font-semibold text-white">
+            <FireIcon className="w-8 h-8 text-red-400" />
+            Killmails
+          </h1>
+          <p className="mt-2 text-gray-400">
+            Browse all killmails from New Eden. Click on a killmail to see
+            detailed information.
           </p>
+          {pageInfo?.totalCount && (
+            <p className="mt-1 text-sm text-gray-500">
+              Total: {pageInfo.totalCount.toLocaleString()} killmails
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex items-center gap-3 mt-6">
+        <div className="relative flex-1">
+          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+            <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search by character, corporation, or alliance..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
+        </div>
+
+        {/* OrderBy Dropdown */}
+        <div className="select-option-container">
+          <select
+            value={orderBy}
+            onChange={(e) => setOrderBy(e.target.value)}
+            className="select"
+          >
+            <option value="timeDesc">Newest First</option>
+            <option value="timeAsc">Oldest First</option>
+          </select>
+          <ChevronDownIcon className="chevron-down-icon" />
+        </div>
+      </div>
+
+      {/* Grouped Killmails by Date */}
+      <div className="mt-6 space-y-8">
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="flex items-center gap-3">
+              <div className="w-5 h-5 border-2 rounded-full animate-spin border-cyan-500 border-t-transparent" />
+              <span className="text-gray-400">Loading killmails...</span>
+            </div>
+          </div>
+        ) : killmails.length === 0 ? (
+          <div className="py-12 text-center text-gray-400">
+            No killmails found
+          </div>
+        ) : (
+          Object.entries(groupedKillmails).map(([date, dateKillmails]) => (
+            <div key={date} className="space-y-3">
+              {/* Date Header */}
+              <h2 className="flex items-center gap-2 text-xl font-semibold">
+                <span className="text-gray-200">{date}</span>
+                <span className="text-sm font-normal text-gray-500">
+                  ({dateKillmails.length} killmail
+                  {dateKillmails.length !== 1 ? "s" : ""})
+                </span>
+              </h2>
+
+              {/* Table for this date */}
+              <div className="overflow-hidden border border-white/10">
+                <table className="table">
+                  <thead className="bg-white/5">
+                    <tr>
+                      <th className="th-cell">Time</th>
+                      <th className="th-cell">Ship</th>
+                      <th className="th-cell">Victim</th>
+                      <th className="th-cell">System</th>
+                      <th className="th-cell">Final Blow</th>
+                      <th className="th-cell">Attackers</th>
+                      <th className="th-cell">Damage</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/10">
+                    {dateKillmails.map((km) => {
+                      const finalBlowAttacker = km.attackers?.find(
+                        (a) => a?.finalBlow
+                      );
+                      const attackerCount = km.attackers?.length || 0;
+
+                      return (
+                        <tr
+                          key={km.id}
+                          className="transition-colors hover:bg-white/5"
+                        >
+                          <td className="px-6 py-4 text-base">
+                            <div className="text-gray-400">
+                              {new Date(km.killmailTime).toLocaleTimeString()}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-base">
+                            <div className="flex items-center gap-3">
+                              {km.victim?.shipTypeId && (
+                                <img
+                                  src={`https://images.evetech.net/types/${km.victim.shipTypeId}/render?size=128`}
+                                  alt={km.victim?.shipType?.name || "Ship"}
+                                  className="border size-20 border-amber-500"
+                                  loading="lazy"
+                                />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-orange-400">
+                                  {km.victim?.shipType?.name || "Unknown Ship"}
+                                </div>
+                                {km.victim?.shipType?.group && (
+                                  <div className="text-base text-gray-500">
+                                    {km.victim.shipType.group.name}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-base">
+                            <div className="space-y-1">
+                              <div className="font-medium text-white">
+                                {km.victim?.character?.name || "Unknown"}
+                              </div>
+                              {km.victim?.corporation && (
+                                <div className="text-base text-gray-400">
+                                  <Link
+                                    href={`/corporations/${km.victim.corporation.id}`}
+                                    className="transition-colors hover:text-cyan-400"
+                                  >
+                                    {km.victim.corporation.name}
+                                  </Link>
+                                </div>
+                              )}
+                              {km.victim?.alliance && (
+                                <div className="text-base text-gray-500">
+                                  <Link
+                                    href={`/alliances/${km.victim.alliance.id}`}
+                                    className="transition-colors hover:text-cyan-400"
+                                  >
+                                    {km.victim.alliance.name}
+                                  </Link>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-base">
+                            <div className="space-y-1">
+                              <div className="font-medium text-cyan-400">
+                                <Link
+                                  href={`/systems/${km.solarSystem?.id}`}
+                                  className="transition-colors hover:text-cyan-300"
+                                >
+                                  {km.solarSystem?.name || "Unknown"}
+                                </Link>
+                              </div>
+                              {km.solarSystem?.constellation?.region && (
+                                <div className="text-base text-gray-500">
+                                  {km.solarSystem.constellation.region.name}
+                                </div>
+                              )}
+                              {km.solarSystem?.security_status !== null &&
+                                km.solarSystem?.security_status !==
+                                  undefined && (
+                                  <div className="text-base">
+                                    <span
+                                      className={
+                                        km.solarSystem.security_status >= 0.5
+                                          ? "text-green-400"
+                                          : km.solarSystem.security_status > 0
+                                          ? "text-yellow-400"
+                                          : "text-red-400"
+                                      }
+                                    >
+                                      {km.solarSystem.security_status.toFixed(
+                                        1
+                                      )}
+                                    </span>
+                                  </div>
+                                )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-base">
+                            {finalBlowAttacker && (
+                              <div className="space-y-1">
+                                <div className="text-base text-green-400">
+                                  {finalBlowAttacker.character?.name ||
+                                    "Unknown"}
+                                </div>
+                                <div className="text-base text-gray-500">
+                                  {finalBlowAttacker.shipType?.name ||
+                                    "Unknown"}
+                                </div>
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 text-base">
+                            <span className="font-medium text-purple-400">
+                              {attackerCount}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-base">
+                            <span className="font-medium text-red-400">
+                              {km.victim?.damageTaken?.toLocaleString() || 0}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))
         )}
       </div>
 
-      {/* Killmails List */}
-      <div className="space-y-4">
-        {killmails.map((edge) => {
-          const km = edge.node;
-          if (!km) return null;
-
-          const finalBlowAttacker = km.attackers?.find((a) => a?.finalBlow);
-          const attackerCount = km.attackers?.length || 0;
-
-          return (
-            <Link
-              key={km.id}
-              href={`/killmails/${km.killmailId}`}
-              className="block transition-all duration-200 rounded-lg bg-white/5 backdrop-blur-sm inset-ring inset-ring-white/10 hover:bg-white/10"
-            >
-              <div className="p-4">
-                <div className="flex items-start justify-between gap-4">
-                  {/* Left: Victim Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-1 text-xs font-medium text-red-400 rounded bg-red-400/10">
-                          LOSS
-                        </span>
-                        <span className="text-sm text-gray-500">
-                          {new Date(km.killmailTime).toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-white">
-                          {km.victim?.character?.name || "Unknown"}
-                        </span>
-                        {km.victim?.corporation && (
-                          <span className="text-sm text-gray-400">
-                            [{km.victim.corporation.name}]
-                          </span>
-                        )}
-                        {km.victim?.alliance && (
-                          <span className="text-sm text-gray-500">
-                            ({km.victim.alliance.name})
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="text-gray-400">
-                          {km.victim?.shipType?.name || "Unknown Ship"}
-                        </span>
-                        <span className="text-gray-600">•</span>
-                        <span className="text-gray-500">
-                          {km.solarSystem?.name || "Unknown System"}
-                        </span>
-                        {km.solarSystem?.constellation?.region && (
-                          <>
-                            <span className="text-gray-600">•</span>
-                            <span className="text-gray-600">
-                              {km.solarSystem.constellation.region.name}
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right: Final Blow & Stats */}
-                  <div className="text-right shrink-0">
-                    {finalBlowAttacker && (
-                      <div className="mb-1">
-                        <div className="text-sm text-green-400">
-                          {finalBlowAttacker.character?.name || "Unknown"}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {finalBlowAttacker.shipType?.name || "Unknown Ship"}
-                        </div>
-                      </div>
-                    )}
-                    <div className="text-xs text-gray-600">
-                      {attackerCount} attacker{attackerCount !== 1 ? "s" : ""}
-                    </div>
-                    <div className="text-xs text-gray-600">
-                      {km.victim?.damageTaken?.toLocaleString()} dmg
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          );
-        })}
+      <div className="mt-6">
+        <Paginator
+          hasNextPage={pageInfo?.hasNextPage ?? false}
+          hasPrevPage={pageInfo?.hasPreviousPage ?? false}
+          onNext={handleNext}
+          onPrev={handlePrev}
+          onFirst={handleFirst}
+          onLast={handleLast}
+          loading={loading}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+        />
       </div>
-
-      {/* Pagination */}
-      {pageInfo && pageInfo.totalPages && pageInfo.totalPages > 1 && (
-        <div className="flex items-center justify-center gap-4 mt-8">
-          <button
-            disabled={!pageInfo.hasPreviousPage}
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            className="px-4 py-2 text-sm font-medium text-white rounded-lg bg-white/5 inset-ring inset-ring-white/10 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Previous
-          </button>
-          <span className="text-sm text-gray-400">
-            Page {pageInfo.currentPage} of {pageInfo.totalPages}
-          </span>
-          <button
-            disabled={!pageInfo.hasNextPage}
-            onClick={() =>
-              setCurrentPage((p) => Math.min(pageInfo.totalPages!, p + 1))
-            }
-            className="px-4 py-2 text-sm font-medium text-white rounded-lg bg-white/5 inset-ring inset-ring-white/10 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Next
-          </button>
-        </div>
-      )}
-
-      {killmails.length === 0 && (
-        <div className="py-12 text-center">
-          <p className="text-gray-400">No killmails found</p>
-        </div>
-      )}
     </div>
   );
 }

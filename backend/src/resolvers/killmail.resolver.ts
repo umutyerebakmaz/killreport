@@ -68,16 +68,92 @@ export const killmailQueries: QueryResolvers = {
   },
 
   killmails: async (_, args) => {
-    const first = args.first ?? 25;
-    const after = args.after ? parseInt(Buffer.from(args.after, 'base64').toString()) : 0;
+    const page = args.filter?.page ?? 1;
+    const limit = args.filter?.limit ?? 25;
+    const orderBy = args.filter?.orderBy ?? 'timeDesc';
+    const search = args.filter?.search;
+    const regionId = args.filter?.regionId;
+    const systemId = args.filter?.systemId;
 
-    const totalCount = await prisma.killmail.count();
-    const totalPages = Math.ceil(totalCount / first);
+    const skip = (page - 1) * limit;
+
+    // Build WHERE clause
+    const where: any = {};
+
+    // Search in victim or attacker names
+    if (search) {
+      where.OR = [
+        {
+          victim: {
+            OR: [
+              {
+                character: {
+                  name: { contains: search, mode: 'insensitive' }
+                }
+              },
+              {
+                corporation: {
+                  name: { contains: search, mode: 'insensitive' }
+                }
+              },
+              {
+                alliance: {
+                  name: { contains: search, mode: 'insensitive' }
+                }
+              },
+            ],
+          },
+        },
+        {
+          attackers: {
+            some: {
+              OR: [
+                {
+                  character: {
+                    name: { contains: search, mode: 'insensitive' }
+                  }
+                },
+                {
+                  corporation: {
+                    name: { contains: search, mode: 'insensitive' }
+                  }
+                },
+                {
+                  alliance: {
+                    name: { contains: search, mode: 'insensitive' }
+                  }
+                },
+              ],
+            },
+          },
+        },
+      ];
+    }
+
+    // Filter by region
+    if (regionId) {
+      where.solar_system = {
+        constellation: {
+          region_id: regionId,
+        },
+      };
+    }
+
+    // Filter by solar system
+    if (systemId) {
+      where.solar_system_id = systemId;
+    }
+
+    const totalCount = await prisma.killmail.count({ where });
+    const totalPages = Math.ceil(totalCount / limit);
 
     const killmails = await prisma.killmail.findMany({
-      skip: after,
-      take: first,
-      orderBy: { killmail_time: 'desc' },
+      where,
+      skip,
+      take: limit,
+      orderBy: {
+        killmail_time: orderBy === 'timeAsc' ? 'asc' : 'desc'
+      },
       include: {
         victim: true,
         attackers: true,
@@ -126,15 +202,15 @@ export const killmailQueries: QueryResolvers = {
         })),
         totalValue: null,
       } as any,
-      cursor: Buffer.from(`${after + index + 1}`).toString('base64'),
+      cursor: Buffer.from(`${skip + index + 1}`).toString('base64'),
     }));
 
     return {
       edges,
       pageInfo: {
-        hasNextPage: after + first < totalCount,
-        hasPreviousPage: after > 0,
-        currentPage: Math.floor(after / first) + 1,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+        currentPage: page,
         totalPages,
         totalCount,
       },

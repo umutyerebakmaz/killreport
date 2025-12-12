@@ -1,5 +1,5 @@
-query Killmails($first: Int, $after: String) {
-  killmails(first: $first, after: $after) {
+query Killmails($filter: KillmailFilter) {
+  killmails(filter: $filter) {
     edges {
       node {
         id

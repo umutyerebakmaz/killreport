@@ -89,6 +89,20 @@ type KillmailItem {
   singleton: Int!
 }
 
+input KillmailFilter {
+  page: Int
+  limit: Int
+  orderBy: KillmailOrderBy
+  search: String
+  regionId: Int
+  systemId: Int
+}
+
+enum KillmailOrderBy {
+  timeDesc
+  timeAsc
+}
+
 extend type Query {
   """
   Fetches a single killmail
@@ -98,7 +112,7 @@ extend type Query {
   """
   Lists all killmails (with pagination using Relay-style connection)
   """
-  killmails(first: Int, after: String): KillmailConnection!
+  killmails(filter: KillmailFilter): KillmailConnection!
 
   """
   Fetches killmails for a specific character
