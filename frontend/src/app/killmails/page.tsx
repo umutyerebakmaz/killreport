@@ -2,6 +2,8 @@
 
 import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
 import Paginator from "@/components/Paginator/Paginator";
+import SecurityStatus from "@/components/SecurityStatus/SecurityStatus";
+import Tooltip from "@/components/Tooltip/Tooltip";
 import { useKillmailsQuery } from "@/generated/graphql";
 import {
   ChevronDownIcon,
@@ -182,13 +184,13 @@ export default function KillmailsPage() {
                           key={km.id}
                           className="transition-colors hover:bg-white/5"
                         >
-                          <td className="px-6 py-4 text-base">
+                          <td className="px-6 py-4 text-base align-top">
                             <div className="text-gray-400">
                               {new Date(km.killmailTime).toLocaleTimeString()}
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-base">
-                            <div className="flex items-center gap-3">
+                          <td className="px-6 py-4 text-base align-top">
+                            <div className="flex items-start gap-3">
                               {km.victim?.shipTypeId && (
                                 <img
                                   src={`https://images.evetech.net/types/${km.victim.shipTypeId}/render?size=128`}
@@ -209,70 +211,82 @@ export default function KillmailsPage() {
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-base">
-                            <div className="space-y-1">
-                              <div className="font-medium text-white">
-                                {km.victim?.character?.name || "Unknown"}
+                          <td className="px-6 py-4 text-base align-top">
+                            <div className="flex items-center gap-3">
+                              {/* Alliance logo if exists, otherwise corporation logo */}
+                              {(km.victim?.alliance?.id ||
+                                km.victim?.corporation?.id) && (
+                                <img
+                                  src={
+                                    km.victim.alliance?.id
+                                      ? `https://images.evetech.net/alliances/${km.victim.alliance.id}/logo?size=128`
+                                      : `https://images.evetech.net/corporations/${km.victim?.corporation?.id}/logo?size=128`
+                                  }
+                                  alt={
+                                    km.victim.alliance?.name ||
+                                    km.victim?.corporation?.name ||
+                                    "Logo"
+                                  }
+                                  className="border size-20 border-amber-500"
+                                  loading="lazy"
+                                />
+                              )}
+                              <div className="flex-1 min-w-0 space-y-1">
+                                <div className="font-medium text-white">
+                                  {km.victim?.character?.name || "Unknown"}
+                                </div>
+                                {km.victim?.corporation && (
+                                  <div className="text-base text-gray-400">
+                                    <Link
+                                      href={`/corporations/${km.victim.corporation.id}`}
+                                      className="transition-colors hover:text-cyan-400"
+                                    >
+                                      {km.victim.corporation.name}
+                                    </Link>
+                                  </div>
+                                )}
+                                {km.victim?.alliance && (
+                                  <div className="text-base text-gray-500">
+                                    <Link
+                                      href={`/alliances/${km.victim.alliance.id}`}
+                                      className="transition-colors hover:text-cyan-400"
+                                    >
+                                      {km.victim.alliance.name}
+                                    </Link>
+                                  </div>
+                                )}
                               </div>
-                              {km.victim?.corporation && (
-                                <div className="text-base text-gray-400">
-                                  <Link
-                                    href={`/corporations/${km.victim.corporation.id}`}
-                                    className="transition-colors hover:text-cyan-400"
-                                  >
-                                    {km.victim.corporation.name}
-                                  </Link>
-                                </div>
-                              )}
-                              {km.victim?.alliance && (
-                                <div className="text-base text-gray-500">
-                                  <Link
-                                    href={`/alliances/${km.victim.alliance.id}`}
-                                    className="transition-colors hover:text-cyan-400"
-                                  >
-                                    {km.victim.alliance.name}
-                                  </Link>
-                                </div>
-                              )}
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-base">
+                          <td className="px-6 py-4 text-base align-top">
                             <div className="space-y-1">
-                              <div className="font-medium text-cyan-400">
-                                <Link
-                                  href={`/systems/${km.solarSystem?.id}`}
-                                  className="transition-colors hover:text-cyan-300"
-                                >
-                                  {km.solarSystem?.name || "Unknown"}
-                                </Link>
+                              <div className="flex items-center gap-2">
+                                <Tooltip content="Solar System" position="top">
+                                  <Link
+                                    href={`/systems/${km.solarSystem?.id}`}
+                                    className="font-medium text-orange-400 transition-colors hover:text-orange-500"
+                                  >
+                                    {km.solarSystem?.name || "Unknown"}
+                                  </Link>
+                                </Tooltip>
+                                {km.solarSystem?.security_status !== null &&
+                                  km.solarSystem?.security_status !==
+                                    undefined && (
+                                    <SecurityStatus
+                                      securityStatus={
+                                        km.solarSystem.security_status
+                                      }
+                                    />
+                                  )}
                               </div>
                               {km.solarSystem?.constellation?.region && (
                                 <div className="text-base text-gray-500">
                                   {km.solarSystem.constellation.region.name}
                                 </div>
                               )}
-                              {km.solarSystem?.security_status !== null &&
-                                km.solarSystem?.security_status !==
-                                  undefined && (
-                                  <div className="text-base">
-                                    <span
-                                      className={
-                                        km.solarSystem.security_status >= 0.5
-                                          ? "text-green-400"
-                                          : km.solarSystem.security_status > 0
-                                          ? "text-yellow-400"
-                                          : "text-red-400"
-                                      }
-                                    >
-                                      {km.solarSystem.security_status.toFixed(
-                                        1
-                                      )}
-                                    </span>
-                                  </div>
-                                )}
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-base">
+                          <td className="px-6 py-4 text-base align-top">
                             {finalBlowAttacker && (
                               <div className="space-y-1">
                                 <div className="text-base text-green-400">
@@ -286,12 +300,12 @@ export default function KillmailsPage() {
                               </div>
                             )}
                           </td>
-                          <td className="px-6 py-4 text-base">
+                          <td className="px-6 py-4 text-base align-top">
                             <span className="font-medium text-purple-400">
                               {attackerCount}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-base">
+                          <td className="px-6 py-4 text-base align-top">
                             <span className="font-medium text-red-400">
                               {km.victim?.damageTaken?.toLocaleString() || 0}
                             </span>
