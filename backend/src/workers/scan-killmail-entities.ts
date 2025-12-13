@@ -128,16 +128,9 @@ async function scanAndQueueEntities() {
     console.log(`   Types: ${typeIds.size}`);
     console.log('━'.repeat(70) + '\n');
 
-    // Filter NPCs
-    console.log('🤖 Filtering NPCs...\n');
-    const beforeCharFilter = characterIds.size;
-    const beforeCorpFilter = corporationIds.size;
-
-    const playerCharacterIds = Array.from(characterIds).filter(id => !isNPCCharacter(id));
-    const playerCorporationIds = Array.from(corporationIds).filter(id => !isNPCCorporation(id));
-
-    console.log(`   Filtered ${beforeCharFilter - playerCharacterIds.length} NPC characters`);
-    console.log(`   Filtered ${beforeCorpFilter - playerCorporationIds.length} NPC corporations\n`);
+    // Convert to arrays (including NPCs)
+    const allCharacterIds = Array.from(characterIds);
+    const allCorporationIds = Array.from(corporationIds);
 
     // Filter already existing entities
     console.log('🔎 Checking database for existing entities...\n');
@@ -154,8 +147,8 @@ async function scanAndQueueEntities() {
     const existingAllianceIds = new Set(existingAlliances.map(a => a.id));
     const existingTypeIds = new Set(existingTypes.map(t => t.id));
 
-    const missingCharIds = playerCharacterIds.filter(id => !existingCharIds.has(id));
-    const missingCorpIds = playerCorporationIds.filter(id => !existingCorpIds.has(id));
+    const missingCharIds = allCharacterIds.filter(id => !existingCharIds.has(id));
+    const missingCorpIds = allCorporationIds.filter(id => !existingCorpIds.has(id));
     const missingAllianceIds = Array.from(allianceIds).filter(id => !existingAllianceIds.has(id));
     const missingTypeIds = Array.from(typeIds).filter(id => !existingTypeIds.has(id));
 
