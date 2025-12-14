@@ -106,3 +106,38 @@ body {
 .detail-tab-content {
   @apply p-6 border-white/10;
 }
+
+/* Slide-in animation for new killmail rows */
+@keyframes slide-in-row {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in-row {
+  animation: slide-in-row 0.6s ease-out forwards;
+  background: linear-gradient(
+    90deg,
+    rgba(239, 68, 68, 0.2) 0%,
+    rgba(239, 68, 68, 0.08) 50%,
+    rgba(239, 68, 68, 0) 100%
+  );
+}
+
+.animate-slide-in-row td {
+  animation: fade-in-cell 0.6s ease-out forwards;
+}
+
+@keyframes fade-in-cell {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}

@@ -668,6 +668,12 @@ type Subscription {
   _empty: String
 
   """
+  Subscribe to new killmails as they are added to the database
+  Emits a new event whenever a killmail is saved
+  """
+  newKillmail: Killmail!
+
+  """
   Subscribe to real-time worker status updates
   Emits updates every 5 seconds
   """
