@@ -2,110 +2,113 @@ import { Corporation, CorporationConnection, CorporationResolvers, PageInfo, Que
 import prisma from '../services/prisma';
 
 export const corporationQueries: QueryResolvers = {
-  corporation: async (_, { id }): Promise<Corporation | null> => {
-    const corp = await prisma.corporation.findUnique({
-      where: { id: Number(id) },
-    });
+    corporation: async (_, { id }): Promise<Corporation | null> => {
+        const corp = await prisma.corporation.findUnique({
+            where: { id: Number(id) },
+        });
 
-    if (!corp) return null;
+        if (!corp) return null;
 
-    // Field resolver'lar eksik field'ları otomatik doldurur
-    return {
-      ...corp,
-      date_founded: corp.date_founded?.toISOString() || null,
-    } as any;
-  },
+        // Field resolver'lar eksik field'ları otomatik doldurur
+        return {
+            ...corp,
+            date_founded: corp.date_founded?.toISOString() || null,
+        } as any;
+    },
 
-  corporations: async (_, { filter }): Promise<CorporationConnection> => {
-    const page = filter?.page || 1;
-    const limit = filter?.limit || 25;
-    const skip = (page - 1) * limit;
+    corporations: async (_, { filter }): Promise<CorporationConnection> => {
+        const page = filter?.page || 1;
+        const limit = filter?.limit || 25;
+        const skip = (page - 1) * limit;
 
-    // Build where clause for filters
-    const where: any = {};
+        // Build where clause for filters
+        const where: any = {
+            // Filter out NPC corporations (player corporations have ID >= 2000000)
+            id: { gte: 2000000 }
+        };
 
-    if (filter?.search) {
-      where.OR = [
-        { name: { contains: filter.search, mode: 'insensitive' } },
-        { ticker: { contains: filter.search, mode: 'insensitive' } },
-      ];
-    }
+        if (filter?.search) {
+            where.OR = [
+                { name: { contains: filter.search, mode: 'insensitive' } },
+                { ticker: { contains: filter.search, mode: 'insensitive' } },
+            ];
+        }
 
-    if (filter?.name) {
-      where.name = { contains: filter.name, mode: 'insensitive' };
-    }
+        if (filter?.name) {
+            where.name = { contains: filter.name, mode: 'insensitive' };
+        }
 
-    if (filter?.ticker) {
-      where.ticker = { contains: filter.ticker, mode: 'insensitive' };
-    }
+        if (filter?.ticker) {
+            where.ticker = { contains: filter.ticker, mode: 'insensitive' };
+        }
 
-    if (filter?.allianceId) {
-      where.alliance_id = filter.allianceId;
-    }
+        if (filter?.allianceId) {
+            where.alliance_id = filter.allianceId;
+        }
 
-    if (filter?.dateFoundedFrom || filter?.dateFoundedTo) {
-      where.date_founded = {};
-      if (filter?.dateFoundedFrom) {
-        where.date_founded.gte = new Date(filter.dateFoundedFrom);
-      }
-      if (filter?.dateFoundedTo) {
-        where.date_founded.lte = new Date(filter.dateFoundedTo);
-      }
-    }
+        if (filter?.dateFoundedFrom || filter?.dateFoundedTo) {
+            where.date_founded = {};
+            if (filter?.dateFoundedFrom) {
+                where.date_founded.gte = new Date(filter.dateFoundedFrom);
+            }
+            if (filter?.dateFoundedTo) {
+                where.date_founded.lte = new Date(filter.dateFoundedTo);
+            }
+        }
 
-    // Build orderBy clause
-    let orderBy: any = { member_count: 'desc' }; // Default ordering
+        // Build orderBy clause
+        let orderBy: any = { member_count: 'desc' }; // Default ordering
 
-    if (filter?.orderBy) {
-      switch (filter.orderBy) {
-        case 'nameAsc':
-          orderBy = { name: 'asc' };
-          break;
-        case 'nameDesc':
-          orderBy = { name: 'desc' };
-          break;
-        case 'memberCountAsc':
-          orderBy = { member_count: 'asc' };
-          break;
-        case 'memberCountDesc':
-          orderBy = { member_count: 'desc' };
-          break;
-      }
-    }
+        if (filter?.orderBy) {
+            switch (filter.orderBy) {
+                case 'nameAsc':
+                    orderBy = { name: 'asc' };
+                    break;
+                case 'nameDesc':
+                    orderBy = { name: 'desc' };
+                    break;
+                case 'memberCountAsc':
+                    orderBy = { member_count: 'asc' };
+                    break;
+                case 'memberCountDesc':
+                    orderBy = { member_count: 'desc' };
+                    break;
+            }
+        }
 
-    const [corporations, totalCount] = await Promise.all([
-      prisma.corporation.findMany({
-        where,
-        take: limit,
-        skip,
-        orderBy,
-      }),
-      prisma.corporation.count({ where }),
-    ]);
+        const [corporations, totalCount] = await Promise.all([
+            prisma.corporation.findMany({
+                where,
+                take: limit,
+                skip,
+                orderBy,
+            }),
+            prisma.corporation.count({ where }),
+        ]);
 
-    const edges = corporations.map((corp: any) => ({
-      node: {
-        ...corp,
-        date_founded: corp.date_founded?.toISOString() || null,
-      } as any, // Field resolver'lar eksik field'ları otomatik doldurur
-      cursor: Buffer.from(`${corp.id}`).toString('base64'),
-    }));
+        const edges = corporations.map((corp: any) => ({
+            node: {
+                ...corp,
+                date_founded: corp.date_founded?.toISOString() || null,
+            } as any, // Field resolver'lar eksik field'ları otomatik doldurur
+            cursor: Buffer.from(`${corp.id}`).toString('base64'),
+        }));
 
-    const totalPages = Math.ceil(totalCount / limit);
+        const totalPages = Math.ceil(totalCount / limit);
 
-    const pageInfo: PageInfo = {
-      hasNextPage: page < totalPages,
-      hasPreviousPage: page > 1,
-      currentPage: page,
-      totalPages,
-      totalCount,
-    };
+        const pageInfo: PageInfo = {
+            hasNextPage: page < totalPages,
+            hasPreviousPage: page > 1,
+            currentPage: page,
+            totalPages,
+            totalCount,
+        };
 
-    return {
-      edges,
-      pageInfo,
-    };
-  },
+        return {
+            edges,
+            pageInfo,
+        };
+    },
 };
 
 /**
@@ -114,129 +117,129 @@ export const corporationQueries: QueryResolvers = {
  * DataLoader ile batch loading - N+1 problem çözümü
  */
 export const corporationFieldResolvers: CorporationResolvers = {
-  alliance: async (parent, _args, context) => {
-    if (!parent.alliance_id) return null;
+    alliance: async (parent, _args, context) => {
+        if (!parent.alliance_id) return null;
 
-    // DataLoader kullan - otomatik batch yapacak
-    const alliance = await context.loaders.alliance.load(parent.alliance_id);
+        // DataLoader kullan - otomatik batch yapacak
+        const alliance = await context.loaders.alliance.load(parent.alliance_id);
 
-    if (!alliance) return null;
+        if (!alliance) return null;
 
-    return {
-      ...alliance,
-      date_founded: alliance.date_founded.toISOString(),
-      corporations: [], // Circular reference'ı önlemek için boş array
-    };
-  },
+        return {
+            ...alliance,
+            date_founded: alliance.date_founded.toISOString(),
+            corporations: [], // Circular reference'ı önlemek için boş array
+        };
+    },
 
-  ceo: async (parent, _args, context) => {
-    // DataLoader kullan - otomatik batch yapacak
-    const character = await context.loaders.character.load(parent.ceo_id);
+    ceo: async (parent, _args, context) => {
+        // DataLoader kullan - otomatik batch yapacak
+        const character = await context.loaders.character.load(parent.ceo_id);
 
-    if (!character) return null;
+        if (!character) return null;
 
-    return {
-      ...character,
-      birthday: character.birthday.toISOString(),
-    } as any;
-  },
+        return {
+            ...character,
+            birthday: character.birthday.toISOString(),
+        } as any;
+    },
 
-  creator: async (parent, _args, context) => {
-    // DataLoader kullan - otomatik batch yapacak
-    const character = await context.loaders.character.load(parent.creator_id);
+    creator: async (parent, _args, context) => {
+        // DataLoader kullan - otomatik batch yapacak
+        const character = await context.loaders.character.load(parent.creator_id);
 
-    if (!character) return null;
+        if (!character) return null;
 
-    return {
-      ...character,
-      birthday: character.birthday.toISOString(),
-    } as any;
-  },
+        return {
+            ...character,
+            birthday: character.birthday.toISOString(),
+        } as any;
+    },
 
-  metrics: async (parent) => {
-    const now = new Date();
-    const date1d = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000);
-    const date7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const date30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    metrics: async (parent) => {
+        const now = new Date();
+        const date1d = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000);
+        const date7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const date30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    // Mevcut member count değerini al
-    const currentMemberCount = parent.member_count;
+        // Mevcut member count değerini al
+        const currentMemberCount = parent.member_count;
 
-    // 1 gün önceki snapshot
-    const snapshot1d = await prisma.corporationSnapshot.findFirst({
-      where: {
-        corporation_id: parent.id,
-        snapshot_date: { lte: date1d },
-      },
-      orderBy: { snapshot_date: 'desc' },
-    });
+        // 1 gün önceki snapshot
+        const snapshot1d = await prisma.corporationSnapshot.findFirst({
+            where: {
+                corporation_id: parent.id,
+                snapshot_date: { lte: date1d },
+            },
+            orderBy: { snapshot_date: 'desc' },
+        });
 
-    // 7 gün önceki snapshot
-    const snapshot7d = await prisma.corporationSnapshot.findFirst({
-      where: {
-        corporation_id: parent.id,
-        snapshot_date: { lte: date7d },
-      },
-      orderBy: { snapshot_date: 'desc' },
-    });
+        // 7 gün önceki snapshot
+        const snapshot7d = await prisma.corporationSnapshot.findFirst({
+            where: {
+                corporation_id: parent.id,
+                snapshot_date: { lte: date7d },
+            },
+            orderBy: { snapshot_date: 'desc' },
+        });
 
-    // 30 gün önceki snapshot
-    const snapshot30d = await prisma.corporationSnapshot.findFirst({
-      where: {
-        corporation_id: parent.id,
-        snapshot_date: { lte: date30d },
-      },
-      orderBy: { snapshot_date: 'desc' },
-    });
+        // 30 gün önceki snapshot
+        const snapshot30d = await prisma.corporationSnapshot.findFirst({
+            where: {
+                corporation_id: parent.id,
+                snapshot_date: { lte: date30d },
+            },
+            orderBy: { snapshot_date: 'desc' },
+        });
 
-    // Delta hesaplamaları
-    const memberCountDelta1d = snapshot1d
-      ? currentMemberCount - snapshot1d.member_count
-      : null;
-    const memberCountDelta7d = snapshot7d
-      ? currentMemberCount - snapshot7d.member_count
-      : null;
-    const memberCountDelta30d = snapshot30d
-      ? currentMemberCount - snapshot30d.member_count
-      : null;
+        // Delta hesaplamaları
+        const memberCountDelta1d = snapshot1d
+            ? currentMemberCount - snapshot1d.member_count
+            : null;
+        const memberCountDelta7d = snapshot7d
+            ? currentMemberCount - snapshot7d.member_count
+            : null;
+        const memberCountDelta30d = snapshot30d
+            ? currentMemberCount - snapshot30d.member_count
+            : null;
 
-    // Growth rate hesaplamaları (yüzde)
-    const memberCountGrowthRate1d = snapshot1d && snapshot1d.member_count > 0
-      ? ((currentMemberCount - snapshot1d.member_count) / snapshot1d.member_count) * 100
-      : null;
-    const memberCountGrowthRate7d = snapshot7d && snapshot7d.member_count > 0
-      ? ((currentMemberCount - snapshot7d.member_count) / snapshot7d.member_count) * 100
-      : null;
-    const memberCountGrowthRate30d = snapshot30d && snapshot30d.member_count > 0
-      ? ((currentMemberCount - snapshot30d.member_count) / snapshot30d.member_count) * 100
-      : null;
+        // Growth rate hesaplamaları (yüzde)
+        const memberCountGrowthRate1d = snapshot1d && snapshot1d.member_count > 0
+            ? ((currentMemberCount - snapshot1d.member_count) / snapshot1d.member_count) * 100
+            : null;
+        const memberCountGrowthRate7d = snapshot7d && snapshot7d.member_count > 0
+            ? ((currentMemberCount - snapshot7d.member_count) / snapshot7d.member_count) * 100
+            : null;
+        const memberCountGrowthRate30d = snapshot30d && snapshot30d.member_count > 0
+            ? ((currentMemberCount - snapshot30d.member_count) / snapshot30d.member_count) * 100
+            : null;
 
-    return {
-      memberCountDelta1d,
-      memberCountDelta7d,
-      memberCountDelta30d,
-      memberCountGrowthRate1d,
-      memberCountGrowthRate7d,
-      memberCountGrowthRate30d,
-    };
-  },
+        return {
+            memberCountDelta1d,
+            memberCountDelta7d,
+            memberCountDelta30d,
+            memberCountGrowthRate1d,
+            memberCountGrowthRate7d,
+            memberCountGrowthRate30d,
+        };
+    },
 
-  snapshots: async (parent, args) => {
-    const days = args.days ?? 30;
-    const since = new Date();
-    since.setDate(since.getDate() - days);
+    snapshots: async (parent, args) => {
+        const days = args.days ?? 30;
+        const since = new Date();
+        since.setDate(since.getDate() - days);
 
-    const snapshots = await prisma.corporationSnapshot.findMany({
-      where: {
-        corporation_id: parent.id,
-        snapshot_date: { gte: since },
-      },
-      orderBy: { snapshot_date: 'asc' },
-    });
+        const snapshots = await prisma.corporationSnapshot.findMany({
+            where: {
+                corporation_id: parent.id,
+                snapshot_date: { gte: since },
+            },
+            orderBy: { snapshot_date: 'asc' },
+        });
 
-    return snapshots.map(s => ({
-      date: s.snapshot_date.toISOString().split('T')[0], // YYYY-MM-DD formatında
-      memberCount: s.member_count,
-    }));
-  },
+        return snapshots.map(s => ({
+            date: s.snapshot_date.toISOString().split('T')[0], // YYYY-MM-DD formatında
+            memberCount: s.member_count,
+        }));
+    },
 };
