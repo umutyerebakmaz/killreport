@@ -13,6 +13,7 @@ import {
     killmailItemFieldResolvers,
     killmailMutations,
     killmailQueries,
+    killmailSubscriptions,
     victimFieldResolvers,
 } from './killmail.resolver';
 import { raceQueries } from './race.resolver';
@@ -54,6 +55,7 @@ export const resolvers: Resolvers = {
     },
     Subscription: {
         ...workerResolvers.Subscription,
+        ...killmailSubscriptions,
     },
     Character: characterFieldResolvers,
     Alliance: allianceFieldResolvers,

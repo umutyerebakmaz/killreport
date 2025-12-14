@@ -932,6 +932,11 @@ export type Subscription = {
   __typename?: 'Subscription';
   _empty?: Maybe<Scalars['String']['output']>;
   /**
+   * Subscribe to new killmails as they are added to the database
+   * Emits a new event whenever a killmail is saved
+   */
+  newKillmail: Killmail;
+  /**
    * Subscribe to real-time worker status updates
    * Emits updates every 5 seconds
    */
@@ -1742,6 +1747,7 @@ export type StartTypeSyncPayloadResolvers<ContextType = any, ParentType extends 
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
   _empty?: SubscriptionResolver<Maybe<ResolversTypes['String']>, "_empty", ParentType, ContextType>;
+  newKillmail?: SubscriptionResolver<ResolversTypes['Killmail'], "newKillmail", ParentType, ContextType>;
   workerStatusUpdates?: SubscriptionResolver<ResolversTypes['WorkerStatus'], "workerStatusUpdates", ParentType, ContextType>;
 };
 

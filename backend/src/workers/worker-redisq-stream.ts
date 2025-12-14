@@ -21,7 +21,15 @@
 
 import '../config';
 import prisma from '../services/prisma';
+import { pubsub } from '../services/pubsub';
 import { esiRateLimiter } from '../services/rate-limiter';
+
+// Debug: Verify pubsub is loaded
+console.log('🔍 Debug: pubsub type:', typeof pubsub, 'pubsub:', pubsub);
+if (!pubsub) {
+  console.error('❌ CRITICAL: pubsub is not defined at module load time!');
+  process.exit(1);
+}
 
 const REDISQ_URL = 'https://zkillredisq.stream/listen.php';
 const QUEUE_ID = 'killreport-stream'; // Unique identifier for our service
@@ -92,7 +100,7 @@ let stats = {
 /**
  * Main worker loop
  */
-async function redisQStreamWorker() {
+export async function redisQStreamWorker() {
   console.log('🌊 RedisQ Stream Worker Started');
   console.log(`📡 Endpoint: ${REDISQ_URL}`);
   console.log(`🆔 Queue ID: ${QUEUE_ID}`);
@@ -195,10 +203,16 @@ async function processKillmail(pkg: RedisQPackage): Promise<void> {
       `Stats: ${stats.saved} saved, ${stats.skipped} skipped, ${stats.errors} errors ` +
       `(${runtime}s runtime)`
     );
-  } catch (error) {
+  } catch (error: any) {
+    // Handle duplicate key error gracefully (race condition)
+    if (error?.code === 'P2002') {
+      stats.skipped++;
+      console.log(`⏭️  Skipped: ${killID} (duplicate - race condition)`);
+      return;
+    }
     stats.errors++;
     console.error(`❌ Failed to process killmail ${killID}:`, error);
-    throw error; // Re-throw to trigger retry logic
+    // Don't re-throw - continue processing next killmail
   }
 }
 
@@ -241,22 +255,6 @@ async function saveKillmail(killmail: ESIKillmail, hash: string): Promise<void> 
       },
     });
 
-    // Create attackers
-    await tx.attacker.createMany({
-      data: attackers.map((attacker) => ({
-        killmail_id: killmail.killmail_id,
-        character_id: attacker.character_id || null,
-        corporation_id: attacker.corporation_id || null,
-        alliance_id: attacker.alliance_id || null,
-        ship_type_id: attacker.ship_type_id || null,
-        weapon_type_id: attacker.weapon_type_id || null,
-        damage_done: attacker.damage_done,
-        final_blow: attacker.final_blow,
-        security_status: attacker.security_status ?? null,
-        faction_id: null,
-      })),
-    });
-
     // Create victim
     await tx.victim.create({
       data: {
@@ -272,6 +270,30 @@ async function saveKillmail(killmail: ESIKillmail, hash: string): Promise<void> 
         faction_id: null,
       },
     });
+
+    // Create attackers
+    if (attackers.length > 0) {
+      await tx.attacker.createMany({
+        data: attackers.map((attacker) => ({
+          killmail_id: killmail.killmail_id,
+          character_id: attacker.character_id || null,
+          corporation_id: attacker.corporation_id || null,
+          alliance_id: attacker.alliance_id || null,
+          ship_type_id: attacker.ship_type_id || null,
+          weapon_type_id: attacker.weapon_type_id || null,
+          damage_done: attacker.damage_done,
+          final_blow: attacker.final_blow,
+          security_status: attacker.security_status ?? null,
+          faction_id: null,
+        })),
+      });
+    }
+  });
+
+  // Publish new killmail event to subscribers (only ID - resolver will fetch full data)
+  console.log('📡 Publishing NEW_KILLMAIL event for killmail:', killmail.killmail_id);
+  await pubsub.publish('NEW_KILLMAIL', {
+    killmailId: killmail.killmail_id,
   });
 }
 
