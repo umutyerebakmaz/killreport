@@ -161,3 +161,11 @@ extend type Mutation {
   """
   syncMyKillmails(input: SyncMyKillmailsInput!): SyncMyKillmailsPayload!
 }
+
+extend type Subscription {
+  """
+  Subscribe to new killmails as they are added to the database
+  Emits a new event whenever a killmail is saved
+  """
+  newKillmail: Killmail!
+}

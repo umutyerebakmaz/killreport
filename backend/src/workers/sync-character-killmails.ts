@@ -1,6 +1,7 @@
 import '../config';
 import { KillmailService } from '../services/killmail';
 import prisma from '../services/prisma';
+import { pubsub } from '../services/pubsub';
 import { getCharacterKillmailsFromZKill } from '../services/zkillboard';
 
 const MAX_PAGES = 50; // Configurable
@@ -76,7 +77,7 @@ async function syncCharacterKillmails() {
                 const details = await KillmailService.getKillmailDetail(zkill.killmail_id, zkill.zkb.hash);
 
                 // Save to database with items
-                await prisma.killmail.create({
+                const savedKillmail = await prisma.killmail.create({
                     data: {
                         killmail_id: zkill.killmail_id,
                         killmail_hash: zkill.zkb.hash,
@@ -113,6 +114,11 @@ async function syncCharacterKillmails() {
                             })),
                         },
                     },
+                });
+
+                // Publish new killmail event to subscribers (only ID - resolver will fetch full data)
+                await pubsub.publish('NEW_KILLMAIL', {
+                    killmailId: savedKillmail.killmail_id,
                 });
 
                 processedCount++;
