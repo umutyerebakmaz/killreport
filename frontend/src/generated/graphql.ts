@@ -933,6 +933,11 @@ export type Subscription = {
   __typename?: 'Subscription';
   _empty?: Maybe<Scalars['String']['output']>;
   /**
+   * Subscribe to new killmails as they are added to the database
+   * Emits a new event whenever a killmail is saved
+   */
+  newKillmail: Killmail;
+  /**
    * Subscribe to real-time worker status updates
    * Emits updates every 5 seconds
    */
@@ -1135,6 +1140,11 @@ export type AllianceKillmailsQueryVariables = Exact<{
 
 
 export type AllianceKillmailsQuery = { __typename?: 'Query', allianceKillmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailId: number, killmailTime: string, solarSystem?: { __typename?: 'SolarSystem', name: string } | null, victim: { __typename?: 'Victim', character?: { __typename?: 'Character', name: string } | null, shipType?: { __typename?: 'Type', name: string } | null } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, totalCount: number } } };
+
+export type NewKillmailSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type NewKillmailSubscription = { __typename?: 'Subscription', newKillmail: { __typename?: 'Killmail', id: string, killmailId: number, killmailTime: string, solarSystemId: number, solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', name: string, region?: { __typename?: 'Region', name: string } | null } | null } | null, victim: { __typename?: 'Victim', characterId?: number | null, corporationId: number, allianceId?: number | null, shipTypeId: number, damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } | null }, attackers: Array<{ __typename?: 'Attacker', characterId?: number | null, corporationId?: number | null, shipTypeId?: number | null, finalBlow: boolean, damageDone: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string } | null }> } };
 
 export type RegionsQueryVariables = Exact<{
   filter?: InputMaybe<RegionFilter>;
@@ -2182,6 +2192,94 @@ export type AllianceKillmailsQueryHookResult = ReturnType<typeof useAllianceKill
 export type AllianceKillmailsLazyQueryHookResult = ReturnType<typeof useAllianceKillmailsLazyQuery>;
 export type AllianceKillmailsSuspenseQueryHookResult = ReturnType<typeof useAllianceKillmailsSuspenseQuery>;
 export type AllianceKillmailsQueryResult = Apollo.QueryResult<AllianceKillmailsQuery, AllianceKillmailsQueryVariables>;
+export const NewKillmailDocument = gql`
+    subscription NewKillmail {
+  newKillmail {
+    id
+    killmailId
+    killmailTime
+    solarSystemId
+    solarSystem {
+      id
+      name
+      security_status
+      constellation {
+        name
+        region {
+          name
+        }
+      }
+    }
+    victim {
+      characterId
+      character {
+        id
+        name
+      }
+      corporationId
+      corporation {
+        id
+        name
+      }
+      allianceId
+      alliance {
+        id
+        name
+      }
+      shipTypeId
+      shipType {
+        id
+        name
+        group {
+          name
+        }
+      }
+      damageTaken
+    }
+    attackers {
+      characterId
+      character {
+        id
+        name
+      }
+      corporationId
+      corporation {
+        id
+        name
+      }
+      shipTypeId
+      shipType {
+        id
+        name
+      }
+      finalBlow
+      damageDone
+    }
+  }
+}
+    `;
+
+/**
+ * __useNewKillmailSubscription__
+ *
+ * To run a query within a React component, call `useNewKillmailSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useNewKillmailSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useNewKillmailSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useNewKillmailSubscription(baseOptions?: Apollo.SubscriptionHookOptions<NewKillmailSubscription, NewKillmailSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<NewKillmailSubscription, NewKillmailSubscriptionVariables>(NewKillmailDocument, options);
+      }
+export type NewKillmailSubscriptionHookResult = ReturnType<typeof useNewKillmailSubscription>;
+export type NewKillmailSubscriptionResult = Apollo.SubscriptionResult<NewKillmailSubscription>;
 export const RegionsDocument = gql`
     query Regions($filter: RegionFilter) {
   regions(filter: $filter) {
