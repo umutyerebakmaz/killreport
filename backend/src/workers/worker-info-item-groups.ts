@@ -33,10 +33,25 @@ async function itemGroupInfoWorker() {
 
         console.log('✅ Worker ready. Waiting for messages...\n');
 
+        let lastMessageTime = Date.now();
+
+        // Check if queue is empty every 5 seconds
+        const emptyCheckInterval = setInterval(async () => {
+            const timeSinceLastMessage = Date.now() - lastMessageTime;
+            if (timeSinceLastMessage > 5000 && totalProcessed > 0) {
+                console.log('\n' + '━'.repeat(60));
+                console.log('✅ Queue completed!');
+                console.log(`📊 Final: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)`);
+                console.log('━'.repeat(60) + '\n');
+                console.log('⏳ Waiting for new messages...\n');
+            }
+        }, 5000);
+
         // Process messages
         channel.consume(
             QUEUE_NAME,
             async (msg) => {
+                if (msg) lastMessageTime = Date.now();
                 if (!msg) return;
 
                 try {
@@ -112,6 +127,7 @@ async function itemGroupInfoWorker() {
             console.log(`   Created: ${totalCreated}`);
             console.log(`   Updated: ${totalUpdated}`);
             console.log(`   Errors: ${totalErrors}`);
+            clearInterval(emptyCheckInterval);
             await channel.close();
             process.exit(0);
         });
