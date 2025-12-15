@@ -39,26 +39,30 @@ export default function KillmailDetailPage({
   const finalBlowAttacker = attackers.find((a) => a?.finalBlow);
 
   return (
-    <div className="px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
+    <div className="px-4 sm:px-6 lg:px-8">
       {/* Header */}
-      <div className="mb-8">
-        <Link
-          href="/killmails"
-          className="text-sm text-gray-400 hover:text-white"
-        >
-          ← Back to killmails
-        </Link>
-        <h1 className="mt-4 text-3xl font-bold text-white">
-          Killmail #{km.killmailId}
-        </h1>
-        <p className="mt-2 text-gray-400">
-          {new Date(km.killmailTime).toLocaleString()}
-        </p>
+      <div className="sm:flex sm:items-center sm:justify-between">
+        <div className="sm:flex-auto">
+          <h1 className="text-3xl font-semibold text-white">
+            Killmail #{km.killmailId}
+          </h1>
+          <p className="mt-2 text-gray-400">
+            {new Date(km.killmailTime).toLocaleString()}
+          </p>
+        </div>
+        <div className="mt-4 sm:mt-0">
+          <Link
+            href="/killmails"
+            className="text-sm text-gray-400 hover:text-cyan-400"
+          >
+            ← Back to killmails
+          </Link>
+        </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Left Column: Victim & Location */}
-        <div className="space-y-6">
+      <div className="grid gap-6 mt-6 lg:grid-cols-3">
+        {/* Left Column: Victim & Location (1/3 width) */}
+        <div className="space-y-6 lg:col-span-1">
           {/* Victim Card */}
           <div className="p-6 rounded-lg bg-white/5 backdrop-blur-sm inset-ring inset-ring-white/10">
             <div className="flex items-center gap-2 mb-4">
@@ -189,8 +193,8 @@ export default function KillmailDetailPage({
           </div>
         </div>
 
-        {/* Right Column: Attackers */}
-        <div className="space-y-6">
+        {/* Right Column: Attackers (2/3 width) */}
+        <div className="space-y-6 lg:col-span-2">
           <div className="p-6 rounded-lg bg-white/5 backdrop-blur-sm inset-ring inset-ring-white/10">
             <h3 className="mb-4 text-lg font-semibold text-white">
               Attackers ({attackers.length})

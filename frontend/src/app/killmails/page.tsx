@@ -334,15 +334,25 @@ export default function KillmailsPage() {
                             <td className="px-6 py-4 text-base align-top">
                               <div className="flex items-start gap-3">
                                 {km.victim?.shipTypeId && (
-                                  <div className="relative shrink-0">
-                                    <img
-                                      src={`https://images.evetech.net/types/${km.victim.shipTypeId}/render?size=128`}
-                                      alt={km.victim?.shipType?.name || "Ship"}
-                                      className="border size-20 border-amber-500"
-                                      loading="lazy"
-                                    />
-                                    <div className="absolute w-3 h-3 bg-red-500 rounded-full -top-1 -right-1 animate-pulse" />
-                                  </div>
+                                  <Tooltip
+                                    content="View Killmail Details"
+                                    position="top"
+                                  >
+                                    <Link
+                                      href={`/killmails/${km.killmailId}`}
+                                      className="relative block shrink-0"
+                                    >
+                                      <img
+                                        src={`https://images.evetech.net/types/${km.victim.shipTypeId}/render?size=128`}
+                                        alt={
+                                          km.victim?.shipType?.name || "Ship"
+                                        }
+                                        className="transition-opacity border size-20 border-amber-500 hover:opacity-80"
+                                        loading="lazy"
+                                      />
+                                      <div className="absolute w-3 h-3 bg-red-500 rounded-full -top-1 -right-1 animate-pulse" />
+                                    </Link>
+                                  </Tooltip>
                                 )}
                                 <div className="flex-1 min-w-0">
                                   <div className="font-medium text-orange-400">
