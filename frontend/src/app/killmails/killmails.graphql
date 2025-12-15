@@ -11,8 +11,10 @@ query Killmails($filter: KillmailFilter) {
           name
           security_status
           constellation {
+            id
             name
             region {
+              id
               name
             }
           }
@@ -88,8 +90,10 @@ query Killmail($id: ID!) {
       security_status
       security_class
       constellation {
+        id
         name
         region {
+          id
           name
         }
       }

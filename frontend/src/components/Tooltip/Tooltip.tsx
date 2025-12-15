@@ -44,7 +44,7 @@ export default function Tooltip({
         <span
           className={`absolute z-10 ${
             positionClasses[position]
-          } px-2 py-1 text-sm text-gray-300 font-bold bg-black outline-1 -outline-offset-1 outline-white/10 rounded shadow-lg whitespace-nowrap tooltip-anim${
+          } px-2 py-1 text-sm text-gray-300 bg-black outline-1 -outline-offset-1 outline-white/20 shadow-lg whitespace-nowrap tooltip-anim${
             show ? " tooltip-in" : " tooltip-out"
           }`}
         >

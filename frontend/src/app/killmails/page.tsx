@@ -265,7 +265,7 @@ export default function KillmailsPage() {
                 </h2>
 
                 {/* Table for this date */}
-                <div className="overflow-hidden border border-white/10">
+                <div className="border border-white/10">
                   <table className="table">
                     <thead className="bg-white/5">
                       <tr>
@@ -298,9 +298,38 @@ export default function KillmailsPage() {
                             }
                           >
                             <td className="px-6 py-4 text-base align-top">
-                              <div className="text-gray-400">
-                                {new Date(km.killmailTime).toLocaleTimeString()}
-                              </div>
+                              <Tooltip
+                                content={`${new Date(
+                                  km.killmailTime
+                                ).toLocaleDateString("en-US", {
+                                  timeZone: "UTC",
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                })} ${new Date(
+                                  km.killmailTime
+                                ).toLocaleTimeString("en-US", {
+                                  timeZone: "UTC",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  second: "2-digit",
+                                  hour12: false,
+                                })} UTC`}
+                                position="top"
+                              >
+                                <div className="text-gray-400">
+                                  {new Date(km.killmailTime).toLocaleTimeString(
+                                    "en-US",
+                                    {
+                                      timeZone: "UTC",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                      second: "2-digit",
+                                      hour12: false,
+                                    }
+                                  )}
+                                </div>
+                              </Tooltip>
                             </td>
                             <td className="px-6 py-4 text-base align-top">
                               <div className="flex items-start gap-3">
@@ -350,26 +379,50 @@ export default function KillmailsPage() {
                                 )}
                                 <div className="flex-1 min-w-0 space-y-1">
                                   <div className="font-medium text-red-500">
-                                    {km.victim?.character?.name || "Unknown"}
+                                    {km.victim?.character ? (
+                                      <Tooltip
+                                        content="Show Character Info"
+                                        position="top"
+                                      >
+                                        <Link
+                                          href={`/characters/${km.victim.character.id}`}
+                                          className="transition-colors hover:text-red-400"
+                                        >
+                                          {km.victim.character.name}
+                                        </Link>
+                                      </Tooltip>
+                                    ) : (
+                                      "Unknown"
+                                    )}
                                   </div>
                                   {km.victim?.corporation && (
                                     <div className="text-base text-gray-400">
-                                      <Link
-                                        href={`/corporations/${km.victim.corporation.id}`}
-                                        className="transition-colors hover:text-cyan-400"
+                                      <Tooltip
+                                        content="Show Corporation Info"
+                                        position="top"
                                       >
-                                        {km.victim.corporation.name}
-                                      </Link>
+                                        <Link
+                                          href={`/corporations/${km.victim.corporation.id}`}
+                                          className="transition-colors hover:text-cyan-400"
+                                        >
+                                          {km.victim.corporation.name}
+                                        </Link>
+                                      </Tooltip>
                                     </div>
                                   )}
                                   {km.victim?.alliance && (
                                     <div className="text-base text-gray-500">
-                                      <Link
-                                        href={`/alliances/${km.victim.alliance.id}`}
-                                        className="transition-colors hover:text-cyan-400"
+                                      <Tooltip
+                                        content="Show Alliance Info"
+                                        position="top"
                                       >
-                                        {km.victim.alliance.name}
-                                      </Link>
+                                        <Link
+                                          href={`/alliances/${km.victim.alliance.id}`}
+                                          className="transition-colors hover:text-cyan-400"
+                                        >
+                                          {km.victim.alliance.name}
+                                        </Link>
+                                      </Tooltip>
                                     </div>
                                   )}
                                 </div>
@@ -379,7 +432,7 @@ export default function KillmailsPage() {
                               <div className="space-y-1">
                                 <div className="flex items-center gap-2">
                                   <Tooltip
-                                    content="Solar System"
+                                    content="Show Solar System Info"
                                     position="top"
                                   >
                                     <Link
@@ -399,9 +452,37 @@ export default function KillmailsPage() {
                                       />
                                     )}
                                 </div>
+                                {km.solarSystem?.constellation && (
+                                  <div className="text-base text-purple-500">
+                                    <Tooltip
+                                      content="Show Constellation Info"
+                                      position="top"
+                                    >
+                                      <Link
+                                        href={`/constellations/${km.solarSystem.constellation?.id}`}
+                                        className="transition-colors hover:text-purple-400"
+                                      >
+                                        {km.solarSystem.constellation.name}
+                                      </Link>
+                                    </Tooltip>
+                                  </div>
+                                )}
                                 {km.solarSystem?.constellation?.region && (
-                                  <div className="text-base text-gray-500">
-                                    {km.solarSystem.constellation.region.name}
+                                  <div className="text-base text-cyan-400">
+                                    <Tooltip
+                                      content="Show Region Info"
+                                      position="top"
+                                    >
+                                      <Link
+                                        href={`/regions/${km.solarSystem.constellation.region.id}`}
+                                        className="transition-colors hover:text-cyan-300"
+                                      >
+                                        {
+                                          km.solarSystem.constellation.region
+                                            .name
+                                        }
+                                      </Link>
+                                    </Tooltip>
                                   </div>
                                 )}
                               </div>
@@ -410,8 +491,21 @@ export default function KillmailsPage() {
                               {finalBlowAttacker && (
                                 <div className="space-y-1">
                                   <div className="text-base text-green-400">
-                                    {finalBlowAttacker.character?.name ||
-                                      "Unknown"}
+                                    {finalBlowAttacker.character ? (
+                                      <Tooltip
+                                        content="Show Character Info"
+                                        position="top"
+                                      >
+                                        <Link
+                                          href={`/characters/${finalBlowAttacker.character.id}`}
+                                          className="transition-colors hover:text-green-300"
+                                        >
+                                          {finalBlowAttacker.character.name}
+                                        </Link>
+                                      </Tooltip>
+                                    ) : (
+                                      "Unknown"
+                                    )}
                                   </div>
                                   <div className="text-base text-gray-500">
                                     {finalBlowAttacker.shipType?.name ||
