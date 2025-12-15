@@ -349,7 +349,7 @@ export default function KillmailsPage() {
                                   />
                                 )}
                                 <div className="flex-1 min-w-0 space-y-1">
-                                  <div className="font-medium text-white">
+                                  <div className="font-medium text-red-500">
                                     {km.victim?.character?.name || "Unknown"}
                                   </div>
                                   {km.victim?.corporation && (
@@ -383,7 +383,7 @@ export default function KillmailsPage() {
                                     position="top"
                                   >
                                     <Link
-                                      href={`/systems/${km.solarSystem?.id}`}
+                                      href={`/solar-systems/${km.solarSystem?.id}`}
                                       className="font-medium text-orange-400 transition-colors hover:text-orange-500"
                                     >
                                       {km.solarSystem?.name || "Unknown"}
