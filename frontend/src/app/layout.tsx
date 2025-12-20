@@ -17,7 +17,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className="flex flex-col min-h-screen antialiased text-white bg-black font-sans"
+        className="flex flex-col font-sans antialiased text-white bg-black"
         suppressHydrationWarning
       >
         <ApolloWrapper>
