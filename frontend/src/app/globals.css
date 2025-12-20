@@ -6,6 +6,11 @@
 @import "./inputs.css";
 @import "./tables";
 
+html,
+body {
+  height: 100%;
+}
+
 body {
   font-family: "Shentox", "Mona Sans", sans-serif;
   font-weight: 400;

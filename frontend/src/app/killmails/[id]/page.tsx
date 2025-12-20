@@ -39,30 +39,11 @@ export default function KillmailDetailPage({
   const finalBlowAttacker = attackers.find((a) => a?.finalBlow);
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
+    <>
       {/* Header */}
-      <div className="sm:flex sm:items-center sm:justify-between">
-        <div className="sm:flex-auto">
-          <h1 className="text-3xl font-semibold text-white">
-            Killmail #{km.killmailId}
-          </h1>
-          <p className="mt-2 text-gray-400">
-            {new Date(km.killmailTime).toLocaleString()}
-          </p>
-        </div>
-        <div className="mt-4 sm:mt-0">
-          <Link
-            href="/killmails"
-            className="text-sm text-gray-400 hover:text-cyan-400"
-          >
-            ← Back to killmails
-          </Link>
-        </div>
-      </div>
-
-      <div className="grid gap-6 mt-6 lg:grid-cols-3">
-        {/* Left Column: Victim & Location (1/3 width) */}
-        <div className="space-y-6 lg:col-span-1">
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Left Column: Victim & Location (2/3 width) */}
+        <div className="space-y-6 lg:col-span-2">
           {/* Victim Card */}
           <div className="p-6 rounded-lg bg-white/5 backdrop-blur-sm inset-ring inset-ring-white/10">
             <div className="flex items-center gap-2 mb-4">
@@ -193,14 +174,14 @@ export default function KillmailDetailPage({
           </div>
         </div>
 
-        {/* Right Column: Attackers (2/3 width) */}
-        <div className="space-y-6 lg:col-span-2">
+        {/* Right Column: Attackers (1/3 width) */}
+        <div className="space-y-6 lg:col-span-1">
           <div className="p-6 rounded-lg bg-white/5 backdrop-blur-sm inset-ring inset-ring-white/10">
             <h3 className="mb-4 text-lg font-semibold text-white">
               Attackers ({attackers.length})
             </h3>
 
-            <div className="space-y-3 overflow-y-auto max-h-96">
+            <div className="space-y-3">
               {attackers.map((attacker, index) => (
                 <div
                   key={index}
@@ -295,6 +276,6 @@ export default function KillmailDetailPage({
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
