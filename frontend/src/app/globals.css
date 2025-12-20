@@ -21,7 +21,8 @@ body {
 .character-card,
 .region-card,
 .constellation-card,
-.system-card {
+.system-card,
+.victim-card {
   @apply border bg-white/5 border-white/10;
 }
 
