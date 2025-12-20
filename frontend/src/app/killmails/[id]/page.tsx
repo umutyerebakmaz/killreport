@@ -36,7 +36,6 @@ export default function KillmailDetailPage({
   const victim = km.victim;
   const attackers = km.attackers || [];
   const items = km.items || [];
-  const finalBlowAttacker = attackers.find((a) => a?.finalBlow);
 
   return (
     <>
@@ -45,78 +44,100 @@ export default function KillmailDetailPage({
         {/* Left Column: Victim & Location (2/3 width) */}
         <div className="space-y-6 lg:col-span-2">
           {/* Victim Card */}
-          <div className="p-6 rounded-lg bg-white/5 backdrop-blur-sm inset-ring inset-ring-white/10">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="px-3 py-1 text-sm font-medium text-red-400 rounded bg-red-400/10">
-                VICTIM
-              </span>
-            </div>
+          <div className="victim-card">
+            <div className="px-4 py-5 sm:p-6">
+              <div className="flex items-center pb-2">
+                <span className="px-3 py-1 text-sm font-medium text-red-400 rounded bg-red-400/10">
+                  VICTIM
+                </span>
+              </div>
 
-            <div className="space-y-3">
-              {victim?.character && (
-                <div>
-                  <div className="text-sm text-gray-500">Pilot</div>
-                  <Link
-                    href={`/characters/${victim.characterId}`}
-                    className="text-lg font-medium text-white hover:text-blue-400"
-                  >
-                    {victim.character.name}
-                  </Link>
-                </div>
-              )}
+              <div className="flex">
+                <img
+                  src={`https://images.evetech.net/characters/${victim.characterId}/portrait?size=256`}
+                  alt={victim.character?.name}
+                  width={128}
+                  height={128}
+                  className="shadow-md"
+                  loading="lazy"
+                />
 
-              {victim?.corporation && (
-                <div>
-                  <div className="text-sm text-gray-500">Corporation</div>
-                  <Link
-                    href={`/corporations/${victim.corporationId}`}
-                    className="text-white hover:text-blue-400"
-                  >
-                    {victim.corporation.name}
-                    {victim.corporation.ticker && (
-                      <span className="ml-2 text-gray-400">
-                        [{victim.corporation.ticker}]
-                      </span>
-                    )}
-                  </Link>
-                </div>
-              )}
+                <img
+                  src={`https://images.evetech.net/types/${km.victim.shipTypeId}/render?size=256`}
+                  alt={victim?.shipType?.name || "Ship"}
+                  width={128}
+                  height={128}
+                  className="shadow-md"
+                  loading="lazy"
+                />
+              </div>
 
-              {victim?.alliance && (
-                <div>
-                  <div className="text-sm text-gray-500">Alliance</div>
-                  <Link
-                    href={`/alliances/${victim.allianceId}`}
-                    className="text-white hover:text-blue-400"
-                  >
-                    {victim.alliance.name}
-                    {victim.alliance.ticker && (
-                      <span className="ml-2 text-gray-400">
-                        &lt;{victim.alliance.ticker}&gt;
-                      </span>
-                    )}
-                  </Link>
-                </div>
-              )}
-
-              {victim?.shipType && (
-                <div>
-                  <div className="text-sm text-gray-500">Ship</div>
-                  <div className="text-white">
-                    {victim.shipType.name}
-                    {victim.shipType.group && (
-                      <span className="ml-2 text-sm text-gray-400">
-                        ({victim.shipType.group.name})
-                      </span>
-                    )}
+              <div className="space-y-3">
+                {victim?.character && (
+                  <div>
+                    <div className="text-sm text-gray-500">Pilot</div>
+                    <Link
+                      href={`/characters/${victim.characterId}`}
+                      className="text-lg font-medium text-white hover:text-blue-400"
+                    >
+                      {victim.character.name}
+                    </Link>
                   </div>
-                </div>
-              )}
+                )}
 
-              <div>
-                <div className="text-sm text-gray-500">Damage Taken</div>
-                <div className="text-lg font-medium text-red-400">
-                  {victim?.damageTaken?.toLocaleString()}
+                {victim?.corporation && (
+                  <div>
+                    <div className="text-sm text-gray-500">Corporation</div>
+                    <Link
+                      href={`/corporations/${victim.corporationId}`}
+                      className="text-white hover:text-blue-400"
+                    >
+                      {victim.corporation.name}
+                      {victim.corporation.ticker && (
+                        <span className="ml-2 text-gray-400">
+                          [{victim.corporation.ticker}]
+                        </span>
+                      )}
+                    </Link>
+                  </div>
+                )}
+
+                {victim?.alliance && (
+                  <div>
+                    <div className="text-sm text-gray-500">Alliance</div>
+                    <Link
+                      href={`/alliances/${victim.allianceId}`}
+                      className="text-white hover:text-blue-400"
+                    >
+                      {victim.alliance.name}
+                      {victim.alliance.ticker && (
+                        <span className="ml-2 text-gray-400">
+                          &lt;{victim.alliance.ticker}&gt;
+                        </span>
+                      )}
+                    </Link>
+                  </div>
+                )}
+
+                {victim?.shipType && (
+                  <div>
+                    <div className="text-sm text-gray-500">Ship</div>
+                    <div className="text-white">
+                      {victim.shipType.name}
+                      {victim.shipType.group && (
+                        <span className="ml-2 text-sm text-gray-400">
+                          ({victim.shipType.group.name})
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <div className="text-sm text-gray-500">Damage Taken</div>
+                  <div className="text-lg font-medium text-red-400">
+                    {victim?.damageTaken?.toLocaleString()}
+                  </div>
                 </div>
               </div>
             </div>
