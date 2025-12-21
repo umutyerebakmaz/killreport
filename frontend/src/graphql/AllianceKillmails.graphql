@@ -1,0 +1,26 @@
+query AllianceKillmails($allianceId: Int!, $first: Int, $after: String) {
+  allianceKillmails(allianceId: $allianceId, first: $first, after: $after) {
+    edges {
+      node {
+        id
+        killmailId
+        killmailTime
+        solarSystem {
+          name
+        }
+        victim {
+          character {
+            name
+          }
+          shipType {
+            name
+          }
+        }
+      }
+    }
+    pageInfo {
+      hasNextPage
+      totalCount
+    }
+  }
+}
