@@ -1,0 +1,78 @@
+query Killmails($filter: KillmailFilter) {
+  killmails(filter: $filter) {
+    edges {
+      node {
+        id
+        killmailId
+        killmailTime
+        solarSystemId
+        solarSystem {
+          id
+          name
+          security_status
+          constellation {
+            id
+            name
+            region {
+              id
+              name
+            }
+          }
+        }
+        victim {
+          characterId
+          character {
+            id
+            name
+          }
+          corporationId
+          corporation {
+            id
+            name
+          }
+          allianceId
+          alliance {
+            id
+            name
+          }
+          shipTypeId
+          shipType {
+            id
+            name
+            group {
+              name
+            }
+          }
+          damageTaken
+        }
+        attackers {
+          characterId
+          character {
+            id
+            name
+          }
+          corporationId
+          corporation {
+            id
+            name
+          }
+          shipTypeId
+          shipType {
+            id
+            name
+          }
+          finalBlow
+          damageDone
+        }
+      }
+      cursor
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      currentPage
+      totalPages
+      totalCount
+    }
+  }
+}

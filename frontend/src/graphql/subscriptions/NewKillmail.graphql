@@ -1,0 +1,64 @@
+subscription NewKillmail {
+  newKillmail {
+    id
+    killmailId
+    killmailTime
+    solarSystemId
+    solarSystem {
+      id
+      name
+      security_status
+      constellation {
+        name
+        region {
+          name
+        }
+      }
+    }
+    victim {
+      characterId
+      character {
+        id
+        name
+      }
+      corporationId
+      corporation {
+        id
+        name
+      }
+      allianceId
+      alliance {
+        id
+        name
+      }
+      shipTypeId
+      shipType {
+        id
+        name
+        group {
+          name
+        }
+      }
+      damageTaken
+    }
+    attackers {
+      characterId
+      character {
+        id
+        name
+      }
+      corporationId
+      corporation {
+        id
+        name
+      }
+      shipTypeId
+      shipType {
+        id
+        name
+      }
+      finalBlow
+      damageDone
+    }
+  }
+}
