@@ -1,0 +1,106 @@
+query Killmail($id: ID!) {
+  killmail(id: $id) {
+    id
+    killmailId
+    killmailHash
+    killmailTime
+    solarSystemId
+    solarSystem {
+      id
+      name
+      security_status
+      security_class
+      constellation {
+        id
+        name
+        region {
+          id
+          name
+        }
+      }
+    }
+    victim {
+      characterId
+      character {
+        id
+        name
+      }
+      corporationId
+      corporation {
+        id
+        name
+        ticker
+      }
+      allianceId
+      alliance {
+        id
+        name
+        ticker
+      }
+      shipTypeId
+      shipType {
+        id
+        name
+        description
+        group {
+          name
+          category {
+            name
+          }
+        }
+      }
+      damageTaken
+      position {
+        x
+        y
+        z
+      }
+    }
+    attackers {
+      characterId
+      character {
+        id
+        name
+      }
+      corporationId
+      corporation {
+        id
+        name
+        ticker
+      }
+      allianceId
+      alliance {
+        id
+        name
+        ticker
+      }
+      shipTypeId
+      shipType {
+        id
+        name
+        group {
+          name
+        }
+      }
+      weaponTypeId
+      weaponType {
+        id
+        name
+      }
+      damageDone
+      finalBlow
+      securityStatus
+    }
+    items {
+      itemTypeId
+      itemType {
+        id
+        name
+      }
+      flag
+      quantityDropped
+      quantityDestroyed
+      singleton
+    }
+  }
+}

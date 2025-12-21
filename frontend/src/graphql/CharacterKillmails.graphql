@@ -1,0 +1,39 @@
+query CharacterKillmails($characterId: Int!, $first: Int, $after: String) {
+  characterKillmails(characterId: $characterId, first: $first, after: $after) {
+    edges {
+      node {
+        id
+        killmailId
+        killmailTime
+        solarSystemId
+        solarSystem {
+          name
+        }
+        victim {
+          characterId
+          character {
+            name
+          }
+          shipType {
+            name
+          }
+          damageTaken
+        }
+        attackers {
+          character {
+            name
+          }
+          finalBlow
+        }
+      }
+      cursor
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      currentPage
+      totalPages
+      totalCount
+    }
+  }
+}
