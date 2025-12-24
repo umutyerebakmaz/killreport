@@ -17,6 +17,8 @@ Bu sistem, **SSO ile login olmuş kullanıcıların killmail'lerini ESI API'den 
 
 - ✅ **ESI-only**: zKillboard'a bağımlılık yok
 - ✅ **Token-based**: Kullanıcının kendi access token'ı kullanılır
+- ✅ **Auto-refresh**: Expired token'lar otomatik olarak yenilenir
+- ✅ **Token validation**: Sadece geçerli token'a sahip kullanıcılar queue'ya eklenir
 - ✅ **Pagination**: 50 sayfaya kadar (2,500 killmail max, 50 per page)
 - ✅ **Automatic enrichment**: Character/corp/alliance/type bilgileri otomatik
 - ✅ **Real-time updates**: GraphQL subscription events
@@ -230,10 +232,16 @@ killmail_item (killmail_id, item_type_id, quantity_dropped, quantity_destroyed)
 
 **Sebep**: Token expired veya scope yetersiz.
 
-**Çözüm**:
+**Çözüm (Otomatik)**:
 
-- User'ın tekrar login olması gerekiyor
+- ✅ Worker otomatik olarak token'ı yeniler (refresh token kullanarak)
+- ✅ Database'deki token otomatik güncellenir
+- ⚠️ Eğer refresh token de geçersizse, user'ın tekrar login olması gerekir
+
+**Manuel Kontrol**:
+
 - SSO scope'unda `esi-killmails.read_killmails.v1` olduğundan emin olun
+- Refresh token database'de kayıtlı olmalı
 
 ### Problem: Worker çok yavaş işliyor
 
