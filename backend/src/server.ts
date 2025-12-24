@@ -152,4 +152,13 @@ server.listen(port, async () => {
       console.error('💥 RedisQ worker error:', error);
     });
   }
+
+  // Start ESI User Killmails worker in the same process for subscriptions to work
+  if (process.env.ENABLE_USER_KILLMAIL_WORKER === 'true') {
+    console.log('👤 Starting ESI User Killmails worker in server process...');
+    const { esiUserKillmailWorker } = await import('./workers/worker-esi-user-killmails.js');
+    esiUserKillmailWorker().catch((error: Error) => {
+      console.error('💥 ESI User Killmails worker error:', error);
+    });
+  }
 });

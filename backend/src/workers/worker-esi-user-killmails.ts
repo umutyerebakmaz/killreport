@@ -6,13 +6,15 @@ import { pubsub } from '../services/pubsub';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
 const QUEUE_NAME = 'esi_user_killmails_queue';
-const PREFETCH_COUNT = 3; // Process 3 users concurrently (ESI rate limit safe)
+const PREFETCH_COUNT = 1; // Process 1 user at a time to avoid rate limiting
 
 interface UserKillmailMessage {
   userId: number;
   characterId: number;
   characterName: string;
   accessToken: string;
+  refreshToken: string;
+  expiresAt: string;
   queuedAt: string;
 }
 
@@ -30,8 +32,9 @@ interface UserKillmailMessage {
  * - Respects ESI rate limits
  *
  * Usage: yarn worker:user-killmails
+ * Or: Start with server process via ENABLE_USER_KILLMAIL_WORKER=true
  */
-async function esiUserKillmailWorker() {
+export async function esiUserKillmailWorker() {
   console.log('🔄 ESI User Killmail Worker Started');
   console.log(`📦 Queue: ${QUEUE_NAME}`);
   console.log(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent users`);
@@ -69,15 +72,76 @@ async function esiUserKillmailWorker() {
           console.log(`📅 Queued at: ${message.queuedAt}`);
           console.log('━'.repeat(70));
 
+          // Validate token exists
+          if (!message.accessToken || !message.refreshToken) {
+            console.error(`  ❌ No valid tokens available for user ${message.characterName}`);
+            console.error(`  ⏭️  Skipping user - requires re-login via SSO`);
+            channel.ack(msg); // Acknowledge to remove from queue (don't retry)
+            return;
+          }
+
+          // Check if token is expired or will expire soon (5 min buffer)
+          const tokenExpiresAt = new Date(message.expiresAt);
+          const fiveMinutesFromNow = new Date(Date.now() + 5 * 60 * 1000);
+
+          if (tokenExpiresAt <= fiveMinutesFromNow) {
+            console.log(`  ⚠️  Token expired or expiring soon, refreshing...`);
+            console.log(`     Expires at: ${tokenExpiresAt.toISOString()}`);
+            console.log(`     Current time: ${new Date().toISOString()}`);
+
+            try {
+              const { refreshAccessToken } = await import('../services/eve-sso.js');
+              const newTokenData = await refreshAccessToken(message.refreshToken);
+
+              const newExpiresAt = new Date(Date.now() + newTokenData.expires_in * 1000);
+
+              // Update token in database
+              await prisma.user.update({
+                where: { id: message.userId },
+                data: {
+                  access_token: newTokenData.access_token,
+                  refresh_token: newTokenData.refresh_token || message.refreshToken,
+                  expires_at: newExpiresAt,
+                },
+              });
+
+              // Update message with new token and expiry
+              message.accessToken = newTokenData.access_token;
+              message.refreshToken = newTokenData.refresh_token || message.refreshToken;
+              message.expiresAt = newExpiresAt.toISOString();
+
+              console.log(`  ✅ Token refreshed successfully`);
+              console.log(`     New expiry: ${newExpiresAt.toISOString()}`);
+            } catch (error: any) {
+              console.error(`  ❌ Failed to refresh token:`, error.message);
+              console.error(`  ⏭️  Skipping user - refresh token invalid, requires re-login`);
+              channel.ack(msg); // Acknowledge to remove from queue (don't retry)
+              return;
+            }
+          } else {
+            console.log(`  ✅ Token is valid (expires: ${tokenExpiresAt.toISOString()})`);
+          }
+
+          // Token is now guaranteed to be valid - proceed with ESI sync
           await syncUserKillmailsFromESI(message);
 
           // Acknowledge message
           channel.ack(msg);
           console.log(`✅ Completed: ${message.characterName}\n`);
-        } catch (error) {
-          console.error(`❌ Failed to process message:`, error);
-          // Requeue the message for retry
-          channel.nack(msg, false, true);
+        } catch (error: any) {
+          console.error(`❌ Failed to process message:`, error.message);
+
+          // Only requeue if it's a transient error (network, database, etc.)
+          // Don't requeue auth errors
+          if (error.message.includes('Token') ||
+            error.message.includes('403') ||
+            error.message.includes('401')) {
+            console.error(`  ⏭️  Skipping user - authentication error`);
+            channel.ack(msg); // Don't retry auth errors
+          } else {
+            console.error(`  🔄 Requeuing for retry...`);
+            channel.nack(msg, false, true); // Requeue for transient errors
+          }
         }
       },
       { noAck: false }
@@ -193,12 +257,7 @@ async function syncUserKillmailsFromESI(message: UserKillmailMessage): Promise<v
           // Publish GraphQL subscription event for real-time updates
           try {
             await pubsub.publish('NEW_KILLMAIL', {
-              newKillmail: {
-                killmail_id: km.killmail_id,
-                killmail_hash: km.killmail_hash,
-                killmail_time: detail.killmail_time,
-                solar_system_id: detail.solar_system_id,
-              },
+              killmailId: km.killmail_id,
             });
           } catch (pubsubError) {
             // Don't fail the entire operation if pubsub fails
@@ -214,9 +273,6 @@ async function syncUserKillmailsFromESI(message: UserKillmailMessage): Promise<v
             throw createError;
           }
         }
-
-        // Small delay to respect ESI rate limits
-        await new Promise(resolve => setTimeout(resolve, 50));
       } catch (error: any) {
         errorCount++;
         console.error(`     ❌ Failed to process killmail ${km.killmail_id}:`, error.message);
@@ -251,9 +307,11 @@ function setupShutdownHandlers() {
   });
 }
 
-// Start the worker
-setupShutdownHandlers();
-esiUserKillmailWorker().catch((error) => {
-  console.error('💥 Worker crashed:', error);
-  process.exit(1);
-});
+// Start the worker only if run directly (not imported)
+if (require.main === module) {
+  setupShutdownHandlers();
+  esiUserKillmailWorker().catch((error) => {
+    console.error('💥 Worker crashed:', error);
+    process.exit(1);
+  });
+}
