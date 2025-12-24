@@ -2,7 +2,7 @@
 
 ## Pre-Deployment
 
-- [ ] EVE Online Developer Application oluştur (https://developers.eveonline.com)
+- [ ] EVE Online Developer Application oluştur (<https://developers.eveonline.com>)
 
   - [ ] Callback URL: `https://api.your-domain.com/auth/callback`
   - [ ] Client ID ve Secret'i kaydet
@@ -28,6 +28,7 @@
 - [ ] Trusted Sources'a droplet IP'sini ekle (droplet oluşturduktan sonra)
 
 - [ ] Local'den ilk migration'ı çalıştır:
+
   ```bash
   cd backend
   DATABASE_URL="postgresql://..." yarn prisma:migrate deploy
@@ -66,6 +67,7 @@
   ```
 
 - [ ] Nginx kurulumu:
+
   ```bash
   sudo apt install -y nginx certbot python3-certbot-nginx
   ```
@@ -112,6 +114,7 @@
   ```
 
 - [ ] PM2 ile başlat:
+
   ```bash
   cd /var/www/killreport
   pm2 start ecosystem.config.js
@@ -221,6 +224,7 @@
   ```
 
 - [ ] İlerlemeyi izle:
+
   ```bash
   pm2 logs worker-bulk-alliances
   ```
@@ -249,6 +253,7 @@
 - [ ] Droplet snapshot al (ilk çalışan durumu kaydet)
 
 - [ ] PostgreSQL backup test et:
+
   ```bash
   pg_dump "$DATABASE_URL" > test_backup.sql
   ```
@@ -257,17 +262,17 @@
 
 ## Maintenance Schedule
 
-### Günlük:
+### Günlük
 
 - [ ] `pm2 list` ile process health check
 - [ ] `df -h` ile disk kullanımı kontrol
 
-### Haftalık:
+### Haftalık
 
 - [ ] `pm2 logs --lines 100` ile error loglarını gözden geçir
 - [ ] PostgreSQL backup kontrolü (DigitalOcean otomatik)
 
-### Aylık:
+### Aylık
 
 - [ ] `sudo apt update && sudo apt upgrade -y`
 - [ ] Droplet snapshot al
