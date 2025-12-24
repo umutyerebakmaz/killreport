@@ -1152,6 +1152,13 @@ export type AllianceKillmailsQueryVariables = Exact<{
 
 export type AllianceKillmailsQuery = { __typename?: 'Query', allianceKillmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailId: number, killmailTime: string, solarSystem?: { __typename?: 'SolarSystem', name: string } | null, victim: { __typename?: 'Victim', character?: { __typename?: 'Character', name: string } | null, shipType?: { __typename?: 'Type', name: string } | null } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, totalCount: number } } };
 
+export type RefreshTokenMutationVariables = Exact<{
+  refreshToken: Scalars['String']['input'];
+}>;
+
+
+export type RefreshTokenMutation = { __typename?: 'Mutation', refreshToken: { __typename?: 'AuthPayload', accessToken: string, refreshToken?: string | null, expiresIn: number, user: { __typename?: 'User', id: string, name: string, email: string, createdAt: string } } };
+
 export type CharacterKillmailsQueryVariables = Exact<{
   characterId: Scalars['Int']['input'];
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -2217,6 +2224,47 @@ export type AllianceKillmailsQueryHookResult = ReturnType<typeof useAllianceKill
 export type AllianceKillmailsLazyQueryHookResult = ReturnType<typeof useAllianceKillmailsLazyQuery>;
 export type AllianceKillmailsSuspenseQueryHookResult = ReturnType<typeof useAllianceKillmailsSuspenseQuery>;
 export type AllianceKillmailsQueryResult = Apollo.QueryResult<AllianceKillmailsQuery, AllianceKillmailsQueryVariables>;
+export const RefreshTokenDocument = gql`
+    mutation RefreshToken($refreshToken: String!) {
+  refreshToken(refreshToken: $refreshToken) {
+    accessToken
+    refreshToken
+    expiresIn
+    user {
+      id
+      name
+      email
+      createdAt
+    }
+  }
+}
+    `;
+export type RefreshTokenMutationFn = Apollo.MutationFunction<RefreshTokenMutation, RefreshTokenMutationVariables>;
+
+/**
+ * __useRefreshTokenMutation__
+ *
+ * To run a mutation, you first call `useRefreshTokenMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRefreshTokenMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [refreshTokenMutation, { data, loading, error }] = useRefreshTokenMutation({
+ *   variables: {
+ *      refreshToken: // value for 'refreshToken'
+ *   },
+ * });
+ */
+export function useRefreshTokenMutation(baseOptions?: Apollo.MutationHookOptions<RefreshTokenMutation, RefreshTokenMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RefreshTokenMutation, RefreshTokenMutationVariables>(RefreshTokenDocument, options);
+      }
+export type RefreshTokenMutationHookResult = ReturnType<typeof useRefreshTokenMutation>;
+export type RefreshTokenMutationResult = Apollo.MutationResult<RefreshTokenMutation>;
+export type RefreshTokenMutationOptions = Apollo.BaseMutationOptions<RefreshTokenMutation, RefreshTokenMutationVariables>;
 export const CharacterKillmailsDocument = gql`
     query CharacterKillmails($characterId: Int!, $first: Int, $after: String) {
   characterKillmails(characterId: $characterId, first: $first, after: $after) {
