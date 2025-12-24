@@ -88,9 +88,47 @@ export class CharacterService {
                     console.log(`     ✓ Last page (${killmails.length} < 50)`);
                     break;
                 }
+
+                // Add extra delay between pages to prevent rate limiting
+                // ESI allows 150 req/sec but we play it safe with multiple workers
+                await new Promise(resolve => setTimeout(resolve, 100));
             } catch (error: any) {
                 console.error(`     ❌ Error fetching page ${page}:`, error.message);
-                throw error;
+
+                // If rate limited, wait and retry once
+                if (error.message.includes('420') || error.message.includes('Rate limit')) {
+                    console.log(`     ⏳ Rate limited, waiting 2 seconds before retry...`);
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+
+                    // Retry the same page
+                    try {
+                        const retryKillmails = await esiRateLimiter.execute(async () => {
+                            const url = `${ESI_BASE_URL}/characters/${characterId}/killmails/recent/?page=${page}`;
+                            const response = await fetch(url, {
+                                headers: { Authorization: `Bearer ${token}` },
+                            });
+                            if (!response.ok) {
+                                if (response.status === 404) return null;
+                                const error = await response.text();
+                                throw new Error(`Failed to fetch character killmails: ${response.status} - ${error}`);
+                            }
+                            return response.json();
+                        });
+
+                        if (retryKillmails) {
+                            console.log(`     ✅ Retry successful: ${retryKillmails.length} killmails`);
+                            allKillmails.push(...retryKillmails);
+                            if (retryKillmails.length < 50) break;
+                        } else {
+                            break;
+                        }
+                    } catch (retryError: any) {
+                        console.error(`     ❌ Retry failed:`, retryError.message);
+                        throw error; // Throw original error
+                    }
+                } else {
+                    throw error;
+                }
             }
         }
 
