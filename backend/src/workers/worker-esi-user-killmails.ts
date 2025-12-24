@@ -1,0 +1,259 @@
+import '../config';
+import { CharacterService } from '../services/character/character.service';
+import { KillmailService } from '../services/killmail/killmail.service';
+import prisma from '../services/prisma';
+import { pubsub } from '../services/pubsub';
+import { getRabbitMQChannel } from '../services/rabbitmq';
+
+const QUEUE_NAME = 'esi_user_killmails_queue';
+const PREFETCH_COUNT = 3; // Process 3 users concurrently (ESI rate limit safe)
+
+interface UserKillmailMessage {
+  userId: number;
+  characterId: number;
+  characterName: string;
+  accessToken: string;
+  queuedAt: string;
+}
+
+/**
+ * ESI-only killmail worker for logged-in users
+ *
+ * This worker fetches killmails directly from ESI API using user's access token.
+ * No zKillboard dependency - completely independent system.
+ *
+ * Features:
+ * - Fetches recent killmails from ESI (up to 100 pages = 2500 killmails)
+ * - Automatically enriches related entities (characters, corps, etc.)
+ * - Publishes GraphQL subscription events for real-time updates
+ * - Handles duplicates gracefully
+ * - Respects ESI rate limits
+ *
+ * Usage: yarn worker:user-killmails
+ */
+async function esiUserKillmailWorker() {
+  console.log('🔄 ESI User Killmail Worker Started');
+  console.log(`📦 Queue: ${QUEUE_NAME}`);
+  console.log(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent users`);
+  console.log(`🌐 Data Source: ESI API (direct, no zKillboard)\n`);
+
+  try {
+    const channel = await getRabbitMQChannel();
+
+    // Assert queue
+    await channel.assertQueue(QUEUE_NAME, {
+      durable: true,
+      arguments: {
+        'x-max-priority': 10,
+      },
+    });
+
+    // Set prefetch to limit concurrent processing
+    channel.prefetch(PREFETCH_COUNT);
+
+    console.log('✅ Connected to RabbitMQ');
+    console.log('⏳ Waiting for user killmail jobs...\n');
+
+    // Consume messages
+    channel.consume(
+      QUEUE_NAME,
+      async (msg) => {
+        if (!msg) return;
+
+        try {
+          const message: UserKillmailMessage = JSON.parse(msg.content.toString());
+
+          console.log(`\n${'━'.repeat(70)}`);
+          console.log(`👤 Processing: ${message.characterName} (ID: ${message.characterId})`);
+          console.log(`🆔 User ID: ${message.userId}`);
+          console.log(`📅 Queued at: ${message.queuedAt}`);
+          console.log('━'.repeat(70));
+
+          await syncUserKillmailsFromESI(message);
+
+          // Acknowledge message
+          channel.ack(msg);
+          console.log(`✅ Completed: ${message.characterName}\n`);
+        } catch (error) {
+          console.error(`❌ Failed to process message:`, error);
+          // Requeue the message for retry
+          channel.nack(msg, false, true);
+        }
+      },
+      { noAck: false }
+    );
+  } catch (error) {
+    console.error('💥 Worker failed to start:', error);
+    process.exit(1);
+  }
+}
+
+/**
+ * Fetch killmails from ESI for a single user
+ */
+async function syncUserKillmailsFromESI(message: UserKillmailMessage): Promise<void> {
+  try {
+    console.log(`  📡 [${message.characterName}] Fetching killmails from ESI...`);
+
+    // Fetch killmail list from ESI (max 50 pages = 2500 killmails, 50 per page)
+    const killmailList = await CharacterService.getCharacterKillmails(
+      message.characterId,
+      message.accessToken,
+      50 // Max pages (50 killmails per page)
+    );
+
+    console.log(`  📥 Total killmails found: ${killmailList.length}`);
+
+    if (killmailList.length === 0) {
+      console.log(`  ℹ️  No killmails found for this character`);
+      return;
+    }
+
+    let savedCount = 0;
+    let skippedCount = 0;
+    let errorCount = 0;
+
+    console.log(`  💾 Processing killmails...\n`);
+
+    // Process each killmail
+    for (let i = 0; i < killmailList.length; i++) {
+      const km = killmailList[i];
+
+      try {
+        // Progress indicator every 50 killmails
+        if (i > 0 && i % 50 === 0) {
+          console.log(`     📊 Progress: ${i}/${killmailList.length} (Saved: ${savedCount}, Skipped: ${skippedCount}, Errors: ${errorCount})`);
+        }
+
+        // Fetch full details from ESI (public endpoint, no token needed)
+        const detail = await KillmailService.getKillmailDetail(
+          km.killmail_id,
+          km.killmail_hash
+        );
+
+        // Save to database in a transaction
+        try {
+          await prisma.$transaction(async (tx) => {
+            // 1. Create killmail record
+            await tx.killmail.create({
+              data: {
+                killmail_id: km.killmail_id,
+                killmail_hash: km.killmail_hash,
+                killmail_time: new Date(detail.killmail_time),
+                solar_system_id: detail.solar_system_id,
+              },
+            });
+
+            // 2. Create victim record
+            await tx.victim.create({
+              data: {
+                killmail_id: km.killmail_id,
+                character_id: detail.victim.character_id || null,
+                corporation_id: detail.victim.corporation_id,
+                alliance_id: detail.victim.alliance_id || null,
+                faction_id: detail.victim.faction_id || null,
+                ship_type_id: detail.victim.ship_type_id,
+                damage_taken: detail.victim.damage_taken,
+              },
+            });
+
+            // 3. Create attacker records
+            if (detail.attackers && detail.attackers.length > 0) {
+              await tx.attacker.createMany({
+                data: detail.attackers.map((attacker) => ({
+                  killmail_id: km.killmail_id,
+                  character_id: attacker.character_id || null,
+                  corporation_id: attacker.corporation_id || null,
+                  alliance_id: attacker.alliance_id || null,
+                  faction_id: attacker.faction_id || null,
+                  ship_type_id: attacker.ship_type_id || null,
+                  weapon_type_id: attacker.weapon_type_id || null,
+                  damage_done: attacker.damage_done,
+                  final_blow: attacker.final_blow,
+                  security_status: attacker.security_status || 0,
+                })),
+              });
+            }
+
+            // 4. Create item records (if any)
+            if (detail.victim.items && detail.victim.items.length > 0) {
+              await tx.killmailItem.createMany({
+                data: detail.victim.items.map((item) => ({
+                  killmail_id: km.killmail_id,
+                  item_type_id: item.item_type_id,
+                  flag: item.flag,
+                  quantity_dropped: item.quantity_dropped || null,
+                  quantity_destroyed: item.quantity_destroyed || null,
+                  singleton: item.singleton,
+                })),
+              });
+            }
+          });
+
+          // Publish GraphQL subscription event for real-time updates
+          try {
+            await pubsub.publish('NEW_KILLMAIL', {
+              newKillmail: {
+                killmail_id: km.killmail_id,
+                killmail_hash: km.killmail_hash,
+                killmail_time: detail.killmail_time,
+                solar_system_id: detail.solar_system_id,
+              },
+            });
+          } catch (pubsubError) {
+            // Don't fail the entire operation if pubsub fails
+            console.error(`     ⚠️  Failed to publish subscription event:`, pubsubError);
+          }
+
+          savedCount++;
+        } catch (createError: any) {
+          // Handle duplicate killmails (already exists in database)
+          if (createError.code === 'P2002') {
+            skippedCount++;
+          } else {
+            throw createError;
+          }
+        }
+
+        // Small delay to respect ESI rate limits
+        await new Promise(resolve => setTimeout(resolve, 50));
+      } catch (error: any) {
+        errorCount++;
+        console.error(`     ❌ Failed to process killmail ${km.killmail_id}:`, error.message);
+      }
+    }
+
+    // Final summary
+    console.log(`\n  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+    console.log(`  ✅ Saved: ${savedCount} new killmails`);
+    console.log(`  ⏭️  Skipped: ${skippedCount} (already in database)`);
+    console.log(`  ❌ Errors: ${errorCount}`);
+    console.log(`  📊 Total processed: ${killmailList.length}`);
+    console.log(`  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
+  } catch (error: any) {
+    console.error(`  ❌ ESI sync failed for ${message.characterName}:`, error.message);
+    throw error;
+  }
+}
+
+/**
+ * Graceful shutdown handlers
+ */
+function setupShutdownHandlers() {
+  process.on('SIGINT', () => {
+    console.log('\n⚠️  Received SIGINT, shutting down gracefully...');
+    process.exit(0);
+  });
+
+  process.on('SIGTERM', () => {
+    console.log('\n⚠️  Received SIGTERM, shutting down gracefully...');
+    process.exit(0);
+  });
+}
+
+// Start the worker
+setupShutdownHandlers();
+esiUserKillmailWorker().catch((error) => {
+  console.error('💥 Worker crashed:', error);
+  process.exit(1);
+});
