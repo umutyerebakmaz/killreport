@@ -1100,52 +1100,6 @@ export type CorporationsQueryVariables = Exact<{
 
 export type CorporationsQuery = { __typename?: 'Query', corporations: { __typename?: 'CorporationConnection', edges: Array<{ __typename?: 'CorporationEdge', cursor: string, node: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, date_founded?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, metrics?: { __typename?: 'CorporationMetrics', memberCountDelta1d?: number | null, memberCountDelta7d?: number | null, memberCountDelta30d?: number | null, memberCountGrowthRate1d?: number | null, memberCountGrowthRate7d?: number | null, memberCountGrowthRate30d?: number | null } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
-export type KillmailsQueryVariables = Exact<{
-  filter?: InputMaybe<KillmailFilter>;
-}>;
-
-
-export type KillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', cursor: string, node: { __typename?: 'Killmail', id: string, killmailId: number, killmailTime: string, solarSystemId: number, solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } | null, victim: { __typename?: 'Victim', characterId?: number | null, corporationId: number, allianceId?: number | null, shipTypeId: number, damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } | null }, attackers: Array<{ __typename?: 'Attacker', characterId?: number | null, corporationId?: number | null, shipTypeId?: number | null, finalBlow: boolean, damageDone: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string } | null }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
-
-export type KillmailQueryVariables = Exact<{
-  id: Scalars['ID']['input'];
-}>;
-
-
-export type KillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', id: string, killmailId: number, killmailHash: string, killmailTime: string, solarSystemId: number, solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, security_class?: string | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } | null, victim: { __typename?: 'Victim', characterId?: number | null, corporationId: number, allianceId?: number | null, shipTypeId: number, damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, description?: string | null, group?: { __typename?: 'ItemGroup', name: string, category?: { __typename?: 'Category', name: string } | null } | null } | null, position?: { __typename?: 'Position', x: number, y: number, z: number } | null }, attackers: Array<{ __typename?: 'Attacker', characterId?: number | null, corporationId?: number | null, allianceId?: number | null, shipTypeId?: number | null, weaponTypeId?: number | null, damageDone: number, finalBlow: boolean, securityStatus: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } | null, weaponType?: { __typename?: 'Type', id: number, name: string } | null }>, items: Array<{ __typename?: 'KillmailItem', itemTypeId: number, flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, singleton: number, itemType?: { __typename?: 'Type', id: number, name: string } | null }> } | null };
-
-export type CharacterKillmailsQueryVariables = Exact<{
-  characterId: Scalars['Int']['input'];
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
-}>;
-
-
-export type CharacterKillmailsQuery = { __typename?: 'Query', characterKillmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', cursor: string, node: { __typename?: 'Killmail', id: string, killmailId: number, killmailTime: string, solarSystemId: number, solarSystem?: { __typename?: 'SolarSystem', name: string } | null, victim: { __typename?: 'Victim', characterId?: number | null, damageTaken: number, character?: { __typename?: 'Character', name: string } | null, shipType?: { __typename?: 'Type', name: string } | null }, attackers: Array<{ __typename?: 'Attacker', finalBlow: boolean, character?: { __typename?: 'Character', name: string } | null }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
-
-export type CorporationKillmailsQueryVariables = Exact<{
-  corporationId: Scalars['Int']['input'];
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
-}>;
-
-
-export type CorporationKillmailsQuery = { __typename?: 'Query', corporationKillmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailId: number, killmailTime: string, solarSystem?: { __typename?: 'SolarSystem', name: string } | null, victim: { __typename?: 'Victim', character?: { __typename?: 'Character', name: string } | null, shipType?: { __typename?: 'Type', name: string } | null } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, totalCount: number } } };
-
-export type AllianceKillmailsQueryVariables = Exact<{
-  allianceId: Scalars['Int']['input'];
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
-}>;
-
-
-export type AllianceKillmailsQuery = { __typename?: 'Query', allianceKillmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailId: number, killmailTime: string, solarSystem?: { __typename?: 'SolarSystem', name: string } | null, victim: { __typename?: 'Victim', character?: { __typename?: 'Character', name: string } | null, shipType?: { __typename?: 'Type', name: string } | null } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, totalCount: number } } };
-
-export type NewKillmailSubscriptionVariables = Exact<{ [key: string]: never; }>;
-
-
-export type NewKillmailSubscription = { __typename?: 'Subscription', newKillmail: { __typename?: 'Killmail', id: string, killmailId: number, killmailTime: string, solarSystemId: number, solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', name: string, region?: { __typename?: 'Region', name: string } | null } | null } | null, victim: { __typename?: 'Victim', characterId?: number | null, corporationId: number, allianceId?: number | null, shipTypeId: number, damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } | null }, attackers: Array<{ __typename?: 'Attacker', characterId?: number | null, corporationId?: number | null, shipTypeId?: number | null, finalBlow: boolean, damageDone: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string } | null }> } };
-
 export type RegionsQueryVariables = Exact<{
   filter?: InputMaybe<RegionFilter>;
 }>;
@@ -1188,6 +1142,57 @@ export type WorkerStatusSubscriptionSubscriptionVariables = Exact<{ [key: string
 
 
 export type WorkerStatusSubscriptionSubscription = { __typename?: 'Subscription', workerStatusUpdates: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean }>, standaloneWorkers: Array<{ __typename?: 'StandaloneWorkerStatus', name: string, running: boolean, pid?: number | null, description: string }> } };
+
+export type AllianceKillmailsQueryVariables = Exact<{
+  allianceId: Scalars['Int']['input'];
+  first?: InputMaybe<Scalars['Int']['input']>;
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type AllianceKillmailsQuery = { __typename?: 'Query', allianceKillmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailId: number, killmailTime: string, solarSystem?: { __typename?: 'SolarSystem', name: string } | null, victim: { __typename?: 'Victim', character?: { __typename?: 'Character', name: string } | null, shipType?: { __typename?: 'Type', name: string } | null } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, totalCount: number } } };
+
+export type CharacterKillmailsQueryVariables = Exact<{
+  characterId: Scalars['Int']['input'];
+  first?: InputMaybe<Scalars['Int']['input']>;
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type CharacterKillmailsQuery = { __typename?: 'Query', characterKillmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', cursor: string, node: { __typename?: 'Killmail', id: string, killmailId: number, killmailTime: string, solarSystemId: number, solarSystem?: { __typename?: 'SolarSystem', name: string } | null, victim: { __typename?: 'Victim', characterId?: number | null, damageTaken: number, character?: { __typename?: 'Character', name: string } | null, shipType?: { __typename?: 'Type', name: string } | null }, attackers: Array<{ __typename?: 'Attacker', finalBlow: boolean, character?: { __typename?: 'Character', name: string } | null }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+
+export type CorporationKillmailsQueryVariables = Exact<{
+  corporationId: Scalars['Int']['input'];
+  first?: InputMaybe<Scalars['Int']['input']>;
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type CorporationKillmailsQuery = { __typename?: 'Query', corporationKillmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailId: number, killmailTime: string, solarSystem?: { __typename?: 'SolarSystem', name: string } | null, victim: { __typename?: 'Victim', character?: { __typename?: 'Character', name: string } | null, shipType?: { __typename?: 'Type', name: string } | null } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, totalCount: number } } };
+
+export type KillmailQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type KillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', id: string, killmailId: number, killmailHash: string, killmailTime: string, solarSystemId: number, solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, security_class?: string | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } | null, victim: { __typename?: 'Victim', characterId?: number | null, corporationId: number, allianceId?: number | null, shipTypeId: number, damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, description?: string | null, group?: { __typename?: 'ItemGroup', name: string, category?: { __typename?: 'Category', name: string } | null } | null } | null, position?: { __typename?: 'Position', x: number, y: number, z: number } | null }, attackers: Array<{ __typename?: 'Attacker', characterId?: number | null, corporationId?: number | null, allianceId?: number | null, shipTypeId?: number | null, weaponTypeId?: number | null, damageDone: number, finalBlow: boolean, securityStatus: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } | null, weaponType?: { __typename?: 'Type', id: number, name: string } | null }>, items: Array<{ __typename?: 'KillmailItem', itemTypeId: number, flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, singleton: number, itemType?: { __typename?: 'Type', id: number, name: string } | null }> } | null };
+
+export type KillmailsQueryVariables = Exact<{
+  filter?: InputMaybe<KillmailFilter>;
+}>;
+
+
+export type KillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', cursor: string, node: { __typename?: 'Killmail', id: string, killmailId: number, killmailTime: string, solarSystemId: number, solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } | null, victim: { __typename?: 'Victim', characterId?: number | null, corporationId: number, allianceId?: number | null, shipTypeId: number, damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } | null }, attackers: Array<{ __typename?: 'Attacker', characterId?: number | null, corporationId?: number | null, shipTypeId?: number | null, finalBlow: boolean, damageDone: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string } | null }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+
+export type OnNewKillmailSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type OnNewKillmailSubscription = { __typename?: 'Subscription', newKillmail: { __typename?: 'Killmail', id: string, killmailId: number, killmailHash: string, killmailTime: string, solarSystemId: number, totalValue?: number | null, createdAt: string, solarSystem?: { __typename?: 'SolarSystem', name: string } | null, victim: { __typename?: 'Victim', characterId?: number | null, characterName?: string | null, corporationId: number, corporationName?: string | null, allianceId?: number | null, allianceName?: string | null, shipTypeId: number, shipTypeName?: string | null, damageTaken: number }, attackers: Array<{ __typename?: 'Attacker', characterId?: number | null, characterName?: string | null, corporationId?: number | null, corporationName?: string | null, allianceId?: number | null, allianceName?: string | null, shipTypeId?: number | null, shipTypeName?: string | null, weaponTypeId?: number | null, weaponTypeName?: string | null, damageDone: number, finalBlow: boolean, securityStatus: number }>, items: Array<{ __typename?: 'KillmailItem', itemTypeId: number, itemTypeName?: string | null, flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, singleton: number }> } };
+
+export type NewKillmailSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type NewKillmailSubscription = { __typename?: 'Subscription', newKillmail: { __typename?: 'Killmail', id: string, killmailId: number, killmailTime: string, solarSystemId: number, solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', name: string, region?: { __typename?: 'Region', name: string } | null } | null } | null, victim: { __typename?: 'Victim', characterId?: number | null, corporationId: number, allianceId?: number | null, shipTypeId: number, damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } | null }, attackers: Array<{ __typename?: 'Attacker', characterId?: number | null, corporationId?: number | null, shipTypeId?: number | null, finalBlow: boolean, damageDone: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string } | null }> } };
 
 
 export const AllianceDocument = gql`
@@ -1263,6 +1268,9 @@ export function useAllianceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<A
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<AllianceQuery, AllianceQueryVariables>(AllianceDocument, options);
         }
+// @ts-ignore
+export function useAllianceSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AllianceQuery, AllianceQueryVariables>): Apollo.UseSuspenseQueryResult<AllianceQuery, AllianceQueryVariables>;
+export function useAllianceSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AllianceQuery, AllianceQueryVariables>): Apollo.UseSuspenseQueryResult<AllianceQuery | undefined, AllianceQueryVariables>;
 export function useAllianceSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AllianceQuery, AllianceQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<AllianceQuery, AllianceQueryVariables>(AllianceDocument, options);
@@ -1331,6 +1339,9 @@ export function useAlliancesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<AlliancesQuery, AlliancesQueryVariables>(AlliancesDocument, options);
         }
+// @ts-ignore
+export function useAlliancesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AlliancesQuery, AlliancesQueryVariables>): Apollo.UseSuspenseQueryResult<AlliancesQuery, AlliancesQueryVariables>;
+export function useAlliancesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AlliancesQuery, AlliancesQueryVariables>): Apollo.UseSuspenseQueryResult<AlliancesQuery | undefined, AlliancesQueryVariables>;
 export function useAlliancesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AlliancesQuery, AlliancesQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<AlliancesQuery, AlliancesQueryVariables>(AlliancesDocument, options);
@@ -1395,6 +1406,9 @@ export function useCharactersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<CharactersQuery, CharactersQueryVariables>(CharactersDocument, options);
         }
+// @ts-ignore
+export function useCharactersSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CharactersQuery, CharactersQueryVariables>): Apollo.UseSuspenseQueryResult<CharactersQuery, CharactersQueryVariables>;
+export function useCharactersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CharactersQuery, CharactersQueryVariables>): Apollo.UseSuspenseQueryResult<CharactersQuery | undefined, CharactersQueryVariables>;
 export function useCharactersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CharactersQuery, CharactersQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<CharactersQuery, CharactersQueryVariables>(CharactersDocument, options);
@@ -1465,6 +1479,9 @@ export function useCharacterLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<CharacterQuery, CharacterQueryVariables>(CharacterDocument, options);
         }
+// @ts-ignore
+export function useCharacterSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CharacterQuery, CharacterQueryVariables>): Apollo.UseSuspenseQueryResult<CharacterQuery, CharacterQueryVariables>;
+export function useCharacterSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CharacterQuery, CharacterQueryVariables>): Apollo.UseSuspenseQueryResult<CharacterQuery | undefined, CharacterQueryVariables>;
 export function useCharacterSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CharacterQuery, CharacterQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<CharacterQuery, CharacterQueryVariables>(CharacterDocument, options);
@@ -1531,6 +1548,9 @@ export function useConstellationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOpt
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<ConstellationsQuery, ConstellationsQueryVariables>(ConstellationsDocument, options);
         }
+// @ts-ignore
+export function useConstellationsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ConstellationsQuery, ConstellationsQueryVariables>): Apollo.UseSuspenseQueryResult<ConstellationsQuery, ConstellationsQueryVariables>;
+export function useConstellationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ConstellationsQuery, ConstellationsQueryVariables>): Apollo.UseSuspenseQueryResult<ConstellationsQuery | undefined, ConstellationsQueryVariables>;
 export function useConstellationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ConstellationsQuery, ConstellationsQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<ConstellationsQuery, ConstellationsQueryVariables>(ConstellationsDocument, options);
@@ -1596,6 +1616,9 @@ export function useConstellationLazyQuery(baseOptions?: Apollo.LazyQueryHookOpti
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<ConstellationQuery, ConstellationQueryVariables>(ConstellationDocument, options);
         }
+// @ts-ignore
+export function useConstellationSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ConstellationQuery, ConstellationQueryVariables>): Apollo.UseSuspenseQueryResult<ConstellationQuery, ConstellationQueryVariables>;
+export function useConstellationSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ConstellationQuery, ConstellationQueryVariables>): Apollo.UseSuspenseQueryResult<ConstellationQuery | undefined, ConstellationQueryVariables>;
 export function useConstellationSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ConstellationQuery, ConstellationQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<ConstellationQuery, ConstellationQueryVariables>(ConstellationDocument, options);
@@ -1659,6 +1682,9 @@ export function useCorporationLazyQuery(baseOptions?: Apollo.LazyQueryHookOption
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<CorporationQuery, CorporationQueryVariables>(CorporationDocument, options);
         }
+// @ts-ignore
+export function useCorporationSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CorporationQuery, CorporationQueryVariables>): Apollo.UseSuspenseQueryResult<CorporationQuery, CorporationQueryVariables>;
+export function useCorporationSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CorporationQuery, CorporationQueryVariables>): Apollo.UseSuspenseQueryResult<CorporationQuery | undefined, CorporationQueryVariables>;
 export function useCorporationSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CorporationQuery, CorporationQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<CorporationQuery, CorporationQueryVariables>(CorporationDocument, options);
@@ -1728,6 +1754,9 @@ export function useCorporationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptio
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<CorporationsQuery, CorporationsQueryVariables>(CorporationsDocument, options);
         }
+// @ts-ignore
+export function useCorporationsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CorporationsQuery, CorporationsQueryVariables>): Apollo.UseSuspenseQueryResult<CorporationsQuery, CorporationsQueryVariables>;
+export function useCorporationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CorporationsQuery, CorporationsQueryVariables>): Apollo.UseSuspenseQueryResult<CorporationsQuery | undefined, CorporationsQueryVariables>;
 export function useCorporationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CorporationsQuery, CorporationsQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<CorporationsQuery, CorporationsQueryVariables>(CorporationsDocument, options);
@@ -1736,9 +1765,461 @@ export type CorporationsQueryHookResult = ReturnType<typeof useCorporationsQuery
 export type CorporationsLazyQueryHookResult = ReturnType<typeof useCorporationsLazyQuery>;
 export type CorporationsSuspenseQueryHookResult = ReturnType<typeof useCorporationsSuspenseQuery>;
 export type CorporationsQueryResult = Apollo.QueryResult<CorporationsQuery, CorporationsQueryVariables>;
-export const KillmailsDocument = gql`
-    query Killmails($filter: KillmailFilter) {
-  killmails(filter: $filter) {
+export const RegionsDocument = gql`
+    query Regions($filter: RegionFilter) {
+  regions(filter: $filter) {
+    edges {
+      node {
+        id
+        name
+        description
+        constellationCount
+        solarSystemCount
+        securityStats {
+          highSec
+          lowSec
+          nullSec
+          wormhole
+          avgSecurity
+        }
+      }
+      cursor
+    }
+    pageInfo {
+      currentPage
+      totalPages
+      totalCount
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useRegionsQuery__
+ *
+ * To run a query within a React component, call `useRegionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRegionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useRegionsQuery({
+ *   variables: {
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useRegionsQuery(baseOptions?: Apollo.QueryHookOptions<RegionsQuery, RegionsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<RegionsQuery, RegionsQueryVariables>(RegionsDocument, options);
+      }
+export function useRegionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RegionsQuery, RegionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<RegionsQuery, RegionsQueryVariables>(RegionsDocument, options);
+        }
+// @ts-ignore
+export function useRegionsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<RegionsQuery, RegionsQueryVariables>): Apollo.UseSuspenseQueryResult<RegionsQuery, RegionsQueryVariables>;
+export function useRegionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RegionsQuery, RegionsQueryVariables>): Apollo.UseSuspenseQueryResult<RegionsQuery | undefined, RegionsQueryVariables>;
+export function useRegionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RegionsQuery, RegionsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<RegionsQuery, RegionsQueryVariables>(RegionsDocument, options);
+        }
+export type RegionsQueryHookResult = ReturnType<typeof useRegionsQuery>;
+export type RegionsLazyQueryHookResult = ReturnType<typeof useRegionsLazyQuery>;
+export type RegionsSuspenseQueryHookResult = ReturnType<typeof useRegionsSuspenseQuery>;
+export type RegionsQueryResult = Apollo.QueryResult<RegionsQuery, RegionsQueryVariables>;
+export const RegionDocument = gql`
+    query Region($id: Int!) {
+  region(id: $id) {
+    id
+    name
+    description
+    constellationCount
+    solarSystemCount
+    securityStats {
+      highSec
+      lowSec
+      nullSec
+      wormhole
+      avgSecurity
+    }
+    constellations {
+      id
+      name
+      solarSystemCount
+      securityStats {
+        highSec
+        lowSec
+        nullSec
+        avgSecurity
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useRegionQuery__
+ *
+ * To run a query within a React component, call `useRegionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRegionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useRegionQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useRegionQuery(baseOptions: Apollo.QueryHookOptions<RegionQuery, RegionQueryVariables> & ({ variables: RegionQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<RegionQuery, RegionQueryVariables>(RegionDocument, options);
+      }
+export function useRegionLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RegionQuery, RegionQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<RegionQuery, RegionQueryVariables>(RegionDocument, options);
+        }
+// @ts-ignore
+export function useRegionSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<RegionQuery, RegionQueryVariables>): Apollo.UseSuspenseQueryResult<RegionQuery, RegionQueryVariables>;
+export function useRegionSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RegionQuery, RegionQueryVariables>): Apollo.UseSuspenseQueryResult<RegionQuery | undefined, RegionQueryVariables>;
+export function useRegionSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RegionQuery, RegionQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<RegionQuery, RegionQueryVariables>(RegionDocument, options);
+        }
+export type RegionQueryHookResult = ReturnType<typeof useRegionQuery>;
+export type RegionLazyQueryHookResult = ReturnType<typeof useRegionLazyQuery>;
+export type RegionSuspenseQueryHookResult = ReturnType<typeof useRegionSuspenseQuery>;
+export type RegionQueryResult = Apollo.QueryResult<RegionQuery, RegionQueryVariables>;
+export const SolarSystemsDocument = gql`
+    query SolarSystems($filter: SolarSystemFilter) {
+  solarSystems(filter: $filter) {
+    edges {
+      node {
+        id
+        name
+        constellation_id
+        security_status
+        security_class
+        constellation {
+          id
+          name
+          region {
+            id
+            name
+          }
+        }
+      }
+      cursor
+    }
+    pageInfo {
+      currentPage
+      totalPages
+      totalCount
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useSolarSystemsQuery__
+ *
+ * To run a query within a React component, call `useSolarSystemsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSolarSystemsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSolarSystemsQuery({
+ *   variables: {
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useSolarSystemsQuery(baseOptions?: Apollo.QueryHookOptions<SolarSystemsQuery, SolarSystemsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SolarSystemsQuery, SolarSystemsQueryVariables>(SolarSystemsDocument, options);
+      }
+export function useSolarSystemsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SolarSystemsQuery, SolarSystemsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SolarSystemsQuery, SolarSystemsQueryVariables>(SolarSystemsDocument, options);
+        }
+// @ts-ignore
+export function useSolarSystemsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SolarSystemsQuery, SolarSystemsQueryVariables>): Apollo.UseSuspenseQueryResult<SolarSystemsQuery, SolarSystemsQueryVariables>;
+export function useSolarSystemsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SolarSystemsQuery, SolarSystemsQueryVariables>): Apollo.UseSuspenseQueryResult<SolarSystemsQuery | undefined, SolarSystemsQueryVariables>;
+export function useSolarSystemsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SolarSystemsQuery, SolarSystemsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SolarSystemsQuery, SolarSystemsQueryVariables>(SolarSystemsDocument, options);
+        }
+export type SolarSystemsQueryHookResult = ReturnType<typeof useSolarSystemsQuery>;
+export type SolarSystemsLazyQueryHookResult = ReturnType<typeof useSolarSystemsLazyQuery>;
+export type SolarSystemsSuspenseQueryHookResult = ReturnType<typeof useSolarSystemsSuspenseQuery>;
+export type SolarSystemsQueryResult = Apollo.QueryResult<SolarSystemsQuery, SolarSystemsQueryVariables>;
+export const SolarSystemDocument = gql`
+    query SolarSystem($id: Int!) {
+  solarSystem(id: $id) {
+    id
+    name
+    constellation_id
+    security_status
+    security_class
+    star_id
+    position {
+      x
+      y
+      z
+    }
+    constellation {
+      id
+      name
+      region {
+        id
+        name
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useSolarSystemQuery__
+ *
+ * To run a query within a React component, call `useSolarSystemQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSolarSystemQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSolarSystemQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useSolarSystemQuery(baseOptions: Apollo.QueryHookOptions<SolarSystemQuery, SolarSystemQueryVariables> & ({ variables: SolarSystemQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SolarSystemQuery, SolarSystemQueryVariables>(SolarSystemDocument, options);
+      }
+export function useSolarSystemLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SolarSystemQuery, SolarSystemQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SolarSystemQuery, SolarSystemQueryVariables>(SolarSystemDocument, options);
+        }
+// @ts-ignore
+export function useSolarSystemSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SolarSystemQuery, SolarSystemQueryVariables>): Apollo.UseSuspenseQueryResult<SolarSystemQuery, SolarSystemQueryVariables>;
+export function useSolarSystemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SolarSystemQuery, SolarSystemQueryVariables>): Apollo.UseSuspenseQueryResult<SolarSystemQuery | undefined, SolarSystemQueryVariables>;
+export function useSolarSystemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SolarSystemQuery, SolarSystemQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SolarSystemQuery, SolarSystemQueryVariables>(SolarSystemDocument, options);
+        }
+export type SolarSystemQueryHookResult = ReturnType<typeof useSolarSystemQuery>;
+export type SolarSystemLazyQueryHookResult = ReturnType<typeof useSolarSystemLazyQuery>;
+export type SolarSystemSuspenseQueryHookResult = ReturnType<typeof useSolarSystemSuspenseQuery>;
+export type SolarSystemQueryResult = Apollo.QueryResult<SolarSystemQuery, SolarSystemQueryVariables>;
+export const WorkerStatusDocument = gql`
+    query WorkerStatus {
+  workerStatus {
+    timestamp
+    healthy
+    queues {
+      name
+      messageCount
+      consumerCount
+      active
+    }
+  }
+}
+    `;
+
+/**
+ * __useWorkerStatusQuery__
+ *
+ * To run a query within a React component, call `useWorkerStatusQuery` and pass it any options that fit your needs.
+ * When your component renders, `useWorkerStatusQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useWorkerStatusQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useWorkerStatusQuery(baseOptions?: Apollo.QueryHookOptions<WorkerStatusQuery, WorkerStatusQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<WorkerStatusQuery, WorkerStatusQueryVariables>(WorkerStatusDocument, options);
+      }
+export function useWorkerStatusLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WorkerStatusQuery, WorkerStatusQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<WorkerStatusQuery, WorkerStatusQueryVariables>(WorkerStatusDocument, options);
+        }
+// @ts-ignore
+export function useWorkerStatusSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<WorkerStatusQuery, WorkerStatusQueryVariables>): Apollo.UseSuspenseQueryResult<WorkerStatusQuery, WorkerStatusQueryVariables>;
+export function useWorkerStatusSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WorkerStatusQuery, WorkerStatusQueryVariables>): Apollo.UseSuspenseQueryResult<WorkerStatusQuery | undefined, WorkerStatusQueryVariables>;
+export function useWorkerStatusSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WorkerStatusQuery, WorkerStatusQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<WorkerStatusQuery, WorkerStatusQueryVariables>(WorkerStatusDocument, options);
+        }
+export type WorkerStatusQueryHookResult = ReturnType<typeof useWorkerStatusQuery>;
+export type WorkerStatusLazyQueryHookResult = ReturnType<typeof useWorkerStatusLazyQuery>;
+export type WorkerStatusSuspenseQueryHookResult = ReturnType<typeof useWorkerStatusSuspenseQuery>;
+export type WorkerStatusQueryResult = Apollo.QueryResult<WorkerStatusQuery, WorkerStatusQueryVariables>;
+export const WorkerStatusUpdatesDocument = gql`
+    subscription WorkerStatusUpdates {
+  workerStatusUpdates {
+    timestamp
+    healthy
+    queues {
+      name
+      messageCount
+      consumerCount
+      active
+    }
+  }
+}
+    `;
+
+/**
+ * __useWorkerStatusUpdatesSubscription__
+ *
+ * To run a query within a React component, call `useWorkerStatusUpdatesSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useWorkerStatusUpdatesSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useWorkerStatusUpdatesSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useWorkerStatusUpdatesSubscription(baseOptions?: Apollo.SubscriptionHookOptions<WorkerStatusUpdatesSubscription, WorkerStatusUpdatesSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<WorkerStatusUpdatesSubscription, WorkerStatusUpdatesSubscriptionVariables>(WorkerStatusUpdatesDocument, options);
+      }
+export type WorkerStatusUpdatesSubscriptionHookResult = ReturnType<typeof useWorkerStatusUpdatesSubscription>;
+export type WorkerStatusUpdatesSubscriptionResult = Apollo.SubscriptionResult<WorkerStatusUpdatesSubscription>;
+export const WorkerStatusSubscriptionDocument = gql`
+    subscription WorkerStatusSubscription {
+  workerStatusUpdates {
+    timestamp
+    healthy
+    queues {
+      name
+      messageCount
+      consumerCount
+      active
+    }
+    standaloneWorkers {
+      name
+      running
+      pid
+      description
+    }
+  }
+}
+    `;
+
+/**
+ * __useWorkerStatusSubscriptionSubscription__
+ *
+ * To run a query within a React component, call `useWorkerStatusSubscriptionSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useWorkerStatusSubscriptionSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useWorkerStatusSubscriptionSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useWorkerStatusSubscriptionSubscription(baseOptions?: Apollo.SubscriptionHookOptions<WorkerStatusSubscriptionSubscription, WorkerStatusSubscriptionSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<WorkerStatusSubscriptionSubscription, WorkerStatusSubscriptionSubscriptionVariables>(WorkerStatusSubscriptionDocument, options);
+      }
+export type WorkerStatusSubscriptionSubscriptionHookResult = ReturnType<typeof useWorkerStatusSubscriptionSubscription>;
+export type WorkerStatusSubscriptionSubscriptionResult = Apollo.SubscriptionResult<WorkerStatusSubscriptionSubscription>;
+export const AllianceKillmailsDocument = gql`
+    query AllianceKillmails($allianceId: Int!, $first: Int, $after: String) {
+  allianceKillmails(allianceId: $allianceId, first: $first, after: $after) {
+    edges {
+      node {
+        id
+        killmailId
+        killmailTime
+        solarSystem {
+          name
+        }
+        victim {
+          character {
+            name
+          }
+          shipType {
+            name
+          }
+        }
+      }
+    }
+    pageInfo {
+      hasNextPage
+      totalCount
+    }
+  }
+}
+    `;
+
+/**
+ * __useAllianceKillmailsQuery__
+ *
+ * To run a query within a React component, call `useAllianceKillmailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAllianceKillmailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAllianceKillmailsQuery({
+ *   variables: {
+ *      allianceId: // value for 'allianceId'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useAllianceKillmailsQuery(baseOptions: Apollo.QueryHookOptions<AllianceKillmailsQuery, AllianceKillmailsQueryVariables> & ({ variables: AllianceKillmailsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<AllianceKillmailsQuery, AllianceKillmailsQueryVariables>(AllianceKillmailsDocument, options);
+      }
+export function useAllianceKillmailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AllianceKillmailsQuery, AllianceKillmailsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<AllianceKillmailsQuery, AllianceKillmailsQueryVariables>(AllianceKillmailsDocument, options);
+        }
+// @ts-ignore
+export function useAllianceKillmailsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AllianceKillmailsQuery, AllianceKillmailsQueryVariables>): Apollo.UseSuspenseQueryResult<AllianceKillmailsQuery, AllianceKillmailsQueryVariables>;
+export function useAllianceKillmailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AllianceKillmailsQuery, AllianceKillmailsQueryVariables>): Apollo.UseSuspenseQueryResult<AllianceKillmailsQuery | undefined, AllianceKillmailsQueryVariables>;
+export function useAllianceKillmailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AllianceKillmailsQuery, AllianceKillmailsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<AllianceKillmailsQuery, AllianceKillmailsQueryVariables>(AllianceKillmailsDocument, options);
+        }
+export type AllianceKillmailsQueryHookResult = ReturnType<typeof useAllianceKillmailsQuery>;
+export type AllianceKillmailsLazyQueryHookResult = ReturnType<typeof useAllianceKillmailsLazyQuery>;
+export type AllianceKillmailsSuspenseQueryHookResult = ReturnType<typeof useAllianceKillmailsSuspenseQuery>;
+export type AllianceKillmailsQueryResult = Apollo.QueryResult<AllianceKillmailsQuery, AllianceKillmailsQueryVariables>;
+export const CharacterKillmailsDocument = gql`
+    query CharacterKillmails($characterId: Int!, $first: Int, $after: String) {
+  characterKillmails(characterId: $characterId, first: $first, after: $after) {
     edges {
       node {
         id
@@ -1746,62 +2227,23 @@ export const KillmailsDocument = gql`
         killmailTime
         solarSystemId
         solarSystem {
-          id
           name
-          security_status
-          constellation {
-            id
-            name
-            region {
-              id
-              name
-            }
-          }
         }
         victim {
           characterId
           character {
-            id
             name
           }
-          corporationId
-          corporation {
-            id
-            name
-          }
-          allianceId
-          alliance {
-            id
-            name
-          }
-          shipTypeId
           shipType {
-            id
             name
-            group {
-              name
-            }
           }
           damageTaken
         }
         attackers {
-          characterId
           character {
-            id
-            name
-          }
-          corporationId
-          corporation {
-            id
-            name
-          }
-          shipTypeId
-          shipType {
-            id
             name
           }
           finalBlow
-          damageDone
         }
       }
       cursor
@@ -1818,37 +2260,112 @@ export const KillmailsDocument = gql`
     `;
 
 /**
- * __useKillmailsQuery__
+ * __useCharacterKillmailsQuery__
  *
- * To run a query within a React component, call `useKillmailsQuery` and pass it any options that fit your needs.
- * When your component renders, `useKillmailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useCharacterKillmailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCharacterKillmailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useKillmailsQuery({
+ * const { data, loading, error } = useCharacterKillmailsQuery({
  *   variables: {
- *      filter: // value for 'filter'
+ *      characterId: // value for 'characterId'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
  *   },
  * });
  */
-export function useKillmailsQuery(baseOptions?: Apollo.QueryHookOptions<KillmailsQuery, KillmailsQueryVariables>) {
+export function useCharacterKillmailsQuery(baseOptions: Apollo.QueryHookOptions<CharacterKillmailsQuery, CharacterKillmailsQueryVariables> & ({ variables: CharacterKillmailsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<KillmailsQuery, KillmailsQueryVariables>(KillmailsDocument, options);
+        return Apollo.useQuery<CharacterKillmailsQuery, CharacterKillmailsQueryVariables>(CharacterKillmailsDocument, options);
       }
-export function useKillmailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<KillmailsQuery, KillmailsQueryVariables>) {
+export function useCharacterKillmailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CharacterKillmailsQuery, CharacterKillmailsQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<KillmailsQuery, KillmailsQueryVariables>(KillmailsDocument, options);
+          return Apollo.useLazyQuery<CharacterKillmailsQuery, CharacterKillmailsQueryVariables>(CharacterKillmailsDocument, options);
         }
-export function useKillmailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<KillmailsQuery, KillmailsQueryVariables>) {
+// @ts-ignore
+export function useCharacterKillmailsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CharacterKillmailsQuery, CharacterKillmailsQueryVariables>): Apollo.UseSuspenseQueryResult<CharacterKillmailsQuery, CharacterKillmailsQueryVariables>;
+export function useCharacterKillmailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CharacterKillmailsQuery, CharacterKillmailsQueryVariables>): Apollo.UseSuspenseQueryResult<CharacterKillmailsQuery | undefined, CharacterKillmailsQueryVariables>;
+export function useCharacterKillmailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CharacterKillmailsQuery, CharacterKillmailsQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<KillmailsQuery, KillmailsQueryVariables>(KillmailsDocument, options);
+          return Apollo.useSuspenseQuery<CharacterKillmailsQuery, CharacterKillmailsQueryVariables>(CharacterKillmailsDocument, options);
         }
-export type KillmailsQueryHookResult = ReturnType<typeof useKillmailsQuery>;
-export type KillmailsLazyQueryHookResult = ReturnType<typeof useKillmailsLazyQuery>;
-export type KillmailsSuspenseQueryHookResult = ReturnType<typeof useKillmailsSuspenseQuery>;
-export type KillmailsQueryResult = Apollo.QueryResult<KillmailsQuery, KillmailsQueryVariables>;
+export type CharacterKillmailsQueryHookResult = ReturnType<typeof useCharacterKillmailsQuery>;
+export type CharacterKillmailsLazyQueryHookResult = ReturnType<typeof useCharacterKillmailsLazyQuery>;
+export type CharacterKillmailsSuspenseQueryHookResult = ReturnType<typeof useCharacterKillmailsSuspenseQuery>;
+export type CharacterKillmailsQueryResult = Apollo.QueryResult<CharacterKillmailsQuery, CharacterKillmailsQueryVariables>;
+export const CorporationKillmailsDocument = gql`
+    query CorporationKillmails($corporationId: Int!, $first: Int, $after: String) {
+  corporationKillmails(
+    corporationId: $corporationId
+    first: $first
+    after: $after
+  ) {
+    edges {
+      node {
+        id
+        killmailId
+        killmailTime
+        solarSystem {
+          name
+        }
+        victim {
+          character {
+            name
+          }
+          shipType {
+            name
+          }
+        }
+      }
+    }
+    pageInfo {
+      hasNextPage
+      totalCount
+    }
+  }
+}
+    `;
+
+/**
+ * __useCorporationKillmailsQuery__
+ *
+ * To run a query within a React component, call `useCorporationKillmailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCorporationKillmailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCorporationKillmailsQuery({
+ *   variables: {
+ *      corporationId: // value for 'corporationId'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useCorporationKillmailsQuery(baseOptions: Apollo.QueryHookOptions<CorporationKillmailsQuery, CorporationKillmailsQueryVariables> & ({ variables: CorporationKillmailsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CorporationKillmailsQuery, CorporationKillmailsQueryVariables>(CorporationKillmailsDocument, options);
+      }
+export function useCorporationKillmailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CorporationKillmailsQuery, CorporationKillmailsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CorporationKillmailsQuery, CorporationKillmailsQueryVariables>(CorporationKillmailsDocument, options);
+        }
+// @ts-ignore
+export function useCorporationKillmailsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CorporationKillmailsQuery, CorporationKillmailsQueryVariables>): Apollo.UseSuspenseQueryResult<CorporationKillmailsQuery, CorporationKillmailsQueryVariables>;
+export function useCorporationKillmailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CorporationKillmailsQuery, CorporationKillmailsQueryVariables>): Apollo.UseSuspenseQueryResult<CorporationKillmailsQuery | undefined, CorporationKillmailsQueryVariables>;
+export function useCorporationKillmailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CorporationKillmailsQuery, CorporationKillmailsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CorporationKillmailsQuery, CorporationKillmailsQueryVariables>(CorporationKillmailsDocument, options);
+        }
+export type CorporationKillmailsQueryHookResult = ReturnType<typeof useCorporationKillmailsQuery>;
+export type CorporationKillmailsLazyQueryHookResult = ReturnType<typeof useCorporationKillmailsLazyQuery>;
+export type CorporationKillmailsSuspenseQueryHookResult = ReturnType<typeof useCorporationKillmailsSuspenseQuery>;
+export type CorporationKillmailsQueryResult = Apollo.QueryResult<CorporationKillmailsQuery, CorporationKillmailsQueryVariables>;
 export const KillmailDocument = gql`
     query Killmail($id: ID!) {
   killmail(id: $id) {
@@ -1982,6 +2499,9 @@ export function useKillmailLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<K
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<KillmailQuery, KillmailQueryVariables>(KillmailDocument, options);
         }
+// @ts-ignore
+export function useKillmailSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<KillmailQuery, KillmailQueryVariables>): Apollo.UseSuspenseQueryResult<KillmailQuery, KillmailQueryVariables>;
+export function useKillmailSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<KillmailQuery, KillmailQueryVariables>): Apollo.UseSuspenseQueryResult<KillmailQuery | undefined, KillmailQueryVariables>;
 export function useKillmailSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<KillmailQuery, KillmailQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
           return Apollo.useSuspenseQuery<KillmailQuery, KillmailQueryVariables>(KillmailDocument, options);
@@ -1990,9 +2510,9 @@ export type KillmailQueryHookResult = ReturnType<typeof useKillmailQuery>;
 export type KillmailLazyQueryHookResult = ReturnType<typeof useKillmailLazyQuery>;
 export type KillmailSuspenseQueryHookResult = ReturnType<typeof useKillmailSuspenseQuery>;
 export type KillmailQueryResult = Apollo.QueryResult<KillmailQuery, KillmailQueryVariables>;
-export const CharacterKillmailsDocument = gql`
-    query CharacterKillmails($characterId: Int!, $first: Int, $after: String) {
-  characterKillmails(characterId: $characterId, first: $first, after: $after) {
+export const KillmailsDocument = gql`
+    query Killmails($filter: KillmailFilter) {
+  killmails(filter: $filter) {
     edges {
       node {
         id
@@ -2000,23 +2520,62 @@ export const CharacterKillmailsDocument = gql`
         killmailTime
         solarSystemId
         solarSystem {
+          id
           name
+          security_status
+          constellation {
+            id
+            name
+            region {
+              id
+              name
+            }
+          }
         }
         victim {
           characterId
           character {
+            id
             name
           }
-          shipType {
+          corporationId
+          corporation {
+            id
             name
+          }
+          allianceId
+          alliance {
+            id
+            name
+          }
+          shipTypeId
+          shipType {
+            id
+            name
+            group {
+              name
+            }
           }
           damageTaken
         }
         attackers {
+          characterId
           character {
+            id
+            name
+          }
+          corporationId
+          corporation {
+            id
+            name
+          }
+          shipTypeId
+          shipType {
+            id
             name
           }
           finalBlow
+          damageDone
         }
       }
       cursor
@@ -2033,169 +2592,112 @@ export const CharacterKillmailsDocument = gql`
     `;
 
 /**
- * __useCharacterKillmailsQuery__
+ * __useKillmailsQuery__
  *
- * To run a query within a React component, call `useCharacterKillmailsQuery` and pass it any options that fit your needs.
- * When your component renders, `useCharacterKillmailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useKillmailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useKillmailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useCharacterKillmailsQuery({
+ * const { data, loading, error } = useKillmailsQuery({
  *   variables: {
- *      characterId: // value for 'characterId'
- *      first: // value for 'first'
- *      after: // value for 'after'
+ *      filter: // value for 'filter'
  *   },
  * });
  */
-export function useCharacterKillmailsQuery(baseOptions: Apollo.QueryHookOptions<CharacterKillmailsQuery, CharacterKillmailsQueryVariables> & ({ variables: CharacterKillmailsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function useKillmailsQuery(baseOptions?: Apollo.QueryHookOptions<KillmailsQuery, KillmailsQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<CharacterKillmailsQuery, CharacterKillmailsQueryVariables>(CharacterKillmailsDocument, options);
+        return Apollo.useQuery<KillmailsQuery, KillmailsQueryVariables>(KillmailsDocument, options);
       }
-export function useCharacterKillmailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CharacterKillmailsQuery, CharacterKillmailsQueryVariables>) {
+export function useKillmailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<KillmailsQuery, KillmailsQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<CharacterKillmailsQuery, CharacterKillmailsQueryVariables>(CharacterKillmailsDocument, options);
+          return Apollo.useLazyQuery<KillmailsQuery, KillmailsQueryVariables>(KillmailsDocument, options);
         }
-export function useCharacterKillmailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CharacterKillmailsQuery, CharacterKillmailsQueryVariables>) {
+// @ts-ignore
+export function useKillmailsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<KillmailsQuery, KillmailsQueryVariables>): Apollo.UseSuspenseQueryResult<KillmailsQuery, KillmailsQueryVariables>;
+export function useKillmailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<KillmailsQuery, KillmailsQueryVariables>): Apollo.UseSuspenseQueryResult<KillmailsQuery | undefined, KillmailsQueryVariables>;
+export function useKillmailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<KillmailsQuery, KillmailsQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<CharacterKillmailsQuery, CharacterKillmailsQueryVariables>(CharacterKillmailsDocument, options);
+          return Apollo.useSuspenseQuery<KillmailsQuery, KillmailsQueryVariables>(KillmailsDocument, options);
         }
-export type CharacterKillmailsQueryHookResult = ReturnType<typeof useCharacterKillmailsQuery>;
-export type CharacterKillmailsLazyQueryHookResult = ReturnType<typeof useCharacterKillmailsLazyQuery>;
-export type CharacterKillmailsSuspenseQueryHookResult = ReturnType<typeof useCharacterKillmailsSuspenseQuery>;
-export type CharacterKillmailsQueryResult = Apollo.QueryResult<CharacterKillmailsQuery, CharacterKillmailsQueryVariables>;
-export const CorporationKillmailsDocument = gql`
-    query CorporationKillmails($corporationId: Int!, $first: Int, $after: String) {
-  corporationKillmails(
-    corporationId: $corporationId
-    first: $first
-    after: $after
-  ) {
-    edges {
-      node {
-        id
-        killmailId
-        killmailTime
-        solarSystem {
-          name
-        }
-        victim {
-          character {
-            name
-          }
-          shipType {
-            name
-          }
-        }
-      }
+export type KillmailsQueryHookResult = ReturnType<typeof useKillmailsQuery>;
+export type KillmailsLazyQueryHookResult = ReturnType<typeof useKillmailsLazyQuery>;
+export type KillmailsSuspenseQueryHookResult = ReturnType<typeof useKillmailsSuspenseQuery>;
+export type KillmailsQueryResult = Apollo.QueryResult<KillmailsQuery, KillmailsQueryVariables>;
+export const OnNewKillmailDocument = gql`
+    subscription OnNewKillmail {
+  newKillmail {
+    id
+    killmailId
+    killmailHash
+    killmailTime
+    solarSystemId
+    solarSystem {
+      name
     }
-    pageInfo {
-      hasNextPage
-      totalCount
+    victim {
+      characterId
+      characterName
+      corporationId
+      corporationName
+      allianceId
+      allianceName
+      shipTypeId
+      shipTypeName
+      damageTaken
     }
+    attackers {
+      characterId
+      characterName
+      corporationId
+      corporationName
+      allianceId
+      allianceName
+      shipTypeId
+      shipTypeName
+      weaponTypeId
+      weaponTypeName
+      damageDone
+      finalBlow
+      securityStatus
+    }
+    items {
+      itemTypeId
+      itemTypeName
+      flag
+      quantityDropped
+      quantityDestroyed
+      singleton
+    }
+    totalValue
+    createdAt
   }
 }
     `;
 
 /**
- * __useCorporationKillmailsQuery__
+ * __useOnNewKillmailSubscription__
  *
- * To run a query within a React component, call `useCorporationKillmailsQuery` and pass it any options that fit your needs.
- * When your component renders, `useCorporationKillmailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useOnNewKillmailSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useOnNewKillmailSubscription` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useCorporationKillmailsQuery({
+ * const { data, loading, error } = useOnNewKillmailSubscription({
  *   variables: {
- *      corporationId: // value for 'corporationId'
- *      first: // value for 'first'
- *      after: // value for 'after'
  *   },
  * });
  */
-export function useCorporationKillmailsQuery(baseOptions: Apollo.QueryHookOptions<CorporationKillmailsQuery, CorporationKillmailsQueryVariables> & ({ variables: CorporationKillmailsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function useOnNewKillmailSubscription(baseOptions?: Apollo.SubscriptionHookOptions<OnNewKillmailSubscription, OnNewKillmailSubscriptionVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<CorporationKillmailsQuery, CorporationKillmailsQueryVariables>(CorporationKillmailsDocument, options);
+        return Apollo.useSubscription<OnNewKillmailSubscription, OnNewKillmailSubscriptionVariables>(OnNewKillmailDocument, options);
       }
-export function useCorporationKillmailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CorporationKillmailsQuery, CorporationKillmailsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<CorporationKillmailsQuery, CorporationKillmailsQueryVariables>(CorporationKillmailsDocument, options);
-        }
-export function useCorporationKillmailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CorporationKillmailsQuery, CorporationKillmailsQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<CorporationKillmailsQuery, CorporationKillmailsQueryVariables>(CorporationKillmailsDocument, options);
-        }
-export type CorporationKillmailsQueryHookResult = ReturnType<typeof useCorporationKillmailsQuery>;
-export type CorporationKillmailsLazyQueryHookResult = ReturnType<typeof useCorporationKillmailsLazyQuery>;
-export type CorporationKillmailsSuspenseQueryHookResult = ReturnType<typeof useCorporationKillmailsSuspenseQuery>;
-export type CorporationKillmailsQueryResult = Apollo.QueryResult<CorporationKillmailsQuery, CorporationKillmailsQueryVariables>;
-export const AllianceKillmailsDocument = gql`
-    query AllianceKillmails($allianceId: Int!, $first: Int, $after: String) {
-  allianceKillmails(allianceId: $allianceId, first: $first, after: $after) {
-    edges {
-      node {
-        id
-        killmailId
-        killmailTime
-        solarSystem {
-          name
-        }
-        victim {
-          character {
-            name
-          }
-          shipType {
-            name
-          }
-        }
-      }
-    }
-    pageInfo {
-      hasNextPage
-      totalCount
-    }
-  }
-}
-    `;
-
-/**
- * __useAllianceKillmailsQuery__
- *
- * To run a query within a React component, call `useAllianceKillmailsQuery` and pass it any options that fit your needs.
- * When your component renders, `useAllianceKillmailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useAllianceKillmailsQuery({
- *   variables: {
- *      allianceId: // value for 'allianceId'
- *      first: // value for 'first'
- *      after: // value for 'after'
- *   },
- * });
- */
-export function useAllianceKillmailsQuery(baseOptions: Apollo.QueryHookOptions<AllianceKillmailsQuery, AllianceKillmailsQueryVariables> & ({ variables: AllianceKillmailsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<AllianceKillmailsQuery, AllianceKillmailsQueryVariables>(AllianceKillmailsDocument, options);
-      }
-export function useAllianceKillmailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AllianceKillmailsQuery, AllianceKillmailsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<AllianceKillmailsQuery, AllianceKillmailsQueryVariables>(AllianceKillmailsDocument, options);
-        }
-export function useAllianceKillmailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AllianceKillmailsQuery, AllianceKillmailsQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<AllianceKillmailsQuery, AllianceKillmailsQueryVariables>(AllianceKillmailsDocument, options);
-        }
-export type AllianceKillmailsQueryHookResult = ReturnType<typeof useAllianceKillmailsQuery>;
-export type AllianceKillmailsLazyQueryHookResult = ReturnType<typeof useAllianceKillmailsLazyQuery>;
-export type AllianceKillmailsSuspenseQueryHookResult = ReturnType<typeof useAllianceKillmailsSuspenseQuery>;
-export type AllianceKillmailsQueryResult = Apollo.QueryResult<AllianceKillmailsQuery, AllianceKillmailsQueryVariables>;
+export type OnNewKillmailSubscriptionHookResult = ReturnType<typeof useOnNewKillmailSubscription>;
+export type OnNewKillmailSubscriptionResult = Apollo.SubscriptionResult<OnNewKillmailSubscription>;
 export const NewKillmailDocument = gql`
     subscription NewKillmail {
   newKillmail {
@@ -2284,374 +2786,3 @@ export function useNewKillmailSubscription(baseOptions?: Apollo.SubscriptionHook
       }
 export type NewKillmailSubscriptionHookResult = ReturnType<typeof useNewKillmailSubscription>;
 export type NewKillmailSubscriptionResult = Apollo.SubscriptionResult<NewKillmailSubscription>;
-export const RegionsDocument = gql`
-    query Regions($filter: RegionFilter) {
-  regions(filter: $filter) {
-    edges {
-      node {
-        id
-        name
-        description
-        constellationCount
-        solarSystemCount
-        securityStats {
-          highSec
-          lowSec
-          nullSec
-          wormhole
-          avgSecurity
-        }
-      }
-      cursor
-    }
-    pageInfo {
-      currentPage
-      totalPages
-      totalCount
-      hasNextPage
-      hasPreviousPage
-    }
-  }
-}
-    `;
-
-/**
- * __useRegionsQuery__
- *
- * To run a query within a React component, call `useRegionsQuery` and pass it any options that fit your needs.
- * When your component renders, `useRegionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useRegionsQuery({
- *   variables: {
- *      filter: // value for 'filter'
- *   },
- * });
- */
-export function useRegionsQuery(baseOptions?: Apollo.QueryHookOptions<RegionsQuery, RegionsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<RegionsQuery, RegionsQueryVariables>(RegionsDocument, options);
-      }
-export function useRegionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RegionsQuery, RegionsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<RegionsQuery, RegionsQueryVariables>(RegionsDocument, options);
-        }
-export function useRegionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RegionsQuery, RegionsQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<RegionsQuery, RegionsQueryVariables>(RegionsDocument, options);
-        }
-export type RegionsQueryHookResult = ReturnType<typeof useRegionsQuery>;
-export type RegionsLazyQueryHookResult = ReturnType<typeof useRegionsLazyQuery>;
-export type RegionsSuspenseQueryHookResult = ReturnType<typeof useRegionsSuspenseQuery>;
-export type RegionsQueryResult = Apollo.QueryResult<RegionsQuery, RegionsQueryVariables>;
-export const RegionDocument = gql`
-    query Region($id: Int!) {
-  region(id: $id) {
-    id
-    name
-    description
-    constellationCount
-    solarSystemCount
-    securityStats {
-      highSec
-      lowSec
-      nullSec
-      wormhole
-      avgSecurity
-    }
-    constellations {
-      id
-      name
-      solarSystemCount
-      securityStats {
-        highSec
-        lowSec
-        nullSec
-        avgSecurity
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useRegionQuery__
- *
- * To run a query within a React component, call `useRegionQuery` and pass it any options that fit your needs.
- * When your component renders, `useRegionQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useRegionQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useRegionQuery(baseOptions: Apollo.QueryHookOptions<RegionQuery, RegionQueryVariables> & ({ variables: RegionQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<RegionQuery, RegionQueryVariables>(RegionDocument, options);
-      }
-export function useRegionLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RegionQuery, RegionQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<RegionQuery, RegionQueryVariables>(RegionDocument, options);
-        }
-export function useRegionSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RegionQuery, RegionQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<RegionQuery, RegionQueryVariables>(RegionDocument, options);
-        }
-export type RegionQueryHookResult = ReturnType<typeof useRegionQuery>;
-export type RegionLazyQueryHookResult = ReturnType<typeof useRegionLazyQuery>;
-export type RegionSuspenseQueryHookResult = ReturnType<typeof useRegionSuspenseQuery>;
-export type RegionQueryResult = Apollo.QueryResult<RegionQuery, RegionQueryVariables>;
-export const SolarSystemsDocument = gql`
-    query SolarSystems($filter: SolarSystemFilter) {
-  solarSystems(filter: $filter) {
-    edges {
-      node {
-        id
-        name
-        constellation_id
-        security_status
-        security_class
-        constellation {
-          id
-          name
-          region {
-            id
-            name
-          }
-        }
-      }
-      cursor
-    }
-    pageInfo {
-      currentPage
-      totalPages
-      totalCount
-      hasNextPage
-      hasPreviousPage
-    }
-  }
-}
-    `;
-
-/**
- * __useSolarSystemsQuery__
- *
- * To run a query within a React component, call `useSolarSystemsQuery` and pass it any options that fit your needs.
- * When your component renders, `useSolarSystemsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useSolarSystemsQuery({
- *   variables: {
- *      filter: // value for 'filter'
- *   },
- * });
- */
-export function useSolarSystemsQuery(baseOptions?: Apollo.QueryHookOptions<SolarSystemsQuery, SolarSystemsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<SolarSystemsQuery, SolarSystemsQueryVariables>(SolarSystemsDocument, options);
-      }
-export function useSolarSystemsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SolarSystemsQuery, SolarSystemsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<SolarSystemsQuery, SolarSystemsQueryVariables>(SolarSystemsDocument, options);
-        }
-export function useSolarSystemsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SolarSystemsQuery, SolarSystemsQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<SolarSystemsQuery, SolarSystemsQueryVariables>(SolarSystemsDocument, options);
-        }
-export type SolarSystemsQueryHookResult = ReturnType<typeof useSolarSystemsQuery>;
-export type SolarSystemsLazyQueryHookResult = ReturnType<typeof useSolarSystemsLazyQuery>;
-export type SolarSystemsSuspenseQueryHookResult = ReturnType<typeof useSolarSystemsSuspenseQuery>;
-export type SolarSystemsQueryResult = Apollo.QueryResult<SolarSystemsQuery, SolarSystemsQueryVariables>;
-export const SolarSystemDocument = gql`
-    query SolarSystem($id: Int!) {
-  solarSystem(id: $id) {
-    id
-    name
-    constellation_id
-    security_status
-    security_class
-    star_id
-    position {
-      x
-      y
-      z
-    }
-    constellation {
-      id
-      name
-      region {
-        id
-        name
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useSolarSystemQuery__
- *
- * To run a query within a React component, call `useSolarSystemQuery` and pass it any options that fit your needs.
- * When your component renders, `useSolarSystemQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useSolarSystemQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useSolarSystemQuery(baseOptions: Apollo.QueryHookOptions<SolarSystemQuery, SolarSystemQueryVariables> & ({ variables: SolarSystemQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<SolarSystemQuery, SolarSystemQueryVariables>(SolarSystemDocument, options);
-      }
-export function useSolarSystemLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SolarSystemQuery, SolarSystemQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<SolarSystemQuery, SolarSystemQueryVariables>(SolarSystemDocument, options);
-        }
-export function useSolarSystemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SolarSystemQuery, SolarSystemQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<SolarSystemQuery, SolarSystemQueryVariables>(SolarSystemDocument, options);
-        }
-export type SolarSystemQueryHookResult = ReturnType<typeof useSolarSystemQuery>;
-export type SolarSystemLazyQueryHookResult = ReturnType<typeof useSolarSystemLazyQuery>;
-export type SolarSystemSuspenseQueryHookResult = ReturnType<typeof useSolarSystemSuspenseQuery>;
-export type SolarSystemQueryResult = Apollo.QueryResult<SolarSystemQuery, SolarSystemQueryVariables>;
-export const WorkerStatusDocument = gql`
-    query WorkerStatus {
-  workerStatus {
-    timestamp
-    healthy
-    queues {
-      name
-      messageCount
-      consumerCount
-      active
-    }
-  }
-}
-    `;
-
-/**
- * __useWorkerStatusQuery__
- *
- * To run a query within a React component, call `useWorkerStatusQuery` and pass it any options that fit your needs.
- * When your component renders, `useWorkerStatusQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useWorkerStatusQuery({
- *   variables: {
- *   },
- * });
- */
-export function useWorkerStatusQuery(baseOptions?: Apollo.QueryHookOptions<WorkerStatusQuery, WorkerStatusQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<WorkerStatusQuery, WorkerStatusQueryVariables>(WorkerStatusDocument, options);
-      }
-export function useWorkerStatusLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WorkerStatusQuery, WorkerStatusQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<WorkerStatusQuery, WorkerStatusQueryVariables>(WorkerStatusDocument, options);
-        }
-export function useWorkerStatusSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WorkerStatusQuery, WorkerStatusQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<WorkerStatusQuery, WorkerStatusQueryVariables>(WorkerStatusDocument, options);
-        }
-export type WorkerStatusQueryHookResult = ReturnType<typeof useWorkerStatusQuery>;
-export type WorkerStatusLazyQueryHookResult = ReturnType<typeof useWorkerStatusLazyQuery>;
-export type WorkerStatusSuspenseQueryHookResult = ReturnType<typeof useWorkerStatusSuspenseQuery>;
-export type WorkerStatusQueryResult = Apollo.QueryResult<WorkerStatusQuery, WorkerStatusQueryVariables>;
-export const WorkerStatusUpdatesDocument = gql`
-    subscription WorkerStatusUpdates {
-  workerStatusUpdates {
-    timestamp
-    healthy
-    queues {
-      name
-      messageCount
-      consumerCount
-      active
-    }
-  }
-}
-    `;
-
-/**
- * __useWorkerStatusUpdatesSubscription__
- *
- * To run a query within a React component, call `useWorkerStatusUpdatesSubscription` and pass it any options that fit your needs.
- * When your component renders, `useWorkerStatusUpdatesSubscription` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useWorkerStatusUpdatesSubscription({
- *   variables: {
- *   },
- * });
- */
-export function useWorkerStatusUpdatesSubscription(baseOptions?: Apollo.SubscriptionHookOptions<WorkerStatusUpdatesSubscription, WorkerStatusUpdatesSubscriptionVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<WorkerStatusUpdatesSubscription, WorkerStatusUpdatesSubscriptionVariables>(WorkerStatusUpdatesDocument, options);
-      }
-export type WorkerStatusUpdatesSubscriptionHookResult = ReturnType<typeof useWorkerStatusUpdatesSubscription>;
-export type WorkerStatusUpdatesSubscriptionResult = Apollo.SubscriptionResult<WorkerStatusUpdatesSubscription>;
-export const WorkerStatusSubscriptionDocument = gql`
-    subscription WorkerStatusSubscription {
-  workerStatusUpdates {
-    timestamp
-    healthy
-    queues {
-      name
-      messageCount
-      consumerCount
-      active
-    }
-    standaloneWorkers {
-      name
-      running
-      pid
-      description
-    }
-  }
-}
-    `;
-
-/**
- * __useWorkerStatusSubscriptionSubscription__
- *
- * To run a query within a React component, call `useWorkerStatusSubscriptionSubscription` and pass it any options that fit your needs.
- * When your component renders, `useWorkerStatusSubscriptionSubscription` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useWorkerStatusSubscriptionSubscription({
- *   variables: {
- *   },
- * });
- */
-export function useWorkerStatusSubscriptionSubscription(baseOptions?: Apollo.SubscriptionHookOptions<WorkerStatusSubscriptionSubscription, WorkerStatusSubscriptionSubscriptionVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<WorkerStatusSubscriptionSubscription, WorkerStatusSubscriptionSubscriptionVariables>(WorkerStatusSubscriptionDocument, options);
-      }
-export type WorkerStatusSubscriptionSubscriptionHookResult = ReturnType<typeof useWorkerStatusSubscriptionSubscription>;
-export type WorkerStatusSubscriptionSubscriptionResult = Apollo.SubscriptionResult<WorkerStatusSubscriptionSubscription>;
