@@ -1,0 +1,48 @@
+subscription OnNewKillmail {
+  newKillmail {
+    id
+    killmailId
+    killmailHash
+    killmailTime
+    solarSystemId
+    solarSystem {
+      name
+    }
+    victim {
+      characterId
+      characterName
+      corporationId
+      corporationName
+      allianceId
+      allianceName
+      shipTypeId
+      shipTypeName
+      damageTaken
+    }
+    attackers {
+      characterId
+      characterName
+      corporationId
+      corporationName
+      allianceId
+      allianceName
+      shipTypeId
+      shipTypeName
+      weaponTypeId
+      weaponTypeName
+      damageDone
+      finalBlow
+      securityStatus
+    }
+    items {
+      itemTypeId
+      itemTypeName
+      flag
+      quantityDropped
+      quantityDestroyed
+      singleton
+    }
+    totalValue
+    createdAt
+  }
+}
