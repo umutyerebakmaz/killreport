@@ -1,5 +1,13 @@
 # 🚀 KillReport DigitalOcean Deployment Checklist
 
+## Deployment Strategy
+
+**Production Setup:** Droplet + Managed PostgreSQL - **$63/month**
+
+Professional infrastructure from day one with automatic backups and high availability.
+
+---
+
 ## Pre-Deployment
 
 - [ ] EVE Online Developer Application oluştur (<https://developers.eveonline.com>)
@@ -16,12 +24,12 @@
 
 ---
 
-## Phase 1: Database Setup (15 dakika)
+## Step 1: PostgreSQL Managed Database Setup (15 dakika)
 
 - [ ] PostgreSQL Managed Database oluştur
 
   - [ ] Frankfurt/Amsterdam region seç
-  - [ ] Basic plan (1 vCPU, 1 GB RAM)
+  - [ ] Basic plan (1 GB RAM, 10 GB storage, 25 connections)
   - [ ] Database name: `killreport_production`
 
 - [ ] Database connection string'i kopyala
@@ -87,8 +95,22 @@
 
 - [ ] Environment variables oluştur:
 
-  - [ ] `backend/.env` dosyası (DATABASE_URL, EVE_CLIENT_ID, etc.)
-  - [ ] `frontend/.env.local` dosyası (NEXT_PUBLIC_GRAPHQL_URL)
+  - [ ] `backend/.env` dosyası:
+    ```bash
+    DATABASE_URL="postgresql://doadmin:password@managed-host:25060/killreport?sslmode=require&connection_limit=2"
+    RABBITMQ_URL="amqp://localhost:5672"
+    EVE_CLIENT_ID="your-client-id"
+    EVE_CLIENT_SECRET="your-client-secret"
+    EVE_CALLBACK_URL="https://yourdomain.com/auth/callback"
+    JWT_SECRET="$(openssl rand -base64 32)"
+    PORT=4000
+    NODE_ENV=production
+    ```
+  - [ ] `frontend/.env.local` dosyası:
+    ```bash
+    NEXT_PUBLIC_GRAPHQL_URL="https://api.yourdomain.com/graphql"
+    NEXT_PUBLIC_WS_URL="wss://api.yourdomain.com/graphql"
+    ```
 
 - [ ] Dependencies kurulumu:
 
@@ -137,7 +159,8 @@
 
   ```bash
   sudo nano /etc/nginx/sites-available/killreport
-  # your-domain.com ve api.your-domain.com'u değiştir
+  # 'yourdomain.com' ve 'api.yourdomain.com' placeholder'larını
+  # gerçek domain'inizle değiştirin (örn: killreport.com, api.killreport.com)
   ```
 
 - [ ] Nginx test ve restart:
@@ -149,16 +172,19 @@
 
 - [ ] DNS A Records ekle (Domain sağlayıcıdan):
 
-  - `your-domain.com` → `DROPLET_IP`
-  - `api.your-domain.com` → `DROPLET_IP`
-  - `www.your-domain.com` → `DROPLET_IP`
+  - `yourdomain.com` → `DROPLET_IP`
+  - `api.yourdomain.com` → `DROPLET_IP`
+  - `www.yourdomain.com` → `DROPLET_IP` (optional)
 
 - [ ] DNS propagation bekle (5-30 dakika)
+
+  - Test: `dig yourdomain.com +short` (should return droplet IP)
 
 - [ ] SSL certificate al:
 
   ```bash
-  sudo certbot --nginx -d your-domain.com -d api.your-domain.com -d www.your-domain.com
+  sudo certbot --nginx -d yourdomain.com -d api.yourdomain.com -d www.yourdomain.com
+  # Replace 'yourdomain.com' with your actual domain
   ```
 
 - [ ] Nginx config'de HTTPS kısımlarını aktifleştir (uncomment)
@@ -176,9 +202,9 @@
 
 ## Phase 6: Verification (15 dakika)
 
-- [ ] Frontend erişilebilir mi? `https://your-domain.com`
-- [ ] Backend health check: `https://api.your-domain.com/health`
-- [ ] GraphQL Playground: `https://api.your-domain.com/graphql`
+- [ ] Frontend erişilebilir mi? `https://yourdomain.com`
+- [ ] Backend health check: `https://api.yourdomain.com/health`
+- [ ] GraphQL Playground: `https://api.yourdomain.com/graphql`
 
 - [ ] PM2 process'leri çalışıyor mu?
 
