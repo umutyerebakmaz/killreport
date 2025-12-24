@@ -1,46 +1,84 @@
 # KillReport Production Deployment Guide
 
-## 🎯 Deployment Strategy
+## 🎯 Deployment Overview
 
-### Phase 1: Initial Launch (Month 1-3) - $48/month
+### Production Setup - $63/month
 
-- Single DigitalOcean Droplet with PostgreSQL inside
-- Minimal risk, perfect for testing and first users
-- Manual backups with automated scripts
+- DigitalOcean Droplet (4 vCPU, 8 GB RAM) - $48/month
+- Managed PostgreSQL (1 GB RAM, 10 GB storage) - $15/month
+- Professional setup from day one with automatic backups
 
-### Phase 2: Growth Phase (Month 4-6) - $63/month
+### Scale-Up Options (When Needed)
 
-- Add Managed PostgreSQL when database >3GB
-- Triggered by: first paying users or 10k+ daily killmails
-- Professional setup with automatic backups
-
-### Phase 3: Scale Phase (Month 7+) - $78-88/month
-
-- Add Redis cache for performance
-- Optional CDN for static assets
-- Enterprise-ready infrastructure
+- Add Redis Cache (+$15/month) for 50+ concurrent users
+- Separate Worker Droplet (+$69/month) for high load
+- Upgrade PostgreSQL for larger databases
 
 ---
 
-## 💰 Phase 1: Initial Deployment ($48/month)
+## 💰 Step-by-Step Deployment
 
-### Infrastructure Setup
+### Infrastructure Components
 
 **DigitalOcean Droplet:**
 
 - **Size:** Basic (4 vCPU, 8 GB RAM, 160 GB SSD)
 - **Cost:** $48/month (~₺1,750/month)
 - **OS:** Ubuntu 22.04 LTS
-- **Services:** Backend + Frontend + Workers + PostgreSQL (all-in-one)
+- **Region:** Frankfurt (closest to EVE servers)
+- **Services:** Backend + Frontend + Workers + RabbitMQ
 
-**Why this approach?**
+**DigitalOcean Managed PostgreSQL:**
 
-- ✅ $15/month savings (first 6 months = $90 saved)
-- ✅ Localhost database connection (faster)
-- ✅ Simpler setup, less moving parts
-- ✅ Perfect for MVP and early users
+- **Plan:** Basic (1 GB RAM, 10 GB Storage, 25 connections)
+- **Cost:** $15/month (~₺550/month)
+- **Region:** Frankfurt (same as droplet)
+- **Features:** Automatic daily backups, 99.99% uptime, Easy scaling
 
-### Step 1: Create Droplet
+**Total: $63/month (~₺2,300/month)**
+
+**Why Managed PostgreSQL?**
+
+- ✅ Production-ready from day one
+- ✅ Automatic backups (7 day retention)
+- ✅ High availability with failover
+- ✅ One-click scaling without downtime
+- ✅ Professional monitoring dashboard
+- ✅ Point-in-time recovery
+
+---
+
+### Step 1: Create Managed PostgreSQL Database
+
+```bash
+# DigitalOcean Console:
+1. Databases → Create Database Cluster
+2. Engine: PostgreSQL 16
+3. Plan: Basic ($15/month)
+   - 1 GB RAM, 10 GB Storage, 25 connections
+4. Region: Frankfurt (same as droplet)
+5. Database name: killreport
+```
+
+**Save Connection Details:**
+
+- Host: `your-db-cluster.db.ondigitalocean.com`
+- Port: `25060`
+- Username: `doadmin`
+- Password: `[auto-generated]`
+- Database: `killreport`
+
+**Configure Trusted Sources:**
+
+```bash
+# DigitalOcean Console → Database → Settings → Trusted Sources
+# Add droplet IP (after creating droplet in Step 2)
+# Optional: Add your local IP for remote management
+```
+
+---
+
+### Step 2: Create Droplet
 
 ```bash
 # DigitalOcean Console:
