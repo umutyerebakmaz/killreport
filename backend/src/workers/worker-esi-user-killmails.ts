@@ -16,6 +16,7 @@ interface UserKillmailMessage {
   refreshToken: string;
   expiresAt: string;
   queuedAt: string;
+  lastKillmailId?: number; // For incremental sync optimization
 }
 
 /**
@@ -128,7 +129,7 @@ export async function esiUserKillmailWorker() {
           }
 
           // Token is now guaranteed to be valid - proceed with ESI sync
-          await syncUserKillmailsFromESI(message);
+          await syncUserKillmailsFromESI(message, message.lastKillmailId);
 
           // Acknowledge message
           channel.ack(msg);
@@ -163,15 +164,25 @@ export async function esiUserKillmailWorker() {
 /**
  * Fetch killmails from ESI for a single user
  */
-async function syncUserKillmailsFromESI(message: UserKillmailMessage): Promise<void> {
+async function syncUserKillmailsFromESI(
+  message: UserKillmailMessage,
+  lastKillmailId?: number
+): Promise<void> {
   try {
-    console.log(`  📡 [${message.characterName}] Fetching killmails from ESI...`);
+    if (lastKillmailId) {
+      console.log(`  📡 [${message.characterName}] Fetching NEW killmails from ESI (incremental sync)...`);
+      console.log(`     🔍 Will stop at killmail ID: ${lastKillmailId}`);
+    } else {
+      console.log(`  📡 [${message.characterName}] Fetching killmails from ESI (full sync)...`);
+    }
 
     // Fetch killmail list from ESI (max 50 pages = 2500 killmails, 50 per page)
+    // ESI returns killmails in reverse chronological order (newest first)
     const killmailList = await CharacterService.getCharacterKillmails(
       message.characterId,
       message.accessToken,
-      50 // Max pages (50 killmails per page)
+      50, // Max pages (50 killmails per page)
+      lastKillmailId // Stop when we hit this ID (incremental sync)
     );
 
     console.log(`  📥 Total killmails found from ESI: ${killmailList.length}`);
