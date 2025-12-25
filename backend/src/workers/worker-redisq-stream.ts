@@ -20,14 +20,15 @@
  */
 
 import '../config';
+import logger from '../services/logger';
 import prisma from '../services/prisma';
 import { pubsub } from '../services/pubsub';
 import { esiRateLimiter } from '../services/rate-limiter';
 
 // Debug: Verify pubsub is loaded
-console.log('🔍 Debug: pubsub type:', typeof pubsub, 'pubsub:', pubsub);
+logger.debug('Debug: pubsub type: ' + typeof pubsub);
 if (!pubsub) {
-  console.error('❌ CRITICAL: pubsub is not defined at module load time!');
+  logger.error('CRITICAL: pubsub is not defined at module load time!');
   process.exit(1);
 }
 
@@ -101,13 +102,13 @@ let stats = {
  * Main worker loop
  */
 export async function redisQStreamWorker() {
-  console.log('🌊 RedisQ Stream Worker Started');
-  console.log(`📡 Endpoint: ${REDISQ_URL}`);
-  console.log(`🆔 Queue ID: ${QUEUE_ID}`);
-  console.log(`⏱️  Poll Rate: ${REQUEST_DELAY}ms (~${Math.floor(1000 / REQUEST_DELAY)} req/sec)`);
-  console.log(`⏳ Timeout: ${TIME_TO_WAIT} seconds\n`);
-  console.log('━'.repeat(60));
-  console.log('🎯 Listening for killmails...\n');
+  logger.info('🌊 RedisQ Stream Worker Started');
+  logger.info(`📡 Endpoint: ${REDISQ_URL}`);
+  logger.info(`🆔 Queue ID: ${QUEUE_ID}`);
+  logger.info(`⏱️  Poll Rate: ${REQUEST_DELAY}ms (~${Math.floor(1000 / REQUEST_DELAY)} req/sec)`);
+  logger.info(`⏳ Timeout: ${TIME_TO_WAIT} seconds\n`);
+  logger.info('━'.repeat(60));
+  logger.info('🎯 Listening for killmails...\n');
 
   let consecutiveErrors = 0;
 
@@ -126,11 +127,11 @@ export async function redisQStreamWorker() {
     } catch (error) {
       consecutiveErrors++;
       stats.errors++;
-      console.error(`❌ Error in main loop (${consecutiveErrors} consecutive):`, error);
+      logger.error(`❌ Error in main loop (${consecutiveErrors} consecutive):`, error);
 
       // If too many consecutive errors, back off longer
       if (consecutiveErrors >= 5) {
-        console.log(`⚠️  Too many errors, backing off for ${RETRY_DELAY}ms...`);
+        logger.warn(`⚠️  Too many errors, backing off for ${RETRY_DELAY}ms...`);
         await sleep(RETRY_DELAY);
         consecutiveErrors = 0;
       } else {
@@ -156,7 +157,7 @@ async function pollRedisQ(): Promise<RedisQPackage | null> {
 
     if (!response.ok) {
       if (response.status === 429) {
-        console.warn('⚠️  Rate limited by RedisQ (429), backing off...');
+        logger.warn('⚠️  Rate limited by RedisQ (429), backing off...');
         await sleep(RETRY_DELAY);
         return null;
       }
@@ -177,41 +178,30 @@ async function processKillmail(pkg: RedisQPackage): Promise<void> {
   const { killID, zkb } = pkg;
 
   try {
-    // Check if killmail already exists
-    const existing = await prisma.killmail.findUnique({
-      where: { killmail_id: killID },
-      select: { killmail_id: true },
-    });
+    // Fetch full killmail from ESI
+    logger.info(`📥 Fetching: ${killID} (${formatISK(zkb.totalValue)} ISK)`);
+    const killmail = await fetchKillmailFromESI(killID, zkb.hash);
 
-    if (existing) {
+    // Save to database (upsert handles duplicates)
+    const isNew = await saveKillmail(killmail, zkb.hash);
+
+    if (!isNew) {
       stats.skipped++;
-      console.log(`⏭️  Skipped: ${killID} (already exists)`);
+      logger.debug(`⏭️  Skipped: ${killID} (already exists)`);
       return;
     }
 
-    // Fetch full killmail from ESI
-    console.log(`📥 Fetching: ${killID} (${formatISK(zkb.totalValue)} ISK)`);
-    const killmail = await fetchKillmailFromESI(killID, zkb.hash);
-
-    // Save to database
-    await saveKillmail(killmail, zkb.hash);
     stats.saved++;
 
     const runtime = Math.floor((Date.now() - stats.startTime.getTime()) / 1000);
-    console.log(
+    logger.info(
       `✅ Saved: ${killID} | ` +
       `Stats: ${stats.saved} saved, ${stats.skipped} skipped, ${stats.errors} errors ` +
       `(${runtime}s runtime)`
     );
   } catch (error: any) {
-    // Handle duplicate key error gracefully (race condition)
-    if (error?.code === 'P2002') {
-      stats.skipped++;
-      console.log(`⏭️  Skipped: ${killID} (duplicate - race condition)`);
-      return;
-    }
     stats.errors++;
-    console.error(`❌ Failed to process killmail ${killID}:`, error);
+    logger.error(`❌ Failed to process killmail ${killID}:`, error);
     // Don't re-throw - continue processing next killmail
   }
 }
@@ -239,62 +229,84 @@ async function fetchKillmailFromESI(killmailId: number, hash: string): Promise<E
 
 /**
  * Save killmail to database with attackers and victim
+ * Returns true if new killmail was created, false if already existed
  */
-async function saveKillmail(killmail: ESIKillmail, hash: string): Promise<void> {
+async function saveKillmail(killmail: ESIKillmail, hash: string): Promise<boolean> {
   const { victim, attackers, killmail_time, solar_system_id } = killmail;
 
-  // Create killmail with attackers and victim in a transaction
-  await prisma.$transaction(async (tx) => {
-    // Create the killmail
-    await tx.killmail.create({
-      data: {
-        killmail_id: killmail.killmail_id,
-        killmail_hash: hash,
-        killmail_time: new Date(killmail_time),
-        solar_system_id,
-      },
+  try {
+    // Check if already exists BEFORE transaction (cheaper)
+    const existing = await prisma.victim.findUnique({
+      where: { killmail_id: killmail.killmail_id },
+      select: { killmail_id: true },
     });
 
-    // Create victim
-    await tx.victim.create({
-      data: {
-        killmail_id: killmail.killmail_id,
-        character_id: victim.character_id || null,
-        corporation_id: victim.corporation_id,
-        alliance_id: victim.alliance_id || null,
-        ship_type_id: victim.ship_type_id,
-        damage_taken: victim.damage_taken,
-        position_x: victim.position?.x || null,
-        position_y: victim.position?.y || null,
-        position_z: victim.position?.z || null,
-        faction_id: null,
-      },
-    });
-
-    // Create attackers
-    if (attackers.length > 0) {
-      await tx.attacker.createMany({
-        data: attackers.map((attacker) => ({
-          killmail_id: killmail.killmail_id,
-          character_id: attacker.character_id || null,
-          corporation_id: attacker.corporation_id || null,
-          alliance_id: attacker.alliance_id || null,
-          ship_type_id: attacker.ship_type_id || null,
-          weapon_type_id: attacker.weapon_type_id || null,
-          damage_done: attacker.damage_done,
-          final_blow: attacker.final_blow,
-          security_status: attacker.security_status ?? null,
-          faction_id: null,
-        })),
-      });
+    if (existing) {
+      return false; // Already exists
     }
-  });
 
-  // Publish new killmail event to subscribers (only ID - resolver will fetch full data)
-  console.log('📡 Publishing NEW_KILLMAIL event for killmail:', killmail.killmail_id);
-  await pubsub.publish('NEW_KILLMAIL', {
-    killmailId: killmail.killmail_id,
-  });
+    // Create killmail with attackers and victim in a transaction
+    await prisma.$transaction(async (tx) => {
+      // Create the killmail
+      await tx.killmail.create({
+        data: {
+          killmail_id: killmail.killmail_id,
+          killmail_hash: hash,
+          killmail_time: new Date(killmail_time),
+          solar_system_id,
+        },
+      });
+
+      // Create victim
+      await tx.victim.create({
+        data: {
+          killmail_id: killmail.killmail_id,
+          character_id: victim.character_id || null,
+          corporation_id: victim.corporation_id,
+          alliance_id: victim.alliance_id || null,
+          ship_type_id: victim.ship_type_id,
+          damage_taken: victim.damage_taken,
+          position_x: victim.position?.x || null,
+          position_y: victim.position?.y || null,
+          position_z: victim.position?.z || null,
+          faction_id: null,
+        },
+      });
+
+      // Create attackers
+      if (attackers.length > 0) {
+        await tx.attacker.createMany({
+          skipDuplicates: true,
+          data: attackers.map((attacker) => ({
+            killmail_id: killmail.killmail_id,
+            character_id: attacker.character_id || null,
+            corporation_id: attacker.corporation_id || null,
+            alliance_id: attacker.alliance_id || null,
+            ship_type_id: attacker.ship_type_id || null,
+            weapon_type_id: attacker.weapon_type_id || null,
+            damage_done: attacker.damage_done,
+            final_blow: attacker.final_blow,
+            security_status: attacker.security_status ?? null,
+            faction_id: null,
+          })),
+        });
+      }
+    });
+
+    // Publish new killmail event to subscribers (only ID - resolver will fetch full data)
+    logger.debug('📡 Publishing NEW_KILLMAIL event for killmail: ' + killmail.killmail_id);
+    await pubsub.publish('NEW_KILLMAIL', {
+      killmailId: killmail.killmail_id,
+    });
+
+    return true; // Successfully created new killmail
+  } catch (error: any) {
+    // If duplicate error, it means race condition happened
+    if (error?.code === 'P2002') {
+      return false; // Not new, already exists
+    }
+    throw error; // Re-throw other errors
+  }
 }
 
 /**
@@ -322,20 +334,20 @@ function sleep(ms: number): Promise<void> {
  * Graceful shutdown
  */
 process.on('SIGINT', async () => {
-  console.log('\n\n🛑 Shutting down RedisQ stream worker...');
-  console.log('\n📊 Final Statistics:');
-  console.log(`   Received: ${stats.received}`);
-  console.log(`   Saved: ${stats.saved}`);
-  console.log(`   Skipped: ${stats.skipped}`);
-  console.log(`   Errors: ${stats.errors}`);
+  logger.info('\n\n🛑 Shutting down RedisQ stream worker...');
+  logger.info('\n📊 Final Statistics:');
+  logger.info(`   Received: ${stats.received}`);
+  logger.info(`   Saved: ${stats.saved}`);
+  logger.info(`   Skipped: ${stats.skipped}`);
+  logger.info(`   Errors: ${stats.errors}`);
   const runtime = Math.floor((Date.now() - stats.startTime.getTime()) / 1000);
-  console.log(`   Runtime: ${runtime} seconds`);
+  logger.info(`   Runtime: ${runtime} seconds`);
   await prisma.$disconnect();
   process.exit(0);
 });
 
 // Start the worker
 redisQStreamWorker().catch((error) => {
-  console.error('💥 Worker crashed:', error);
+  logger.error('💥 Worker crashed:', error);
   process.exit(1);
 });
