@@ -139,26 +139,12 @@ const server = createServer(async (req, res) => {
 
 const port = 4000;
 
-server.listen(port, async () => {
+server.listen(port, () => {
   console.log(`🚀 Server is running on http://localhost:${port}/graphql`);
   console.log(`🔐 Auth callback available at http://localhost:${port}/auth/callback`);
   console.log(`🔌 GraphQL subscriptions ready (GraphQL Yoga built-in support)`);
-
-  // Start RedisQ worker in the same process for subscriptions to work
-  if (process.env.ENABLE_REDISQ_WORKER === 'true') {
-    console.log('🌊 Starting RedisQ worker in server process...');
-    const { redisQStreamWorker } = await import('./workers/worker-redisq-stream.js');
-    redisQStreamWorker().catch((error: Error) => {
-      console.error('💥 RedisQ worker error:', error);
-    });
-  }
-
-  // Start ESI User Killmails worker in the same process for subscriptions to work
-  if (process.env.ENABLE_USER_KILLMAIL_WORKER === 'true') {
-    console.log('👤 Starting ESI User Killmails worker in server process...');
-    const { esiUserKillmailWorker } = await import('./workers/worker-esi-user-killmails.js');
-    esiUserKillmailWorker().catch((error: Error) => {
-      console.error('💥 ESI User Killmails worker error:', error);
-    });
-  }
+  console.log(`
+📋 To start workers independently:`);
+  console.log(`   yarn worker:redisq         # RedisQ stream worker`);
+  console.log(`   yarn worker:user-killmails # User killmail sync worker`);
 });
