@@ -12,6 +12,7 @@ interface UserKillmailMessage {
     refreshToken: string;
     expiresAt: string;
     queuedAt: string;
+    lastKillmailId?: number; // For incremental sync optimization
 }
 
 /**
@@ -63,6 +64,7 @@ async function queueUserESIKillmails() {
                 refresh_token: true,
                 expires_at: true,
                 last_killmail_sync_at: true,
+                last_killmail_id: true, // For incremental sync optimization
             },
         });
 
@@ -104,6 +106,7 @@ async function queueUserESIKillmails() {
                 refreshToken: user.refresh_token!,
                 expiresAt: user.expires_at.toISOString(),
                 queuedAt: new Date().toISOString(),
+                lastKillmailId: user.last_killmail_id ?? undefined, // For incremental sync
             };
 
             channel.sendToQueue(
