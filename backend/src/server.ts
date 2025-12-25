@@ -10,6 +10,7 @@ import { config } from './config';
 import { resolvers } from './resolvers';
 import { createDataLoaders } from './services/dataloaders';
 import { exchangeCodeForToken, verifyToken } from './services/eve-sso';
+import logger from './services/logger';
 import prisma from './services/prisma';
 import { userKillmailCron } from './services/user-killmail-cron';
 
@@ -138,19 +139,23 @@ const server = createServer(async (req, res) => {
   return yoga(req, res);
 });
 
-const port = 4000;
+const port = config.app.port;
+
+// Check Redis PubSub configuration
+const USE_REDIS = process.env.USE_REDIS_PUBSUB === 'true';
+const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 
 server.listen(port, () => {
-  console.log(`🚀 Server is running on http://localhost:${port}/graphql`);
-  console.log(`🔐 Auth callback available at http://localhost:${port}/auth/callback`);
-  console.log(`🔌 GraphQL subscriptions ready (GraphQL Yoga built-in support)`);
-  console.log(`
-📋 To start workers independently:`);
-  console.log(`   yarn worker:redisq         # RedisQ stream worker`);
-  console.log(`   yarn worker:user-killmails # User killmail sync worker`);
-  
+  logger.info(`Server is running on http://localhost:${port}/graphql`);
+  logger.info(`Auth callback available at http://localhost:${port}/auth/callback`);
+  logger.info(`Health check available at http://localhost:${port}/health`);
+  logger.info(`GraphQL subscriptions ready via ${USE_REDIS ? `Redis PubSub (${REDIS_URL})` : 'In-memory (single instance only)'}`);
+  logger.info('To start workers independently:');
+  logger.info('  yarn worker:redisq         # RedisQ stream worker');
+  logger.info('  yarn worker:user-killmails # User killmail sync worker');
+
   // Start background cron job for user killmail syncing
   userKillmailCron.start().catch((error) => {
-    console.error('❌ Failed to start user killmail cron:', error);
+    logger.error('Failed to start user killmail cron', { error });
   });
 });
