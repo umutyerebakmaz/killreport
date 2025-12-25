@@ -1,25 +1,70 @@
 import dotenv from 'dotenv';
 import path from 'path';
+import { z } from 'zod';
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
+// Environment variables validation schema
+const envSchema = z.object({
+  // Database
+  DB_HOST: z.string().default('localhost'),
+  DB_PORT: z.string().default('5432').transform(Number),
+  DB_USER: z.string().optional(),
+  DB_PASSWORD: z.string().optional(),
+  DB_NAME: z.string().optional(),
+  DATABASE_URL: z.string().optional(),
+
+  // RabbitMQ
+  RABBITMQ_URL: z.string().default('amqp://localhost'),
+
+  // EVE SSO
+  EVE_CLIENT_ID: z.string().min(1, 'EVE_CLIENT_ID is required'),
+  EVE_CLIENT_SECRET: z.string().min(1, 'EVE_CLIENT_SECRET is required'),
+  EVE_CALLBACK_URL: z.string().default('http://localhost:4000/auth/callback'),
+  FRONTEND_URL: z.string().default('http://localhost:3000'),
+
+  // Application
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  PORT: z.string().default('4000').transform(Number),
+  LOG_LEVEL: z.enum(['error', 'warn', 'info', 'http', 'debug']).default('info'),
+});
+
+// Parse and validate environment variables
+const parseEnv = () => {
+  try {
+    return envSchema.parse(process.env);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      console.error('❌ Environment validation failed:');
+      error.issues.forEach((issue) => {
+        console.error(`  - ${issue.path.join('.')}: ${issue.message}`);
+      });
+      process.exit(1);
+    }
+    throw error;
+  }
+};
+
+const env = parseEnv();
+
 export const config = {
   database: {
-    host: process.env.DB_HOST || 'localhost',
-    port: Number(process.env.DB_PORT) || 5432,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
+    host: env.DB_HOST,
+    port: env.DB_PORT,
+    user: env.DB_USER,
+    password: env.DB_PASSWORD,
+    database: env.DB_NAME,
+    url: env.DATABASE_URL,
   },
   rabbitmq: {
-    url: process.env.RABBITMQ_URL || 'amqp://localhost',
+    url: env.RABBITMQ_URL,
     queue: 'alliance_queue',
   },
   eveSso: {
-    clientId: process.env.EVE_CLIENT_ID!,
-    clientSecret: process.env.EVE_CLIENT_SECRET!,
-    callbackUrl: process.env.EVE_CALLBACK_URL || 'http://localhost:4000/auth/callback',
-    frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
+    clientId: env.EVE_CLIENT_ID,
+    clientSecret: env.EVE_CLIENT_SECRET,
+    callbackUrl: env.EVE_CALLBACK_URL,
+    frontendUrl: env.FRONTEND_URL,
     authUrl: 'https://login.eveonline.com/v2/oauth/authorize',
     tokenUrl: 'https://login.eveonline.com/v2/oauth/token',
     jwksUrl: 'https://login.eveonline.com/oauth/jwks',
@@ -32,4 +77,15 @@ export const config = {
       'esi-characters.read_medals.v1',
     ],
   },
-};
+  app: {
+    nodeEnv: env.NODE_ENV,
+    port: env.PORT,
+    logLevel: env.LOG_LEVEL,
+    isDevelopment: env.NODE_ENV === 'development',
+    isProduction: env.NODE_ENV === 'production',
+    isTest: env.NODE_ENV === 'test',
+  },
+} as const;
+
+// Type export for config
+export type Config = typeof config;
