@@ -11,6 +11,7 @@ import { resolvers } from './resolvers';
 import { createDataLoaders } from './services/dataloaders';
 import { exchangeCodeForToken, verifyToken } from './services/eve-sso';
 import prisma from './services/prisma';
+import { userKillmailCron } from './services/user-killmail-cron';
 
 // --- ADIM 1: SDL Dosyalarını Yükleme ---
 // Projedeki tüm .graphql dosyalarını bul ve yükle
@@ -147,4 +148,9 @@ server.listen(port, () => {
 📋 To start workers independently:`);
   console.log(`   yarn worker:redisq         # RedisQ stream worker`);
   console.log(`   yarn worker:user-killmails # User killmail sync worker`);
+  
+  // Start background cron job for user killmail syncing
+  userKillmailCron.start().catch((error) => {
+    console.error('❌ Failed to start user killmail cron:', error);
+  });
 });
