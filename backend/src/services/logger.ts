@@ -18,29 +18,38 @@ const level = () => {
 const colors = {
   error: 'red',
   warn: 'yellow',
-  info: 'green',
+  info: 'white',
   http: 'magenta',
-  debug: 'blue',
+  debug: 'cyan', // indigo benzeri
 };
 
 winston.addColors(colors);
 
 const format = winston.format.combine(
-  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
+  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+  winston.format.printf((info) => {
+    const message = info.message;
+    const meta = info.metadata ? JSON.stringify(info.metadata) : '';
+    return `${info.timestamp} ${info.level}: ${message}${meta ? ' ' + meta : ''}`;
+  }),
   winston.format.colorize({ all: true }),
-  winston.format.printf(
-    (info) => `${info.timestamp} ${info.level}: ${info.message}`,
-  ),
 );
 
-const transports = [
+// Console her zaman, file sadece production'da
+const transports: winston.transport[] = [
   new winston.transports.Console(),
-  new winston.transports.File({
-    filename: 'logs/error.log',
-    level: 'error',
-  }),
-  new winston.transports.File({ filename: 'logs/all.log' }),
 ];
+
+const isProduction = process.env.NODE_ENV === 'production';
+if (isProduction) {
+  transports.push(
+    new winston.transports.File({
+      filename: 'logs/error.log',
+      level: 'error',
+    }),
+    new winston.transports.File({ filename: 'logs/all.log' })
+  );
+}
 
 const logger = winston.createLogger({
   level: level(),
