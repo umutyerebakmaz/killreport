@@ -1,5 +1,6 @@
 import '../config';
 import { KillmailService } from '../services/killmail';
+import logger from '../services/logger';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 import { getCharacterKillmailsFromZKill } from '../services/zkillboard';
@@ -20,9 +21,9 @@ interface QueueMessage {
  * Uses RabbitMQ queue for better scalability and reliability
  */
 async function killmailWorker() {
-    console.log('🔄 Killmail Worker Started');
-    console.log(`📦 Queue: ${QUEUE_NAME}`);
-    console.log(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent users\n`);
+    logger.info('🔄 Killmail Worker Started');
+    logger.info(`📦 Queue: ${QUEUE_NAME}`);
+    logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent users\n`);
 
     try {
         const channel = await getRabbitMQChannel();
@@ -38,8 +39,8 @@ async function killmailWorker() {
         // Set prefetch count (how many messages to process concurrently)
         channel.prefetch(PREFETCH_COUNT);
 
-        console.log('✅ Connected to RabbitMQ');
-        console.log('⏳ Waiting for killmail sync jobs...\n');
+        logger.info('✅ Connected to RabbitMQ');
+        logger.info('⏳ Waiting for killmail sync jobs...\n');
 
         // Consume messages from queue
         channel.consume(
@@ -50,18 +51,18 @@ async function killmailWorker() {
                 try {
                     const message: QueueMessage = JSON.parse(msg.content.toString());
 
-                    console.log(`\n${'━'.repeat(60)}`);
-                    console.log(`👤 Processing: ${message.characterName} (ID: ${message.characterId})`);
-                    console.log(`📅 Queued at: ${message.queuedAt}`);
-                    console.log('━'.repeat(60));
+                    logger.info(`\n${'━'.repeat(60)}`);
+                    logger.info(`👤 Processing: ${message.characterName} (ID: ${message.characterId})`);
+                    logger.info(`📅 Queued at: ${message.queuedAt}`);
+                    logger.info('━'.repeat(60));
 
                     await syncUserKillmails(message);
 
                     // Acknowledge message (remove from queue)
                     channel.ack(msg);
-                    console.log(`✅ Completed: ${message.characterName}\n`);
+                    logger.info(`✅ Completed: ${message.characterName}\n`);
                 } catch (error) {
-                    console.error(`❌ Failed to process message:`, error);
+                    logger.error(`❌ Failed to process message:`, error);
 
                     // Reject and requeue message (will retry later)
                     channel.nack(msg, false, true);
@@ -70,7 +71,7 @@ async function killmailWorker() {
             { noAck: false } // Manual acknowledgment
         );
     } catch (error) {
-        console.error('💥 Worker failed to start:', error);
+        logger.error('💥 Worker failed to start:', error);
         process.exit(1);
     }
 }
@@ -98,13 +99,13 @@ async function syncUserKillmails(message: QueueMessage): Promise<void> {
             });
 
             if (!user) {
-                console.log(`  ⚠️  User not found in database`);
+                logger.warn(`  ⚠️  User not found in database`);
                 return;
             }
 
             // Check if token is expired
             if (user.expires_at < new Date()) {
-                console.log(`  ⚠️  Token expired for ${user.character_name}`);
+                logger.warn(`  ⚠️  Token expired for ${user.character_name}`);
                 return;
             }
 
@@ -118,37 +119,37 @@ async function syncUserKillmails(message: QueueMessage): Promise<void> {
             hasAuth = false;
         }
 
-        console.log(`\n${'='.repeat(60)}`);
-        console.log(`🚀 Processing Character: ${characterName} (${characterId})`);
-        console.log(`   Auth: ${hasAuth ? 'Yes (logged-in user)' : 'No (external character)'}`);
-        console.log(`${'='.repeat(60)}\n`);
+        logger.info(`\n${'='.repeat(60)}`);
+        logger.info(`🚀 Processing Character: ${characterName} (${characterId})`);
+        logger.info(`   Auth: ${hasAuth ? 'Yes (logged-in user)' : 'No (external character)'}`);
+        logger.info(`${'='.repeat(60)}\n`);
 
         // Fetch killmails from zKillboard (includes ALL history up to MAX_PAGES)
-        console.log(`  📡 [${characterName}] Fetching killmails from zKillboard (max ${MAX_PAGES} pages)...`);
+        logger.info(`  📡 [${characterName}] Fetching killmails from zKillboard (max ${MAX_PAGES} pages)...`);
         const zkillPackages = await getCharacterKillmailsFromZKill(
             characterId,
             { maxPages: MAX_PAGES, characterName: characterName }
         );
 
         if (zkillPackages.length === 0) {
-            console.log(`  ℹ️  No killmails found`);
+            logger.info(`  ℹ️  No killmails found`);
             return;
         }
 
-        console.log(`  📥 Found ${zkillPackages.length} killmails`);
+        logger.info(`  📥 Found ${zkillPackages.length} killmails`);
 
         // Fetch details and save to database
         let savedCount = 0;
         let skippedCount = 0;
         let errorCount = 0;
 
-        console.log(`  💾 Processing killmails...`);
+        logger.info(`  💾 Processing killmails...`);
 
         for (const zkillPkg of zkillPackages) {
             try {
                 // Progress indicator every 50 killmails
                 if ((savedCount + skippedCount + errorCount) % 50 === 0 && (savedCount + skippedCount + errorCount) > 0) {
-                    console.log(`     📊 Progress: ${savedCount + skippedCount + errorCount}/${zkillPackages.length} (Saved: ${savedCount}, Skipped: ${skippedCount}, Errors: ${errorCount})`);
+                    logger.debug(`     📊 Progress: ${savedCount + skippedCount + errorCount}/${zkillPackages.length} (Saved: ${savedCount}, Skipped: ${skippedCount}, Errors: ${errorCount})`);
                 }
 
                 // Fetch killmail details from ESI
@@ -228,13 +229,13 @@ async function syncUserKillmails(message: QueueMessage): Promise<void> {
                 }
             } catch (error) {
                 errorCount++;
-                console.error(`  ❌ Failed to process killmail ${zkillPkg.killmail_id}:`, error);
+                logger.error(`  ❌ Failed to process killmail ${zkillPkg.killmail_id}:`, error);
             }
         }
 
-        console.log(`  ✅ Saved: ${savedCount}, Skipped: ${skippedCount}, Errors: ${errorCount}`);
+        logger.info(`  ✅ Saved: ${savedCount}, Skipped: ${skippedCount}, Errors: ${errorCount}`);
     } catch (error) {
-        console.error(`  ❌ Sync failed:`, error);
+        logger.error(`  ❌ Sync failed:`, error);
         throw error; // Re-throw to trigger message requeue
     }
 }
@@ -244,8 +245,8 @@ async function syncUserKillmails(message: QueueMessage): Promise<void> {
  */
 function setupShutdownHandlers() {
     const shutdown = () => {
-        console.log('\n\n⚠️  Received shutdown signal');
-        console.log('🛑 Stopping worker...');
+        logger.warn('\n\n⚠️  Received shutdown signal');
+        logger.warn('🛑 Stopping worker...');
         prisma.$disconnect();
         process.exit(0);
     };
@@ -257,6 +258,6 @@ function setupShutdownHandlers() {
 // Start the worker
 setupShutdownHandlers();
 killmailWorker().catch((error) => {
-    console.error('💥 Worker crashed:', error);
+    logger.error('💥 Worker crashed:', error);
     process.exit(1);
 });

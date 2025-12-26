@@ -56,10 +56,10 @@ export default function Header() {
     <header className="sticky top-0 z-50 bg-custom-dark-90 backdrop-blur-sm">
       <nav
         aria-label="Global"
-        className="flex items-center justify-between p-6 mx-auto lg:px-8 xl:px-12 2xl:px-16 max-w-[1920px]"
+        className="flex items-center justify-between p-6 mx-auto lg:px-8 xl:px-12 2xl:px-16 max-w-480"
       >
         <div className="flex lg:flex-1">
-          <a href="#" className="-m-1.5 p-1.5">
+          <a href="/" className="-m-1.5 p-1.5">
             <span className="sr-only">KillReport</span>
             <span className="text-2xl font-semibold tracking-tight text-gray-200">
               KILLREPORT
