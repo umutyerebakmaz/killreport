@@ -1,5 +1,6 @@
 import axios from 'axios';
 import '../config';
+import logger from '../services/logger';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
@@ -31,7 +32,7 @@ async function processRegion(regionId: number): Promise<boolean> {
         // Check rate limit headers
         const errorLimitRemain = response.headers['x-esi-error-limit-remain'];
         if (errorLimitRemain && parseInt(errorLimitRemain) < 20) {
-            console.log(
+            logger.warn(
                 `⚠️  Error limit low (${errorLimitRemain}/100), slowing down...`
             );
             await sleep(2000); // Wait 2 seconds
@@ -51,20 +52,20 @@ async function processRegion(regionId: number): Promise<boolean> {
             },
         });
 
-        console.log(`✅ Saved region ${regionId} - ${data.name}`);
+        logger.debug(`✅ Saved region ${regionId} - ${data.name}`);
 
         // Short wait for rate limiting - sadece başarılı ESI çağrılarında bekle
         await sleep(RATE_LIMIT_DELAY);
         return true;
     } catch (error: any) {
         if (error.response?.status === 404) {
-            console.log(`⚠️  Region ${regionId} not found (404)`);
+            logger.warn(`⚠️  Region ${regionId} not found (404)`);
         } else if (error.response?.status === 420) {
-            console.log(`🛑 Error limited (420)! Waiting 60 seconds...`);
+            logger.warn(`🛑 Error limited (420)! Waiting 60 seconds...`);
             await sleep(60000);
             throw error; // Requeue the message
         } else {
-            console.error(`❌ Error processing region ${regionId}:`, error.message);
+            logger.error(`❌ Error processing region ${regionId}:`, error.message);
         }
         throw error;
     }
@@ -80,17 +81,17 @@ function printCompletionSummary(
     startTime: number
 ) {
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-    console.log('\n' + '='.repeat(60));
-    console.log('🎉 ALL TASKS COMPLETED!');
-    console.log('='.repeat(60));
-    console.log(`✅ Processed: ${processedCount}`);
-    console.log(`⏭️  Skipped (already exists): ${skippedCount}`);
-    console.log(`❌ Errors: ${errorCount}`);
-    console.log(`📊 Total: ${processedCount + skippedCount + errorCount}`);
-    console.log(`⏱️  Duration: ${duration}s`);
-    console.log('='.repeat(60));
-    console.log('\n💡 Queue is empty, waiting for new messages...');
-    console.log('   Press CTRL+C to stop.\n');
+    logger.info('\n' + '='.repeat(60));
+    logger.info('🎉 ALL TASKS COMPLETED!');
+    logger.info('='.repeat(60));
+    logger.info(`✅ Processed: ${processedCount}`);
+    logger.info(`⏭️  Skipped (already exists): ${skippedCount}`);
+    logger.info(`❌ Errors: ${errorCount}`);
+    logger.info(`📊 Total: ${processedCount + skippedCount + errorCount}`);
+    logger.info(`⏱️  Duration: ${duration}s`);
+    logger.info('='.repeat(60));
+    logger.info('\n💡 Queue is empty, waiting for new messages...');
+    logger.info('   Press CTRL+C to stop.\n');
 }
 
 /**
@@ -105,10 +106,10 @@ async function startWorker() {
         let errorCount = 0;
         let startTime = Date.now();
 
-        console.log('🚀 Region Worker Started');
-        console.log('==========================');
-        console.log(`📡 Listening to queue: ${QUEUE_NAME}`);
-        console.log(`⏱️  Rate limit: ${1000 / RATE_LIMIT_DELAY} requests/second\n`);
+        logger.info('🚀 Region Worker Started');
+        logger.info('==========================');
+        logger.info(`📡 Listening to queue: ${QUEUE_NAME}`);
+        logger.info(`⏱️  Rate limit: ${1000 / RATE_LIMIT_DELAY} requests/second\n`);
 
         // Ensure queue exists
         await channel.assertQueue(QUEUE_NAME, {
@@ -117,7 +118,7 @@ async function startWorker() {
 
         // Check initial queue status
         const queueInfo = await channel.checkQueue(QUEUE_NAME);
-        console.log(`📊 Queue status: ${queueInfo.messageCount} messages waiting\n`);
+        logger.info(`📊 Queue status: ${queueInfo.messageCount} messages waiting\n`);
 
         // Process only 1 message at a time
         channel.prefetch(1);
@@ -130,7 +131,7 @@ async function startWorker() {
                 const regionId = parseInt(msg.content.toString());
 
                 if (isNaN(regionId)) {
-                    console.error('❌ Invalid region ID:', msg.content.toString());
+                    logger.error('❌ Invalid region ID:', msg.content.toString());
                     channel.ack(msg);
                     errorCount++;
                     return;
@@ -143,7 +144,7 @@ async function startWorker() {
                     if (exists) {
                         // Skip if already exists - no ESI call needed
                         skippedCount++;
-                        console.log(
+                        logger.debug(
                             `⏭️  Region ${regionId} already exists, skipping... (Processed: ${processedCount}, Skipped: ${skippedCount})`
                         );
                         channel.ack(msg);
@@ -176,14 +177,14 @@ async function startWorker() {
 
         // Graceful shutdown
         process.on('SIGINT', async () => {
-            console.log('\n\n🛑 Shutting down worker...');
+            logger.warn('\n\n🛑 Shutting down worker...');
             await channel.close();
             await prisma.$disconnect();
-            console.log('✅ Worker stopped gracefully');
+            logger.info('✅ Worker stopped gracefully');
             process.exit(0);
         });
     } catch (error) {
-        console.error('❌ Failed to start worker:', error);
+        logger.error('❌ Failed to start worker:', error);
         process.exit(1);
     }
 }

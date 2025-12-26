@@ -7,6 +7,7 @@
  */
 
 import axios from 'axios';
+import logger from '../services/logger';
 import prisma from '../services/prisma';
 
 interface ESIBloodline {
@@ -18,14 +19,14 @@ interface ESIBloodline {
 
 async function fetchAndSaveBloodlines() {
     try {
-        console.log('🚀 Starting bloodline sync...');
+        logger.info('🚀 Starting bloodline sync...');
 
         const response = await axios.get<ESIBloodline[]>(
             'https://esi.evetech.net/latest/universe/bloodlines/'
         );
 
         const bloodlines = response.data;
-        console.log(`✓ Fetched ${bloodlines.length} bloodlines from ESI`);
+        logger.info(`✓ Fetched ${bloodlines.length} bloodlines from ESI`);
 
         for (const bloodline of bloodlines) {
             try {
@@ -43,16 +44,16 @@ async function fetchAndSaveBloodlines() {
                         race_id: bloodline.race_id,
                     },
                 });
-                console.log(`  ✓ Saved: ${bloodline.name}`);
+                logger.debug(`  ✓ Saved: ${bloodline.name}`);
             } catch (error: any) {
-                console.error(`  ❌ Error saving bloodline ${bloodline.bloodline_id}:`, error.message);
+                logger.error(`  ❌ Error saving bloodline ${bloodline.bloodline_id}:`, error.message);
             }
         }
 
-        console.log(`✅ Bloodline sync completed! Total: ${bloodlines.length}`);
+        logger.info(`✅ Bloodline sync completed! Total: ${bloodlines.length}`);
         process.exit(0);
     } catch (error: any) {
-        console.error('❌ Error fetching bloodlines:', error.message);
+        logger.error('❌ Error fetching bloodlines:', error.message);
         process.exit(1);
     }
 }

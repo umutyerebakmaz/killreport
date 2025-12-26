@@ -270,22 +270,27 @@ model Type {
 }
 
 model User {
-  id                     Int       @id @default(autoincrement())
-  character_id           Int       @unique
-  character_name         String
-  character_owner_hash   String
-  access_token           String
-  refresh_token          String?
-  expires_at             DateTime
-  email                  String?   @unique
-  created_at             DateTime  @default(now())
-  updated_at             DateTime  @updatedAt
-  last_killmail_sync_at  DateTime? // Son killmail sync zamanı
-  last_killmail_id       Int?      // En son senkronize edilen killmail ID (incremental sync için)
+  id                            Int       @id @default(autoincrement())
+  character_id                  Int       @unique
+  character_name                String
+  character_owner_hash          String
+  access_token                  String
+  refresh_token                 String?
+  expires_at                    DateTime
+  email                         String?   @unique
+  created_at                    DateTime  @default(now())
+  updated_at                    DateTime  @updatedAt
+  last_killmail_sync_at         DateTime? // Son character killmail sync zamanı
+  last_killmail_id              Int?      // En son senkronize edilen character killmail ID (incremental sync için)
+  last_corp_killmail_sync_at    DateTime? // Son corporation killmail sync zamanı
+  last_corp_killmail_id         Int?      // En son senkronize edilen corporation killmail ID (incremental sync için)
+  corporation_id                Int?      // User'ın corporation ID'si
 
   @@index([character_id])
   @@index([expires_at])
   @@index([last_killmail_sync_at])
+  @@index([corporation_id])
+  @@index([last_corp_killmail_sync_at])
   @@map("users")
 }
 

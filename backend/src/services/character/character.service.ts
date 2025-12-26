@@ -94,29 +94,33 @@ export class CharacterService {
               allKillmails.push(...newKillmails);
             }
             console.log(`     ✅ Incremental sync: Found last synced killmail (ID: ${stopAtKillmailId})`);
-            console.log(`     ⏭️  Stopping at page ${page} - fetched ${newKillmails.length} new killmails`);
+            console.log(`     ⏭️  Stopping at page ${page} - fetched ${newKillmails.length} new killmails from this page`);
+            console.log(`     📊 Total new killmails: ${allKillmails.length}`);
             break;
           }
         }
 
         allKillmails.push(...killmails);
 
-        // If less than 50 returned, this is the last page (ESI returns 50 per page)
+        // ESI returns exactly 50 killmails per page when there are more pages available
+        // If less than 50 returned, this is the last page
         if (killmails.length < 50) {
-          console.log(`     ✓ Last page (${killmails.length} < 50)`);
+          console.log(`     ✓ Last page detected (${killmails.length} < 50 killmails)`);
           break;
         }
 
+        console.log(`     ➡️  Continuing to page ${page + 1}...`);
+
         // Add extra delay between pages to prevent rate limiting
         // ESI allows 150 req/sec but we play it safe with multiple workers
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 500));
       } catch (error: any) {
         console.error(`     ❌ Error fetching page ${page}:`, error.message);
 
         // If rate limited, wait and retry once
-        if (error.message.includes('420') || error.message.includes('Rate limit')) {
-          console.log(`     ⏳ Rate limited, waiting 2 seconds before retry...`);
-          await new Promise(resolve => setTimeout(resolve, 2000));
+        if (error.message.includes('420') || error.message.includes('429') || error.message.includes('Rate limit')) {
+          console.log(`     ⏳ Rate limited, waiting 5 seconds before retry...`);
+          await new Promise(resolve => setTimeout(resolve, 5000));
 
           // Retry the same page
           try {
