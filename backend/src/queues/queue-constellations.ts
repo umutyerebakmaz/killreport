@@ -1,5 +1,6 @@
 import '../config';
 import { ConstellationService } from '../services/constellation';
+import logger from '../services/logger';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
 const QUEUE_NAME = 'esi_all_constellations_queue';
@@ -9,14 +10,14 @@ const BATCH_SIZE = 100;
  * Fetches all constellation IDs from ESI and adds them to RabbitMQ queue
  */
 async function queueConstellations() {
-    console.log('📡 Fetching all constellation IDs from ESI...\n');
+    logger.info('Fetching all constellation IDs from ESI...');
 
     try {
         // Get all constellation IDs from ESI
         const constellationIds = await ConstellationService.getAllConstellationIds();
 
-        console.log(`✓ Found ${constellationIds.length} constellations`);
-        console.log(`📤 Adding to queue...\n`);
+        logger.info(`Found ${constellationIds.length} constellations`);
+        logger.info('Adding to queue...');
 
         const channel = await getRabbitMQChannel();
 
@@ -35,20 +36,20 @@ async function queueConstellations() {
                 });
             }
 
-            console.log(
-                `  ⏳ Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
+            logger.debug(
+                `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
                     constellationIds.length / BATCH_SIZE
                 )} (${batch.length} constellations)`
             );
         }
 
-        console.log(`\n✅ All ${constellationIds.length} constellations queued successfully!`);
-        console.log('💡 Now run the worker to process them: yarn worker:constellations\n');
+        logger.info(`All ${constellationIds.length} constellations queued successfully!`);
+        logger.info('Now run the worker to process them: yarn worker:constellations');
 
         await channel.close();
         process.exit(0);
     } catch (error) {
-        console.error('❌ Failed to queue constellations:', error);
+        logger.error('Failed to queue constellations', { error });
         process.exit(1);
     }
 }

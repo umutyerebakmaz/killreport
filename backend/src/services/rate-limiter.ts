@@ -9,8 +9,8 @@ class RateLimiter {
     private processing = false;
     private requestCount = 0;
     private windowStart = Date.now();
-    private readonly maxRequestsPerSecond = 20; // Very conservative (ESI allows 150)
-    private readonly minDelayBetweenRequests = 100; // 100ms minimum = max 10 req/sec per worker
+    private readonly maxRequestsPerSecond = 5; // Very conservative (ESI allows 150)
+    private readonly minDelayBetweenRequests = 250; // 250ms minimum = max 4 req/sec per worker
 
     /**
      * Execute a function with rate limiting

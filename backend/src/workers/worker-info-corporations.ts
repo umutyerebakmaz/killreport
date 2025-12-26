@@ -5,6 +5,7 @@
 
 import '../config';
 import { CorporationService } from '../services/corporation';
+import logger from '../services/logger';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
@@ -18,9 +19,9 @@ interface EntityQueueMessage {
 }
 
 async function corporationInfoWorker() {
-    console.log('🏢 Corporation Info Worker Started');
-    console.log(`📦 Queue: ${QUEUE_NAME}`);
-    console.log(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
+    logger.info('🏢 Corporation Info Worker Started');
+    logger.info(`📦 Queue: ${QUEUE_NAME}`);
+    logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
     try {
         const channel = await getRabbitMQChannel();
@@ -32,8 +33,8 @@ async function corporationInfoWorker() {
 
         channel.prefetch(PREFETCH_COUNT);
 
-        console.log('✅ Connected to RabbitMQ');
-        console.log('⏳ Waiting for corporations...\n');
+        logger.info('✅ Connected to RabbitMQ');
+        logger.info('⏳ Waiting for corporations...\n');
 
         let totalProcessed = 0;
         let totalCreated = 0;
@@ -45,11 +46,11 @@ async function corporationInfoWorker() {
         const emptyCheckInterval = setInterval(async () => {
             const timeSinceLastMessage = Date.now() - lastMessageTime;
             if (timeSinceLastMessage > 5000 && totalProcessed > 0) {
-                console.log('\n' + '━'.repeat(60));
-                console.log('✅ Queue completed!');
-                console.log(`📊 Final: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)`);
-                console.log('━'.repeat(60) + '\n');
-                console.log('⏳ Waiting for new messages...\n');
+                logger.info('\n' + '━'.repeat(60));
+                logger.info('✅ Queue completed!');
+                logger.info(`📊 Final: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)`);
+                logger.info('━'.repeat(60) + '\n');
+                logger.info('⏳ Waiting for new messages...\n');
             }
         }, 5000);
 
@@ -107,10 +108,10 @@ async function corporationInfoWorker() {
 
                     if (existing) {
                         totalUpdated++;
-                        console.log(`  ✅ [${totalProcessed + 1}][${corporationId}] ${corpInfo.name} [${corpInfo.ticker}] \x1b[36m(updated)\x1b[0m`);
+                        logger.debug(`  ✅ [${totalProcessed + 1}][${corporationId}] ${corpInfo.name} [${corpInfo.ticker}] \x1b[36m(updated)\x1b[0m`);
                     } else {
                         totalCreated++;
-                        console.log(`  ✅ [${totalProcessed + 1}][${corporationId}] ${corpInfo.name} [${corpInfo.ticker}] \x1b[32m(created)\x1b[0m`);
+                        logger.debug(`  ✅ [${totalProcessed + 1}][${corporationId}] ${corpInfo.name} [${corpInfo.ticker}] \x1b[32m(created)\x1b[0m`);
                     } channel.ack(msg);
                     totalProcessed++;
 
@@ -119,10 +120,10 @@ async function corporationInfoWorker() {
                     totalProcessed++;
 
                     if (error.message?.includes('404')) {
-                        console.log(`  ! [${totalProcessed}] Corporation ${message.entityId} (404)`);
+                        logger.warn(`  ! [${totalProcessed}] Corporation ${message.entityId} (404)`);
                         channel.ack(msg);
                     } else {
-                        console.error(`  × [${totalProcessed}] Corporation ${message.entityId}: ${error.message}`);
+                        logger.error(`  × [${totalProcessed}] Corporation ${message.entityId}: ${error.message}`);
                         channel.nack(msg, false, true);
                     }
                 }
@@ -131,7 +132,7 @@ async function corporationInfoWorker() {
         );
 
     } catch (error) {
-        console.error('💥 Worker failed to start:', error);
+        logger.error('💥 Worker failed to start:', error);
         await prisma.$disconnect();
         process.exit(1);
     }
@@ -139,7 +140,7 @@ async function corporationInfoWorker() {
 
 function setupShutdownHandlers() {
     const shutdown = async () => {
-        console.log('\n\n⚠️  Shutting down...');
+        logger.warn('\n\n⚠️  Shutting down...');
         await prisma.$disconnect();
         process.exit(0);
     };

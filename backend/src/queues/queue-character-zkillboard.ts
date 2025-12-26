@@ -1,4 +1,5 @@
 import '../config';
+import logger from '../services/logger';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
 const QUEUE_NAME = 'zkillboard_character_queue';
@@ -12,13 +13,13 @@ async function queueCharacter() {
     const characterName = process.argv[3];
 
     if (!characterId || !characterName) {
-        console.error('❌ Usage: yarn queue:character:zkillboard <characterId> <characterName>');
-        console.error('   Example: yarn queue:character:zkillboard 95465499 "Foo Bar"');
+        logger.error('Usage: yarn queue:character:zkillboard <characterId> <characterName>');
+        logger.error('  Example: yarn queue:character:zkillboard 95465499 "Foo Bar"');
         process.exit(1);
     }
 
-    console.log('📡 Queueing character for killmail sync...\n');
-    console.log(`   Character: ${characterName} (${characterId})\n`);
+    logger.info('Queueing character for killmail sync...');
+    logger.info(`Character: ${characterName} (${characterId})`);
 
     try {
         const channel = await getRabbitMQChannel();
@@ -39,13 +40,13 @@ async function queueCharacter() {
             }
         );
 
-        console.log(`✅ Character queued successfully!`);
-        console.log('💡 Now run the worker to process: yarn worker:zkillboard\n');
+        logger.info('Character queued successfully!');
+        logger.info('Now run the worker to process: yarn worker:zkillboard');
 
         await channel.close();
         process.exit(0);
     } catch (error) {
-        console.error('❌ Failed to queue character:', error);
+        logger.error('Failed to queue character', { error });
         process.exit(1);
     }
 }

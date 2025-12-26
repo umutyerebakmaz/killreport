@@ -1,5 +1,6 @@
 import '../config';
 import { CategoryService } from '../services/category';
+import logger from '../services/logger';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
 const QUEUE_NAME = 'esi_category_info_queue';
@@ -10,14 +11,14 @@ const BATCH_SIZE = 50;
  * These will be processed by worker:info:categories
  */
 async function queueCategories() {
-    console.log('📡 Fetching all category IDs from ESI...\n');
+    logger.info('Fetching all category IDs from ESI...');
 
     try {
         // Get all category IDs from ESI
         const categoryIds = await CategoryService.getAllCategoryIds();
 
-        console.log(`✓ Found ${categoryIds.length} categories`);
-        console.log(`📤 Adding to queue: ${QUEUE_NAME}\n`);
+        logger.info(`Found ${categoryIds.length} categories`);
+        logger.info(`Adding to queue: ${QUEUE_NAME}`);
 
         const channel = await getRabbitMQChannel();
 
@@ -42,20 +43,20 @@ async function queueCategories() {
                 });
             }
 
-            console.log(
-                `  ⏳ Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
+            logger.debug(
+                `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
                     categoryIds.length / BATCH_SIZE
                 )} (${batch.length} categories)`
             );
         }
 
-        console.log(`\n✅ All ${categoryIds.length} categories queued successfully!`);
-        console.log('💡 Now run the worker: yarn worker:info:categories\n');
+        logger.info(`All ${categoryIds.length} categories queued successfully!`);
+        logger.info('Now run the worker: yarn worker:info:categories');
 
         await channel.close();
         process.exit(0);
     } catch (error) {
-        console.error('❌ Failed to queue categories:', error);
+        logger.error('Failed to queue categories', { error });
         process.exit(1);
     }
 }

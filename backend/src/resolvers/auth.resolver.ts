@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto';
 import { MutationResolvers, QueryResolvers } from '../generated-types';
+import { CharacterService } from '../services/character/character.service';
 import {
   exchangeCodeForToken,
   getAuthUrl,
@@ -57,6 +58,15 @@ export const authMutations: MutationResolvers = {
       // Calculate token expiry time
       const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
 
+      // Fetch character info from ESI to get corporation_id
+      let corporationId: number | null = null;
+      try {
+        const characterInfo = await CharacterService.getCharacterInfo(character.characterId);
+        corporationId = characterInfo.corporation_id;
+      } catch (error) {
+        console.warn('⚠️  Failed to fetch corporation_id for character:', error);
+      }
+
       // Find or create user in database
       const user = await prisma.user.upsert({
         where: { character_id: character.characterId },
@@ -65,6 +75,7 @@ export const authMutations: MutationResolvers = {
           access_token: tokenData.access_token,
           refresh_token: tokenData.refresh_token,
           expires_at: expiresAt,
+          corporation_id: corporationId, // Update corporation_id
         },
         create: {
           character_id: character.characterId,
@@ -73,6 +84,7 @@ export const authMutations: MutationResolvers = {
           access_token: tokenData.access_token,
           refresh_token: tokenData.refresh_token,
           expires_at: expiresAt,
+          corporation_id: corporationId, // Save corporation_id
         },
       });
 
@@ -80,23 +92,23 @@ export const authMutations: MutationResolvers = {
       // Only queue if user hasn't been synced recently (within 15 minutes)
       try {
         const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
-        const shouldQueue = !user.last_killmail_sync_at ||
+        const channel = await getRabbitMQChannel();
+
+        // 1. Queue CHARACTER killmails
+        const shouldQueueChar = !user.last_killmail_sync_at ||
           user.last_killmail_sync_at < fifteenMinutesAgo;
 
-        if (shouldQueue) {
-          const channel = await getRabbitMQChannel();
-          const QUEUE_NAME = 'esi_user_killmails_queue';
+        if (shouldQueueChar) {
+          const CHAR_QUEUE_NAME = 'esi_user_killmails_queue';
 
-          // Assert queue exists
-          await channel.assertQueue(QUEUE_NAME, {
+          await channel.assertQueue(CHAR_QUEUE_NAME, {
             durable: true,
             arguments: {
               'x-max-priority': 10,
             },
           });
 
-          // Queue the user for killmail sync
-          const message = {
+          const charMessage = {
             userId: user.id,
             characterId: user.character_id,
             characterName: user.character_name,
@@ -107,20 +119,73 @@ export const authMutations: MutationResolvers = {
           };
 
           channel.sendToQueue(
-            QUEUE_NAME,
-            Buffer.from(JSON.stringify(message)),
+            CHAR_QUEUE_NAME,
+            Buffer.from(JSON.stringify(charMessage)),
             {
               persistent: true,
               priority: 8, // High priority for new logins
             }
           );
 
-          console.log(`✅ Queued killmail sync for ${user.character_name} (ID: ${user.character_id})`);
+          console.log(`✅ Queued character killmail sync for ${user.character_name}`);
         } else {
           const timeSinceSync = user.last_killmail_sync_at
             ? Math.floor((Date.now() - user.last_killmail_sync_at.getTime()) / 1000 / 60)
             : 'unknown';
-          console.log(`⏭️  Skipped queue for ${user.character_name} (synced ${timeSinceSync} minutes ago)`);
+          console.log(`⏭️  Skipped character queue for ${user.character_name} (synced ${timeSinceSync} minutes ago)`);
+        }
+
+        // 2. Queue CORPORATION killmails (if user has corporation_id)
+        if (corporationId) {
+          const shouldQueueCorp = !user.last_corp_killmail_sync_at ||
+            user.last_corp_killmail_sync_at < fifteenMinutesAgo;
+
+          if (shouldQueueCorp) {
+            const CORP_QUEUE_NAME = 'esi_corporation_killmails_queue';
+
+            await channel.assertQueue(CORP_QUEUE_NAME, {
+              durable: true,
+              arguments: {
+                'x-max-priority': 10,
+              },
+            });
+
+            // Fetch corporation name
+            let corporationName = `Corporation ${corporationId}`;
+            try {
+              const corp = await prisma.corporation.findUnique({
+                where: { id: corporationId },
+                select: { name: true },
+              });
+              if (corp) corporationName = corp.name;
+            } catch (err) {
+              // Ignore, use default name
+            }
+
+            const corpMessage = {
+              userId: user.id,
+              characterId: user.character_id,
+              characterName: user.character_name,
+              corporationId,
+              corporationName,
+              accessToken: tokenData.access_token,
+              refreshToken: tokenData.refresh_token,
+              expiresAt: expiresAt.toISOString(),
+              queuedAt: new Date().toISOString(),
+            };
+
+            channel.sendToQueue(
+              CORP_QUEUE_NAME,
+              Buffer.from(JSON.stringify(corpMessage)),
+              {
+                persistent: true,
+                priority: 7, // Slightly lower priority than character
+              }
+            );
+
+            console.log(`✅ Queued corporation killmail sync for ${corporationName}`);
+            console.log(`   ⚠️  Note: Requires Director/CEO role to succeed`);
+          }
         }
       } catch (queueError) {
         // Log error but don't fail the login

@@ -12,10 +12,11 @@
  *   0 0 * * * cd /root/killreport/backend && yarn snapshot:alliances
  */
 
+import logger from '../services/logger';
 import prisma from '../services/prisma';
 
 async function takeAllianceSnapshots() {
-    console.log('📸 Alliance Snapshot Worker started...');
+    logger.info('📸 Alliance Snapshot Worker started...');
 
     const startTime = new Date();
     const today = new Date();
@@ -27,7 +28,7 @@ async function takeAllianceSnapshots() {
             select: { id: true },
         });
 
-        console.log(`✓ Found ${alliances.length} alliances`);
+        logger.info(`✓ Found ${alliances.length} alliances`);
 
         let processed = 0;
         let created = 0;
@@ -86,22 +87,22 @@ async function takeAllianceSnapshots() {
 
             // Show progress every 50 alliances
             if (processed % 50 === 0) {
-                console.log(`  ⏳ Processed: ${processed}/${alliances.length} (${created} new, ${skipped} existing)`);
+                logger.debug(`  ⏳ Processed: ${processed}/${alliances.length} (${created} new, ${skipped} existing)`);
             }
         }
 
         const endTime = new Date();
         const duration = ((endTime.getTime() - startTime.getTime()) / 1000).toFixed(2);
 
-        console.log(`✅ Snapshot creation completed!`);
-        console.log(`   • Total processed: ${processed}`);
-        console.log(`   • New snapshots: ${created}`);
-        console.log(`   • Already existing: ${skipped}`);
-        console.log(`   • Duration: ${duration} seconds`);
-        console.log(`   • Date: ${today.toISOString().split('T')[0]}`);
+        logger.info(`✅ Snapshot creation completed!`);
+        logger.info(`   • Total processed: ${processed}`);
+        logger.info(`   • New snapshots: ${created}`);
+        logger.info(`   • Already existing: ${skipped}`);
+        logger.info(`   • Duration: ${duration} seconds`);
+        logger.info(`   • Date: ${today.toISOString().split('T')[0]}`);
 
     } catch (error) {
-        console.error('❌ Snapshot creation error:', error);
+        logger.error('❌ Snapshot creation error:', error);
         throw error;
     } finally {
         await prisma.$disconnect();
@@ -111,10 +112,10 @@ async function takeAllianceSnapshots() {
 // Start worker
 takeAllianceSnapshots()
     .then(() => {
-        console.log('👋 Worker terminated');
+        logger.info('👋 Worker terminated');
         process.exit(0);
     })
     .catch((error) => {
-        console.error('💥 Worker error:', error);
+        logger.error('💥 Worker error:', error);
         process.exit(1);
     });
