@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { MutationResolvers, PageInfo, QueryResolvers, SolarSystemResolvers } from '../generated-types';
+import logger from '../services/logger';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
@@ -96,14 +97,14 @@ export const solarSystemQueries: QueryResolvers = {
 export const solarSystemMutations: MutationResolvers = {
     startSolarSystemSync: async (_, { input }) => {
         try {
-            console.log('🚀 Starting solar system sync via GraphQL...');
+            logger.info('🚀 Starting solar system sync via GraphQL...');
 
             // Get all system IDs from ESI
             const response = await axios.get('https://esi.evetech.net/latest/universe/systems/');
             const systemIds: number[] = response.data;
 
-            console.log(`✓ Found ${systemIds.length} solar systems`);
-            console.log(`📤 Publishing to queue...`);
+            logger.info(`✓ Found ${systemIds.length} solar systems`);
+            logger.info(`📤 Publishing to queue...`);
 
             // RabbitMQ'ya ekle
             const channel = await getRabbitMQChannel();
@@ -121,14 +122,14 @@ export const solarSystemMutations: MutationResolvers = {
                 publishedCount++;
             }
 
-            console.log(`✅ All ${systemIds.length} solar systems queued successfully!`);
+            logger.info(`✅ All ${systemIds.length} solar systems queued successfully!`);
             return {
                 success: true,
                 message: `${systemIds.length} solar systems queued successfully`,
                 clientMutationId: input.clientMutationId || null,
             };
         } catch (error) {
-            console.error('❌ Error starting solar system sync:', error);
+            logger.error('❌ Error starting solar system sync:', error);
             return {
                 success: false,
                 message: 'Failed to start solar system sync',

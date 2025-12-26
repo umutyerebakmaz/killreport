@@ -1,136 +1,137 @@
 import { MutationResolvers, PageInfo, QueryResolvers, TypeResolvers } from '../generated-types';
+import logger from '../services/logger';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 import { TypeService } from '../services/type';
 
 export const typeQueries: QueryResolvers = {
-  type: async (_, { id }) => {
-    const type = await prisma.type.findUnique({
-      where: { id: Number(id) },
-    });
-    if (!type) return null;
+    type: async (_, { id }) => {
+        const type = await prisma.type.findUnique({
+            where: { id: Number(id) },
+        });
+        if (!type) return null;
 
-    return {
-      ...type,
-      created_at: type.created_at.toISOString(),
-      updated_at: type.updated_at.toISOString(),
-    } as any;
-  },
+        return {
+            ...type,
+            created_at: type.created_at.toISOString(),
+            updated_at: type.updated_at.toISOString(),
+        } as any;
+    },
 
-  types: async (_, { filter }) => {
-    const take = filter?.limit ?? 25;
-    const currentPage = filter?.page ?? 1;
-    const skip = (currentPage - 1) * take;
+    types: async (_, { filter }) => {
+        const take = filter?.limit ?? 25;
+        const currentPage = filter?.page ?? 1;
+        const skip = (currentPage - 1) * take;
 
-    // Filter koşullarını oluştur
-    const where: any = {};
-    if (filter) {
-      if (filter.search) {
-        where.name = { contains: filter.search, mode: 'insensitive' };
-      }
-      if (filter.group_id !== undefined && filter.group_id !== null) {
-        where.group_id = filter.group_id;
-      }
-      if (filter.published !== undefined && filter.published !== null) {
-        where.published = filter.published;
-      }
-    }
+        // Filter koşullarını oluştur
+        const where: any = {};
+        if (filter) {
+            if (filter.search) {
+                where.name = { contains: filter.search, mode: 'insensitive' };
+            }
+            if (filter.group_id !== undefined && filter.group_id !== null) {
+                where.group_id = filter.group_id;
+            }
+            if (filter.published !== undefined && filter.published !== null) {
+                where.published = filter.published;
+            }
+        }
 
-    // Total record count (filtered)
-    const totalCount = await prisma.type.count({ where });
-    const totalPages = Math.ceil(totalCount / take);
+        // Total record count (filtered)
+        const totalCount = await prisma.type.count({ where });
+        const totalPages = Math.ceil(totalCount / take);
 
-    // Fetch data - alfabetik sıralama
-    const types = await prisma.type.findMany({
-      where,
-      skip,
-      take,
-      orderBy: { name: 'asc' },
-    });
+        // Fetch data - alfabetik sıralama
+        const types = await prisma.type.findMany({
+            where,
+            skip,
+            take,
+            orderBy: { name: 'asc' },
+        });
 
-    const pageInfo: PageInfo = {
-      currentPage,
-      totalPages,
-      totalCount,
-      hasNextPage: currentPage < totalPages,
-      hasPreviousPage: currentPage > 1,
-    };
+        const pageInfo: PageInfo = {
+            currentPage,
+            totalPages,
+            totalCount,
+            hasNextPage: currentPage < totalPages,
+            hasPreviousPage: currentPage > 1,
+        };
 
-    return {
-      edges: types.map((t: any, index: number) => ({
-        node: {
-          ...t,
-          created_at: t.created_at.toISOString(),
-          updated_at: t.updated_at.toISOString(),
-        },
-        cursor: Buffer.from(`${skip + index}`).toString('base64'),
-      })),
-      pageInfo,
-    };
-  },
+        return {
+            edges: types.map((t: any, index: number) => ({
+                node: {
+                    ...t,
+                    created_at: t.created_at.toISOString(),
+                    updated_at: t.updated_at.toISOString(),
+                },
+                cursor: Buffer.from(`${skip + index}`).toString('base64'),
+            })),
+            pageInfo,
+        };
+    },
 };
 
 export const typeMutations: MutationResolvers = {
-  startTypeSync: async (_, { input }) => {
-    try {
-      console.log('🚀 Starting type sync via GraphQL...');
+    startTypeSync: async (_, { input }) => {
+        try {
+            logger.info('🚀 Starting type sync via GraphQL...');
 
-      // Get all type IDs from ESI (fetches from all item groups)
-      const typeIds = await TypeService.getTypeIds();
+            // Get all type IDs from ESI (fetches from all item groups)
+            const typeIds = await TypeService.getTypeIds();
 
-      console.log(`✓ Found ${typeIds.length} types`);
-      console.log(`📤 Publishing to queue...`);
+            logger.info(`✓ Found ${typeIds.length} types`);
+            logger.info(`📤 Publishing to queue...`);
 
-      // RabbitMQ'ya ekle
-      const channel = await getRabbitMQChannel();
-      const QUEUE_NAME = 'esi_type_info_queue';
+            // RabbitMQ'ya ekle
+            const channel = await getRabbitMQChannel();
+            const QUEUE_NAME = 'esi_type_info_queue';
 
-      await channel.assertQueue(QUEUE_NAME, {
-        durable: true,
-        arguments: { 'x-max-priority': 10 },
-      });
+            await channel.assertQueue(QUEUE_NAME, {
+                durable: true,
+                arguments: { 'x-max-priority': 10 },
+            });
 
-      let publishedCount = 0;
-      for (const id of typeIds) {
-        const message = {
-          entityId: id,
-          queuedAt: new Date().toISOString(),
-          source: 'startTypeSync',
-        };
-        channel.sendToQueue(QUEUE_NAME, Buffer.from(JSON.stringify(message)), {
-          persistent: true,
-        });
-        publishedCount++;
-      }
+            let publishedCount = 0;
+            for (const id of typeIds) {
+                const message = {
+                    entityId: id,
+                    queuedAt: new Date().toISOString(),
+                    source: 'startTypeSync',
+                };
+                channel.sendToQueue(QUEUE_NAME, Buffer.from(JSON.stringify(message)), {
+                    persistent: true,
+                });
+                publishedCount++;
+            }
 
-      console.log(`✅ Queued ${publishedCount} types for sync`);
+            logger.info(`✅ Queued ${publishedCount} types for sync`);
 
-      return {
-        success: true,
-        message: `Successfully queued ${publishedCount} types for sync`,
-        clientMutationId: input.clientMutationId,
-      };
-    } catch (error) {
-      console.error('❌ Error starting type sync:', error);
-      return {
-        success: false,
-        message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        clientMutationId: input.clientMutationId,
-      };
-    }
-  },
+            return {
+                success: true,
+                message: `Successfully queued ${publishedCount} types for sync`,
+                clientMutationId: input.clientMutationId,
+            };
+        } catch (error) {
+            logger.error('❌ Error starting type sync:', error);
+            return {
+                success: false,
+                message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                clientMutationId: input.clientMutationId,
+            };
+        }
+    },
 };
 
 export const typeFieldResolvers: TypeResolvers = {
-  group: async (parent, _, context) => {
-    if (!parent.group_id) return null;
-    const group = await context.loaders.itemGroup.load(parent.group_id);
-    if (!group) return null;
+    group: async (parent, _, context) => {
+        if (!parent.group_id) return null;
+        const group = await context.loaders.itemGroup.load(parent.group_id);
+        if (!group) return null;
 
-    return {
-      ...group,
-      created_at: group.created_at.toISOString(),
-      updated_at: group.updated_at.toISOString(),
-    } as any;
-  },
+        return {
+            ...group,
+            created_at: group.created_at.toISOString(),
+            updated_at: group.updated_at.toISOString(),
+        } as any;
+    },
 };
