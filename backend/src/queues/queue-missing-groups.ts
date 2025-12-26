@@ -1,3 +1,4 @@
+import logger from '../services/logger';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
@@ -8,7 +9,7 @@ const QUEUE_NAME = 'esi_item_group_info_queue';
  * This ensures all types have their group information available
  */
 async function queueMissingGroups() {
-    console.log('🔍 Scanning for missing item groups...\n');
+    logger.info('Scanning for missing item groups...');
 
     try {
         // Get all unique group_ids from types table
@@ -18,7 +19,7 @@ async function queueMissingGroups() {
         });
 
         const uniqueGroupIds = typesWithGroups.map((t) => t.group_id);
-        console.log(`✓ Found ${uniqueGroupIds.length} unique group IDs in types table`);
+        logger.info(`Found ${uniqueGroupIds.length} unique group IDs in types table`);
 
         // Get existing item groups
         const existingGroups = await prisma.itemGroup.findMany({
@@ -26,20 +27,19 @@ async function queueMissingGroups() {
         });
 
         const existingGroupIds = new Set(existingGroups.map((g) => g.id));
-        console.log(`✓ Found ${existingGroupIds.size} existing item groups in database`);
+        logger.info(`Found ${existingGroupIds.size} existing item groups in database`);
 
         // Find missing group IDs
         const missingGroupIds = uniqueGroupIds.filter((id) => !existingGroupIds.has(id));
 
-        console.log(`\n📦 Missing Groups: ${missingGroupIds.length}\n`);
+        logger.info(`Missing Groups: ${missingGroupIds.length}`);
 
         if (missingGroupIds.length === 0) {
-            console.log('✅ All item groups are already in database!');
+            logger.info('All item groups are already in database!');
             process.exit(0);
         }
 
-        console.log('Missing group IDs:', missingGroupIds.sort((a, b) => a - b).join(', '));
-        console.log('');
+        logger.debug('Missing group IDs: ' + missingGroupIds.sort((a, b) => a - b).join(', '));
 
         // Queue missing groups
         const channel = await getRabbitMQChannel();
@@ -65,15 +65,15 @@ async function queueMissingGroups() {
             queuedCount++;
         }
 
-        console.log(`✅ Queued ${queuedCount} missing item groups`);
-        console.log('\n📝 Next Steps:');
-        console.log('   1. Start the item group worker: yarn worker:info:item-groups');
-        console.log('   2. Worker will fetch missing groups from ESI and save to database');
+        logger.info(`Queued ${queuedCount} missing item groups`);
+        logger.info('Next Steps:');
+        logger.info('  1. Start the item group worker: yarn worker:info:item-groups');
+        logger.info('  2. Worker will fetch missing groups from ESI and save to database');
 
         await channel.close();
         process.exit(0);
     } catch (error) {
-        console.error('❌ Error:', error);
+        logger.error('Error', { error });
         process.exit(1);
     }
 }

@@ -4,15 +4,16 @@
  * Bu worker EVE Online'daki tüm ırkların bilgilerini çeker.
  */
 
+import logger from '../services/logger';
 import prisma from '../services/prisma';
 import { RaceService } from '../services/race/race.service';
 
 async function fetchAndSaveRaces() {
     try {
-        console.log('🚀 Starting race sync...');
+        logger.info('🚀 Starting race sync...');
 
         const races = await RaceService.getRaces();
-        console.log(`✓ Fetched ${races.length} races from ESI`);
+        logger.info(`✓ Fetched ${races.length} races from ESI`);
 
         for (const race of races) {
             try {
@@ -28,16 +29,16 @@ async function fetchAndSaveRaces() {
                         description: race.description,
                     },
                 });
-                console.log(`  ✓ Saved: ${race.name}`);
+                logger.debug(`  ✓ Saved: ${race.name}`);
             } catch (error: any) {
-                console.error(`  ❌ Error saving race ${race.race_id}:`, error.message);
+                logger.error(`  ❌ Error saving race ${race.race_id}:`, error.message);
             }
         }
 
-        console.log(`✅ Race sync completed! Total: ${races.length}`);
+        logger.info(`✅ Race sync completed! Total: ${races.length}`);
         process.exit(0);
     } catch (error: any) {
-        console.error('❌ Error fetching races:', error.message);
+        logger.error('❌ Error fetching races:', error.message);
         process.exit(1);
     }
 }

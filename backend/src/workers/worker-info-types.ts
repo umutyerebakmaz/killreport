@@ -4,6 +4,7 @@
  */
 
 import '../config';
+import logger from '../services/logger';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 import { TypeService } from '../services/type';
@@ -18,9 +19,9 @@ interface EntityQueueMessage {
 }
 
 async function typeInfoWorker() {
-    console.log('📦 Type Info Worker Started');
-    console.log(`📦 Queue: ${QUEUE_NAME}`);
-    console.log(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
+    logger.info('📦 Type Info Worker Started');
+    logger.info(`📦 Queue: ${QUEUE_NAME}`);
+    logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
     try {
         const channel = await getRabbitMQChannel();
@@ -32,8 +33,8 @@ async function typeInfoWorker() {
 
         channel.prefetch(PREFETCH_COUNT);
 
-        console.log('✅ Connected to RabbitMQ');
-        console.log('⏳ Waiting for types...\n');
+        logger.info('✅ Connected to RabbitMQ');
+        logger.info('⏳ Waiting for types...\n');
 
         let totalProcessed = 0;
         let totalAdded = 0;
@@ -45,11 +46,11 @@ async function typeInfoWorker() {
         const emptyCheckInterval = setInterval(async () => {
             const timeSinceLastMessage = Date.now() - lastMessageTime;
             if (timeSinceLastMessage > 5000 && totalProcessed > 0) {
-                console.log('\n' + '━'.repeat(60));
-                console.log('✅ Queue completed!');
-                console.log(`📊 Final: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
-                console.log('━'.repeat(60) + '\n');
-                console.log('⏳ Waiting for new messages...\n');
+                logger.info('\n' + '━'.repeat(60));
+                logger.info('✅ Queue completed!');
+                logger.info(`📊 Final: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
+                logger.info('━'.repeat(60) + '\n');
+                logger.info('⏳ Waiting for new messages...\n');
             }
         }, 5000);
 
@@ -75,7 +76,7 @@ async function typeInfoWorker() {
                         channel.ack(msg);
                         totalSkipped++;
                         totalProcessed++;
-                        console.log(`  - [${totalProcessed}] Type ${typeId} (exists)`);
+                        logger.debug(`  - [${totalProcessed}] Type ${typeId} (exists)`);
                         return;
                     }
 
@@ -102,25 +103,25 @@ async function typeInfoWorker() {
                     totalAdded++;
                     channel.ack(msg);
                     totalProcessed++;
-                    console.log(`  ✓ [${totalProcessed}] ${typeInfo.name}`);
+                    logger.debug(`  ✓ [${totalProcessed}] ${typeInfo.name}`);
 
                     if (totalProcessed % 100 === 0) {
-                        console.log(`📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
+                        logger.info(`📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
                     }
                 } catch (error: any) {
                     totalErrors++;
                     totalProcessed++;
 
                     if (error.message?.includes('404')) {
-                        console.log(`  ! [${totalProcessed}] Type ${message.entityId} (404)`);
+                        logger.warn(`  ! [${totalProcessed}] Type ${message.entityId} (404)`);
                         channel.ack(msg);
                     } else {
-                        console.error(`  × [${totalProcessed}] Type ${message.entityId}: ${error.message}`);
+                        logger.error(`  × [${totalProcessed}] Type ${message.entityId}: ${error.message}`);
                         channel.nack(msg, false, true);
                     }
 
                     if (totalProcessed % 100 === 0) {
-                        console.log(`📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
+                        logger.info(`📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
                     }
                 }
             },
@@ -128,7 +129,7 @@ async function typeInfoWorker() {
         );
 
     } catch (error) {
-        console.error('💥 Worker failed to start:', error);
+        logger.error('💥 Worker failed to start:', error);
         await prisma.$disconnect();
         process.exit(1);
     }
@@ -136,7 +137,7 @@ async function typeInfoWorker() {
 
 function setupShutdownHandlers() {
     const shutdown = async () => {
-        console.log('\n\n⚠️  Shutting down...');
+        logger.warn('\n\n⚠️  Shutting down...');
         await prisma.$disconnect();
         process.exit(0);
     };

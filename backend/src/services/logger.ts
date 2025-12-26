@@ -18,21 +18,21 @@ const level = () => {
 const colors = {
   error: 'red',
   warn: 'yellow',
-  info: 'white',
+  info: 'green',
   http: 'magenta',
-  debug: 'cyan', // indigo benzeri
+  debug: 'cyan',
 };
 
 winston.addColors(colors);
 
 const format = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-  winston.format.printf((info) => {
-    const message = info.message;
-    const meta = info.metadata ? JSON.stringify(info.metadata) : '';
-    return `${info.timestamp} ${info.level}: ${message}${meta ? ' ' + meta : ''}`;
-  }),
   winston.format.colorize({ all: true }),
+  winston.format.printf((info) => {
+    const { timestamp, level, message, ...meta } = info;
+    const metaStr = Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : '';
+    return `${timestamp} ${level}: ${message}${metaStr}`;
+  })
 );
 
 // Console her zaman, file sadece production'da
