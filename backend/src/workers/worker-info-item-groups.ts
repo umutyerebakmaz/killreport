@@ -1,4 +1,5 @@
 import { ItemGroupService } from '../services/item-group';
+import logger from '../services/logger';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
@@ -10,9 +11,9 @@ const PREFETCH_COUNT = 10; // 10 concurrent ESI requests
  * Processes messages from esi_item_group_info_queue
  */
 async function itemGroupInfoWorker() {
-    console.log('🚀 Starting Item Group Info Worker...');
-    console.log(`📥 Queue: ${QUEUE_NAME}`);
-    console.log(`⚡ Prefetch: ${PREFETCH_COUNT}\n`);
+    logger.info('🚀 Starting Item Group Info Worker...');
+    logger.info(`📥 Queue: ${QUEUE_NAME}`);
+    logger.info(`⚡ Prefetch: ${PREFETCH_COUNT}\n`);
 
     let totalProcessed = 0;
     let totalCreated = 0;
@@ -31,7 +32,7 @@ async function itemGroupInfoWorker() {
         // Control concurrent processing
         channel.prefetch(PREFETCH_COUNT);
 
-        console.log('✅ Worker ready. Waiting for messages...\n');
+        logger.info('✅ Worker ready. Waiting for messages...\n');
 
         let lastMessageTime = Date.now();
 
@@ -39,11 +40,11 @@ async function itemGroupInfoWorker() {
         const emptyCheckInterval = setInterval(async () => {
             const timeSinceLastMessage = Date.now() - lastMessageTime;
             if (timeSinceLastMessage > 5000 && totalProcessed > 0) {
-                console.log('\n' + '━'.repeat(60));
-                console.log('✅ Queue completed!');
-                console.log(`📊 Final: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)`);
-                console.log('━'.repeat(60) + '\n');
-                console.log('⏳ Waiting for new messages...\n');
+                logger.info('\n' + '━'.repeat(60));
+                logger.info('✅ Queue completed!');
+                logger.info(`📊 Final: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)`);
+                logger.info('━'.repeat(60) + '\n');
+                logger.info('⏳ Waiting for new messages...\n');
             }
         }, 5000);
 
@@ -85,12 +86,12 @@ async function itemGroupInfoWorker() {
 
                     if (existing) {
                         totalUpdated++;
-                        console.log(
+                        logger.debug(
                             `  ✅ [${totalProcessed + 1}] ${itemGroupInfo.name} ID:${itemGroupId} (updated)`
                         );
                     } else {
                         totalCreated++;
-                        console.log(
+                        logger.debug(
                             `  ✅ [${totalProcessed + 1}] ${itemGroupInfo.name} ID:${itemGroupId} (created)`
                         );
                     }
@@ -100,15 +101,15 @@ async function itemGroupInfoWorker() {
 
                     // Progress her 100 mesajda bir
                     if (totalProcessed % 100 === 0) {
-                        console.log(`\n📊 Progress: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)\n`);
+                        logger.info(`\n📊 Progress: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)\n`);
                     }
                 } catch (error: any) {
                     totalErrors++;
-                    console.error(`  ❌ Error processing message:`, error.message);
+                    logger.error(`  ❌ Error processing message:`, error.message);
 
                     // ESI 404 hatası alınırsa (item group bulunamadı), mesajı sil
                     if (error.response?.status === 404) {
-                        console.log('  ⚠️  Item group not found in ESI, removing from queue');
+                        logger.warn('  ⚠️  Item group not found in ESI, removing from queue');
                         channel.ack(msg);
                     } else {
                         // Diğer hatalar için requeue et
@@ -121,18 +122,18 @@ async function itemGroupInfoWorker() {
 
         // Graceful shutdown
         process.on('SIGINT', async () => {
-            console.log('\n\n⏹️  Shutting down worker...');
-            console.log(`\n📊 Final Stats:`);
-            console.log(`   Total Processed: ${totalProcessed}`);
-            console.log(`   Created: ${totalCreated}`);
-            console.log(`   Updated: ${totalUpdated}`);
-            console.log(`   Errors: ${totalErrors}`);
+            logger.warn('\n\n⏹️  Shutting down worker...');
+            logger.info(`\n📊 Final Stats:`);
+            logger.info(`   Total Processed: ${totalProcessed}`);
+            logger.info(`   Created: ${totalCreated}`);
+            logger.info(`   Updated: ${totalUpdated}`);
+            logger.info(`   Errors: ${totalErrors}`);
             clearInterval(emptyCheckInterval);
             await channel.close();
             process.exit(0);
         });
     } catch (error) {
-        console.error('❌ Worker error:', error);
+        logger.error('❌ Worker error:', error);
         process.exit(1);
     }
 }

@@ -1,6 +1,7 @@
 import '../config';
 import { CharacterService } from '../services/character/character.service';
 import { KillmailService } from '../services/killmail/killmail.service';
+import logger from '../services/logger';
 import prisma from '../services/prisma';
 import { pubsub } from '../services/pubsub';
 import { getRabbitMQChannel } from '../services/rabbitmq';
@@ -36,10 +37,10 @@ interface UserKillmailMessage {
  * Or: Start with server process via ENABLE_USER_KILLMAIL_WORKER=true
  */
 export async function esiUserKillmailWorker() {
-  console.log('🔄 ESI User Killmail Worker Started');
-  console.log(`📦 Queue: ${QUEUE_NAME}`);
-  console.log(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent users`);
-  console.log(`🌐 Data Source: ESI API (direct, no zKillboard)\n`);
+  logger.info('🔄 ESI User Killmail Worker Started');
+  logger.info(`📦 Queue: ${QUEUE_NAME}`);
+  logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent users`);
+  logger.info(`🌐 Data Source: ESI API (direct, no zKillboard)\n`);
 
   try {
     const channel = await getRabbitMQChannel();
@@ -55,33 +56,33 @@ export async function esiUserKillmailWorker() {
     // Set prefetch to limit concurrent processing
     channel.prefetch(PREFETCH_COUNT);
 
-    console.log('✅ Connected to RabbitMQ');
-    console.log('⏳ Waiting for user killmail jobs...\n');
+    logger.info('✅ Connected to RabbitMQ');
+    logger.info('⏳ Waiting for user killmail jobs...\n');
 
     // Consume messages
     const consumerTag = await channel.consume(
       QUEUE_NAME,
       async (msg) => {
         if (!msg) {
-          console.log('⚠️  Received null message from RabbitMQ');
+          logger.warn('⚠️  Received null message from RabbitMQ');
           return;
         }
 
-        console.log('📨 Received message from queue!');
+        logger.info('📨 Received message from queue!');
 
         try {
           const message: UserKillmailMessage = JSON.parse(msg.content.toString());
 
-          console.log(`\n${'━'.repeat(70)}`);
-          console.log(`👤 Processing: ${message.characterName} (ID: ${message.characterId})`);
-          console.log(`🆔 User ID: ${message.userId}`);
-          console.log(`📅 Queued at: ${message.queuedAt}`);
-          console.log('━'.repeat(70));
+          logger.info(`\n${'━'.repeat(70)}`);
+          logger.info(`👤 Processing: ${message.characterName} (ID: ${message.characterId})`);
+          logger.info(`🆔 User ID: ${message.userId}`);
+          logger.info(`📅 Queued at: ${message.queuedAt}`);
+          logger.info('━'.repeat(70));
 
           // Validate token exists
           if (!message.accessToken || !message.refreshToken) {
-            console.error(`  ❌ No valid tokens available for user ${message.characterName}`);
-            console.error(`  ⏭️  Skipping user - requires re-login via SSO`);
+            logger.error(`  ❌ No valid tokens available for user ${message.characterName}`);
+            logger.error(`  ⏭️  Skipping user - requires re-login via SSO`);
             channel.ack(msg); // Acknowledge to remove from queue (don't retry)
             return;
           }
@@ -91,9 +92,9 @@ export async function esiUserKillmailWorker() {
           const fiveMinutesFromNow = new Date(Date.now() + 5 * 60 * 1000);
 
           if (tokenExpiresAt <= fiveMinutesFromNow) {
-            console.log(`  ⚠️  Token expired or expiring soon, refreshing...`);
-            console.log(`     Expires at: ${tokenExpiresAt.toISOString()}`);
-            console.log(`     Current time: ${new Date().toISOString()}`);
+            logger.info(`  ⚠️  Token expired or expiring soon, refreshing...`);
+            logger.info(`     Expires at: ${tokenExpiresAt.toISOString()}`);
+            logger.info(`     Current time: ${new Date().toISOString()}`);
 
             try {
               const { refreshAccessToken } = await import('../services/eve-sso.js');
@@ -116,16 +117,16 @@ export async function esiUserKillmailWorker() {
               message.refreshToken = newTokenData.refresh_token || message.refreshToken;
               message.expiresAt = newExpiresAt.toISOString();
 
-              console.log(`  ✅ Token refreshed successfully`);
-              console.log(`     New expiry: ${newExpiresAt.toISOString()}`);
+              logger.info(`  ✅ Token refreshed successfully`);
+              logger.info(`     New expiry: ${newExpiresAt.toISOString()}`);
             } catch (error: any) {
-              console.error(`  ❌ Failed to refresh token:`, error.message);
-              console.error(`  ⏭️  Skipping user - refresh token invalid, requires re-login`);
+              logger.error(`  ❌ Failed to refresh token:`, error.message);
+              logger.error(`  ⏭️  Skipping user - refresh token invalid, requires re-login`);
               channel.ack(msg); // Acknowledge to remove from queue (don't retry)
               return;
             }
           } else {
-            console.log(`  ✅ Token is valid (expires: ${tokenExpiresAt.toISOString()})`);
+            logger.info(`  ✅ Token is valid (expires: ${tokenExpiresAt.toISOString()})`);
           }
 
           // Token is now guaranteed to be valid - proceed with ESI sync
@@ -133,19 +134,19 @@ export async function esiUserKillmailWorker() {
 
           // Acknowledge message
           channel.ack(msg);
-          console.log(`✅ Completed: ${message.characterName}\n`);
+          logger.info(`✅ Completed: ${message.characterName}\n`);
         } catch (error: any) {
-          console.error(`❌ Failed to process message:`, error.message);
+          logger.error(`❌ Failed to process message:`, error.message);
 
           // Only requeue if it's a transient error (network, database, etc.)
           // Don't requeue auth errors
           if (error.message.includes('Token') ||
             error.message.includes('403') ||
             error.message.includes('401')) {
-            console.error(`  ⏭️  Skipping user - authentication error`);
+            logger.error(`  ⏭️  Skipping user - authentication error`);
             channel.ack(msg); // Don't retry auth errors
           } else {
-            console.error(`  🔄 Requeuing for retry...`);
+            logger.error(`  🔄 Requeuing for retry...`);
             channel.nack(msg, false, true); // Requeue for transient errors
           }
         }
@@ -153,10 +154,11 @@ export async function esiUserKillmailWorker() {
       { noAck: false }
     );
 
-    console.log(`📢 Consumer started with tag: ${consumerTag.consumerTag}`);
-    console.log(`📊 Ready to process messages from ${QUEUE_NAME}\n`);
+    logger.info(`📢 Consumer started with tag: ${consumerTag.consumerTag}`);
+    logger.info(`📊 Ready to process messages from ${QUEUE_NAME}\n`);
   } catch (error) {
-    console.error('💥 Worker failed to start:', error);
+    logger.error('💥 Worker failed to start:', error);
+    await prisma.$disconnect();
     process.exit(1);
   }
 }
@@ -170,10 +172,12 @@ async function syncUserKillmailsFromESI(
 ): Promise<void> {
   try {
     if (lastKillmailId) {
-      console.log(`  📡 [${message.characterName}] Fetching NEW killmails from ESI (incremental sync)...`);
-      console.log(`     🔍 Will stop at killmail ID: ${lastKillmailId}`);
+      logger.info(`  📡 [${message.characterName}] Fetching NEW killmails from ESI (incremental sync)...`);
+      logger.info(`     🔍 Will stop at killmail ID: ${lastKillmailId}`);
+      logger.info(`     📄 Max pages: 50 (will stop earlier if last synced killmail is found)`);
     } else {
-      console.log(`  📡 [${message.characterName}] Fetching killmails from ESI (full sync)...`);
+      logger.info(`  📡 [${message.characterName}] Fetching killmails from ESI (full sync)...`);
+      logger.info(`     📄 Max pages: 50 (2,500 killmails max - 50 per page)`);
     }
 
     // Fetch killmail list from ESI (max 50 pages = 2500 killmails, 50 per page)
@@ -185,15 +189,15 @@ async function syncUserKillmailsFromESI(
       lastKillmailId // Stop when we hit this ID (incremental sync)
     );
 
-    console.log(`  📥 Total killmails found from ESI: ${killmailList.length}`);
+    logger.info(`  📥 Total killmails found from ESI: ${killmailList.length}`);
 
     if (killmailList.length > 0) {
-      console.log(`  📄 First killmail: ID ${killmailList[0].killmail_id}, Hash ${killmailList[0].killmail_hash.substring(0, 10)}...`);
-      console.log(`  📄 Last killmail: ID ${killmailList[killmailList.length - 1].killmail_id}, Hash ${killmailList[killmailList.length - 1].killmail_hash.substring(0, 10)}...`);
+      logger.info(`  📄 First killmail: ID ${killmailList[0].killmail_id}, Hash ${killmailList[0].killmail_hash.substring(0, 10)}...`);
+      logger.info(`  📄 Last killmail: ID ${killmailList[killmailList.length - 1].killmail_id}, Hash ${killmailList[killmailList.length - 1].killmail_hash.substring(0, 10)}...`);
     }
 
     if (killmailList.length === 0) {
-      console.log(`  ℹ️  No killmails found for this character`);
+      logger.info(`  ℹ️  No killmails found for this character`);
       return;
     }
 
@@ -201,7 +205,7 @@ async function syncUserKillmailsFromESI(
     let skippedCount = 0;
     let errorCount = 0;
 
-    console.log(`  💾 Processing killmails...\n`);
+    logger.info(`  💾 Processing killmails...\n`);
 
     // Process each killmail
     for (let i = 0; i < killmailList.length; i++) {
@@ -210,12 +214,12 @@ async function syncUserKillmailsFromESI(
       try {
         // Progress indicator every 10 killmails for better visibility
         if (i > 0 && i % 10 === 0) {
-          console.log(`     📊 Progress: ${i}/${killmailList.length} (Saved: ${savedCount}, Skipped: ${skippedCount}, Errors: ${errorCount})`);
+          logger.debug(`     📊 Progress: ${i}/${killmailList.length} (Saved: ${savedCount}, Skipped: ${skippedCount}, Errors: ${errorCount})`);
         }
 
         // Log first 3 killmails being processed
         if (i < 3) {
-          console.log(`     🔍 Processing killmail #${i + 1}: ID ${km.killmail_id}`);
+          logger.debug(`     🔍 Processing killmail #${i + 1}: ID ${km.killmail_id}`);
         }
 
         // Fetch full details from ESI (public endpoint, no token needed)
@@ -283,24 +287,23 @@ async function syncUserKillmailsFromESI(
             }
           });
 
-          // Publish GraphQL subscription event for real-time updates
           try {
             await pubsub.publish('NEW_KILLMAIL', {
               killmailId: km.killmail_id,
             });
+            savedCount++;
           } catch (pubsubError) {
             // Don't fail the entire operation if pubsub fails
-            console.error(`     ⚠️  Failed to publish subscription event:`, pubsubError);
+            logger.error(`     ⚠️  Failed to publish subscription event:`, pubsubError);
+            savedCount++;
           }
-
-          savedCount++;
         } catch (createError: any) {
           // Handle duplicate killmails (already exists in database)
           if (createError.code === 'P2002') {
             skippedCount++;
             // Log first few skipped killmails
             if (skippedCount <= 3) {
-              console.log(`     ⏭️  Skipped (duplicate): ${km.killmail_id}`);
+              logger.debug(`     ⏭️  Skipped (duplicate): ${km.killmail_id}`);
             }
           } else {
             throw createError;
@@ -308,17 +311,17 @@ async function syncUserKillmailsFromESI(
         }
       } catch (error: any) {
         errorCount++;
-        console.error(`     ❌ Failed to process killmail ${km.killmail_id}:`, error.message);
+        logger.error(`     ❌ Failed to process killmail ${km.killmail_id}:`, error.message);
       }
     }
 
     // Final summary
-    console.log(`\n  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-    console.log(`  ✅ Saved: ${savedCount} new killmails`);
-    console.log(`  ⏭️  Skipped: ${skippedCount} (already in database)`);
-    console.log(`  ❌ Errors: ${errorCount}`);
-    console.log(`  📊 Total processed: ${killmailList.length}`);
-    console.log(`  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
+    logger.info(`\n  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+    logger.info(`  ✅ Saved: ${savedCount} new killmails`);
+    logger.info(`  ⏭️  Skipped: ${skippedCount} (already in database)`);
+    logger.info(`  ❌ Errors: ${errorCount}`);
+    logger.info(`  📊 Total processed: ${killmailList.length}`);
+    logger.info(`  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
 
     // Update user's last sync info for incremental syncs
     if (killmailList.length > 0) {
@@ -330,7 +333,7 @@ async function syncUserKillmailsFromESI(
           last_killmail_id: latestKillmailId,
         },
       });
-      console.log(`  💾 Updated last sync info (latest killmail ID: ${latestKillmailId})`);
+      logger.info(`  💾 Updated last sync info (latest killmail ID: ${latestKillmailId})`);
     } else {
       // Even if no killmails, update sync timestamp to avoid repeated empty checks
       await prisma.user.update({
@@ -339,10 +342,10 @@ async function syncUserKillmailsFromESI(
           last_killmail_sync_at: new Date(),
         },
       });
-      console.log(`  💾 Updated last sync timestamp (no killmails found)`);
+      logger.info(`  💾 Updated last sync timestamp (no killmails found)`);
     }
   } catch (error: any) {
-    console.error(`  ❌ ESI sync failed for ${message.characterName}:`, error.message);
+    logger.error(`  ❌ ESI sync failed for ${message.characterName}:`, error.message);
     throw error;
   }
 }
@@ -352,12 +355,12 @@ async function syncUserKillmailsFromESI(
  */
 function setupShutdownHandlers() {
   process.on('SIGINT', () => {
-    console.log('\n⚠️  Received SIGINT, shutting down gracefully...');
+    logger.warn('\n⚠️  Received SIGINT, shutting down gracefully...');
     process.exit(0);
   });
 
   process.on('SIGTERM', () => {
-    console.log('\n⚠️  Received SIGTERM, shutting down gracefully...');
+    logger.warn('\n⚠️  Received SIGTERM, shutting down gracefully...');
     process.exit(0);
   });
 }
@@ -366,7 +369,7 @@ function setupShutdownHandlers() {
 if (require.main === module) {
   setupShutdownHandlers();
   esiUserKillmailWorker().catch((error) => {
-    console.error('💥 Worker crashed:', error);
+    logger.error('💥 Worker crashed:', error);
     process.exit(1);
   });
 }

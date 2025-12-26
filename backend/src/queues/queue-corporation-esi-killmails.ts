@@ -3,12 +3,14 @@ import logger from '../services/logger';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
-const QUEUE_NAME = 'esi_user_killmails_queue';
+const QUEUE_NAME = 'esi_corporation_killmails_queue';
 
-interface UserKillmailMessage {
+interface CorporationKillmailMessage {
     userId: number;
     characterId: number;
     characterName: string;
+    corporationId: number;
+    corporationName: string;
     accessToken: string;
     refreshToken: string;
     expiresAt: string;
@@ -17,27 +19,29 @@ interface UserKillmailMessage {
 }
 
 /**
- * Queue logged-in users for ESI killmail sync (no zKillboard dependency)
- * Fetches killmails directly from ESI API using user's access token
+ * Queue logged-in users for Corporation ESI killmail sync
+ * Fetches corporation killmails directly from ESI API using user's access token
  *
  * Usage:
- *   yarn queue:user-killmails [--force] [--full]
+ *   yarn queue:corporation-killmails [--force] [--full]
  *
  * Options:
  *   --force  Queue all users regardless of last sync time
  *   --full   Disable incremental sync (fetch all killmails, not just new ones)
  *
+ * Requirements:
+ *   - User must have valid SSO tokens
+ *   - User must be Director or CEO
+ *   - User must have esi-killmails.read_corporation_killmails.v1 scope
+ *
  * By default, only queues users who haven't been synced in the last 15 minutes.
  * Use --force to queue all users regardless of last sync time.
  * Use --full to disable incremental sync and fetch all killmails from scratch.
- *
- * This will queue all active users (with valid SSO tokens) for killmail sync.
- * The worker will fetch their recent killmails from ESI API.
  */
-async function queueUserESIKillmails() {
+async function queueCorporationESIKillmails() {
     const forceSync = process.argv.includes('--force');
     const fullSync = process.argv.includes('--full');
-    logger.info('Queueing users for ESI killmail sync...');
+    logger.info('Queueing users for Corporation ESI killmail sync...');
 
     if (forceSync) {
         logger.info('Force mode: Ignoring last sync time');
@@ -47,7 +51,7 @@ async function queueUserESIKillmails() {
     }
 
     try {
-        // Get all users with valid tokens (not expired, with 5 minute buffer)
+        // Get all users with valid tokens and corporation_id (not expired, with 5 minute buffer)
         const fiveMinutesFromNow = new Date(Date.now() + 5 * 60 * 1000);
         const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
 
@@ -59,23 +63,29 @@ async function queueUserESIKillmails() {
                 refresh_token: {
                     not: null, // Must have refresh token for auto-renewal
                 },
+                corporation_id: {
+                    not: null, // Must have corporation_id
+                },
                 // Only queue users who haven't been synced recently (unless force mode)
-                ...(forceSync ? {} : {
-                    OR: [
-                        { last_killmail_sync_at: null }, // Never synced
-                        { last_killmail_sync_at: { lt: fifteenMinutesAgo } }, // Synced > 15 min ago
-                    ],
-                }),
+                ...(forceSync
+                    ? {}
+                    : {
+                        OR: [
+                            { last_corp_killmail_sync_at: null }, // Never synced
+                            { last_corp_killmail_sync_at: { lt: fifteenMinutesAgo } }, // Synced > 15 min ago
+                        ],
+                    }),
             },
             select: {
                 id: true,
                 character_id: true,
                 character_name: true,
+                corporation_id: true,
                 access_token: true,
                 refresh_token: true,
                 expires_at: true,
-                last_killmail_sync_at: true,
-                last_killmail_id: true, // For incremental sync optimization
+                last_corp_killmail_sync_at: true,
+                last_corp_killmail_id: true, // For incremental sync optimization
             },
         });
 
@@ -83,9 +93,11 @@ async function queueUserESIKillmails() {
             logger.warn('No active users found for sync');
             if (!forceSync) {
                 logger.info('All users were synced recently (within 15 minutes).');
-                logger.info('  Use --force to sync anyway: yarn queue:user-killmails --force');
+                logger.info('  Use --force to sync anyway: yarn queue:corporation-killmails --force');
             } else {
-                logger.info('Users need to login via SSO first.');
+                logger.info('Users need to:');
+                logger.info('  1. Login via SSO with esi-killmails.read_corporation_killmails.v1 scope');
+                logger.info('  2. Have Director or CEO role in their corporation');
             }
             return;
         }
@@ -103,22 +115,35 @@ async function queueUserESIKillmails() {
             },
         });
 
+        // Fetch corporation names
+        const corpIds = [...new Set(users.map(u => u.corporation_id).filter(Boolean))] as number[];
+        const corporations = await prisma.corporation.findMany({
+            where: { id: { in: corpIds } },
+            select: { id: true, name: true },
+        });
+
+        const corpMap = new Map(corporations.map(c => [c.id, c.name]));
+
         // Queue each user
         for (const user of users) {
-            const lastSyncInfo = user.last_killmail_sync_at
-                ? ` (last sync: ${user.last_killmail_sync_at.toLocaleString('tr-TR')})`
+            const lastSyncInfo = user.last_corp_killmail_sync_at
+                ? ` (last sync: ${user.last_corp_killmail_sync_at.toLocaleString('tr-TR')})`
                 : ' (never synced)';
 
-            const message: UserKillmailMessage = {
+            const corporationName = corpMap.get(user.corporation_id!) || `Corporation ${user.corporation_id}`;
+
+            const message: CorporationKillmailMessage = {
                 userId: user.id,
                 characterId: user.character_id,
                 characterName: user.character_name,
+                corporationId: user.corporation_id!,
+                corporationName,
                 accessToken: user.access_token,
                 refreshToken: user.refresh_token!,
                 expiresAt: user.expires_at.toISOString(),
                 queuedAt: new Date().toISOString(),
                 // If --full flag is used, don't include lastKillmailId (forces full sync)
-                lastKillmailId: fullSync ? undefined : (user.last_killmail_id ?? undefined),
+                lastKillmailId: fullSync ? undefined : user.last_corp_killmail_id ?? undefined,
             };
 
             channel.sendToQueue(
@@ -130,13 +155,21 @@ async function queueUserESIKillmails() {
                 }
             );
 
-            const syncMode = fullSync ? ' [FULL SYNC]' : (user.last_killmail_id ? ' [INCREMENTAL]' : ' [FIRST SYNC]');
-            logger.debug(`Queued: ${user.character_name} (ID: ${user.character_id})${lastSyncInfo}${syncMode}`);
+            const syncMode = fullSync
+                ? ' [FULL SYNC]'
+                : user.last_corp_killmail_id
+                    ? ' [INCREMENTAL]'
+                    : ' [FIRST SYNC]';
+            logger.debug(
+                `Queued: ${user.character_name} @ ${corporationName} (Corp ID: ${user.corporation_id})${lastSyncInfo}${syncMode}`
+            );
         }
 
         logger.info(`Successfully queued ${users.length} user(s)!`);
         logger.info('Now run the worker to process them:');
-        logger.info('  yarn worker:user-killmails');
+        logger.info('  yarn worker:corporation-killmails');
+        logger.warn('Note: Users must have Director/CEO role and the required scope');
+        logger.warn('  If you see 403 errors, users need to re-login with correct permissions');
 
         await channel.close();
         await prisma.$disconnect();
@@ -148,4 +181,4 @@ async function queueUserESIKillmails() {
     }
 }
 
-queueUserESIKillmails();
+queueCorporationESIKillmails();
