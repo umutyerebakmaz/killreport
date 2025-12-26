@@ -5,6 +5,7 @@
 
 import '../config';
 import { AllianceService } from '../services/alliance';
+import logger from '../services/logger';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
@@ -18,9 +19,9 @@ interface EntityQueueMessage {
 }
 
 async function allianceInfoWorker() {
-    console.log('🤝 Alliance Info Worker Started');
-    console.log(`📦 Queue: ${QUEUE_NAME}`);
-    console.log(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
+    logger.info('🤝 Alliance Info Worker Started');
+    logger.info(`📦 Queue: ${QUEUE_NAME}`);
+    logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
     try {
         const channel = await getRabbitMQChannel();
@@ -32,8 +33,8 @@ async function allianceInfoWorker() {
 
         channel.prefetch(PREFETCH_COUNT);
 
-        console.log('✅ Connected to RabbitMQ');
-        console.log('⏳ Waiting for alliances...\n');
+        logger.info('✅ Connected to RabbitMQ');
+        logger.info('⏳ Waiting for alliances...\n');
 
         let totalProcessed = 0;
         let totalCreated = 0;
@@ -45,11 +46,11 @@ async function allianceInfoWorker() {
         const emptyCheckInterval = setInterval(async () => {
             const timeSinceLastMessage = Date.now() - lastMessageTime;
             if (timeSinceLastMessage > 5000 && totalProcessed > 0) {
-                console.log('\n' + '━'.repeat(60));
-                console.log('✅ Queue completed!');
-                console.log(`📊 Final: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)`);
-                console.log('━'.repeat(60) + '\n');
-                console.log('⏳ Waiting for new messages...\n');
+                logger.info('\n' + '━'.repeat(60));
+                logger.info('✅ Queue completed!');
+                logger.info(`📊 Final: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)`);
+                logger.info('━'.repeat(60) + '\n');
+                logger.info('⏳ Waiting for new messages...\n');
             }
         }, 5000);
 
@@ -97,10 +98,10 @@ async function allianceInfoWorker() {
 
                     if (existing) {
                         totalUpdated++;
-                        console.log(`  ✅ [${totalProcessed + 1}] ${allianceInfo.name} [${allianceInfo.ticker}] ID:${allianceId} (updated)`);
+                        logger.debug(`  ✅ [${totalProcessed + 1}] ${allianceInfo.name} [${allianceInfo.ticker}] ID:${allianceId} (updated)`);
                     } else {
                         totalCreated++;
-                        console.log(`  ✅ [${totalProcessed + 1}] ${allianceInfo.name} [${allianceInfo.ticker}] ID:${allianceId} (created)`);
+                        logger.debug(`  ✅ [${totalProcessed + 1}] ${allianceInfo.name} [${allianceInfo.ticker}] ID:${allianceId} (created)`);
                     }
 
                     channel.ack(msg);
@@ -111,10 +112,10 @@ async function allianceInfoWorker() {
                     totalProcessed++;
 
                     if (error.message?.includes('404')) {
-                        console.log(`  ! [${totalProcessed}] Alliance ${message.entityId} (404)`);
+                        logger.warn(`  ! [${totalProcessed}] Alliance ${message.entityId} (404)`);
                         channel.ack(msg);
                     } else {
-                        console.error(`  × [${totalProcessed}] Alliance ${message.entityId}: ${error.message}`);
+                        logger.error(`  × [${totalProcessed}] Alliance ${message.entityId}: ${error.message}`);
                         channel.nack(msg, false, true);
                     }
                 }
@@ -123,7 +124,7 @@ async function allianceInfoWorker() {
         );
 
     } catch (error) {
-        console.error('💥 Worker failed to start:', error);
+        logger.error('💥 Worker failed to start:', error);
         await prisma.$disconnect();
         process.exit(1);
     }
@@ -131,7 +132,7 @@ async function allianceInfoWorker() {
 
 function setupShutdownHandlers() {
     const shutdown = async () => {
-        console.log('\n\n⚠️  Shutting down...');
+        logger.warn('\n\n⚠️  Shutting down...');
         await prisma.$disconnect();
         process.exit(0);
     };

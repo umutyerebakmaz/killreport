@@ -13,6 +13,7 @@
 
 import '../config';
 import { AllianceService } from '../services/alliance';
+import logger from '../services/logger';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
@@ -27,10 +28,10 @@ interface EntityQueueMessage {
 }
 
 async function allianceCorporationWorker() {
-    console.log('🤝 Alliance Corporation Worker Started');
-    console.log(`📦 Input Queue: ${QUEUE_NAME}`);
-    console.log(`📦 Output Queue: ${CORPORATION_QUEUE}`);
-    console.log(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
+    logger.info('🤝 Alliance Corporation Worker Started');
+    logger.info(`📦 Input Queue: ${QUEUE_NAME}`);
+    logger.info(`📦 Output Queue: ${CORPORATION_QUEUE}`);
+    logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
     try {
         const channel = await getRabbitMQChannel();
@@ -48,8 +49,8 @@ async function allianceCorporationWorker() {
 
         channel.prefetch(PREFETCH_COUNT);
 
-        console.log('✅ Connected to RabbitMQ');
-        console.log('⏳ Waiting for alliances...\n');
+        logger.info('✅ Connected to RabbitMQ');
+        logger.info('⏳ Waiting for alliances...\n');
 
         let totalProcessed = 0;
         let totalCorporationsQueued = 0;
@@ -60,13 +61,13 @@ async function allianceCorporationWorker() {
         const emptyCheckInterval = setInterval(async () => {
             const timeSinceLastMessage = Date.now() - lastMessageTime;
             if (timeSinceLastMessage > 5000 && totalProcessed > 0) {
-                console.log('\n' + '━'.repeat(60));
-                console.log('✅ Queue completed!');
-                console.log(
+                logger.info('\n' + '━'.repeat(60));
+                logger.info('✅ Queue completed!');
+                logger.info(
                     `📊 Final: ${totalProcessed} alliances processed, ${totalCorporationsQueued} corporations queued, ${totalErrors} errors`
                 );
-                console.log('━'.repeat(60) + '\n');
-                console.log('⏳ Waiting for new messages...\n');
+                logger.info('━'.repeat(60) + '\n');
+                logger.info('⏳ Waiting for new messages...\n');
             }
         }, 5000);
 
@@ -93,7 +94,7 @@ async function allianceCorporationWorker() {
                     const corporationIds = await AllianceService.getAllianceCorporations(allianceId);
 
                     if (corporationIds.length === 0) {
-                        console.log(
+                        logger.info(
                             `  ⚠️  [${totalProcessed + 1}][${allianceId}] ${allianceName} [${allianceTicker}] - No corporations`
                         );
                         channel.ack(msg);
@@ -125,7 +126,7 @@ async function allianceCorporationWorker() {
                     totalCorporationsQueued += queuedCount;
                     totalProcessed++;
 
-                    console.log(
+                    logger.debug(
                         `  ✅ [${totalProcessed}][${allianceId}] ${allianceName} [${allianceTicker}] - Queued ${queuedCount} corps`
                     );
 
@@ -134,7 +135,7 @@ async function allianceCorporationWorker() {
                     totalErrors++;
                     totalProcessed++;
 
-                    console.error(
+                    logger.error(
                         `  ❌ [${totalProcessed}][${allianceId}] Error: ${error instanceof Error ? error.message : error}`
                     );
 
@@ -147,18 +148,18 @@ async function allianceCorporationWorker() {
 
         // Graceful shutdown
         process.on('SIGINT', () => {
-            console.log('\n⚠️  Received SIGINT, shutting down gracefully...');
+            logger.warn('\n⚠️  Received SIGINT, shutting down gracefully...');
             clearInterval(emptyCheckInterval);
-            console.log('\n' + '━'.repeat(60));
-            console.log('📊 Final Statistics:');
-            console.log(`   Alliances processed: ${totalProcessed}`);
-            console.log(`   Corporations queued: ${totalCorporationsQueued}`);
-            console.log(`   Errors: ${totalErrors}`);
-            console.log('━'.repeat(60) + '\n');
+            logger.info('\n' + '━'.repeat(60));
+            logger.info('📊 Final Statistics:');
+            logger.info(`   Alliances processed: ${totalProcessed}`);
+            logger.info(`   Corporations queued: ${totalCorporationsQueued}`);
+            logger.info(`   Errors: ${totalErrors}`);
+            logger.info('━'.repeat(60) + '\n');
             process.exit(0);
         });
     } catch (error) {
-        console.error('💥 Worker failed to start:', error);
+        logger.error('💥 Worker failed to start:', error);
         process.exit(1);
     }
 }
