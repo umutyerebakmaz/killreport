@@ -1,5 +1,6 @@
 "use client";
 
+import AttackerCard from "@/components/AttackerCard";
 import { useKillmailQuery } from "@/generated/graphql";
 import Link from "next/link";
 import { use } from "react";
@@ -193,6 +194,35 @@ export default function KillmailDetailPage({
               )}
             </div>
           </div>
+
+          {/* Items Section */}
+          {items.length > 0 && (
+            <div className="p-6 mt-6 rounded-lg bg-white/5 backdrop-blur-sm inset-ring inset-ring-white/10">
+              <h3 className="mb-4 text-lg font-semibold text-white">
+                Dropped & Destroyed Items ({items.length})
+              </h3>
+
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {items.map((item, index) => (
+                  <div key={index} className="p-2 text-sm rounded bg-white/5">
+                    <div className="text-white">{item?.itemType?.name}</div>
+                    <div className="flex gap-4 text-xs text-gray-500">
+                      {item?.quantityDropped && (
+                        <span className="text-green-400">
+                          Dropped: {item.quantityDropped}
+                        </span>
+                      )}
+                      {item?.quantityDestroyed && (
+                        <span className="text-red-400">
+                          Destroyed: {item.quantityDestroyed}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Column: Attackers (1/3 width) */}
@@ -204,99 +234,12 @@ export default function KillmailDetailPage({
 
             <div className="space-y-3">
               {attackers.map((attacker, index) => (
-                <div
-                  key={index}
-                  className={`p-3 rounded-lg ${
-                    attacker?.finalBlow
-                      ? "bg-green-400/10 inset-ring inset-ring-green-400/20"
-                      : "bg-white/5"
-                  }`}
-                >
-                  {attacker?.finalBlow && (
-                    <div className="mb-2">
-                      <span className="px-2 py-1 text-xs font-medium text-green-400 rounded bg-green-400/20">
-                        FINAL BLOW
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="space-y-1">
-                    {attacker?.character && (
-                      <div className="font-medium text-white">
-                        {attacker.character.name}
-                      </div>
-                    )}
-
-                    {attacker?.corporation && (
-                      <div className="text-sm text-gray-400">
-                        {attacker.corporation.name}
-                      </div>
-                    )}
-
-                    {attacker?.shipType && (
-                      <div className="text-sm text-gray-500">
-                        {attacker.shipType.name}
-                      </div>
-                    )}
-
-                    {attacker?.weaponType && (
-                      <div className="text-xs text-gray-600">
-                        Weapon: {attacker.weaponType.name}
-                      </div>
-                    )}
-
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                      <span>
-                        {attacker?.damageDone?.toLocaleString()} damage
-                      </span>
-                      {attacker?.securityStatus !== null && (
-                        <span
-                          className={
-                            (attacker?.securityStatus ?? 0) >= 0
-                              ? "text-green-500"
-                              : "text-red-500"
-                          }
-                        >
-                          Sec: {attacker?.securityStatus?.toFixed(1)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                <AttackerCard key={index} attacker={attacker} />
               ))}
             </div>
           </div>
         </div>
       </div>
-
-      {/* Items Section */}
-      {items.length > 0 && (
-        <div className="p-6 mt-6 rounded-lg bg-white/5 backdrop-blur-sm inset-ring inset-ring-white/10">
-          <h3 className="mb-4 text-lg font-semibold text-white">
-            Dropped & Destroyed Items ({items.length})
-          </h3>
-
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((item, index) => (
-              <div key={index} className="p-2 text-sm rounded bg-white/5">
-                <div className="text-white">{item?.itemType?.name}</div>
-                <div className="flex gap-4 text-xs text-gray-500">
-                  {item?.quantityDropped && (
-                    <span className="text-green-400">
-                      Dropped: {item.quantityDropped}
-                    </span>
-                  )}
-                  {item?.quantityDestroyed && (
-                    <span className="text-red-400">
-                      Destroyed: {item.quantityDestroyed}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </>
   );
 }
