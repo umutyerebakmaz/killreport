@@ -1,7 +1,7 @@
 /**
  * ESI Rate Limiter
  * Ensures we never exceed ESI's rate limits
- * ESI Limit: 150 requests per second (but we'll be more conservative)
+ * ESI Limit: 150 requests per second (we use 50 for safety margin)
  */
 
 class RateLimiter {
@@ -9,8 +9,8 @@ class RateLimiter {
     private processing = false;
     private requestCount = 0;
     private windowStart = Date.now();
-    private readonly maxRequestsPerSecond = 5; // Very conservative (ESI allows 150)
-    private readonly minDelayBetweenRequests = 250; // 250ms minimum = max 4 req/sec per worker
+    private readonly maxRequestsPerSecond = 50; // Conservative limit (ESI allows 150)
+    private readonly minDelayBetweenRequests = 20; // 20ms minimum = max 50 req/sec per worker
 
     /**
      * Execute a function with rate limiting
