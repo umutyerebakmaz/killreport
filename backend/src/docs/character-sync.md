@@ -54,7 +54,7 @@ yarn worker:zkillboard
 
 ## Output Example
 
-```
+```text
 🚀 Character Killmail Sync Started
 ==================================
 📝 Character ID: 95465499
