@@ -20,10 +20,10 @@
  */
 
 import '../config';
+import { KillmailDetail, KillmailService } from '../services/killmail';
 import logger from '../services/logger';
 import prisma from '../services/prisma';
 import { pubsub } from '../services/pubsub';
-import { esiRateLimiter } from '../services/rate-limiter';
 
 // Debug: Verify pubsub is loaded
 logger.debug('Debug: pubsub type: ' + typeof pubsub);
@@ -59,34 +59,6 @@ interface RedisQPackage {
 
 interface RedisQResponse {
   package: RedisQPackage | null;
-}
-
-interface ESIKillmail {
-  killmail_id: number;
-  killmail_time: string;
-  solar_system_id: number;
-  victim: {
-    character_id?: number;
-    corporation_id: number;
-    alliance_id?: number;
-    ship_type_id: number;
-    damage_taken: number;
-    position?: {
-      x: number;
-      y: number;
-      z: number;
-    };
-  };
-  attackers: Array<{
-    character_id?: number;
-    corporation_id?: number;
-    alliance_id?: number;
-    ship_type_id?: number;
-    weapon_type_id?: number;
-    damage_done: number;
-    final_blow: boolean;
-    security_status?: number;
-  }>;
 }
 
 // Statistics
@@ -180,7 +152,13 @@ async function processKillmail(pkg: RedisQPackage): Promise<void> {
   try {
     // Fetch full killmail from ESI
     logger.info(`📥 Fetching: ${killID} (${formatISK(zkb.totalValue)} ISK)`);
-    const killmail = await fetchKillmailFromESI(killID, zkb.hash);
+    const killmail = await KillmailService.getKillmailDetail(killID, zkb.hash);
+
+    // Debug: Log items count
+    const itemCount = killmail.victim.items?.length || 0;
+    if (itemCount > 0) {
+      logger.debug(`   📦 Items found: ${itemCount}`);
+    }
 
     // Save to database (upsert handles duplicates)
     const isNew = await saveKillmail(killmail, zkb.hash);
@@ -207,31 +185,10 @@ async function processKillmail(pkg: RedisQPackage): Promise<void> {
 }
 
 /**
- * Fetch killmail from ESI using ID and hash
- */
-async function fetchKillmailFromESI(killmailId: number, hash: string): Promise<ESIKillmail> {
-  const url = `https://esi.evetech.net/latest/killmails/${killmailId}/${hash}/`;
-
-  return esiRateLimiter.execute(async () => {
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Killreport Real-Time Sync - github.com/umutyerebakmaz/killreport',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`ESI error: ${response.status} ${response.statusText}`);
-    }
-
-    return response.json();
-  });
-}
-
-/**
  * Save killmail to database with attackers and victim
  * Returns true if new killmail was created, false if already existed
  */
-async function saveKillmail(killmail: ESIKillmail, hash: string): Promise<boolean> {
+async function saveKillmail(killmail: KillmailDetail, hash: string): Promise<boolean> {
   const { victim, attackers, killmail_time, solar_system_id } = killmail;
 
   try {
@@ -290,6 +247,24 @@ async function saveKillmail(killmail: ESIKillmail, hash: string): Promise<boolea
             faction_id: null,
           })),
         });
+      }
+
+      // Create items (dropped/destroyed)
+      if (victim.items && victim.items.length > 0) {
+        logger.debug(`   💾 Saving ${victim.items.length} items for killmail ${killmail.killmail_id}`);
+        await tx.killmailItem.createMany({
+          skipDuplicates: true,
+          data: victim.items.map((item) => ({
+            killmail_id: killmail.killmail_id,
+            item_type_id: item.item_type_id,
+            flag: item.flag,
+            quantity_dropped: item.quantity_dropped || null,
+            quantity_destroyed: item.quantity_destroyed || null,
+            singleton: item.singleton,
+          })),
+        });
+      } else {
+        logger.debug(`   ℹ️  No items to save for killmail ${killmail.killmail_id}`);
       }
     });
 

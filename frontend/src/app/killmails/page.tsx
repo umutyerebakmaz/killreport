@@ -272,8 +272,8 @@ export default function KillmailsPage() {
                         <th className="th-cell">Time</th>
                         <th className="th-cell">Ship</th>
                         <th className="th-cell">Victim</th>
-                        <th className="th-cell">System</th>
                         <th className="th-cell">Final Blow</th>
+                        <th className="th-cell">System</th>
                         <th className="th-cell">Attackers</th>
                         <th className="th-cell">Damage</th>
                       </tr>
@@ -347,7 +347,7 @@ export default function KillmailsPage() {
                                         alt={
                                           km.victim?.shipType?.name || "Ship"
                                         }
-                                        className="transition-opacity border size-20 border-amber-500 hover:opacity-80"
+                                        className="transition-opacity border border-white/10 size-20 hover:opacity-80"
                                         loading="lazy"
                                       />
                                       <div className="absolute w-3 h-3 bg-red-500 rounded-full -top-1 -right-1 animate-pulse" />
@@ -383,7 +383,7 @@ export default function KillmailsPage() {
                                       km.victim?.corporation?.name ||
                                       "Logo"
                                     }
-                                    className="border size-20 border-amber-500"
+                                    className="size-20"
                                     loading="lazy"
                                   />
                                 )}
@@ -437,6 +437,83 @@ export default function KillmailsPage() {
                                   )}
                                 </div>
                               </div>
+                            </td>
+                            <td className="px-6 py-4 text-base align-top">
+                              {finalBlowAttacker && (
+                                <div className="flex items-center gap-3">
+                                  {/* Alliance logo if exists, otherwise corporation logo */}
+                                  {(finalBlowAttacker.alliance?.id ||
+                                    finalBlowAttacker.corporation?.id) && (
+                                    <img
+                                      src={
+                                        finalBlowAttacker.alliance?.id
+                                          ? `https://images.evetech.net/alliances/${finalBlowAttacker.alliance.id}/logo?size=128`
+                                          : `https://images.evetech.net/corporations/${finalBlowAttacker.corporation?.id}/logo?size=128`
+                                      }
+                                      alt={
+                                        finalBlowAttacker.alliance?.name ||
+                                        finalBlowAttacker.corporation?.name ||
+                                        "Logo"
+                                      }
+                                      className="size-20"
+                                      loading="lazy"
+                                    />
+                                  )}
+                                  <div className="flex-1 min-w-0 space-y-1">
+                                    <div className="font-medium text-green-400">
+                                      {finalBlowAttacker.character ? (
+                                        <Tooltip
+                                          content="Show Character Info"
+                                          position="top"
+                                        >
+                                          <Link
+                                            href={`/characters/${finalBlowAttacker.character.id}`}
+                                            className="transition-colors hover:text-green-300"
+                                          >
+                                            {finalBlowAttacker.character.name}
+                                          </Link>
+                                        </Tooltip>
+                                      ) : (
+                                        "Unknown"
+                                      )}
+                                    </div>
+                                    {finalBlowAttacker.corporation && (
+                                      <div className="text-base text-gray-400">
+                                        <Tooltip
+                                          content="Show Corporation Info"
+                                          position="top"
+                                        >
+                                          <Link
+                                            href={`/corporations/${finalBlowAttacker.corporation.id}`}
+                                            className="transition-colors hover:text-cyan-400"
+                                          >
+                                            {finalBlowAttacker.corporation.name}
+                                          </Link>
+                                        </Tooltip>
+                                      </div>
+                                    )}
+                                    {finalBlowAttacker.alliance && (
+                                      <div className="text-base text-gray-500">
+                                        <Tooltip
+                                          content="Show Alliance Info"
+                                          position="top"
+                                        >
+                                          <Link
+                                            href={`/alliances/${finalBlowAttacker.alliance.id}`}
+                                            className="transition-colors hover:text-cyan-400"
+                                          >
+                                            {finalBlowAttacker.alliance.name}
+                                          </Link>
+                                        </Tooltip>
+                                      </div>
+                                    )}
+                                    <div className="text-base text-gray-500">
+                                      {finalBlowAttacker.shipType?.name ||
+                                        "Unknown"}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                             </td>
                             <td className="px-6 py-4 text-base align-top">
                               <div className="space-y-1">
@@ -496,33 +573,6 @@ export default function KillmailsPage() {
                                   </div>
                                 )}
                               </div>
-                            </td>
-                            <td className="px-6 py-4 text-base align-top">
-                              {finalBlowAttacker && (
-                                <div className="space-y-1">
-                                  <div className="text-base text-green-400">
-                                    {finalBlowAttacker.character ? (
-                                      <Tooltip
-                                        content="Show Character Info"
-                                        position="top"
-                                      >
-                                        <Link
-                                          href={`/characters/${finalBlowAttacker.character.id}`}
-                                          className="transition-colors hover:text-green-300"
-                                        >
-                                          {finalBlowAttacker.character.name}
-                                        </Link>
-                                      </Tooltip>
-                                    ) : (
-                                      "Unknown"
-                                    )}
-                                  </div>
-                                  <div className="text-base text-gray-500">
-                                    {finalBlowAttacker.shipType?.name ||
-                                      "Unknown"}
-                                  </div>
-                                </div>
-                              )}
                             </td>
                             <td className="px-6 py-4 text-base align-top">
                               <span className="font-medium text-purple-400">
