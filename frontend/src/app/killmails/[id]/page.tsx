@@ -1,6 +1,6 @@
 "use client";
 
-import AttackerCard from "@/components/AttackerCard";
+import AttackersCard from "@/components/AttackersCard";
 import { useKillmailQuery } from "@/generated/graphql";
 import Link from "next/link";
 import { use } from "react";
@@ -227,17 +227,7 @@ export default function KillmailDetailPage({
 
         {/* Right Column: Attackers (1/3 width) */}
         <div className="space-y-6 lg:col-span-1">
-          <div className="p-6 rounded-lg bg-white/5 backdrop-blur-sm inset-ring inset-ring-white/10">
-            <h3 className="mb-4 text-lg font-semibold text-white">
-              Attackers ({attackers.length})
-            </h3>
-
-            <div className="space-y-3">
-              {attackers.map((attacker, index) => (
-                <AttackerCard key={index} attacker={attacker} />
-              ))}
-            </div>
-          </div>
+          <AttackersCard attackers={attackers} />
         </div>
       </div>
     </>
