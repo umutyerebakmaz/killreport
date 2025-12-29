@@ -4,9 +4,14 @@ import Tooltip from "../Tooltip/Tooltip";
 
 interface AttackerProps {
   attacker: NonNullable<KillmailQuery["killmail"]>["attackers"][0];
+  totalDamage: number;
 }
 
-export default function AttackerRow({ attacker }: AttackerProps) {
+export default function AttackerRow({ attacker, totalDamage }: AttackerProps) {
+  const damagePercentage =
+    totalDamage > 0
+      ? ((attacker.damageDone / totalDamage) * 100).toFixed(1)
+      : "0.0";
   return (
     <div className="p-3 bg-white/5">
       <div className="flex">
@@ -47,32 +52,55 @@ export default function AttackerRow({ attacker }: AttackerProps) {
           </Tooltip>
         </div>
 
-        {/* Character Name */}
-        <div className="flex-1 space-y-1">
+        {/* Character Name, Corporation, Alliance */}
+        <div className="flex flex-col flex-1 space-y-1">
           {attacker.characterId && (
-            <Link
-              href={`/characters/${attacker.characterId}`}
-              className="block font-medium text-white hover:text-blue-400"
-            >
-              {attacker.character?.name || "Unknown"}
-            </Link>
+            <Tooltip content="Show Character Info">
+              <Link
+                href={`/characters/${attacker.characterId}`}
+                className="block font-medium text-gray-400 hover:text-blue-400"
+              >
+                {attacker.character?.name || "Unknown"}
+              </Link>
+            </Tooltip>
           )}
 
-          <div className="flex items-center gap-4 text-xs text-red-400">
-            <span>{attacker.damageDone.toLocaleString()} damage</span>
-            {attacker.securityStatus !== null &&
-              attacker.securityStatus !== undefined && (
-                <span
-                  className={
-                    attacker.securityStatus >= 0
-                      ? "text-green-500"
-                      : "text-red-500"
-                  }
-                >
-                  Sec: {attacker.securityStatus.toFixed(1)}
-                </span>
-              )}
-          </div>
+          {attacker.corporationId && (
+            <Tooltip content="Show Corporation Info">
+              <Link
+                href={`/corporations/${attacker.corporationId}`}
+                className="block font-medium text-gray-400 hover:text-blue-400"
+              >
+                {attacker.corporation?.name || "Unknown"}
+              </Link>
+            </Tooltip>
+          )}
+
+          {attacker.allianceId && (
+            <Tooltip content="Show Alliance Info">
+              <Link
+                href={`/alliances/${attacker.allianceId}`}
+                className="block font-medium text-gray-400 hover:text-blue-400"
+              >
+                {attacker.alliance?.name || "Unknown"}
+              </Link>
+            </Tooltip>
+          )}
+        </div>
+
+        {/* Damage, Damage Percentate, Security */}
+        <div className="flex flex-col items-end text-sm gap-y-1">
+          <span className="text-red-400">
+            {attacker.damageDone.toLocaleString()} DMG
+          </span>
+          <span className="text-gray-400">{damagePercentage}%</span>
+          <span
+            className={
+              attacker.securityStatus >= 0 ? "text-green-500" : "text-red-500"
+            }
+          >
+            Sec: {attacker.securityStatus.toFixed(1)}
+          </span>
         </div>
       </div>
     </div>

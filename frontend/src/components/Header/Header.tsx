@@ -199,10 +199,11 @@ export default function Header() {
               content={`Tranquility ${
                 status?.players?.toLocaleString() ?? "-"
               } online players`}
+              position="bottom"
             >
               <EveStatus players={status?.players} />
             </Tooltip>
-            <Tooltip content="Current Eve Online ingame time">
+            <Tooltip content="Current Eve Online ingame time" position="bottom">
               <EveTime />
             </Tooltip>
           </div>
