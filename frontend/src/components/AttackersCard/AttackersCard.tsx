@@ -38,7 +38,7 @@ export default function AttackersCard({ attackers }: AttackersCardProps) {
               labelColor="#C82D2DFF"
             />
           )}
-          {topDamageAttacker && topDamageAttacker !== finalBlowAttacker && (
+          {topDamageAttacker && (
             <FeaturedAttackerCard
               attacker={topDamageAttacker}
               label="TOP DAMAGE"
