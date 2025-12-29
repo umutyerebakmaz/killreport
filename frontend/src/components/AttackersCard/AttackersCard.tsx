@@ -1,5 +1,4 @@
 import AttackerRow from "@/components/AttackersCard/AttackerRow";
-import FeaturedAttackerCard from "@/components/AttackersCard/FeaturedAttackerCard";
 import { KillmailQuery } from "@/generated/graphql";
 import { UserGroupIcon } from "@heroicons/react/24/outline";
 
@@ -14,20 +13,15 @@ export default function AttackersCard({ attackers }: AttackersCardProps) {
     0
   );
 
-  // Find Final Blow attacker
-  const finalBlowAttacker = attackers.find((a) => a.finalBlow);
+  // Find top damage amount to identify top damage attacker
+  const topDamageAmount = Math.max(...attackers.map((a) => a.damageDone));
 
-  // Find Top Damage attacker (highest damage done)
-  const topDamageAttacker = attackers.reduce((prev, current) =>
-    prev.damageDone > current.damageDone ? prev : current
-  );
-
-  // Get remaining attackers (exclude final blow and top damage)
-  const remainingAttackers = attackers.filter(
-    (a) =>
-      (!finalBlowAttacker || a !== finalBlowAttacker) &&
-      (!topDamageAttacker || a !== topDamageAttacker)
-  );
+  // Sort attackers: Final Blow first, then by damage descending
+  const sortedAttackers = [...attackers].sort((a, b) => {
+    if (a.finalBlow && !b.finalBlow) return -1;
+    if (!a.finalBlow && b.finalBlow) return 1;
+    return b.damageDone - a.damageDone;
+  });
 
   return (
     <div className="p-6 bg-white/5 backdrop-blur-sm inset-ring inset-ring-white/10">
@@ -36,40 +30,18 @@ export default function AttackersCard({ attackers }: AttackersCardProps) {
         Attackers ({attackers.length})
       </h3>
 
-      {/* Featured Attackers: Final Blow & Top Damage */}
-      {(finalBlowAttacker || topDamageAttacker) && (
-        <div className="grid grid-cols-2 gap-3 pb-4 mb-4 border-b border-white/10">
-          {finalBlowAttacker && (
-            <FeaturedAttackerCard
-              attacker={finalBlowAttacker}
-              label="FINAL BLOW"
-              labelColor="#C82D2DFF"
-              totalDamage={totalDamage}
-            />
-          )}
-          {topDamageAttacker && (
-            <FeaturedAttackerCard
-              attacker={topDamageAttacker}
-              label="TOP DAMAGE"
-              labelColor="#D81C1CFF"
-              totalDamage={totalDamage}
-            />
-          )}
-        </div>
-      )}
-
-      {/* Remaining Attackers */}
-      {remainingAttackers.length > 0 && (
-        <div className="space-y-3">
-          {remainingAttackers.map((attacker, index) => (
-            <AttackerRow
-              key={index}
-              attacker={attacker}
-              totalDamage={totalDamage}
-            />
-          ))}
-        </div>
-      )}
+      {/* All Attackers */}
+      <div className="space-y-3">
+        {sortedAttackers.map((attacker, index) => (
+          <AttackerRow
+            key={index}
+            attacker={attacker}
+            totalDamage={totalDamage}
+            isFinalBlow={attacker.finalBlow}
+            isTopDamage={attacker.damageDone === topDamageAmount}
+          />
+        ))}
+      </div>
     </div>
   );
 }

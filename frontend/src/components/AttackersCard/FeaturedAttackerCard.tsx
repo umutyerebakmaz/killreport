@@ -37,7 +37,7 @@ export default function FeaturedAttackerCard({
             />
           </Tooltip>
           {/* Logos Container - Bottom Right */}
-          <div className="absolute flex gap-2 bottom-1 right-1">
+          <div className="absolute bottom-0 right-0 flex">
             {/* Corporation Logo */}
             {attacker.corporationId && (
               <Tooltip content={`Corporation: ${attacker.corporation?.name}`}>
@@ -82,38 +82,32 @@ export default function FeaturedAttackerCard({
       {/* Ship Type Image */}
       {attacker.shipTypeId && (
         <div className="flex gap-2">
-          <Tooltip content={`Ship: ${attacker.shipType?.name}`}>
+          <Tooltip content={attacker.shipType?.name}>
             <img
-              src={`https://images.evetech.net/types/${attacker.shipTypeId}/render?size=256`}
+              src={`https://images.evetech.net/types/${attacker.shipTypeId}/render?size=64`}
               alt={attacker.shipType?.name || "Ship"}
-              width={32}
-              height={32}
+              width={48}
+              height={48}
               className="shadow-lg"
               loading="lazy"
             />
           </Tooltip>
-          <div className="flex flex-col justify-center text-sm text-gray-400">
-            {attacker.shipType?.name}
-          </div>
         </div>
       )}
 
       {/* Weapon Type Image */}
       {attacker.weaponTypeId && (
         <div className="flex gap-2">
-          <Tooltip content={`Weapon: ${attacker.weaponType?.name}`}>
+          <Tooltip content={attacker.weaponType?.name}>
             <img
               src={`https://images.evetech.net/types/${attacker.weaponTypeId}/icon?size=64`}
               alt={attacker.weaponType?.name || "Weapon"}
-              width={32}
-              height={32}
+              width={48}
+              height={48}
               className="shadow-lg"
               loading="lazy"
             />
           </Tooltip>
-          <div className="flex flex-col justify-center text-sm text-gray-400">
-            {attacker.weaponType?.name}
-          </div>
         </div>
       )}
 
