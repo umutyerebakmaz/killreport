@@ -48,7 +48,7 @@ export default function AuthSuccessPage() {
       // Ana sayfaya yönlendir
       setTimeout(() => {
         setIsLoading(false);
-        //router.push("/killmails");
+        router.push("/killmails");
       }, 1500);
     } catch (err) {
       console.error("Error saving auth data:", err);
