@@ -6,29 +6,36 @@ interface FeaturedAttackerCardProps {
   attacker: NonNullable<KillmailQuery["killmail"]>["attackers"][0];
   label: string;
   labelColor: string;
+  totalDamage: number;
 }
 
 export default function FeaturedAttackerCard({
   attacker,
   label,
+  totalDamage,
 }: FeaturedAttackerCardProps) {
+  const damagePercentage =
+    totalDamage > 0
+      ? ((attacker.damageDone / totalDamage) * 100).toFixed(1)
+      : "0.0";
   return (
     <div className="p-4 inset-ring inset-ring-white/10">
       {/* Label */}
-      <div className="px-3 py-1 text-sm font-medium">{label}</div>
+      <div className="px-3 py-1 text-sm font-medium text-center">{label}</div>
 
       {/* Character Portrait */}
       {attacker.characterId && (
         <div className="relative mb-3">
-          <img
-            src={`https://images.evetech.net/characters/${attacker.characterId}/portrait?size=256`}
-            alt={attacker.character?.name || "Character"}
-            width={256}
-            height={256}
-            className="w-full shadow-lg"
-            loading="lazy"
-          />
-
+          <Tooltip content={`Character: ${attacker.character?.name}`}>
+            <img
+              src={`https://images.evetech.net/characters/${attacker.characterId}/portrait?size=256`}
+              alt={attacker.character?.name || "Character"}
+              width={256}
+              height={256}
+              className="w-full shadow-lg"
+              loading="lazy"
+            />
+          </Tooltip>
           {/* Logos Container - Bottom Right */}
           <div className="absolute flex gap-2 bottom-1 right-1">
             {/* Corporation Logo */}
@@ -66,7 +73,7 @@ export default function FeaturedAttackerCard({
       <div className="pt-1 pb-4">
         <Link
           href={`/characters/${attacker.characterId}`}
-          className="block text-base text-gray-400 hover:text-blue-400"
+          className="block font-medium text-gray-400 hover:text-blue-400"
         >
           {attacker?.character?.name}
         </Link>
@@ -75,14 +82,16 @@ export default function FeaturedAttackerCard({
       {/* Ship Type Image */}
       {attacker.shipTypeId && (
         <div className="flex gap-2">
-          <img
-            src={`https://images.evetech.net/types/${attacker.shipTypeId}/render?size=256`}
-            alt={attacker.shipType?.name || "Ship"}
-            width={32}
-            height={32}
-            className="shadow-lg"
-            loading="lazy"
-          />
+          <Tooltip content={`Ship: ${attacker.shipType?.name}`}>
+            <img
+              src={`https://images.evetech.net/types/${attacker.shipTypeId}/render?size=256`}
+              alt={attacker.shipType?.name || "Ship"}
+              width={32}
+              height={32}
+              className="shadow-lg"
+              loading="lazy"
+            />
+          </Tooltip>
           <div className="flex flex-col justify-center text-sm text-gray-400">
             {attacker.shipType?.name}
           </div>
@@ -92,22 +101,27 @@ export default function FeaturedAttackerCard({
       {/* Weapon Type Image */}
       {attacker.weaponTypeId && (
         <div className="flex gap-2">
-          <img
-            src={`https://images.evetech.net/types/${attacker.weaponTypeId}/icon?size=64`}
-            alt={attacker.weaponType?.name || "Weapon"}
-            width={32}
-            height={32}
-            className="shadow-lg"
-            loading="lazy"
-          />
+          <Tooltip content={`Weapon: ${attacker.weaponType?.name}`}>
+            <img
+              src={`https://images.evetech.net/types/${attacker.weaponTypeId}/icon?size=64`}
+              alt={attacker.weaponType?.name || "Weapon"}
+              width={32}
+              height={32}
+              className="shadow-lg"
+              loading="lazy"
+            />
+          </Tooltip>
           <div className="flex flex-col justify-center text-sm text-gray-400">
             {attacker.weaponType?.name}
           </div>
         </div>
       )}
 
-      <div className="pt-4 text-right text-red-400 border-t mt-2font-semibold text-md border-white/10">
-        {attacker.damageDone.toLocaleString()} DMG
+      <div className="pt-4 mt-2 text-right border-t border-white/10">
+        <div className="font-semibold text-red-400 text-md">
+          {attacker.damageDone.toLocaleString()} DMG
+        </div>
+        <div className="text-sm text-gray-400">{damagePercentage}%</div>
       </div>
     </div>
   );
