@@ -54,10 +54,11 @@ export default function AllianceCard({ alliance }: AllianceCardProps) {
               unoptimized
             />
           </div>
-          <Link href={`/alliances/${alliance.id}`} className="alliance-name">
-            {alliance.name}
-          </Link>
-
+          <Tooltip content="Show Alliance Info">
+            <Link href={`/alliances/${alliance.id}`} className="alliance-name">
+              {alliance.name}
+            </Link>
+          </Tooltip>
           {/* Ticker Badge */}
           <Tooltip content="Alliance Ticker" position="top">
             <div className="alliance-ticker">[{alliance.ticker}]</div>
