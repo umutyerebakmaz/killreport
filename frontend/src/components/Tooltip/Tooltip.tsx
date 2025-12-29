@@ -19,7 +19,7 @@ const positionClasses: Record<TooltipPosition, string> = {
 export default function Tooltip({
   content,
   children,
-  position = "bottom",
+  position = "top",
 }: TooltipProps) {
   const [show, setShow] = useState(false);
   const [animating, setAnimating] = useState(false);
