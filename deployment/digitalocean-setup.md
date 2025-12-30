@@ -10,9 +10,10 @@
 
 ### Scale-Up Options (When Needed)
 
-- Add Redis Cache (+$15/month) for 50+ concurrent users
+- Upgrade to 16 GB RAM (+$36/month) for 50+ concurrent users
 - Separate Worker Droplet (+$69/month) for high load
 - Upgrade PostgreSQL for larger databases
+- Add Managed Redis (+$15/month) if cache exceeds 512 MB
 
 ---
 
@@ -26,7 +27,7 @@
 - **Cost:** $48/month (~₺1,750/month)
 - **OS:** Ubuntu 22.04 LTS
 - **Region:** Frankfurt (closest to EVE servers)
-- **Services:** Backend + Frontend + Workers + RabbitMQ
+- **Services:** Backend + Frontend + Workers + RabbitMQ + Redis Cache
 
 **DigitalOcean Managed PostgreSQL:**
 
@@ -111,6 +112,23 @@ npm install -g pm2 yarn
 
 # Install Nginx
 apt install -y nginx certbot python3-certbot-nginx
+
+# Install Redis (for GraphQL response caching)
+apt install -y redis-server
+systemctl enable redis-server
+
+# Configure Redis memory limit
+cat >> /etc/redis/redis.conf << EOF
+
+# Memory configuration for GraphQL cache
+maxmemory 512mb
+maxmemory-policy allkeys-lru
+save 900 1
+save 300 10
+save 60 10000
+EOF
+
+systemctl restart redis-server
 
 # Install RabbitMQ
 apt install -y rabbitmq-server
@@ -222,6 +240,9 @@ yarn install
 cat > backend/.env << EOF
 # Database (localhost for Phase 1)
 DATABASE_URL="postgresql://killreport:your-password@localhost:5432/killreport?connection_limit=5"
+
+# Redis (for GraphQL response caching)
+REDIS_URL="redis://localhost:6379"
 
 # RabbitMQ
 RABBITMQ_URL="amqp://localhost:5672"
