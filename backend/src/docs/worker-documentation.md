@@ -853,7 +853,7 @@ yourWorker();
 ### Database Connection Hatası
 
 - PostgreSQL çalışıyor mu?
-- DB_URL doğru mu?
+- DATABASE_URL doğru mu?
 - Connection pool boyutu yeterli mi?
 
 ### Mesajlar İşlenmiyor
