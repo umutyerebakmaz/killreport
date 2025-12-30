@@ -39,7 +39,7 @@ Professional infrastructure from day one with automatic backups and high availab
 
   ```bash
   cd backend
-  DB_URL="postgresql://..." yarn prisma:migrate deploy
+  DATABASE_URL="postgresql://..." yarn prisma:migrate deploy
   ```
 
 ---
@@ -97,7 +97,7 @@ Professional infrastructure from day one with automatic backups and high availab
 
   - [ ] `backend/.env` dosyası:
     ```bash
-    DB_URL="postgresql://doadmin:password@managed-host:25060/killreport?sslmode=require&connection_limit=2"
+    DATABASE_URL="postgresql://doadmin:password@managed-host:25060/killreport?sslmode=require&connection_limit=2"
     RABBITMQ_URL="amqp://localhost:5672"
     EVE_CLIENT_ID="your-client-id"
     EVE_CLIENT_SECRET="your-client-secret"
@@ -196,7 +196,7 @@ Professional infrastructure from day one with automatic backups and high availab
 - [ ] DigitalOcean Console → Databases → killreport_production
 - [ ] Settings → Trusted Sources
 - [ ] Droplet IP adresini ekle
-- [ ] Test et: Droplet'ten `psql $DB_URL` ile bağlan
+- [ ] Test et: Droplet'ten `psql $DATABASE_URL` ile bağlan
 
 ---
 
@@ -281,7 +281,7 @@ Professional infrastructure from day one with automatic backups and high availab
 - [ ] PostgreSQL backup test et:
 
   ```bash
-  pg_dump "$DB_URL" > test_backup.sql
+  pg_dump "$DATABASE_URL" > test_backup.sql
   ```
 
 ---
@@ -325,7 +325,7 @@ sudo rabbitmqctl list_queues
 sudo tail -f /var/log/nginx/error.log
 
 # Database connection test
-psql "$DB_URL" -c "SELECT version();"
+psql "$DATABASE_URL" -c "SELECT version();"
 
 # Disk space
 df -h
