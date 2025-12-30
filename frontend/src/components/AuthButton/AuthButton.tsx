@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { gql, useMutation } from "@apollo/client";
+import Loader from "@/components/Loader";
 
 const LOGIN_MUTATION = gql`
   mutation Login {
@@ -32,9 +33,8 @@ export default function AuthButton() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-gray-400">
-        <div className="w-4 h-4 border-2 border-gray-400 rounded-full animate-spin border-t-transparent"></div>
-        Loading...
+      <div className="px-3 py-2">
+        <Loader size="sm" text="Loading..." />
       </div>
     );
   }
@@ -59,9 +59,9 @@ export default function AuthButton() {
     <button
       onClick={handleLogin}
       disabled={loginLoading}
-      className="px-3 py-2 text-sm font-semibold text-white transition-colors cursor-pointer bg-cyan-600/80 hover:bg-cyan-600 disabled:opacity-50"
+      className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-white transition-colors cursor-pointer bg-cyan-600/80 hover:bg-cyan-600 disabled:opacity-50"
     >
-      {loginLoading ? "Loading..." : "LOGIN"}
+      {loginLoading ? <Loader size="sm" /> : "LOGIN"}
     </button>
   );
 }
