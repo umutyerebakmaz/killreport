@@ -1,6 +1,7 @@
 "use client";
 
 import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
+import Loader from "@/components/Loader";
 import SecurityStatsBar from "@/components/SecurityStatus/SecurityStatsBar";
 import { useRegionQuery } from "@/generated/graphql";
 import { GlobeAltIcon, MapIcon, MapPinIcon } from "@heroicons/react/24/outline";
@@ -22,14 +23,7 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
   });
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex items-center gap-3">
-          <div className="w-6 h-6 border-2 rounded-full animate-spin border-cyan-500 border-t-transparent" />
-          <span className="text-lg">Loading region...</span>
-        </div>
-      </div>
-    );
+    return <Loader size="lg" text="Loading region..." fullHeight />;
   }
 
   if (error) {

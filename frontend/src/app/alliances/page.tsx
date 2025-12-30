@@ -2,6 +2,7 @@
 
 import AllianceCard from "@/components/Card/AllianceCard";
 import AllianceFilters from "@/components/Filters/AllianceFilters";
+import Loader from "@/components/Loader";
 import Paginator from "@/components/Paginator/Paginator";
 import { useAlliancesQuery } from "@/generated/graphql";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -59,7 +60,8 @@ export default function AlliancesPage() {
     }
   }, [currentPage, orderBy]);
 
-  if (loading) return <div className="p-8">Loading...</div>;
+  if (loading)
+    return <Loader size="lg" text="Loading alliances..." className="p-8" />;
   if (error) return <div className="p-8">Error: {error.message}</div>;
 
   const alliances = data?.alliances.edges.map((edge) => edge.node) || [];

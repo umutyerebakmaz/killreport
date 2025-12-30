@@ -815,6 +815,35 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@envelop/response-cache-redis@npm:^4.2.5":
+  version: 4.2.5
+  resolution: "@envelop/response-cache-redis@npm:4.2.5"
+  dependencies:
+    "@envelop/response-cache": "npm:^9.0.0"
+    "@whatwg-node/promise-helpers": "npm:^1.2.4"
+    ioredis: "npm:^5.4.2"
+    tslib: "npm:^2.5.0"
+  checksum: 10c0/d5ad648c34a64d731fa6e2f335412eb217e498116698ec60fec314e0fa99248b1ec122fc06ea806a5bbae84e4eb06ee985689103955cd6e15604dce2f9d40ec2
+  languageName: node
+  linkType: hard
+
+"@envelop/response-cache@npm:^9.0.0":
+  version: 9.0.0
+  resolution: "@envelop/response-cache@npm:9.0.0"
+  dependencies:
+    "@graphql-tools/utils": "npm:^10.0.3"
+    "@whatwg-node/fetch": "npm:^0.10.0"
+    "@whatwg-node/promise-helpers": "npm:^1.2.4"
+    fast-json-stable-stringify: "npm:^2.1.0"
+    lru-cache: "npm:^11.0.0"
+    tslib: "npm:^2.5.0"
+  peerDependencies:
+    "@envelop/core": ^5.4.0
+    graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
+  checksum: 10c0/310ae4233fe7a9b249fc70d7b8781163732fcfad59a874e1f0b1861e2abd9bbdf9eb1bd9699f1e256d28c5bd83b9a5b6da2ccf79f3fc79628e59819f4ad1831d
+  languageName: node
+  linkType: hard
+
 "@envelop/types@npm:^5.2.1":
   version: 5.2.1
   resolution: "@envelop/types@npm:5.2.1"
@@ -1940,7 +1969,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@graphql-tools/utils@npm:^10.0.0, @graphql-tools/utils@npm:^10.10.3, @graphql-tools/utils@npm:^10.11.0, @graphql-tools/utils@npm:^10.6.2, @graphql-tools/utils@npm:^10.8.1, @graphql-tools/utils@npm:^10.9.1":
+"@graphql-tools/utils@npm:^10.0.0, @graphql-tools/utils@npm:^10.0.3, @graphql-tools/utils@npm:^10.10.3, @graphql-tools/utils@npm:^10.11.0, @graphql-tools/utils@npm:^10.6.2, @graphql-tools/utils@npm:^10.8.1, @graphql-tools/utils@npm:^10.9.1":
   version: 10.11.0
   resolution: "@graphql-tools/utils@npm:10.11.0"
   dependencies:
@@ -4384,6 +4413,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backend@workspace:backend"
   dependencies:
+    "@envelop/response-cache": "npm:^9.0.0"
+    "@envelop/response-cache-redis": "npm:^4.2.5"
     "@graphql-codegen/cli": "npm:^6.0.1"
     "@graphql-codegen/schema-ast": "npm:^5.0.0"
     "@graphql-codegen/typescript": "npm:^5.0.2"
@@ -5942,7 +5973,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-json-stable-stringify@npm:^2.0.0":
+"fast-json-stable-stringify@npm:^2.0.0, fast-json-stable-stringify@npm:^2.1.0":
   version: 2.1.0
   resolution: "fast-json-stable-stringify@npm:2.1.0"
   checksum: 10c0/7f081eb0b8a64e0057b3bb03f974b3ef00135fbf36c1c710895cd9300f13c94ba809bb3a81cf4e1b03f6e5285610a61abbd7602d0652de423144dfee5a389c9b
@@ -6803,7 +6834,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ioredis@npm:*, ioredis@npm:^5.8.2":
+"ioredis@npm:*, ioredis@npm:^5.4.2, ioredis@npm:^5.8.2":
   version: 5.8.2
   resolution: "ioredis@npm:5.8.2"
   dependencies:
