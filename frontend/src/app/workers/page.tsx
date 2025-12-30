@@ -1,5 +1,6 @@
 "use client";
 
+import Loader from "@/components/Loader";
 import { useWorkerStatusSubscriptionSubscription } from "@/generated/graphql";
 import { useState } from "react";
 
@@ -39,24 +40,23 @@ export default function WorkersPage() {
 
   if (loading && !data) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="inline-block w-8 h-8 border-4 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
-          <p className="mt-4 text-gray-400">Connecting to SSE stream...</p>
-        </div>
-      </div>
+      <Loader
+        size="lg"
+        text="Connecting to SSE stream..."
+        className="min-h-100"
+      />
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-100">
         <div className="text-center">
           <p className="text-red-500">Error connecting to SSE stream</p>
           <p className="mt-2 text-sm text-gray-400">{error.message}</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 mt-4 text-white bg-blue-600 rounded hover:bg-blue-700"
+            className="px-4 py-2 mt-4 text-white bg-blue-600 hover:bg-blue-700"
           >
             Reconnect
           </button>
@@ -115,7 +115,7 @@ export default function WorkersPage() {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 px-3 py-2 bg-gray-800 border border-gray-700 rounded">
+          <div className="flex items-center gap-2 px-3 py-2 bg-gray-800 border border-gray-700">
             <div
               className={`w-3 h-3 rounded-full ${
                 isConnected ? "bg-green-500 animate-pulse" : "bg-yellow-500"
@@ -128,7 +128,7 @@ export default function WorkersPage() {
         </div>
       </div>
 
-      <div className="p-6 mb-6 border border-gray-800 rounded-lg bg-gray-900/50">
+      <div className="p-6 mb-6 border border-gray-800 bg-gray-900/50">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold text-white">System Health</h2>
@@ -222,7 +222,7 @@ export default function WorkersPage() {
       )}
 
       {queues.length === 0 && standaloneWorkers.length === 0 && (
-        <div className="p-12 text-center border border-gray-800 rounded-lg bg-gray-900/50">
+        <div className="p-12 text-center border border-gray-800 bg-gray-900/50">
           <p className="text-gray-400">No workers found</p>
         </div>
       )}
@@ -239,7 +239,7 @@ function StatCard({ label, value, color }: any) {
   };
 
   return (
-    <div className={`p-4 border rounded-lg ${colorClasses[color]}`}>
+    <div className={`p-4 border  ${colorClasses[color]}`}>
       <div className="text-sm font-medium text-gray-400">{label}</div>
       <div className="mt-1 text-3xl font-bold">{value.toLocaleString()}</div>
     </div>
@@ -255,7 +255,7 @@ function StandaloneWorkerSection({ workers }: any) {
           Long-running processes (not RabbitMQ-based)
         </p>
       </div>
-      <div className="overflow-hidden border border-gray-800 rounded-lg">
+      <div className="overflow-hidden border border-gray-800 ">
         <table className="w-full">
           <thead className="bg-gray-900/50">
             <tr>
@@ -330,7 +330,7 @@ function QueueSection({ title, subtitle, queues }: any) {
         <h2 className="text-xl font-semibold text-white">{title}</h2>
         {subtitle && <p className="mt-1 text-sm text-gray-400">{subtitle}</p>}
       </div>
-      <div className="overflow-hidden border border-gray-800 rounded-lg">
+      <div className="overflow-hidden border border-gray-800 ">
         <table className="w-full">
           <thead className="bg-gray-900/50">
             <tr>

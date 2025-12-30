@@ -2,6 +2,7 @@
 
 import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
 import { KillmailToast } from "@/components/KillmailToast/KillmailToast";
+import Loader from "@/components/Loader";
 import Paginator from "@/components/Paginator/Paginator";
 import SecurityStatus from "@/components/SecurityStatus/SecurityStatus";
 import Tooltip from "@/components/Tooltip/Tooltip";
@@ -240,12 +241,7 @@ export default function KillmailsPage() {
       {/* Grouped Killmails by Date */}
       <div className="mt-6 space-y-8">
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="flex items-center gap-3">
-              <div className="w-5 h-5 border-2 rounded-full animate-spin border-cyan-500 border-t-transparent" />
-              <span className="text-gray-400">Loading killmails...</span>
-            </div>
-          </div>
+          <Loader size="md" text="Loading killmails..." className="py-12" />
         ) : killmails.length === 0 ? (
           <div className="py-12 text-center text-gray-400">
             No killmails found

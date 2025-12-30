@@ -154,7 +154,7 @@ systemctl restart postgresql
 **Connection Pool Configuration:**
 ```bash
 # With localhost PostgreSQL, we can use more connections
-DB_URL="postgresql://killreport:password@localhost:5432/killreport?connection_limit=5"
+DATABASE_URL="postgresql://killreport:password@localhost:5432/killreport?connection_limit=5"
 
 # Calculation:
 # 8 processes (backend + frontend + 6 workers) × 5 = 40 connections
@@ -221,7 +221,7 @@ yarn install
 # Configure environment (backend)
 cat > backend/.env << EOF
 # Database (localhost for Phase 1)
-DB_URL="postgresql://killreport:your-password@localhost:5432/killreport?connection_limit=5"
+DATABASE_URL="postgresql://killreport:your-password@localhost:5432/killreport?connection_limit=5"
 
 # RabbitMQ
 RABBITMQ_URL="amqp://localhost:5672"
@@ -419,7 +419,7 @@ psql "postgresql://doadmin:password@your-db-cluster.db.ondigitalocean.com:25060/
 
 ```bash
 # Update backend/.env
-DB_URL="postgresql://doadmin:password@your-db-cluster.db.ondigitalocean.com:25060/killreport?sslmode=require&connection_limit=2"
+DATABASE_URL="postgresql://doadmin:password@your-db-cluster.db.ondigitalocean.com:25060/killreport?sslmode=require&connection_limit=2"
 
 # Connection pool recalculation:
 # 8 processes × 2 connections = 16 connections
@@ -460,7 +460,7 @@ pm2 status
 psql -U killreport -d killreport -c "SELECT version();"
 
 # Database connection check (Phase 2)
-psql "$DB_URL" -c "SELECT version();"
+psql "$DATABASE_URL" -c "SELECT version();"
 
 # RabbitMQ queue status
 rabbitmqctl list_queues name messages consumers

@@ -4,11 +4,11 @@
 
 ```bash
 # 1. Update Alliance & Corporation Data
-+yarn queue:alliances              # Queue all alliance IDs from ESI
-+yarn worker:info:alliances        # Fetch and UPDATE alliance details - 3547
+yarn queue:alliances              # Queue all alliance IDs from ESI
+yarn worker:info:alliances        # Fetch and UPDATE alliance details - 3547
 
-+yarn queue:alliance-corporations  # Queue alliances (for corporation discovery) - 3547
-+yarn worker:alliance-corporations # Fetch corporation IDs from ESI for each alliance and queue them - 17,769
+yarn queue:alliance-corporations  # Queue alliances (for corporation discovery) - 3547
+yarn worker:alliance-corporations # Fetch corporation IDs from ESI for each alliance and queue them - 17,769
 yarn worker:info:corporations     # Fetch and UPDATE corporation details from ESI
 
 # 2. Take Snapshots

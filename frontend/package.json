@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "yarn kill:port && next dev --turbopack",
+    "dev": "lsof -ti:3000 | xargs kill -9 || true && next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
