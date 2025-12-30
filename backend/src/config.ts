@@ -7,12 +7,7 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 // Environment variables validation schema
 const envSchema = z.object({
   // Database
-  DB_HOST: z.string().default('localhost'),
-  DB_PORT: z.string().default('5432').transform(Number),
-  DB_USER: z.string().optional(),
-  DB_PASSWORD: z.string().optional(),
-  DB_NAME: z.string().optional(),
-  DATABASE_URL: z.string().optional(),
+  DB_URL: z.string().min(1, 'DB_URL is required'),
 
   // RabbitMQ
   RABBITMQ_URL: z.string().default('amqp://localhost'),
@@ -49,12 +44,7 @@ const env = parseEnv();
 
 export const config = {
   database: {
-    host: env.DB_HOST,
-    port: env.DB_PORT,
-    user: env.DB_USER,
-    password: env.DB_PASSWORD,
-    database: env.DB_NAME,
-    url: env.DATABASE_URL,
+    url: env.DB_URL,
   },
   rabbitmq: {
     url: env.RABBITMQ_URL,

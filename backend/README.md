@@ -194,7 +194,7 @@ Create a `.env` file:
 
 ```bash
 # Database
-DATABASE_URL="postgresql://user:password@localhost:5432/killreport"
+DB_URL="postgresql://user:password@localhost:5432/killreport"
 
 # RabbitMQ
 RABBITMQ_URL="amqp://localhost:5672"
@@ -252,7 +252,7 @@ yarn worker:zkillboard
 yarn prisma:studio
 
 # Or use psql
-psql $DATABASE_URL
+psql $DB_URL
 ```
 
 ## Development Tips
@@ -278,8 +278,8 @@ sudo systemctl status postgresql
 # or
 pg_isready
 
-# Verify DATABASE_URL in .env
-cat .env | grep DATABASE_URL
+# Verify DB_URL in .env
+cat .env | grep DB_URL
 ```
 
 ### RabbitMQ connection issues

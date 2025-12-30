@@ -23,6 +23,6 @@ echo "⚠️  This will restore data from: $BACKUP_FILE"
 echo "🔄 Restoring..."
 
 # Restore backup
-psql $DATABASE_URL < $BACKUP_FILE
+psql $DB_URL < $BACKUP_FILE
 
 echo "✅ Database restored successfully!"
