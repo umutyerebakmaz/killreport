@@ -176,7 +176,7 @@ No new environment variables needed. System uses existing:
 
 - `EVE_CLIENT_ID`
 - `EVE_CLIENT_SECRET`
-- `DB_URL`
+- `DATABASE_URL`
 - `RABBITMQ_URL`
 
 ### Enable Worker in Server

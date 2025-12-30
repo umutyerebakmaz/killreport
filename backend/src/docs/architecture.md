@@ -113,7 +113,7 @@ yarn queue:corporations
 
 ```bash
 # Database
-DB_URL="postgresql://postgres:postgres@localhost:5432/killreport"
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/killreport"
 
 # Message Queue
 RABBITMQ_URL="amqp://localhost"
