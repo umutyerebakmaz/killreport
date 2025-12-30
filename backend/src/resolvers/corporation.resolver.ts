@@ -156,7 +156,7 @@ export const corporationFieldResolvers: CorporationResolvers = {
         } as any;
     },
 
-    metrics: async (parent) => {
+    metrics: async (parent, _args, context) => {
         const now = new Date();
         const date1d = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000);
         const date7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -165,32 +165,12 @@ export const corporationFieldResolvers: CorporationResolvers = {
         // Mevcut member count değerini al
         const currentMemberCount = parent.member_count;
 
-        // 1 gün önceki snapshot
-        const snapshot1d = await prisma.corporationSnapshot.findFirst({
-            where: {
-                corporation_id: parent.id,
-                snapshot_date: { lte: date1d },
-            },
-            orderBy: { snapshot_date: 'desc' },
-        });
-
-        // 7 gün önceki snapshot
-        const snapshot7d = await prisma.corporationSnapshot.findFirst({
-            where: {
-                corporation_id: parent.id,
-                snapshot_date: { lte: date7d },
-            },
-            orderBy: { snapshot_date: 'desc' },
-        });
-
-        // 30 gün önceki snapshot
-        const snapshot30d = await prisma.corporationSnapshot.findFirst({
-            where: {
-                corporation_id: parent.id,
-                snapshot_date: { lte: date30d },
-            },
-            orderBy: { snapshot_date: 'desc' },
-        });
+        // Use DataLoader to batch snapshot queries
+        const [snapshot1d, snapshot7d, snapshot30d] = await Promise.all([
+            context.loaders.corporationSnapshot.load({ corporationId: parent.id, date: date1d }),
+            context.loaders.corporationSnapshot.load({ corporationId: parent.id, date: date7d }),
+            context.loaders.corporationSnapshot.load({ corporationId: parent.id, date: date30d }),
+        ]);
 
         // Delta hesaplamaları
         const memberCountDelta1d = snapshot1d

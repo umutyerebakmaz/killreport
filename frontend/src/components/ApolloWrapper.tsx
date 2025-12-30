@@ -1,5 +1,6 @@
 "use client";
 
+import Loader from "@/components/Loader";
 import { ApolloProvider } from "@apollo/client";
 import { useEffect, useState } from "react";
 import { createApolloClient } from "../lib/apolloClient";
@@ -22,7 +23,7 @@ export default function ApolloWrapper({
 
   // Don't render until client is ready
   if (!apolloClient) {
-    return <div>Loading...</div>;
+    return <Loader size="lg" text="Initializing..." fullHeight />;
   }
 
   return <ApolloProvider client={apolloClient}>{children}</ApolloProvider>;
