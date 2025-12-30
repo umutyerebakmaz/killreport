@@ -52,6 +52,25 @@ yarn prisma:generate     # Regenerates Prisma client
 yarn prisma:studio       # GUI for data inspection
 ```
 
+### Database Connection Pool Management
+
+**CRITICAL**: Use the correct Prisma client based on context:
+
+- **API Server & Resolvers**: Import from `services/prisma.ts` (5 connections max)
+- **Workers & Queue Scripts**: Import from `services/prisma-worker.ts` (2 connections max per worker)
+
+```typescript
+// ✅ Correct - for workers/queue scripts
+import prismaWorker from "../services/prisma-worker";
+await prismaWorker.character.findMany();
+
+// ✅ Correct - for resolvers (API context)
+import prisma from "../services/prisma";
+await prisma.character.findMany();
+```
+
+**Reason**: DigitalOcean PostgreSQL has 22 connection limit. Separate pools prevent exhaustion when running multiple workers. See `backend/POOL_CONNECTION_FIX.md` for details.
+
 ### Worker System
 
 **Pattern**: Each queue has dedicated worker. Never mix concerns.
