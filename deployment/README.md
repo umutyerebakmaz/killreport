@@ -89,7 +89,7 @@ Production-ready Nginx config with:
 **Connection Pool:**
 
 ```bash
-DB_URL="postgresql://user:pass@managed-host:25060/killreport?sslmode=require&connection_limit=2"
+DATABASE_URL="postgresql://user:pass@managed-host:25060/killreport?sslmode=require&connection_limit=2"
 # 8 processes × 2 = 16 connections
 # Managed limit = 25 ✅
 ```
@@ -255,7 +255,7 @@ htop                # CPU/RAM by process
 sudo -u postgres psql killreport
 
 # Phase 2 (Managed)
-psql "$DB_URL"
+psql "$DATABASE_URL"
 
 # Check size
 SELECT pg_size_pretty(pg_database_size('killreport'));
@@ -281,7 +281,7 @@ sudo rabbitmqctl purge_queue esi_character_info_queue  # Clear queue
 ```bash
 # Quick fix: Lower connection pool
 # Edit backend/.env
-DB_URL="...?connection_limit=1"  # Reduce from 2 to 1
+DATABASE_URL="...?connection_limit=1"  # Reduce from 2 to 1
 
 pm2 restart all
 ```
