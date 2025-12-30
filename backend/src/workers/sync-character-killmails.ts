@@ -1,7 +1,7 @@
 import '../config';
 import { KillmailService } from '../services/killmail';
 import logger from '../services/logger';
-import prisma from '../services/prisma';
+import prismaWorker from '../services/prisma-worker';
 import { pubsub } from '../services/pubsub';
 import { getCharacterKillmailsFromZKill } from '../services/zkillboard';
 
@@ -62,7 +62,7 @@ async function syncCharacterKillmails() {
 
       try {
         // Check if already exists
-        const existing = await prisma.killmail.findUnique({
+        const existing = await prismaWorker.killmail.findUnique({
           where: { killmail_id: zkill.killmail_id },
         });
 
@@ -78,7 +78,7 @@ async function syncCharacterKillmails() {
         const details = await KillmailService.getKillmailDetail(zkill.killmail_id, zkill.zkb.hash);
 
         // Save to database with items
-        const savedKillmail = await prisma.killmail.create({
+        const savedKillmail = await prismaWorker.killmail.create({
           data: {
             killmail_id: zkill.killmail_id,
             killmail_hash: zkill.zkb.hash,
@@ -150,11 +150,11 @@ async function syncCharacterKillmails() {
     logger.info(`⏱️  Duration: ${duration}s`);
     logger.info('='.repeat(60) + '\n');
 
-    await prisma.$disconnect();
+    await prismaWorker.$disconnect();
     process.exit(0);
   } catch (error) {
     logger.error('\n❌ Fatal error:', error);
-    await prisma.$disconnect();
+    await prismaWorker.$disconnect();
     process.exit(1);
   }
 }

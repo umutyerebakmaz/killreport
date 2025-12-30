@@ -1,7 +1,7 @@
 import axios from 'axios';
 import '../config';
 import logger from '../services/logger';
-import prisma from '../services/prisma';
+import prismaWorker from '../services/prisma-worker';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
 const ESI_BASE_URL = 'https://esi.evetech.net/latest';
@@ -12,7 +12,7 @@ const RATE_LIMIT_DELAY = 100; // Wait 100ms between each request (10 requests pe
  * Checks if the constellation exists in the database
  */
 async function constellationExists(constellationId: number): Promise<boolean> {
-    const constellation = await prisma.constellation.findUnique({
+    const constellation = await prismaWorker.constellation.findUnique({
         where: { id: constellationId },
         select: { id: true }, // Only select id for performance
     });
@@ -39,7 +39,7 @@ async function processConstellation(constellationId: number): Promise<boolean> {
         }
 
         // Save to database using Prisma
-        await prisma.constellation.upsert({
+        await prismaWorker.constellation.upsert({
             where: { id: constellationId },
             update: {
                 name: data.name,
@@ -183,7 +183,7 @@ async function startWorker() {
         process.on('SIGINT', async () => {
             logger.warn('\n\n🛑 Shutting down worker...');
             await channel.close();
-            await prisma.$disconnect();
+            await prismaWorker.$disconnect();
             logger.info('✅ Worker stopped gracefully');
             process.exit(0);
         });

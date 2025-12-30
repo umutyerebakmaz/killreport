@@ -1,7 +1,7 @@
 import '../config';
 import { KillmailService } from '../services/killmail';
 import logger from '../services/logger';
-import prisma from '../services/prisma';
+import prismaWorker from '../services/prisma-worker';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 import { getCharacterKillmailsFromZKill } from '../services/zkillboard';
 
@@ -88,7 +88,7 @@ async function syncUserKillmails(message: QueueMessage): Promise<void> {
         // Check if this is a logged-in user or external character
         if (message.userId) {
             // Get user from database with token
-            const user = await prisma.user.findUnique({
+            const user = await prismaWorker.user.findUnique({
                 where: { id: message.userId },
                 select: {
                     access_token: true,
@@ -157,7 +157,7 @@ async function syncUserKillmails(message: QueueMessage): Promise<void> {
 
                 // Try to create killmail with all related data
                 try {
-                    await prisma.$transaction(async (tx) => {
+                    await prismaWorker.$transaction(async (tx) => {
                         // 1. Create main killmail record
                         await tx.killmail.create({
                             data: {
@@ -251,7 +251,7 @@ function setupShutdownHandlers() {
     const shutdown = () => {
         logger.info('\n\n⚠️ Received shutdown signal');
         logger.info('🛑 Stopping worker...');
-        prisma.$disconnect();
+        prismaWorker.$disconnect();
         process.exit(0);
     };
 

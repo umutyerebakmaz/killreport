@@ -6,7 +6,7 @@
  *   npx tsx update-alliance-counts.ts
  */
 
-import prisma from '../services/prisma';
+import prismaWorker from '../services/prisma-worker';
 
 async function updateAllianceCounts() {
   console.log('🔄 Updating alliance counts...');
@@ -14,7 +14,7 @@ async function updateAllianceCounts() {
   const startTime = new Date();
 
   try {
-    const alliances = await prisma.alliance.findMany({
+    const alliances = await prismaWorker.alliance.findMany({
       select: { id: true, name: true },
     });
 
@@ -24,12 +24,12 @@ async function updateAllianceCounts() {
 
     for (const alliance of alliances) {
       // Count corporations
-      const corporationCount = await prisma.corporation.count({
+      const corporationCount = await prismaWorker.corporation.count({
         where: { alliance_id: alliance.id },
       });
 
       // Sum member counts
-      const memberResult = await prisma.corporation.aggregate({
+      const memberResult = await prismaWorker.corporation.aggregate({
         where: { alliance_id: alliance.id },
         _sum: {
           member_count: true,
@@ -39,7 +39,7 @@ async function updateAllianceCounts() {
       const memberCount = memberResult._sum.member_count || 0;
 
       // Update alliance
-      await prisma.alliance.update({
+      await prismaWorker.alliance.update({
         where: { id: alliance.id },
         data: {
           member_count: memberCount,
@@ -65,7 +65,7 @@ async function updateAllianceCounts() {
     console.error('❌ Update error:', error);
     throw error;
   } finally {
-    await prisma.$disconnect();
+    await prismaWorker.$disconnect();
   }
 }
 
