@@ -8,7 +8,7 @@
 
 import '../config';
 import { KillmailService } from '../services/killmail';
-import prisma from '../services/prisma';
+import prismaWorker from '../services/prisma-worker';
 
 async function fetchSingleKillmail(killmailId: number, killmailHash: string) {
     console.log(`\n${'='.repeat(60)}`);
@@ -17,7 +17,7 @@ async function fetchSingleKillmail(killmailId: number, killmailHash: string) {
 
     try {
         // 1. Check if already exists
-        const existing = await prisma.killmail.findUnique({
+        const existing = await prismaWorker.killmail.findUnique({
             where: { killmail_id: killmailId },
         });
 
@@ -41,7 +41,7 @@ async function fetchSingleKillmail(killmailId: number, killmailHash: string) {
         // 3. Save to database
         console.log(`\n💾 Saving to database...`);
 
-        await prisma.$transaction(async (tx) => {
+        await prismaWorker.$transaction(async (tx) => {
             // Create main killmail record
             await tx.killmail.create({
                 data: {
@@ -159,11 +159,11 @@ if (!killmailHash || killmailHash.length < 10) {
 // Run the fetcher
 fetchSingleKillmail(killmailId, killmailHash)
     .then(() => {
-        prisma.$disconnect();
+        prismaWorker.$disconnect();
         process.exit(0);
     })
     .catch((error) => {
         console.error(`\n💥 Fatal error:`, error);
-        prisma.$disconnect();
+        prismaWorker.$disconnect();
         process.exit(1);
     });
