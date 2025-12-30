@@ -21,6 +21,17 @@ const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 const redisCache = new Redis(REDIS_URL, {
   maxRetriesPerRequest: 3,
   lazyConnect: true,
+  enableReadyCheck: true,
+  connectTimeout: 10000, // 10 second connection timeout
+  retryStrategy: (times) => {
+    const delay = Math.min(times * 50, 2000);
+    logger.info(`Redis reconnecting... attempt ${times}`);
+    return delay;
+  },
+  reconnectOnError: (err) => {
+    logger.error('Redis connection error:', err.message);
+    return true; // Always try to reconnect
+  },
 });
 
 // Redis connection'ı başlat
@@ -74,11 +85,18 @@ const yoga = createYoga({
         },
         set: async (key, value, ttl) => {
           try {
-            await redisCache.setex(
-              key,
-              Math.ceil(Number(ttl) / 1000),
-              JSON.stringify(value)
-            );
+            // TTL milisaniye cinsinden geliyor, saniyeye çeviriyoruz
+            // Eğer undefined gelirse varsayılan 60 saniye
+            const ttlInSeconds = ttl ? Math.ceil(Number(ttl) / 1000) : 60;
+
+            // NaN kontrolü
+            if (isNaN(ttlInSeconds) || ttlInSeconds <= 0) {
+              logger.warn(`Invalid TTL value: ${ttl}, using default 60s`);
+              await redisCache.setex(key, 60, JSON.stringify(value));
+              return;
+            }
+
+            await redisCache.setex(key, ttlInSeconds, JSON.stringify(value));
           } catch (e) {
             logger.error('Cache set error:', e);
           }

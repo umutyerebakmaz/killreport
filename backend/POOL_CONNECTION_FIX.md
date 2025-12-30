@@ -67,27 +67,38 @@ Queue scripts that read from database also updated:
 
 ### Pool Configuration Comparison
 
-| Component  | File               | Max Connections | Idle Timeout | Use Case             |
-| ---------- | ------------------ | --------------- | ------------ | -------------------- |
-| API Server | `prisma.ts`        | 5               | 5 seconds    | GraphQL API requests |
-| Workers    | `prisma-worker.ts` | 2               | 3 seconds    | Background jobs      |
+| Component  | File               | Max Connections | Min Connections | Idle Timeout | Connection Timeout | Use Case             |
+| ---------- | ------------------ | --------------- | --------------- | ------------ | ------------------ | -------------------- |
+| API Server | `prisma.ts`        | 5               | 1               | 30 seconds   | 10 seconds         | GraphQL API requests |
+| Workers    | `prisma-worker.ts` | 2               | 0               | 10 seconds   | 10 seconds         | Background jobs      |
 
 ### Worker Pool Settings
 
 ```typescript
-max: 2,                      // Maximum 2 connections per worker
-min: 0,                      // No minimum - release all idle
-idleTimeoutMillis: 3000,     // Close idle after 3 seconds
-connectionTimeoutMillis: 2000, // Error after 2 seconds
-allowExitOnIdle: true        // Allow complete drain
+max: 2,                        // Maximum 2 connections per worker
+min: 0,                        // No minimum - release all idle
+idleTimeoutMillis: 10000,      // Close idle after 10 seconds
+connectionTimeoutMillis: 10000, // Wait up to 10 seconds for connection
+allowExitOnIdle: true          // Allow complete drain
+```
+
+### API Server Pool Settings
+
+```typescript
+max: 5,                        // Maximum 5 connections
+min: 1,                        // Keep 1 connection alive
+idleTimeoutMillis: 30000,      // Close idle after 30 seconds
+connectionTimeoutMillis: 10000, // Wait up to 10 seconds for connection
+allowExitOnIdle: false         // Keep pool alive for API server
 ```
 
 ### Benefits
 
 1. **No More Connection Exhaustion**: Can run up to 8 workers simultaneously (2 connections × 8 = 16, + 5 API = 21)
-2. **Better Resource Management**: Aggressive idle timeouts release connections quickly
-3. **Isolation**: API server and workers use separate connection pools
-4. **Monitoring**: Each pool logs connection events with `[Worker]` prefix
+2. **Better Resource Management**: Reasonable idle timeouts prevent connection churn
+3. **No More Timeout Errors**: 10 second connection timeout prevents premature failures
+4. **Isolation**: API server and workers use separate connection pools
+5. **Monitoring**: Each pool logs connection events with `[Worker]` prefix
 
 ### Running Multiple Workers
 
