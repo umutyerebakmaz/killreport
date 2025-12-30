@@ -1,6 +1,5 @@
 import '../config';
 import logger from '../services/logger';
-import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
 const QUEUE_NAME = 'zkillboard_character_queue';
@@ -14,7 +13,7 @@ async function queueKillmailSync() {
 
     try {
         // Get all users with valid tokens
-        const users = await prisma.user.findMany({
+        const users = await prismaWorker.user.findMany({
             where: {
                 expires_at: {
                     gt: new Date(), // Token not expired

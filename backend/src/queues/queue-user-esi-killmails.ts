@@ -1,6 +1,6 @@
 import '../config';
 import logger from '../services/logger';
-import prisma from '../services/prisma';
+import prismaWorker from '../services/prisma-worker';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
 const QUEUE_NAME = 'esi_user_killmails_queue';
@@ -51,7 +51,7 @@ async function queueUserESIKillmails() {
         const fiveMinutesFromNow = new Date(Date.now() + 5 * 60 * 1000);
         const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
 
-        const users = await prisma.user.findMany({
+        const users = await prismaWorker.user.findMany({
             where: {
                 expires_at: {
                     gt: fiveMinutesFromNow, // Token expires more than 5 minutes from now
@@ -139,11 +139,11 @@ async function queueUserESIKillmails() {
         logger.info('  yarn worker:user-killmails');
 
         await channel.close();
-        await prisma.$disconnect();
+        await prismaWorker.$disconnect();
         process.exit(0);
     } catch (error) {
         logger.error('Failed to queue users', { error });
-        await prisma.$disconnect();
+        await prismaWorker.$disconnect();
         process.exit(1);
     }
 }
