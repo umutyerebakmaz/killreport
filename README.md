@@ -80,7 +80,7 @@ yarn install
 # Setup backend environment
 cd backend
 cp .env.example .env
-# Edit .env with your EVE_CLIENT_ID, EVE_CLIENT_SECRET, DATABASE_URL, etc.
+# Edit .env with your EVE_CLIENT_ID, EVE_CLIENT_SECRET, DB_URL, etc.
 
 # Setup database
 yarn prisma:migrate
@@ -289,7 +289,7 @@ Create `backend/.env`:
 
 ```env
 # Database
-DATABASE_URL="postgresql://user:password@localhost:5432/killreport"
+DB_URL="postgresql://user:password@localhost:5432/killreport"
 
 # EVE Online SSO
 EVE_CLIENT_ID="your_eve_client_id"
