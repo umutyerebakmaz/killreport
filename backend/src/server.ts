@@ -61,11 +61,39 @@ const yoga = createYoga({
     useResponseCache({
       // Session-based cache key (user'a göre)
       session: (request) => {
-        // GraphQL Yoga context'inden authorization header'ı al
+        // GraphQL operation name'i kontrol et
+        const body = request?.request?.body;
+        let operationName = '';
+
+        if (body && typeof body === 'object' && 'operationName' in body) {
+          operationName = String(body.operationName || '');
+        }
+
+        // Public queries: Tüm kullanıcılar için aynı cache
+        const publicQueries = [
+          'Alliances',
+          'Corporations',
+          'Characters',
+          'Killmails',
+          'KillmailDetails',
+          'AllianceDetails',
+          'CorporationDetails',
+          'CharacterDetails',
+          'Regions',
+          'Systems',
+          'Types',
+        ];
+
+        if (publicQueries.includes(operationName)) {
+          return 'public'; // Tüm kullanıcılar aynı cache'i paylaşır
+        }
+
+        // User-specific queries: Her kullanıcı kendi cache'ini kullanır
         const auth = request?.request?.headers?.get('authorization') || request?.request?.headers?.get('Authorization');
         if (typeof auth === 'string') {
           return auth.slice(7, 15); // Token'ın ilk 8 karakteri
         }
+
         return 'anonymous';
       },
       // Cache süresi (ms)
@@ -85,13 +113,29 @@ const yoga = createYoga({
         },
         set: async (key, value, ttl) => {
           try {
-            // TTL milisaniye cinsinden geliyor, saniyeye çeviriyoruz
-            // Eğer undefined gelirse varsayılan 60 saniye
-            const ttlInSeconds = ttl ? Math.ceil(Number(ttl) / 1000) : 60;
+            // TTL can come as various types from useResponseCache plugin
+            // Sometimes it's a Map Iterator, number, or undefined
+            let ttlValue = 60000; // Default: 60 seconds in milliseconds
 
-            // NaN kontrolü
-            if (isNaN(ttlInSeconds) || ttlInSeconds <= 0) {
-              logger.warn(`Invalid TTL value: ${ttl}, using default 60s`);
+            if (ttl !== undefined && ttl !== null) {
+              // If it's a Map Iterator or object, try to extract first value
+              if (typeof ttl === 'object' && Symbol.iterator in Object(ttl)) {
+                const iterator = ttl[Symbol.iterator]();
+                const first = iterator.next();
+                if (!first.done && typeof first.value === 'number') {
+                  ttlValue = first.value;
+                }
+              } else if (typeof ttl === 'number') {
+                ttlValue = ttl;
+              }
+            }
+
+            // Convert to seconds
+            const ttlInSeconds = Math.ceil(ttlValue / 1000);
+
+            // Sanity check
+            if (isNaN(ttlInSeconds) || ttlInSeconds <= 0 || ttlInSeconds > 3600) {
+              logger.warn(`Invalid TTL value: ${ttlInSeconds}s, using default 60s`);
               await redisCache.setex(key, 60, JSON.stringify(value));
               return;
             }
