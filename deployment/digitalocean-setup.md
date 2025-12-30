@@ -10,10 +10,15 @@
 
 ### Scale-Up Options (When Needed)
 
-- Upgrade to 16 GB RAM (+$36/month) for 50+ concurrent users
+- Upgrade to 16 GB RAM (+$36/month) for 50+ concurrent users (500-1,000 daily)
 - Separate Worker Droplet (+$69/month) for high load
 - Upgrade PostgreSQL for larger databases
 - Add Managed Redis (+$15/month) if cache exceeds 512 MB
+
+**User Capacity Guidelines:**
+
+- 8GB Droplet: 20-30 concurrent (200-600 daily, 600-1,800 monthly)
+- 16GB Droplet: 50-80 concurrent (500-1,600 daily, 1,500-4,800 monthly)
 
 ---
 
