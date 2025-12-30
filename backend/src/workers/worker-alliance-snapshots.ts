@@ -30,77 +30,126 @@ async function takeAllianceSnapshots() {
 
     logger.info(`✓ Found ${alliances.length} alliances`);
 
-    let processed = 0;
+    // Check which alliances already have snapshots for today (single query)
+    const existingSnapshots = await prismaWorker.allianceSnapshot.findMany({
+      where: { snapshot_date: today },
+      select: { alliance_id: true },
+    });
+
+    const existingAllianceIds = new Set(existingSnapshots.map((s) => s.alliance_id));
+    logger.info(`✓ Found ${existingAllianceIds.size} existing snapshots for today`);
+
+    // Filter alliances that need snapshots
+    const allianceIds = alliances
+      .filter((a) => !existingAllianceIds.has(a.id))
+      .map((a) => a.id);
+
+    if (allianceIds.length === 0) {
+      logger.info('✅ All alliances already have snapshots for today!');
+      const duration = ((new Date().getTime() - startTime.getTime()) / 1000).toFixed(2);
+      logger.info(`   • Duration: ${duration} seconds`);
+      logger.info(`   • Date: ${today.toISOString().split('T')[0]}`);
+      return;
+    }
+
+    logger.info(`📝 Calculating stats for ${allianceIds.length} alliances...`);
+
+    // Fetch all corporations for these alliances in ONE query
+    const corporations = await prismaWorker.corporation.findMany({
+      where: { alliance_id: { in: allianceIds } },
+      select: {
+        alliance_id: true,
+        member_count: true,
+      },
+    });
+
+    logger.info(`✓ Found ${corporations.length} corporations across ${allianceIds.length} alliances`);
+
+    // Group corporations by alliance_id and calculate stats in JavaScript
+    const allianceStats = new Map<number, { corporationCount: number; memberCount: number }>();
+
+    // Initialize all alliances with 0 values (for alliances with no corporations)
+    allianceIds.forEach((id) => {
+      allianceStats.set(id, { corporationCount: 0, memberCount: 0 });
+    });
+
+    // Aggregate corporation data
+    corporations.forEach((corp) => {
+      if (corp.alliance_id) {
+        const stats = allianceStats.get(corp.alliance_id);
+        if (stats) {
+          stats.corporationCount++;
+          stats.memberCount += corp.member_count;
+        }
+      }
+    });
+
+    // Prepare snapshot data
+    const snapshotsData = Array.from(allianceStats.entries()).map(([allianceId, stats]) => ({
+      alliance_id: allianceId,
+      member_count: stats.memberCount,
+      corporation_count: stats.corporationCount,
+      snapshot_date: today,
+    }));
+
+    logger.info(`📊 Stats calculated, creating ${snapshotsData.length} snapshots...`);
+
+    // Batch create snapshots in chunks of 500
+    const BATCH_SIZE = 500;
     let created = 0;
-    let skipped = 0;
 
-    for (const alliance of alliances) {
-      // Check if snapshot for today already exists for this alliance
-      const existingSnapshot = await prismaWorker.allianceSnapshot.findFirst({
-        where: {
-          alliance_id: alliance.id,
-          snapshot_date: today,
-        },
+    for (let i = 0; i < snapshotsData.length; i += BATCH_SIZE) {
+      const batch = snapshotsData.slice(i, i + BATCH_SIZE);
+
+      await prismaWorker.allianceSnapshot.createMany({
+        data: batch,
+        skipDuplicates: true,
       });
 
-      if (existingSnapshot) {
-        skipped++;
-        processed++;
-        continue;
+      created += batch.length;
+
+      const progress = Math.round((created / snapshotsData.length) * 100);
+      logger.info(`  ⏳ Progress: ${created}/${snapshotsData.length} (${progress}%)`);
+    }
+
+    // Also update alliance table with current counts (batch update in chunks)
+    logger.info('🔄 Updating alliance records with current stats...');
+
+    const updatePromises: Promise<any>[] = [];
+    for (const [allianceId, stats] of allianceStats.entries()) {
+      updatePromises.push(
+        prismaWorker.alliance.update({
+          where: { id: allianceId },
+          data: {
+            member_count: stats.memberCount,
+            corporation_count: stats.corporationCount,
+          },
+        })
+      );
+
+      // Process updates in batches of 100 to avoid overwhelming the connection pool
+      if (updatePromises.length >= 100) {
+        await Promise.all(updatePromises);
+        updatePromises.length = 0;
       }
+    }
 
-      // Calculate current values
-      const corporationCount = await prismaWorker.corporation.count({
-        where: { alliance_id: alliance.id },
-      });
-
-      const memberResult = await prismaWorker.corporation.aggregate({
-        where: { alliance_id: alliance.id },
-        _sum: {
-          member_count: true,
-        },
-      });
-
-      const memberCount = memberResult._sum.member_count || 0;
-
-      // Create snapshot
-      await prismaWorker.allianceSnapshot.create({
-        data: {
-          alliance_id: alliance.id,
-          member_count: memberCount,
-          corporation_count: corporationCount,
-          snapshot_date: today,
-        },
-      });
-
-      // Update alliance table with current counts
-      await prismaWorker.alliance.update({
-        where: { id: alliance.id },
-        data: {
-          member_count: memberCount,
-          corporation_count: corporationCount,
-        },
-      });
-
-      created++;
-      processed++;
-
-      // Show progress every 50 alliances
-      if (processed % 50 === 0) {
-        logger.debug(`  ⏳ Processed: ${processed}/${alliances.length} (${created} new, ${skipped} existing)`);
-      }
+    // Process remaining updates
+    if (updatePromises.length > 0) {
+      await Promise.all(updatePromises);
     }
 
     const endTime = new Date();
     const duration = ((endTime.getTime() - startTime.getTime()) / 1000).toFixed(2);
 
     logger.info(`✅ Snapshot creation completed!`);
-    logger.info(`   • Total processed: ${processed}`);
+    logger.info(`   • Total alliances: ${alliances.length}`);
     logger.info(`   • New snapshots: ${created}`);
-    logger.info(`   • Already existing: ${skipped}`);
+    logger.info(`   • Already existing: ${existingAllianceIds.size}`);
+    logger.info(`   • Total corporations: ${corporations.length}`);
+    logger.info(`   • Alliance records updated: ${allianceStats.size}`);
     logger.info(`   • Duration: ${duration} seconds`);
     logger.info(`   • Date: ${today.toISOString().split('T')[0]}`);
-
   } catch (error) {
     logger.error('❌ Snapshot creation error:', error);
     throw error;
