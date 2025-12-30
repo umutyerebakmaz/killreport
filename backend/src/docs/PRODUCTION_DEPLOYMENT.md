@@ -65,7 +65,7 @@ EVE_CLIENT_SECRET=your_client_secret
 EVE_CALLBACK_URL=https://yourdomain.com/auth/callback
 
 # Database
-DB_URL=postgresql://user:pass@host:5432/killreport
+DATABASE_URL=postgresql://user:pass@host:5432/killreport
 
 # RabbitMQ
 RABBITMQ_URL=amqp://user:pass@host:5672
