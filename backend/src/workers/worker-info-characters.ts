@@ -6,7 +6,7 @@
 import '../config';
 import { CharacterService } from '../services/character';
 import logger from '../services/logger';
-import prisma from '../services/prisma';
+import prismaWorker from '../services/prisma-worker';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
 
@@ -67,7 +67,7 @@ async function characterInfoWorker() {
         try {
 
           // Check if already exists
-          const existing = await prisma.character.findUnique({
+          const existing = await prismaWorker.character.findUnique({
             where: { id: characterId },
           });
 
@@ -75,7 +75,7 @@ async function characterInfoWorker() {
           const charInfo = await CharacterService.getCharacterInfo(characterId);
 
           // Save to database (upsert to prevent race condition)
-          await prisma.character.upsert({
+          await prismaWorker.character.upsert({
             where: { id: characterId },
             create: {
               id: characterId,
@@ -144,7 +144,7 @@ async function characterInfoWorker() {
 
   } catch (error) {
     logger.error('💥 Worker failed to start:', error);
-    await prisma.$disconnect();
+    await prismaWorker.$disconnect();
     process.exit(1);
   }
 }
@@ -152,7 +152,7 @@ async function characterInfoWorker() {
 function setupShutdownHandlers() {
   const shutdown = async () => {
     logger.info('\n\n⚠️  Shutting down...');
-    await prisma.$disconnect();
+    await prismaWorker.$disconnect();
     process.exit(0);
   };
 

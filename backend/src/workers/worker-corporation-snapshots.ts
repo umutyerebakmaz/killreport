@@ -13,7 +13,7 @@
  */
 
 import logger from '../services/logger';
-import prisma from '../services/prisma';
+import prismaWorker from '../services/prisma-worker';
 
 async function takeCorporationSnapshots() {
     logger.info('📸 Corporation Snapshot Worker started...');
@@ -24,7 +24,7 @@ async function takeCorporationSnapshots() {
 
     try {
         // Get all corporations
-        const corporations = await prisma.corporation.findMany({
+        const corporations = await prismaWorker.corporation.findMany({
             select: { id: true, member_count: true },
         });
 
@@ -36,7 +36,7 @@ async function takeCorporationSnapshots() {
 
         for (const corporation of corporations) {
             // Check if snapshot for today already exists for this corporation
-            const existingSnapshot = await prisma.corporationSnapshot.findFirst({
+            const existingSnapshot = await prismaWorker.corporationSnapshot.findFirst({
                 where: {
                     corporation_id: corporation.id,
                     snapshot_date: today,
@@ -50,7 +50,7 @@ async function takeCorporationSnapshots() {
             }
 
             // Create snapshot
-            await prisma.corporationSnapshot.create({
+            await prismaWorker.corporationSnapshot.create({
                 data: {
                     corporation_id: corporation.id,
                     member_count: corporation.member_count,
@@ -81,7 +81,7 @@ async function takeCorporationSnapshots() {
         logger.error('❌ Snapshot creation error:', error);
         throw error;
     } finally {
-        await prisma.$disconnect();
+        await prismaWorker.$disconnect();
     }
 }
 

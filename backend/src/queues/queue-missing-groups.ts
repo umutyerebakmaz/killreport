@@ -1,5 +1,4 @@
 import logger from '../services/logger';
-import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
 const QUEUE_NAME = 'esi_item_group_info_queue';
@@ -13,7 +12,7 @@ async function queueMissingGroups() {
 
     try {
         // Get all unique group_ids from types table
-        const typesWithGroups = await prisma.type.findMany({
+        const typesWithGroups = await prismaWorker.type.findMany({
             select: { group_id: true },
             distinct: ['group_id'],
         });
@@ -22,7 +21,7 @@ async function queueMissingGroups() {
         logger.info(`Found ${uniqueGroupIds.length} unique group IDs in types table`);
 
         // Get existing item groups
-        const existingGroups = await prisma.itemGroup.findMany({
+        const existingGroups = await prismaWorker.itemGroup.findMany({
             select: { id: true },
         });
 

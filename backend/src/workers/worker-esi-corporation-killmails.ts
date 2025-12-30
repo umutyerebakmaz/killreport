@@ -2,7 +2,7 @@ import '../config';
 import { CorporationService } from '../services/corporation/corporation.service';
 import { KillmailService } from '../services/killmail/killmail.service';
 import logger from '../services/logger';
-import prisma from '../services/prisma';
+import prismaWorker from '../services/prisma-worker';
 import { pubsub } from '../services/pubsub';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
@@ -106,7 +106,7 @@ export async function esiCorporationKillmailWorker() {
                             const newExpiresAt = new Date(Date.now() + newTokenData.expires_in * 1000);
 
                             // Update token in database
-                            await prisma.user.update({
+                            await prismaWorker.user.update({
                                 where: { id: message.userId },
                                 data: {
                                     access_token: newTokenData.access_token,
@@ -233,7 +233,7 @@ async function syncCorporationKillmailsFromESI(
 
                 // Save to database in a transaction
                 try {
-                    await prisma.$transaction(async (tx) => {
+                    await prismaWorker.$transaction(async (tx) => {
                         // 1. Create killmail record
                         await tx.killmail.create({
                             data: {
@@ -330,7 +330,7 @@ async function syncCorporationKillmailsFromESI(
         // Update user's last corporation sync info for incremental syncs
         if (killmailList.length > 0) {
             const latestKillmailId = Math.max(...killmailList.map(km => km.killmail_id));
-            await prisma.user.update({
+            await prismaWorker.user.update({
                 where: { id: message.userId },
                 data: {
                     last_corp_killmail_sync_at: new Date(),
@@ -340,7 +340,7 @@ async function syncCorporationKillmailsFromESI(
             logger.info(`  💾 Updated last corporation sync info (latest killmail ID: ${latestKillmailId})`);
         } else {
             // Even if no killmails, update sync timestamp to avoid repeated empty checks
-            await prisma.user.update({
+            await prismaWorker.user.update({
                 where: { id: message.userId },
                 data: {
                     last_corp_killmail_sync_at: new Date(),

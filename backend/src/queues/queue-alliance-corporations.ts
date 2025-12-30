@@ -7,7 +7,6 @@
 
 import '../config';
 import logger from '../services/logger';
-import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
 const QUEUE_NAME = 'esi_alliance_corporations_queue';
@@ -29,7 +28,7 @@ async function queueAllianceCorporations() {
     try {
         // Get all alliance IDs from database
         logger.info('Fetching alliance IDs from database...');
-        const alliances = await prisma.alliance.findMany({
+        const alliances = await prismaWorker.alliance.findMany({
             select: { id: true, name: true },
             orderBy: { id: 'asc' },
         });
