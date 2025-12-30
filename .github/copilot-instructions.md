@@ -116,7 +116,7 @@ yarn prisma:studio       # GUI for data inspection
 - Backend uses `backend/src/config.ts` as single source of truth
 - All env vars loaded via `dotenv` in `config.ts`
 - Frontend uses `process.env.NEXT_PUBLIC_*` directly in client code
-- Required vars: `EVE_CLIENT_ID`, `EVE_CLIENT_SECRET`, `DATABASE_URL`, `RABBITMQ_URL`
+- Required vars: `EVE_CLIENT_ID`, `EVE_CLIENT_SECRET`, `DB_URL`, `RABBITMQ_URL`
 
 ## Key Integration Points
 

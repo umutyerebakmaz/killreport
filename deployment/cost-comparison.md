@@ -15,7 +15,7 @@
 **Connection Pool:**
 
 ```bash
-DATABASE_URL="postgresql://user:pass@managed-host:25060/killreport?sslmode=require&connection_limit=2"
+DB_URL="postgresql://user:pass@managed-host:25060/killreport?sslmode=require&connection_limit=2"
 # 8 processes × 2 connections = 16 total
 # Managed PostgreSQL limit = 25 connections ✅
 ```
@@ -56,10 +56,10 @@ DATABASE_URL="postgresql://user:pass@managed-host:25060/killreport?sslmode=requi
 
 ```bash
 # App Droplet (2 processes)
-DATABASE_URL="postgresql://user:pass@managed-host:25060/killreport?sslmode=require&connection_limit=5"
+DB_URL="postgresql://user:pass@managed-host:25060/killreport?sslmode=require&connection_limit=5"
 
 # Worker Droplet (6 workers)
-DATABASE_URL="postgresql://user:pass@managed-host:25060/killreport?sslmode=require&connection_limit=2"
+DB_URL="postgresql://user:pass@managed-host:25060/killreport?sslmode=require&connection_limit=2"
 
 # Total: (2×5) + (6×2) = 22 connections
 # Professional PostgreSQL limit = 97 connections ✅
