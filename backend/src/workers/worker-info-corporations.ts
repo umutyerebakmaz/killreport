@@ -6,7 +6,7 @@
 import '../config';
 import { CorporationService } from '../services/corporation';
 import logger from '../services/logger';
-import prisma from '../services/prisma';
+import prismaWorker from '../services/prisma-worker';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
 const QUEUE_NAME = 'esi_corporation_info_queue';
@@ -66,7 +66,7 @@ async function corporationInfoWorker() {
                 try {
 
                     // Check if already exists
-                    const existing = await prisma.corporation.findUnique({
+                    const existing = await prismaWorker.corporation.findUnique({
                         where: { id: corporationId },
                     });
 
@@ -74,7 +74,7 @@ async function corporationInfoWorker() {
                     const corpInfo = await CorporationService.getCorporationInfo(corporationId);
 
                     // Save to database (upsert to prevent race condition)
-                    await prisma.corporation.upsert({
+                    await prismaWorker.corporation.upsert({
                         where: { id: corporationId },
                         create: {
                             id: corporationId,
@@ -133,7 +133,7 @@ async function corporationInfoWorker() {
 
     } catch (error) {
         logger.error('💥 Worker failed to start:', error);
-        await prisma.$disconnect();
+        await prismaWorker.$disconnect();
         process.exit(1);
     }
 }
@@ -141,7 +141,7 @@ async function corporationInfoWorker() {
 function setupShutdownHandlers() {
     const shutdown = async () => {
         logger.warn('\n\n⚠️  Shutting down...');
-        await prisma.$disconnect();
+        await prismaWorker.$disconnect();
         process.exit(0);
     };
 

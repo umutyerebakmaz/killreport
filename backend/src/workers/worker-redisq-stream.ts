@@ -22,7 +22,7 @@
 import '../config';
 import { KillmailDetail, KillmailService } from '../services/killmail';
 import logger from '../services/logger';
-import prisma from '../services/prisma';
+import prismaWorker from '../services/prisma-worker';
 import { pubsub } from '../services/pubsub';
 
 // Debug: Verify pubsub is loaded
@@ -193,7 +193,7 @@ async function saveKillmail(killmail: KillmailDetail, hash: string): Promise<boo
 
   try {
     // Check if already exists BEFORE transaction (cheaper)
-    const existing = await prisma.victim.findUnique({
+    const existing = await prismaWorker.victim.findUnique({
       where: { killmail_id: killmail.killmail_id },
       select: { killmail_id: true },
     });
@@ -203,7 +203,7 @@ async function saveKillmail(killmail: KillmailDetail, hash: string): Promise<boo
     }
 
     // Create killmail with attackers and victim in a transaction
-    await prisma.$transaction(async (tx) => {
+    await prismaWorker.$transaction(async (tx) => {
       // Create the killmail
       await tx.killmail.create({
         data: {
@@ -317,7 +317,7 @@ process.on('SIGINT', async () => {
   logger.info(`   Errors: ${stats.errors}`);
   const runtime = Math.floor((Date.now() - stats.startTime.getTime()) / 1000);
   logger.info(`   Runtime: ${runtime} seconds`);
-  await prisma.$disconnect();
+  await prismaWorker.$disconnect();
   process.exit(0);
 });
 
