@@ -14,7 +14,7 @@
 import '../config';
 import { AllianceService } from '../services/alliance';
 import logger from '../services/logger';
-import prisma from '../services/prisma';
+import prismaWorker from '../services/prisma-worker';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
 const QUEUE_NAME = 'esi_alliance_corporations_queue';
@@ -82,7 +82,7 @@ async function allianceCorporationWorker() {
 
                 try {
                     // Get alliance name for logging
-                    const alliance = await prisma.alliance.findUnique({
+                    const alliance = await prismaWorker.alliance.findUnique({
                         where: { id: allianceId },
                         select: { name: true, ticker: true },
                     });
