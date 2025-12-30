@@ -223,7 +223,7 @@ export const allianceFieldResolvers: AllianceResolvers = {
         return result._sum.member_count || 0;
     },
 
-    metrics: async (parent) => {
+    metrics: async (parent, _args, context) => {
         const now = new Date();
         const date1d = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000);
         const date7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -250,30 +250,12 @@ export const allianceFieldResolvers: AllianceResolvers = {
             currentMemberCount = memberResult._sum.member_count || 0;
         }
 
-        // 1 gün önceki snapshot
-        const snapshot1d = await prisma.allianceSnapshot.findFirst({
-            where: {
-                alliance_id: parent.id,
-                snapshot_date: { lte: date1d },
-            },
-            orderBy: { snapshot_date: 'desc' },
-        });        // 7 gün önceki snapshot
-        const snapshot7d = await prisma.allianceSnapshot.findFirst({
-            where: {
-                alliance_id: parent.id,
-                snapshot_date: { lte: date7d },
-            },
-            orderBy: { snapshot_date: 'desc' },
-        });
-
-        // 30 gün önceki snapshot
-        const snapshot30d = await prisma.allianceSnapshot.findFirst({
-            where: {
-                alliance_id: parent.id,
-                snapshot_date: { lte: date30d },
-            },
-            orderBy: { snapshot_date: 'desc' },
-        });
+        // Use DataLoader to batch snapshot queries
+        const [snapshot1d, snapshot7d, snapshot30d] = await Promise.all([
+            context.loaders.allianceSnapshot.load({ allianceId: parent.id, date: date1d }),
+            context.loaders.allianceSnapshot.load({ allianceId: parent.id, date: date7d }),
+            context.loaders.allianceSnapshot.load({ allianceId: parent.id, date: date30d }),
+        ]);
 
         // Delta hesaplamaları
         const memberCountDelta1d = snapshot1d
