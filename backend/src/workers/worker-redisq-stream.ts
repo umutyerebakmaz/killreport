@@ -20,10 +20,14 @@
  */
 
 import '../config';
+import { AllianceService } from '../services/alliance/alliance.service';
+import { CharacterService } from '../services/character/character.service';
+import { CorporationService } from '../services/corporation/corporation.service';
 import { KillmailDetail, KillmailService } from '../services/killmail';
 import logger from '../services/logger';
 import prismaWorker from '../services/prisma-worker';
 import { pubsub } from '../services/pubsub';
+import { TypeService } from '../services/type/type.service';
 
 // Debug: Verify pubsub is loaded
 logger.debug('Debug: pubsub type: ' + typeof pubsub);
@@ -67,6 +71,8 @@ let stats = {
   saved: 0,
   skipped: 0,
   errors: 0,
+  enriched: 0, // Yeni: enrichment yapılan entity sayısı
+  enrichmentFailed: 0, // Başarısız enrichment sayısı
   startTime: new Date(),
 };
 
@@ -160,6 +166,9 @@ async function processKillmail(pkg: RedisQPackage): Promise<void> {
       logger.debug(`   📦 Items found: ${itemCount}`);
     }
 
+    // 🚀 YENİ: Killmail'i kaydetmeden önce eksik entity'leri ESI'dan çek
+    await enrichMissingEntities(killmail);
+
     // Save to database (upsert handles duplicates)
     const isNew = await saveKillmail(killmail, zkb.hash);
 
@@ -174,7 +183,8 @@ async function processKillmail(pkg: RedisQPackage): Promise<void> {
     const runtime = Math.floor((Date.now() - stats.startTime.getTime()) / 1000);
     logger.info(
       `✅ Saved: ${killID} | ` +
-      `Stats: ${stats.saved} saved, ${stats.skipped} skipped, ${stats.errors} errors ` +
+      `Stats: ${stats.saved} saved, ${stats.skipped} skipped, ` +
+      `${stats.enriched} enriched (${stats.enrichmentFailed} failed), ${stats.errors} errors ` +
       `(${runtime}s runtime)`
     );
   } catch (error: any) {
@@ -182,6 +192,245 @@ async function processKillmail(pkg: RedisQPackage): Promise<void> {
     logger.error(`❌ Failed to process killmail ${killID}:`, error);
     // Don't re-throw - continue processing next killmail
   }
+}
+
+/**
+ * Enrich missing entities (character, corporation, alliance, type) before saving killmail
+ * Bu fonksiyon transaction öncesinde çalışır ve tüm eksik entity'leri ESI'dan çeker
+ */
+async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
+  const enrichmentStart = Date.now();
+
+  // Local counters for this enrichment run
+  let enrichedCount = 0;
+  let failedCount = 0;
+
+  // 1. Tüm unique ID'leri topla
+  const characterIds = new Set<number>();
+  const corporationIds = new Set<number>();
+  const allianceIds = new Set<number>();
+  const typeIds = new Set<number>();
+
+  // Victim'dan ID'leri topla
+  if (killmail.victim.character_id) characterIds.add(killmail.victim.character_id);
+  if (killmail.victim.corporation_id) corporationIds.add(killmail.victim.corporation_id);
+  if (killmail.victim.alliance_id) allianceIds.add(killmail.victim.alliance_id);
+  if (killmail.victim.ship_type_id) typeIds.add(killmail.victim.ship_type_id);
+
+  // Attackers'dan ID'leri topla
+  killmail.attackers.forEach((attacker) => {
+    if (attacker.character_id) characterIds.add(attacker.character_id);
+    if (attacker.corporation_id) corporationIds.add(attacker.corporation_id);
+    if (attacker.alliance_id) allianceIds.add(attacker.alliance_id);
+    if (attacker.ship_type_id) typeIds.add(attacker.ship_type_id);
+    if (attacker.weapon_type_id) typeIds.add(attacker.weapon_type_id);
+  });
+
+  // Items'dan type ID'leri topla
+  if (killmail.victim.items) {
+    killmail.victim.items.forEach((item) => {
+      if (item.item_type_id) typeIds.add(item.item_type_id);
+    });
+  }
+
+  const allCharacterIds = Array.from(characterIds);
+
+  logger.debug(
+    `🔍 Checking entities: ${allCharacterIds.length} chars, ${corporationIds.size} corps, ` +
+    `${allianceIds.size} alliances, ${typeIds.size} types`
+  );
+
+  // 2. Database'de eksik olanları bul
+  const [existingChars, existingCorps, existingAlliances, existingTypes] = await Promise.all([
+    allCharacterIds.length > 0
+      ? prismaWorker.character.findMany({
+        where: { id: { in: allCharacterIds } },
+        select: { id: true },
+      })
+      : [],
+    corporationIds.size > 0
+      ? prismaWorker.corporation.findMany({
+        where: { id: { in: Array.from(corporationIds) } },
+        select: { id: true },
+      })
+      : [],
+    allianceIds.size > 0
+      ? prismaWorker.alliance.findMany({
+        where: { id: { in: Array.from(allianceIds) } },
+        select: { id: true },
+      })
+      : [],
+    typeIds.size > 0
+      ? prismaWorker.type.findMany({
+        where: { id: { in: Array.from(typeIds) } },
+        select: { id: true },
+      })
+      : [],
+  ]);
+
+  const existingCharIds = new Set(existingChars.map((c) => c.id));
+  const existingCorpIds = new Set(existingCorps.map((c) => c.id));
+  const existingAllianceIds = new Set(existingAlliances.map((a) => a.id));
+  const existingTypeIds = new Set(existingTypes.map((t) => t.id));
+
+  const missingCharIds = allCharacterIds.filter((id) => !existingCharIds.has(id));
+  const missingCorpIds = Array.from(corporationIds).filter((id) => !existingCorpIds.has(id));
+  const missingAllianceIds = Array.from(allianceIds).filter((id) => !existingAllianceIds.has(id));
+  const missingTypeIds = Array.from(typeIds).filter((id) => !existingTypeIds.has(id));
+
+  const totalMissing =
+    missingCharIds.length + missingCorpIds.length + missingAllianceIds.length + missingTypeIds.length;
+
+  if (totalMissing === 0) {
+    logger.debug('✅ All entities exist in database');
+    return;
+  }
+
+  logger.info(
+    `🔧 Enriching ${totalMissing} missing entities: ` +
+    `${missingCharIds.length} chars, ${missingCorpIds.length} corps, ` +
+    `${missingAllianceIds.length} alliances, ${missingTypeIds.length} types`
+  );
+
+  // 3. ESI'dan eksik entity'leri çek ve kaydet (batch processing ile)
+  // Rate limiter korunması için aynı anda max 10 parallel işlem
+  const BATCH_SIZE = 10;
+
+  // Helper function for batch processing
+  async function processBatch<T>(items: T[], processor: (item: T) => Promise<void>) {
+    for (let i = 0; i < items.length; i += BATCH_SIZE) {
+      const batch = items.slice(i, i + BATCH_SIZE);
+      await Promise.all(batch.map(processor));
+    }
+  }
+
+  // Characters (batch processing)
+  await processBatch(missingCharIds, async (charId) => {
+    try {
+      const charInfo = await CharacterService.getCharacterInfo(charId);
+      await prismaWorker.character.upsert({
+        where: { id: charId },
+        create: {
+          id: charId,
+          name: charInfo.name,
+          corporation_id: charInfo.corporation_id,
+          alliance_id: charInfo.alliance_id || null,
+          birthday: new Date(charInfo.birthday),
+          bloodline_id: charInfo.bloodline_id,
+          race_id: charInfo.race_id,
+          gender: charInfo.gender,
+          security_status: charInfo.security_status || 0,
+        },
+        update: {},
+      });
+      enrichedCount++;
+      stats.enriched++;
+      logger.debug(`  ✓ Character ${charId} enriched`);
+    } catch (error: any) {
+      failedCount++;
+      stats.enrichmentFailed++;
+      const statusCode = error?.response?.status || 'unknown';
+      const errorMsg = error?.response?.data?.error || error?.message || 'Unknown error';
+      logger.warn(`  ✗ Character ${charId} failed (${statusCode}): ${errorMsg}`);
+    }
+  });
+
+  // Corporations (batch processing)
+  await processBatch(missingCorpIds, async (corpId) => {
+    try {
+      const corpInfo = await CorporationService.getCorporationInfo(corpId);
+      await prismaWorker.corporation.upsert({
+        where: { id: corpId },
+        create: {
+          id: corpId,
+          name: corpInfo.name,
+          ticker: corpInfo.ticker,
+          alliance_id: corpInfo.alliance_id || null,
+          ceo_id: corpInfo.ceo_id,
+          creator_id: corpInfo.creator_id,
+          date_founded: new Date(corpInfo.date_founded),
+          member_count: corpInfo.member_count,
+          tax_rate: corpInfo.tax_rate || 0,
+        },
+        update: {},
+      });
+      enrichedCount++;
+      stats.enriched++;
+      logger.debug(`  ✓ Corporation ${corpId} enriched`);
+    } catch (error: any) {
+      failedCount++;
+      stats.enrichmentFailed++;
+      const statusCode = error?.response?.status || 'unknown';
+      const errorMsg = error?.response?.data?.error || error?.message || 'Unknown error';
+      logger.warn(`  ✗ Corporation ${corpId} failed (${statusCode}): ${errorMsg}`);
+    }
+  });
+
+  // Alliances (batch processing)
+  await processBatch(missingAllianceIds, async (allianceId) => {
+    try {
+      const allianceInfo = await AllianceService.getAllianceInfo(allianceId);
+      await prismaWorker.alliance.upsert({
+        where: { id: allianceId },
+        create: {
+          id: allianceId,
+          name: allianceInfo.name,
+          ticker: allianceInfo.ticker,
+          date_founded: new Date(allianceInfo.date_founded),
+          creator_corporation_id: allianceInfo.creator_corporation_id,
+          creator_id: allianceInfo.creator_id,
+          executor_corporation_id: allianceInfo.executor_corporation_id,
+          faction_id: allianceInfo.faction_id || null,
+        },
+        update: {},
+      });
+      enrichedCount++;
+      stats.enriched++;
+      logger.debug(`  ✓ Alliance ${allianceId} enriched`);
+    } catch (error: any) {
+      failedCount++;
+      stats.enrichmentFailed++;
+      const statusCode = error?.response?.status || 'unknown';
+      const errorMsg = error?.response?.data?.error || error?.message || 'Unknown error';
+      logger.warn(`  ✗ Alliance ${allianceId} failed (${statusCode}): ${errorMsg}`);
+    }
+  });
+
+  // Types (batch processing)
+  await processBatch(missingTypeIds, async (typeId) => {
+    try {
+      const typeInfo = await TypeService.getTypeInfo(typeId);
+      await prismaWorker.type.upsert({
+        where: { id: typeId },
+        create: {
+          id: typeId,
+          name: typeInfo.name,
+          description: typeInfo.description || '',
+          published: typeInfo.published,
+          group_id: typeInfo.group_id,
+          mass: typeInfo.mass || null,
+          volume: typeInfo.volume || null,
+          capacity: typeInfo.capacity || null,
+        },
+        update: {},
+      });
+      enrichedCount++;
+      stats.enriched++;
+      logger.debug(`  ✓ Type ${typeId} enriched`);
+    } catch (error: any) {
+      failedCount++;
+      stats.enrichmentFailed++;
+      const statusCode = error?.response?.status || 'unknown';
+      const errorMsg = error?.response?.data?.error || error?.message || 'Unknown error';
+      logger.warn(`  ✗ Type ${typeId} failed (${statusCode}): ${errorMsg}`);
+    }
+  });
+
+  const enrichmentTime = Date.now() - enrichmentStart;
+  logger.info(
+    `✅ Enrichment completed in ${enrichmentTime}ms ` +
+    `(${enrichedCount} succeeded, ${failedCount} failed)`
+  );
 }
 
 /**
@@ -314,6 +563,7 @@ process.on('SIGINT', async () => {
   logger.info(`   Received: ${stats.received}`);
   logger.info(`   Saved: ${stats.saved}`);
   logger.info(`   Skipped: ${stats.skipped}`);
+  logger.info(`   Enriched: ${stats.enriched} (${stats.enrichmentFailed} failed)`);
   logger.info(`   Errors: ${stats.errors}`);
   const runtime = Math.floor((Date.now() - stats.startTime.getTime()) / 1000);
   logger.info(`   Runtime: ${runtime} seconds`);
