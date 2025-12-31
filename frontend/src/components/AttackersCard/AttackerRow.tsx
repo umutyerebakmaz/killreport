@@ -85,8 +85,8 @@ export default function AttackerRow({
                 loading="lazy"
               />
             ) : (
-              <div className="flex items-center justify-center w-12 h-12 bg-gray-800 shadow-md">
-                <QuestionMarkCircleIcon className="w-8 h-8 text-gray-500" />
+              <div className="flex items-center justify-center w-12 h-12 shadow-md">
+                <QuestionMarkCircleIcon className="w-8 h-8 text-gray-400" />
               </div>
             )}
           </Tooltip>
