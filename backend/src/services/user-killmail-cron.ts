@@ -81,7 +81,7 @@ export class UserKillmailCron {
     try {
       const startTime = Date.now();
       console.log(`\n${'─'.repeat(70)}`);
-      console.log(`🕐 [${new Date().toLocaleString('tr-TR')}] Running background sync...`);
+      console.log(`🕐 [${new Date().toLocaleString('en-EN')}] Running background sync...`);
       console.log('─'.repeat(70));
 
       // Get all users with valid tokens (not expired, with 5 minute buffer)
