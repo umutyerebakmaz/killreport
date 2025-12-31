@@ -1,4 +1,5 @@
 import { KillmailQuery } from "@/generated/graphql";
+import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import Tooltip from "../Tooltip/Tooltip";
 
@@ -73,25 +74,37 @@ export default function AttackerRow({
         )}
 
         <div className="flex flex-col pr-4">
-          <Tooltip content={attacker.shipType?.name}>
-            <img
-              src={`https://images.evetech.net/types/${attacker.shipTypeId}/render?size=64`}
-              alt={attacker.shipType?.name || "Ship"}
-              width={48}
-              height={48}
-              className="shadow-md"
-              loading="lazy"
-            />
+          <Tooltip content={attacker.shipType?.name || "Unknown Ship"}>
+            {attacker.shipTypeId ? (
+              <img
+                src={`https://images.evetech.net/types/${attacker.shipTypeId}/render?size=64`}
+                alt={attacker.shipType?.name || "Ship"}
+                width={48}
+                height={48}
+                className="shadow-md"
+                loading="lazy"
+              />
+            ) : (
+              <div className="flex items-center justify-center w-12 h-12 bg-gray-800 shadow-md">
+                <QuestionMarkCircleIcon className="w-8 h-8 text-gray-500" />
+              </div>
+            )}
           </Tooltip>
-          <Tooltip content={attacker.weaponType?.name}>
-            <img
-              src={`https://images.evetech.net/types/${attacker.weaponTypeId}/icon?size=64`}
-              alt={attacker.weaponType?.name || "Weapon"}
-              width={48}
-              height={48}
-              className="shadow-md"
-              loading="lazy"
-            />
+          <Tooltip content={attacker.weaponType?.name || "Unknown Weapon"}>
+            {attacker.weaponTypeId ? (
+              <img
+                src={`https://images.evetech.net/types/${attacker.weaponTypeId}/icon?size=64`}
+                alt={attacker.weaponType?.name || "Weapon"}
+                width={48}
+                height={48}
+                className="shadow-md"
+                loading="lazy"
+              />
+            ) : (
+              <div className="flex items-center justify-center w-12 h-12 bg-gray-800 shadow-md">
+                <QuestionMarkCircleIcon className="w-8 h-8 text-gray-500" />
+              </div>
+            )}
           </Tooltip>
         </div>
 
