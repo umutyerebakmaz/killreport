@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader } from "@/components/Loader/Loader";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import { useCharacterQuery } from "@/generated/graphql";
 import { getSecurityStatusColor } from "@/utils/securityStatus";
@@ -23,11 +24,7 @@ export default function CharacterDetailPage({
   });
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
+    return <Loader fullHeight size="lg" text="Loading character..." />;
   }
 
   if (error) {
