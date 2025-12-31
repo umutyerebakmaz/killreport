@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader } from "@/components/Loader/Loader";
 import MemberDeltaBadge from "@/components/MemberDeltaBadge/MemberDeltaBadge";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import TotalMemberBadge from "@/components/TotalMemberBadge/TotalMemberBadge";
@@ -24,11 +25,7 @@ export default function CorporationDetailPage({
   });
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
+    return <Loader fullHeight size="lg" text="Loading corporation..." />;
   }
 
   if (error) {

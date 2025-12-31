@@ -2,6 +2,7 @@
 
 import AvgSecurity from "@/components/AvgSecurity/AvgSecurity";
 import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
+import { Loader } from "@/components/Loader/Loader";
 import Paginator from "@/components/Paginator/Paginator";
 import SecurityStatsBar from "@/components/SecurityStatus/SecurityStatsBar";
 import Tooltip from "@/components/Tooltip/Tooltip";
@@ -154,14 +155,8 @@ export default function RegionsPage() {
           <tbody className="divide-y divide-white/10">
             {loading ? (
               <tr>
-                <td
-                  colSpan={5}
-                  className="px-6 py-12 text-center text-gray-400"
-                >
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="w-5 h-5 border-2 rounded-full animate-spin border-cyan-500 border-t-transparent" />
-                    Loading regions...
-                  </div>
+                <td colSpan={5} className="px-6 py-12">
+                  <Loader size="md" text="Loading regions..." />
                 </td>
               </tr>
             ) : regions.length === 0 ? (

@@ -1,6 +1,7 @@
 "use client";
 
 import AttackersCard from "@/components/AttackersCard";
+import { Loader } from "@/components/Loader/Loader";
 import { useKillmailQuery } from "@/generated/graphql";
 import Link from "next/link";
 import { use } from "react";
@@ -16,11 +17,7 @@ export default function KillmailDetailPage({
   });
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl text-gray-300">Loading killmail...</div>
-      </div>
-    );
+    return <Loader fullHeight size="lg" text="Loading killmail..." />;
   }
 
   if (error || !data?.killmail) {
