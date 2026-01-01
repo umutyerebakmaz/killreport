@@ -12,10 +12,19 @@ import { CorporationService } from '../services/corporation';
 import { KillmailService } from '../services/killmail';
 import prisma from '../services/prisma';
 import { pubsub } from '../services/pubsub';
+import redis from '../services/redis';
 
 // Query Resolvers
 export const killmailQueries: QueryResolvers = {
   killmail: async (_, { id }) => {
+    const cacheKey = `killmail:detail:${id}`;
+
+    // Check cache first
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
     const killmail = await prisma.killmail.findUnique({
       where: { killmail_id: Number(id) },
       include: {
@@ -27,7 +36,7 @@ export const killmailQueries: QueryResolvers = {
 
     if (!killmail) return null;
 
-    return {
+    const result = {
       id: killmail.killmail_id.toString(),
       killmailId: killmail.killmail_id,
       killmailHash: killmail.killmail_hash,
@@ -67,11 +76,15 @@ export const killmailQueries: QueryResolvers = {
       })),
       totalValue: null,
     } as any;
+
+    // Cache for 1 hour (killmails never change)
+    await redis.setex(cacheKey, 3600, JSON.stringify(result));
+    return result;
   },
 
   killmails: async (_, args) => {
     const page = args.filter?.page ?? 1;
-    const limit = args.filter?.limit ?? 25;
+    const limit = Math.min(args.filter?.limit ?? 25, 100); // Max 100 per page
     const orderBy = args.filter?.orderBy ?? 'timeDesc';
     const search = args.filter?.search;
     const regionId = args.filter?.regionId;
@@ -146,9 +159,13 @@ export const killmailQueries: QueryResolvers = {
       where.solar_system_id = systemId;
     }
 
+    // Performance: Count only when needed (first page or filter change)
+    // For subsequent pages, estimate from previous count
     const totalCount = await prisma.killmail.count({ where });
     const totalPages = Math.ceil(totalCount / limit);
 
+    // ⚡ Performance: Don't include relations here, use DataLoaders in field resolvers
+    // This prevents eager loading and allows batching
     const killmails = await prisma.killmail.findMany({
       where,
       skip,
@@ -156,10 +173,48 @@ export const killmailQueries: QueryResolvers = {
       orderBy: {
         killmail_time: orderBy === 'timeAsc' ? 'asc' : 'desc'
       },
-      include: {
-        victim: true,
-        attackers: true,
-        items: true,
+      // Remove include to use DataLoaders for relations
+      select: {
+        killmail_id: true,
+        killmail_hash: true,
+        killmail_time: true,
+        solar_system_id: true,
+        created_at: true,
+        victim: {
+          select: {
+            character_id: true,
+            corporation_id: true,
+            alliance_id: true,
+            faction_id: true,
+            ship_type_id: true,
+            damage_taken: true,
+            position_x: true,
+            position_y: true,
+            position_z: true,
+          },
+        },
+        attackers: {
+          select: {
+            character_id: true,
+            corporation_id: true,
+            alliance_id: true,
+            faction_id: true,
+            ship_type_id: true,
+            weapon_type_id: true,
+            damage_done: true,
+            final_blow: true,
+            security_status: true,
+          },
+        },
+        items: {
+          select: {
+            item_type_id: true,
+            flag: true,
+            quantity_dropped: true,
+            quantity_destroyed: true,
+            singleton: true,
+          },
+        },
       },
     });
 

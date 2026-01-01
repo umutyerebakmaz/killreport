@@ -1,8 +1,17 @@
 import { Corporation, CorporationConnection, CorporationResolvers, PageInfo, QueryResolvers } from '../generated-types';
 import prisma from '../services/prisma';
+import redis from '../services/redis';
 
 export const corporationQueries: QueryResolvers = {
     corporation: async (_, { id }): Promise<Corporation | null> => {
+        const cacheKey = `corporation:detail:${id}`;
+
+        // Check cache first
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+            return JSON.parse(cached);
+        }
+
         const corp = await prisma.corporation.findUnique({
             where: { id: Number(id) },
         });
@@ -10,10 +19,14 @@ export const corporationQueries: QueryResolvers = {
         if (!corp) return null;
 
         // Field resolver'lar eksik field'ları otomatik doldurur
-        return {
+        const result = {
             ...corp,
             date_founded: corp.date_founded?.toISOString() || null,
         } as any;
+
+        // Cache for 30 minutes (corporation info updates occasionally)
+        await redis.setex(cacheKey, 1800, JSON.stringify(result));
+        return result;
     },
 
     corporations: async (_, { filter }): Promise<CorporationConnection> => {
