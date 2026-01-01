@@ -1,0 +1,50 @@
+type CacheStats {
+  totalKeys: Int!
+  killmailDetailKeys: Int!
+  characterDetailKeys: Int!
+  corporationDetailKeys: Int!
+  allianceDetailKeys: Int!
+  responseCacheKeys: Int!
+  memoryUsage: String!
+  isHealthy: Boolean!
+}
+
+type CacheOperation {
+  success: Boolean!
+  message: String!
+  deletedKeys: Int
+}
+
+extend type Query {
+  """
+  Cache statistics and memory usage
+  """
+  cacheStats: CacheStats!
+}
+
+extend type Mutation {
+  """
+  Clear cache for a specific killmail
+  """
+  clearKillmailCache(killmailId: Int!): CacheOperation!
+
+  """
+  Clear cache for a specific character
+  """
+  clearCharacterCache(characterId: Int!): CacheOperation!
+
+  """
+  Clear cache for a specific corporation
+  """
+  clearCorporationCache(corporationId: Int!): CacheOperation!
+
+  """
+  Clear cache for a specific alliance
+  """
+  clearAllianceCache(allianceId: Int!): CacheOperation!
+
+  """
+  Clear all killmail caches (use after bulk sync)
+  """
+  clearAllKillmailCaches: CacheOperation!
+}

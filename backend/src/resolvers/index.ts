@@ -2,19 +2,20 @@ import { Resolvers } from '../generated-types';
 import { allianceFieldResolvers, allianceMutations, allianceQueries } from './alliance.resolver';
 import { authMutations, authQueries } from './auth.resolver';
 import { bloodlineQueries } from './bloodline.resolver';
+import { cacheMutations, cacheQueries } from './cache.resolver';
 import { categoryFieldResolvers, categoryMutations, categoryQueries } from './category.resolver';
 import { characterFieldResolvers, characterQueries } from './character.resolver';
 import { constellationFieldResolvers, constellationMutations, constellationQueries } from './constellation.resolver';
 import { corporationFieldResolvers, corporationQueries } from './corporation.resolver';
 import { itemGroupFieldResolvers, itemGroupMutations, itemGroupQueries } from './item-group.resolver';
 import {
-    attackerFieldResolvers,
-    killmailFieldResolvers,
-    killmailItemFieldResolvers,
-    killmailMutations,
-    killmailQueries,
-    killmailSubscriptions,
-    victimFieldResolvers,
+  attackerFieldResolvers,
+  killmailFieldResolvers,
+  killmailItemFieldResolvers,
+  killmailMutations,
+  killmailQueries,
+  killmailSubscriptions,
+  victimFieldResolvers,
 } from './killmail.resolver';
 import { raceQueries } from './race.resolver';
 import { regionFieldResolvers, regionMutations, regionQueries } from './region.resolver';
@@ -24,50 +25,52 @@ import { userMutations, userQueries } from './user.resolver';
 import { workerResolvers } from './worker.resolver';
 
 export const resolvers: Resolvers = {
-    Query: {
-        ...authQueries,
-        ...userQueries,
-        ...characterQueries,
-        ...killmailQueries,
-        ...allianceQueries,
-        ...corporationQueries,
-        ...raceQueries,
-        ...bloodlineQueries,
-        ...categoryQueries,
-        ...itemGroupQueries,
-        ...typeQueries,
-        ...constellationQueries,
-        ...regionQueries,
-        ...solarSystemQueries,
-        ...workerResolvers.Query,
-    },
-    Mutation: {
-        ...authMutations,
-        ...userMutations,
-        ...killmailMutations,
-        ...allianceMutations,
-        ...categoryMutations,
-        ...itemGroupMutations,
-        ...typeMutations,
-        ...constellationMutations,
-        ...regionMutations,
-        ...solarSystemMutations,
-    },
-    Subscription: {
-        ...workerResolvers.Subscription,
-        ...killmailSubscriptions,
-    },
-    Character: characterFieldResolvers,
-    Alliance: allianceFieldResolvers,
-    Category: categoryFieldResolvers,
-    ItemGroup: itemGroupFieldResolvers,
-    Type: typeFieldResolvers,
-    Corporation: corporationFieldResolvers,
-    Constellation: constellationFieldResolvers,
-    Region: regionFieldResolvers,
-    SolarSystem: solarSystemFieldResolvers,
-    Killmail: killmailFieldResolvers,
-    Victim: victimFieldResolvers,
-    Attacker: attackerFieldResolvers,
-    KillmailItem: killmailItemFieldResolvers,
+  Query: {
+    ...authQueries,
+    ...userQueries,
+    ...characterQueries,
+    ...killmailQueries,
+    ...allianceQueries,
+    ...corporationQueries,
+    ...raceQueries,
+    ...bloodlineQueries,
+    ...categoryQueries,
+    ...itemGroupQueries,
+    ...typeQueries,
+    ...constellationQueries,
+    ...regionQueries,
+    ...solarSystemQueries,
+    ...cacheQueries,
+    ...workerResolvers.Query,
+  },
+  Mutation: {
+    ...authMutations,
+    ...userMutations,
+    ...killmailMutations,
+    ...allianceMutations,
+    ...categoryMutations,
+    ...itemGroupMutations,
+    ...typeMutations,
+    ...constellationMutations,
+    ...regionMutations,
+    ...solarSystemMutations,
+    ...cacheMutations,
+  },
+  Subscription: {
+    ...workerResolvers.Subscription,
+    ...killmailSubscriptions,
+  },
+  Character: characterFieldResolvers,
+  Alliance: allianceFieldResolvers,
+  Category: categoryFieldResolvers,
+  ItemGroup: itemGroupFieldResolvers,
+  Type: typeFieldResolvers,
+  Corporation: corporationFieldResolvers,
+  Constellation: constellationFieldResolvers,
+  Region: regionFieldResolvers,
+  SolarSystem: solarSystemFieldResolvers,
+  Killmail: killmailFieldResolvers,
+  Victim: victimFieldResolvers,
+  Attacker: attackerFieldResolvers,
+  KillmailItem: killmailItemFieldResolvers,
 };

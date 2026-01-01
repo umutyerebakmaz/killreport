@@ -2,19 +2,32 @@ import { ItemGroupResolvers, MutationResolvers, PageInfo, QueryResolvers } from 
 import { ItemGroupService } from '../services/item-group';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
+import redis from '../services/redis';
 
 export const itemGroupQueries: QueryResolvers = {
     itemGroup: async (_, { id }) => {
+        const cacheKey = `itemGroup:detail:${id}`;
+
+        // Check cache first
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+            return JSON.parse(cached);
+        }
+
         const itemGroup = await prisma.itemGroup.findUnique({
             where: { id: Number(id) },
         });
         if (!itemGroup) return null;
 
-        return {
+        const result = {
             ...itemGroup,
             created_at: itemGroup.created_at.toISOString(),
             updated_at: itemGroup.updated_at.toISOString(),
         } as any;
+
+        // Cache for 24 hours (item group data rarely changes)
+        await redis.setex(cacheKey, 86400, JSON.stringify(result));
+        return result;
     },
 
     itemGroups: async (_, { filter }) => {
