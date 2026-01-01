@@ -143,6 +143,37 @@ export const createCorporationsByAllianceLoader = () => {
 };
 
 /**
+ * Characters by Corporation DataLoader
+ *
+ * Örnek: 5 corporation'ın character'larını çekiyoruz
+ * ❌ Önceki: 5 ayrı SELECT query
+ * ✅ DataLoader: 1 SELECT WHERE corporation_id IN (1,2,3,4,5) query
+ */
+export const createCharactersByCorpLoader = () => {
+    return new DataLoader<number, any[]>(async (corporationIds) => {
+        console.log(`🔄 DataLoader: Batching ${corporationIds.length} characters by corp queries`);
+
+        const characters = await prisma.character.findMany({
+            where: {
+                corporation_id: { in: [...corporationIds] },
+            },
+        });
+
+        // Group by corporation_id
+        const charsByCorp = new Map<number, any[]>();
+        corporationIds.forEach(id => charsByCorp.set(id, []));
+
+        characters.forEach(char => {
+            const existing = charsByCorp.get(char.corporation_id) || [];
+            existing.push(char);
+            charsByCorp.set(char.corporation_id, existing);
+        });
+
+        return corporationIds.map(id => charsByCorp.get(id) || []);
+    });
+};
+
+/**
  * Region DataLoader - Batch loading için
  */
 export const createRegionLoader = () => {
@@ -333,6 +364,34 @@ export const createItemGroupsByCategoryLoader = () => {
 };
 
 /**
+ * Types by Item Group DataLoader
+ */
+export const createTypesByGroupLoader = () => {
+    return new DataLoader<number, any[]>(async (groupIds) => {
+        console.log(`🔄 DataLoader: Batching ${groupIds.length} types by group queries`);
+
+        const types = await prisma.type.findMany({
+            where: {
+                group_id: { in: [...groupIds] },
+            },
+        });
+
+        const typesByGroup = new Map<number, any[]>();
+        groupIds.forEach(id => typesByGroup.set(id, []));
+
+        types.forEach(type => {
+            if (type.group_id) {
+                const existing = typesByGroup.get(type.group_id) || [];
+                existing.push(type);
+                typesByGroup.set(type.group_id, existing);
+            }
+        });
+
+        return groupIds.map(id => typesByGroup.get(id) || []);
+    });
+};
+
+/**
  * DataLoader Context - Her request için yeni instance
  */
 export interface DataLoaderContext {
@@ -343,6 +402,7 @@ export interface DataLoaderContext {
         race: DataLoader<number, any>;
         bloodline: DataLoader<number, any>;
         corporationsByAlliance: DataLoader<number, any[]>;
+        charactersByCorp: DataLoader<number, any[]>;
         region: DataLoader<number, any>;
         constellation: DataLoader<number, any>;
         solarSystem: DataLoader<number, any>;
@@ -352,6 +412,9 @@ export interface DataLoaderContext {
         itemGroup: DataLoader<number, any>;
         type: DataLoader<number, any>;
         itemGroupsByCategory: DataLoader<number, any[]>;
+        typesByGroup: DataLoader<number, any[]>;
+        corporationSnapshot: DataLoader<{ corporationId: number; date: Date }, any>;
+        allianceSnapshot: DataLoader<{ allianceId: number; date: Date }, any>;
     };
 }
 
@@ -363,6 +426,7 @@ export const createDataLoaders = (): DataLoaderContext => ({
         race: createRaceLoader(),
         bloodline: createBloodlineLoader(),
         corporationsByAlliance: createCorporationsByAllianceLoader(),
+        charactersByCorp: createCharactersByCorpLoader(),
         region: createRegionLoader(),
         constellation: createConstellationLoader(),
         solarSystem: createSolarSystemLoader(),
@@ -372,6 +436,7 @@ export const createDataLoaders = (): DataLoaderContext => ({
         itemGroup: createItemGroupLoader(),
         type: createTypeLoader(),
         itemGroupsByCategory: createItemGroupsByCategoryLoader(),
+        typesByGroup: createTypesByGroupLoader(),
         corporationSnapshot: createCorporationSnapshotLoader(),
         allianceSnapshot: createAllianceSnapshotLoader(),
     },
