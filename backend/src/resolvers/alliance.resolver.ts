@@ -3,19 +3,32 @@ import { AllianceResolvers, MutationResolvers, PageInfo, QueryResolvers } from '
 import logger from '../services/logger';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
+import redis from '../services/redis';
 
 export const allianceQueries: QueryResolvers = {
     alliance: async (_, { id }) => {
+        const cacheKey = `alliance:detail:${id}`;
+
+        // Check cache first
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+            return JSON.parse(cached);
+        }
+
         const alliance = await prisma.alliance.findUnique({
             where: { id: Number(id) },
         });
         if (!alliance) return null;
 
         // Field resolver'lar eksik field'ları otomatik doldurur
-        return {
+        const result = {
             ...alliance,
             date_founded: alliance.date_founded.toISOString(),
         } as any;
+
+        // Cache for 30 minutes (alliance info updates occasionally)
+        await redis.setex(cacheKey, 1800, JSON.stringify(result));
+        return result;
     },
 
     alliances: async (_, { filter }) => {
