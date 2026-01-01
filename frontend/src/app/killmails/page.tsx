@@ -7,6 +7,7 @@ import Paginator from "@/components/Paginator/Paginator";
 import SecurityStatus from "@/components/SecurityStatus/SecurityStatus";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import {
+  useKillmailsDateCountsQuery,
   useKillmailsQuery,
   useNewKillmailSubscription,
 } from "@/generated/graphql";
@@ -17,7 +18,7 @@ import {
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 export default function KillmailsPage() {
   const router = useRouter();
@@ -40,6 +41,7 @@ export default function KillmailsPage() {
   const [totalKillmailCount, setTotalKillmailCount] = useState<number | null>(
     null
   );
+  const [dateCounts, setDateCounts] = useState<Record<string, number>>({});
 
   // Subscribe to new killmails
   const {
@@ -50,15 +52,7 @@ export default function KillmailsPage() {
     skip: currentPage !== 1, // Only subscribe when on first page
   });
 
-  // Debug subscription
-  useEffect(() => {
-    console.log("🔔 Subscription state:", {
-      loading: subscriptionLoading,
-      error: subscriptionError?.message,
-      hasData: !!subscriptionData,
-      data: subscriptionData,
-    });
-  }, [subscriptionData, subscriptionLoading, subscriptionError]);
+  // Debug subscription (removed for production performance)
 
   // Dismiss toast handler
   const handleDismissToast = useCallback((id: string) => {
@@ -69,7 +63,6 @@ export default function KillmailsPage() {
   useEffect(() => {
     if (subscriptionData?.newKillmail && currentPage === 1) {
       const km = subscriptionData.newKillmail;
-      console.log("📨 New killmail received:", km.id);
 
       setNewKillmails((prev) => {
         // Check if killmail already exists
@@ -107,6 +100,13 @@ export default function KillmailsPage() {
       // Increment total count
       setTotalKillmailCount((prev) => (prev !== null ? prev + 1 : null));
 
+      // Increment date count for this killmail's date
+      const kmDate = new Date(km.killmailTime).toISOString().split("T")[0];
+      setDateCounts((prev) => ({
+        ...prev,
+        [kmDate]: (prev[kmDate] || 0) + 1,
+      }));
+
       // Add to animating set
       setAnimatingKillmails((prev) => new Set(prev).add(km.id));
 
@@ -137,6 +137,16 @@ export default function KillmailsPage() {
     },
   });
 
+  // Fetch date counts for all dates (not paginated)
+  const { data: dateCountsData } = useKillmailsDateCountsQuery({
+    variables: {
+      filter: {
+        orderBy: orderBy as any,
+        search: debouncedSearch || undefined,
+      },
+    },
+  });
+
   // URL sync
   useEffect(() => {
     const params = new URLSearchParams();
@@ -149,10 +159,15 @@ export default function KillmailsPage() {
   if (error)
     return <div className="p-8 text-red-500">Error: {error.message}</div>;
 
-  const killmails = [
-    ...newKillmails, // Add new real-time killmails first
-    ...(data?.killmails.edges.map((edge) => edge.node) || []),
-  ];
+  // Memoize killmails array to prevent unnecessary recalculations
+  const killmails = useMemo(
+    () => [
+      ...newKillmails, // Add new real-time killmails first
+      ...(data?.killmails.edges.map((edge) => edge.node) || []),
+    ],
+    [newKillmails, data?.killmails.edges]
+  );
+
   const pageInfo = data?.killmails.pageInfo;
   const totalPages = pageInfo?.totalPages || 0;
 
@@ -163,23 +178,43 @@ export default function KillmailsPage() {
     }
   }, [data, totalKillmailCount]);
 
-  // Group killmails by date
-  const groupedKillmails = killmails.reduce((groups, km) => {
-    const dateObj = new Date(km.killmailTime);
-    const date = dateObj.toISOString().split("T")[0]; // YYYY-MM-DD format
-    if (!groups[date]) {
-      groups[date] = [];
+  // Update date counts from query data
+  useEffect(() => {
+    if (dateCountsData?.killmailsDateCounts) {
+      const counts: Record<string, number> = {};
+      dateCountsData.killmailsDateCounts.forEach((dc) => {
+        counts[dc.date] = dc.count;
+      });
+      setDateCounts(counts);
     }
-    groups[date].push(km);
-    return groups;
-  }, {} as Record<string, typeof killmails>);
+  }, [dateCountsData]);
 
-  const handleNext = () =>
-    pageInfo?.hasNextPage && setCurrentPage((prev) => prev + 1);
-  const handlePrev = () =>
-    pageInfo?.hasPreviousPage && setCurrentPage((prev) => prev - 1);
-  const handleFirst = () => setCurrentPage(1);
-  const handleLast = () => totalPages > 0 && setCurrentPage(totalPages);
+  // Group killmails by date (memoized for performance)
+  const groupedKillmails = useMemo(() => {
+    return killmails.reduce((groups, km) => {
+      const dateObj = new Date(km.killmailTime);
+      const date = dateObj.toISOString().split("T")[0]; // YYYY-MM-DD format
+      if (!groups[date]) {
+        groups[date] = [];
+      }
+      groups[date].push(km);
+      return groups;
+    }, {} as Record<string, typeof killmails>);
+  }, [killmails]);
+
+  const handleNext = useCallback(
+    () => pageInfo?.hasNextPage && setCurrentPage((prev) => prev + 1),
+    [pageInfo?.hasNextPage]
+  );
+  const handlePrev = useCallback(
+    () => pageInfo?.hasPreviousPage && setCurrentPage((prev) => prev - 1),
+    [pageInfo?.hasPreviousPage]
+  );
+  const handleFirst = useCallback(() => setCurrentPage(1), []);
+  const handleLast = useCallback(
+    () => totalPages > 0 && setCurrentPage(totalPages),
+    [totalPages]
+  );
 
   return (
     <div className="px-4 sm:px-6 lg:px-8">
@@ -255,8 +290,11 @@ export default function KillmailsPage() {
                 <h2 className="flex items-center gap-2 text-xl font-semibold">
                   <span className="text-gray-200">{date}</span>
                   <span className="text-sm font-normal text-gray-500">
-                    ({typedKillmails.length} killmail
-                    {typedKillmails.length !== 1 ? "s" : ""})
+                    ({dateCounts[date] || typedKillmails.length} killmail
+                    {(dateCounts[date] || typedKillmails.length) !== 1
+                      ? "s"
+                      : ""}
+                    )
                   </span>
                 </h2>
 
