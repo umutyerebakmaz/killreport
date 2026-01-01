@@ -65,7 +65,6 @@ query Killmails($filter: KillmailFilter) {
           damageDone
         }
       }
-      cursor
     }
     pageInfo {
       hasNextPage
