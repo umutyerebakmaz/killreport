@@ -362,6 +362,11 @@ type KillmailConnection {
   pageInfo: PageInfo!
 }
 
+type KillmailDateCount {
+  count: Int!
+  date: String!
+}
+
 type KillmailEdge {
   cursor: String!
   node: Killmail!
@@ -484,6 +489,9 @@ type Query {
 
   """Lists all killmails (with pagination using Relay-style connection)"""
   killmails(filter: KillmailFilter): KillmailConnection!
+
+  """Returns count of killmails grouped by date (for the current filter)"""
+  killmailsDateCounts(filter: KillmailFilter): [KillmailDateCount!]!
 
   """Mevcut authenticated kullanıcının bilgilerini döner"""
   me: User
