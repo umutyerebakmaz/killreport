@@ -145,6 +145,25 @@ export type Bloodline = {
   race_id: Scalars['Int']['output'];
 };
 
+export type CacheOperation = {
+  __typename?: 'CacheOperation';
+  deletedKeys?: Maybe<Scalars['Int']['output']>;
+  message: Scalars['String']['output'];
+  success: Scalars['Boolean']['output'];
+};
+
+export type CacheStats = {
+  __typename?: 'CacheStats';
+  allianceDetailKeys: Scalars['Int']['output'];
+  characterDetailKeys: Scalars['Int']['output'];
+  corporationDetailKeys: Scalars['Int']['output'];
+  isHealthy: Scalars['Boolean']['output'];
+  killmailDetailKeys: Scalars['Int']['output'];
+  memoryUsage: Scalars['String']['output'];
+  responseCacheKeys: Scalars['Int']['output'];
+  totalKeys: Scalars['Int']['output'];
+};
+
 export type Category = {
   __typename?: 'Category';
   created_at: Scalars['String']['output'];
@@ -434,6 +453,16 @@ export type Mutation = {
   _empty?: Maybe<Scalars['String']['output']>;
   /** Authorization code ile authentication yapar ve token döner */
   authenticateWithCode: AuthPayload;
+  /** Clear all killmail caches (use after bulk sync) */
+  clearAllKillmailCaches: CacheOperation;
+  /** Clear cache for a specific alliance */
+  clearAllianceCache: CacheOperation;
+  /** Clear cache for a specific character */
+  clearCharacterCache: CacheOperation;
+  /** Clear cache for a specific corporation */
+  clearCorporationCache: CacheOperation;
+  /** Clear cache for a specific killmail */
+  clearKillmailCache: CacheOperation;
   createUser: CreateUserPayload;
   /** Eve Online SSO login için authorization URL'i oluşturur */
   login: AuthUrl;
@@ -458,6 +487,26 @@ export type Mutation = {
 export type MutationAuthenticateWithCodeArgs = {
   code: Scalars['String']['input'];
   state: Scalars['String']['input'];
+};
+
+
+export type MutationClearAllianceCacheArgs = {
+  allianceId: Scalars['Int']['input'];
+};
+
+
+export type MutationClearCharacterCacheArgs = {
+  characterId: Scalars['Int']['input'];
+};
+
+
+export type MutationClearCorporationCacheArgs = {
+  corporationId: Scalars['Int']['input'];
+};
+
+
+export type MutationClearKillmailCacheArgs = {
+  killmailId: Scalars['Int']['input'];
 };
 
 
@@ -542,6 +591,8 @@ export type Query = {
   alliances: AllianceConnection;
   bloodline?: Maybe<Bloodline>;
   bloodlines: Array<Bloodline>;
+  /** Cache statistics and memory usage */
+  cacheStats: CacheStats;
   categories: CategoryConnection;
   category?: Maybe<Category>;
   character?: Maybe<Character>;
@@ -1128,6 +1179,8 @@ export type ResolversTypes = {
   AuthUrl: ResolverTypeWrapper<AuthUrl>;
   Bloodline: ResolverTypeWrapper<Bloodline>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
+  CacheOperation: ResolverTypeWrapper<CacheOperation>;
+  CacheStats: ResolverTypeWrapper<CacheStats>;
   Category: ResolverTypeWrapper<Category>;
   CategoryConnection: ResolverTypeWrapper<CategoryConnection>;
   CategoryEdge: ResolverTypeWrapper<CategoryEdge>;
@@ -1224,6 +1277,8 @@ export type ResolversParentTypes = {
   AuthUrl: AuthUrl;
   Bloodline: Bloodline;
   Boolean: Scalars['Boolean']['output'];
+  CacheOperation: CacheOperation;
+  CacheStats: CacheStats;
   Category: Category;
   CategoryConnection: CategoryConnection;
   CategoryEdge: CategoryEdge;
@@ -1390,6 +1445,23 @@ export type BloodlineResolvers<ContextType = any, ParentType extends ResolversPa
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   race_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type CacheOperationResolvers<ContextType = any, ParentType extends ResolversParentTypes['CacheOperation'] = ResolversParentTypes['CacheOperation']> = {
+  deletedKeys?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+};
+
+export type CacheStatsResolvers<ContextType = any, ParentType extends ResolversParentTypes['CacheStats'] = ResolversParentTypes['CacheStats']> = {
+  allianceDetailKeys?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  characterDetailKeys?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  corporationDetailKeys?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  isHealthy?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  killmailDetailKeys?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  memoryUsage?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  responseCacheKeys?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  totalKeys?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
 export type CategoryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Category'] = ResolversParentTypes['Category']> = {
@@ -1567,6 +1639,11 @@ export type KillmailItemResolvers<ContextType = any, ParentType extends Resolver
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   authenticateWithCode?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationAuthenticateWithCodeArgs, 'code' | 'state'>>;
+  clearAllKillmailCaches?: Resolver<ResolversTypes['CacheOperation'], ParentType, ContextType>;
+  clearAllianceCache?: Resolver<ResolversTypes['CacheOperation'], ParentType, ContextType, RequireFields<MutationClearAllianceCacheArgs, 'allianceId'>>;
+  clearCharacterCache?: Resolver<ResolversTypes['CacheOperation'], ParentType, ContextType, RequireFields<MutationClearCharacterCacheArgs, 'characterId'>>;
+  clearCorporationCache?: Resolver<ResolversTypes['CacheOperation'], ParentType, ContextType, RequireFields<MutationClearCorporationCacheArgs, 'corporationId'>>;
+  clearKillmailCache?: Resolver<ResolversTypes['CacheOperation'], ParentType, ContextType, RequireFields<MutationClearKillmailCacheArgs, 'killmailId'>>;
   createUser?: Resolver<ResolversTypes['CreateUserPayload'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   login?: Resolver<ResolversTypes['AuthUrl'], ParentType, ContextType>;
   refreshToken?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationRefreshTokenArgs, 'refreshToken'>>;
@@ -1604,6 +1681,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   alliances?: Resolver<ResolversTypes['AllianceConnection'], ParentType, ContextType, Partial<QueryAlliancesArgs>>;
   bloodline?: Resolver<Maybe<ResolversTypes['Bloodline']>, ParentType, ContextType, RequireFields<QueryBloodlineArgs, 'id'>>;
   bloodlines?: Resolver<Array<ResolversTypes['Bloodline']>, ParentType, ContextType>;
+  cacheStats?: Resolver<ResolversTypes['CacheStats'], ParentType, ContextType>;
   categories?: Resolver<ResolversTypes['CategoryConnection'], ParentType, ContextType, Partial<QueryCategoriesArgs>>;
   category?: Resolver<Maybe<ResolversTypes['Category']>, ParentType, ContextType, RequireFields<QueryCategoryArgs, 'id'>>;
   character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType, RequireFields<QueryCharacterArgs, 'id'>>;
@@ -1830,6 +1908,8 @@ export type Resolvers<ContextType = any> = {
   AuthPayload?: AuthPayloadResolvers<ContextType>;
   AuthUrl?: AuthUrlResolvers<ContextType>;
   Bloodline?: BloodlineResolvers<ContextType>;
+  CacheOperation?: CacheOperationResolvers<ContextType>;
+  CacheStats?: CacheStatsResolvers<ContextType>;
   Category?: CategoryResolvers<ContextType>;
   CategoryConnection?: CategoryConnectionResolvers<ContextType>;
   CategoryEdge?: CategoryEdgeResolvers<ContextType>;

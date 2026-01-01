@@ -2,20 +2,33 @@ import { MutationResolvers, PageInfo, QueryResolvers, TypeResolvers } from '../g
 import logger from '../services/logger';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
+import redis from '../services/redis';
 import { TypeService } from '../services/type';
 
 export const typeQueries: QueryResolvers = {
     type: async (_, { id }) => {
+        const cacheKey = `type:detail:${id}`;
+
+        // Check cache first
+        const cached = await redis.get(cacheKey);
+        if (cached) {
+            return JSON.parse(cached);
+        }
+
         const type = await prisma.type.findUnique({
             where: { id: Number(id) },
         });
         if (!type) return null;
 
-        return {
+        const result = {
             ...type,
             created_at: type.created_at.toISOString(),
             updated_at: type.updated_at.toISOString(),
         } as any;
+
+        // Cache for 24 hours (type data rarely changes)
+        await redis.setex(cacheKey, 86400, JSON.stringify(result));
+        return result;
     },
 
     types: async (_, { filter }) => {
