@@ -81,7 +81,7 @@ async function characterInfoWorker() {
               id: characterId,
               name: charInfo.name,
               corporation_id: charInfo.corporation_id,
-              alliance_id: charInfo.alliance_id,
+              alliance_id: charInfo.alliance_id, // ESI'den gelen değer direkt
               birthday: new Date(charInfo.birthday),
               bloodline_id: charInfo.bloodline_id,
               race_id: charInfo.race_id,
@@ -94,7 +94,7 @@ async function characterInfoWorker() {
             update: {
               // Güncellenebilir alanlar
               corporation_id: charInfo.corporation_id,
-              alliance_id: charInfo.alliance_id,
+              alliance_id: charInfo.alliance_id, // ESI'den gelen değer direkt
               security_status: charInfo.security_status,
               description: charInfo.description,
               title: charInfo.title,
