@@ -7,6 +7,7 @@
 
 import '../config';
 import logger from '../services/logger';
+import prismaWorker from '../services/prisma-worker';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
 const QUEUE_NAME = 'esi_alliance_corporations_queue';

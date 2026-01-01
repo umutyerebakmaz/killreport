@@ -22,6 +22,8 @@ export const corporationQueries: QueryResolvers = {
         const result = {
             ...corp,
             date_founded: corp.date_founded?.toISOString() || null,
+            // BigInt'i String'e dönüştür (JSON.stringify BigInt'i serialize edemez)
+            shares: corp.shares ? corp.shares.toString() : null,
         } as any;
 
         // Cache for 30 minutes (corporation info updates occasionally)
@@ -103,6 +105,8 @@ export const corporationQueries: QueryResolvers = {
             node: {
                 ...corp,
                 date_founded: corp.date_founded?.toISOString() || null,
+                // BigInt'i String'e dönüştür (JSON.stringify BigInt'i serialize edemez)
+                shares: corp.shares ? corp.shares.toString() : null,
             } as any, // Field resolver'lar eksik field'ları otomatik doldurur
             cursor: Buffer.from(`${corp.id}`).toString('base64'),
         }));
