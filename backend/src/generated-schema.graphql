@@ -117,6 +117,23 @@ type Bloodline {
   race_id: Int!
 }
 
+type CacheOperation {
+  deletedKeys: Int
+  message: String!
+  success: Boolean!
+}
+
+type CacheStats {
+  allianceDetailKeys: Int!
+  characterDetailKeys: Int!
+  corporationDetailKeys: Int!
+  isHealthy: Boolean!
+  killmailDetailKeys: Int!
+  memoryUsage: String!
+  responseCacheKeys: Int!
+  totalKeys: Int!
+}
+
 type Category {
   created_at: String!
   groups: [ItemGroup!]!
@@ -379,6 +396,21 @@ type Mutation {
 
   """Authorization code ile authentication yapar ve token döner"""
   authenticateWithCode(code: String!, state: String!): AuthPayload!
+
+  """Clear all killmail caches (use after bulk sync)"""
+  clearAllKillmailCaches: CacheOperation!
+
+  """Clear cache for a specific alliance"""
+  clearAllianceCache(allianceId: Int!): CacheOperation!
+
+  """Clear cache for a specific character"""
+  clearCharacterCache(characterId: Int!): CacheOperation!
+
+  """Clear cache for a specific corporation"""
+  clearCorporationCache(corporationId: Int!): CacheOperation!
+
+  """Clear cache for a specific killmail"""
+  clearKillmailCache(killmailId: Int!): CacheOperation!
   createUser(input: CreateUserInput!): CreateUserPayload!
 
   """Eve Online SSO login için authorization URL'i oluşturur"""
@@ -427,6 +459,9 @@ type Query {
   alliances(filter: AllianceFilter): AllianceConnection!
   bloodline(id: Int!): Bloodline
   bloodlines: [Bloodline!]!
+
+  """Cache statistics and memory usage"""
+  cacheStats: CacheStats!
   categories(filter: CategoryFilter): CategoryConnection!
   category(id: Int!): Category
   character(id: Int!): Character

@@ -1,0 +1,168 @@
+import redis from '../services/redis-cache';
+import logger from '../services/logger';
+
+/**
+ * Cache Manager Utility
+ *
+ * Provides helper functions for managing GraphQL response cache and entity cache
+ */
+
+export class CacheManager {
+  /**
+   * Clear all cache keys matching a pattern
+   */
+  static async clearPattern(pattern: string): Promise<number> {
+    try {
+      const keys = await redis.keys(pattern);
+      if (keys.length === 0) {
+        logger.info(`No keys found matching pattern: ${pattern}`);
+        return 0;
+      }
+
+      const deleted = await redis.del(...keys);
+      logger.info(`Deleted ${deleted} cache keys matching pattern: ${pattern}`);
+      return deleted;
+    } catch (error) {
+      logger.error(`Error clearing cache pattern ${pattern}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Clear cache for a specific killmail
+   */
+  static async clearKillmail(killmailId: number): Promise<void> {
+    await Promise.all([
+      redis.del(`killmail:detail:${killmailId}`),
+      this.clearPattern(`response-cache:*:Killmail:*`),
+      this.clearPattern(`response-cache:*:Killmails:*`),
+    ]);
+    logger.info(`Cleared cache for killmail ${killmailId}`);
+  }
+
+  /**
+   * Clear cache for a specific character
+   */
+  static async clearCharacter(characterId: number): Promise<void> {
+    await Promise.all([
+      redis.del(`character:detail:${characterId}`),
+      this.clearPattern(`response-cache:*:Character:*`),
+      this.clearPattern(`response-cache:*:Characters:*`),
+    ]);
+    logger.info(`Cleared cache for character ${characterId}`);
+  }
+
+  /**
+   * Clear cache for a specific corporation
+   */
+  static async clearCorporation(corporationId: number): Promise<void> {
+    await Promise.all([
+      redis.del(`corporation:detail:${corporationId}`),
+      this.clearPattern(`response-cache:*:Corporation:*`),
+      this.clearPattern(`response-cache:*:Corporations:*`),
+    ]);
+    logger.info(`Cleared cache for corporation ${corporationId}`);
+  }
+
+  /**
+   * Clear cache for a specific alliance
+   */
+  static async clearAlliance(allianceId: number): Promise<void> {
+    await Promise.all([
+      redis.del(`alliance:detail:${allianceId}`),
+      this.clearPattern(`response-cache:*:Alliance:*`),
+      this.clearPattern(`response-cache:*:Alliances:*`),
+    ]);
+    logger.info(`Cleared cache for alliance ${allianceId}`);
+  }
+
+  /**
+   * Clear all killmail caches (useful after bulk sync)
+   */
+  static async clearAllKillmails(): Promise<void> {
+    await Promise.all([
+      this.clearPattern('killmail:detail:*'),
+      this.clearPattern('response-cache:*:Killmail*'),
+    ]);
+    logger.info('Cleared all killmail caches');
+  }
+
+  /**
+   * Get cache statistics
+   */
+  static async getStats(): Promise<{
+    totalKeys: number;
+    killmailDetailKeys: number;
+    characterDetailKeys: number;
+    corporationDetailKeys: number;
+    allianceDetailKeys: number;
+    responseCacheKeys: number;
+  }> {
+    const [
+      allKeys,
+      killmailKeys,
+      characterKeys,
+      corporationKeys,
+      allianceKeys,
+      responseCacheKeys,
+    ] = await Promise.all([
+      redis.keys('*'),
+      redis.keys('killmail:detail:*'),
+      redis.keys('character:detail:*'),
+      redis.keys('corporation:detail:*'),
+      redis.keys('alliance:detail:*'),
+      redis.keys('response-cache:*'),
+    ]);
+
+    return {
+      totalKeys: allKeys.length,
+      killmailDetailKeys: killmailKeys.length,
+      characterDetailKeys: characterKeys.length,
+      corporationDetailKeys: corporationKeys.length,
+      allianceDetailKeys: allianceKeys.length,
+      responseCacheKeys: responseCacheKeys.length,
+    };
+  }
+
+  /**
+   * Warm up cache with most accessed entities
+   * Useful after cache flush or server restart
+   */
+  static async warmupCache(limit: number = 100): Promise<void> {
+    logger.info(`Starting cache warmup for top ${limit} entities...`);
+
+    // This would need to be implemented with actual queries
+    // For now, just log the intent
+    logger.info('Cache warmup would populate most-accessed killmails, characters, corps, alliances');
+  }
+
+  /**
+   * Check if cache is healthy (Redis is responding)
+   */
+  static async healthCheck(): Promise<boolean> {
+    try {
+      await redis.ping();
+      return true;
+    } catch (error) {
+      logger.error('Cache health check failed:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get memory usage from Redis INFO command
+   */
+  static async getMemoryUsage(): Promise<string> {
+    try {
+      const info = await redis.info('memory');
+      const lines = info.split('\r\n');
+      const usedMemory = lines.find(line => line.startsWith('used_memory_human:'));
+      return usedMemory ? usedMemory.split(':')[1] : 'unknown';
+    } catch (error) {
+      logger.error('Error getting memory usage:', error);
+      return 'error';
+    }
+  }
+}
+
+export default CacheManager;
