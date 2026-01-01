@@ -21,7 +21,6 @@ model Alliance {
   corporation_count       Int                @default(0)
   member_count            Int                @default(0)
   snapshots               AllianceSnapshot[]
-  corporations            Corporation[]      @relation("AllianceCorporations")
 
   @@map("alliances")
 }
@@ -137,7 +136,6 @@ model Corporation {
   created_at            DateTime                @default(now())
   updated_at            DateTime                @updatedAt
   snapshots             CorporationSnapshot[]
-  alliance              Alliance?               @relation("AllianceCorporations", fields: [alliance_id], references: [id])
 
   @@index([alliance_id])
   @@map("corporations")
