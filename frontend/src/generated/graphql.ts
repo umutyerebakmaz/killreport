@@ -146,6 +146,25 @@ export type Bloodline = {
   race_id: Scalars['Int']['output'];
 };
 
+export type CacheOperation = {
+  __typename?: 'CacheOperation';
+  deletedKeys?: Maybe<Scalars['Int']['output']>;
+  message: Scalars['String']['output'];
+  success: Scalars['Boolean']['output'];
+};
+
+export type CacheStats = {
+  __typename?: 'CacheStats';
+  allianceDetailKeys: Scalars['Int']['output'];
+  characterDetailKeys: Scalars['Int']['output'];
+  corporationDetailKeys: Scalars['Int']['output'];
+  isHealthy: Scalars['Boolean']['output'];
+  killmailDetailKeys: Scalars['Int']['output'];
+  memoryUsage: Scalars['String']['output'];
+  responseCacheKeys: Scalars['Int']['output'];
+  totalKeys: Scalars['Int']['output'];
+};
+
 export type Category = {
   __typename?: 'Category';
   created_at: Scalars['String']['output'];
@@ -435,6 +454,16 @@ export type Mutation = {
   _empty?: Maybe<Scalars['String']['output']>;
   /** Authorization code ile authentication yapar ve token döner */
   authenticateWithCode: AuthPayload;
+  /** Clear all killmail caches (use after bulk sync) */
+  clearAllKillmailCaches: CacheOperation;
+  /** Clear cache for a specific alliance */
+  clearAllianceCache: CacheOperation;
+  /** Clear cache for a specific character */
+  clearCharacterCache: CacheOperation;
+  /** Clear cache for a specific corporation */
+  clearCorporationCache: CacheOperation;
+  /** Clear cache for a specific killmail */
+  clearKillmailCache: CacheOperation;
   createUser: CreateUserPayload;
   /** Eve Online SSO login için authorization URL'i oluşturur */
   login: AuthUrl;
@@ -459,6 +488,26 @@ export type Mutation = {
 export type MutationAuthenticateWithCodeArgs = {
   code: Scalars['String']['input'];
   state: Scalars['String']['input'];
+};
+
+
+export type MutationClearAllianceCacheArgs = {
+  allianceId: Scalars['Int']['input'];
+};
+
+
+export type MutationClearCharacterCacheArgs = {
+  characterId: Scalars['Int']['input'];
+};
+
+
+export type MutationClearCorporationCacheArgs = {
+  corporationId: Scalars['Int']['input'];
+};
+
+
+export type MutationClearKillmailCacheArgs = {
+  killmailId: Scalars['Int']['input'];
 };
 
 
@@ -543,6 +592,8 @@ export type Query = {
   alliances: AllianceConnection;
   bloodline?: Maybe<Bloodline>;
   bloodlines: Array<Bloodline>;
+  /** Cache statistics and memory usage */
+  cacheStats: CacheStats;
   categories: CategoryConnection;
   category?: Maybe<Category>;
   character?: Maybe<Character>;
