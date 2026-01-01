@@ -209,18 +209,16 @@ export const constellationFieldResolvers: ConstellationResolvers = {
         if (!parent.id) return [];
         return context.loaders.solarSystemsByConstellation.load(parent.id);
     },
-    solarSystemCount: async (parent) => {
+    solarSystemCount: async (parent, _, context) => {
         if (!parent.id) return 0;
-        return prisma.solarSystem.count({
-            where: { constellation_id: parent.id },
-        });
+        // DataLoader kullan - N+1 yok!
+        const systems = await context.loaders.solarSystemsByConstellation.load(parent.id);
+        return systems.length;
     },
-    securityStats: async (parent) => {
+    securityStats: async (parent, _, context) => {
         if (!parent.id) return { highSec: 0, lowSec: 0, nullSec: 0, wormhole: 0, avgSecurity: null };
-        const solarSystems = await prisma.solarSystem.findMany({
-            where: { constellation_id: parent.id },
-            select: { security_status: true },
-        });
+        // DataLoader kullan - N+1 yok!
+        const solarSystems = await context.loaders.solarSystemsByConstellation.load(parent.id);
         return calculateSecurityStats(solarSystems);
     },
 };
