@@ -418,6 +418,12 @@ export type KillmailConnection = {
   pageInfo: PageInfo;
 };
 
+export type KillmailDateCount = {
+  __typename?: 'KillmailDateCount';
+  count: Scalars['Int']['output'];
+  date: Scalars['String']['output'];
+};
+
 export type KillmailEdge = {
   __typename?: 'KillmailEdge';
   cursor: Scalars['String']['output'];
@@ -612,6 +618,8 @@ export type Query = {
   killmail?: Maybe<Killmail>;
   /** Lists all killmails (with pagination using Relay-style connection) */
   killmails: KillmailConnection;
+  /** Returns count of killmails grouped by date (for the current filter) */
+  killmailsDateCounts: Array<KillmailDateCount>;
   /** Mevcut authenticated kullanıcının bilgilerini döner */
   me?: Maybe<User>;
   /**
@@ -731,6 +739,11 @@ export type QueryKillmailArgs = {
 
 
 export type QueryKillmailsArgs = {
+  filter?: InputMaybe<KillmailFilter>;
+};
+
+
+export type QueryKillmailsDateCountsArgs = {
   filter?: InputMaybe<KillmailFilter>;
 };
 
@@ -1241,6 +1254,13 @@ export type KillmailsQueryVariables = Exact<{
 
 
 export type KillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', cursor: string, node: { __typename?: 'Killmail', id: string, killmailId: number, killmailTime: string, solarSystemId: number, solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } | null, victim: { __typename?: 'Victim', characterId?: number | null, corporationId: number, allianceId?: number | null, shipTypeId: number, damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } | null }, attackers: Array<{ __typename?: 'Attacker', characterId?: number | null, corporationId?: number | null, shipTypeId?: number | null, finalBlow: boolean, damageDone: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string } | null }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+
+export type KillmailsDateCountsQueryVariables = Exact<{
+  filter?: InputMaybe<KillmailFilter>;
+}>;
+
+
+export type KillmailsDateCountsQuery = { __typename?: 'Query', killmailsDateCounts: Array<{ __typename?: 'KillmailDateCount', date: string, count: number }> };
 
 export type OnNewKillmailSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -2719,6 +2739,50 @@ export type KillmailsQueryHookResult = ReturnType<typeof useKillmailsQuery>;
 export type KillmailsLazyQueryHookResult = ReturnType<typeof useKillmailsLazyQuery>;
 export type KillmailsSuspenseQueryHookResult = ReturnType<typeof useKillmailsSuspenseQuery>;
 export type KillmailsQueryResult = Apollo.QueryResult<KillmailsQuery, KillmailsQueryVariables>;
+export const KillmailsDateCountsDocument = gql`
+    query KillmailsDateCounts($filter: KillmailFilter) {
+  killmailsDateCounts(filter: $filter) {
+    date
+    count
+  }
+}
+    `;
+
+/**
+ * __useKillmailsDateCountsQuery__
+ *
+ * To run a query within a React component, call `useKillmailsDateCountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useKillmailsDateCountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useKillmailsDateCountsQuery({
+ *   variables: {
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useKillmailsDateCountsQuery(baseOptions?: Apollo.QueryHookOptions<KillmailsDateCountsQuery, KillmailsDateCountsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<KillmailsDateCountsQuery, KillmailsDateCountsQueryVariables>(KillmailsDateCountsDocument, options);
+      }
+export function useKillmailsDateCountsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<KillmailsDateCountsQuery, KillmailsDateCountsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<KillmailsDateCountsQuery, KillmailsDateCountsQueryVariables>(KillmailsDateCountsDocument, options);
+        }
+// @ts-ignore
+export function useKillmailsDateCountsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<KillmailsDateCountsQuery, KillmailsDateCountsQueryVariables>): Apollo.UseSuspenseQueryResult<KillmailsDateCountsQuery, KillmailsDateCountsQueryVariables>;
+export function useKillmailsDateCountsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<KillmailsDateCountsQuery, KillmailsDateCountsQueryVariables>): Apollo.UseSuspenseQueryResult<KillmailsDateCountsQuery | undefined, KillmailsDateCountsQueryVariables>;
+export function useKillmailsDateCountsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<KillmailsDateCountsQuery, KillmailsDateCountsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<KillmailsDateCountsQuery, KillmailsDateCountsQueryVariables>(KillmailsDateCountsDocument, options);
+        }
+export type KillmailsDateCountsQueryHookResult = ReturnType<typeof useKillmailsDateCountsQuery>;
+export type KillmailsDateCountsLazyQueryHookResult = ReturnType<typeof useKillmailsDateCountsLazyQuery>;
+export type KillmailsDateCountsSuspenseQueryHookResult = ReturnType<typeof useKillmailsDateCountsSuspenseQuery>;
+export type KillmailsDateCountsQueryResult = Apollo.QueryResult<KillmailsDateCountsQuery, KillmailsDateCountsQueryVariables>;
 export const OnNewKillmailDocument = gql`
     subscription OnNewKillmail {
   newKillmail {

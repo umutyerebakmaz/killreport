@@ -274,6 +274,99 @@ export const killmailQueries: QueryResolvers = {
     };
   },
 
+  killmailsDateCounts: async (_, args) => {
+    const search = args.filter?.search;
+    const regionId = args.filter?.regionId;
+    const systemId = args.filter?.systemId;
+
+    // Build WHERE clause (same as killmails query)
+    const where: any = {};
+
+    if (search) {
+      where.OR = [
+        {
+          victim: {
+            OR: [
+              {
+                character: {
+                  name: { contains: search, mode: 'insensitive' }
+                }
+              },
+              {
+                corporation: {
+                  name: { contains: search, mode: 'insensitive' }
+                }
+              },
+              {
+                alliance: {
+                  name: { contains: search, mode: 'insensitive' }
+                }
+              },
+            ],
+          },
+        },
+        {
+          attackers: {
+            some: {
+              OR: [
+                {
+                  character: {
+                    name: { contains: search, mode: 'insensitive' }
+                  }
+                },
+                {
+                  corporation: {
+                    name: { contains: search, mode: 'insensitive' }
+                  }
+                },
+                {
+                  alliance: {
+                    name: { contains: search, mode: 'insensitive' }
+                  }
+                },
+              ],
+            },
+          },
+        },
+      ];
+    }
+
+    if (regionId) {
+      where.solar_system = {
+        constellation: {
+          region_id: regionId,
+        },
+      };
+    }
+
+    if (systemId) {
+      where.solar_system_id = systemId;
+    }
+
+    // Fetch all killmails with the filter and group by date in memory
+    const killmails = await prisma.killmail.findMany({
+      where,
+      select: {
+        killmail_time: true,
+      },
+      orderBy: {
+        killmail_time: 'desc'
+      }
+    });
+
+    // Group by date
+    const dateCounts = new Map<string, number>();
+    for (const km of killmails) {
+      const date = km.killmail_time.toISOString().split('T')[0]; // YYYY-MM-DD
+      dateCounts.set(date, (dateCounts.get(date) || 0) + 1);
+    }
+
+    // Convert to array
+    return Array.from(dateCounts.entries())
+      .map(([date, count]) => ({ date, count }))
+      .sort((a, b) => b.date.localeCompare(a.date)); // Sort by date desc
+  },
+
   characterKillmails: async (_, { characterId, first, after }) => {
     const take = first ?? 25;
     const skip = after ? parseInt(Buffer.from(after, 'base64').toString()) : 0;

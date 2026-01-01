@@ -8,6 +8,11 @@ type KillmailConnection {
   pageInfo: PageInfo!
 }
 
+type KillmailDateCount {
+  date: String!
+  count: Int!
+}
+
 input SyncMyKillmailsInput {
   clientMutationId: String
 }
@@ -113,6 +118,11 @@ extend type Query {
   Lists all killmails (with pagination using Relay-style connection)
   """
   killmails(filter: KillmailFilter): KillmailConnection!
+
+  """
+  Returns count of killmails grouped by date (for the current filter)
+  """
+  killmailsDateCounts(filter: KillmailFilter): [KillmailDateCount!]!
 
   """
   Fetches killmails for a specific character

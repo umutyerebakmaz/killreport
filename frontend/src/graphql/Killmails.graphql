@@ -76,3 +76,10 @@ query Killmails($filter: KillmailFilter) {
     }
   }
 }
+
+query KillmailsDateCounts($filter: KillmailFilter) {
+  killmailsDateCounts(filter: $filter) {
+    date
+    count
+  }
+}
