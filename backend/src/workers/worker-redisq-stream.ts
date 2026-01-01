@@ -304,7 +304,98 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
     }
   }
 
-  // Characters (batch processing)
+  // ⚠️ IMPORTANT: Process in dependency order
+  // 1. Alliances first (no dependencies)
+  // 2. Corporations second (may depend on alliances)
+  // 3. Characters third (may depend on corporations)
+  // 4. Types last (no dependencies)
+
+  // Alliances (batch processing) - FIRST!
+  await processBatch(missingAllianceIds, async (allianceId) => {
+    try {
+      const allianceInfo = await AllianceService.getAllianceInfo(allianceId);
+      await prismaWorker.alliance.upsert({
+        where: { id: allianceId },
+        create: {
+          id: allianceId,
+          name: allianceInfo.name,
+          ticker: allianceInfo.ticker,
+          date_founded: new Date(allianceInfo.date_founded),
+          creator_corporation_id: allianceInfo.creator_corporation_id,
+          creator_id: allianceInfo.creator_id,
+          executor_corporation_id: allianceInfo.executor_corporation_id,
+          faction_id: allianceInfo.faction_id || null,
+        },
+        update: {},
+      });
+      enrichedCount++;
+      stats.enriched++;
+      logger.debug(`  ✓ Alliance ${allianceId} enriched`);
+    } catch (error: any) {
+      failedCount++;
+      stats.enrichmentFailed++;
+      const statusCode = error?.response?.status || 'unknown';
+      const errorMsg = error?.response?.data?.error || error?.message || 'Unknown error';
+      logger.warn(`  ✗ Alliance ${allianceId} failed (${statusCode}): ${errorMsg}`);
+    }
+  });
+
+  // Corporations (batch processing) - SECOND!
+  await processBatch(missingCorpIds, async (corpId) => {
+    try {
+      logger.debug(`  🔄 Fetching corporation ${corpId} from ESI...`);
+      const corpInfo = await CorporationService.getCorporationInfo(corpId);
+
+      logger.debug(`  💾 Saving corporation ${corpId} to database...`);
+      await prismaWorker.corporation.upsert({
+        where: { id: corpId },
+        create: {
+          id: corpId,
+          name: corpInfo.name,
+          ticker: corpInfo.ticker,
+          alliance_id: corpInfo.alliance_id || null,
+          ceo_id: corpInfo.ceo_id,
+          creator_id: corpInfo.creator_id,
+          date_founded: new Date(corpInfo.date_founded),
+          member_count: corpInfo.member_count,
+          tax_rate: corpInfo.tax_rate || 0,
+        },
+        update: {},
+      });
+      enrichedCount++;
+      stats.enriched++;
+      logger.info(`  ✓ Corporation ${corpId} (${corpInfo.name} [${corpInfo.ticker}]) enriched successfully`);
+    } catch (error: any) {
+      failedCount++;
+      stats.enrichmentFailed++;
+
+      // Detaylı error logging
+      const statusCode = error?.response?.status || error?.code || 'unknown';
+      const errorMsg = error?.response?.data?.error || error?.message || 'Unknown error';
+
+      logger.error(`  ✗ Corporation ${corpId} FAILED:`);
+      logger.error(`     Status: ${statusCode}`);
+      logger.error(`     Message: ${errorMsg}`);
+
+      // Database constraint error'ları için özel handling
+      if (error?.code === 'P2003') {
+        logger.error(`     Type: Foreign key constraint violation`);
+        logger.error(`     Meta: ${JSON.stringify(error?.meta || {})}`);
+      } else if (error?.code?.startsWith('P')) {
+        logger.error(`     Type: Prisma error (${error.code})`);
+        logger.error(`     Meta: ${JSON.stringify(error?.meta || {})}`);
+      } else if (error?.response?.status === 404) {
+        logger.error(`     Type: Corporation not found in ESI (deleted/NPC)`);
+      } else if (error?.response?.status === 429) {
+        logger.error(`     Type: ESI rate limit exceeded`);
+      } else {
+        logger.error(`     Type: Unknown error`);
+        logger.error(`     Stack: ${error?.stack?.split('\n')[0]}`);
+      }
+    }
+  });
+
+  // Characters (batch processing) - THIRD!
   await processBatch(missingCharIds, async (charId) => {
     try {
       const charInfo = await CharacterService.getCharacterInfo(charId);
@@ -335,68 +426,7 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
     }
   });
 
-  // Corporations (batch processing)
-  await processBatch(missingCorpIds, async (corpId) => {
-    try {
-      const corpInfo = await CorporationService.getCorporationInfo(corpId);
-      await prismaWorker.corporation.upsert({
-        where: { id: corpId },
-        create: {
-          id: corpId,
-          name: corpInfo.name,
-          ticker: corpInfo.ticker,
-          alliance_id: corpInfo.alliance_id || null,
-          ceo_id: corpInfo.ceo_id,
-          creator_id: corpInfo.creator_id,
-          date_founded: new Date(corpInfo.date_founded),
-          member_count: corpInfo.member_count,
-          tax_rate: corpInfo.tax_rate || 0,
-        },
-        update: {},
-      });
-      enrichedCount++;
-      stats.enriched++;
-      logger.debug(`  ✓ Corporation ${corpId} enriched`);
-    } catch (error: any) {
-      failedCount++;
-      stats.enrichmentFailed++;
-      const statusCode = error?.response?.status || 'unknown';
-      const errorMsg = error?.response?.data?.error || error?.message || 'Unknown error';
-      logger.warn(`  ✗ Corporation ${corpId} failed (${statusCode}): ${errorMsg}`);
-    }
-  });
-
-  // Alliances (batch processing)
-  await processBatch(missingAllianceIds, async (allianceId) => {
-    try {
-      const allianceInfo = await AllianceService.getAllianceInfo(allianceId);
-      await prismaWorker.alliance.upsert({
-        where: { id: allianceId },
-        create: {
-          id: allianceId,
-          name: allianceInfo.name,
-          ticker: allianceInfo.ticker,
-          date_founded: new Date(allianceInfo.date_founded),
-          creator_corporation_id: allianceInfo.creator_corporation_id,
-          creator_id: allianceInfo.creator_id,
-          executor_corporation_id: allianceInfo.executor_corporation_id,
-          faction_id: allianceInfo.faction_id || null,
-        },
-        update: {},
-      });
-      enrichedCount++;
-      stats.enriched++;
-      logger.debug(`  ✓ Alliance ${allianceId} enriched`);
-    } catch (error: any) {
-      failedCount++;
-      stats.enrichmentFailed++;
-      const statusCode = error?.response?.status || 'unknown';
-      const errorMsg = error?.response?.data?.error || error?.message || 'Unknown error';
-      logger.warn(`  ✗ Alliance ${allianceId} failed (${statusCode}): ${errorMsg}`);
-    }
-  });
-
-  // Types (batch processing)
+  // Types (batch processing) - FOURTH!
   await processBatch(missingTypeIds, async (typeId) => {
     try {
       const typeInfo = await TypeService.getTypeInfo(typeId);
