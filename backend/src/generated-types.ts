@@ -417,6 +417,12 @@ export type KillmailConnection = {
   pageInfo: PageInfo;
 };
 
+export type KillmailDateCount = {
+  __typename?: 'KillmailDateCount';
+  count: Scalars['Int']['output'];
+  date: Scalars['String']['output'];
+};
+
 export type KillmailEdge = {
   __typename?: 'KillmailEdge';
   cursor: Scalars['String']['output'];
@@ -611,6 +617,8 @@ export type Query = {
   killmail?: Maybe<Killmail>;
   /** Lists all killmails (with pagination using Relay-style connection) */
   killmails: KillmailConnection;
+  /** Returns count of killmails grouped by date (for the current filter) */
+  killmailsDateCounts: Array<KillmailDateCount>;
   /** Mevcut authenticated kullanıcının bilgilerini döner */
   me?: Maybe<User>;
   /**
@@ -730,6 +738,11 @@ export type QueryKillmailArgs = {
 
 
 export type QueryKillmailsArgs = {
+  filter?: InputMaybe<KillmailFilter>;
+};
+
+
+export type QueryKillmailsDateCountsArgs = {
   filter?: InputMaybe<KillmailFilter>;
 };
 
@@ -1213,6 +1226,7 @@ export type ResolversTypes = {
   ItemGroupFilter: ItemGroupFilter;
   Killmail: ResolverTypeWrapper<Killmail>;
   KillmailConnection: ResolverTypeWrapper<KillmailConnection>;
+  KillmailDateCount: ResolverTypeWrapper<KillmailDateCount>;
   KillmailEdge: ResolverTypeWrapper<KillmailEdge>;
   KillmailFilter: KillmailFilter;
   KillmailItem: ResolverTypeWrapper<KillmailItem>;
@@ -1308,6 +1322,7 @@ export type ResolversParentTypes = {
   ItemGroupFilter: ItemGroupFilter;
   Killmail: Killmail;
   KillmailConnection: KillmailConnection;
+  KillmailDateCount: KillmailDateCount;
   KillmailEdge: KillmailEdge;
   KillmailFilter: KillmailFilter;
   KillmailItem: KillmailItem;
@@ -1621,6 +1636,11 @@ export type KillmailConnectionResolvers<ContextType = any, ParentType extends Re
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
 };
 
+export type KillmailDateCountResolvers<ContextType = any, ParentType extends ResolversParentTypes['KillmailDateCount'] = ResolversParentTypes['KillmailDateCount']> = {
+  count?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  date?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
 export type KillmailEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['KillmailEdge'] = ResolversParentTypes['KillmailEdge']> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Killmail'], ParentType, ContextType>;
@@ -1696,6 +1716,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   itemGroups?: Resolver<ResolversTypes['ItemGroupConnection'], ParentType, ContextType, Partial<QueryItemGroupsArgs>>;
   killmail?: Resolver<Maybe<ResolversTypes['Killmail']>, ParentType, ContextType, RequireFields<QueryKillmailArgs, 'id'>>;
   killmails?: Resolver<ResolversTypes['KillmailConnection'], ParentType, ContextType, Partial<QueryKillmailsArgs>>;
+  killmailsDateCounts?: Resolver<Array<ResolversTypes['KillmailDateCount']>, ParentType, ContextType, Partial<QueryKillmailsDateCountsArgs>>;
   me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   myCorporationKillmails?: Resolver<Array<ResolversTypes['Killmail']>, ParentType, ContextType, Partial<QueryMyCorporationKillmailsArgs>>;
   myKillmails?: Resolver<Array<ResolversTypes['Killmail']>, ParentType, ContextType, Partial<QueryMyKillmailsArgs>>;
@@ -1930,6 +1951,7 @@ export type Resolvers<ContextType = any> = {
   ItemGroupEdge?: ItemGroupEdgeResolvers<ContextType>;
   Killmail?: KillmailResolvers<ContextType>;
   KillmailConnection?: KillmailConnectionResolvers<ContextType>;
+  KillmailDateCount?: KillmailDateCountResolvers<ContextType>;
   KillmailEdge?: KillmailEdgeResolvers<ContextType>;
   KillmailItem?: KillmailItemResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
