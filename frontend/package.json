@@ -10,7 +10,7 @@
     "kill:port": "lsof -ti:3000 | xargs kill -9 || true",
     "codegen": "graphql-codegen",
     "codegen:watch": "graphql-codegen --watch",
-    "kill-node": "pkill -9 node",
+    "kill-node": "pkill -9 node", 
     "remove:all": "rm -rf .next node_modules yarn.lock"
   },
   "dependencies": {
