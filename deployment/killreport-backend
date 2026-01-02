@@ -1,0 +1,72 @@
+server {
+    server_name api.killreport.com;
+
+    # Client body size (GraphQL mutations için)
+    client_max_body_size 10M;
+
+    # GraphQL endpoint (SSE subscription desteği ile)
+    location /graphql {
+        proxy_pass http://localhost:4000/graphql;
+        proxy_http_version 1.1;
+
+        # SSE (Server-Sent Events) için kritik ayarlar
+        proxy_set_header Connection '';
+        proxy_set_header Cache-Control 'no-cache';
+        proxy_set_header X-Accel-Buffering 'no';  #
+
+        # Buffering tamamen devre dışı (SSE için gerekli)
+        proxy_buffering off;
+        proxy_cache off;
+
+        # Chunked transfer encoding (SSE için)
+        chunked_transfer_encoding on;
+
+        # WebSocket support (legacy/fallback)
+        proxy_set_header Upgrade $http_upgrade;
+
+        # Standard proxy headers
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Timeout'ları artır (SSE connection'lar uzun süreli)
+        proxy_connect_timeout 300s;
+        proxy_send_timeout 86400s;    # 24 saat
+        proxy_read_timeout 86400s;    # 24 saat
+    }
+
+    # EVE SSO callback
+    location /auth {
+        proxy_pass http://localhost:4000/auth;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Health check endpoint
+    location /health {
+        access_log off;
+        return 200 "healthy\n";
+        add_header Content-Type text/plain;
+    }
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/api.killreport.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/api.killreport.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+}
+
+server {
+    if ($host = api.killreport.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+    listen 80;
+    server_name api.killreport.com;
+    return 404; # managed by Certbot
+}
