@@ -13,7 +13,6 @@
 - Upgrade to 16 GB RAM (+$36/month) for 50+ concurrent users (500-1,000 daily)
 - Separate Worker Droplet (+$69/month) for high load
 - Upgrade PostgreSQL for larger databases
-- Add Managed Redis (+$15/month) if cache exceeds 512 MB
 
 **User Capacity Guidelines:**
 
@@ -32,7 +31,7 @@
 - **Cost:** $48/month (~₺1,750/month)
 - **OS:** Ubuntu 22.04 LTS
 - **Region:** Frankfurt (closest to EVE servers)
-- **Services:** Backend + Frontend + Workers + RabbitMQ + Redis Cache
+- **Services:** Backend GraphQL Yoga + Next.js Frontend + 6 Workers + RabbitMQ
 
 **DigitalOcean Managed PostgreSQL:**
 
@@ -41,7 +40,7 @@
 - **Region:** Frankfurt (same as droplet)
 - **Features:** Automatic daily backups, 99.99% uptime, Easy scaling
 
-**Total: $63/month (~₺2,300/month)**
+### Total: $63/month (~₺2,300/month)
 
 **Why Managed PostgreSQL?**
 
@@ -84,7 +83,7 @@
 
 ---
 
-### Step 2: Create Droplet
+### Step 2: Create Droplet & Initial Server Setup
 
 ```bash
 # DigitalOcean Console:
@@ -96,7 +95,7 @@
 6. Enable backups (+20% cost, optional but recommended)
 ```
 
-### Step 2: Initial Server Setup
+**Server Setup:**
 
 ```bash
 # SSH into droplet
@@ -109,31 +108,11 @@ apt update && apt upgrade -y
 curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt install -y nodejs
 
-# Install PostgreSQL 16
-apt install -y postgresql-16 postgresql-contrib
-
 # Install PM2 globally
 npm install -g pm2 yarn
 
 # Install Nginx
 apt install -y nginx certbot python3-certbot-nginx
-
-# Install Redis (for GraphQL response caching)
-apt install -y redis-server
-systemctl enable redis-server
-
-# Configure Redis memory limit
-cat >> /etc/redis/redis.conf << EOF
-
-# Memory configuration for GraphQL cache
-maxmemory 512mb
-maxmemory-policy allkeys-lru
-save 900 1
-save 300 10
-save 60 10000
-EOF
-
-systemctl restart redis-server
 
 # Install RabbitMQ
 apt install -y rabbitmq-server
@@ -144,91 +123,9 @@ systemctl start rabbitmq-server
 rabbitmq-plugins enable rabbitmq_management
 ```
 
-### Step 3: PostgreSQL Configuration
+---
 
-```bash
-# Switch to postgres user
-sudo -u postgres psql
-
-# Create database and user
-CREATE DATABASE killreport;
-CREATE USER killreport WITH PASSWORD 'your-secure-password-here';
-GRANT ALL PRIVILEGES ON DATABASE killreport TO killreport;
-ALTER DATABASE killreport OWNER TO killreport;
-\q
-
-# Configure PostgreSQL for remote connections (optional, for local dev access)
-nano /etc/postgresql/16/main/postgresql.conf
-# Set: listen_addresses = '*'
-
-nano /etc/postgresql/16/main/pg_hba.conf
-# Add: host    killreport    killreport    your-dev-ip/32    md5
-
-# Restart PostgreSQL
-systemctl restart postgresql
-```
-
-# Restart PostgreSQL
-
-systemctl restart postgresql
-
-````
-
-**Connection Pool Configuration:**
-```bash
-# With localhost PostgreSQL, we can use more connections
-DATABASE_URL="postgresql://killreport:password@localhost:5432/killreport?connection_limit=5"
-
-# Calculation:
-# 8 processes (backend + frontend + 6 workers) × 5 = 40 connections
-# PostgreSQL default max_connections = 100 ✅
-# 60 connections reserved for bulk workers and maintenance
-````
-
-### Step 4: Automated Backup System
-
-```bash
-# Create backup directory
-mkdir -p /backup/postgres
-
-# Create backup script
-cat > /usr/local/bin/postgres-backup.sh << 'EOF'
-#!/bin/bash
-DATE=$(date +%Y%m%d_%H%M%S)
-BACKUP_DIR="/backup/postgres"
-RETENTION_DAYS=7
-
-# Dump database
-pg_dump -U killreport killreport | gzip > $BACKUP_DIR/killreport-$DATE.sql.gz
-
-# Remove old backups
-find $BACKUP_DIR -name "killreport-*.sql.gz" -mtime +$RETENTION_DAYS -delete
-
-# Optional: Upload to DigitalOcean Spaces (S3-compatible)
-# s3cmd put $BACKUP_DIR/killreport-$DATE.sql.gz s3://your-bucket/backups/
-EOF
-
-chmod +x /usr/local/bin/postgres-backup.sh
-
-# Add to crontab (daily at 3 AM)
-crontab -e
-# Add: 0 3 * * * /usr/local/bin/postgres-backup.sh
-```
-
-**Optional: DigitalOcean Spaces Integration ($5/month for 250 GB)**
-
-```bash
-# Install s3cmd
-apt install -y s3cmd
-
-# Configure with DigitalOcean Spaces credentials
-s3cmd --configure
-# Access Key: Your Spaces key
-# Secret Key: Your Spaces secret
-# S3 Endpoint: fra1.digitaloceanspaces.com (or your region)
-```
-
-### Step 5: Deploy Application
+### Step 3: Deploy Application
 
 ```bash
 # Create deployment directory
@@ -243,11 +140,8 @@ yarn install
 
 # Configure environment (backend)
 cat > backend/.env << EOF
-# Database (localhost for Phase 1)
-DATABASE_URL="postgresql://killreport:your-password@localhost:5432/killreport?connection_limit=5"
-
-# Redis (for GraphQL response caching)
-REDIS_URL="redis://localhost:6379"
+# Managed PostgreSQL Database
+DATABASE_URL="postgresql://doadmin:YOUR_PASSWORD@your-db-cluster.db.ondigitalocean.com:25060/killreport?sslmode=require&connection_limit=2"
 
 # RabbitMQ
 RABBITMQ_URL="amqp://localhost:5672"
@@ -277,7 +171,7 @@ cd backend
 yarn install
 yarn prisma:generate
 yarn prisma:migrate deploy
-yarn build
+yarn tsc
 
 # Build frontend
 cd ../frontend
@@ -286,36 +180,34 @@ yarn build
 
 # Start with PM2 (from root)
 cd ..
-pm2 start ecosystem.config.js
+pm2 start ecosystem.config.js --env production
 pm2 save
 pm2 startup
 ```
 
-### Step 6: Performance Tuning (PostgreSQL)
+---
+
+## Step 4: Performance Optimization
+
+**Connection Pool Configuration:**
 
 ```bash
-# Edit PostgreSQL config
-nano /etc/postgresql/16/main/postgresql.conf
+# Backend uses two separate Prisma clients:
+# - prisma.ts: 5 connections (for API/resolvers)
+# - prisma-worker.ts: 2 connections per worker
 
-# For 8 GB RAM droplet, optimize:
-shared_buffers = 2GB                 # 25% of RAM
-effective_cache_size = 6GB           # 75% of RAM
-maintenance_work_mem = 512MB
-checkpoint_completion_target = 0.9
-wal_buffers = 16MB
-default_statistics_target = 100
-random_page_cost = 1.1               # For SSD
-effective_io_concurrency = 200       # For SSD
-work_mem = 10MB                      # Per connection
-min_wal_size = 1GB
-max_wal_size = 4GB
-max_connections = 100                # Default, enough for Phase 1
-
-# Restart PostgreSQL
-systemctl restart postgresql
+# For managed PostgreSQL, use connection_limit=2 in DATABASE_URL
+# Calculation:
+# API (prisma.ts): 5 connections (hardcoded in prisma.ts)
+# Workers (prisma-worker.ts): 6 workers × 2 = 12 connections
+# Total: 5 + 12 = 17 connections
+# Managed PostgreSQL Basic limit = 25 connections ✅
+# 8 connections reserved for maintenance and bulk operations
 ```
 
-### Step 7: Nginx Configuration
+---
+
+## Step 5: Nginx Configuration
 
 ```bash
 # Backend API
@@ -367,7 +259,9 @@ systemctl reload nginx
 certbot --nginx -d yourdomain.com -d www.yourdomain.com -d api.yourdomain.com
 ```
 
-### Step 8: Monitoring Setup
+---
+
+## Step 6: Monitoring Setup
 
 ```bash
 # Install monitoring tools
@@ -388,92 +282,6 @@ pm2 monit
 
 ---
 
-## 💰 Phase 2: Growth Phase ($63/month)
-
-**Trigger Migration When:**
-
-- ✅ Database size exceeds 3 GB
-- ✅ Daily killmail ingestion >10,000
-- ✅ First paying subscriber
-- ✅ Consistent uptime needed (99.99%)
-
-### Step 1: Create Managed PostgreSQL
-
-```bash
-# DigitalOcean Console:
-1. Databases → Create Database
-2. Engine: PostgreSQL 16
-3. Plan: Basic ($15/month)
-   - 1 GB RAM, 10 GB Storage, 25 connections
-4. Region: Same as droplet (Frankfurt)
-5. Database name: killreport
-```
-
-**Get Connection Details:**
-
-```bash
-# DigitalOcean provides:
-Host: your-db-cluster.db.ondigitalocean.com
-Port: 25060
-Username: doadmin
-Password: auto-generated
-Database: defaultdb
-```
-
-**Configure Trusted Sources:**
-
-```bash
-# DigitalOcean Console:
-1. Database → Settings → Trusted Sources
-2. Add droplet IP address
-3. Optional: Add your local IP for remote access (TablePlus, DBeaver)
-   - Get your IP: https://www.whatismyip.com
-4. ⚠️ Never use 0.0.0.0/0 in production
-```
-
-### Step 2: Migrate Data
-
-```bash
-# Backup current database
-pg_dump -U killreport killreport > /tmp/killreport-migration.sql
-
-# Restore to managed database
-psql "postgresql://doadmin:password@your-db-cluster.db.ondigitalocean.com:25060/defaultdb?sslmode=require" < /tmp/killreport-migration.sql
-```
-
-### Step 3: Update Configuration
-
-```bash
-# Update backend/.env
-DATABASE_URL="postgresql://doadmin:password@your-db-cluster.db.ondigitalocean.com:25060/killreport?sslmode=require&connection_limit=2"
-
-# Connection pool recalculation:
-# 8 processes × 2 connections = 16 connections
-# Managed PostgreSQL Basic limit = 25 connections ✅
-# 9 connections reserved for bulk workers and maintenance
-```
-
-### Step 4: Restart Services
-
-```bash
-cd /var/www/killreport
-pm2 restart all
-pm2 save
-```
-
-### Step 5: Cleanup Old PostgreSQL (Optional)
-
-```bash
-# Stop local PostgreSQL
-systemctl stop postgresql
-systemctl disable postgresql
-
-# Free up ~2 GB RAM for application
-# Keep /backup/postgres for safety (delete after 1 month)
-```
-
----
-
 ## 📊 Monitoring & Maintenance
 
 ### Health Checks
@@ -482,10 +290,7 @@ systemctl disable postgresql
 # Application health
 pm2 status
 
-# Database connection check (Phase 1)
-psql -U killreport -d killreport -c "SELECT version();"
-
-# Database connection check (Phase 2)
+# Database connection check
 psql "$DATABASE_URL" -c "SELECT version();"
 
 # RabbitMQ queue status
@@ -494,23 +299,17 @@ rabbitmqctl list_queues name messages consumers
 # Disk usage
 df -h
 du -sh /var/www/killreport
-du -sh /backup/postgres  # Phase 1 only
 ```
 
 ### Performance Monitoring
 
 ```bash
-# PostgreSQL performance (Phase 1)
-sudo -u postgres psql killreport -c "
-SELECT schemaname, tablename,
-       pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS size
-FROM pg_tables
-WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
-ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
-"
-
-# Managed PostgreSQL (Phase 2)
-# Use DigitalOcean dashboard → Metrics tab
+# Managed PostgreSQL Monitoring
+# Use DigitalOcean dashboard → Database → Metrics tab
+# - CPU usage
+# - Memory usage
+# - Disk I/O
+# - Connection count
 ```
 
 ### Log Analysis
@@ -524,9 +323,6 @@ pm2 logs worker-characters --lines 50
 
 # Nginx access logs
 tail -f /var/log/nginx/access.log
-
-# PostgreSQL logs (Phase 1)
-tail -f /var/log/postgresql/postgresql-16-main.log
 ```
 
 ---
@@ -543,7 +339,7 @@ yarn install
 
 # Rebuild backend
 cd backend
-yarn build
+yarn tsc
 
 # Rebuild frontend
 cd ../frontend
@@ -553,11 +349,8 @@ yarn build
 cd ../backend
 yarn prisma:migrate deploy
 
-# Restart services
+# Restart services (zero-downtime with cluster mode)
 cd ..
-pm2 restart all
-
-# Zero-downtime restart (advanced)
 pm2 reload all
 ```
 
@@ -565,50 +358,42 @@ pm2 reload all
 
 ## 🚨 Disaster Recovery
 
-### Phase 1: Restore from Backup
+### Managed Database Recovery
 
 ```bash
-# List available backups
-ls -lh /backup/postgres/
-
-# Restore specific backup
-gunzip -c /backup/postgres/killreport-20250124_030001.sql.gz | psql -U killreport killreport
-
-# If using DigitalOcean Spaces
-s3cmd get s3://your-bucket/backups/killreport-20250124_030001.sql.gz /tmp/
-gunzip -c /tmp/killreport-20250124_030001.sql.gz | psql -U killreport killreport
-```
-
-### Phase 2: Managed Database Recovery
-
-```bash
-# DigitalOcean provides:
+# DigitalOcean Managed PostgreSQL includes:
 # - Automatic daily backups (7 day retention)
 # - Point-in-time recovery
-# - Restore via Console → Database → Backups → Restore
+# - One-click restore from DigitalOcean Console
+
+# To restore:
+# 1. Go to DigitalOcean Console → Databases → Your Database
+# 2. Navigate to Backups tab
+# 3. Select backup date/time
+# 4. Click "Restore" button
 ```
 
 ---
 
 ## 💡 Cost Optimization Tips
 
-1. **Start with Phase 1** - Save $90 in first 6 months
-2. **Enable droplet backups** (+$9.60/month) instead of Spaces ($5/month) if you don't need off-site storage
-3. **Monitor database size** - Migrate to Phase 2 only when needed
+1. **Monitor database usage** - Basic plan is sufficient for most startups
+2. **Enable droplet backups** (+$9.60/month) for full system snapshots
+3. **Monitor database size** - Upgrade PostgreSQL plan only when needed
 4. **Use PM2 clustering** for Node.js instead of more droplets
-5. **Implement caching** before scaling infrastructure
+5. **Implement efficient queries** before scaling infrastructure
 
 ---
 
 ## 📈 Scaling Checklist
 
-**Migration to Phase 2 (Managed PostgreSQL):**
+**When to upgrade Managed PostgreSQL:**
 
-- [ ] Database size >3 GB
-- [ ] Consistent 99.9% uptime needed
-- [ ] First paying users acquired
-- [ ] Revenue covers infrastructure costs
+- [ ] Database size >8 GB
+- [ ] Connection pool frequently maxed out
+- [ ] Query response times consistently >500ms
 
-**Add Redis Cache (Phase 3):**
+**Add Worker Droplet:**
 
 - [ ] 50+ concurrent users
+- [ ] RabbitMQ queues consistently backing up (>10k messages)
