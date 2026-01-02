@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "lsof -ti:3000 | xargs kill -9 || true && next dev --turbopack",
-    "build": "next build --turbopack",
+    "build": "lsof -ti:3000 | xargs kill -9 || true && next build --turbopack",
     "start": "next start",
     "lint": "eslint",
     "kill:port": "lsof -ti:3000 | xargs kill -9 || true",
