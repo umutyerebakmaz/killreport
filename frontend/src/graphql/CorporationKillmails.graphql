@@ -7,7 +7,6 @@ query CorporationKillmails($corporationId: Int!, $first: Int, $after: String) {
     edges {
       node {
         id
-        killmailId
         killmailTime
         solarSystem {
           name

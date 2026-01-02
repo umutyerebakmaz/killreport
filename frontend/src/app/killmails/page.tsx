@@ -84,10 +84,9 @@ function KillmailsContent() {
 
         const newToast: KillmailToast = {
           id: km.id,
-          killmailId: km.killmailId,
           victimName: km.victim?.character?.name || null,
           victimShipName: km.victim?.shipType?.name || null,
-          victimShipTypeId: km.victim?.shipTypeId || null,
+          victimShipTypeId: km.victim?.shipType?.id || null,
           attackerName: finalBlowAttacker?.character?.name || null,
           systemName: km.solarSystem?.name || null,
           timestamp: new Date(km.killmailTime),
@@ -367,17 +366,17 @@ function KillmailsContent() {
                             </td>
                             <td className="px-6 py-4 text-base align-top">
                               <div className="flex items-start gap-3">
-                                {km.victim?.shipTypeId && (
+                                {km.victim?.shipType && (
                                   <Tooltip
                                     content="View Killmail Details"
                                     position="top"
                                   >
                                     <Link
-                                      href={`/killmails/${km.killmailId}`}
+                                      href={`/killmails/${km.id}`}
                                       className="relative block shrink-0"
                                     >
                                       <img
-                                        src={`https://images.evetech.net/types/${km.victim.shipTypeId}/render?size=128`}
+                                        src={`https://images.evetech.net/types/${km.victim.shipType?.id}/render?size=128`}
                                         alt={
                                           km.victim?.shipType?.name || "Ship"
                                         }

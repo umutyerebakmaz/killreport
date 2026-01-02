@@ -1,9 +1,7 @@
 subscription NewKillmail {
   newKillmail {
     id
-    killmailId
     killmailTime
-    solarSystemId
     solarSystem {
       id
       name
@@ -16,22 +14,18 @@ subscription NewKillmail {
       }
     }
     victim {
-      characterId
       character {
         id
         name
       }
-      corporationId
       corporation {
         id
         name
       }
-      allianceId
       alliance {
         id
         name
       }
-      shipTypeId
       shipType {
         id
         name
@@ -42,17 +36,14 @@ subscription NewKillmail {
       damageTaken
     }
     attackers {
-      characterId
       character {
         id
         name
       }
-      corporationId
       corporation {
         id
         name
       }
-      shipTypeId
       shipType {
         id
         name
