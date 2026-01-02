@@ -122,6 +122,26 @@ const server = createServer(async (req, res) => {
     return handleAuthCallback(req, res);
   }
 
+  // Route: Health check
+  if (req.url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }));
+    return;
+  }
+
+  // Route: Redis PubSub status (for debugging production issues)
+  if (req.url === '/health/redis') {
+    const { getRedisStatus } = await import('./services/pubsub');
+    const status = getRedisStatus();
+    
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      ...status,
+      timestamp: new Date().toISOString(),
+    }, null, 2));
+    return;
+  }
+
   // Route: GraphQL endpoint
   return yoga(req, res);
 });
@@ -139,6 +159,7 @@ server.listen(port, () => {
   logger.info(`📍 GraphQL Playground: http://localhost:${port}/graphql`);
   logger.info(`🔐 Auth Callback:      http://localhost:${port}/auth/callback`);
   logger.info(`❤️  Health Check:       http://localhost:${port}/health`);
+  logger.info(`🔍 Redis Status:       http://localhost:${port}/health/redis`);
   logger.info('─'.repeat(80));
   logger.info(`📡 Subscriptions:      ${USE_REDIS ? `Redis PubSub (${REDIS_CONFIG.url})` : 'In-memory (single instance)'}`);
   logger.info(`💾 Response Cache:     Enabled (Redis storage)`);
