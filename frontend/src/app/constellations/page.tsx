@@ -3,6 +3,7 @@
 import AvgSecurity from "@/components/AvgSecurity/AvgSecurity";
 import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
 import ConstellationFilters from "@/components/Filters/ConstellationFilters";
+import Loader from "@/components/Loader";
 import Paginator from "@/components/Paginator/Paginator";
 import SecurityStatsBar from "@/components/SecurityStatus/SecurityStatsBar";
 import Tooltip from "@/components/Tooltip/Tooltip";
@@ -10,9 +11,9 @@ import { useConstellationsQuery } from "@/generated/graphql";
 import { GlobeAltIcon, MapIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
-export default function ConstellationsPage() {
+function ConstellationsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -253,5 +254,17 @@ export default function ConstellationsPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function ConstellationsPage() {
+  return (
+    <Suspense
+      fallback={
+        <Loader size="lg" text="Loading constellations..." className="p-8" />
+      }
+    >
+      <ConstellationsContent />
+    </Suspense>
   );
 }

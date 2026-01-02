@@ -2,12 +2,13 @@
 
 import CorporationCard from "@/components/Card/CorporationCard";
 import CorporationFilters from "@/components/Filters/CorporationFilters";
+import Loader from "@/components/Loader";
 import Paginator from "@/components/Paginator/Paginator";
 import { useCorporationsQuery } from "@/generated/graphql";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
-export default function CorporationsPage() {
+function CorporationsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -157,5 +158,13 @@ export default function CorporationsPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function CorporationsPage() {
+  return (
+    <Suspense fallback={<Loader size="lg" text="Loading corporations..." className="p-8" />}>
+      <CorporationsContent />
+    </Suspense>
   );
 }

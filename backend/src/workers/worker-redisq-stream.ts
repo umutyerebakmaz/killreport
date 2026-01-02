@@ -29,6 +29,9 @@ import prismaWorker from '../services/prisma-worker';
 import { pubsub } from '../services/pubsub';
 import { TypeService } from '../services/type/type.service';
 
+// Feature flag to disable enrichment (to prevent connection pool exhaustion)
+const ENABLE_ENRICHMENT = process.env.REDISQ_ENABLE_ENRICHMENT !== 'false';
+
 // Debug: Verify pubsub is loaded
 logger.debug('Debug: pubsub type: ' + typeof pubsub);
 if (!pubsub) {
@@ -84,7 +87,8 @@ export async function redisQStreamWorker() {
   logger.info(`📡 Endpoint: ${REDISQ_URL}`);
   logger.info(`🆔 Queue ID: ${QUEUE_ID}`);
   logger.info(`⏱️  Poll Rate: ${REQUEST_DELAY}ms (~${Math.floor(1000 / REQUEST_DELAY)} req/sec)`);
-  logger.info(`⏳ Timeout: ${TIME_TO_WAIT} seconds\n`);
+  logger.info(`⏳ Timeout: ${TIME_TO_WAIT} seconds`);
+  logger.info(`🔧 Enrichment: ${ENABLE_ENRICHMENT ? 'ENABLED' : 'DISABLED'}\n`);
   logger.info('━'.repeat(60));
   logger.info('🎯 Listening for killmails...\n');
 
@@ -167,7 +171,12 @@ async function processKillmail(pkg: RedisQPackage): Promise<void> {
     }
 
     // 🚀 YENİ: Killmail'i kaydetmeden önce eksik entity'leri ESI'dan çek
-    await enrichMissingEntities(killmail);
+    // Can be disabled with REDISQ_ENABLE_ENRICHMENT=false to reduce DB load
+    if (ENABLE_ENRICHMENT) {
+      await enrichMissingEntities(killmail);
+    } else {
+      logger.debug('⚠️  Enrichment disabled (REDISQ_ENABLE_ENRICHMENT=false)');
+    }
 
     // Save to database (upsert handles duplicates)
     const isNew = await saveKillmail(killmail, zkb.hash);
@@ -292,9 +301,10 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
     `${missingAllianceIds.length} alliances, ${missingTypeIds.length} types`
   );
 
-  // 3. ESI'dan eksik entity'leri çek ve kaydet (batch processing ile)
-  // Rate limiter korunması için aynı anda max 10 parallel işlem
-  const BATCH_SIZE = 10;
+  // 3. ESI'dan eksik entity'leri çek ve kaydet (sequential processing)
+  // CRITICAL: Use BATCH_SIZE=1 to prevent pool exhaustion completely
+  // With max 2 connections, even 2 parallel operations can cause timeouts
+  const BATCH_SIZE = 1;
 
   // Helper function for batch processing
   async function processBatch<T>(items: T[], processor: (item: T) => Promise<void>) {

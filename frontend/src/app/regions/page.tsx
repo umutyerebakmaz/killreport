@@ -14,9 +14,9 @@ import {
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
-export default function RegionsPage() {
+function RegionsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -249,5 +249,15 @@ export default function RegionsPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function RegionsPage() {
+  return (
+    <Suspense
+      fallback={<Loader size="lg" text="Loading regions..." className="p-8" />}
+    >
+      <RegionsContent />
+    </Suspense>
   );
 }

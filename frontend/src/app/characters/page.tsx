@@ -2,12 +2,13 @@
 
 import CharacterCard from "@/components/Card/CharacterCard";
 import CharacterFilters from "@/components/Filters/CharacterFilters";
+import Loader from "@/components/Loader";
 import Paginator from "@/components/Paginator/Paginator";
 import { useCharactersQuery } from "@/generated/graphql";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
-export default function CharactersPage() {
+function CharactersContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -155,5 +156,17 @@ export default function CharactersPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function CharactersPage() {
+  return (
+    <Suspense
+      fallback={
+        <Loader size="lg" text="Loading characters..." className="p-8" />
+      }
+    >
+      <CharactersContent />
+    </Suspense>
   );
 }
