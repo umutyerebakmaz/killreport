@@ -4,15 +4,12 @@ type Corporation {
   ticker: String!
   member_count: Int!
   date_founded: String
-  creator_id: Int!
-  alliance_id: Int
-  ceo_id: Int!
+  creator: Character!
+  alliance: Alliance
+  ceo: Character!
   faction_id: Int
   tax_rate: Float!
   url: String
-  alliance: Alliance
-  ceo: Character
-  creator: Character
   metrics: CorporationMetrics
   snapshots(days: Int): [CorporationSnapshot!]!
 }

@@ -20,13 +20,10 @@ export type Alliance = {
   __typename?: 'Alliance';
   corporationCount: Scalars['Int']['output'];
   corporations?: Maybe<Array<Corporation>>;
-  createdBy?: Maybe<Character>;
-  createdByCorporation?: Maybe<Corporation>;
-  creator_corporation_id: Scalars['Int']['output'];
-  creator_id: Scalars['Int']['output'];
+  createdBy: Character;
+  createdByCorporation: Corporation;
   date_founded: Scalars['String']['output'];
-  executor?: Maybe<Corporation>;
-  executor_corporation_id: Scalars['Int']['output'];
+  executor: Corporation;
   faction_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
   memberCount: Scalars['Int']['output'];
@@ -132,7 +129,7 @@ export type Bloodline = {
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
-  race_id: Scalars['Int']['output'];
+  race: Race;
 };
 
 export type CacheOperation = {
@@ -186,19 +183,15 @@ export type CategoryFilter = {
 export type Character = {
   __typename?: 'Character';
   alliance?: Maybe<Alliance>;
-  alliance_id?: Maybe<Scalars['Int']['output']>;
   birthday: Scalars['String']['output'];
-  bloodline?: Maybe<Bloodline>;
-  bloodline_id: Scalars['Int']['output'];
-  corporation?: Maybe<Corporation>;
-  corporation_id: Scalars['Int']['output'];
+  bloodline: Bloodline;
+  corporation: Corporation;
   description?: Maybe<Scalars['String']['output']>;
   faction_id?: Maybe<Scalars['Int']['output']>;
   gender: Scalars['String']['output'];
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
-  race?: Maybe<Race>;
-  race_id: Scalars['Int']['output'];
+  race: Race;
   security_status?: Maybe<Scalars['Float']['output']>;
   title?: Maybe<Scalars['String']['output']>;
 };
@@ -238,7 +231,6 @@ export type Constellation = {
   name: Scalars['String']['output'];
   position?: Maybe<Position>;
   region?: Maybe<Region>;
-  region_id?: Maybe<Scalars['Int']['output']>;
   securityStats: SecurityStats;
   solarSystemCount: Scalars['Int']['output'];
   solarSystems: Array<SolarSystem>;
@@ -273,11 +265,8 @@ export enum ConstellationOrderBy {
 export type Corporation = {
   __typename?: 'Corporation';
   alliance?: Maybe<Alliance>;
-  alliance_id?: Maybe<Scalars['Int']['output']>;
-  ceo?: Maybe<Character>;
-  ceo_id: Scalars['Int']['output'];
-  creator?: Maybe<Character>;
-  creator_id: Scalars['Int']['output'];
+  ceo: Character;
+  creator: Character;
   date_founded?: Maybe<Scalars['String']['output']>;
   faction_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
@@ -356,8 +345,7 @@ export type CreateUserPayload = {
 
 export type ItemGroup = {
   __typename?: 'ItemGroup';
-  category?: Maybe<Category>;
-  category_id: Scalars['Int']['output'];
+  category: Category;
   created_at: Scalars['String']['output'];
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
@@ -849,7 +837,6 @@ export type SecurityStats = {
 export type SolarSystem = {
   __typename?: 'SolarSystem';
   constellation?: Maybe<Constellation>;
-  constellation_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
   position?: Maybe<Position>;
@@ -1010,8 +997,7 @@ export type Type = {
   capacity?: Maybe<Scalars['Float']['output']>;
   created_at: Scalars['String']['output'];
   description?: Maybe<Scalars['String']['output']>;
-  group?: Maybe<ItemGroup>;
-  group_id: Scalars['Int']['output'];
+  group: ItemGroup;
   icon_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
   mass?: Maybe<Scalars['Float']['output']>;
@@ -1352,13 +1338,10 @@ export type ResolversParentTypes = {
 export type AllianceResolvers<ContextType = any, ParentType extends ResolversParentTypes['Alliance'] = ResolversParentTypes['Alliance']> = {
   corporationCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   corporations?: Resolver<Maybe<Array<ResolversTypes['Corporation']>>, ParentType, ContextType>;
-  createdBy?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
-  createdByCorporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType>;
-  creator_corporation_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  creator_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  createdBy?: Resolver<ResolversTypes['Character'], ParentType, ContextType>;
+  createdByCorporation?: Resolver<ResolversTypes['Corporation'], ParentType, ContextType>;
   date_founded?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  executor?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType>;
-  executor_corporation_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  executor?: Resolver<ResolversTypes['Corporation'], ParentType, ContextType>;
   faction_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   memberCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -1427,7 +1410,7 @@ export type BloodlineResolvers<ContextType = any, ParentType extends ResolversPa
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  race_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  race?: Resolver<ResolversTypes['Race'], ParentType, ContextType>;
 };
 
 export type CacheOperationResolvers<ContextType = any, ParentType extends ResolversParentTypes['CacheOperation'] = ResolversParentTypes['CacheOperation']> = {
@@ -1468,19 +1451,15 @@ export type CategoryEdgeResolvers<ContextType = any, ParentType extends Resolver
 
 export type CharacterResolvers<ContextType = any, ParentType extends ResolversParentTypes['Character'] = ResolversParentTypes['Character']> = {
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType>;
-  alliance_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   birthday?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  bloodline?: Resolver<Maybe<ResolversTypes['Bloodline']>, ParentType, ContextType>;
-  bloodline_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType>;
-  corporation_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  bloodline?: Resolver<ResolversTypes['Bloodline'], ParentType, ContextType>;
+  corporation?: Resolver<ResolversTypes['Corporation'], ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   faction_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   gender?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  race?: Resolver<Maybe<ResolversTypes['Race']>, ParentType, ContextType>;
-  race_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  race?: Resolver<ResolversTypes['Race'], ParentType, ContextType>;
   security_status?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
@@ -1500,7 +1479,6 @@ export type ConstellationResolvers<ContextType = any, ParentType extends Resolve
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   position?: Resolver<Maybe<ResolversTypes['Position']>, ParentType, ContextType>;
   region?: Resolver<Maybe<ResolversTypes['Region']>, ParentType, ContextType>;
-  region_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   securityStats?: Resolver<ResolversTypes['SecurityStats'], ParentType, ContextType>;
   solarSystemCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   solarSystems?: Resolver<Array<ResolversTypes['SolarSystem']>, ParentType, ContextType>;
@@ -1518,11 +1496,8 @@ export type ConstellationEdgeResolvers<ContextType = any, ParentType extends Res
 
 export type CorporationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Corporation'] = ResolversParentTypes['Corporation']> = {
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType>;
-  alliance_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  ceo?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
-  ceo_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  creator?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
-  creator_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  ceo?: Resolver<ResolversTypes['Character'], ParentType, ContextType>;
+  creator?: Resolver<ResolversTypes['Character'], ParentType, ContextType>;
   date_founded?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   faction_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -1565,8 +1540,7 @@ export type CreateUserPayloadResolvers<ContextType = any, ParentType extends Res
 };
 
 export type ItemGroupResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemGroup'] = ResolversParentTypes['ItemGroup']> = {
-  category?: Resolver<Maybe<ResolversTypes['Category']>, ParentType, ContextType>;
-  category_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  category?: Resolver<ResolversTypes['Category'], ParentType, ContextType>;
   created_at?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1740,7 +1714,6 @@ export type SecurityStatsResolvers<ContextType = any, ParentType extends Resolve
 
 export type SolarSystemResolvers<ContextType = any, ParentType extends ResolversParentTypes['SolarSystem'] = ResolversParentTypes['SolarSystem']> = {
   constellation?: Resolver<Maybe<ResolversTypes['Constellation']>, ParentType, ContextType>;
-  constellation_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   position?: Resolver<Maybe<ResolversTypes['Position']>, ParentType, ContextType>;
@@ -1825,8 +1798,7 @@ export type TypeResolvers<ContextType = any, ParentType extends ResolversParentT
   capacity?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   created_at?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  group?: Resolver<Maybe<ResolversTypes['ItemGroup']>, ParentType, ContextType>;
-  group_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  group?: Resolver<ResolversTypes['ItemGroup'], ParentType, ContextType>;
   icon_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   mass?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;

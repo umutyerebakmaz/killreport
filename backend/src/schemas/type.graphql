@@ -2,7 +2,7 @@ type Type {
   id: Int!
   name: String!
   description: String
-  group_id: Int!
+  group: ItemGroup!
   published: Boolean!
   volume: Float
   capacity: Float
@@ -10,7 +10,6 @@ type Type {
   icon_id: Int
   created_at: String!
   updated_at: String!
-  group: ItemGroup
 }
 
 type TypeEdge {
