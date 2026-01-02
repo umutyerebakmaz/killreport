@@ -1,11 +1,10 @@
 type ItemGroup {
   id: Int!
   name: String!
-  category_id: Int!
+  category: Category!
   published: Boolean!
   created_at: String!
   updated_at: String!
-  category: Category
   types: [Type!]!
 }
 

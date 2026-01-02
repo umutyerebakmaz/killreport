@@ -1,13 +1,10 @@
 type Alliance {
   corporationCount: Int!
   corporations: [Corporation!]
-  createdBy: Character
-  createdByCorporation: Corporation
-  creator_corporation_id: Int!
-  creator_id: Int!
+  createdBy: Character!
+  createdByCorporation: Corporation!
   date_founded: String!
-  executor: Corporation
-  executor_corporation_id: Int!
+  executor: Corporation!
   faction_id: Int
   id: Int!
   memberCount: Int!
@@ -104,7 +101,7 @@ type Bloodline {
   description: String
   id: Int!
   name: String!
-  race_id: Int!
+  race: Race!
 }
 
 type CacheOperation {
@@ -152,19 +149,15 @@ input CategoryFilter {
 
 type Character {
   alliance: Alliance
-  alliance_id: Int
   birthday: String!
-  bloodline: Bloodline
-  bloodline_id: Int!
-  corporation: Corporation
-  corporation_id: Int!
+  bloodline: Bloodline!
+  corporation: Corporation!
   description: String
   faction_id: Int
   gender: String!
   id: Int!
   name: String!
-  race: Race
-  race_id: Int!
+  race: Race!
   security_status: Float
   title: String
 }
@@ -201,7 +194,6 @@ type Constellation {
   name: String!
   position: Position
   region: Region
-  region_id: Int
   securityStats: SecurityStats!
   solarSystemCount: Int!
   solarSystems: [SolarSystem!]!
@@ -233,11 +225,8 @@ enum ConstellationOrderBy {
 
 type Corporation {
   alliance: Alliance
-  alliance_id: Int
-  ceo: Character
-  ceo_id: Int!
-  creator: Character
-  creator_id: Int!
+  ceo: Character!
+  creator: Character!
   date_founded: String
   faction_id: Int
   id: Int!
@@ -305,8 +294,7 @@ type CreateUserPayload {
 }
 
 type ItemGroup {
-  category: Category
-  category_id: Int!
+  category: Category!
   created_at: String!
   id: Int!
   name: String!
@@ -571,7 +559,6 @@ type SecurityStats {
 
 type SolarSystem {
   constellation: Constellation
-  constellation_id: Int
   id: Int!
   name: String!
   position: Position
@@ -724,8 +711,7 @@ type Type {
   capacity: Float
   created_at: String!
   description: String
-  group: ItemGroup
-  group_id: Int!
+  group: ItemGroup!
   icon_id: Int
   id: Int!
   mass: Float

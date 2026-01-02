@@ -4,7 +4,6 @@ query Constellations($filter: ConstellationFilter) {
       node {
         id
         name
-        region_id
         solarSystemCount
         securityStats {
           highSec
@@ -34,7 +33,6 @@ query Constellation($id: Int!) {
   constellation(id: $id) {
     id
     name
-    region_id
     solarSystemCount
     securityStats {
       highSec
