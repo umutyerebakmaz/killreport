@@ -103,6 +103,64 @@ cd backend
 yarn queue:user-killmails
 ```
 
+## Testing and Diagnostics
+
+### Quick Connection Test
+
+```bash
+# Test basic Redis connection
+redis-cli -u $REDIS_URL ping
+# Should return: PONG
+```
+
+### Comprehensive Diagnostic
+
+Run the full diagnostic script to test all PubSub functionality:
+
+```bash
+cd backend
+yarn diagnose:redis
+```
+
+This will test:
+1. Environment variable configuration
+2. Redis connection (PING)
+3. PubSub publish/subscribe
+4. NEW_KILLMAIL channel specifically
+
+### Health Check Endpoint
+
+Check Redis connection status via HTTP:
+
+```bash
+# Local development
+curl http://localhost:4000/health/redis
+
+# Production
+curl https://your-domain.com/health/redis
+```
+
+Expected response when working:
+```json
+{
+  "enabled": true,
+  "publishClient": "ready",
+  "subscribeClient": "ready",
+  "connected": true,
+  "url": "redis://****@localhost:6379",
+  "timestamp": "2026-01-02T16:00:00.000Z"
+}
+```
+
+### Manual PubSub Test
+
+Test with the existing test script:
+
+```bash
+cd backend
+yarn ts-node redis/test-redis-pubsub.ts
+```
+
 ## Monitoring
 
 ### Check Redis Status
@@ -151,10 +209,20 @@ brew services restart redis
 
 ### PubSub not working
 
+**First, run the diagnostic:**
+
+```bash
+cd backend
+yarn diagnose:redis
+```
+
+**Then check:**
+
 1. Verify `USE_REDIS_PUBSUB=true` in `.env`
 2. Check Redis is accessible: `redis-cli ping`
-3. Restart server and workers
-4. Check logs for Redis connection errors
+3. Check `/health/redis` endpoint
+4. Review server logs for Redis connection errors
+5. See [PRODUCTION_TROUBLESHOOTING.md](./PRODUCTION_TROUBLESHOOTING.md) for detailed guide
 
 ### Worker not publishing events
 
