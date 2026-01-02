@@ -2,7 +2,7 @@ type Bloodline {
   id: Int!
   name: String!
   description: String
-  race_id: Int!
+  race: Race!
 }
 
 extend type Query {

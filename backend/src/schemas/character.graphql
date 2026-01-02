@@ -1,20 +1,16 @@
 type Character {
   id: Int!
   name: String!
-  corporation_id: Int!
-  alliance_id: Int
+  corporation: Corporation!
+  alliance: Alliance
   birthday: String!
-  bloodline_id: Int!
-  bloodline: Bloodline
-  race_id: Int!
-  race: Race
+  bloodline: Bloodline!
+  race: Race!
   gender: String!
   security_status: Float
   description: String
   title: String
   faction_id: Int
-  corporation: Corporation
-  alliance: Alliance
 }
 
 input CharacterFilter {
