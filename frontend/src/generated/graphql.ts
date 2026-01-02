@@ -21,13 +21,10 @@ export type Alliance = {
   __typename?: 'Alliance';
   corporationCount: Scalars['Int']['output'];
   corporations?: Maybe<Array<Corporation>>;
-  createdBy?: Maybe<Character>;
-  createdByCorporation?: Maybe<Corporation>;
-  creator_corporation_id: Scalars['Int']['output'];
-  creator_id: Scalars['Int']['output'];
+  createdBy: Character;
+  createdByCorporation: Corporation;
   date_founded: Scalars['String']['output'];
-  executor?: Maybe<Corporation>;
-  executor_corporation_id: Scalars['Int']['output'];
+  executor: Corporation;
   faction_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
   memberCount: Scalars['Int']['output'];
@@ -133,7 +130,7 @@ export type Bloodline = {
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
-  race_id: Scalars['Int']['output'];
+  race: Race;
 };
 
 export type CacheOperation = {
@@ -187,19 +184,15 @@ export type CategoryFilter = {
 export type Character = {
   __typename?: 'Character';
   alliance?: Maybe<Alliance>;
-  alliance_id?: Maybe<Scalars['Int']['output']>;
   birthday: Scalars['String']['output'];
-  bloodline?: Maybe<Bloodline>;
-  bloodline_id: Scalars['Int']['output'];
-  corporation?: Maybe<Corporation>;
-  corporation_id: Scalars['Int']['output'];
+  bloodline: Bloodline;
+  corporation: Corporation;
   description?: Maybe<Scalars['String']['output']>;
   faction_id?: Maybe<Scalars['Int']['output']>;
   gender: Scalars['String']['output'];
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
-  race?: Maybe<Race>;
-  race_id: Scalars['Int']['output'];
+  race: Race;
   security_status?: Maybe<Scalars['Float']['output']>;
   title?: Maybe<Scalars['String']['output']>;
 };
@@ -239,7 +232,6 @@ export type Constellation = {
   name: Scalars['String']['output'];
   position?: Maybe<Position>;
   region?: Maybe<Region>;
-  region_id?: Maybe<Scalars['Int']['output']>;
   securityStats: SecurityStats;
   solarSystemCount: Scalars['Int']['output'];
   solarSystems: Array<SolarSystem>;
@@ -274,11 +266,8 @@ export enum ConstellationOrderBy {
 export type Corporation = {
   __typename?: 'Corporation';
   alliance?: Maybe<Alliance>;
-  alliance_id?: Maybe<Scalars['Int']['output']>;
-  ceo?: Maybe<Character>;
-  ceo_id: Scalars['Int']['output'];
-  creator?: Maybe<Character>;
-  creator_id: Scalars['Int']['output'];
+  ceo: Character;
+  creator: Character;
   date_founded?: Maybe<Scalars['String']['output']>;
   faction_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
@@ -357,8 +346,7 @@ export type CreateUserPayload = {
 
 export type ItemGroup = {
   __typename?: 'ItemGroup';
-  category?: Maybe<Category>;
-  category_id: Scalars['Int']['output'];
+  category: Category;
   created_at: Scalars['String']['output'];
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
@@ -850,7 +838,6 @@ export type SecurityStats = {
 export type SolarSystem = {
   __typename?: 'SolarSystem';
   constellation?: Maybe<Constellation>;
-  constellation_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
   position?: Maybe<Position>;
@@ -1011,8 +998,7 @@ export type Type = {
   capacity?: Maybe<Scalars['Float']['output']>;
   created_at: Scalars['String']['output'];
   description?: Maybe<Scalars['String']['output']>;
-  group?: Maybe<ItemGroup>;
-  group_id: Scalars['Int']['output'];
+  group: ItemGroup;
   icon_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
   mass?: Maybe<Scalars['Float']['output']>;
@@ -1091,7 +1077,7 @@ export type AllianceQueryVariables = Exact<{
 }>;
 
 
-export type AllianceQuery = { __typename?: 'Query', alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, memberCount: number, corporationCount: number, metrics?: { __typename?: 'AllianceMetrics', memberCountDelta1d?: number | null, memberCountDelta7d?: number | null, memberCountDelta30d?: number | null, corporationCountDelta1d?: number | null, corporationCountDelta7d?: number | null, corporationCountDelta30d?: number | null, memberCountGrowthRate1d?: number | null, memberCountGrowthRate7d?: number | null, memberCountGrowthRate30d?: number | null, corporationCountGrowthRate1d?: number | null, corporationCountGrowthRate7d?: number | null, corporationCountGrowthRate30d?: number | null } | null, executor?: { __typename?: 'Corporation', id: number, name: string } | null, createdByCorporation?: { __typename?: 'Corporation', id: number, name: string } | null, createdBy?: { __typename?: 'Character', id: number, name: string } | null, corporations?: Array<{ __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, ceo?: { __typename?: 'Character', id: number, name: string } | null }> | null } | null };
+export type AllianceQuery = { __typename?: 'Query', alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, memberCount: number, corporationCount: number, metrics?: { __typename?: 'AllianceMetrics', memberCountDelta1d?: number | null, memberCountDelta7d?: number | null, memberCountDelta30d?: number | null, corporationCountDelta1d?: number | null, corporationCountDelta7d?: number | null, corporationCountDelta30d?: number | null, memberCountGrowthRate1d?: number | null, memberCountGrowthRate7d?: number | null, memberCountGrowthRate30d?: number | null, corporationCountGrowthRate1d?: number | null, corporationCountGrowthRate7d?: number | null, corporationCountGrowthRate30d?: number | null } | null, executor: { __typename?: 'Corporation', id: number, name: string }, createdByCorporation: { __typename?: 'Corporation', id: number, name: string }, createdBy: { __typename?: 'Character', id: number, name: string }, corporations?: Array<{ __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, ceo: { __typename?: 'Character', id: number, name: string } }> | null } | null };
 
 export type AlliancesQueryVariables = Exact<{
   filter?: InputMaybe<AllianceFilter>;
@@ -1105,35 +1091,35 @@ export type CharactersQueryVariables = Exact<{
 }>;
 
 
-export type CharactersQuery = { __typename?: 'Query', characters: { __typename?: 'CharacterConnection', edges: Array<{ __typename?: 'CharacterEdge', cursor: string, node: { __typename?: 'Character', id: number, name: string, security_status?: number | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CharactersQuery = { __typename?: 'Query', characters: { __typename?: 'CharacterConnection', edges: Array<{ __typename?: 'CharacterEdge', cursor: string, node: { __typename?: 'Character', id: number, name: string, security_status?: number | null, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string }, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type CharacterQueryVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
 
 
-export type CharacterQuery = { __typename?: 'Query', character?: { __typename?: 'Character', id: number, name: string, birthday: string, security_status?: number | null, gender: string, bloodline_id: number, race_id: number, description?: string | null, title?: string | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, memberCount: number } | null, race?: { __typename?: 'Race', id: number, name: string, description?: string | null } | null, bloodline?: { __typename?: 'Bloodline', id: number, name: string, description?: string | null } | null } | null };
+export type CharacterQuery = { __typename?: 'Query', character?: { __typename?: 'Character', id: number, name: string, birthday: string, security_status?: number | null, gender: string, description?: string | null, title?: string | null, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number }, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, memberCount: number } | null, race: { __typename?: 'Race', id: number, name: string, description?: string | null }, bloodline: { __typename?: 'Bloodline', id: number, name: string, description?: string | null } } | null };
 
 export type ConstellationsQueryVariables = Exact<{
   filter?: InputMaybe<ConstellationFilter>;
 }>;
 
 
-export type ConstellationsQuery = { __typename?: 'Query', constellations: { __typename?: 'ConstellationConnection', edges: Array<{ __typename?: 'ConstellationEdge', cursor: string, node: { __typename?: 'Constellation', id: number, name: string, region_id?: number | null, solarSystemCount: number, securityStats: { __typename?: 'SecurityStats', highSec: number, lowSec: number, nullSec: number, wormhole: number, avgSecurity?: number | null }, region?: { __typename?: 'Region', id: number, name: string } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type ConstellationsQuery = { __typename?: 'Query', constellations: { __typename?: 'ConstellationConnection', edges: Array<{ __typename?: 'ConstellationEdge', cursor: string, node: { __typename?: 'Constellation', id: number, name: string, solarSystemCount: number, securityStats: { __typename?: 'SecurityStats', highSec: number, lowSec: number, nullSec: number, wormhole: number, avgSecurity?: number | null }, region?: { __typename?: 'Region', id: number, name: string } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type ConstellationQueryVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
 
 
-export type ConstellationQuery = { __typename?: 'Query', constellation?: { __typename?: 'Constellation', id: number, name: string, region_id?: number | null, solarSystemCount: number, securityStats: { __typename?: 'SecurityStats', highSec: number, lowSec: number, nullSec: number, wormhole: number, avgSecurity?: number | null }, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, region?: { __typename?: 'Region', id: number, name: string } | null, solarSystems: Array<{ __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, security_class?: string | null }> } | null };
+export type ConstellationQuery = { __typename?: 'Query', constellation?: { __typename?: 'Constellation', id: number, name: string, solarSystemCount: number, securityStats: { __typename?: 'SecurityStats', highSec: number, lowSec: number, nullSec: number, wormhole: number, avgSecurity?: number | null }, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, region?: { __typename?: 'Region', id: number, name: string } | null, solarSystems: Array<{ __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, security_class?: string | null }> } | null };
 
 export type CorporationQueryVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
 
 
-export type CorporationQuery = { __typename?: 'Query', corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, date_founded?: string | null, member_count: number, tax_rate: number, url?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, ceo?: { __typename?: 'Character', id: number, name: string } | null, creator?: { __typename?: 'Character', id: number, name: string } | null, metrics?: { __typename?: 'CorporationMetrics', memberCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null } | null } | null };
+export type CorporationQuery = { __typename?: 'Query', corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, date_founded?: string | null, member_count: number, tax_rate: number, url?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, ceo: { __typename?: 'Character', id: number, name: string }, creator: { __typename?: 'Character', id: number, name: string }, metrics?: { __typename?: 'CorporationMetrics', memberCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null } | null } | null };
 
 export type CorporationsQueryVariables = Exact<{
   filter?: InputMaybe<CorporationFilter>;
@@ -1161,14 +1147,14 @@ export type SolarSystemsQueryVariables = Exact<{
 }>;
 
 
-export type SolarSystemsQuery = { __typename?: 'Query', solarSystems: { __typename?: 'SolarSystemConnection', edges: Array<{ __typename?: 'SolarSystemEdge', cursor: string, node: { __typename?: 'SolarSystem', id: number, name: string, constellation_id?: number | null, security_status?: number | null, security_class?: string | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type SolarSystemsQuery = { __typename?: 'Query', solarSystems: { __typename?: 'SolarSystemConnection', edges: Array<{ __typename?: 'SolarSystemEdge', cursor: string, node: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, security_class?: string | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type SolarSystemQueryVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
 
 
-export type SolarSystemQuery = { __typename?: 'Query', solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, constellation_id?: number | null, security_status?: number | null, security_class?: string | null, star_id?: number | null, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } | null };
+export type SolarSystemQuery = { __typename?: 'Query', solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, security_class?: string | null, star_id?: number | null, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } | null };
 
 export type WorkerStatusQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1224,14 +1210,14 @@ export type KillmailQueryVariables = Exact<{
 }>;
 
 
-export type KillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', id: string, killmailHash: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, security_class?: string | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string }, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType: { __typename?: 'Type', id: number, name: string, description?: string | null, group?: { __typename?: 'ItemGroup', name: string, category?: { __typename?: 'Category', name: string } | null } | null }, position?: { __typename?: 'Position', x: number, y: number, z: number } | null }, attackers: Array<{ __typename?: 'Attacker', damageDone: number, finalBlow: boolean, securityStatus?: number | null, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } | null, weaponType?: { __typename?: 'Type', id: number, name: string } | null }>, items: Array<{ __typename?: 'KillmailItem', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, singleton: number, itemType: { __typename?: 'Type', id: number, name: string } }> } | null };
+export type KillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', id: string, killmailHash: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, security_class?: string | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string }, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType: { __typename?: 'Type', id: number, name: string, description?: string | null, group: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } }, position?: { __typename?: 'Position', x: number, y: number, z: number } | null }, attackers: Array<{ __typename?: 'Attacker', damageDone: number, finalBlow: boolean, securityStatus?: number | null, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group: { __typename?: 'ItemGroup', name: string } } | null, weaponType?: { __typename?: 'Type', id: number, name: string } | null }>, items: Array<{ __typename?: 'KillmailItem', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, singleton: number, itemType: { __typename?: 'Type', id: number, name: string } }> } | null };
 
 export type KillmailsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
 }>;
 
 
-export type KillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string }, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } }, attackers: Array<{ __typename?: 'Attacker', finalBlow: boolean, damageDone: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string } | null }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+export type KillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string }, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group: { __typename?: 'ItemGroup', name: string } } }, attackers: Array<{ __typename?: 'Attacker', finalBlow: boolean, damageDone: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string } | null }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
 
 export type KillmailsDateCountsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
@@ -1248,7 +1234,7 @@ export type OnNewKillmailSubscription = { __typename?: 'Subscription', newKillma
 export type NewKillmailSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type NewKillmailSubscription = { __typename?: 'Subscription', newKillmail: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', name: string, region?: { __typename?: 'Region', name: string } | null } | null }, victim: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string }, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } }, attackers: Array<{ __typename?: 'Attacker', finalBlow: boolean, damageDone: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string } | null }> } };
+export type NewKillmailSubscription = { __typename?: 'Subscription', newKillmail: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', name: string, region?: { __typename?: 'Region', name: string } | null } | null }, victim: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string }, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group: { __typename?: 'ItemGroup', name: string } } }, attackers: Array<{ __typename?: 'Attacker', finalBlow: boolean, damageDone: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string } | null }> } };
 
 
 export const AllianceDocument = gql`
@@ -1475,8 +1461,6 @@ export const CharacterDocument = gql`
     birthday
     security_status
     gender
-    bloodline_id
-    race_id
     description
     title
     corporation {
@@ -1547,7 +1531,6 @@ export const ConstellationsDocument = gql`
       node {
         id
         name
-        region_id
         solarSystemCount
         securityStats {
           highSec
@@ -1614,7 +1597,6 @@ export const ConstellationDocument = gql`
   constellation(id: $id) {
     id
     name
-    region_id
     solarSystemCount
     securityStats {
       highSec
@@ -1953,7 +1935,6 @@ export const SolarSystemsDocument = gql`
       node {
         id
         name
-        constellation_id
         security_status
         security_class
         constellation {
@@ -2018,7 +1999,6 @@ export const SolarSystemDocument = gql`
   solarSystem(id: $id) {
     id
     name
-    constellation_id
     security_status
     security_class
     star_id

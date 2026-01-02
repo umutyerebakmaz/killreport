@@ -4,7 +4,6 @@ query SolarSystems($filter: SolarSystemFilter) {
       node {
         id
         name
-        constellation_id
         security_status
         security_class
         constellation {
@@ -32,7 +31,6 @@ query SolarSystem($id: Int!) {
   solarSystem(id: $id) {
     id
     name
-    constellation_id
     security_status
     security_class
     star_id

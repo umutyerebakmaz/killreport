@@ -5,8 +5,6 @@ query Character($id: Int!) {
     birthday
     security_status
     gender
-    bloodline_id
-    race_id
     description
     title
     corporation {
