@@ -17,9 +17,9 @@ import {
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 
-export default function KillmailsPage() {
+function KillmailsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -561,5 +561,17 @@ export default function KillmailsPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function KillmailsPage() {
+  return (
+    <Suspense
+      fallback={
+        <Loader size="lg" text="Loading killmails..." className="p-8" />
+      }
+    >
+      <KillmailsContent />
+    </Suspense>
   );
 }

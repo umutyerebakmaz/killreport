@@ -6,9 +6,9 @@ import Loader from "@/components/Loader";
 import Paginator from "@/components/Paginator/Paginator";
 import { useAlliancesQuery } from "@/generated/graphql";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
-export default function AlliancesPage() {
+function AlliancesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -158,5 +158,17 @@ export default function AlliancesPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function AlliancesPage() {
+  return (
+    <Suspense
+      fallback={
+        <Loader size="lg" text="Loading alliances..." className="p-8" />
+      }
+    >
+      <AlliancesContent />
+    </Suspense>
   );
 }

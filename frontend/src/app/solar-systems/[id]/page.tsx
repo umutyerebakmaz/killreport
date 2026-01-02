@@ -102,7 +102,6 @@ export default function SolarSystemDetailPage({
                 <SecurityBadge
                   securityStatus={system.security_status}
                   showLabel={true}
-                  size="lg"
                 />
               </div>
               <div className="flex flex-wrap items-center gap-6 mt-4 text-sm">
