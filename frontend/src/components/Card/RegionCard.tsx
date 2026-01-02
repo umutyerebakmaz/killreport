@@ -13,7 +13,7 @@ type RegionCardProps = {
 };
 
 export default function RegionCard({ region }: RegionCardProps) {
-  const constellationCount = region.constellations?.length ?? 0;
+  const constellationCount = region.constellationCount ?? 0;
 
   return (
     <div className="region-card">
