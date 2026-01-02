@@ -7,7 +7,6 @@ type Position {
 type SolarSystem {
   id: Int!
   name: String!
-  constellation_id: Int
   security_status: Float
   security_class: String
   star_id: Int
