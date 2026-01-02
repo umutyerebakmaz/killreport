@@ -1,10 +1,8 @@
 query Killmail($id: ID!) {
   killmail(id: $id) {
     id
-    killmailId
     killmailHash
     killmailTime
-    solarSystemId
     solarSystem {
       id
       name
@@ -20,24 +18,20 @@ query Killmail($id: ID!) {
       }
     }
     victim {
-      characterId
       character {
         id
         name
       }
-      corporationId
       corporation {
         id
         name
         ticker
       }
-      allianceId
       alliance {
         id
         name
         ticker
       }
-      shipTypeId
       shipType {
         id
         name
@@ -57,24 +51,20 @@ query Killmail($id: ID!) {
       }
     }
     attackers {
-      characterId
       character {
         id
         name
       }
-      corporationId
       corporation {
         id
         name
         ticker
       }
-      allianceId
       alliance {
         id
         name
         ticker
       }
-      shipTypeId
       shipType {
         id
         name
@@ -82,7 +72,6 @@ query Killmail($id: ID!) {
           name
         }
       }
-      weaponTypeId
       weaponType {
         id
         name
@@ -92,7 +81,6 @@ query Killmail($id: ID!) {
       securityStatus
     }
     items {
-      itemTypeId
       itemType {
         id
         name

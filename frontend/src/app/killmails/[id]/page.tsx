@@ -52,7 +52,7 @@ export default function KillmailDetailPage({
 
               <div className="flex">
                 <img
-                  src={`https://images.evetech.net/characters/${victim.characterId}/portrait?size=256`}
+                  src={`https://images.evetech.net/characters/${victim.character?.id}/portrait?size=256`}
                   alt={victim.character?.name}
                   width={128}
                   height={128}
@@ -61,7 +61,7 @@ export default function KillmailDetailPage({
                 />
 
                 <img
-                  src={`https://images.evetech.net/types/${km.victim.shipTypeId}/render?size=256`}
+                  src={`https://images.evetech.net/types/${km.victim.shipType?.id}/render?size=256`}
                   alt={victim?.shipType?.name || "Ship"}
                   width={128}
                   height={128}
@@ -75,7 +75,7 @@ export default function KillmailDetailPage({
                   <div>
                     <div className="text-sm text-gray-500">Pilot</div>
                     <Link
-                      href={`/characters/${victim.characterId}`}
+                      href={`/characters/${victim.character?.id}`}
                       className="text-lg font-medium text-white hover:text-blue-400"
                     >
                       {victim.character.name}
@@ -87,7 +87,7 @@ export default function KillmailDetailPage({
                   <div>
                     <div className="text-sm text-gray-500">Corporation</div>
                     <Link
-                      href={`/corporations/${victim.corporationId}`}
+                      href={`/corporations/${victim.corporation?.id}`}
                       className="text-white hover:text-blue-400"
                     >
                       {victim.corporation.name}
@@ -104,7 +104,7 @@ export default function KillmailDetailPage({
                   <div>
                     <div className="text-sm text-gray-500">Alliance</div>
                     <Link
-                      href={`/alliances/${victim.allianceId}`}
+                      href={`/alliances/${victim.alliance?.id}`}
                       className="text-white hover:text-blue-400"
                     >
                       {victim.alliance.name}
@@ -150,7 +150,7 @@ export default function KillmailDetailPage({
                   <div>
                     <span className="text-sm text-gray-500">System: </span>
                     <Link
-                      href={`/solar-systems/${km.solarSystemId}`}
+                      href={`/solar-systems/${km.solarSystem?.id}`}
                       className="text-white hover:text-blue-400"
                     >
                       {km.solarSystem.name}
