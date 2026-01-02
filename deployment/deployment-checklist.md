@@ -4,7 +4,18 @@
 
 **Production Setup:** Droplet + Managed PostgreSQL - **$63/month**
 
-Professional infrastructure from day one with automatic backups and high availability.
+- DigitalOcean Droplet (4 vCPU, 8 GB RAM) - $48/month
+- Managed PostgreSQL (1 GB RAM, 10 GB storage, 25 connections) - $15/month
+
+**Stack:**
+
+- Backend: GraphQL Yoga API (Node.js + TypeScript)
+- Frontend: Next.js 15 App Router
+- Database: PostgreSQL with Prisma ORM
+- Queue: RabbitMQ for worker distribution
+- Workers: 6 auto-start + 2 manual bulk sync workers
+
+Professional infrastructure with automatic backups and high availability.
 
 ---
 
@@ -24,7 +35,7 @@ Professional infrastructure from day one with automatic backups and high availab
 
 ---
 
-## Step 1: PostgreSQL Managed Database Setup (15 dakika)
+## Phase 1: PostgreSQL Managed Database Setup (15 dakika)
 
 - [ ] PostgreSQL Managed Database oluştur
 
@@ -35,12 +46,7 @@ Professional infrastructure from day one with automatic backups and high availab
 - [ ] Database connection string'i kopyala
 - [ ] Trusted Sources'a droplet IP'sini ekle (droplet oluşturduktan sonra)
 
-- [ ] Local'den ilk migration'ı çalıştır:
-
-  ```bash
-  cd backend
-  DATABASE_URL="postgresql://..." yarn prisma:migrate deploy
-  ```
+**Not:** Database zaten hazır ve çalışır durumda. Migration'lar local'den veya CI/CD pipeline'dan çalıştırılabilir.
 
 ---
 
@@ -96,17 +102,23 @@ Professional infrastructure from day one with automatic backups and high availab
 - [ ] Environment variables oluştur:
 
   - [ ] `backend/.env` dosyası:
+
     ```bash
+    # Managed PostgreSQL connection (use connection_limit=2 for workers)
     DATABASE_URL="postgresql://doadmin:password@managed-host:25060/killreport?sslmode=require&connection_limit=2"
     RABBITMQ_URL="amqp://localhost:5672"
     EVE_CLIENT_ID="your-client-id"
     EVE_CLIENT_SECRET="your-client-secret"
     EVE_CALLBACK_URL="https://yourdomain.com/auth/callback"
+    FRONTEND_URL="https://yourdomain.com"
     JWT_SECRET="$(openssl rand -base64 32)"
     PORT=4000
     NODE_ENV=production
+    LOG_LEVEL=info
     ```
+
   - [ ] `frontend/.env.local` dosyası:
+
     ```bash
     NEXT_PUBLIC_GRAPHQL_URL="https://api.yourdomain.com/graphql"
     NEXT_PUBLIC_WS_URL="wss://api.yourdomain.com/graphql"
@@ -125,7 +137,7 @@ Professional infrastructure from day one with automatic backups and high availab
   ```bash
   cd backend
   yarn prisma:generate
-  yarn build
+  yarn tsc
   ```
 
 - [ ] Frontend build:
@@ -139,7 +151,7 @@ Professional infrastructure from day one with automatic backups and high availab
 
   ```bash
   cd /var/www/killreport
-  pm2 start ecosystem.config.js
+  pm2 start ecosystem.config.js --env production
   pm2 save
   pm2 startup
   ```
@@ -204,7 +216,7 @@ Professional infrastructure from day one with automatic backups and high availab
 
 - [ ] Frontend erişilebilir mi? `https://yourdomain.com`
 - [ ] Backend health check: `https://api.yourdomain.com/health`
-- [ ] GraphQL Playground: `https://api.yourdomain.com/graphql`
+- [ ] GraphQL Yoga Playground: `https://api.yourdomain.com/graphql`
 
 - [ ] PM2 process'leri çalışıyor mu?
 
@@ -217,6 +229,11 @@ Professional infrastructure from day one with automatic backups and high availab
   ```bash
   pm2 logs worker-redisq
   pm2 logs worker-characters
+  pm2 logs worker-corporations
+  pm2 logs worker-alliances
+  pm2 logs worker-types
+  pm2 logs worker-zkillboard
+  pm2 logs worker-user-killmails
   ```
 
 - [ ] RabbitMQ çalışıyor mu?
@@ -232,27 +249,42 @@ Professional infrastructure from day one with automatic backups and high availab
 
 ---
 
-## Phase 7: Initial Data Seeding (Opsiyonel)
+## Phase 7: Initial Data Seeding (Opsiyonel - 30 dakika)
 
-- [ ] Alliance ve Corporation listelerini sync et:
+**Worker Sistemi:**
+
+- **worker-redisq**: zKillboard RedisQ real-time stream (otomatik başlar)
+- **worker-characters**: Karakter bilgilerini ESI'dan çeker (10 concurrent)
+- **worker-corporations**: Corporation bilgilerini çeker (5 concurrent)
+- **worker-alliances**: Alliance bilgilerini çeker (3 concurrent)
+- **worker-types**: Ship/item type bilgilerini çeker (10 concurrent)
+- **worker-zkillboard**: zKillboard character killmail sync (1 concurrent)
+- **worker-user-killmails**: ESI üzerinden kullanıcı killmail'lerini çeker
+- **worker-bulk-alliances**: Tüm alliance listesini sync eder (manuel)
+- **worker-bulk-corporations**: Tüm corporation listesini sync eder (manuel)
+
+**PM2'de çalışan worker'lar:** ecosystem.config.js ile birlikte ilk 7 worker otomatik başlar. Bulk worker'lar manuel başlatılır.
+
+- [ ] Alliance ve Corporation listelerini sync et (opsiyonel, ilk setup için):
 
   ```bash
   cd /var/www/killreport/backend
-  node -r ts-node/register src/queues/queue-alliances.ts
-  node -r ts-node/register src/queues/queue-corporations.ts
+  yarn queue:alliances
+  yarn queue:corporations
   ```
 
-- [ ] PM2'den bulk sync worker'ları başlat:
+- [ ] PM2'den bulk sync worker'ları başlat (manuel, ihtiyaç olduğunda):
 
   ```bash
-  pm2 start worker-bulk-alliances
-  pm2 start worker-bulk-corporations
+  pm2 start worker-bulk-alliances --only worker-bulk-alliances
+  pm2 start worker-bulk-corporations --only worker-bulk-corporations
   ```
 
 - [ ] İlerlemeyi izle:
 
   ```bash
   pm2 logs worker-bulk-alliances
+  pm2 logs worker-bulk-corporations
   ```
 
 ---
@@ -367,10 +399,13 @@ git log --oneline -10
 git checkout <previous_commit_hash>
 
 # Rebuild
-cd backend && yarn build
+cd backend && yarn tsc
 cd ../frontend && yarn build
 
-# Restart
+# Restart (zero-downtime with cluster mode)
 cd ..
+pm2 reload all
+
+# Or restart all (brief downtime)
 pm2 restart all
 ```
