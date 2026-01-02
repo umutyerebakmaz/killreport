@@ -7,7 +7,6 @@ type Position {
 type Constellation {
   id: Int!
   name: String!
-  region_id: Int
   position: Position
   region: Region
   solarSystems: [SolarSystem!]!
