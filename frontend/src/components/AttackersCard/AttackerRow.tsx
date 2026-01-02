@@ -164,13 +164,18 @@ export default function AttackerRow({
             {attacker.damageDone.toLocaleString()} DMG
           </span>
           <span className="text-gray-400">{damagePercentage}%</span>
-          <span
-            className={
-              attacker.securityStatus >= 0 ? "text-green-500" : "text-red-500"
-            }
-          >
-            Sec: {attacker.securityStatus.toFixed(1)}
-          </span>
+          {attacker.securityStatus !== null &&
+            attacker.securityStatus !== undefined && (
+              <span
+                className={
+                  attacker.securityStatus >= 0
+                    ? "text-green-500"
+                    : "text-red-500"
+                }
+              >
+                Sec: {attacker.securityStatus.toFixed(1)}
+              </span>
+            )}
         </div>
       </div>
     </div>
