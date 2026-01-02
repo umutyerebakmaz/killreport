@@ -1,9 +1,10 @@
 "use client";
 
+import Loader from "@/components/Loader";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
-export default function AuthSuccessPage() {
+function AuthSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
@@ -241,5 +242,15 @@ export default function AuthSuccessPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AuthSuccessPage() {
+  return (
+    <Suspense
+      fallback={<Loader size="lg" text="Authenticating..." className="p-8" />}
+    >
+      <AuthSuccessContent />
+    </Suspense>
   );
 }
