@@ -24,10 +24,10 @@ export default function AttackerRow({
     <div className="p-3 bg-white/5">
       <div className="flex">
         {/* Character Image */}
-        {attacker.characterId && (
+        {attacker.character?.id && (
           <div className="relative shrink-0">
             <img
-              src={`https://images.evetech.net/characters/${attacker.characterId}/portrait?size=128`}
+              src={`https://images.evetech.net/characters/${attacker.character?.id}/portrait?size=128`}
               alt={attacker.character?.name || "Character"}
               width={96}
               height={96}
@@ -37,14 +37,14 @@ export default function AttackerRow({
             {/* Logos Container - Bottom Right */}
             <div className="absolute bottom-0 right-0 flex">
               {/* Corporation Logo */}
-              {attacker.corporationId && (
+              {attacker.corporation?.id && (
                 <Tooltip
                   content={`Corporation: ${
                     attacker.corporation?.name || "Unknown"
                   }`}
                 >
                   <img
-                    src={`https://images.evetech.net/corporations/${attacker.corporationId}/logo?size=64`}
+                    src={`https://images.evetech.net/corporations/${attacker.corporation?.id}/logo?size=64`}
                     alt={attacker.corporation?.name || "Corporation"}
                     width={24}
                     height={24}
@@ -55,12 +55,12 @@ export default function AttackerRow({
               )}
 
               {/* Alliance Logo */}
-              {attacker.allianceId && (
+              {attacker.alliance?.id && (
                 <Tooltip
                   content={`Alliance: ${attacker.alliance?.name || "Unknown"}`}
                 >
                   <img
-                    src={`https://images.evetech.net/alliances/${attacker.allianceId}/logo?size=64`}
+                    src={`https://images.evetech.net/alliances/${attacker.alliance?.id}/logo?size=64`}
                     alt={attacker.alliance?.name || "Alliance"}
                     width={24}
                     height={24}
@@ -75,9 +75,9 @@ export default function AttackerRow({
 
         <div className="flex flex-col pr-4">
           <Tooltip content={attacker.shipType?.name || "Unknown Ship"}>
-            {attacker.shipTypeId ? (
+            {attacker.shipType?.id ? (
               <img
-                src={`https://images.evetech.net/types/${attacker.shipTypeId}/render?size=64`}
+                src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=64`}
                 alt={attacker.shipType?.name || "Ship"}
                 width={48}
                 height={48}
@@ -91,9 +91,9 @@ export default function AttackerRow({
             )}
           </Tooltip>
           <Tooltip content={attacker.weaponType?.name || "Unknown Weapon"}>
-            {attacker.weaponTypeId ? (
+            {attacker.weaponType?.id ? (
               <img
-                src={`https://images.evetech.net/types/${attacker.weaponTypeId}/icon?size=64`}
+                src={`https://images.evetech.net/types/${attacker.weaponType?.id}/icon?size=64`}
                 alt={attacker.weaponType?.name || "Weapon"}
                 width={48}
                 height={48}
@@ -124,10 +124,10 @@ export default function AttackerRow({
             )}
           </div>
 
-          {attacker.characterId && (
+          {attacker.character?.id && (
             <Tooltip content="Show Character Info">
               <Link
-                href={`/characters/${attacker.characterId}`}
+                href={`/characters/${attacker.character?.id}`}
                 className="block font-medium text-gray-400 hover:text-blue-400"
               >
                 {attacker.character?.name || "Unknown"}
@@ -135,10 +135,10 @@ export default function AttackerRow({
             </Tooltip>
           )}
 
-          {attacker.corporationId && (
+          {attacker.corporation?.id && (
             <Tooltip content="Show Corporation Info">
               <Link
-                href={`/corporations/${attacker.corporationId}`}
+                href={`/corporations/${attacker.corporation?.id}`}
                 className="block text-sm text-gray-400 hover:text-blue-400"
               >
                 {attacker.corporation?.name || "Unknown"}
@@ -146,10 +146,10 @@ export default function AttackerRow({
             </Tooltip>
           )}
 
-          {attacker.allianceId && (
+          {attacker.alliance?.id && (
             <Tooltip content="Show Alliance Info">
               <Link
-                href={`/alliances/${attacker.allianceId}`}
+                href={`/alliances/${attacker.alliance?.id}`}
                 className="block text-sm text-gray-400 hover:text-blue-400"
               >
                 {attacker.alliance?.name || "Unknown"}

@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 
 interface KillmailToast {
   id: string;
-  killmailId: number;
   victimName: string | null;
   victimShipName: string | null;
   victimShipTypeId: number | null;

@@ -1,42 +1,60 @@
 subscription OnNewKillmail {
   newKillmail {
     id
-    killmailId
     killmailHash
     killmailTime
-    solarSystemId
     solarSystem {
       name
     }
     victim {
-      characterId
-      characterName
-      corporationId
-      corporationName
-      allianceId
-      allianceName
-      shipTypeId
-      shipTypeName
+      character {
+        id
+        name
+      }
+      corporation {
+        id
+        name
+      }
+      alliance {
+        id
+        name
+      }
+      shipType {
+        id
+        name
+      }
       damageTaken
     }
     attackers {
-      characterId
-      characterName
-      corporationId
-      corporationName
-      allianceId
-      allianceName
-      shipTypeId
-      shipTypeName
-      weaponTypeId
-      weaponTypeName
+      character {
+        id
+        name
+      }
+      corporation {
+        id
+        name
+      }
+      alliance {
+        id
+        name
+      }
+      shipType {
+        id
+        name
+      }
+      weaponType {
+        id
+        name
+      }
       damageDone
       finalBlow
       securityStatus
     }
     items {
-      itemTypeId
-      itemTypeName
+      itemType {
+        id
+        name
+      }
       flag
       quantityDropped
       quantityDestroyed
