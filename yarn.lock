@@ -4460,7 +4460,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"baseline-browser-mapping@npm:^2.9.0":
+"baseline-browser-mapping@npm:^2.9.0, baseline-browser-mapping@npm:^2.9.11":
   version: 2.9.11
   resolution: "baseline-browser-mapping@npm:2.9.11"
   bin:
@@ -6185,6 +6185,7 @@ __metadata:
     "@types/node": "npm:^22.0.0"
     "@types/react": "npm:^19"
     "@types/react-dom": "npm:^19"
+    baseline-browser-mapping: "npm:^2.9.11"
     eslint: "npm:^9"
     eslint-config-next: "npm:16.0.0"
     graphql: "npm:^16.11.0"

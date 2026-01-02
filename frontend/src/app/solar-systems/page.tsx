@@ -2,15 +2,16 @@
 
 import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
 import SolarSystemFilters from "@/components/Filters/SolarSystemFilters";
+import Loader from "@/components/Loader";
 import Paginator from "@/components/Paginator/Paginator";
 import SecurityBadge from "@/components/SecurityStatus/SecurityStatus";
 import { useSolarSystemsQuery } from "@/generated/graphql";
 import { GlobeAltIcon, MapIcon, MapPinIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
-export default function SolarSystemsPage() {
+function SolarSystemsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -272,5 +273,17 @@ export default function SolarSystemsPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function SolarSystemsPage() {
+  return (
+    <Suspense
+      fallback={
+        <Loader size="lg" text="Loading solar systems..." className="p-8" />
+      }
+    >
+      <SolarSystemsContent />
+    </Suspense>
   );
 }
