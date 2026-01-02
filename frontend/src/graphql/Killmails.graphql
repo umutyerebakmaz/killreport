@@ -3,9 +3,7 @@ query Killmails($filter: KillmailFilter) {
     edges {
       node {
         id
-        killmailId
         killmailTime
-        solarSystemId
         solarSystem {
           id
           name
@@ -20,22 +18,18 @@ query Killmails($filter: KillmailFilter) {
           }
         }
         victim {
-          characterId
           character {
             id
             name
           }
-          corporationId
           corporation {
             id
             name
           }
-          allianceId
           alliance {
             id
             name
           }
-          shipTypeId
           shipType {
             id
             name
@@ -46,17 +40,14 @@ query Killmails($filter: KillmailFilter) {
           damageTaken
         }
         attackers {
-          characterId
           character {
             id
             name
           }
-          corporationId
           corporation {
             id
             name
           }
-          shipTypeId
           shipType {
             id
             name

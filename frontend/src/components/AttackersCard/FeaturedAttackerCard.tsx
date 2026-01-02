@@ -24,11 +24,11 @@ export default function FeaturedAttackerCard({
       <div className="px-3 py-1 text-sm font-medium text-center">{label}</div>
 
       {/* Character Portrait */}
-      {attacker.characterId && (
+      {attacker.character?.id && (
         <div className="relative mb-3">
           <Tooltip content={`Character: ${attacker.character?.name}`}>
             <img
-              src={`https://images.evetech.net/characters/${attacker.characterId}/portrait?size=256`}
+              src={`https://images.evetech.net/characters/${attacker.character?.id}/portrait?size=256`}
               alt={attacker.character?.name || "Character"}
               width={256}
               height={256}
@@ -39,10 +39,10 @@ export default function FeaturedAttackerCard({
           {/* Logos Container - Bottom Right */}
           <div className="absolute bottom-0 right-0 flex">
             {/* Corporation Logo */}
-            {attacker.corporationId && (
+            {attacker.corporation?.id && (
               <Tooltip content={`Corporation: ${attacker.corporation?.name}`}>
                 <img
-                  src={`https://images.evetech.net/corporations/${attacker.corporationId}/logo?size=64`}
+                  src={`https://images.evetech.net/corporations/${attacker.corporation?.id}/logo?size=64`}
                   alt={attacker.corporation?.name || "Corporation"}
                   width={32}
                   height={32}
@@ -53,10 +53,10 @@ export default function FeaturedAttackerCard({
             )}
 
             {/* Alliance Logo */}
-            {attacker.allianceId && (
+            {attacker.alliance?.id && (
               <Tooltip content={`Alliance: ${attacker.alliance?.name}`}>
                 <img
-                  src={`https://images.evetech.net/alliances/${attacker.allianceId}/logo?size=64`}
+                  src={`https://images.evetech.net/alliances/${attacker.alliance?.id}/logo?size=64`}
                   alt={attacker.alliance?.name || "Alliance"}
                   width={32}
                   height={32}
@@ -72,7 +72,7 @@ export default function FeaturedAttackerCard({
       {/* Info */}
       <div className="pt-1 pb-4">
         <Link
-          href={`/characters/${attacker.characterId}`}
+          href={`/characters/${attacker.character?.id}`}
           className="block font-medium text-gray-400 hover:text-blue-400"
         >
           {attacker?.character?.name}
@@ -80,11 +80,11 @@ export default function FeaturedAttackerCard({
       </div>
 
       {/* Ship Type Image */}
-      {attacker.shipTypeId && (
+      {attacker.shipType?.id && (
         <div className="flex gap-2">
           <Tooltip content={attacker.shipType?.name}>
             <img
-              src={`https://images.evetech.net/types/${attacker.shipTypeId}/render?size=64`}
+              src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=64`}
               alt={attacker.shipType?.name || "Ship"}
               width={48}
               height={48}
@@ -96,11 +96,11 @@ export default function FeaturedAttackerCard({
       )}
 
       {/* Weapon Type Image */}
-      {attacker.weaponTypeId && (
+      {attacker.weaponType?.id && (
         <div className="flex gap-2">
           <Tooltip content={attacker.weaponType?.name}>
             <img
-              src={`https://images.evetech.net/types/${attacker.weaponTypeId}/icon?size=64`}
+              src={`https://images.evetech.net/types/${attacker.weaponType?.id}/icon?size=64`}
               alt={attacker.weaponType?.name || "Weapon"}
               width={48}
               height={48}

@@ -68,24 +68,14 @@ type AllianceSnapshot {
 
 type Attacker {
   alliance: Alliance
-  allianceId: Int
-  allianceName: String
   character: Character
-  characterId: Int
-  characterName: String
   corporation: Corporation
-  corporationId: Int
-  corporationName: String
   damageDone: Int!
   factionId: Int
   finalBlow: Boolean!
-  securityStatus: Float!
+  securityStatus: Float
   shipType: Type
-  shipTypeId: Int
-  shipTypeName: String
   weaponType: Type
-  weaponTypeId: Int
-  weaponTypeName: String
 }
 
 type AuthPayload {
@@ -349,10 +339,8 @@ type Killmail {
   id: ID!
   items: [KillmailItem!]!
   killmailHash: String!
-  killmailId: Int!
   killmailTime: String!
-  solarSystem: SolarSystem
-  solarSystemId: Int!
+  solarSystem: SolarSystem!
   totalValue: Float
   victim: Victim!
 }
@@ -383,9 +371,7 @@ input KillmailFilter {
 
 type KillmailItem {
   flag: Int!
-  itemType: Type
-  itemTypeId: Int!
-  itemTypeName: String
+  itemType: Type!
   quantityDestroyed: Int
   quantityDropped: Int
   singleton: Int!
@@ -788,20 +774,12 @@ type User {
 
 type Victim {
   alliance: Alliance
-  allianceId: Int
-  allianceName: String
   character: Character
-  characterId: Int
-  characterName: String
-  corporation: Corporation
-  corporationId: Int!
-  corporationName: String
+  corporation: Corporation!
   damageTaken: Int!
   factionId: Int
   position: Position
-  shipType: Type
-  shipTypeId: Int!
-  shipTypeName: String
+  shipType: Type!
 }
 
 type WorkerStatus {
