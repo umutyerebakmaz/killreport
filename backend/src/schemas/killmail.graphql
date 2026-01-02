@@ -26,11 +26,9 @@ type SyncMyKillmailsPayload {
 
 type Killmail {
   id: ID!
-  killmailId: Int!
   killmailHash: String!
   killmailTime: String!
-  solarSystemId: Int!
-  solarSystem: SolarSystem
+  solarSystem: SolarSystem!
   victim: Victim!
   attackers: [Attacker!]!
   items: [KillmailItem!]!
@@ -39,19 +37,11 @@ type Killmail {
 }
 
 type Victim {
-  characterId: Int
-  characterName: String
   character: Character
-  corporationId: Int!
-  corporationName: String
-  corporation: Corporation
-  allianceId: Int
-  allianceName: String
+  corporation: Corporation!
   alliance: Alliance
   factionId: Int
-  shipTypeId: Int!
-  shipTypeName: String
-  shipType: Type
+  shipType: Type!
   damageTaken: Int!
   position: Position
 }
@@ -63,31 +53,19 @@ type Position {
 }
 
 type Attacker {
-  characterId: Int
-  characterName: String
   character: Character
-  corporationId: Int
-  corporationName: String
   corporation: Corporation
-  allianceId: Int
-  allianceName: String
   alliance: Alliance
   factionId: Int
-  shipTypeId: Int
-  shipTypeName: String
   shipType: Type
-  weaponTypeId: Int
-  weaponTypeName: String
   weaponType: Type
   damageDone: Int!
   finalBlow: Boolean!
-  securityStatus: Float!
+  securityStatus: Float
 }
 
 type KillmailItem {
-  itemTypeId: Int!
-  itemTypeName: String
-  itemType: Type
+  itemType: Type!
   flag: Int!
   quantityDropped: Int
   quantityDestroyed: Int

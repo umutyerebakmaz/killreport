@@ -38,7 +38,6 @@ export const killmailQueries: QueryResolvers = {
 
     const result = {
       id: killmail.killmail_id.toString(),
-      killmailId: killmail.killmail_id,
       killmailHash: killmail.killmail_hash,
       killmailTime: killmail.killmail_time.toISOString(),
       solarSystemId: killmail.solar_system_id,
@@ -221,7 +220,6 @@ export const killmailQueries: QueryResolvers = {
     const edges = killmails.map((km, index) => ({
       node: {
         id: km.killmail_id.toString(),
-        killmailId: km.killmail_id,
         killmailHash: km.killmail_hash,
         killmailTime: km.killmail_time.toISOString(),
         solarSystemId: km.solar_system_id,
@@ -404,7 +402,6 @@ export const killmailQueries: QueryResolvers = {
     const edges = killmails.map((km, index) => ({
       node: {
         id: km.killmail_id.toString(),
-        killmailId: km.killmail_id,
         killmailHash: km.killmail_hash,
         killmailTime: km.killmail_time.toISOString(),
         solarSystemId: km.solar_system_id,
@@ -492,7 +489,6 @@ export const killmailQueries: QueryResolvers = {
     const edges = killmails.map((km, index) => ({
       node: {
         id: km.killmail_id.toString(),
-        killmailId: km.killmail_id,
         killmailHash: km.killmail_hash,
         killmailTime: km.killmail_time.toISOString(),
         solarSystemId: km.solar_system_id,
@@ -580,7 +576,6 @@ export const killmailQueries: QueryResolvers = {
     const edges = killmails.map((km, index) => ({
       node: {
         id: km.killmail_id.toString(),
-        killmailId: km.killmail_id,
         killmailHash: km.killmail_hash,
         killmailTime: km.killmail_time.toISOString(),
         solarSystemId: km.solar_system_id,
@@ -662,20 +657,16 @@ export const killmailQueries: QueryResolvers = {
 
             return {
               id: km.killmail_id.toString(),
-              killmailId: km.killmail_id,
               killmailHash: km.killmail_hash,
               killmailTime: detail.killmail_time,
               victim: {
                 characterId: detail.victim.character_id ?? null,
-                characterName: null, // Will resolve character name later
                 corporationId: detail.victim.corporation_id,
-                corporationName: null,
                 shipTypeId: detail.victim.ship_type_id,
                 damageTaken: detail.victim.damage_taken,
               },
               attackers: detail.attackers.map((attacker) => ({
                 characterId: attacker.character_id ?? null,
-                characterName: null,
                 corporationId: attacker.corporation_id ?? null,
                 shipTypeId: attacker.ship_type_id ?? null,
                 weaponTypeId: attacker.weapon_type_id ?? null,
@@ -741,20 +732,16 @@ export const killmailQueries: QueryResolvers = {
 
             return {
               id: km.killmail_id.toString(),
-              killmailId: km.killmail_id,
               killmailHash: km.killmail_hash,
               killmailTime: detail.killmail_time,
               victim: {
                 characterId: detail.victim.character_id ?? null,
-                characterName: null,
                 corporationId: detail.victim.corporation_id,
-                corporationName: null,
                 shipTypeId: detail.victim.ship_type_id,
                 damageTaken: detail.victim.damage_taken,
               },
               attackers: detail.attackers.map((attacker) => ({
                 characterId: attacker.character_id ?? null,
-                characterName: null,
                 corporationId: attacker.corporation_id ?? null,
                 shipTypeId: attacker.ship_type_id ?? null,
                 weaponTypeId: attacker.weapon_type_id ?? null,
@@ -822,26 +809,26 @@ export const killmailMutations: MutationResolvers = {
 
 // Field Resolvers
 export const killmailFieldResolvers: KillmailResolvers = {
-  solarSystem: async (parent, _, context) => {
+  solarSystem: async (parent: any, _, context) => {
     if (!parent.solarSystemId) return null;
     return context.loaders.solarSystem.load(parent.solarSystemId);
   },
 };
 
 export const victimFieldResolvers: VictimResolvers = {
-  character: async (parent, _, context) => {
+  character: async (parent: any, _, context) => {
     if (!parent.characterId) return null;
     return context.loaders.character.load(parent.characterId);
   },
-  corporation: async (parent, _, context) => {
+  corporation: async (parent: any, _, context) => {
     if (!parent.corporationId) return null;
     return context.loaders.corporation.load(parent.corporationId);
   },
-  alliance: async (parent, _, context) => {
+  alliance: async (parent: any, _, context) => {
     if (!parent.allianceId) return null;
     return context.loaders.alliance.load(parent.allianceId);
   },
-  shipType: async (parent, _, context) => {
+  shipType: async (parent: any, _, context) => {
     if (!parent.shipTypeId) return null;
     const type = await context.loaders.type.load(parent.shipTypeId);
     if (!type) return null;
@@ -854,19 +841,19 @@ export const victimFieldResolvers: VictimResolvers = {
 };
 
 export const attackerFieldResolvers: AttackerResolvers = {
-  character: async (parent, _, context) => {
+  character: async (parent: any, _, context) => {
     if (!parent.characterId) return null;
     return context.loaders.character.load(parent.characterId);
   },
-  corporation: async (parent, _, context) => {
+  corporation: async (parent: any, _, context) => {
     if (!parent.corporationId) return null;
     return context.loaders.corporation.load(parent.corporationId);
   },
-  alliance: async (parent, _, context) => {
+  alliance: async (parent: any, _, context) => {
     if (!parent.allianceId) return null;
     return context.loaders.alliance.load(parent.allianceId);
   },
-  shipType: async (parent, _, context) => {
+  shipType: async (parent: any, _, context) => {
     if (!parent.shipTypeId) return null;
     const type = await context.loaders.type.load(parent.shipTypeId);
     if (!type) return null;
@@ -876,7 +863,7 @@ export const attackerFieldResolvers: AttackerResolvers = {
       updated_at: type.updated_at.toISOString(),
     } as any;
   },
-  weaponType: async (parent, _, context) => {
+  weaponType: async (parent: any, _, context) => {
     if (!parent.weaponTypeId) return null;
     const type = await context.loaders.type.load(parent.weaponTypeId);
     if (!type) return null;
@@ -889,7 +876,7 @@ export const attackerFieldResolvers: AttackerResolvers = {
 };
 
 export const killmailItemFieldResolvers: KillmailItemResolvers = {
-  itemType: async (parent, _, context) => {
+  itemType: async (parent: any, _, context) => {
     if (!parent.itemTypeId) return null;
     const type = await context.loaders.type.load(parent.itemTypeId);
     if (!type) return null;
@@ -930,7 +917,6 @@ export const killmailSubscriptions: SubscriptionResolvers = {
       // Field resolvers (character, corporation, alliance, shipType etc.) will work automatically
       return {
         id: killmail.killmail_id.toString(),
-        killmailId: killmail.killmail_id,
         killmailHash: killmail.killmail_hash,
         killmailTime: killmail.killmail_time.toISOString(),
         solarSystemId: killmail.solar_system_id,
