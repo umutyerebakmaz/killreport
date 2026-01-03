@@ -49,6 +49,10 @@ module.exports = {
             args: 'worker:redisq',
             instances: 1,
             exec_mode: 'fork',
+            env: {
+                NODE_ENV: 'production',
+                LOG_LEVEL: 'debug',
+            },
             max_memory_restart: '512M',
             autorestart: true,
             restart_delay: 5000,
