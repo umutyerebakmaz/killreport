@@ -44,6 +44,22 @@ const schema = makeExecutableSchema({
 const yoga = createYoga<ServerContext>({
   schema,
   graphqlEndpoint: '/graphql',
+
+  // CORS configuration
+  cors: config.app.isProduction
+    ? {
+      origin: ['https://killreport.com', 'https://www.killreport.com'],
+      credentials: true,
+      methods: ['GET', 'POST', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Accept'],
+    }
+    : {
+      origin: '*', // Development: allow all origins
+      credentials: true,
+      methods: ['GET', 'POST', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Accept'],
+    },
+
   plugins: [
     useLogger({
       logFn: (eventName, { args }) => {
@@ -103,20 +119,9 @@ const yoga = createYoga<ServerContext>({
   },
 });/**
  * Create HTTP server with routing
+ * NOTE: CORS is handled by Nginx reverse proxy, not here!
  */
 const server = createServer(async (req, res) => {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    res.writeHead(200);
-    res.end();
-    return;
-  }
-
   // Route: EVE SSO callback
   if (req.url?.startsWith('/auth/callback')) {
     return handleAuthCallback(req, res);
