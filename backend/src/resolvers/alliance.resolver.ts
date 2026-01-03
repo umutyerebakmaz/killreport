@@ -168,8 +168,10 @@ export const allianceMutations: MutationResolvers = {
  */
 export const allianceFieldResolvers: AllianceResolvers = {
   executor: async (parent, _args, context) => {
+    // Cast to any to access Prisma model fields
+    const prismaAlliance = parent as any;
     // DataLoader kullanarak executor corporation'ı getir
-    const corporation = await context.loaders.corporation.load(parent.executor_corporation_id);
+    const corporation = await context.loaders.corporation.load(prismaAlliance.executor_corporation_id);
 
     if (!corporation) return null;
 
@@ -180,8 +182,10 @@ export const allianceFieldResolvers: AllianceResolvers = {
   },
 
   createdByCorporation: async (parent, _args, context) => {
+    // Cast to any to access Prisma model fields
+    const prismaAlliance = parent as any;
     // DataLoader kullanarak executor corporation'ı getir
-    const corporation = await context.loaders.corporation.load(parent.creator_corporation_id);
+    const corporation = await context.loaders.corporation.load(prismaAlliance.creator_corporation_id);
 
     if (!corporation) return null;
 
@@ -192,8 +196,10 @@ export const allianceFieldResolvers: AllianceResolvers = {
   },
 
   createdBy: async (parent, _args, context) => {
+    // Cast to any to access Prisma model fields
+    const prismaAlliance = parent as any;
     // DataLoader kullanarak executor corporation'ı getir
-    const character = await context.loaders.character.load(parent.creator_id);
+    const character = await context.loaders.character.load(prismaAlliance.creator_id);
 
     if (!character) return null;
 
