@@ -121,6 +121,19 @@ systemctl start rabbitmq-server
 
 # Enable RabbitMQ management plugin
 rabbitmq-plugins enable rabbitmq_management
+
+# Install Redis (for PubSub)
+apt install -y redis-server
+systemctl enable redis-server
+systemctl start redis-server
+
+# Configure Redis for production
+sed -i 's/supervised no/supervised systemd/' /etc/redis/redis.conf
+sed -i 's/bind 127.0.0.1 ::1/bind 127.0.0.1/' /etc/redis/redis.conf
+systemctl restart redis-server
+
+# Verify Redis is running
+redis-cli ping  # Should return: PONG
 ```
 
 ---
@@ -145,6 +158,10 @@ DATABASE_URL="postgresql://doadmin:YOUR_PASSWORD@your-db-cluster.db.ondigitaloce
 
 # RabbitMQ
 RABBITMQ_URL="amqp://localhost:5672"
+
+# Redis (for distributed PubSub)
+REDIS_URL="redis://localhost:6379"
+USE_REDIS_PUBSUB="true"
 
 # EVE SSO
 EVE_CLIENT_ID="your-client-id"
@@ -295,6 +312,11 @@ psql "$DATABASE_URL" -c "SELECT version();"
 
 # RabbitMQ queue status
 rabbitmqctl list_queues name messages consumers
+
+# Redis status
+redis-cli ping
+redis-cli INFO stats | grep total_connections
+redis-cli CLIENT LIST
 
 # Disk usage
 df -h
