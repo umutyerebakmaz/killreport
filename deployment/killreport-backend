@@ -33,6 +33,9 @@ server {
         # WebSocket support (legacy/fallback)
         proxy_set_header Upgrade $http_upgrade;
 
+        # CORS is handled by GraphQL Yoga - don't override here!
+        # This allows backend to control CORS based on environment
+
         # Standard proxy headers
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
