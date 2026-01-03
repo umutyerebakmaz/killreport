@@ -291,7 +291,7 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
     missingCharIds.length + missingCorpIds.length + missingAllianceIds.length + missingTypeIds.length;
 
   if (totalMissing === 0) {
-    logger.debug('✅ All entities exist in database');
+    logger.info('✅ All entities exist in database');
     return;
   }
 
@@ -340,7 +340,7 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
       });
       enrichedCount++;
       stats.enriched++;
-      logger.debug(`  ✓ Alliance ${allianceId} enriched`);
+      logger.info(`  ✓ Alliance ${allianceId} enriched`);
     } catch (error: any) {
       failedCount++;
       stats.enrichmentFailed++;
