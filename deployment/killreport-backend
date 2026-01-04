@@ -60,11 +60,16 @@ server {
     }
 
     # RabbitMQ Management UI
+    location /rabbitmq {
+        # Trailing slash redirect
+        return 301 $scheme://$host/rabbitmq/;
+    }
+
     location /rabbitmq/ {
         # RabbitMQ management plugin 15672 portunda çalışır
         # /rabbitmq/api/queues -> http://localhost:15672/api/queues
         rewrite ^/rabbitmq/(.*) /$1 break;
-        proxy_pass http://localhost:15672;
+        proxy_pass http://localhost:15672/;
         proxy_http_version 1.1;
 
         # Buffering ayarları
@@ -75,11 +80,14 @@ server {
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
 
-        # Standard proxy headers - Host için $http_host kullan
+        # Standard proxy headers
         proxy_set_header Host $http_host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+
+        # X-Forwarded-Prefix ekle (RabbitMQ için çok önemli!)
+        proxy_set_header X-Forwarded-Prefix /rabbitmq;
 
         # Timeout'lar
         proxy_connect_timeout 300s;
