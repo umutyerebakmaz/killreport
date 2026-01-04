@@ -13,6 +13,7 @@ import { resolvers } from './resolvers';
 import { createDataLoaders } from './services/dataloaders';
 import { verifyToken } from './services/eve-sso';
 import logger from './services/logger';
+import { ensureAllQueuesExist } from './services/rabbitmq';
 import { userKillmailCron } from './services/user-killmail-cron';
 import { VerifiedCharacter } from './types/context';
 
@@ -20,8 +21,8 @@ import { VerifiedCharacter } from './types/context';
  * GraphQL Context - extends DataLoader context with auth info
  */
 interface ServerContext extends ReturnType<typeof createDataLoaders> {
-  user?: VerifiedCharacter;
-  token?: string;
+    user?: VerifiedCharacter;
+    token?: string;
 }
 
 /**
@@ -34,101 +35,101 @@ const typeDefs = mergeTypeDefs(typesArray);
  * Create executable GraphQL schema
  */
 const schema = makeExecutableSchema({
-  typeDefs,
-  resolvers,
+    typeDefs,
+    resolvers,
 });
 
 /**
  * Create GraphQL Yoga server instance
  */
 const yoga = createYoga<ServerContext>({
-  schema,
-  graphqlEndpoint: '/graphql',
+    schema,
+    graphqlEndpoint: '/graphql',
 
-  // CORS configuration
-  cors: config.app.isProduction
-    ? {
-      origin: ['https://killreport.com', 'https://www.killreport.com'],
-      credentials: true,
-      methods: ['GET', 'POST', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Accept'],
-    }
-    : {
-      origin: '*', // Development: allow all origins
-      credentials: true,
-      methods: ['GET', 'POST', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Accept'],
-    },
-
-  plugins: [
-    useLogger({
-      logFn: (eventName, { args }) => {
-        // Track execution timing
-        if (eventName === 'execute-start') {
-          (args.contextValue as any).startTime = Date.now();
-        } else if (eventName === 'execute-end') {
-          const duration = Date.now() - ((args.contextValue as any).startTime || 0);
-          const operationName = args.operationName || 'anonymous';
-
-          // Log based on duration thresholds
-          if (duration >= 5000) {
-            logger.error(`🐌 Slow Query [${operationName}] - ${duration}ms`);
-          } else if (duration >= 1000) {
-            logger.warn(`⚠️  Long Query [${operationName}] - ${duration}ms`);
-          } else {
-            logger.debug(`✅ [${operationName}] - ${duration}ms`);
-          }
+    // CORS configuration
+    cors: config.app.isProduction
+        ? {
+            origin: ['https://killreport.com', 'https://www.killreport.com'],
+            credentials: true,
+            methods: ['GET', 'POST', 'OPTIONS'],
+            allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Accept'],
         }
-      }
-    }),
-    createResponseCachePlugin(), // Cache responses
-  ],
-  graphiql: {
-    subscriptionsProtocol: 'SSE',
-  },
-  context: async ({ request }): Promise<ServerContext> => {
-    // Create fresh DataLoader instances per request
-    const dataLoaders = createDataLoaders();
+        : {
+            origin: '*', // Development: allow all origins
+            credentials: true,
+            methods: ['GET', 'POST', 'OPTIONS'],
+            allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Accept'],
+        },
 
-    const authorization = request.headers.get('authorization');
+    plugins: [
+        useLogger({
+            logFn: (eventName, { args }) => {
+                // Track execution timing
+                if (eventName === 'execute-start') {
+                    (args.contextValue as any).startTime = Date.now();
+                } else if (eventName === 'execute-end') {
+                    const duration = Date.now() - ((args.contextValue as any).startTime || 0);
+                    const operationName = args.operationName || 'anonymous';
 
-    // Verify Bearer token if present
-    if (authorization?.startsWith('Bearer ')) {
-      const token = authorization.slice(7);
-      logger.debug('🔑 Token received, length:', token.length);
+                    // Log based on duration thresholds
+                    if (duration >= 5000) {
+                        logger.error(`🐌 Slow Query [${operationName}] - ${duration}ms`);
+                    } else if (duration >= 1000) {
+                        logger.warn(`⚠️  Long Query [${operationName}] - ${duration}ms`);
+                    } else {
+                        logger.debug(`✅ [${operationName}] - ${duration}ms`);
+                    }
+                }
+            }
+        }),
+        createResponseCachePlugin(), // Cache responses
+    ],
+    graphiql: {
+        subscriptionsProtocol: 'SSE',
+    },
+    context: async ({ request }): Promise<ServerContext> => {
+        // Create fresh DataLoader instances per request
+        const dataLoaders = createDataLoaders();
 
-      try {
-        const character = await verifyToken(token);
-        logger.debug('✅ Token verified for character:', character.characterName);
+        const authorization = request.headers.get('authorization');
 
+        // Verify Bearer token if present
+        if (authorization?.startsWith('Bearer ')) {
+            const token = authorization.slice(7);
+            logger.debug('🔑 Token received, length:', token.length);
+
+            try {
+                const character = await verifyToken(token);
+                logger.debug('✅ Token verified for character:', character.characterName);
+
+                return {
+                    user: character,
+                    token,
+                    ...dataLoaders,
+                };
+            } catch (error) {
+                logger.error('❌ Token verification failed:', error);
+                // Continue without authentication
+            }
+        }
+
+        logger.debug('⚠️  No token provided');
         return {
-          user: character,
-          token,
-          ...dataLoaders,
+            ...dataLoaders,
         };
-      } catch (error) {
-        logger.error('❌ Token verification failed:', error);
-        // Continue without authentication
-      }
-    }
-
-    logger.debug('⚠️  No token provided');
-    return {
-      ...dataLoaders,
-    };
-  },
+    },
 });/**
  * Create HTTP server with routing
  * NOTE: CORS is handled by Nginx reverse proxy, not here!
  */
 const server = createServer(async (req, res) => {
-  // Route: EVE SSO callback
-  if (req.url?.startsWith('/auth/callback')) {
-    return handleAuthCallback(req, res);
-  }
+    // Route: EVE SSO callback
+    if (req.url?.startsWith('/auth/callback')) {
+        return handleAuthCallback(req, res);
+    }
 
-  // Route: GraphQL endpoint
-  return yoga(req, res);
+    // Route: GraphQL endpoint
+    return yoga(req, res);
 });
 
 /**
@@ -138,24 +139,29 @@ const port = config.app.port;
 const USE_REDIS = process.env.USE_REDIS_PUBSUB === 'true';
 
 server.listen(port, () => {
-  logger.info('='.repeat(80));
-  logger.info(`🚀 KillReport GraphQL Server`);
-  logger.info('='.repeat(80));
-  logger.info(`📍 GraphQL Playground: http://localhost:${port}/graphql`);
-  logger.info(`🔐 Auth Callback:      http://localhost:${port}/auth/callback`);
-  logger.info(`❤️  Health Check:       http://localhost:${port}/health`);
-  logger.info('─'.repeat(80));
-  logger.info(`📡 Subscriptions:      ${USE_REDIS ? `Redis PubSub (${REDIS_CONFIG.url})` : 'In-memory (single instance)'}`);
-  logger.info(`💾 Response Cache:     Enabled (Redis storage)`);
-  logger.info(`⏱️  Response Time:      Enabled (warn: 1s, error: 5s)`);
-  logger.info('─'.repeat(80));
-  logger.info('Available Workers:');
-  logger.info('  yarn worker:redisq         # RedisQ stream worker');
-  logger.info('  yarn worker:user-killmails # User killmail sync worker');
-  logger.info('='.repeat(80));
+    logger.info('='.repeat(80));
+    logger.info(`🚀 KillReport GraphQL Server`);
+    logger.info('='.repeat(80));
+    logger.info(`📍 GraphQL Playground: http://localhost:${port}/graphql`);
+    logger.info(`🔐 Auth Callback:      http://localhost:${port}/auth/callback`);
+    logger.info(`❤️  Health Check:       http://localhost:${port}/health`);
+    logger.info('─'.repeat(80));
+    logger.info(`📡 Subscriptions:      ${USE_REDIS ? `Redis PubSub (${REDIS_CONFIG.url})` : 'In-memory (single instance)'}`);
+    logger.info(`💾 Response Cache:     Enabled (Redis storage)`);
+    logger.info(`⏱️  Response Time:      Enabled (warn: 1s, error: 5s)`);
+    logger.info('─'.repeat(80));
+    logger.info('Available Workers:');
+    logger.info('  yarn worker:redisq         # RedisQ stream worker');
+    logger.info('  yarn worker:user-killmails # User killmail sync worker');
+    logger.info('='.repeat(80));
 
-  // Start background cron job
-  userKillmailCron.start().catch((error) => {
-    logger.error('Failed to start user killmail cron:', error);
-  });
+    // Start background cron job
+    userKillmailCron.start().catch((error) => {
+        logger.error('Failed to start user killmail cron:', error);
+    });
+
+    // Ensure all RabbitMQ queues exist
+    ensureAllQueuesExist().catch((error) => {
+        logger.error('Failed to ensure RabbitMQ queues:', error);
+    });
 });
