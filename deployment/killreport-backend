@@ -81,20 +81,13 @@ server {
         proxy_set_header Connection "upgrade";
 
         # Standard proxy headers
-        proxy_set_header Host $host;
+        proxy_set_header Host $http_host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Forwarded-Host $host;
-        proxy_set_header X-Forwarded-Port $server_port;
 
         # X-Forwarded-Prefix ekle (RabbitMQ için çok önemli!)
         proxy_set_header X-Forwarded-Prefix /rabbitmq;
-
-        # Redirect'leri düzelt (RabbitMQ'nun kendi redirect'lerini prefix ile değiştir)
-        proxy_redirect http://localhost:15672/ /rabbitmq/;
-        proxy_redirect http://$host/ /rabbitmq/;
-        proxy_redirect https://$host/ /rabbitmq/;
 
         # Timeout'lar
         proxy_connect_timeout 300s;
