@@ -47,7 +47,7 @@ export const config = {
     url: env.DATABASE_URL,
   },
   rabbitmq: {
-    url: env.RABBITMQ_URL,
+    url: process.env.RABBITMQ_URL || 'amqp://localhost:5672',
     queue: 'alliance_queue',
   },
   eveSso: {
