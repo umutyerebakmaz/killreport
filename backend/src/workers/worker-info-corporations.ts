@@ -108,10 +108,10 @@ async function corporationInfoWorker() {
 
           if (existing) {
             totalUpdated++;
-            logger.debug(`  ✅ [${totalProcessed + 1}][${corporationId}] ${corpInfo.name} [${corpInfo.ticker}] \x1b[36m(updated)\x1b[0m`);
+            logger.info(`  ✅ [${totalProcessed + 1}][${corporationId}] ${corpInfo.name} [${corpInfo.ticker}] \x1b[36m(updated)\x1b[0m`);
           } else {
             totalCreated++;
-            logger.debug(`  ✅ [${totalProcessed + 1}][${corporationId}] ${corpInfo.name} [${corpInfo.ticker}] \x1b[32m(created)\x1b[0m`);
+            logger.info(`  ✅ [${totalProcessed + 1}][${corporationId}] ${corpInfo.name} [${corpInfo.ticker}] \x1b[32m(created)\x1b[0m`);
           } channel.ack(msg);
           totalProcessed++;
 
