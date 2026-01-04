@@ -61,25 +61,6 @@ module.exports = {
             time: true,
         },
 
-        // Daily Orchestrator (Automated daily workflow)
-        {
-            name: 'daily-orchestrator',
-            cwd: '/var/www/killreport/backend',
-            script: 'yarn',
-            args: 'worker:daily-orchestrator',
-            instances: 1,
-            exec_mode: 'fork',
-            env: {
-                NODE_ENV: 'production',
-                LOG_LEVEL: 'info',
-            },
-            max_memory_restart: '256M',
-            autorestart: true,
-            error_file: '/var/www/killreport/logs/daily-orchestrator-error.log',
-            out_file: '/var/www/killreport/logs/daily-orchestrator-out.log',
-            time: true,
-        },
-
         // Character Info Worker (High concurrency - prefetch: 10)
         {
             name: 'worker-characters',
