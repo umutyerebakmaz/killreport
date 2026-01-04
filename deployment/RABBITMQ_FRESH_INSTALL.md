@@ -51,39 +51,14 @@ sudo apt-get update
 sudo apt-get install -y curl gnupg apt-transport-https
 ```
 
-### Step 3: RabbitMQ Repository Ekle
+### Step 3: RabbitMQ Yükle
 
 ```bash
-# Add RabbitMQ signing key
-curl -1sLf "https://keys.openpgp.org/vks/v1/by-fingerprint/0A9AF2115F4687BD29803A206B73A36E6026DFCA" | \
-  sudo gpg --dearmor | \
-  sudo tee /usr/share/keyrings/com.rabbitmq.team.gpg > /dev/null
-
-# Add RabbitMQ APT repository
-sudo tee /etc/apt/sources.list.d/rabbitmq.list > /dev/null <<EOF
-deb [signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://ppa1.novemberain.com/rabbitmq/rabbitmq-erlang/deb/ubuntu jammy main
-deb [signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://ppa1.novemberain.com/rabbitmq/rabbitmq-server/deb/ubuntu jammy main
-EOF
-
-# Update package list
-sudo apt-get update -y
-```
-
-### Step 4: Erlang ve RabbitMQ Yükle
-
-```bash
-# Install Erlang
-sudo apt-get install -y erlang-base \
-                        erlang-asn1 erlang-crypto erlang-eldap erlang-ftp erlang-inets \
-                        erlang-mnesia erlang-os-mon erlang-parsetools erlang-public-key \
-                        erlang-runtime-tools erlang-snmp erlang-ssl \
-                        erlang-syntax-tools erlang-tftp erlang-tools erlang-xmerl
-
-# Install RabbitMQ
+# Ubuntu repository'den direkt yükle (Ubuntu 24.04 Noble için)
 sudo apt-get install -y rabbitmq-server
 ```
 
-### Step 5: Reverse Proxy için Config Oluştur
+### Step 4: Reverse Proxy için Config Oluştur
 
 **KRİTİK ADIM:** Bu adımı atlarsanız 404 hatası alırsınız!
 
@@ -110,7 +85,7 @@ sudo chown rabbitmq:rabbitmq /etc/rabbitmq/rabbitmq.conf
 sudo chmod 644 /etc/rabbitmq/rabbitmq.conf
 ```
 
-### Step 6: RabbitMQ Başlat
+### Step 5: RabbitMQ Başlat
 
 ```bash
 # Enable and start service
@@ -121,13 +96,13 @@ sudo systemctl start rabbitmq-server
 sudo systemctl status rabbitmq-server
 ```
 
-### Step 7: Management Plugin Aktif Et
+### Step 6: Management Plugin Aktif Et
 
 ```bash
 sudo rabbitmq-plugins enable rabbitmq_management
 ```
 
-### Step 8: Admin Kullanıcı Oluştur
+### Step 7: Admin Kullanıcı Oluştur
 
 ```bash
 # Admin user oluştur (şifreyi değiştirin!)
@@ -139,13 +114,13 @@ sudo rabbitmqctl set_permissions -p / admin ".*" ".*" ".*"
 sudo rabbitmqctl delete_user guest
 ```
 
-### Step 9: RabbitMQ'yu Yeniden Başlat
+### Step 8: RabbitMQ'yu Yeniden Başlat
 
 ```bash
 sudo systemctl restart rabbitmq-server
 ```
 
-### Step 10: Nginx'i Yeniden Yükle
+### Step 9: Nginx'i Yeniden Yükle
 
 ```bash
 # Nginx config test
