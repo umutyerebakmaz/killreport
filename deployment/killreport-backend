@@ -62,7 +62,9 @@ server {
     # RabbitMQ Management UI
     location /rabbitmq/ {
         # RabbitMQ management plugin 15672 portunda çalışır
-        proxy_pass http://localhost:15672/;
+        # /rabbitmq/api/queues -> http://localhost:15672/api/queues
+        rewrite ^/rabbitmq/(.*) /$1 break;
+        proxy_pass http://localhost:15672;
         proxy_http_version 1.1;
 
         # Buffering ayarları
