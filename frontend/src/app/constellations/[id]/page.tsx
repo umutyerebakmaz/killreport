@@ -93,6 +93,7 @@ export default function ConstellationDetailPage({
                   <span>Region:</span>
                   <Link
                     href={`/regions/${constellation.region.id}`}
+                    prefetch={false}
                     className="transition-colors text-cyan-400 hover:text-cyan-300"
                   >
                     {constellation.region.name}
@@ -186,6 +187,7 @@ export default function ConstellationDetailPage({
                       <dd>
                         <Link
                           href={`/regions/${constellation.region.id}`}
+                          prefetch={false}
                           className="text-cyan-400 hover:text-cyan-300"
                         >
                           {constellation.region.name}
@@ -301,6 +303,7 @@ export default function ConstellationDetailPage({
                             <MapPinIcon className="w-5 h-5 text-orange-400 shrink-0" />
                             <Link
                               href={`/solar-systems/${system.id}`}
+                              prefetch={false}
                               className="font-medium transition-colors text-cyan-400 hover:text-cyan-300"
                             >
                               {system.name}
