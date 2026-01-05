@@ -266,7 +266,7 @@ export type Corporation = {
   __typename?: 'Corporation';
   alliance?: Maybe<Alliance>;
   ceo?: Maybe<Character>;
-  creator: Character;
+  creator?: Maybe<Character>;
   date_founded?: Maybe<Scalars['String']['output']>;
   faction_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
@@ -446,6 +446,7 @@ export type Mutation = {
   createUser: CreateUserPayload;
   /** Eve Online SSO login için authorization URL'i oluşturur */
   login: AuthUrl;
+  refreshCharacter: RefreshCharacterResult;
   /** Refresh token kullanarak yeni access token alır */
   refreshToken: AuthPayload;
   startAllianceSync: StartAllianceSyncPayload;
@@ -492,6 +493,11 @@ export type MutationClearKillmailCacheArgs = {
 
 export type MutationCreateUserArgs = {
   input: CreateUserInput;
+};
+
+
+export type MutationRefreshCharacterArgs = {
+  characterId: Scalars['Int']['input'];
 };
 
 
@@ -793,6 +799,14 @@ export type Race = {
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
+};
+
+export type RefreshCharacterResult = {
+  __typename?: 'RefreshCharacterResult';
+  characterId: Scalars['Int']['output'];
+  message: Scalars['String']['output'];
+  queued: Scalars['Boolean']['output'];
+  success: Scalars['Boolean']['output'];
 };
 
 export type Region = {
@@ -1207,6 +1221,7 @@ export type ResolversTypes = {
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   QueueStatus: ResolverTypeWrapper<QueueStatus>;
   Race: ResolverTypeWrapper<Race>;
+  RefreshCharacterResult: ResolverTypeWrapper<RefreshCharacterResult>;
   Region: ResolverTypeWrapper<Region>;
   RegionConnection: ResolverTypeWrapper<RegionConnection>;
   RegionEdge: ResolverTypeWrapper<RegionEdge>;
@@ -1302,6 +1317,7 @@ export type ResolversParentTypes = {
   Query: Record<PropertyKey, never>;
   QueueStatus: QueueStatus;
   Race: Race;
+  RefreshCharacterResult: RefreshCharacterResult;
   Region: Region;
   RegionConnection: RegionConnection;
   RegionEdge: RegionEdge;
@@ -1503,7 +1519,7 @@ export type ConstellationEdgeResolvers<ContextType = any, ParentType extends Res
 export type CorporationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Corporation'] = ResolversParentTypes['Corporation']> = {
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType>;
   ceo?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
-  creator?: Resolver<ResolversTypes['Character'], ParentType, ContextType>;
+  creator?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
   date_founded?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   faction_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -1610,6 +1626,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   clearKillmailCache?: Resolver<ResolversTypes['CacheOperation'], ParentType, ContextType, RequireFields<MutationClearKillmailCacheArgs, 'killmailId'>>;
   createUser?: Resolver<ResolversTypes['CreateUserPayload'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   login?: Resolver<ResolversTypes['AuthUrl'], ParentType, ContextType>;
+  refreshCharacter?: Resolver<ResolversTypes['RefreshCharacterResult'], ParentType, ContextType, RequireFields<MutationRefreshCharacterArgs, 'characterId'>>;
   refreshToken?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationRefreshTokenArgs, 'refreshToken'>>;
   startAllianceSync?: Resolver<ResolversTypes['StartAllianceSyncPayload'], ParentType, ContextType, RequireFields<MutationStartAllianceSyncArgs, 'input'>>;
   startCategorySync?: Resolver<ResolversTypes['StartCategorySyncPayload'], ParentType, ContextType, RequireFields<MutationStartCategorySyncArgs, 'input'>>;
@@ -1691,6 +1708,13 @@ export type RaceResolvers<ContextType = any, ParentType extends ResolversParentT
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type RefreshCharacterResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['RefreshCharacterResult'] = ResolversParentTypes['RefreshCharacterResult']> = {
+  characterId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  queued?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
 };
 
 export type RegionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Region'] = ResolversParentTypes['Region']> = {
@@ -1897,6 +1921,7 @@ export type Resolvers<ContextType = any> = {
   Query?: QueryResolvers<ContextType>;
   QueueStatus?: QueueStatusResolvers<ContextType>;
   Race?: RaceResolvers<ContextType>;
+  RefreshCharacterResult?: RefreshCharacterResultResolvers<ContextType>;
   Region?: RegionResolvers<ContextType>;
   RegionConnection?: RegionConnectionResolvers<ContextType>;
   RegionEdge?: RegionEdgeResolvers<ContextType>;
