@@ -75,7 +75,9 @@ export default function Footer() {
               KILLREPORT
             </span>
             <p className="text-gray-400 text-sm/6 text-balance">
-              Real-time EVE Online killmail tracking and analytics. Track your kills, deaths, and PvP statistics with live updates from zKillboard and ESI.
+              Real-time EVE Online killmail tracking and analytics. Track your
+              kills, deaths, and PvP statistics with live updates from
+              zKillboard and ESI.
             </p>
             <div className="flex gap-x-6">
               {navigation.social.map((item) => (
@@ -93,9 +95,7 @@ export default function Footer() {
           <div className="grid grid-cols-2 gap-8 mt-16 xl:col-span-2 xl:mt-0">
             <div className="md:grid md:grid-cols-2 md:gap-8">
               <div>
-                <h3 className="font-semibold text-white text-sm/6">
-                  Explore
-                </h3>
+                <h3 className="font-semibold text-white text-sm/6">Explore</h3>
                 <ul role="list" className="mt-6 space-y-4">
                   {navigation.explore.map((item) => (
                     <li key={item.name}>
@@ -111,11 +111,13 @@ export default function Footer() {
                 </ul>
               </div>
               <div className="mt-10 md:mt-0">
-                <h3 className="font-semibold text-white text-sm/6">Resources</h3>
+                <h3 className="font-semibold text-white text-sm/6">
+                  Resources
+                </h3>
                 <ul role="list" className="mt-6 space-y-4">
                   {navigation.resources.map((item) => (
                     <li key={item.name}>
-                      {item.href.startsWith('http') ? (
+                      {item.href.startsWith("http") ? (
                         <a
                           href={item.href}
                           target="_blank"
@@ -162,8 +164,14 @@ export default function Footer() {
                     <li key={item.name}>
                       <a
                         href={item.href}
-                        target={item.href.startsWith('http') ? '_blank' : undefined}
-                        rel={item.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                        target={
+                          item.href.startsWith("http") ? "_blank" : undefined
+                        }
+                        rel={
+                          item.href.startsWith("http")
+                            ? "noopener noreferrer"
+                            : undefined
+                        }
                         className="text-gray-400 text-sm/6 hover:text-gray-300"
                       >
                         {item.name}
