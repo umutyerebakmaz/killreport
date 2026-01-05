@@ -150,14 +150,14 @@ input CategoryFilter {
 type Character {
   alliance: Alliance
   birthday: String!
-  bloodline: Bloodline!
-  corporation: Corporation!
+  bloodline: Bloodline
+  corporation: Corporation
   description: String
   faction_id: Int
   gender: String!
   id: Int!
   name: String!
-  race: Race!
+  race: Race
   security_status: Float
   title: String
 }
