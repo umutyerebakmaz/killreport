@@ -22,12 +22,10 @@ query Character($id: Int!) {
     race {
       id
       name
-      description
     }
     bloodline {
       id
       name
-      description
     }
   }
 }

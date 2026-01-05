@@ -24,6 +24,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import React, { useState } from "react";
+import ActiveUsersCounter from "../ActiveUsersCounter";
 import AuthButton from "../AuthButton/AuthButton";
 import EveStatus from "../EveStatus/EveStatus";
 import EveTime from "../EveTime/EveTime";
@@ -195,6 +196,7 @@ export default function Header() {
 
         <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:items-center lg:gap-6">
           <div className="flex items-center gap-4">
+            <ActiveUsersCounter />
             <Tooltip
               content={`Tranquility ${
                 status?.players?.toLocaleString() ?? "-"

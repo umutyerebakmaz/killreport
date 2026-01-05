@@ -20,6 +20,10 @@ Server runs on: http://localhost:4000/graphql
 
 ## Documentation
 
+### Operations & Maintenance
+
+- [**📅 Daily Operations Guide**](./DAILY_OPERATIONS.md) - Günlük karakter/corporation sync ve bakım işlemleri
+
 ### Core Features
 
 - [EVE SSO Authentication](./src/docs/EVE_SSO_README.md)
@@ -69,6 +73,10 @@ yarn queue:corporations           # Queue NPC corporations
 yarn queue:alliance-corporations  # Queue alliance corporations
 yarn queue:zkillboard             # Queue logged-in users' killmails
 yarn queue:character <id>         # Queue specific character(s)
+
+# Character & Corporation Management (NEW)
+yarn queue:characters             # Queue ALL characters from DB for update
+yarn queue:character-corporations # Scan characters, queue missing corporations
 
 # Enrichment - scan killmails for missing entities
 yarn scan:entities                # Queue missing characters/corps/alliances/types

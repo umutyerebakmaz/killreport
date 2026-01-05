@@ -7,6 +7,9 @@ subscription WorkerStatusSubscription {
       messageCount
       consumerCount
       active
+      workerRunning
+      workerPid
+      workerName
     }
     standaloneWorkers {
       name

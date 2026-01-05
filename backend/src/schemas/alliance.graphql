@@ -3,9 +3,9 @@ type Alliance {
   name: String!
   ticker: String!
   date_founded: String!
-  executor: Corporation!
-  createdByCorporation: Corporation!
-  createdBy: Character!
+  executor: Corporation
+  createdByCorporation: Corporation
+  createdBy: Character
   faction_id: Int
   corporations: [Corporation!]
   corporationCount: Int!
