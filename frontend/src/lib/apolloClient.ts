@@ -109,35 +109,54 @@ export function createApolloClient() {
         credentials: 'same-origin',
     });
 
-  // SSE Link - only available on client-side
-  const sseLink = typeof window !== 'undefined'
-    ? new SSELink({
-      url: process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql',
-      headers: () => {
-        const token = localStorage.getItem('eve_access_token');
-        console.log('🔑 SSELink: Getting headers, token exists:', !!token);
-        return {
-          authorization: token ? `Bearer ${token}` : '',
-        };
-      },
-    })
-    : null;
+    // SSE Link - only available on client-side
+    const sseLink = typeof window !== 'undefined'
+        ? new SSELink({
+            url: process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql',
+            headers: () => {
+                const token = localStorage.getItem('eve_access_token');
+                const sessionId = sessionStorage.getItem('session_id') ||
+                    `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+                if (!sessionStorage.getItem('session_id')) {
+                    sessionStorage.setItem('session_id', sessionId);
+                }
+
+                console.log('🔑 SSELink: Getting headers, token exists:', !!token);
+                return {
+                    authorization: token ? `Bearer ${token}` : '',
+                    'x-session-id': sessionId,
+                };
+            },
+        })
+        : null;
 
     console.log('🚀 Apollo Client: SSE Link initialized:', !!sseLink, 'window:', typeof window);
 
-  // Auth link - adds Authorization header to every request
-  const authLink = setContext((_, { headers }) => {
-    const token = typeof window !== 'undefined'
-      ? localStorage.getItem('eve_access_token')
-      : null;
+    // Auth link - adds Authorization header and session ID to every request
+    const authLink = setContext((_, { headers }) => {
+        const token = typeof window !== 'undefined'
+            ? localStorage.getItem('eve_access_token')
+            : null;
 
-    return {
-      headers: {
-        ...headers,
-        authorization: token ? `Bearer ${token}` : '',
-      },
-    };
-  });
+        // Generate or get session ID
+        let sessionId = typeof window !== 'undefined'
+            ? sessionStorage.getItem('session_id')
+            : null;
+
+        if (!sessionId && typeof window !== 'undefined') {
+            sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            sessionStorage.setItem('session_id', sessionId);
+        }
+
+        return {
+            headers: {
+                ...headers,
+                authorization: token ? `Bearer ${token}` : '',
+                'x-session-id': sessionId || '',
+            },
+        };
+    });
 
     // Error link - handles authentication errors and token refresh
     const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
