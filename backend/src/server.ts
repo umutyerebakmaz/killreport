@@ -4,6 +4,7 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { createYoga, useLogger } from 'graphql-yoga';
 import { createServer } from 'node:http';
 import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 import { config } from './config';
 import { REDIS_CONFIG } from './config/cache.config';
@@ -11,6 +12,7 @@ import { handleAuthCallback } from './handlers/auth-callback.handler';
 import { createDisableIntrospectionPlugin } from './plugins/disable-introspection.plugin';
 import { createResponseCachePlugin } from './plugins/response-cache.plugin';
 import { resolvers } from './resolvers';
+import { trackActiveUser } from './resolvers/analytics.resolver';
 import { createDataLoaders } from './services/dataloaders';
 import { verifyToken } from './services/eve-sso';
 import logger from './services/logger';
@@ -61,13 +63,13 @@ const yoga = createYoga<ServerContext>({
       ],
       credentials: true,
       methods: ['GET', 'POST', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Accept'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Accept', 'x-session-id'],
     }
     : {
       origin: '*', // Development: allow all origins
       credentials: true,
       methods: ['GET', 'POST', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Accept'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Accept', 'x-session-id'],
     },
 
   plugins: [
@@ -101,6 +103,9 @@ const yoga = createYoga<ServerContext>({
 
     const authorization = request.headers.get('authorization');
 
+    // Generate or extract session ID for tracking
+    let sessionId = request.headers.get('x-session-id') || uuidv4();
+
     // Verify Bearer token if present
     if (authorization?.startsWith('Bearer ')) {
       const token = authorization.slice(7);
@@ -109,6 +114,9 @@ const yoga = createYoga<ServerContext>({
       try {
         const character = await verifyToken(token);
         logger.debug('✅ Token verified for character:', character.characterName);
+
+        // Track user as active (with user ID)
+        await trackActiveUser(character.characterId.toString(), sessionId);
 
         return {
           user: character,
@@ -120,6 +128,9 @@ const yoga = createYoga<ServerContext>({
         // Continue without authentication
       }
     }
+
+    // Track anonymous user as active (with session ID only)
+    await trackActiveUser(undefined, sessionId);
 
     logger.debug('⚠️  No token provided');
     return {
