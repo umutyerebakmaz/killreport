@@ -226,7 +226,7 @@ enum ConstellationOrderBy {
 type Corporation {
   alliance: Alliance
   ceo: Character
-  creator: Character!
+  creator: Character
   date_founded: String
   faction_id: Int
   id: Int!
@@ -394,6 +394,7 @@ type Mutation {
 
   """Eve Online SSO login için authorization URL'i oluşturur"""
   login: AuthUrl!
+  refreshCharacter(characterId: Int!): RefreshCharacterResult!
 
   """Refresh token kullanarak yeni access token alır"""
   refreshToken(refreshToken: String!): AuthPayload!
@@ -523,6 +524,13 @@ type Race {
   description: String
   id: Int!
   name: String!
+}
+
+type RefreshCharacterResult {
+  characterId: Int!
+  message: String!
+  queued: Boolean!
+  success: Boolean!
 }
 
 type Region {
