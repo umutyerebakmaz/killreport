@@ -44,3 +44,14 @@ extend type Query {
   character(id: Int!): Character
   characters(filter: CharacterFilter): CharacterConnection!
 }
+
+extend type Mutation {
+  refreshCharacter(characterId: Int!): RefreshCharacterResult!
+}
+
+type RefreshCharacterResult {
+  success: Boolean!
+  message: String!
+  characterId: Int!
+  queued: Boolean!
+}

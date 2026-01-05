@@ -4,7 +4,7 @@ type Corporation {
   ticker: String!
   member_count: Int!
   date_founded: String
-  creator: Character!
+  creator: Character
   alliance: Alliance
   ceo: Character
   faction_id: Int
