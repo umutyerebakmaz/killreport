@@ -185,14 +185,14 @@ export type Character = {
   __typename?: 'Character';
   alliance?: Maybe<Alliance>;
   birthday: Scalars['String']['output'];
-  bloodline: Bloodline;
-  corporation: Corporation;
+  bloodline?: Maybe<Bloodline>;
+  corporation?: Maybe<Corporation>;
   description?: Maybe<Scalars['String']['output']>;
   faction_id?: Maybe<Scalars['Int']['output']>;
   gender: Scalars['String']['output'];
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
-  race: Race;
+  race?: Maybe<Race>;
   security_status?: Maybe<Scalars['Float']['output']>;
   title?: Maybe<Scalars['String']['output']>;
 };
@@ -1097,14 +1097,14 @@ export type CharactersQueryVariables = Exact<{
 }>;
 
 
-export type CharactersQuery = { __typename?: 'Query', characters: { __typename?: 'CharacterConnection', edges: Array<{ __typename?: 'CharacterEdge', cursor: string, node: { __typename?: 'Character', id: number, name: string, security_status?: number | null, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string }, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CharactersQuery = { __typename?: 'Query', characters: { __typename?: 'CharacterConnection', edges: Array<{ __typename?: 'CharacterEdge', cursor: string, node: { __typename?: 'Character', id: number, name: string, security_status?: number | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type CharacterQueryVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
 
 
-export type CharacterQuery = { __typename?: 'Query', character?: { __typename?: 'Character', id: number, name: string, birthday: string, security_status?: number | null, gender: string, description?: string | null, title?: string | null, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number }, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, memberCount: number } | null, race: { __typename?: 'Race', id: number, name: string, description?: string | null }, bloodline: { __typename?: 'Bloodline', id: number, name: string, description?: string | null } } | null };
+export type CharacterQuery = { __typename?: 'Query', character?: { __typename?: 'Character', id: number, name: string, birthday: string, security_status?: number | null, gender: string, description?: string | null, title?: string | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, memberCount: number } | null, race?: { __typename?: 'Race', id: number, name: string, description?: string | null } | null, bloodline?: { __typename?: 'Bloodline', id: number, name: string, description?: string | null } | null } | null };
 
 export type ConstellationsQueryVariables = Exact<{
   filter?: InputMaybe<ConstellationFilter>;
