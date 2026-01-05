@@ -267,7 +267,7 @@ export type Corporation = {
   __typename?: 'Corporation';
   alliance?: Maybe<Alliance>;
   ceo?: Maybe<Character>;
-  creator: Character;
+  creator?: Maybe<Character>;
   date_founded?: Maybe<Scalars['String']['output']>;
   faction_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
@@ -1104,7 +1104,7 @@ export type CharacterQueryVariables = Exact<{
 }>;
 
 
-export type CharacterQuery = { __typename?: 'Query', character?: { __typename?: 'Character', id: number, name: string, birthday: string, security_status?: number | null, gender: string, description?: string | null, title?: string | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, memberCount: number } | null, race?: { __typename?: 'Race', id: number, name: string, description?: string | null } | null, bloodline?: { __typename?: 'Bloodline', id: number, name: string, description?: string | null } | null } | null };
+export type CharacterQuery = { __typename?: 'Query', character?: { __typename?: 'Character', id: number, name: string, birthday: string, security_status?: number | null, gender: string, description?: string | null, title?: string | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, memberCount: number } | null, race?: { __typename?: 'Race', id: number, name: string } | null, bloodline?: { __typename?: 'Bloodline', id: number, name: string } | null } | null };
 
 export type ConstellationsQueryVariables = Exact<{
   filter?: InputMaybe<ConstellationFilter>;
@@ -1125,7 +1125,7 @@ export type CorporationQueryVariables = Exact<{
 }>;
 
 
-export type CorporationQuery = { __typename?: 'Query', corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, date_founded?: string | null, member_count: number, tax_rate: number, url?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, ceo?: { __typename?: 'Character', id: number, name: string } | null, creator: { __typename?: 'Character', id: number, name: string }, metrics?: { __typename?: 'CorporationMetrics', memberCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null } | null } | null };
+export type CorporationQuery = { __typename?: 'Query', corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, date_founded?: string | null, member_count: number, tax_rate: number, url?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, ceo?: { __typename?: 'Character', id: number, name: string } | null, creator?: { __typename?: 'Character', id: number, name: string } | null, metrics?: { __typename?: 'CorporationMetrics', memberCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null } | null } | null };
 
 export type CorporationsQueryVariables = Exact<{
   filter?: InputMaybe<CorporationFilter>;
@@ -1476,12 +1476,10 @@ export const CharacterDocument = gql`
     race {
       id
       name
-      description
     }
     bloodline {
       id
       name
-      description
     }
   }
 }
