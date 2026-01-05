@@ -1,0 +1,20 @@
+query SearchCharacters($search: String!, $limit: Int = 10) {
+  characters(filter: { search: $search, limit: $limit }) {
+    edges {
+      node {
+        id
+        name
+        corporation {
+          id
+          name
+          ticker
+        }
+        alliance {
+          id
+          name
+          ticker
+        }
+      }
+    }
+  }
+}
