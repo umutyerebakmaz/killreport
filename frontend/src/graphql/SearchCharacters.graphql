@@ -1,4 +1,4 @@
-query SearchCharacters($search: String!, $limit: Int = 10) {
+query SearchCharacters($search: String!, $limit: Int = 40) {
   characters(filter: { search: $search, limit: $limit }) {
     edges {
       node {
