@@ -25,7 +25,11 @@ export default function RegionCard({ region }: RegionCardProps) {
           </div>
 
           {/* Region Name */}
-          <Link href={`/regions/${region.id}`} className="region-name">
+          <Link
+            href={`/regions/${region.id}`}
+            className="region-name"
+            prefetch={false}
+          >
             {region.name}
           </Link>
 
