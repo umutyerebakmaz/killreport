@@ -17,6 +17,12 @@ export type Scalars = {
   Float: { input: number; output: number; }
 };
 
+export type ActiveUsersPayload = {
+  __typename?: 'ActiveUsersPayload';
+  count: Scalars['Int']['output'];
+  timestamp: Scalars['String']['output'];
+};
+
 export type Alliance = {
   __typename?: 'Alliance';
   corporationCount: Scalars['Int']['output'];
@@ -447,6 +453,7 @@ export type Mutation = {
   createUser: CreateUserPayload;
   /** Eve Online SSO login için authorization URL'i oluşturur */
   login: AuthUrl;
+  refreshCharacter: RefreshCharacterResult;
   /** Refresh token kullanarak yeni access token alır */
   refreshToken: AuthPayload;
   startAllianceSync: StartAllianceSyncPayload;
@@ -493,6 +500,11 @@ export type MutationClearKillmailCacheArgs = {
 
 export type MutationCreateUserArgs = {
   input: CreateUserInput;
+};
+
+
+export type MutationRefreshCharacterArgs = {
+  characterId: Scalars['Int']['input'];
 };
 
 
@@ -566,6 +578,7 @@ export type Position = {
 export type Query = {
   __typename?: 'Query';
   _empty?: Maybe<Scalars['String']['output']>;
+  activeUsersCount: Scalars['Int']['output'];
   alliance?: Maybe<Alliance>;
   /** Fetches killmails for a specific alliance */
   allianceKillmails: KillmailConnection;
@@ -796,6 +809,14 @@ export type Race = {
   name: Scalars['String']['output'];
 };
 
+export type RefreshCharacterResult = {
+  __typename?: 'RefreshCharacterResult';
+  characterId: Scalars['Int']['output'];
+  message: Scalars['String']['output'];
+  queued: Scalars['Boolean']['output'];
+  success: Scalars['Boolean']['output'];
+};
+
 export type Region = {
   __typename?: 'Region';
   constellationCount: Scalars['Int']['output'];
@@ -975,6 +996,7 @@ export type StartTypeSyncPayload = {
 export type Subscription = {
   __typename?: 'Subscription';
   _empty?: Maybe<Scalars['String']['output']>;
+  activeUsersUpdates: ActiveUsersPayload;
   /**
    * Subscribe to new killmails as they are added to the database
    * Emits a new event whenever a killmail is saved
@@ -1185,6 +1207,16 @@ export type AllianceKillmailsQueryVariables = Exact<{
 
 
 export type AllianceKillmailsQuery = { __typename?: 'Query', allianceKillmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', name: string }, victim: { __typename?: 'Victim', character?: { __typename?: 'Character', name: string } | null, shipType: { __typename?: 'Type', name: string } } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, totalCount: number } } };
+
+export type ActiveUsersUpdatesSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ActiveUsersUpdatesSubscription = { __typename?: 'Subscription', activeUsersUpdates: { __typename?: 'ActiveUsersPayload', count: number, timestamp: string } };
+
+export type ActiveUsersCountQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ActiveUsersCountQuery = { __typename?: 'Query', activeUsersCount: number };
 
 export type RefreshTokenMutationVariables = Exact<{
   refreshToken: Scalars['String']['input'];
@@ -2245,6 +2277,76 @@ export type AllianceKillmailsQueryHookResult = ReturnType<typeof useAllianceKill
 export type AllianceKillmailsLazyQueryHookResult = ReturnType<typeof useAllianceKillmailsLazyQuery>;
 export type AllianceKillmailsSuspenseQueryHookResult = ReturnType<typeof useAllianceKillmailsSuspenseQuery>;
 export type AllianceKillmailsQueryResult = Apollo.QueryResult<AllianceKillmailsQuery, AllianceKillmailsQueryVariables>;
+export const ActiveUsersUpdatesDocument = gql`
+    subscription ActiveUsersUpdates {
+  activeUsersUpdates {
+    count
+    timestamp
+  }
+}
+    `;
+
+/**
+ * __useActiveUsersUpdatesSubscription__
+ *
+ * To run a query within a React component, call `useActiveUsersUpdatesSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useActiveUsersUpdatesSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useActiveUsersUpdatesSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useActiveUsersUpdatesSubscription(baseOptions?: Apollo.SubscriptionHookOptions<ActiveUsersUpdatesSubscription, ActiveUsersUpdatesSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<ActiveUsersUpdatesSubscription, ActiveUsersUpdatesSubscriptionVariables>(ActiveUsersUpdatesDocument, options);
+      }
+export type ActiveUsersUpdatesSubscriptionHookResult = ReturnType<typeof useActiveUsersUpdatesSubscription>;
+export type ActiveUsersUpdatesSubscriptionResult = Apollo.SubscriptionResult<ActiveUsersUpdatesSubscription>;
+export const ActiveUsersCountDocument = gql`
+    query ActiveUsersCount {
+  activeUsersCount
+}
+    `;
+
+/**
+ * __useActiveUsersCountQuery__
+ *
+ * To run a query within a React component, call `useActiveUsersCountQuery` and pass it any options that fit your needs.
+ * When your component renders, `useActiveUsersCountQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useActiveUsersCountQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useActiveUsersCountQuery(baseOptions?: Apollo.QueryHookOptions<ActiveUsersCountQuery, ActiveUsersCountQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ActiveUsersCountQuery, ActiveUsersCountQueryVariables>(ActiveUsersCountDocument, options);
+      }
+export function useActiveUsersCountLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ActiveUsersCountQuery, ActiveUsersCountQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ActiveUsersCountQuery, ActiveUsersCountQueryVariables>(ActiveUsersCountDocument, options);
+        }
+// @ts-ignore
+export function useActiveUsersCountSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ActiveUsersCountQuery, ActiveUsersCountQueryVariables>): Apollo.UseSuspenseQueryResult<ActiveUsersCountQuery, ActiveUsersCountQueryVariables>;
+export function useActiveUsersCountSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ActiveUsersCountQuery, ActiveUsersCountQueryVariables>): Apollo.UseSuspenseQueryResult<ActiveUsersCountQuery | undefined, ActiveUsersCountQueryVariables>;
+export function useActiveUsersCountSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ActiveUsersCountQuery, ActiveUsersCountQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ActiveUsersCountQuery, ActiveUsersCountQueryVariables>(ActiveUsersCountDocument, options);
+        }
+export type ActiveUsersCountQueryHookResult = ReturnType<typeof useActiveUsersCountQuery>;
+export type ActiveUsersCountLazyQueryHookResult = ReturnType<typeof useActiveUsersCountLazyQuery>;
+export type ActiveUsersCountSuspenseQueryHookResult = ReturnType<typeof useActiveUsersCountSuspenseQuery>;
+export type ActiveUsersCountQueryResult = Apollo.QueryResult<ActiveUsersCountQuery, ActiveUsersCountQueryVariables>;
 export const RefreshTokenDocument = gql`
     mutation RefreshToken($refreshToken: String!) {
   refreshToken(refreshToken: $refreshToken) {

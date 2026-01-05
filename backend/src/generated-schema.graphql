@@ -1,3 +1,8 @@
+type ActiveUsersPayload {
+  count: Int!
+  timestamp: String!
+}
+
 type Alliance {
   corporationCount: Int!
   corporations: [Corporation!]
@@ -432,6 +437,7 @@ type Position {
 
 type Query {
   _empty: String
+  activeUsersCount: Int!
   alliance(id: Int!): Alliance
 
   """Fetches killmails for a specific alliance"""
@@ -699,6 +705,7 @@ type StartTypeSyncPayload {
 
 type Subscription {
   _empty: String
+  activeUsersUpdates: ActiveUsersPayload!
 
   """
   Subscribe to new killmails as they are added to the database
