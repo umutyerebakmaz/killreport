@@ -6,7 +6,7 @@ type Corporation {
   date_founded: String
   creator: Character!
   alliance: Alliance
-  ceo: Character!
+  ceo: Character
   faction_id: Int
   tax_rate: Float!
   url: String
