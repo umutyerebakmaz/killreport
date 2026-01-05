@@ -94,6 +94,7 @@ export default function CorporationDetailPage({
                   <Tooltip content="Alliance" position="top">
                     <Link
                       href={`/alliances/${corporation.alliance.id}`}
+                      prefetch={false}
                       className="inline-flex items-center gap-2 text-base font-bold text-yellow-400 hover:text-yellow-300"
                     >
                       {corporation.alliance.name}
@@ -157,6 +158,7 @@ export default function CorporationDetailPage({
                     {corporation.ceo ? (
                       <Link
                         href={`/characters/${corporation.ceo.id}`}
+                        prefetch={false}
                         className="text-cyan-400 hover:text-cyan-300"
                       >
                         {corporation.ceo.name}
@@ -172,6 +174,7 @@ export default function CorporationDetailPage({
                     {corporation.creator ? (
                       <Link
                         href={`/characters/${corporation.creator.id}`}
+                        prefetch={false}
                         className="text-cyan-400 hover:text-cyan-300"
                       >
                         {corporation.creator.name}
@@ -205,6 +208,7 @@ export default function CorporationDetailPage({
                     {corporation.alliance ? (
                       <Link
                         href={`/alliances/${corporation.alliance.id}`}
+                        prefetch={false}
                         className="text-cyan-400 hover:text-cyan-300"
                       >
                         [{corporation.alliance.ticker}]{" "}

@@ -18,6 +18,7 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
       <Link
         href="/"
         className="flex items-center hover:text-cyan-400 transition-colors"
+        prefetch={false}
       >
         <HomeIcon className="w-4 h-4" />
       </Link>
@@ -28,6 +29,7 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
             <Link
               href={item.href}
               className="hover:text-cyan-400 transition-colors"
+              prefetch={false}
             >
               {item.label}
             </Link>
