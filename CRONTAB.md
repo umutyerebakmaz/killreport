@@ -56,24 +56,29 @@
 ## 🚀 Kurulum
 
 ### 1. Droplet'a SSH ile Bağlan
+
 ```bash
 ssh root@your-droplet-ip
 ```
 
 ### 2. Crontab'ı Düzenle
+
 ```bash
 crontab -e
 ```
 
 ### 3. Cron Job'ları Ekle
+
 Yukarıdaki job'ları kopyala yapıştır ve kaydet (`:wq` veya `Ctrl+X` > `Y` > `Enter`)
 
 ### 4. Crontab'ı Kontrol Et
+
 ```bash
 crontab -l
 ```
 
 ### 5. Cron Servisinin Çalıştığını Doğrula
+
 ```bash
 systemctl status cron
 # veya
@@ -114,6 +119,7 @@ service cron status
 ## 🔍 Monitoring ve Troubleshooting
 
 ### Cron Log'larını Kontrol Et
+
 ```bash
 # System cron logs
 tail -f /var/log/cron
@@ -126,18 +132,21 @@ tail -f /var/www/killreport/logs/queue-corporations.log
 ```
 
 ### Cron Job'ı Manuel Test Et
+
 ```bash
 # Komutun tam halini terminalden çalıştır
 cd /var/www/killreport/backend && yarn queue:characters
 ```
 
 ### Cron Job Çalışıyor mu Kontrol Et
+
 ```bash
 # Son çalışan cron job'ları gör
 grep CRON /var/log/syslog | tail -20
 ```
 
 ### Environment Variables Sorunu
+
 Cron job'lar minimal environment ile çalışır. Eğer komut terminalden çalışıp cron'dan çalışmıyorsa:
 
 ```bash
@@ -151,6 +160,7 @@ NODE_ENV=production
 ```
 
 ### Yarn Command Bulunamıyor Hatası
+
 ```bash
 # Yarn'ın tam path'ini bul
 which yarn
@@ -163,6 +173,7 @@ which yarn
 ## 🛡️ Best Practices
 
 ### 1. Log Dosyalarını Her Zaman Oluştur
+
 ```bash
 # STDOUT ve STDERR'ı aynı dosyaya yönlendir
 >> /path/to/logfile.log 2>&1
@@ -175,6 +186,7 @@ which yarn
 ```
 
 ### 2. Absolute Path Kullan
+
 ```bash
 # ✅ Doğru
 cd /var/www/killreport/backend && yarn queue:characters
@@ -184,12 +196,14 @@ cd ~/killreport/backend && yarn queue:characters
 ```
 
 ### 3. Lock File Kullan (Concurrent Execution Önleme)
+
 ```bash
 # Aynı script'in aynı anda birden fazla çalışmasını önle
 10 16 * * 1 flock -n /tmp/queue-characters.lock -c 'cd /var/www/killreport/backend && yarn queue:characters' >> /var/www/killreport/logs/queue-characters.log 2>&1
 ```
 
 ### 4. Email Notification (Opsiyonel)
+
 ```bash
 # Crontab başına email adresi ekle
 MAILTO=admin@yourdomain.com
@@ -199,6 +213,7 @@ MAILTO=admin@yourdomain.com
 ```
 
 ### 5. Timeout Kullan
+
 ```bash
 # 30 dakika sonra timeout olsun
 10 16 * * 1 timeout 30m bash -c 'cd /var/www/killreport/backend && yarn queue:characters' >> /var/www/killreport/logs/queue-characters.log 2>&1
@@ -207,12 +222,14 @@ MAILTO=admin@yourdomain.com
 ## 📈 Performans Considerations
 
 ### Character Queue Job
+
 - **Süre:** ~2-5 dakika (93K character)
 - **Memory:** ~100MB
 - **Önerilen Sıklık:** Haftada 1-2 kez
 - **Zamanı:** Düşük trafik saati (gece/hafta sonu)
 
 ### Corporation Queue Job
+
 - **Süre:** ~1-3 dakika (1.4K corporation)
 - **Memory:** ~80MB
 - **Önerilen Sıklık:** Haftada 1 kez
@@ -221,6 +238,7 @@ MAILTO=admin@yourdomain.com
 ## 🔄 Güncelleme ve Maintenance
 
 ### Crontab'ı Yedekle
+
 ```bash
 # Yedek al
 crontab -l > ~/crontab-backup-$(date +%Y%m%d).txt
@@ -230,11 +248,13 @@ crontab ~/crontab-backup-20260105.txt
 ```
 
 ### Tüm Cron Job'ları Sil
+
 ```bash
 crontab -r
 ```
 
 ### Belirli Kullanıcının Crontab'ını Düzenle
+
 ```bash
 # Root kullanıcısı için
 sudo crontab -u root -e
@@ -246,12 +266,14 @@ sudo crontab -u username -e
 ## 📝 Job Açıklamaları
 
 ### `yarn queue:characters`
+
 - **Amaç:** Database'deki tüm character'ları ESI güncelleme kuyruğuna ekler
 - **Etki:** worker:info:characters işleri alıp ESI'dan güncel bilgileri çeker
 - **Beklenen Sonuç:** 93K+ character kuyruğa eklenir
 - **İşlem Süresi:** ~2 dakika (queue ekleme), ~4-8 saat (worker processing)
 
 ### `yarn queue:character-corporations`
+
 - **Amaç:** Character'larda eksik olan corporation'ları tespit edip kuyruğa ekler
 - **Etki:** worker:info:corporations işleri alıp ESI'dan corporation bilgilerini çeker
 - **Beklenen Sonuç:** ~1.4K eksik corporation bulunup kuyruğa eklenir
@@ -260,6 +282,7 @@ sudo crontab -u username -e
 ## 🎯 Sonuç
 
 **Minimal Setup (Başlangıç):**
+
 ```bash
 # Sadece haftalık sync
 10 16 * * 1 cd /var/www/killreport/backend && yarn queue:characters >> /var/www/killreport/logs/queue-characters.log 2>&1
@@ -267,6 +290,7 @@ sudo crontab -u username -e
 ```
 
 **Üretim Setup (Tam Özellikli):**
+
 ```bash
 # Environment
 SHELL=/bin/bash
