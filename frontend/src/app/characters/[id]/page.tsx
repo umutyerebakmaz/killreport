@@ -122,6 +122,7 @@ export default function CharacterDetailPage({
                 <Tooltip content="Corporation" position="top">
                   <Link
                     href={`/corporations/${character.corporation.id}`}
+                    prefetch={false}
                     className="inline-flex items-center gap-2 hover:text-gray-300"
                   >
                     <span className="text-base font-semibold">
@@ -138,6 +139,7 @@ export default function CharacterDetailPage({
                 <Tooltip content="Alliance" position="top">
                   <Link
                     href={`/alliances/${character.alliance.id}`}
+                    prefetch={false}
                     className="inline-flex items-center gap-2 text-yellow-400 hover:text-yellow-300"
                   >
                     <span className="text-base font-bold">
@@ -186,6 +188,7 @@ export default function CharacterDetailPage({
                     {character.corporation ? (
                       <Link
                         href={`/corporations/${character.corporation.id}`}
+                        prefetch={false}
                         className="text-cyan-400 hover:text-cyan-300"
                       >
                         {character.corporation.name}
@@ -201,6 +204,7 @@ export default function CharacterDetailPage({
                     {character.alliance ? (
                       <Link
                         href={`/alliances/${character.alliance.id}`}
+                        prefetch={false}
                         className="text-cyan-400 hover:text-cyan-300"
                       >
                         {character.alliance.name}
