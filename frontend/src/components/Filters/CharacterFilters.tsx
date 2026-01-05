@@ -48,7 +48,7 @@ export default function CharacterFilters({
     {
       variables: {
         search: debouncedSearch,
-        limit: 10,
+        limit: 20,
       },
       skip: debouncedSearch.length < 3, // Only search after 3 characters
     }
