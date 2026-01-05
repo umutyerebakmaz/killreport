@@ -9,6 +9,9 @@ interface QueueInfo {
   messageCount: number;
   consumerCount: number;
   active: boolean;
+  workerRunning: boolean;
+  workerPid?: number | null;
+  workerName?: string | null;
 }
 
 // Format queue name for display
@@ -335,7 +338,10 @@ function QueueSection({ title, subtitle, queues }: any) {
           <thead className="bg-gray-900/50">
             <tr>
               <th className="px-4 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase">
-                Status
+                Queue Status
+              </th>
+              <th className="px-4 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase">
+                Worker Process
               </th>
               <th className="px-4 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase">
                 Queue Name
@@ -344,7 +350,10 @@ function QueueSection({ title, subtitle, queues }: any) {
                 Pending Jobs
               </th>
               <th className="px-4 py-3 text-xs font-semibold tracking-wider text-center text-gray-400 uppercase">
-                Active Workers
+                Consumers
+              </th>
+              <th className="px-4 py-3 text-xs font-semibold tracking-wider text-center text-gray-400 uppercase">
+                PID
               </th>
             </tr>
           </thead>
@@ -371,6 +380,27 @@ function QueueSection({ title, subtitle, queues }: any) {
                   </div>
                 </td>
                 <td className="px-4 py-4">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-3 h-3 rounded-full ${
+                        queue.workerRunning ? "bg-blue-500" : "bg-gray-600"
+                      }`}
+                    ></div>
+                    <span
+                      className={`text-sm font-medium ${
+                        queue.workerRunning ? "text-blue-400" : "text-gray-500"
+                      }`}
+                    >
+                      {queue.workerRunning ? "Running" : "Stopped"}
+                    </span>
+                  </div>
+                  {queue.workerName && (
+                    <div className="mt-0.5 text-xs font-mono text-gray-500">
+                      {queue.workerName}
+                    </div>
+                  )}
+                </td>
+                <td className="px-4 py-4">
                   <div className="text-sm font-medium text-gray-300">
                     {formatQueueName(queue.name)}
                   </div>
@@ -393,12 +423,21 @@ function QueueSection({ title, subtitle, queues }: any) {
                   <span
                     className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
                       queue.consumerCount > 0
-                        ? "bg-blue-500/20 text-blue-400"
+                        ? "bg-green-500/20 text-green-400"
                         : "bg-gray-800 text-gray-400"
                     }`}
                   >
                     {queue.consumerCount}
                   </span>
+                </td>
+                <td className="px-4 py-4 text-center">
+                  {queue.workerPid ? (
+                    <span className="inline-flex items-center px-3 py-1 font-mono text-sm font-semibold text-blue-400 rounded-full bg-blue-500/20">
+                      {queue.workerPid}
+                    </span>
+                  ) : (
+                    <span className="text-sm text-gray-500">-</span>
+                  )}
                 </td>
               </tr>
             ))}

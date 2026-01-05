@@ -7,6 +7,7 @@ interface TooltipProps {
   content: ReactNode;
   children: ReactNode;
   position?: TooltipPosition;
+  wrapText?: boolean;
 }
 
 const positionClasses: Record<TooltipPosition, string> = {
@@ -20,6 +21,7 @@ export default function Tooltip({
   content,
   children,
   position = "top",
+  wrapText = false,
 }: TooltipProps) {
   const [show, setShow] = useState(false);
   const [animating, setAnimating] = useState(false);
@@ -44,9 +46,11 @@ export default function Tooltip({
         <span
           className={`absolute z-10 ${
             positionClasses[position]
-          } px-2 py-1 text-sm text-gray-300 bg-black outline-1 -outline-offset-1 outline-white/20 shadow-lg whitespace-nowrap tooltip-anim${
-            show ? " tooltip-in" : " tooltip-out"
-          }`}
+          } px-3 py-2 text-sm text-gray-300 bg-black outline-1 -outline-offset-1 outline-white/20 shadow-lg ${
+            wrapText
+              ? "whitespace-normal min-w-[280px] max-w-[320px]"
+              : "whitespace-nowrap"
+          } tooltip-anim${show ? " tooltip-in" : " tooltip-out"}`}
         >
           {content}
         </span>
