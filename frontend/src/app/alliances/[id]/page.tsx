@@ -124,6 +124,7 @@ export default function AllianceDetailPage({
                     {alliance.executor ? (
                       <Link
                         href={`/corporations/${alliance.executor.id}`}
+                        prefetch={false}
                         className="text-cyan-400 hover:text-cyan-300"
                       >
                         {alliance.executor.name}
@@ -143,6 +144,7 @@ export default function AllianceDetailPage({
                     {alliance.createdByCorporation ? (
                       <Link
                         href={`/corporations/${alliance.createdByCorporation.id}`}
+                        prefetch={false}
                         className="text-cyan-400 hover:text-cyan-300"
                       >
                         {alliance.createdByCorporation.name}
@@ -158,6 +160,7 @@ export default function AllianceDetailPage({
                     {alliance.createdBy ? (
                       <Link
                         href={`/characters/${alliance.createdBy.id}`}
+                        prefetch={false}
                         className="text-cyan-400 hover:text-cyan-300"
                       >
                         {alliance.createdBy.name}
@@ -218,6 +221,7 @@ export default function AllianceDetailPage({
                               />
                               <Link
                                 href={`/corporations/${corp.id}`}
+                                prefetch={false}
                                 className="text-cyan-400 hover:text-cyan-300"
                               >
                                 {corp.name}
@@ -234,6 +238,7 @@ export default function AllianceDetailPage({
                             {corp.ceo ? (
                               <Link
                                 href={`/characters/${corp.ceo.id}`}
+                                prefetch={false}
                                 className="text-cyan-400 hover:text-cyan-300"
                               >
                                 {corp.ceo.name}

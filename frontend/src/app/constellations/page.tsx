@@ -179,6 +179,7 @@ function ConstellationsContent() {
                       <MapIcon className="w-5 h-5 text-purple-500" />
                       <Link
                         href={`/constellations/${constellation.id}`}
+                        prefetch={false}
                         className="font-medium text-purple-500 transition-colors hover:text-purple-400"
                       >
                         {constellation.name}
@@ -189,6 +190,7 @@ function ConstellationsContent() {
                     {constellation.region ? (
                       <Link
                         href={`/regions/${constellation.region.id}`}
+                        prefetch={false}
                         className="flex items-center gap-2 transition-colors text-cyan-500 hover:text-cyan-400"
                       >
                         <GlobeAltIcon className="w-4 h-4 text-cyan-500" />
