@@ -336,6 +336,7 @@ function KillmailsContent() {
                                     <Link
                                       href={`/killmails/${km.id}`}
                                       className="relative block shrink-0"
+                                      prefetch={false}
                                     >
                                       <img
                                         src={`https://images.evetech.net/types/${km.victim.shipType?.id}/render?size=128`}
@@ -392,6 +393,7 @@ function KillmailsContent() {
                                         <Link
                                           href={`/characters/${km.victim.character.id}`}
                                           className="transition-colors hover:text-red-400"
+                                          prefetch={false}
                                         >
                                           {km.victim.character.name}
                                         </Link>
@@ -409,6 +411,7 @@ function KillmailsContent() {
                                         <Link
                                           href={`/corporations/${km.victim.corporation.id}`}
                                           className="transition-colors hover:text-cyan-400"
+                                          prefetch={false}
                                         >
                                           {km.victim.corporation.name}
                                         </Link>
@@ -424,6 +427,7 @@ function KillmailsContent() {
                                         <Link
                                           href={`/alliances/${km.victim.alliance.id}`}
                                           className="transition-colors hover:text-cyan-400"
+                                          prefetch={false}
                                         >
                                           {km.victim.alliance.name}
                                         </Link>
@@ -443,6 +447,7 @@ function KillmailsContent() {
                                     <Link
                                       href={`/solar-systems/${km.solarSystem?.id}`}
                                       className="font-medium text-orange-400 transition-colors hover:text-orange-500"
+                                      prefetch={false}
                                     >
                                       {km.solarSystem?.name || "Unknown"}
                                     </Link>
@@ -466,6 +471,7 @@ function KillmailsContent() {
                                       <Link
                                         href={`/constellations/${km.solarSystem.constellation?.id}`}
                                         className="transition-colors hover:text-purple-400"
+                                        prefetch={false}
                                       >
                                         {km.solarSystem.constellation.name}
                                       </Link>
@@ -481,6 +487,7 @@ function KillmailsContent() {
                                       <Link
                                         href={`/regions/${km.solarSystem.constellation.region.id}`}
                                         className="transition-colors hover:text-cyan-300"
+                                        prefetch={false}
                                       >
                                         {
                                           km.solarSystem.constellation.region
@@ -504,6 +511,7 @@ function KillmailsContent() {
                                         <Link
                                           href={`/characters/${finalBlowAttacker.character.id}`}
                                           className="transition-colors hover:text-green-300"
+                                          prefetch={false}
                                         >
                                           {finalBlowAttacker.character.name}
                                         </Link>

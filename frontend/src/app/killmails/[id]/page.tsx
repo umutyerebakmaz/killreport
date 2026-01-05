@@ -76,6 +76,7 @@ export default function KillmailDetailPage({
                     <div className="text-sm text-gray-500">Pilot</div>
                     <Link
                       href={`/characters/${victim.character?.id}`}
+                      prefetch={false}
                       className="text-lg font-medium text-white hover:text-blue-400"
                     >
                       {victim.character.name}
@@ -88,6 +89,7 @@ export default function KillmailDetailPage({
                     <div className="text-sm text-gray-500">Corporation</div>
                     <Link
                       href={`/corporations/${victim.corporation?.id}`}
+                      prefetch={false}
                       className="text-white hover:text-blue-400"
                     >
                       {victim.corporation.name}
@@ -105,6 +107,7 @@ export default function KillmailDetailPage({
                     <div className="text-sm text-gray-500">Alliance</div>
                     <Link
                       href={`/alliances/${victim.alliance?.id}`}
+                      prefetch={false}
                       className="text-white hover:text-blue-400"
                     >
                       {victim.alliance.name}
@@ -151,6 +154,7 @@ export default function KillmailDetailPage({
                     <span className="text-sm text-gray-500">System: </span>
                     <Link
                       href={`/solar-systems/${km.solarSystem?.id}`}
+                      prefetch={false}
                       className="text-white hover:text-blue-400"
                     >
                       {km.solarSystem.name}

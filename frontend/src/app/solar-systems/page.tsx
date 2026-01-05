@@ -209,6 +209,7 @@ function SolarSystemsContent() {
                       <MapPinIcon className="w-5 h-5 text-orange-500 shrink-0" />
                       <Link
                         href={`/solar-systems/${system.id}`}
+                        prefetch={false}
                         className="font-medium text-orange-400 transition-colors hover:text-orange-300"
                       >
                         {system.name}
@@ -219,6 +220,7 @@ function SolarSystemsContent() {
                     {system.constellation ? (
                       <Link
                         href={`/constellations/${system.constellation.id}`}
+                        prefetch={false}
                         className="flex items-center gap-2 text-gray-300 transition-colors hover:text-cyan-400"
                       >
                         <MapIcon className="w-4 h-4 text-purple-500" />
@@ -232,6 +234,7 @@ function SolarSystemsContent() {
                     {system.constellation?.region ? (
                       <Link
                         href={`/regions/${system.constellation.region.id}`}
+                        prefetch={false}
                         className="flex items-center gap-2 text-gray-300 transition-colors hover:text-cyan-400"
                       >
                         <GlobeAltIcon className="w-4 h-4 text-cyan-500" />
