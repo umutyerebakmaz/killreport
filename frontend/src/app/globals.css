@@ -76,6 +76,23 @@ body {
   @apply bg-cyan-600;
 }
 
+/* Custom scrollbar for character dropdown */
+.character-dropdown-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.character-dropdown-scroll::-webkit-scrollbar-track {
+  @apply bg-gray-900;
+}
+
+.character-dropdown-scroll::-webkit-scrollbar-thumb {
+  @apply bg-gray-700 rounded-full hover:bg-gray-600;
+}
+
+.character-dropdown-scroll::-webkit-scrollbar-thumb:hover {
+  @apply bg-cyan-600;
+}
+
 .select-option-container .chevron-down-icon {
   @apply absolute w-5 h-5 text-gray-400 transition-all duration-200 pointer-events-none right-3 top-2.5;
 }
