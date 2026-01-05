@@ -76,6 +76,7 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
           <Link
             href={`/corporations/${corporation.id}`}
             className="corporation-name"
+            prefetch={false}
           >
             {corporation.name}
           </Link>
@@ -93,6 +94,7 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
                   <Link
                     href={`/alliances/${corporation.alliance.id}`}
                     className="flex items-center gap-2 hover:text-cyan-400"
+                    prefetch={false}
                   >
                     <span className="text-base text-yellow-400 line-clamp-1">
                       {corporation.alliance.name}

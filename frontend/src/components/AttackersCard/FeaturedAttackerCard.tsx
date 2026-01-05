@@ -74,6 +74,7 @@ export default function FeaturedAttackerCard({
         <Link
           href={`/characters/${attacker.character?.id}`}
           className="block font-medium text-gray-400 hover:text-blue-400"
+          prefetch={false}
         >
           {attacker?.character?.name}
         </Link>

@@ -179,6 +179,7 @@ function RegionsContent() {
                       <GlobeAltIcon className="w-5 h-5 text-cyan-500" />
                       <Link
                         href={`/regions/${region.id}`}
+                        prefetch={false}
                         className="font-medium transition-colors text-cyan-400 hover:text-cyan-300"
                       >
                         {region.name}
