@@ -1,5 +1,6 @@
 import { Resolvers } from '../generated-types';
 import { allianceFieldResolvers, allianceMutations, allianceQueries } from './alliance.resolver';
+import { analyticsResolvers } from './analytics.resolver';
 import { authMutations, authQueries } from './auth.resolver';
 import { bloodlineFieldResolvers, bloodlineQueries } from './bloodline.resolver';
 import { cacheMutations, cacheQueries } from './cache.resolver';
@@ -42,6 +43,7 @@ export const resolvers: Resolvers = {
         ...solarSystemQueries,
         ...cacheQueries,
         ...workerResolvers.Query,
+        ...analyticsResolvers.Query,
     },
     Mutation: {
         ...authMutations,
@@ -60,6 +62,7 @@ export const resolvers: Resolvers = {
     Subscription: {
         ...workerResolvers.Subscription,
         ...killmailSubscriptions,
+        ...analyticsResolvers.Subscription,
     },
     Character: characterFieldResolvers,
     Alliance: allianceFieldResolvers,
