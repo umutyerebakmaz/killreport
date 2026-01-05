@@ -1,0 +1,14 @@
+type Query {
+  # Get current active users count
+  activeUsersCount: Int!
+}
+
+extend type Subscription {
+  # Subscribe to real-time active users count updates
+  activeUsersUpdates: ActiveUsersPayload!
+}
+
+type ActiveUsersPayload {
+  count: Int!
+  timestamp: String!
+}
