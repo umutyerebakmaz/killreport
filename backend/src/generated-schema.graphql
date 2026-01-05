@@ -1,10 +1,15 @@
+type ActiveUsersPayload {
+  count: Int!
+  timestamp: String!
+}
+
 type Alliance {
   corporationCount: Int!
   corporations: [Corporation!]
-  createdBy: Character!
-  createdByCorporation: Corporation!
+  createdBy: Character
+  createdByCorporation: Corporation
   date_founded: String!
-  executor: Corporation!
+  executor: Corporation
   faction_id: Int
   id: Int!
   memberCount: Int!
@@ -150,14 +155,14 @@ input CategoryFilter {
 type Character {
   alliance: Alliance
   birthday: String!
-  bloodline: Bloodline!
-  corporation: Corporation!
+  bloodline: Bloodline
+  corporation: Corporation
   description: String
   faction_id: Int
   gender: String!
   id: Int!
   name: String!
-  race: Race!
+  race: Race
   security_status: Float
   title: String
 }
@@ -225,8 +230,8 @@ enum ConstellationOrderBy {
 
 type Corporation {
   alliance: Alliance
-  ceo: Character!
-  creator: Character!
+  ceo: Character
+  creator: Character
   date_founded: String
   faction_id: Int
   id: Int!
@@ -394,6 +399,7 @@ type Mutation {
 
   """Eve Online SSO login için authorization URL'i oluşturur"""
   login: AuthUrl!
+  refreshCharacter(characterId: Int!): RefreshCharacterResult!
 
   """Refresh token kullanarak yeni access token alır"""
   refreshToken(refreshToken: String!): AuthPayload!
@@ -431,6 +437,7 @@ type Position {
 
 type Query {
   _empty: String
+  activeUsersCount: Int!
   alliance(id: Int!): Alliance
 
   """Fetches killmails for a specific alliance"""
@@ -497,10 +504,10 @@ type Query {
 }
 
 type QueueStatus {
-  """Is the queue currently active"""
+  """Is there at least one active consumer"""
   active: Boolean!
 
-  """Number of messages currently being processed"""
+  """Number of active consumers processing from this queue"""
   consumerCount: Int!
 
   """Number of messages waiting to be processed"""
@@ -508,12 +515,28 @@ type QueueStatus {
 
   """Name of the queue"""
   name: String!
+
+  """Worker script name (e.g., worker:info:corporations)"""
+  workerName: String
+
+  """Process ID of the running worker"""
+  workerPid: Int
+
+  """Is the worker process running (detected via ps aux)"""
+  workerRunning: Boolean!
 }
 
 type Race {
   description: String
   id: Int!
   name: String!
+}
+
+type RefreshCharacterResult {
+  characterId: Int!
+  message: String!
+  queued: Boolean!
+  success: Boolean!
 }
 
 type Region {
@@ -682,6 +705,7 @@ type StartTypeSyncPayload {
 
 type Subscription {
   _empty: String
+  activeUsersUpdates: ActiveUsersPayload!
 
   """
   Subscribe to new killmails as they are added to the database

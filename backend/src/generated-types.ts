@@ -16,14 +16,20 @@ export type Scalars = {
   Float: { input: number; output: number; }
 };
 
+export type ActiveUsersPayload = {
+  __typename?: 'ActiveUsersPayload';
+  count: Scalars['Int']['output'];
+  timestamp: Scalars['String']['output'];
+};
+
 export type Alliance = {
   __typename?: 'Alliance';
   corporationCount: Scalars['Int']['output'];
   corporations?: Maybe<Array<Corporation>>;
-  createdBy: Character;
-  createdByCorporation: Corporation;
+  createdBy?: Maybe<Character>;
+  createdByCorporation?: Maybe<Corporation>;
   date_founded: Scalars['String']['output'];
-  executor: Corporation;
+  executor?: Maybe<Corporation>;
   faction_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
   memberCount: Scalars['Int']['output'];
@@ -184,14 +190,14 @@ export type Character = {
   __typename?: 'Character';
   alliance?: Maybe<Alliance>;
   birthday: Scalars['String']['output'];
-  bloodline: Bloodline;
-  corporation: Corporation;
+  bloodline?: Maybe<Bloodline>;
+  corporation?: Maybe<Corporation>;
   description?: Maybe<Scalars['String']['output']>;
   faction_id?: Maybe<Scalars['Int']['output']>;
   gender: Scalars['String']['output'];
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
-  race: Race;
+  race?: Maybe<Race>;
   security_status?: Maybe<Scalars['Float']['output']>;
   title?: Maybe<Scalars['String']['output']>;
 };
@@ -265,8 +271,8 @@ export enum ConstellationOrderBy {
 export type Corporation = {
   __typename?: 'Corporation';
   alliance?: Maybe<Alliance>;
-  ceo: Character;
-  creator: Character;
+  ceo?: Maybe<Character>;
+  creator?: Maybe<Character>;
   date_founded?: Maybe<Scalars['String']['output']>;
   faction_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
@@ -446,6 +452,7 @@ export type Mutation = {
   createUser: CreateUserPayload;
   /** Eve Online SSO login için authorization URL'i oluşturur */
   login: AuthUrl;
+  refreshCharacter: RefreshCharacterResult;
   /** Refresh token kullanarak yeni access token alır */
   refreshToken: AuthPayload;
   startAllianceSync: StartAllianceSyncPayload;
@@ -492,6 +499,11 @@ export type MutationClearKillmailCacheArgs = {
 
 export type MutationCreateUserArgs = {
   input: CreateUserInput;
+};
+
+
+export type MutationRefreshCharacterArgs = {
+  characterId: Scalars['Int']['input'];
 };
 
 
@@ -565,6 +577,7 @@ export type Position = {
 export type Query = {
   __typename?: 'Query';
   _empty?: Maybe<Scalars['String']['output']>;
+  activeUsersCount: Scalars['Int']['output'];
   alliance?: Maybe<Alliance>;
   /** Fetches killmails for a specific alliance */
   allianceKillmails: KillmailConnection;
@@ -772,14 +785,20 @@ export type QueryUserArgs = {
 
 export type QueueStatus = {
   __typename?: 'QueueStatus';
-  /** Is the queue currently active */
+  /** Is there at least one active consumer */
   active: Scalars['Boolean']['output'];
-  /** Number of messages currently being processed */
+  /** Number of active consumers processing from this queue */
   consumerCount: Scalars['Int']['output'];
   /** Number of messages waiting to be processed */
   messageCount: Scalars['Int']['output'];
   /** Name of the queue */
   name: Scalars['String']['output'];
+  /** Worker script name (e.g., worker:info:corporations) */
+  workerName?: Maybe<Scalars['String']['output']>;
+  /** Process ID of the running worker */
+  workerPid?: Maybe<Scalars['Int']['output']>;
+  /** Is the worker process running (detected via ps aux) */
+  workerRunning: Scalars['Boolean']['output'];
 };
 
 export type Race = {
@@ -787,6 +806,14 @@ export type Race = {
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
+};
+
+export type RefreshCharacterResult = {
+  __typename?: 'RefreshCharacterResult';
+  characterId: Scalars['Int']['output'];
+  message: Scalars['String']['output'];
+  queued: Scalars['Boolean']['output'];
+  success: Scalars['Boolean']['output'];
 };
 
 export type Region = {
@@ -968,6 +995,7 @@ export type StartTypeSyncPayload = {
 export type Subscription = {
   __typename?: 'Subscription';
   _empty?: Maybe<Scalars['String']['output']>;
+  activeUsersUpdates: ActiveUsersPayload;
   /**
    * Subscribe to new killmails as they are added to the database
    * Emits a new event whenever a killmail is saved
@@ -1144,6 +1172,7 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
+  ActiveUsersPayload: ResolverTypeWrapper<ActiveUsersPayload>;
   Alliance: ResolverTypeWrapper<Alliance>;
   AllianceConnection: ResolverTypeWrapper<AllianceConnection>;
   AllianceEdge: ResolverTypeWrapper<AllianceEdge>;
@@ -1201,6 +1230,7 @@ export type ResolversTypes = {
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   QueueStatus: ResolverTypeWrapper<QueueStatus>;
   Race: ResolverTypeWrapper<Race>;
+  RefreshCharacterResult: ResolverTypeWrapper<RefreshCharacterResult>;
   Region: ResolverTypeWrapper<Region>;
   RegionConnection: ResolverTypeWrapper<RegionConnection>;
   RegionEdge: ResolverTypeWrapper<RegionEdge>;
@@ -1244,6 +1274,7 @@ export type ResolversTypes = {
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
+  ActiveUsersPayload: ActiveUsersPayload;
   Alliance: Alliance;
   AllianceConnection: AllianceConnection;
   AllianceEdge: AllianceEdge;
@@ -1296,6 +1327,7 @@ export type ResolversParentTypes = {
   Query: Record<PropertyKey, never>;
   QueueStatus: QueueStatus;
   Race: Race;
+  RefreshCharacterResult: RefreshCharacterResult;
   Region: Region;
   RegionConnection: RegionConnection;
   RegionEdge: RegionEdge;
@@ -1335,13 +1367,18 @@ export type ResolversParentTypes = {
   WorkerStatus: WorkerStatus;
 };
 
+export type ActiveUsersPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['ActiveUsersPayload'] = ResolversParentTypes['ActiveUsersPayload']> = {
+  count?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  timestamp?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
 export type AllianceResolvers<ContextType = any, ParentType extends ResolversParentTypes['Alliance'] = ResolversParentTypes['Alliance']> = {
   corporationCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   corporations?: Resolver<Maybe<Array<ResolversTypes['Corporation']>>, ParentType, ContextType>;
-  createdBy?: Resolver<ResolversTypes['Character'], ParentType, ContextType>;
-  createdByCorporation?: Resolver<ResolversTypes['Corporation'], ParentType, ContextType>;
+  createdBy?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
+  createdByCorporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType>;
   date_founded?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  executor?: Resolver<ResolversTypes['Corporation'], ParentType, ContextType>;
+  executor?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType>;
   faction_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   memberCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -1452,14 +1489,14 @@ export type CategoryEdgeResolvers<ContextType = any, ParentType extends Resolver
 export type CharacterResolvers<ContextType = any, ParentType extends ResolversParentTypes['Character'] = ResolversParentTypes['Character']> = {
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType>;
   birthday?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  bloodline?: Resolver<ResolversTypes['Bloodline'], ParentType, ContextType>;
-  corporation?: Resolver<ResolversTypes['Corporation'], ParentType, ContextType>;
+  bloodline?: Resolver<Maybe<ResolversTypes['Bloodline']>, ParentType, ContextType>;
+  corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   faction_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   gender?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  race?: Resolver<ResolversTypes['Race'], ParentType, ContextType>;
+  race?: Resolver<Maybe<ResolversTypes['Race']>, ParentType, ContextType>;
   security_status?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
@@ -1496,8 +1533,8 @@ export type ConstellationEdgeResolvers<ContextType = any, ParentType extends Res
 
 export type CorporationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Corporation'] = ResolversParentTypes['Corporation']> = {
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType>;
-  ceo?: Resolver<ResolversTypes['Character'], ParentType, ContextType>;
-  creator?: Resolver<ResolversTypes['Character'], ParentType, ContextType>;
+  ceo?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
+  creator?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
   date_founded?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   faction_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -1604,6 +1641,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   clearKillmailCache?: Resolver<ResolversTypes['CacheOperation'], ParentType, ContextType, RequireFields<MutationClearKillmailCacheArgs, 'killmailId'>>;
   createUser?: Resolver<ResolversTypes['CreateUserPayload'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   login?: Resolver<ResolversTypes['AuthUrl'], ParentType, ContextType>;
+  refreshCharacter?: Resolver<ResolversTypes['RefreshCharacterResult'], ParentType, ContextType, RequireFields<MutationRefreshCharacterArgs, 'characterId'>>;
   refreshToken?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationRefreshTokenArgs, 'refreshToken'>>;
   startAllianceSync?: Resolver<ResolversTypes['StartAllianceSyncPayload'], ParentType, ContextType, RequireFields<MutationStartAllianceSyncArgs, 'input'>>;
   startCategorySync?: Resolver<ResolversTypes['StartCategorySyncPayload'], ParentType, ContextType, RequireFields<MutationStartCategorySyncArgs, 'input'>>;
@@ -1634,6 +1672,7 @@ export type PositionResolvers<ContextType = any, ParentType extends ResolversPar
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  activeUsersCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType, RequireFields<QueryAllianceArgs, 'id'>>;
   allianceKillmails?: Resolver<ResolversTypes['KillmailConnection'], ParentType, ContextType, RequireFields<QueryAllianceKillmailsArgs, 'allianceId'>>;
   alliances?: Resolver<ResolversTypes['AllianceConnection'], ParentType, ContextType, Partial<QueryAlliancesArgs>>;
@@ -1676,12 +1715,22 @@ export type QueueStatusResolvers<ContextType = any, ParentType extends Resolvers
   consumerCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   messageCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  workerName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  workerPid?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  workerRunning?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
 };
 
 export type RaceResolvers<ContextType = any, ParentType extends ResolversParentTypes['Race'] = ResolversParentTypes['Race']> = {
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type RefreshCharacterResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['RefreshCharacterResult'] = ResolversParentTypes['RefreshCharacterResult']> = {
+  characterId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  queued?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
 };
 
 export type RegionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Region'] = ResolversParentTypes['Region']> = {
@@ -1783,6 +1832,7 @@ export type StartTypeSyncPayloadResolvers<ContextType = any, ParentType extends 
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
   _empty?: SubscriptionResolver<Maybe<ResolversTypes['String']>, "_empty", ParentType, ContextType>;
+  activeUsersUpdates?: SubscriptionResolver<ResolversTypes['ActiveUsersPayload'], "activeUsersUpdates", ParentType, ContextType>;
   newKillmail?: SubscriptionResolver<ResolversTypes['Killmail'], "newKillmail", ParentType, ContextType>;
   workerStatusUpdates?: SubscriptionResolver<ResolversTypes['WorkerStatus'], "workerStatusUpdates", ParentType, ContextType>;
 };
@@ -1848,6 +1898,7 @@ export type WorkerStatusResolvers<ContextType = any, ParentType extends Resolver
 };
 
 export type Resolvers<ContextType = any> = {
+  ActiveUsersPayload?: ActiveUsersPayloadResolvers<ContextType>;
   Alliance?: AllianceResolvers<ContextType>;
   AllianceConnection?: AllianceConnectionResolvers<ContextType>;
   AllianceEdge?: AllianceEdgeResolvers<ContextType>;
@@ -1888,6 +1939,7 @@ export type Resolvers<ContextType = any> = {
   Query?: QueryResolvers<ContextType>;
   QueueStatus?: QueueStatusResolvers<ContextType>;
   Race?: RaceResolvers<ContextType>;
+  RefreshCharacterResult?: RefreshCharacterResultResolvers<ContextType>;
   Region?: RegionResolvers<ContextType>;
   RegionConnection?: RegionConnectionResolvers<ContextType>;
   RegionEdge?: RegionEdgeResolvers<ContextType>;

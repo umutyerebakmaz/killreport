@@ -1,0 +1,10 @@
+subscription ActiveUsersUpdates {
+  activeUsersUpdates {
+    count
+    timestamp
+  }
+}
+
+query ActiveUsersCount {
+  activeUsersCount
+}

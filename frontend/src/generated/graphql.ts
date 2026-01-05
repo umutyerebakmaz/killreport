@@ -17,14 +17,20 @@ export type Scalars = {
   Float: { input: number; output: number; }
 };
 
+export type ActiveUsersPayload = {
+  __typename?: 'ActiveUsersPayload';
+  count: Scalars['Int']['output'];
+  timestamp: Scalars['String']['output'];
+};
+
 export type Alliance = {
   __typename?: 'Alliance';
   corporationCount: Scalars['Int']['output'];
   corporations?: Maybe<Array<Corporation>>;
-  createdBy: Character;
-  createdByCorporation: Corporation;
+  createdBy?: Maybe<Character>;
+  createdByCorporation?: Maybe<Corporation>;
   date_founded: Scalars['String']['output'];
-  executor: Corporation;
+  executor?: Maybe<Corporation>;
   faction_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
   memberCount: Scalars['Int']['output'];
@@ -185,14 +191,14 @@ export type Character = {
   __typename?: 'Character';
   alliance?: Maybe<Alliance>;
   birthday: Scalars['String']['output'];
-  bloodline: Bloodline;
-  corporation: Corporation;
+  bloodline?: Maybe<Bloodline>;
+  corporation?: Maybe<Corporation>;
   description?: Maybe<Scalars['String']['output']>;
   faction_id?: Maybe<Scalars['Int']['output']>;
   gender: Scalars['String']['output'];
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
-  race: Race;
+  race?: Maybe<Race>;
   security_status?: Maybe<Scalars['Float']['output']>;
   title?: Maybe<Scalars['String']['output']>;
 };
@@ -266,8 +272,8 @@ export enum ConstellationOrderBy {
 export type Corporation = {
   __typename?: 'Corporation';
   alliance?: Maybe<Alliance>;
-  ceo: Character;
-  creator: Character;
+  ceo?: Maybe<Character>;
+  creator?: Maybe<Character>;
   date_founded?: Maybe<Scalars['String']['output']>;
   faction_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
@@ -447,6 +453,7 @@ export type Mutation = {
   createUser: CreateUserPayload;
   /** Eve Online SSO login için authorization URL'i oluşturur */
   login: AuthUrl;
+  refreshCharacter: RefreshCharacterResult;
   /** Refresh token kullanarak yeni access token alır */
   refreshToken: AuthPayload;
   startAllianceSync: StartAllianceSyncPayload;
@@ -493,6 +500,11 @@ export type MutationClearKillmailCacheArgs = {
 
 export type MutationCreateUserArgs = {
   input: CreateUserInput;
+};
+
+
+export type MutationRefreshCharacterArgs = {
+  characterId: Scalars['Int']['input'];
 };
 
 
@@ -566,6 +578,7 @@ export type Position = {
 export type Query = {
   __typename?: 'Query';
   _empty?: Maybe<Scalars['String']['output']>;
+  activeUsersCount: Scalars['Int']['output'];
   alliance?: Maybe<Alliance>;
   /** Fetches killmails for a specific alliance */
   allianceKillmails: KillmailConnection;
@@ -773,14 +786,20 @@ export type QueryUserArgs = {
 
 export type QueueStatus = {
   __typename?: 'QueueStatus';
-  /** Is the queue currently active */
+  /** Is there at least one active consumer */
   active: Scalars['Boolean']['output'];
-  /** Number of messages currently being processed */
+  /** Number of active consumers processing from this queue */
   consumerCount: Scalars['Int']['output'];
   /** Number of messages waiting to be processed */
   messageCount: Scalars['Int']['output'];
   /** Name of the queue */
   name: Scalars['String']['output'];
+  /** Worker script name (e.g., worker:info:corporations) */
+  workerName?: Maybe<Scalars['String']['output']>;
+  /** Process ID of the running worker */
+  workerPid?: Maybe<Scalars['Int']['output']>;
+  /** Is the worker process running (detected via ps aux) */
+  workerRunning: Scalars['Boolean']['output'];
 };
 
 export type Race = {
@@ -788,6 +807,14 @@ export type Race = {
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
+};
+
+export type RefreshCharacterResult = {
+  __typename?: 'RefreshCharacterResult';
+  characterId: Scalars['Int']['output'];
+  message: Scalars['String']['output'];
+  queued: Scalars['Boolean']['output'];
+  success: Scalars['Boolean']['output'];
 };
 
 export type Region = {
@@ -969,6 +996,7 @@ export type StartTypeSyncPayload = {
 export type Subscription = {
   __typename?: 'Subscription';
   _empty?: Maybe<Scalars['String']['output']>;
+  activeUsersUpdates: ActiveUsersPayload;
   /**
    * Subscribe to new killmails as they are added to the database
    * Emits a new event whenever a killmail is saved
@@ -1077,7 +1105,7 @@ export type AllianceQueryVariables = Exact<{
 }>;
 
 
-export type AllianceQuery = { __typename?: 'Query', alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, memberCount: number, corporationCount: number, metrics?: { __typename?: 'AllianceMetrics', memberCountDelta1d?: number | null, memberCountDelta7d?: number | null, memberCountDelta30d?: number | null, corporationCountDelta1d?: number | null, corporationCountDelta7d?: number | null, corporationCountDelta30d?: number | null, memberCountGrowthRate1d?: number | null, memberCountGrowthRate7d?: number | null, memberCountGrowthRate30d?: number | null, corporationCountGrowthRate1d?: number | null, corporationCountGrowthRate7d?: number | null, corporationCountGrowthRate30d?: number | null } | null, executor: { __typename?: 'Corporation', id: number, name: string }, createdByCorporation: { __typename?: 'Corporation', id: number, name: string }, createdBy: { __typename?: 'Character', id: number, name: string }, corporations?: Array<{ __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, ceo: { __typename?: 'Character', id: number, name: string } }> | null } | null };
+export type AllianceQuery = { __typename?: 'Query', alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, memberCount: number, corporationCount: number, metrics?: { __typename?: 'AllianceMetrics', memberCountDelta7d?: number | null, corporationCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null, corporationCountGrowthRate7d?: number | null } | null, executor?: { __typename?: 'Corporation', id: number, name: string } | null, createdByCorporation?: { __typename?: 'Corporation', id: number, name: string } | null, createdBy?: { __typename?: 'Character', id: number, name: string } | null, corporations?: Array<{ __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, ceo?: { __typename?: 'Character', id: number, name: string } | null }> | null } | null };
 
 export type AlliancesQueryVariables = Exact<{
   filter?: InputMaybe<AllianceFilter>;
@@ -1091,14 +1119,14 @@ export type CharactersQueryVariables = Exact<{
 }>;
 
 
-export type CharactersQuery = { __typename?: 'Query', characters: { __typename?: 'CharacterConnection', edges: Array<{ __typename?: 'CharacterEdge', cursor: string, node: { __typename?: 'Character', id: number, name: string, security_status?: number | null, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string }, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CharactersQuery = { __typename?: 'Query', characters: { __typename?: 'CharacterConnection', edges: Array<{ __typename?: 'CharacterEdge', cursor: string, node: { __typename?: 'Character', id: number, name: string, security_status?: number | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type CharacterQueryVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
 
 
-export type CharacterQuery = { __typename?: 'Query', character?: { __typename?: 'Character', id: number, name: string, birthday: string, security_status?: number | null, gender: string, description?: string | null, title?: string | null, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number }, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, memberCount: number } | null, race: { __typename?: 'Race', id: number, name: string, description?: string | null }, bloodline: { __typename?: 'Bloodline', id: number, name: string, description?: string | null } } | null };
+export type CharacterQuery = { __typename?: 'Query', character?: { __typename?: 'Character', id: number, name: string, birthday: string, security_status?: number | null, gender: string, description?: string | null, title?: string | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, memberCount: number } | null, race?: { __typename?: 'Race', id: number, name: string } | null, bloodline?: { __typename?: 'Bloodline', id: number, name: string } | null } | null };
 
 export type ConstellationsQueryVariables = Exact<{
   filter?: InputMaybe<ConstellationFilter>;
@@ -1119,7 +1147,7 @@ export type CorporationQueryVariables = Exact<{
 }>;
 
 
-export type CorporationQuery = { __typename?: 'Query', corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, date_founded?: string | null, member_count: number, tax_rate: number, url?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, ceo: { __typename?: 'Character', id: number, name: string }, creator: { __typename?: 'Character', id: number, name: string }, metrics?: { __typename?: 'CorporationMetrics', memberCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null } | null } | null };
+export type CorporationQuery = { __typename?: 'Query', corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, date_founded?: string | null, member_count: number, tax_rate: number, url?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, ceo?: { __typename?: 'Character', id: number, name: string } | null, creator?: { __typename?: 'Character', id: number, name: string } | null, metrics?: { __typename?: 'CorporationMetrics', memberCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null } | null } | null };
 
 export type CorporationsQueryVariables = Exact<{
   filter?: InputMaybe<CorporationFilter>;
@@ -1169,7 +1197,7 @@ export type WorkerStatusUpdatesSubscription = { __typename?: 'Subscription', wor
 export type WorkerStatusSubscriptionSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type WorkerStatusSubscriptionSubscription = { __typename?: 'Subscription', workerStatusUpdates: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean }>, standaloneWorkers: Array<{ __typename?: 'StandaloneWorkerStatus', name: string, running: boolean, pid?: number | null, description: string }> } };
+export type WorkerStatusSubscriptionSubscription = { __typename?: 'Subscription', workerStatusUpdates: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean, workerRunning: boolean, workerPid?: number | null, workerName?: string | null }>, standaloneWorkers: Array<{ __typename?: 'StandaloneWorkerStatus', name: string, running: boolean, pid?: number | null, description: string }> } };
 
 export type AllianceKillmailsQueryVariables = Exact<{
   allianceId: Scalars['Int']['input'];
@@ -1179,6 +1207,16 @@ export type AllianceKillmailsQueryVariables = Exact<{
 
 
 export type AllianceKillmailsQuery = { __typename?: 'Query', allianceKillmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', name: string }, victim: { __typename?: 'Victim', character?: { __typename?: 'Character', name: string } | null, shipType: { __typename?: 'Type', name: string } } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, totalCount: number } } };
+
+export type ActiveUsersUpdatesSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ActiveUsersUpdatesSubscription = { __typename?: 'Subscription', activeUsersUpdates: { __typename?: 'ActiveUsersPayload', count: number, timestamp: string } };
+
+export type ActiveUsersCountQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ActiveUsersCountQuery = { __typename?: 'Query', activeUsersCount: number };
 
 export type RefreshTokenMutationVariables = Exact<{
   refreshToken: Scalars['String']['input'];
@@ -1247,18 +1285,10 @@ export const AllianceDocument = gql`
     memberCount
     corporationCount
     metrics {
-      memberCountDelta1d
       memberCountDelta7d
-      memberCountDelta30d
-      corporationCountDelta1d
       corporationCountDelta7d
-      corporationCountDelta30d
-      memberCountGrowthRate1d
       memberCountGrowthRate7d
-      memberCountGrowthRate30d
-      corporationCountGrowthRate1d
       corporationCountGrowthRate7d
-      corporationCountGrowthRate30d
     }
     executor {
       id
@@ -1478,12 +1508,10 @@ export const CharacterDocument = gql`
     race {
       id
       name
-      description
     }
     bloodline {
       id
       name
-      description
     }
   }
 }
@@ -2149,6 +2177,9 @@ export const WorkerStatusSubscriptionDocument = gql`
       messageCount
       consumerCount
       active
+      workerRunning
+      workerPid
+      workerName
     }
     standaloneWorkers {
       name
@@ -2246,6 +2277,76 @@ export type AllianceKillmailsQueryHookResult = ReturnType<typeof useAllianceKill
 export type AllianceKillmailsLazyQueryHookResult = ReturnType<typeof useAllianceKillmailsLazyQuery>;
 export type AllianceKillmailsSuspenseQueryHookResult = ReturnType<typeof useAllianceKillmailsSuspenseQuery>;
 export type AllianceKillmailsQueryResult = Apollo.QueryResult<AllianceKillmailsQuery, AllianceKillmailsQueryVariables>;
+export const ActiveUsersUpdatesDocument = gql`
+    subscription ActiveUsersUpdates {
+  activeUsersUpdates {
+    count
+    timestamp
+  }
+}
+    `;
+
+/**
+ * __useActiveUsersUpdatesSubscription__
+ *
+ * To run a query within a React component, call `useActiveUsersUpdatesSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useActiveUsersUpdatesSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useActiveUsersUpdatesSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useActiveUsersUpdatesSubscription(baseOptions?: Apollo.SubscriptionHookOptions<ActiveUsersUpdatesSubscription, ActiveUsersUpdatesSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<ActiveUsersUpdatesSubscription, ActiveUsersUpdatesSubscriptionVariables>(ActiveUsersUpdatesDocument, options);
+      }
+export type ActiveUsersUpdatesSubscriptionHookResult = ReturnType<typeof useActiveUsersUpdatesSubscription>;
+export type ActiveUsersUpdatesSubscriptionResult = Apollo.SubscriptionResult<ActiveUsersUpdatesSubscription>;
+export const ActiveUsersCountDocument = gql`
+    query ActiveUsersCount {
+  activeUsersCount
+}
+    `;
+
+/**
+ * __useActiveUsersCountQuery__
+ *
+ * To run a query within a React component, call `useActiveUsersCountQuery` and pass it any options that fit your needs.
+ * When your component renders, `useActiveUsersCountQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useActiveUsersCountQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useActiveUsersCountQuery(baseOptions?: Apollo.QueryHookOptions<ActiveUsersCountQuery, ActiveUsersCountQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ActiveUsersCountQuery, ActiveUsersCountQueryVariables>(ActiveUsersCountDocument, options);
+      }
+export function useActiveUsersCountLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ActiveUsersCountQuery, ActiveUsersCountQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ActiveUsersCountQuery, ActiveUsersCountQueryVariables>(ActiveUsersCountDocument, options);
+        }
+// @ts-ignore
+export function useActiveUsersCountSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ActiveUsersCountQuery, ActiveUsersCountQueryVariables>): Apollo.UseSuspenseQueryResult<ActiveUsersCountQuery, ActiveUsersCountQueryVariables>;
+export function useActiveUsersCountSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ActiveUsersCountQuery, ActiveUsersCountQueryVariables>): Apollo.UseSuspenseQueryResult<ActiveUsersCountQuery | undefined, ActiveUsersCountQueryVariables>;
+export function useActiveUsersCountSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ActiveUsersCountQuery, ActiveUsersCountQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ActiveUsersCountQuery, ActiveUsersCountQueryVariables>(ActiveUsersCountDocument, options);
+        }
+export type ActiveUsersCountQueryHookResult = ReturnType<typeof useActiveUsersCountQuery>;
+export type ActiveUsersCountLazyQueryHookResult = ReturnType<typeof useActiveUsersCountLazyQuery>;
+export type ActiveUsersCountSuspenseQueryHookResult = ReturnType<typeof useActiveUsersCountSuspenseQuery>;
+export type ActiveUsersCountQueryResult = Apollo.QueryResult<ActiveUsersCountQuery, ActiveUsersCountQueryVariables>;
 export const RefreshTokenDocument = gql`
     mutation RefreshToken($refreshToken: String!) {
   refreshToken(refreshToken: $refreshToken) {
