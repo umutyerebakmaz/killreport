@@ -6,23 +6,31 @@ import { getAllQueueStats } from '../services/rabbitmq';
 const execAsync = promisify(exec);
 
 /**
- * All workers to monitor - checks both RabbitMQ consumer count and actual process status
+ * Queue-to-worker mapping for process detection
+ * Maps RabbitMQ queue names to their worker process names
  */
-const MONITORED_WORKERS = [
-    // ESI Info Workers
-    { name: 'worker:info:alliances', queueName: 'esi_alliance_info_queue', description: 'ESI alliance info enrichment' },
-    { name: 'worker:info:characters', queueName: 'esi_character_info_queue', description: 'ESI character info enrichment' },
-    { name: 'worker:info:corporations', queueName: 'esi_corporation_info_queue', description: 'ESI corporation info enrichment' },
-    { name: 'worker:info:types', queueName: 'esi_type_info_queue', description: 'ESI type info enrichment' },
+const QUEUE_WORKER_MAP: Record<string, string> = {
+    'esi_alliance_info_queue': 'worker:info:alliances',
+    'esi_character_info_queue': 'worker:info:characters',
+    'esi_corporation_info_queue': 'worker:info:corporations',
+    'esi_type_info_queue': 'worker:info:types',
+    'esi_category_info_queue': 'worker:info:categories',
+    'esi_item_group_info_queue': 'worker:info:item-groups',
+    'esi_all_alliances_queue': 'worker:alliances',
+    'esi_all_corporations_queue': 'worker:corporations',
+    'esi_alliance_corporations_queue': 'worker:alliance-corporations',
+    'esi_regions_queue': 'worker:regions',
+    'esi_constellations_queue': 'worker:constellations',
+    'esi_systems_queue': 'worker:systems',
+    'zkillboard_character_queue': 'worker:zkillboard',
+};
 
-    // ESI Bulk Workers
-    { name: 'worker:alliances', queueName: 'esi_all_alliances_queue', description: 'ESI bulk alliance sync' },
-    { name: 'worker:corporations', queueName: 'esi_all_corporations_queue', description: 'ESI bulk corporation sync' },
-    { name: 'worker:alliance-corporations', queueName: 'esi_alliance_corporations_queue', description: 'ESI alliance corporation sync' },
-
-    // zKillboard Workers
-    { name: 'worker:zkillboard', queueName: 'zkillboard_character_queue', description: 'zKillboard character killmail sync' },
-    { name: 'worker:redisq-stream', queueName: 'redisq_stream_queue', description: 'Real-time killmail stream from zKillboard RedisQ' },
+/**
+ * Standalone workers that don't use RabbitMQ queues
+ * These run independently and are monitored via process checks only
+ */
+const STANDALONE_WORKERS = [
+    { name: 'worker:redisq-stream', description: 'Real-time killmail stream from zKillboard RedisQ' },
 ];
 
 /**
@@ -53,35 +61,45 @@ async function checkWorkerProcess(workerName: string): Promise<{ running: boolea
 export const workerResolvers: Resolvers = {
     Query: {
         workerStatus: async () => {
-            const queues = await getAllQueueStats();
+            const queueStats = await getAllQueueStats();
 
-            // Create a map of queue stats for quick lookup
-            const queueStatsMap = new Map(
-                queues.map(q => [q.name, q])
-            );
+            // Enrich queue stats with worker process info
+            const queues = await Promise.all(
+                queueStats.map(async (queue) => {
+                    const workerName = QUEUE_WORKER_MAP[queue.name];
+                    let workerRunning = false;
+                    let workerPid: number | undefined;
 
-            // Check each monitored worker's process status and combine with queue stats
-            const standaloneWorkers = await Promise.all(
-                MONITORED_WORKERS.map(async (worker) => {
-                    const { running, pid } = await checkWorkerProcess(worker.name);
-                    const queueStats = queueStatsMap.get(worker.queueName);
-
-                    // Worker is considered active if EITHER:
-                    // 1. Process is running (ps aux shows it)
-                    // 2. RabbitMQ reports consumers (consumerCount > 0)
-                    const isActive = running || (queueStats?.consumerCount ?? 0) > 0;
+                    if (workerName) {
+                        const { running, pid } = await checkWorkerProcess(workerName);
+                        workerRunning = running;
+                        workerPid = pid;
+                    }
 
                     return {
+                        ...queue,
+                        workerRunning,
+                        workerPid,
+                        workerName,
+                    };
+                })
+            );
+
+            // Check standalone workers (non-queue-based)
+            const standaloneWorkers = await Promise.all(
+                STANDALONE_WORKERS.map(async (worker) => {
+                    const { running, pid } = await checkWorkerProcess(worker.name);
+                    return {
                         name: worker.name,
-                        running: isActive,
+                        running,
                         pid,
                         description: worker.description,
                     };
                 })
             );
 
-            // Consider system healthy if at least one worker is active
-            const healthy = queues.some(q => q.active) || standaloneWorkers.some(w => w.running);
+            // System is healthy if any queue has consumers OR any worker process is running
+            const healthy = queues.some(q => q.active || q.workerRunning) || standaloneWorkers.some(w => w.running);
 
             return {
                 timestamp: new Date().toISOString(),
@@ -97,34 +115,45 @@ export const workerResolvers: Resolvers = {
             subscribe: async function* () {
                 // Emit status updates every 5 seconds
                 while (true) {
-                    const queues = await getAllQueueStats();
+                    const queueStats = await getAllQueueStats();
 
-                    // Create a map of queue stats for quick lookup
-                    const queueStatsMap = new Map(
-                        queues.map(q => [q.name, q])
-                    );
+                    // Enrich queue stats with worker process info
+                    const queues = await Promise.all(
+                        queueStats.map(async (queue) => {
+                            const workerName = QUEUE_WORKER_MAP[queue.name];
+                            let workerRunning = false;
+                            let workerPid: number | undefined;
 
-                    // Check each monitored worker's process status and combine with queue stats
-                    const standaloneWorkers = await Promise.all(
-                        MONITORED_WORKERS.map(async (worker) => {
-                            const { running, pid } = await checkWorkerProcess(worker.name);
-                            const queueStats = queueStatsMap.get(worker.queueName);
-
-                            // Worker is considered active if EITHER:
-                            // 1. Process is running (ps aux shows it)
-                            // 2. RabbitMQ reports consumers (consumerCount > 0)
-                            const isActive = running || (queueStats?.consumerCount ?? 0) > 0;
+                            if (workerName) {
+                                const { running, pid } = await checkWorkerProcess(workerName);
+                                workerRunning = running;
+                                workerPid = pid;
+                            }
 
                             return {
+                                ...queue,
+                                workerRunning,
+                                workerPid,
+                                workerName,
+                            };
+                        })
+                    );
+
+                    // Check standalone workers (non-queue-based)
+                    const standaloneWorkers = await Promise.all(
+                        STANDALONE_WORKERS.map(async (worker) => {
+                            const { running, pid } = await checkWorkerProcess(worker.name);
+                            return {
                                 name: worker.name,
-                                running: isActive,
+                                running,
                                 pid,
                                 description: worker.description,
                             };
                         })
                     );
 
-                    const healthy = queues.some(q => q.active) || standaloneWorkers.some(w => w.running);
+                    // System is healthy if any queue has consumers OR any worker process is running
+                    const healthy = queues.some(q => q.active || q.workerRunning) || standaloneWorkers.some(w => w.running);
 
                     yield {
                         workerStatusUpdates: {
