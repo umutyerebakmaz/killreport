@@ -48,7 +48,74 @@ const yoga = createYoga<ServerContext>({
   graphqlEndpoint: '/graphql',
 
   // GraphQL introspection and playground settings
-  graphiql: config.graphql.playground ? { subscriptionsProtocol: 'SSE' } : false,
+  graphiql: config.graphql.playground
+    ? { subscriptionsProtocol: 'SSE' }
+    : () => {
+      // Custom landing page when playground is disabled
+      return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KillReport GraphQL API</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 600px;
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    h1 { font-size: 2.5rem; margin-bottom: 10px; }
+    .subtitle { font-size: 1.2rem; opacity: 0.9; margin-bottom: 30px; }
+    .info { background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+    .info h3 { margin-bottom: 10px; font-size: 1.1rem; }
+    .info p { opacity: 0.9; line-height: 1.6; }
+    .status { display: inline-block; background: #10b981; padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; }
+    a { color: #fff; text-decoration: underline; }
+    code { background: rgba(0, 0, 0, 0.3); padding: 2px 8px; border-radius: 4px; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 KillReport GraphQL API</h1>
+    <p class="subtitle">EVE Online Killmail Tracker & Analytics</p>
+
+    <div class="status">✓ API Running</div>
+
+    <div class="info">
+      <h3>📡 Endpoint</h3>
+      <p>This is a GraphQL API endpoint. Send POST requests with queries to this URL.</p>
+    </div>
+
+    <div class="info">
+      <h3>🔐 Access</h3>
+      <p>The GraphQL Playground is currently disabled. Use a GraphQL client (Apollo, Postman, etc.) to interact with the API.</p>
+    </div>
+
+    <div class="info">
+      <h3>📚 Documentation</h3>
+      <p>Visit <a href="https://killreport.com">killreport.com</a> for more information.</p>
+    </div>
+  </div>
+</body>
+</html>
+        `.trim();
+    },
   maskedErrors: config.app.isProduction, // Mask errors in production
 
   // CORS configuration
