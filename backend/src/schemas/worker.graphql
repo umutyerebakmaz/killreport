@@ -47,14 +47,29 @@ type QueueStatus {
   messageCount: Int!
 
   """
-  Number of messages currently being processed
+  Number of active consumers processing from this queue
   """
   consumerCount: Int!
 
   """
-  Is the queue currently active
+  Is there at least one active consumer
   """
   active: Boolean!
+
+  """
+  Is the worker process running (detected via ps aux)
+  """
+  workerRunning: Boolean!
+
+  """
+  Process ID of the running worker
+  """
+  workerPid: Int
+
+  """
+  Worker script name (e.g., worker:info:corporations)
+  """
+  workerName: String
 }
 
 type StandaloneWorkerStatus {
