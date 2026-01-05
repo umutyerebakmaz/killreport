@@ -32,7 +32,6 @@ const ALL_QUEUES = [
 
     // zKillboard Workers
     'zkillboard_character_queue',
-    'redisq_stream_queue',
 ];
 
 export async function getRabbitMQChannel(): Promise<amqp.Channel> {
@@ -240,7 +239,6 @@ export async function getAllQueueStats(): Promise<Array<{
 
         // zKillboard Workers
         'zkillboard_character_queue',
-        'redisq_stream_queue',
     ];
 
     const results: Array<{

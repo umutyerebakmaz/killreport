@@ -39,12 +39,14 @@ const STANDALONE_WORKERS = [
 async function checkWorkerProcess(workerName: string): Promise<{ running: boolean; pid?: number }> {
   try {
     // Search for the worker name in yarn/node processes
-    const { stdout } = await execAsync(`ps aux | grep "${workerName}" | grep -v grep`);
+    // Exclude grep itself and yarn wrappers, focus on actual node processes
+    const { stdout } = await execAsync(`ps aux | grep "${workerName}" | grep -v grep | grep -v "yarn-4"`);
     if (stdout.trim()) {
       // Extract PID (second column in ps aux output)
       const lines = stdout.trim().split('\n');
-      // Get first matching process (usually the node process, not yarn wrapper)
-      const match = lines[0].split(/\s+/);
+      // Find the actual node process (not yarn wrapper)
+      const nodeLine = lines.find(line => line.includes('/node ') || line.includes('/usr/bin/node')) || lines[0];
+      const match = nodeLine.split(/\s+/);
       const pid = match[1] ? parseInt(match[1], 10) : undefined;
       return { running: true, pid };
     }
