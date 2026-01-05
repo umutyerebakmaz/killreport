@@ -59,7 +59,7 @@ export default function Header() {
         aria-label="Global"
         className="flex items-center justify-between p-6 mx-auto lg:px-8 xl:px-12 2xl:px-16 max-w-480"
       >
-        <div className="flex lg:flex-1">
+        <div className="flex mr-24">
           <a href="/" className="-m-1.5 p-1.5">
             <span className="sr-only">KillReport</span>
             <span className="text-2xl font-semibold tracking-tight text-gray-200">
@@ -67,6 +67,7 @@ export default function Header() {
             </span>
           </a>
         </div>
+
         <div className="flex lg:hidden">
           <button
             type="button"
@@ -77,7 +78,7 @@ export default function Header() {
             <Bars3Icon aria-hidden="true" className="size-6" />
           </button>
         </div>
-        <PopoverGroup className="hidden lg:flex lg:gap-x-12">
+        <PopoverGroup className="hidden lg:flex lg:gap-x-10">
           <Popover className="relative">
             <PopoverButton className="flex items-center font-semibold text-white cursor-pointer gap-x-1">
               UNIVERSE
@@ -194,8 +195,8 @@ export default function Header() {
           </a>
         </PopoverGroup>
 
-        <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:items-center lg:gap-6">
-          <div className="flex items-center gap-4">
+        <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:items-center lg:gap-8">
+          <div className="flex items-center gap-6">
             <ActiveUsersCounter />
             <Tooltip
               content={`Tranquility ${
