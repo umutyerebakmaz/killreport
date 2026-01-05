@@ -16,6 +16,12 @@ export type Scalars = {
   Float: { input: number; output: number; }
 };
 
+export type ActiveUsersPayload = {
+  __typename?: 'ActiveUsersPayload';
+  count: Scalars['Int']['output'];
+  timestamp: Scalars['String']['output'];
+};
+
 export type Alliance = {
   __typename?: 'Alliance';
   corporationCount: Scalars['Int']['output'];
@@ -571,6 +577,7 @@ export type Position = {
 export type Query = {
   __typename?: 'Query';
   _empty?: Maybe<Scalars['String']['output']>;
+  activeUsersCount: Scalars['Int']['output'];
   alliance?: Maybe<Alliance>;
   /** Fetches killmails for a specific alliance */
   allianceKillmails: KillmailConnection;
@@ -988,6 +995,7 @@ export type StartTypeSyncPayload = {
 export type Subscription = {
   __typename?: 'Subscription';
   _empty?: Maybe<Scalars['String']['output']>;
+  activeUsersUpdates: ActiveUsersPayload;
   /**
    * Subscribe to new killmails as they are added to the database
    * Emits a new event whenever a killmail is saved
@@ -1164,6 +1172,7 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
+  ActiveUsersPayload: ResolverTypeWrapper<ActiveUsersPayload>;
   Alliance: ResolverTypeWrapper<Alliance>;
   AllianceConnection: ResolverTypeWrapper<AllianceConnection>;
   AllianceEdge: ResolverTypeWrapper<AllianceEdge>;
@@ -1265,6 +1274,7 @@ export type ResolversTypes = {
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
+  ActiveUsersPayload: ActiveUsersPayload;
   Alliance: Alliance;
   AllianceConnection: AllianceConnection;
   AllianceEdge: AllianceEdge;
@@ -1355,6 +1365,11 @@ export type ResolversParentTypes = {
   User: User;
   Victim: Victim;
   WorkerStatus: WorkerStatus;
+};
+
+export type ActiveUsersPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['ActiveUsersPayload'] = ResolversParentTypes['ActiveUsersPayload']> = {
+  count?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  timestamp?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type AllianceResolvers<ContextType = any, ParentType extends ResolversParentTypes['Alliance'] = ResolversParentTypes['Alliance']> = {
@@ -1657,6 +1672,7 @@ export type PositionResolvers<ContextType = any, ParentType extends ResolversPar
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  activeUsersCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType, RequireFields<QueryAllianceArgs, 'id'>>;
   allianceKillmails?: Resolver<ResolversTypes['KillmailConnection'], ParentType, ContextType, RequireFields<QueryAllianceKillmailsArgs, 'allianceId'>>;
   alliances?: Resolver<ResolversTypes['AllianceConnection'], ParentType, ContextType, Partial<QueryAlliancesArgs>>;
@@ -1816,6 +1832,7 @@ export type StartTypeSyncPayloadResolvers<ContextType = any, ParentType extends 
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
   _empty?: SubscriptionResolver<Maybe<ResolversTypes['String']>, "_empty", ParentType, ContextType>;
+  activeUsersUpdates?: SubscriptionResolver<ResolversTypes['ActiveUsersPayload'], "activeUsersUpdates", ParentType, ContextType>;
   newKillmail?: SubscriptionResolver<ResolversTypes['Killmail'], "newKillmail", ParentType, ContextType>;
   workerStatusUpdates?: SubscriptionResolver<ResolversTypes['WorkerStatus'], "workerStatusUpdates", ParentType, ContextType>;
 };
@@ -1881,6 +1898,7 @@ export type WorkerStatusResolvers<ContextType = any, ParentType extends Resolver
 };
 
 export type Resolvers<ContextType = any> = {
+  ActiveUsersPayload?: ActiveUsersPayloadResolvers<ContextType>;
   Alliance?: AllianceResolvers<ContextType>;
   AllianceConnection?: AllianceConnectionResolvers<ContextType>;
   AllianceEdge?: AllianceEdgeResolvers<ContextType>;
