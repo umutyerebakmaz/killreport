@@ -1,10 +1,10 @@
 type Alliance {
   corporationCount: Int!
   corporations: [Corporation!]
-  createdBy: Character!
-  createdByCorporation: Corporation!
+  createdBy: Character
+  createdByCorporation: Corporation
   date_founded: String!
-  executor: Corporation!
+  executor: Corporation
   faction_id: Int
   id: Int!
   memberCount: Int!

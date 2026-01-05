@@ -21,10 +21,10 @@ export type Alliance = {
   __typename?: 'Alliance';
   corporationCount: Scalars['Int']['output'];
   corporations?: Maybe<Array<Corporation>>;
-  createdBy: Character;
-  createdByCorporation: Corporation;
+  createdBy?: Maybe<Character>;
+  createdByCorporation?: Maybe<Corporation>;
   date_founded: Scalars['String']['output'];
-  executor: Corporation;
+  executor?: Maybe<Corporation>;
   faction_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
   memberCount: Scalars['Int']['output'];
@@ -1083,7 +1083,7 @@ export type AllianceQueryVariables = Exact<{
 }>;
 
 
-export type AllianceQuery = { __typename?: 'Query', alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, memberCount: number, corporationCount: number, metrics?: { __typename?: 'AllianceMetrics', memberCountDelta7d?: number | null, corporationCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null, corporationCountGrowthRate7d?: number | null } | null, executor: { __typename?: 'Corporation', id: number, name: string }, createdByCorporation: { __typename?: 'Corporation', id: number, name: string }, createdBy: { __typename?: 'Character', id: number, name: string }, corporations?: Array<{ __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, ceo?: { __typename?: 'Character', id: number, name: string } | null }> | null } | null };
+export type AllianceQuery = { __typename?: 'Query', alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, memberCount: number, corporationCount: number, metrics?: { __typename?: 'AllianceMetrics', memberCountDelta7d?: number | null, corporationCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null, corporationCountGrowthRate7d?: number | null } | null, executor?: { __typename?: 'Corporation', id: number, name: string } | null, createdByCorporation?: { __typename?: 'Corporation', id: number, name: string } | null, createdBy?: { __typename?: 'Character', id: number, name: string } | null, corporations?: Array<{ __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, ceo?: { __typename?: 'Character', id: number, name: string } | null }> | null } | null };
 
 export type AlliancesQueryVariables = Exact<{
   filter?: InputMaybe<AllianceFilter>;
