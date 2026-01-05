@@ -93,6 +93,19 @@ export const allianceQueries: QueryResolvers = {
       skip,
       take,
       orderBy,
+      select: {
+        id: true,
+        name: true,
+        ticker: true,
+        date_founded: true,
+        executor_corporation_id: true,
+        creator_id: true,
+        creator_corporation_id: true,
+        faction_id: true,
+        // Hesaplanmış field'ları seç
+        member_count: true,
+        corporation_count: true,
+      },
     });
 
     const pageInfo: PageInfo = {
@@ -108,7 +121,7 @@ export const allianceQueries: QueryResolvers = {
         node: {
           ...a,
           date_founded: a.date_founded.toISOString(),
-          // Field resolver'lar eksik field'ları otomatik doldurur
+          // Field resolver'lar metrics gibi computed field'ları otomatik doldurur
         },
         cursor: Buffer.from(`${skip + index}`).toString('base64'),
       })),
@@ -225,13 +238,25 @@ export const allianceFieldResolvers: AllianceResolvers = {
   },
 
   corporationCount: async (parent, _args, context) => {
-    // DataLoader kullan - N+1 problem çözümü
+    // Önce parent'ta varsa kullan (DB'den gelmiş olabilir)
+    const prismaAlliance = parent as any;
+    if (prismaAlliance.corporation_count !== undefined && prismaAlliance.corporation_count !== null) {
+      return prismaAlliance.corporation_count;
+    }
+
+    // Yoksa DataLoader kullan - N+1 problem çözümü
     const corporations = await context.loaders.corporationsByAlliance.load(parent.id);
     return corporations.length;
   },
 
   memberCount: async (parent, _args, context) => {
-    // DataLoader kullan - N+1 problem çözümü
+    // Önce parent'ta varsa kullan (DB'den gelmiş olabilir)
+    const prismaAlliance = parent as any;
+    if (prismaAlliance.member_count !== undefined && prismaAlliance.member_count !== null) {
+      return prismaAlliance.member_count;
+    }
+
+    // Yoksa DataLoader kullan - N+1 problem çözümü
     const corporations = await context.loaders.corporationsByAlliance.load(parent.id);
     return corporations.reduce((sum: number, corp: any) => {
       const memberCount = corp.member_count ?? 0;
@@ -251,7 +276,9 @@ export const allianceFieldResolvers: AllianceResolvers = {
     let currentMemberCount = (parent as any).member_count;
     let currentCorpCount = (parent as any).corporation_count;
 
-    if (!currentMemberCount && currentMemberCount !== 0 || !currentCorpCount && currentCorpCount !== 0) {
+    // Eğer parent'ta member_count veya corporation_count yoksa, hesapla
+    if ((currentMemberCount === undefined || currentMemberCount === null) ||
+      (currentCorpCount === undefined || currentCorpCount === null)) {
       // Parent'ta yoksa hesapla
       const [corpCount, memberResult] = await Promise.all([
         prisma.corporation.count({
