@@ -225,7 +225,7 @@ enum ConstellationOrderBy {
 
 type Corporation {
   alliance: Alliance
-  ceo: Character!
+  ceo: Character
   creator: Character!
   date_founded: String
   faction_id: Int
@@ -497,10 +497,10 @@ type Query {
 }
 
 type QueueStatus {
-  """Is the queue currently active"""
+  """Is there at least one active consumer"""
   active: Boolean!
 
-  """Number of messages currently being processed"""
+  """Number of active consumers processing from this queue"""
   consumerCount: Int!
 
   """Number of messages waiting to be processed"""
@@ -508,6 +508,15 @@ type QueueStatus {
 
   """Name of the queue"""
   name: String!
+
+  """Worker script name (e.g., worker:info:corporations)"""
+  workerName: String
+
+  """Process ID of the running worker"""
+  workerPid: Int
+
+  """Is the worker process running (detected via ps aux)"""
+  workerRunning: Boolean!
 }
 
 type Race {
