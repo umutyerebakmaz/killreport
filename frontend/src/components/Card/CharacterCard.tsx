@@ -43,7 +43,11 @@ export default function CharacterCard({ character }: CharacterCardProps) {
               unoptimized
             />
           </div>
-          <Link href={`/characters/${character.id}`} className="character-name">
+          <Link
+            href={`/characters/${character.id}`}
+            className="character-name"
+            prefetch={false}
+          >
             {character.name}
           </Link>
 
@@ -55,6 +59,7 @@ export default function CharacterCard({ character }: CharacterCardProps) {
                   <Link
                     href={`/corporations/${character.corporation.id}`}
                     className="flex items-center gap-2 hover:text-cyan-400"
+                    prefetch={false}
                   >
                     <span className="text-base text-green-400 line-clamp-1">
                       {character.corporation.name}
@@ -71,6 +76,7 @@ export default function CharacterCard({ character }: CharacterCardProps) {
                   <Link
                     href={`/alliances/${character.alliance.id}`}
                     className="flex items-center gap-2 hover:text-cyan-400"
+                    prefetch={false}
                   >
                     <span className="text-base text-yellow-400 line-clamp-1">
                       {character.alliance.name}
