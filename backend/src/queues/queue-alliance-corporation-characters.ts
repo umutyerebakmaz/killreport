@@ -61,22 +61,22 @@ async function queueAllianceCorporationCharacters() {
 
         // From alliances
         for (const alliance of alliances) {
-            if (alliance.creator_id && !isNPCCharacter(alliance.creator_id)) {
+            if (alliance.creator_id) {
                 characterIds.add(alliance.creator_id);
             }
         }
 
         // From corporations
         for (const corporation of corporations) {
-            if (corporation.ceo_id && !isNPCCharacter(corporation.ceo_id)) {
+            if (corporation.ceo_id) {
                 characterIds.add(corporation.ceo_id);
             }
-            if (corporation.creator_id && !isNPCCharacter(corporation.creator_id)) {
+            if (corporation.creator_id) {
                 characterIds.add(corporation.creator_id);
             }
         }
 
-        logger.info(`Collected ${characterIds.size} unique character IDs (NPCs filtered)`);
+        logger.info(`Collected ${characterIds.size} unique character IDs (including NPCs)`);
         logger.info('━'.repeat(70));
 
         // Filter out characters that already exist in database
