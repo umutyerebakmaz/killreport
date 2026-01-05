@@ -9,6 +9,9 @@ interface QueueInfo {
   messageCount: number;
   consumerCount: number;
   active: boolean;
+  workerRunning: boolean;
+  workerPid?: number | null;
+  workerName?: string | null;
 }
 
 // Format queue name for display
