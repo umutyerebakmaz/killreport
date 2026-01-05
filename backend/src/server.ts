@@ -1,7 +1,7 @@
 import { loadFilesSync } from '@graphql-tools/load-files';
 import { mergeTypeDefs } from '@graphql-tools/merge';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { createYoga, useLogger } from 'graphql-yoga';
+import { createYoga, useDisableIntrospection, useLogger } from 'graphql-yoga';
 import { createServer } from 'node:http';
 import path from 'path';
 
@@ -46,6 +46,10 @@ const yoga = createYoga<ServerContext>({
     schema,
     graphqlEndpoint: '/graphql',
 
+    // GraphQL introspection and playground settings
+    graphiql: config.graphql.playground,
+    maskedErrors: config.app.isProduction, // Mask errors in production
+
     // CORS configuration
     cors: config.app.isProduction
         ? {
@@ -62,6 +66,8 @@ const yoga = createYoga<ServerContext>({
         },
 
     plugins: [
+        // Disable introspection in production or when explicitly disabled
+        ...(config.graphql.introspection ? [] : [useDisableIntrospection()]),
         useLogger({
             logFn: (eventName, { args }) => {
                 // Track execution timing
@@ -84,9 +90,6 @@ const yoga = createYoga<ServerContext>({
         }),
         createResponseCachePlugin(), // Cache responses
     ],
-    graphiql: {
-        subscriptionsProtocol: 'SSE',
-    },
     context: async ({ request }): Promise<ServerContext> => {
         // Create fresh DataLoader instances per request
         const dataLoaders = createDataLoaders();
