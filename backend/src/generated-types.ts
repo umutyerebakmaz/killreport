@@ -20,10 +20,10 @@ export type Alliance = {
   __typename?: 'Alliance';
   corporationCount: Scalars['Int']['output'];
   corporations?: Maybe<Array<Corporation>>;
-  createdBy: Character;
-  createdByCorporation: Corporation;
+  createdBy?: Maybe<Character>;
+  createdByCorporation?: Maybe<Corporation>;
   date_founded: Scalars['String']['output'];
-  executor: Corporation;
+  executor?: Maybe<Corporation>;
   faction_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
   memberCount: Scalars['Int']['output'];
@@ -1344,10 +1344,10 @@ export type ResolversParentTypes = {
 export type AllianceResolvers<ContextType = any, ParentType extends ResolversParentTypes['Alliance'] = ResolversParentTypes['Alliance']> = {
   corporationCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   corporations?: Resolver<Maybe<Array<ResolversTypes['Corporation']>>, ParentType, ContextType>;
-  createdBy?: Resolver<ResolversTypes['Character'], ParentType, ContextType>;
-  createdByCorporation?: Resolver<ResolversTypes['Corporation'], ParentType, ContextType>;
+  createdBy?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
+  createdByCorporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType>;
   date_founded?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  executor?: Resolver<ResolversTypes['Corporation'], ParentType, ContextType>;
+  executor?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType>;
   faction_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   memberCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
