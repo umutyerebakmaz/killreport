@@ -266,7 +266,7 @@ export enum ConstellationOrderBy {
 export type Corporation = {
   __typename?: 'Corporation';
   alliance?: Maybe<Alliance>;
-  ceo: Character;
+  ceo?: Maybe<Character>;
   creator: Character;
   date_founded?: Maybe<Scalars['String']['output']>;
   faction_id?: Maybe<Scalars['Int']['output']>;
@@ -773,14 +773,20 @@ export type QueryUserArgs = {
 
 export type QueueStatus = {
   __typename?: 'QueueStatus';
-  /** Is the queue currently active */
+  /** Is there at least one active consumer */
   active: Scalars['Boolean']['output'];
-  /** Number of messages currently being processed */
+  /** Number of active consumers processing from this queue */
   consumerCount: Scalars['Int']['output'];
   /** Number of messages waiting to be processed */
   messageCount: Scalars['Int']['output'];
   /** Name of the queue */
   name: Scalars['String']['output'];
+  /** Worker script name (e.g., worker:info:corporations) */
+  workerName?: Maybe<Scalars['String']['output']>;
+  /** Process ID of the running worker */
+  workerPid?: Maybe<Scalars['Int']['output']>;
+  /** Is the worker process running (detected via ps aux) */
+  workerRunning: Scalars['Boolean']['output'];
 };
 
 export type Race = {
@@ -1077,7 +1083,7 @@ export type AllianceQueryVariables = Exact<{
 }>;
 
 
-export type AllianceQuery = { __typename?: 'Query', alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, memberCount: number, corporationCount: number, metrics?: { __typename?: 'AllianceMetrics', memberCountDelta1d?: number | null, memberCountDelta7d?: number | null, memberCountDelta30d?: number | null, corporationCountDelta1d?: number | null, corporationCountDelta7d?: number | null, corporationCountDelta30d?: number | null, memberCountGrowthRate1d?: number | null, memberCountGrowthRate7d?: number | null, memberCountGrowthRate30d?: number | null, corporationCountGrowthRate1d?: number | null, corporationCountGrowthRate7d?: number | null, corporationCountGrowthRate30d?: number | null } | null, executor: { __typename?: 'Corporation', id: number, name: string }, createdByCorporation: { __typename?: 'Corporation', id: number, name: string }, createdBy: { __typename?: 'Character', id: number, name: string }, corporations?: Array<{ __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, ceo: { __typename?: 'Character', id: number, name: string } }> | null } | null };
+export type AllianceQuery = { __typename?: 'Query', alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, memberCount: number, corporationCount: number, metrics?: { __typename?: 'AllianceMetrics', memberCountDelta7d?: number | null, corporationCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null, corporationCountGrowthRate7d?: number | null } | null, executor: { __typename?: 'Corporation', id: number, name: string }, createdByCorporation: { __typename?: 'Corporation', id: number, name: string }, createdBy: { __typename?: 'Character', id: number, name: string }, corporations?: Array<{ __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, ceo?: { __typename?: 'Character', id: number, name: string } | null }> | null } | null };
 
 export type AlliancesQueryVariables = Exact<{
   filter?: InputMaybe<AllianceFilter>;
@@ -1119,7 +1125,7 @@ export type CorporationQueryVariables = Exact<{
 }>;
 
 
-export type CorporationQuery = { __typename?: 'Query', corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, date_founded?: string | null, member_count: number, tax_rate: number, url?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, ceo: { __typename?: 'Character', id: number, name: string }, creator: { __typename?: 'Character', id: number, name: string }, metrics?: { __typename?: 'CorporationMetrics', memberCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null } | null } | null };
+export type CorporationQuery = { __typename?: 'Query', corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, date_founded?: string | null, member_count: number, tax_rate: number, url?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, ceo?: { __typename?: 'Character', id: number, name: string } | null, creator: { __typename?: 'Character', id: number, name: string }, metrics?: { __typename?: 'CorporationMetrics', memberCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null } | null } | null };
 
 export type CorporationsQueryVariables = Exact<{
   filter?: InputMaybe<CorporationFilter>;
@@ -1169,7 +1175,7 @@ export type WorkerStatusUpdatesSubscription = { __typename?: 'Subscription', wor
 export type WorkerStatusSubscriptionSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type WorkerStatusSubscriptionSubscription = { __typename?: 'Subscription', workerStatusUpdates: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean }>, standaloneWorkers: Array<{ __typename?: 'StandaloneWorkerStatus', name: string, running: boolean, pid?: number | null, description: string }> } };
+export type WorkerStatusSubscriptionSubscription = { __typename?: 'Subscription', workerStatusUpdates: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean, workerRunning: boolean, workerPid?: number | null, workerName?: string | null }>, standaloneWorkers: Array<{ __typename?: 'StandaloneWorkerStatus', name: string, running: boolean, pid?: number | null, description: string }> } };
 
 export type AllianceKillmailsQueryVariables = Exact<{
   allianceId: Scalars['Int']['input'];
@@ -1247,18 +1253,10 @@ export const AllianceDocument = gql`
     memberCount
     corporationCount
     metrics {
-      memberCountDelta1d
       memberCountDelta7d
-      memberCountDelta30d
-      corporationCountDelta1d
       corporationCountDelta7d
-      corporationCountDelta30d
-      memberCountGrowthRate1d
       memberCountGrowthRate7d
-      memberCountGrowthRate30d
-      corporationCountGrowthRate1d
       corporationCountGrowthRate7d
-      corporationCountGrowthRate30d
     }
     executor {
       id
@@ -2149,6 +2147,9 @@ export const WorkerStatusSubscriptionDocument = gql`
       messageCount
       consumerCount
       active
+      workerRunning
+      workerPid
+      workerName
     }
     standaloneWorkers {
       name
