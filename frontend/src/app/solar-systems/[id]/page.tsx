@@ -111,6 +111,7 @@ export default function SolarSystemDetailPage({
                     <span>Constellation:</span>
                     <Link
                       href={`/constellations/${system.constellation.id}`}
+                      prefetch={false}
                       className="transition-colors text-cyan-400 hover:text-cyan-300"
                     >
                       {system.constellation.name}
@@ -123,6 +124,7 @@ export default function SolarSystemDetailPage({
                     <span>Region:</span>
                     <Link
                       href={`/regions/${system.constellation.region.id}`}
+                      prefetch={false}
                       className="transition-colors text-cyan-400 hover:text-cyan-300"
                     >
                       {system.constellation.region.name}
@@ -216,6 +218,7 @@ export default function SolarSystemDetailPage({
                     </div>
                     <Link
                       href={`/regions/${system.constellation.region.id}`}
+                      prefetch={false}
                       className="font-medium transition-colors text-cyan-400 hover:text-cyan-300"
                     >
                       {system.constellation.region.name}
@@ -234,6 +237,7 @@ export default function SolarSystemDetailPage({
                     </div>
                     <Link
                       href={`/constellations/${system.constellation.id}`}
+                      prefetch={false}
                       className="font-medium transition-colors text-cyan-400 hover:text-cyan-300"
                     >
                       {system.constellation.name}

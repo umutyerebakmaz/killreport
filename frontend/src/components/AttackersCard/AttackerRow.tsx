@@ -129,6 +129,7 @@ export default function AttackerRow({
               <Link
                 href={`/characters/${attacker.character?.id}`}
                 className="block font-medium text-gray-400 hover:text-blue-400"
+                prefetch={false}
               >
                 {attacker.character?.name || "Unknown"}
               </Link>
@@ -140,6 +141,7 @@ export default function AttackerRow({
               <Link
                 href={`/corporations/${attacker.corporation?.id}`}
                 className="block text-sm text-gray-400 hover:text-blue-400"
+                prefetch={false}
               >
                 {attacker.corporation?.name || "Unknown"}
               </Link>
@@ -151,6 +153,7 @@ export default function AttackerRow({
               <Link
                 href={`/alliances/${attacker.alliance?.id}`}
                 className="block text-sm text-gray-400 hover:text-blue-400"
+                prefetch={false}
               >
                 {attacker.alliance?.name || "Unknown"}
               </Link>
