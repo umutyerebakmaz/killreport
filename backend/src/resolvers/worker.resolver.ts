@@ -29,7 +29,7 @@ const QUEUE_WORKER_MAP: Record<string, string> = {
  * Standalone workers that don't use RabbitMQ queues
  * These run independently and are monitored via process checks only
  */
-const STANDALONE_WORKERS = [
+const STANDALONE_WORKERS: Array<{ name: string; description: string }> = [
   { name: 'worker:redisq', description: 'Real-time killmail stream from zKillboard RedisQ' },
 ];
 
