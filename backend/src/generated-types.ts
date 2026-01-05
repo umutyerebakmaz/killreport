@@ -184,14 +184,14 @@ export type Character = {
   __typename?: 'Character';
   alliance?: Maybe<Alliance>;
   birthday: Scalars['String']['output'];
-  bloodline: Bloodline;
-  corporation: Corporation;
+  bloodline?: Maybe<Bloodline>;
+  corporation?: Maybe<Corporation>;
   description?: Maybe<Scalars['String']['output']>;
   faction_id?: Maybe<Scalars['Int']['output']>;
   gender: Scalars['String']['output'];
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
-  race: Race;
+  race?: Maybe<Race>;
   security_status?: Maybe<Scalars['Float']['output']>;
   title?: Maybe<Scalars['String']['output']>;
 };
@@ -1458,14 +1458,14 @@ export type CategoryEdgeResolvers<ContextType = any, ParentType extends Resolver
 export type CharacterResolvers<ContextType = any, ParentType extends ResolversParentTypes['Character'] = ResolversParentTypes['Character']> = {
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType>;
   birthday?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  bloodline?: Resolver<ResolversTypes['Bloodline'], ParentType, ContextType>;
-  corporation?: Resolver<ResolversTypes['Corporation'], ParentType, ContextType>;
+  bloodline?: Resolver<Maybe<ResolversTypes['Bloodline']>, ParentType, ContextType>;
+  corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   faction_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   gender?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  race?: Resolver<ResolversTypes['Race'], ParentType, ContextType>;
+  race?: Resolver<Maybe<ResolversTypes['Race']>, ParentType, ContextType>;
   security_status?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
