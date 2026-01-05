@@ -1,11 +1,11 @@
 type Character {
   id: Int!
   name: String!
-  corporation: Corporation!
+  corporation: Corporation
   alliance: Alliance
   birthday: String!
-  bloodline: Bloodline!
-  race: Race!
+  bloodline: Bloodline
+  race: Race
   gender: String!
   security_status: Float
   description: String
@@ -43,4 +43,15 @@ type CharacterConnection {
 extend type Query {
   character(id: Int!): Character
   characters(filter: CharacterFilter): CharacterConnection!
+}
+
+extend type Mutation {
+  refreshCharacter(characterId: Int!): RefreshCharacterResult!
+}
+
+type RefreshCharacterResult {
+  success: Boolean!
+  message: String!
+  characterId: Int!
+  queued: Boolean!
 }
