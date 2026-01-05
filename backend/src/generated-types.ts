@@ -265,7 +265,7 @@ export enum ConstellationOrderBy {
 export type Corporation = {
   __typename?: 'Corporation';
   alliance?: Maybe<Alliance>;
-  ceo: Character;
+  ceo?: Maybe<Character>;
   creator: Character;
   date_founded?: Maybe<Scalars['String']['output']>;
   faction_id?: Maybe<Scalars['Int']['output']>;
@@ -772,14 +772,20 @@ export type QueryUserArgs = {
 
 export type QueueStatus = {
   __typename?: 'QueueStatus';
-  /** Is the queue currently active */
+  /** Is there at least one active consumer */
   active: Scalars['Boolean']['output'];
-  /** Number of messages currently being processed */
+  /** Number of active consumers processing from this queue */
   consumerCount: Scalars['Int']['output'];
   /** Number of messages waiting to be processed */
   messageCount: Scalars['Int']['output'];
   /** Name of the queue */
   name: Scalars['String']['output'];
+  /** Worker script name (e.g., worker:info:corporations) */
+  workerName?: Maybe<Scalars['String']['output']>;
+  /** Process ID of the running worker */
+  workerPid?: Maybe<Scalars['Int']['output']>;
+  /** Is the worker process running (detected via ps aux) */
+  workerRunning: Scalars['Boolean']['output'];
 };
 
 export type Race = {
@@ -1496,7 +1502,7 @@ export type ConstellationEdgeResolvers<ContextType = any, ParentType extends Res
 
 export type CorporationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Corporation'] = ResolversParentTypes['Corporation']> = {
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType>;
-  ceo?: Resolver<ResolversTypes['Character'], ParentType, ContextType>;
+  ceo?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
   creator?: Resolver<ResolversTypes['Character'], ParentType, ContextType>;
   date_founded?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   faction_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
@@ -1676,6 +1682,9 @@ export type QueueStatusResolvers<ContextType = any, ParentType extends Resolvers
   consumerCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   messageCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  workerName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  workerPid?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  workerRunning?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
 };
 
 export type RaceResolvers<ContextType = any, ParentType extends ResolversParentTypes['Race'] = ResolversParentTypes['Race']> = {
