@@ -8,6 +8,8 @@ import { categoryFieldResolvers, categoryMutations, categoryQueries } from './ca
 import { characterFieldResolvers, characterMutations, characterQueries } from './character.resolver';
 import { constellationFieldResolvers, constellationMutations, constellationQueries } from './constellation.resolver';
 import { corporationFieldResolvers, corporationQueries } from './corporation.resolver';
+import { dogmaAttributeMutations, dogmaAttributeQueries } from './dogma-attribute.resolver';
+import { dogmaEffectMutations, dogmaEffectQueries } from './dogma-effect.resolver';
 import { itemGroupFieldResolvers, itemGroupMutations, itemGroupQueries } from './item-group.resolver';
 import {
     attackerFieldResolvers,
@@ -38,6 +40,8 @@ export const resolvers: Resolvers = {
         ...categoryQueries,
         ...itemGroupQueries,
         ...typeQueries,
+        ...dogmaAttributeQueries,
+        ...dogmaEffectQueries,
         ...constellationQueries,
         ...regionQueries,
         ...solarSystemQueries,
@@ -54,6 +58,8 @@ export const resolvers: Resolvers = {
         ...categoryMutations,
         ...itemGroupMutations,
         ...typeMutations,
+        ...dogmaAttributeMutations,
+        ...dogmaEffectMutations,
         ...constellationMutations,
         ...regionMutations,
         ...solarSystemMutations,
