@@ -251,17 +251,19 @@ model SyncJob {
 }
 
 model Type {
-  id          Int      @id
+  id          Int                   @id
   name        String
   description String?
   group_id    Int
-  published   Boolean  @default(true)
+  published   Boolean               @default(true)
   volume      Float?
   capacity    Float?
   mass        Float?
   icon_id     Int?
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  created_at  DateTime              @default(now())
+  updated_at  DateTime              @updatedAt
+  attributes  TypeDogmaAttribute[]
+  effects     TypeDogmaEffect[]
 
   @@index([group_id])
   @@map("types")
@@ -314,18 +316,19 @@ model Victim {
 }
 
 model DogmaAttribute {
-  id            Int      @id
+  id            Int                   @id
   name          String
   display_name  String?
   description   String?
   unit_id       Int?
   icon_id       Int?
   default_value Float?
-  published     Boolean  @default(true)
-  stackable     Boolean  @default(false)
-  high_is_good  Boolean  @default(false)
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  published     Boolean               @default(true)
+  stackable     Boolean               @default(false)
+  high_is_good  Boolean               @default(false)
+  created_at    DateTime              @default(now())
+  updated_at    DateTime              @updatedAt
+  types         TypeDogmaAttribute[]
 
   @@index([name])
   @@index([published])
@@ -333,23 +336,54 @@ model DogmaAttribute {
 }
 
 model DogmaEffect {
-  id                Int      @id
-  name              String
-  display_name      String?
-  description       String?
-  effect_category   Int?
-  pre_expression    Int?
-  post_expression   Int?
-  icon_id           Int?
-  published         Boolean  @default(true)
-  is_offensive      Boolean  @default(false)
-  is_assistance     Boolean  @default(false)
-  disallow_auto_repeat Boolean @default(false)
-  created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
+  id                   Int                @id
+  name                 String
+  display_name         String?
+  description          String?
+  effect_category      Int?
+  pre_expression       Int?
+  post_expression      Int?
+  icon_id              Int?
+  published            Boolean            @default(true)
+  is_offensive         Boolean            @default(false)
+  is_assistance        Boolean            @default(false)
+  disallow_auto_repeat Boolean            @default(false)
+  created_at           DateTime           @default(now())
+  updated_at           DateTime           @updatedAt
+  types                TypeDogmaEffect[]
 
   @@index([name])
   @@index([published])
   @@index([effect_category])
   @@map("dogma_effects")
+}
+
+model TypeDogmaAttribute {
+  type_id      Int
+  attribute_id Int
+  value        Float
+  created_at   DateTime        @default(now())
+  updated_at   DateTime        @updatedAt
+  type         Type            @relation(fields: [type_id], references: [id], onDelete: Cascade)
+  attribute    DogmaAttribute  @relation(fields: [attribute_id], references: [id], onDelete: Cascade)
+
+  @@id([type_id, attribute_id])
+  @@index([type_id])
+  @@index([attribute_id])
+  @@map("type_dogma_attributes")
+}
+
+model TypeDogmaEffect {
+  type_id    Int
+  effect_id  Int
+  is_default Boolean      @default(false)
+  created_at DateTime     @default(now())
+  updated_at DateTime     @updatedAt
+  type       Type         @relation(fields: [type_id], references: [id], onDelete: Cascade)
+  effect     DogmaEffect  @relation(fields: [effect_id], references: [id], onDelete: Cascade)
+
+  @@id([type_id, effect_id])
+  @@index([type_id])
+  @@index([effect_id])
+  @@map("type_dogma_effects")
 }
