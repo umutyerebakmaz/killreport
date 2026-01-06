@@ -478,6 +478,7 @@ type Mutation {
   startItemGroupSync(input: StartItemGroupSyncInput!): StartItemGroupSyncPayload!
   startRegionSync(input: StartRegionSyncInput!): StartRegionSyncPayload!
   startSolarSystemSync(input: StartSolarSystemSyncInput!): StartSolarSystemSyncPayload!
+  startTypeDogmaSync(input: StartTypeDogmaSyncInput!): StartTypeDogmaSyncPayload!
   startTypeSync(input: StartTypeSyncInput!): StartTypeSyncPayload!
 
   """
@@ -786,6 +787,18 @@ type StartSolarSystemSyncPayload {
   success: Boolean!
 }
 
+input StartTypeDogmaSyncInput {
+  clientMutationId: String
+  typeIds: [Int!]
+}
+
+type StartTypeDogmaSyncPayload {
+  clientMutationId: String
+  message: String
+  queuedCount: Int
+  success: Boolean!
+}
+
 input StartTypeSyncInput {
   clientMutationId: String
 }
@@ -828,6 +841,8 @@ type Type {
   capacity: Float
   created_at: String!
   description: String
+  dogmaAttributes: [TypeDogmaAttribute!]!
+  dogmaEffects: [TypeDogmaEffect!]!
   group: ItemGroup!
   icon_id: Int
   id: Int!
@@ -841,6 +856,20 @@ type Type {
 type TypeConnection {
   edges: [TypeEdge!]!
   pageInfo: PageInfo!
+}
+
+type TypeDogmaAttribute {
+  attribute: DogmaAttribute!
+  attribute_id: Int!
+  type_id: Int!
+  value: Float!
+}
+
+type TypeDogmaEffect {
+  effect: DogmaEffect!
+  effect_id: Int!
+  is_default: Boolean!
+  type_id: Int!
 }
 
 type TypeEdge {
