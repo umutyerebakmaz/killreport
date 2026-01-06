@@ -1,0 +1,55 @@
+type DogmaEffect {
+  id: Int!
+  name: String!
+  display_name: String
+  description: String
+  effect_category: Int
+  pre_expression: Int
+  post_expression: Int
+  icon_id: Int
+  published: Boolean!
+  is_offensive: Boolean!
+  is_assistance: Boolean!
+  disallow_auto_repeat: Boolean!
+  created_at: String!
+  updated_at: String!
+}
+
+type DogmaEffectEdge {
+  node: DogmaEffect!
+  cursor: String!
+}
+
+type DogmaEffectConnection {
+  edges: [DogmaEffectEdge!]!
+  pageInfo: PageInfo!
+}
+
+input DogmaEffectFilter {
+  page: Int
+  limit: Int
+  search: String
+  published: Boolean
+  effect_category: Int
+}
+
+input StartDogmaEffectSyncInput {
+  clientMutationId: String
+}
+
+type StartDogmaEffectSyncPayload {
+  success: Boolean!
+  message: String
+  clientMutationId: String
+}
+
+extend type Query {
+  dogmaEffect(id: Int!): DogmaEffect
+  dogmaEffects(filter: DogmaEffectFilter): DogmaEffectConnection!
+}
+
+extend type Mutation {
+  startDogmaEffectSync(
+    input: StartDogmaEffectSyncInput!
+  ): StartDogmaEffectSyncPayload!
+}

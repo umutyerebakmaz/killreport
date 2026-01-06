@@ -1,0 +1,52 @@
+type DogmaAttribute {
+  id: Int!
+  name: String!
+  display_name: String
+  description: String
+  unit_id: Int
+  icon_id: Int
+  default_value: Float
+  published: Boolean!
+  stackable: Boolean!
+  high_is_good: Boolean!
+  created_at: String!
+  updated_at: String!
+}
+
+type DogmaAttributeEdge {
+  node: DogmaAttribute!
+  cursor: String!
+}
+
+type DogmaAttributeConnection {
+  edges: [DogmaAttributeEdge!]!
+  pageInfo: PageInfo!
+}
+
+input DogmaAttributeFilter {
+  page: Int
+  limit: Int
+  search: String
+  published: Boolean
+}
+
+input StartDogmaAttributeSyncInput {
+  clientMutationId: String
+}
+
+type StartDogmaAttributeSyncPayload {
+  success: Boolean!
+  message: String
+  clientMutationId: String
+}
+
+extend type Query {
+  dogmaAttribute(id: Int!): DogmaAttribute
+  dogmaAttributes(filter: DogmaAttributeFilter): DogmaAttributeConnection!
+}
+
+extend type Mutation {
+  startDogmaAttributeSync(
+    input: StartDogmaAttributeSyncInput!
+  ): StartDogmaAttributeSyncPayload!
+}
