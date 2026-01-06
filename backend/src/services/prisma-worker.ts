@@ -30,9 +30,7 @@ const pool = new Pool({
             ca,
             rejectUnauthorized: true,
         }
-        : {
-            rejectUnauthorized: false,
-        },
+        : true, // Use SSL without CA verification (for Prisma Studio compatibility)
     // CRITICAL: Worker pool settings
     max: 2, // Maximum 2 connections per worker
     min: 0, // No minimum - release all idle connections
