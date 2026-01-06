@@ -349,6 +349,79 @@ export type CreateUserPayload = {
   user?: Maybe<User>;
 };
 
+export type DogmaAttribute = {
+  __typename?: 'DogmaAttribute';
+  created_at: Scalars['String']['output'];
+  default_value?: Maybe<Scalars['Float']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+  display_name?: Maybe<Scalars['String']['output']>;
+  high_is_good: Scalars['Boolean']['output'];
+  icon_id?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  published: Scalars['Boolean']['output'];
+  stackable: Scalars['Boolean']['output'];
+  unit_id?: Maybe<Scalars['Int']['output']>;
+  updated_at: Scalars['String']['output'];
+};
+
+export type DogmaAttributeConnection = {
+  __typename?: 'DogmaAttributeConnection';
+  edges: Array<DogmaAttributeEdge>;
+  pageInfo: PageInfo;
+};
+
+export type DogmaAttributeEdge = {
+  __typename?: 'DogmaAttributeEdge';
+  cursor: Scalars['String']['output'];
+  node: DogmaAttribute;
+};
+
+export type DogmaAttributeFilter = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  published?: InputMaybe<Scalars['Boolean']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type DogmaEffect = {
+  __typename?: 'DogmaEffect';
+  created_at: Scalars['String']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  disallow_auto_repeat: Scalars['Boolean']['output'];
+  display_name?: Maybe<Scalars['String']['output']>;
+  effect_category?: Maybe<Scalars['Int']['output']>;
+  icon_id?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['Int']['output'];
+  is_assistance: Scalars['Boolean']['output'];
+  is_offensive: Scalars['Boolean']['output'];
+  name: Scalars['String']['output'];
+  post_expression?: Maybe<Scalars['Int']['output']>;
+  pre_expression?: Maybe<Scalars['Int']['output']>;
+  published: Scalars['Boolean']['output'];
+  updated_at: Scalars['String']['output'];
+};
+
+export type DogmaEffectConnection = {
+  __typename?: 'DogmaEffectConnection';
+  edges: Array<DogmaEffectEdge>;
+  pageInfo: PageInfo;
+};
+
+export type DogmaEffectEdge = {
+  __typename?: 'DogmaEffectEdge';
+  cursor: Scalars['String']['output'];
+  node: DogmaEffect;
+};
+
+export type DogmaEffectFilter = {
+  effect_category?: InputMaybe<Scalars['Int']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  published?: InputMaybe<Scalars['Boolean']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type ItemGroup = {
   __typename?: 'ItemGroup';
   category: Category;
@@ -458,6 +531,8 @@ export type Mutation = {
   startAllianceSync: StartAllianceSyncPayload;
   startCategorySync: StartCategorySyncPayload;
   startConstellationSync: StartConstellationSyncPayload;
+  startDogmaAttributeSync: StartDogmaAttributeSyncPayload;
+  startDogmaEffectSync: StartDogmaEffectSyncPayload;
   startItemGroupSync: StartItemGroupSyncPayload;
   startRegionSync: StartRegionSyncPayload;
   startSolarSystemSync: StartSolarSystemSyncPayload;
@@ -524,6 +599,16 @@ export type MutationStartCategorySyncArgs = {
 
 export type MutationStartConstellationSyncArgs = {
   input: StartConstellationSyncInput;
+};
+
+
+export type MutationStartDogmaAttributeSyncArgs = {
+  input: StartDogmaAttributeSyncInput;
+};
+
+
+export type MutationStartDogmaEffectSyncArgs = {
+  input: StartDogmaEffectSyncInput;
 };
 
 
@@ -598,6 +683,10 @@ export type Query = {
   /** Fetches killmails for a specific corporation */
   corporationKillmails: KillmailConnection;
   corporations: CorporationConnection;
+  dogmaAttribute?: Maybe<DogmaAttribute>;
+  dogmaAttributes: DogmaAttributeConnection;
+  dogmaEffect?: Maybe<DogmaEffect>;
+  dogmaEffects: DogmaEffectConnection;
   itemGroup?: Maybe<ItemGroup>;
   itemGroups: ItemGroupConnection;
   /** Fetches a single killmail */
@@ -706,6 +795,26 @@ export type QueryCorporationKillmailsArgs = {
 
 export type QueryCorporationsArgs = {
   filter?: InputMaybe<CorporationFilter>;
+};
+
+
+export type QueryDogmaAttributeArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type QueryDogmaAttributesArgs = {
+  filter?: InputMaybe<DogmaAttributeFilter>;
+};
+
+
+export type QueryDogmaEffectArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type QueryDogmaEffectsArgs = {
+  filter?: InputMaybe<DogmaEffectFilter>;
 };
 
 
@@ -943,6 +1052,28 @@ export type StartConstellationSyncInput = {
 
 export type StartConstellationSyncPayload = {
   __typename?: 'StartConstellationSyncPayload';
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type StartDogmaAttributeSyncInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type StartDogmaAttributeSyncPayload = {
+  __typename?: 'StartDogmaAttributeSyncPayload';
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type StartDogmaEffectSyncInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type StartDogmaEffectSyncPayload = {
+  __typename?: 'StartDogmaEffectSyncPayload';
   clientMutationId?: Maybe<Scalars['String']['output']>;
   message?: Maybe<Scalars['String']['output']>;
   success: Scalars['Boolean']['output'];
@@ -1210,6 +1341,14 @@ export type ResolversTypes = {
   CorporationSnapshot: ResolverTypeWrapper<CorporationSnapshot>;
   CreateUserInput: CreateUserInput;
   CreateUserPayload: ResolverTypeWrapper<CreateUserPayload>;
+  DogmaAttribute: ResolverTypeWrapper<DogmaAttribute>;
+  DogmaAttributeConnection: ResolverTypeWrapper<DogmaAttributeConnection>;
+  DogmaAttributeEdge: ResolverTypeWrapper<DogmaAttributeEdge>;
+  DogmaAttributeFilter: DogmaAttributeFilter;
+  DogmaEffect: ResolverTypeWrapper<DogmaEffect>;
+  DogmaEffectConnection: ResolverTypeWrapper<DogmaEffectConnection>;
+  DogmaEffectEdge: ResolverTypeWrapper<DogmaEffectEdge>;
+  DogmaEffectFilter: DogmaEffectFilter;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
@@ -1249,6 +1388,10 @@ export type ResolversTypes = {
   StartCategorySyncPayload: ResolverTypeWrapper<StartCategorySyncPayload>;
   StartConstellationSyncInput: StartConstellationSyncInput;
   StartConstellationSyncPayload: ResolverTypeWrapper<StartConstellationSyncPayload>;
+  StartDogmaAttributeSyncInput: StartDogmaAttributeSyncInput;
+  StartDogmaAttributeSyncPayload: ResolverTypeWrapper<StartDogmaAttributeSyncPayload>;
+  StartDogmaEffectSyncInput: StartDogmaEffectSyncInput;
+  StartDogmaEffectSyncPayload: ResolverTypeWrapper<StartDogmaEffectSyncPayload>;
   StartItemGroupSyncInput: StartItemGroupSyncInput;
   StartItemGroupSyncPayload: ResolverTypeWrapper<StartItemGroupSyncPayload>;
   StartRegionSyncInput: StartRegionSyncInput;
@@ -1308,6 +1451,14 @@ export type ResolversParentTypes = {
   CorporationSnapshot: CorporationSnapshot;
   CreateUserInput: CreateUserInput;
   CreateUserPayload: CreateUserPayload;
+  DogmaAttribute: DogmaAttribute;
+  DogmaAttributeConnection: DogmaAttributeConnection;
+  DogmaAttributeEdge: DogmaAttributeEdge;
+  DogmaAttributeFilter: DogmaAttributeFilter;
+  DogmaEffect: DogmaEffect;
+  DogmaEffectConnection: DogmaEffectConnection;
+  DogmaEffectEdge: DogmaEffectEdge;
+  DogmaEffectFilter: DogmaEffectFilter;
   Float: Scalars['Float']['output'];
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
@@ -1344,6 +1495,10 @@ export type ResolversParentTypes = {
   StartCategorySyncPayload: StartCategorySyncPayload;
   StartConstellationSyncInput: StartConstellationSyncInput;
   StartConstellationSyncPayload: StartConstellationSyncPayload;
+  StartDogmaAttributeSyncInput: StartDogmaAttributeSyncInput;
+  StartDogmaAttributeSyncPayload: StartDogmaAttributeSyncPayload;
+  StartDogmaEffectSyncInput: StartDogmaEffectSyncInput;
+  StartDogmaEffectSyncPayload: StartDogmaEffectSyncPayload;
   StartItemGroupSyncInput: StartItemGroupSyncInput;
   StartItemGroupSyncPayload: StartItemGroupSyncPayload;
   StartRegionSyncInput: StartRegionSyncInput;
@@ -1576,6 +1731,58 @@ export type CreateUserPayloadResolvers<ContextType = any, ParentType extends Res
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
 };
 
+export type DogmaAttributeResolvers<ContextType = any, ParentType extends ResolversParentTypes['DogmaAttribute'] = ResolversParentTypes['DogmaAttribute']> = {
+  created_at?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  default_value?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  display_name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  high_is_good?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  icon_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  published?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  stackable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  unit_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  updated_at?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type DogmaAttributeConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['DogmaAttributeConnection'] = ResolversParentTypes['DogmaAttributeConnection']> = {
+  edges?: Resolver<Array<ResolversTypes['DogmaAttributeEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+};
+
+export type DogmaAttributeEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['DogmaAttributeEdge'] = ResolversParentTypes['DogmaAttributeEdge']> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['DogmaAttribute'], ParentType, ContextType>;
+};
+
+export type DogmaEffectResolvers<ContextType = any, ParentType extends ResolversParentTypes['DogmaEffect'] = ResolversParentTypes['DogmaEffect']> = {
+  created_at?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  disallow_auto_repeat?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  display_name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  effect_category?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  icon_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  is_assistance?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  is_offensive?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  post_expression?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  pre_expression?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  published?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  updated_at?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type DogmaEffectConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['DogmaEffectConnection'] = ResolversParentTypes['DogmaEffectConnection']> = {
+  edges?: Resolver<Array<ResolversTypes['DogmaEffectEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+};
+
+export type DogmaEffectEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['DogmaEffectEdge'] = ResolversParentTypes['DogmaEffectEdge']> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['DogmaEffect'], ParentType, ContextType>;
+};
+
 export type ItemGroupResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemGroup'] = ResolversParentTypes['ItemGroup']> = {
   category?: Resolver<ResolversTypes['Category'], ParentType, ContextType>;
   created_at?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1646,6 +1853,8 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   startAllianceSync?: Resolver<ResolversTypes['StartAllianceSyncPayload'], ParentType, ContextType, RequireFields<MutationStartAllianceSyncArgs, 'input'>>;
   startCategorySync?: Resolver<ResolversTypes['StartCategorySyncPayload'], ParentType, ContextType, RequireFields<MutationStartCategorySyncArgs, 'input'>>;
   startConstellationSync?: Resolver<ResolversTypes['StartConstellationSyncPayload'], ParentType, ContextType, RequireFields<MutationStartConstellationSyncArgs, 'input'>>;
+  startDogmaAttributeSync?: Resolver<ResolversTypes['StartDogmaAttributeSyncPayload'], ParentType, ContextType, RequireFields<MutationStartDogmaAttributeSyncArgs, 'input'>>;
+  startDogmaEffectSync?: Resolver<ResolversTypes['StartDogmaEffectSyncPayload'], ParentType, ContextType, RequireFields<MutationStartDogmaEffectSyncArgs, 'input'>>;
   startItemGroupSync?: Resolver<ResolversTypes['StartItemGroupSyncPayload'], ParentType, ContextType, RequireFields<MutationStartItemGroupSyncArgs, 'input'>>;
   startRegionSync?: Resolver<ResolversTypes['StartRegionSyncPayload'], ParentType, ContextType, RequireFields<MutationStartRegionSyncArgs, 'input'>>;
   startSolarSystemSync?: Resolver<ResolversTypes['StartSolarSystemSyncPayload'], ParentType, ContextType, RequireFields<MutationStartSolarSystemSyncArgs, 'input'>>;
@@ -1689,6 +1898,10 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType, RequireFields<QueryCorporationArgs, 'id'>>;
   corporationKillmails?: Resolver<ResolversTypes['KillmailConnection'], ParentType, ContextType, RequireFields<QueryCorporationKillmailsArgs, 'corporationId'>>;
   corporations?: Resolver<ResolversTypes['CorporationConnection'], ParentType, ContextType, Partial<QueryCorporationsArgs>>;
+  dogmaAttribute?: Resolver<Maybe<ResolversTypes['DogmaAttribute']>, ParentType, ContextType, RequireFields<QueryDogmaAttributeArgs, 'id'>>;
+  dogmaAttributes?: Resolver<ResolversTypes['DogmaAttributeConnection'], ParentType, ContextType, Partial<QueryDogmaAttributesArgs>>;
+  dogmaEffect?: Resolver<Maybe<ResolversTypes['DogmaEffect']>, ParentType, ContextType, RequireFields<QueryDogmaEffectArgs, 'id'>>;
+  dogmaEffects?: Resolver<ResolversTypes['DogmaEffectConnection'], ParentType, ContextType, Partial<QueryDogmaEffectsArgs>>;
   itemGroup?: Resolver<Maybe<ResolversTypes['ItemGroup']>, ParentType, ContextType, RequireFields<QueryItemGroupArgs, 'id'>>;
   itemGroups?: Resolver<ResolversTypes['ItemGroupConnection'], ParentType, ContextType, Partial<QueryItemGroupsArgs>>;
   killmail?: Resolver<Maybe<ResolversTypes['Killmail']>, ParentType, ContextType, RequireFields<QueryKillmailArgs, 'id'>>;
@@ -1801,6 +2014,18 @@ export type StartCategorySyncPayloadResolvers<ContextType = any, ParentType exte
 };
 
 export type StartConstellationSyncPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['StartConstellationSyncPayload'] = ResolversParentTypes['StartConstellationSyncPayload']> = {
+  clientMutationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+};
+
+export type StartDogmaAttributeSyncPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['StartDogmaAttributeSyncPayload'] = ResolversParentTypes['StartDogmaAttributeSyncPayload']> = {
+  clientMutationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+};
+
+export type StartDogmaEffectSyncPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['StartDogmaEffectSyncPayload'] = ResolversParentTypes['StartDogmaEffectSyncPayload']> = {
   clientMutationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -1925,6 +2150,12 @@ export type Resolvers<ContextType = any> = {
   CorporationMetrics?: CorporationMetricsResolvers<ContextType>;
   CorporationSnapshot?: CorporationSnapshotResolvers<ContextType>;
   CreateUserPayload?: CreateUserPayloadResolvers<ContextType>;
+  DogmaAttribute?: DogmaAttributeResolvers<ContextType>;
+  DogmaAttributeConnection?: DogmaAttributeConnectionResolvers<ContextType>;
+  DogmaAttributeEdge?: DogmaAttributeEdgeResolvers<ContextType>;
+  DogmaEffect?: DogmaEffectResolvers<ContextType>;
+  DogmaEffectConnection?: DogmaEffectConnectionResolvers<ContextType>;
+  DogmaEffectEdge?: DogmaEffectEdgeResolvers<ContextType>;
   ItemGroup?: ItemGroupResolvers<ContextType>;
   ItemGroupConnection?: ItemGroupConnectionResolvers<ContextType>;
   ItemGroupEdge?: ItemGroupEdgeResolvers<ContextType>;
@@ -1951,6 +2182,8 @@ export type Resolvers<ContextType = any> = {
   StartAllianceSyncPayload?: StartAllianceSyncPayloadResolvers<ContextType>;
   StartCategorySyncPayload?: StartCategorySyncPayloadResolvers<ContextType>;
   StartConstellationSyncPayload?: StartConstellationSyncPayloadResolvers<ContextType>;
+  StartDogmaAttributeSyncPayload?: StartDogmaAttributeSyncPayloadResolvers<ContextType>;
+  StartDogmaEffectSyncPayload?: StartDogmaEffectSyncPayloadResolvers<ContextType>;
   StartItemGroupSyncPayload?: StartItemGroupSyncPayloadResolvers<ContextType>;
   StartRegionSyncPayload?: StartRegionSyncPayloadResolvers<ContextType>;
   StartSolarSystemSyncPayload?: StartSolarSystemSyncPayloadResolvers<ContextType>;
