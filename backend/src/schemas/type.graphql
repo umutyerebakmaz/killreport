@@ -10,6 +10,22 @@ type Type {
   icon_id: Int
   created_at: String!
   updated_at: String!
+  dogmaAttributes: [TypeDogmaAttribute!]!
+  dogmaEffects: [TypeDogmaEffect!]!
+}
+
+type TypeDogmaAttribute {
+  type_id: Int!
+  attribute_id: Int!
+  value: Float!
+  attribute: DogmaAttribute!
+}
+
+type TypeDogmaEffect {
+  type_id: Int!
+  effect_id: Int!
+  is_default: Boolean!
+  effect: DogmaEffect!
 }
 
 type TypeEdge {
@@ -40,6 +56,18 @@ type StartTypeSyncPayload {
   clientMutationId: String
 }
 
+input StartTypeDogmaSyncInput {
+  clientMutationId: String
+  typeIds: [Int!] # Optional: Specific type IDs to sync. If empty, sync all types
+}
+
+type StartTypeDogmaSyncPayload {
+  success: Boolean!
+  message: String
+  queuedCount: Int
+  clientMutationId: String
+}
+
 extend type Query {
   type(id: Int!): Type
   types(filter: TypeFilter): TypeConnection!
@@ -47,4 +75,7 @@ extend type Query {
 
 extend type Mutation {
   startTypeSync(input: StartTypeSyncInput!): StartTypeSyncPayload!
+  startTypeDogmaSync(
+    input: StartTypeDogmaSyncInput!
+  ): StartTypeDogmaSyncPayload!
 }
