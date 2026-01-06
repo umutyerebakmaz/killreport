@@ -298,6 +298,73 @@ type CreateUserPayload {
   user: User
 }
 
+type DogmaAttribute {
+  created_at: String!
+  default_value: Float
+  description: String
+  display_name: String
+  high_is_good: Boolean!
+  icon_id: Int
+  id: Int!
+  name: String!
+  published: Boolean!
+  stackable: Boolean!
+  unit_id: Int
+  updated_at: String!
+}
+
+type DogmaAttributeConnection {
+  edges: [DogmaAttributeEdge!]!
+  pageInfo: PageInfo!
+}
+
+type DogmaAttributeEdge {
+  cursor: String!
+  node: DogmaAttribute!
+}
+
+input DogmaAttributeFilter {
+  limit: Int
+  page: Int
+  published: Boolean
+  search: String
+}
+
+type DogmaEffect {
+  created_at: String!
+  description: String
+  disallow_auto_repeat: Boolean!
+  display_name: String
+  effect_category: Int
+  icon_id: Int
+  id: Int!
+  is_assistance: Boolean!
+  is_offensive: Boolean!
+  name: String!
+  post_expression: Int
+  pre_expression: Int
+  published: Boolean!
+  updated_at: String!
+}
+
+type DogmaEffectConnection {
+  edges: [DogmaEffectEdge!]!
+  pageInfo: PageInfo!
+}
+
+type DogmaEffectEdge {
+  cursor: String!
+  node: DogmaEffect!
+}
+
+input DogmaEffectFilter {
+  effect_category: Int
+  limit: Int
+  page: Int
+  published: Boolean
+  search: String
+}
+
 type ItemGroup {
   category: Category!
   created_at: String!
@@ -406,6 +473,8 @@ type Mutation {
   startAllianceSync(input: StartAllianceSyncInput!): StartAllianceSyncPayload!
   startCategorySync(input: StartCategorySyncInput!): StartCategorySyncPayload!
   startConstellationSync(input: StartConstellationSyncInput!): StartConstellationSyncPayload!
+  startDogmaAttributeSync(input: StartDogmaAttributeSyncInput!): StartDogmaAttributeSyncPayload!
+  startDogmaEffectSync(input: StartDogmaEffectSyncInput!): StartDogmaEffectSyncPayload!
   startItemGroupSync(input: StartItemGroupSyncInput!): StartItemGroupSyncPayload!
   startRegionSync(input: StartRegionSyncInput!): StartRegionSyncPayload!
   startSolarSystemSync(input: StartSolarSystemSyncInput!): StartSolarSystemSyncPayload!
@@ -462,6 +531,10 @@ type Query {
   """Fetches killmails for a specific corporation"""
   corporationKillmails(after: String, corporationId: Int!, first: Int): KillmailConnection!
   corporations(filter: CorporationFilter): CorporationConnection!
+  dogmaAttribute(id: Int!): DogmaAttribute
+  dogmaAttributes(filter: DogmaAttributeFilter): DogmaAttributeConnection!
+  dogmaEffect(id: Int!): DogmaEffect
+  dogmaEffects(filter: DogmaEffectFilter): DogmaEffectConnection!
   itemGroup(id: Int!): ItemGroup
   itemGroups(filter: ItemGroupFilter): ItemGroupConnection!
 
@@ -658,6 +731,26 @@ input StartConstellationSyncInput {
 }
 
 type StartConstellationSyncPayload {
+  clientMutationId: String
+  message: String
+  success: Boolean!
+}
+
+input StartDogmaAttributeSyncInput {
+  clientMutationId: String
+}
+
+type StartDogmaAttributeSyncPayload {
+  clientMutationId: String
+  message: String
+  success: Boolean!
+}
+
+input StartDogmaEffectSyncInput {
+  clientMutationId: String
+}
+
+type StartDogmaEffectSyncPayload {
   clientMutationId: String
   message: String
   success: Boolean!
