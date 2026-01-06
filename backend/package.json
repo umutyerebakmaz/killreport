@@ -59,8 +59,7 @@
         "worker:zkillboard": "tsx src/workers/worker-zkillboard-sync.ts",
         "worker:redisq": "tsx src/workers/worker-redisq-stream.ts",
         "worker:races": "tsx src/workers/worker-races.ts",
-        "worker:bloodlines": "tsx src/workers/worker-bloodlines.ts",
-        "rabbitmq:queue-count": "tsx src/scripts/rabbitmq-queue-count.ts"
+        "worker:bloodlines": "tsx src/workers/worker-bloodlines.ts"
     },
     "dependencies": {
         "@envelop/response-cache": "^9.0.0",
