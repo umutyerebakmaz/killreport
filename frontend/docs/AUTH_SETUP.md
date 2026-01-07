@@ -8,7 +8,7 @@ This project uses Eve Online SSO authentication. Users can log in with their Eve
 
 ### Flow Diagram
 
-```
+```text
 1. Frontend (localhost:3000)
    ↓ User clicks LOGIN button
    ↓ GraphQL mutation: login
