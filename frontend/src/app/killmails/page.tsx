@@ -155,9 +155,6 @@ function KillmailsContent() {
     router.push(`/killmails?${params.toString()}`, { scroll: false });
   }, [currentPage, orderBy, debouncedSearch, router]);
 
-  if (error)
-    return <div className="p-8 text-red-500">Error: {error.message}</div>;
-
   // Memoize killmails array to prevent unnecessary recalculations
   const killmails = useMemo(
     () => [
@@ -214,6 +211,16 @@ function KillmailsContent() {
     () => totalPages > 0 && setCurrentPage(totalPages),
     [totalPages]
   );
+
+  // Handle error state
+  if (error) {
+    return (
+      <div className="px-4 sm:px-6 lg:px-8">
+        <Breadcrumb items={[{ label: "Killmails" }]} />
+        <div className="p-8 text-red-500">Error: {error.message}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="px-4 sm:px-6 lg:px-8">
