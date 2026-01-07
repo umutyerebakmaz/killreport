@@ -463,7 +463,7 @@ export type Killmail = {
   killmailTime: Scalars['String']['output'];
   solarSystem: SolarSystem;
   totalValue?: Maybe<Scalars['Float']['output']>;
-  victim: Victim;
+  victim?: Maybe<Victim>;
 };
 
 export type KillmailConnection = {
@@ -1869,7 +1869,7 @@ export type KillmailResolvers<ContextType = any, ParentType extends ResolversPar
   killmailTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   solarSystem?: Resolver<ResolversTypes['SolarSystem'], ParentType, ContextType>;
   totalValue?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
-  victim?: Resolver<ResolversTypes['Victim'], ParentType, ContextType>;
+  victim?: Resolver<Maybe<ResolversTypes['Victim']>, ParentType, ContextType>;
 };
 
 export type KillmailConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['KillmailConnection'] = ResolversParentTypes['KillmailConnection']> = {

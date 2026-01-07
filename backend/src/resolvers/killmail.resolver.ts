@@ -27,52 +27,17 @@ export const killmailQueries: QueryResolvers = {
 
     const killmail = await prisma.killmail.findUnique({
       where: { killmail_id: Number(id) },
-      include: {
-        victim: true,
-        attackers: true,
-        items: true,
-      },
     });
 
     if (!killmail) return null;
 
+    // Field resolvers will handle victim, attackers, items via DataLoaders
     const result = {
       id: killmail.killmail_id.toString(),
       killmailHash: killmail.killmail_hash,
       killmailTime: killmail.killmail_time.toISOString(),
       solarSystemId: killmail.solar_system_id,
       createdAt: killmail.created_at.toISOString(),
-      victim: {
-        characterId: killmail.victim?.character_id ?? null,
-        corporationId: killmail.victim?.corporation_id ?? 0,
-        allianceId: killmail.victim?.alliance_id ?? null,
-        factionId: killmail.victim?.faction_id ?? null,
-        shipTypeId: killmail.victim?.ship_type_id ?? 0,
-        damageTaken: killmail.victim?.damage_taken ?? 0,
-        position: killmail.victim?.position_x ? {
-          x: killmail.victim.position_x,
-          y: killmail.victim.position_y!,
-          z: killmail.victim.position_z!,
-        } : null,
-      },
-      attackers: killmail.attackers.map(attacker => ({
-        characterId: attacker.character_id ?? null,
-        corporationId: attacker.corporation_id ?? null,
-        allianceId: attacker.alliance_id ?? null,
-        factionId: attacker.faction_id ?? null,
-        shipTypeId: attacker.ship_type_id ?? null,
-        weaponTypeId: attacker.weapon_type_id ?? null,
-        damageDone: attacker.damage_done,
-        finalBlow: attacker.final_blow,
-        securityStatus: attacker.security_status,
-      })),
-      items: killmail.items.map(item => ({
-        itemTypeId: item.item_type_id,
-        flag: item.flag,
-        quantityDropped: item.quantity_dropped ?? null,
-        quantityDestroyed: item.quantity_destroyed ?? null,
-        singleton: item.singleton,
-      })),
       totalValue: null,
     } as any;
 
@@ -163,57 +128,13 @@ export const killmailQueries: QueryResolvers = {
     const totalCount = await prisma.killmail.count({ where });
     const totalPages = Math.ceil(totalCount / limit);
 
-    // ⚡ Performance: Don't include relations here, use DataLoaders in field resolvers
-    // This prevents eager loading and allows batching
+    // Fetch only killmail data, field resolvers will handle relations via DataLoaders
     const killmails = await prisma.killmail.findMany({
       where,
       skip,
       take: limit,
       orderBy: {
         killmail_time: orderBy === 'timeAsc' ? 'asc' : 'desc'
-      },
-      // Remove include to use DataLoaders for relations
-      select: {
-        killmail_id: true,
-        killmail_hash: true,
-        killmail_time: true,
-        solar_system_id: true,
-        created_at: true,
-        victim: {
-          select: {
-            character_id: true,
-            corporation_id: true,
-            alliance_id: true,
-            faction_id: true,
-            ship_type_id: true,
-            damage_taken: true,
-            position_x: true,
-            position_y: true,
-            position_z: true,
-          },
-        },
-        attackers: {
-          select: {
-            character_id: true,
-            corporation_id: true,
-            alliance_id: true,
-            faction_id: true,
-            ship_type_id: true,
-            weapon_type_id: true,
-            damage_done: true,
-            final_blow: true,
-            security_status: true,
-          },
-        },
-        items: {
-          select: {
-            item_type_id: true,
-            flag: true,
-            quantity_dropped: true,
-            quantity_destroyed: true,
-            singleton: true,
-          },
-        },
       },
     });
 
@@ -224,37 +145,6 @@ export const killmailQueries: QueryResolvers = {
         killmailTime: km.killmail_time.toISOString(),
         solarSystemId: km.solar_system_id,
         createdAt: km.created_at.toISOString(),
-        victim: {
-          characterId: km.victim?.character_id ?? null,
-          corporationId: km.victim?.corporation_id ?? 0,
-          allianceId: km.victim?.alliance_id ?? null,
-          factionId: km.victim?.faction_id ?? null,
-          shipTypeId: km.victim?.ship_type_id ?? 0,
-          damageTaken: km.victim?.damage_taken ?? 0,
-          position: km.victim?.position_x ? {
-            x: km.victim.position_x,
-            y: km.victim.position_y!,
-            z: km.victim.position_z!,
-          } : null,
-        },
-        attackers: km.attackers.map(attacker => ({
-          characterId: attacker.character_id ?? null,
-          corporationId: attacker.corporation_id ?? null,
-          allianceId: attacker.alliance_id ?? null,
-          factionId: attacker.faction_id ?? null,
-          shipTypeId: attacker.ship_type_id ?? null,
-          weaponTypeId: attacker.weapon_type_id ?? null,
-          damageDone: attacker.damage_done,
-          finalBlow: attacker.final_blow,
-          securityStatus: attacker.security_status,
-        })),
-        items: km.items.map(item => ({
-          itemTypeId: item.item_type_id,
-          flag: item.flag,
-          quantityDropped: item.quantity_dropped ?? null,
-          quantityDestroyed: item.quantity_destroyed ?? null,
-          singleton: item.singleton,
-        })),
         totalValue: null,
       } as any,
       cursor: Buffer.from(`${skip + index + 1}`).toString('base64'),
@@ -341,15 +231,11 @@ export const killmailQueries: QueryResolvers = {
       where.solar_system_id = systemId;
     }
 
-    // Fetch all killmails with the filter and group by date in memory
+    // Fetch only killmail_time for date grouping (performance optimization)
     const killmails = await prisma.killmail.findMany({
       where,
-      select: {
-        killmail_time: true,
-      },
-      orderBy: {
-        killmail_time: 'desc'
-      }
+      select: { killmail_time: true },
+      orderBy: { killmail_time: 'desc' },
     });
 
     // Group by date
@@ -381,7 +267,7 @@ export const killmailQueries: QueryResolvers = {
 
     const totalPages = Math.ceil(totalCount / take);
 
-    // Fetch killmails
+    // Fetch killmails - field resolvers will handle victim/attackers/items
     const killmails = await prisma.killmail.findMany({
       where: {
         OR: [
@@ -392,11 +278,6 @@ export const killmailQueries: QueryResolvers = {
       skip,
       take,
       orderBy: { killmail_time: 'desc' },
-      include: {
-        victim: true,
-        attackers: true,
-        items: true,
-      },
     });
 
     const edges = killmails.map((km, index) => ({
@@ -406,37 +287,6 @@ export const killmailQueries: QueryResolvers = {
         killmailTime: km.killmail_time.toISOString(),
         solarSystemId: km.solar_system_id,
         createdAt: km.created_at.toISOString(),
-        victim: {
-          characterId: km.victim?.character_id ?? null,
-          corporationId: km.victim?.corporation_id ?? 0,
-          allianceId: km.victim?.alliance_id ?? null,
-          factionId: km.victim?.faction_id ?? null,
-          shipTypeId: km.victim?.ship_type_id ?? 0,
-          damageTaken: km.victim?.damage_taken ?? 0,
-          position: km.victim?.position_x ? {
-            x: km.victim.position_x,
-            y: km.victim.position_y!,
-            z: km.victim.position_z!,
-          } : null,
-        },
-        attackers: km.attackers.map(attacker => ({
-          characterId: attacker.character_id ?? null,
-          corporationId: attacker.corporation_id ?? null,
-          allianceId: attacker.alliance_id ?? null,
-          factionId: attacker.faction_id ?? null,
-          shipTypeId: attacker.ship_type_id ?? null,
-          weaponTypeId: attacker.weapon_type_id ?? null,
-          damageDone: attacker.damage_done,
-          finalBlow: attacker.final_blow,
-          securityStatus: attacker.security_status,
-        })),
-        items: km.items.map(item => ({
-          itemTypeId: item.item_type_id,
-          flag: item.flag,
-          quantityDropped: item.quantity_dropped ?? null,
-          quantityDestroyed: item.quantity_destroyed ?? null,
-          singleton: item.singleton,
-        })),
         totalValue: null,
       } as any,
       cursor: Buffer.from(`${skip + index + 1}`).toString('base64'),
@@ -479,11 +329,6 @@ export const killmailQueries: QueryResolvers = {
       skip,
       take,
       orderBy: { killmail_time: 'desc' },
-      include: {
-        victim: true,
-        attackers: true,
-        items: true,
-      },
     });
 
     const edges = killmails.map((km, index) => ({
@@ -493,37 +338,6 @@ export const killmailQueries: QueryResolvers = {
         killmailTime: km.killmail_time.toISOString(),
         solarSystemId: km.solar_system_id,
         createdAt: km.created_at.toISOString(),
-        victim: {
-          characterId: km.victim?.character_id ?? null,
-          corporationId: km.victim?.corporation_id ?? 0,
-          allianceId: km.victim?.alliance_id ?? null,
-          factionId: km.victim?.faction_id ?? null,
-          shipTypeId: km.victim?.ship_type_id ?? 0,
-          damageTaken: km.victim?.damage_taken ?? 0,
-          position: km.victim?.position_x ? {
-            x: km.victim.position_x,
-            y: km.victim.position_y!,
-            z: km.victim.position_z!,
-          } : null,
-        },
-        attackers: km.attackers.map(attacker => ({
-          characterId: attacker.character_id ?? null,
-          corporationId: attacker.corporation_id ?? null,
-          allianceId: attacker.alliance_id ?? null,
-          factionId: attacker.faction_id ?? null,
-          shipTypeId: attacker.ship_type_id ?? null,
-          weaponTypeId: attacker.weapon_type_id ?? null,
-          damageDone: attacker.damage_done,
-          finalBlow: attacker.final_blow,
-          securityStatus: attacker.security_status,
-        })),
-        items: km.items.map(item => ({
-          itemTypeId: item.item_type_id,
-          flag: item.flag,
-          quantityDropped: item.quantity_dropped ?? null,
-          quantityDestroyed: item.quantity_destroyed ?? null,
-          singleton: item.singleton,
-        })),
         totalValue: null,
       } as any,
       cursor: Buffer.from(`${skip + index + 1}`).toString('base64'),
@@ -566,11 +380,6 @@ export const killmailQueries: QueryResolvers = {
       skip,
       take,
       orderBy: { killmail_time: 'desc' },
-      include: {
-        victim: true,
-        attackers: true,
-        items: true,
-      },
     });
 
     const edges = killmails.map((km, index) => ({
@@ -580,37 +389,6 @@ export const killmailQueries: QueryResolvers = {
         killmailTime: km.killmail_time.toISOString(),
         solarSystemId: km.solar_system_id,
         createdAt: km.created_at.toISOString(),
-        victim: {
-          characterId: km.victim?.character_id ?? null,
-          corporationId: km.victim?.corporation_id ?? 0,
-          allianceId: km.victim?.alliance_id ?? null,
-          factionId: km.victim?.faction_id ?? null,
-          shipTypeId: km.victim?.ship_type_id ?? 0,
-          damageTaken: km.victim?.damage_taken ?? 0,
-          position: km.victim?.position_x ? {
-            x: km.victim.position_x,
-            y: km.victim.position_y!,
-            z: km.victim.position_z!,
-          } : null,
-        },
-        attackers: km.attackers.map(attacker => ({
-          characterId: attacker.character_id ?? null,
-          corporationId: attacker.corporation_id ?? null,
-          allianceId: attacker.alliance_id ?? null,
-          factionId: attacker.faction_id ?? null,
-          shipTypeId: attacker.ship_type_id ?? null,
-          weaponTypeId: attacker.weapon_type_id ?? null,
-          damageDone: attacker.damage_done,
-          finalBlow: attacker.final_blow,
-          securityStatus: attacker.security_status,
-        })),
-        items: km.items.map(item => ({
-          itemTypeId: item.item_type_id,
-          flag: item.flag,
-          quantityDropped: item.quantity_dropped ?? null,
-          quantityDestroyed: item.quantity_destroyed ?? null,
-          singleton: item.singleton,
-        })),
         totalValue: null,
       } as any,
       cursor: Buffer.from(`${skip + index + 1}`).toString('base64'),
@@ -813,6 +591,58 @@ export const killmailFieldResolvers: KillmailResolvers = {
     if (!parent.solarSystemId) return null;
     return context.loaders.solarSystem.load(parent.solarSystemId);
   },
+  victim: async (parent: any, _, context) => {
+    // parent is the killmail, we need to load victim by killmail_id
+    const killmailId = typeof parent.id === 'string' ? parseInt(parent.id) : parent.id;
+    const victim = await context.loaders.victim.load(killmailId);
+    if (!victim) {
+      console.error(`⚠️ Victim not found for killmail ${killmailId} - data inconsistency!`);
+      return null;
+    }
+
+    return {
+      characterId: victim.character_id ?? null,
+      corporationId: victim.corporation_id ?? 0,
+      allianceId: victim.alliance_id ?? null,
+      factionId: victim.faction_id ?? null,
+      shipTypeId: victim.ship_type_id ?? 0,
+      damageTaken: victim.damage_taken ?? 0,
+      position: victim.position_x ? {
+        x: victim.position_x,
+        y: victim.position_y!,
+        z: victim.position_z!,
+      } : null,
+    } as any;
+  },
+
+  attackers: async (parent: any, _, context) => {
+    const killmailId = typeof parent.id === 'string' ? parseInt(parent.id) : parent.id;
+    const attackers = await context.loaders.attackers.load(killmailId);
+
+    return attackers.map((attacker: any) => ({
+      characterId: attacker.character_id ?? null,
+      corporationId: attacker.corporation_id ?? null,
+      allianceId: attacker.alliance_id ?? null,
+      factionId: attacker.faction_id ?? null,
+      shipTypeId: attacker.ship_type_id ?? null,
+      weaponTypeId: attacker.weapon_type_id ?? null,
+      damageDone: attacker.damage_done,
+      finalBlow: attacker.final_blow,
+      securityStatus: attacker.security_status,
+    }));
+  },
+  items: async (parent: any, _, context) => {
+    const killmailId = typeof parent.id === 'string' ? parseInt(parent.id) : parent.id;
+    const items = await context.loaders.items.load(killmailId);
+
+    return items.map((item: any) => ({
+      itemTypeId: item.item_type_id,
+      flag: item.flag,
+      quantityDropped: item.quantity_dropped ?? null,
+      quantityDestroyed: item.quantity_destroyed ?? null,
+      singleton: item.singleton,
+    }));
+  },
 };
 
 export const victimFieldResolvers: VictimResolvers = {
@@ -820,14 +650,17 @@ export const victimFieldResolvers: VictimResolvers = {
     if (!parent.characterId) return null;
     return context.loaders.character.load(parent.characterId);
   },
+
   corporation: async (parent: any, _, context) => {
     if (!parent.corporationId) return null;
     return context.loaders.corporation.load(parent.corporationId);
   },
+
   alliance: async (parent: any, _, context) => {
     if (!parent.allianceId) return null;
     return context.loaders.alliance.load(parent.allianceId);
   },
+
   shipType: async (parent: any, _, context) => {
     if (!parent.shipTypeId) return null;
     const type = await context.loaders.type.load(parent.shipTypeId);
@@ -898,14 +731,9 @@ export const killmailSubscriptions: SubscriptionResolvers = {
     resolve: async (payload: { killmailId: number }) => {
       console.log('📨 Resolving NEW_KILLMAIL for killmail_id:', payload.killmailId);
 
-      // Fetch killmail from database with relations
+      // Fetch only killmail data - field resolvers will handle relations
       const killmail = await prisma.killmail.findUnique({
         where: { killmail_id: payload.killmailId },
-        include: {
-          victim: true,
-          attackers: true,
-          items: true,
-        },
       });
 
       if (!killmail) {
@@ -913,45 +741,13 @@ export const killmailSubscriptions: SubscriptionResolvers = {
         return null;
       }
 
-      // Return in the same format as killmail query resolver
-      // Field resolvers (character, corporation, alliance, shipType etc.) will work automatically
+      // Field resolvers will populate victim, attackers, items via DataLoaders
       return {
         id: killmail.killmail_id.toString(),
         killmailHash: killmail.killmail_hash,
         killmailTime: killmail.killmail_time.toISOString(),
         solarSystemId: killmail.solar_system_id,
         createdAt: killmail.created_at.toISOString(),
-        victim: killmail.victim ? {
-          characterId: killmail.victim.character_id ?? null,
-          corporationId: killmail.victim.corporation_id ?? 0,
-          allianceId: killmail.victim.alliance_id ?? null,
-          factionId: killmail.victim.faction_id ?? null,
-          shipTypeId: killmail.victim.ship_type_id ?? 0,
-          damageTaken: killmail.victim.damage_taken ?? 0,
-          position: killmail.victim.position_x ? {
-            x: killmail.victim.position_x,
-            y: killmail.victim.position_y!,
-            z: killmail.victim.position_z!,
-          } : null,
-        } : null,
-        attackers: killmail.attackers.map(attacker => ({
-          characterId: attacker.character_id ?? null,
-          corporationId: attacker.corporation_id ?? null,
-          allianceId: attacker.alliance_id ?? null,
-          factionId: attacker.faction_id ?? null,
-          shipTypeId: attacker.ship_type_id ?? null,
-          weaponTypeId: attacker.weapon_type_id ?? null,
-          damageDone: attacker.damage_done,
-          finalBlow: attacker.final_blow,
-          securityStatus: attacker.security_status,
-        })),
-        items: killmail.items.map(item => ({
-          itemTypeId: item.item_type_id,
-          flag: item.flag,
-          quantityDropped: item.quantity_dropped ?? null,
-          quantityDestroyed: item.quantity_destroyed ?? null,
-          singleton: item.singleton,
-        })),
         totalValue: null,
       } as any;
     },
