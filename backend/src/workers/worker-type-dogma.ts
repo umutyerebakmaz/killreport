@@ -10,7 +10,7 @@ import { getRabbitMQChannel } from '../services/rabbitmq';
 import { TypeService } from '../services/type';
 
 const QUEUE_NAME = 'esi_type_dogma_queue';
-const PREFETCH_COUNT = 10; // Process 10 types concurrently
+const PREFETCH_COUNT = 10; // Process 10 types concurrently (ESI rate limit friendly)
 
 interface EntityQueueMessage {
   entityId: number;
@@ -82,6 +82,20 @@ async function typeDogmaWorker() {
 
           const typeName = typeInfo.name;
 
+          // Check if dogma data already exists for this type
+          const existingDogma = await prismaWorker.typeDogmaAttribute.findFirst({
+            where: { type_id: typeId },
+          });
+
+          if (existingDogma) {
+            // Already synced, skip
+            channel.ack(msg);
+            totalSkipped++;
+            totalProcessed++;
+            logger.info(`  - [${totalProcessed}] [${typeId}] ${typeName} (already synced)`);
+            return;
+          }
+
           // Fetch type details from ESI (includes dogma data)
           const typeData = await TypeService.getTypeInfo(typeId);
 
@@ -98,68 +112,42 @@ async function typeDogmaWorker() {
             return;
           }
 
-          // Save attributes to database
+          // Save attributes to database - DELETE + INSERT for better performance
           let attributeCount = 0;
-          for (const attr of dogmaAttributes) {
-            // First, check if the attribute exists in dogma_attributes table
-            const attributeExists = await prismaWorker.dogmaAttribute.findUnique({
-              where: { id: attr.attribute_id },
+          if (dogmaAttributes.length > 0) {
+            // Delete existing attributes for this type, then insert new ones
+            await prismaWorker.typeDogmaAttribute.deleteMany({
+              where: { type_id: typeId },
             });
 
-            if (!attributeExists) {
-              logger.warn(`⚠️  DogmaAttribute ${attr.attribute_id} not found, skipping for type ${typeId}`);
-              continue;
-            }
-
-            await prismaWorker.typeDogmaAttribute.upsert({
-              where: {
-                type_id_attribute_id: {
-                  type_id: typeId,
-                  attribute_id: attr.attribute_id,
-                },
-              },
-              update: {
-                value: attr.value,
-              },
-              create: {
+            await prismaWorker.typeDogmaAttribute.createMany({
+              data: dogmaAttributes.map((attr: any) => ({
                 type_id: typeId,
                 attribute_id: attr.attribute_id,
                 value: attr.value,
-              },
+              })),
+              skipDuplicates: true,
             });
-            attributeCount++;
+            attributeCount = dogmaAttributes.length;
           }
 
-          // Save effects to database
+          // Save effects to database - DELETE + INSERT for better performance
           let effectCount = 0;
-          for (const eff of dogmaEffects) {
-            // First, check if the effect exists in dogma_effects table
-            const effectExists = await prismaWorker.dogmaEffect.findUnique({
-              where: { id: eff.effect_id },
+          if (dogmaEffects.length > 0) {
+            // Delete existing effects for this type, then insert new ones
+            await prismaWorker.typeDogmaEffect.deleteMany({
+              where: { type_id: typeId },
             });
 
-            if (!effectExists) {
-              logger.warn(`⚠️  DogmaEffect ${eff.effect_id} not found, skipping for type ${typeId}`);
-              continue;
-            }
-
-            await prismaWorker.typeDogmaEffect.upsert({
-              where: {
-                type_id_effect_id: {
-                  type_id: typeId,
-                  effect_id: eff.effect_id,
-                },
-              },
-              update: {
-                is_default: eff.is_default,
-              },
-              create: {
+            await prismaWorker.typeDogmaEffect.createMany({
+              data: dogmaEffects.map((eff: any) => ({
                 type_id: typeId,
                 effect_id: eff.effect_id,
                 is_default: eff.is_default,
-              },
+              })),
+              skipDuplicates: true,
             });
-            effectCount++;
+            effectCount = dogmaEffects.length;
           }
 
           channel.ack(msg);
