@@ -27,19 +27,18 @@ const pool = new Pool({
     }
     : true, // Use SSL without certificate verification (works but less secure)
   // CRITICAL: DigitalOcean allows 22 connections total
-  // EMERGENCY: Reduced to minimum for connection pool exhaustion fix
-  // Architecture:
-  // - 1 Backend API server (max: 2 connections) - EMERGENCY MINIMUM
-  // - Multiple workers can share remaining connections (20 total for workers)
-  // - Aggressive idle timeout to release connections quickly
-  max: 2, // EMERGENCY: Minimum 2 connections for API server
-  min: 0, // No minimum - release idle connections ASAP
-  idleTimeoutMillis: 5000, // Close idle clients after 5 seconds (very aggressive)
+  // Optimized connection pool distribution:
+  // - Backend API: 5 connections (for parallel GraphQL queries)
+  // - All Workers: 16 connections (8 workers × 2 connections)
+  // - Total: 21 connections (1 connection buffer)
+  max: 5, // API server needs more connections for parallel queries
+  min: 1, // Keep 1 connection alive for fast response
+  idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
   connectionTimeoutMillis: 10000, // Wait up to 10 seconds for connection
   allowExitOnIdle: false, // Keep pool alive for API server
 });
 
-console.log(`✅ PostgreSQL pool configured: max=2 connections (EMERGENCY), min=0, idleTimeout=5s, pid=${process.pid}`);
+console.log(`✅ [API] PostgreSQL pool configured: max=5 connections, min=1, idleTimeout=30s, pid=${process.pid}`);
 
 // Monitor pool connections
 pool.on('connect', () => {
