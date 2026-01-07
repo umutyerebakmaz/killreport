@@ -464,7 +464,7 @@ export type Killmail = {
   killmailTime: Scalars['String']['output'];
   solarSystem: SolarSystem;
   totalValue?: Maybe<Scalars['Float']['output']>;
-  victim: Victim;
+  victim?: Maybe<Victim>;
 };
 
 export type KillmailConnection = {
@@ -977,15 +977,6 @@ export type SecurityStats = {
   wormhole: Scalars['Int']['output'];
 };
 
-export type SlotCounts = {
-  __typename?: 'SlotCounts';
-  high: Scalars['Int']['output'];
-  low: Scalars['Int']['output'];
-  med: Scalars['Int']['output'];
-  rig: Scalars['Int']['output'];
-  subsystem: Scalars['Int']['output'];
-};
-
 export type SolarSystem = {
   __typename?: 'SolarSystem';
   constellation?: Maybe<Constellation>;
@@ -1193,7 +1184,6 @@ export type Type = {
   mass?: Maybe<Scalars['Float']['output']>;
   name: Scalars['String']['output'];
   published: Scalars['Boolean']['output'];
-  slotCounts?: Maybe<SlotCounts>;
   updated_at: Scalars['String']['output'];
   volume?: Maybe<Scalars['Float']['output']>;
 };
@@ -1384,7 +1374,7 @@ export type AllianceKillmailsQueryVariables = Exact<{
 }>;
 
 
-export type AllianceKillmailsQuery = { __typename?: 'Query', allianceKillmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', name: string }, victim: { __typename?: 'Victim', character?: { __typename?: 'Character', name: string } | null, shipType: { __typename?: 'Type', name: string } } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, totalCount: number } } };
+export type AllianceKillmailsQuery = { __typename?: 'Query', allianceKillmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', name: string }, victim?: { __typename?: 'Victim', character?: { __typename?: 'Character', name: string } | null, shipType: { __typename?: 'Type', name: string } } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, totalCount: number } } };
 
 export type ActiveUsersUpdatesSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -1410,7 +1400,7 @@ export type CharacterKillmailsQueryVariables = Exact<{
 }>;
 
 
-export type CharacterKillmailsQuery = { __typename?: 'Query', characterKillmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', cursor: string, node: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', name: string }, victim: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', name: string } | null, shipType: { __typename?: 'Type', name: string } }, attackers: Array<{ __typename?: 'Attacker', finalBlow: boolean, character?: { __typename?: 'Character', name: string } | null }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+export type CharacterKillmailsQuery = { __typename?: 'Query', characterKillmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', cursor: string, node: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', name: string }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', name: string } | null, shipType: { __typename?: 'Type', name: string } } | null, attackers: Array<{ __typename?: 'Attacker', finalBlow: boolean, character?: { __typename?: 'Character', name: string } | null }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
 
 export type CorporationKillmailsQueryVariables = Exact<{
   corporationId: Scalars['Int']['input'];
@@ -1419,21 +1409,21 @@ export type CorporationKillmailsQueryVariables = Exact<{
 }>;
 
 
-export type CorporationKillmailsQuery = { __typename?: 'Query', corporationKillmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', name: string }, victim: { __typename?: 'Victim', character?: { __typename?: 'Character', name: string } | null, shipType: { __typename?: 'Type', name: string } } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, totalCount: number } } };
+export type CorporationKillmailsQuery = { __typename?: 'Query', corporationKillmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', name: string }, victim?: { __typename?: 'Victim', character?: { __typename?: 'Character', name: string } | null, shipType: { __typename?: 'Type', name: string } } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, totalCount: number } } };
 
 export type KillmailQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type KillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string }, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType: { __typename?: 'Type', id: number, name: string, description?: string | null, group: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } }, slotCounts?: { __typename?: 'SlotCounts', high: number, med: number, low: number, rig: number, subsystem: number } | null } }, attackers: Array<{ __typename?: 'Attacker', damageDone: number, finalBlow: boolean, securityStatus?: number | null, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group: { __typename?: 'ItemGroup', name: string } } | null, weaponType?: { __typename?: 'Type', id: number, name: string } | null }>, items: Array<{ __typename?: 'KillmailItem', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, singleton: number, itemType: { __typename?: 'Type', id: number, name: string, description?: string | null } }> } | null };
+export type KillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string }, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType: { __typename?: 'Type', id: number, name: string, description?: string | null, group: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } } } | null, attackers: Array<{ __typename?: 'Attacker', damageDone: number, finalBlow: boolean, securityStatus?: number | null, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group: { __typename?: 'ItemGroup', name: string } } | null, weaponType?: { __typename?: 'Type', id: number, name: string } | null }>, items: Array<{ __typename?: 'KillmailItem', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, singleton: number, itemType: { __typename?: 'Type', id: number, name: string, description?: string | null } }> } | null };
 
 export type KillmailsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
 }>;
 
 
-export type KillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string }, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group: { __typename?: 'ItemGroup', name: string } } }, attackers: Array<{ __typename?: 'Attacker', finalBlow: boolean, damageDone: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string } | null }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+export type KillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string }, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group: { __typename?: 'ItemGroup', name: string } } } | null, attackers: Array<{ __typename?: 'Attacker', finalBlow: boolean, damageDone: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string } | null }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
 
 export type KillmailsDateCountsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
@@ -1445,7 +1435,7 @@ export type KillmailsDateCountsQuery = { __typename?: 'Query', killmailsDateCoun
 export type OnNewKillmailSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type OnNewKillmailSubscription = { __typename?: 'Subscription', newKillmail: { __typename?: 'Killmail', id: string, killmailHash: string, killmailTime: string, totalValue?: number | null, createdAt: string, solarSystem: { __typename?: 'SolarSystem', name: string }, victim: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string }, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string } }, attackers: Array<{ __typename?: 'Attacker', damageDone: number, finalBlow: boolean, securityStatus?: number | null, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string } | null, weaponType?: { __typename?: 'Type', id: number, name: string } | null }>, items: Array<{ __typename?: 'KillmailItem', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, singleton: number, itemType: { __typename?: 'Type', id: number, name: string } }> } };
+export type OnNewKillmailSubscription = { __typename?: 'Subscription', newKillmail: { __typename?: 'Killmail', id: string, killmailHash: string, killmailTime: string, totalValue?: number | null, createdAt: string, solarSystem: { __typename?: 'SolarSystem', name: string }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string }, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string } } | null, attackers: Array<{ __typename?: 'Attacker', damageDone: number, finalBlow: boolean, securityStatus?: number | null, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string } | null, weaponType?: { __typename?: 'Type', id: number, name: string } | null }>, items: Array<{ __typename?: 'KillmailItem', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, singleton: number, itemType: { __typename?: 'Type', id: number, name: string } }> } };
 
 export type SearchCharactersQueryVariables = Exact<{
   search: Scalars['String']['input'];
@@ -1458,7 +1448,7 @@ export type SearchCharactersQuery = { __typename?: 'Query', characters: { __type
 export type NewKillmailSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type NewKillmailSubscription = { __typename?: 'Subscription', newKillmail: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', name: string, region?: { __typename?: 'Region', name: string } | null } | null }, victim: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string }, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group: { __typename?: 'ItemGroup', name: string } } }, attackers: Array<{ __typename?: 'Attacker', finalBlow: boolean, damageDone: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string } | null }> } };
+export type NewKillmailSubscription = { __typename?: 'Subscription', newKillmail: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', name: string, region?: { __typename?: 'Region', name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string }, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group: { __typename?: 'ItemGroup', name: string } } } | null, attackers: Array<{ __typename?: 'Attacker', finalBlow: boolean, damageDone: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string } | null }> } };
 
 
 export const AllianceDocument = gql`
@@ -2762,13 +2752,6 @@ export const KillmailDocument = gql`
           category {
             name
           }
-        }
-        slotCounts {
-          high
-          med
-          low
-          rig
-          subsystem
         }
       }
     }
