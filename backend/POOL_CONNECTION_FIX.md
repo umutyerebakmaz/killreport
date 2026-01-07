@@ -18,7 +18,7 @@ Created a separate Prisma client for workers with aggressive connection pooling 
 
 1. **Backend API (`prisma.ts`)**: 5 connections maximum
 2. **Workers (`prisma-worker.ts`)**: 2 connections maximum per worker
-3. **Total Capacity**: 5 (API) + 17 (for all workers) = 22 connections
+3. **Total Capacity**: 5 (API) + 16 (8 workers × 2) = 21 connections (1 buffer)
 
 ### Files Changed
 
@@ -72,6 +72,24 @@ Queue scripts that read from database also updated:
 | API Server | `prisma.ts`        | 5               | 1               | 30 seconds   | 10 seconds         | GraphQL API requests |
 | Workers    | `prisma-worker.ts` | 2               | 0               | 10 seconds   | 10 seconds         | Background jobs      |
 
+### Production Workload (Current)
+
+Based on `ecosystem.config.js`:
+
+- 1 Backend API Server: 5 connections
+- 1 RedisQ Worker: 2 connections
+- 1 Character Worker: 2 connections
+- 1 Corporation Worker: 2 connections
+- 1 Alliance Worker: 2 connections
+- 1 Alliance-Corporation Worker: 2 connections
+- 1 Type Worker: 2 connections
+- 1 zKillboard Worker: 2 connections
+- 1 User Killmail Worker: 2 connections
+
+**Total Active:** 5 + (8 workers × 2) = 21 connections
+**Available:** 22 connections (DigitalOcean limit)
+**Buffer:** 1 connection remaining
+
 ### Worker Pool Settings
 
 ```typescript
@@ -80,6 +98,20 @@ min: 0,                        // No minimum - release all idle
 idleTimeoutMillis: 10000,      // Close idle after 10 seconds
 connectionTimeoutMillis: 10000, // Wait up to 10 seconds for connection
 allowExitOnIdle: true          // Allow complete drain
+5. **Optimal Performance**: API server has 5 connections for parallel GraphQL queries
+6. **Worker Efficiency**: Each worker has 2 connections for better throughput
+
+### DigitalOcean Connection Pool Configuration
+
+**Connection Pools (on DigitalOcean side):**
+- `dev` pool: 5 connections (sufficient for development/testing)
+- `prod` pool: 17 connections (perfect for production workload)
+
+**Why 17 for prod pool?**
+- Total available: 22 connections
+- Reserved for API: 5 connections
+- Remaining for workers: 17 connections (but only 16 will be used)
+- This leaves 1 connection as buffer for monitoring/system queries
 ```
 
 ### API Server Pool Settings
@@ -187,6 +219,6 @@ yarn worker:info:types
 
 ## References
 
-- DigitalOcean PostgreSQL Connection Limits: https://docs.digitalocean.com/products/databases/postgresql/
-- Node.js pg Pool Options: https://node-postgres.com/apis/pool
-- Prisma Adapter: https://www.prisma.io/docs/orm/overview/databases/postgresql
+- DigitalOcean PostgreSQL Connection Limits: <https://docs.digitalocean.com/products/databases/postgresql/>
+- Node.js pg Pool Options: <https://node-postgres.com/apis/pool>
+- Prisma Adapter: <https://www.prisma.io/docs/orm/overview/databases/postgresql>
