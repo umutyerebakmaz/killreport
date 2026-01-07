@@ -31,15 +31,15 @@ const pool = new Pool({
             rejectUnauthorized: true,
         }
         : true, // Use SSL without CA verification (for Prisma Studio compatibility)
-    // CRITICAL: Worker pool settings
-    max: 2, // Maximum 2 connections per worker
+    // CRITICAL: Worker pool settings - EMERGENCY MODE
+    max: 1, // EMERGENCY: Only 1 connection per worker
     min: 0, // No minimum - release all idle connections
-    idleTimeoutMillis: 5000, // Close idle clients after 5 seconds (faster cleanup)
+    idleTimeoutMillis: 2000, // Close idle clients after 2 seconds (very aggressive)
     connectionTimeoutMillis: 30000, // Wait up to 30 seconds for connection (increased for heavy load)
     allowExitOnIdle: true, // Allow pool to completely drain
 });
 
-console.log(`✅ [Worker] PostgreSQL pool configured: max=2 connections, min=0, idleTimeout=10s, pid=${process.pid}`);
+console.log(`✅ [Worker] PostgreSQL pool configured: max=1 connection (EMERGENCY), min=0, idleTimeout=2s, pid=${process.pid}`);
 
 // Monitor pool connections
 pool.on('connect', () => {
