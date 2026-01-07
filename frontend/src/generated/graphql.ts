@@ -977,6 +977,15 @@ export type SecurityStats = {
   wormhole: Scalars['Int']['output'];
 };
 
+export type SlotCounts = {
+  __typename?: 'SlotCounts';
+  high: Scalars['Int']['output'];
+  low: Scalars['Int']['output'];
+  med: Scalars['Int']['output'];
+  rig: Scalars['Int']['output'];
+  subsystem: Scalars['Int']['output'];
+};
+
 export type SolarSystem = {
   __typename?: 'SolarSystem';
   constellation?: Maybe<Constellation>;
@@ -1184,6 +1193,7 @@ export type Type = {
   mass?: Maybe<Scalars['Float']['output']>;
   name: Scalars['String']['output'];
   published: Scalars['Boolean']['output'];
+  slotCounts?: Maybe<SlotCounts>;
   updated_at: Scalars['String']['output'];
   volume?: Maybe<Scalars['Float']['output']>;
 };
@@ -1416,7 +1426,7 @@ export type KillmailQueryVariables = Exact<{
 }>;
 
 
-export type KillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', id: string, killmailHash: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, security_class?: string | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string }, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType: { __typename?: 'Type', id: number, name: string, description?: string | null, group: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } }, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number, attribute: { __typename?: 'DogmaAttribute', id: number, name: string, display_name?: string | null, description?: string | null, unit_id?: number | null, high_is_good: boolean } }>, dogmaEffects: Array<{ __typename?: 'TypeDogmaEffect', effect_id: number, is_default: boolean, effect: { __typename?: 'DogmaEffect', id: number, name: string, display_name?: string | null, description?: string | null } }> }, position?: { __typename?: 'Position', x: number, y: number, z: number } | null }, attackers: Array<{ __typename?: 'Attacker', damageDone: number, finalBlow: boolean, securityStatus?: number | null, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group: { __typename?: 'ItemGroup', name: string }, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', value: number, attribute: { __typename?: 'DogmaAttribute', name: string, display_name?: string | null } }> } | null, weaponType?: { __typename?: 'Type', id: number, name: string, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', value: number, attribute: { __typename?: 'DogmaAttribute', name: string, display_name?: string | null } }> } | null }>, items: Array<{ __typename?: 'KillmailItem', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, singleton: number, itemType: { __typename?: 'Type', id: number, name: string, description?: string | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number, attribute: { __typename?: 'DogmaAttribute', id: number, name: string, display_name?: string | null, description?: string | null, unit_id?: number | null, high_is_good: boolean } }>, dogmaEffects: Array<{ __typename?: 'TypeDogmaEffect', effect_id: number, is_default: boolean, effect: { __typename?: 'DogmaEffect', id: number, name: string, display_name?: string | null, description?: string | null, is_offensive: boolean, is_assistance: boolean } }> } }> } | null };
+export type KillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', id: string, killmailHash: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, security_class?: string | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string }, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType: { __typename?: 'Type', id: number, name: string, description?: string | null, group: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } }, slotCounts?: { __typename?: 'SlotCounts', high: number, med: number, low: number, rig: number, subsystem: number } | null } }, attackers: Array<{ __typename?: 'Attacker', damageDone: number, finalBlow: boolean, securityStatus?: number | null, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group: { __typename?: 'ItemGroup', name: string } } | null, weaponType?: { __typename?: 'Type', id: number, name: string } | null }>, items: Array<{ __typename?: 'KillmailItem', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, singleton: number, itemType: { __typename?: 'Type', id: number, name: string, description?: string | null } }> } | null };
 
 export type KillmailsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
@@ -2755,33 +2765,13 @@ export const KillmailDocument = gql`
             name
           }
         }
-        dogmaAttributes {
-          attribute_id
-          value
-          attribute {
-            id
-            name
-            display_name
-            description
-            unit_id
-            high_is_good
-          }
+        slotCounts {
+          high
+          med
+          low
+          rig
+          subsystem
         }
-        dogmaEffects {
-          effect_id
-          is_default
-          effect {
-            id
-            name
-            display_name
-            description
-          }
-        }
-      }
-      position {
-        x
-        y
-        z
       }
     }
     attackers {
@@ -2795,12 +2785,10 @@ export const KillmailDocument = gql`
       corporation {
         id
         name
-        ticker
       }
       alliance {
         id
         name
-        ticker
       }
       shipType {
         id
@@ -2808,24 +2796,10 @@ export const KillmailDocument = gql`
         group {
           name
         }
-        dogmaAttributes {
-          value
-          attribute {
-            name
-            display_name
-          }
-        }
       }
       weaponType {
         id
         name
-        dogmaAttributes {
-          value
-          attribute {
-            name
-            display_name
-          }
-        }
       }
     }
     items {
@@ -2837,30 +2811,6 @@ export const KillmailDocument = gql`
         id
         name
         description
-        dogmaAttributes {
-          attribute_id
-          value
-          attribute {
-            id
-            name
-            display_name
-            description
-            unit_id
-            high_is_good
-          }
-        }
-        dogmaEffects {
-          effect_id
-          is_default
-          effect {
-            id
-            name
-            display_name
-            description
-            is_offensive
-            is_assistance
-          }
-        }
       }
     }
   }
