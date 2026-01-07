@@ -417,7 +417,6 @@ export interface DataLoaderContext {
     allianceSnapshot: DataLoader<{ allianceId: number; date: Date }, any>;
     typeDogmaAttributes: DataLoader<number, any[]>;
     typeDogmaEffects: DataLoader<number, any[]>;
-    slotCounts: DataLoader<number, any>;
     victim: DataLoader<number, any>;
     attackers: DataLoader<number, any[]>;
     items: DataLoader<number, any[]>;
@@ -447,7 +446,6 @@ export const createDataLoaders = (): DataLoaderContext => ({
     allianceSnapshot: createAllianceSnapshotLoader(),
     typeDogmaAttributes: createTypeDogmaAttributesLoader(),
     typeDogmaEffects: createTypeDogmaEffectsLoader(),
-    slotCounts: createSlotCountsLoader(),
     victim: createVictimLoader(),
     attackers: createAttackersLoader(),
     items: createItemsLoader(),
@@ -594,55 +592,6 @@ export const createTypeDogmaEffectsLoader = () => {
   });
 };
 
-/**
- * Slot Counts DataLoader - Batch loading for ship slot counts only
- * Fetches only the 5 specific attributes needed for slot counts
- */
-export const createSlotCountsLoader = () => {
-  return new DataLoader<number, any>(async (typeIds) => {
-    logger.debug('DataLoader: Batching slot counts queries', { count: typeIds.length });
-
-    const SLOT_ATTRIBUTE_IDS = [14, 13, 12, 1137, 1374]; // high, med, low, rig, subsystem
-
-    const attributes = await prisma.typeDogmaAttribute.findMany({
-      where: {
-        type_id: { in: [...typeIds] },
-        attribute_id: { in: SLOT_ATTRIBUTE_IDS },
-      },
-      select: {
-        type_id: true,
-        attribute_id: true,
-        value: true,
-      },
-    });
-
-    // Group by type_id
-    const attributesByType = new Map<number, any[]>();
-    attributes.forEach(attr => {
-      if (!attributesByType.has(attr.type_id)) {
-        attributesByType.set(attr.type_id, []);
-      }
-      attributesByType.get(attr.type_id)!.push(attr);
-    });
-
-    // Calculate slot counts for each type
-    return typeIds.map(id => {
-      const typeAttrs = attributesByType.get(id) || [];
-      const getSlotCount = (attributeId: number): number => {
-        const attr = typeAttrs.find(a => a.attribute_id === attributeId);
-        return attr ? Math.floor(attr.value) : 0;
-      };
-
-      return {
-        high: getSlotCount(14),
-        med: getSlotCount(13),
-        low: getSlotCount(12),
-        rig: getSlotCount(1137),
-        subsystem: getSlotCount(1374),
-      };
-    });
-  });
-};
 
 /**
  * Killmail Victim DataLoader - Batch loading for victims

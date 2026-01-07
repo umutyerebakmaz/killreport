@@ -654,14 +654,6 @@ type SecurityStats {
   wormhole: Int!
 }
 
-type SlotCounts {
-  high: Int!
-  low: Int!
-  med: Int!
-  rig: Int!
-  subsystem: Int!
-}
-
 type SolarSystem {
   constellation: Constellation
   id: Int!
@@ -857,7 +849,6 @@ type Type {
   mass: Float
   name: String!
   published: Boolean!
-  slotCounts: SlotCounts
   updated_at: String!
   volume: Float
 }

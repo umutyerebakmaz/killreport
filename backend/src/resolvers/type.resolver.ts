@@ -241,9 +241,4 @@ export const typeFieldResolvers: TypeResolvers = {
       },
     }));
   },
-
-  slotCounts: async (parent, _, context) => {
-    const prismaType = parent as any;
-    return context.loaders.slotCounts.load(prismaType.id);
-  },
 };
