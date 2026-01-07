@@ -29,7 +29,7 @@ type Killmail {
   killmailHash: String!
   killmailTime: String!
   solarSystem: SolarSystem!
-  victim: Victim!
+  victim: Victim
   attackers: [Attacker!]!
   items: [KillmailItem!]!
   totalValue: Float

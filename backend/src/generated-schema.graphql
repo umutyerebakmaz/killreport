@@ -402,7 +402,7 @@ type Killmail {
   killmailTime: String!
   solarSystem: SolarSystem!
   totalValue: Float
-  victim: Victim!
+  victim: Victim
 }
 
 type KillmailConnection {
