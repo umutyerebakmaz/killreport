@@ -18,6 +18,7 @@ query Killmail($id: ID!) {
       }
     }
     victim {
+      damageTaken
       character {
         id
         name
@@ -42,8 +43,31 @@ query Killmail($id: ID!) {
             name
           }
         }
+        # Geminin dogma özellikleri (CPU, PG, Shield, Armor, Hull, Slot sayıları vs.)
+        dogmaAttributes {
+          attribute_id
+          value
+          attribute {
+            id
+            name
+            display_name
+            description
+            unit_id
+            high_is_good
+          }
+        }
+        # Geminin passive/active effect'leri
+        dogmaEffects {
+          effect_id
+          is_default
+          effect {
+            id
+            name
+            display_name
+            description
+          }
+        }
       }
-      damageTaken
       position {
         x
         y
@@ -51,6 +75,9 @@ query Killmail($id: ID!) {
       }
     }
     attackers {
+      damageDone
+      finalBlow
+      securityStatus
       character {
         id
         name
@@ -71,24 +98,73 @@ query Killmail($id: ID!) {
         group {
           name
         }
+        # Attacker gemisinin özellikleri
+        dogmaAttributes {
+          value
+          attribute {
+            name
+            display_name
+          }
+        }
       }
       weaponType {
         id
         name
+        # Silahın DPS, optimal range, tracking vs.
+        dogmaAttributes {
+          value
+          attribute {
+            name
+            display_name
+          }
+        }
       }
-      damageDone
-      finalBlow
-      securityStatus
     }
+    # Gemi fit items (slot bazında ne takılı)
+    # Slot kategorileri (flag numaraları):
+    # High Slots: 27-34 (Weapons, Mining Lasers)
+    # Mid Slots: 19-26 (Shield, Tackle, EWAR)
+    # Low Slots: 11-18 (Armor, Damage Mods, Resistance)
+    # Rig Slots: 92-94 (Permanent ship bonuses)
+    # Subsystem Slots: 125-128 (T3 Cruiser)
+    # Cargo: 5
+    # Drone Bay: 87
     items {
-      itemType {
-        id
-        name
-      }
-      flag
+      flag # Slot pozisyonu (yukarıdaki kategorilere göre)
       quantityDropped
       quantityDestroyed
       singleton
+      itemType {
+        id
+        name
+        description
+        # Module özellikleri (CPU, PG, Capacitor, DPS, Range vs.)
+        dogmaAttributes {
+          attribute_id
+          value
+          attribute {
+            id
+            name
+            display_name
+            description
+            unit_id
+            high_is_good
+          }
+        }
+        # Module effect'leri (active/passive bonuslar)
+        dogmaEffects {
+          effect_id
+          is_default
+          effect {
+            id
+            name
+            display_name
+            description
+            is_offensive
+            is_assistance
+          }
+        }
+      }
     }
   }
 }
