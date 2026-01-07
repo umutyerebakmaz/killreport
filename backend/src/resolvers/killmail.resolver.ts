@@ -67,17 +67,26 @@ export const killmailQueries: QueryResolvers = {
             OR: [
               {
                 character: {
-                  name: { contains: search, mode: 'insensitive' }
+                  name: {
+                    contains: search,
+                    mode: 'insensitive'
+                  }
                 }
               },
               {
                 corporation: {
-                  name: { contains: search, mode: 'insensitive' }
+                  name: {
+                    contains: search,
+                    mode: 'insensitive'
+                  }
                 }
               },
               {
                 alliance: {
-                  name: { contains: search, mode: 'insensitive' }
+                  name: {
+                    contains: search,
+                    mode: 'insensitive'
+                  }
                 }
               },
             ],
@@ -177,17 +186,26 @@ export const killmailQueries: QueryResolvers = {
             OR: [
               {
                 character: {
-                  name: { contains: search, mode: 'insensitive' }
+                  name: {
+                    contains: search,
+                    mode: 'insensitive'
+                  }
                 }
               },
               {
                 corporation: {
-                  name: { contains: search, mode: 'insensitive' }
+                  name: {
+                    contains: search,
+                    mode: 'insensitive'
+                  }
                 }
               },
               {
                 alliance: {
-                  name: { contains: search, mode: 'insensitive' }
+                  name: {
+                    contains: search,
+                    mode: 'insensitive'
+                  }
                 }
               },
             ],
@@ -199,17 +217,26 @@ export const killmailQueries: QueryResolvers = {
               OR: [
                 {
                   character: {
-                    name: { contains: search, mode: 'insensitive' }
+                    name: {
+                      contains: search,
+                      mode: 'insensitive'
+                    }
                   }
                 },
                 {
                   corporation: {
-                    name: { contains: search, mode: 'insensitive' }
+                    name: {
+                      contains: search,
+                      mode: 'insensitive'
+                    }
                   }
                 },
                 {
                   alliance: {
-                    name: { contains: search, mode: 'insensitive' }
+                    name: {
+                      contains: search,
+                      mode: 'insensitive'
+                    }
                   }
                 },
               ],
