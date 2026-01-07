@@ -12,6 +12,15 @@ type Type {
   updated_at: String!
   dogmaAttributes: [TypeDogmaAttribute!]!
   dogmaEffects: [TypeDogmaEffect!]!
+  slotCounts: SlotCounts
+}
+
+type SlotCounts {
+  high: Int!
+  med: Int!
+  low: Int!
+  rig: Int!
+  subsystem: Int!
 }
 
 type TypeDogmaAttribute {
