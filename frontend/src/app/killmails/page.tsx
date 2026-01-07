@@ -120,6 +120,14 @@ function KillmailsContent() {
     }
   }, [subscriptionData, currentPage]);
 
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   // Reset new killmails when filters change
   useEffect(() => {
     setNewKillmails([]);
