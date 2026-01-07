@@ -41,14 +41,6 @@ query Killmail($id: ID!) {
             name
           }
         }
-        # Backend'den hesaplanan slot sayıları
-        slotCounts {
-          high
-          med
-          low
-          rig
-          subsystem
-        }
       }
     }
     attackers {
