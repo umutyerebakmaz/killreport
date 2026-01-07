@@ -2,27 +2,65 @@
 
 GraphQL API server for EVE Online killmail tracking and analytics.
 
-## Quick Start
+## 🚀 Quick Start
+
+### 1. Installation
 
 ```bash
-# Install dependencies
+# Install entire workspace from root
 yarn install
 
-# Setup database
-yarn prisma:migrate
-yarn prisma:generate
-
-# Start development server
-yarn dev
+# Or just backend
+cd backend
+yarn install
 ```
 
-Server runs on: http://localhost:4000/graphql
+### 2. Environment Setup
+
+Create a `.env` file (details below):
+
+```bash
+DATABASE_URL="postgresql://user:password@localhost:5432/killreport"
+RABBITMQ_URL="amqp://localhost:5672"
+EVE_CLIENT_ID="your_client_id"
+EVE_CLIENT_SECRET="your_client_secret"
+```
+
+### 3. Database Setup
+
+```bash
+yarn prisma:migrate    # Run migrations + generate Prisma client
+yarn prisma:studio     # Open database GUI (optional)
+```
+
+### 4. Development Server
+
+```bash
+yarn dev              # http://localhost:4000/graphql
+```
+
+### 5. Initial Data Sync (Optional)
+
+```bash
+# Terminal 1: Queue alliances
+yarn queue:alliances
+
+# Terminal 2: Start worker
+yarn worker:info:alliances
+
+# For enrichment (find missing data from killmails)
+yarn scan:entities
+yarn worker:info:characters
+yarn worker:info:corporations
+```
+
+Server runs on: **<http://localhost:4000/graphql>**
 
 ## Documentation
 
 ### Operations & Maintenance
 
-- [**📅 Daily Operations Guide**](./DAILY_OPERATIONS.md) - Günlük karakter/corporation sync ve bakım işlemleri
+- [**📅 Daily Operations Guide**](./DAILY_OPERATIONS.md) - Daily character/corporation sync and maintenance tasks
 
 ### Core Features
 
@@ -46,7 +84,7 @@ Server runs on: http://localhost:4000/graphql
 - [RabbitMQ Queue System](./src/services/rabbitmq.ts)
 - [Rate Limiter](./src/services/rate-limiter.ts)
 
-## Available Scripts
+## 📋 Available Scripts
 
 ### Development
 
@@ -54,6 +92,7 @@ Server runs on: http://localhost:4000/graphql
 yarn dev              # Start dev server with hot reload
 yarn codegen          # Generate GraphQL types
 yarn codegen:watch    # Watch mode for codegen
+yarn kill:port        # Kill process on port 4000
 ```
 
 ### Database
@@ -125,75 +164,61 @@ yarn test:enrichment  # Test killmail enrichment system
 ### Utilities
 
 ```bash
-yarn kill:port        # Kill process on port 4000
 yarn remove:all       # Clean all dependencies
 ```
 
-## Tech Stack
+## 🏗️ Tech Stack
+
+### Core Technologies
 
 - **Runtime**: Node.js + TypeScript
-- **API**: GraphQL (yoga)
-- **Database**: PostgreSQL + Prisma ORM
-- **Queue**: RabbitMQ
-- **Auth**: EVE Online SSO (OAuth2)
-- **External APIs**:
-  - EVE ESI API
-  - zKillboard API
+- **API Framework**: GraphQL Yoga 5.16.0
+- **Database**: PostgreSQL + Prisma ORM v7.1.0
+- **Message Queue**: RabbitMQ (amqplib)
+- **Cache & Pub/Sub**: Redis (ioredis)
+- **Authentication**: EVE Online SSO (OAuth2) + JWT (jose)
+- **Rate Limiting**: Custom ESI rate limiter (50 req/sec)
 
-## Project Structure
+### External API Integrations
 
-```
-backend/
-├── prisma/
-│   ├── schema.prisma           # Database schema
-│   └── migrations/             # Migration files
-├── src/
-│   ├── resolvers/              # GraphQL resolvers
-│   │   ├── alliance.resolver.ts
-│   │   ├── auth.resolver.ts
-│   │   ├── character.resolver.ts
-│   │   ├── corporation.resolver.ts
-│   │   ├── killmail.resolver.ts
-│   │   └── user.resolver.ts
-│   ├── schema/                 # GraphQL schema definitions
-│   │   ├── alliance.graphql
-│   │   ├── auth.graphql
-│   │   ├── character.graphql
-│   │   ├── corporation.graphql
-│   │   ├── killmail.graphql
-│   │   └── user.graphql
-│   ├── services/               # External services
-│   │   ├── database.ts         # Database connection
-│   │   ├── dataloaders.ts      # DataLoader for N+1 queries
-│   │   ├── eve-esi.ts          # EVE ESI API client
-│   │   ├── eve-sso.ts          # EVE SSO authentication
-│   │   ├── prisma.ts           # Prisma client
-│   │   ├── rabbitmq.ts         # RabbitMQ queue
-│   │   ├── rate-limiter.ts     # ESI rate limiting
-│   │   └── zkillboard.ts       # zKillboard API client
-│   ├── workers/                # Background workers
-│   │   ├── queue-alliances.ts
-│   │   ├── queue-alliance-corporations.ts
-│   │   ├── queue-character-killmails.ts
-│   │   ├── queue-corporations.ts
-│   │   ├── queue-zkillboard-sync.ts
-│   │   ├── scan-killmail-entities.ts
-│   │   ├── sync-character-killmails.ts
-│   │   ├── worker-alliance-corporations.ts
-│   │   ├── worker-alliance-snapshots.ts
-│   │   ├── worker-corporations.ts
-│   │   ├── worker-info-alliances.ts
-│   │   ├── worker-info-characters.ts
-│   │   ├── worker-info-corporations.ts
-│   │   ├── worker-info-types.ts
-│   │   ├── worker-killmails.ts
-│   │   └── worker-zkillboard-sync.ts
-│   ├── config.ts               # Configuration
-│   ├── server.ts               # Main server file
-│   ├── generated-schema.graphql
-│   ├── generated-schema.ts
-│   └── generated-types.ts
-└── package.json
+- **EVE ESI API**: EVE Online official API (character/corp/alliance/item data)
+- **zKillboard API**: Killmail data source
+
+### Architecture Features
+
+- **GraphQL Schema**: Modular extend type pattern
+- **DataLoader Pattern**: Prevents N+1 query problems
+- **Worker System**: RabbitMQ-based distributed task processing
+- **Connection Pooling**: Separate pools for API (5 conn) and Workers (2 conn)
+- **Real-time**: GraphQL subscriptions + WebSocket
+- **Code Generation**: GraphQL schema → TypeScript types (automatic)
+
+## 🔍 GraphQL Playground
+
+When server is running: **<http://localhost:4000/graphql>**
+
+Example queries:
+
+```graphql
+query {
+  alliances(limit: 10) {
+    alliance_id
+    name
+    ticker
+    member_count
+  }
+}
+
+query {
+  me {
+    character_id
+    name
+    corporation {
+      name
+      ticker
+    }
+  }
+}
 ```
 
 ## Environment Variables
@@ -202,7 +227,7 @@ Create a `.env` file:
 
 ```bash
 # Database
-DATABASE_URL="postgresql://user:password@localhost:5432/killreport"
+DATABASE_URL="postgresql://user:password@localhost:5432/database"
 
 # RabbitMQ
 RABBITMQ_URL="amqp://localhost:5672"
@@ -268,7 +293,7 @@ psql $DATABASE_URL
 1. **Hot Reload**: `yarn dev` watches for file changes
 2. **Type Safety**: `yarn codegen` generates TypeScript types from GraphQL schema
 3. **Database Changes**: Always run `yarn prisma:migrate` after schema changes
-4. **Queue Monitoring**: RabbitMQ Management UI at http://localhost:15672
+4. **Queue Monitoring**: RabbitMQ Management UI at <http://localhost:15672>
 
 ## Troubleshooting
 
