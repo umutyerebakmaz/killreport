@@ -350,6 +350,79 @@ export type CreateUserPayload = {
   user?: Maybe<User>;
 };
 
+export type DogmaAttribute = {
+  __typename?: 'DogmaAttribute';
+  created_at: Scalars['String']['output'];
+  default_value?: Maybe<Scalars['Float']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+  display_name?: Maybe<Scalars['String']['output']>;
+  high_is_good: Scalars['Boolean']['output'];
+  icon_id?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  published: Scalars['Boolean']['output'];
+  stackable: Scalars['Boolean']['output'];
+  unit_id?: Maybe<Scalars['Int']['output']>;
+  updated_at: Scalars['String']['output'];
+};
+
+export type DogmaAttributeConnection = {
+  __typename?: 'DogmaAttributeConnection';
+  edges: Array<DogmaAttributeEdge>;
+  pageInfo: PageInfo;
+};
+
+export type DogmaAttributeEdge = {
+  __typename?: 'DogmaAttributeEdge';
+  cursor: Scalars['String']['output'];
+  node: DogmaAttribute;
+};
+
+export type DogmaAttributeFilter = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  published?: InputMaybe<Scalars['Boolean']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type DogmaEffect = {
+  __typename?: 'DogmaEffect';
+  created_at: Scalars['String']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  disallow_auto_repeat: Scalars['Boolean']['output'];
+  display_name?: Maybe<Scalars['String']['output']>;
+  effect_category?: Maybe<Scalars['Int']['output']>;
+  icon_id?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['Int']['output'];
+  is_assistance: Scalars['Boolean']['output'];
+  is_offensive: Scalars['Boolean']['output'];
+  name: Scalars['String']['output'];
+  post_expression?: Maybe<Scalars['Int']['output']>;
+  pre_expression?: Maybe<Scalars['Int']['output']>;
+  published: Scalars['Boolean']['output'];
+  updated_at: Scalars['String']['output'];
+};
+
+export type DogmaEffectConnection = {
+  __typename?: 'DogmaEffectConnection';
+  edges: Array<DogmaEffectEdge>;
+  pageInfo: PageInfo;
+};
+
+export type DogmaEffectEdge = {
+  __typename?: 'DogmaEffectEdge';
+  cursor: Scalars['String']['output'];
+  node: DogmaEffect;
+};
+
+export type DogmaEffectFilter = {
+  effect_category?: InputMaybe<Scalars['Int']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  published?: InputMaybe<Scalars['Boolean']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type ItemGroup = {
   __typename?: 'ItemGroup';
   category: Category;
@@ -459,9 +532,12 @@ export type Mutation = {
   startAllianceSync: StartAllianceSyncPayload;
   startCategorySync: StartCategorySyncPayload;
   startConstellationSync: StartConstellationSyncPayload;
+  startDogmaAttributeSync: StartDogmaAttributeSyncPayload;
+  startDogmaEffectSync: StartDogmaEffectSyncPayload;
   startItemGroupSync: StartItemGroupSyncPayload;
   startRegionSync: StartRegionSyncPayload;
   startSolarSystemSync: StartSolarSystemSyncPayload;
+  startTypeDogmaSync: StartTypeDogmaSyncPayload;
   startTypeSync: StartTypeSyncPayload;
   /**
    * Fetches user's killmails from ESI and saves to database
@@ -528,6 +604,16 @@ export type MutationStartConstellationSyncArgs = {
 };
 
 
+export type MutationStartDogmaAttributeSyncArgs = {
+  input: StartDogmaAttributeSyncInput;
+};
+
+
+export type MutationStartDogmaEffectSyncArgs = {
+  input: StartDogmaEffectSyncInput;
+};
+
+
 export type MutationStartItemGroupSyncArgs = {
   input: StartItemGroupSyncInput;
 };
@@ -540,6 +626,11 @@ export type MutationStartRegionSyncArgs = {
 
 export type MutationStartSolarSystemSyncArgs = {
   input: StartSolarSystemSyncInput;
+};
+
+
+export type MutationStartTypeDogmaSyncArgs = {
+  input: StartTypeDogmaSyncInput;
 };
 
 
@@ -599,6 +690,10 @@ export type Query = {
   /** Fetches killmails for a specific corporation */
   corporationKillmails: KillmailConnection;
   corporations: CorporationConnection;
+  dogmaAttribute?: Maybe<DogmaAttribute>;
+  dogmaAttributes: DogmaAttributeConnection;
+  dogmaEffect?: Maybe<DogmaEffect>;
+  dogmaEffects: DogmaEffectConnection;
   itemGroup?: Maybe<ItemGroup>;
   itemGroups: ItemGroupConnection;
   /** Fetches a single killmail */
@@ -707,6 +802,26 @@ export type QueryCorporationKillmailsArgs = {
 
 export type QueryCorporationsArgs = {
   filter?: InputMaybe<CorporationFilter>;
+};
+
+
+export type QueryDogmaAttributeArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type QueryDogmaAttributesArgs = {
+  filter?: InputMaybe<DogmaAttributeFilter>;
+};
+
+
+export type QueryDogmaEffectArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type QueryDogmaEffectsArgs = {
+  filter?: InputMaybe<DogmaEffectFilter>;
 };
 
 
@@ -949,6 +1064,28 @@ export type StartConstellationSyncPayload = {
   success: Scalars['Boolean']['output'];
 };
 
+export type StartDogmaAttributeSyncInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type StartDogmaAttributeSyncPayload = {
+  __typename?: 'StartDogmaAttributeSyncPayload';
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type StartDogmaEffectSyncInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type StartDogmaEffectSyncPayload = {
+  __typename?: 'StartDogmaEffectSyncPayload';
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
 export type StartItemGroupSyncInput = {
   clientMutationId?: InputMaybe<Scalars['String']['input']>;
 };
@@ -979,6 +1116,19 @@ export type StartSolarSystemSyncPayload = {
   __typename?: 'StartSolarSystemSyncPayload';
   clientMutationId?: Maybe<Scalars['String']['output']>;
   message?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type StartTypeDogmaSyncInput = {
+  clientMutationId?: InputMaybe<Scalars['String']['input']>;
+  typeIds?: InputMaybe<Array<Scalars['Int']['input']>>;
+};
+
+export type StartTypeDogmaSyncPayload = {
+  __typename?: 'StartTypeDogmaSyncPayload';
+  clientMutationId?: Maybe<Scalars['String']['output']>;
+  message?: Maybe<Scalars['String']['output']>;
+  queuedCount?: Maybe<Scalars['Int']['output']>;
   success: Scalars['Boolean']['output'];
 };
 
@@ -1026,6 +1176,8 @@ export type Type = {
   capacity?: Maybe<Scalars['Float']['output']>;
   created_at: Scalars['String']['output'];
   description?: Maybe<Scalars['String']['output']>;
+  dogmaAttributes: Array<TypeDogmaAttribute>;
+  dogmaEffects: Array<TypeDogmaEffect>;
   group: ItemGroup;
   icon_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
@@ -1040,6 +1192,22 @@ export type TypeConnection = {
   __typename?: 'TypeConnection';
   edges: Array<TypeEdge>;
   pageInfo: PageInfo;
+};
+
+export type TypeDogmaAttribute = {
+  __typename?: 'TypeDogmaAttribute';
+  attribute: DogmaAttribute;
+  attribute_id: Scalars['Int']['output'];
+  type_id: Scalars['Int']['output'];
+  value: Scalars['Float']['output'];
+};
+
+export type TypeDogmaEffect = {
+  __typename?: 'TypeDogmaEffect';
+  effect: DogmaEffect;
+  effect_id: Scalars['Int']['output'];
+  is_default: Scalars['Boolean']['output'];
+  type_id: Scalars['Int']['output'];
 };
 
 export type TypeEdge = {
@@ -1248,7 +1416,7 @@ export type KillmailQueryVariables = Exact<{
 }>;
 
 
-export type KillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', id: string, killmailHash: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, security_class?: string | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string }, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType: { __typename?: 'Type', id: number, name: string, description?: string | null, group: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } }, position?: { __typename?: 'Position', x: number, y: number, z: number } | null }, attackers: Array<{ __typename?: 'Attacker', damageDone: number, finalBlow: boolean, securityStatus?: number | null, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group: { __typename?: 'ItemGroup', name: string } } | null, weaponType?: { __typename?: 'Type', id: number, name: string } | null }>, items: Array<{ __typename?: 'KillmailItem', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, singleton: number, itemType: { __typename?: 'Type', id: number, name: string } }> } | null };
+export type KillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', id: string, killmailHash: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, security_class?: string | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string }, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType: { __typename?: 'Type', id: number, name: string, description?: string | null, group: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } }, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number, attribute: { __typename?: 'DogmaAttribute', id: number, name: string, display_name?: string | null, description?: string | null, unit_id?: number | null, high_is_good: boolean } }>, dogmaEffects: Array<{ __typename?: 'TypeDogmaEffect', effect_id: number, is_default: boolean, effect: { __typename?: 'DogmaEffect', id: number, name: string, display_name?: string | null, description?: string | null } }> }, position?: { __typename?: 'Position', x: number, y: number, z: number } | null }, attackers: Array<{ __typename?: 'Attacker', damageDone: number, finalBlow: boolean, securityStatus?: number | null, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group: { __typename?: 'ItemGroup', name: string }, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', value: number, attribute: { __typename?: 'DogmaAttribute', name: string, display_name?: string | null } }> } | null, weaponType?: { __typename?: 'Type', id: number, name: string, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', value: number, attribute: { __typename?: 'DogmaAttribute', name: string, display_name?: string | null } }> } | null }>, items: Array<{ __typename?: 'KillmailItem', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, singleton: number, itemType: { __typename?: 'Type', id: number, name: string, description?: string | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number, attribute: { __typename?: 'DogmaAttribute', id: number, name: string, display_name?: string | null, description?: string | null, unit_id?: number | null, high_is_good: boolean } }>, dogmaEffects: Array<{ __typename?: 'TypeDogmaEffect', effect_id: number, is_default: boolean, effect: { __typename?: 'DogmaEffect', id: number, name: string, display_name?: string | null, description?: string | null, is_offensive: boolean, is_assistance: boolean } }> } }> } | null };
 
 export type KillmailsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
@@ -2562,6 +2730,7 @@ export const KillmailDocument = gql`
       }
     }
     victim {
+      damageTaken
       character {
         id
         name
@@ -2586,8 +2755,29 @@ export const KillmailDocument = gql`
             name
           }
         }
+        dogmaAttributes {
+          attribute_id
+          value
+          attribute {
+            id
+            name
+            display_name
+            description
+            unit_id
+            high_is_good
+          }
+        }
+        dogmaEffects {
+          effect_id
+          is_default
+          effect {
+            id
+            name
+            display_name
+            description
+          }
+        }
       }
-      damageTaken
       position {
         x
         y
@@ -2595,6 +2785,9 @@ export const KillmailDocument = gql`
       }
     }
     attackers {
+      damageDone
+      finalBlow
+      securityStatus
       character {
         id
         name
@@ -2615,24 +2808,60 @@ export const KillmailDocument = gql`
         group {
           name
         }
+        dogmaAttributes {
+          value
+          attribute {
+            name
+            display_name
+          }
+        }
       }
       weaponType {
         id
         name
+        dogmaAttributes {
+          value
+          attribute {
+            name
+            display_name
+          }
+        }
       }
-      damageDone
-      finalBlow
-      securityStatus
     }
     items {
-      itemType {
-        id
-        name
-      }
       flag
       quantityDropped
       quantityDestroyed
       singleton
+      itemType {
+        id
+        name
+        description
+        dogmaAttributes {
+          attribute_id
+          value
+          attribute {
+            id
+            name
+            display_name
+            description
+            unit_id
+            high_is_good
+          }
+        }
+        dogmaEffects {
+          effect_id
+          is_default
+          effect {
+            id
+            name
+            display_name
+            description
+            is_offensive
+            is_assistance
+          }
+        }
+      }
     }
   }
 }
@@ -2914,7 +3143,7 @@ export function useOnNewKillmailSubscription(baseOptions?: Apollo.SubscriptionHo
 export type OnNewKillmailSubscriptionHookResult = ReturnType<typeof useOnNewKillmailSubscription>;
 export type OnNewKillmailSubscriptionResult = Apollo.SubscriptionResult<OnNewKillmailSubscription>;
 export const SearchCharactersDocument = gql`
-    query SearchCharacters($search: String!, $limit: Int = 10) {
+    query SearchCharacters($search: String!, $limit: Int = 40) {
   characters(filter: {search: $search, limit: $limit}) {
     edges {
       node {
