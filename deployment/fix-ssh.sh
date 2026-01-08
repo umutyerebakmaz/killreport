@@ -24,10 +24,10 @@ cp /etc/ssh/sshd_config /etc/ssh/sshd_config.emergency.backup
 
 echo "Fixing SSH configuration..."
 
-# Remove all Port directives and add Port 2222
+# Remove all Port directives and add Port 7777
 sed -i '/^Port /d' /etc/ssh/sshd_config
 sed -i '/^#Port /d' /etc/ssh/sshd_config
-echo "Port 2222" >> /etc/ssh/sshd_config
+echo "Port 7777" >> /etc/ssh/sshd_config
 
 # Allow root login temporarily
 sed -i 's/^PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
@@ -72,7 +72,7 @@ echo "SSH listening: $LISTENING"
 if command -v ufw &> /dev/null; then
     echo "Configuring firewall..."
     ufw --force enable
-    ufw allow 2222/tcp
+    ufw allow 7777/tcp
     ufw allow 22/tcp
     ufw reload
     echo "✅ Firewall configured"
@@ -84,7 +84,7 @@ echo "✅ SSH FIX COMPLETE!"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "Try connecting from NEW terminal:"
-echo "  ssh -p 2222 root@188.166.49.7"
+echo "  ssh -p 7777 root@188.166.49.7"
 echo ""
 echo "Or if port 22 works:"
 echo "  ssh root@188.166.49.7"

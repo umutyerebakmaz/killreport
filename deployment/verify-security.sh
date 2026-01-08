@@ -34,10 +34,10 @@ check_status() {
 # 1. SSH Port Check
 echo -e "\n${YELLOW}[1] SSH Port Configuration${NC}"
 SSH_PORT=$(grep "^Port" /etc/ssh/sshd_config /etc/ssh/sshd_config.d/*.conf 2>/dev/null | tail -1 | awk '{print $2}')
-if [ "$SSH_PORT" = "2222" ]; then
-    check_status 0 "SSH Port changed to 2222"
+if [ "$SSH_PORT" = "7777" ]; then
+    check_status 0 "SSH Port changed to 7777"
 else
-    check_status 1 "SSH Port is still $SSH_PORT (should be 2222)"
+    check_status 1 "SSH Port is still $SSH_PORT (should be 7777)"
 fi
 
 # 2. Root Login Check
@@ -123,9 +123,9 @@ fi
 
 # 9. Active SSH Connections
 echo -e "\n${YELLOW}[9] Active SSH Connections${NC}"
-ACTIVE_CONN=$(ss -tunap 2>/dev/null | grep -E ":(22|2222)" | grep ESTAB | wc -l)
+ACTIVE_CONN=$(ss -tunap 2>/dev/null | grep -E ":(22|7777)" | grep ESTAB | wc -l)
 echo -e "${BLUE}   Currently active connections: $ACTIVE_CONN${NC}"
-ss -tunap 2>/dev/null | grep -E ":(22|2222)" | grep ESTAB || echo "   No active connections"
+ss -tunap 2>/dev/null | grep -E ":(22|7777)" | grep ESTAB || echo "   No active connections"
 
 # 10. Recent Attack Attempts
 echo -e "\n${YELLOW}[10] Recent Attack Attempts${NC}"
@@ -157,13 +157,13 @@ echo -e "${YELLOW}IMPORTANT REMINDERS:${NC}"
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 echo -e "${GREEN}1. New SSH connection command:${NC}"
-echo -e "   ssh -p 2222 killreport@YOUR_DROPLET_IP"
+echo -e "   ssh -p 7777 killreport@YOUR_DROPLET_IP"
 echo ""
 echo -e "${GREEN}2. Update your ~/.ssh/config:${NC}"
 cat << 'EOF'
    Host killreport
        HostName YOUR_DROPLET_IP
-       Port 2222
+       Port 7777
        User killreport
        IdentityFile ~/.ssh/id_ed25519
 EOF
