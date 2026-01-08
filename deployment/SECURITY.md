@@ -56,7 +56,7 @@ ssh -p 7777 killreport@YOUR_DROPLET_IP
 
 **Allowed ports:**
 
-- 2222/tcp - SSH
+- 7777/tcp - SSH
 - 80/tcp - HTTP
 - 443/tcp - HTTPS
 - 3000/tcp - Next.js Frontend (optional)
@@ -148,7 +148,7 @@ sudo usermod -aG sudo newadmin
 
 ```bash
 # On your local machine
-ssh-copy-id -p 2222 killreport@YOUR_DROPLET_IP
+ssh-copy-id -p 7777 killreport@YOUR_DROPLET_IP
 
 # Or manually
 mkdir -p ~/.ssh
@@ -179,7 +179,7 @@ sudo sshd -T | grep -E 'port|permitroot|passwordauth'
 **2. Active Connections:**
 
 ```bash
-sudo ss -tunap | grep :2222
+sudo ss -tunap | grep :7777
 ```
 
 **3. Failed Login Attempts:**
@@ -255,7 +255,7 @@ ncdu /        # Disk space
 **Reset SSH port to 22 (emergency only):**
 
 ```bash
-sudo sed -i 's/Port 2222/Port 22/' /etc/ssh/sshd_config.d/99-security-hardening.conf
+sudo sed -i 's/Port 7777/Port 22/' /etc/ssh/sshd_config.d/99-security-hardening.conf
 sudo systemctl restart sshd
 sudo ufw allow 22/tcp
 ```
@@ -324,13 +324,13 @@ sudo systemctl restart sshd
 
 ```bash
 # Remove all SSH rules
-sudo ufw delete allow 2222/tcp
+sudo ufw delete allow 7777/tcp
 
 # Add only your IP
-sudo ufw allow from YOUR_IP to any port 2222 proto tcp comment 'SSH - Your IP'
+sudo ufw allow from YOUR_IP to any port 7777 proto tcp comment 'SSH - Your IP'
 
 # Add office IP
-sudo ufw allow from OFFICE_IP to any port 2222 proto tcp comment 'SSH - Office'
+sudo ufw allow from OFFICE_IP to any port 7777 proto tcp comment 'SSH - Office'
 ```
 
 ### 3. Port Knocking
@@ -347,13 +347,13 @@ sudo apt-get install knockd
 [openSSH]
 sequence = 7000,8000,9000
 seq_timeout = 5
-command = /sbin/ufw allow from %IP% to any port 2222 proto tcp
+command = /sbin/ufw allow from %IP% to any port 7777 proto tcp
 tcpflags = syn
 
 [closeSSH]
 sequence = 9000,8000,7000
 seq_timeout = 5
-command = /sbin/ufw delete allow from %IP% to any port 2222 proto tcp
+command = /sbin/ufw delete allow from %IP% to any port 7777 proto tcp
 ```
 
 ### 4. Intrusion Detection (OSSEC)
