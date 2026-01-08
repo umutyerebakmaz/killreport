@@ -52,8 +52,8 @@ export default function KillmailDetailPage({
 
               <div className="flex">
                 <img
-                  src={`https://images.evetech.net/characters/${victim.character?.id}/portrait?size=256`}
-                  alt={victim.character?.name}
+                  src={`https://images.evetech.net/characters/${victim?.character?.id}/portrait?size=256`}
+                  alt={victim?.character?.name}
                   width={128}
                   height={128}
                   className="shadow-md"
@@ -61,7 +61,7 @@ export default function KillmailDetailPage({
                 />
 
                 <img
-                  src={`https://images.evetech.net/types/${km.victim.shipType?.id}/render?size=256`}
+                  src={`https://images.evetech.net/types/${km.victim?.shipType?.id}/render?size=256`}
                   alt={victim?.shipType?.name || "Ship"}
                   width={128}
                   height={128}
