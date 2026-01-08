@@ -10,8 +10,8 @@ type Type {
   icon_id: Int
   created_at: String!
   updated_at: String!
-  dogmaAttributes: [TypeDogmaAttribute!]!
-  dogmaEffects: [TypeDogmaEffect!]!
+  dogmaAttributes(ids: [Int!]): [TypeDogmaAttribute!]!
+  dogmaEffects(ids: [Int!]): [TypeDogmaEffect!]!
 }
 
 type TypeDogmaAttribute {

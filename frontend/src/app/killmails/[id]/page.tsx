@@ -1,6 +1,7 @@
 "use client";
 
 import AttackersCard from "@/components/AttackersCard";
+import FitScreen from "@/components/FitScreen/FitScreen";
 import { Loader } from "@/components/Loader/Loader";
 import { useKillmailQuery } from "@/generated/graphql";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
@@ -71,23 +72,29 @@ export default function KillmailDetailPage({
                 </div>
               </div>
 
-              <div className="flex">
-                <img
-                  src={`https://images.evetech.net/characters/${victim?.character?.id}/portrait?size=256`}
-                  alt={victim?.character?.name}
-                  width={128}
-                  height={128}
-                  className="shadow-md"
-                  loading="lazy"
-                />
+              <div className="flex gap-4">
+                <div className="flex h-32">
+                  <img
+                    src={`https://images.evetech.net/characters/${victim?.character?.id}/portrait?size=256`}
+                    alt={victim?.character?.name}
+                    width={128}
+                    height={128}
+                    className="object-cover w-32 h-32 shadow-md shrink-0"
+                    loading="lazy"
+                  />
 
-                <img
-                  src={`https://images.evetech.net/types/${km.victim?.shipType?.id}/render?size=256`}
-                  alt={victim?.shipType?.name || "Ship"}
-                  width={128}
-                  height={128}
-                  className="shadow-md"
-                  loading="lazy"
+                  <img
+                    src={`https://images.evetech.net/types/${km.victim?.shipType?.id}/render?size=256`}
+                    alt={victim?.shipType?.name || "Ship"}
+                    width={128}
+                    height={128}
+                    className="object-contain w-32 h-32 shadow-md shrink-0"
+                    loading="lazy"
+                  />
+                </div>
+
+                <FitScreen
+                  dogmaAttributes={victim?.shipType?.dogmaAttributes}
                 />
               </div>
 
