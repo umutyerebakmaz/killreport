@@ -17,12 +17,11 @@ const QUEUE_WORKER_MAP: Record<string, string[]> = {
   'esi_type_info_queue': ['worker:info:types', 'worker-types'],
   'esi_category_info_queue': ['worker:info:categories', 'worker-categories'],
   'esi_item_group_info_queue': ['worker:info:item-groups', 'worker-item-groups'],
-  'esi_all_alliances_queue': ['worker:alliances', 'worker-alliances'],
-  'esi_all_corporations_queue': ['worker:corporations', 'worker-corporations'],
   'esi_alliance_corporations_queue': ['worker:alliance-corporations', 'worker-alliance-corporations'],
   'esi_regions_queue': ['worker:regions', 'worker-regions'],
   'esi_constellations_queue': ['worker:constellations', 'worker-constellations'],
-  'esi_systems_queue': ['worker:systems', 'worker-systems'],
+  'esi_solar_systems_queue': ['worker:solar-systems', 'worker-solar-systems'],
+
   'zkillboard_character_queue': ['worker:zkillboard', 'worker-zkillboard'],
 };
 

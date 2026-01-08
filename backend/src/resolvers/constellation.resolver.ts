@@ -156,7 +156,7 @@ export const constellationMutations: MutationResolvers = {
 
             // RabbitMQ'ya ekle
             const channel = await getRabbitMQChannel();
-            const QUEUE_NAME = 'esi_all_constellations_queue';
+            const QUEUE_NAME = 'esi_constellations_queue';
 
             await channel.assertQueue(QUEUE_NAME, {
                 durable: true,

@@ -513,7 +513,7 @@ export type Mutation = {
   _empty?: Maybe<Scalars['String']['output']>;
   /** Authorization code ile authentication yapar ve token döner */
   authenticateWithCode: AuthPayload;
-  /** Clear all killmail caches (use after bulk sync) */
+  /** Clear all killmail caches (use after large data updates) */
   clearAllKillmailCaches: CacheOperation;
   /** Clear cache for a specific alliance */
   clearAllianceCache: CacheOperation;
@@ -536,7 +536,6 @@ export type Mutation = {
   startDogmaEffectSync: StartDogmaEffectSyncPayload;
   startItemGroupSync: StartItemGroupSyncPayload;
   startRegionSync: StartRegionSyncPayload;
-  startSolarSystemSync: StartSolarSystemSyncPayload;
   startTypeDogmaSync: StartTypeDogmaSyncPayload;
   startTypeSync: StartTypeSyncPayload;
   /**
@@ -621,11 +620,6 @@ export type MutationStartItemGroupSyncArgs = {
 
 export type MutationStartRegionSyncArgs = {
   input: StartRegionSyncInput;
-};
-
-
-export type MutationStartSolarSystemSyncArgs = {
-  input: StartSolarSystemSyncInput;
 };
 
 
@@ -1103,17 +1097,6 @@ export type StartRegionSyncInput = {
 
 export type StartRegionSyncPayload = {
   __typename?: 'StartRegionSyncPayload';
-  clientMutationId?: Maybe<Scalars['String']['output']>;
-  message?: Maybe<Scalars['String']['output']>;
-  success: Scalars['Boolean']['output'];
-};
-
-export type StartSolarSystemSyncInput = {
-  clientMutationId?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type StartSolarSystemSyncPayload = {
-  __typename?: 'StartSolarSystemSyncPayload';
   clientMutationId?: Maybe<Scalars['String']['output']>;
   message?: Maybe<Scalars['String']['output']>;
   success: Scalars['Boolean']['output'];

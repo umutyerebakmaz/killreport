@@ -5,13 +5,13 @@ import prismaWorker from '../services/prisma-worker';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
 const ESI_BASE_URL = 'https://esi.evetech.net/latest';
-const QUEUE_NAME = 'esi_all_systems_queue';
+const QUEUE_NAME = 'esi_solar_systems_queue';
 const RATE_LIMIT_DELAY = 100; // Wait 100ms between each request (10 requests per second)
 
 /**
  * Checks if the solar system exists in the database
  */
-async function systemExists(systemId: number): Promise<boolean> {
+async function solarSystemExists(systemId: number): Promise<boolean> {
     const system = await prismaWorker.solarSystem.findUnique({
         where: { id: systemId },
         select: { id: true }, // Only select id for performance
@@ -23,9 +23,9 @@ async function systemExists(systemId: number): Promise<boolean> {
  * Fetches solar system information from ESI and saves it to the database
  * Returns true if processed, false if skipped
  */
-async function processSystem(systemId: number): Promise<boolean> {
+async function processSolarSystem(systemId: number): Promise<boolean> {
     try {
-        // Fetch system information from ESI
+        // Fetch solar system information from ESI
         const response = await axios.get(`${ESI_BASE_URL}/universe/systems/${systemId}/`);
         const data = response.data;
 
@@ -44,9 +44,7 @@ async function processSystem(systemId: number): Promise<boolean> {
             update: {
                 name: data.name,
                 constellation_id: data.constellation_id || null,
-                security_status: data.security_status || null,
-                security_class: data.security_class || null,
-                star_id: data.star_id || null,
+                security_status: data.security_status ?? null,
                 position_x: data.position?.x || null,
                 position_y: data.position?.y || null,
                 position_z: data.position?.z || null,
@@ -55,29 +53,27 @@ async function processSystem(systemId: number): Promise<boolean> {
                 id: systemId,
                 name: data.name,
                 constellation_id: data.constellation_id || null,
-                security_status: data.security_status || null,
-                security_class: data.security_class || null,
-                star_id: data.star_id || null,
+                security_status: data.security_status ?? null,
                 position_x: data.position?.x || null,
                 position_y: data.position?.y || null,
                 position_z: data.position?.z || null,
             },
         });
 
-        logger.debug(`✅ Saved system ${systemId} - ${data.name}`);
+        logger.debug(`✅ Saved solar system ${systemId} - ${data.name}`);
 
-        // Short wait for rate limiting - sadece başarılı ESI çağrılarında bekle
+        // Short wait for rate limiting
         await sleep(RATE_LIMIT_DELAY);
         return true;
     } catch (error: any) {
         if (error.response?.status === 404) {
-            logger.warn(`⚠️  System ${systemId} not found (404)`);
+            logger.warn(`⚠️  Solar system ${systemId} not found (404)`);
         } else if (error.response?.status === 420) {
             logger.warn(`🛑 Error limited (420)! Waiting 60 seconds...`);
             await sleep(60000);
             throw error; // Requeue the message
         } else {
-            logger.error(`❌ Error processing system ${systemId}:`, error.message);
+            logger.error(`❌ Error processing solar system ${systemId}:`, error.message);
         }
         throw error;
     }
@@ -143,21 +139,21 @@ async function startWorker() {
                 const systemId = parseInt(msg.content.toString());
 
                 if (isNaN(systemId)) {
-                    logger.error('❌ Invalid system ID:', msg.content.toString());
+                    logger.error('❌ Invalid solar system ID:', msg.content.toString());
                     channel.ack(msg);
                     errorCount++;
                     return;
                 }
 
                 try {
-                    // Check if system already exists in database
-                    const exists = await systemExists(systemId);
+                    // Check if solar system already exists in database
+                    const exists = await solarSystemExists(systemId);
 
                     if (exists) {
                         // Skip if already exists - no ESI call needed
                         skippedCount++;
                         logger.debug(
-                            `⏭️  System ${systemId} already exists, skipping... (Processed: ${processedCount}, Skipped: ${skippedCount})`
+                            `⏭️  Solar system ${systemId} already exists, skipping... (Processed: ${processedCount}, Skipped: ${skippedCount})`
                         );
                         channel.ack(msg);
 
@@ -169,8 +165,8 @@ async function startWorker() {
                         return;
                     }
 
-                    // New system - fetch from ESI and save
-                    await processSystem(systemId);
+                    // New solar system - fetch from ESI and save
+                    await processSolarSystem(systemId);
                     processedCount++;
                     channel.ack(msg);
 

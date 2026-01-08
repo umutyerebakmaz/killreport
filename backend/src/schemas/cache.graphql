@@ -44,7 +44,7 @@ extend type Mutation {
   clearAllianceCache(allianceId: Int!): CacheOperation!
 
   """
-  Clear all killmail caches (use after bulk sync)
+  Clear all killmail caches (use after large data updates)
   """
   clearAllKillmailCaches: CacheOperation!
 }

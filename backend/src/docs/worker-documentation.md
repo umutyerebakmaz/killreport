@@ -14,37 +14,11 @@ KillReport kullanır bir dağıtılmış worker sistemi RabbitMQ tabanlı. Her w
 
 Kuyruktan gelen mesajları sürekli olarak dinleyen ve işleyen servisler. Arka planda sürekli çalışır.
 
-## ⚠️ Önemli: Bulk Sync vs Enrichment Worker Farkları
+## Worker Türleri
 
-Proje içinde **2 farklı worker tipi** bulunur ve farklı amaçlar için kullanılır:
+Tüm worker'lar **enrichment (otomatik tamamlama)** prensibiyle çalışır. Killmail'lerden veya scheduled job'lardan gelen eksik verileri otomatik olarak ESI'dan çekip veritabanına kaydeder.
 
-### Bulk Sync Workers (Toplu Senkronizasyon)
-
-**Alliance Bulk Worker** - `worker-alliances.ts`:
-
-- **Amaç**: İlk kurulumda TÜM EVE alliance'larını toplu olarak çekmek
-- **Queue**: `esi_all_alliances_queue`
-- **Kullanım**: `yarn worker:alliances`
-- **Özellikler**:
-  - Tek seferde 1 mesaj işler (sıralı)
-  - Mevcut kayıtları da günceller (update + create)
-  - Manuel rate limiting (100ms, 10 req/sec)
-  - Manuel axios çağrıları
-  - Daha yavaş ama kapsamlı
-
-**Corporation Bulk Worker** - `worker-corporations.ts`:
-
-- **Amaç**: İlk kurulumda TÜM EVE corporation'larını toplu olarak çekmek
-- **Queue**: `esi_all_corporations_queue`
-- **Kullanım**: `yarn worker:corporations`
-- **Özellikler**:
-  - Tek seferde 1 mesaj işler (sıralı)
-  - Mevcut kayıtları da günceller (update + create)
-  - Manuel rate limiting (100ms, 10 req/sec)
-  - Manuel axios çağrıları
-  - Daha yavaş ama kapsamlı
-
-### Info Workers (Enrichment - Otomatik Tamamlama)
+### Info Workers (Entity Enrichment)
 
 **Alliance Info Worker** - `worker-info-alliances.ts`:
 
@@ -56,7 +30,6 @@ Proje içinde **2 farklı worker tipi** bulunur ve farklı amaçlar için kullan
   - Sadece yeni kayıt ekler (update yapmaz)
   - Merkezi rate limiter (50 req/sec)
   - Servis abstraction (`getAllianceInfo()`)
-  - Daha hızlı ve verimli
 
 **Corporation Info Worker** - `worker-info-corporations.ts`:
 
@@ -68,12 +41,6 @@ Proje içinde **2 farklı worker tipi** bulunur ve farklı amaçlar için kullan
   - Sadece yeni kayıt ekler (update yapmaz)
   - Merkezi rate limiter (50 req/sec)
   - Servis abstraction (`getCorporationInfo()`)
-  - Daha hızlı ve verimli
-
-**Ne zaman hangisi?**
-
-- **İlk kurulum / Bulk import** → Bulk workers (`worker-alliances.ts`, `worker-corporations.ts`)
-- **Runtime enrichment / Eksik verileri doldurma** → Info workers (`worker-info-*`)
 
 ---
 
@@ -81,7 +48,7 @@ Proje içinde **2 farklı worker tipi** bulunur ve farklı amaçlar için kullan
 
 ### `queue-alliances.ts`
 
-**Amaç**: ESI'dan tüm alliance ID'lerini alıp `esi_all_alliances_queue` kuyruğuna ekler.
+**Amaç**: ESI'dan tüm alliance ID'lerini alıp `esi_alliance_info_queue` kuyruğuna ekler.
 
 **Kullanım**:
 
@@ -92,12 +59,10 @@ yarn queue:alliances
 **İşleyiş**:
 
 1. ESI'dan tüm alliance ID'lerini çeker (`/alliances/` endpoint)
-2. Her alliance ID'sini `esi_all_alliances_queue` kuyruğuna ekler
+2. Her alliance ID'sini `esi_alliance_info_queue` kuyruğuna ekler
 3. 100'lük batch'ler halinde işler
 
-**Kuyruk**: `esi_all_alliances_queue`
-
-**Sonraki Adım**: `worker-alliances.ts` ile işlenir
+**Sonraki Adım**: `worker-info-alliances.ts` ile işlenir
 
 ---
 
@@ -342,78 +307,6 @@ yarn worker:zkillboard
 
 - zKillboard: 10 saniye aynı endpoint için
 - ESI: `esiRateLimiter` ile 50 req/sec
-
----
-
-### `worker-alliances.ts`
-
-**Amaç**: EVE Online'daki TÜM alliance'ları toplu olarak senkronize eder.
-
-**Kullanım**:
-
-```bash
-yarn worker:alliances
-```
-
-**Kuyruk**: `esi_all_alliances_queue`
-
-**Concurrency**: 1 (sıralı işleme)
-
-**İşleyiş**:
-
-1. Kuyruktan alliance ID alır
-2. Veritabanında zaten varsa atlar (ESI çağrısı yapmaz)
-3. ESI'dan alliance bilgilerini çeker (manuel axios)
-4. Rate limit header'larını kontrol eder (420 hatası için 60s bekler)
-5. `upsert` ile veritabanına kaydeder (hem update hem create yapar)
-6. Her başarılı ESI çağrısından sonra 100ms bekler (10 req/sec)
-
-**ESI Endpoint**: `/alliances/{alliance_id}/`
-
-**Rate Limit**: Manuel 100ms delay (10 req/sec)
-
-**Farkı**: `worker-info-alliances.ts`'ten farkı:
-
-- Toplu senkronizasyon için (ilk kurulum)
-- Mevcut kayıtları da günceller
-- Manuel rate limiting
-- Daha düşük concurrency
-
----
-
-### `worker-corporations.ts`
-
-**Amaç**: EVE Online'daki TÜM corporation'ları toplu olarak senkronize eder.
-
-**Kullanım**:
-
-```bash
-yarn worker:corporations
-```
-
-**Kuyruk**: `esi_all_corporations_queue`
-
-**Concurrency**: 1 (sıralı işleme)
-
-**İşleyiş**:
-
-1. Kuyruktan corporation ID alır
-2. Veritabanında zaten varsa atlar (ESI çağrısı yapmaz)
-3. ESI'dan corporation bilgilerini çeker (manuel axios)
-4. Rate limit header'larını kontrol eder (420 hatası için 60s bekler)
-5. `upsert` ile veritabanına kaydeder (hem update hem create yapar)
-6. Her başarılı ESI çağrısından sonra 100ms bekler (10 req/sec)
-
-**ESI Endpoint**: `/corporations/{corporation_id}/`
-
-**Rate Limit**: Manuel 100ms delay (10 req/sec)
-
-**Farkı**: `worker-info-corporations.ts`'ten farkı:
-
-- Toplu senkronizasyon için (ilk kurulum)
-- Mevcut kayıtları da günceller
-- Manuel rate limiting
-- Daha düşük concurrency
 
 ---
 
@@ -664,16 +557,14 @@ interface EntityQueueMessage {
 
 ### Kuyruk İsimleri
 
-| Kuyruk Adı                        | Amacı                            |
-| --------------------------------- | -------------------------------- |
-| `esi_alliance_info_queue`         | Alliance bilgilerini çekmek      |
-| `esi_corporation_info_queue`      | Corporation bilgilerini çekmek   |
-| `esi_character_info_queue`        | Character bilgilerini çekmek     |
-| `esi_type_info_queue`             | Type bilgilerini çekmek          |
-| `zkillboard_character_queue`      | zKillboard killmail çekme        |
-| `esi_all_alliances_queue`         | Alliance bulk senkronizasyonu    |
-| `esi_all_corporations_queue`      | Corporation bulk senkronizasyonu |
-| `esi_alliance_corporations_queue` | Alliance corp ID'lerini çekmek   |
+| Kuyruk Adı                        | Amacı                          |
+| --------------------------------- | ------------------------------ |
+| `esi_alliance_info_queue`         | Alliance bilgilerini çekmek    |
+| `esi_corporation_info_queue`      | Corporation bilgilerini çekmek |
+| `esi_character_info_queue`        | Character bilgilerini çekmek   |
+| `esi_type_info_queue`             | Type bilgilerini çekmek        |
+| `zkillboard_character_queue`      | zKillboard killmail çekme      |
+| `esi_alliance_corporations_queue` | Alliance corp ID'lerini çekmek |
 
 ---
 
@@ -686,8 +577,6 @@ interface EntityQueueMessage {
 | enrichment-characters   | 10       | Yüksek concurrency              |
 | enrichment-types        | 10       | Yüksek concurrency              |
 | zkillboard-sync         | 2        | zKillboard rate limit nedeniyle |
-| alliances (bulk)        | 1        | Sıralı bulk sync                |
-| corporations (bulk)     | 1        | Sıralı bulk sync                |
 | alliance-corporations   | 5        | ESI rate limit için güvenli     |
 
 ---

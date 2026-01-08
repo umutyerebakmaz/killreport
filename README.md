@@ -97,33 +97,6 @@ yarn dev:backend  # Terminal 1 - Starts on http://localhost:4000
 yarn dev:frontend # Terminal 2 - Starts on http://localhost:3000
 ```
 
-### Running Background Workers
-
-```bash
-# Start workers in separate terminals
-cd backend
-
-# Enrichment Workers (add missing entity data)
-yarn scan:entities              # Scan killmails for missing entities
-yarn worker:info:alliances      # Process alliance info (3 concurrent)
-yarn worker:info:corporations   # Process corporation info (5 concurrent)
-yarn worker:info:characters     # Process character info (10 concurrent)
-yarn worker:info:types          # Process type/ship info (10 concurrent)
-
-# Killmail Sync Workers
-yarn worker:zkillboard          # Process zKillboard sync jobs (2 concurrent)
-
-# Bulk Sync Workers
-yarn worker:alliances           # Bulk alliance sync (1 concurrent)
-yarn worker:corporations        # Bulk corporation sync (1 concurrent)
-yarn worker:alliance-corporations # Alliance corporations (5 concurrent)
-
-# Direct character sync (no queue)
-yarn sync:character 95465499 50 # Sync specific character (50 pages)
-```
-
----
-
 ## 📚 Documentation
 
 ### 📋 Table of Contents
@@ -250,25 +223,6 @@ killreport/
 yarn dev              # Start frontend dev server
 yarn dev:frontend     # Start frontend on port 3000
 yarn dev:backend      # Start backend on port 4000
-```
-
-**Backend:**
-
-```bash
-yarn dev              # Start GraphQL server with hot reload
-yarn codegen          # Generate TypeScript types from GraphQL schema
-yarn prisma:migrate   # Run database migrations
-yarn prisma:studio    # Open Prisma Studio (DB GUI)
-
-# Background Workers
-yarn worker:zkillboard      # Start killmail sync worker
-yarn worker:alliances       # Start alliance sync worker
-yarn worker:corporations    # Start corporation sync worker
-
-# Queue Jobs
-yarn queue:zkillboard      # Queue killmail sync jobs
-yarn queue:character       # Queue character-specific sync
-yarn sync:character        # Direct character killmail sync
 ```
 
 **Frontend:**

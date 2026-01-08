@@ -13,7 +13,7 @@
 - Frontend: Next.js 15 App Router
 - Database: PostgreSQL with Prisma ORM
 - Queue: RabbitMQ for worker distribution
-- Workers: 6 auto-start + 2 manual bulk sync workers
+- Workers: 8 workers for entity enrichment and data sync
 
 Professional infrastructure with automatic backups and high availability.
 
@@ -270,21 +270,13 @@ Professional infrastructure with automatic backups and high availability.
   ```bash
   cd /var/www/killreport/backend
   yarn queue:alliances
-  yarn queue:corporations
   ```
 
-- [ ] PM2'den bulk sync worker'ları başlat (manuel, ihtiyaç olduğunda):
+- [ ] Worker'lar otomatik olarak çalışıyor, PM2 logs ile izle:
 
   ```bash
-  pm2 start worker-bulk-alliances --only worker-bulk-alliances
-  pm2 start worker-bulk-corporations --only worker-bulk-corporations
-  ```
-
-- [ ] İlerlemeyi izle:
-
-  ```bash
-  pm2 logs worker-bulk-alliances
-  pm2 logs worker-bulk-corporations
+  pm2 logs worker-alliances
+  pm2 logs worker-corporations
   ```
 
 ---
