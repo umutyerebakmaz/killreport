@@ -1,8 +1,5 @@
-import axios from 'axios';
 import { MutationResolvers, PageInfo, QueryResolvers, SolarSystemResolvers } from '../generated-types';
-import logger from '../services/logger';
 import prisma from '../services/prisma';
-import { getRabbitMQChannel } from '../services/rabbitmq';
 
 export const solarSystemQueries: QueryResolvers = {
     solarSystem: async (_, { id }) => {
@@ -95,48 +92,7 @@ export const solarSystemQueries: QueryResolvers = {
 };
 
 export const solarSystemMutations: MutationResolvers = {
-    startSolarSystemSync: async (_, { input }) => {
-        try {
-            logger.info('🚀 Starting solar system sync via GraphQL...');
-
-            // Get all system IDs from ESI
-            const response = await axios.get('https://esi.evetech.net/latest/universe/systems/');
-            const systemIds: number[] = response.data;
-
-            logger.info(`✓ Found ${systemIds.length} solar systems`);
-            logger.info(`📤 Publishing to queue...`);
-
-            // RabbitMQ'ya ekle
-            const channel = await getRabbitMQChannel();
-            const QUEUE_NAME = 'esi_all_systems_queue';
-
-            await channel.assertQueue(QUEUE_NAME, {
-                durable: true,
-            });
-
-            let publishedCount = 0;
-            for (const id of systemIds) {
-                channel.sendToQueue(QUEUE_NAME, Buffer.from(id.toString()), {
-                    persistent: true,
-                });
-                publishedCount++;
-            }
-
-            logger.info(`✅ All ${systemIds.length} solar systems queued successfully!`);
-            return {
-                success: true,
-                message: `${systemIds.length} solar systems queued successfully`,
-                clientMutationId: input.clientMutationId || null,
-            };
-        } catch (error) {
-            logger.error('❌ Error starting solar system sync:', error);
-            return {
-                success: false,
-                message: 'Failed to start solar system sync',
-                clientMutationId: input.clientMutationId || null,
-            };
-        }
-    },
+    // startSolarSystemSync mutation removed - solar systems worker deprecated
 };
 
 export const solarSystemFieldResolvers: SolarSystemResolvers = {
