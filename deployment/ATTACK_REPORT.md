@@ -70,20 +70,20 @@ Bot'lar şunları yapıyor:
 # SSH portunu hemen değiştir
 sudo nano /etc/ssh/sshd_config
 # Port 22 satırını bul, değiştir:
-Port 2222
+Port 7777
 
 # SSH'ı yeniden başlat
 sudo systemctl restart sshd
 
 # Yeni portu firewall'da aç
-sudo ufw allow 2222/tcp
+sudo ufw allow 7777/tcp
 sudo ufw enable
 ```
 
 **ÖNEMLİ:** Mevcut bağlantınızı AÇIK TUTUN! Yeni terminalde test edin:
 
 ```bash
-ssh -p 2222 root@YOUR_IP
+ssh -p 7777 root@YOUR_IP
 ```
 
 ### 2. Root Login'i Kapat
@@ -107,7 +107,7 @@ sudo apt install fail2ban -y
 sudo cat > /etc/fail2ban/jail.local << 'EOF'
 [sshd]
 enabled = true
-port = 2222
+port = 7777
 filter = sshd
 logpath = /var/log/auth.log
 maxretry = 3
@@ -130,7 +130,7 @@ sudo ./deployment/security-hardening.sh
 
 Bu script otomatik olarak:
 
-- ✅ SSH portunu 2222'ye değiştirir
+- ✅ SSH portunu 7777'ye değiştirir
 - ✅ Root login'i kapatır
 - ✅ Fail2ban kurar ve yapılandırır
 - ✅ UFW firewall kurar
@@ -168,7 +168,7 @@ Sizin gibi bir droplet günde ortalama:
 ssh-keygen -t ed25519 -C "killreport-admin"
 
 # Public key'i sunucuya kopyala
-ssh-copy-id -p 2222 root@YOUR_IP
+ssh-copy-id -p 7777 root@YOUR_IP
 
 # Sonra sunucuda password auth'u kapat
 ```
@@ -179,8 +179,8 @@ Eğer sabit bir IP'den bağlanıyorsanız:
 
 ```bash
 # Sadece sizin IP'niz SSH yapabilsin
-sudo ufw delete allow 2222/tcp
-sudo ufw allow from YOUR_HOME_IP to any port 2222 proto tcp
+sudo ufw delete allow 7777/tcp
+sudo ufw allow from YOUR_HOME_IP to any port 7777 proto tcp
 ```
 
 ### C. VPN Kullanımı
