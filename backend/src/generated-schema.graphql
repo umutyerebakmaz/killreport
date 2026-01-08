@@ -830,8 +830,8 @@ type Type {
   capacity: Float
   created_at: String!
   description: String
-  dogmaAttributes: [TypeDogmaAttribute!]!
-  dogmaEffects: [TypeDogmaEffect!]!
+  dogmaAttributes(ids: [Int!]): [TypeDogmaAttribute!]!
+  dogmaEffects(ids: [Int!]): [TypeDogmaEffect!]!
   group: ItemGroup!
   icon_id: Int
   id: Int!

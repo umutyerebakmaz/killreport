@@ -1170,6 +1170,16 @@ export type Type = {
   volume?: Maybe<Scalars['Float']['output']>;
 };
 
+
+export type TypeDogmaAttributesArgs = {
+  ids?: InputMaybe<Array<Scalars['Int']['input']>>;
+};
+
+
+export type TypeDogmaEffectsArgs = {
+  ids?: InputMaybe<Array<Scalars['Int']['input']>>;
+};
+
 export type TypeConnection = {
   __typename?: 'TypeConnection';
   edges: Array<TypeEdge>;
@@ -2098,8 +2108,8 @@ export type TypeResolvers<ContextType = any, ParentType extends ResolversParentT
   capacity?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   created_at?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  dogmaAttributes?: Resolver<Array<ResolversTypes['TypeDogmaAttribute']>, ParentType, ContextType>;
-  dogmaEffects?: Resolver<Array<ResolversTypes['TypeDogmaEffect']>, ParentType, ContextType>;
+  dogmaAttributes?: Resolver<Array<ResolversTypes['TypeDogmaAttribute']>, ParentType, ContextType, Partial<TypeDogmaAttributesArgs>>;
+  dogmaEffects?: Resolver<Array<ResolversTypes['TypeDogmaEffect']>, ParentType, ContextType, Partial<TypeDogmaEffectsArgs>>;
   group?: Resolver<ResolversTypes['ItemGroup'], ParentType, ContextType>;
   icon_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;

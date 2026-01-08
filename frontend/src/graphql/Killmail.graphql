@@ -41,6 +41,16 @@ query Killmail($id: ID!) {
             name
           }
         }
+        dogmaAttributes(ids: [14, 13, 12]) {
+          type_id
+          value
+          attribute_id
+          attribute
+          {
+            id
+            name
+          }
+        }
       }
     }
     attackers {
