@@ -182,6 +182,18 @@ export default function WorkersPage() {
         </div>
       </div>
 
+      {standaloneWorkers.length > 0 && (
+        <StandaloneWorkerSection workers={standaloneWorkers} />
+      )}
+
+      {zkillQueues.length > 0 && (
+        <QueueSection
+          title="zKillboard Workers"
+          subtitle="Killmail streaming and historical sync"
+          queues={zkillQueues}
+        />
+      )}
+
       {esiInfoQueues.length > 0 && (
         <QueueSection
           title="ESI Info Workers"
@@ -206,20 +218,8 @@ export default function WorkersPage() {
         />
       )}
 
-      {zkillQueues.length > 0 && (
-        <QueueSection
-          title="zKillboard Workers"
-          subtitle="Killmail streaming and historical sync"
-          queues={zkillQueues}
-        />
-      )}
-
       {otherQueues.length > 0 && (
         <QueueSection title="Other Workers" queues={otherQueues} />
-      )}
-
-      {standaloneWorkers.length > 0 && (
-        <StandaloneWorkerSection workers={standaloneWorkers} />
       )}
 
       {queues.length === 0 && standaloneWorkers.length === 0 && (
