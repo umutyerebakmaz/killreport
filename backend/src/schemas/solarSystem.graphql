@@ -43,23 +43,11 @@ input SolarSystemFilter {
   orderBy: SolarSystemOrderBy
 }
 
-input StartSolarSystemSyncInput {
-  clientMutationId: String
-}
-
-type StartSolarSystemSyncPayload {
-  success: Boolean!
-  message: String
-  clientMutationId: String
-}
-
 extend type Query {
   solarSystem(id: Int!): SolarSystem
   solarSystems(filter: SolarSystemFilter): SolarSystemConnection!
 }
 
-extend type Mutation {
-  startSolarSystemSync(
-    input: StartSolarSystemSyncInput!
-  ): StartSolarSystemSyncPayload!
-}
+# extend type Mutation {
+#   Solar system sync mutation removed - worker deprecated
+# }

@@ -78,18 +78,16 @@ export default function WorkersPage() {
       q.name.includes("_info_queue") && q.name.startsWith("esi_")
   );
 
-  const esiBulkQueues = queues.filter(
+  const esiSyncQueues = queues.filter(
     (q: QueueInfo) =>
-      (q.name.includes("_all_") ||
-        q.name.includes("_alliance_corporations_")) &&
-      q.name.startsWith("esi_")
+      q.name.includes("_alliance_corporations_") && q.name.startsWith("esi_")
   );
 
   const esiUniverseQueues = queues.filter(
     (q: QueueInfo) =>
       (q.name.includes("_regions_") ||
         q.name.includes("_constellations_") ||
-        q.name.includes("_systems_")) &&
+        q.name.includes("_solar_systems_")) &&
       q.name.startsWith("esi_")
   );
 
@@ -125,7 +123,7 @@ export default function WorkersPage() {
               }`}
             ></div>
             <span className="text-sm text-gray-300">
-              {isConnected ? "🔴 Live" : "🔄 Connecting..."}
+              {isConnected ? "Live" : "Connecting..."}
             </span>
           </div>
         </div>
@@ -192,11 +190,11 @@ export default function WorkersPage() {
         />
       )}
 
-      {esiBulkQueues.length > 0 && (
+      {esiSyncQueues.length > 0 && (
         <QueueSection
-          title="ESI Bulk Sync Workers"
-          subtitle="Full alliance/corporation synchronization"
-          queues={esiBulkQueues}
+          title="ESI Sync Workers"
+          subtitle="Alliance corporation synchronization"
+          queues={esiSyncQueues}
         />
       )}
 
