@@ -448,7 +448,7 @@ type Mutation {
   """Authorization code ile authentication yapar ve token döner"""
   authenticateWithCode(code: String!, state: String!): AuthPayload!
 
-  """Clear all killmail caches (use after bulk sync)"""
+  """Clear all killmail caches (use after large data updates)"""
   clearAllKillmailCaches: CacheOperation!
 
   """Clear cache for a specific alliance"""
@@ -477,7 +477,6 @@ type Mutation {
   startDogmaEffectSync(input: StartDogmaEffectSyncInput!): StartDogmaEffectSyncPayload!
   startItemGroupSync(input: StartItemGroupSyncInput!): StartItemGroupSyncPayload!
   startRegionSync(input: StartRegionSyncInput!): StartRegionSyncPayload!
-  startSolarSystemSync(input: StartSolarSystemSyncInput!): StartSolarSystemSyncPayload!
   startTypeDogmaSync(input: StartTypeDogmaSyncInput!): StartTypeDogmaSyncPayload!
   startTypeSync(input: StartTypeSyncInput!): StartTypeSyncPayload!
 
@@ -772,16 +771,6 @@ input StartRegionSyncInput {
 }
 
 type StartRegionSyncPayload {
-  clientMutationId: String
-  message: String
-  success: Boolean!
-}
-
-input StartSolarSystemSyncInput {
-  clientMutationId: String
-}
-
-type StartSolarSystemSyncPayload {
   clientMutationId: String
   message: String
   success: Boolean!

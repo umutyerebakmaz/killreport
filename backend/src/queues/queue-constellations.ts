@@ -3,7 +3,7 @@ import { ConstellationService } from '../services/constellation';
 import logger from '../services/logger';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
-const QUEUE_NAME = 'esi_all_constellations_queue';
+const QUEUE_NAME = 'esi_constellations_queue';
 const BATCH_SIZE = 100;
 
 /**

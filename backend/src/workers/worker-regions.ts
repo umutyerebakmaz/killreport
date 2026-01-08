@@ -5,7 +5,7 @@ import prismaWorker from '../services/prisma-worker';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
 const ESI_BASE_URL = 'https://esi.evetech.net/latest';
-const QUEUE_NAME = 'esi_all_regions_queue';
+const QUEUE_NAME = 'esi_regions_queue';
 const RATE_LIMIT_DELAY = 100; // Wait 100ms between each request (10 requests per second)
 
 /**
