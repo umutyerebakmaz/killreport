@@ -121,7 +121,7 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 echo "🔴 CRITICAL - Immediate Actions:"
 echo "   1. Run security hardening script: ./deployment/security-hardening.sh"
-echo "   2. Change SSH port from 22 to 2222"
+echo "   2. Change SSH port from 22 to 7777"
 echo "   3. Disable root login"
 echo "   4. Disable password authentication"
 echo "   5. Install and configure Fail2ban"
