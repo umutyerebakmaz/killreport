@@ -177,7 +177,7 @@ module.exports = {
       time: true,
     },
 
-    // Queue Characters - Daily at 03:00 UTC
+    // Queue Characters - Monthly (1st of every month at 00:00 UTC)
     {
       name: 'queue-characters',
       cwd: '/var/www/killreport/backend',
@@ -186,13 +186,51 @@ module.exports = {
       instances: 1,
       exec_mode: 'fork',
       autorestart: false,
-      cron_restart: '0 3 * * *',
+      cron_restart: '0 0 1 * *',
       env: {
         NODE_ENV: 'production',
         LOG_LEVEL: 'info',
       },
       error_file: '/var/www/killreport/logs/queue-characters-error.log',
       out_file: '/var/www/killreport/logs/queue-characters-out.log',
+      time: true,
+    },
+
+    // Queue Alliances - Weekly (Every Sunday at 00:00 UTC)
+    {
+      name: 'queue-alliances',
+      cwd: '/var/www/killreport/backend',
+      script: 'yarn',
+      args: 'queue:alliances',
+      instances: 1,
+      exec_mode: 'fork',
+      autorestart: false,
+      cron_restart: '0 0 * * 0',
+      env: {
+        NODE_ENV: 'production',
+        LOG_LEVEL: 'info',
+      },
+      error_file: '/var/www/killreport/logs/queue-alliances-error.log',
+      out_file: '/var/www/killreport/logs/queue-alliances-out.log',
+      time: true,
+    },
+
+    // Queue Alliance Corporations - Weekly (Every Sunday at 00:10 UTC)
+    {
+      name: 'queue-alliance-corporations',
+      cwd: '/var/www/killreport/backend',
+      script: 'yarn',
+      args: 'queue:alliance-corporations',
+      instances: 1,
+      exec_mode: 'fork',
+      autorestart: false,
+      cron_restart: '10 0 * * 0',
+      env: {
+        NODE_ENV: 'production',
+        LOG_LEVEL: 'info',
+      },
+      error_file: '/var/www/killreport/logs/queue-alliance-corporations-error.log',
+      out_file: '/var/www/killreport/logs/queue-alliance-corporations-out.log',
       time: true,
     },
 
@@ -234,7 +272,7 @@ module.exports = {
       time: true,
     },
 
-    // Alliance Snapshot (Daily at 05:00 UTC)
+    // Alliance Snapshot (Daily at 01:00 UTC)
     {
       name: 'snapshot-alliances',
       cwd: '/var/www/killreport/backend',
@@ -243,7 +281,7 @@ module.exports = {
       instances: 1,
       exec_mode: 'fork',
       autorestart: false,
-      cron_restart: '0 5 * * *',
+      cron_restart: '0 1 * * *',
       env: {
         NODE_ENV: 'production',
         LOG_LEVEL: 'info',
@@ -253,7 +291,7 @@ module.exports = {
       time: true,
     },
 
-    // Update Alliance Counts (Daily at 07:00 UTC)
+    // Update Alliance Counts (Daily at 01:00 UTC)
     {
       name: 'update-alliance-counts',
       cwd: '/var/www/killreport/backend',
@@ -262,7 +300,7 @@ module.exports = {
       instances: 1,
       exec_mode: 'fork',
       autorestart: false,
-      cron_restart: '0 7 * * *',
+      cron_restart: '0 1 * * *',
       env: {
         NODE_ENV: 'production',
         LOG_LEVEL: 'info',
@@ -272,7 +310,7 @@ module.exports = {
       time: true,
     },
 
-    // Corporation Snapshot (Daily at 06:00 UTC)
+    // Corporation Snapshot (Daily at 01:00 UTC)
     {
       name: 'snapshot-corporations',
       cwd: '/var/www/killreport/backend',
@@ -281,7 +319,7 @@ module.exports = {
       instances: 1,
       exec_mode: 'fork',
       autorestart: false,
-      cron_restart: '0 6 * * *',
+      cron_restart: '0 1 * * *',
       env: {
         NODE_ENV: 'production',
         LOG_LEVEL: 'info',
