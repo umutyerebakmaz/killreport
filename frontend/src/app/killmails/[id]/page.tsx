@@ -3,6 +3,7 @@
 import AttackersCard from "@/components/AttackersCard";
 import { Loader } from "@/components/Loader/Loader";
 import { useKillmailQuery } from "@/generated/graphql";
+import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { use } from "react";
 
@@ -44,10 +45,30 @@ export default function KillmailDetailPage({
           {/* Victim Card */}
           <div className="victim-card">
             <div className="px-4 py-5 sm:p-6">
-              <div className="flex items-center pb-2">
+              <div className="flex items-center justify-between pb-2">
                 <span className="px-3 py-1 text-sm font-medium text-red-400 rounded bg-red-400/10">
                   VICTIM
                 </span>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={`https://zkillboard.com/kill/${km.id}/`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-3 py-1 text-sm font-medium text-gray-300 transition-colors rounded bg-gray-800/50 hover:bg-gray-700/50 hover:text-white"
+                  >
+                    <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                    zKillboard
+                  </a>
+                  <a
+                    href={`https://kb.evetools.org/kill/${km.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-3 py-1 text-sm font-medium text-gray-300 transition-colors rounded bg-gray-800/50 hover:bg-gray-700/50 hover:text-white"
+                  >
+                    <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                    EVE Tools
+                  </a>
+                </div>
               </div>
 
               <div className="flex">
