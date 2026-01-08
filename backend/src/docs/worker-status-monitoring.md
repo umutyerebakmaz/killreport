@@ -44,13 +44,13 @@ query GetWorkerStatus {
           "active": true
         },
         {
-          "name": "esi_all_alliances_queue",
-          "messageCount": 0,
-          "consumerCount": 0,
-          "active": false
+          "name": "esi_alliance_info_queue",
+          "messageCount": 15,
+          "consumerCount": 1,
+          "active": true
         },
         {
-          "name": "esi_all_corporations_queue",
+          "name": "esi_alliance_corporations_queue",
           "messageCount": 0,
           "consumerCount": 0,
           "active": false
@@ -186,11 +186,13 @@ function WorkerMonitor() {
 
 ## Queue Names
 
-| Queue Name                   | Purpose                  | Worker Command             |
-| ---------------------------- | ------------------------ | -------------------------- |
-| `zkillboard_character_queue` | zKillboard killmail sync | `yarn worker:zkillboard`   |
-| `esi_all_alliances_queue`             | Alliance data sync       | `yarn worker:alliances`    |
-| `esi_all_corporations_queue`     | Corporation data sync    | `yarn worker:corporations` |
+| Queue Name                        | Purpose                     | Worker Command                      |
+| --------------------------------- | --------------------------- | ----------------------------------- | --- | ------------------------- | -------------------------- | --------------------------- |
+| `zkillboard_character_queue`      | zKillboard killmail sync    | `yarn worker:zkillboard`            |
+| `esi_alliance_info_queue`         | Alliance enrichment         | `yarn worker:info:alliances`        |
+| `esi_alliance_corporations_queue` | Alliance corp sync          | `yarn worker:alliance-corporations` |
+| `esi_regions_queue`               | Universe region sync        | `yarn worker:regions`               |
+| `esi_constellations_queue`        | Universe constellation sync | `yarn worker:constellations`        |     | `esi_solar_systems_queue` | Universe solar system sync | `yarn worker:solar-systems` |
 
 ## Monitoring Dashboard Ideas
 

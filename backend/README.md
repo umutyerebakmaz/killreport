@@ -126,14 +126,10 @@ yarn scan:entities                # Queue missing characters/corps/alliances/typ
 ```bash
 # Info Workers (Enrichment - add missing data)
 yarn worker:info:alliances        # Process alliance info queue (3 concurrent)
+yarn worker:alliance-corporations # Process alliance corporations (5 concurrent)
 yarn worker:info:corporations     # Process corporation info queue (5 concurrent)
 yarn worker:info:characters       # Process character info queue (10 concurrent)
 yarn worker:info:types            # Process type info queue (10 concurrent)
-
-# Bulk Sync Workers
-yarn worker:alliances             # Process alliance bulk sync (1 concurrent)
-yarn worker:corporations          # Process corporation bulk sync (1 concurrent)
-yarn worker:alliance-corporations # Process alliance corporations (5 concurrent)
 
 # Killmail Workers
 yarn worker:zkillboard            # Process zKillboard killmail sync (2 concurrent)
