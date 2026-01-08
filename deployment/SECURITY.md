@@ -17,7 +17,7 @@ sudo ./security-hardening.sh
 
 **What it does:**
 
-- Changes SSH port from 22 to 2222
+- Changes SSH port from 22 to 7777
 - Disables root login
 - Creates admin user: `killreport`
 - Enforces SSH key-based authentication
@@ -29,7 +29,7 @@ sudo ./security-hardening.sh
 
 ## 🛡️ Security Features
 
-### 1. SSH Port Change (Port 2222)
+### 1. SSH Port Change (Port 7777)
 
 **Why?** Port 22 is targeted by automated bot attacks. Changing it reduces attack surface.
 
@@ -37,7 +37,7 @@ sudo ./security-hardening.sh
 
 ```bash
 # SSH config: /etc/ssh/sshd_config.d/99-security-hardening.conf
-Port 2222
+Port 7777
 PermitRootLogin no
 PasswordAuthentication no
 PubkeyAuthentication yes
@@ -49,7 +49,7 @@ MaxAuthTries 3
 **Connect:**
 
 ```bash
-ssh -p 2222 killreport@YOUR_DROPLET_IP
+ssh -p 7777 killreport@YOUR_DROPLET_IP
 ```
 
 ### 2. Firewall (UFW)
@@ -372,7 +372,7 @@ sudo apt-get install ossec-hids-server
 ### Initial Setup
 
 - [ ] Run `security-hardening.sh` script
-- [ ] Test SSH connection on port 2222
+- [ ] Test SSH connection on port 7777
 - [ ] Verify UFW is active
 - [ ] Confirm Fail2ban is running
 - [ ] Add SSH keys for all admins
