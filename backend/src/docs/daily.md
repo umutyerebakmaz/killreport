@@ -4,7 +4,7 @@
 
 ```bash
 # 1. Update Alliance & Corporation Data
-yarn queue:alliances              # Queue all alliance IDs from ESI
+yarn queue:alliances              # Queue all alliance IDs from ESI - 
 yarn worker:info:alliances        # Fetch and UPDATE alliance details - 3547
 
 yarn queue:alliance-corporations  # Queue alliances (for corporation discovery) - 3547
