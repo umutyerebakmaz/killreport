@@ -83,8 +83,6 @@ await prisma.character.findMany();
 - `esi_character_info_queue` → `worker:info:characters` (10 concurrent)
 - `esi_corporation_info_queue` → `worker:info:corporations` (5 concurrent)
 - `esi_type_info_queue` → `worker:info:types` (10 concurrent)
-- `esi_all_alliances_queue` → `worker:alliances` (bulk sync, 1 concurrent)
-- `esi_all_corporations_queue` → `worker:corporations` (bulk sync, 1 concurrent)
 - `esi_alliance_corporations_queue` → `worker:alliance-corporations` (5 concurrent)
 
 **zKillboard Queues**:

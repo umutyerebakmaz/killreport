@@ -74,13 +74,13 @@ useResponseCache({
 
 **Cache TTL by Query Type:**
 
-| Query Type | TTL | Reason |
-| ------------ | ----- | -------- |
-| Killmail detail | 1 hour | Never changes |
-| Type/Category/ItemGroup | 1 hour | Rarely changes |
-| Character/Corp/Alliance detail | 30 min | Updates occasionally |
-| Killmails list | 5 min | New killmails arrive frequently |
-| Other public queries | 2 min | General safety |
+| Query Type                     | TTL    | Reason                          |
+| ------------------------------ | ------ | ------------------------------- |
+| Killmail detail                | 1 hour | Never changes                   |
+| Type/Category/ItemGroup        | 1 hour | Rarely changes                  |
+| Character/Corp/Alliance detail | 30 min | Updates occasionally            |
+| Killmails list                 | 5 min  | New killmails arrive frequently |
+| Other public queries           | 2 min  | General safety                  |
 
 ### 3. DataLoader (In-Memory)
 
@@ -314,7 +314,7 @@ Monitor in your APM tool:
 
 1. Reduce TTL for affected query type
 2. Implement mutation-based invalidation
-3. Use `clearAllKillmailCaches` after bulk sync
+3. Use `clearAllKillmailCaches` after large data updates or maintenance
 
 ### High Memory Usage
 

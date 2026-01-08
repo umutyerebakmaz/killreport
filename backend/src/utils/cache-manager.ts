@@ -1,5 +1,5 @@
-import redis from '../services/redis-cache';
 import logger from '../services/logger';
+import redis from '../services/redis-cache';
 
 /**
  * Cache Manager Utility
@@ -77,7 +77,7 @@ export class CacheManager {
   }
 
   /**
-   * Clear all killmail caches (useful after bulk sync)
+   * Clear all killmail caches (useful after large data updates)
    */
   static async clearAllKillmails(): Promise<void> {
     await Promise.all([

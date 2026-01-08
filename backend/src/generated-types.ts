@@ -512,7 +512,7 @@ export type Mutation = {
   _empty?: Maybe<Scalars['String']['output']>;
   /** Authorization code ile authentication yapar ve token döner */
   authenticateWithCode: AuthPayload;
-  /** Clear all killmail caches (use after bulk sync) */
+  /** Clear all killmail caches (use after large data updates) */
   clearAllKillmailCaches: CacheOperation;
   /** Clear cache for a specific alliance */
   clearAllianceCache: CacheOperation;
@@ -535,7 +535,6 @@ export type Mutation = {
   startDogmaEffectSync: StartDogmaEffectSyncPayload;
   startItemGroupSync: StartItemGroupSyncPayload;
   startRegionSync: StartRegionSyncPayload;
-  startSolarSystemSync: StartSolarSystemSyncPayload;
   startTypeDogmaSync: StartTypeDogmaSyncPayload;
   startTypeSync: StartTypeSyncPayload;
   /**
@@ -620,11 +619,6 @@ export type MutationStartItemGroupSyncArgs = {
 
 export type MutationStartRegionSyncArgs = {
   input: StartRegionSyncInput;
-};
-
-
-export type MutationStartSolarSystemSyncArgs = {
-  input: StartSolarSystemSyncInput;
 };
 
 
@@ -1107,17 +1101,6 @@ export type StartRegionSyncPayload = {
   success: Scalars['Boolean']['output'];
 };
 
-export type StartSolarSystemSyncInput = {
-  clientMutationId?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type StartSolarSystemSyncPayload = {
-  __typename?: 'StartSolarSystemSyncPayload';
-  clientMutationId?: Maybe<Scalars['String']['output']>;
-  message?: Maybe<Scalars['String']['output']>;
-  success: Scalars['Boolean']['output'];
-};
-
 export type StartTypeDogmaSyncInput = {
   clientMutationId?: InputMaybe<Scalars['String']['input']>;
   typeIds?: InputMaybe<Array<Scalars['Int']['input']>>;
@@ -1433,8 +1416,6 @@ export type ResolversTypes = {
   StartItemGroupSyncPayload: ResolverTypeWrapper<StartItemGroupSyncPayload>;
   StartRegionSyncInput: StartRegionSyncInput;
   StartRegionSyncPayload: ResolverTypeWrapper<StartRegionSyncPayload>;
-  StartSolarSystemSyncInput: StartSolarSystemSyncInput;
-  StartSolarSystemSyncPayload: ResolverTypeWrapper<StartSolarSystemSyncPayload>;
   StartTypeDogmaSyncInput: StartTypeDogmaSyncInput;
   StartTypeDogmaSyncPayload: ResolverTypeWrapper<StartTypeDogmaSyncPayload>;
   StartTypeSyncInput: StartTypeSyncInput;
@@ -1544,8 +1525,6 @@ export type ResolversParentTypes = {
   StartItemGroupSyncPayload: StartItemGroupSyncPayload;
   StartRegionSyncInput: StartRegionSyncInput;
   StartRegionSyncPayload: StartRegionSyncPayload;
-  StartSolarSystemSyncInput: StartSolarSystemSyncInput;
-  StartSolarSystemSyncPayload: StartSolarSystemSyncPayload;
   StartTypeDogmaSyncInput: StartTypeDogmaSyncInput;
   StartTypeDogmaSyncPayload: StartTypeDogmaSyncPayload;
   StartTypeSyncInput: StartTypeSyncInput;
@@ -1902,7 +1881,6 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   startDogmaEffectSync?: Resolver<ResolversTypes['StartDogmaEffectSyncPayload'], ParentType, ContextType, RequireFields<MutationStartDogmaEffectSyncArgs, 'input'>>;
   startItemGroupSync?: Resolver<ResolversTypes['StartItemGroupSyncPayload'], ParentType, ContextType, RequireFields<MutationStartItemGroupSyncArgs, 'input'>>;
   startRegionSync?: Resolver<ResolversTypes['StartRegionSyncPayload'], ParentType, ContextType, RequireFields<MutationStartRegionSyncArgs, 'input'>>;
-  startSolarSystemSync?: Resolver<ResolversTypes['StartSolarSystemSyncPayload'], ParentType, ContextType, RequireFields<MutationStartSolarSystemSyncArgs, 'input'>>;
   startTypeDogmaSync?: Resolver<ResolversTypes['StartTypeDogmaSyncPayload'], ParentType, ContextType, RequireFields<MutationStartTypeDogmaSyncArgs, 'input'>>;
   startTypeSync?: Resolver<ResolversTypes['StartTypeSyncPayload'], ParentType, ContextType, RequireFields<MutationStartTypeSyncArgs, 'input'>>;
   syncMyKillmails?: Resolver<ResolversTypes['SyncMyKillmailsPayload'], ParentType, ContextType, RequireFields<MutationSyncMyKillmailsArgs, 'input'>>;
@@ -2089,12 +2067,6 @@ export type StartRegionSyncPayloadResolvers<ContextType = any, ParentType extend
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
 };
 
-export type StartSolarSystemSyncPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['StartSolarSystemSyncPayload'] = ResolversParentTypes['StartSolarSystemSyncPayload']> = {
-  clientMutationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-};
-
 export type StartTypeDogmaSyncPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['StartTypeDogmaSyncPayload'] = ResolversParentTypes['StartTypeDogmaSyncPayload']> = {
   clientMutationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -2255,7 +2227,6 @@ export type Resolvers<ContextType = any> = {
   StartDogmaEffectSyncPayload?: StartDogmaEffectSyncPayloadResolvers<ContextType>;
   StartItemGroupSyncPayload?: StartItemGroupSyncPayloadResolvers<ContextType>;
   StartRegionSyncPayload?: StartRegionSyncPayloadResolvers<ContextType>;
-  StartSolarSystemSyncPayload?: StartSolarSystemSyncPayloadResolvers<ContextType>;
   StartTypeDogmaSyncPayload?: StartTypeDogmaSyncPayloadResolvers<ContextType>;
   StartTypeSyncPayload?: StartTypeSyncPayloadResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
