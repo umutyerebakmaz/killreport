@@ -25,7 +25,7 @@ import { regionFields, regionMutations, regionQueries } from './region';
 import { solarSystemFields, solarSystemQueries } from './solar-system';
 import { typeFields, typeMutations, typeQueries } from './type';
 import { userMutations, userQueries } from './user';
-import { workerResolvers } from './worker.resolver';
+import { workerQueries, workerSubscriptions } from './worker';
 
 export const resolvers: Resolvers = {
   Query: {
@@ -46,7 +46,7 @@ export const resolvers: Resolvers = {
     ...regionQueries,
     ...solarSystemQueries,
     ...cacheQueries,
-    ...workerResolvers.Query,
+    ...workerQueries,
     ...analyticsQueries,
   },
   Mutation: {
@@ -65,7 +65,7 @@ export const resolvers: Resolvers = {
     ...cacheMutations,
   },
   Subscription: {
-    ...workerResolvers.Subscription,
+    ...workerSubscriptions,
     ...killmailSubscriptions,
     ...analyticsSubscriptions,
   },
