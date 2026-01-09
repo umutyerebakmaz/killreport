@@ -11,7 +11,7 @@ import { handleAuthCallback } from './handlers/auth-callback.handler';
 import { createDisableIntrospectionPlugin } from './plugins/disable-introspection.plugin';
 import { createResponseCachePlugin } from './plugins/response-cache.plugin';
 import { resolvers } from './resolvers';
-import { trackActiveUser } from './resolvers/analytics.resolver';
+import { trackActiveUser } from './resolvers/analytics';
 import { createDataLoaders } from './services/dataloaders';
 import { verifyToken } from './services/eve-sso';
 import logger from './services/logger';
