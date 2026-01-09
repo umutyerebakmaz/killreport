@@ -23,7 +23,7 @@ import {
 import { raceQueries } from './race';
 import { regionFields, regionMutations, regionQueries } from './region';
 import { solarSystemFields, solarSystemQueries } from './solar-system';
-import { typeFieldResolvers, typeMutations, typeQueries } from './type.resolver';
+import { typeFields, typeMutations, typeQueries } from './type';
 import { userMutations, userQueries } from './user.resolver';
 import { workerResolvers } from './worker.resolver';
 
@@ -74,7 +74,7 @@ export const resolvers: Resolvers = {
   Bloodline: bloodlineFields,
   Category: categoryFields,
   ItemGroup: itemGroupFields,
-  Type: typeFieldResolvers,
+  Type: typeFields,
   Corporation: corporationFields,
   Constellation: constellationFields,
   Region: regionFields,
