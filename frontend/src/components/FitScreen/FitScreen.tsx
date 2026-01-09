@@ -1,9 +1,10 @@
+import Tooltip from "@/components/Tooltip/Tooltip";
 import {
   FLAG_CATEGORIES,
   getFlagSlotIndex,
   groupItemsBySlot,
 } from "@/utils/inventory-flags";
-import { filterModulesOnly } from "@/utils/item-classifier";
+import { filterModulesOnly } from "../../../../backend/src/utils/item-classifier";
 
 interface DogmaAttribute {
   attribute_id: number;
@@ -65,65 +66,59 @@ export default function FitScreen({
 
   return (
     <div className="flex-1 p-4">
-      <div className="grid grid-cols-[180px_1fr_180px] gap-4 max-w-5xl mx-auto">
-        {/* Left Column: Med & Low Slots */}
-        <div className="space-y-6">
-          <SlotGroup
-            slots={medSlots}
-            modules={groupedItems.mid}
-            label="Mid"
-            category={FLAG_CATEGORIES.mid}
-          />
-          <SlotGroup
-            slots={lowSlots}
-            modules={groupedItems.low}
-            label="Low"
-            category={FLAG_CATEGORIES.low}
+      <div className="max-w-3xl mx-auto space-y-6">
+        {/* Ship Image */}
+        <div className="relative flex items-center justify-center">
+          <img
+            src={`https://images.evetech.net/types/${shipType?.id}/render?size=512`}
+            alt={shipType?.name || "Ship"}
+            className="object-contain w-64 h-64 drop-shadow-2xl"
+            loading="lazy"
           />
         </div>
 
-        {/* Center: Ship Image & High Slots */}
-        <div className="flex flex-col items-center space-y-6">
-          <SlotGroup
-            slots={hiSlots}
-            modules={groupedItems.high}
-            label="High"
-            category={FLAG_CATEGORIES.high}
-            horizontal
-          />
+        {/* Vertical Slot Layout */}
+        <SlotGroup
+          slots={hiSlots}
+          modules={groupedItems.high}
+          label="High"
+          category={FLAG_CATEGORIES.high}
+        />
 
-          <div className="relative flex items-center justify-center flex-1">
-            <img
-              src={`https://images.evetech.net/types/${shipType?.id}/render?size=512`}
-              alt={shipType?.name || "Ship"}
-              className="object-contain w-64 h-64 drop-shadow-2xl"
-              loading="lazy"
-            />
-          </div>
-        </div>
+        <SlotGroup
+          slots={medSlots}
+          modules={groupedItems.mid}
+          label="Mid"
+          category={FLAG_CATEGORIES.mid}
+        />
 
-        {/* Right Column: Rigs */}
-        <div className="space-y-6">
+        <SlotGroup
+          slots={lowSlots}
+          modules={groupedItems.low}
+          label="Low"
+          category={FLAG_CATEGORIES.low}
+        />
+
+        <SlotGroup
+          slots={rigSlots}
+          modules={groupedItems.rig}
+          label="Rig"
+          category={FLAG_CATEGORIES.rig}
+        />
+
+        {groupedItems.subsystem.length > 0 && (
           <SlotGroup
-            slots={rigSlots}
-            modules={groupedItems.rig}
-            label="Rig"
-            category={FLAG_CATEGORIES.rig}
+            slots={4}
+            modules={groupedItems.subsystem}
+            label="Subsystem"
+            category={FLAG_CATEGORIES.subsystem}
           />
-          {groupedItems.subsystem.length > 0 && (
-            <SlotGroup
-              slots={4}
-              modules={groupedItems.subsystem}
-              label="Sub"
-              category={FLAG_CATEGORIES.subsystem}
-            />
-          )}
-        </div>
+        )}
       </div>
 
       {/* Cargo & Drones */}
       {(groupedItems.cargo.length > 0 || groupedItems.droneBay.length > 0) && (
-        <div className="grid max-w-5xl grid-cols-2 gap-4 mx-auto mt-6">
+        <div className="grid max-w-3xl grid-cols-2 gap-4 mx-auto mt-6">
           {groupedItems.cargo.length > 0 && (
             <CargoSection items={groupedItems.cargo} label="Cargo Hold" />
           )}
@@ -148,16 +143,9 @@ interface SlotGroupProps {
   modules: KillmailItem[];
   label: string;
   category: { color: string; min: number };
-  horizontal?: boolean;
 }
 
-function SlotGroup({
-  slots,
-  modules,
-  label,
-  category,
-  horizontal,
-}: SlotGroupProps) {
+function SlotGroup({ slots, modules, label, category }: SlotGroupProps) {
   if (slots === 0) return null;
 
   // Modülleri flag numarasına göre sırala ve slot pozisyonlarına yerleştir
@@ -175,13 +163,7 @@ function SlotGroup({
       <h3 className="mb-3 text-xs font-bold tracking-wider text-gray-400 uppercase">
         {label}
       </h3>
-      <div
-        className={
-          horizontal
-            ? "flex gap-2 justify-center flex-wrap"
-            : "space-y-2 flex flex-col"
-        }
-      >
+      <div className="flex flex-wrap gap-2">
         {slotModules.map((module, index) => (
           <ModuleSlot
             key={index}
@@ -214,12 +196,11 @@ function ModuleSlot({ module, color, index }: ModuleSlotProps) {
   if (!module) {
     // Boş slot
     return (
-      <div
-        className="relative w-16 h-16 transition-colors border rounded bg-gray-900/30 hover:bg-gray-900/50"
-        style={{ borderColor: `${color}40` }}
-      >
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-[10px] text-gray-600 font-mono">{index}</span>
+      <div className="flex flex-col gap-1">
+        <div className="relative w-16 h-16 transition-colors border border-gray-800 bg-gray-900/30 hover:bg-gray-900/50">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-[10px] text-gray-600 font-mono">{index}</span>
+          </div>
         </div>
       </div>
     );
@@ -227,85 +208,44 @@ function ModuleSlot({ module, color, index }: ModuleSlotProps) {
 
   // Dolu slot - modül ikonu göster
   return (
-    <div
-      className="relative w-16 h-16 overflow-hidden transition-transform border-2 rounded cursor-pointer group hover:scale-105"
-      style={{ borderColor: color }}
-      title={module.itemType.name}
-    >
-      <img
-        src={`https://images.evetech.net/types/${module.itemType.id}/icon?size=64`}
-        alt={module.itemType.name}
-        className="object-cover w-full h-full bg-gray-900"
-        loading="lazy"
-      />
-
-      {/* Charge indicator - sağ alt köşede küçük ikon */}
-      {module.charge && (
-        <div
-          className="absolute -bottom-1.5 -right-1.5 w-8 h-8 border-2 rounded-md bg-gray-950 overflow-hidden shadow-lg ring-1 ring-black/50"
-          style={{ borderColor: color }}
-          title={`${module.charge.itemType.name} (${chargeQuantity})`}
-        >
+    <div className="flex flex-col gap-1 items-center">
+      {/* Module Icon */}
+      <Tooltip content={module.itemType.name} position="top">
+        <div className="relative w-16 h-16 overflow-hidden transition-transform border border-gray-800 cursor-pointer group">
           <img
-            src={`https://images.evetech.net/types/${module.charge.itemType.id}/icon?size=64`}
-            alt={module.charge.itemType.name}
-            className="w-full h-full object-cover"
+            src={`https://images.evetech.net/types/${module.itemType.id}/icon?size=64`}
+            alt={module.itemType.name}
+            className="object-cover w-full h-full bg-gray-900"
             loading="lazy"
           />
-          {chargeQuantity > 1 && (
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black to-transparent px-0.5 pt-2 pb-0.5 text-[9px] font-bold text-white text-center leading-none">
-              {chargeQuantity}
+
+          {/* Module quantity badge */}
+          {totalQuantity > 1 && (
+            <div className="absolute bottom-0 left-0 bg-black/90 px-1.5 py-0.5 text-[10px] font-bold text-white">
+              {totalQuantity}
             </div>
           )}
         </div>
-      )}
+      </Tooltip>
 
-      {/* Module quantity badge */}
-      {totalQuantity > 1 && (
-        <div className="absolute bottom-0 left-0 bg-black/90 px-1.5 py-0.5 text-[10px] font-bold text-white">
-          {totalQuantity}
-        </div>
-      )}
-
-      {/* Destroyed/Dropped indicator */}
-      {module.quantityDestroyed && module.quantityDestroyed > 0 && (
-        <div className="absolute top-0 left-0 w-2 h-2 bg-red-500 rounded-br"></div>
-      )}
-
-      {/* Hover tooltip */}
-      <div className="absolute inset-0 flex flex-col justify-center p-2 transition-opacity opacity-0 pointer-events-none bg-black/95 group-hover:opacity-100">
-        <p className="text-[10px] font-semibold text-white leading-tight line-clamp-2 text-center">
-          {module.itemType.name}
-        </p>
-        {totalQuantity > 1 && (
-          <p className="text-[9px] text-gray-400 text-center mt-0.5">
-            x{totalQuantity}
-          </p>
-        )}
-        {module.charge && (
-          <>
-            <div className="w-full h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent my-1.5"></div>
-            <div className="flex items-center justify-center gap-1">
-              <img
-                src={`https://images.evetech.net/types/${module.charge.itemType.id}/icon?size=32`}
-                alt={module.charge.itemType.name}
-                className="w-4 h-4"
-                loading="lazy"
-              />
-              <div className="flex-1 min-w-0">
-                <p className="text-[9px] font-semibold text-cyan-400 text-left leading-tight truncate">
-                  {module.charge.itemType.name}
-                </p>
-                {chargeQuantity > 1 && (
-                  <p className="text-[8px] text-gray-500 text-left leading-none mt-0.5">
-                    Quantity: {chargeQuantity.toLocaleString()}
-                  </p>
-                )}
+      {/* Charge Slot - Modülün altında ayrı slot */}
+      {module.charge && (
+        <Tooltip content={module.charge.itemType.name} position="top">
+          <div className="relative w-16 h-16 overflow-hidden border border-gray-800 cursor-pointer transition-transform bg-gray-950">
+            <img
+              src={`https://images.evetech.net/types/${module.charge.itemType.id}/icon?size=64`}
+              alt={module.charge.itemType.name}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+            {chargeQuantity > 1 && (
+              <div className="absolute bottom-0 left-0 bg-black/90 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                {chargeQuantity}
               </div>
-            </div>
-          </>
-        )}
-      </div>
+            )}
+          </div>
+        </Tooltip>
+      )}
     </div>
   );
 }
