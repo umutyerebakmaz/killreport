@@ -7,7 +7,7 @@ import axios from 'axios';
  * Alliance Mutation Resolvers
  * Handles operations that modify alliance data
  */
-export const mutations: MutationResolvers = {
+export const allianceMutations: MutationResolvers = {
   startAllianceSync: async (_, { input }) => {
     try {
       logger.info('🚀 Starting alliance sync via GraphQL...');

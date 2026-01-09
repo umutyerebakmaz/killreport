@@ -6,7 +6,7 @@ import prisma from '@services/prisma';
  * Handles nested fields and computed properties for Alliance type
  * Uses DataLoaders to prevent N+1 queries
  */
-export const fields: AllianceResolvers = {
+export const allianceFields: AllianceResolvers = {
   executor: async (parent, _args, context) => {
     // Cast to any to access Prisma model fields
     const prismaAlliance = parent as any;
