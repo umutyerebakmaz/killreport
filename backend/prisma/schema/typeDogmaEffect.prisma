@@ -1,0 +1,14 @@
+model TypeDogmaEffect {
+  type_id    Int
+  effect_id  Int
+  is_default Boolean     @default(false)
+  created_at DateTime    @default(now())
+  updated_at DateTime    @updatedAt
+  type       Type        @relation(fields: [type_id], references: [id], onDelete: Cascade)
+  effect     DogmaEffect @relation(fields: [effect_id], references: [id], onDelete: Cascade)
+
+  @@id([type_id, effect_id])
+  @@index([type_id])
+  @@index([effect_id])
+  @@map("type_dogma_effects")
+}

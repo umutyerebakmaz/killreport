@@ -1,0 +1,19 @@
+model DogmaAttribute {
+  id            Int                  @id
+  name          String
+  display_name  String?
+  description   String?
+  unit_id       Int?
+  icon_id       Int?
+  default_value Float?
+  published     Boolean              @default(true)
+  stackable     Boolean              @default(false)
+  high_is_good  Boolean              @default(false)
+  created_at    DateTime             @default(now())
+  updated_at    DateTime             @updatedAt
+  types         TypeDogmaAttribute[]
+
+  @@index([name])
+  @@index([published])
+  @@map("dogma_attributes")
+}

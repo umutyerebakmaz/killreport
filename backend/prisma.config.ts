@@ -2,16 +2,16 @@ import 'dotenv/config';
 import { defineConfig, env } from 'prisma/config';
 
 export default defineConfig({
-    // Main schema location
-    schema: 'prisma/schema.prisma',
+  // Multiple schema files in schema directory
+  schema: 'prisma/schema',
 
-    // Migrations configuration
-    migrations: {
-        path: 'prisma/migrations',
-    },
+  // Migrations configuration
+  migrations: {
+    path: 'prisma/migrations',
+  },
 
-    // Database connection
-    datasource: {
-        url: env('DATABASE_URL'),
-    },
+  // Database connection
+  datasource: {
+    url: env('DATABASE_URL'),
+  },
 });

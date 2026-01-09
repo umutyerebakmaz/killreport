@@ -1,0 +1,15 @@
+model Killmail {
+  killmail_id     Int            @id
+  killmail_hash   String
+  killmail_time   DateTime
+  solar_system_id Int
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
+  attackers       Attacker[]
+  items           KillmailItem[]
+  victim          Victim?
+
+  @@index([killmail_time])
+  @@index([solar_system_id])
+  @@map("killmails")
+}

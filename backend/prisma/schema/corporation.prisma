@@ -1,0 +1,22 @@
+model Corporation {
+  id              Int                   @id
+  name            String
+  ticker          String
+  member_count    Int
+  ceo_id          Int
+  creator_id      Int
+  date_founded    DateTime?
+  description     String?
+  alliance_id     Int?
+  faction_id      Int?
+  home_station_id Int?
+  shares          BigInt?
+  tax_rate        Float
+  url             String?
+  created_at      DateTime              @default(now())
+  updated_at      DateTime              @updatedAt
+  snapshots       CorporationSnapshot[]
+
+  @@index([alliance_id])
+  @@map("corporations")
+}

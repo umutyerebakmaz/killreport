@@ -1,0 +1,14 @@
+model TypeDogmaAttribute {
+  type_id      Int
+  attribute_id Int
+  value        Float
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+  type         Type           @relation(fields: [type_id], references: [id], onDelete: Cascade)
+  attribute    DogmaAttribute @relation(fields: [attribute_id], references: [id], onDelete: Cascade)
+
+  @@id([type_id, attribute_id])
+  @@index([type_id])
+  @@index([attribute_id])
+  @@map("type_dogma_attributes")
+}

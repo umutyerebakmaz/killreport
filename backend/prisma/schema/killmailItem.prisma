@@ -1,0 +1,16 @@
+model KillmailItem {
+  id                 BigInt   @id @default(autoincrement())
+  killmail_id        Int
+  item_type_id       Int
+  flag               Int
+  quantity_dropped   Int?
+  quantity_destroyed Int?
+  singleton          Int
+  created_at         DateTime @default(now())
+  killmail           Killmail @relation(fields: [killmail_id], references: [killmail_id], onDelete: Cascade)
+
+  @@index([item_type_id])
+  @@index([killmail_id])
+  @@index([killmail_id, flag])
+  @@map("killmail_items")
+}
