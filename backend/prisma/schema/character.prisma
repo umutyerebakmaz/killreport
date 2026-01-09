@@ -1,0 +1,18 @@
+model Character {
+  id              Int      @id
+  name            String
+  corporation_id  Int
+  alliance_id     Int?
+  birthday        DateTime
+  bloodline_id    Int
+  race_id         Int
+  gender          String
+  security_status Float?
+  description     String?
+  title           String?
+  faction_id      Int?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  @@map("characters")
+}

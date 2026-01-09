@@ -1,0 +1,13 @@
+model Constellation {
+  id           Int           @id @map("constellation_id")
+  name         String
+  region_id    Int?
+  position_x   Float?
+  position_y   Float?
+  position_z   Float?
+  region       Region?       @relation(fields: [region_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  solarSystems SolarSystem[]
+
+  @@index([region_id])
+  @@map("constellations")
+}
