@@ -1,4 +1,4 @@
-import { ItemGroupResolvers, MutationResolvers, PageInfo, QueryResolvers } from '../generated-types';
+import { ItemGroupResolvers, MutationResolvers, PageInfo, QueryResolvers } from '@generated-types';
 import { ItemGroupService } from '../services/item-group';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';

@@ -1,4 +1,4 @@
-import { Resolvers } from '../generated-types';
+import { Resolvers } from '@generated-types';
 import redis from '../services/redis';
 
 /**

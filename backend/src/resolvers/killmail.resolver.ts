@@ -6,7 +6,7 @@ import {
     QueryResolvers,
     SubscriptionResolvers,
     VictimResolvers,
-} from '../generated-types';
+} from '@generated-types';
 import { CharacterService } from '../services/character';
 import { CorporationService } from '../services/corporation';
 import { KillmailService } from '../services/killmail';

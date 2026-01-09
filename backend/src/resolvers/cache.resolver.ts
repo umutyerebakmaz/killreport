@@ -1,4 +1,4 @@
-import { MutationResolvers, QueryResolvers } from '../generated-types';
+import { MutationResolvers, QueryResolvers } from '@generated-types';
 import logger from '../services/logger';
 import CacheManager from '../utils/cache-manager';
 
