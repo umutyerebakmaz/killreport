@@ -1,7 +1,7 @@
 import { Resolvers } from '@generated-types';
 import { allianceFields, allianceMutations, allianceQueries } from './alliance';
 import { analyticsQueries, analyticsSubscriptions } from './analytics';
-import { authMutations, authQueries } from './auth.resolver';
+import { authMutations, authQueries } from './auth';
 import { bloodlineFieldResolvers, bloodlineQueries } from './bloodline.resolver';
 import { cacheMutations, cacheQueries } from './cache.resolver';
 import { categoryFieldResolvers, categoryMutations, categoryQueries } from './category.resolver';
