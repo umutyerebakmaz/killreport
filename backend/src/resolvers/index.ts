@@ -1,3 +1,32 @@
+/**
+ * Resolver Index
+ *
+ * This file combines all GraphQL resolvers from individual resolver files.
+ *
+ * Resolver Organization Pattern:
+ * Each resolver file is organized into three main sections:
+ *
+ * 1. **Query Resolvers** - Handle data fetching operations (queries)
+ *    - Named as: {entity}Queries (e.g., allianceQueries, characterQueries)
+ *    - Example: Fetching single entities or paginated lists with filters
+ *
+ * 2. **Mutation Resolvers** - Handle data modification operations (mutations)
+ *    - Named as: {entity}Mutations (e.g., allianceMutations, characterMutations)
+ *    - Example: Creating, updating, deleting data, or triggering sync operations
+ *
+ * 3. **Field Resolvers** - Handle nested fields and computed properties
+ *    - Named as: {entity}FieldResolvers (e.g., allianceFieldResolvers)
+ *    - Uses DataLoaders to prevent N+1 query problems
+ *    - Lazy loads related entities only when requested
+ *
+ * Benefits of this pattern:
+ * - Clear separation of concerns
+ * - Easy to locate and modify specific resolver logic
+ * - Consistent naming convention across all entities
+ * - Facilitates parallel development without merge conflicts
+ * - Improves code maintainability and testability
+ */
+
 import { Resolvers } from '../generated-types';
 import { allianceFieldResolvers, allianceMutations, allianceQueries } from './alliance.resolver';
 import { analyticsResolvers } from './analytics.resolver';

@@ -1,6 +1,10 @@
 import { MutationResolvers, PageInfo, QueryResolvers, SolarSystemResolvers } from '../generated-types';
 import prisma from '../services/prisma';
 
+/**
+ * SolarSystem Query Resolvers
+ * Handles fetching solar system data and listing systems with filters
+ */
 export const solarSystemQueries: QueryResolvers = {
     solarSystem: async (_, { id }) => {
         const system = await prisma.solarSystem.findUnique({
@@ -91,10 +95,19 @@ export const solarSystemQueries: QueryResolvers = {
     },
 };
 
+/**
+ * SolarSystem Mutation Resolvers
+ * Currently empty - solar systems worker deprecated
+ */
 export const solarSystemMutations: MutationResolvers = {
     // startSolarSystemSync mutation removed - solar systems worker deprecated
 };
 
+/**
+ * SolarSystem Field Resolvers
+ * Handles nested fields and computed properties for SolarSystem
+ * Uses DataLoaders to prevent N+1 queries
+ */
 export const solarSystemFieldResolvers: SolarSystemResolvers = {
     position: (parent) => {
         // parent is from Prisma, has position_x, position_y, position_z
