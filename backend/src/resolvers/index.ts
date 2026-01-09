@@ -8,7 +8,7 @@ import { categoryFields, categoryMutations, categoryQueries } from './category';
 import { characterFields, characterMutations, characterQueries } from './character';
 import { constellationFields, constellationMutations, constellationQueries } from './constellation';
 import { corporationFields, corporationQueries } from './corporation';
-import { dogmaAttributeMutations, dogmaAttributeQueries } from './dogma-attribute.resolver';
+import { dogmaAttributeMutations, dogmaAttributeQueries } from './dogma-attribute';
 import { dogmaEffectMutations, dogmaEffectQueries } from './dogma-effect.resolver';
 import { itemGroupFieldResolvers, itemGroupMutations, itemGroupQueries } from './item-group.resolver';
 import {
