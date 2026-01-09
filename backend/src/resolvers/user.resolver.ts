@@ -1,4 +1,4 @@
-import { MutationResolvers, QueryResolvers } from '../generated-types';
+import { MutationResolvers, QueryResolvers } from '@generated-types';
 
 // Mock data - will come from database in real project
 const users = [
