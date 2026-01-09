@@ -12,14 +12,14 @@ import { dogmaAttributeMutations, dogmaAttributeQueries } from './dogma-attribut
 import { dogmaEffectMutations, dogmaEffectQueries } from './dogma-effect';
 import { itemGroupFields, itemGroupMutations, itemGroupQueries } from './item-group';
 import {
-  attackerFieldResolvers,
-  killmailFieldResolvers,
-  killmailItemFieldResolvers,
+  attackerFields,
+  killmailFields,
+  killmailItemFields,
   killmailMutations,
   killmailQueries,
   killmailSubscriptions,
-  victimFieldResolvers,
-} from './killmail.resolver';
+  victimFields,
+} from './killmail';
 import { raceQueries } from './race.resolver';
 import { regionFieldResolvers, regionMutations, regionQueries } from './region.resolver';
 import { solarSystemFieldResolvers, solarSystemMutations, solarSystemQueries } from './solarSystem.resolver';
@@ -80,8 +80,8 @@ export const resolvers: Resolvers = {
   Constellation: constellationFields,
   Region: regionFieldResolvers,
   SolarSystem: solarSystemFieldResolvers,
-  Killmail: killmailFieldResolvers,
-  Victim: victimFieldResolvers,
-  Attacker: attackerFieldResolvers,
-  KillmailItem: killmailItemFieldResolvers,
+  Killmail: killmailFields,
+  Victim: victimFields,
+  Attacker: attackerFields,
+  KillmailItem: killmailItemFields,
 };
