@@ -1,4 +1,4 @@
-import { MutationResolvers, PageInfo, QueryResolvers, SolarSystemResolvers } from '../generated-types';
+import { MutationResolvers, PageInfo, QueryResolvers, SolarSystemResolvers } from '@generated-types';
 import prisma from '../services/prisma';
 
 /**

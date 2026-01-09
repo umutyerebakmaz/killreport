@@ -1,5 +1,5 @@
+import { MutationResolvers, QueryResolvers } from '@generated-types';
 import { randomUUID } from 'crypto';
-import { MutationResolvers, QueryResolvers } from '../generated-types';
 import { CharacterService } from '../services/character/character.service';
 import {
     exchangeCodeForToken,

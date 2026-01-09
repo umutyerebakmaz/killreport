@@ -1,5 +1,5 @@
+import { ConstellationResolvers, MutationResolvers, PageInfo, QueryResolvers, SecurityStats } from '@generated-types';
 import axios from 'axios';
-import { ConstellationResolvers, MutationResolvers, PageInfo, QueryResolvers, SecurityStats } from '../generated-types';
 import logger from '../services/logger';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
