@@ -1,4 +1,4 @@
-import { MutationResolvers, PageInfo, QueryResolvers, TypeResolvers } from '../generated-types';
+import { MutationResolvers, PageInfo, QueryResolvers, TypeResolvers } from '@generated-types';
 import logger from '../services/logger';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
