@@ -1,0 +1,9 @@
+model Category {
+  id         Int      @id
+  name       String
+  published  Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("categories")
+}
