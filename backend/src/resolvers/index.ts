@@ -10,7 +10,7 @@ import { constellationFields, constellationMutations, constellationQueries } fro
 import { corporationFields, corporationQueries } from './corporation';
 import { dogmaAttributeMutations, dogmaAttributeQueries } from './dogma-attribute';
 import { dogmaEffectMutations, dogmaEffectQueries } from './dogma-effect';
-import { itemGroupFieldResolvers, itemGroupMutations, itemGroupQueries } from './item-group.resolver';
+import { itemGroupFields, itemGroupMutations, itemGroupQueries } from './item-group';
 import {
   attackerFieldResolvers,
   killmailFieldResolvers,
@@ -74,7 +74,7 @@ export const resolvers: Resolvers = {
   Alliance: allianceFields,
   Bloodline: bloodlineFields,
   Category: categoryFields,
-  ItemGroup: itemGroupFieldResolvers,
+  ItemGroup: itemGroupFields,
   Type: typeFieldResolvers,
   Corporation: corporationFields,
   Constellation: constellationFields,
