@@ -82,18 +82,10 @@ export default function KillmailDetailPage({
                     className="object-cover w-32 h-32 shadow-md shrink-0"
                     loading="lazy"
                   />
-
-                  <img
-                    src={`https://images.evetech.net/types/${km.victim?.shipType?.id}/render?size=256`}
-                    alt={victim?.shipType?.name || "Ship"}
-                    width={128}
-                    height={128}
-                    className="object-contain w-32 h-32 shadow-md shrink-0"
-                    loading="lazy"
-                  />
                 </div>
 
                 <FitScreen
+                  shipType={victim?.shipType}
                   dogmaAttributes={victim?.shipType?.dogmaAttributes}
                 />
               </div>
