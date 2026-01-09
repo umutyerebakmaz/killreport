@@ -8,10 +8,14 @@ interface DogmaAttribute {
 }
 
 interface FitScreenProps {
+  shipType: any;
   dogmaAttributes?: DogmaAttribute[];
 }
 
-export default function FitScreen({ dogmaAttributes = [] }: FitScreenProps) {
+export default function FitScreen({
+  shipType,
+  dogmaAttributes = [],
+}: FitScreenProps) {
   // dogmaAttributes'tan slot sayılarını al
   const getSlotCount = (attributeName: string): number => {
     const attr = dogmaAttributes.find(
@@ -48,7 +52,14 @@ export default function FitScreen({ dogmaAttributes = [] }: FitScreenProps) {
 
   return (
     <div className="flex-1 p-4 border bg-white/5 border-white/10">
-      <h2 className="mb-4 text-lg font-bold text-white">Ship Fitting</h2>
+      <img
+        src={`https://images.evetech.net/types/${shipType?.id}/render?size=256`}
+        alt={shipType?.name || "Ship"}
+        width={128}
+        height={128}
+        className="object-contain w-32 h-32 shadow-md shrink-0"
+        loading="lazy"
+      />
       {renderSlots(hiSlots, "High Slots", "border-red-500/50")}
       {renderSlots(medSlots, "Med Slots", "border-yellow-500/50")}
       {renderSlots(lowSlots, "Low Slots", "border-green-500/50")}
