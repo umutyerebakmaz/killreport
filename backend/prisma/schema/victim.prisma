@@ -1,0 +1,20 @@
+model Victim {
+  killmail_id    Int      @id
+  character_id   Int?
+  corporation_id Int
+  alliance_id    Int?
+  faction_id     Int?
+  ship_type_id   Int
+  damage_taken   Int
+  position_x     Float?
+  position_y     Float?
+  position_z     Float?
+  created_at     DateTime @default(now())
+  killmail       Killmail @relation(fields: [killmail_id], references: [killmail_id], onDelete: Cascade)
+
+  @@index([alliance_id])
+  @@index([character_id])
+  @@index([corporation_id])
+  @@index([ship_type_id])
+  @@map("victims")
+}
