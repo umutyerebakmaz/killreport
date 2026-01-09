@@ -10,6 +10,12 @@ import {
  * Handles nested fields and computed properties for Killmail type
  * Uses DataLoaders to prevent N+1 queries
  */
+
+// TODO: HighSlot.
+// TODO: MedSlot.
+// TODO: LowSlot.
+// TODO: Rigs.
+
 export const killmailFields: KillmailResolvers = {
     solarSystem: async (parent: any, _, context) => {
         if (!parent.solarSystemId) return null;
