@@ -4,9 +4,9 @@ import { analyticsQueries, analyticsSubscriptions } from './analytics';
 import { authMutations, authQueries } from './auth';
 import { bloodlineFields, bloodlineQueries } from './bloodline';
 import { cacheMutations, cacheQueries } from './cache';
-import { categoryFieldResolvers, categoryMutations, categoryQueries } from './category.resolver';
-import { characterFieldResolvers, characterMutations, characterQueries } from './character.resolver';
-import { constellationFieldResolvers, constellationMutations, constellationQueries } from './constellation.resolver';
+import { categoryFields, categoryMutations, categoryQueries } from './category';
+import { characterFields, characterMutations, characterQueries } from './character';
+import { constellationFields, constellationMutations, constellationQueries } from './constellation';
 import { corporationFieldResolvers, corporationQueries } from './corporation.resolver';
 import { dogmaAttributeMutations, dogmaAttributeQueries } from './dogma-attribute.resolver';
 import { dogmaEffectMutations, dogmaEffectQueries } from './dogma-effect.resolver';
@@ -70,14 +70,14 @@ export const resolvers: Resolvers = {
     ...killmailSubscriptions,
     ...analyticsSubscriptions,
   },
-  Character: characterFieldResolvers,
+  Character: characterFields,
   Alliance: allianceFields,
   Bloodline: bloodlineFields,
-  Category: categoryFieldResolvers,
+  Category: categoryFields,
   ItemGroup: itemGroupFieldResolvers,
   Type: typeFieldResolvers,
   Corporation: corporationFieldResolvers,
-  Constellation: constellationFieldResolvers,
+  Constellation: constellationFields,
   Region: regionFieldResolvers,
   SolarSystem: solarSystemFieldResolvers,
   Killmail: killmailFieldResolvers,
