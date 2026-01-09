@@ -1,0 +1,227 @@
+import {
+    AttackerResolvers,
+    KillmailItemResolvers,
+    KillmailResolvers,
+    VictimResolvers,
+} from '@generated-types';
+
+/**
+ * Killmail Field Resolvers
+ * Handles nested fields and computed properties for Killmail type
+ * Uses DataLoaders to prevent N+1 queries
+ */
+export const killmailFields: KillmailResolvers = {
+    solarSystem: async (parent: any, _, context) => {
+        if (!parent.solarSystemId) return null;
+        return context.loaders.solarSystem.load(parent.solarSystemId);
+    },
+    victim: async (parent: any, _, context) => {
+        // parent is the killmail, we need to load victim by killmail_id
+        const killmailId = typeof parent.id === 'string' ? parseInt(parent.id) : parent.id;
+        const victim = await context.loaders.victim.load(killmailId);
+        if (!victim) {
+            console.error(`⚠️ Victim not found for killmail ${killmailId} - data inconsistency!`);
+            return null;
+        }
+
+        return {
+            characterId: victim.character_id ?? null,
+            corporationId: victim.corporation_id ?? 0,
+            allianceId: victim.alliance_id ?? null,
+            factionId: victim.faction_id ?? null,
+            shipTypeId: victim.ship_type_id ?? 0,
+            damageTaken: victim.damage_taken ?? 0,
+            position: victim.position_x ? {
+                x: victim.position_x,
+                y: victim.position_y!,
+                z: victim.position_z!,
+            } : null,
+        } as any;
+    },
+
+    attackers: async (parent: any, _, context) => {
+        const killmailId = typeof parent.id === 'string' ? parseInt(parent.id) : parent.id;
+        const attackers = await context.loaders.attackers.load(killmailId);
+
+        return attackers.map((attacker: any) => ({
+            characterId: attacker.character_id ?? null,
+            corporationId: attacker.corporation_id ?? null,
+            allianceId: attacker.alliance_id ?? null,
+            factionId: attacker.faction_id ?? null,
+            shipTypeId: attacker.ship_type_id ?? null,
+            weaponTypeId: attacker.weapon_type_id ?? null,
+            damageDone: attacker.damage_done,
+            finalBlow: attacker.final_blow,
+            securityStatus: attacker.security_status,
+        }));
+    },
+    items: async (parent: any, _, context) => {
+        const killmailId = typeof parent.id === 'string' ? parseInt(parent.id) : parent.id;
+        const items = await context.loaders.items.load(killmailId);
+
+        return items.map((item: any) => ({
+            itemTypeId: item.item_type_id,
+            flag: item.flag,
+            quantityDropped: item.quantity_dropped ?? null,
+            quantityDestroyed: item.quantity_destroyed ?? null,
+            singleton: item.singleton,
+            killmailId: killmailId, // charge resolver için gerekli
+        }));
+    },
+};
+
+/**
+ * Victim Field Resolvers
+ * Handles nested fields for Victim type
+ * Uses DataLoaders to prevent N+1 queries
+ */
+export const victimFields: VictimResolvers = {
+    character: async (parent: any, _, context) => {
+        if (!parent.characterId) return null;
+        return context.loaders.character.load(parent.characterId);
+    },
+
+    corporation: async (parent: any, _, context) => {
+        if (!parent.corporationId) return null;
+        return context.loaders.corporation.load(parent.corporationId);
+    },
+
+    alliance: async (parent: any, _, context) => {
+        if (!parent.allianceId) return null;
+        return context.loaders.alliance.load(parent.allianceId);
+    },
+
+    shipType: async (parent: any, _, context) => {
+        if (!parent.shipTypeId) return null;
+        const type = await context.loaders.type.load(parent.shipTypeId);
+        if (!type) return null;
+        return {
+            ...type,
+            created_at: type.created_at.toISOString(),
+            updated_at: type.updated_at.toISOString(),
+        } as any;
+    },
+};
+
+/**
+ * Attacker Field Resolvers
+ * Handles nested fields for Attacker type
+ * Uses DataLoaders to prevent N+1 queries
+ */
+export const attackerFields: AttackerResolvers = {
+    character: async (parent: any, _, context) => {
+        if (!parent.characterId) return null;
+        return context.loaders.character.load(parent.characterId);
+    },
+    corporation: async (parent: any, _, context) => {
+        if (!parent.corporationId) return null;
+        return context.loaders.corporation.load(parent.corporationId);
+    },
+    alliance: async (parent: any, _, context) => {
+        if (!parent.allianceId) return null;
+        return context.loaders.alliance.load(parent.allianceId);
+    },
+    shipType: async (parent: any, _, context) => {
+        if (!parent.shipTypeId) return null;
+        const type = await context.loaders.type.load(parent.shipTypeId);
+        if (!type) return null;
+        return {
+            ...type,
+            created_at: type.created_at.toISOString(),
+            updated_at: type.updated_at.toISOString(),
+        } as any;
+    },
+    weaponType: async (parent: any, _, context) => {
+        if (!parent.weaponTypeId) return null;
+        const type = await context.loaders.type.load(parent.weaponTypeId);
+        if (!type) return null;
+        return {
+            ...type,
+            created_at: type.created_at.toISOString(),
+            updated_at: type.updated_at.toISOString(),
+        } as any;
+    },
+};
+
+/**
+ * KillmailItem Field Resolvers
+ * Handles nested fields for KillmailItem type
+ * Uses DataLoaders to prevent N+1 queries
+ */
+export const killmailItemFields: KillmailItemResolvers = {
+    itemType: async (parent: any, _, context) => {
+        if (!parent.itemTypeId) return null;
+        const type = await context.loaders.type.load(parent.itemTypeId);
+        if (!type) return null;
+        return {
+            ...type,
+            created_at: type.created_at.toISOString(),
+            updated_at: type.updated_at.toISOString(),
+        } as any;
+    },
+    charge: async (parent: any, _, context): Promise<any> => {
+        // Parent item bilgilerini al
+        const killmailId = parent.killmailId;
+        const flag = parent.flag;
+        const itemTypeId = parent.itemTypeId;
+
+        if (!killmailId || flag === null || flag === undefined) {
+            return null;
+        }
+
+        // Aynı killmail_id ve flag'e sahip tüm itemları çek
+        const allItemsInSlot = await context.loaders.items.load(killmailId);
+        const itemsWithSameFlag = allItemsInSlot.filter((item: any) => item.flag === flag);
+
+        // Eğer bu slotta tek item varsa charge yok
+        if (itemsWithSameFlag.length <= 1) {
+            return null;
+        }
+
+        // İki item var - group_id'ye göre hangisi modül hangisi charge belirle
+        const { isCharge } = await import('../../utils/item-classifier.js');
+
+        // Önce tüm itemların type bilgilerini çek
+        const itemsWithTypes = await Promise.all(
+            itemsWithSameFlag.map(async (item: any) => {
+                const type = await context.loaders.type.load(item.item_type_id);
+                return { ...item, type };
+            })
+        );
+
+        // Current item'ı bul
+        const currentItem = itemsWithTypes.find((item: any) =>
+            item.item_type_id === itemTypeId
+        );
+
+        if (!currentItem || !currentItem.type) {
+            return null;
+        }
+
+        // Eğer current item bir charge ise, charge'ı yok (charge'ın charge'ı olmaz)
+        if (isCharge(currentItem.type.group_id)) {
+            return null;
+        }
+
+        // Current item bir modül - diğer itemlar arasında charge ara
+        const chargeItem = itemsWithTypes.find((item: any) =>
+            item.item_type_id !== itemTypeId &&
+            item.type &&
+            isCharge(item.type.group_id)
+        );
+
+        if (!chargeItem) {
+            return null;
+        }
+
+        // Charge item'ı GraphQL formatında döndür
+        return {
+            itemTypeId: chargeItem.item_type_id,
+            flag: chargeItem.flag,
+            quantityDropped: chargeItem.quantity_dropped ?? null,
+            quantityDestroyed: chargeItem.quantity_destroyed ?? null,
+            singleton: chargeItem.singleton,
+            killmailId: chargeItem.killmail_id,
+        };
+    },
+};
