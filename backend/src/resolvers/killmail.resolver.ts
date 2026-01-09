@@ -668,6 +668,7 @@ export const killmailFieldResolvers: KillmailResolvers = {
       quantityDropped: item.quantity_dropped ?? null,
       quantityDestroyed: item.quantity_destroyed ?? null,
       singleton: item.singleton,
+      killmailId: killmailId, // charge resolver için gerekli
     }));
   },
 };
@@ -745,6 +746,71 @@ export const killmailItemFieldResolvers: KillmailItemResolvers = {
       created_at: type.created_at.toISOString(),
       updated_at: type.updated_at.toISOString(),
     } as any;
+  },
+  charge: async (parent: any, _, context): Promise<any> => {
+    // Parent item bilgilerini al
+    const killmailId = parent.killmailId;
+    const flag = parent.flag;
+    const itemTypeId = parent.itemTypeId;
+
+    if (!killmailId || flag === null || flag === undefined) {
+      return null;
+    }
+
+    // Aynı killmail_id ve flag'e sahip tüm itemları çek
+    const allItemsInSlot = await context.loaders.items.load(killmailId);
+    const itemsWithSameFlag = allItemsInSlot.filter((item: any) => item.flag === flag);
+
+    // Eğer bu slotta tek item varsa charge yok
+    if (itemsWithSameFlag.length <= 1) {
+      return null;
+    }
+
+    // İki item var - group_id'ye göre hangisi modül hangisi charge belirle
+    const { isCharge } = await import('../utils/item-classifier.js');
+
+    // Önce tüm itemların type bilgilerini çek
+    const itemsWithTypes = await Promise.all(
+      itemsWithSameFlag.map(async (item: any) => {
+        const type = await context.loaders.type.load(item.item_type_id);
+        return { ...item, type };
+      })
+    );
+
+    // Current item'ı bul
+    const currentItem = itemsWithTypes.find((item: any) =>
+      item.item_type_id === itemTypeId
+    );
+
+    if (!currentItem || !currentItem.type) {
+      return null;
+    }
+
+    // Eğer current item bir charge ise, charge'ı yok (charge'ın charge'ı olmaz)
+    if (isCharge(currentItem.type.group_id)) {
+      return null;
+    }
+
+    // Current item bir modül - diğer itemlar arasında charge ara
+    const chargeItem = itemsWithTypes.find((item: any) =>
+      item.item_type_id !== itemTypeId &&
+      item.type &&
+      isCharge(item.type.group_id)
+    );
+
+    if (!chargeItem) {
+      return null;
+    }
+
+    // Charge item'ı GraphQL formatında döndür
+    return {
+      itemTypeId: chargeItem.item_type_id,
+      flag: chargeItem.flag,
+      quantityDropped: chargeItem.quantity_dropped ?? null,
+      quantityDestroyed: chargeItem.quantity_destroyed ?? null,
+      singleton: chargeItem.singleton,
+      killmailId: chargeItem.killmail_id,
+    };
   },
 };
 

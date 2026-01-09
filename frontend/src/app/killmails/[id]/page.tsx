@@ -87,6 +87,7 @@ export default function KillmailDetailPage({
                 <FitScreen
                   shipType={victim?.shipType}
                   dogmaAttributes={victim?.shipType?.dogmaAttributes}
+                  items={items}
                 />
               </div>
 
