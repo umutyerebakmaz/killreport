@@ -7,7 +7,7 @@ import { cacheMutations, cacheQueries } from './cache';
 import { categoryFields, categoryMutations, categoryQueries } from './category';
 import { characterFields, characterMutations, characterQueries } from './character';
 import { constellationFields, constellationMutations, constellationQueries } from './constellation';
-import { corporationFieldResolvers, corporationQueries } from './corporation.resolver';
+import { corporationFields, corporationQueries } from './corporation';
 import { dogmaAttributeMutations, dogmaAttributeQueries } from './dogma-attribute.resolver';
 import { dogmaEffectMutations, dogmaEffectQueries } from './dogma-effect.resolver';
 import { itemGroupFieldResolvers, itemGroupMutations, itemGroupQueries } from './item-group.resolver';
@@ -76,7 +76,7 @@ export const resolvers: Resolvers = {
   Category: categoryFields,
   ItemGroup: itemGroupFieldResolvers,
   Type: typeFieldResolvers,
-  Corporation: corporationFieldResolvers,
+  Corporation: corporationFields,
   Constellation: constellationFields,
   Region: regionFieldResolvers,
   SolarSystem: solarSystemFieldResolvers,
