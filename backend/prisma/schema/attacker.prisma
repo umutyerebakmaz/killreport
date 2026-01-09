@@ -1,0 +1,22 @@
+model Attacker {
+  killmail_id     Int
+  character_id    Int?
+  corporation_id  Int?
+  alliance_id     Int?
+  ship_type_id    Int?
+  weapon_type_id  Int?
+  damage_done     Int
+  final_blow      Boolean
+  security_status Float?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  faction_id      Int?
+  id              BigInt   @id @default(autoincrement())
+  killmail        Killmail @relation(fields: [killmail_id], references: [killmail_id], onDelete: Cascade)
+
+  @@index([alliance_id])
+  @@index([character_id])
+  @@index([corporation_id])
+  @@index([killmail_id])
+  @@map("attackers")
+}

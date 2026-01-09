@@ -1,0 +1,22 @@
+model DogmaEffect {
+  id                   Int               @id
+  name                 String
+  display_name         String?
+  description          String?
+  effect_category      Int?
+  pre_expression       Int?
+  post_expression      Int?
+  icon_id              Int?
+  published            Boolean           @default(true)
+  is_offensive         Boolean           @default(false)
+  is_assistance        Boolean           @default(false)
+  disallow_auto_repeat Boolean           @default(false)
+  created_at           DateTime          @default(now())
+  updated_at           DateTime          @updatedAt
+  types                TypeDogmaEffect[]
+
+  @@index([name])
+  @@index([published])
+  @@index([effect_category])
+  @@map("dogma_effects")
+}
