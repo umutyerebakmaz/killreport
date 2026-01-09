@@ -5,6 +5,10 @@ import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 import redis from '../services/redis';
 
+/**
+ * Alliance Query Resolvers
+ * Handles fetching alliance data and listing alliances with filters
+ */
 export const allianceQueries: QueryResolvers = {
   alliance: async (_, { id }) => {
     const cacheKey = `alliance:detail:${id}`;
@@ -130,6 +134,10 @@ export const allianceQueries: QueryResolvers = {
   },
 };
 
+/**
+ * Alliance Mutation Resolvers
+ * Handles operations that modify alliance data
+ */
 export const allianceMutations: MutationResolvers = {
   startAllianceSync: async (_, { input }) => {
     try {
@@ -175,9 +183,9 @@ export const allianceMutations: MutationResolvers = {
 };
 
 /**
- * Field Resolvers - Nested fields için lazy loading + DataLoader
- * Corporations bilgisi sadece query'de istenirse çekilir
- * DataLoader ile batch loading - N+1 problem çözümü
+ * Alliance Field Resolvers
+ * Handles nested fields and computed properties for Alliance type
+ * Uses DataLoaders to prevent N+1 queries
  */
 export const allianceFieldResolvers: AllianceResolvers = {
   executor: async (parent, _args, context) => {

@@ -5,6 +5,10 @@ import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 import redis from '../services/redis';
 
+/**
+ * DogmaAttribute Query Resolvers
+ * Handles fetching dogma attribute data and listing attributes with filters
+ */
 export const dogmaAttributeQueries: QueryResolvers = {
     dogmaAttribute: async (_, { id }) => {
         const cacheKey = `dogma-attribute:detail:${id}`;
@@ -84,6 +88,10 @@ export const dogmaAttributeQueries: QueryResolvers = {
     },
 };
 
+/**
+ * DogmaAttribute Mutation Resolvers
+ * Handles operations that modify dogma attribute data
+ */
 export const dogmaAttributeMutations: MutationResolvers = {
     startDogmaAttributeSync: async (_, { input }) => {
         try {
