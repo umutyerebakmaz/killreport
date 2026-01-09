@@ -6,7 +6,7 @@ import redis from '@services/redis';
  * Alliance Query Resolvers
  * Handles fetching alliance data and listing alliances with filters
  */
-export const queries: QueryResolvers = {
+export const allianceQueries: QueryResolvers = {
   alliance: async (_, { id }) => {
     const cacheKey = `alliance:detail:${id}`;
 
