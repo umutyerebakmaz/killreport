@@ -1,4 +1,4 @@
-import { CategoryResolvers, MutationResolvers, PageInfo, QueryResolvers } from '../generated-types';
+import { CategoryResolvers, MutationResolvers, PageInfo, QueryResolvers } from '@generated-types';
 import { CategoryService } from '../services/category';
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
