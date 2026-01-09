@@ -21,8 +21,8 @@ import {
   victimFields,
 } from './killmail';
 import { raceQueries } from './race';
-import { regionFieldResolvers, regionMutations, regionQueries } from './region.resolver';
-import { solarSystemFieldResolvers, solarSystemMutations, solarSystemQueries } from './solarSystem.resolver';
+import { regionFields, regionMutations, regionQueries } from './region';
+import { solarSystemFields, solarSystemQueries } from './solar-system';
 import { typeFieldResolvers, typeMutations, typeQueries } from './type.resolver';
 import { userMutations, userQueries } from './user.resolver';
 import { workerResolvers } from './worker.resolver';
@@ -62,7 +62,6 @@ export const resolvers: Resolvers = {
     ...dogmaEffectMutations,
     ...constellationMutations,
     ...regionMutations,
-    ...solarSystemMutations,
     ...cacheMutations,
   },
   Subscription: {
@@ -78,8 +77,8 @@ export const resolvers: Resolvers = {
   Type: typeFieldResolvers,
   Corporation: corporationFields,
   Constellation: constellationFields,
-  Region: regionFieldResolvers,
-  SolarSystem: solarSystemFieldResolvers,
+  Region: regionFields,
+  SolarSystem: solarSystemFields,
   Killmail: killmailFields,
   Victim: victimFields,
   Attacker: attackerFields,
