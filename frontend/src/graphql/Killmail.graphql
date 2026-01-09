@@ -41,12 +41,11 @@ query Killmail($id: ID!) {
             name
           }
         }
-        dogmaAttributes(ids: [14, 13, 12]) {
+        dogmaAttributes(ids: [14, 13, 12, 1137]) {
           type_id
           value
           attribute_id
-          attribute
-          {
+          attribute {
             id
             name
           }
@@ -94,7 +93,15 @@ query Killmail($id: ID!) {
       itemType {
         id
         name
-        description
+      }
+      charge {
+        flag
+        quantityDropped
+        quantityDestroyed
+        itemType {
+          id
+          name
+        }
       }
     }
   }

@@ -33,6 +33,13 @@ export interface KillmailDetail {
             quantity_dropped?: number;
             quantity_destroyed?: number;
             singleton: number;
+            items?: Array<{
+                item_type_id: number;
+                flag: number;
+                quantity_dropped?: number;
+                quantity_destroyed?: number;
+                singleton: number;
+            }>;
         }>;
     };
     attackers: Array<{
