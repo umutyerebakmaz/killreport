@@ -1,7 +1,7 @@
 import { Resolvers } from '@generated-types';
+import { getAllQueueStats } from '@services/rabbitmq';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { getAllQueueStats } from '../services/rabbitmq';
 
 const execAsync = promisify(exec);
 
