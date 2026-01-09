@@ -197,6 +197,7 @@ model KillmailItem {
 
   @@index([item_type_id])
   @@index([killmail_id])
+  @@index([killmail_id, flag])
   @@map("killmail_items")
 }
 
