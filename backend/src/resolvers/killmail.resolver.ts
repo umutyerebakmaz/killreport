@@ -7,12 +7,12 @@ import {
     SubscriptionResolvers,
     VictimResolvers,
 } from '@generated-types';
-import { CharacterService } from '../services/character';
-import { CorporationService } from '../services/corporation';
-import { KillmailService } from '../services/killmail';
-import prisma from '../services/prisma';
-import { pubsub } from '../services/pubsub';
-import redis from '../services/redis';
+import { CharacterService } from '@services/character';
+import { CorporationService } from '@services/corporation';
+import { KillmailService } from '@services/killmail';
+import prisma from '@services/prisma';
+import { pubsub } from '@services/pubsub';
+import redis from '@services/redis';
 
 /**
  * Killmail Query Resolvers

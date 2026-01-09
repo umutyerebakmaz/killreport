@@ -1,7 +1,7 @@
 import { MutationResolvers, PageInfo, QueryResolvers, RegionResolvers, SecurityStats } from '@generated-types';
+import prisma from '@services/prisma';
+import { getRabbitMQChannel } from '@services/rabbitmq';
 import axios from 'axios';
-import prisma from '../services/prisma';
-import { getRabbitMQChannel } from '../services/rabbitmq';
 
 /**
  * Helper Functions
