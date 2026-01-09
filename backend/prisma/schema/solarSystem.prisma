@@ -1,0 +1,15 @@
+model SolarSystem {
+  id               Int            @id @map("system_id")
+  name             String
+  constellation_id Int?
+  security_status  Float?
+  security_class   String?
+  star_id          Int?
+  position_x       Float?
+  position_y       Float?
+  position_z       Float?
+  constellation    Constellation? @relation(fields: [constellation_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([constellation_id])
+  @@map("solar_systems")
+}

@@ -1,0 +1,8 @@
+model Region {
+  id             Int             @id @map("region_id")
+  name           String
+  description    String?
+  constellations Constellation[]
+
+  @@map("regions")
+}
