@@ -93,3 +93,53 @@ export function separateModulesAndCharges<T extends {
 
   return { modules, charges };
 }
+
+/**
+ * Checks if an item has a charge field populated
+ * This indicates the item is a module with ammunition/charge loaded
+ */
+export function hasCharge(item: { charge?: any }): boolean {
+  return item.charge !== null && item.charge !== undefined;
+}
+
+/**
+ * Filters out standalone charge items that should be displayed as part of their parent module
+ * Returns only module items (which may have charge field populated)
+ *
+ * This is used to prevent duplicate display of charges - they should only appear
+ * as overlays on their parent modules, not as separate slot entries.
+ */
+export function filterModulesOnly<T extends { flag: number; charge?: any }>(
+  items: T[]
+): T[] {
+  // Group items by their flag (slot position)
+  const itemsByFlag = new Map<number, T[]>();
+
+  items.forEach(item => {
+    const existing = itemsByFlag.get(item.flag) || [];
+    existing.push(item);
+    itemsByFlag.set(item.flag, existing);
+  });
+
+  const result: T[] = [];
+
+  // For each flag group, keep only the item with charge field populated
+  itemsByFlag.forEach((flagItems) => {
+    if (flagItems.length === 1) {
+      // Single item in this slot - keep it
+      result.push(flagItems[0]);
+    } else {
+      // Multiple items in same slot - find the module (has charge field)
+      const moduleItem = flagItems.find(item => hasCharge(item));
+      if (moduleItem) {
+        // Found module with charge - use it
+        result.push(moduleItem);
+      } else {
+        // No charge field found - keep all items (fallback behavior)
+        result.push(...flagItems);
+      }
+    }
+  });
+
+  return result;
+}
