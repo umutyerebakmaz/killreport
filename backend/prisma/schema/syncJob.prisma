@@ -1,0 +1,14 @@
+model SyncJob {
+  id          BigInt   @id @default(autoincrement())
+  entity_type String
+  entity_id   BigInt
+  status      String
+  retry_count Int      @default(0)
+  error       String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@index([entity_id, entity_type])
+  @@index([entity_type, status])
+  @@map("sync_jobs")
+}
