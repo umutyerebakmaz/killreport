@@ -1,5 +1,5 @@
 import { BloodlineResolvers, QueryResolvers } from '@generated-types';
-import prisma from '../services/prisma';
+import prisma from '@services/prisma';
 
 /**
  * Bloodline Query Resolvers

@@ -1,5 +1,5 @@
 import { QueryResolvers } from '@generated-types';
-import prisma from '../services/prisma';
+import prisma from '@services/prisma';
 
 /**
  * Race Query Resolvers

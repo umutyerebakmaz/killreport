@@ -1,6 +1,6 @@
 import { Corporation, CorporationConnection, CorporationResolvers, PageInfo, QueryResolvers } from '@generated-types';
-import prisma from '../services/prisma';
-import redis from '../services/redis';
+import prisma from '@services/prisma';
+import redis from '@services/redis';
 
 /**
  * Corporation Query Resolvers
