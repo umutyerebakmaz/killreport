@@ -9,7 +9,7 @@ import { characterFields, characterMutations, characterQueries } from './charact
 import { constellationFields, constellationMutations, constellationQueries } from './constellation';
 import { corporationFields, corporationQueries } from './corporation';
 import { dogmaAttributeMutations, dogmaAttributeQueries } from './dogma-attribute';
-import { dogmaEffectMutations, dogmaEffectQueries } from './dogma-effect.resolver';
+import { dogmaEffectMutations, dogmaEffectQueries } from './dogma-effect';
 import { itemGroupFieldResolvers, itemGroupMutations, itemGroupQueries } from './item-group.resolver';
 import {
   attackerFieldResolvers,
