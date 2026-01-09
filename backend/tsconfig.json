@@ -11,7 +11,31 @@
     "outDir": "dist",
     "rootDir": "src",
     "resolveJsonModule": true,
-    "verbatimModuleSyntax": false
+    "verbatimModuleSyntax": false,
+    "baseUrl": ".",
+    "paths": {
+      "@services/*": [
+        "src/services/*"
+      ],
+      "@resolvers/*": [
+        "src/resolvers/*"
+      ],
+      "@types/*": [
+        "src/types/*"
+      ],
+      "@utils/*": [
+        "src/utils/*"
+      ],
+      "@config": [
+        "src/config.ts"
+      ],
+      "@generated-types": [
+        "src/generated-types.ts"
+      ],
+      "@generated/*": [
+        "src/generated/*"
+      ]
+    }
   },
   "include": [
     "src/**/*"

@@ -1,4 +1,4 @@
-import { MutationResolvers, PageInfo, QueryResolvers } from '../generated-types';
+import { MutationResolvers, PageInfo, QueryResolvers } from '@generated-types';
 import { DogmaAttributeService } from '../services/dogma';
 import logger from '../services/logger';
 import prisma from '../services/prisma';
