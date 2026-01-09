@@ -20,7 +20,7 @@ import {
   killmailSubscriptions,
   victimFields,
 } from './killmail';
-import { raceQueries } from './race.resolver';
+import { raceQueries } from './race';
 import { regionFieldResolvers, regionMutations, regionQueries } from './region.resolver';
 import { solarSystemFieldResolvers, solarSystemMutations, solarSystemQueries } from './solarSystem.resolver';
 import { typeFieldResolvers, typeMutations, typeQueries } from './type.resolver';
