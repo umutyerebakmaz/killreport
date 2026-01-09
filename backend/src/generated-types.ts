@@ -495,6 +495,7 @@ export type KillmailFilter = {
 
 export type KillmailItem = {
   __typename?: 'KillmailItem';
+  charge?: Maybe<KillmailItem>;
   flag: Scalars['Int']['output'];
   itemType: Type;
   quantityDestroyed?: Maybe<Scalars['Int']['output']>;
@@ -1865,6 +1866,7 @@ export type KillmailEdgeResolvers<ContextType = any, ParentType extends Resolver
 };
 
 export type KillmailItemResolvers<ContextType = any, ParentType extends ResolversParentTypes['KillmailItem'] = ResolversParentTypes['KillmailItem']> = {
+  charge?: Resolver<Maybe<ResolversTypes['KillmailItem']>, ParentType, ContextType>;
   flag?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   itemType?: Resolver<ResolversTypes['Type'], ParentType, ContextType>;
   quantityDestroyed?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;

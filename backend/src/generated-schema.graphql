@@ -430,6 +430,7 @@ input KillmailFilter {
 }
 
 type KillmailItem {
+  charge: KillmailItem
   flag: Int!
   itemType: Type!
   quantityDestroyed: Int

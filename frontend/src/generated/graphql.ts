@@ -496,6 +496,7 @@ export type KillmailFilter = {
 
 export type KillmailItem = {
   __typename?: 'KillmailItem';
+  charge?: Maybe<KillmailItem>;
   flag: Scalars['Int']['output'];
   itemType: Type;
   quantityDestroyed?: Maybe<Scalars['Int']['output']>;
@@ -1176,6 +1177,11 @@ export type TypeDogmaAttributesArgs = {
   ids?: InputMaybe<Array<Scalars['Int']['input']>>;
 };
 
+
+export type TypeDogmaEffectsArgs = {
+  ids?: InputMaybe<Array<Scalars['Int']['input']>>;
+};
+
 export type TypeConnection = {
   __typename?: 'TypeConnection';
   edges: Array<TypeEdge>;
@@ -1401,11 +1407,10 @@ export type CorporationKillmailsQuery = { __typename?: 'Query', corporationKillm
 
 export type KillmailQueryVariables = Exact<{
   id: Scalars['ID']['input'];
-  attributeIds?: InputMaybe<Array<Scalars['Int']['input']> | Scalars['Int']['input']>;
 }>;
 
 
-export type KillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string }, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType: { __typename?: 'Type', id: number, name: string, description?: string | null, group: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } }, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', type_id: number, value: number, attribute_id: number, attribute: { __typename?: 'DogmaAttribute', id: number, name: string } }> } } | null, attackers: Array<{ __typename?: 'Attacker', damageDone: number, finalBlow: boolean, securityStatus?: number | null, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group: { __typename?: 'ItemGroup', name: string } } | null, weaponType?: { __typename?: 'Type', id: number, name: string } | null }>, items: Array<{ __typename?: 'KillmailItem', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, singleton: number, itemType: { __typename?: 'Type', id: number, name: string, description?: string | null } }> } | null };
+export type KillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string }, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType: { __typename?: 'Type', id: number, name: string, description?: string | null, group: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } }, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', type_id: number, value: number, attribute_id: number, attribute: { __typename?: 'DogmaAttribute', id: number, name: string } }> } } | null, attackers: Array<{ __typename?: 'Attacker', damageDone: number, finalBlow: boolean, securityStatus?: number | null, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group: { __typename?: 'ItemGroup', name: string } } | null, weaponType?: { __typename?: 'Type', id: number, name: string } | null }>, items: Array<{ __typename?: 'KillmailItem', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, singleton: number, itemType: { __typename?: 'Type', id: number, name: string }, charge?: { __typename?: 'KillmailItem', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string } } | null }> } | null };
 
 export type KillmailsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
@@ -2699,7 +2704,7 @@ export type CorporationKillmailsLazyQueryHookResult = ReturnType<typeof useCorpo
 export type CorporationKillmailsSuspenseQueryHookResult = ReturnType<typeof useCorporationKillmailsSuspenseQuery>;
 export type CorporationKillmailsQueryResult = Apollo.QueryResult<CorporationKillmailsQuery, CorporationKillmailsQueryVariables>;
 export const KillmailDocument = gql`
-    query Killmail($id: ID!, $attributeIds: [Int!]) {
+    query Killmail($id: ID!) {
   killmail(id: $id) {
     id
     killmailTime
@@ -2742,7 +2747,7 @@ export const KillmailDocument = gql`
             name
           }
         }
-        dogmaAttributes(ids: $attributeIds) {
+        dogmaAttributes(ids: [14, 13, 12, 1137]) {
           type_id
           value
           attribute_id
@@ -2789,7 +2794,15 @@ export const KillmailDocument = gql`
       itemType {
         id
         name
-        description
+      }
+      charge {
+        flag
+        quantityDropped
+        quantityDestroyed
+        itemType {
+          id
+          name
+        }
       }
     }
   }
@@ -2809,7 +2822,6 @@ export const KillmailDocument = gql`
  * const { data, loading, error } = useKillmailQuery({
  *   variables: {
  *      id: // value for 'id'
- *      attributeIds: // value for 'attributeIds'
  *   },
  * });
  */
