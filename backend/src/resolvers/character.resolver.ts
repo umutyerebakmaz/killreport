@@ -4,6 +4,10 @@ import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 import redis from '../services/redis';
 
+/**
+ * Character Query Resolvers
+ * Handles fetching character data and listing characters with filters
+ */
 export const characterQueries: QueryResolvers = {
   character: async (_, { id }) => {
     const cacheKey = `character:detail:${id}`;
@@ -106,7 +110,8 @@ export const characterQueries: QueryResolvers = {
 };
 
 /**
- * Character Mutations
+ * Character Mutation Resolvers
+ * Handles operations that modify character data
  */
 export const characterMutations: MutationResolvers = {
   refreshCharacter: async (_, { characterId }, context) => {
@@ -188,7 +193,9 @@ export const characterMutations: MutationResolvers = {
 };
 
 /**
- * Field Resolvers - Nested fields için lazy loading + DataLoader
+ * Character Field Resolvers
+ * Handles nested fields and computed properties for Character type
+ * Uses DataLoaders to prevent N+1 queries
  */
 export const characterFieldResolvers: CharacterResolvers = {
   corporation: async (parent, _args, context) => {

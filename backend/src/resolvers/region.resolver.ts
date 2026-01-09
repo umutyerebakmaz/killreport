@@ -3,6 +3,10 @@ import { MutationResolvers, PageInfo, QueryResolvers, RegionResolvers, SecurityS
 import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
+/**
+ * Helper Functions
+ */
+
 // Helper function to calculate security stats from solar systems
 async function calculateSecurityStats(solarSystems: { security_status: number | null }[]): Promise<SecurityStats> {
     let highSec = 0;
@@ -38,6 +42,10 @@ async function calculateSecurityStats(solarSystems: { security_status: number | 
     };
 }
 
+/**
+ * Region Query Resolvers
+ * Handles fetching region data and listing regions with filters
+ */
 export const regionQueries: QueryResolvers = {
     region: async (_, { id }) => {
         const region = await prisma.region.findUnique({
@@ -105,6 +113,10 @@ export const regionQueries: QueryResolvers = {
     },
 };
 
+/**
+ * Region Mutation Resolvers
+ * Handles operations that modify region data
+ */
 export const regionMutations: MutationResolvers = {
     startRegionSync: async (_, { input }) => {
         try {
@@ -150,6 +162,11 @@ export const regionMutations: MutationResolvers = {
     },
 };
 
+/**
+ * Region Field Resolvers
+ * Handles nested fields and computed properties for Region
+ * Uses DataLoaders to prevent N+1 queries
+ */
 export const regionFieldResolvers: RegionResolvers = {
     constellations: async (parent, _, context) => {
         if (!parent.id) return [];

@@ -6,7 +6,10 @@ const users = [
     { id: '2', name: 'Jane Smith', email: 'jane@example.com', createdAt: new Date().toISOString() },
 ];
 
-// Query Resolvers
+/**
+ * User Query Resolvers
+ * Handles fetching user data
+ */
 export const userQueries: QueryResolvers = {
     user: (_, { id }) => {
         const user = users.find(u => u.id === id);
@@ -18,7 +21,10 @@ export const userQueries: QueryResolvers = {
     },
 };
 
-// Mutation Resolvers
+/**
+ * User Mutation Resolvers
+ * Handles operations that modify user data
+ */
 export const userMutations: MutationResolvers = {
     createUser: (_, { input }) => {
         const newUser = {

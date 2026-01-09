@@ -2,6 +2,10 @@ import { MutationResolvers, QueryResolvers } from '../generated-types';
 import logger from '../services/logger';
 import CacheManager from '../utils/cache-manager';
 
+/**
+ * Cache Query Resolvers
+ * Handles cache statistics and monitoring
+ */
 export const cacheQueries: QueryResolvers = {
     cacheStats: async () => {
         try {
@@ -21,6 +25,10 @@ export const cacheQueries: QueryResolvers = {
     },
 };
 
+/**
+ * Cache Mutation Resolvers
+ * Handles cache invalidation and clearing operations
+ */
 export const cacheMutations: MutationResolvers = {
     clearKillmailCache: async (_, { killmailId }) => {
         try {
