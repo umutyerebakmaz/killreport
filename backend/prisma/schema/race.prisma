@@ -1,0 +1,9 @@
+model Race {
+  id          Int      @id
+  name        String
+  description String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@map("races")
+}
