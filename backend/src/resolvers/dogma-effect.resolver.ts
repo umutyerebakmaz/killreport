@@ -1,9 +1,9 @@
 import { MutationResolvers, PageInfo, QueryResolvers } from '@generated-types';
-import { DogmaEffectService } from '../services/dogma';
-import logger from '../services/logger';
-import prisma from '../services/prisma';
-import { getRabbitMQChannel } from '../services/rabbitmq';
-import redis from '../services/redis';
+import { DogmaEffectService } from '@services/dogma';
+import logger from '@services/logger';
+import prisma from '@services/prisma';
+import { getRabbitMQChannel } from '@services/rabbitmq';
+import redis from '@services/redis';
 
 /**
  * DogmaEffect Query Resolvers

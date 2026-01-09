@@ -1,8 +1,8 @@
 import { CharacterResolvers, MutationResolvers, PageInfo, QueryResolvers } from '@generated-types';
-import logger from '../services/logger';
-import prisma from '../services/prisma';
-import { getRabbitMQChannel } from '../services/rabbitmq';
-import redis from '../services/redis';
+import logger from '@services/logger';
+import prisma from '@services/prisma';
+import { getRabbitMQChannel } from '@services/rabbitmq';
+import redis from '@services/redis';
 
 /**
  * Character Query Resolvers
