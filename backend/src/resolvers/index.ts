@@ -2,7 +2,7 @@ import { Resolvers } from '@generated-types';
 import { allianceFields, allianceMutations, allianceQueries } from './alliance';
 import { analyticsQueries, analyticsSubscriptions } from './analytics';
 import { authMutations, authQueries } from './auth';
-import { bloodlineFieldResolvers, bloodlineQueries } from './bloodline.resolver';
+import { bloodlineFields, bloodlineQueries } from './bloodline';
 import { cacheMutations, cacheQueries } from './cache.resolver';
 import { categoryFieldResolvers, categoryMutations, categoryQueries } from './category.resolver';
 import { characterFieldResolvers, characterMutations, characterQueries } from './character.resolver';
@@ -72,7 +72,7 @@ export const resolvers: Resolvers = {
   },
   Character: characterFieldResolvers,
   Alliance: allianceFields,
-  Bloodline: bloodlineFieldResolvers,
+  Bloodline: bloodlineFields,
   Category: categoryFieldResolvers,
   ItemGroup: itemGroupFieldResolvers,
   Type: typeFieldResolvers,
