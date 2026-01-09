@@ -2,6 +2,10 @@ import { Corporation, CorporationConnection, CorporationResolvers, PageInfo, Que
 import prisma from '../services/prisma';
 import redis from '../services/redis';
 
+/**
+ * Corporation Query Resolvers
+ * Handles fetching corporation data and listing corporations with filters
+ */
 export const corporationQueries: QueryResolvers = {
   corporation: async (_, { id }): Promise<Corporation | null> => {
     const cacheKey = `corporation:detail:${id}`;
@@ -129,9 +133,9 @@ export const corporationQueries: QueryResolvers = {
 };
 
 /**
- * Field Resolvers - Nested fields için lazy loading + DataLoader
- * Alliance bilgisi sadece query'de istenirse çekilir
- * DataLoader ile batch loading - N+1 problem çözümü
+ * Corporation Field Resolvers
+ * Handles nested fields and computed properties for Corporation type
+ * Uses DataLoaders to prevent N+1 queries
  */
 export const corporationFieldResolvers: CorporationResolvers = {
   alliance: async (parent, _args, context) => {

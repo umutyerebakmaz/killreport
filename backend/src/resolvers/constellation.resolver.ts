@@ -70,6 +70,10 @@ async function calculateSecurityStats(solarSystems: { security_status: number | 
     };
 }
 
+/**
+ * Constellation Query Resolvers
+ * Handles fetching constellation data and listing constellations with filters
+ */
 export const constellationQueries: QueryResolvers = {
     constellation: async (_, { id }) => {
         const constellation = await prisma.constellation.findUnique({
@@ -142,6 +146,10 @@ export const constellationQueries: QueryResolvers = {
     },
 };
 
+/**
+ * Constellation Mutation Resolvers
+ * Handles operations that modify constellation data
+ */
 export const constellationMutations: MutationResolvers = {
     startConstellationSync: async (_, { input }) => {
         try {
@@ -187,6 +195,11 @@ export const constellationMutations: MutationResolvers = {
     },
 };
 
+/**
+ * Constellation Field Resolvers
+ * Handles nested fields and computed properties for Constellation
+ * Uses DataLoaders to prevent N+1 queries
+ */
 export const constellationFieldResolvers: ConstellationResolvers = {
     position: (parent) => {
         // parent is from Prisma, has position_x, position_y, position_z

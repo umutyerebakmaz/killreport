@@ -5,6 +5,10 @@ import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 import redis from '../services/redis';
 
+/**
+ * DogmaEffect Query Resolvers
+ * Handles fetching dogma effect data and listing effects with filters
+ */
 export const dogmaEffectQueries: QueryResolvers = {
     dogmaEffect: async (_, { id }) => {
         const cacheKey = `dogma-effect:detail:${id}`;
@@ -87,6 +91,10 @@ export const dogmaEffectQueries: QueryResolvers = {
     },
 };
 
+/**
+ * DogmaEffect Mutation Resolvers
+ * Handles operations that modify dogma effect data
+ */
 export const dogmaEffectMutations: MutationResolvers = {
     startDogmaEffectSync: async (_, { input }) => {
         try {

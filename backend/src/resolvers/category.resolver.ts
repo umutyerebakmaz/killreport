@@ -4,6 +4,10 @@ import prisma from '../services/prisma';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 import redis from '../services/redis';
 
+/**
+ * Category Query Resolvers
+ * Handles fetching category data and listing categories with filters
+ */
 export const categoryQueries: QueryResolvers = {
     category: async (_, { id }) => {
         const cacheKey = `category:detail:${id}`;
@@ -80,6 +84,10 @@ export const categoryQueries: QueryResolvers = {
     },
 };
 
+/**
+ * Category Mutation Resolvers
+ * Handles operations that modify category data
+ */
 export const categoryMutations: MutationResolvers = {
     startCategorySync: async (_, { input }) => {
         try {
@@ -131,7 +139,9 @@ export const categoryMutations: MutationResolvers = {
 };
 
 /**
- * Field Resolvers - ItemGroup ilişkisi için DataLoader kullanımı
+ * Category Field Resolvers
+ * Handles nested fields and computed properties for Category
+ * Uses DataLoaders to prevent N+1 queries
  */
 export const categoryFieldResolvers: CategoryResolvers = {
     groups: async (parent, _, context) => {
