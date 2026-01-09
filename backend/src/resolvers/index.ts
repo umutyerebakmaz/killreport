@@ -3,7 +3,7 @@ import { allianceFields, allianceMutations, allianceQueries } from './alliance';
 import { analyticsQueries, analyticsSubscriptions } from './analytics';
 import { authMutations, authQueries } from './auth';
 import { bloodlineFields, bloodlineQueries } from './bloodline';
-import { cacheMutations, cacheQueries } from './cache.resolver';
+import { cacheMutations, cacheQueries } from './cache';
 import { categoryFieldResolvers, categoryMutations, categoryQueries } from './category.resolver';
 import { characterFieldResolvers, characterMutations, characterQueries } from './character.resolver';
 import { constellationFieldResolvers, constellationMutations, constellationQueries } from './constellation.resolver';
