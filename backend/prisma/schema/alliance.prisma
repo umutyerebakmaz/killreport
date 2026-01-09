@@ -1,0 +1,17 @@
+model Alliance {
+  id                      Int                @id
+  name                    String
+  ticker                  String
+  date_founded            DateTime
+  creator_corporation_id  Int
+  creator_id              Int
+  executor_corporation_id Int
+  faction_id              Int?
+  created_at              DateTime           @default(now())
+  updated_at              DateTime           @updatedAt
+  corporation_count       Int                @default(0)
+  member_count            Int                @default(0)
+  snapshots               AllianceSnapshot[]
+
+  @@map("alliances")
+}

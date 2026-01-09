@@ -1,0 +1,10 @@
+model Bloodline {
+  id          Int      @id
+  name        String
+  description String?
+  race_id     Int
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@map("bloodlines")
+}
