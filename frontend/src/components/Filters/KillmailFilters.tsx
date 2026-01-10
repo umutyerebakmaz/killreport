@@ -13,13 +13,14 @@ import { useEffect, useRef, useState } from "react";
 
 interface KillmailFiltersProps {
   onFilterChange: (filters: {
-    typeName?: string;
+    shipTypeId?: number;
     regionId?: number;
     systemId?: number;
   }) => void;
   onClearFilters: () => void;
   orderBy?: string;
   onOrderByChange: (orderBy: string) => void;
+  initialShipTypeId?: number;
 }
 
 export default function KillmailFilters({
@@ -27,11 +28,15 @@ export default function KillmailFilters({
   onClearFilters,
   orderBy = "timeDesc",
   onOrderByChange,
+  initialShipTypeId,
 }: KillmailFiltersProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [typeSearch, setTypeSearch] = useState(""); // TypeName aramasi icin
-  const [selectedTypeName, setSelectedTypeName] = useState(""); // Secilen TypeName
+  const [shipTypeId, setShipTypeId] = useState<number | undefined>(
+    initialShipTypeId
+  ); // Secilen gemi ID
+  const [shipTypeName, setShipTypeName] = useState(""); // Secilen gemi ismi (display)
   const [regionId, setRegionId] = useState("");
   const [systemId, setSystemId] = useState("");
 
@@ -51,7 +56,7 @@ export default function KillmailFilters({
     skip: debouncedSearch.length < 3, // Only search after 3 characters
   });
 
-  const hasActiveFilters = selectedTypeName || regionId || systemId;
+  const hasActiveFilters = shipTypeId || regionId || systemId;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -68,6 +73,13 @@ export default function KillmailFilters({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Sync state when initial props change (e.g., when URL changes)
+  useEffect(() => {
+    if (initialShipTypeId !== undefined) {
+      setShipTypeId(initialShipTypeId);
+    }
+  }, [initialShipTypeId]);
+
   // Show dropdown when we have results
   useEffect(() => {
     if (
@@ -79,15 +91,16 @@ export default function KillmailFilters({
     }
   }, [debouncedSearch, typeData]);
 
-  const handleShipSelect = (shipTypeName: string) => {
-    // Set the ship type name for filtering
-    setSelectedTypeName(shipTypeName);
+  const handleShipSelect = (typeId: number, typeName: string) => {
+    // Store both ID and name
+    setShipTypeId(typeId);
+    setShipTypeName(typeName);
     setTypeSearch(""); // Clear arama inputunu
     setShowDropdown(false);
 
-    // Apply filter immediately
+    // Apply filter immediately with ship type ID
     onFilterChange({
-      typeName: shipTypeName,
+      shipTypeId: typeId,
       regionId: regionId ? Number(regionId) : undefined,
       systemId: systemId ? Number(systemId) : undefined,
     });
@@ -96,7 +109,7 @@ export default function KillmailFilters({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onFilterChange({
-      typeName: selectedTypeName || undefined,
+      shipTypeId: shipTypeId,
       regionId: regionId ? Number(regionId) : undefined,
       systemId: systemId ? Number(systemId) : undefined,
     });
@@ -104,7 +117,8 @@ export default function KillmailFilters({
 
   const handleClearAll = () => {
     setTypeSearch("");
-    setSelectedTypeName("");
+    setShipTypeId(undefined);
+    setShipTypeName("");
     setRegionId("");
     setSystemId("");
     onClearFilters();
@@ -162,7 +176,7 @@ export default function KillmailFilters({
                       <button
                         key={type.id}
                         type="button"
-                        onClick={() => handleShipSelect(type.name)}
+                        onClick={() => handleShipSelect(type.id, type.name)}
                         className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-cyan-900/50"
                       >
                         <div className="flex items-center justify-center flex-none size-16 bg-gray-700/50 group-hover:bg-gray-700">
@@ -222,7 +236,7 @@ export default function KillmailFilters({
           Filters
           {hasActiveFilters && (
             <span className="badge">
-              {[selectedTypeName, regionId, systemId].filter(Boolean).length}
+              {[shipTypeId, regionId, systemId].filter(Boolean).length}
             </span>
           )}
         </button>
@@ -281,7 +295,7 @@ export default function KillmailFilters({
                 type="text"
                 id="filter-ship"
                 placeholder="No ship selected"
-                value={selectedTypeName}
+                value={shipTypeName}
                 readOnly
                 className="input bg-gray-800/50"
               />
