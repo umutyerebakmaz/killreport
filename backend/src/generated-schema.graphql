@@ -427,6 +427,7 @@ input KillmailFilter {
   regionId: Int
   search: String
   systemId: Int
+  typeName: String
 }
 
 type KillmailItem {
@@ -833,7 +834,7 @@ type Type {
   description: String
   dogmaAttributes(ids: [Int!]): [TypeDogmaAttribute!]!
   dogmaEffects(ids: [Int!]): [TypeDogmaEffect!]!
-  group: ItemGroup!
+  group: ItemGroup
   icon_id: Int
   id: Int!
   mass: Float
@@ -868,11 +869,12 @@ type TypeEdge {
 }
 
 input TypeFilter {
+  categoryList: [Int!]
   group_id: Int
   limit: Int
+  name: String
   page: Int
   published: Boolean
-  search: String
 }
 
 input UpdateUserInput {
