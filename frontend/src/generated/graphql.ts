@@ -1431,6 +1431,14 @@ export type OnNewKillmailSubscriptionVariables = Exact<{ [key: string]: never; }
 
 export type OnNewKillmailSubscription = { __typename?: 'Subscription', newKillmail: { __typename?: 'Killmail', id: string, killmailHash: string, killmailTime: string, totalValue?: number | null, createdAt: string, solarSystem: { __typename?: 'SolarSystem', name: string }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string }, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string } } | null, attackers: Array<{ __typename?: 'Attacker', damageDone: number, finalBlow: boolean, securityStatus?: number | null, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string } | null, weaponType?: { __typename?: 'Type', id: number, name: string } | null }>, items: Array<{ __typename?: 'KillmailItem', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, singleton: number, itemType: { __typename?: 'Type', id: number, name: string } }> } };
 
+export type SearchAlliancesQueryVariables = Exact<{
+  search: Scalars['String']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type SearchAlliancesQuery = { __typename?: 'Query', alliances: { __typename?: 'AllianceConnection', edges: Array<{ __typename?: 'AllianceEdge', node: { __typename?: 'Alliance', id: number, name: string, ticker: string, memberCount: number, corporationCount: number } }> } };
+
 export type SearchCharactersQueryVariables = Exact<{
   search: Scalars['String']['input'];
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -3092,6 +3100,58 @@ export function useOnNewKillmailSubscription(baseOptions?: Apollo.SubscriptionHo
       }
 export type OnNewKillmailSubscriptionHookResult = ReturnType<typeof useOnNewKillmailSubscription>;
 export type OnNewKillmailSubscriptionResult = Apollo.SubscriptionResult<OnNewKillmailSubscription>;
+export const SearchAlliancesDocument = gql`
+    query SearchAlliances($search: String!, $limit: Int = 40) {
+  alliances(filter: {search: $search, limit: $limit}) {
+    edges {
+      node {
+        id
+        name
+        ticker
+        memberCount
+        corporationCount
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useSearchAlliancesQuery__
+ *
+ * To run a query within a React component, call `useSearchAlliancesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchAlliancesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchAlliancesQuery({
+ *   variables: {
+ *      search: // value for 'search'
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useSearchAlliancesQuery(baseOptions: Apollo.QueryHookOptions<SearchAlliancesQuery, SearchAlliancesQueryVariables> & ({ variables: SearchAlliancesQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SearchAlliancesQuery, SearchAlliancesQueryVariables>(SearchAlliancesDocument, options);
+      }
+export function useSearchAlliancesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SearchAlliancesQuery, SearchAlliancesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SearchAlliancesQuery, SearchAlliancesQueryVariables>(SearchAlliancesDocument, options);
+        }
+// @ts-ignore
+export function useSearchAlliancesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SearchAlliancesQuery, SearchAlliancesQueryVariables>): Apollo.UseSuspenseQueryResult<SearchAlliancesQuery, SearchAlliancesQueryVariables>;
+export function useSearchAlliancesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchAlliancesQuery, SearchAlliancesQueryVariables>): Apollo.UseSuspenseQueryResult<SearchAlliancesQuery | undefined, SearchAlliancesQueryVariables>;
+export function useSearchAlliancesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchAlliancesQuery, SearchAlliancesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SearchAlliancesQuery, SearchAlliancesQueryVariables>(SearchAlliancesDocument, options);
+        }
+export type SearchAlliancesQueryHookResult = ReturnType<typeof useSearchAlliancesQuery>;
+export type SearchAlliancesLazyQueryHookResult = ReturnType<typeof useSearchAlliancesLazyQuery>;
+export type SearchAlliancesSuspenseQueryHookResult = ReturnType<typeof useSearchAlliancesSuspenseQuery>;
+export type SearchAlliancesQueryResult = Apollo.QueryResult<SearchAlliancesQuery, SearchAlliancesQueryVariables>;
 export const SearchCharactersDocument = gql`
     query SearchCharacters($search: String!, $limit: Int = 40) {
   characters(filter: {search: $search, limit: $limit}) {
