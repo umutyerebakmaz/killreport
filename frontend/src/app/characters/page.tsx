@@ -109,7 +109,7 @@ function CharactersContent() {
   };
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
+    <div>
       <div className="sm:flex sm:items-center">
         <div className="sm:flex-auto">
           <h1 className="text-3xl font-semibold text-white">Characters</h1>

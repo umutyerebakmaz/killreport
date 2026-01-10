@@ -104,7 +104,7 @@ export default function WorkersPage() {
   );
 
   return (
-    <div className="container mx-auto">
+    <div>
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="mb-2 text-4xl font-bold text-white">

@@ -59,7 +59,7 @@ export default function SolarSystemDetailPage({
   const securityLabel = getSecurityLabel(system.security_status);
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
+    <div>
       <Breadcrumb
         items={[
           { label: "Regions", href: "/regions" },

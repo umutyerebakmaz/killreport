@@ -87,7 +87,7 @@ function ConstellationsContent() {
   const handleLast = () => totalPages > 0 && setCurrentPage(totalPages);
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
+    <div>
       <Breadcrumb items={[{ label: "Constellations" }]} />
 
       <div className="sm:flex sm:items-center sm:justify-between">
