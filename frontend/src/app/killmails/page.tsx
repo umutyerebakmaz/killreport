@@ -1,6 +1,7 @@
 "use client";
 
 import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
+import KillmailFilters from "@/components/Filters/KillmailFilters";
 import { KillmailToast } from "@/components/KillmailToast/KillmailToast";
 import Loader from "@/components/Loader";
 import Paginator from "@/components/Paginator/Paginator";
@@ -11,11 +12,7 @@ import {
   useKillmailsQuery,
   useNewKillmailSubscription,
 } from "@/generated/graphql";
-import {
-  ChevronDownIcon,
-  FireIcon,
-  MagnifyingGlassIcon,
-} from "@heroicons/react/24/outline";
+import { FireIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
@@ -26,13 +23,15 @@ function KillmailsContent() {
 
   const pageFromUrl = Number(searchParams.get("page")) || 1;
   const orderByFromUrl = searchParams.get("orderBy") || "timeDesc";
-  const searchFromUrl = searchParams.get("search") || "";
 
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(25);
   const [orderBy, setOrderBy] = useState<string>(orderByFromUrl);
-  const [searchTerm, setSearchTerm] = useState(searchFromUrl);
-  const [debouncedSearch, setDebouncedSearch] = useState(searchFromUrl);
+  const [filters, setFilters] = useState<{
+    typeName?: string;
+    regionId?: number;
+    systemId?: number;
+  }>({});
   const [newKillmails, setNewKillmails] = useState<any[]>([]);
   const [killmailToasts, setKillmailToasts] = useState<KillmailToast[]>([]);
   const [animatingKillmails, setAnimatingKillmails] = useState<Set<string>>(
@@ -120,18 +119,24 @@ function KillmailsContent() {
     }
   }, [subscriptionData, currentPage]);
 
-  // Debounce search input
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-
   // Reset new killmails when filters change
   useEffect(() => {
     setNewKillmails([]);
-  }, [currentPage, orderBy, debouncedSearch]);
+  }, [currentPage, orderBy, filters]);
+
+  const handleFilterChange = (newFilters: {
+    typeName?: string;
+    regionId?: number;
+    systemId?: number;
+  }) => {
+    setFilters(newFilters);
+    setCurrentPage(1); // Reset to first page when filters change
+  };
+
+  const handleClearFilters = () => {
+    setFilters({});
+    setCurrentPage(1);
+  };
 
   const { data, loading, error } = useKillmailsQuery({
     variables: {
@@ -139,7 +144,8 @@ function KillmailsContent() {
         page: currentPage,
         limit: pageSize,
         orderBy: orderBy as any,
-        search: debouncedSearch || undefined,
+        regionId: filters.regionId,
+        systemId: filters.systemId,
       },
     },
   });
@@ -149,7 +155,8 @@ function KillmailsContent() {
     variables: {
       filter: {
         orderBy: orderBy as any,
-        search: debouncedSearch || undefined,
+        regionId: filters.regionId,
+        systemId: filters.systemId,
       },
     },
   });
@@ -159,9 +166,8 @@ function KillmailsContent() {
     const params = new URLSearchParams();
     params.set("page", currentPage.toString());
     params.set("orderBy", orderBy);
-    if (debouncedSearch) params.set("search", debouncedSearch);
     router.push(`/killmails?${params.toString()}`, { scroll: false });
-  }, [currentPage, orderBy, debouncedSearch, router]);
+  }, [currentPage, orderBy, router]);
 
   // Memoize killmails array to prevent unnecessary recalculations
   const killmails = useMemo(
@@ -259,32 +265,13 @@ function KillmailsContent() {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-3 mt-6">
-        <div className="relative flex-1">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
-          </div>
-          <input
-            type="text"
-            placeholder="Search by character, corporation, or alliance..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-        </div>
-
-        {/* OrderBy Dropdown */}
-        <div className="select-option-container">
-          <select
-            value={orderBy}
-            onChange={(e) => setOrderBy(e.target.value)}
-            className="select"
-          >
-            <option value="timeDesc">Newest First</option>
-            <option value="timeAsc">Oldest First</option>
-          </select>
-          <ChevronDownIcon className="chevron-down-icon" />
-        </div>
+      <div className="mt-6">
+        <KillmailFilters
+          onFilterChange={handleFilterChange}
+          onClearFilters={handleClearFilters}
+          orderBy={orderBy}
+          onOrderByChange={setOrderBy}
+        />
       </div>
 
       {/* Grouped Killmails by Date */}

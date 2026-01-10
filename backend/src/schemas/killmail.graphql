@@ -78,6 +78,7 @@ input KillmailFilter {
   limit: Int
   orderBy: KillmailOrderBy
   search: String
+  typeName: String
   regionId: Int
   systemId: Int
 }

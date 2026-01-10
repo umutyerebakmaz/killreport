@@ -1,0 +1,14 @@
+query SearchTypes($name: String!, $limit: Int = 40) {
+  types(filter: { name: $name, limit: $limit, categoryList: [6, 65] }) {
+    edges {
+      node {
+        id
+        name
+        group {
+          id
+          name
+        }
+      }
+    }
+  }
+}

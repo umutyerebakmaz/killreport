@@ -491,6 +491,7 @@ export type KillmailFilter = {
   regionId?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
   systemId?: InputMaybe<Scalars['Int']['input']>;
+  typeName?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type KillmailItem = {
@@ -1161,7 +1162,7 @@ export type Type = {
   description?: Maybe<Scalars['String']['output']>;
   dogmaAttributes: Array<TypeDogmaAttribute>;
   dogmaEffects: Array<TypeDogmaEffect>;
-  group: ItemGroup;
+  group?: Maybe<ItemGroup>;
   icon_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
   mass?: Maybe<Scalars['Float']['output']>;
@@ -1210,11 +1211,12 @@ export type TypeEdge = {
 };
 
 export type TypeFilter = {
+  categoryList?: InputMaybe<Array<Scalars['Int']['input']>>;
   group_id?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   published?: InputMaybe<Scalars['Boolean']['input']>;
-  search?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateUserInput = {
@@ -2112,7 +2114,7 @@ export type TypeResolvers<ContextType = any, ParentType extends ResolversParentT
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   dogmaAttributes?: Resolver<Array<ResolversTypes['TypeDogmaAttribute']>, ParentType, ContextType, Partial<TypeDogmaAttributesArgs>>;
   dogmaEffects?: Resolver<Array<ResolversTypes['TypeDogmaEffect']>, ParentType, ContextType, Partial<TypeDogmaEffectsArgs>>;
-  group?: Resolver<ResolversTypes['ItemGroup'], ParentType, ContextType>;
+  group?: Resolver<Maybe<ResolversTypes['ItemGroup']>, ParentType, ContextType>;
   icon_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   mass?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
