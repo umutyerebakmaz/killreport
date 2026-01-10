@@ -23,15 +23,20 @@ function KillmailsContent() {
 
   const pageFromUrl = Number(searchParams.get("page")) || 1;
   const orderByFromUrl = searchParams.get("orderBy") || "timeDesc";
+  const shipTypeIdFromUrl = searchParams.get("shipTypeId")
+    ? Number(searchParams.get("shipTypeId"))
+    : undefined;
 
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(25);
   const [orderBy, setOrderBy] = useState<string>(orderByFromUrl);
   const [filters, setFilters] = useState<{
-    typeName?: string;
+    shipTypeId?: number;
     regionId?: number;
     systemId?: number;
-  }>({});
+  }>({
+    shipTypeId: shipTypeIdFromUrl,
+  });
   const [newKillmails, setNewKillmails] = useState<any[]>([]);
   const [killmailToasts, setKillmailToasts] = useState<KillmailToast[]>([]);
   const [animatingKillmails, setAnimatingKillmails] = useState<Set<string>>(
@@ -125,7 +130,7 @@ function KillmailsContent() {
   }, [currentPage, orderBy, filters]);
 
   const handleFilterChange = (newFilters: {
-    typeName?: string;
+    shipTypeId?: number;
     regionId?: number;
     systemId?: number;
   }) => {
@@ -144,6 +149,7 @@ function KillmailsContent() {
         page: currentPage,
         limit: pageSize,
         orderBy: orderBy as any,
+        shipTypeId: filters.shipTypeId,
         regionId: filters.regionId,
         systemId: filters.systemId,
       },
@@ -155,6 +161,7 @@ function KillmailsContent() {
     variables: {
       filter: {
         orderBy: orderBy as any,
+        shipTypeId: filters.shipTypeId,
         regionId: filters.regionId,
         systemId: filters.systemId,
       },
@@ -166,8 +173,11 @@ function KillmailsContent() {
     const params = new URLSearchParams();
     params.set("page", currentPage.toString());
     params.set("orderBy", orderBy);
+    if (filters.shipTypeId) {
+      params.set("shipTypeId", filters.shipTypeId.toString());
+    }
     router.push(`/killmails?${params.toString()}`, { scroll: false });
-  }, [currentPage, orderBy, router]);
+  }, [currentPage, orderBy, filters.shipTypeId, router]);
 
   // Memoize killmails array to prevent unnecessary recalculations
   const killmails = useMemo(
@@ -259,6 +269,14 @@ function KillmailsContent() {
           {totalKillmailCount !== null && (
             <p className="mt-1 text-sm text-gray-500">
               Total: {totalKillmailCount.toLocaleString()} killmails
+              {data?.killmails.pageInfo.totalCount !== undefined &&
+                data.killmails.pageInfo.totalCount < totalKillmailCount && (
+                  <span>
+                    {" "}
+                    • Filtered:{" "}
+                    {data.killmails.pageInfo.totalCount.toLocaleString()}
+                  </span>
+                )}
             </p>
           )}
         </div>
@@ -271,6 +289,7 @@ function KillmailsContent() {
           onClearFilters={handleClearFilters}
           orderBy={orderBy}
           onOrderByChange={setOrderBy}
+          initialShipTypeId={shipTypeIdFromUrl}
         />
       </div>
 
