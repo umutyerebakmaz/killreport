@@ -223,7 +223,7 @@ function KillmailsContent() {
   // Handle error state
   if (error) {
     return (
-      <div className="px-4 sm:px-6 lg:px-8">
+      <div className="">
         <Breadcrumb items={[{ label: "Killmails" }]} />
         <div className="p-8 text-red-500">Error: {error.message}</div>
       </div>
@@ -231,7 +231,7 @@ function KillmailsContent() {
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
+    <div className="">
       <Breadcrumb items={[{ label: "Killmails" }]} />
 
       {/* New Killmail Toast Stack */}
