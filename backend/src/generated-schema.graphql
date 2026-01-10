@@ -426,8 +426,8 @@ input KillmailFilter {
   page: Int
   regionId: Int
   search: String
+  shipTypeId: Int
   systemId: Int
-  typeName: String
 }
 
 type KillmailItem {

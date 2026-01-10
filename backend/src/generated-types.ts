@@ -490,8 +490,8 @@ export type KillmailFilter = {
   page?: InputMaybe<Scalars['Int']['input']>;
   regionId?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
+  shipTypeId?: InputMaybe<Scalars['Int']['input']>;
   systemId?: InputMaybe<Scalars['Int']['input']>;
-  typeName?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type KillmailItem = {

@@ -45,7 +45,7 @@ export const killmailQueries: QueryResolvers = {
     const limit = Math.min(args.filter?.limit ?? 25, 100); // Max 100 per page
     const orderBy = args.filter?.orderBy ?? 'timeDesc';
     const search = args.filter?.search;
-    const typeName = args.filter?.typeName;
+    const shipTypeId = args.filter?.shipTypeId;
     const regionId = args.filter?.regionId;
     const systemId = args.filter?.systemId;
 
@@ -113,6 +113,36 @@ export const killmailQueries: QueryResolvers = {
       ];
     }
 
+    if (shipTypeId) {
+      where.OR = [
+        {
+          victim: {
+            ship_type_id: shipTypeId,
+          },
+        },
+        {
+          attackers: {
+            some: {
+              ship_type_id: shipTypeId,
+            },
+          },
+        },
+      ];
+    }
+
+    if (regionId) {
+      where.solar_system = {
+        ...where.solar_system,
+        constellation: {
+          region_id: regionId,
+        },
+      };
+    }
+
+    if (systemId) {
+      where.solar_system_id = systemId;
+    }
+
     // Performance: Count only when needed (first page or filter change)
     // For subsequent pages, estimate from previous count
     const totalCount = await prisma.killmail.count({ where });
@@ -154,7 +184,7 @@ export const killmailQueries: QueryResolvers = {
 
   killmailsDateCounts: async (_, args) => {
     const search = args.filter?.search;
-    const typeName = args.filter?.typeName;
+    const shipTypeId = args.filter?.shipTypeId;
     const regionId = args.filter?.regionId;
     const systemId = args.filter?.systemId;
 
@@ -228,16 +258,21 @@ export const killmailQueries: QueryResolvers = {
       ];
     }
 
-    if (typeName) {
-      where.victim = {
-        ...where.victim,
-        shipType: {
-          name: {
-            contains: typeName,
-            mode: 'insensitive'
-          }
-        }
-      };
+    if (shipTypeId) {
+      where.OR = [
+        {
+          victim: {
+            ship_type_id: shipTypeId,
+          },
+        },
+        {
+          attackers: {
+            some: {
+              ship_type_id: shipTypeId,
+            },
+          },
+        },
+      ];
     }
 
     if (regionId) {
