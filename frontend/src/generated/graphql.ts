@@ -1439,6 +1439,14 @@ export type SearchCharactersQueryVariables = Exact<{
 
 export type SearchCharactersQuery = { __typename?: 'Query', characters: { __typename?: 'CharacterConnection', edges: Array<{ __typename?: 'CharacterEdge', node: { __typename?: 'Character', id: number, name: string, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } }> } };
 
+export type SearchCorporationsQueryVariables = Exact<{
+  search: Scalars['String']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type SearchCorporationsQuery = { __typename?: 'Query', corporations: { __typename?: 'CorporationConnection', edges: Array<{ __typename?: 'CorporationEdge', node: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } }> } };
+
 export type NewKillmailSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -3143,6 +3151,62 @@ export type SearchCharactersQueryHookResult = ReturnType<typeof useSearchCharact
 export type SearchCharactersLazyQueryHookResult = ReturnType<typeof useSearchCharactersLazyQuery>;
 export type SearchCharactersSuspenseQueryHookResult = ReturnType<typeof useSearchCharactersSuspenseQuery>;
 export type SearchCharactersQueryResult = Apollo.QueryResult<SearchCharactersQuery, SearchCharactersQueryVariables>;
+export const SearchCorporationsDocument = gql`
+    query SearchCorporations($search: String!, $limit: Int = 40) {
+  corporations(filter: {search: $search, limit: $limit}) {
+    edges {
+      node {
+        id
+        name
+        ticker
+        member_count
+        alliance {
+          id
+          name
+          ticker
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useSearchCorporationsQuery__
+ *
+ * To run a query within a React component, call `useSearchCorporationsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchCorporationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchCorporationsQuery({
+ *   variables: {
+ *      search: // value for 'search'
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useSearchCorporationsQuery(baseOptions: Apollo.QueryHookOptions<SearchCorporationsQuery, SearchCorporationsQueryVariables> & ({ variables: SearchCorporationsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SearchCorporationsQuery, SearchCorporationsQueryVariables>(SearchCorporationsDocument, options);
+      }
+export function useSearchCorporationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SearchCorporationsQuery, SearchCorporationsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SearchCorporationsQuery, SearchCorporationsQueryVariables>(SearchCorporationsDocument, options);
+        }
+// @ts-ignore
+export function useSearchCorporationsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SearchCorporationsQuery, SearchCorporationsQueryVariables>): Apollo.UseSuspenseQueryResult<SearchCorporationsQuery, SearchCorporationsQueryVariables>;
+export function useSearchCorporationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchCorporationsQuery, SearchCorporationsQueryVariables>): Apollo.UseSuspenseQueryResult<SearchCorporationsQuery | undefined, SearchCorporationsQueryVariables>;
+export function useSearchCorporationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchCorporationsQuery, SearchCorporationsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SearchCorporationsQuery, SearchCorporationsQueryVariables>(SearchCorporationsDocument, options);
+        }
+export type SearchCorporationsQueryHookResult = ReturnType<typeof useSearchCorporationsQuery>;
+export type SearchCorporationsLazyQueryHookResult = ReturnType<typeof useSearchCorporationsLazyQuery>;
+export type SearchCorporationsSuspenseQueryHookResult = ReturnType<typeof useSearchCorporationsSuspenseQuery>;
+export type SearchCorporationsQueryResult = Apollo.QueryResult<SearchCorporationsQuery, SearchCorporationsQueryVariables>;
 export const NewKillmailDocument = gql`
     subscription NewKillmail {
   newKillmail {
