@@ -2,7 +2,7 @@ type Type {
   id: Int!
   name: String!
   description: String
-  group: ItemGroup!
+  group: ItemGroup
   published: Boolean!
   volume: Float
   capacity: Float
@@ -41,8 +41,9 @@ type TypeConnection {
 input TypeFilter {
   page: Int
   limit: Int
-  search: String
+  name: String
   group_id: Int
+  categoryList: [Int!]
   published: Boolean
 }
 

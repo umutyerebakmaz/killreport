@@ -492,6 +492,7 @@ export type KillmailFilter = {
   regionId?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
   systemId?: InputMaybe<Scalars['Int']['input']>;
+  typeName?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type KillmailItem = {
@@ -1162,7 +1163,7 @@ export type Type = {
   description?: Maybe<Scalars['String']['output']>;
   dogmaAttributes: Array<TypeDogmaAttribute>;
   dogmaEffects: Array<TypeDogmaEffect>;
-  group: ItemGroup;
+  group?: Maybe<ItemGroup>;
   icon_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
   mass?: Maybe<Scalars['Float']['output']>;
@@ -1211,11 +1212,12 @@ export type TypeEdge = {
 };
 
 export type TypeFilter = {
+  categoryList?: InputMaybe<Array<Scalars['Int']['input']>>;
   group_id?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   published?: InputMaybe<Scalars['Boolean']['input']>;
-  search?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateUserInput = {
@@ -1410,14 +1412,14 @@ export type KillmailQueryVariables = Exact<{
 }>;
 
 
-export type KillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string }, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType: { __typename?: 'Type', id: number, name: string, description?: string | null, group: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } }, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', type_id: number, value: number, attribute_id: number, attribute: { __typename?: 'DogmaAttribute', id: number, name: string } }> } } | null, attackers: Array<{ __typename?: 'Attacker', damageDone: number, finalBlow: boolean, securityStatus?: number | null, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group: { __typename?: 'ItemGroup', name: string } } | null, weaponType?: { __typename?: 'Type', id: number, name: string } | null }>, items: Array<{ __typename?: 'KillmailItem', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, singleton: number, itemType: { __typename?: 'Type', id: number, name: string }, charge?: { __typename?: 'KillmailItem', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string } } | null }> } | null };
+export type KillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string }, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType: { __typename?: 'Type', id: number, name: string, description?: string | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', type_id: number, value: number, attribute_id: number, attribute: { __typename?: 'DogmaAttribute', id: number, name: string } }> } } | null, attackers: Array<{ __typename?: 'Attacker', damageDone: number, finalBlow: boolean, securityStatus?: number | null, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } | null, weaponType?: { __typename?: 'Type', id: number, name: string } | null }>, items: Array<{ __typename?: 'KillmailItem', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, singleton: number, itemType: { __typename?: 'Type', id: number, name: string }, charge?: { __typename?: 'KillmailItem', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string } } | null }> } | null };
 
 export type KillmailsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
 }>;
 
 
-export type KillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string }, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group: { __typename?: 'ItemGroup', name: string } } } | null, attackers: Array<{ __typename?: 'Attacker', finalBlow: boolean, damageDone: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string } | null }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+export type KillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string }, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } } | null, attackers: Array<{ __typename?: 'Attacker', finalBlow: boolean, damageDone: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string } | null }> } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
 
 export type KillmailsDateCountsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
@@ -1455,10 +1457,18 @@ export type SearchCorporationsQueryVariables = Exact<{
 
 export type SearchCorporationsQuery = { __typename?: 'Query', corporations: { __typename?: 'CorporationConnection', edges: Array<{ __typename?: 'CorporationEdge', node: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } }> } };
 
+export type SearchTypesQueryVariables = Exact<{
+  name: Scalars['String']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type SearchTypesQuery = { __typename?: 'Query', types: { __typename?: 'TypeConnection', edges: Array<{ __typename?: 'TypeEdge', node: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', id: number, name: string } | null } }> } };
+
 export type NewKillmailSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type NewKillmailSubscription = { __typename?: 'Subscription', newKillmail: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', name: string, region?: { __typename?: 'Region', name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string }, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group: { __typename?: 'ItemGroup', name: string } } } | null, attackers: Array<{ __typename?: 'Attacker', finalBlow: boolean, damageDone: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string } | null }> } };
+export type NewKillmailSubscription = { __typename?: 'Subscription', newKillmail: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', name: string, region?: { __typename?: 'Region', name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string }, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } } | null, attackers: Array<{ __typename?: 'Attacker', finalBlow: boolean, damageDone: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string } | null }> } };
 
 
 export const AllianceDocument = gql`
@@ -3267,6 +3277,59 @@ export type SearchCorporationsQueryHookResult = ReturnType<typeof useSearchCorpo
 export type SearchCorporationsLazyQueryHookResult = ReturnType<typeof useSearchCorporationsLazyQuery>;
 export type SearchCorporationsSuspenseQueryHookResult = ReturnType<typeof useSearchCorporationsSuspenseQuery>;
 export type SearchCorporationsQueryResult = Apollo.QueryResult<SearchCorporationsQuery, SearchCorporationsQueryVariables>;
+export const SearchTypesDocument = gql`
+    query SearchTypes($name: String!, $limit: Int = 40) {
+  types(filter: {name: $name, limit: $limit, categoryList: [6, 65]}) {
+    edges {
+      node {
+        id
+        name
+        group {
+          id
+          name
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useSearchTypesQuery__
+ *
+ * To run a query within a React component, call `useSearchTypesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchTypesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchTypesQuery({
+ *   variables: {
+ *      name: // value for 'name'
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useSearchTypesQuery(baseOptions: Apollo.QueryHookOptions<SearchTypesQuery, SearchTypesQueryVariables> & ({ variables: SearchTypesQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SearchTypesQuery, SearchTypesQueryVariables>(SearchTypesDocument, options);
+      }
+export function useSearchTypesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SearchTypesQuery, SearchTypesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SearchTypesQuery, SearchTypesQueryVariables>(SearchTypesDocument, options);
+        }
+// @ts-ignore
+export function useSearchTypesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SearchTypesQuery, SearchTypesQueryVariables>): Apollo.UseSuspenseQueryResult<SearchTypesQuery, SearchTypesQueryVariables>;
+export function useSearchTypesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchTypesQuery, SearchTypesQueryVariables>): Apollo.UseSuspenseQueryResult<SearchTypesQuery | undefined, SearchTypesQueryVariables>;
+export function useSearchTypesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchTypesQuery, SearchTypesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SearchTypesQuery, SearchTypesQueryVariables>(SearchTypesDocument, options);
+        }
+export type SearchTypesQueryHookResult = ReturnType<typeof useSearchTypesQuery>;
+export type SearchTypesLazyQueryHookResult = ReturnType<typeof useSearchTypesLazyQuery>;
+export type SearchTypesSuspenseQueryHookResult = ReturnType<typeof useSearchTypesSuspenseQuery>;
+export type SearchTypesQueryResult = Apollo.QueryResult<SearchTypesQuery, SearchTypesQueryVariables>;
 export const NewKillmailDocument = gql`
     subscription NewKillmail {
   newKillmail {
