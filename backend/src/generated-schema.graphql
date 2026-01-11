@@ -427,6 +427,23 @@ input ItemGroupFilter {
   search: String
 }
 
+type JitaPrice {
+  """Average of buy and sell"""
+  average: Float!
+
+  """Highest buy order (instant sell price)"""
+  buy: Float!
+
+  """Lowest sell order (instant buy price)"""
+  sell: Float!
+
+  """Data source timestamp"""
+  updatedAt: String!
+
+  """Total market volume"""
+  volume: Float
+}
+
 type Killmail {
   attackers: [Attacker!]!
   createdAt: String!
@@ -884,6 +901,9 @@ type Type {
   group: ItemGroup
   icon_id: Int
   id: Int!
+
+  """Jita market price (cached, updates every 4 hours)"""
+  jitaPrice: JitaPrice
   mass: Float
   name: String!
   published: Boolean!

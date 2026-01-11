@@ -12,6 +12,7 @@ model Type {
   updated_at  DateTime             @updatedAt
   attributes  TypeDogmaAttribute[]
   effects     TypeDogmaEffect[]
+  marketPrice MarketPrice?
 
   @@index([group_id])
   @@map("types")
