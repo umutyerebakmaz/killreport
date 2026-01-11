@@ -422,6 +422,43 @@ export type DogmaEffectFilter = {
   search?: InputMaybe<Scalars['String']['input']>;
 };
 
+/**
+ * Organized fitting data for a ship
+ * Groups modules, rigs, and subsystems by their slot types
+ */
+export type Fitting = {
+  __typename?: 'Fitting';
+  cargo: Array<FittingModule>;
+  droneBay: Array<FittingModule>;
+  fighterBay: Array<FittingModule>;
+  highSlots: SlotGroup;
+  lowSlots: SlotGroup;
+  midSlots: SlotGroup;
+  rigs: ModuleGroup;
+  subsystems: Array<FittingModule>;
+};
+
+/** Represents a fitted module or item */
+export type FittingModule = {
+  __typename?: 'FittingModule';
+  charge?: Maybe<FittingModule>;
+  flag: Scalars['Int']['output'];
+  itemType: Type;
+  quantityDestroyed?: Maybe<Scalars['Int']['output']>;
+  quantityDropped?: Maybe<Scalars['Int']['output']>;
+  singleton: Scalars['Int']['output'];
+};
+
+/**
+ * Represents a single slot (e.g., High Slot 0)
+ * Contains the module fitted in that slot and its charge (if any)
+ */
+export type FittingSlot = {
+  __typename?: 'FittingSlot';
+  module?: Maybe<FittingModule>;
+  slotIndex: Scalars['Int']['output'];
+};
+
 export type ItemGroup = {
   __typename?: 'ItemGroup';
   category: Category;
@@ -457,6 +494,7 @@ export type Killmail = {
   __typename?: 'Killmail';
   attackers: Array<Attacker>;
   createdAt: Scalars['String']['output'];
+  fitting?: Maybe<Fitting>;
   id: Scalars['ID']['output'];
   items: Array<KillmailItem>;
   killmailHash: Scalars['String']['output'];
@@ -508,6 +546,13 @@ export enum KillmailOrderBy {
   TimeAsc = 'timeAsc',
   TimeDesc = 'timeDesc'
 }
+
+/** A group of modules (rigs) with total slot count from dogma attributes */
+export type ModuleGroup = {
+  __typename?: 'ModuleGroup';
+  modules: Array<FittingModule>;
+  totalSlots: Scalars['Int']['output'];
+};
 
 export type Mutation = {
   __typename?: 'Mutation';
@@ -972,6 +1017,13 @@ export type SecurityStats = {
   wormhole: Scalars['Int']['output'];
 };
 
+/** A group of slots with total slot count from dogma attributes */
+export type SlotGroup = {
+  __typename?: 'SlotGroup';
+  slots: Array<FittingSlot>;
+  totalSlots: Scalars['Int']['output'];
+};
+
 export type SolarSystem = {
   __typename?: 'SolarSystem';
   constellation?: Maybe<Constellation>;
@@ -1382,6 +1434,9 @@ export type ResolversTypes = {
   DogmaEffectConnection: ResolverTypeWrapper<DogmaEffectConnection>;
   DogmaEffectEdge: ResolverTypeWrapper<DogmaEffectEdge>;
   DogmaEffectFilter: DogmaEffectFilter;
+  Fitting: ResolverTypeWrapper<Fitting>;
+  FittingModule: ResolverTypeWrapper<FittingModule>;
+  FittingSlot: ResolverTypeWrapper<FittingSlot>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
@@ -1396,6 +1451,7 @@ export type ResolversTypes = {
   KillmailFilter: KillmailFilter;
   KillmailItem: ResolverTypeWrapper<KillmailItem>;
   KillmailOrderBy: KillmailOrderBy;
+  ModuleGroup: ResolverTypeWrapper<ModuleGroup>;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   PageInfo: ResolverTypeWrapper<PageInfo>;
   Position: ResolverTypeWrapper<Position>;
@@ -1409,6 +1465,7 @@ export type ResolversTypes = {
   RegionFilter: RegionFilter;
   RegionOrderBy: RegionOrderBy;
   SecurityStats: ResolverTypeWrapper<SecurityStats>;
+  SlotGroup: ResolverTypeWrapper<SlotGroup>;
   SolarSystem: ResolverTypeWrapper<SolarSystem>;
   SolarSystemConnection: ResolverTypeWrapper<SolarSystemConnection>;
   SolarSystemEdge: ResolverTypeWrapper<SolarSystemEdge>;
@@ -1494,6 +1551,9 @@ export type ResolversParentTypes = {
   DogmaEffectConnection: DogmaEffectConnection;
   DogmaEffectEdge: DogmaEffectEdge;
   DogmaEffectFilter: DogmaEffectFilter;
+  Fitting: Fitting;
+  FittingModule: FittingModule;
+  FittingSlot: FittingSlot;
   Float: Scalars['Float']['output'];
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
@@ -1507,6 +1567,7 @@ export type ResolversParentTypes = {
   KillmailEdge: KillmailEdge;
   KillmailFilter: KillmailFilter;
   KillmailItem: KillmailItem;
+  ModuleGroup: ModuleGroup;
   Mutation: Record<PropertyKey, never>;
   PageInfo: PageInfo;
   Position: Position;
@@ -1519,6 +1580,7 @@ export type ResolversParentTypes = {
   RegionEdge: RegionEdge;
   RegionFilter: RegionFilter;
   SecurityStats: SecurityStats;
+  SlotGroup: SlotGroup;
   SolarSystem: SolarSystem;
   SolarSystemConnection: SolarSystemConnection;
   SolarSystemEdge: SolarSystemEdge;
@@ -1820,6 +1882,31 @@ export type DogmaEffectEdgeResolvers<ContextType = any, ParentType extends Resol
   node?: Resolver<ResolversTypes['DogmaEffect'], ParentType, ContextType>;
 };
 
+export type FittingResolvers<ContextType = any, ParentType extends ResolversParentTypes['Fitting'] = ResolversParentTypes['Fitting']> = {
+  cargo?: Resolver<Array<ResolversTypes['FittingModule']>, ParentType, ContextType>;
+  droneBay?: Resolver<Array<ResolversTypes['FittingModule']>, ParentType, ContextType>;
+  fighterBay?: Resolver<Array<ResolversTypes['FittingModule']>, ParentType, ContextType>;
+  highSlots?: Resolver<ResolversTypes['SlotGroup'], ParentType, ContextType>;
+  lowSlots?: Resolver<ResolversTypes['SlotGroup'], ParentType, ContextType>;
+  midSlots?: Resolver<ResolversTypes['SlotGroup'], ParentType, ContextType>;
+  rigs?: Resolver<ResolversTypes['ModuleGroup'], ParentType, ContextType>;
+  subsystems?: Resolver<Array<ResolversTypes['FittingModule']>, ParentType, ContextType>;
+};
+
+export type FittingModuleResolvers<ContextType = any, ParentType extends ResolversParentTypes['FittingModule'] = ResolversParentTypes['FittingModule']> = {
+  charge?: Resolver<Maybe<ResolversTypes['FittingModule']>, ParentType, ContextType>;
+  flag?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  itemType?: Resolver<ResolversTypes['Type'], ParentType, ContextType>;
+  quantityDestroyed?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  quantityDropped?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  singleton?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type FittingSlotResolvers<ContextType = any, ParentType extends ResolversParentTypes['FittingSlot'] = ResolversParentTypes['FittingSlot']> = {
+  module?: Resolver<Maybe<ResolversTypes['FittingModule']>, ParentType, ContextType>;
+  slotIndex?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
 export type ItemGroupResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemGroup'] = ResolversParentTypes['ItemGroup']> = {
   category?: Resolver<ResolversTypes['Category'], ParentType, ContextType>;
   created_at?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1843,6 +1930,7 @@ export type ItemGroupEdgeResolvers<ContextType = any, ParentType extends Resolve
 export type KillmailResolvers<ContextType = any, ParentType extends ResolversParentTypes['Killmail'] = ResolversParentTypes['Killmail']> = {
   attackers?: Resolver<Array<ResolversTypes['Attacker']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  fitting?: Resolver<Maybe<ResolversTypes['Fitting']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   items?: Resolver<Array<ResolversTypes['KillmailItem']>, ParentType, ContextType>;
   killmailHash?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1874,6 +1962,11 @@ export type KillmailItemResolvers<ContextType = any, ParentType extends Resolver
   quantityDestroyed?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   quantityDropped?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   singleton?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type ModuleGroupResolvers<ContextType = any, ParentType extends ResolversParentTypes['ModuleGroup'] = ResolversParentTypes['ModuleGroup']> = {
+  modules?: Resolver<Array<ResolversTypes['FittingModule']>, ParentType, ContextType>;
+  totalSlots?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
@@ -2010,6 +2103,11 @@ export type SecurityStatsResolvers<ContextType = any, ParentType extends Resolve
   lowSec?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   nullSec?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   wormhole?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type SlotGroupResolvers<ContextType = any, ParentType extends ResolversParentTypes['SlotGroup'] = ResolversParentTypes['SlotGroup']> = {
+  slots?: Resolver<Array<ResolversTypes['FittingSlot']>, ParentType, ContextType>;
+  totalSlots?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
 export type SolarSystemResolvers<ContextType = any, ParentType extends ResolversParentTypes['SolarSystem'] = ResolversParentTypes['SolarSystem']> = {
@@ -2211,6 +2309,9 @@ export type Resolvers<ContextType = any> = {
   DogmaEffect?: DogmaEffectResolvers<ContextType>;
   DogmaEffectConnection?: DogmaEffectConnectionResolvers<ContextType>;
   DogmaEffectEdge?: DogmaEffectEdgeResolvers<ContextType>;
+  Fitting?: FittingResolvers<ContextType>;
+  FittingModule?: FittingModuleResolvers<ContextType>;
+  FittingSlot?: FittingSlotResolvers<ContextType>;
   ItemGroup?: ItemGroupResolvers<ContextType>;
   ItemGroupConnection?: ItemGroupConnectionResolvers<ContextType>;
   ItemGroupEdge?: ItemGroupEdgeResolvers<ContextType>;
@@ -2219,6 +2320,7 @@ export type Resolvers<ContextType = any> = {
   KillmailDateCount?: KillmailDateCountResolvers<ContextType>;
   KillmailEdge?: KillmailEdgeResolvers<ContextType>;
   KillmailItem?: KillmailItemResolvers<ContextType>;
+  ModuleGroup?: ModuleGroupResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;
   Position?: PositionResolvers<ContextType>;
@@ -2230,6 +2332,7 @@ export type Resolvers<ContextType = any> = {
   RegionConnection?: RegionConnectionResolvers<ContextType>;
   RegionEdge?: RegionEdgeResolvers<ContextType>;
   SecurityStats?: SecurityStatsResolvers<ContextType>;
+  SlotGroup?: SlotGroupResolvers<ContextType>;
   SolarSystem?: SolarSystemResolvers<ContextType>;
   SolarSystemConnection?: SolarSystemConnectionResolvers<ContextType>;
   SolarSystemEdge?: SolarSystemEdgeResolvers<ContextType>;
