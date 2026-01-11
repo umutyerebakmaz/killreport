@@ -1,3 +1,16 @@
+type JitaPrice {
+  "Highest buy order (instant sell price)"
+  buy: Float!
+  "Lowest sell order (instant buy price)"
+  sell: Float!
+  "Average of buy and sell"
+  average: Float!
+  "Total market volume"
+  volume: Float
+  "Data source timestamp"
+  updatedAt: String!
+}
+
 type Type {
   id: Int!
   name: String!
@@ -10,6 +23,8 @@ type Type {
   icon_id: Int
   created_at: String!
   updated_at: String!
+  "Jita market price (cached, updates every 4 hours)"
+  jitaPrice: JitaPrice
   dogmaAttributes(ids: [Int!]): [TypeDogmaAttribute!]!
   dogmaEffects(ids: [Int!]): [TypeDogmaEffect!]!
 }
