@@ -41,15 +41,6 @@ query Killmail($id: ID!) {
             name
           }
         }
-        dogmaAttributes(ids: [14, 13, 12, 1137]) {
-          type_id
-          value
-          attribute_id
-          attribute {
-            id
-            name
-          }
-        }
       }
     }
     attackers {
@@ -78,30 +69,6 @@ query Killmail($id: ID!) {
       weaponType {
         id
         name
-      }
-    }
-    # Sadece fit composition - hangi slotta ne var
-    # Flag kategorileri:
-    # High: 27-34, Mid: 19-26, Low: 11-18
-    # Rig: 92-94, Subsystem: 125-128
-    # Cargo: 5, Drone Bay: 87
-    items {
-      flag
-      quantityDropped
-      quantityDestroyed
-      singleton
-      itemType {
-        id
-        name
-      }
-      charge {
-        flag
-        quantityDropped
-        quantityDestroyed
-        itemType {
-          id
-          name
-        }
       }
     }
     # Organized fitting data - cleaner structure
