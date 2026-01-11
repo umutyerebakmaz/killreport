@@ -423,6 +423,43 @@ export type DogmaEffectFilter = {
   search?: InputMaybe<Scalars['String']['input']>;
 };
 
+/**
+ * Organized fitting data for a ship
+ * Groups modules, rigs, and subsystems by their slot types
+ */
+export type Fitting = {
+  __typename?: 'Fitting';
+  cargo: Array<FittingModule>;
+  droneBay: Array<FittingModule>;
+  fighterBay: Array<FittingModule>;
+  highSlots: SlotGroup;
+  lowSlots: SlotGroup;
+  midSlots: SlotGroup;
+  rigs: ModuleGroup;
+  subsystems: Array<FittingModule>;
+};
+
+/** Represents a fitted module or item */
+export type FittingModule = {
+  __typename?: 'FittingModule';
+  charge?: Maybe<FittingModule>;
+  flag: Scalars['Int']['output'];
+  itemType: Type;
+  quantityDestroyed?: Maybe<Scalars['Int']['output']>;
+  quantityDropped?: Maybe<Scalars['Int']['output']>;
+  singleton: Scalars['Int']['output'];
+};
+
+/**
+ * Represents a single slot (e.g., High Slot 0)
+ * Contains the module fitted in that slot and its charge (if any)
+ */
+export type FittingSlot = {
+  __typename?: 'FittingSlot';
+  module?: Maybe<FittingModule>;
+  slotIndex: Scalars['Int']['output'];
+};
+
 export type ItemGroup = {
   __typename?: 'ItemGroup';
   category: Category;
@@ -458,6 +495,7 @@ export type Killmail = {
   __typename?: 'Killmail';
   attackers: Array<Attacker>;
   createdAt: Scalars['String']['output'];
+  fitting?: Maybe<Fitting>;
   id: Scalars['ID']['output'];
   items: Array<KillmailItem>;
   killmailHash: Scalars['String']['output'];
@@ -509,6 +547,13 @@ export enum KillmailOrderBy {
   TimeAsc = 'timeAsc',
   TimeDesc = 'timeDesc'
 }
+
+/** A group of modules (rigs) with total slot count from dogma attributes */
+export type ModuleGroup = {
+  __typename?: 'ModuleGroup';
+  modules: Array<FittingModule>;
+  totalSlots: Scalars['Int']['output'];
+};
 
 export type Mutation = {
   __typename?: 'Mutation';
@@ -973,6 +1018,13 @@ export type SecurityStats = {
   wormhole: Scalars['Int']['output'];
 };
 
+/** A group of slots with total slot count from dogma attributes */
+export type SlotGroup = {
+  __typename?: 'SlotGroup';
+  slots: Array<FittingSlot>;
+  totalSlots: Scalars['Int']['output'];
+};
+
 export type SolarSystem = {
   __typename?: 'SolarSystem';
   constellation?: Maybe<Constellation>;
@@ -1412,7 +1464,7 @@ export type KillmailQueryVariables = Exact<{
 }>;
 
 
-export type KillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string }, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType: { __typename?: 'Type', id: number, name: string, description?: string | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', type_id: number, value: number, attribute_id: number, attribute: { __typename?: 'DogmaAttribute', id: number, name: string } }> } } | null, attackers: Array<{ __typename?: 'Attacker', damageDone: number, finalBlow: boolean, securityStatus?: number | null, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } | null, weaponType?: { __typename?: 'Type', id: number, name: string } | null }>, items: Array<{ __typename?: 'KillmailItem', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, singleton: number, itemType: { __typename?: 'Type', id: number, name: string }, charge?: { __typename?: 'KillmailItem', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string } } | null }> } | null };
+export type KillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string }, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType: { __typename?: 'Type', id: number, name: string, description?: string | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', type_id: number, value: number, attribute_id: number, attribute: { __typename?: 'DogmaAttribute', id: number, name: string } }> } } | null, attackers: Array<{ __typename?: 'Attacker', damageDone: number, finalBlow: boolean, securityStatus?: number | null, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } | null, weaponType?: { __typename?: 'Type', id: number, name: string } | null }>, items: Array<{ __typename?: 'KillmailItem', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, singleton: number, itemType: { __typename?: 'Type', id: number, name: string }, charge?: { __typename?: 'KillmailItem', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string } } | null }>, fitting?: { __typename?: 'Fitting', highSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null }, charge?: { __typename?: 'FittingModule', quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string } } | null } | null }> }, midSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null }, charge?: { __typename?: 'FittingModule', quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string } } | null } | null }> }, lowSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null }, charge?: { __typename?: 'FittingModule', quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string } } | null } | null }> }, rigs: { __typename?: 'ModuleGroup', totalSlots: number, modules: Array<{ __typename?: 'FittingModule', quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string } }> }, subsystems: Array<{ __typename?: 'FittingModule', quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string } }>, cargo: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string } }>, droneBay: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string } }>, fighterBay: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string } }> } | null } | null };
 
 export type KillmailsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
@@ -2829,6 +2881,135 @@ export const KillmailDocument = gql`
           id
           name
         }
+      }
+    }
+    fitting {
+      highSlots {
+        totalSlots
+        slots {
+          slotIndex
+          module {
+            flag
+            itemType {
+              id
+              name
+              group {
+                name
+              }
+            }
+            quantityDropped
+            quantityDestroyed
+            charge {
+              itemType {
+                id
+                name
+              }
+              quantityDropped
+              quantityDestroyed
+            }
+          }
+        }
+      }
+      midSlots {
+        totalSlots
+        slots {
+          slotIndex
+          module {
+            flag
+            itemType {
+              id
+              name
+              group {
+                name
+              }
+            }
+            quantityDropped
+            quantityDestroyed
+            charge {
+              itemType {
+                id
+                name
+              }
+              quantityDropped
+              quantityDestroyed
+            }
+          }
+        }
+      }
+      lowSlots {
+        totalSlots
+        slots {
+          slotIndex
+          module {
+            flag
+            itemType {
+              id
+              name
+              group {
+                name
+              }
+            }
+            quantityDropped
+            quantityDestroyed
+            charge {
+              itemType {
+                id
+                name
+              }
+              quantityDropped
+              quantityDestroyed
+            }
+          }
+        }
+      }
+      rigs {
+        totalSlots
+        modules {
+          itemType {
+            id
+            name
+          }
+          quantityDropped
+          quantityDestroyed
+        }
+      }
+      subsystems {
+        itemType {
+          id
+          name
+        }
+        quantityDropped
+        quantityDestroyed
+      }
+      cargo {
+        flag
+        singleton
+        itemType {
+          id
+          name
+        }
+        quantityDropped
+        quantityDestroyed
+      }
+      droneBay {
+        flag
+        singleton
+        itemType {
+          id
+          name
+        }
+        quantityDropped
+        quantityDestroyed
+      }
+      fighterBay {
+        flag
+        singleton
+        itemType {
+          id
+          name
+        }
+        quantityDropped
+        quantityDestroyed
       }
     }
   }

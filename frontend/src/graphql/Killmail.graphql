@@ -104,5 +104,135 @@ query Killmail($id: ID!) {
         }
       }
     }
+    # Organized fitting data - cleaner structure
+    fitting {
+      highSlots {
+        totalSlots
+        slots {
+          slotIndex
+          module {
+            flag
+            itemType {
+              id
+              name
+              group {
+                name
+              }
+            }
+            quantityDropped
+            quantityDestroyed
+            charge {
+              itemType {
+                id
+                name
+              }
+              quantityDropped
+              quantityDestroyed
+            }
+          }
+        }
+      }
+      midSlots {
+        totalSlots
+        slots {
+          slotIndex
+          module {
+            flag
+            itemType {
+              id
+              name
+              group {
+                name
+              }
+            }
+            quantityDropped
+            quantityDestroyed
+            charge {
+              itemType {
+                id
+                name
+              }
+              quantityDropped
+              quantityDestroyed
+            }
+          }
+        }
+      }
+      lowSlots {
+        totalSlots
+        slots {
+          slotIndex
+          module {
+            flag
+            itemType {
+              id
+              name
+              group {
+                name
+              }
+            }
+            quantityDropped
+            quantityDestroyed
+            charge {
+              itemType {
+                id
+                name
+              }
+              quantityDropped
+              quantityDestroyed
+            }
+          }
+        }
+      }
+      rigs {
+        totalSlots
+        modules {
+          itemType {
+            id
+            name
+          }
+          quantityDropped
+          quantityDestroyed
+        }
+      }
+      subsystems {
+        itemType {
+          id
+          name
+        }
+        quantityDropped
+        quantityDestroyed
+      }
+      cargo {
+        flag
+        singleton
+        itemType {
+          id
+          name
+        }
+        quantityDropped
+        quantityDestroyed
+      }
+      droneBay {
+        flag
+        singleton
+        itemType {
+          id
+          name
+        }
+        quantityDropped
+        quantityDestroyed
+      }
+      fighterBay {
+        flag
+        singleton
+        itemType {
+          id
+          name
+        }
+        quantityDropped
+        quantityDestroyed
+      }
+    }
   }
 }

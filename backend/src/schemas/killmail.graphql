@@ -32,6 +32,7 @@ type Killmail {
   victim: Victim
   attackers: [Attacker!]!
   items: [KillmailItem!]!
+  fitting: Fitting
   totalValue: Float
   createdAt: String!
 }
@@ -71,6 +72,58 @@ type KillmailItem {
   quantityDestroyed: Int
   singleton: Int!
   charge: KillmailItem
+}
+
+"""
+Organized fitting data for a ship
+Groups modules, rigs, and subsystems by their slot types
+"""
+type Fitting {
+  highSlots: SlotGroup!
+  midSlots: SlotGroup!
+  lowSlots: SlotGroup!
+  rigs: ModuleGroup!
+  subsystems: [FittingModule!]!
+  cargo: [FittingModule!]!
+  droneBay: [FittingModule!]!
+  fighterBay: [FittingModule!]!
+}
+
+"""
+A group of slots with total slot count from dogma attributes
+"""
+type SlotGroup {
+  totalSlots: Int!
+  slots: [FittingSlot!]!
+}
+
+"""
+A group of modules (rigs) with total slot count from dogma attributes
+"""
+type ModuleGroup {
+  totalSlots: Int!
+  modules: [FittingModule!]!
+}
+
+"""
+Represents a single slot (e.g., High Slot 0)
+Contains the module fitted in that slot and its charge (if any)
+"""
+type FittingSlot {
+  slotIndex: Int!
+  module: FittingModule
+}
+
+"""
+Represents a fitted module or item
+"""
+type FittingModule {
+  itemType: Type!
+  flag: Int!
+  quantityDropped: Int
+  quantityDestroyed: Int
+  singleton: Int!
+  charge: FittingModule
 }
 
 input KillmailFilter {
