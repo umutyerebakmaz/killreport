@@ -22,7 +22,8 @@ body {
 .region-card,
 .constellation-card,
 .system-card,
-.fit-and-victim {
+.fit-and-victim,
+.items-card {
   @apply border bg-white/5 border-white/10;
 }
 
