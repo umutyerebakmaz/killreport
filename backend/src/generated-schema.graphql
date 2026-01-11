@@ -365,6 +365,40 @@ input DogmaEffectFilter {
   search: String
 }
 
+"""
+Organized fitting data for a ship
+Groups modules, rigs, and subsystems by their slot types
+"""
+type Fitting {
+  cargo: [FittingModule!]!
+  droneBay: [FittingModule!]!
+  fighterBay: [FittingModule!]!
+  highSlots: SlotGroup!
+  lowSlots: SlotGroup!
+  midSlots: SlotGroup!
+  rigs: ModuleGroup!
+  subsystems: [FittingModule!]!
+}
+
+"""Represents a fitted module or item"""
+type FittingModule {
+  charge: FittingModule
+  flag: Int!
+  itemType: Type!
+  quantityDestroyed: Int
+  quantityDropped: Int
+  singleton: Int!
+}
+
+"""
+Represents a single slot (e.g., High Slot 0)
+Contains the module fitted in that slot and its charge (if any)
+"""
+type FittingSlot {
+  module: FittingModule
+  slotIndex: Int!
+}
+
 type ItemGroup {
   category: Category!
   created_at: String!
@@ -396,6 +430,7 @@ input ItemGroupFilter {
 type Killmail {
   attackers: [Attacker!]!
   createdAt: String!
+  fitting: Fitting
   id: ID!
   items: [KillmailItem!]!
   killmailHash: String!
@@ -442,6 +477,12 @@ type KillmailItem {
 enum KillmailOrderBy {
   timeAsc
   timeDesc
+}
+
+"""A group of modules (rigs) with total slot count from dogma attributes"""
+type ModuleGroup {
+  modules: [FittingModule!]!
+  totalSlots: Int!
 }
 
 type Mutation {
@@ -653,6 +694,12 @@ type SecurityStats {
   lowSec: Int!
   nullSec: Int!
   wormhole: Int!
+}
+
+"""A group of slots with total slot count from dogma attributes"""
+type SlotGroup {
+  slots: [FittingSlot!]!
+  totalSlots: Int!
 }
 
 type SolarSystem {
