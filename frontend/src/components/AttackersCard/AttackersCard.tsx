@@ -25,7 +25,7 @@ export default function AttackersCard({ attackers }: AttackersCardProps) {
 
   return (
     <div className="p-6 bg-white/5 backdrop-blur-sm inset-ring inset-ring-white/10">
-      <h3 className="flex items-center gap-2 mb-4 text-lg font-semibold text-pink-400">
+      <h3 className="flex items-center justify-end gap-2 mb-4 text-lg text-gray-400">
         <UserGroupIcon className="w-5 h-5" />
         Attackers ({attackers.length})
       </h3>
