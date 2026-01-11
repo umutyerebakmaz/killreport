@@ -224,6 +224,7 @@ export async function getAllQueueStats(): Promise<Array<{
     'esi_type_info_queue',
     'esi_category_info_queue',
     'esi_item_group_info_queue',
+    'esi_type_price_queue',
 
     // ESI Sync Workers
     'esi_alliance_corporations_queue',
