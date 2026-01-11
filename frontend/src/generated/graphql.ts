@@ -491,6 +491,20 @@ export type ItemGroupFilter = {
   search?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type JitaPrice = {
+  __typename?: 'JitaPrice';
+  /** Average of buy and sell */
+  average: Scalars['Float']['output'];
+  /** Highest buy order (instant sell price) */
+  buy: Scalars['Float']['output'];
+  /** Lowest sell order (instant buy price) */
+  sell: Scalars['Float']['output'];
+  /** Data source timestamp */
+  updatedAt: Scalars['String']['output'];
+  /** Total market volume */
+  volume?: Maybe<Scalars['Float']['output']>;
+};
+
 export type Killmail = {
   __typename?: 'Killmail';
   attackers: Array<Attacker>;
@@ -1218,6 +1232,8 @@ export type Type = {
   group?: Maybe<ItemGroup>;
   icon_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
+  /** Jita market price (cached, updates every 4 hours) */
+  jitaPrice?: Maybe<JitaPrice>;
   mass?: Maybe<Scalars['Float']['output']>;
   name: Scalars['String']['output'];
   published: Scalars['Boolean']['output'];
@@ -1464,7 +1480,7 @@ export type KillmailQueryVariables = Exact<{
 }>;
 
 
-export type KillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string }, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType: { __typename?: 'Type', id: number, name: string, description?: string | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } } | null, attackers: Array<{ __typename?: 'Attacker', damageDone: number, finalBlow: boolean, securityStatus?: number | null, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } | null, weaponType?: { __typename?: 'Type', id: number, name: string } | null }>, fitting?: { __typename?: 'Fitting', highSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null }, charge?: { __typename?: 'FittingModule', quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string } } | null } | null }> }, midSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null }, charge?: { __typename?: 'FittingModule', quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string } } | null } | null }> }, lowSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null }, charge?: { __typename?: 'FittingModule', quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string } } | null } | null }> }, rigs: { __typename?: 'ModuleGroup', totalSlots: number, modules: Array<{ __typename?: 'FittingModule', quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string } }> }, subsystems: Array<{ __typename?: 'FittingModule', quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string } }>, cargo: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string } }>, droneBay: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string } }>, fighterBay: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string } }> } | null } | null };
+export type KillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', id: string, killmailTime: string, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string }, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType: { __typename?: 'Type', id: number, name: string, description?: string | null, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } } | null, attackers: Array<{ __typename?: 'Attacker', damageDone: number, finalBlow: boolean, securityStatus?: number | null, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } | null, weaponType?: { __typename?: 'Type', id: number, name: string } | null }>, fitting?: { __typename?: 'Fitting', highSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null }, charge?: { __typename?: 'FittingModule', quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } } | null } | null }> }, midSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null }, charge?: { __typename?: 'FittingModule', quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } } | null } | null }> }, lowSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null }, charge?: { __typename?: 'FittingModule', quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } } | null } | null }> }, rigs: { __typename?: 'ModuleGroup', totalSlots: number, modules: Array<{ __typename?: 'FittingModule', quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } }> }, subsystems: Array<{ __typename?: 'FittingModule', quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } }>, cargo: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } }>, droneBay: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } }>, fighterBay: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } }> } | null } | null };
 
 export type KillmailsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
@@ -2819,6 +2835,11 @@ export const KillmailDocument = gql`
         id
         name
         description
+        jitaPrice {
+          buy
+          sell
+          average
+        }
         group {
           name
           category {
@@ -2865,6 +2886,11 @@ export const KillmailDocument = gql`
             itemType {
               id
               name
+              jitaPrice {
+                buy
+                sell
+                average
+              }
               group {
                 name
               }
@@ -2875,6 +2901,11 @@ export const KillmailDocument = gql`
               itemType {
                 id
                 name
+                jitaPrice {
+                  buy
+                  sell
+                  average
+                }
               }
               quantityDropped
               quantityDestroyed
@@ -2891,6 +2922,11 @@ export const KillmailDocument = gql`
             itemType {
               id
               name
+              jitaPrice {
+                buy
+                sell
+                average
+              }
               group {
                 name
               }
@@ -2901,6 +2937,11 @@ export const KillmailDocument = gql`
               itemType {
                 id
                 name
+                jitaPrice {
+                  buy
+                  sell
+                  average
+                }
               }
               quantityDropped
               quantityDestroyed
@@ -2917,6 +2958,11 @@ export const KillmailDocument = gql`
             itemType {
               id
               name
+              jitaPrice {
+                buy
+                sell
+                average
+              }
               group {
                 name
               }
@@ -2927,6 +2973,11 @@ export const KillmailDocument = gql`
               itemType {
                 id
                 name
+                jitaPrice {
+                  buy
+                  sell
+                  average
+                }
               }
               quantityDropped
               quantityDestroyed
@@ -2940,6 +2991,11 @@ export const KillmailDocument = gql`
           itemType {
             id
             name
+            jitaPrice {
+              buy
+              sell
+              average
+            }
           }
           quantityDropped
           quantityDestroyed
@@ -2949,6 +3005,11 @@ export const KillmailDocument = gql`
         itemType {
           id
           name
+          jitaPrice {
+            buy
+            sell
+            average
+          }
         }
         quantityDropped
         quantityDestroyed
@@ -2959,6 +3020,11 @@ export const KillmailDocument = gql`
         itemType {
           id
           name
+          jitaPrice {
+            buy
+            sell
+            average
+          }
         }
         quantityDropped
         quantityDestroyed
@@ -2969,6 +3035,11 @@ export const KillmailDocument = gql`
         itemType {
           id
           name
+          jitaPrice {
+            buy
+            sell
+            average
+          }
         }
         quantityDropped
         quantityDestroyed
@@ -2979,6 +3050,11 @@ export const KillmailDocument = gql`
         itemType {
           id
           name
+          jitaPrice {
+            buy
+            sell
+            average
+          }
         }
         quantityDropped
         quantityDestroyed

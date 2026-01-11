@@ -35,6 +35,11 @@ query Killmail($id: ID!) {
         id
         name
         description
+        jitaPrice {
+          buy
+          sell
+          average
+        }
         group {
           name
           category {
@@ -82,6 +87,11 @@ query Killmail($id: ID!) {
             itemType {
               id
               name
+              jitaPrice {
+                buy
+                sell
+                average
+              }
               group {
                 name
               }
@@ -92,6 +102,11 @@ query Killmail($id: ID!) {
               itemType {
                 id
                 name
+                jitaPrice {
+                  buy
+                  sell
+                  average
+                }
               }
               quantityDropped
               quantityDestroyed
@@ -108,6 +123,11 @@ query Killmail($id: ID!) {
             itemType {
               id
               name
+              jitaPrice {
+                buy
+                sell
+                average
+              }
               group {
                 name
               }
@@ -118,6 +138,11 @@ query Killmail($id: ID!) {
               itemType {
                 id
                 name
+                jitaPrice {
+                  buy
+                  sell
+                  average
+                }
               }
               quantityDropped
               quantityDestroyed
@@ -134,6 +159,11 @@ query Killmail($id: ID!) {
             itemType {
               id
               name
+              jitaPrice {
+                buy
+                sell
+                average
+              }
               group {
                 name
               }
@@ -144,6 +174,11 @@ query Killmail($id: ID!) {
               itemType {
                 id
                 name
+                jitaPrice {
+                  buy
+                  sell
+                  average
+                }
               }
               quantityDropped
               quantityDestroyed
@@ -157,6 +192,11 @@ query Killmail($id: ID!) {
           itemType {
             id
             name
+            jitaPrice {
+              buy
+              sell
+              average
+            }
           }
           quantityDropped
           quantityDestroyed
@@ -166,6 +206,11 @@ query Killmail($id: ID!) {
         itemType {
           id
           name
+          jitaPrice {
+            buy
+            sell
+            average
+          }
         }
         quantityDropped
         quantityDestroyed
@@ -176,6 +221,11 @@ query Killmail($id: ID!) {
         itemType {
           id
           name
+          jitaPrice {
+            buy
+            sell
+            average
+          }
         }
         quantityDropped
         quantityDestroyed
@@ -186,6 +236,11 @@ query Killmail($id: ID!) {
         itemType {
           id
           name
+          jitaPrice {
+            buy
+            sell
+            average
+          }
         }
         quantityDropped
         quantityDestroyed
@@ -196,6 +251,11 @@ query Killmail($id: ID!) {
         itemType {
           id
           name
+          jitaPrice {
+            buy
+            sell
+            average
+          }
         }
         quantityDropped
         quantityDestroyed

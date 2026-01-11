@@ -1,0 +1,21 @@
+/// Market price data for items in Jita (The Forge region)
+/// Updated periodically via worker
+model MarketPrice {
+  type_id    Int      @id
+  type       Type     @relation(fields: [type_id], references: [id], onDelete: Cascade)
+  /// Highest buy order price (instant sell price for player)
+  buy        Float    @default(0)
+  /// Lowest sell order price (instant buy price for player)
+  sell       Float    @default(0)
+  /// Average of buy and sell
+  average    Float    @default(0)
+  /// Total market volume
+  volume     Float    @default(0)
+  /// When this price was last updated from ESI
+  updated_at DateTime @updatedAt
+  /// When this record was first created
+  created_at DateTime @default(now())
+
+  @@index([updated_at])
+  @@map("market_prices")
+}
