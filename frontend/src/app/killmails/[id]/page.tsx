@@ -43,7 +43,7 @@ export default function KillmailDetailPage({
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left Column: FitScreen (2/3 width) */}
         <div className="space-y-6 lg:col-span-2">
-          {/* Victim Card */}
+          {/* Fit + Victim */}
           <div className="flex fit-and-victim">
             <FitScreen shipType={victim?.shipType} fitting={fitting as any} />
             <div className="victim-card">
@@ -155,6 +155,415 @@ export default function KillmailDetailPage({
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Items List */}
+          <div className="p-6 items-card">
+            {/* Ship */}
+            {victim?.shipType && (
+              <div className="pb-4 mb-4 border-b border-white/10">
+                <h3 className="mb-2 text-sm font-bold text-gray-400 uppercase">
+                  Ship
+                </h3>
+                <div className="flex items-center gap-3">
+                  <img
+                    src={`https://images.evetech.net/types/${victim.shipType.id}/icon?size=64`}
+                    alt={victim.shipType.name}
+                    className="w-12 h-12"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-white truncate">
+                      {victim.shipType.name}
+                    </div>
+                    {victim.shipType.group && (
+                      <div className="text-sm text-gray-500">
+                        {victim.shipType.group.name}
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-white">1</div>
+                    <div className="text-xs text-gray-500">0 ISK</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* High Slots */}
+            {fitting?.highSlots && fitting.highSlots.slots.length > 0 && (
+              <div className="pb-4 mb-4 border-b border-white/10">
+                <h3 className="mb-2 text-sm font-bold text-gray-400 uppercase">
+                  High Slots
+                </h3>
+                <div className="space-y-2">
+                  {fitting.highSlots.slots.flatMap((slot) => {
+                    if (!slot.module) return [];
+                    const items = [];
+
+                    // Module
+                    const moduleIsDestroyed =
+                      (slot.module.quantityDestroyed || 0) > 0;
+                    const moduleIsDropped =
+                      (slot.module.quantityDropped || 0) > 0;
+                    const moduleTextColor = moduleIsDestroyed
+                      ? "text-red-400"
+                      : moduleIsDropped
+                      ? "text-green-400"
+                      : "text-white";
+
+                    items.push(
+                      <div
+                        key={`module-${slot.slotIndex}`}
+                        className="flex items-center gap-3 p-2 transition-colors hover:bg-white/5"
+                      >
+                        <img
+                          src={`https://images.evetech.net/types/${slot.module.itemType.id}/icon?size=64`}
+                          alt={slot.module.itemType.name}
+                          className="w-16 h-16"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div
+                            className={`text-sm truncate ${moduleTextColor}`}
+                          >
+                            {slot.module.itemType.name}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className={`text-sm ${moduleTextColor}`}>
+                            {(slot.module.quantityDropped || 0) +
+                              (slot.module.quantityDestroyed || 0) || 1}
+                          </div>
+                          <div className="text-xs text-gray-500">0 ISK</div>
+                        </div>
+                      </div>
+                    );
+
+                    // Charge (if exists)
+                    if (slot.module.charge) {
+                      const chargeIsDestroyed =
+                        (slot.module.charge.quantityDestroyed || 0) > 0;
+                      const chargeIsDropped =
+                        (slot.module.charge.quantityDropped || 0) > 0;
+                      const chargeTextColor = chargeIsDestroyed
+                        ? "text-red-400"
+                        : chargeIsDropped
+                        ? "text-green-400"
+                        : "text-white";
+
+                      items.push(
+                        <div
+                          key={`charge-${slot.slotIndex}`}
+                          className="flex items-center gap-3 p-2 transition-colors hover:bg-white/5"
+                        >
+                          <img
+                            src={`https://images.evetech.net/types/${slot.module.charge.itemType.id}/icon?size=64`}
+                            alt={slot.module.charge.itemType.name}
+                            className="w-16 h-16"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div
+                              className={`text-sm truncate ${chargeTextColor}`}
+                            >
+                              {slot.module.charge.itemType.name}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className={`text-sm ${chargeTextColor}`}>
+                              {(slot.module.charge.quantityDropped || 0) +
+                                (slot.module.charge.quantityDestroyed || 0) ||
+                                1}
+                            </div>
+                            <div className="text-xs text-gray-500">0 ISK</div>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return items;
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Mid Slots */}
+            {fitting?.midSlots && fitting.midSlots.slots.length > 0 && (
+              <div className="pb-4 mb-4 border-b border-white/10">
+                <h3 className="mb-2 text-sm font-bold text-gray-400 uppercase">
+                  Mid Slots
+                </h3>
+                <div className="space-y-2">
+                  {fitting.midSlots.slots.flatMap((slot) => {
+                    if (!slot.module) return [];
+                    const items = [];
+
+                    // Module
+                    const moduleIsDestroyed =
+                      (slot.module.quantityDestroyed || 0) > 0;
+                    const moduleIsDropped =
+                      (slot.module.quantityDropped || 0) > 0;
+                    const moduleTextColor = moduleIsDestroyed
+                      ? "text-red-400"
+                      : moduleIsDropped
+                      ? "text-green-400"
+                      : "text-white";
+
+                    items.push(
+                      <div
+                        key={`module-${slot.slotIndex}`}
+                        className="flex items-center gap-3 p-2 transition-colors hover:bg-white/5"
+                      >
+                        <img
+                          src={`https://images.evetech.net/types/${slot.module.itemType.id}/icon?size=64`}
+                          alt={slot.module.itemType.name}
+                          className="w-16 h-16"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div
+                            className={`text-sm truncate ${moduleTextColor}`}
+                          >
+                            {slot.module.itemType.name}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className={`text-sm ${moduleTextColor}`}>
+                            {(slot.module.quantityDropped || 0) +
+                              (slot.module.quantityDestroyed || 0) || 1}
+                          </div>
+                          <div className="text-xs text-gray-500">0 ISK</div>
+                        </div>
+                      </div>
+                    );
+
+                    // Charge (if exists)
+                    if (slot.module.charge) {
+                      const chargeIsDestroyed =
+                        (slot.module.charge.quantityDestroyed || 0) > 0;
+                      const chargeIsDropped =
+                        (slot.module.charge.quantityDropped || 0) > 0;
+                      const chargeTextColor = chargeIsDestroyed
+                        ? "text-red-400"
+                        : chargeIsDropped
+                        ? "text-green-400"
+                        : "text-white";
+
+                      items.push(
+                        <div
+                          key={`charge-${slot.slotIndex}`}
+                          className="flex items-center gap-3 p-2 transition-colors hover:bg-white/5"
+                        >
+                          <img
+                            src={`https://images.evetech.net/types/${slot.module.charge.itemType.id}/icon?size=64`}
+                            alt={slot.module.charge.itemType.name}
+                            className="w-16 h-16"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div
+                              className={`text-sm truncate ${chargeTextColor}`}
+                            >
+                              {slot.module.charge.itemType.name}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className={`text-sm ${chargeTextColor}`}>
+                              {(slot.module.charge.quantityDropped || 0) +
+                                (slot.module.charge.quantityDestroyed || 0) ||
+                                1}
+                            </div>
+                            <div className="text-xs text-gray-500">0 ISK</div>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return items;
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Low Slots */}
+            {fitting?.lowSlots && fitting.lowSlots.slots.length > 0 && (
+              <div className="pb-4 mb-4 border-b border-white/10">
+                <h3 className="mb-2 text-sm font-bold text-gray-400 uppercase">
+                  Low Slots
+                </h3>
+                <div className="space-y-2">
+                  {fitting.lowSlots.slots.map((slot) => {
+                    if (!slot.module) return null;
+                    const isDestroyed =
+                      (slot.module.quantityDestroyed || 0) > 0;
+                    const isDropped = (slot.module.quantityDropped || 0) > 0;
+                    const textColor = isDestroyed
+                      ? "text-red-400"
+                      : isDropped
+                      ? "text-green-400"
+                      : "text-white";
+                    return (
+                      <div
+                        key={slot.slotIndex}
+                        className="flex items-center gap-3 p-2 transition-colors hover:bg-white/5"
+                      >
+                        <img
+                          src={`https://images.evetech.net/types/${slot.module.itemType.id}/icon?size=64`}
+                          alt={slot.module.itemType.name}
+                          className="w-16 h-16"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className={`text-sm truncate ${textColor}`}>
+                            {slot.module.itemType.name}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className={`text-sm ${textColor}`}>
+                            {(slot.module.quantityDropped || 0) +
+                              (slot.module.quantityDestroyed || 0) || 1}
+                          </div>
+                          <div className="text-xs text-gray-500">0 ISK</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Rigs */}
+            {fitting?.rigs && fitting.rigs.modules.length > 0 && (
+              <div className="pb-4 mb-4 border-b border-white/10">
+                <h3 className="mb-2 text-sm font-bold text-gray-400 uppercase">
+                  Rigs
+                </h3>
+                <div className="space-y-2">
+                  {fitting.rigs.modules.map((module, index) => {
+                    const quantity =
+                      (module.quantityDropped || 0) +
+                        (module.quantityDestroyed || 0) || 1;
+                    const isDestroyed = (module.quantityDestroyed || 0) > 0;
+                    const isDropped = (module.quantityDropped || 0) > 0;
+                    const textColor = isDestroyed
+                      ? "text-red-400"
+                      : isDropped
+                      ? "text-green-400"
+                      : "text-white";
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center gap-3 p-2 transition-colors hover:bg-white/5"
+                      >
+                        <img
+                          src={`https://images.evetech.net/types/${module.itemType.id}/icon?size=64`}
+                          alt={module.itemType.name}
+                          className="w-16 h-16"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className={`text-sm truncate ${textColor}`}>
+                            {module.itemType.name}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className={`text-sm ${textColor}`}>
+                            {quantity}
+                          </div>
+                          <div className="text-xs text-gray-500">0</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Drone Bay */}
+            {fitting?.droneBay && fitting.droneBay.length > 0 && (
+              <div className="pb-4 mb-4 border-b border-white/10">
+                <h3 className="mb-2 text-sm font-bold text-gray-400 uppercase">
+                  Drone Bay
+                </h3>
+                <div className="space-y-2">
+                  {fitting.droneBay.map((module, index) => {
+                    const quantity =
+                      (module.quantityDropped || 0) +
+                        (module.quantityDestroyed || 0) || 1;
+                    const isDestroyed = (module.quantityDestroyed || 0) > 0;
+                    const isDropped = (module.quantityDropped || 0) > 0;
+                    const textColor = isDestroyed
+                      ? "text-red-400"
+                      : isDropped
+                      ? "text-green-400"
+                      : "text-white";
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center gap-3 p-2 transition-colors hover:bg-white/5"
+                      >
+                        <img
+                          src={`https://images.evetech.net/types/${module.itemType.id}/icon?size=64`}
+                          alt={module.itemType.name}
+                          className="w-16 h-16"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className={`text-sm truncate ${textColor}`}>
+                            {module.itemType.name}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className={`text-sm ${textColor}`}>
+                            {quantity}
+                          </div>
+                          <div className="text-xs text-gray-500">0</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Cargo Bay */}
+            {fitting?.cargo && fitting.cargo.length > 0 && (
+              <div>
+                <h3 className="mb-2 text-sm font-bold text-gray-400 uppercase">
+                  Cargo Bay
+                </h3>
+                <div className="space-y-2">
+                  {fitting.cargo.map((module, index) => {
+                    const quantity =
+                      (module.quantityDropped || 0) +
+                        (module.quantityDestroyed || 0) || 1;
+                    const isDestroyed = (module.quantityDestroyed || 0) > 0;
+                    const isDropped = (module.quantityDropped || 0) > 0;
+                    const textColor = isDestroyed
+                      ? "text-red-400"
+                      : isDropped
+                      ? "text-green-400"
+                      : "text-white";
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center gap-3 p-2 transition-colors hover:bg-white/5"
+                      >
+                        <img
+                          src={`https://images.evetech.net/types/${module.itemType.id}/icon?size=64`}
+                          alt={module.itemType.name}
+                          className="w-16 h-16"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className={`text-sm truncate ${textColor}`}>
+                            {module.itemType.name}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className={`text-sm ${textColor}`}>
+                            {quantity}
+                          </div>
+                          <div className="text-xs text-gray-500">0</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
