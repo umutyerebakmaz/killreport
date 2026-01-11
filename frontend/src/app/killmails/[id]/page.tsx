@@ -41,15 +41,13 @@ export default function KillmailDetailPage({
     <>
       {/* Header */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left Column: Victim & Location (2/3 width) */}
+        {/* Left Column: FitScreen (2/3 width) */}
         <div className="space-y-6 lg:col-span-2">
           {/* Victim Card */}
-          <div className="victim-card">
-            <div className="px-4 py-5 sm:p-6">
+          <div className="flex fit-and-victim">
+            <FitScreen shipType={victim?.shipType} fitting={fitting as any} />
+            <div className="victim-card">
               <div className="flex items-center justify-between pb-2">
-                <span className="px-3 py-1 text-sm font-medium text-red-400 rounded bg-red-400/10">
-                  VICTIM
-                </span>
                 <div className="flex items-center gap-2">
                   <a
                     href={`https://zkillboard.com/kill/${km.id}/`}
@@ -83,11 +81,6 @@ export default function KillmailDetailPage({
                     loading="lazy"
                   />
                 </div>
-
-                <FitScreen
-                  shipType={victim?.shipType}
-                  fitting={fitting as any}
-                />
               </div>
 
               <div className="space-y-3">
@@ -161,58 +154,6 @@ export default function KillmailDetailPage({
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Location Card */}
-          <div className="p-6 rounded-lg bg-white/5 backdrop-blur-sm inset-ring inset-ring-white/10">
-            <h3 className="mb-4 text-lg font-semibold text-white">Location</h3>
-            <div className="space-y-2">
-              {km.solarSystem && (
-                <>
-                  <div>
-                    <span className="text-sm text-gray-500">System: </span>
-                    <Link
-                      href={`/solar-systems/${km.solarSystem?.id}`}
-                      prefetch={false}
-                      className="text-white hover:text-blue-400"
-                    >
-                      {km.solarSystem.name}
-                    </Link>
-                    {km.solarSystem.security_status !== null && (
-                      <span
-                        className={`ml-2 ${
-                          (km.solarSystem.security_status ?? 0) >= 0.5
-                            ? "text-green-400"
-                            : (km.solarSystem.security_status ?? 0) > 0
-                            ? "text-yellow-400"
-                            : "text-red-400"
-                        }`}
-                      >
-                        [{km.solarSystem.security_status?.toFixed(1)}]
-                      </span>
-                    )}
-                  </div>
-                  {km.solarSystem.constellation?.name && (
-                    <div>
-                      <span className="text-sm text-gray-500">
-                        Constellation:{" "}
-                      </span>
-                      <span className="text-white">
-                        {km.solarSystem.constellation.name}
-                      </span>
-                    </div>
-                  )}
-                  {km.solarSystem.constellation?.region?.name && (
-                    <div>
-                      <span className="text-sm text-gray-500">Region: </span>
-                      <span className="text-white">
-                        {km.solarSystem.constellation.region.name}
-                      </span>
-                    </div>
-                  )}
-                </>
-              )}
             </div>
           </div>
         </div>
