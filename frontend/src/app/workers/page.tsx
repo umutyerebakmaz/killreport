@@ -198,7 +198,7 @@ export default function WorkersPage() {
       {esiInfoQueues.length > 0 && (
         <QueueSection
           title="ESI Info Workers"
-          subtitle="Entity enrichment (characters, corporations, alliances, types, prices)"
+          subtitle="Entity enrichment (characters, corporations, alliances, types)"
           queues={esiInfoQueues}
         />
       )}
@@ -393,9 +393,11 @@ function QueueSection({ title, subtitle, queues }: any) {
                       {queue.workerRunning ? "Running" : "Stopped"}
                     </span>
                   </div>
-                  <div className="mt-0.5 text-xs font-mono text-gray-500">
-                    {queue.workerName || "No worker configured"}
-                  </div>
+                  {queue.workerName && (
+                    <div className="mt-0.5 text-xs font-mono text-gray-500">
+                      {queue.workerName}
+                    </div>
+                  )}
                 </td>
                 <td className="px-4 py-4">
                   <div className="text-sm font-medium text-gray-300">
