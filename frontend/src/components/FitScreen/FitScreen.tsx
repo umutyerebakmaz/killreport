@@ -42,7 +42,7 @@ export default function FitScreen({ shipType, fitting }: FitScreenProps) {
 
   if (!fitting || !hasContent) {
     return (
-      <div className="flex-1 p-4">
+      <div className="flex p-4">
         <div className="max-w-3xl mx-auto text-center">
           <p className="text-sm text-gray-500">No fitting data available</p>
         </div>
@@ -51,72 +51,51 @@ export default function FitScreen({ shipType, fitting }: FitScreenProps) {
   }
 
   return (
-    <div className="flex-1 p-4">
+    <div className="flex p-4">
       {/* Main Fitting Section */}
-      <div className="max-w-3xl mx-auto space-y-6">
+      <div className="flex flex-col items-start">
         {/* Ship Render */}
         {shipType && (
           <ShipRender shipId={shipType.id} shipName={shipType.name} />
         )}
 
-        {/* Module Slots */}
-        {fitting.highSlots.slots.length > 0 && (
-          <SlotGroup
-            slots={fitting.highSlots.slots}
-            label={`High Slots (${fitting.highSlots.totalSlots})`}
-          />
-        )}
+        <div>
+          {/* Module Slots */}
+          {fitting.highSlots.slots.length > 0 && (
+            <SlotGroup
+              slots={fitting.highSlots.slots}
+              label={`High Slots (${fitting.highSlots.totalSlots})`}
+            />
+          )}
 
-        {fitting.midSlots.slots.length > 0 && (
-          <SlotGroup
-            slots={fitting.midSlots.slots}
-            label={`Mid Slots (${fitting.midSlots.totalSlots})`}
-          />
-        )}
+          {fitting.midSlots.slots.length > 0 && (
+            <SlotGroup
+              slots={fitting.midSlots.slots}
+              label={`Mid Slots (${fitting.midSlots.totalSlots})`}
+            />
+          )}
 
-        {fitting.lowSlots.slots.length > 0 && (
-          <SlotGroup
-            slots={fitting.lowSlots.slots}
-            label={`Low Slots (${fitting.lowSlots.totalSlots})`}
-          />
-        )}
+          {fitting.lowSlots.slots.length > 0 && (
+            <SlotGroup
+              slots={fitting.lowSlots.slots}
+              label={`Low Slots (${fitting.lowSlots.totalSlots})`}
+            />
+          )}
 
-        {/* Rigs */}
-        {fitting.rigs.modules.length > 0 && (
-          <ModuleGroup
-            modules={fitting.rigs.modules}
-            label={`Rigs (${fitting.rigs.totalSlots})`}
-          />
-        )}
+          {/* Rigs */}
+          {fitting.rigs.modules.length > 0 && (
+            <ModuleGroup
+              modules={fitting.rigs.modules}
+              label={`Rigs (${fitting.rigs.totalSlots})`}
+            />
+          )}
 
-        {/* Subsystems (T3 Cruisers) */}
-        {fitting.subsystems.length > 0 && (
-          <ModuleGroup modules={fitting.subsystems} label="Subsystems" />
-        )}
-      </div>
-
-      {/* Inventory Section */}
-      {hasInventory && (
-        <div className="max-w-3xl mx-auto mt-8">
-          <h3 className="mb-4 text-sm font-bold tracking-wider text-gray-400 uppercase">
-            Inventory
-          </h3>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {fitting.cargo.length > 0 && (
-              <InventorySection items={fitting.cargo} label="Cargo Hold" />
-            )}
-            {fitting.droneBay.length > 0 && (
-              <InventorySection items={fitting.droneBay} label="Drone Bay" />
-            )}
-            {fitting.fighterBay.length > 0 && (
-              <InventorySection
-                items={fitting.fighterBay}
-                label="Fighter Bay"
-              />
-            )}
-          </div>
+          {/* Subsystems (T3 Cruisers) */}
+          {fitting.subsystems.length > 0 && (
+            <ModuleGroup modules={fitting.subsystems} label="Subsystems" />
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
