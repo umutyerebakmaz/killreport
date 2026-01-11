@@ -490,6 +490,20 @@ export type ItemGroupFilter = {
   search?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type JitaPrice = {
+  __typename?: 'JitaPrice';
+  /** Average of buy and sell */
+  average: Scalars['Float']['output'];
+  /** Highest buy order (instant sell price) */
+  buy: Scalars['Float']['output'];
+  /** Lowest sell order (instant buy price) */
+  sell: Scalars['Float']['output'];
+  /** Data source timestamp */
+  updatedAt: Scalars['String']['output'];
+  /** Total market volume */
+  volume?: Maybe<Scalars['Float']['output']>;
+};
+
 export type Killmail = {
   __typename?: 'Killmail';
   attackers: Array<Attacker>;
@@ -1217,6 +1231,8 @@ export type Type = {
   group?: Maybe<ItemGroup>;
   icon_id?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
+  /** Jita market price (cached, updates every 4 hours) */
+  jitaPrice?: Maybe<JitaPrice>;
   mass?: Maybe<Scalars['Float']['output']>;
   name: Scalars['String']['output'];
   published: Scalars['Boolean']['output'];
@@ -1444,6 +1460,7 @@ export type ResolversTypes = {
   ItemGroupConnection: ResolverTypeWrapper<ItemGroupConnection>;
   ItemGroupEdge: ResolverTypeWrapper<ItemGroupEdge>;
   ItemGroupFilter: ItemGroupFilter;
+  JitaPrice: ResolverTypeWrapper<JitaPrice>;
   Killmail: ResolverTypeWrapper<Killmail>;
   KillmailConnection: ResolverTypeWrapper<KillmailConnection>;
   KillmailDateCount: ResolverTypeWrapper<KillmailDateCount>;
@@ -1561,6 +1578,7 @@ export type ResolversParentTypes = {
   ItemGroupConnection: ItemGroupConnection;
   ItemGroupEdge: ItemGroupEdge;
   ItemGroupFilter: ItemGroupFilter;
+  JitaPrice: JitaPrice;
   Killmail: Killmail;
   KillmailConnection: KillmailConnection;
   KillmailDateCount: KillmailDateCount;
@@ -1927,6 +1945,14 @@ export type ItemGroupEdgeResolvers<ContextType = any, ParentType extends Resolve
   node?: Resolver<ResolversTypes['ItemGroup'], ParentType, ContextType>;
 };
 
+export type JitaPriceResolvers<ContextType = any, ParentType extends ResolversParentTypes['JitaPrice'] = ResolversParentTypes['JitaPrice']> = {
+  average?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  buy?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  sell?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  volume?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+};
+
 export type KillmailResolvers<ContextType = any, ParentType extends ResolversParentTypes['Killmail'] = ResolversParentTypes['Killmail']> = {
   attackers?: Resolver<Array<ResolversTypes['Attacker']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2215,6 +2241,7 @@ export type TypeResolvers<ContextType = any, ParentType extends ResolversParentT
   group?: Resolver<Maybe<ResolversTypes['ItemGroup']>, ParentType, ContextType>;
   icon_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  jitaPrice?: Resolver<Maybe<ResolversTypes['JitaPrice']>, ParentType, ContextType>;
   mass?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   published?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -2315,6 +2342,7 @@ export type Resolvers<ContextType = any> = {
   ItemGroup?: ItemGroupResolvers<ContextType>;
   ItemGroupConnection?: ItemGroupConnectionResolvers<ContextType>;
   ItemGroupEdge?: ItemGroupEdgeResolvers<ContextType>;
+  JitaPrice?: JitaPriceResolvers<ContextType>;
   Killmail?: KillmailResolvers<ContextType>;
   KillmailConnection?: KillmailConnectionResolvers<ContextType>;
   KillmailDateCount?: KillmailDateCountResolvers<ContextType>;
