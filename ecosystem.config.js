@@ -328,5 +328,43 @@ module.exports = {
       out_file: '/var/www/killreport/logs/snapshot-corporations-out.log',
       time: true,
     },
+
+    // Queue Prices - Daily at 09:00 Turkey Time (06:00 UTC)
+    {
+      name: 'queue-prices',
+      cwd: '/var/www/killreport/backend',
+      script: 'yarn',
+      args: 'queue:prices',
+      instances: 1,
+      exec_mode: 'fork',
+      autorestart: false,
+      cron_restart: '0 6 * * *',
+      env: {
+        NODE_ENV: 'production',
+        LOG_LEVEL: 'info',
+      },
+      error_file: '/var/www/killreport/logs/queue-prices-error.log',
+      out_file: '/var/www/killreport/logs/queue-prices-out.log',
+      time: true,
+    },
+
+    // Price Worker (prefetch: 10)
+    {
+      name: 'worker-prices',
+      cwd: '/var/www/killreport/backend',
+      script: 'yarn',
+      args: 'worker:prices',
+      instances: 1,
+      exec_mode: 'fork',
+      env: {
+        NODE_ENV: 'production',
+        LOG_LEVEL: 'debug',
+      },
+      max_memory_restart: '512M',
+      autorestart: true,
+      error_file: '/var/www/killreport/logs/worker-prices-error.log',
+      out_file: '/var/www/killreport/logs/worker-prices-out.log',
+      time: true,
+    },
   ],
 };
