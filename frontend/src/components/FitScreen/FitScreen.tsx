@@ -1,175 +1,169 @@
 import Tooltip from "@/components/Tooltip/Tooltip";
-import {
-  FLAG_CATEGORIES,
-  getFlagSlotIndex,
-  groupItemsBySlot,
-} from "@/utils/inventory-flags";
-import { filterModulesOnly } from "../../../../backend/src/utils/item-classifier";
+import type { Fitting, FittingModule, FittingSlot } from "@/generated/graphql";
+import { useMemo } from "react";
 
-interface DogmaAttribute {
-  attribute_id: number;
-  value: number;
-  attribute: {
-    id: number;
-    name: string;
-  };
-}
-
-interface KillmailItem {
-  flag: number;
-  quantityDropped?: number | null;
-  quantityDestroyed?: number | null;
-  itemType: {
-    id: number;
-    name: string;
-  };
-  charge?: {
-    flag: number;
-    quantityDropped?: number | null;
-    quantityDestroyed?: number | null;
-    itemType: {
-      id: number;
-      name: string;
-    };
-  } | null;
-}
+// ============================================================================
+// TYPE DEFINITIONS
+// ============================================================================
 
 interface FitScreenProps {
-  shipType: any;
-  dogmaAttributes?: DogmaAttribute[];
-  items?: KillmailItem[];
+  shipType?: {
+    id: number;
+    name: string;
+  };
+  fitting?: Fitting | null;
 }
 
-export default function FitScreen({
-  shipType,
-  dogmaAttributes = [],
-  items = [],
-}: FitScreenProps) {
-  // dogmaAttributes'tan slot sayılarını al
-  const getSlotCount = (attributeName: string): number => {
-    const attr = dogmaAttributes.find(
-      (a) => a.attribute.name === attributeName
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
+export default function FitScreen({ shipType, fitting }: FitScreenProps) {
+  // Memoize hasContent check
+  const hasContent = useMemo(() => {
+    if (!fitting) return false;
+    return (
+      fitting.highSlots.slots.length > 0 ||
+      fitting.midSlots.slots.length > 0 ||
+      fitting.lowSlots.slots.length > 0 ||
+      fitting.rigs.modules.length > 0 ||
+      fitting.subsystems.length > 0
     );
-    return attr ? Math.floor(attr.value) : 0;
-  };
+  }, [fitting]);
 
-  const hiSlots = getSlotCount("hiSlots");
-  const medSlots = getSlotCount("medSlots");
-  const lowSlots = getSlotCount("loSlots");
-  const rigSlots = getSlotCount("rigSlots");
+  const hasInventory = useMemo(() => {
+    if (!fitting) return false;
+    return (
+      fitting.cargo.length > 0 ||
+      fitting.droneBay.length > 0 ||
+      fitting.fighterBay.length > 0
+    );
+  }, [fitting]);
 
-  // Charge'ları filtrele - sadece modülleri al
-  const modulesOnly = filterModulesOnly<KillmailItem>(items);
-
-  // Items'ı slot kategorilerine göre grupla
-  const groupedItems = groupItemsBySlot<KillmailItem>(modulesOnly);
+  if (!fitting || !hasContent) {
+    return (
+      <div className="flex-1 p-4">
+        <div className="max-w-3xl mx-auto text-center">
+          <p className="text-sm text-gray-500">No fitting data available</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 p-4">
+      {/* Main Fitting Section */}
       <div className="max-w-3xl mx-auto space-y-6">
-        {/* Ship Image */}
-        <div className="relative flex items-center justify-center">
-          <img
-            src={`https://images.evetech.net/types/${shipType?.id}/render?size=512`}
-            alt={shipType?.name || "Ship"}
-            className="object-contain w-64 h-64 drop-shadow-2xl"
-            loading="lazy"
-          />
-        </div>
+        {/* Ship Render */}
+        {shipType && (
+          <ShipRender shipId={shipType.id} shipName={shipType.name} />
+        )}
 
-        {/* Vertical Slot Layout */}
-        <SlotGroup
-          slots={hiSlots}
-          modules={groupedItems.high}
-          label="High"
-          category={FLAG_CATEGORIES.high}
-        />
-
-        <SlotGroup
-          slots={medSlots}
-          modules={groupedItems.mid}
-          label="Mid"
-          category={FLAG_CATEGORIES.mid}
-        />
-
-        <SlotGroup
-          slots={lowSlots}
-          modules={groupedItems.low}
-          label="Low"
-          category={FLAG_CATEGORIES.low}
-        />
-
-        <SlotGroup
-          slots={rigSlots}
-          modules={groupedItems.rig}
-          label="Rig"
-          category={FLAG_CATEGORIES.rig}
-        />
-
-        {groupedItems.subsystem.length > 0 && (
+        {/* Module Slots */}
+        {fitting.highSlots.slots.length > 0 && (
           <SlotGroup
-            slots={4}
-            modules={groupedItems.subsystem}
-            label="Subsystem"
-            category={FLAG_CATEGORIES.subsystem}
+            slots={fitting.highSlots.slots}
+            label={`High Slots (${fitting.highSlots.totalSlots})`}
           />
+        )}
+
+        {fitting.midSlots.slots.length > 0 && (
+          <SlotGroup
+            slots={fitting.midSlots.slots}
+            label={`Mid Slots (${fitting.midSlots.totalSlots})`}
+          />
+        )}
+
+        {fitting.lowSlots.slots.length > 0 && (
+          <SlotGroup
+            slots={fitting.lowSlots.slots}
+            label={`Low Slots (${fitting.lowSlots.totalSlots})`}
+          />
+        )}
+
+        {/* Rigs */}
+        {fitting.rigs.modules.length > 0 && (
+          <ModuleGroup
+            modules={fitting.rigs.modules}
+            label={`Rigs (${fitting.rigs.totalSlots})`}
+          />
+        )}
+
+        {/* Subsystems (T3 Cruisers) */}
+        {fitting.subsystems.length > 0 && (
+          <ModuleGroup modules={fitting.subsystems} label="Subsystems" />
         )}
       </div>
 
-      {/* Cargo & Drones */}
-      {(groupedItems.cargo.length > 0 || groupedItems.droneBay.length > 0) && (
-        <div className="grid max-w-3xl grid-cols-2 gap-4 mx-auto mt-6">
-          {groupedItems.cargo.length > 0 && (
-            <CargoSection items={groupedItems.cargo} label="Cargo Hold" />
-          )}
-          {groupedItems.droneBay.length > 0 && (
-            <CargoSection items={groupedItems.droneBay} label="Drone Bay" />
-          )}
+      {/* Inventory Section */}
+      {hasInventory && (
+        <div className="max-w-3xl mx-auto mt-8">
+          <h3 className="mb-4 text-sm font-bold tracking-wider text-gray-400 uppercase">
+            Inventory
+          </h3>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {fitting.cargo.length > 0 && (
+              <InventorySection items={fitting.cargo} label="Cargo Hold" />
+            )}
+            {fitting.droneBay.length > 0 && (
+              <InventorySection items={fitting.droneBay} label="Drone Bay" />
+            )}
+            {fitting.fighterBay.length > 0 && (
+              <InventorySection
+                items={fitting.fighterBay}
+                label="Fighter Bay"
+              />
+            )}
+          </div>
         </div>
-      )}
-
-      {hiSlots === 0 && medSlots === 0 && lowSlots === 0 && rigSlots === 0 && (
-        <p className="mt-4 text-sm text-center text-gray-500">
-          No slot data available
-        </p>
       )}
     </div>
   );
 }
 
-// Slot Group Component
-interface SlotGroupProps {
-  slots: number;
-  modules: KillmailItem[];
-  label: string;
-  category: { color: string; min: number };
+// ============================================================================
+// SUB-COMPONENTS
+// ============================================================================
+
+// Ship Render Component
+interface ShipRenderProps {
+  shipId: number;
+  shipName: string;
 }
 
-function SlotGroup({ slots, modules, label, category }: SlotGroupProps) {
-  if (slots === 0) return null;
+function ShipRender({ shipId, shipName }: ShipRenderProps) {
+  return (
+    <div className="relative flex items-center justify-center py-4">
+      <img
+        src={`https://images.evetech.net/types/${shipId}/render?size=512`}
+        alt={shipName}
+        className="object-contain w-64 h-64 drop-shadow-2xl"
+        loading="lazy"
+      />
+    </div>
+  );
+}
 
-  // Modülleri flag numarasına göre sırala ve slot pozisyonlarına yerleştir
-  const slotModules: (KillmailItem | null)[] = Array(slots).fill(null);
+// Slot Group - For High/Mid/Low slots with organized FittingSlot[]
+interface SlotGroupProps {
+  slots: FittingSlot[];
+  label: string;
+}
 
-  modules.forEach((module) => {
-    const slotIndex = getFlagSlotIndex(module.flag);
-    if (slotIndex !== null && slotIndex < slots) {
-      slotModules[slotIndex] = module;
-    }
-  });
+function SlotGroup({ slots, label }: SlotGroupProps) {
+  if (slots.length === 0) return null;
 
   return (
-    <div>
-      <h3 className="mb-3 text-xs font-bold tracking-wider text-gray-400 uppercase">
+    <div className="space-y-3">
+      <h3 className="text-xs font-bold tracking-wider text-gray-400 uppercase">
         {label}
       </h3>
       <div className="flex flex-wrap gap-2">
-        {slotModules.map((module, index) => (
+        {slots.map((slot) => (
           <ModuleSlot
-            key={index}
-            module={module}
-            color={category.color}
-            index={index}
+            key={slot.slotIndex}
+            module={slot.module}
+            slotIndex={slot.slotIndex}
           />
         ))}
       </div>
@@ -177,65 +171,86 @@ function SlotGroup({ slots, modules, label, category }: SlotGroupProps) {
   );
 }
 
-// Module Slot Component
-interface ModuleSlotProps {
-  module: KillmailItem | null;
-  color: string;
-  index: number;
+// Module Group - For Rigs/Subsystems (no empty slots, no slot indexing needed)
+interface ModuleGroupProps {
+  modules: FittingModule[];
+  label: string;
 }
 
-function ModuleSlot({ module, color, index }: ModuleSlotProps) {
-  const totalQuantity =
-    (module?.quantityDropped || 0) + (module?.quantityDestroyed || 0);
+function ModuleGroup({ modules, label }: ModuleGroupProps) {
+  if (modules.length === 0) return null;
 
-  const chargeQuantity = module?.charge
-    ? (module.charge.quantityDropped || 0) +
-      (module.charge.quantityDestroyed || 0)
-    : 0;
+  return (
+    <div className="space-y-3">
+      <h3 className="text-xs font-bold tracking-wider text-gray-400 uppercase">
+        {label}
+      </h3>
+      <div className="flex flex-wrap gap-2">
+        {modules.map((module, index) => (
+          <ModuleSlot
+            key={`${label}-${index}`}
+            module={module}
+            slotIndex={index}
+            hideEmptySlot
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
+// Module Slot Component - Unified for all slot types
+interface ModuleSlotProps {
+  module?: FittingModule | null;
+  slotIndex: number;
+  hideEmptySlot?: boolean;
+}
+
+function ModuleSlot({
+  module,
+  slotIndex,
+  hideEmptySlot = false,
+}: ModuleSlotProps) {
+  // Empty slot
   if (!module) {
-    // Boş slot
+    if (hideEmptySlot) return null;
+
     return (
       <div className="flex flex-col gap-1">
         <div className="relative w-16 h-16 transition-colors border border-gray-800 bg-gray-900/30 hover:bg-gray-900/50">
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-[10px] text-gray-600 font-mono">{index}</span>
+            <span className="text-[10px] text-gray-600 font-mono">
+              {slotIndex}
+            </span>
           </div>
         </div>
       </div>
     );
   }
 
-  // Dolu slot - modül ikonu göster
+  const totalQuantity = useMemo(
+    () => (module.quantityDropped || 0) + (module.quantityDestroyed || 0),
+    [module.quantityDropped, module.quantityDestroyed]
+  );
+
+  const chargeQuantity = useMemo(() => {
+    if (!module.charge) return 0;
+    return (
+      (module.charge.quantityDropped || 0) +
+      (module.charge.quantityDestroyed || 0)
+    );
+  }, [module.charge]);
+
   return (
-    <div className="flex flex-col gap-1 items-center">
-      {/* Module Icon */}
-      <Tooltip content={module.itemType.name} position="top">
-        <div className="relative w-16 h-16 overflow-hidden transition-transform border border-gray-800 cursor-pointer group">
-          <img
-            src={`https://images.evetech.net/types/${module.itemType.id}/icon?size=64`}
-            alt={module.itemType.name}
-            className="object-cover w-full h-full bg-gray-900"
-            loading="lazy"
-          />
-
-          {/* Module quantity badge */}
-          {totalQuantity > 1 && (
-            <div className="absolute bottom-0 left-0 bg-black/90 px-1.5 py-0.5 text-[10px] font-bold text-white">
-              {totalQuantity}
-            </div>
-          )}
-        </div>
-      </Tooltip>
-
-      {/* Charge Slot - Modülün altında ayrı slot */}
+    <div className="flex flex-col items-center gap-1">
+      {/* Charge Icon */}
       {module.charge && (
         <Tooltip content={module.charge.itemType.name} position="top">
-          <div className="relative w-16 h-16 overflow-hidden border border-gray-800 cursor-pointer transition-transform bg-gray-950">
+          <div className="relative w-16 h-16 overflow-hidden transition-all border border-gray-700 cursor-pointer bg-gray-950 hover:scale-105">
             <img
               src={`https://images.evetech.net/types/${module.charge.itemType.id}/icon?size=64`}
               alt={module.charge.itemType.name}
-              className="w-full h-full object-cover"
+              className="object-cover w-full h-full"
               loading="lazy"
             />
             {chargeQuantity > 1 && (
@@ -246,44 +261,77 @@ function ModuleSlot({ module, color, index }: ModuleSlotProps) {
           </div>
         </Tooltip>
       )}
+
+      {/* Module Icon */}
+      <Tooltip content={module.itemType.name} position="bottom">
+        <div className="relative w-16 h-16 overflow-hidden transition-all border border-gray-700 cursor-pointer group hover:scale-105">
+          <img
+            src={`https://images.evetech.net/types/${module.itemType.id}/icon?size=64`}
+            alt={module.itemType.name}
+            className="object-cover w-full h-full bg-gray-900"
+            loading="lazy"
+          />
+
+          {/* Quantity Badge */}
+          {totalQuantity > 1 && (
+            <div className="absolute bottom-0 left-0 bg-black/90 px-1.5 py-0.5 text-[10px] font-bold text-white">
+              {totalQuantity}
+            </div>
+          )}
+
+          {/* Destroyed Indicator */}
+          {module.quantityDestroyed && module.quantityDestroyed > 0 && (
+            <div className="absolute top-0 right-0 w-2 h-2 bg-red-500" />
+          )}
+        </div>
+      </Tooltip>
     </div>
   );
 }
 
-// Cargo Section Component
-interface CargoSectionProps {
-  items: KillmailItem[];
+// Inventory Section - For Cargo/Drones/Fighters
+interface InventorySectionProps {
+  items: FittingModule[];
   label: string;
 }
 
-function CargoSection({ items, label }: CargoSectionProps) {
+function InventorySection({ items, label }: InventorySectionProps) {
   return (
-    <div className="p-4 border rounded border-white/10 bg-gray-900/30">
-      <h3 className="mb-3 text-xs font-bold tracking-wider text-gray-400 uppercase">
-        {label}
-      </h3>
-      <div className="space-y-1 overflow-y-auto max-h-40">
+    <div className="p-4 border border-white/10 bg-gray-900/30">
+      <h4 className="mb-3 text-xs font-bold tracking-wider text-gray-400 uppercase">
+        {label} ({items.length})
+      </h4>
+      <div className="space-y-1 overflow-y-auto max-h-48">
         {items.map((item, index) => {
           const totalQuantity =
             (item.quantityDropped || 0) + (item.quantityDestroyed || 0);
+
           return (
-            <div
-              key={index}
-              className="flex items-center gap-2 p-1 text-xs rounded hover:bg-white/5"
-            >
-              <img
-                src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=32`}
-                alt={item.itemType.name}
-                className="w-6 h-6"
-                loading="lazy"
-              />
-              <span className="flex-1 text-gray-300 truncate">
-                {item.itemType.name}
-              </span>
-              {totalQuantity > 1 && (
-                <span className="text-gray-500">x{totalQuantity}</span>
-              )}
-            </div>
+            <Tooltip key={index} content={item.itemType.name} position="right">
+              <div className="flex items-center gap-2 p-2 text-xs transition-colors hover:bg-white/5">
+                <img
+                  src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=32`}
+                  alt={item.itemType.name}
+                  className="w-8 h-8"
+                  loading="lazy"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="text-gray-300 truncate">
+                    {item.itemType.name}
+                  </div>
+                  {item.itemType.group && (
+                    <div className="text-[10px] text-gray-500 truncate">
+                      {item.itemType.group.name}
+                    </div>
+                  )}
+                </div>
+                {totalQuantity > 1 && (
+                  <span className="px-2 py-1 text-[10px] font-bold text-white bg-gray-800">
+                    ×{totalQuantity}
+                  </span>
+                )}
+              </div>
+            </Tooltip>
           );
         })}
       </div>
