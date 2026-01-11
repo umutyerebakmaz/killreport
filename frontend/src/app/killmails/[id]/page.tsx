@@ -35,7 +35,7 @@ export default function KillmailDetailPage({
   const km = data.killmail;
   const victim = km.victim;
   const attackers = km.attackers || [];
-  const items = km.items || [];
+  const fitting = km.fitting;
 
   return (
     <>
@@ -86,8 +86,7 @@ export default function KillmailDetailPage({
 
                 <FitScreen
                   shipType={victim?.shipType}
-                  dogmaAttributes={victim?.shipType?.dogmaAttributes}
-                  items={items}
+                  fitting={fitting as any}
                 />
               </div>
 
@@ -216,35 +215,6 @@ export default function KillmailDetailPage({
               )}
             </div>
           </div>
-
-          {/* Items Section */}
-          {items.length > 0 && (
-            <div className="p-6 mt-6 rounded-lg bg-white/5 backdrop-blur-sm inset-ring inset-ring-white/10">
-              <h3 className="mb-4 text-lg font-semibold text-white">
-                Dropped & Destroyed Items ({items.length})
-              </h3>
-
-              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {items.map((item, index) => (
-                  <div key={index} className="p-2 text-sm rounded bg-white/5">
-                    <div className="text-white">{item?.itemType?.name}</div>
-                    <div className="flex gap-4 text-xs text-gray-500">
-                      {item?.quantityDropped && (
-                        <span className="text-green-400">
-                          Dropped: {item.quantityDropped}
-                        </span>
-                      )}
-                      {item?.quantityDestroyed && (
-                        <span className="text-red-400">
-                          Destroyed: {item.quantityDestroyed}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Right Column: Attackers (1/3 width) */}
