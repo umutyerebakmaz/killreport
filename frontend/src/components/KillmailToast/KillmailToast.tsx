@@ -1,5 +1,6 @@
 "use client";
 
+import { formatISK } from "@/utils/formatISK";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 
