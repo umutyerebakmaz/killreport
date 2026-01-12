@@ -316,6 +316,14 @@ export const killmailFields: KillmailResolvers = {
         singleton: module.singleton,
         charge: null,
       })),
+      implants: fitting.implants.map((module) => ({
+        itemTypeId: module.itemTypeId,
+        flag: module.flag,
+        quantityDropped: module.quantityDropped,
+        quantityDestroyed: module.quantityDestroyed,
+        singleton: module.singleton,
+        charge: null,
+      })),
       cargo: fitting.cargo.map((module) => ({
         itemTypeId: module.itemTypeId,
         flag: module.flag,

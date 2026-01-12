@@ -218,6 +218,19 @@ query Killmail($id: ID!) {
         quantityDropped
         quantityDestroyed
       }
+      implants {
+        itemType {
+          id
+          name
+          jitaPrice {
+            buy
+            sell
+            average
+          }
+        }
+        quantityDropped
+        quantityDestroyed
+      }
       cargo {
         flag
         singleton
