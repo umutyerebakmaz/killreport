@@ -374,6 +374,7 @@ type Fitting {
   droneBay: [FittingModule!]!
   fighterBay: [FittingModule!]!
   highSlots: SlotGroup!
+  implants: [FittingModule!]!
   lowSlots: SlotGroup!
   midSlots: SlotGroup!
   rigs: ModuleGroup!

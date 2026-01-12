@@ -549,6 +549,59 @@ export default function KillmailDetailPage({
               </div>
             )}
 
+            {/* Implants (Pod Kills) */}
+            {fitting?.implants && fitting.implants.length > 0 && (
+              <div className="pb-4 mb-4 border-b border-white/10">
+                <h3 className="mb-2 text-sm font-bold text-yellow-400 uppercase">
+                  💎 Implants
+                </h3>
+                <div className="space-y-2">
+                  {fitting.implants.map((module, index) => {
+                    const quantity =
+                      (module.quantityDropped || 0) +
+                        (module.quantityDestroyed || 0) || 1;
+                    const isDestroyed = (module.quantityDestroyed || 0) > 0;
+                    const isDropped = (module.quantityDropped || 0) > 0;
+                    const textColor = isDestroyed
+                      ? "text-red-400"
+                      : isDropped
+                      ? "text-green-400"
+                      : "text-white";
+
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center gap-3 py-2 bg-yellow-500/5 rounded px-2"
+                      >
+                        <img
+                          src={`https://images.evetech.net/types/${module.itemType.id}/icon?size=64`}
+                          alt={module.itemType.name}
+                          className="w-16 h-16"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className={`truncate ${textColor} font-medium`}>
+                            {module.itemType.name}
+                          </div>
+                        </div>
+                        <div className="flex gap-4 text-right">
+                          <div className={`${textColor} w-16`}>{quantity}</div>
+                          <div
+                            className={`${textColor} tabular-nums w-40 font-semibold`}
+                          >
+                            {formatISK(
+                              getItemPrice(module.itemType.jitaPrice) * quantity
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Drone Bay */}
             {fitting?.droneBay && fitting.droneBay.length > 0 && (
               <div className="pb-4 mb-4 border-b border-white/10">
