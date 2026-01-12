@@ -41,7 +41,7 @@ type Killmail {
 
 type Victim {
   character: Character
-  corporation: Corporation!
+  corporation: Corporation
   alliance: Alliance
   factionId: Int
   shipType: Type!
