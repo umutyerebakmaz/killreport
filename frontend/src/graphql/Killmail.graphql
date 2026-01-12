@@ -2,6 +2,9 @@ query Killmail($id: ID!) {
   killmail(id: $id) {
     id
     killmailTime
+    destroyedValue
+    droppedValue
+    totalValue
     solarSystem {
       id
       name

@@ -1,0 +1,31 @@
+# Test killmail value calculation
+# Try a specific killmail ID that exists in your database
+
+query TestValueCalculation {
+  # Single killmail with values
+  killmail(id: "132588293") {
+    id
+    killmailTime
+    totalValue
+    droppedValue
+    destroyedValue
+    victim {
+      shipType {
+        name
+      }
+    }
+  }
+
+  # List of killmails to verify field resolvers work
+  killmails(filter: { limit: 5, orderBy: timeDesc }) {
+    edges {
+      node {
+        id
+        killmailTime
+        totalValue
+        droppedValue
+        destroyedValue
+      }
+    }
+  }
+}
