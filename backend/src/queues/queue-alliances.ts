@@ -2,6 +2,7 @@ import '../config';
 import { AllianceService } from '../services/alliance';
 import logger from '../services/logger';
 import { getRabbitMQChannel } from '../services/rabbitmq';
+import { guardCronJob } from '../utils/cron-guard';
 
 const QUEUE_NAME = 'esi_alliance_info_queue';
 const BATCH_SIZE = 100;
@@ -9,8 +10,12 @@ const BATCH_SIZE = 100;
 /**
  * Fetches all alliance IDs from ESI and adds them to RabbitMQ queue
  * These will be processed by worker:info:alliances
+ *
+ * Scheduled: Weekly on Sunday at 00:00 UTC (cron: '0 0 * * 0')
  */
 async function queueAlliances() {
+    // Prevent running on PM2 restart - only run on Sundays at midnight UTC
+    guardCronJob('queue-alliances', { hour: 0, minute: 0, dayOfWeek: 0 });
     logger.info('Fetching all alliance IDs from ESI...');
 
     try {
