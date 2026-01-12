@@ -91,6 +91,11 @@ export default function FitScreen({ shipType, fitting }: FitScreenProps) {
           {fitting.subsystems.length > 0 && (
             <ModuleGroup modules={fitting.subsystems} label="Subsystems" />
           )}
+
+          {/* Implants (Pod kills) */}
+          {fitting.implants.length > 0 && (
+            <ModuleGroup modules={fitting.implants} label="Implants" />
+          )}
         </div>
       </div>
     </div>
