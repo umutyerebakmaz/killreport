@@ -56,7 +56,14 @@ export default function FitScreen({ shipType, fitting }: FitScreenProps) {
       <div className="flex flex-col items-start">
         {/* Ship Render */}
         {shipType && (
-          <ShipRender shipId={shipType.id} shipName={shipType.name} />
+          <div className="relative flex items-center justify-center py-4">
+            <img
+              src={`https://images.evetech.net/types/${shipType.id}/render?size=512`}
+              alt={shipType.name}
+              className="object-contain w-64 h-64 drop-shadow-2xl"
+              loading="lazy"
+            />
+          </div>
         )}
 
         <div className="flex gap-6">
