@@ -113,25 +113,6 @@ export default function FitScreen({ shipType, fitting }: FitScreenProps) {
 // SUB-COMPONENTS
 // ============================================================================
 
-// Ship Render Component
-interface ShipRenderProps {
-  shipId: number;
-  shipName: string;
-}
-
-function ShipRender({ shipId, shipName }: ShipRenderProps) {
-  return (
-    <div className="relative flex items-center justify-center py-4">
-      <img
-        src={`https://images.evetech.net/types/${shipId}/render?size=512`}
-        alt={shipName}
-        className="object-contain w-64 h-64 drop-shadow-2xl"
-        loading="lazy"
-      />
-    </div>
-  );
-}
-
 // Slot Group - For High/Mid/Low slots with organized FittingSlot[]
 interface SlotGroupProps {
   slots: FittingSlot[];
