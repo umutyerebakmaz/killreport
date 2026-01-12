@@ -3,21 +3,15 @@
  * Fetches all alliance IDs from database and adds them to alliance_corporation_queue
  *
  * Usage: yarn queue:alliance-corporations
- *
- * Scheduled: Weekly on Sunday at 00:10 UTC (cron: '10 0 * * 0')
  */
 
 import '../config';
 import logger from '../services/logger';
 import prismaWorker from '../services/prisma-worker';
 import { getRabbitMQChannel } from '../services/rabbitmq';
-import { guardCronJob } from '../utils/cron-guard';
 
 const QUEUE_NAME = 'esi_alliance_corporations_queue';
 const BATCH_SIZE = 100;
-
-// Prevent running on PM2 restart - only run on Sundays at 00:10 UTC
-guardCronJob('queue-alliance-corporations', { hour: 0, minute: 10, dayOfWeek: 0 });
 
 interface EntityQueueMessage {
     entityId: number;
