@@ -4,6 +4,7 @@ query CharacterKillmails($characterId: Int!, $first: Int, $after: String) {
       node {
         id
         killmailTime
+        totalValue
         solarSystem {
           name
         }

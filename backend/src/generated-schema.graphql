@@ -968,7 +968,7 @@ type User {
 type Victim {
   alliance: Alliance
   character: Character
-  corporation: Corporation!
+  corporation: Corporation
   damageTaken: Int!
   factionId: Int
   position: Position
