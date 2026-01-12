@@ -54,20 +54,8 @@ export default function FitScreen({ shipType, fitting }: FitScreenProps) {
     <div className="flex p-4">
       {/* Main Fitting Section */}
       <div className="flex flex-col items-start">
-        {/* Ship Render */}
-        {shipType && (
-          <div className="relative flex items-center justify-center py-4">
-            <img
-              src={`https://images.evetech.net/types/${shipType.id}/render?size=512`}
-              alt={shipType.name}
-              className="object-contain w-64 h-64 drop-shadow-2xl"
-              loading="lazy"
-            />
-          </div>
-        )}
-
-        <div className="flex gap-6">
-          {/* Module Slots - Horizontal Layout */}
+        <div className="flex flex-col gap-6">
+          {/* Module Slots - Vertical Layout */}
           {fitting.highSlots.slots.length > 0 && (
             <SlotGroup
               slots={fitting.highSlots.slots}
@@ -90,7 +78,7 @@ export default function FitScreen({ shipType, fitting }: FitScreenProps) {
           )}
         </div>
 
-        <div className="flex gap-6 mt-6">
+        <div className="flex flex-col gap-6 mt-6">
           {/* Rigs */}
           {fitting.rigs.modules.length > 0 && (
             <ModuleGroup
