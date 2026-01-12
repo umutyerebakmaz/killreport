@@ -1314,7 +1314,7 @@ export type Victim = {
   __typename?: 'Victim';
   alliance?: Maybe<Alliance>;
   character?: Maybe<Character>;
-  corporation: Corporation;
+  corporation?: Maybe<Corporation>;
   damageTaken: Scalars['Int']['output'];
   factionId?: Maybe<Scalars['Int']['output']>;
   position?: Maybe<Position>;
@@ -2292,7 +2292,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
 export type VictimResolvers<ContextType = any, ParentType extends ResolversParentTypes['Victim'] = ResolversParentTypes['Victim']> = {
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType>;
   character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
-  corporation?: Resolver<ResolversTypes['Corporation'], ParentType, ContextType>;
+  corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType>;
   damageTaken?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   factionId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   position?: Resolver<Maybe<ResolversTypes['Position']>, ParentType, ContextType>;

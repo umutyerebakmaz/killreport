@@ -6,6 +6,7 @@ import {
   VictimResolvers,
 } from '@generated-types';
 import { organizeFitting } from '@services/fitting-helper';
+import prisma from '@services/prisma.js';
 
 /**
  * Killmail Field Resolvers
@@ -59,6 +60,119 @@ export const killmailFields: KillmailResolvers = {
       securityStatus: attacker.security_status,
     }));
   },
+
+  totalValue: async (parent: any, _, context) => {
+    const killmailId = typeof parent.id === 'string' ? parseInt(parent.id) : parent.id;
+
+    // Victim'dan ship type'ı al
+    const victim = await context.loaders.victim.load(killmailId);
+
+    // Killmail'in tüm itemlarını al
+    const items = await context.loaders.items.load(killmailId);
+
+    // Ship type_id'yi de ekle
+    const allTypeIds = victim?.ship_type_id
+      ? [...new Set([...items.map((item: any) => item.item_type_id), victim.ship_type_id])] as number[]
+      : [...new Set(items.map((item: any) => item.item_type_id))] as number[];
+
+    // Market fiyatlarını toplu olarak çek
+    const marketPrices = await prisma.marketPrice.findMany({
+      where: {
+        type_id: {
+          in: allTypeIds
+        }
+      },
+      select: {
+        type_id: true,
+        sell: true // Sell fiyatını kullanıyoruz (instant buy price)
+      }
+    });
+
+    // type_id -> price mapping oluştur
+    const priceMap = new Map(
+      marketPrices.map(mp => [mp.type_id, mp.sell])
+    );
+
+    // Her item için miktar * fiyat hesapla ve topla
+    let totalValue = 0;
+
+    // Ship'i ekle (her zaman destroyed)
+    if (victim?.ship_type_id) {
+      const shipPrice = priceMap.get(victim.ship_type_id) || 0;
+      totalValue += shipPrice;
+    }
+
+    // Item'ları ekle
+    for (const item of items) {
+      const price = priceMap.get(item.item_type_id) || 0;
+      const quantity = (item.quantity_dropped || 0) + (item.quantity_destroyed || 0);
+      totalValue += price * quantity;
+    }
+
+    return totalValue;
+  },
+
+  destroyedValue: async (parent: any, _, context) => {
+    const killmailId = typeof parent.id === 'string' ? parseInt(parent.id) : parent.id;
+
+    // Victim'dan ship type'ı al
+    const victim = await context.loaders.victim.load(killmailId);
+
+    const items = await context.loaders.items.load(killmailId);
+
+    // Ship type_id'yi de ekle
+    const allTypeIds = victim?.ship_type_id
+      ? [...new Set([...items.map((item: any) => item.item_type_id), victim.ship_type_id])] as number[]
+      : [...new Set(items.map((item: any) => item.item_type_id))] as number[];
+
+    const marketPrices = await prisma.marketPrice.findMany({
+      where: { type_id: { in: allTypeIds } },
+      select: { type_id: true, sell: true }
+    });
+
+    const priceMap = new Map(marketPrices.map(mp => [mp.type_id, mp.sell]));
+
+    let destroyedValue = 0;
+
+    // Ship'i ekle (her zaman destroyed)
+    if (victim?.ship_type_id) {
+      const shipPrice = priceMap.get(victim.ship_type_id) || 0;
+      destroyedValue += shipPrice;
+    }
+
+    // Item'ları ekle
+    for (const item of items) {
+      const price = priceMap.get(item.item_type_id) || 0;
+      const quantity = item.quantity_destroyed || 0;
+      destroyedValue += price * quantity;
+    }
+
+    return destroyedValue;
+  },
+
+  droppedValue: async (parent: any, _, context) => {
+    const killmailId = typeof parent.id === 'string' ? parseInt(parent.id) : parent.id;
+
+    const items = await context.loaders.items.load(killmailId);
+    const typeIds = [...new Set(items.map((item: any) => item.item_type_id))] as number[];
+
+    const marketPrices = await prisma.marketPrice.findMany({
+      where: { type_id: { in: typeIds } },
+      select: { type_id: true, sell: true }
+    });
+
+    const priceMap = new Map(marketPrices.map(mp => [mp.type_id, mp.sell]));
+
+    let droppedValue = 0;
+    for (const item of items) {
+      const price = priceMap.get(item.item_type_id) || 0;
+      const quantity = item.quantity_dropped || 0;
+      droppedValue += price * quantity;
+    }
+
+    return droppedValue;
+  },
+
   items: async (parent: any, _, context) => {
     const killmailId = parent.killmail_id || (typeof parent.id === 'string' ? parseInt(parent.id, 10) : parent.id);
     const items = await context.loaders.items.load(killmailId);
