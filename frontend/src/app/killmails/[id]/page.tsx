@@ -8,6 +8,16 @@ import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { use } from "react";
 
+// Helper functions (pure, no dependencies)
+const formatISK = (amount: number | null | undefined) => {
+  if (!amount) return "0 ISK";
+  return `${Math.round(amount).toLocaleString()} ISK`;
+};
+
+const getItemPrice = (jitaPrice: any) => {
+  return jitaPrice?.sell || jitaPrice?.average || 0;
+};
+
 export default function KillmailDetailPage({
   params,
 }: {
@@ -36,6 +46,16 @@ export default function KillmailDetailPage({
   const victim = km.victim;
   const attackers = km.attackers || [];
   const fitting = km.fitting;
+  const destroyedValue = km.destroyedValue || 0;
+  const droppedValue = km.droppedValue || 0;
+  const totalValue = km.totalValue || 0;
+
+  // Debug: Backend'den gelen değerleri görelim
+  console.log("Backend değerleri:", {
+    destroyedValue: km.destroyedValue,
+    droppedValue: km.droppedValue,
+    totalValue: km.totalValue,
+  });
 
   return (
     <>
@@ -165,11 +185,13 @@ export default function KillmailDetailPage({
                 <h3 className="mb-2 text-sm font-bold text-gray-400 uppercase">
                   Ship
                 </h3>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 py-2">
                   <img
                     src={`https://images.evetech.net/types/${victim.shipType.id}/icon?size=64`}
                     alt={victim.shipType.name}
-                    className="w-12 h-12"
+                    className="w-16 h-16"
+                    loading="lazy"
+                    decoding="async"
                   />
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-white truncate">
@@ -181,109 +203,135 @@ export default function KillmailDetailPage({
                       </div>
                     )}
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm text-white">1</div>
-                    <div className="text-xs text-gray-500">0 ISK</div>
+                  <div className="flex gap-4 text-right">
+                    <div className="text-white">1</div>
+                    <div className="w-40 text-red-400 tabular-nums">
+                      {formatISK(getItemPrice(victim.shipType.jitaPrice))}
+                    </div>
                   </div>
                 </div>
               </div>
             )}
 
             {/* High Slots */}
-            {fitting?.highSlots && fitting.highSlots.slots.length > 0 && (
-              <div className="pb-4 mb-4 border-b border-white/10">
-                <h3 className="mb-2 text-sm font-bold text-gray-400 uppercase">
-                  High Slots
-                </h3>
-                <div className="space-y-2">
-                  {fitting.highSlots.slots.flatMap((slot) => {
-                    if (!slot.module) return [];
-                    const items = [];
+            {fitting?.highSlots &&
+              fitting.highSlots.slots.some((slot) => slot.module) && (
+                <div className="pb-4 mb-4 border-b border-white/10">
+                  <h3 className="mb-2 font-bold text-gray-400 uppercase">
+                    High Slots
+                  </h3>
+                  <div className="space-y-2">
+                    {fitting.highSlots.slots.flatMap((slot) => {
+                      if (!slot.module) return [];
+                      const items = [];
 
-                    // Module
-                    const moduleIsDestroyed =
-                      (slot.module.quantityDestroyed || 0) > 0;
-                    const moduleIsDropped =
-                      (slot.module.quantityDropped || 0) > 0;
-                    const moduleTextColor = moduleIsDestroyed
-                      ? "text-red-400"
-                      : moduleIsDropped
-                      ? "text-green-400"
-                      : "text-white";
-
-                    items.push(
-                      <div
-                        key={`module-${slot.slotIndex}`}
-                        className="flex items-center gap-3 p-2 transition-colors hover:bg-white/5"
-                      >
-                        <img
-                          src={`https://images.evetech.net/types/${slot.module.itemType.id}/icon?size=64`}
-                          alt={slot.module.itemType.name}
-                          className="w-16 h-16"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div
-                            className={`text-sm truncate ${moduleTextColor}`}
-                          >
-                            {slot.module.itemType.name}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className={`text-sm ${moduleTextColor}`}>
-                            {(slot.module.quantityDropped || 0) +
-                              (slot.module.quantityDestroyed || 0) || 1}
-                          </div>
-                          <div className="text-xs text-gray-500">0 ISK</div>
-                        </div>
-                      </div>
-                    );
-
-                    // Charge (if exists)
-                    if (slot.module.charge) {
-                      const chargeIsDestroyed =
-                        (slot.module.charge.quantityDestroyed || 0) > 0;
-                      const chargeIsDropped =
-                        (slot.module.charge.quantityDropped || 0) > 0;
-                      const chargeTextColor = chargeIsDestroyed
+                      // Module
+                      const moduleIsDestroyed =
+                        (slot.module.quantityDestroyed || 0) > 0;
+                      const moduleIsDropped =
+                        (slot.module.quantityDropped || 0) > 0;
+                      const moduleTextColor = moduleIsDestroyed
                         ? "text-red-400"
-                        : chargeIsDropped
+                        : moduleIsDropped
                         ? "text-green-400"
                         : "text-white";
 
                       items.push(
                         <div
-                          key={`charge-${slot.slotIndex}`}
-                          className="flex items-center gap-3 p-2 transition-colors hover:bg-white/5"
+                          key={`module-${slot.slotIndex}`}
+                          className="flex items-center gap-3 py-2 transition-colors hover:bg-white/5"
                         >
                           <img
-                            src={`https://images.evetech.net/types/${slot.module.charge.itemType.id}/icon?size=64`}
-                            alt={slot.module.charge.itemType.name}
+                            src={`https://images.evetech.net/types/${slot.module.itemType.id}/icon?size=64`}
+                            alt={slot.module.itemType.name}
                             className="w-16 h-16"
+                            loading="lazy"
+                            decoding="async"
                           />
                           <div className="flex-1 min-w-0">
                             <div
-                              className={`text-sm truncate ${chargeTextColor}`}
+                              className={`text-sm truncate ${moduleTextColor}`}
                             >
-                              {slot.module.charge.itemType.name}
+                              {slot.module.itemType.name}
                             </div>
                           </div>
-                          <div className="text-right">
-                            <div className={`text-sm ${chargeTextColor}`}>
-                              {(slot.module.charge.quantityDropped || 0) +
-                                (slot.module.charge.quantityDestroyed || 0) ||
-                                1}
+                          <div className="flex gap-4 text-right">
+                            <div className={`${moduleTextColor} w-16`}>
+                              {(slot.module.quantityDropped || 0) +
+                                (slot.module.quantityDestroyed || 0) || 1}
                             </div>
-                            <div className="text-xs text-gray-500">0 ISK</div>
+                            <div
+                              className={`${moduleTextColor} tabular-nums w-40`}
+                            >
+                              {formatISK(
+                                getItemPrice(slot.module.itemType.jitaPrice) *
+                                  ((slot.module.quantityDropped || 0) +
+                                    (slot.module.quantityDestroyed || 0) || 1)
+                              )}
+                            </div>
                           </div>
                         </div>
                       );
-                    }
 
-                    return items;
-                  })}
+                      // Charge (if exists)
+                      if (slot.module.charge) {
+                        const chargeIsDestroyed =
+                          (slot.module.charge.quantityDestroyed || 0) > 0;
+                        const chargeIsDropped =
+                          (slot.module.charge.quantityDropped || 0) > 0;
+                        const chargeTextColor = chargeIsDestroyed
+                          ? "text-red-400"
+                          : chargeIsDropped
+                          ? "text-green-400"
+                          : "text-white";
+
+                        items.push(
+                          <div
+                            key={`charge-${slot.slotIndex}`}
+                            className="flex items-center gap-3 py-2"
+                          >
+                            <img
+                              src={`https://images.evetech.net/types/${slot.module.charge.itemType.id}/icon?size=64`}
+                              alt={slot.module.charge.itemType.name}
+                              className="w-16 h-16"
+                              loading="lazy"
+                              decoding="async"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div
+                                className={`text-sm truncate ${chargeTextColor}`}
+                              >
+                                {slot.module.charge.itemType.name}
+                              </div>
+                            </div>
+                            <div className="flex gap-4 text-right">
+                              <div className={`${chargeTextColor} w-16`}>
+                                {(slot.module.charge.quantityDropped || 0) +
+                                  (slot.module.charge.quantityDestroyed || 0) ||
+                                  1}
+                              </div>
+                              <div
+                                className={`${chargeTextColor} tabular-nums w-40`}
+                              >
+                                {formatISK(
+                                  getItemPrice(
+                                    slot.module.charge.itemType.jitaPrice
+                                  ) *
+                                    ((slot.module.charge.quantityDropped || 0) +
+                                      (slot.module.charge.quantityDestroyed ||
+                                        0) || 1)
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      return items;
+                    })}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
             {/* Mid Slots */}
             {fitting?.midSlots && fitting.midSlots.slots.length > 0 && (
@@ -310,12 +358,14 @@ export default function KillmailDetailPage({
                     items.push(
                       <div
                         key={`module-${slot.slotIndex}`}
-                        className="flex items-center gap-3 p-2 transition-colors hover:bg-white/5"
+                        className="flex items-center gap-3 py-2"
                       >
                         <img
                           src={`https://images.evetech.net/types/${slot.module.itemType.id}/icon?size=64`}
                           alt={slot.module.itemType.name}
                           className="w-16 h-16"
+                          loading="lazy"
+                          decoding="async"
                         />
                         <div className="flex-1 min-w-0">
                           <div
@@ -324,12 +374,20 @@ export default function KillmailDetailPage({
                             {slot.module.itemType.name}
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className={`text-sm ${moduleTextColor}`}>
+                        <div className="flex gap-4 text-right">
+                          <div className={`${moduleTextColor} w-16`}>
                             {(slot.module.quantityDropped || 0) +
                               (slot.module.quantityDestroyed || 0) || 1}
                           </div>
-                          <div className="text-xs text-gray-500">0 ISK</div>
+                          <div
+                            className={`${moduleTextColor} tabular-nums w-40`}
+                          >
+                            {formatISK(
+                              getItemPrice(slot.module.itemType.jitaPrice) *
+                                ((slot.module.quantityDropped || 0) +
+                                  (slot.module.quantityDestroyed || 0) || 1)
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
@@ -349,12 +407,14 @@ export default function KillmailDetailPage({
                       items.push(
                         <div
                           key={`charge-${slot.slotIndex}`}
-                          className="flex items-center gap-3 p-2 transition-colors hover:bg-white/5"
+                          className="flex items-center gap-3 py-2"
                         >
                           <img
                             src={`https://images.evetech.net/types/${slot.module.charge.itemType.id}/icon?size=64`}
                             alt={slot.module.charge.itemType.name}
                             className="w-16 h-16"
+                            loading="lazy"
+                            decoding="async"
                           />
                           <div className="flex-1 min-w-0">
                             <div
@@ -363,13 +423,24 @@ export default function KillmailDetailPage({
                               {slot.module.charge.itemType.name}
                             </div>
                           </div>
-                          <div className="text-right">
-                            <div className={`text-sm ${chargeTextColor}`}>
+                          <div className="flex gap-4 text-right">
+                            <div className={`${chargeTextColor} w-16`}>
                               {(slot.module.charge.quantityDropped || 0) +
                                 (slot.module.charge.quantityDestroyed || 0) ||
                                 1}
                             </div>
-                            <div className="text-xs text-gray-500">0 ISK</div>
+                            <div
+                              className={`${chargeTextColor} tabular-nums w-40`}
+                            >
+                              {formatISK(
+                                getItemPrice(
+                                  slot.module.charge.itemType.jitaPrice
+                                ) *
+                                  ((slot.module.charge.quantityDropped || 0) +
+                                    (slot.module.charge.quantityDestroyed ||
+                                      0) || 1)
+                              )}
+                            </div>
                           </div>
                         </div>
                       );
@@ -401,7 +472,7 @@ export default function KillmailDetailPage({
                     return (
                       <div
                         key={slot.slotIndex}
-                        className="flex items-center gap-3 p-2 transition-colors hover:bg-white/5"
+                        className="flex items-center gap-3 py-2"
                       >
                         <img
                           src={`https://images.evetech.net/types/${slot.module.itemType.id}/icon?size=64`}
@@ -409,16 +480,22 @@ export default function KillmailDetailPage({
                           className="w-16 h-16"
                         />
                         <div className="flex-1 min-w-0">
-                          <div className={`text-sm truncate ${textColor}`}>
+                          <div className={`truncate ${textColor}`}>
                             {slot.module.itemType.name}
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className={`text-sm ${textColor}`}>
+                        <div className="flex text-right">
+                          <div className={`${textColor} w-16`}>
                             {(slot.module.quantityDropped || 0) +
                               (slot.module.quantityDestroyed || 0) || 1}
                           </div>
-                          <div className="text-xs text-gray-500">0 ISK</div>
+                          <div className={`${textColor} tabular-nums w-40`}>
+                            {formatISK(
+                              getItemPrice(slot.module.itemType.jitaPrice) *
+                                ((slot.module.quantityDropped || 0) +
+                                  (slot.module.quantityDestroyed || 0) || 1)
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
@@ -446,25 +523,26 @@ export default function KillmailDetailPage({
                       ? "text-green-400"
                       : "text-white";
                     return (
-                      <div
-                        key={index}
-                        className="flex items-center gap-3 p-2 transition-colors hover:bg-white/5"
-                      >
+                      <div key={index} className="flex items-center gap-3 py-2">
                         <img
                           src={`https://images.evetech.net/types/${module.itemType.id}/icon?size=64`}
                           alt={module.itemType.name}
                           className="w-16 h-16"
+                          loading="lazy"
+                          decoding="async"
                         />
                         <div className="flex-1 min-w-0">
-                          <div className={`text-sm truncate ${textColor}`}>
+                          <div className={`truncate ${textColor}`}>
                             {module.itemType.name}
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className={`text-sm ${textColor}`}>
-                            {quantity}
+                        <div className="flex gap-4 text-right">
+                          <div className={`${textColor} w-16`}>{quantity}</div>
+                          <div className={`${textColor} tabular-nums w-40`}>
+                            {formatISK(
+                              getItemPrice(module.itemType.jitaPrice) * quantity
+                            )}
                           </div>
-                          <div className="text-xs text-gray-500">0</div>
                         </div>
                       </div>
                     );
@@ -492,25 +570,26 @@ export default function KillmailDetailPage({
                       ? "text-green-400"
                       : "text-white";
                     return (
-                      <div
-                        key={index}
-                        className="flex items-center gap-3 p-2 transition-colors hover:bg-white/5"
-                      >
+                      <div key={index} className="flex items-center gap-3 py-2">
                         <img
                           src={`https://images.evetech.net/types/${module.itemType.id}/icon?size=64`}
                           alt={module.itemType.name}
                           className="w-16 h-16"
+                          loading="lazy"
+                          decoding="async"
                         />
                         <div className="flex-1 min-w-0">
-                          <div className={`text-sm truncate ${textColor}`}>
+                          <div className={`truncate ${textColor}`}>
                             {module.itemType.name}
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className={`text-sm ${textColor}`}>
-                            {quantity}
+                        <div className="flex gap-4 text-right">
+                          <div className={`${textColor} w-16`}>{quantity}</div>
+                          <div className={`${textColor} tabular-nums w-40`}>
+                            {formatISK(
+                              getItemPrice(module.itemType.jitaPrice) * quantity
+                            )}
                           </div>
-                          <div className="text-xs text-gray-500">0</div>
                         </div>
                       </div>
                     );
@@ -538,25 +617,26 @@ export default function KillmailDetailPage({
                       ? "text-green-400"
                       : "text-white";
                     return (
-                      <div
-                        key={index}
-                        className="flex items-center gap-3 p-2 transition-colors hover:bg-white/5"
-                      >
+                      <div key={index} className="flex items-center gap-3 py-2">
                         <img
                           src={`https://images.evetech.net/types/${module.itemType.id}/icon?size=64`}
                           alt={module.itemType.name}
                           className="w-16 h-16"
+                          loading="lazy"
+                          decoding="async"
                         />
                         <div className="flex-1 min-w-0">
-                          <div className={`text-sm truncate ${textColor}`}>
+                          <div className={`truncate ${textColor}`}>
                             {module.itemType.name}
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className={`text-sm ${textColor}`}>
-                            {quantity}
+                        <div className="flex gap-4 text-right">
+                          <div className={`${textColor} w-16`}>{quantity}</div>
+                          <div className={`${textColor} tabular-nums w-40`}>
+                            {formatISK(
+                              getItemPrice(module.itemType.jitaPrice) * quantity
+                            )}
                           </div>
-                          <div className="text-xs text-gray-500">0</div>
                         </div>
                       </div>
                     );
@@ -564,6 +644,32 @@ export default function KillmailDetailPage({
                 </div>
               </div>
             )}
+
+            {/* Value Summary - Accounting Style */}
+            <div className="pt-4 border-t border-white/10">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400">Destroyed</span>
+                  <span className="text-red-400 tabular-nums">
+                    {formatISK(destroyedValue)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400">Dropped</span>
+                  <span className="text-green-400 tabular-nums">
+                    {formatISK(droppedValue)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-white/10">
+                  <span className="text-base font-semibold text-gray-400">
+                    Total Value
+                  </span>
+                  <span className="text-xl font-bold text-yellow-400 tabular-nums">
+                    {formatISK(totalValue)}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
