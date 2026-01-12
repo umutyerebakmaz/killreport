@@ -7,16 +7,10 @@
  *
  * Usage:
  *   yarn snapshot:alliances
- *
- * Scheduled: Daily at 01:00 UTC (cron: '0 1 * * *')
  */
 
 import logger from '../services/logger';
 import prismaWorker from '../services/prisma-worker';
-import { guardCronJob } from '../utils/cron-guard';
-
-// Prevent running on PM2 restart - only run daily at 01:00 UTC
-guardCronJob('snapshot-alliances', { hour: 1, minute: 0 });
 
 async function takeAllianceSnapshots() {
     logger.info('📸 Alliance Snapshot Worker started...');
