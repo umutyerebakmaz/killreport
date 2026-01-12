@@ -2,6 +2,7 @@ subscription NewKillmail {
   newKillmail {
     id
     killmailTime
+    totalValue
     solarSystem {
       id
       name
