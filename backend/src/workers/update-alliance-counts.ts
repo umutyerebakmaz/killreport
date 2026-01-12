@@ -4,15 +4,9 @@
  *
  * Usage:
  *   npx tsx update-alliance-counts.ts
- *
- * Scheduled: Daily at 01:00 UTC (cron: '0 1 * * *')
  */
 
 import prismaWorker from '../services/prisma-worker';
-import { guardCronJob } from '../utils/cron-guard';
-
-// Prevent running on PM2 restart - only run daily at 01:00 UTC
-guardCronJob('update-alliance-counts', { hour: 1, minute: 0 });
 
 async function updateAllianceCounts() {
     console.log('🔄 Updating alliance counts...');
