@@ -10,6 +10,7 @@ import {
   useKillmailsQuery,
   useNewKillmailSubscription,
 } from "@/generated/graphql";
+import { formatISK } from "@/utils/formatISK";
 import {
   ChevronDownIcon,
   FireIcon,
@@ -324,6 +325,11 @@ function KillmailsContent() {
                                     }
                                   )}
                                 </div>
+                                {km.totalValue && (
+                                  <div className="text-xs text-yellow-500 tabular-nums">
+                                    {formatISK(km.totalValue)}
+                                  </div>
+                                )}
                               </Tooltip>
                             </td>
                             <td className="px-6 py-4 text-base align-top">
@@ -409,11 +415,11 @@ function KillmailsContent() {
                                         position="top"
                                       >
                                         <Link
-                                          href={`/corporations/${km.victim.corporation.id}`}
-                                          className="transition-colors hover:text-cyan-400"
+                                          href={`/corporations/${km.victim.corporation?.id}`}
+                                          className="text-gray-500"
                                           prefetch={false}
                                         >
-                                          {km.victim.corporation.name}
+                                          {km.victim.corporation?.name}
                                         </Link>
                                       </Tooltip>
                                     </div>

@@ -4,6 +4,7 @@ query Killmails($filter: KillmailFilter) {
       node {
         id
         killmailTime
+        totalValue
         solarSystem {
           id
           name
