@@ -6,7 +6,6 @@ import { Loader } from "@/components/Loader/Loader";
 import { useKillmailQuery } from "@/generated/graphql";
 import { formatISK } from "@/utils/formatISK";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
-import Link from "next/link";
 import { use } from "react";
 
 const getItemPrice = (jitaPrice: any) => {
@@ -78,99 +77,8 @@ export default function KillmailDetailPage({
                   </a>
                 </div>
               </div>
-
-              <div className="flex gap-4">
-                <div className="flex h-32">
-                  <img
-                    src={`https://images.evetech.net/types/${victim?.shipType?.id}/render?size=256`}
-                    alt={victim?.shipType?.name}
-                    className="object-contain w-32 h-32 shadow-md shrink-0"
-                    loading="lazy"
-                  />
-                  <img
-                    src={`https://images.evetech.net/characters/${victim?.character?.id}/portrait?size=256`}
-                    alt={victim?.character?.name}
-                    width={128}
-                    height={128}
-                    className="object-cover w-32 h-32 shadow-md shrink-0"
-                    loading="lazy"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                {victim?.character && (
-                  <div>
-                    <div className="text-sm text-gray-500">Pilot</div>
-                    <Link
-                      href={`/characters/${victim.character?.id}`}
-                      prefetch={false}
-                      className="text-lg font-medium text-white hover:text-blue-400"
-                    >
-                      {victim.character.name}
-                    </Link>
-                  </div>
-                )}
-
-                {victim?.corporation && (
-                  <div>
-                    <div className="text-sm text-gray-500">Corporation</div>
-                    <Link
-                      href={`/corporations/${victim.corporation?.id}`}
-                      prefetch={false}
-                      className="text-white hover:text-blue-400"
-                    >
-                      {victim.corporation?.name}
-                      {victim.corporation?.ticker && (
-                        <span className="ml-2 text-gray-400">
-                          [{victim.corporation?.ticker}]
-                        </span>
-                      )}
-                    </Link>
-                  </div>
-                )}
-
-                {victim?.alliance && (
-                  <div>
-                    <div className="text-sm text-gray-500">Alliance</div>
-                    <Link
-                      href={`/alliances/${victim.alliance?.id}`}
-                      prefetch={false}
-                      className="text-white hover:text-blue-400"
-                    >
-                      {victim.alliance.name}
-                      {victim.alliance.ticker && (
-                        <span className="ml-2 text-gray-400">
-                          &lt;{victim.alliance.ticker}&gt;
-                        </span>
-                      )}
-                    </Link>
-                  </div>
-                )}
-
-                {victim?.shipType && (
-                  <div>
-                    <div className="text-sm text-gray-500">Ship</div>
-                    <div className="text-white">
-                      {victim.shipType.name}
-                      {victim.shipType.group && (
-                        <span className="ml-2 text-sm text-gray-400">
-                          ({victim.shipType.group.name})
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <div className="text-sm text-gray-500">Damage Taken</div>
-                  <div className="text-lg font-medium text-red-400">
-                    {victim?.damageTaken?.toLocaleString()}
-                  </div>
-                </div>
-              </div>
+              <FitScreen shipType={victim?.shipType} fitting={fitting as any} />
             </div>
-            <FitScreen shipType={victim?.shipType} fitting={fitting as any} />
           </div>
 
           {/* Items List */}
@@ -571,7 +479,7 @@ export default function KillmailDetailPage({
                     return (
                       <div
                         key={index}
-                        className="flex items-center gap-3 py-2 bg-yellow-500/5 rounded px-2"
+                        className="flex items-center gap-3 px-2 py-2 rounded bg-yellow-500/5"
                       >
                         <img
                           src={`https://images.evetech.net/types/${module.itemType.id}/icon?size=64`}
