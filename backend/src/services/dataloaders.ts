@@ -420,7 +420,7 @@ export interface DataLoaderContext {
         victim: DataLoader<number, any>;
         attackers: DataLoader<number, any[]>;
         items: DataLoader<number, any[]>;
-        price: DataLoader<number, any>;
+        marketPrice: DataLoader<number, any>;
     };
 }
 
@@ -450,6 +450,7 @@ export const createDataLoaders = (): DataLoaderContext => ({
         victim: createVictimLoader(),
         attackers: createAttackersLoader(),
         items: createItemsLoader(),
+        marketPrice: createMarketPriceLoader(),
     },
 });
 
@@ -665,5 +666,23 @@ export const createItemsLoader = () => {
         });
 
         return killmailIds.map(id => itemsByKillmail.get(id) || []);
+    });
+};
+/**
+ * Market Price DataLoader - Batch loading for market prices
+ * Fetches prices from database for multiple types at once
+ */
+export const createMarketPriceLoader = () => {
+    return new DataLoader<number, any>(async (typeIds) => {
+        console.log('🔄 DataLoader: Batching', typeIds.length, 'market price queries');
+
+        const prices = await prisma.marketPrice.findMany({
+            where: {
+                type_id: { in: [...typeIds] },
+            },
+        });
+
+        const priceMap = new Map(prices.map(p => [p.type_id, p]));
+        return typeIds.map(id => priceMap.get(id) || null);
     });
 };
