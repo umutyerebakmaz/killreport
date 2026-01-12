@@ -33,6 +33,8 @@ type Killmail {
   attackers: [Attacker!]!
   items: [KillmailItem!]!
   fitting: Fitting
+  destroyedValue: Float
+  droppedValue: Float
   totalValue: Float
   createdAt: String!
 }
