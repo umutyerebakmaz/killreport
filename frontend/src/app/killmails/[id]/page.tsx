@@ -54,8 +54,7 @@ export default function KillmailDetailPage({
         {/* Left Column: FitScreen (2/3 width) */}
         <div className="space-y-6 lg:col-span-2">
           {/* Fit + Victim */}
-          <div className="flex fit-and-victim">
-            <FitScreen shipType={victim?.shipType} fitting={fitting as any} />
+          <div className="flex flex-col gap-6 fit-and-victim">
             <div className="victim-card">
               <div className="flex items-center justify-between pb-2">
                 <div className="flex items-center gap-2">
@@ -82,6 +81,12 @@ export default function KillmailDetailPage({
 
               <div className="flex gap-4">
                 <div className="flex h-32">
+                  <img
+                    src={`https://images.evetech.net/types/${victim?.shipType?.id}/render?size=256`}
+                    alt={victim?.shipType?.name}
+                    className="object-contain w-32 h-32 shadow-md shrink-0"
+                    loading="lazy"
+                  />
                   <img
                     src={`https://images.evetech.net/characters/${victim?.character?.id}/portrait?size=256`}
                     alt={victim?.character?.name}
@@ -165,6 +170,7 @@ export default function KillmailDetailPage({
                 </div>
               </div>
             </div>
+            <FitScreen shipType={victim?.shipType} fitting={fitting as any} />
           </div>
 
           {/* Items List */}
