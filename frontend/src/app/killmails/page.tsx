@@ -94,6 +94,7 @@ function KillmailsContent() {
           victimShipTypeId: km.victim?.shipType?.id || null,
           attackerName: finalBlowAttacker?.character?.name || null,
           systemName: km.solarSystem?.name || null,
+          totalValue: km.totalValue || null,
           timestamp: new Date(km.killmailTime),
         };
 
