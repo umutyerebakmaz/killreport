@@ -10,6 +10,7 @@ interface KillmailToast {
   victimShipTypeId: number | null;
   attackerName: string | null;
   systemName: string | null;
+  totalValue?: number | null;
   timestamp: Date;
 }
 
@@ -125,9 +126,19 @@ function KillmailToastItem({
             )}
           </div>
 
-          {/* Time */}
-          <div className="mt-1 text-xs text-gray-600">
-            {formatTimeAgo(toast.timestamp)}
+          {/* Value & Time */}
+          <div className="flex items-center gap-2 mt-1">
+            {toast.totalValue && (
+              <span className="text-xs font-semibold text-yellow-500 tabular-nums">
+                {formatISK(toast.totalValue)}
+              </span>
+            )}
+            {toast.totalValue && (
+              <span className="text-xs text-gray-600">•</span>
+            )}
+            <span className="text-xs text-gray-600">
+              {formatTimeAgo(toast.timestamp)}
+            </span>
           </div>
         </div>
 
