@@ -6,10 +6,10 @@
  */
 
 interface CronSchedule {
-    minute?: number;
-    hour?: number;
-    dayOfMonth?: number;
-    dayOfWeek?: number;
+  minute?: number;
+  hour?: number;
+  dayOfMonth?: number;
+  dayOfWeek?: number;
 }
 
 /**
@@ -25,55 +25,72 @@ interface CronSchedule {
  *   shouldRunCronJob({ hour: 0, minute: 10, dayOfWeek: 0 }) // Sundays at 00:10 UTC
  */
 export function shouldRunCronJob(
-    schedule: CronSchedule,
-    gracePeriodMinutes: number = 5
+  schedule: CronSchedule,
+  gracePeriodMinutes: number = 5
 ): boolean {
-    const now = new Date();
-    const currentMinute = now.getUTCMinutes();
-    const currentHour = now.getUTCHours();
-    const currentDayOfMonth = now.getUTCDate();
-    const currentDayOfWeek = now.getUTCDay();
+  const now = new Date();
+  const currentMinute = now.getUTCMinutes();
+  const currentHour = now.getUTCHours();
+  const currentDayOfMonth = now.getUTCDate();
+  const currentDayOfWeek = now.getUTCDay();
 
-    // Check minute
-    if (schedule.minute !== undefined) {
-        const minuteDiff = Math.abs(currentMinute - schedule.minute);
-        // Account for wrap-around (e.g., minute 58 vs minute 2)
-        const adjustedDiff = Math.min(minuteDiff, 60 - minuteDiff);
-        if (adjustedDiff > gracePeriodMinutes) {
-            return false;
-        }
+  // Check minute
+  if (schedule.minute !== undefined) {
+    const minuteDiff = Math.abs(currentMinute - schedule.minute);
+    // Account for wrap-around (e.g., minute 58 vs minute 2)
+    const adjustedDiff = Math.min(minuteDiff, 60 - minuteDiff);
+    if (adjustedDiff > gracePeriodMinutes) {
+      return false;
     }
+  }
 
-    // Check hour
-    if (schedule.hour !== undefined && currentHour !== schedule.hour) {
-        return false;
-    }
+  // Check hour
+  if (schedule.hour !== undefined && currentHour !== schedule.hour) {
+    return false;
+  }
 
-    // Check day of month (if specified, takes precedence)
-    if (schedule.dayOfMonth !== undefined && currentDayOfMonth !== schedule.dayOfMonth) {
-        return false;
-    }
+  // Check day of month (if specified, takes precedence)
+  if (schedule.dayOfMonth !== undefined && currentDayOfMonth !== schedule.dayOfMonth) {
+    return false;
+  }
 
-    // Check day of week (0 = Sunday, 1 = Monday, etc.)
-    if (schedule.dayOfWeek !== undefined && currentDayOfWeek !== schedule.dayOfWeek) {
-        return false;
-    }
+  // Check day of week (0 = Sunday, 1 = Monday, etc.)
+  if (schedule.dayOfWeek !== undefined && currentDayOfWeek !== schedule.dayOfWeek) {
+    return false;
+  }
 
-    return true;
+  return true;
 }
 
 /**
  * Guard wrapper for cron jobs
  * Exits with code 0 if not the right time to run
+ *
+ * Can be bypassed with: SKIP_CRON_GUARD=true
+ *
+ * @example
+ * // Normal PM2 execution - guard active
+ * yarn queue:alliances
+ *
+ * // Manual execution - skip guard
+ * SKIP_CRON_GUARD=true yarn queue:alliances
  */
 export function guardCronJob(
-    jobName: string,
-    schedule: CronSchedule,
-    gracePeriodMinutes: number = 5
+  jobName: string,
+  schedule: CronSchedule,
+  gracePeriodMinutes: number = 5
 ): void {
-    if (!shouldRunCronJob(schedule, gracePeriodMinutes)) {
-        const now = new Date().toISOString();
-        console.log(`[${now}] ${jobName}: Not scheduled to run at this time. Skipping.`);
-        process.exit(0);
-    }
+  // Allow bypassing guard for manual execution
+  if (process.env.SKIP_CRON_GUARD === 'true') {
+    const now = new Date().toISOString();
+    console.log(`[${now}] ${jobName}: Cron guard bypassed (SKIP_CRON_GUARD=true)`);
+    return;
+  }
+
+  if (!shouldRunCronJob(schedule, gracePeriodMinutes)) {
+    const now = new Date().toISOString();
+    console.log(`[${now}] ${jobName}: Not scheduled to run at this time. Skipping.`);
+    console.log(`       To run manually: SKIP_CRON_GUARD=true yarn ${jobName.replace('-', ':')}`);
+    process.exit(0);
+  }
 }
