@@ -46,16 +46,129 @@ export default function KillmailDetailPage({
   const victim = km.victim;
   const attackers = km.attackers || [];
   const fitting = km.fitting;
-  const destroyedValue = km.destroyedValue || 0;
-  const droppedValue = km.droppedValue || 0;
-  const totalValue = km.totalValue || 0;
 
-  // Debug: Backend'den gelen değerleri görelim
-  console.log("Backend değerleri:", {
-    destroyedValue: km.destroyedValue,
-    droppedValue: km.droppedValue,
-    totalValue: km.totalValue,
-  });
+  // Frontend'de değerleri hesapla
+  let destroyedValue = 0;
+  let droppedValue = 0;
+
+  // Ship değeri (her zaman destroyed)
+  if (victim?.shipType?.jitaPrice) {
+    destroyedValue += getItemPrice(victim.shipType.jitaPrice);
+  }
+
+  // Fitting itemlarından hesapla
+  if (fitting) {
+    // High slots
+    fitting.highSlots?.slots.forEach((slot) => {
+      if (slot.module) {
+        const modulePrice = getItemPrice(slot.module.itemType.jitaPrice);
+        const qtyDestroyed = slot.module.quantityDestroyed || 0;
+        const qtyDropped = slot.module.quantityDropped || 0;
+        destroyedValue += modulePrice * qtyDestroyed;
+        droppedValue += modulePrice * qtyDropped;
+
+        // Charge varsa
+        if (slot.module.charge) {
+          const chargePrice = getItemPrice(
+            slot.module.charge.itemType.jitaPrice
+          );
+          const chargeQtyDestroyed = slot.module.charge.quantityDestroyed || 0;
+          const chargeQtyDropped = slot.module.charge.quantityDropped || 0;
+          destroyedValue += chargePrice * chargeQtyDestroyed;
+          droppedValue += chargePrice * chargeQtyDropped;
+        }
+      }
+    });
+
+    // Mid slots
+    fitting.midSlots?.slots.forEach((slot) => {
+      if (slot.module) {
+        const modulePrice = getItemPrice(slot.module.itemType.jitaPrice);
+        const qtyDestroyed = slot.module.quantityDestroyed || 0;
+        const qtyDropped = slot.module.quantityDropped || 0;
+        destroyedValue += modulePrice * qtyDestroyed;
+        droppedValue += modulePrice * qtyDropped;
+
+        if (slot.module.charge) {
+          const chargePrice = getItemPrice(
+            slot.module.charge.itemType.jitaPrice
+          );
+          const chargeQtyDestroyed = slot.module.charge.quantityDestroyed || 0;
+          const chargeQtyDropped = slot.module.charge.quantityDropped || 0;
+          destroyedValue += chargePrice * chargeQtyDestroyed;
+          droppedValue += chargePrice * chargeQtyDropped;
+        }
+      }
+    });
+
+    // Low slots
+    fitting.lowSlots?.slots.forEach((slot) => {
+      if (slot.module) {
+        const modulePrice = getItemPrice(slot.module.itemType.jitaPrice);
+        const qtyDestroyed = slot.module.quantityDestroyed || 0;
+        const qtyDropped = slot.module.quantityDropped || 0;
+        destroyedValue += modulePrice * qtyDestroyed;
+        droppedValue += modulePrice * qtyDropped;
+
+        if (slot.module.charge) {
+          const chargePrice = getItemPrice(
+            slot.module.charge.itemType.jitaPrice
+          );
+          const chargeQtyDestroyed = slot.module.charge.quantityDestroyed || 0;
+          const chargeQtyDropped = slot.module.charge.quantityDropped || 0;
+          destroyedValue += chargePrice * chargeQtyDestroyed;
+          droppedValue += chargePrice * chargeQtyDropped;
+        }
+      }
+    });
+
+    // Rigs
+    fitting.rigs?.modules.forEach((module) => {
+      const rigPrice = getItemPrice(module.itemType.jitaPrice);
+      const qtyDestroyed = module.quantityDestroyed || 0;
+      const qtyDropped = module.quantityDropped || 0;
+      destroyedValue += rigPrice * qtyDestroyed;
+      droppedValue += rigPrice * qtyDropped;
+    });
+
+    // Subsystems
+    fitting.subsystems?.forEach((module) => {
+      const price = getItemPrice(module.itemType.jitaPrice);
+      const qtyDestroyed = module.quantityDestroyed || 0;
+      const qtyDropped = module.quantityDropped || 0;
+      destroyedValue += price * qtyDestroyed;
+      droppedValue += price * qtyDropped;
+    });
+
+    // Cargo
+    fitting.cargo?.forEach((module) => {
+      const price = getItemPrice(module.itemType.jitaPrice);
+      const qtyDestroyed = module.quantityDestroyed || 0;
+      const qtyDropped = module.quantityDropped || 0;
+      destroyedValue += price * qtyDestroyed;
+      droppedValue += price * qtyDropped;
+    });
+
+    // Drone Bay
+    fitting.droneBay?.forEach((module) => {
+      const price = getItemPrice(module.itemType.jitaPrice);
+      const qtyDestroyed = module.quantityDestroyed || 0;
+      const qtyDropped = module.quantityDropped || 0;
+      destroyedValue += price * qtyDestroyed;
+      droppedValue += price * qtyDropped;
+    });
+
+    // Fighter Bay
+    fitting.fighterBay?.forEach((module) => {
+      const price = getItemPrice(module.itemType.jitaPrice);
+      const qtyDestroyed = module.quantityDestroyed || 0;
+      const qtyDropped = module.quantityDropped || 0;
+      destroyedValue += price * qtyDestroyed;
+      droppedValue += price * qtyDropped;
+    });
+  }
+
+  const totalValue = destroyedValue + droppedValue;
 
   return (
     <>

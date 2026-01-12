@@ -13,76 +13,15 @@ import { organizeFitting } from '@services/fitting-helper';
  * Uses DataLoaders to prevent N+1 queries
  */
 
-/**
- * Helper: Calculate killmail ISK values from items
- */
-async function calculateKillmailValues(killmailId: number, context: any) {
-  const victim = await context.loaders.victim.load(killmailId);
-  const items = await context.loaders.items.load(killmailId);
-
-  const getItemPrice = (jitaPrice: any) => {
-    return jitaPrice?.sell || jitaPrice?.average || 0;
-  };
-
-  let destroyedValue = 0;
-  let droppedValue = 0;
-
-  // Ship value (always destroyed)
-  if (victim?.ship_type_id) {
-    const shipType = await context.loaders.type.load(victim.ship_type_id);
-    if (shipType?.jitaPrice) {
-      destroyedValue += getItemPrice(shipType.jitaPrice);
-    }
-  }
-
-  // Items value
-  for (const item of items) {
-    const itemType = await context.loaders.type.load(item.item_type_id);
-    if (itemType?.jitaPrice) {
-      const price = getItemPrice(itemType.jitaPrice);
-      if (item.quantity_destroyed && item.quantity_destroyed > 0) {
-        destroyedValue += price * item.quantity_destroyed;
-      }
-      if (item.quantity_dropped && item.quantity_dropped > 0) {
-        droppedValue += price * item.quantity_dropped;
-      }
-    }
-  }
-
-  return { destroyedValue, droppedValue, totalValue: destroyedValue + droppedValue };
-}
-
 export const killmailFields: KillmailResolvers = {
   solarSystem: async (parent: any, _, context) => {
     if (!parent.solarSystemId) return null;
     return context.loaders.solarSystem.load(parent.solarSystemId);
   },
 
-  // Calculate values on demand if not already cached in parent
-  destroyedValue: async (parent: any, _, context) => {
-    if (parent.destroyedValue !== undefined) return parent.destroyedValue;
-    const killmailId = parent.killmail_id || (typeof parent.id === 'string' ? parseInt(parent.id, 10) : parent.id);
-    const { destroyedValue } = await calculateKillmailValues(killmailId, context);
-    return destroyedValue;
-  },
-
-  droppedValue: async (parent: any, _, context) => {
-    if (parent.droppedValue !== undefined) return parent.droppedValue;
-    const killmailId = parent.killmail_id || (typeof parent.id === 'string' ? parseInt(parent.id, 10) : parent.id);
-    const { droppedValue } = await calculateKillmailValues(killmailId, context);
-    return droppedValue;
-  },
-
-  totalValue: async (parent: any, _, context) => {
-    if (parent.totalValue !== undefined) return parent.totalValue;
-    const killmailId = parent.killmail_id || (typeof parent.id === 'string' ? parseInt(parent.id, 10) : parent.id);
-    const { totalValue } = await calculateKillmailValues(killmailId, context);
-    return totalValue;
-  },
-
   victim: async (parent: any, _, context) => {
     // parent is the killmail, we need to load victim by killmail_id
-    const killmailId = parent.killmail_id || (typeof parent.id === 'string' ? parseInt(parent.id, 10) : parent.id);
+    const killmailId = typeof parent.id === 'string' ? parseInt(parent.id) : parent.id;
     const victim = await context.loaders.victim.load(killmailId);
     if (!victim) {
       console.error(`⚠️ Victim not found for killmail ${killmailId} - data inconsistency!`);
@@ -105,7 +44,7 @@ export const killmailFields: KillmailResolvers = {
   },
 
   attackers: async (parent: any, _, context) => {
-    const killmailId = parent.killmail_id || (typeof parent.id === 'string' ? parseInt(parent.id, 10) : parent.id);
+    const killmailId = typeof parent.id === 'string' ? parseInt(parent.id) : parent.id;
     const attackers = await context.loaders.attackers.load(killmailId);
 
     return attackers.map((attacker: any) => ({
