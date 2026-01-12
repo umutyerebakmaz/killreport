@@ -2,7 +2,6 @@ import '../config';
 import logger from '../services/logger';
 import prismaWorker from '../services/prisma-worker';
 import { getRabbitMQChannel } from '../services/rabbitmq';
-import { guardCronJob } from '../utils/cron-guard';
 
 const QUEUE_NAME = 'esi_character_info_queue';
 const BATCH_SIZE = 100;
@@ -12,16 +11,8 @@ const BATCH_SIZE = 100;
  * Usage:
  *   yarn queue:characters              # Queue ALL characters from DB
  *   yarn queue:characters 123 456 789  # Queue specific character IDs
- *
- * Scheduled: Monthly on 1st at 00:00 UTC (cron: '0 0 1 * *')
  */
 async function queueCharacters() {
-    // Prevent running on PM2 restart - only run on 1st of month at midnight UTC
-    const args = process.argv.slice(2);
-    if (args.length === 0) {
-        // Only check schedule if no arguments (automated run)
-        guardCronJob('queue-characters', { hour: 0, minute: 0, dayOfMonth: 1 });
-    }
     try {
         // Get character IDs from command line arguments or database
         const args = process.argv.slice(2);

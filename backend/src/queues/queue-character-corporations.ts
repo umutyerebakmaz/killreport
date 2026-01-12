@@ -2,7 +2,6 @@ import '../config';
 import logger from '../services/logger';
 import prismaWorker from '../services/prisma-worker';
 import { getRabbitMQChannel } from '../services/rabbitmq';
-import { guardCronJob } from '../utils/cron-guard';
 
 const QUEUE_NAME = 'esi_corporation_info_queue';
 const BATCH_SIZE = 100;
@@ -10,12 +9,8 @@ const BATCH_SIZE = 100;
 /**
  * Scans all characters in database and queues missing corporations
  * These will be processed by worker:info:corporations to fetch from ESI
- *
- * Scheduled: Daily at 04:00 UTC (cron: '0 4 * * *')
  */
 async function queueCharacterCorporations() {
-    // Prevent running on PM2 restart - only run daily at 04:00 UTC
-    guardCronJob('queue-character-corporations', { hour: 4, minute: 0 });
     logger.info('Scanning characters for missing corporations...');
 
     try {
