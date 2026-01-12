@@ -12,6 +12,7 @@ import {
   useKillmailsQuery,
   useNewKillmailSubscription,
 } from "@/generated/graphql";
+import { formatISK } from "@/utils/formatISK";
 import { FireIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -383,6 +384,11 @@ function KillmailsContent() {
                                     }
                                   )}
                                 </div>
+                                {km.totalValue && (
+                                  <div className="font-medium text-orange-400 tabular-nums">
+                                    {formatISK(km.totalValue)}
+                                  </div>
+                                )}
                               </Tooltip>
                             </td>
                             <td className="px-6 py-4 text-base align-top">
@@ -468,11 +474,11 @@ function KillmailsContent() {
                                         position="top"
                                       >
                                         <Link
-                                          href={`/corporations/${km.victim.corporation.id}`}
+                                          href={`/corporations/${km.victim.corporation?.id}`}
                                           className="transition-colors hover:text-cyan-400"
                                           prefetch={false}
                                         >
-                                          {km.victim.corporation.name}
+                                          {km.victim.corporation?.name}
                                         </Link>
                                       </Tooltip>
                                     </div>

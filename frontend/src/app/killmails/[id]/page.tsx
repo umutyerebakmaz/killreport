@@ -4,15 +4,10 @@ import AttackersCard from "@/components/AttackersCard";
 import FitScreen from "@/components/FitScreen/FitScreen";
 import { Loader } from "@/components/Loader/Loader";
 import { useKillmailQuery } from "@/generated/graphql";
+import { formatISK } from "@/utils/formatISK";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { use } from "react";
-
-// Helper functions (pure, no dependencies)
-const formatISK = (amount: number | null | undefined) => {
-  if (!amount) return "0 ISK";
-  return `${Math.round(amount).toLocaleString()} ISK`;
-};
 
 const getItemPrice = (jitaPrice: any) => {
   return jitaPrice?.sell || jitaPrice?.average || 0;
@@ -47,128 +42,10 @@ export default function KillmailDetailPage({
   const attackers = km.attackers || [];
   const fitting = km.fitting;
 
-  // Frontend'de değerleri hesapla
-  let destroyedValue = 0;
-  let droppedValue = 0;
-
-  // Ship değeri (her zaman destroyed)
-  if (victim?.shipType?.jitaPrice) {
-    destroyedValue += getItemPrice(victim.shipType.jitaPrice);
-  }
-
-  // Fitting itemlarından hesapla
-  if (fitting) {
-    // High slots
-    fitting.highSlots?.slots.forEach((slot) => {
-      if (slot.module) {
-        const modulePrice = getItemPrice(slot.module.itemType.jitaPrice);
-        const qtyDestroyed = slot.module.quantityDestroyed || 0;
-        const qtyDropped = slot.module.quantityDropped || 0;
-        destroyedValue += modulePrice * qtyDestroyed;
-        droppedValue += modulePrice * qtyDropped;
-
-        // Charge varsa
-        if (slot.module.charge) {
-          const chargePrice = getItemPrice(
-            slot.module.charge.itemType.jitaPrice
-          );
-          const chargeQtyDestroyed = slot.module.charge.quantityDestroyed || 0;
-          const chargeQtyDropped = slot.module.charge.quantityDropped || 0;
-          destroyedValue += chargePrice * chargeQtyDestroyed;
-          droppedValue += chargePrice * chargeQtyDropped;
-        }
-      }
-    });
-
-    // Mid slots
-    fitting.midSlots?.slots.forEach((slot) => {
-      if (slot.module) {
-        const modulePrice = getItemPrice(slot.module.itemType.jitaPrice);
-        const qtyDestroyed = slot.module.quantityDestroyed || 0;
-        const qtyDropped = slot.module.quantityDropped || 0;
-        destroyedValue += modulePrice * qtyDestroyed;
-        droppedValue += modulePrice * qtyDropped;
-
-        if (slot.module.charge) {
-          const chargePrice = getItemPrice(
-            slot.module.charge.itemType.jitaPrice
-          );
-          const chargeQtyDestroyed = slot.module.charge.quantityDestroyed || 0;
-          const chargeQtyDropped = slot.module.charge.quantityDropped || 0;
-          destroyedValue += chargePrice * chargeQtyDestroyed;
-          droppedValue += chargePrice * chargeQtyDropped;
-        }
-      }
-    });
-
-    // Low slots
-    fitting.lowSlots?.slots.forEach((slot) => {
-      if (slot.module) {
-        const modulePrice = getItemPrice(slot.module.itemType.jitaPrice);
-        const qtyDestroyed = slot.module.quantityDestroyed || 0;
-        const qtyDropped = slot.module.quantityDropped || 0;
-        destroyedValue += modulePrice * qtyDestroyed;
-        droppedValue += modulePrice * qtyDropped;
-
-        if (slot.module.charge) {
-          const chargePrice = getItemPrice(
-            slot.module.charge.itemType.jitaPrice
-          );
-          const chargeQtyDestroyed = slot.module.charge.quantityDestroyed || 0;
-          const chargeQtyDropped = slot.module.charge.quantityDropped || 0;
-          destroyedValue += chargePrice * chargeQtyDestroyed;
-          droppedValue += chargePrice * chargeQtyDropped;
-        }
-      }
-    });
-
-    // Rigs
-    fitting.rigs?.modules.forEach((module) => {
-      const rigPrice = getItemPrice(module.itemType.jitaPrice);
-      const qtyDestroyed = module.quantityDestroyed || 0;
-      const qtyDropped = module.quantityDropped || 0;
-      destroyedValue += rigPrice * qtyDestroyed;
-      droppedValue += rigPrice * qtyDropped;
-    });
-
-    // Subsystems
-    fitting.subsystems?.forEach((module) => {
-      const price = getItemPrice(module.itemType.jitaPrice);
-      const qtyDestroyed = module.quantityDestroyed || 0;
-      const qtyDropped = module.quantityDropped || 0;
-      destroyedValue += price * qtyDestroyed;
-      droppedValue += price * qtyDropped;
-    });
-
-    // Cargo
-    fitting.cargo?.forEach((module) => {
-      const price = getItemPrice(module.itemType.jitaPrice);
-      const qtyDestroyed = module.quantityDestroyed || 0;
-      const qtyDropped = module.quantityDropped || 0;
-      destroyedValue += price * qtyDestroyed;
-      droppedValue += price * qtyDropped;
-    });
-
-    // Drone Bay
-    fitting.droneBay?.forEach((module) => {
-      const price = getItemPrice(module.itemType.jitaPrice);
-      const qtyDestroyed = module.quantityDestroyed || 0;
-      const qtyDropped = module.quantityDropped || 0;
-      destroyedValue += price * qtyDestroyed;
-      droppedValue += price * qtyDropped;
-    });
-
-    // Fighter Bay
-    fitting.fighterBay?.forEach((module) => {
-      const price = getItemPrice(module.itemType.jitaPrice);
-      const qtyDestroyed = module.quantityDestroyed || 0;
-      const qtyDropped = module.quantityDropped || 0;
-      destroyedValue += price * qtyDestroyed;
-      droppedValue += price * qtyDropped;
-    });
-  }
-
-  const totalValue = destroyedValue + droppedValue;
+  // Backend'den gelen değerleri kullan
+  const totalValue = km.totalValue || 0;
+  const destroyedValue = km.destroyedValue || 0;
+  const droppedValue = km.droppedValue || 0;
 
   return (
     <>
@@ -238,10 +115,10 @@ export default function KillmailDetailPage({
                       prefetch={false}
                       className="text-white hover:text-blue-400"
                     >
-                      {victim.corporation.name}
-                      {victim.corporation.ticker && (
+                      {victim.corporation?.name}
+                      {victim.corporation?.ticker && (
                         <span className="ml-2 text-gray-400">
-                          [{victim.corporation.ticker}]
+                          [{victim.corporation?.ticker}]
                         </span>
                       )}
                     </Link>
@@ -582,6 +459,7 @@ export default function KillmailDetailPage({
                       : isDropped
                       ? "text-green-400"
                       : "text-white";
+
                     return (
                       <div
                         key={slot.slotIndex}
@@ -635,6 +513,7 @@ export default function KillmailDetailPage({
                       : isDropped
                       ? "text-green-400"
                       : "text-white";
+
                     return (
                       <div key={index} className="flex items-center gap-3 py-2">
                         <img
@@ -682,6 +561,7 @@ export default function KillmailDetailPage({
                       : isDropped
                       ? "text-green-400"
                       : "text-white";
+
                     return (
                       <div key={index} className="flex items-center gap-3 py-2">
                         <img
@@ -729,6 +609,7 @@ export default function KillmailDetailPage({
                       : isDropped
                       ? "text-green-400"
                       : "text-white";
+
                     return (
                       <div key={index} className="flex items-center gap-3 py-2">
                         <img
