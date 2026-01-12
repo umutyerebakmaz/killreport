@@ -8,45 +8,58 @@ import axios from 'axios';
  * Handles operations that modify alliance data
  */
 export const allianceMutations: MutationResolvers = {
-  startAllianceSync: async (_, { input }) => {
-    try {
-      logger.info('🚀 Starting alliance sync via GraphQL...');
+    startAllianceSync: async (_, { input }) => {
+        try {
+            logger.info('🚀 Starting alliance sync via GraphQL...');
 
-      // Get all alliance IDs from ESI
-      const response = await axios.get('https://esi.evetech.net/latest/alliances/');
-      const allianceIds: number[] = response.data;
+            // Get all alliance IDs from ESI
+            const response = await axios.get('https://esi.evetech.net/latest/alliances/');
+            const allianceIds: number[] = response.data;
 
-      logger.info(`✓ Found ${allianceIds.length} alliances`);
-      logger.info(`📤 Publishing to queue...`);            // RabbitMQ'ya ekle
-      const channel = await getRabbitMQChannel();
-      const QUEUE_NAME = 'alliance_queue';
+            logger.info(`✓ Found ${allianceIds.length} alliances`);
+            logger.info(`📤 Publishing to queue...`);
 
-      let publishedCount = 0;
-      for (const id of allianceIds) {
-        channel.sendToQueue(QUEUE_NAME, Buffer.from(id.toString()), {
-          persistent: true,
-        });
-        publishedCount++;
+            const channel = await getRabbitMQChannel();
+            const QUEUE_NAME = 'esi_alliance_info_queue';
 
-        // Her 100 alliance'da bir log
-        if (publishedCount % 100 === 0) {
-          logger.debug(`  ✓ Published ${publishedCount}/${allianceIds.length}`);
+            // Ensure queue exists
+            await channel.assertQueue(QUEUE_NAME, {
+                durable: true,
+                arguments: { 'x-max-priority': 10 },
+            });
+
+            let publishedCount = 0;
+            for (const id of allianceIds) {
+                const message = {
+                    entityId: id,
+                    queuedAt: new Date().toISOString(),
+                    source: 'graphql-mutation',
+                };
+
+                channel.sendToQueue(QUEUE_NAME, Buffer.from(JSON.stringify(message)), {
+                    persistent: true,
+                });
+                publishedCount++;
+
+                // Her 100 alliance'da bir log
+                if (publishedCount % 100 === 0) {
+                    logger.debug(`  ✓ Published ${publishedCount}/${allianceIds.length}`);
+                }
+            }
+
+            logger.info(`✅ All ${allianceIds.length} alliances queued successfully!`);
+            return {
+                success: true,
+                message: `${allianceIds.length} alliances queued successfully`,
+                clientMutationId: input.clientMutationId || null,
+            };
+        } catch (error) {
+            logger.error('❌ Error starting alliance sync:', error);
+            return {
+                success: false,
+                message: 'Failed to start alliance sync',
+                clientMutationId: input.clientMutationId || null,
+            };
         }
-      }
-
-      logger.info(`✅ All ${allianceIds.length} alliances queued successfully!`);
-      return {
-        success: true,
-        message: `${allianceIds.length} alliances queued successfully`,
-        clientMutationId: input.clientMutationId || null,
-      };
-    } catch (error) {
-      logger.error('❌ Error starting alliance sync:', error);
-      return {
-        success: false,
-        message: 'Failed to start alliance sync',
-        clientMutationId: input.clientMutationId || null,
-      };
-    }
-  },
+    },
 };
