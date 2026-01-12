@@ -1,6 +1,6 @@
 import Tooltip from "@/components/Tooltip/Tooltip";
 import type { Fitting, FittingModule, FittingSlot } from "@/generated/graphql";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -14,11 +14,23 @@ interface FitScreenProps {
   fitting?: Fitting | null;
 }
 
+interface SlotCategory {
+  label: string;
+  color: string;
+  slots: FittingSlot[] | FittingModule[];
+  startAngle: number;
+  endAngle: number;
+  radius: number;
+}
+
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 
 export default function FitScreen({ shipType, fitting }: FitScreenProps) {
+  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+  const [hoveredSlot, setHoveredSlot] = useState<string | null>(null);
+
   // Memoize hasContent check
   const hasContent = useMemo(() => {
     if (!fitting) return false;
@@ -40,6 +52,96 @@ export default function FitScreen({ shipType, fitting }: FitScreenProps) {
     );
   }, [fitting]);
 
+  // Slot kategorilerini fitting datasından oluştur
+  const slotCategories = useMemo((): Record<string, SlotCategory> => {
+    if (!fitting) return {};
+
+    // Her kategori 90 derece alacak (360/4 = 90)
+    // Her slotta 90/8 = 11.25 derece gap
+    const degreesPerSlot = 11.25;
+    const gapBetweenRigAndSubsystem = (degreesPerSlot / 2) * 3; // 3 yarım gap = ~17°
+
+    return {
+      high: {
+        label: "High Slots",
+        color: "#2C2C2C",
+        slots: fitting.highSlots.slots,
+        startAngle: -135, // Üst sol (12 saat - saat 10 arası)
+        endAngle: -45, // Üst sağ
+        radius: 230, // High slotlar için daha dış radius
+      },
+      mid: {
+        label: "Mid Slots",
+        color: "#3b82f6",
+        slots: fitting.midSlots.slots,
+        startAngle: -45, // Sağ üst (saat 2 - saat 4 arası)
+        endAngle: 45, // Sağ alt
+        radius: 230,
+      },
+      low: {
+        label: "Low Slots",
+        color: "#eab308",
+        slots: fitting.lowSlots.slots,
+        startAngle: 45, // Alt sağ (saat 4 - saat 8 arası)
+        endAngle: 135, // Alt sol
+        radius: 230,
+      },
+      rig: {
+        label: "Rig Slots",
+        color: "#8b5cf6",
+        slots: fitting.rigs.modules,
+        startAngle: 135, // Sol alt - rig için 3 slot max (3 * 11.25 = 33.75°)
+        endAngle: 135 + 3 * degreesPerSlot, // ~168.75°
+        radius: 230,
+      },
+      subsystem: {
+        label: "Subsystems",
+        color: "#10b981", // yeşil
+        slots: fitting.subsystems || [],
+        startAngle: 135 + 3 * degreesPerSlot + gapBetweenRigAndSubsystem, // Rigden sonra gap + başlangıç
+        endAngle: 225, // Sol üst
+        radius: 230,
+      },
+    };
+  }, [fitting]);
+
+  // Slot pozisyonunu hesapla
+  const calculateSlotPosition = (
+    category: string,
+    index: number
+  ): { x: number; y: number; angle: number } => {
+    const config = slotCategories[category];
+    if (!config) return { x: 300, y: 300, angle: 0 };
+
+    let maxSlots: number;
+    let angleStep: number;
+
+    if (category === "rig") {
+      // Rig için max 3 slot
+      maxSlots = 3;
+      angleStep = 11.25;
+    } else if (category === "subsystem") {
+      // Subsystem için max 4 slot
+      maxSlots = 4;
+      angleStep = 11.25;
+    } else {
+      // Diğer kategoriler için max 8 slot
+      maxSlots = 8;
+      angleStep = 11.25;
+    }
+
+    // Slotu ortala - ilk slot biraz içerden başlasın
+    const offset = angleStep / 2;
+    const angle =
+      (config.startAngle + offset + index * angleStep) * (Math.PI / 180);
+
+    return {
+      x: 300 + Math.cos(angle) * config.radius,
+      y: 300 + Math.sin(angle) * config.radius,
+      angle: config.startAngle + offset + index * angleStep,
+    };
+  };
+
   if (!fitting || !hasContent) {
     return (
       <div className="flex p-4">
@@ -51,51 +153,120 @@ export default function FitScreen({ shipType, fitting }: FitScreenProps) {
   }
 
   return (
-    <div className="flex p-4">
-      {/* Main Fitting Section */}
-      <div className="flex flex-col items-start">
-        <div className="flex flex-col gap-6">
-          {/* Module Slots - Vertical Layout */}
-          {fitting.highSlots.slots.length > 0 && (
-            <SlotGroup
-              slots={fitting.highSlots.slots}
-              label={`High Slots (${fitting.highSlots.totalSlots})`}
-            />
-          )}
+    <div className="flex flex-col items-center justify-center w-full gap-8 p-4">
+      <div className="flex gap-8">
+        {/* Main SVG Canvas */}
+        <div className="relative">
+          <svg width="600" height="600">
+            {/* Background grid pattern */}
+            <defs>
+              <clipPath id="shipClip">
+                <circle cx="300" cy="300" r="150" />
+              </clipPath>
+            </defs>
 
-          {fitting.midSlots.slots.length > 0 && (
-            <SlotGroup
-              slots={fitting.midSlots.slots}
-              label={`Mid Slots (${fitting.midSlots.totalSlots})`}
-            />
-          )}
+            {/* Orbital rings */}
+            {[160, 210].map((r, i) => (
+              <circle key={i} cx="300" cy="300" r={r} fill="#000" />
+            ))}
 
-          {fitting.lowSlots.slots.length > 0 && (
-            <SlotGroup
-              slots={fitting.lowSlots.slots}
-              label={`Low Slots (${fitting.lowSlots.totalSlots})`}
-            />
-          )}
-        </div>
+            {/* Center ship container */}
+            <g>
+              {/* Ship image - cover style, clipped to circle */}
+              {shipType && (
+                <image
+                  href={`https://images.evetech.net/types/${shipType.id}/render?size=512`}
+                  x="150"
+                  y="150"
+                  width="300"
+                  height="300"
+                  clipPath="url(#shipClip)"
+                  preserveAspectRatio="xMidYMid slice"
+                />
+              )}
+            </g>
 
-        <div className="flex flex-col gap-6 mt-6">
-          {/* Rigs */}
-          {fitting.rigs.modules.length > 0 && (
-            <ModuleGroup
-              modules={fitting.rigs.modules}
-              label={`Rigs (${fitting.rigs.totalSlots})`}
-            />
-          )}
+            {/* Render slots for each category */}
+            {Object.entries(slotCategories).map(([category, config]) => (
+              <g key={category}>
+                {config.slots.map((slot, index) => {
+                  const pos = calculateSlotPosition(category, index);
+                  const slotId = `${category}-${index}`;
+                  const isSelected = selectedSlot === slotId;
+                  const isHovered = hoveredSlot === slotId;
 
-          {/* Subsystems (T3 Cruisers) */}
-          {fitting.subsystems.length > 0 && (
-            <ModuleGroup modules={fitting.subsystems} label="Subsystems" />
-          )}
+                  // FittingSlot veya FittingModule tipini kontrol et
+                  const module: FittingModule | null =
+                    "module" in slot
+                      ? slot.module ?? null
+                      : (slot as FittingModule);
 
-          {/* Implants (Pod kills) */}
-          {fitting.implants.length > 0 && (
-            <ModuleGroup modules={fitting.implants} label="Implants" />
-          )}
+                  return (
+                    <g key={slotId}>
+                      <foreignObject
+                        x={pos.x - 24}
+                        y={pos.y - 24}
+                        width="48"
+                        height="48"
+                        style={{ overflow: "visible" }}
+                      >
+                        <Tooltip
+                          content={
+                            module
+                              ? module.itemType.name
+                              : `${config.label} - Slot ${index + 1}`
+                          }
+                          position={category === "high" ? "top" : "top"}
+                        >
+                          <div
+                            className="flex flex-col items-center gap-0.5 cursor-pointer"
+                            style={{ width: "48px", height: "48px" }}
+                            onClick={() =>
+                              setSelectedSlot(
+                                slotId === selectedSlot ? null : slotId
+                              )
+                            }
+                            onMouseEnter={() => setHoveredSlot(slotId)}
+                            onMouseLeave={() => setHoveredSlot(null)}
+                          >
+                            {module ? (
+                              <>
+                                {/* Charge Icon (if exists) */}
+                                {module.charge && (
+                                  <img
+                                    src={`https://images.evetech.net/types/${module.charge.itemType.id}/icon?size=64`}
+                                    alt={module.charge.itemType.name}
+                                    width="64"
+                                    height="64"
+                                    className="transition-all"
+                                    title={module.charge.itemType.name}
+                                  />
+                                )}
+                                {/* Module Icon */}
+                                <img
+                                  src={`https://images.evetech.net/types/${module.itemType.id}/icon?size=64`}
+                                  alt={module.itemType.name}
+                                  width="48"
+                                  height="48"
+                                  className="transition-all"
+                                />
+                              </>
+                            ) : (
+                              <div className="flex items-center justify-center w-full h-full">
+                                <span className="text-sm font-bold text-white/40">
+                                  {index + 1}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </Tooltip>
+                      </foreignObject>
+                    </g>
+                  );
+                })}
+              </g>
+            ))}
+          </svg>
         </div>
       </div>
     </div>
@@ -220,7 +391,7 @@ function ModuleSlot({
       {module.charge && (
         <Tooltip content={module.charge.itemType.name} position="top">
           <div
-            className={`relative w-16 h-16 overflow-hidden transition-all border cursor-pointer hover:scale-105 ${borderColor}`}
+            className={`relative w-16 h-16 overflow-hidden transition-all border cursor-pointer ${borderColor}`}
           >
             <img
               src={`https://images.evetech.net/types/${module.charge.itemType.id}/icon?size=64`}
@@ -240,7 +411,7 @@ function ModuleSlot({
       {/* Module Icon */}
       <Tooltip content={module.itemType.name} position="bottom">
         <div
-          className={`relative w-16 h-16 overflow-hidden transition-all border cursor-pointer group hover:scale-105 ${borderColor}`}
+          className={`relative w-16 h-16 overflow-hidden transition-all border cursor-pointer group ${borderColor}`}
         >
           <img
             src={`https://images.evetech.net/types/${module.itemType.id}/icon?size=64`}
@@ -257,56 +428,6 @@ function ModuleSlot({
           )}
         </div>
       </Tooltip>
-    </div>
-  );
-}
-
-// Inventory Section - For Cargo/Drones/Fighters
-interface InventorySectionProps {
-  items: FittingModule[];
-  label: string;
-}
-
-function InventorySection({ items, label }: InventorySectionProps) {
-  return (
-    <div className="p-4 border border-white/10">
-      <h4 className="mb-3 text-xs font-bold tracking-wider text-gray-400 uppercase">
-        {label} ({items.length})
-      </h4>
-      <div className="space-y-1 overflow-y-auto max-h-48">
-        {items.map((item, index) => {
-          const totalQuantity =
-            (item.quantityDropped || 0) + (item.quantityDestroyed || 0);
-
-          return (
-            <Tooltip key={index} content={item.itemType.name} position="right">
-              <div className="flex items-center gap-2 p-2 text-xs transition-colors hover:bg-white/5">
-                <img
-                  src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=32`}
-                  alt={item.itemType.name}
-                  className="w-8 h-8"
-                  loading="lazy"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="text-gray-300 truncate">
-                    {item.itemType.name}
-                  </div>
-                  {item.itemType.group && (
-                    <div className="text-[10px] text-gray-500 truncate">
-                      {item.itemType.group.name}
-                    </div>
-                  )}
-                </div>
-                {totalQuantity > 1 && (
-                  <span className="px-2 py-1 text-[10px] font-bold text-white">
-                    ×{totalQuantity}
-                  </span>
-                )}
-              </div>
-            </Tooltip>
-          );
-        })}
-      </div>
     </div>
   );
 }
