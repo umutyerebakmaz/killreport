@@ -6,7 +6,6 @@ import {
   VictimResolvers,
 } from '@generated-types';
 import { organizeFitting } from '@services/fitting-helper';
-import prisma from '@services/prisma.js';
 
 /**
  * Killmail Field Resolvers
@@ -75,22 +74,14 @@ export const killmailFields: KillmailResolvers = {
       ? [...new Set([...items.map((item: any) => item.item_type_id), victim.ship_type_id])] as number[]
       : [...new Set(items.map((item: any) => item.item_type_id))] as number[];
 
-    // Market fiyatlarını toplu olarak çek
-    const marketPrices = await prisma.marketPrice.findMany({
-      where: {
-        type_id: {
-          in: allTypeIds
-        }
-      },
-      select: {
-        type_id: true,
-        sell: true // Sell fiyatını kullanıyoruz (instant buy price)
-      }
-    });
+    // ✅ Market fiyatlarını DataLoader ile batch olarak çek (N+1 query önlenir)
+    const marketPrices = await Promise.all(
+      allTypeIds.map(typeId => context.loaders.marketPrice.load(typeId))
+    );
 
     // type_id -> price mapping oluştur
     const priceMap = new Map(
-      marketPrices.map(mp => [mp.type_id, mp.sell])
+      allTypeIds.map((typeId, index) => [typeId, marketPrices[index]?.sell || 0])
     );
 
     // Her item için miktar * fiyat hesapla ve topla
@@ -125,12 +116,14 @@ export const killmailFields: KillmailResolvers = {
       ? [...new Set([...items.map((item: any) => item.item_type_id), victim.ship_type_id])] as number[]
       : [...new Set(items.map((item: any) => item.item_type_id))] as number[];
 
-    const marketPrices = await prisma.marketPrice.findMany({
-      where: { type_id: { in: allTypeIds } },
-      select: { type_id: true, sell: true }
-    });
+    // ✅ DataLoader ile batch fetch
+    const marketPrices = await Promise.all(
+      allTypeIds.map(typeId => context.loaders.marketPrice.load(typeId))
+    );
 
-    const priceMap = new Map(marketPrices.map(mp => [mp.type_id, mp.sell]));
+    const priceMap = new Map(
+      allTypeIds.map((typeId, index) => [typeId, marketPrices[index]?.sell || 0])
+    );
 
     let destroyedValue = 0;
 
@@ -156,12 +149,14 @@ export const killmailFields: KillmailResolvers = {
     const items = await context.loaders.items.load(killmailId);
     const typeIds = [...new Set(items.map((item: any) => item.item_type_id))] as number[];
 
-    const marketPrices = await prisma.marketPrice.findMany({
-      where: { type_id: { in: typeIds } },
-      select: { type_id: true, sell: true }
-    });
+    // ✅ DataLoader ile batch fetch
+    const marketPrices = await Promise.all(
+      typeIds.map(typeId => context.loaders.marketPrice.load(typeId))
+    );
 
-    const priceMap = new Map(marketPrices.map(mp => [mp.type_id, mp.sell]));
+    const priceMap = new Map(
+      typeIds.map((typeId, index) => [typeId, marketPrices[index]?.sell || 0])
+    );
 
     let droppedValue = 0;
     for (const item of items) {
