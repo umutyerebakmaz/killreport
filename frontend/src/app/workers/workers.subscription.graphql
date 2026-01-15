@@ -2,6 +2,7 @@ subscription WorkerStatusSubscription {
   workerStatusUpdates {
     timestamp
     healthy
+    databaseSizeMB
     queues {
       name
       messageCount

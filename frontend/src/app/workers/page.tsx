@@ -157,7 +157,7 @@ export default function WorkersPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-4 gap-4 mt-6">
+        <div className="grid grid-cols-5 gap-4 mt-6">
           <StatCard label="Total Queues" value={queues.length} color="blue" />
           <StatCard
             label="Active Workers"
@@ -179,6 +179,17 @@ export default function WorkersPage() {
               0
             )}
             color="purple"
+          />
+          <StatCard
+            label="Database Size"
+            value={
+              workerStatus?.databaseSizeMB
+                ? workerStatus.databaseSizeMB >= 1024
+                  ? `${(workerStatus.databaseSizeMB / 1024).toFixed(2)} GB`
+                  : `${workerStatus.databaseSizeMB.toFixed(2)} MB`
+                : "0.00 MB"
+            }
+            color="cyan"
           />
         </div>
       </div>
@@ -238,12 +249,15 @@ function StatCard({ label, value, color }: any) {
     green: "border-green-500/30 bg-green-500/10 text-green-400",
     yellow: "border-yellow-500/30 bg-yellow-500/10 text-yellow-400",
     purple: "border-purple-500/30 bg-purple-500/10 text-purple-400",
+    cyan: "border-cyan-500/30 bg-cyan-500/10 text-cyan-400",
   };
 
   return (
     <div className={`p-4 border  ${colorClasses[color]}`}>
       <div className="text-sm font-medium text-gray-400">{label}</div>
-      <div className="mt-1 text-3xl font-bold">{value.toLocaleString()}</div>
+      <div className="mt-1 text-3xl font-bold">
+        {typeof value === "string" ? value : value.toLocaleString()}
+      </div>
     </div>
   );
 }

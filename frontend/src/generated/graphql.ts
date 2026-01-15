@@ -1325,6 +1325,8 @@ export type Victim = {
 
 export type WorkerStatus = {
   __typename?: 'WorkerStatus';
+  /** Database size in megabytes (MB) */
+  databaseSizeMB: Scalars['Float']['output'];
   /** Overall system health */
   healthy: Scalars['Boolean']['output'];
   /** Status of individual queues (RabbitMQ-based workers) */
@@ -1427,12 +1429,12 @@ export type WorkerStatusQuery = { __typename?: 'Query', workerStatus: { __typena
 export type WorkerStatusUpdatesSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type WorkerStatusUpdatesSubscription = { __typename?: 'Subscription', workerStatusUpdates: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean }> } };
+export type WorkerStatusUpdatesSubscription = { __typename?: 'Subscription', workerStatusUpdates: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, databaseSizeMB: number, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean }> } };
 
 export type WorkerStatusSubscriptionSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type WorkerStatusSubscriptionSubscription = { __typename?: 'Subscription', workerStatusUpdates: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean, workerRunning: boolean, workerPid?: number | null, workerName?: string | null }>, standaloneWorkers: Array<{ __typename?: 'StandaloneWorkerStatus', name: string, running: boolean, pid?: number | null, description: string }> } };
+export type WorkerStatusSubscriptionSubscription = { __typename?: 'Subscription', workerStatusUpdates: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, databaseSizeMB: number, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean, workerRunning: boolean, workerPid?: number | null, workerName?: string | null }>, standaloneWorkers: Array<{ __typename?: 'StandaloneWorkerStatus', name: string, running: boolean, pid?: number | null, description: string }> } };
 
 export type AllianceKillmailsQueryVariables = Exact<{
   allianceId: Scalars['Int']['input'];
@@ -2403,6 +2405,7 @@ export const WorkerStatusUpdatesDocument = gql`
   workerStatusUpdates {
     timestamp
     healthy
+    databaseSizeMB
     queues {
       name
       messageCount
@@ -2439,6 +2442,7 @@ export const WorkerStatusSubscriptionDocument = gql`
   workerStatusUpdates {
     timestamp
     healthy
+    databaseSizeMB
     queues {
       name
       messageCount

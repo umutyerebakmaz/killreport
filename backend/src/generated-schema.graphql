@@ -977,6 +977,9 @@ type Victim {
 }
 
 type WorkerStatus {
+  """Database size in megabytes (MB)"""
+  databaseSizeMB: Float!
+
   """Overall system health"""
   healthy: Boolean!
 

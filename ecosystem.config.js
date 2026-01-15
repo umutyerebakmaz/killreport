@@ -253,25 +253,6 @@ module.exports = {
       time: true,
     },
 
-    // Queue Character Corporations - Daily at 04:00 UTC
-    {
-      name: 'queue-character-corporations',
-      cwd: '/var/www/killreport/backend',
-      script: 'yarn',
-      args: 'queue:character-corporations',
-      instances: 1,
-      exec_mode: 'fork',
-      autorestart: false,
-      cron_restart: '0 4 * * *',
-      env: {
-        NODE_ENV: 'production',
-        LOG_LEVEL: 'info',
-      },
-      error_file: '/var/www/killreport/logs/queue-character-corporations-error.log',
-      out_file: '/var/www/killreport/logs/queue-character-corporations-out.log',
-      time: true,
-    },
-
     // Alliance Snapshot (Daily at 01:00 UTC)
     {
       name: 'snapshot-alliances',
