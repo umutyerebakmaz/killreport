@@ -1324,6 +1324,8 @@ export type Victim = {
 
 export type WorkerStatus = {
   __typename?: 'WorkerStatus';
+  /** Database size in megabytes (MB) */
+  databaseSizeMB: Scalars['Float']['output'];
   /** Overall system health */
   healthy: Scalars['Boolean']['output'];
   /** Status of individual queues (RabbitMQ-based workers) */
@@ -2302,6 +2304,7 @@ export type VictimResolvers<ContextType = any, ParentType extends ResolversParen
 };
 
 export type WorkerStatusResolvers<ContextType = any, ParentType extends ResolversParentTypes['WorkerStatus'] = ResolversParentTypes['WorkerStatus']> = {
+  databaseSizeMB?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   healthy?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   queues?: Resolver<Array<ResolversTypes['QueueStatus']>, ParentType, ContextType>;
   standaloneWorkers?: Resolver<Array<ResolversTypes['StandaloneWorkerStatus']>, ParentType, ContextType>;
