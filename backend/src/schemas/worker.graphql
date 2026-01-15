@@ -33,6 +33,11 @@ type WorkerStatus {
   Overall system health
   """
   healthy: Boolean!
+
+  """
+  Database size in megabytes (MB)
+  """
+  databaseSizeMB: Float!
 }
 
 type QueueStatus {
