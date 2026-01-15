@@ -13,11 +13,11 @@ Bu doküman, KillReport projesinin PM2 ile yönetimi hakkında bilgiler içerir.
 
 ## Genel Bakış
 
-KillReport, PM2 kullanarak 17 farklı process yönetir:
+KillReport, PM2 kullanarak 16 farklı process yönetir:
 
 - **2 Uygulama**: Backend API ve Frontend
 - **8 Worker**: Real-time ve queue tabanlı data işleme
-- **7 Cron Job**: Scheduled maintenance ve data sync işlemleri
+- **6 Cron Job**: Scheduled maintenance ve data sync işlemleri
 
 Tüm process'ler `ecosystem.config.js` dosyasında tanımlanmıştır.
 
@@ -137,35 +137,28 @@ Tüm process'ler `ecosystem.config.js` dosyasında tanımlanmıştır.
 - **Komut**: `yarn queue:alliance-corporations`
 - **Logs**: `/var/www/killreport/logs/queue-alliance-corporations-*.log`
 
-#### 15. queue-character-corporations
-
-- **Açıklama**: Character corporation'larını queue'ya ekler
-- **Schedule**: Her gün 04:00 UTC (`0 4 * * *`)
-- **Komut**: `yarn queue:character-corporations`
-- **Logs**: `/var/www/killreport/logs/queue-character-corporations-*.log`
-
-#### 16. snapshot-alliances
+#### 15. snapshot-alliances
 
 - **Açıklama**: Alliance snapshot'larını alır
 - **Schedule**: Her gün 01:00 UTC (`0 1 * * *`)
 - **Komut**: `yarn snapshot:alliances`
 - **Logs**: `/var/www/killreport/logs/snapshot-alliances-*.log`
 
-#### 17. update-alliance-counts
+#### 16. update-alliance-counts
 
 - **Açıklama**: Alliance sayılarını günceller
 - **Schedule**: Her gün 01:00 UTC (`0 1 * * *`)
 - **Komut**: `yarn update:alliance-counts`
 - **Logs**: `/var/www/killreport/logs/update-alliance-counts-*.log`
 
-#### 18. snapshot-corporations
+#### 17. snapshot-corporations
 
 - **Açıklama**: Corporation snapshot'larını alır
 - **Schedule**: Her gün 01:00 UTC (`0 1 * * *`)
 - **Komut**: `yarn snapshot:corporations`
 - **Logs**: `/var/www/killreport/logs/snapshot-corporations-*.log`
 
-#### 19. queue-prices
+#### 18. queue-prices
 
 - **Açıklama**: Fiyatları queue'ya ekler
 - **Schedule**: Her gün 06:00 UTC / 09:00 Turkey Time (`0 6 * * *`)
@@ -316,16 +309,15 @@ rm -rf /var/www/killreport/logs/*.log
 
 ### Mevcut Cron Schedule'lar
 
-| Process                      | Schedule     | UTC                 | Turkey Time         | Açıklama                   |
-| ---------------------------- | ------------ | ------------------- | ------------------- | -------------------------- |
-| queue-characters             | `0 0 1 * *`  | Her ayın 1'i, 00:00 | Her ayın 1'i, 03:00 | Aylık character sync       |
-| queue-alliances              | `0 22 * * *` | Her gün 22:00       | Her gün 01:00       | Günlük alliance sync       |
-| queue-alliance-corporations  | `5 22 * * *` | Her gün 22:05       | Her gün 01:05       | Günlük alliance corp sync  |
-| queue-character-corporations | `0 4 * * *`  | Her gün 04:00       | Her gün 07:00       | Günlük character corp sync |
-| snapshot-alliances           | `0 1 * * *`  | Her gün 01:00       | Her gün 04:00       | Günlük alliance snapshot   |
-| update-alliance-counts       | `0 1 * * *`  | Her gün 01:00       | Her gün 04:00       | Günlük alliance counts     |
-| snapshot-corporations        | `0 1 * * *`  | Her gün 01:00       | Her gün 04:00       | Günlük corp snapshot       |
-| queue-prices                 | `0 6 * * *`  | Her gün 06:00       | Her gün 09:00       | Günlük price sync          |
+| Process                     | Schedule     | UTC                 | Turkey Time         | Açıklama                  |
+| --------------------------- | ------------ | ------------------- | ------------------- | ------------------------- |
+| queue-characters            | `0 0 1 * *`  | Her ayın 1'i, 00:00 | Her ayın 1'i, 03:00 | Aylık character sync      |
+| queue-alliances             | `0 22 * * *` | Her gün 22:00       | Her gün 01:00       | Günlük alliance sync      |
+| queue-alliance-corporations | `5 22 * * *` | Her gün 22:05       | Her gün 01:05       | Günlük alliance corp sync |
+| snapshot-alliances          | `0 1 * * *`  | Her gün 01:00       | Her gün 04:00       | Günlük alliance snapshot  |
+| update-alliance-counts      | `0 1 * * *`  | Her gün 01:00       | Her gün 04:00       | Günlük alliance counts    |
+| snapshot-corporations       | `0 1 * * *`  | Her gün 01:00       | Her gün 04:00       | Günlük corp snapshot      |
+| queue-prices                | `0 6 * * *`  | Her gün 06:00       | Her gün 09:00       | Günlük price sync         |
 
 ### Cron Job'ları Test Etme
 

@@ -1,6 +1,29 @@
 import { QueryResolvers } from '@generated-types';
+import prisma from '@services/prisma';
 import { getAllQueueStats } from '@services/rabbitmq';
 import { QUEUE_WORKER_MAP, STANDALONE_WORKERS } from './helpers';
+
+/**
+ * Get database size in MB
+ */
+async function getDatabaseSizeMB(): Promise<number> {
+  try {
+    // Get raw size in bytes - works on all PostgreSQL versions including managed services
+    const result = await prisma.$queryRaw<Array<{ size: bigint }>>`
+            SELECT pg_database_size(current_database()) as size
+        `;
+
+    if (result && result[0] && result[0].size) {
+      // Convert bytes to MB (1 MB = 1024 * 1024 bytes)
+      const sizeInBytes = Number(result[0].size);
+      return sizeInBytes / (1024 * 1024);
+    }
+    return 0;
+  } catch (error) {
+    console.error('Error getting database size:', error);
+    return 0;
+  }
+}
 
 /**
  * Worker Query Resolvers
@@ -9,6 +32,7 @@ import { QUEUE_WORKER_MAP, STANDALONE_WORKERS } from './helpers';
 export const workerQueries: QueryResolvers = {
   workerStatus: async () => {
     const queueStats = await getAllQueueStats();
+    const databaseSizeMB = await getDatabaseSizeMB();
 
     // Enrich queue stats with worker info from mapping
     const queues = queueStats.map((queue) => {
@@ -43,6 +67,7 @@ export const workerQueries: QueryResolvers = {
       queues,
       standaloneWorkers,
       healthy,
+      databaseSizeMB,
     };
   },
 };
