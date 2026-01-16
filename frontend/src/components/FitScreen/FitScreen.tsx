@@ -1,6 +1,6 @@
 import Tooltip from "@/components/Tooltip/Tooltip";
 import type { Fitting, FittingModule, FittingSlot } from "@/generated/graphql";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -15,20 +15,17 @@ interface FitScreenProps {
 }
 
 interface SlotCategory {
-  label: string;
   slots: FittingSlot[] | FittingModule[];
   startAngle: number;
   radius: number;
 }
 
 // ============================================================================
-// MAIN COMPONENT
+// MAIN COMPONENT - PURE CSS RADIAL POSITIONING
 // ============================================================================
 
 export default function FitScreen({ shipType, fitting }: FitScreenProps) {
-  const [hoveredSlot, setHoveredSlot] = useState<string | null>(null);
-
-  // Memoize hasContent check
+  // Content check
   const hasContent = useMemo(() => {
     if (!fitting) return false;
     return (
@@ -40,70 +37,63 @@ export default function FitScreen({ shipType, fitting }: FitScreenProps) {
     );
   }, [fitting]);
 
-  // Slot kategorilerini fitting datasından oluştur
+  // Slot categories
   const slotCategories = useMemo((): Record<string, SlotCategory> => {
     if (!fitting) return {};
 
-    // Her kategori 90 derece alacak (360/4 = 90)
-    // Her slotta 90/8 = 11.25 derece gap
     const degreesPerSlot = 11.25;
-    const gapBetweenRigAndSubsystem = (degreesPerSlot / 2) * 3; // 3 yarım gap = ~17°
+    const gapBetweenRigAndSubsystem = (degreesPerSlot / 2) * 3;
+
+    // Helper: totalSlots sayısı kadar slot oluştur, gelen modülleri slotIndex'e göre yerleştir
+    const createSlotArray = (
+      totalSlots: number,
+      slots: FittingSlot[]
+    ): FittingSlot[] => {
+      const result: FittingSlot[] = [];
+      for (let i = 0; i < totalSlots; i++) {
+        const existingSlot = slots.find((s) => s.slotIndex === i);
+        result.push(existingSlot || { slotIndex: i, module: null });
+      }
+      return result;
+    };
 
     return {
       high: {
-        label: "High Slots",
-        slots: fitting.highSlots.slots,
-        startAngle: -135, // Üst sol (12 saat - saat 10 arası)
-        radius: 230, // High slotlar için daha dış radius
+        slots: createSlotArray(
+          fitting.highSlots.totalSlots,
+          fitting.highSlots.slots
+        ),
+        startAngle: -135,
+        radius: 230,
       },
       mid: {
-        label: "Mid Slots",
-        slots: fitting.midSlots.slots,
-        startAngle: -45, // Sağ üst (saat 2 - saat 4 arası)
+        slots: createSlotArray(
+          fitting.midSlots.totalSlots,
+          fitting.midSlots.slots
+        ),
+        startAngle: -45,
         radius: 230,
       },
       low: {
-        label: "Low Slots",
-        slots: fitting.lowSlots.slots,
-        startAngle: 45, // Alt sağ (saat 4 - saat 8 arası)
+        slots: createSlotArray(
+          fitting.lowSlots.totalSlots,
+          fitting.lowSlots.slots
+        ),
+        startAngle: 45,
         radius: 230,
       },
       rig: {
-        label: "Rig Slots",
         slots: fitting.rigs.modules,
-        startAngle: 135, // Sol alt - rig için 3 slot max (3 * 11.25 = 33.75°)
+        startAngle: 135,
         radius: 230,
       },
       subsystem: {
-        label: "Subsystems",
         slots: fitting.subsystems || [],
-        startAngle: 135 + 3 * degreesPerSlot + gapBetweenRigAndSubsystem, // Rigden sonra gap + başlangıç
+        startAngle: 135 + 3 * degreesPerSlot + gapBetweenRigAndSubsystem,
         radius: 230,
       },
     };
   }, [fitting]);
-
-  // Slot pozisyonunu hesapla
-  const calculateSlotPosition = (
-    category: string,
-    index: number
-  ): { x: number; y: number; angle: number } => {
-    const config = slotCategories[category];
-    if (!config) return { x: 300, y: 300, angle: 0 };
-
-    const angleStep = 11.25;
-
-    // Slotu ortala - ilk slot biraz içerden başlasın
-    const offset = angleStep / 2;
-    const angle =
-      (config.startAngle + offset + index * angleStep) * (Math.PI / 180);
-
-    return {
-      x: 300 + Math.cos(angle) * config.radius,
-      y: 300 + Math.sin(angle) * config.radius,
-      angle: config.startAngle + offset + index * angleStep,
-    };
-  };
 
   if (!fitting || !hasContent) {
     return (
@@ -117,122 +107,120 @@ export default function FitScreen({ shipType, fitting }: FitScreenProps) {
 
   return (
     <div className="flex flex-col items-center justify-center w-full gap-8 p-4">
-      <div className="flex gap-8 p-12">
-        {/* Main SVG Canvas */}
-        <div className="relative">
-          <svg width="600" height="600" style={{ overflow: "visible" }}>
-            {/* Background grid pattern */}
-            <defs>
-              <clipPath id="shipClip">
-                <circle cx="300" cy="300" r="150" />
-              </clipPath>
-            </defs>
+      {/* ================================================================
+           RADIAL CONTAINER: Pure CSS transform positioning
+           ================================================================ */}
+      <div className="relative" style={{ width: "600px", height: "600px" }}>
+        {/* Center ship image */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="relative" style={{ width: "300px", height: "300px" }}>
+            {shipType && (
+              <img
+                src={`https://images.evetech.net/types/${shipType.id}/render?size=512`}
+                alt={shipType.name}
+                className="object-cover w-full h-full rounded-full"
+              />
+            )}
+          </div>
+        </div>
 
-            {/* bu cember slotlara denk gelmeli */}
-            {[160, 210].map((r, i) => (
-              <circle key={i} cx="300" cy="300" r={r} fill="#000" />
-            ))}
+        {/* ================================================================
+            RADIAL SLOTS: CSS Transform ile pozisyonlama
 
-            {/* Center ship container */}
-            <g>
-              {/* Ship image - cover style, clipped to circle */}
-              {shipType && (
-                <image
-                  href={`https://images.evetech.net/types/${shipType.id}/render?size=512`}
-                  x="150"
-                  y="150"
-                  width="300"
-                  height="300"
-                  clipPath="url(#shipClip)"
-                  preserveAspectRatio="xMidYMid slice"
-                />
-              )}
-            </g>
+            Nasıl Çalışır:
+            1. absolute + top-1/2 + left-1/2 → Merkeze yerleştir
+            2. translate(-50%, -50%) → Kendi merkezini container merkezine al
+            3. rotate(angle) → İstediğin açıya döndür
+            4. translateX(radius) → Merkezden uzağa kaydır
+            5. rotate(-angle) → Geri döndür (içerik düz kalsın)
+             ================================================================ */}
+        {Object.entries(slotCategories).map(([category, config]) => {
+          console.log(`${category} slots:`, config.slots.length, config.slots);
+          return (
+            <div key={category}>
+              {config.slots.map((slot, index) => {
+                const module: FittingModule | null =
+                  "module" in slot
+                    ? slot.module ?? null
+                    : (slot as FittingModule);
 
-            {/* Render slots for each category */}
-            {Object.entries(slotCategories).map(([category, config]) => (
-              <g key={category}>
-                {config.slots
-                  .map((slot, index) => ({ slot, index }))
-                  .sort((a, b) => {
-                    const aId = `${category}-${a.index}`;
-                    const bId = `${category}-${b.index}`;
-                    if (aId === hoveredSlot) return 1;
-                    if (bId === hoveredSlot) return -1;
-                    return 0;
-                  })
-                  .map(({ slot, index }) => {
-                    const pos = calculateSlotPosition(category, index);
-                    const slotId = `${category}-${index}`;
+                const slotId = `${category}-${index}`;
+                const angleStep = 11.25;
+                const angle = config.startAngle + index * angleStep;
 
-                    // FittingSlot veya FittingModule tipini kontrol et
-                    const module: FittingModule | null =
-                      "module" in slot
-                        ? slot.module ?? null
-                        : (slot as FittingModule);
+                // Container yüksekliği: charge varsa 2 icon + gap, yoksa 1 icon
+                const hasCharge = module?.charge;
+                const containerHeight = hasCharge ? 104 : 48; // 48 + 8gap + 48
 
-                    return (
-                      <g key={slotId}>
-                        <foreignObject
-                          x={pos.x - 24}
-                          y={pos.y - 24}
-                          width="48"
-                          height="48"
-                          style={{ overflow: "visible" }}
-                        >
+                // Açıya göre offset hesapla:
+                // -90° (üst) → negatif offset (yukarı kaydır)
+                // 0° (sağ) → offset yok
+                // 90° (alt) → pozitif offset (aşağı kaydır)
+                const angleRad = (angle * Math.PI) / 180;
+                const verticalOffset =
+                  Math.sin(angleRad) * (containerHeight / 2);
+
+                return (
+                  <div
+                    key={slotId}
+                    className="absolute top-1/2 left-1/2"
+                    style={{
+                      transform: `translate(-50%, calc(-50% + ${verticalOffset}px)) rotate(${angle}deg) translateX(${config.radius}px) rotate(-${angle}deg)`,
+                    }}
+                  >
+                    {/* Flex container: Module ve Charge alt alta */}
+                    <div className="flex flex-col items-center gap-2">
+                      {module ? (
+                        <>
+                          {/* Module (üstte) */}
                           <Tooltip
-                            content={
-                              module
-                                ? module.itemType.name
-                                : `${config.label} - Slot ${index + 1}`
-                            }
+                            content={module.itemType.name}
                             position="top"
                           >
-                            <div
-                              className="flex flex-col items-center gap-0.5"
-                              style={{ width: "48px", height: "48px" }}
-                              onMouseEnter={() => setHoveredSlot(slotId)}
-                              onMouseLeave={() => setHoveredSlot(null)}
-                            >
-                              {module ? (
-                                <>
-                                  {/* Charge Icon (if exists) */}
-                                  {module.charge && (
-                                    <img
-                                      src={`https://images.evetech.net/types/${module.charge.itemType.id}/icon?size=64`}
-                                      alt={module.charge.itemType.name}
-                                      width="64"
-                                      height="64"
-                                      className="transition-all"
-                                      title={module.charge.itemType.name}
-                                    />
-                                  )}
-                                  {/* Module Icon */}
-                                  <img
-                                    src={`https://images.evetech.net/types/${module.itemType.id}/icon?size=64`}
-                                    alt={module.itemType.name}
-                                    width="48"
-                                    height="48"
-                                    className="transition-all"
-                                  />
-                                </>
-                              ) : (
-                                <div className="flex items-center justify-center w-full h-full">
-                                  <span className="text-sm font-bold text-white/40">
-                                    {index + 1}
-                                  </span>
-                                </div>
-                              )}
+                            <div className="w-12 h-12">
+                              <img
+                                src={`https://images.evetech.net/types/${module.itemType.id}/icon?size=64`}
+                                alt={module.itemType.name}
+                                width="48"
+                                height="48"
+                                className="rounded"
+                              />
                             </div>
                           </Tooltip>
-                        </foreignObject>
-                      </g>
-                    );
-                  })}
-              </g>
-            ))}
-          </svg>
-        </div>
+
+                          {/* Charge (altta) */}
+                          {module.charge && (
+                            <Tooltip
+                              content={module.charge.itemType.name}
+                              position="top"
+                            >
+                              <div className="w-12 h-12">
+                                <img
+                                  src={`https://images.evetech.net/types/${module.charge.itemType.id}/icon?size=64`}
+                                  alt={module.charge.itemType.name}
+                                  width="48"
+                                  height="48"
+                                  className="transition-all rounded"
+                                />
+                              </div>
+                            </Tooltip>
+                          )}
+                        </>
+                      ) : (
+                        // Empty slot
+                        <div className="flex items-center justify-center w-12 h-12 border border-gray-700 rounded bg-gray-800/30">
+                          <div className="text-sm font-bold text-white/40">
+                            {index + 1}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
