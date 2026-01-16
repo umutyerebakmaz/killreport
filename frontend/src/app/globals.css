@@ -16,6 +16,34 @@ body {
   font-weight: 400;
 }
 
+.tooltip-container {
+  @apply relative inline-block;
+}
+
+.tooltip {
+  @apply absolute z-9999 px-3 py-2 text-sm text-gray-300 bg-black outline-1 -outline-offset-1 outline-white/20 shadow-lg whitespace-nowrap;
+}
+
+.tooltip-top {
+  @apply bottom-full mb-3 left-1/2 -translate-x-1/2;
+}
+
+.tooltip-bottom {
+  @apply top-full mt-3 left-1/2 -translate-x-1/2;
+}
+
+.tooltip-left {
+  @apply right-full mr-3 top-1/2 -translate-y-1/2;
+}
+
+.tooltip-right {
+  @apply left-full ml-3 top-1/2 -translate-y-1/2;
+}
+
+.tooltip-wrap {
+  @apply whitespace-normal min-w-70 max-w-[320px];
+}
+
 .alliance-card,
 .corporation-card,
 .character-card,
