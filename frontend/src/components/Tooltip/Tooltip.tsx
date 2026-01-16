@@ -44,7 +44,7 @@ export default function Tooltip({
       {children}
       {(show || animating) && (
         <span
-          className={`absolute z-10 ${
+          className={`absolute z-[9999] ${
             positionClasses[position]
           } px-3 py-2 text-sm text-gray-300 bg-black outline-1 -outline-offset-1 outline-white/20 shadow-lg ${
             wrapText
