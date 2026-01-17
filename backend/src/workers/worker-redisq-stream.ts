@@ -68,6 +68,10 @@ interface RedisQResponse {
   package: RedisQPackage | null;
 }
 
+// Shutdown flag and interval tracking
+let isShuttingDown = false;
+let emptyCheckInterval: NodeJS.Timeout | null = null;
+
 // Statistics
 let stats = {
   received: 0,
@@ -83,44 +87,56 @@ let stats = {
  * Main worker loop
  */
 export async function redisQStreamWorker() {
-  logger.info('🌊 RedisQ Stream Worker Started');
-  logger.info(`📡 Endpoint: ${REDISQ_URL}`);
-  logger.info(`🆔 Queue ID: ${QUEUE_ID}`);
-  logger.info(`⏱️  Poll Rate: ${REQUEST_DELAY}ms (~${Math.floor(1000 / REQUEST_DELAY)} req/sec)`);
-  logger.info(`⏳ Timeout: ${TIME_TO_WAIT} seconds`);
-  logger.info(`🔧 Enrichment: ${ENABLE_ENRICHMENT ? 'ENABLED' : 'DISABLED'}\n`);
-  logger.info('━'.repeat(60));
-  logger.info('🎯 Listening for killmails...\n');
+  while (!isShuttingDown) {
+    logger.info('🌊 RedisQ Stream Worker Started');
+    logger.info(`📡 Endpoint: ${REDISQ_URL}`);
+    logger.info(`🆔 Queue ID: ${QUEUE_ID}`);
+    logger.info(`⏱️  Poll Rate: ${REQUEST_DELAY}ms (~${Math.floor(1000 / REQUEST_DELAY)} req/sec)`);
+    logger.info(`⏳ Timeout: ${TIME_TO_WAIT} seconds`);
+    logger.info(`🔧 Enrichment: ${ENABLE_ENRICHMENT ? 'ENABLED' : 'DISABLED'}\n`);
+    logger.info('━'.repeat(60));
+    logger.info('🎯 Listening for killmails...\n');
 
-  let consecutiveErrors = 0;
+    let consecutiveErrors = 0;
 
-  while (true) {
     try {
-      const killmail = await pollRedisQ();
+      while (!isShuttingDown) {
+        try {
+          const killmail = await pollRedisQ();
 
-      if (killmail) {
-        stats.received++;
-        await processKillmail(killmail);
-        consecutiveErrors = 0; // Reset error counter on success
+          if (killmail) {
+            stats.received++;
+            await processKillmail(killmail);
+            consecutiveErrors = 0; // Reset error counter on success
+          }
+
+          // Rate limiting: wait before next request
+          await sleep(REQUEST_DELAY);
+        } catch (error) {
+          consecutiveErrors++;
+          stats.errors++;
+          logger.error(`❌ Error in main loop (${consecutiveErrors} consecutive):`, error);
+
+          // If too many consecutive errors, back off longer
+          if (consecutiveErrors >= 5) {
+            logger.warn(`⚠️  Too many errors, backing off for ${RETRY_DELAY}ms...`);
+            await sleep(RETRY_DELAY);
+            consecutiveErrors = 0;
+          } else {
+            await sleep(REQUEST_DELAY);
+          }
+        }
       }
-
-      // Rate limiting: wait before next request
-      await sleep(REQUEST_DELAY);
     } catch (error) {
-      consecutiveErrors++;
-      stats.errors++;
-      logger.error(`❌ Error in main loop (${consecutiveErrors} consecutive):`, error);
-
-      // If too many consecutive errors, back off longer
-      if (consecutiveErrors >= 5) {
-        logger.warn(`⚠️  Too many errors, backing off for ${RETRY_DELAY}ms...`);
-        await sleep(RETRY_DELAY);
-        consecutiveErrors = 0;
-      } else {
-        await sleep(REQUEST_DELAY);
-      }
+      if (isShuttingDown) break;
+      logger.error('💥 Worker connection lost, reconnecting in 5s...', error);
+      await sleep(5000);
     }
   }
+
+  // Cleanup
+  logger.info('🧹 Worker cleanup completed');
+  await prismaWorker.$disconnect();
 }
 
 /**
@@ -301,10 +317,9 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
     `${missingAllianceIds.length} alliances, ${missingTypeIds.length} types`
   );
 
-  // 3. ESI'dan eksik entity'leri çek ve kaydet (sequential processing)
-  // CRITICAL: Use BATCH_SIZE=1 to prevent pool exhaustion completely
-  // With max 2 connections, even 2 parallel operations can cause timeouts
-  const BATCH_SIZE = 1;
+  // 3. ESI'dan eksik entity'leri çek ve kaydet (batch processing)
+  // Process 10 items at a time for better performance
+  const BATCH_SIZE = 10;
 
   // Helper function for batch processing
   async function processBatch<T>(items: T[], processor: (item: T) => Promise<void>) {
@@ -597,19 +612,31 @@ function sleep(ms: number): Promise<void> {
 /**
  * Graceful shutdown
  */
-process.on('SIGINT', async () => {
-  logger.info('\n\n🛑 Shutting down RedisQ stream worker...');
-  logger.info('\n📊 Final Statistics:');
-  logger.info(`   Received: ${stats.received}`);
-  logger.info(`   Saved: ${stats.saved}`);
-  logger.info(`   Skipped: ${stats.skipped}`);
-  logger.info(`   Enriched: ${stats.enriched} (${stats.enrichmentFailed} failed)`);
-  logger.info(`   Errors: ${stats.errors}`);
-  const runtime = Math.floor((Date.now() - stats.startTime.getTime()) / 1000);
-  logger.info(`   Runtime: ${runtime} seconds`);
-  await prismaWorker.$disconnect();
-  process.exit(0);
-});
+function setupShutdownHandlers() {
+  const shutdown = async () => {
+    isShuttingDown = true;
+    if (emptyCheckInterval) {
+      clearInterval(emptyCheckInterval);
+      emptyCheckInterval = null;
+    }
+    logger.info('\n\n🛑 Shutting down RedisQ stream worker...');
+    logger.info('\n📊 Final Statistics:');
+    logger.info(`   Received: ${stats.received}`);
+    logger.info(`   Saved: ${stats.saved}`);
+    logger.info(`   Skipped: ${stats.skipped}`);
+    logger.info(`   Enriched: ${stats.enriched} (${stats.enrichmentFailed} failed)`);
+    logger.info(`   Errors: ${stats.errors}`);
+    const runtime = Math.floor((Date.now() - stats.startTime.getTime()) / 1000);
+    logger.info(`   Runtime: ${runtime} seconds`);
+    await prismaWorker.$disconnect();
+    process.exit(0);
+  };
+
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
+}
+
+setupShutdownHandlers();
 
 // Start the worker
 redisQStreamWorker().catch((error) => {
