@@ -3,6 +3,7 @@
 import AttackersCard from "@/components/AttackersCard";
 import FitScreen from "@/components/FitScreen/FitScreen";
 import { Loader } from "@/components/Loader/Loader";
+import Tooltip from "@/components/Tooltip/Tooltip";
 import { useKillmailQuery } from "@/generated/graphql";
 import { formatISK } from "@/utils/formatISK";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
@@ -53,31 +54,210 @@ export default function KillmailDetailPage({
         {/* Left Column: FitScreen (2/3 width) */}
         <div className="space-y-6 lg:col-span-2">
           {/* Fit + Victim */}
-          <div className="flex flex-col gap-6 fit-and-victim">
+          <div className="flex flex-col gap-6 p-6 fit-and-victim">
             <div className="victim-card">
-              <div className="flex items-center justify-between pb-2">
-                <div className="flex items-center gap-2">
-                  <a
-                    href={`https://zkillboard.com/kill/${km.id}/`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-3 py-1 text-sm font-medium text-gray-300 transition-colors rounded bg-gray-800/50 hover:bg-gray-700/50 hover:text-white"
-                  >
-                    <ArrowTopRightOnSquareIcon className="w-4 h-4" />
-                    zKillboard
-                  </a>
-                  <a
-                    href={`https://kb.evetools.org/kill/${km.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-3 py-1 text-sm font-medium text-gray-300 transition-colors rounded bg-gray-800/50 hover:bg-gray-700/50 hover:text-white"
-                  >
-                    <ArrowTopRightOnSquareIcon className="w-4 h-4" />
-                    EVE Tools
-                  </a>
+              {/* Grid container: FitScreen (1/2) + Summary (1/2) */}
+              <div className="grid grid-cols-2 gap-6">
+                {/* FitScreen - Left (1/2) */}
+                <div>
+                  <div className="flex items-center justify-between pb-2">
+                    <div className="flex items-center gap-2 pb-6">
+                      <a
+                        href={`https://zkillboard.com/kill/${km.id}/`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-3 py-1 text-sm font-medium text-gray-300 transition-colors rounded bg-gray-800/50 hover:bg-gray-700/50 hover:text-white"
+                      >
+                        <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                        zKillboard
+                      </a>
+                      <a
+                        href={`https://kb.evetools.org/kill/${km.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-3 py-1 text-sm font-medium text-gray-300 transition-colors rounded bg-gray-800/50 hover:bg-gray-700/50 hover:text-white"
+                      >
+                        <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                        EVE Tools
+                      </a>
+                    </div>
+                  </div>
+                  <FitScreen
+                    shipType={victim?.shipType}
+                    fitting={fitting as any}
+                  />
+                </div>
+
+                {/* Killmail Summary Card - Right (1/2) */}
+                <div>
+                  <div className="space-y-3">
+                    {/* Character, Corp, Alliance Images */}
+                    {victim?.character?.id && (
+                      <div className="flex items-start">
+                        {/* Character Portrait */}
+                        <Tooltip content="Show Victim Info" position="top">
+                          <a href={`/characters/${victim.character?.id}`}>
+                            <img
+                              src={`https://images.evetech.net/characters/${victim.character?.id}/portrait?size=128`}
+                              alt={victim.character?.name || "Character"}
+                              width={96}
+                              height={96}
+                              className="shadow-md"
+                              loading="lazy"
+                            />
+                          </a>
+                        </Tooltip>
+
+                        <div className="flex flex-col">
+                          {/* Alliance Portrait */}
+                          <a href={`/alliances/${victim.alliance?.id}`}>
+                            <img
+                              src={`https://images.evetech.net/corporations/${victim.corporation?.id}/logo?size=64`}
+                              alt={victim.corporation?.name || "Corporation"}
+                              width={48}
+                              height={48}
+                              className="shadow-sm"
+                              loading="lazy"
+                            />
+                          </a>
+                          <a href={`/corporations/${victim.corporation?.id}`}>
+                            {/* Corporation Portrait */}
+                            <img
+                              src={`https://images.evetech.net/alliances/${victim.alliance?.id}/logo?size=64`}
+                              alt={victim.alliance?.name || "Alliance"}
+                              width={48}
+                              height={48}
+                              className="shadow-sm"
+                              loading="lazy"
+                            />
+                          </a>
+                        </div>
+
+                        <div className="flex flex-col items-start justify-start pl-4">
+                          <Tooltip content="Show Victim Info" position="top">
+                            <a
+                              href={`/characters/${victim.character?.id}`}
+                              className="text-gray-400 transition-colors hover:text-blue-400"
+                            >
+                              {victim.character?.name}
+                            </a>
+                          </Tooltip>
+
+                          <Tooltip
+                            content="Show Corporation Info"
+                            position="top"
+                          >
+                            <a
+                              href={`/corporations/${victim.corporation?.id}`}
+                              className="text-gray-400 transition-colors hover:text-blue-400"
+                            >
+                              {victim.corporation?.name}
+                            </a>
+                          </Tooltip>
+
+                          <Tooltip content="Show Alliance Info" position="top">
+                            <a
+                              href={`/alliances/${victim.alliance?.id}`}
+                              className="text-gray-400 transition-colors hover:text-blue-400"
+                            >
+                              {victim.alliance?.name}
+                            </a>
+                          </Tooltip>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Ship</span>
+                      <span className="text-right">
+                        <span className="text-gray-400">
+                          {victim?.shipType?.name}
+                        </span>
+                        {victim?.shipType?.group && (
+                          <span className="text-gray-500">
+                            {" "}
+                            ({victim.shipType.group.name})
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">System</span>
+                      <span className="text-right">
+                        <span className="text-gray-400">
+                          {km.solarSystem?.name}
+                        </span>
+                        {km.solarSystem?.security_status !== undefined &&
+                          km.solarSystem.security_status !== null && (
+                            <span
+                              className={
+                                km.solarSystem.security_status >= 0.5
+                                  ? "text-green-400"
+                                  : km.solarSystem.security_status > 0
+                                    ? "text-yellow-400"
+                                    : "text-red-400"
+                              }
+                            >
+                              {" "}
+                              ({km.solarSystem.security_status.toFixed(1)})
+                            </span>
+                          )}
+                        {km.solarSystem?.constellation?.region && (
+                          <span className="text-gray-500">
+                            {" "}
+                            / {km.solarSystem.constellation.region.name}
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Time</span>
+                      <span className="text-gray-400">
+                        {new Date(km.killmailTime).toLocaleString("en-US", {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Damage</span>
+                      <span className="text-gray-400">
+                        {victim?.damageTaken?.toLocaleString()}
+                      </span>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Destroyed</span>
+                        <span className="text-red-400">
+                          {formatISK(destroyedValue)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Dropped</span>
+                        <span className="text-green-400">
+                          {formatISK(droppedValue)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Ship+Fit</span>
+                        <span className="text-gray-400">
+                          {formatISK(totalValue)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Total</span>
+                        <span className="font-bold text-gray-400">
+                          {formatISK(totalValue)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <FitScreen shipType={victim?.shipType} fitting={fitting as any} />
             </div>
           </div>
 
@@ -137,8 +317,8 @@ export default function KillmailDetailPage({
                       const moduleTextColor = moduleIsDestroyed
                         ? "text-red-400"
                         : moduleIsDropped
-                        ? "text-green-400"
-                        : "text-white";
+                          ? "text-green-400"
+                          : "text-white";
 
                       items.push(
                         <div
@@ -170,11 +350,11 @@ export default function KillmailDetailPage({
                               {formatISK(
                                 getItemPrice(slot.module.itemType.jitaPrice) *
                                   ((slot.module.quantityDropped || 0) +
-                                    (slot.module.quantityDestroyed || 0) || 1)
+                                    (slot.module.quantityDestroyed || 0) || 1),
                               )}
                             </div>
                           </div>
-                        </div>
+                        </div>,
                       );
 
                       // Charge (if exists)
@@ -186,8 +366,8 @@ export default function KillmailDetailPage({
                         const chargeTextColor = chargeIsDestroyed
                           ? "text-red-400"
                           : chargeIsDropped
-                          ? "text-green-400"
-                          : "text-white";
+                            ? "text-green-400"
+                            : "text-white";
 
                         items.push(
                           <div
@@ -219,15 +399,15 @@ export default function KillmailDetailPage({
                               >
                                 {formatISK(
                                   getItemPrice(
-                                    slot.module.charge.itemType.jitaPrice
+                                    slot.module.charge.itemType.jitaPrice,
                                   ) *
                                     ((slot.module.charge.quantityDropped || 0) +
                                       (slot.module.charge.quantityDestroyed ||
-                                        0) || 1)
+                                        0) || 1),
                                 )}
                               </div>
                             </div>
-                          </div>
+                          </div>,
                         );
                       }
 
@@ -256,8 +436,8 @@ export default function KillmailDetailPage({
                     const moduleTextColor = moduleIsDestroyed
                       ? "text-red-400"
                       : moduleIsDropped
-                      ? "text-green-400"
-                      : "text-white";
+                        ? "text-green-400"
+                        : "text-white";
 
                     items.push(
                       <div
@@ -289,11 +469,11 @@ export default function KillmailDetailPage({
                             {formatISK(
                               getItemPrice(slot.module.itemType.jitaPrice) *
                                 ((slot.module.quantityDropped || 0) +
-                                  (slot.module.quantityDestroyed || 0) || 1)
+                                  (slot.module.quantityDestroyed || 0) || 1),
                             )}
                           </div>
                         </div>
-                      </div>
+                      </div>,
                     );
 
                     // Charge (if exists)
@@ -305,8 +485,8 @@ export default function KillmailDetailPage({
                       const chargeTextColor = chargeIsDestroyed
                         ? "text-red-400"
                         : chargeIsDropped
-                        ? "text-green-400"
-                        : "text-white";
+                          ? "text-green-400"
+                          : "text-white";
 
                       items.push(
                         <div
@@ -338,15 +518,15 @@ export default function KillmailDetailPage({
                             >
                               {formatISK(
                                 getItemPrice(
-                                  slot.module.charge.itemType.jitaPrice
+                                  slot.module.charge.itemType.jitaPrice,
                                 ) *
                                   ((slot.module.charge.quantityDropped || 0) +
                                     (slot.module.charge.quantityDestroyed ||
-                                      0) || 1)
+                                      0) || 1),
                               )}
                             </div>
                           </div>
-                        </div>
+                        </div>,
                       );
                     }
 
@@ -371,8 +551,8 @@ export default function KillmailDetailPage({
                     const textColor = isDestroyed
                       ? "text-red-400"
                       : isDropped
-                      ? "text-green-400"
-                      : "text-white";
+                        ? "text-green-400"
+                        : "text-white";
 
                     return (
                       <div
@@ -398,7 +578,7 @@ export default function KillmailDetailPage({
                             {formatISK(
                               getItemPrice(slot.module.itemType.jitaPrice) *
                                 ((slot.module.quantityDropped || 0) +
-                                  (slot.module.quantityDestroyed || 0) || 1)
+                                  (slot.module.quantityDestroyed || 0) || 1),
                             )}
                           </div>
                         </div>
@@ -425,8 +605,8 @@ export default function KillmailDetailPage({
                     const textColor = isDestroyed
                       ? "text-red-400"
                       : isDropped
-                      ? "text-green-400"
-                      : "text-white";
+                        ? "text-green-400"
+                        : "text-white";
 
                     return (
                       <div key={index} className="flex items-center gap-3 py-2">
@@ -446,7 +626,8 @@ export default function KillmailDetailPage({
                           <div className={`${textColor} w-16`}>{quantity}</div>
                           <div className={`${textColor} tabular-nums w-40`}>
                             {formatISK(
-                              getItemPrice(module.itemType.jitaPrice) * quantity
+                              getItemPrice(module.itemType.jitaPrice) *
+                                quantity,
                             )}
                           </div>
                         </div>
@@ -473,8 +654,8 @@ export default function KillmailDetailPage({
                     const textColor = isDestroyed
                       ? "text-red-400"
                       : isDropped
-                      ? "text-green-400"
-                      : "text-white";
+                        ? "text-green-400"
+                        : "text-white";
 
                     return (
                       <div
@@ -499,7 +680,8 @@ export default function KillmailDetailPage({
                             className={`${textColor} tabular-nums w-40 font-semibold`}
                           >
                             {formatISK(
-                              getItemPrice(module.itemType.jitaPrice) * quantity
+                              getItemPrice(module.itemType.jitaPrice) *
+                                quantity,
                             )}
                           </div>
                         </div>
@@ -526,8 +708,8 @@ export default function KillmailDetailPage({
                     const textColor = isDestroyed
                       ? "text-red-400"
                       : isDropped
-                      ? "text-green-400"
-                      : "text-white";
+                        ? "text-green-400"
+                        : "text-white";
 
                     return (
                       <div key={index} className="flex items-center gap-3 py-2">
@@ -547,7 +729,8 @@ export default function KillmailDetailPage({
                           <div className={`${textColor} w-16`}>{quantity}</div>
                           <div className={`${textColor} tabular-nums w-40`}>
                             {formatISK(
-                              getItemPrice(module.itemType.jitaPrice) * quantity
+                              getItemPrice(module.itemType.jitaPrice) *
+                                quantity,
                             )}
                           </div>
                         </div>
@@ -574,8 +757,8 @@ export default function KillmailDetailPage({
                     const textColor = isDestroyed
                       ? "text-red-400"
                       : isDropped
-                      ? "text-green-400"
-                      : "text-white";
+                        ? "text-green-400"
+                        : "text-white";
 
                     return (
                       <div key={index} className="flex items-center gap-3 py-2">
@@ -595,7 +778,8 @@ export default function KillmailDetailPage({
                           <div className={`${textColor} w-16`}>{quantity}</div>
                           <div className={`${textColor} tabular-nums w-40`}>
                             {formatISK(
-                              getItemPrice(module.itemType.jitaPrice) * quantity
+                              getItemPrice(module.itemType.jitaPrice) *
+                                quantity,
                             )}
                           </div>
                         </div>
