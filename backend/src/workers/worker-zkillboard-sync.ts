@@ -9,6 +9,10 @@ const QUEUE_NAME = 'zkillboard_character_queue';
 const PREFETCH_COUNT = 1; // Process 1 user at a time (strict zKillboard rate limit: 10s between same endpoint)
 const MAX_PAGES = 100; // Fetch up to 100 pages from zKillboard (20,000 killmails max) - Set to 999 for ALL history
 
+// Shutdown flag and interval tracking
+let isShuttingDown = false;
+let emptyCheckInterval: NodeJS.Timeout | null = null;
+
 interface QueueMessage {
     userId: number;
     characterId: number;
@@ -21,59 +25,82 @@ interface QueueMessage {
  * Uses RabbitMQ queue for better scalability and reliability
  */
 async function killmailWorker() {
-    logger.info('🔄 Killmail Worker Started');
-    logger.info(`📦 Queue: ${QUEUE_NAME}`);
-    logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent users\n`);
+    while (!isShuttingDown) {
+        logger.info('🔄 Killmail Worker Started');
+        logger.info(`📦 Queue: ${QUEUE_NAME}`);
+        logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent users\n`);
 
-    try {
-        const channel = await getRabbitMQChannel();
+        try {
+            const channel = await getRabbitMQChannel();
 
-        // Configure queue
-        await channel.assertQueue(QUEUE_NAME, {
-            durable: true, // Survive RabbitMQ restarts
-            arguments: {
-                'x-max-priority': 10, // Enable priority queue (0-10)
-            },
-        });
+            // Configure queue
+            await channel.assertQueue(QUEUE_NAME, {
+                durable: true, // Survive RabbitMQ restarts
+                arguments: {
+                    'x-max-priority': 10, // Enable priority queue (0-10)
+                },
+            });
 
-        // Set prefetch count (how many messages to process concurrently)
-        channel.prefetch(PREFETCH_COUNT);
+            // Set prefetch count (how many messages to process concurrently)
+            channel.prefetch(PREFETCH_COUNT);
 
-        logger.info('✅ Connected to RabbitMQ');
-        logger.info('⏳ Waiting for killmail sync jobs...\n');
+            logger.info('✅ Connected to RabbitMQ');
+            logger.info('⏳ Waiting for killmail sync jobs...\n');
 
-        // Consume messages from queue
-        channel.consume(
-            QUEUE_NAME,
-            async (msg) => {
-                if (!msg) return;
-
-                try {
-                    const message: QueueMessage = JSON.parse(msg.content.toString());
-
-                    logger.info(`\n${'━'.repeat(60)}`);
-                    logger.info(`👤 Processing: ${message.characterName} (ID: ${message.characterId})`);
-                    logger.info(`📅 Queued at: ${message.queuedAt}`);
-                    logger.info('━'.repeat(60));
-
-                    await syncUserKillmails(message);
-
-                    // Acknowledge message (remove from queue)
-                    channel.ack(msg);
-                    logger.info(`✅ Completed: ${message.characterName}\n`);
-                } catch (error) {
-                    logger.error(`❌ Failed to process message:`, error);
-
-                    // Reject and requeue message (will retry later)
-                    channel.nack(msg, false, true);
+            // Add channel error handlers
+            channel.on('error', (err) => {
+                if (!isShuttingDown) {
+                    logger.error('💥 Channel error:', err);
                 }
-            },
-            { noAck: false } // Manual acknowledgment
-        );
-    } catch (error) {
-        logger.error('💥 Worker failed to start:', error);
-        process.exit(1);
+            });
+
+            channel.on('close', () => {
+                if (!isShuttingDown) {
+                    logger.warn('⚠️  Channel closed unexpectedly');
+                }
+            });
+
+            // Consume messages from queue
+            await channel.consume(
+                QUEUE_NAME,
+                async (msg) => {
+                    if (!msg) return;
+
+                    try {
+                        const message: QueueMessage = JSON.parse(msg.content.toString());
+
+                        logger.info(`\n${'━'.repeat(60)}`);
+                        logger.info(`👤 Processing: ${message.characterName} (ID: ${message.characterId})`);
+                        logger.info(`📅 Queued at: ${message.queuedAt}`);
+                        logger.info('━'.repeat(60));
+
+                        await syncUserKillmails(message);
+
+                        // Acknowledge message (remove from queue)
+                        channel.ack(msg);
+                        logger.info(`✅ Completed: ${message.characterName}\n`);
+                    } catch (error) {
+                        logger.error(`❌ Failed to process message:`, error);
+
+                        // Reject and requeue message (will retry later)
+                        channel.nack(msg, false, true);
+                    }
+                },
+                { noAck: false } // Manual acknowledgment
+            );
+
+            // Wait indefinitely (until error or shutdown)
+            await new Promise(() => { });
+        } catch (error) {
+            if (isShuttingDown) break;
+            logger.error('💥 Worker connection lost, reconnecting in 5s...', error);
+            await new Promise(resolve => setTimeout(resolve, 5000));
+        }
     }
+
+    // Cleanup
+    logger.info('🧹 Worker cleanup completed');
+    await prismaWorker.$disconnect();
 }
 
 /**
@@ -244,10 +271,15 @@ async function syncUserKillmails(message: QueueMessage): Promise<void> {
  * Graceful shutdown handler
  */
 function setupShutdownHandlers() {
-    const shutdown = () => {
+    const shutdown = async () => {
+        isShuttingDown = true;
+        if (emptyCheckInterval) {
+            clearInterval(emptyCheckInterval);
+            emptyCheckInterval = null;
+        }
         logger.warn('\n\n⚠️  Received shutdown signal');
         logger.warn('🛑 Stopping worker...');
-        prismaWorker.$disconnect();
+        await prismaWorker.$disconnect();
         process.exit(0);
     };
 
