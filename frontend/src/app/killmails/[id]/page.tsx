@@ -57,9 +57,9 @@ export default function KillmailDetailPage({
           <div className="flex flex-col gap-6 p-6 fit-and-victim">
             <div className="victim-card">
               {/* Grid container: FitScreen (1/2) + Summary (1/2) */}
-              <div className="grid grid-cols-2 gap-6">
-                {/* FitScreen - Left (1/2) */}
-                <div>
+              <div className="grid grid-cols-3 gap-6">
+                {/* FitScreen - Left (2/3) */}
+                <div className="col-span-2">
                   <div className="flex items-center justify-between pb-2">
                     <div className="flex items-center gap-2 pb-6">
                       <a
@@ -88,7 +88,7 @@ export default function KillmailDetailPage({
                   />
                 </div>
 
-                {/* Killmail Summary Card - Right (1/2) */}
+                {/* Killmail Summary Card - Right (1/3) */}
                 <div>
                   <div className="space-y-3">
                     {/* Character, Corp, Alliance Images */}
@@ -224,7 +224,7 @@ export default function KillmailDetailPage({
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Damage</span>
-                      <span className="text-gray-400">
+                      <span className="text-red-400 tabular-nums">
                         {victim?.damageTaken?.toLocaleString()}
                       </span>
                     </div>
@@ -232,25 +232,19 @@ export default function KillmailDetailPage({
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-gray-400">Destroyed</span>
-                        <span className="text-red-400">
+                        <span className="text-red-400 tabular-nums">
                           {formatISK(destroyedValue)}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Dropped</span>
-                        <span className="text-green-400">
+                        <span className="text-green-400 tabular-nums">
                           {formatISK(droppedValue)}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-400">Ship+Fit</span>
-                        <span className="text-gray-400">
-                          {formatISK(totalValue)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
                         <span className="text-gray-400">Total</span>
-                        <span className="font-bold text-gray-400">
+                        <span className="font-bold text-yellow-400 tabular-nums">
                           {formatISK(totalValue)}
                         </span>
                       </div>
