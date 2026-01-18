@@ -11,7 +11,8 @@ export default function FitScreen({ shipType, fitting }: FitScreenProps) {
   const highSlots = fitting?.highSlots?.slots || [];
 
   // Her slot için açı - manuel olarak ayarla
-  const anglePerSlot = 17; // 30 derece aralıklarla (360/12 = 30)
+  const anglePerSlot = 12; // Slot'lar arası açı
+  const startAngle = -35.5; // Başlangıç açısı (0° = üst, 90° = sağ, 180° = alt, 270° = sol)
 
   return (
     <div className="fit-screen-container">
@@ -28,7 +29,7 @@ export default function FitScreen({ shipType, fitting }: FitScreenProps) {
         <div className="slots">
           {/* High Slots */}
           {highSlots.map((slot, index) => {
-            const rotation = index * anglePerSlot;
+            const rotation = startAngle + index * anglePerSlot;
             const module = slot.module;
 
             return (
