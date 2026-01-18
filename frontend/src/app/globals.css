@@ -195,9 +195,72 @@ body {
 }
 
 .fit-screen-container {
-  width: 300px;
-  height: 300px;
+  width: 600px;
+  height: 600px;
+  position: relative;
 }
+
+.fitting {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.hull {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60%;
+  height: 60%;
+  pointer-events: none;
+}
+
 .hull-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   border-radius: 50%;
+}
+
+.slots {
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.slot {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.slot-outer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 128px;
+  pointer-events: all;
+}
+
+.slot-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  gap: 4px;
+}
+
+.slot-inner img {
+  flex-shrink: 0;
 }
