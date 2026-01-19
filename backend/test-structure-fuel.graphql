@@ -1,0 +1,27 @@
+query TestStructureFuel {
+  killmail(id: "132751949") {
+    id
+    victim {
+      shipType {
+        name
+        group {
+          category {
+            name
+          }
+        }
+      }
+    }
+    fitting {
+      structureFuel {
+        itemType {
+          id
+          name
+        }
+        flag
+        quantityDestroyed
+        quantityDropped
+        singleton
+      }
+    }
+  }
+}

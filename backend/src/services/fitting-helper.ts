@@ -34,10 +34,13 @@ export interface Fitting {
   lowSlots: FittingSlot[];
   rigSlots: FittingSlot[];
   subsystemSlots: FittingSlot[];
+  serviceSlots: FittingSlot[];
   implants: FittingModule[];
   cargo: FittingModule[];
   droneBay: FittingModule[];
   fighterBay: FittingModule[];
+  structureFuel: FittingModule[];
+  coreRoom: FittingModule[];
 }
 
 /**
@@ -325,15 +328,41 @@ export function organizeFitting(
   }
   const fighterBay = fighterBayItems.map((item) => convertToFittingModule([item]));
 
+  // Service Slots (Upwell Structures) - always 8 slots
+  const serviceSlots: FittingSlot[] = [];
+  for (let i = 0; i < 8; i++) {
+    serviceSlots.push({
+      slotIndex: i,
+      module: null,
+    });
+  }
+  fillSlots(
+    serviceSlots,
+    InventoryFlag.ServiceSlot0,
+    InventoryFlag.ServiceSlot7,
+    flagGroups
+  );
+
+  // Structure Fuel Bay (Upwell Structures)
+  const structureFuelItems = flagGroups.get(InventoryFlag.StructureFuel) || [];
+  const structureFuel = structureFuelItems.map((item) => convertToFittingModule([item]));
+
+  // Structure Core Room (Upwell Structures - Quantum Core)
+  const coreRoomItems = flagGroups.get(InventoryFlag.StructureCoreRoom) || [];
+  const coreRoom = coreRoomItems.map((item) => convertToFittingModule([item]));
+
   return {
     highSlots,
     midSlots,
     lowSlots,
     rigSlots,
     subsystemSlots,
+    serviceSlots,
     implants,
     cargo,
     droneBay,
     fighterBay,
+    structureFuel,
+    coreRoom,
   };
 }

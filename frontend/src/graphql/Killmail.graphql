@@ -236,6 +236,29 @@ query Killmail($id: ID!) {
           }
         }
       }
+      serviceSlots {
+        totalSlots
+        slots {
+          slotIndex
+          module {
+            flag
+            itemType {
+              id
+              name
+              jitaPrice {
+                buy
+                sell
+                average
+              }
+              group {
+                name
+              }
+            }
+            quantityDropped
+            quantityDestroyed
+          }
+        }
+      }
       implants {
         itemType {
           id
@@ -280,6 +303,36 @@ query Killmail($id: ID!) {
         quantityDestroyed
       }
       fighterBay {
+        flag
+        singleton
+        itemType {
+          id
+          name
+          jitaPrice {
+            buy
+            sell
+            average
+          }
+        }
+        quantityDropped
+        quantityDestroyed
+      }
+      structureFuel {
+        flag
+        singleton
+        itemType {
+          id
+          name
+          jitaPrice {
+            buy
+            sell
+            average
+          }
+        }
+        quantityDropped
+        quantityDestroyed
+      }
+      coreRoom {
         flag
         singleton
         itemType {
