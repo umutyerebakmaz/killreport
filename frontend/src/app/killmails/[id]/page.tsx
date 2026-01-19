@@ -118,6 +118,18 @@ export default function KillmailDetailPage({
   const attackers = km.attackers || [];
   const fitting = km.fitting;
 
+  // Check if victim is a structure (Upwell structures have category "Structure")
+  const isStructure = victim?.shipType?.group?.category?.name === "Structure";
+
+  // Debug structure detection
+  console.log("🏗️ Structure Debug:", {
+    isStructure,
+    categoryName: victim?.shipType?.group?.category?.name,
+    shipName: victim?.shipType?.name,
+    hasStructureFuel: (fitting?.structureFuel?.length ?? 0) > 0,
+    structureFuelCount: fitting?.structureFuel?.length ?? 0,
+  });
+
   // Backend'den gelen değerleri kullan
   const totalValue = km.totalValue || 0;
   const destroyedValue = km.destroyedValue || 0;
@@ -795,6 +807,68 @@ export default function KillmailDetailPage({
               </div>
             )}
 
+            {/* Structure Service Slots (Upwell Structures Only) */}
+            {isStructure &&
+              fitting?.serviceSlots &&
+              fitting.serviceSlots.slots.some((slot) => slot.module) && (
+                <div className="pb-4 mb-4 border-b border-white/10">
+                  <h3 className="mb-2 font-bold text-purple-400 uppercase">
+                    ⚙️ Structure Service Slots
+                  </h3>
+                  <div className="space-y-2">
+                    {(() => {
+                      const modules = fitting.serviceSlots.slots
+                        .filter((slot) => slot.module)
+                        .map((slot) => slot.module);
+                      const groupedModules = groupItems(modules);
+
+                      return groupedModules.map((item, index) => {
+                        const totalQty =
+                          item.quantityDestroyed + item.quantityDropped || 1;
+                        const isDestroyed = item.quantityDestroyed > 0;
+                        const isDropped = item.quantityDropped > 0;
+                        const textColor = isDestroyed
+                          ? "text-red-400"
+                          : isDropped
+                            ? "text-green-500"
+                            : "text-white";
+
+                        return (
+                          <div
+                            key={`service-${item.itemType.id}-${index}`}
+                            className="flex items-center gap-3 py-2"
+                          >
+                            <img
+                              src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                              alt={item.itemType.name}
+                              className="w-16 h-16"
+                              loading="lazy"
+                              decoding="async"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className={`truncate ${textColor}`}>
+                                {item.itemType.name}
+                              </div>
+                            </div>
+                            <div className="flex gap-4 text-right">
+                              <div className={`${textColor} w-16`}>
+                                {totalQty}
+                              </div>
+                              <div className={`${textColor} tabular-nums w-40`}>
+                                {formatISK(
+                                  getItemPrice(item.itemType.jitaPrice) *
+                                    totalQty,
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                </div>
+              )}
+
             {/* Implants (Pod Kills) */}
             {fitting?.implants && fitting.implants.length > 0 && (
               <div className="pb-4 mb-4 border-b border-white/10">
@@ -913,7 +987,7 @@ export default function KillmailDetailPage({
 
             {/* Cargo Bay */}
             {fitting?.cargo && fitting.cargo.length > 0 && (
-              <div>
+              <div className="pb-4 mb-4 border-b border-white/10">
                 <h3 className="mb-2 font-bold text-gray-400 uppercase">
                   Cargo Bay
                 </h3>
@@ -966,6 +1040,178 @@ export default function KillmailDetailPage({
                 </div>
               </div>
             )}
+
+            {/* Fighter Bay */}
+            {fitting?.fighterBay && fitting.fighterBay.length > 0 && (
+              <div className="pb-4 mb-4 border-b border-white/10">
+                <h3 className="mb-2 font-bold text-gray-400 uppercase">
+                  Fighter Bay
+                </h3>
+                <div className="space-y-2">
+                  {(() => {
+                    const groupedFighters = groupItems(fitting.fighterBay);
+                    return groupedFighters.map((item, index) => {
+                      const totalQty =
+                        item.quantityDestroyed + item.quantityDropped || 1;
+                      const isDestroyed = item.quantityDestroyed > 0;
+                      const isDropped = item.quantityDropped > 0;
+                      const textColor = isDestroyed
+                        ? "text-red-400"
+                        : isDropped
+                          ? "text-green-500"
+                          : "text-white";
+
+                      return (
+                        <div
+                          key={`fighter-${item.itemType.id}-${index}`}
+                          className="flex items-center gap-3 py-2"
+                        >
+                          <img
+                            src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                            alt={item.itemType.name}
+                            className="w-16 h-16"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className={`truncate ${textColor}`}>
+                              {item.itemType.name}
+                            </div>
+                          </div>
+                          <div className="flex gap-4 text-right">
+                            <div className={`${textColor} w-16`}>
+                              {totalQty}
+                            </div>
+                            <div className={`${textColor} tabular-nums w-40`}>
+                              {formatISK(
+                                getItemPrice(item.itemType.jitaPrice) *
+                                  totalQty,
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+            )}
+
+            {/* Structure Fuel (Upwell Structures Only) */}
+            {isStructure &&
+              fitting?.structureFuel &&
+              fitting.structureFuel.length > 0 && (
+                <div className="pb-4 mb-4 border-b border-white/10">
+                  <h3 className="mb-2 font-bold text-orange-400 uppercase">
+                    ⚡ Structure Fuel
+                  </h3>
+                  <div className="space-y-2">
+                    {(() => {
+                      const groupedFuel = groupItems(fitting.structureFuel);
+                      return groupedFuel.map((item, index) => {
+                        const totalQty =
+                          item.quantityDestroyed + item.quantityDropped || 1;
+                        const isDestroyed = item.quantityDestroyed > 0;
+                        const isDropped = item.quantityDropped > 0;
+                        const textColor = isDestroyed
+                          ? "text-red-400"
+                          : isDropped
+                            ? "text-green-500"
+                            : "text-white";
+
+                        return (
+                          <div
+                            key={`fuel-${item.itemType.id}-${index}`}
+                            className="flex items-center gap-3 py-2"
+                          >
+                            <img
+                              src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                              alt={item.itemType.name}
+                              className="w-16 h-16"
+                              loading="lazy"
+                              decoding="async"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className={`truncate ${textColor}`}>
+                                {item.itemType.name}
+                              </div>
+                            </div>
+                            <div className="flex gap-4 text-right">
+                              <div className={`${textColor} w-16`}>
+                                {totalQty}
+                              </div>
+                              <div className={`${textColor} tabular-nums w-40`}>
+                                {formatISK(
+                                  getItemPrice(item.itemType.jitaPrice) *
+                                    totalQty,
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                </div>
+              )}
+
+            {/* Structure Core Room (Upwell Structures Only - Quantum Core) */}
+            {isStructure &&
+              fitting?.coreRoom &&
+              fitting.coreRoom.length > 0 && (
+                <div className="pb-4 mb-4 border-b border-white/10">
+                  <h3 className="mb-2 font-bold text-cyan-400 uppercase">
+                    💎 Structure Core Room
+                  </h3>
+                  <div className="space-y-2">
+                    {(() => {
+                      const groupedCore = groupItems(fitting.coreRoom);
+                      return groupedCore.map((item, index) => {
+                        const totalQty =
+                          item.quantityDestroyed + item.quantityDropped || 1;
+                        const isDestroyed = item.quantityDestroyed > 0;
+                        const isDropped = item.quantityDropped > 0;
+                        const textColor = isDestroyed
+                          ? "text-red-400"
+                          : isDropped
+                            ? "text-green-500"
+                            : "text-white";
+
+                        return (
+                          <div
+                            key={`core-${item.itemType.id}-${index}`}
+                            className="flex items-center gap-3 py-2"
+                          >
+                            <img
+                              src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                              alt={item.itemType.name}
+                              className="w-16 h-16"
+                              loading="lazy"
+                              decoding="async"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className={`truncate ${textColor}`}>
+                                {item.itemType.name}
+                              </div>
+                            </div>
+                            <div className="flex gap-4 text-right">
+                              <div className={`${textColor} w-16`}>
+                                {totalQty}
+                              </div>
+                              <div className={`${textColor} tabular-nums w-40`}>
+                                {formatISK(
+                                  getItemPrice(item.itemType.jitaPrice) *
+                                    totalQty,
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                </div>
+              )}
 
             {/* Value Summary - Accounting Style */}
             <div className="pt-4 border-t border-white/10">
