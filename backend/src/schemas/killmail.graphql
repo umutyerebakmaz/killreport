@@ -85,7 +85,7 @@ type Fitting {
   midSlots: SlotGroup!
   lowSlots: SlotGroup!
   rigs: SlotGroup!
-  subsystems: [FittingModule!]!
+  subsystems: SlotGroup!
   implants: [FittingModule!]!
   cargo: [FittingModule!]!
   droneBay: [FittingModule!]!

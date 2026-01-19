@@ -13,6 +13,82 @@ const getItemPrice = (jitaPrice: any) => {
   return jitaPrice?.sell || jitaPrice?.average || 0;
 };
 
+// Render quantity with separate destroyed/dropped display
+const renderQuantity = (destroyed: number, dropped: number) => {
+  const hasDestroyed = destroyed > 0;
+  const hasDropped = dropped > 0;
+
+  if (hasDestroyed && hasDropped) {
+    // Both - show as stacked
+    return (
+      <div className="flex flex-col w-16 leading-tight">
+        <span className="text-red-400">{destroyed}</span>
+        <span className="text-green-500">{dropped}</span>
+      </div>
+    );
+  } else if (hasDestroyed) {
+    // Only destroyed
+    return <div className="w-16 text-red-400">{destroyed}</div>;
+  } else if (hasDropped) {
+    // Only dropped
+    return <div className="w-16 text-green-500">{dropped}</div>;
+  } else {
+    // None (default to 1 for fitted modules)
+    return <div className="w-16 text-white">1</div>;
+  }
+};
+
+// Group items by type ID AND status (destroyed/dropped separately)
+const groupItems = (items: any[]) => {
+  const grouped = new Map<
+    string,
+    {
+      itemType: any;
+      quantityDestroyed: number;
+      quantityDropped: number;
+    }
+  >();
+
+  items.forEach((item) => {
+    const typeId = item.itemType.id;
+    const isDestroyed = (item.quantityDestroyed || 0) > 0;
+    const isDropped = (item.quantityDropped || 0) > 0;
+
+    // Create separate entries for destroyed and dropped
+    if (isDestroyed) {
+      const key = `${typeId}-destroyed`;
+      const existing = grouped.get(key);
+
+      if (existing) {
+        existing.quantityDestroyed += item.quantityDestroyed || 0;
+      } else {
+        grouped.set(key, {
+          itemType: item.itemType,
+          quantityDestroyed: item.quantityDestroyed || 0,
+          quantityDropped: 0,
+        });
+      }
+    }
+
+    if (isDropped) {
+      const key = `${typeId}-dropped`;
+      const existing = grouped.get(key);
+
+      if (existing) {
+        existing.quantityDropped += item.quantityDropped || 0;
+      } else {
+        grouped.set(key, {
+          itemType: item.itemType,
+          quantityDestroyed: 0,
+          quantityDropped: item.quantityDropped || 0,
+        });
+      }
+    }
+  });
+
+  return Array.from(grouped.values());
+};
+
 export default function KillmailDetailPage({
   params,
 }: {
@@ -194,8 +270,8 @@ export default function KillmailDetailPage({
                                 km.solarSystem.security_status >= 0.5
                                   ? "text-green-400"
                                   : km.solarSystem.security_status > 0
-                                  ? "text-yellow-400"
-                                  : "text-red-400"
+                                    ? "text-yellow-400"
+                                    : "text-red-400"
                               }
                             >
                               {" "}
@@ -260,9 +336,7 @@ export default function KillmailDetailPage({
             {/* Ship */}
             {victim?.shipType && (
               <div className="pb-4 mb-4 border-b border-white/10">
-                <h3 className="mb-2 text-sm font-bold text-gray-400 uppercase">
-                  Ship
-                </h3>
+                <h3 className="mb-2 font-bold text-gray-400 uppercase">Ship</h3>
                 <div className="flex items-center gap-3 py-2">
                   <img
                     src={`https://images.evetech.net/types/${victim.shipType.id}/icon?size=64`}
@@ -276,7 +350,7 @@ export default function KillmailDetailPage({
                       {victim.shipType.name}
                     </div>
                     {victim.shipType.group && (
-                      <div className="text-sm text-gray-500">
+                      <div className="text-gray-500">
                         {victim.shipType.group.name}
                       </div>
                     )}
@@ -299,114 +373,124 @@ export default function KillmailDetailPage({
                     High Slots
                   </h3>
                   <div className="space-y-2">
-                    {fitting.highSlots.slots.flatMap((slot) => {
-                      if (!slot.module) return [];
-                      const items = [];
+                    {(() => {
+                      // Collect all modules and charges from slots
+                      const modules: any[] = [];
+                      const charges: any[] = [];
 
-                      // Module
-                      const moduleIsDestroyed =
-                        (slot.module.quantityDestroyed || 0) > 0;
-                      const moduleIsDropped =
-                        (slot.module.quantityDropped || 0) > 0;
-                      const moduleTextColor = moduleIsDestroyed
-                        ? "text-red-400"
-                        : moduleIsDropped
-                        ? "text-green-400"
-                        : "text-white";
+                      fitting.highSlots.slots.forEach((slot) => {
+                        if (slot.module) {
+                          modules.push(slot.module);
+                          if (slot.module.charge) {
+                            charges.push(slot.module.charge);
+                          }
+                        }
+                      });
 
-                      items.push(
-                        <div
-                          key={`module-${slot.slotIndex}`}
-                          className="flex items-center gap-3 py-2 transition-colors hover:bg-white/5"
-                        >
-                          <img
-                            src={`https://images.evetech.net/types/${slot.module.itemType.id}/icon?size=64`}
-                            alt={slot.module.itemType.name}
-                            className="w-16 h-16"
-                            loading="lazy"
-                            decoding="async"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div
-                              className={`text-sm truncate ${moduleTextColor}`}
-                            >
-                              {slot.module.itemType.name}
-                            </div>
-                          </div>
-                          <div className="flex gap-4 text-right">
-                            <div className={`${moduleTextColor} w-16`}>
-                              {(slot.module.quantityDropped || 0) +
-                                (slot.module.quantityDestroyed || 0) || 1}
-                            </div>
-                            <div
-                              className={`${moduleTextColor} tabular-nums w-40`}
-                            >
-                              {formatISK(
-                                getItemPrice(slot.module.itemType.jitaPrice) *
-                                  ((slot.module.quantityDropped || 0) +
-                                    (slot.module.quantityDestroyed || 0) || 1)
-                              )}
-                            </div>
-                          </div>
-                        </div>
+                      // Group modules and charges separately
+                      const groupedModules = groupItems(modules);
+                      const groupedCharges = groupItems(charges);
+
+                      return (
+                        <>
+                          {/* Render grouped modules */}
+                          {groupedModules.map((item, index) => {
+                            const totalQty =
+                              item.quantityDestroyed + item.quantityDropped ||
+                              1;
+                            const isDestroyed = item.quantityDestroyed > 0;
+                            const isDropped = item.quantityDropped > 0;
+                            const textColor = isDestroyed
+                              ? "text-red-400"
+                              : isDropped
+                                ? "text-green-500"
+                                : "text-white";
+
+                            return (
+                              <div
+                                key={`module-${item.itemType.id}-${index}`}
+                                className="flex items-center gap-3 py-2"
+                              >
+                                <img
+                                  src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                                  alt={item.itemType.name}
+                                  className="w-16 h-16"
+                                  loading="lazy"
+                                  decoding="async"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <div className={`truncate ${textColor}`}>
+                                    {item.itemType.name}
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-4 text-right">
+                                  {renderQuantity(
+                                    item.quantityDestroyed,
+                                    item.quantityDropped,
+                                  )}
+                                  <div
+                                    className={`w-40 tabular-nums ${textColor}`}
+                                  >
+                                    {formatISK(
+                                      getItemPrice(item.itemType.jitaPrice) *
+                                        totalQty,
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+
+                          {/* Render grouped charges */}
+                          {groupedCharges.map((item, index) => {
+                            const totalQty =
+                              item.quantityDestroyed + item.quantityDropped ||
+                              1;
+                            const isDestroyed = item.quantityDestroyed > 0;
+                            const isDropped = item.quantityDropped > 0;
+                            const textColor = isDestroyed
+                              ? "text-red-400"
+                              : isDropped
+                                ? "text-green-500"
+                                : "text-gray-400";
+
+                            return (
+                              <div
+                                key={`charge-${item.itemType.id}-${index}`}
+                                className="flex items-center gap-3 py-2"
+                              >
+                                <img
+                                  src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                                  alt={item.itemType.name}
+                                  className="w-16 h-16 opacity-75"
+                                  loading="lazy"
+                                  decoding="async"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <div className={`truncate ${textColor}`}>
+                                    {item.itemType.name}
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-4 text-right">
+                                  {renderQuantity(
+                                    item.quantityDestroyed,
+                                    item.quantityDropped,
+                                  )}
+                                  <div
+                                    className={`w-40 tabular-nums ${textColor}`}
+                                  >
+                                    {formatISK(
+                                      getItemPrice(item.itemType.jitaPrice) *
+                                        totalQty,
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </>
                       );
-
-                      // Charge (if exists)
-                      if (slot.module.charge) {
-                        const chargeIsDestroyed =
-                          (slot.module.charge.quantityDestroyed || 0) > 0;
-                        const chargeIsDropped =
-                          (slot.module.charge.quantityDropped || 0) > 0;
-                        const chargeTextColor = chargeIsDestroyed
-                          ? "text-red-400"
-                          : chargeIsDropped
-                          ? "text-green-400"
-                          : "text-white";
-
-                        items.push(
-                          <div
-                            key={`charge-${slot.slotIndex}`}
-                            className="flex items-center gap-3 py-2"
-                          >
-                            <img
-                              src={`https://images.evetech.net/types/${slot.module.charge.itemType.id}/icon?size=64`}
-                              alt={slot.module.charge.itemType.name}
-                              className="w-16 h-16"
-                              loading="lazy"
-                              decoding="async"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <div
-                                className={`text-sm truncate ${chargeTextColor}`}
-                              >
-                                {slot.module.charge.itemType.name}
-                              </div>
-                            </div>
-                            <div className="flex gap-4 text-right">
-                              <div className={`${chargeTextColor} w-16`}>
-                                {(slot.module.charge.quantityDropped || 0) +
-                                  (slot.module.charge.quantityDestroyed || 0) ||
-                                  1}
-                              </div>
-                              <div
-                                className={`${chargeTextColor} tabular-nums w-40`}
-                              >
-                                {formatISK(
-                                  getItemPrice(
-                                    slot.module.charge.itemType.jitaPrice
-                                  ) *
-                                    ((slot.module.charge.quantityDropped || 0) +
-                                      (slot.module.charge.quantityDestroyed ||
-                                        0) || 1)
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      }
-
-                      return items;
-                    })}
+                    })()}
                   </div>
                 </div>
               )}
@@ -414,118 +498,121 @@ export default function KillmailDetailPage({
             {/* Mid Slots */}
             {fitting?.midSlots && fitting.midSlots.slots.length > 0 && (
               <div className="pb-4 mb-4 border-b border-white/10">
-                <h3 className="mb-2 text-sm font-bold text-gray-400 uppercase">
+                <h3 className="mb-2 font-bold text-gray-400 uppercase">
                   Mid Slots
                 </h3>
                 <div className="space-y-2">
-                  {fitting.midSlots.slots.flatMap((slot) => {
-                    if (!slot.module) return [];
-                    const items = [];
+                  {(() => {
+                    const modules: any[] = [];
+                    const charges: any[] = [];
 
-                    // Module
-                    const moduleIsDestroyed =
-                      (slot.module.quantityDestroyed || 0) > 0;
-                    const moduleIsDropped =
-                      (slot.module.quantityDropped || 0) > 0;
-                    const moduleTextColor = moduleIsDestroyed
-                      ? "text-red-400"
-                      : moduleIsDropped
-                      ? "text-green-400"
-                      : "text-white";
+                    fitting.midSlots.slots.forEach((slot) => {
+                      if (slot.module) {
+                        modules.push(slot.module);
+                        if (slot.module.charge) {
+                          charges.push(slot.module.charge);
+                        }
+                      }
+                    });
 
-                    items.push(
-                      <div
-                        key={`module-${slot.slotIndex}`}
-                        className="flex items-center gap-3 py-2"
-                      >
-                        <img
-                          src={`https://images.evetech.net/types/${slot.module.itemType.id}/icon?size=64`}
-                          alt={slot.module.itemType.name}
-                          className="w-16 h-16"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div
-                            className={`text-sm truncate ${moduleTextColor}`}
-                          >
-                            {slot.module.itemType.name}
-                          </div>
-                        </div>
-                        <div className="flex gap-4 text-right">
-                          <div className={`${moduleTextColor} w-16`}>
-                            {(slot.module.quantityDropped || 0) +
-                              (slot.module.quantityDestroyed || 0) || 1}
-                          </div>
-                          <div
-                            className={`${moduleTextColor} tabular-nums w-40`}
-                          >
-                            {formatISK(
-                              getItemPrice(slot.module.itemType.jitaPrice) *
-                                ((slot.module.quantityDropped || 0) +
-                                  (slot.module.quantityDestroyed || 0) || 1)
-                            )}
-                          </div>
-                        </div>
-                      </div>
+                    const groupedModules = groupItems(modules);
+                    const groupedCharges = groupItems(charges);
+
+                    return (
+                      <>
+                        {groupedModules.map((item, index) => {
+                          const totalQty =
+                            item.quantityDestroyed + item.quantityDropped || 1;
+                          const isDestroyed = item.quantityDestroyed > 0;
+                          const isDropped = item.quantityDropped > 0;
+                          const textColor = isDestroyed
+                            ? "text-red-400"
+                            : isDropped
+                              ? "text-green-500"
+                              : "text-white";
+
+                          return (
+                            <div
+                              key={`module-${item.itemType.id}-${index}`}
+                              className="flex items-center gap-3 py-2"
+                            >
+                              <img
+                                src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                                alt={item.itemType.name}
+                                className="w-16 h-16"
+                                loading="lazy"
+                                decoding="async"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className={`truncate ${textColor}`}>
+                                  {item.itemType.name}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-4 text-right">
+                                {renderQuantity(
+                                  item.quantityDestroyed,
+                                  item.quantityDropped,
+                                )}
+                                <div
+                                  className={`w-40 tabular-nums ${textColor}`}
+                                >
+                                  {formatISK(
+                                    getItemPrice(item.itemType.jitaPrice) *
+                                      totalQty,
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        {groupedCharges.map((item, index) => {
+                          const totalQty =
+                            item.quantityDestroyed + item.quantityDropped || 1;
+                          const isDestroyed = item.quantityDestroyed > 0;
+                          const isDropped = item.quantityDropped > 0;
+                          const textColor = isDestroyed
+                            ? "text-red-400"
+                            : isDropped
+                              ? "text-green-500"
+                              : "text-white";
+
+                          return (
+                            <div
+                              key={`charge-${item.itemType.id}-${index}`}
+                              className="flex items-center gap-3 py-2"
+                            >
+                              <img
+                                src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                                alt={item.itemType.name}
+                                className="w-16 h-16 opacity-75"
+                                loading="lazy"
+                                decoding="async"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className={`truncate ${textColor}`}>
+                                  {item.itemType.name}
+                                </div>
+                              </div>
+                              <div className="flex gap-4 text-right">
+                                <div className={`${textColor} w-16`}>
+                                  {totalQty}
+                                </div>
+                                <div
+                                  className={`${textColor} tabular-nums w-40`}
+                                >
+                                  {formatISK(
+                                    getItemPrice(item.itemType.jitaPrice) *
+                                      totalQty,
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </>
                     );
-
-                    // Charge (if exists)
-                    if (slot.module.charge) {
-                      const chargeIsDestroyed =
-                        (slot.module.charge.quantityDestroyed || 0) > 0;
-                      const chargeIsDropped =
-                        (slot.module.charge.quantityDropped || 0) > 0;
-                      const chargeTextColor = chargeIsDestroyed
-                        ? "text-red-400"
-                        : chargeIsDropped
-                        ? "text-green-400"
-                        : "text-white";
-
-                      items.push(
-                        <div
-                          key={`charge-${slot.slotIndex}`}
-                          className="flex items-center gap-3 py-2"
-                        >
-                          <img
-                            src={`https://images.evetech.net/types/${slot.module.charge.itemType.id}/icon?size=64`}
-                            alt={slot.module.charge.itemType.name}
-                            className="w-16 h-16"
-                            loading="lazy"
-                            decoding="async"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div
-                              className={`text-sm truncate ${chargeTextColor}`}
-                            >
-                              {slot.module.charge.itemType.name}
-                            </div>
-                          </div>
-                          <div className="flex gap-4 text-right">
-                            <div className={`${chargeTextColor} w-16`}>
-                              {(slot.module.charge.quantityDropped || 0) +
-                                (slot.module.charge.quantityDestroyed || 0) ||
-                                1}
-                            </div>
-                            <div
-                              className={`${chargeTextColor} tabular-nums w-40`}
-                            >
-                              {formatISK(
-                                getItemPrice(
-                                  slot.module.charge.itemType.jitaPrice
-                                ) *
-                                  ((slot.module.charge.quantityDropped || 0) +
-                                    (slot.module.charge.quantityDestroyed ||
-                                      0) || 1)
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    }
-
-                    return items;
-                  })}
+                  })()}
                 </div>
               </div>
             )}
@@ -533,52 +620,59 @@ export default function KillmailDetailPage({
             {/* Low Slots */}
             {fitting?.lowSlots && fitting.lowSlots.slots.length > 0 && (
               <div className="pb-4 mb-4 border-b border-white/10">
-                <h3 className="mb-2 text-sm font-bold text-gray-400 uppercase">
+                <h3 className="mb-2 font-bold text-gray-400 uppercase">
                   Low Slots
                 </h3>
                 <div className="space-y-2">
-                  {fitting.lowSlots.slots.map((slot) => {
-                    if (!slot.module) return null;
-                    const isDestroyed =
-                      (slot.module.quantityDestroyed || 0) > 0;
-                    const isDropped = (slot.module.quantityDropped || 0) > 0;
-                    const textColor = isDestroyed
-                      ? "text-red-400"
-                      : isDropped
-                      ? "text-green-400"
-                      : "text-white";
+                  {(() => {
+                    const modules = fitting.lowSlots.slots
+                      .filter((slot) => slot.module)
+                      .map((slot) => slot.module);
+                    const groupedModules = groupItems(modules);
 
-                    return (
-                      <div
-                        key={slot.slotIndex}
-                        className="flex items-center gap-3 py-2"
-                      >
-                        <img
-                          src={`https://images.evetech.net/types/${slot.module.itemType.id}/icon?size=64`}
-                          alt={slot.module.itemType.name}
-                          className="w-16 h-16"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className={`truncate ${textColor}`}>
-                            {slot.module.itemType.name}
+                    return groupedModules.map((item, index) => {
+                      const totalQty =
+                        item.quantityDestroyed + item.quantityDropped || 1;
+                      const isDestroyed = item.quantityDestroyed > 0;
+                      const isDropped = item.quantityDropped > 0;
+                      const textColor = isDestroyed
+                        ? "text-red-400"
+                        : isDropped
+                          ? "text-green-500"
+                          : "text-white";
+
+                      return (
+                        <div
+                          key={`low-${item.itemType.id}-${index}`}
+                          className="flex items-center gap-3 py-2"
+                        >
+                          <img
+                            src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                            alt={item.itemType.name}
+                            className="w-16 h-16"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className={`truncate ${textColor}`}>
+                              {item.itemType.name}
+                            </div>
+                          </div>
+                          <div className="flex gap-4 text-right">
+                            <div className={`${textColor} w-16`}>
+                              {totalQty}
+                            </div>
+                            <div className={`${textColor} tabular-nums w-40`}>
+                              {formatISK(
+                                getItemPrice(item.itemType.jitaPrice) *
+                                  totalQty,
+                              )}
+                            </div>
                           </div>
                         </div>
-                        <div className="flex text-right">
-                          <div className={`${textColor} w-16`}>
-                            {(slot.module.quantityDropped || 0) +
-                              (slot.module.quantityDestroyed || 0) || 1}
-                          </div>
-                          <div className={`${textColor} tabular-nums w-40`}>
-                            {formatISK(
-                              getItemPrice(slot.module.itemType.jitaPrice) *
-                                ((slot.module.quantityDropped || 0) +
-                                  (slot.module.quantityDestroyed || 0) || 1)
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    });
+                  })()}
                 </div>
               </div>
             )}
@@ -586,52 +680,117 @@ export default function KillmailDetailPage({
             {/* Rigs */}
             {fitting?.rigs && fitting.rigs.slots.length > 0 && (
               <div className="pb-4 mb-4 border-b border-white/10">
-                <h3 className="mb-2 text-sm font-bold text-gray-400 uppercase">
-                  Rigs
+                <h3 className="mb-2 font-bold text-gray-400 uppercase">Rigs</h3>
+                <div className="space-y-2">
+                  {(() => {
+                    const modules = fitting.rigs.slots
+                      .filter((slot) => slot.module)
+                      .map((slot) => slot.module);
+                    const groupedModules = groupItems(modules);
+
+                    return groupedModules.map((item, index) => {
+                      const totalQty =
+                        item.quantityDestroyed + item.quantityDropped || 1;
+                      const isDestroyed = item.quantityDestroyed > 0;
+                      const isDropped = item.quantityDropped > 0;
+                      const textColor = isDestroyed
+                        ? "text-red-400"
+                        : isDropped
+                          ? "text-green-500"
+                          : "text-white";
+
+                      return (
+                        <div
+                          key={`rig-${item.itemType.id}-${index}`}
+                          className="flex items-center gap-3 py-2"
+                        >
+                          <img
+                            src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                            alt={item.itemType.name}
+                            className="w-16 h-16"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className={`truncate ${textColor}`}>
+                              {item.itemType.name}
+                            </div>
+                          </div>
+                          <div className="flex gap-4 text-right">
+                            <div className={`${textColor} w-16`}>
+                              {totalQty}
+                            </div>
+                            <div className={`${textColor} tabular-nums w-40`}>
+                              {formatISK(
+                                getItemPrice(item.itemType.jitaPrice) *
+                                  totalQty,
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+            )}
+
+            {/* Subsystems */}
+            {fitting?.subsystems && fitting.subsystems.slots.length > 0 && (
+              <div className="pb-4 mb-4 border-b border-white/10">
+                <h3 className="mb-2 font-bold text-gray-400 uppercase">
+                  Subsystems
                 </h3>
                 <div className="space-y-2">
-                  {fitting.rigs.slots.map((slot) => {
-                    if (!slot.module) return null;
-                    const module = slot.module;
-                    const quantity =
-                      (module.quantityDropped || 0) +
-                        (module.quantityDestroyed || 0) || 1;
-                    const isDestroyed = (module.quantityDestroyed || 0) > 0;
-                    const isDropped = (module.quantityDropped || 0) > 0;
-                    const textColor = isDestroyed
-                      ? "text-red-400"
-                      : isDropped
-                      ? "text-green-400"
-                      : "text-white";
+                  {(() => {
+                    const modules = fitting.subsystems.slots
+                      .filter((slot) => slot.module)
+                      .map((slot) => slot.module);
+                    const groupedModules = groupItems(modules);
 
-                    return (
-                      <div
-                        key={slot.slotIndex}
-                        className="flex items-center gap-3 py-2"
-                      >
-                        <img
-                          src={`https://images.evetech.net/types/${module.itemType.id}/icon?size=64`}
-                          alt={module.itemType.name}
-                          className="w-16 h-16"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className={`truncate ${textColor}`}>
-                            {module.itemType.name}
+                    return groupedModules.map((item, index) => {
+                      const totalQty =
+                        item.quantityDestroyed + item.quantityDropped || 1;
+                      const isDestroyed = item.quantityDestroyed > 0;
+                      const isDropped = item.quantityDropped > 0;
+                      const textColor = isDestroyed
+                        ? "text-red-400"
+                        : isDropped
+                          ? "text-green-500"
+                          : "text-white";
+
+                      return (
+                        <div
+                          key={`subsystem-${item.itemType.id}-${index}`}
+                          className="flex items-center gap-3 py-2"
+                        >
+                          <img
+                            src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                            alt={item.itemType.name}
+                            className="w-16 h-16"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className={`truncate ${textColor}`}>
+                              {item.itemType.name}
+                            </div>
+                          </div>
+                          <div className="flex gap-4 text-right">
+                            <div className={`${textColor} w-16`}>
+                              {totalQty}
+                            </div>
+                            <div className={`${textColor} tabular-nums w-40`}>
+                              {formatISK(
+                                getItemPrice(item.itemType.jitaPrice) *
+                                  totalQty,
+                              )}
+                            </div>
                           </div>
                         </div>
-                        <div className="flex gap-4 text-right">
-                          <div className={`${textColor} w-16`}>{quantity}</div>
-                          <div className={`${textColor} tabular-nums w-40`}>
-                            {formatISK(
-                              getItemPrice(module.itemType.jitaPrice) * quantity
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    });
+                  })()}
                 </div>
               </div>
             )}
@@ -639,52 +798,59 @@ export default function KillmailDetailPage({
             {/* Implants (Pod Kills) */}
             {fitting?.implants && fitting.implants.length > 0 && (
               <div className="pb-4 mb-4 border-b border-white/10">
-                <h3 className="mb-2 text-sm font-bold text-yellow-400 uppercase">
-                  💎 Implants
+                <h3 className="mb-2 font-bold text-gray-400 uppercase">
+                  Implants
                 </h3>
                 <div className="space-y-2">
-                  {fitting.implants.map((module, index) => {
-                    const quantity =
-                      (module.quantityDropped || 0) +
-                        (module.quantityDestroyed || 0) || 1;
-                    const isDestroyed = (module.quantityDestroyed || 0) > 0;
-                    const isDropped = (module.quantityDropped || 0) > 0;
-                    const textColor = isDestroyed
-                      ? "text-red-400"
-                      : isDropped
-                      ? "text-green-400"
-                      : "text-white";
+                  {(() => {
+                    const groupedImplants = groupItems(fitting.implants);
+                    return groupedImplants.map((item, index) => {
+                      const totalQty =
+                        item.quantityDestroyed + item.quantityDropped || 1;
+                      const isDestroyed = item.quantityDestroyed > 0;
+                      const isDropped = item.quantityDropped > 0;
+                      const textColor = isDestroyed
+                        ? "text-red-400"
+                        : isDropped
+                          ? "text-green-500"
+                          : "text-white";
 
-                    return (
-                      <div
-                        key={index}
-                        className="flex items-center gap-3 px-2 py-2 rounded bg-yellow-500/5"
-                      >
-                        <img
-                          src={`https://images.evetech.net/types/${module.itemType.id}/icon?size=64`}
-                          alt={module.itemType.name}
-                          className="w-16 h-16"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className={`truncate ${textColor} font-medium`}>
-                            {module.itemType.name}
+                      return (
+                        <div
+                          key={`implant-${item.itemType.id}-${index}`}
+                          className="flex items-center gap-3 px-2 py-2"
+                        >
+                          <img
+                            src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                            alt={item.itemType.name}
+                            className="w-16 h-16"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div
+                              className={`truncate ${textColor} font-medium`}
+                            >
+                              {item.itemType.name}
+                            </div>
+                          </div>
+                          <div className="flex gap-4 text-right">
+                            <div className={`${textColor} w-16`}>
+                              {totalQty}
+                            </div>
+                            <div
+                              className={`${textColor} tabular-nums w-40 font-semibold`}
+                            >
+                              {formatISK(
+                                getItemPrice(item.itemType.jitaPrice) *
+                                  totalQty,
+                              )}
+                            </div>
                           </div>
                         </div>
-                        <div className="flex gap-4 text-right">
-                          <div className={`${textColor} w-16`}>{quantity}</div>
-                          <div
-                            className={`${textColor} tabular-nums w-40 font-semibold`}
-                          >
-                            {formatISK(
-                              getItemPrice(module.itemType.jitaPrice) * quantity
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    });
+                  })()}
                 </div>
               </div>
             )}
@@ -692,47 +858,55 @@ export default function KillmailDetailPage({
             {/* Drone Bay */}
             {fitting?.droneBay && fitting.droneBay.length > 0 && (
               <div className="pb-4 mb-4 border-b border-white/10">
-                <h3 className="mb-2 text-sm font-bold text-gray-400 uppercase">
+                <h3 className="mb-2 font-bold text-gray-400 uppercase">
                   Drone Bay
                 </h3>
                 <div className="space-y-2">
-                  {fitting.droneBay.map((module, index) => {
-                    const quantity =
-                      (module.quantityDropped || 0) +
-                        (module.quantityDestroyed || 0) || 1;
-                    const isDestroyed = (module.quantityDestroyed || 0) > 0;
-                    const isDropped = (module.quantityDropped || 0) > 0;
-                    const textColor = isDestroyed
-                      ? "text-red-400"
-                      : isDropped
-                      ? "text-green-400"
-                      : "text-white";
+                  {(() => {
+                    const groupedDrones = groupItems(fitting.droneBay);
+                    return groupedDrones.map((item, index) => {
+                      const totalQty =
+                        item.quantityDestroyed + item.quantityDropped || 1;
+                      const isDestroyed = item.quantityDestroyed > 0;
+                      const isDropped = item.quantityDropped > 0;
+                      const textColor = isDestroyed
+                        ? "text-red-400"
+                        : isDropped
+                          ? "text-green-500"
+                          : "text-white";
 
-                    return (
-                      <div key={index} className="flex items-center gap-3 py-2">
-                        <img
-                          src={`https://images.evetech.net/types/${module.itemType.id}/icon?size=64`}
-                          alt={module.itemType.name}
-                          className="w-16 h-16"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className={`truncate ${textColor}`}>
-                            {module.itemType.name}
+                      return (
+                        <div
+                          key={`drone-${item.itemType.id}-${index}`}
+                          className="flex items-center gap-3 py-2"
+                        >
+                          <img
+                            src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                            alt={item.itemType.name}
+                            className="w-16 h-16"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className={`truncate ${textColor}`}>
+                              {item.itemType.name}
+                            </div>
+                          </div>
+                          <div className="flex gap-4 text-right">
+                            <div className={`${textColor} w-16`}>
+                              {totalQty}
+                            </div>
+                            <div className={`${textColor} tabular-nums w-40`}>
+                              {formatISK(
+                                getItemPrice(item.itemType.jitaPrice) *
+                                  totalQty,
+                              )}
+                            </div>
                           </div>
                         </div>
-                        <div className="flex gap-4 text-right">
-                          <div className={`${textColor} w-16`}>{quantity}</div>
-                          <div className={`${textColor} tabular-nums w-40`}>
-                            {formatISK(
-                              getItemPrice(module.itemType.jitaPrice) * quantity
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    });
+                  })()}
                 </div>
               </div>
             )}
@@ -740,47 +914,55 @@ export default function KillmailDetailPage({
             {/* Cargo Bay */}
             {fitting?.cargo && fitting.cargo.length > 0 && (
               <div>
-                <h3 className="mb-2 text-sm font-bold text-gray-400 uppercase">
+                <h3 className="mb-2 font-bold text-gray-400 uppercase">
                   Cargo Bay
                 </h3>
                 <div className="space-y-2">
-                  {fitting.cargo.map((module, index) => {
-                    const quantity =
-                      (module.quantityDropped || 0) +
-                        (module.quantityDestroyed || 0) || 1;
-                    const isDestroyed = (module.quantityDestroyed || 0) > 0;
-                    const isDropped = (module.quantityDropped || 0) > 0;
-                    const textColor = isDestroyed
-                      ? "text-red-400"
-                      : isDropped
-                      ? "text-green-400"
-                      : "text-white";
+                  {(() => {
+                    const groupedCargo = groupItems(fitting.cargo);
+                    return groupedCargo.map((item, index) => {
+                      const totalQty =
+                        item.quantityDestroyed + item.quantityDropped || 1;
+                      const isDestroyed = item.quantityDestroyed > 0;
+                      const isDropped = item.quantityDropped > 0;
+                      const textColor = isDestroyed
+                        ? "text-red-400"
+                        : isDropped
+                          ? "text-green-500"
+                          : "text-white";
 
-                    return (
-                      <div key={index} className="flex items-center gap-3 py-2">
-                        <img
-                          src={`https://images.evetech.net/types/${module.itemType.id}/icon?size=64`}
-                          alt={module.itemType.name}
-                          className="w-16 h-16"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className={`truncate ${textColor}`}>
-                            {module.itemType.name}
+                      return (
+                        <div
+                          key={`cargo-${item.itemType.id}-${index}`}
+                          className="flex items-center gap-3 py-2"
+                        >
+                          <img
+                            src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                            alt={item.itemType.name}
+                            className="w-16 h-16"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className={`truncate ${textColor}`}>
+                              {item.itemType.name}
+                            </div>
+                          </div>
+                          <div className="flex gap-4 text-right">
+                            <div className={`${textColor} w-16`}>
+                              {totalQty}
+                            </div>
+                            <div className={`${textColor} tabular-nums w-40`}>
+                              {formatISK(
+                                getItemPrice(item.itemType.jitaPrice) *
+                                  totalQty,
+                              )}
+                            </div>
                           </div>
                         </div>
-                        <div className="flex gap-4 text-right">
-                          <div className={`${textColor} w-16`}>{quantity}</div>
-                          <div className={`${textColor} tabular-nums w-40`}>
-                            {formatISK(
-                              getItemPrice(module.itemType.jitaPrice) * quantity
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    });
+                  })()}
                 </div>
               </div>
             )}
