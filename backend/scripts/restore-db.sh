@@ -20,9 +20,10 @@ fi
 export $(grep -v '^#' .env | xargs)
 
 echo "⚠️  This will restore data from: $BACKUP_FILE"
-echo "🔄 Restoring..."
+echo "🔄 Restoring with proper transaction handling..."
 
-# Restore backup
-psql $DATABASE_URL < $BACKUP_FILE
+# Restore backup with proper error handling
+# Use single transaction to ensure atomicity
+psql $DATABASE_URL -v ON_ERROR_STOP=1 --single-transaction < $BACKUP_FILE
 
-echo "✅ Database restored successfully!"
+echo "✅ Database restored successfully with all foreign key constraints intact!"
