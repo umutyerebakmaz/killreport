@@ -32,7 +32,7 @@ export interface Fitting {
     highSlots: FittingSlot[];
     midSlots: FittingSlot[];
     lowSlots: FittingSlot[];
-    rigs: FittingModule[];
+    rigSlots: FittingSlot[];
     subsystems: FittingModule[];
     implants: FittingModule[];
     cargo: FittingModule[];
@@ -225,8 +225,16 @@ export function organizeFitting(
         flagGroups
     );
 
-    // Extract rigs (always try to get up to rigSlotCount, but only return what exists)
-    const rigs = extractModules(
+    // Extract rigs as slots (like high/mid/low)
+    const rigSlots: FittingSlot[] = [];
+    for (let i = 0; i < rigSlotCount; i++) {
+        rigSlots.push({
+            slotIndex: i,
+            module: null,
+        });
+    }
+    fillSlots(
+        rigSlots,
         InventoryFlag.RigSlot0,
         InventoryFlag.RigSlot0 + rigSlotCount - 1,
         flagGroups
@@ -292,7 +300,7 @@ export function organizeFitting(
         highSlots,
         midSlots,
         lowSlots,
-        rigs,
+        rigSlots,
         subsystems,
         implants,
         cargo,
