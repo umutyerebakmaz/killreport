@@ -321,12 +321,29 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
   // Process 10 items at a time for better performance
   const BATCH_SIZE = 10;
 
-  // Helper function for batch processing
-  async function processBatch<T>(items: T[], processor: (item: T) => Promise<void>) {
+  // Helper function for batch processing with proper counting
+  async function processBatch<T>(
+    items: T[],
+    processor: (item: T) => Promise<{ success: boolean }>
+  ): Promise<{ succeeded: number, failed: number }> {
+    let succeeded = 0;
+    let failed = 0;
+
     for (let i = 0; i < items.length; i += BATCH_SIZE) {
       const batch = items.slice(i, i + BATCH_SIZE);
-      await Promise.all(batch.map(processor));
+      const results = await Promise.all(batch.map(processor));
+
+      // Count successes and failures atomically after batch completes
+      results.forEach(result => {
+        if (result.success) {
+          succeeded++;
+        } else {
+          failed++;
+        }
+      });
     }
+
+    return { succeeded, failed };
   }
 
   // ⚠️ IMPORTANT: Process in dependency order
@@ -336,7 +353,7 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
   // 4. Types last (no dependencies)
 
   // Alliances (batch processing) - FIRST!
-  await processBatch(missingAllianceIds, async (allianceId) => {
+  const allianceResults = await processBatch(missingAllianceIds, async (allianceId) => {
     try {
       const allianceInfo = await AllianceService.getAllianceInfo(allianceId);
       await prismaWorker.alliance.upsert({
@@ -353,20 +370,20 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
         },
         update: {},
       });
-      enrichedCount++;
-      stats.enriched++;
       logger.info(`  ✓ Alliance ${allianceId} enriched`);
+      return { success: true };
     } catch (error: any) {
-      failedCount++;
-      stats.enrichmentFailed++;
       const statusCode = error?.response?.status || 'unknown';
       const errorMsg = error?.response?.data?.error || error?.message || 'Unknown error';
       logger.warn(`  ✗ Alliance ${allianceId} failed (${statusCode}): ${errorMsg}`);
+      return { success: false };
     }
   });
+  enrichedCount += allianceResults.succeeded;
+  failedCount += allianceResults.failed;
 
   // Corporations (batch processing) - SECOND!
-  await processBatch(missingCorpIds, async (corpId) => {
+  const corpResults = await processBatch(missingCorpIds, async (corpId) => {
     try {
       logger.debug(`  🔄 Fetching corporation ${corpId} from ESI...`);
       const corpInfo = await CorporationService.getCorporationInfo(corpId);
@@ -387,13 +404,9 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
         },
         update: {},
       });
-      enrichedCount++;
-      stats.enriched++;
       logger.info(`  ✓ Corporation ${corpId} (${corpInfo.name} [${corpInfo.ticker}]) enriched successfully`);
+      return { success: true };
     } catch (error: any) {
-      failedCount++;
-      stats.enrichmentFailed++;
-
       // Detaylı error logging
       const statusCode = error?.response?.status || error?.code || 'unknown';
       const errorMsg = error?.response?.data?.error || error?.message || 'Unknown error';
@@ -417,11 +430,14 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
         logger.error(`     Type: Unknown error`);
         logger.error(`     Stack: ${error?.stack?.split('\n')[0]}`);
       }
+      return { success: false };
     }
   });
+  enrichedCount += corpResults.succeeded;
+  failedCount += corpResults.failed;
 
   // Characters (batch processing) - THIRD!
-  await processBatch(missingCharIds, async (charId) => {
+  const charResults = await processBatch(missingCharIds, async (charId) => {
     try {
       const charInfo = await CharacterService.getCharacterInfo(charId);
       await prismaWorker.character.upsert({
@@ -439,20 +455,20 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
         },
         update: {},
       });
-      enrichedCount++;
-      stats.enriched++;
       logger.debug(`  ✓ Character ${charId} enriched`);
+      return { success: true };
     } catch (error: any) {
-      failedCount++;
-      stats.enrichmentFailed++;
       const statusCode = error?.response?.status || 'unknown';
       const errorMsg = error?.response?.data?.error || error?.message || 'Unknown error';
       logger.warn(`  ✗ Character ${charId} failed (${statusCode}): ${errorMsg}`);
+      return { success: false };
     }
   });
+  enrichedCount += charResults.succeeded;
+  failedCount += charResults.failed;
 
   // Types (batch processing) - FOURTH!
-  await processBatch(missingTypeIds, async (typeId) => {
+  const typeResults = await processBatch(missingTypeIds, async (typeId) => {
     try {
       const typeInfo = await TypeService.getTypeInfo(typeId);
       await prismaWorker.type.upsert({
@@ -469,17 +485,21 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
         },
         update: {},
       });
-      enrichedCount++;
-      stats.enriched++;
       logger.debug(`  ✓ Type ${typeId} enriched`);
+      return { success: true };
     } catch (error: any) {
-      failedCount++;
-      stats.enrichmentFailed++;
       const statusCode = error?.response?.status || 'unknown';
       const errorMsg = error?.response?.data?.error || error?.message || 'Unknown error';
       logger.warn(`  ✗ Type ${typeId} failed (${statusCode}): ${errorMsg}`);
+      return { success: false };
     }
   });
+  enrichedCount += typeResults.succeeded;
+  failedCount += typeResults.failed;
+
+  // Update global stats atomically after all batches complete
+  stats.enriched += enrichedCount;
+  stats.enrichmentFailed += failedCount;
 
   const enrichmentTime = Date.now() - enrichmentStart;
   logger.info(
