@@ -194,8 +194,8 @@ export default function KillmailDetailPage({
                                 km.solarSystem.security_status >= 0.5
                                   ? "text-green-400"
                                   : km.solarSystem.security_status > 0
-                                    ? "text-yellow-400"
-                                    : "text-red-400"
+                                  ? "text-yellow-400"
+                                  : "text-red-400"
                               }
                             >
                               {" "}
@@ -311,8 +311,8 @@ export default function KillmailDetailPage({
                       const moduleTextColor = moduleIsDestroyed
                         ? "text-red-400"
                         : moduleIsDropped
-                          ? "text-green-400"
-                          : "text-white";
+                        ? "text-green-400"
+                        : "text-white";
 
                       items.push(
                         <div
@@ -344,11 +344,11 @@ export default function KillmailDetailPage({
                               {formatISK(
                                 getItemPrice(slot.module.itemType.jitaPrice) *
                                   ((slot.module.quantityDropped || 0) +
-                                    (slot.module.quantityDestroyed || 0) || 1),
+                                    (slot.module.quantityDestroyed || 0) || 1)
                               )}
                             </div>
                           </div>
-                        </div>,
+                        </div>
                       );
 
                       // Charge (if exists)
@@ -360,8 +360,8 @@ export default function KillmailDetailPage({
                         const chargeTextColor = chargeIsDestroyed
                           ? "text-red-400"
                           : chargeIsDropped
-                            ? "text-green-400"
-                            : "text-white";
+                          ? "text-green-400"
+                          : "text-white";
 
                         items.push(
                           <div
@@ -393,15 +393,15 @@ export default function KillmailDetailPage({
                               >
                                 {formatISK(
                                   getItemPrice(
-                                    slot.module.charge.itemType.jitaPrice,
+                                    slot.module.charge.itemType.jitaPrice
                                   ) *
                                     ((slot.module.charge.quantityDropped || 0) +
                                       (slot.module.charge.quantityDestroyed ||
-                                        0) || 1),
+                                        0) || 1)
                                 )}
                               </div>
                             </div>
-                          </div>,
+                          </div>
                         );
                       }
 
@@ -430,8 +430,8 @@ export default function KillmailDetailPage({
                     const moduleTextColor = moduleIsDestroyed
                       ? "text-red-400"
                       : moduleIsDropped
-                        ? "text-green-400"
-                        : "text-white";
+                      ? "text-green-400"
+                      : "text-white";
 
                     items.push(
                       <div
@@ -463,11 +463,11 @@ export default function KillmailDetailPage({
                             {formatISK(
                               getItemPrice(slot.module.itemType.jitaPrice) *
                                 ((slot.module.quantityDropped || 0) +
-                                  (slot.module.quantityDestroyed || 0) || 1),
+                                  (slot.module.quantityDestroyed || 0) || 1)
                             )}
                           </div>
                         </div>
-                      </div>,
+                      </div>
                     );
 
                     // Charge (if exists)
@@ -479,8 +479,8 @@ export default function KillmailDetailPage({
                       const chargeTextColor = chargeIsDestroyed
                         ? "text-red-400"
                         : chargeIsDropped
-                          ? "text-green-400"
-                          : "text-white";
+                        ? "text-green-400"
+                        : "text-white";
 
                       items.push(
                         <div
@@ -512,15 +512,15 @@ export default function KillmailDetailPage({
                             >
                               {formatISK(
                                 getItemPrice(
-                                  slot.module.charge.itemType.jitaPrice,
+                                  slot.module.charge.itemType.jitaPrice
                                 ) *
                                   ((slot.module.charge.quantityDropped || 0) +
                                     (slot.module.charge.quantityDestroyed ||
-                                      0) || 1),
+                                      0) || 1)
                               )}
                             </div>
                           </div>
-                        </div>,
+                        </div>
                       );
                     }
 
@@ -545,8 +545,8 @@ export default function KillmailDetailPage({
                     const textColor = isDestroyed
                       ? "text-red-400"
                       : isDropped
-                        ? "text-green-400"
-                        : "text-white";
+                      ? "text-green-400"
+                      : "text-white";
 
                     return (
                       <div
@@ -572,7 +572,7 @@ export default function KillmailDetailPage({
                             {formatISK(
                               getItemPrice(slot.module.itemType.jitaPrice) *
                                 ((slot.module.quantityDropped || 0) +
-                                  (slot.module.quantityDestroyed || 0) || 1),
+                                  (slot.module.quantityDestroyed || 0) || 1)
                             )}
                           </div>
                         </div>
@@ -584,13 +584,15 @@ export default function KillmailDetailPage({
             )}
 
             {/* Rigs */}
-            {fitting?.rigs && fitting.rigs.modules.length > 0 && (
+            {fitting?.rigs && fitting.rigs.slots.length > 0 && (
               <div className="pb-4 mb-4 border-b border-white/10">
                 <h3 className="mb-2 text-sm font-bold text-gray-400 uppercase">
                   Rigs
                 </h3>
                 <div className="space-y-2">
-                  {fitting.rigs.modules.map((module, index) => {
+                  {fitting.rigs.slots.map((slot) => {
+                    if (!slot.module) return null;
+                    const module = slot.module;
                     const quantity =
                       (module.quantityDropped || 0) +
                         (module.quantityDestroyed || 0) || 1;
@@ -599,11 +601,14 @@ export default function KillmailDetailPage({
                     const textColor = isDestroyed
                       ? "text-red-400"
                       : isDropped
-                        ? "text-green-400"
-                        : "text-white";
+                      ? "text-green-400"
+                      : "text-white";
 
                     return (
-                      <div key={index} className="flex items-center gap-3 py-2">
+                      <div
+                        key={slot.slotIndex}
+                        className="flex items-center gap-3 py-2"
+                      >
                         <img
                           src={`https://images.evetech.net/types/${module.itemType.id}/icon?size=64`}
                           alt={module.itemType.name}
@@ -620,8 +625,7 @@ export default function KillmailDetailPage({
                           <div className={`${textColor} w-16`}>{quantity}</div>
                           <div className={`${textColor} tabular-nums w-40`}>
                             {formatISK(
-                              getItemPrice(module.itemType.jitaPrice) *
-                                quantity,
+                              getItemPrice(module.itemType.jitaPrice) * quantity
                             )}
                           </div>
                         </div>
@@ -648,8 +652,8 @@ export default function KillmailDetailPage({
                     const textColor = isDestroyed
                       ? "text-red-400"
                       : isDropped
-                        ? "text-green-400"
-                        : "text-white";
+                      ? "text-green-400"
+                      : "text-white";
 
                     return (
                       <div
@@ -674,8 +678,7 @@ export default function KillmailDetailPage({
                             className={`${textColor} tabular-nums w-40 font-semibold`}
                           >
                             {formatISK(
-                              getItemPrice(module.itemType.jitaPrice) *
-                                quantity,
+                              getItemPrice(module.itemType.jitaPrice) * quantity
                             )}
                           </div>
                         </div>
@@ -702,8 +705,8 @@ export default function KillmailDetailPage({
                     const textColor = isDestroyed
                       ? "text-red-400"
                       : isDropped
-                        ? "text-green-400"
-                        : "text-white";
+                      ? "text-green-400"
+                      : "text-white";
 
                     return (
                       <div key={index} className="flex items-center gap-3 py-2">
@@ -723,8 +726,7 @@ export default function KillmailDetailPage({
                           <div className={`${textColor} w-16`}>{quantity}</div>
                           <div className={`${textColor} tabular-nums w-40`}>
                             {formatISK(
-                              getItemPrice(module.itemType.jitaPrice) *
-                                quantity,
+                              getItemPrice(module.itemType.jitaPrice) * quantity
                             )}
                           </div>
                         </div>
@@ -751,8 +753,8 @@ export default function KillmailDetailPage({
                     const textColor = isDestroyed
                       ? "text-red-400"
                       : isDropped
-                        ? "text-green-400"
-                        : "text-white";
+                      ? "text-green-400"
+                      : "text-white";
 
                     return (
                       <div key={index} className="flex items-center gap-3 py-2">
@@ -772,8 +774,7 @@ export default function KillmailDetailPage({
                           <div className={`${textColor} w-16`}>{quantity}</div>
                           <div className={`${textColor} tabular-nums w-40`}>
                             {formatISK(
-                              getItemPrice(module.itemType.jitaPrice) *
-                                quantity,
+                              getItemPrice(module.itemType.jitaPrice) * quantity
                             )}
                           </div>
                         </div>

@@ -84,7 +84,7 @@ type Fitting {
   highSlots: SlotGroup!
   midSlots: SlotGroup!
   lowSlots: SlotGroup!
-  rigs: ModuleGroup!
+  rigs: SlotGroup!
   subsystems: [FittingModule!]!
   implants: [FittingModule!]!
   cargo: [FittingModule!]!
@@ -98,14 +98,6 @@ A group of slots with total slot count from dogma attributes
 type SlotGroup {
   totalSlots: Int!
   slots: [FittingSlot!]!
-}
-
-"""
-A group of modules (rigs) with total slot count from dogma attributes
-"""
-type ModuleGroup {
-  totalSlots: Int!
-  modules: [FittingModule!]!
 }
 
 """
