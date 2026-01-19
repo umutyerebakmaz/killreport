@@ -377,7 +377,7 @@ type Fitting {
   implants: [FittingModule!]!
   lowSlots: SlotGroup!
   midSlots: SlotGroup!
-  rigs: ModuleGroup!
+  rigs: SlotGroup!
   subsystems: [FittingModule!]!
 }
 
@@ -497,12 +497,6 @@ type KillmailItem {
 enum KillmailOrderBy {
   timeAsc
   timeDesc
-}
-
-"""A group of modules (rigs) with total slot count from dogma attributes"""
-type ModuleGroup {
-  modules: [FittingModule!]!
-  totalSlots: Int!
 }
 
 type Mutation {

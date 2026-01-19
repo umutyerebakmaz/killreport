@@ -1,6 +1,7 @@
 query Killmail($id: ID!) {
   killmail(id: $id) {
     id
+    killmailHash
     killmailTime
     destroyedValue
     droppedValue
@@ -191,18 +192,25 @@ query Killmail($id: ID!) {
       }
       rigs {
         totalSlots
-        modules {
-          itemType {
-            id
-            name
-            jitaPrice {
-              buy
-              sell
-              average
+        slots {
+          slotIndex
+          module {
+            flag
+            itemType {
+              id
+              name
+              jitaPrice {
+                buy
+                sell
+                average
+              }
+              group {
+                name
+              }
             }
+            quantityDropped
+            quantityDestroyed
           }
-          quantityDropped
-          quantityDestroyed
         }
       }
       subsystems {
