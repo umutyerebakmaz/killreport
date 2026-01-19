@@ -342,14 +342,22 @@ export const killmailFields: KillmailResolvers = {
             : null,
         })),
       },
-      subsystems: fitting.subsystems.map((module) => ({
-        itemTypeId: module.itemTypeId,
-        flag: module.flag,
-        quantityDropped: module.quantityDropped,
-        quantityDestroyed: module.quantityDestroyed,
-        singleton: module.singleton,
-        charge: null,
-      })),
+      subsystems: {
+        totalSlots: 4,
+        slots: fitting.subsystemSlots.map((slot) => ({
+          slotIndex: slot.slotIndex,
+          module: slot.module
+            ? {
+              itemTypeId: slot.module.itemTypeId,
+              flag: slot.module.flag,
+              quantityDropped: slot.module.quantityDropped,
+              quantityDestroyed: slot.module.quantityDestroyed,
+              singleton: slot.module.singleton,
+              charge: null, // Subsystems never have charges
+            }
+            : null,
+        })),
+      },
       implants: fitting.implants.map((module) => ({
         itemTypeId: module.itemTypeId,
         flag: module.flag,
