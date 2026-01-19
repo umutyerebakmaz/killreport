@@ -371,6 +371,7 @@ Groups modules, rigs, and subsystems by their slot types
 """
 type Fitting {
   cargo: [FittingModule!]!
+  coreRoom: [FittingModule!]!
   droneBay: [FittingModule!]!
   fighterBay: [FittingModule!]!
   highSlots: SlotGroup!
@@ -378,6 +379,8 @@ type Fitting {
   lowSlots: SlotGroup!
   midSlots: SlotGroup!
   rigs: SlotGroup!
+  serviceSlots: SlotGroup!
+  structureFuel: [FittingModule!]!
   subsystems: SlotGroup!
 }
 
