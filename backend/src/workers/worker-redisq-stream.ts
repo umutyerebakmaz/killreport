@@ -251,17 +251,10 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
     if (attacker.weapon_type_id) typeIds.add(attacker.weapon_type_id);
   });
 
-  // Items'dan type ID'leri topla (including nested items in containers)
+  // Items'dan type ID'leri topla
   if (killmail.victim.items) {
     killmail.victim.items.forEach((item) => {
       if (item.item_type_id) typeIds.add(item.item_type_id);
-
-      // Handle nested items (cargo containers, ships with items inside)
-      if (item.items && Array.isArray(item.items)) {
-        item.items.forEach((nestedItem) => {
-          if (nestedItem.item_type_id) typeIds.add(nestedItem.item_type_id);
-        });
-      }
     });
   }
 
@@ -496,30 +489,6 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
 }
 
 /**
- * Flatten nested items (containers, cargo holds, etc.)
- * ESI returns items in a tree structure where containers have nested items.
- * We need to flatten this to save all items to the database.
- */
-function flattenItems(items: KillmailDetail['victim']['items']): NonNullable<KillmailDetail['victim']['items']> {
-  if (!items || items.length === 0) return [];
-
-  const flatItems: NonNullable<KillmailDetail['victim']['items']> = [];
-
-  items.forEach((item) => {
-    // Add the main item
-    flatItems.push(item);
-
-    // Recursively flatten nested items (cargo, modules with charges, etc.)
-    if (item.items && Array.isArray(item.items)) {
-      const nestedFlat = flattenItems(item.items);
-      flatItems.push(...nestedFlat);
-    }
-  });
-
-  return flatItems;
-}
-
-/**
  * Save killmail to database with attackers and victim
  * Returns true if new killmail was created, false if already existed
  */
@@ -584,14 +553,11 @@ async function saveKillmail(killmail: KillmailDetail, hash: string): Promise<boo
         });
       }
 
-      // Create items (dropped/destroyed) - including nested items
+      // Create items (dropped/destroyed)
       if (victim.items && victim.items.length > 0) {
-        // Flatten nested items (cargo containers, fitted modules with charges, etc.)
-        const allItems = flattenItems(victim.items);
-
         // ⚠️ Filter out items with null/undefined item_type_id (invalid data from ESI)
-        const validItems = allItems.filter((item) => item.item_type_id != null);
-        const invalidItemsCount = allItems.length - validItems.length;
+        const validItems = victim.items.filter((item) => item.item_type_id != null);
+        const invalidItemsCount = victim.items.length - validItems.length;
 
         if (invalidItemsCount > 0) {
           logger.warn(
@@ -600,10 +566,7 @@ async function saveKillmail(killmail: KillmailDetail, hash: string): Promise<boo
         }
 
         if (validItems.length > 0) {
-          logger.debug(
-            `   💾 Saving ${validItems.length} items (${victim.items.length} top-level, ` +
-            `${validItems.length - victim.items.length} nested) for killmail ${killmail.killmail_id}`
-          );
+          logger.debug(`   💾 Saving ${validItems.length} items for killmail ${killmail.killmail_id}`);
           await tx.killmailItem.createMany({
             skipDuplicates: true,
             data: validItems.map((item) => ({
