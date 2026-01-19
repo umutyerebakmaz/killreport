@@ -436,7 +436,7 @@ export type Fitting = {
   lowSlots: SlotGroup;
   midSlots: SlotGroup;
   rigs: SlotGroup;
-  subsystems: Array<FittingModule>;
+  subsystems: SlotGroup;
 };
 
 /** Represents a fitted module or item */
@@ -1905,7 +1905,7 @@ export type FittingResolvers<ContextType = any, ParentType extends ResolversPare
   lowSlots?: Resolver<ResolversTypes['SlotGroup'], ParentType, ContextType>;
   midSlots?: Resolver<ResolversTypes['SlotGroup'], ParentType, ContextType>;
   rigs?: Resolver<ResolversTypes['SlotGroup'], ParentType, ContextType>;
-  subsystems?: Resolver<Array<ResolversTypes['FittingModule']>, ParentType, ContextType>;
+  subsystems?: Resolver<ResolversTypes['SlotGroup'], ParentType, ContextType>;
 };
 
 export type FittingModuleResolvers<ContextType = any, ParentType extends ResolversParentTypes['FittingModule'] = ResolversParentTypes['FittingModule']> = {
