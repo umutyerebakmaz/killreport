@@ -435,7 +435,7 @@ export type Fitting = {
   implants: Array<FittingModule>;
   lowSlots: SlotGroup;
   midSlots: SlotGroup;
-  rigs: ModuleGroup;
+  rigs: SlotGroup;
   subsystems: Array<FittingModule>;
 };
 
@@ -563,13 +563,6 @@ export enum KillmailOrderBy {
   TimeAsc = 'timeAsc',
   TimeDesc = 'timeDesc'
 }
-
-/** A group of modules (rigs) with total slot count from dogma attributes */
-export type ModuleGroup = {
-  __typename?: 'ModuleGroup';
-  modules: Array<FittingModule>;
-  totalSlots: Scalars['Int']['output'];
-};
 
 export type Mutation = {
   __typename?: 'Mutation';
@@ -1473,7 +1466,6 @@ export type ResolversTypes = {
   KillmailFilter: KillmailFilter;
   KillmailItem: ResolverTypeWrapper<KillmailItem>;
   KillmailOrderBy: KillmailOrderBy;
-  ModuleGroup: ResolverTypeWrapper<ModuleGroup>;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   PageInfo: ResolverTypeWrapper<PageInfo>;
   Position: ResolverTypeWrapper<Position>;
@@ -1590,7 +1582,6 @@ export type ResolversParentTypes = {
   KillmailEdge: KillmailEdge;
   KillmailFilter: KillmailFilter;
   KillmailItem: KillmailItem;
-  ModuleGroup: ModuleGroup;
   Mutation: Record<PropertyKey, never>;
   PageInfo: PageInfo;
   Position: Position;
@@ -1913,7 +1904,7 @@ export type FittingResolvers<ContextType = any, ParentType extends ResolversPare
   implants?: Resolver<Array<ResolversTypes['FittingModule']>, ParentType, ContextType>;
   lowSlots?: Resolver<ResolversTypes['SlotGroup'], ParentType, ContextType>;
   midSlots?: Resolver<ResolversTypes['SlotGroup'], ParentType, ContextType>;
-  rigs?: Resolver<ResolversTypes['ModuleGroup'], ParentType, ContextType>;
+  rigs?: Resolver<ResolversTypes['SlotGroup'], ParentType, ContextType>;
   subsystems?: Resolver<Array<ResolversTypes['FittingModule']>, ParentType, ContextType>;
 };
 
@@ -1996,11 +1987,6 @@ export type KillmailItemResolvers<ContextType = any, ParentType extends Resolver
   quantityDestroyed?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   quantityDropped?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   singleton?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-};
-
-export type ModuleGroupResolvers<ContextType = any, ParentType extends ResolversParentTypes['ModuleGroup'] = ResolversParentTypes['ModuleGroup']> = {
-  modules?: Resolver<Array<ResolversTypes['FittingModule']>, ParentType, ContextType>;
-  totalSlots?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
@@ -2357,7 +2343,6 @@ export type Resolvers<ContextType = any> = {
   KillmailDateCount?: KillmailDateCountResolvers<ContextType>;
   KillmailEdge?: KillmailEdgeResolvers<ContextType>;
   KillmailItem?: KillmailItemResolvers<ContextType>;
-  ModuleGroup?: ModuleGroupResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;
   Position?: PositionResolvers<ContextType>;
