@@ -429,6 +429,7 @@ export type DogmaEffectFilter = {
 export type Fitting = {
   __typename?: 'Fitting';
   cargo: Array<FittingModule>;
+  coreRoom: Array<FittingModule>;
   droneBay: Array<FittingModule>;
   fighterBay: Array<FittingModule>;
   highSlots: SlotGroup;
@@ -436,6 +437,8 @@ export type Fitting = {
   lowSlots: SlotGroup;
   midSlots: SlotGroup;
   rigs: SlotGroup;
+  serviceSlots: SlotGroup;
+  structureFuel: Array<FittingModule>;
   subsystems: SlotGroup;
 };
 
@@ -1898,6 +1901,7 @@ export type DogmaEffectEdgeResolvers<ContextType = any, ParentType extends Resol
 
 export type FittingResolvers<ContextType = any, ParentType extends ResolversParentTypes['Fitting'] = ResolversParentTypes['Fitting']> = {
   cargo?: Resolver<Array<ResolversTypes['FittingModule']>, ParentType, ContextType>;
+  coreRoom?: Resolver<Array<ResolversTypes['FittingModule']>, ParentType, ContextType>;
   droneBay?: Resolver<Array<ResolversTypes['FittingModule']>, ParentType, ContextType>;
   fighterBay?: Resolver<Array<ResolversTypes['FittingModule']>, ParentType, ContextType>;
   highSlots?: Resolver<ResolversTypes['SlotGroup'], ParentType, ContextType>;
@@ -1905,6 +1909,8 @@ export type FittingResolvers<ContextType = any, ParentType extends ResolversPare
   lowSlots?: Resolver<ResolversTypes['SlotGroup'], ParentType, ContextType>;
   midSlots?: Resolver<ResolversTypes['SlotGroup'], ParentType, ContextType>;
   rigs?: Resolver<ResolversTypes['SlotGroup'], ParentType, ContextType>;
+  serviceSlots?: Resolver<ResolversTypes['SlotGroup'], ParentType, ContextType>;
+  structureFuel?: Resolver<Array<ResolversTypes['FittingModule']>, ParentType, ContextType>;
   subsystems?: Resolver<ResolversTypes['SlotGroup'], ParentType, ContextType>;
 };
 
