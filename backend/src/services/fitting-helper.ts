@@ -33,7 +33,7 @@ export interface Fitting {
   midSlots: FittingSlot[];
   lowSlots: FittingSlot[];
   rigSlots: FittingSlot[];
-  subsystems: FittingModule[];
+  subsystemSlots: FittingSlot[];
   implants: FittingModule[];
   cargo: FittingModule[];
   droneBay: FittingModule[];
@@ -260,7 +260,16 @@ export function organizeFitting(
     flagGroups
   );
 
-  const subsystems = extractModules(
+  // Subsystems - always 4 slots for T3 Cruisers
+  const subsystemSlots: FittingSlot[] = [];
+  for (let i = 0; i < 4; i++) {
+    subsystemSlots.push({
+      slotIndex: i,
+      module: null,
+    });
+  }
+  fillSlots(
+    subsystemSlots,
     InventoryFlag.SubSystem0,
     InventoryFlag.SubSystem3,
     flagGroups
@@ -321,7 +330,7 @@ export function organizeFitting(
     midSlots,
     lowSlots,
     rigSlots,
-    subsystems,
+    subsystemSlots,
     implants,
     cargo,
     droneBay,
