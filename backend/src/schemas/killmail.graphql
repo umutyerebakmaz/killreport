@@ -86,10 +86,13 @@ type Fitting {
   lowSlots: SlotGroup!
   rigs: SlotGroup!
   subsystems: SlotGroup!
+  serviceSlots: SlotGroup!
   implants: [FittingModule!]!
   cargo: [FittingModule!]!
   droneBay: [FittingModule!]!
   fighterBay: [FittingModule!]!
+  structureFuel: [FittingModule!]!
+  coreRoom: [FittingModule!]!
 }
 
 """

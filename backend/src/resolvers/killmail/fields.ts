@@ -358,6 +358,22 @@ export const killmailFields: KillmailResolvers = {
             : null,
         })),
       },
+      serviceSlots: {
+        totalSlots: 8,
+        slots: fitting.serviceSlots.map((slot) => ({
+          slotIndex: slot.slotIndex,
+          module: slot.module
+            ? {
+              itemTypeId: slot.module.itemTypeId,
+              flag: slot.module.flag,
+              quantityDropped: slot.module.quantityDropped,
+              quantityDestroyed: slot.module.quantityDestroyed,
+              singleton: slot.module.singleton,
+              charge: null, // Service modules never have charges
+            }
+            : null,
+        })),
+      },
       implants: fitting.implants.map((module) => ({
         itemTypeId: module.itemTypeId,
         flag: module.flag,
@@ -383,6 +399,22 @@ export const killmailFields: KillmailResolvers = {
         charge: null,
       })),
       fighterBay: fitting.fighterBay.map((module) => ({
+        itemTypeId: module.itemTypeId,
+        flag: module.flag,
+        quantityDropped: module.quantityDropped,
+        quantityDestroyed: module.quantityDestroyed,
+        singleton: module.singleton,
+        charge: null,
+      })),
+      structureFuel: fitting.structureFuel.map((module) => ({
+        itemTypeId: module.itemTypeId,
+        flag: module.flag,
+        quantityDropped: module.quantityDropped,
+        quantityDestroyed: module.quantityDestroyed,
+        singleton: module.singleton,
+        charge: null,
+      })),
+      coreRoom: fitting.coreRoom.map((module) => ({
         itemTypeId: module.itemTypeId,
         flag: module.flag,
         quantityDropped: module.quantityDropped,
