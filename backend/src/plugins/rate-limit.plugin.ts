@@ -52,6 +52,13 @@ export function createRateLimitPlugin(config: Partial<RateLimitConfig> = {}): Pl
   return {
     async onRequest({ request, fetchAPI, endResponse }) {
       try {
+        // Skip rate limiting for SSE subscriptions
+        const accept = request.headers.get('accept');
+        if (accept?.includes('text/event-stream')) {
+          logger.debug('⏭️  Skipping rate limit for SSE subscription');
+          return;
+        }
+
         const identifier = getIdentifier(request);
         const key = `${finalConfig.keyPrefix}:${identifier}`;
 
@@ -130,6 +137,12 @@ export function createRateLimitPlugin(config: Partial<RateLimitConfig> = {}): Pl
     },
 
     async onResponse({ request, response }) {
+      // Skip adding headers for SSE subscriptions
+      const accept = request.headers.get('accept');
+      if (accept?.includes('text/event-stream')) {
+        return;
+      }
+
       // Add rate limit headers to successful responses
       const rateLimitData = (request as any).__rateLimit;
 
