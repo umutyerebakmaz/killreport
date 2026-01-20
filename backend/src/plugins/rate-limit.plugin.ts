@@ -50,7 +50,7 @@ export function createRateLimitPlugin(config: Partial<RateLimitConfig> = {}): Pl
   const finalConfig = { ...DEFAULT_CONFIG, ...config };
 
   return {
-    onRequest: async ({ request, fetchAPI, endResponse }) => {
+    async onRequest({ request, fetchAPI, endResponse }) {
       try {
         const identifier = getIdentifier(request);
         const key = `${finalConfig.keyPrefix}:${identifier}`;
@@ -66,34 +66,34 @@ export function createRateLimitPlugin(config: Partial<RateLimitConfig> = {}): Pl
 
           logger.warn(`🚫 Rate limit exceeded: ${identifier} (${count}/${finalConfig.max})`);
 
-          // Return 429 Too Many Requests
-          endResponse(
-            new fetchAPI.Response(
-              JSON.stringify({
-                errors: [
-                  {
-                    message: `Rate limit exceeded. Try again in ${resetIn} seconds.`,
-                    extensions: {
-                      code: 'RATE_LIMIT_EXCEEDED',
-                      retryAfter: resetIn,
-                      limit: finalConfig.max,
-                      windowMs: finalConfig.windowMs,
-                    },
+          // Return 429 response with all headers
+          const response = new fetchAPI.Response(
+            JSON.stringify({
+              errors: [
+                {
+                  message: `Rate limit exceeded. Try again in ${resetIn} seconds.`,
+                  extensions: {
+                    code: 'RATE_LIMIT_EXCEEDED',
+                    retryAfter: resetIn,
+                    limit: finalConfig.max,
+                    windowMs: finalConfig.windowMs,
                   },
-                ],
-              }),
-              {
-                status: 429,
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Retry-After': String(resetIn),
-                  'X-RateLimit-Limit': String(finalConfig.max),
-                  'X-RateLimit-Remaining': '0',
-                  'X-RateLimit-Reset': String(Date.now() + resetIn * 1000),
                 },
-              }
-            )
+              ],
+            }),
+            {
+              status: 429,
+              headers: {
+                'Content-Type': 'application/json',
+                'Retry-After': String(resetIn),
+                'X-RateLimit-Limit': String(finalConfig.max),
+                'X-RateLimit-Remaining': '0',
+                'X-RateLimit-Reset': String(Date.now() + resetIn * 1000),
+              },
+            }
           );
+
+          endResponse(response);
           return;
         }
 
@@ -109,14 +109,14 @@ export function createRateLimitPlugin(config: Partial<RateLimitConfig> = {}): Pl
           await redisCache.incr(key);
         }
 
-        // Add rate limit headers to response
+        // Calculate remaining and reset time
         const remaining = Math.max(0, finalConfig.max - newCount);
         const ttl = await redisCache.ttl(key);
         const resetTime = Date.now() + (ttl || windowSeconds) * 1000;
 
         logger.debug(`✅ Rate limit: ${identifier} (${newCount}/${finalConfig.max})`);
 
-        // Note: Headers will be added in the response phase
+        // Store rate limit info on request for later
         (request as any).__rateLimit = {
           limit: finalConfig.max,
           remaining,
@@ -129,9 +129,10 @@ export function createRateLimitPlugin(config: Partial<RateLimitConfig> = {}): Pl
       }
     },
 
-    onResponse: async ({ request, response }) => {
-      // Add rate limit headers to response
+    async onResponse({ request, response }) {
+      // Add rate limit headers to successful responses
       const rateLimitData = (request as any).__rateLimit;
+
       if (rateLimitData) {
         response.headers.set('X-RateLimit-Limit', String(rateLimitData.limit));
         response.headers.set('X-RateLimit-Remaining', String(rateLimitData.remaining));
