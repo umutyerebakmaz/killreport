@@ -42,6 +42,14 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
 
+        # Pass rate limit headers from backend to client
+        proxy_hide_header X-RateLimit-Limit;
+        proxy_hide_header X-RateLimit-Remaining;
+        proxy_hide_header X-RateLimit-Reset;
+        add_header X-RateLimit-Limit $upstream_http_x_ratelimit_limit always;
+        add_header X-RateLimit-Remaining $upstream_http_x_ratelimit_remaining always;
+        add_header X-RateLimit-Reset $upstream_http_x_ratelimit_reset always;
+
         # Timeout'ları artır (SSE connection'lar uzun süreli)
         proxy_connect_timeout 300s;
         proxy_send_timeout 86400s;    # 24 saat
