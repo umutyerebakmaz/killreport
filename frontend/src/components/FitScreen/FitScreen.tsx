@@ -10,12 +10,12 @@ interface FitScreenProps {
 }
 
 export default function FitScreen({ shipType, fitting }: FitScreenProps) {
-  const highSlots = fitting?.highSlots?.slots || [];
-  const midSlots = fitting?.midSlots?.slots || [];
-  const lowSlots = fitting?.lowSlots?.slots || [];
-  const rigSlots = fitting?.rigs.slots || [];
-  const subSystems = fitting?.subsystems.slots || [];
-  const serviceSlots = fitting?.serviceSlots.slots || [];
+  const highs = fitting?.highSlots?.slots || [];
+  const mids = fitting?.midSlots?.slots || [];
+  const lows = fitting?.lowSlots?.slots || [];
+  const rigs = fitting?.rigs.slots || [];
+  const subs = fitting?.subsystems.slots || [];
+  const services = fitting?.serviceSlots.slots || [];
 
   // Check if slot types should be rendered based on totalSlots
   const hasSubsystems = (fitting?.subsystems.totalSlots || 0) > 0;
@@ -30,17 +30,24 @@ export default function FitScreen({ shipType, fitting }: FitScreenProps) {
               src={`https://images.evetech.net/types/${shipType.id}/render?size=512`}
               alt={shipType.name}
               className="hull-image"
-            /> 
+            />
           )}
         </div>
         <div className="slots">
-          <Slot slots={highSlots} startAngle={-35.5} />
-          <Slot slots={midSlots} startAngle={60.5} />
-          <Slot slots={lowSlots} startAngle={143.5} />
-          <Slot slots={rigSlots} startAngle={233.5} />
-          {hasSubsystems && <Slot slots={subSystems} startAngle={270} />}
+          <Slot slotType="high" slots={highs} startAngle={-35.5} />
+          <Slot slotType="mid" slots={mids} startAngle={60.5} />
+          <Slot slotType="low" slots={lows} startAngle={155.5} />
+          <Slot slotType="rig" slots={rigs} startAngle={227.5} />
+          {hasSubsystems && (
+            <Slot slotType="sub" slots={subs} startAngle={270} />
+          )}
           {hasServiceSlots && (
-            <Slot slots={serviceSlots} startAngle={318} translateY={-242} />
+            <Slot
+              slotType="service"
+              slots={services}
+              startAngle={318}
+              translateY={-242}
+            />
           )}
         </div>
       </div>
