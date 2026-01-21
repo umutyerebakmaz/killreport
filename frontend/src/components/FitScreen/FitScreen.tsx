@@ -1,4 +1,5 @@
 import type { Fitting } from "@/generated/graphql";
+import ServiceSlot from "./ServiceSlot";
 import Slot from "./Slot";
 
 interface FitScreenProps {
@@ -22,35 +23,30 @@ export default function FitScreen({ shipType, fitting }: FitScreenProps) {
   const hasServiceSlots = (fitting?.serviceSlots.totalSlots || 0) > 0;
 
   return (
-    <div className="fit-screen-container">
-      <div className="fitting">
-        <div className="hull">
-          {shipType && (
-            <img
-              src={`https://images.evetech.net/types/${shipType.id}/render?size=512`}
-              alt={shipType.name}
-              className="hull-image"
-            />
-          )}
-        </div>
-        <div className="slots">
-          <Slot slotType="high" slots={highs} startAngle={-35.5} />
-          <Slot slotType="mid" slots={mids} startAngle={60.5} />
-          <Slot slotType="low" slots={lows} startAngle={155.5} />
-          <Slot slotType="rig" slots={rigs} startAngle={227.5} />
-          {hasSubsystems && (
-            <Slot slotType="sub" slots={subs} startAngle={270} />
-          )}
-          {hasServiceSlots && (
-            <Slot
-              slotType="service"
-              slots={services}
-              startAngle={318}
-              translateY={-242}
-            />
-          )}
+    <>
+      <div className="fit-screen-container">
+        <div className="fitting">
+          <div className="hull">
+            {shipType && (
+              <img
+                src={`https://images.evetech.net/types/${shipType.id}/render?size=512`}
+                alt={shipType.name}
+                className="hull-image"
+              />
+            )}
+          </div>
+          <div className="slots">
+            <Slot slotType="high" slots={highs} startAngle={-35.5} />
+            <Slot slotType="mid" slots={mids} startAngle={60.5} />
+            <Slot slotType="low" slots={lows} startAngle={155.5} />
+            <Slot slotType="rig" slots={rigs} startAngle={227.5} />
+            {hasSubsystems && (
+              <Slot slotType="sub" slots={subs} startAngle={270} />
+            )}
+            {hasServiceSlots && <ServiceSlot slots={services} />}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
