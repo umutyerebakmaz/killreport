@@ -1,31 +1,26 @@
-@keyframes tooltip-in {
-  0% {
-    transform: scale(0.8);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
+/* Tooltip Trigger */
+.tooltip-trigger {
+  display: inline-block;
 }
 
-@keyframes tooltip-out {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(0.8);
-    opacity: 0;
-  }
+/* Tooltip Base */
+.tooltip {
+  position: fixed;
+  z-index: 9999;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: rgb(209, 213, 219);
+  background-color: rgb(0, 0, 0);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
+  white-space: nowrap;
+  pointer-events: none;
 }
 
-.tooltip-anim {
-  transition: opacity 0.2s, transform 0.2s;
-}
-.tooltip-in {
-  animation: tooltip-in 0.2s ease forwards;
-}
-.tooltip-out {
-  animation: tooltip-out 0.2s ease forwards;
+.tooltip-wrap {
+  white-space: normal;
+  max-width: 320px;
 }
