@@ -4,7 +4,9 @@ import AttackersCard from "@/components/AttackersCard";
 import FitScreen from "@/components/FitScreen/FitScreen";
 import KillmailSummaryCard from "@/components/KillmailItemsCard/KillmailItemsCard";
 import { Loader } from "@/components/Loader/Loader";
+import Tooltip from "@/components/Tooltip/Tooltip";
 import { useKillmailQuery } from "@/generated/graphql";
+import { formatISK } from "@/utils/formatISK";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 import { use } from "react";
 
@@ -84,6 +86,170 @@ export default function KillmailDetailPage({
                     shipType={victim?.shipType}
                     fitting={fitting as any}
                   />
+                </div>
+
+                {/* Killmail Summary Card - Right (1/3) */}
+                <div>
+                  <div className="space-y-3">
+                    {/* Character, Corp, Alliance Images */}
+                    {victim?.character?.id && (
+                      <div className="flex items-start">
+                        {/* Character Portrait */}
+                        <Tooltip content="Show Victim Info" position="top">
+                          <a href={`/characters/${victim.character?.id}`}>
+                            <img
+                              src={`https://images.evetech.net/characters/${victim.character?.id}/portrait?size=128`}
+                              alt={victim.character?.name || "Character"}
+                              width={96}
+                              height={96}
+                              className="shadow-md"
+                              loading="lazy"
+                            />
+                          </a>
+                        </Tooltip>
+
+                        <div className="flex flex-col">
+                          {/* Alliance Portrait */}
+                          <a href={`/alliances/${victim.alliance?.id}`}>
+                            <img
+                              src={`https://images.evetech.net/corporations/${victim.corporation?.id}/logo?size=64`}
+                              alt={victim.corporation?.name || "Corporation"}
+                              width={48}
+                              height={48}
+                              className="shadow-sm"
+                              loading="lazy"
+                            />
+                          </a>
+                          <a href={`/corporations/${victim.corporation?.id}`}>
+                            {/* Corporation Portrait */}
+                            <img
+                              src={`https://images.evetech.net/alliances/${victim.alliance?.id}/logo?size=64`}
+                              alt={victim.alliance?.name || "Alliance"}
+                              width={48}
+                              height={48}
+                              className="shadow-sm"
+                              loading="lazy"
+                            />
+                          </a>
+                        </div>
+
+                        <div className="flex flex-col items-start justify-start pl-4">
+                          <Tooltip content="Show Victim Info" position="top">
+                            <a
+                              href={`/characters/${victim.character?.id}`}
+                              className="text-gray-400 transition-colors hover:text-blue-400"
+                            >
+                              {victim.character?.name}
+                            </a>
+                          </Tooltip>
+
+                          <Tooltip
+                            content="Show Corporation Info"
+                            position="top"
+                          >
+                            <a
+                              href={`/corporations/${victim.corporation?.id}`}
+                              className="text-gray-400 transition-colors hover:text-blue-400"
+                            >
+                              {victim.corporation?.name}
+                            </a>
+                          </Tooltip>
+
+                          <Tooltip content="Show Alliance Info" position="top">
+                            <a
+                              href={`/alliances/${victim.alliance?.id}`}
+                              className="text-gray-400 transition-colors hover:text-blue-400"
+                            >
+                              {victim.alliance?.name}
+                            </a>
+                          </Tooltip>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Ship</span>
+                      <span className="text-right">
+                        <span className="text-gray-400">
+                          {victim?.shipType?.name}
+                        </span>
+                        {victim?.shipType?.group && (
+                          <span className="text-gray-500">
+                            {" "}
+                            ({victim.shipType.group.name})
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">System</span>
+                      <span className="text-right">
+                        <span className="text-gray-400">
+                          {km.solarSystem?.name}
+                        </span>
+                        {km.solarSystem?.security_status !== undefined &&
+                          km.solarSystem.security_status !== null && (
+                            <span
+                              className={
+                                km.solarSystem.security_status >= 0.5
+                                  ? "text-green-400"
+                                  : km.solarSystem.security_status > 0
+                                    ? "text-yellow-400"
+                                    : "text-red-400"
+                              }
+                            >
+                              {" "}
+                              ({km.solarSystem.security_status.toFixed(1)})
+                            </span>
+                          )}
+                        {km.solarSystem?.constellation?.region && (
+                          <span className="text-gray-500">
+                            {" "}
+                            / {km.solarSystem.constellation.region.name}
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Time</span>
+                      <span className="text-gray-400">
+                        {new Date(km.killmailTime).toLocaleString("en-US", {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Damage</span>
+                      <span className="text-red-400 tabular-nums">
+                        {victim?.damageTaken?.toLocaleString()}
+                      </span>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Destroyed</span>
+                        <span className="text-red-400 tabular-nums">
+                          {formatISK(destroyedValue)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Dropped</span>
+                        <span className="text-green-400 tabular-nums">
+                          {formatISK(droppedValue)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Total</span>
+                        <span className="font-bold text-yellow-400 tabular-nums">
+                          {formatISK(totalValue)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
