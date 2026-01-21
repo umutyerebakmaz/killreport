@@ -54,7 +54,13 @@ export default function KillmailDetailPage({
         {/* Left Column: FitScreen (2/3 width) */}
         <div className="space-y-6 lg:col-span-2">
           {/* Fit + Victim */}
-          <div className="flex flex-col gap-6 p-6 fit-and-victim">
+          <div
+            className={
+              isStructure
+                ? "flex flex-col gap-6 px-6 pt-6 pb-24 fit-and-victim"
+                : "flex flex-col gap-6 p-6 fit-and-victim"
+            }
+          >
             <div className="victim-card">
               {/* Grid container: FitScreen (1/2) + Summary (1/2) */}
               <div className="grid grid-cols-3 gap-6">

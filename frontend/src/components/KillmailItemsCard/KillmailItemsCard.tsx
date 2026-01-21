@@ -102,7 +102,7 @@ export default function KillmailSummaryCard({
             <img
               src={`https://images.evetech.net/types/${victim.shipType.id}/icon?size=64`}
               alt={victim.shipType.name}
-              className="w-16 h-16"
+              className="border size-16 border-amber-900/80"
               loading="lazy"
               decoding="async"
             />
@@ -171,7 +171,7 @@ export default function KillmailSummaryCard({
                           <img
                             src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
                             alt={item.itemType.name}
-                            className="w-16 h-16"
+                            className="border bg-white/5 size-16 border-white/10"
                             loading="lazy"
                             decoding="async"
                           />
@@ -215,7 +215,7 @@ export default function KillmailSummaryCard({
                           <img
                             src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
                             alt={item.itemType.name}
-                            className="w-16 h-16 opacity-75"
+                            className="border bg-white/5 size-16 border-white/10"
                             loading="lazy"
                             decoding="async"
                           />
@@ -288,7 +288,7 @@ export default function KillmailSummaryCard({
                         <img
                           src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
                           alt={item.itemType.name}
-                          className="w-16 h-16"
+                          className="border bg-white/5 size-16 border-white/10"
                           loading="lazy"
                           decoding="async"
                         />
@@ -331,7 +331,7 @@ export default function KillmailSummaryCard({
                         <img
                           src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
                           alt={item.itemType.name}
-                          className="w-16 h-16 opacity-75"
+                          className="border bg-white/5 size-16 border-white/10"
                           loading="lazy"
                           decoding="async"
                         />
@@ -388,7 +388,7 @@ export default function KillmailSummaryCard({
                     <img
                       src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
                       alt={item.itemType.name}
-                      className="w-16 h-16"
+                      className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
                       decoding="async"
                     />
@@ -443,7 +443,7 @@ export default function KillmailSummaryCard({
                     <img
                       src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
                       alt={item.itemType.name}
-                      className="w-16 h-16"
+                      className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
                       decoding="async"
                     />
@@ -498,7 +498,7 @@ export default function KillmailSummaryCard({
                     <img
                       src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
                       alt={item.itemType.name}
-                      className="w-16 h-16"
+                      className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
                       decoding="async"
                     />
@@ -557,7 +557,7 @@ export default function KillmailSummaryCard({
                       <img
                         src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
                         alt={item.itemType.name}
-                        className="w-16 h-16"
+                        className="border bg-white/5 size-16 border-white/10"
                         loading="lazy"
                         decoding="async"
                       />
@@ -608,7 +608,7 @@ export default function KillmailSummaryCard({
                     <img
                       src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
                       alt={item.itemType.name}
-                      className="w-16 h-16"
+                      className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
                       decoding="async"
                     />
@@ -661,7 +661,7 @@ export default function KillmailSummaryCard({
                     <img
                       src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
                       alt={item.itemType.name}
-                      className="w-16 h-16"
+                      className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
                       decoding="async"
                     />
@@ -712,7 +712,7 @@ export default function KillmailSummaryCard({
                     <img
                       src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
                       alt={item.itemType.name}
-                      className="w-16 h-16"
+                      className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
                       decoding="async"
                     />
@@ -765,7 +765,7 @@ export default function KillmailSummaryCard({
                     <img
                       src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
                       alt={item.itemType.name}
-                      className="w-16 h-16"
+                      className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
                       decoding="async"
                     />
@@ -820,7 +820,7 @@ export default function KillmailSummaryCard({
                       <img
                         src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
                         alt={item.itemType.name}
-                        className="w-16 h-16"
+                        className="border bg-white/5 size-16 border-white/10"
                         loading="lazy"
                         decoding="async"
                       />
@@ -871,7 +871,7 @@ export default function KillmailSummaryCard({
                     <img
                       src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
                       alt={item.itemType.name}
-                      className="w-16 h-16"
+                      className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
                       decoding="async"
                     />
