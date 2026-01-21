@@ -6,7 +6,7 @@ interface SlotProps {
   angleGap?: number;
   translateX?: number;
   translateY?: number;
-  slotType?: "high" | "mid" | "low" | "rig" | "sub" | "service";
+  slotType?: "high" | "mid" | "low" | "rig" | "sub";
 }
 
 export default function Slot({
@@ -118,6 +118,18 @@ export default function Slot({
                             strokeWidth="2"
                             className="text-gray-500"
                           />
+                        </svg>
+                        <svg className="absolute inset-0 overflow-visible size-12" width="48" height="48" viewBox="0 0 500 500">
+                          <g id="slot">
+                            <path
+                              d="M 243 46 A 210 210 0 0 1 279 46.7 L 276 84.7 A 172 172 0 0 0 246 84 L 243 46"
+                              style={{
+                                fillOpacity: 0.1,
+                                strokeWidth: 1,
+                                strokeOpacity: 0.5,
+                              }}
+                            ></path>
+                          </g>
                         </svg>
                         <img
                           src={slotIcon}
