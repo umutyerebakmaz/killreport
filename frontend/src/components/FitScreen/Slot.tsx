@@ -6,7 +6,7 @@ interface SlotProps {
   angleGap?: number;
   translateX?: number;
   translateY?: number;
-  iconType?: "high" | "medium" | "low" | "rig" | "service";
+  slotType?: "high" | "mid" | "low" | "rig" | "sub" | "service";
 }
 
 export default function Slot({
@@ -15,7 +15,12 @@ export default function Slot({
   angleGap = 11.2,
   translateX = -32,
   translateY = -307,
+  slotType = "high",
 }: SlotProps) {
+  const slotIcon = `/icons/slot-${slotType}.png`;
+  const slotTypeName =
+    slotType.charAt(0).toUpperCase() + slotType.slice(1).toLowerCase();
+
   return (
     <>
       {slots.map((slot, index) => {
@@ -97,7 +102,7 @@ export default function Slot({
                 ) : (
                   <>
                     {/* Empty slot - also show ring */}
-                    <Tooltip content="Empty Slot">
+                    <Tooltip content={`Empty ${slotTypeName} Slot`}>
                       <div className="relative overflow-visible size-12">
                         {/* Ring background */}
                         <svg
@@ -115,10 +120,9 @@ export default function Slot({
                           />
                         </svg>
                         <img
-                          src="/icons/slot-high.png"
-                          alt="High Slot"
+                          src={slotIcon}
+                          alt={`${slotTypeName} Slot`}
                           className="relative z-10 size-12"
-                          style={{ transform: `rotate(${-rotation}deg)` }}
                         />
                       </div>
                     </Tooltip>
