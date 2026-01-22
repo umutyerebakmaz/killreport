@@ -134,6 +134,9 @@ input KillmailFilter {
   shipTypeId: Int
   regionId: Int
   systemId: Int
+  characterId: Int
+  corporationId: Int
+  allianceId: Int
 }
 
 enum KillmailOrderBy {

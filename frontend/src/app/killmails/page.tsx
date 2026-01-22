@@ -6,6 +6,7 @@ import KillmailsTable from "@/components/KillmailsTable";
 import Loader from "@/components/Loader";
 import Paginator from "@/components/Paginator/Paginator";
 import {
+  useKillmailsDateCountsQuery,
   useKillmailsQuery,
   useNewKillmailSubscription,
 } from "@/generated/graphql";
@@ -37,6 +38,9 @@ function KillmailsContent() {
   const [animatingKillmails, setAnimatingKillmails] = useState<Set<string>>(
     new Set(),
   );
+  const [realtimeDateCounts, setRealtimeDateCounts] = useState<
+    Map<string, number>
+  >(new Map());
 
   // Subscribe to new killmails
   const {
@@ -63,6 +67,14 @@ function KillmailsContent() {
         return [km, ...prev];
       });
 
+      // Update date count for the killmail's date
+      const killmailDate = new Date(km.killmailTime).toISOString().split("T")[0];
+      setRealtimeDateCounts((prev) => {
+        const next = new Map(prev);
+        next.set(killmailDate, (next.get(killmailDate) || 0) + 1);
+        return next;
+      });
+
       // Add to animating set
       setAnimatingKillmails((prev) => new Set(prev).add(km.id));
 
@@ -80,6 +92,7 @@ function KillmailsContent() {
   // Reset new killmails when filters change
   useEffect(() => {
     setNewKillmails([]);
+    setRealtimeDateCounts(new Map());
   }, [currentPage, orderBy, filters]);
 
   const handleFilterChange = (newFilters: {
@@ -109,6 +122,17 @@ function KillmailsContent() {
     },
   });
 
+  // Fetch date counts for correct totals per date
+  const { data: dateCountsData } = useKillmailsDateCountsQuery({
+    variables: {
+      filter: {
+        shipTypeId: filters.shipTypeId,
+        regionId: filters.regionId,
+        systemId: filters.systemId,
+      },
+    },
+  });
+
   // URL sync
   useEffect(() => {
     const params = new URLSearchParams();
@@ -128,6 +152,24 @@ function KillmailsContent() {
     ],
     [newKillmails, data?.killmails.edges],
   );
+
+  // Create a map of date -> total count for that date
+  // Merge backend data with realtime increments
+  const dateCountsMap = useMemo(() => {
+    const map = new Map<string, number>();
+
+    // Start with backend data
+    dateCountsData?.killmailsDateCounts.forEach((dc) => {
+      map.set(dc.date, dc.count);
+    });
+
+    // Add realtime increments
+    realtimeDateCounts.forEach((increment, date) => {
+      map.set(date, (map.get(date) || 0) + increment);
+    });
+
+    return map;
+  }, [dateCountsData, realtimeDateCounts]);
 
   const pageInfo = data?.killmails.pageInfo;
   const totalPages = pageInfo?.totalPages || 0;
@@ -202,6 +244,7 @@ function KillmailsContent() {
           killmails={killmails}
           animatingKillmails={animatingKillmails}
           loading={loading}
+          dateCountsMap={dateCountsMap}
         />
       </div>
 
