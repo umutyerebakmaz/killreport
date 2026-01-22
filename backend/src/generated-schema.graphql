@@ -449,10 +449,12 @@ type JitaPrice {
 }
 
 type Killmail {
+  attackerCount: Int!
   attackers: [Attacker!]!
   createdAt: String!
   destroyedValue: Float
   droppedValue: Float
+  finalBlow: Attacker
   fitting: Fitting
   id: ID!
   items: [KillmailItem!]!

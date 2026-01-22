@@ -510,10 +510,12 @@ export type JitaPrice = {
 
 export type Killmail = {
   __typename?: 'Killmail';
+  attackerCount: Scalars['Int']['output'];
   attackers: Array<Attacker>;
   createdAt: Scalars['String']['output'];
   destroyedValue?: Maybe<Scalars['Float']['output']>;
   droppedValue?: Maybe<Scalars['Float']['output']>;
+  finalBlow?: Maybe<Attacker>;
   fitting?: Maybe<Fitting>;
   id: Scalars['ID']['output'];
   items: Array<KillmailItem>;
@@ -1957,10 +1959,12 @@ export type JitaPriceResolvers<ContextType = any, ParentType extends ResolversPa
 };
 
 export type KillmailResolvers<ContextType = any, ParentType extends ResolversParentTypes['Killmail'] = ResolversParentTypes['Killmail']> = {
+  attackerCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   attackers?: Resolver<Array<ResolversTypes['Attacker']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   destroyedValue?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   droppedValue?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  finalBlow?: Resolver<Maybe<ResolversTypes['Attacker']>, ParentType, ContextType>;
   fitting?: Resolver<Maybe<ResolversTypes['Fitting']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   items?: Resolver<Array<ResolversTypes['KillmailItem']>, ParentType, ContextType>;
