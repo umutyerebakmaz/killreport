@@ -1,6 +1,8 @@
 /* Tooltip Trigger */
 .tooltip-trigger {
   display: inline-block;
+  width: fit-content;
+  vertical-align: middle;
 }
 
 /* Tooltip Base */

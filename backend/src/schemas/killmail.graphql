@@ -31,6 +31,8 @@ type Killmail {
   solarSystem: SolarSystem!
   victim: Victim
   attackers: [Attacker!]!
+  attackerCount: Int!
+  finalBlow: Attacker
   items: [KillmailItem!]!
   fitting: Fitting
   destroyedValue: Float
