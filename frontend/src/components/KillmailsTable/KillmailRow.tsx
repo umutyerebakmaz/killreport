@@ -9,7 +9,14 @@ import { KillmailRowProps } from "./types";
 export default function KillmailRow({
   killmail: km,
   isAnimating = false,
+  characterId,
 }: KillmailRowProps) {
+  // Determine totalValue color based on character involvement (only if characterId is provided)
+  const totalValueColor = characterId
+    ? km.victim?.character?.id === characterId
+      ? "text-red-500" // Character is victim (loss)
+      : "text-green-500" // Character is attacker (kill)
+    : "text-orange-400"; // Default color when no characterId
   return (
     <tr
       className={`transition-colors hover:bg-white/5 ${
@@ -44,7 +51,7 @@ export default function KillmailRow({
             })}
           </div>
           {km.totalValue && (
-            <div className="font-medium text-orange-400 tabular-nums">
+            <div className={`font-medium tabular-nums ${totalValueColor}`}>
               {formatISK(km.totalValue)}
             </div>
           )}
