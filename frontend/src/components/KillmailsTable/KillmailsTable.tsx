@@ -10,6 +10,7 @@ export default function KillmailsTable({
   animatingKillmails = new Set(),
   loading = false,
   characterId,
+  dateCountsMap,
 }: KillmailsTableProps) {
   // Group killmails by date inside component
   const groupedKillmails = useMemo(() => {
@@ -45,8 +46,8 @@ export default function KillmailsTable({
           <h2 className="flex items-center gap-2 text-xl font-semibold">
             <span className="text-gray-200">{date}</span>
             <span className="text-sm font-normal text-gray-500">
-              ({dateKillmails.length} killmail
-              {dateKillmails.length !== 1 ? "s" : ""})
+              ({dateCountsMap?.get(date) ?? dateKillmails.length} killmail
+              {(dateCountsMap?.get(date) ?? dateKillmails.length) !== 1 ? "s" : ""})
             </span>
           </h2>
 

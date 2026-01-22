@@ -5,8 +5,9 @@ import { Loader } from "@/components/Loader/Loader";
 import Paginator from "@/components/Paginator/Paginator";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import {
-  useCharacterKillmailsQuery,
-  useCharacterQuery,
+    useCharacterKillmailsQuery,
+    useCharacterQuery,
+    useKillmailsDateCountsQuery,
 } from "@/generated/graphql";
 import { getSecurityStatusColor } from "@/utils/securityStatus";
 import Link from "next/link";
@@ -52,12 +53,31 @@ export default function CharacterDetailPage({
       skip: activeTab !== "killmails", // Only fetch when killmails tab is active
     });
 
+  // Fetch date counts for correct totals per date
+  const { data: dateCountsData } = useKillmailsDateCountsQuery({
+    variables: {
+      filter: {
+        characterId: parseInt(id),
+      },
+    },
+    skip: activeTab !== "killmails",
+  });
+
   // Memoize killmails array
   const killmails = useMemo(
     () =>
       killmailsData?.characterKillmails.edges.map((edge) => edge.node) || [],
     [killmailsData],
   );
+
+  // Create a map of date -> total count for that date
+  const dateCountsMap = useMemo(() => {
+    const map = new Map<string, number>();
+    dateCountsData?.killmailsDateCounts.forEach((dc) => {
+      map.set(dc.date, dc.count);
+    });
+    return map;
+  }, [dateCountsData]);
 
   const pageInfo = killmailsData?.characterKillmails.pageInfo;
   const totalPages = pageInfo?.totalPages || 0;
@@ -334,6 +354,7 @@ export default function CharacterDetailPage({
                 killmails={killmails}
                 loading={killmailsLoading}
                 characterId={parseInt(id)}
+                dateCountsMap={dateCountsMap}
               />
 
               {killmails.length > 0 && (
