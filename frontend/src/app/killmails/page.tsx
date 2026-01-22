@@ -41,6 +41,8 @@ function KillmailsContent() {
   const [realtimeDateCounts, setRealtimeDateCounts] = useState<
     Map<string, number>
   >(new Map());
+  const [realtimeTotalCountIncrement, setRealtimeTotalCountIncrement] =
+    useState(0);
 
   // Subscribe to new killmails
   const {
@@ -75,6 +77,9 @@ function KillmailsContent() {
         return next;
       });
 
+      // Increment total count
+      setRealtimeTotalCountIncrement((prev) => prev + 1);
+
       // Add to animating set
       setAnimatingKillmails((prev) => new Set(prev).add(km.id));
 
@@ -93,6 +98,7 @@ function KillmailsContent() {
   useEffect(() => {
     setNewKillmails([]);
     setRealtimeDateCounts(new Map());
+    setRealtimeTotalCountIncrement(0);
   }, [currentPage, orderBy, filters]);
 
   const handleFilterChange = (newFilters: {
@@ -174,6 +180,12 @@ function KillmailsContent() {
   const pageInfo = data?.killmails.pageInfo;
   const totalPages = pageInfo?.totalPages || 0;
 
+  // Calculate total count with realtime increments
+  const totalCount = useMemo(() => {
+    const backendCount = pageInfo?.totalCount || 0;
+    return backendCount + realtimeTotalCountIncrement;
+  }, [pageInfo?.totalCount, realtimeTotalCountIncrement]);
+
   const handleNext = useCallback(
     () => pageInfo?.hasNextPage && setCurrentPage((prev) => prev + 1),
     [pageInfo?.hasNextPage],
@@ -218,10 +230,9 @@ function KillmailsContent() {
             Browse all killmails from New Eden. Click on a killmail to see
             detailed information.
           </p>
-          {data?.killmails.pageInfo.totalCount !== undefined && (
+          {totalCount > 0 && (
             <p className="mt-1 text-sm text-gray-500">
-              Total: {data.killmails.pageInfo.totalCount.toLocaleString()}{" "}
-              killmails
+              Total: {totalCount.toLocaleString()} killmails
             </p>
           )}
         </div>
