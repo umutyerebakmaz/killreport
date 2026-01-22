@@ -5,23 +5,55 @@ query CharacterKillmails($characterId: Int!, $first: Int, $after: String) {
         id
         killmailTime
         totalValue
-        solarSystem {
-          name
-        }
+        attackerCount
         victim {
           character {
+            id
+            name
+          }
+          corporation {
+            id
+            name
+          }
+          alliance {
+            id
             name
           }
           shipType {
+            id
             name
+            group {
+              name
+            }
           }
           damageTaken
         }
-        attackers {
+        finalBlow {
           character {
+            id
             name
           }
-          finalBlow
+          corporation {
+            id
+            name
+          }
+          alliance {
+            id
+            name
+          }
+        }
+        solarSystem {
+          id
+          name
+          security_status
+          constellation {
+            id
+            name
+            region {
+              id
+              name
+            }
+          }
         }
       }
       cursor
