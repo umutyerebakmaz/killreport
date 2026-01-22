@@ -9,6 +9,7 @@ export default function KillmailsTable({
   killmails,
   animatingKillmails = new Set(),
   loading = false,
+  characterId,
 }: KillmailsTableProps) {
   // Group killmails by date inside component
   const groupedKillmails = useMemo(() => {
@@ -69,6 +70,7 @@ export default function KillmailsTable({
                     key={km.id}
                     killmail={km}
                     isAnimating={animatingKillmails.has(km.id)}
+                    characterId={characterId}
                   />
                 ))}
               </tbody>
