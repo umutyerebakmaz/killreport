@@ -34,6 +34,21 @@ export default function AttackerRow({
               className="shadow-md"
               loading="lazy"
             />
+            {/* Security Status - Bottom Left */}
+            {attacker.securityStatus !== null &&
+              attacker.securityStatus !== undefined && (
+                <div className="absolute bottom-0 left-0 px-1.5 py-0.5 text-xs font-semibold bg-black/70 backdrop-blur-sm">
+                  <span
+                    className={
+                      attacker.securityStatus >= 0
+                        ? "text-green-500"
+                        : "text-red-500"
+                    }
+                  >
+                    {attacker.securityStatus.toFixed(1)}
+                  </span>
+                </div>
+              )}
             {/* Logos Container - Bottom Right */}
             <div className="absolute bottom-0 right-0 flex">
               {/* Corporation Logo */}
@@ -73,7 +88,7 @@ export default function AttackerRow({
           </div>
         )}
 
-        <div className="flex flex-col pr-4">
+        <div className="flex flex-col pr-4 shrink-0">
           <Tooltip content={attacker.shipType?.name || "Unknown Ship"}>
             {attacker.shipType?.id ? (
               <img
@@ -85,7 +100,7 @@ export default function AttackerRow({
                 loading="lazy"
               />
             ) : (
-              <div className="flex items-center justify-center w-12 h-12 shadow-md">
+              <div className="flex items-center justify-center shadow-md size-12">
                 <QuestionMarkCircleIcon className="w-8 h-8 text-gray-400" />
               </div>
             )}
@@ -108,77 +123,67 @@ export default function AttackerRow({
           </Tooltip>
         </div>
 
-        {/* Character Name, Corporation, Alliance */}
-        <div className="flex flex-col flex-1 space-y-1">
-          {/* Badges for Final Blow and Top Damage */}
-          <div className="flex gap-2 mb-1">
-            {isFinalBlow && (
-              <span className="px-2 py-0.5 text-xs font-medium text-red-400 rounded bg-red-400/10">
-                FINAL BLOW
-              </span>
+        <div className="flex justify-between w-full">
+          {/* Character Name, Corporation, Alliance */}
+          <div className="flex flex-col">
+            {/* Badges for Final Blow and Top Damage */}
+            <div className="flex gap-2 mb-1">
+              {isFinalBlow && (
+                <span className="px-2 py-0.5 text-xs font-medium text-red-400 rounded bg-red-400/10">
+                  FINAL BLOW
+                </span>
+              )}
+              {isTopDamage && (
+                <span className="px-2 py-0.5 text-xs font-medium text-orange-400 rounded bg-orange-400/10">
+                  TOP DAMAGE
+                </span>
+              )}
+            </div>
+
+            {attacker.character?.id && (
+              <Tooltip content="Show Character Info">
+                <Link
+                  href={`/characters/${attacker.character?.id}`}
+                  className="font-medium text-gray-400 hover:text-blue-400"
+                  prefetch={false}
+                >
+                  {attacker.character?.name || "Unknown"}
+                </Link>
+              </Tooltip>
             )}
-            {isTopDamage && (
-              <span className="px-2 py-0.5 text-xs font-medium text-orange-400 rounded bg-orange-400/10">
-                TOP DAMAGE
-              </span>
+
+            {attacker.corporation?.id && (
+              <Tooltip content="Show Corporation Info">
+                <Link
+                  href={`/corporations/${attacker.corporation?.id}`}
+                  className="text-sm text-gray-400 hover:text-blue-400"
+                  prefetch={false}
+                >
+                  {attacker.corporation?.name || "Unknown"}
+                </Link>
+              </Tooltip>
+            )}
+
+            {attacker.alliance?.id && (
+              <Tooltip content="Show Alliance Info">
+                <Link
+                  href={`/alliances/${attacker.alliance?.id}`}
+                  className="text-sm text-gray-400 hover:text-blue-400"
+                  prefetch={false}
+                >
+                  {attacker.alliance?.name || "Unknown"}
+                </Link>
+              </Tooltip>
             )}
           </div>
 
-          {attacker.character?.id && (
-            <Tooltip content="Show Character Info">
-              <Link
-                href={`/characters/${attacker.character?.id}`}
-                className="block font-medium text-gray-400 hover:text-blue-400"
-                prefetch={false}
-              >
-                {attacker.character?.name || "Unknown"}
-              </Link>
-            </Tooltip>
-          )}
-
-          {attacker.corporation?.id && (
-            <Tooltip content="Show Corporation Info">
-              <Link
-                href={`/corporations/${attacker.corporation?.id}`}
-                className="block text-sm text-gray-400 hover:text-blue-400"
-                prefetch={false}
-              >
-                {attacker.corporation?.name || "Unknown"}
-              </Link>
-            </Tooltip>
-          )}
-
-          {attacker.alliance?.id && (
-            <Tooltip content="Show Alliance Info">
-              <Link
-                href={`/alliances/${attacker.alliance?.id}`}
-                className="block text-sm text-gray-400 hover:text-blue-400"
-                prefetch={false}
-              >
-                {attacker.alliance?.name || "Unknown"}
-              </Link>
-            </Tooltip>
-          )}
-        </div>
-
-        {/* Damage, Damage Percentate, Security */}
-        <div className="flex flex-col items-end text-sm gap-y-1">
-          <span className="text-red-400">
-            {attacker.damageDone.toLocaleString()} DMG
-          </span>
-          <span className="text-gray-400">{damagePercentage}%</span>
-          {attacker.securityStatus !== null &&
-            attacker.securityStatus !== undefined && (
-              <span
-                className={
-                  attacker.securityStatus >= 0
-                    ? "text-green-500"
-                    : "text-red-500"
-                }
-              >
-                Sec: {attacker.securityStatus.toFixed(1)}
-              </span>
-            )}
+          {/* Damage, Damage Percentage */}
+          <div className="flex flex-col items-end justify-center text-sm gap-y-1">
+            <span className="text-red-400">
+              {attacker.damageDone.toLocaleString()} DMG
+            </span>
+            <span className="text-gray-400">{damagePercentage}%</span>
+          </div>
         </div>
       </div>
     </div>
