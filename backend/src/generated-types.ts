@@ -545,6 +545,9 @@ export type KillmailEdge = {
 };
 
 export type KillmailFilter = {
+  allianceId?: InputMaybe<Scalars['Int']['input']>;
+  characterId?: InputMaybe<Scalars['Int']['input']>;
+  corporationId?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   orderBy?: InputMaybe<KillmailOrderBy>;
   page?: InputMaybe<Scalars['Int']['input']>;
