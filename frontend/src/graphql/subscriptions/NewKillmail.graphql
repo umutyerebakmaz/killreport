@@ -3,6 +3,7 @@ subscription NewKillmail {
     id
     killmailTime
     totalValue
+    attackerCount
     solarSystem {
       id
       name
@@ -36,7 +37,7 @@ subscription NewKillmail {
       }
       damageTaken
     }
-    attackers {
+    finalBlow {
       character {
         id
         name
@@ -45,12 +46,10 @@ subscription NewKillmail {
         id
         name
       }
-      shipType {
+      alliance {
         id
         name
       }
-      finalBlow
-      damageDone
     }
   }
 }

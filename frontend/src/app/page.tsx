@@ -36,10 +36,10 @@ function KillmailsContent() {
   const [newKillmails, setNewKillmails] = useState<any[]>([]);
   const [killmailToasts, setKillmailToasts] = useState<KillmailToast[]>([]);
   const [animatingKillmails, setAnimatingKillmails] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [totalKillmailCount, setTotalKillmailCount] = useState<number | null>(
-    null
+    null,
   );
 
   // Subscribe to new killmails
@@ -87,15 +87,12 @@ function KillmailsContent() {
         const exists = prev.some((t) => t.id === km.id);
         if (exists) return prev;
 
-        // Find final blow attacker
-        const finalBlowAttacker = km.attackers?.find((a: any) => a.finalBlow);
-
         const newToast: KillmailToast = {
           id: km.id,
           victimName: km.victim?.character?.name || null,
           victimShipName: km.victim?.shipType?.name || null,
           victimShipTypeId: km.victim?.shipType?.id || null,
-          attackerName: finalBlowAttacker?.character?.name || null,
+          attackerName: km.finalBlow?.character?.name || null,
           systemName: km.solarSystem?.name || null,
           totalValue: km.totalValue || null,
           timestamp: new Date(km.killmailTime),
@@ -154,6 +151,14 @@ function KillmailsContent() {
     ...newKillmails, // Add new real-time killmails first
     ...(data?.killmails.edges.map((edge) => edge.node) || []),
   ];
+
+  // DEBUG: Log first killmail to check structure
+  if (killmails.length > 0) {
+    console.log("First killmail:", killmails[0]);
+    console.log("Has attackerCount:", "attackerCount" in killmails[0]);
+    console.log("Has finalBlow:", "finalBlow" in killmails[0]);
+  }
+
   const pageInfo = data?.killmails.pageInfo;
   const totalPages = pageInfo?.totalPages || 0;
 
@@ -165,15 +170,18 @@ function KillmailsContent() {
   }, [data, totalKillmailCount]);
 
   // Group killmails by date
-  const groupedKillmails = killmails.reduce((groups, km) => {
-    const dateObj = new Date(km.killmailTime);
-    const date = dateObj.toISOString().split("T")[0]; // YYYY-MM-DD format
-    if (!groups[date]) {
-      groups[date] = [];
-    }
-    groups[date].push(km);
-    return groups;
-  }, {} as Record<string, typeof killmails>);
+  const groupedKillmails = killmails.reduce(
+    (groups, km) => {
+      const dateObj = new Date(km.killmailTime);
+      const date = dateObj.toISOString().split("T")[0]; // YYYY-MM-DD format
+      if (!groups[date]) {
+        groups[date] = [];
+      }
+      groups[date].push(km);
+      return groups;
+    },
+    {} as Record<string, typeof killmails>,
+  );
 
   const handleNext = () =>
     pageInfo?.hasNextPage && setCurrentPage((prev) => prev + 1);
@@ -277,11 +285,6 @@ function KillmailsContent() {
                     </thead>
                     <tbody className="divide-y divide-white/10">
                       {typedKillmails.map((km) => {
-                        const finalBlowAttacker = km.attackers?.find(
-                          (a: any) => a?.finalBlow
-                        );
-                        const attackerCount = km.attackers?.length || 0;
-
                         const isAnimating = animatingKillmails.has(km.id);
 
                         return (
@@ -297,14 +300,14 @@ function KillmailsContent() {
                             <td className="px-6 py-4 text-base align-top">
                               <Tooltip
                                 content={`${new Date(
-                                  km.killmailTime
+                                  km.killmailTime,
                                 ).toLocaleDateString("en-US", {
                                   timeZone: "UTC",
                                   year: "numeric",
                                   month: "long",
                                   day: "numeric",
                                 })} ${new Date(
-                                  km.killmailTime
+                                  km.killmailTime,
                                 ).toLocaleTimeString("en-US", {
                                   timeZone: "UTC",
                                   hour: "2-digit",
@@ -323,7 +326,7 @@ function KillmailsContent() {
                                       minute: "2-digit",
                                       second: "2-digit",
                                       hour12: false,
-                                    }
+                                    },
                                   )}
                                 </div>
                                 {km.totalValue && (
@@ -507,36 +510,32 @@ function KillmailsContent() {
                               </div>
                             </td>
                             <td className="px-6 py-4 text-base align-top">
-                              {finalBlowAttacker && (
+                              {km.finalBlow && (
                                 <div className="space-y-1">
                                   <div className="text-base text-green-400">
-                                    {finalBlowAttacker.character ? (
+                                    {km.finalBlow.character ? (
                                       <Tooltip
                                         content="Show Character Info"
                                         position="top"
                                       >
                                         <Link
-                                          href={`/characters/${finalBlowAttacker.character.id}`}
+                                          href={`/characters/${km.finalBlow.character.id}`}
                                           className="transition-colors hover:text-green-300"
                                           prefetch={false}
                                         >
-                                          {finalBlowAttacker.character.name}
+                                          {km.finalBlow.character.name}
                                         </Link>
                                       </Tooltip>
                                     ) : (
                                       "Unknown"
                                     )}
                                   </div>
-                                  <div className="text-base text-gray-500">
-                                    {finalBlowAttacker.shipType?.name ||
-                                      "Unknown"}
-                                  </div>
                                 </div>
                               )}
                             </td>
                             <td className="px-6 py-4 text-base align-top">
                               <span className="font-medium text-purple-400">
-                                {attackerCount}
+                                {km.attackerCount}
                               </span>
                             </td>
                             <td className="px-6 py-4 text-base align-top">

@@ -5,6 +5,7 @@ query Killmails($filter: KillmailFilter) {
         id
         killmailTime
         totalValue
+        attackerCount
         solarSystem {
           id
           name
@@ -40,7 +41,7 @@ query Killmails($filter: KillmailFilter) {
           }
           damageTaken
         }
-        attackers {
+        finalBlow {
           character {
             id
             name
@@ -49,12 +50,10 @@ query Killmails($filter: KillmailFilter) {
             id
             name
           }
-          shipType {
+          alliance {
             id
             name
           }
-          finalBlow
-          damageDone
         }
       }
     }
