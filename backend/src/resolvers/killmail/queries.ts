@@ -187,6 +187,9 @@ export const killmailQueries: QueryResolvers = {
     const shipTypeId = args.filter?.shipTypeId;
     const regionId = args.filter?.regionId;
     const systemId = args.filter?.systemId;
+    const characterId = args.filter?.characterId;
+    const corporationId = args.filter?.corporationId;
+    const allianceId = args.filter?.allianceId;
 
     // Build WHERE clause (same as killmails query)
     const where: any = {};
@@ -285,6 +288,30 @@ export const killmailQueries: QueryResolvers = {
 
     if (systemId) {
       where.solar_system_id = systemId;
+    }
+
+    // Character filter: killmails where character is victim OR attacker
+    if (characterId) {
+      where.OR = [
+        { victim: { character_id: characterId } },
+        { attackers: { some: { character_id: characterId } } },
+      ];
+    }
+
+    // Corporation filter: killmails where corporation is victim OR attacker
+    if (corporationId) {
+      where.OR = [
+        { victim: { corporation_id: corporationId } },
+        { attackers: { some: { corporation_id: corporationId } } },
+      ];
+    }
+
+    // Alliance filter: killmails where alliance is victim OR attacker
+    if (allianceId) {
+      where.OR = [
+        { victim: { alliance_id: allianceId } },
+        { attackers: { some: { alliance_id: allianceId } } },
+      ];
     }
 
     // Fetch only killmail_time for date grouping (performance optimization)
