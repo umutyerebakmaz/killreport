@@ -348,7 +348,14 @@ export default function CharacterDetailPage({
 
           {activeTab === "killmails" && (
             <div className="killmails-tab">
-              <h2 className="mb-6 text-2xl font-bold">Killmails</h2>
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold">Killmails</h2>
+                {pageInfo?.totalCount !== undefined && (
+                  <p className="mt-1 text-sm text-gray-500">
+                    Total: {pageInfo.totalCount.toLocaleString()} killmails
+                  </p>
+                )}
+              </div>
 
               <KillmailsTable
                 killmails={killmails}
