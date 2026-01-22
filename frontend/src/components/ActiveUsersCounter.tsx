@@ -31,7 +31,7 @@ export default function ActiveUsersCounter() {
       content={
         <div className="min-w-70">
           <div className="mb-1 font-semibold">Real-time Active Users</div>
-          <div className="text-xs text-gray-400">
+          <div className="text-gray-400">
             Live count of visitors currently browsing the site. Updates every 3
             seconds via WebSocket. Includes authenticated users and anonymous
             visitors active in the last 5 minutes.
@@ -43,12 +43,12 @@ export default function ActiveUsersCounter() {
     >
       <div className="flex items-center gap-2 text-sm text-gray-400 cursor-help">
         {isConnected && (
-          <div className="relative flex w-2 h-2">
+          <div className="relative flex size-2">
             <span className="absolute inline-flex w-full h-full bg-green-400 rounded-full opacity-75 animate-ping"></span>
-            <span className="relative inline-flex w-2 h-2 bg-green-500 rounded-full"></span>
+            <span className="relative inline-flex bg-green-500 rounded-full size-2"></span>
           </div>
         )}
-        <UsersIcon className="w-4 h-4" />
+        <UsersIcon className="size-4" />
         <span className="font-medium text-white">{count}</span>
         <span className="hidden sm:inline">active</span>
       </div>
