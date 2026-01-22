@@ -1,11 +1,16 @@
 "use client";
 
+import KillmailsTable from "@/components/KillmailsTable";
 import { Loader } from "@/components/Loader/Loader";
+import Paginator from "@/components/Paginator/Paginator";
 import Tooltip from "@/components/Tooltip/Tooltip";
-import { useCharacterQuery } from "@/generated/graphql";
+import {
+  useCharacterKillmailsQuery,
+  useCharacterQuery,
+} from "@/generated/graphql";
 import { getSecurityStatusColor } from "@/utils/securityStatus";
 import Link from "next/link";
-import { use, useState } from "react";
+import { use, useCallback, useMemo, useState } from "react";
 
 interface CharacterDetailPageProps {
   params: Promise<{ id: string }>;
@@ -18,10 +23,50 @@ export default function CharacterDetailPage({
 }: CharacterDetailPageProps) {
   const { id } = use(params);
   const [activeTab, setActiveTab] = useState<TabType>("attributes");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
 
   const { data, loading, error } = useCharacterQuery({
     variables: { id: parseInt(id) },
   });
+
+  // Fetch killmails when killmails tab is active
+  const { data: killmailsData, loading: killmailsLoading } =
+    useCharacterKillmailsQuery({
+      variables: {
+        characterId: parseInt(id),
+        first: pageSize,
+        after:
+          currentPage > 1
+            ? btoa(`cursor:${(currentPage - 1) * pageSize}`)
+            : undefined,
+      },
+      skip: activeTab !== "killmails", // Only fetch when killmails tab is active
+    });
+
+  // Memoize killmails array
+  const killmails = useMemo(
+    () =>
+      killmailsData?.characterKillmails.edges.map((edge) => edge.node) || [],
+    [killmailsData],
+  );
+
+  const pageInfo = killmailsData?.characterKillmails.pageInfo;
+  const totalPages = pageInfo?.totalPages || 0;
+
+  const handleNext = useCallback(
+    () => pageInfo?.hasNextPage && setCurrentPage((prev) => prev + 1),
+    [pageInfo?.hasNextPage],
+  );
+  const handlePrev = useCallback(
+    () => pageInfo?.hasPreviousPage && setCurrentPage((prev) => prev - 1),
+    [pageInfo?.hasPreviousPage],
+  );
+  const handleFirst = useCallback(() => setCurrentPage(1), []);
+  const handleLast = useCallback(
+    () => totalPages > 0 && setCurrentPage(totalPages),
+    [totalPages],
+  );
 
   if (loading) {
     return <Loader fullHeight size="lg" text="Loading character..." />;
@@ -263,9 +308,34 @@ export default function CharacterDetailPage({
           )}
 
           {activeTab === "killmails" && (
-            <div className="p-6 bg-white/5 border-white/10">
-              <h2 className="mb-4 text-2xl font-bold">Killmails</h2>
-              <p className="text-gray-400">Killmail tracking coming soon...</p>
+            <div className="killmails-tab">
+              <h2 className="mb-6 text-2xl font-bold">Killmails</h2>
+
+              <KillmailsTable
+                killmails={killmails}
+                loading={killmailsLoading}
+              />
+
+              {killmails.length > 0 && (
+                <div className="mt-6">
+                  <Paginator
+                    hasNextPage={pageInfo?.hasNextPage ?? false}
+                    hasPrevPage={pageInfo?.hasPreviousPage ?? false}
+                    onNext={handleNext}
+                    onPrev={handlePrev}
+                    onFirst={handleFirst}
+                    onLast={handleLast}
+                    loading={killmailsLoading}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    pageSize={pageSize}
+                    onPageSizeChange={(size) => {
+                      setPageSize(size);
+                      setCurrentPage(1);
+                    }}
+                  />
+                </div>
+              )}
             </div>
           )}
 
