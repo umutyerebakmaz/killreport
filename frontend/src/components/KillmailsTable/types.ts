@@ -1,6 +1,6 @@
 // Common types for KillmailsTable components
 // Import generated types from GraphQL
-import type { KillmailsQuery, CharacterKillmailsQuery } from '@/generated/graphql';
+import type { CharacterKillmailsQuery, KillmailsQuery } from '@/generated/graphql';
 
 // Extract the Killmail type from the GraphQL query result
 export type Killmail =
@@ -14,6 +14,8 @@ export interface KillmailsTableProps {
   animatingKillmails?: Set<string>;
   /** Loading state */
   loading?: boolean;
+  /** Character ID for victim/attacker highlighting */
+  characterId?: number;
 }
 
 export interface KillmailRowProps {
@@ -21,4 +23,6 @@ export interface KillmailRowProps {
   killmail: Killmail;
   /** Whether the row should be animated */
   isAnimating?: boolean;
+  /** Character ID for victim/attacker highlighting */
+  characterId?: number;
 }
