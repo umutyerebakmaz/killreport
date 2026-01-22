@@ -10,7 +10,8 @@ import {
 } from "@/generated/graphql";
 import { getSecurityStatusColor } from "@/utils/securityStatus";
 import Link from "next/link";
-import { use, useCallback, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { use, useCallback, useEffect, useMemo, useState } from "react";
 
 interface CharacterDetailPageProps {
   params: Promise<{ id: string }>;
@@ -22,9 +23,16 @@ export default function CharacterDetailPage({
   params,
 }: CharacterDetailPageProps) {
   const { id } = use(params);
-  const [activeTab, setActiveTab] = useState<TabType>("attributes");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(25);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const pageFromUrl = Number(searchParams.get("page")) || 1;
+  const pageSizeFromUrl = Number(searchParams.get("pageSize")) || 25;
+  const tabFromUrl = (searchParams.get("tab") as TabType) || "attributes";
+
+  const [activeTab, setActiveTab] = useState<TabType>(tabFromUrl);
+  const [currentPage, setCurrentPage] = useState(pageFromUrl);
+  const [pageSize, setPageSize] = useState(pageSizeFromUrl);
 
   const { data, loading, error } = useCharacterQuery({
     variables: { id: parseInt(id) },
@@ -38,7 +46,7 @@ export default function CharacterDetailPage({
         first: pageSize,
         after:
           currentPage > 1
-            ? btoa(`cursor:${(currentPage - 1) * pageSize}`)
+            ? btoa(((currentPage - 1) * pageSize).toString())
             : undefined,
       },
       skip: activeTab !== "killmails", // Only fetch when killmails tab is active
@@ -53,6 +61,17 @@ export default function CharacterDetailPage({
 
   const pageInfo = killmailsData?.characterKillmails.pageInfo;
   const totalPages = pageInfo?.totalPages || 0;
+
+  // URL sync for pagination and tab
+  useEffect(() => {
+    const params = new URLSearchParams();
+    params.set("tab", activeTab);
+    if (activeTab === "killmails") {
+      params.set("page", currentPage.toString());
+      params.set("pageSize", pageSize.toString());
+    }
+    router.push(`/characters/${id}?${params.toString()}`, { scroll: false });
+  }, [currentPage, pageSize, activeTab, id, router]);
 
   const handleNext = useCallback(
     () => pageInfo?.hasNextPage && setCurrentPage((prev) => prev + 1),
@@ -314,6 +333,7 @@ export default function CharacterDetailPage({
               <KillmailsTable
                 killmails={killmails}
                 loading={killmailsLoading}
+                characterId={parseInt(id)}
               />
 
               {killmails.length > 0 && (
