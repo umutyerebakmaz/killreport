@@ -481,6 +481,9 @@ type KillmailEdge {
 }
 
 input KillmailFilter {
+  allianceId: Int
+  characterId: Int
+  corporationId: Int
   limit: Int
   orderBy: KillmailOrderBy
   page: Int
