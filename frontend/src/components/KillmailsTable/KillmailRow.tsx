@@ -10,13 +10,18 @@ export default function KillmailRow({
   killmail: km,
   isAnimating = false,
   characterId,
+  corporationId,
 }: KillmailRowProps) {
-  // Determine totalValue color based on character involvement (only if characterId is provided)
+  // Determine totalValue color based on character or corporation involvement
   const totalValueColor = characterId
     ? km.victim?.character?.id === characterId
       ? "text-red-500" // Character is victim (loss)
       : "text-green-500" // Character is attacker (kill)
-    : "text-orange-400"; // Default color when no characterId
+    : corporationId
+      ? km.victim?.corporation?.id === corporationId
+        ? "text-red-500" // Corporation is victim (loss)
+        : "text-green-500" // Corporation is attacker (kill)
+      : "text-orange-400"; // Default color when no characterId or corporationId
   return (
     <tr
       className={`transition-colors hover:bg-white/5 ${
