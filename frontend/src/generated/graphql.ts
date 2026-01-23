@@ -730,8 +730,6 @@ export type Query = {
   _empty?: Maybe<Scalars['String']['output']>;
   activeUsersCount: Scalars['Int']['output'];
   alliance?: Maybe<Alliance>;
-  /** Fetches killmails for a specific alliance */
-  allianceKillmails: KillmailConnection;
   alliances: AllianceConnection;
   bloodline?: Maybe<Bloodline>;
   bloodlines: Array<Bloodline>;
@@ -740,14 +738,10 @@ export type Query = {
   categories: CategoryConnection;
   category?: Maybe<Category>;
   character?: Maybe<Character>;
-  /** Fetches killmails for a specific character */
-  characterKillmails: KillmailConnection;
   characters: CharacterConnection;
   constellation?: Maybe<Constellation>;
   constellations: ConstellationConnection;
   corporation?: Maybe<Corporation>;
-  /** Fetches killmails for a specific corporation */
-  corporationKillmails: KillmailConnection;
   corporations: CorporationConnection;
   dogmaAttribute?: Maybe<DogmaAttribute>;
   dogmaAttributes: DogmaAttributeConnection;
@@ -763,16 +757,6 @@ export type Query = {
   killmailsDateCounts: Array<KillmailDateCount>;
   /** Mevcut authenticated kullanıcının bilgilerini döner */
   me?: Maybe<User>;
-  /**
-   * Fetches the authenticated user's corporation killmails
-   * Requires: Authentication + esi-killmails.read_corporation_killmails.v1 scope
-   */
-  myCorporationKillmails: Array<Killmail>;
-  /**
-   * Fetches the authenticated user's own killmails
-   * Requires: Authentication
-   */
-  myKillmails: Array<Killmail>;
   race?: Maybe<Race>;
   races: Array<Race>;
   region?: Maybe<Region>;
@@ -790,13 +774,6 @@ export type Query = {
 
 export type QueryAllianceArgs = {
   id: Scalars['Int']['input'];
-};
-
-
-export type QueryAllianceKillmailsArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  allianceId: Scalars['Int']['input'];
-  first?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -825,13 +802,6 @@ export type QueryCharacterArgs = {
 };
 
 
-export type QueryCharacterKillmailsArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  characterId: Scalars['Int']['input'];
-  first?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
 export type QueryCharactersArgs = {
   filter?: InputMaybe<CharacterFilter>;
 };
@@ -849,13 +819,6 @@ export type QueryConstellationsArgs = {
 
 export type QueryCorporationArgs = {
   id: Scalars['Int']['input'];
-};
-
-
-export type QueryCorporationKillmailsArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  corporationId: Scalars['Int']['input'];
-  first?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -906,16 +869,6 @@ export type QueryKillmailsArgs = {
 
 export type QueryKillmailsDateCountsArgs = {
   filter?: InputMaybe<KillmailFilter>;
-};
-
-
-export type QueryMyCorporationKillmailsArgs = {
-  limit?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QueryMyKillmailsArgs = {
-  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 

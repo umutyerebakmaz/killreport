@@ -48,26 +48,6 @@ export const killmailQueries: QueryResolvers = {
     const corporationId = args.filter?.corporationId;
     const allianceId = args.filter?.allianceId;
 
-    // Create cache key from filter parameters
-    const cacheKey = `killmails:list:${JSON.stringify({
-      page,
-      limit,
-      orderBy,
-      search,
-      shipTypeId,
-      regionId,
-      systemId,
-      characterId,
-      corporationId,
-      allianceId,
-    })}`;
-
-    // Check cache first
-    const cached = await redis.get(cacheKey);
-    if (cached) {
-      return JSON.parse(cached);
-    }
-
     const skip = (page - 1) * limit;
 
     // Build WHERE clause
@@ -214,7 +194,7 @@ export const killmailQueries: QueryResolvers = {
       cursor: Buffer.from(`${skip + index + 1}`).toString('base64'),
     }));
 
-    const result = {
+    return {
       edges,
       pageInfo: {
         hasNextPage: page < totalPages,
@@ -224,11 +204,6 @@ export const killmailQueries: QueryResolvers = {
         totalCount,
       },
     };
-
-    // Cache for 2 minutes (lists change more frequently than individual killmails)
-    await redis.setex(cacheKey, 120, JSON.stringify(result));
-
-    return result;
   },
 
   killmailsDateCounts: async (_, args) => {
@@ -239,23 +214,6 @@ export const killmailQueries: QueryResolvers = {
     const characterId = args.filter?.characterId;
     const corporationId = args.filter?.corporationId;
     const allianceId = args.filter?.allianceId;
-
-    // Create cache key from filter parameters
-    const cacheKey = `killmails:dateCounts:${JSON.stringify({
-      search,
-      shipTypeId,
-      regionId,
-      systemId,
-      characterId,
-      corporationId,
-      allianceId,
-    })}`;
-
-    // Check cache first
-    const cached = await redis.get(cacheKey);
-    if (cached) {
-      return JSON.parse(cached);
-    }
 
     // Build WHERE clause (same as killmails query)
     const where: any = {};
@@ -395,14 +353,9 @@ export const killmailQueries: QueryResolvers = {
     }
 
     // Convert to array
-    const result = Array.from(dateCounts.entries())
+    return Array.from(dateCounts.entries())
       .map(([date, count]) => ({ date, count }))
       .sort((a, b) => b.date.localeCompare(a.date)); // Sort by date desc
-
-    // Cache for 5 minutes (date counts change less frequently)
-    await redis.setex(cacheKey, 300, JSON.stringify(result));
-
-    return result;
   },
 
 };
