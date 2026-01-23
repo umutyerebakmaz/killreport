@@ -40,10 +40,14 @@ export const characterQueries: QueryResolvers = {
     const where: any = {};
     if (filter) {
       if (filter.search) {
-        where.name = { contains: filter.search, mode: 'insensitive' };
+        // Normalize search: trim and replace multiple spaces with single space
+        const normalizedSearch = filter.search.trim().replace(/\s+/g, ' ');
+        where.name = { startsWith: normalizedSearch, mode: 'insensitive' };
       }
       if (filter.name) {
-        where.name = { contains: filter.name, mode: 'insensitive' };
+        // Normalize name: trim and replace multiple spaces with single space
+        const normalizedName = filter.name.trim().replace(/\s+/g, ' ');
+        where.name = { startsWith: normalizedName, mode: 'insensitive' };
       }
       if (filter.corporation_id) {
         where.corporation_id = filter.corporation_id;
@@ -55,6 +59,7 @@ export const characterQueries: QueryResolvers = {
 
     // Total record count (filtered)
     const totalCount = await prisma.character.count({ where });
+    console.log('[DEBUG] Character query found:', totalCount, 'results for where:', JSON.stringify(where));
     const totalPages = Math.ceil(totalCount / take);
 
     // OrderBy logic
