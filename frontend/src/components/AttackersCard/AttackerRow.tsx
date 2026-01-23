@@ -20,11 +20,18 @@ export default function AttackerRow({
     totalDamage > 0
       ? ((attacker.damageDone / totalDamage) * 100).toFixed(1)
       : "0.0";
+
+  // Check if attacker is NPC (no character but has corporation)
+  const isNPC = !attacker.character?.id && attacker.corporation?.id;
+  // NPC corporations have IDs < 2000000
+  const isNPCCorporation =
+    attacker.corporation?.id && attacker.corporation.id < 2000000;
+
   return (
     <div className="p-3 bg-white/5">
       <div className="flex">
-        {/* Character Image */}
-        {attacker.character?.id && (
+        {/* Character/Corporation Image */}
+        {attacker.character?.id ? (
           <div className="relative shrink-0">
             <img
               src={`https://images.evetech.net/characters/${attacker.character?.id}/portrait?size=128`}
@@ -86,7 +93,18 @@ export default function AttackerRow({
               )}
             </div>
           </div>
-        )}
+        ) : isNPC && isNPCCorporation ? (
+          <div className="relative shrink-0">
+            <img
+              src={`https://images.evetech.net/corporations/${attacker.corporation?.id}/logo?size=128`}
+              alt={attacker.corporation?.name || "NPC Corporation"}
+              width={96}
+              height={96}
+              className="shadow-md"
+              loading="lazy"
+            />
+          </div>
+        ) : null}
 
         <div className="flex flex-col pr-4 shrink-0">
           <Tooltip content={attacker.shipType?.name || "Unknown Ship"}>

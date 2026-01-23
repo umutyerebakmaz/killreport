@@ -224,94 +224,120 @@ export const killmailFields: KillmailResolvers = {
     let slotCounts = undefined;
 
     if (victim?.ship_type_id) {
-      const dogmaAttributes = await context.loaders.typeDogmaAttributes.load(
-        victim.ship_type_id
-      );
+      // Get ship type group ID to check if it should have fitting slots
+      const shipType = await context.loaders.type.load(victim.ship_type_id);
+      const groupId = shipType?.group_id;
 
-      if (dogmaAttributes && dogmaAttributes.length > 0) {
-        // Extract slot counts from dogma attributes
-        // Attribute IDs: hiSlots=14, medSlots=13, lowSlots=12, rigSlots=1137, serviceSlots=2056
-        const hiSlotsAttr = dogmaAttributes.find((attr: any) => attr.attribute_id === 14);
-        const medSlotsAttr = dogmaAttributes.find((attr: any) => attr.attribute_id === 13);
-        const lowSlotsAttr = dogmaAttributes.find((attr: any) => attr.attribute_id === 12);
-        const rigSlotsAttr = dogmaAttributes.find((attr: any) => attr.attribute_id === 1137);
-        const serviceSlotsAttr = dogmaAttributes.find((attr: any) => attr.attribute_id === 2056);
+      // Group IDs that should not show fitting slots
+      // 31: Shuttle
+      // 1246: Mobile Tractor Unit
+      // 1247: Mobile Depot
+      // 1249: Mobile Cynosural Inhibitor
+      // 1250: Mobile Jump Disruptor
+      // 1272: Mobile Micro Jump Unit
+      const noFittingGroupIds = [31, 1246, 1247, 1249, 1250, 1272];
 
-        let hiSlots = hiSlotsAttr?.value ?? 0;
-        let medSlots = medSlotsAttr?.value ?? 0;
-        let lowSlots = lowSlotsAttr?.value ?? 0;
-        const rigSlots = rigSlotsAttr?.value ?? 3;
+      const shouldHaveFitting = groupId ? !noFittingGroupIds.includes(groupId) : true;
 
-        // FIX: Strategic Cruisers (T3) and some special ships have slot counts = 0
-        // because they vary by subsystem/configuration.
-        // For T3Cs, subsystems modify slot counts through dogma effects.
-        // We need to calculate from subsystems' attribute modifiers.
-        if (hiSlots === 0 || medSlots === 0 || lowSlots === 0) {
-          // Get fitted subsystems
-          const subsystemItems = rawItems.filter((i: any) => i.flag >= 125 && i.flag <= 128);
-
-          if (subsystemItems.length > 0) {
-            // Strategic Cruiser with subsystems - calculate from subsystem attributes
-            let subsystemHiBonus = 0;
-            let subsystemMedBonus = 0;
-            let subsystemLowBonus = 0;
-
-            for (const subsystem of subsystemItems) {
-              const subsystemDogma = await context.loaders.typeDogmaAttributes.load(
-                subsystem.item_type_id
-              );
-
-              if (subsystemDogma) {
-                // Subsystems use modifiers - attribute 14/13/12 with value indicating bonus
-                const hiBonus = subsystemDogma.find((attr: any) => attr.attribute_id === 14);
-                const medBonus = subsystemDogma.find((attr: any) => attr.attribute_id === 13);
-                const lowBonus = subsystemDogma.find((attr: any) => attr.attribute_id === 12);
-
-                if (hiBonus) subsystemHiBonus += hiBonus.value;
-                if (medBonus) subsystemMedBonus += medBonus.value;
-                if (lowBonus) subsystemLowBonus += lowBonus.value;
-              }
-            }
-
-            // T3C base has some slots, subsystems add more
-            if (hiSlots === 0) hiSlots = Math.round(subsystemHiBonus);
-            if (medSlots === 0) medSlots = Math.round(subsystemMedBonus);
-            if (lowSlots === 0) lowSlots = Math.round(subsystemLowBonus);
-          }
-
-          // Fallback: Calculate from fitted items if subsystem calculation didn't work
-          if (hiSlots === 0 || medSlots === 0 || lowSlots === 0) {
-            const highFlags = rawItems.filter((i: any) => i.flag >= 27 && i.flag <= 34);
-            const midFlags = rawItems.filter((i: any) => i.flag >= 19 && i.flag <= 26);
-            const lowFlags = rawItems.filter((i: any) => i.flag >= 11 && i.flag <= 18);
-
-            if (hiSlots === 0 && highFlags.length > 0) {
-              const maxFlag = Math.max(...highFlags.map((i: any) => i.flag));
-              hiSlots = maxFlag - 27 + 1; // HiSlot0 = 27
-            }
-            if (medSlots === 0 && midFlags.length > 0) {
-              const maxFlag = Math.max(...midFlags.map((i: any) => i.flag));
-              medSlots = maxFlag - 19 + 1; // MedSlot0 = 19
-            }
-            if (lowSlots === 0 && lowFlags.length > 0) {
-              const maxFlag = Math.max(...lowFlags.map((i: any) => i.flag));
-              lowSlots = maxFlag - 11 + 1; // LoSlot0 = 11
-            }
-
-            // Final fallback to defaults if still 0
-            hiSlots = hiSlots || 8;
-            medSlots = medSlots || 8;
-            lowSlots = lowSlots || 8;
-          }
-        }
-
+      // If ship shouldn't have fitting, return empty fitting with 0 slots
+      if (!shouldHaveFitting) {
         slotCounts = {
-          hiSlots,
-          medSlots,
-          lowSlots,
-          rigSlots,
-          serviceSlots: serviceSlotsAttr?.value ?? undefined,
+          hiSlots: 0,
+          medSlots: 0,
+          lowSlots: 0,
+          rigSlots: 0,
+          serviceSlots: 0,
         };
+      } else {
+        const dogmaAttributes = await context.loaders.typeDogmaAttributes.load(
+          victim.ship_type_id
+        );
+
+        if (dogmaAttributes && dogmaAttributes.length > 0) {
+          // Extract slot counts from dogma attributes
+          // Attribute IDs: hiSlots=14, medSlots=13, lowSlots=12, rigSlots=1137, serviceSlots=2056
+          const hiSlotsAttr = dogmaAttributes.find((attr: any) => attr.attribute_id === 14);
+          const medSlotsAttr = dogmaAttributes.find((attr: any) => attr.attribute_id === 13);
+          const lowSlotsAttr = dogmaAttributes.find((attr: any) => attr.attribute_id === 12);
+          const rigSlotsAttr = dogmaAttributes.find((attr: any) => attr.attribute_id === 1137);
+          const serviceSlotsAttr = dogmaAttributes.find((attr: any) => attr.attribute_id === 2056);
+
+          let hiSlots = hiSlotsAttr?.value ?? 0;
+          let medSlots = medSlotsAttr?.value ?? 0;
+          let lowSlots = lowSlotsAttr?.value ?? 0;
+          const rigSlots = rigSlotsAttr?.value ?? 3;
+
+          // FIX: Strategic Cruisers (T3) and some special ships have slot counts = 0
+          // because they vary by subsystem/configuration.
+          // For T3Cs, subsystems modify slot counts through dogma effects.
+          // We need to calculate from subsystems' attribute modifiers.
+          if (hiSlots === 0 || medSlots === 0 || lowSlots === 0) {
+            // Get fitted subsystems
+            const subsystemItems = rawItems.filter((i: any) => i.flag >= 125 && i.flag <= 128);
+
+            if (subsystemItems.length > 0) {
+              // Strategic Cruiser with subsystems - calculate from subsystem attributes
+              let subsystemHiBonus = 0;
+              let subsystemMedBonus = 0;
+              let subsystemLowBonus = 0;
+
+              for (const subsystem of subsystemItems) {
+                const subsystemDogma = await context.loaders.typeDogmaAttributes.load(
+                  subsystem.item_type_id
+                );
+
+                if (subsystemDogma) {
+                  // Subsystems use modifiers - attribute 14/13/12 with value indicating bonus
+                  const hiBonus = subsystemDogma.find((attr: any) => attr.attribute_id === 14);
+                  const medBonus = subsystemDogma.find((attr: any) => attr.attribute_id === 13);
+                  const lowBonus = subsystemDogma.find((attr: any) => attr.attribute_id === 12);
+
+                  if (hiBonus) subsystemHiBonus += hiBonus.value;
+                  if (medBonus) subsystemMedBonus += medBonus.value;
+                  if (lowBonus) subsystemLowBonus += lowBonus.value;
+                }
+              }
+
+              // T3C base has some slots, subsystems add more
+              if (hiSlots === 0) hiSlots = Math.round(subsystemHiBonus);
+              if (medSlots === 0) medSlots = Math.round(subsystemMedBonus);
+              if (lowSlots === 0) lowSlots = Math.round(subsystemLowBonus);
+            }
+
+            // Fallback: Calculate from fitted items if subsystem calculation didn't work
+            if (hiSlots === 0 || medSlots === 0 || lowSlots === 0) {
+              const highFlags = rawItems.filter((i: any) => i.flag >= 27 && i.flag <= 34);
+              const midFlags = rawItems.filter((i: any) => i.flag >= 19 && i.flag <= 26);
+              const lowFlags = rawItems.filter((i: any) => i.flag >= 11 && i.flag <= 18);
+
+              if (hiSlots === 0 && highFlags.length > 0) {
+                const maxFlag = Math.max(...highFlags.map((i: any) => i.flag));
+                hiSlots = maxFlag - 27 + 1; // HiSlot0 = 27
+              }
+              if (medSlots === 0 && midFlags.length > 0) {
+                const maxFlag = Math.max(...midFlags.map((i: any) => i.flag));
+                medSlots = maxFlag - 19 + 1; // MedSlot0 = 19
+              }
+              if (lowSlots === 0 && lowFlags.length > 0) {
+                const maxFlag = Math.max(...lowFlags.map((i: any) => i.flag));
+                lowSlots = maxFlag - 11 + 1; // LoSlot0 = 11
+              }
+
+              // Final fallback to defaults if still 0
+              hiSlots = hiSlots || 8;
+              medSlots = medSlots || 8;
+              lowSlots = lowSlots || 8;
+            }
+          }
+
+          slotCounts = {
+            hiSlots,
+            medSlots,
+            lowSlots,
+            rigSlots,
+            serviceSlots: serviceSlotsAttr?.value ?? undefined,
+          };
+        }
       }
     }
 
