@@ -5,9 +5,9 @@ import { Loader } from "@/components/Loader/Loader";
 import Paginator from "@/components/Paginator/Paginator";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import {
-    useCharacterKillmailsQuery,
-    useCharacterQuery,
-    useKillmailsDateCountsQuery,
+  useCharacterKillmailsQuery,
+  useCharacterQuery,
+  useKillmailsDateCountsQuery,
 } from "@/generated/graphql";
 import { getSecurityStatusColor } from "@/utils/securityStatus";
 import Link from "next/link";
@@ -43,12 +43,11 @@ export default function CharacterDetailPage({
   const { data: killmailsData, loading: killmailsLoading } =
     useCharacterKillmailsQuery({
       variables: {
-        characterId: parseInt(id),
-        first: pageSize,
-        after:
-          currentPage > 1
-            ? btoa(((currentPage - 1) * pageSize).toString())
-            : undefined,
+        filter: {
+          characterId: parseInt(id),
+          page: currentPage,
+          limit: pageSize,
+        },
       },
       skip: activeTab !== "killmails", // Only fetch when killmails tab is active
     });
@@ -65,8 +64,7 @@ export default function CharacterDetailPage({
 
   // Memoize killmails array
   const killmails = useMemo(
-    () =>
-      killmailsData?.characterKillmails.edges.map((edge) => edge.node) || [],
+    () => killmailsData?.killmails.edges.map((edge) => edge.node) || [],
     [killmailsData],
   );
 
@@ -79,7 +77,7 @@ export default function CharacterDetailPage({
     return map;
   }, [dateCountsData]);
 
-  const pageInfo = killmailsData?.characterKillmails.pageInfo;
+  const pageInfo = killmailsData?.killmails.pageInfo;
   const totalPages = pageInfo?.totalPages || 0;
 
   // URL sync for pagination and tab
