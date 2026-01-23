@@ -40,30 +40,34 @@ export const characterQueries: QueryResolvers = {
     const where: any = {};
     if (filter) {
       if (filter.search) {
-        // Normalize search: trim and replace multiple spaces with single space
-        const normalizedSearch = filter.search.trim().replace(/\s+/g, ' ');
-        where.name = { startsWith: normalizedSearch, mode: 'insensitive' };
+        // Trim Input: trim and replace multiple spaces with single space
+        const trim = filter.search.trim().replace(/\s+/g, ' ');
+        where.name = { startsWith: trim, mode: 'insensitive' };
       }
+
       if (filter.name) {
-        // Normalize name: trim and replace multiple spaces with single space
-        const normalizedName = filter.name.trim().replace(/\s+/g, ' ');
-        where.name = { startsWith: normalizedName, mode: 'insensitive' };
+        // Trim Input: trim and replace multiple spaces with single space
+        const trim = filter.name.trim().replace(/\s+/g, ' ');
+        where.name = { startsWith: trim, mode: 'insensitive' };
       }
+
       if (filter.corporation_id) {
         where.corporation_id = filter.corporation_id;
       }
+
       if (filter.alliance_id) {
         where.alliance_id = filter.alliance_id;
       }
+
     }
 
     // Total record count (filtered)
     const totalCount = await prisma.character.count({ where });
-    console.log('[DEBUG] Character query found:', totalCount, 'results for where:', JSON.stringify(where));
     const totalPages = Math.ceil(totalCount / take);
 
-    // OrderBy logic
+    // orderBy
     let orderBy: any = { name: 'asc' }; // default
+
     if (filter?.orderBy) {
       switch (filter.orderBy) {
         case 'nameAsc':
