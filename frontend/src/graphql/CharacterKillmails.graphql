@@ -1,5 +1,5 @@
-query CharacterKillmails($characterId: Int!, $first: Int, $after: String) {
-  characterKillmails(characterId: $characterId, first: $first, after: $after) {
+query CharacterKillmails($filter: KillmailFilter) {
+  killmails(filter: $filter) {
     edges {
       node {
         id
