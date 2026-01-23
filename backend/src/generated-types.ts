@@ -756,16 +756,6 @@ export type Query = {
   killmailsDateCounts: Array<KillmailDateCount>;
   /** Mevcut authenticated kullanıcının bilgilerini döner */
   me?: Maybe<User>;
-  /**
-   * Fetches the authenticated user's corporation killmails
-   * Requires: Authentication + esi-killmails.read_corporation_killmails.v1 scope
-   */
-  myCorporationKillmails: Array<Killmail>;
-  /**
-   * Fetches the authenticated user's own killmails
-   * Requires: Authentication
-   */
-  myKillmails: Array<Killmail>;
   race?: Maybe<Race>;
   races: Array<Race>;
   region?: Maybe<Region>;
@@ -878,16 +868,6 @@ export type QueryKillmailsArgs = {
 
 export type QueryKillmailsDateCountsArgs = {
   filter?: InputMaybe<KillmailFilter>;
-};
-
-
-export type QueryMyCorporationKillmailsArgs = {
-  limit?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QueryMyKillmailsArgs = {
-  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -2042,8 +2022,6 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   killmails?: Resolver<ResolversTypes['KillmailConnection'], ParentType, ContextType, Partial<QueryKillmailsArgs>>;
   killmailsDateCounts?: Resolver<Array<ResolversTypes['KillmailDateCount']>, ParentType, ContextType, Partial<QueryKillmailsDateCountsArgs>>;
   me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
-  myCorporationKillmails?: Resolver<Array<ResolversTypes['Killmail']>, ParentType, ContextType, Partial<QueryMyCorporationKillmailsArgs>>;
-  myKillmails?: Resolver<Array<ResolversTypes['Killmail']>, ParentType, ContextType, Partial<QueryMyKillmailsArgs>>;
   race?: Resolver<Maybe<ResolversTypes['Race']>, ParentType, ContextType, RequireFields<QueryRaceArgs, 'id'>>;
   races?: Resolver<Array<ResolversTypes['Race']>, ParentType, ContextType>;
   region?: Resolver<Maybe<ResolversTypes['Region']>, ParentType, ContextType, RequireFields<QueryRegionArgs, 'id'>>;
