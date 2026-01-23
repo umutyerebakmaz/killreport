@@ -16,6 +16,8 @@ export interface KillmailsTableProps {
     loading?: boolean;
     /** Character ID for victim/attacker highlighting */
     characterId?: number;
+    /** Corporation ID for victim/attacker highlighting */
+    corporationId?: number;
     /** Map of date -> total count for that date (to show correct totals) */
     dateCountsMap?: Map<string, number>;
 }
@@ -27,4 +29,6 @@ export interface KillmailRowProps {
     isAnimating?: boolean;
     /** Character ID for victim/attacker highlighting */
     characterId?: number;
+    /** Corporation ID for victim/attacker highlighting */
+    corporationId?: number;
 }
