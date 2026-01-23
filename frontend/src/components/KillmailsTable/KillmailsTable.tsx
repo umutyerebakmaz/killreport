@@ -48,8 +48,14 @@ export default function KillmailsTable({
           <h2 className="flex items-center gap-2 text-xl font-semibold">
             <span className="text-gray-200">{date}</span>
             <span className="text-sm font-normal text-gray-500">
-              ({dateCountsMap?.get(date) ?? dateKillmails.length} killmail
-              {(dateCountsMap?.get(date) ?? dateKillmails.length) !== 1 ? "s" : ""})
+              (
+              {dateCountsMap?.get(date) ?? (dateKillmails as Killmail[]).length}{" "}
+              killmail
+              {(dateCountsMap?.get(date) ??
+                (dateKillmails as Killmail[]).length) !== 1
+                ? "s"
+                : ""}
+              )
             </span>
           </h2>
 
@@ -68,7 +74,7 @@ export default function KillmailsTable({
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10">
-                {dateKillmails.map((km) => (
+                {(dateKillmails as Killmail[]).map((km) => (
                   <KillmailRow
                     key={km.id}
                     killmail={km}

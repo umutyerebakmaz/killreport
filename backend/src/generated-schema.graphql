@@ -605,18 +605,6 @@ type Query {
 
   """Mevcut authenticated kullanıcının bilgilerini döner"""
   me: User
-
-  """
-  Fetches the authenticated user's corporation killmails
-  Requires: Authentication + esi-killmails.read_corporation_killmails.v1 scope
-  """
-  myCorporationKillmails(limit: Int): [Killmail!]!
-
-  """
-  Fetches the authenticated user's own killmails
-  Requires: Authentication
-  """
-  myKillmails(limit: Int): [Killmail!]!
   race(id: Int!): Race
   races: [Race!]!
   region(id: Int!): Region
