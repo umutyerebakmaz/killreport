@@ -21,6 +21,10 @@ export default function FitScreen({ shipType, fitting }: FitScreenProps) {
   // Check if slot types should be rendered based on totalSlots
   const hasSubsystems = (fitting?.subsystems.totalSlots || 0) > 0;
   const hasServiceSlots = (fitting?.serviceSlots.totalSlots || 0) > 0;
+  const hasFittingSlots =
+    (fitting?.highSlots.totalSlots || 0) > 0 ||
+    (fitting?.midSlots.totalSlots || 0) > 0 ||
+    (fitting?.lowSlots.totalSlots || 0) > 0;
 
   return (
     <>
@@ -35,16 +39,18 @@ export default function FitScreen({ shipType, fitting }: FitScreenProps) {
               />
             )}
           </div>
-          <div className="slots">
-            <Slot slotType="high" slots={highs} startAngle={-35.5} />
-            <Slot slotType="mid" slots={mids} startAngle={60.5} />
-            <Slot slotType="low" slots={lows} startAngle={155.5} />
-            <Slot slotType="rig" slots={rigs} startAngle={237.5} />
-            {hasSubsystems && (
-              <Slot slotType="sub" slots={subs} startAngle={270} />
-            )}
-            {hasServiceSlots && <ServiceSlot slots={services} />}
-          </div>
+          {hasFittingSlots && (
+            <div className="slots">
+              <Slot slotType="high" slots={highs} startAngle={-35.5} />
+              <Slot slotType="mid" slots={mids} startAngle={60.5} />
+              <Slot slotType="low" slots={lows} startAngle={155.5} />
+              <Slot slotType="rig" slots={rigs} startAngle={237.5} />
+              {hasSubsystems && (
+                <Slot slotType="sub" slots={subs} startAngle={270} />
+              )}
+              {hasServiceSlots && <ServiceSlot slots={services} />}
+            </div>
+          )}
         </div>
       </div>
     </>
