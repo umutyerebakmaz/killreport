@@ -39,7 +39,7 @@ export default function FitScreen({ shipType, fitting }: FitScreenProps) {
             <Slot slotType="high" slots={highs} startAngle={-35.5} />
             <Slot slotType="mid" slots={mids} startAngle={60.5} />
             <Slot slotType="low" slots={lows} startAngle={155.5} />
-            <Slot slotType="rig" slots={rigs} startAngle={227.5} />
+            <Slot slotType="rig" slots={rigs} startAngle={237.5} />
             {hasSubsystems && (
               <Slot slotType="sub" slots={subs} startAngle={270} />
             )}
