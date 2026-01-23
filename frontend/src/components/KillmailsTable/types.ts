@@ -5,7 +5,7 @@ import type { CharacterKillmailsQuery, KillmailsQuery } from '@/generated/graphq
 // Extract the Killmail type from the GraphQL query result
 export type Killmail =
     | NonNullable<KillmailsQuery['killmails']['edges'][number]['node']>
-    | NonNullable<CharacterKillmailsQuery['characterKillmails']['edges'][number]['node']>;
+    | NonNullable<CharacterKillmailsQuery['killmails']['edges'][number]['node']>;
 
 export interface KillmailsTableProps {
     /** Killmails array - component will group by date automatically */
