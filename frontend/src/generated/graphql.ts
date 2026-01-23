@@ -1438,13 +1438,11 @@ export type WorkerStatusSubscriptionSubscriptionVariables = Exact<{ [key: string
 export type WorkerStatusSubscriptionSubscription = { __typename?: 'Subscription', workerStatusUpdates: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, databaseSizeMB: number, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean, workerRunning: boolean, workerPid?: number | null, workerName?: string | null }>, standaloneWorkers: Array<{ __typename?: 'StandaloneWorkerStatus', name: string, running: boolean, pid?: number | null, description: string }> } };
 
 export type AllianceKillmailsQueryVariables = Exact<{
-  allianceId: Scalars['Int']['input'];
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<KillmailFilter>;
 }>;
 
 
-export type AllianceKillmailsQuery = { __typename?: 'Query', allianceKillmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', cursor: string, node: { __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+export type AllianceKillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', cursor: string, node: { __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
 
 export type ActiveUsersUpdatesSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -1464,22 +1462,18 @@ export type RefreshTokenMutationVariables = Exact<{
 export type RefreshTokenMutation = { __typename?: 'Mutation', refreshToken: { __typename?: 'AuthPayload', accessToken: string, refreshToken?: string | null, expiresIn: number, user: { __typename?: 'User', id: string, name: string, email: string, createdAt: string } } };
 
 export type CharacterKillmailsQueryVariables = Exact<{
-  characterId: Scalars['Int']['input'];
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<KillmailFilter>;
 }>;
 
 
-export type CharacterKillmailsQuery = { __typename?: 'Query', characterKillmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', cursor: string, node: { __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+export type CharacterKillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', cursor: string, node: { __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
 
 export type CorporationKillmailsQueryVariables = Exact<{
-  corporationId: Scalars['Int']['input'];
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<KillmailFilter>;
 }>;
 
 
-export type CorporationKillmailsQuery = { __typename?: 'Query', corporationKillmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', cursor: string, node: { __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+export type CorporationKillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', cursor: string, node: { __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
 
 export type KillmailQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -2485,8 +2479,8 @@ export function useWorkerStatusSubscriptionSubscription(baseOptions?: Apollo.Sub
 export type WorkerStatusSubscriptionSubscriptionHookResult = ReturnType<typeof useWorkerStatusSubscriptionSubscription>;
 export type WorkerStatusSubscriptionSubscriptionResult = Apollo.SubscriptionResult<WorkerStatusSubscriptionSubscription>;
 export const AllianceKillmailsDocument = gql`
-    query AllianceKillmails($allianceId: Int!, $first: Int, $after: String) {
-  allianceKillmails(allianceId: $allianceId, first: $first, after: $after) {
+    query AllianceKillmails($filter: KillmailFilter) {
+  killmails(filter: $filter) {
     edges {
       node {
         id
@@ -2568,13 +2562,11 @@ export const AllianceKillmailsDocument = gql`
  * @example
  * const { data, loading, error } = useAllianceKillmailsQuery({
  *   variables: {
- *      allianceId: // value for 'allianceId'
- *      first: // value for 'first'
- *      after: // value for 'after'
+ *      filter: // value for 'filter'
  *   },
  * });
  */
-export function useAllianceKillmailsQuery(baseOptions: Apollo.QueryHookOptions<AllianceKillmailsQuery, AllianceKillmailsQueryVariables> & ({ variables: AllianceKillmailsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function useAllianceKillmailsQuery(baseOptions?: Apollo.QueryHookOptions<AllianceKillmailsQuery, AllianceKillmailsQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<AllianceKillmailsQuery, AllianceKillmailsQueryVariables>(AllianceKillmailsDocument, options);
       }
@@ -2705,8 +2697,8 @@ export type RefreshTokenMutationHookResult = ReturnType<typeof useRefreshTokenMu
 export type RefreshTokenMutationResult = Apollo.MutationResult<RefreshTokenMutation>;
 export type RefreshTokenMutationOptions = Apollo.BaseMutationOptions<RefreshTokenMutation, RefreshTokenMutationVariables>;
 export const CharacterKillmailsDocument = gql`
-    query CharacterKillmails($characterId: Int!, $first: Int, $after: String) {
-  characterKillmails(characterId: $characterId, first: $first, after: $after) {
+    query CharacterKillmails($filter: KillmailFilter) {
+  killmails(filter: $filter) {
     edges {
       node {
         id
@@ -2788,13 +2780,11 @@ export const CharacterKillmailsDocument = gql`
  * @example
  * const { data, loading, error } = useCharacterKillmailsQuery({
  *   variables: {
- *      characterId: // value for 'characterId'
- *      first: // value for 'first'
- *      after: // value for 'after'
+ *      filter: // value for 'filter'
  *   },
  * });
  */
-export function useCharacterKillmailsQuery(baseOptions: Apollo.QueryHookOptions<CharacterKillmailsQuery, CharacterKillmailsQueryVariables> & ({ variables: CharacterKillmailsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function useCharacterKillmailsQuery(baseOptions?: Apollo.QueryHookOptions<CharacterKillmailsQuery, CharacterKillmailsQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<CharacterKillmailsQuery, CharacterKillmailsQueryVariables>(CharacterKillmailsDocument, options);
       }
@@ -2814,12 +2804,8 @@ export type CharacterKillmailsLazyQueryHookResult = ReturnType<typeof useCharact
 export type CharacterKillmailsSuspenseQueryHookResult = ReturnType<typeof useCharacterKillmailsSuspenseQuery>;
 export type CharacterKillmailsQueryResult = Apollo.QueryResult<CharacterKillmailsQuery, CharacterKillmailsQueryVariables>;
 export const CorporationKillmailsDocument = gql`
-    query CorporationKillmails($corporationId: Int!, $first: Int, $after: String) {
-  corporationKillmails(
-    corporationId: $corporationId
-    first: $first
-    after: $after
-  ) {
+    query CorporationKillmails($filter: KillmailFilter) {
+  killmails(filter: $filter) {
     edges {
       node {
         id
@@ -2901,13 +2887,11 @@ export const CorporationKillmailsDocument = gql`
  * @example
  * const { data, loading, error } = useCorporationKillmailsQuery({
  *   variables: {
- *      corporationId: // value for 'corporationId'
- *      first: // value for 'first'
- *      after: // value for 'after'
+ *      filter: // value for 'filter'
  *   },
  * });
  */
-export function useCorporationKillmailsQuery(baseOptions: Apollo.QueryHookOptions<CorporationKillmailsQuery, CorporationKillmailsQueryVariables> & ({ variables: CorporationKillmailsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function useCorporationKillmailsQuery(baseOptions?: Apollo.QueryHookOptions<CorporationKillmailsQuery, CorporationKillmailsQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<CorporationKillmailsQuery, CorporationKillmailsQueryVariables>(CorporationKillmailsDocument, options);
       }
