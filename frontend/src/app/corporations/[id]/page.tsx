@@ -7,9 +7,9 @@ import Paginator from "@/components/Paginator/Paginator";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import TotalMemberBadge from "@/components/TotalMemberBadge/TotalMemberBadge";
 import {
-    useCorporationKillmailsQuery,
-    useCorporationQuery,
-    useKillmailsDateCountsQuery,
+  useCorporationKillmailsQuery,
+  useCorporationQuery,
+  useKillmailsDateCountsQuery,
 } from "@/generated/graphql";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -44,12 +44,11 @@ export default function CorporationDetailPage({
   const { data: killmailsData, loading: killmailsLoading } =
     useCorporationKillmailsQuery({
       variables: {
-        corporationId: parseInt(id),
-        first: pageSize,
-        after:
-          currentPage > 1
-            ? btoa(((currentPage - 1) * pageSize).toString())
-            : undefined,
+        filter: {
+          corporationId: parseInt(id),
+          page: currentPage,
+          limit: pageSize,
+        },
       },
       skip: activeTab !== "killmails", // Only fetch when killmails tab is active
     });
@@ -66,8 +65,7 @@ export default function CorporationDetailPage({
 
   // Memoize killmails array
   const killmails = useMemo(
-    () =>
-      killmailsData?.corporationKillmails.edges.map((edge) => edge.node) || [],
+    () => killmailsData?.killmails.edges.map((edge) => edge.node) || [],
     [killmailsData],
   );
 
@@ -80,7 +78,7 @@ export default function CorporationDetailPage({
     return map;
   }, [dateCountsData]);
 
-  const pageInfo = killmailsData?.corporationKillmails.pageInfo;
+  const pageInfo = killmailsData?.killmails.pageInfo;
   const totalPages = pageInfo?.totalPages || 0;
 
   // URL sync for pagination and tab

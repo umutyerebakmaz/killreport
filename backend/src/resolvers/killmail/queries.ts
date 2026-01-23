@@ -1,7 +1,4 @@
 import { QueryResolvers } from '@generated-types';
-import { CharacterService } from '@services/character';
-import { CorporationService } from '@services/corporation';
-import { KillmailService } from '@services/killmail';
 import prisma from '@services/prisma';
 import redis from '@services/redis';
 
@@ -47,6 +44,29 @@ export const killmailQueries: QueryResolvers = {
     const shipTypeId = args.filter?.shipTypeId;
     const regionId = args.filter?.regionId;
     const systemId = args.filter?.systemId;
+    const characterId = args.filter?.characterId;
+    const corporationId = args.filter?.corporationId;
+    const allianceId = args.filter?.allianceId;
+
+    // Create cache key from filter parameters
+    const cacheKey = `killmails:list:${JSON.stringify({
+      page,
+      limit,
+      orderBy,
+      search,
+      shipTypeId,
+      regionId,
+      systemId,
+      characterId,
+      corporationId,
+      allianceId,
+    })}`;
+
+    // Check cache first
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
 
     const skip = (page - 1) * limit;
 
@@ -142,6 +162,30 @@ export const killmailQueries: QueryResolvers = {
       where.solar_system_id = systemId;
     }
 
+    // Character filter: killmails where character is victim OR attacker
+    if (characterId) {
+      where.OR = [
+        { victim: { character_id: characterId } },
+        { attackers: { some: { character_id: characterId } } },
+      ];
+    }
+
+    // Corporation filter: killmails where corporation is victim OR attacker
+    if (corporationId) {
+      where.OR = [
+        { victim: { corporation_id: corporationId } },
+        { attackers: { some: { corporation_id: corporationId } } },
+      ];
+    }
+
+    // Alliance filter: killmails where alliance is victim OR attacker
+    if (allianceId) {
+      where.OR = [
+        { victim: { alliance_id: allianceId } },
+        { attackers: { some: { alliance_id: allianceId } } },
+      ];
+    }
+
     // Performance: Count only when needed (first page or filter change)
     // For subsequent pages, estimate from previous count
     const totalCount = await prisma.killmail.count({ where });
@@ -170,7 +214,7 @@ export const killmailQueries: QueryResolvers = {
       cursor: Buffer.from(`${skip + index + 1}`).toString('base64'),
     }));
 
-    return {
+    const result = {
       edges,
       pageInfo: {
         hasNextPage: page < totalPages,
@@ -180,6 +224,11 @@ export const killmailQueries: QueryResolvers = {
         totalCount,
       },
     };
+
+    // Cache for 2 minutes (lists change more frequently than individual killmails)
+    await redis.setex(cacheKey, 120, JSON.stringify(result));
+
+    return result;
   },
 
   killmailsDateCounts: async (_, args) => {
@@ -190,6 +239,23 @@ export const killmailQueries: QueryResolvers = {
     const characterId = args.filter?.characterId;
     const corporationId = args.filter?.corporationId;
     const allianceId = args.filter?.allianceId;
+
+    // Create cache key from filter parameters
+    const cacheKey = `killmails:dateCounts:${JSON.stringify({
+      search,
+      shipTypeId,
+      regionId,
+      systemId,
+      characterId,
+      corporationId,
+      allianceId,
+    })}`;
+
+    // Check cache first
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
 
     // Build WHERE clause (same as killmails query)
     const where: any = {};
@@ -329,306 +395,14 @@ export const killmailQueries: QueryResolvers = {
     }
 
     // Convert to array
-    return Array.from(dateCounts.entries())
+    const result = Array.from(dateCounts.entries())
       .map(([date, count]) => ({ date, count }))
       .sort((a, b) => b.date.localeCompare(a.date)); // Sort by date desc
+
+    // Cache for 5 minutes (date counts change less frequently)
+    await redis.setex(cacheKey, 300, JSON.stringify(result));
+
+    return result;
   },
 
-  characterKillmails: async (_, { characterId, first, after }) => {
-    const take = first ?? 25;
-    const skip = after ? parseInt(Buffer.from(after, 'base64').toString()) : 0;
-
-    // Count killmails where character is victim OR attacker
-    const totalCount = await prisma.killmail.count({
-      where: {
-        OR: [
-          { victim: { character_id: characterId } },
-          { attackers: { some: { character_id: characterId } } },
-        ],
-      },
-    });
-
-    const totalPages = Math.ceil(totalCount / take);
-
-    // Fetch killmails - field resolvers will handle victim/attackers/items
-    const killmails = await prisma.killmail.findMany({
-      where: {
-        OR: [
-          { victim: { character_id: characterId } },
-          { attackers: { some: { character_id: characterId } } },
-        ],
-      },
-      skip,
-      take,
-      orderBy: { killmail_time: 'desc' },
-    });
-
-    const edges = killmails.map((km, index) => ({
-      node: {
-        id: km.killmail_id.toString(),
-        killmail_id: km.killmail_id,
-        killmailHash: km.killmail_hash,
-        killmailTime: km.killmail_time.toISOString(),
-        solarSystemId: km.solar_system_id,
-        createdAt: km.created_at.toISOString(),
-      } as any,
-      cursor: Buffer.from(`${skip + index + 1}`).toString('base64'),
-    }));
-
-    return {
-      edges,
-      pageInfo: {
-        hasNextPage: skip + take < totalCount,
-        hasPreviousPage: skip > 0,
-        currentPage: Math.floor(skip / take) + 1,
-        totalPages,
-        totalCount,
-      },
-    };
-  },
-
-  corporationKillmails: async (_, { corporationId, first, after }) => {
-    const take = first ?? 25;
-    const skip = after ? parseInt(Buffer.from(after, 'base64').toString()) : 0;
-
-    const totalCount = await prisma.killmail.count({
-      where: {
-        OR: [
-          { victim: { corporation_id: corporationId } },
-          { attackers: { some: { corporation_id: corporationId } } },
-        ],
-      },
-    });
-
-    const totalPages = Math.ceil(totalCount / take);
-
-    const killmails = await prisma.killmail.findMany({
-      where: {
-        OR: [
-          { victim: { corporation_id: corporationId } },
-          { attackers: { some: { corporation_id: corporationId } } },
-        ],
-      },
-      skip,
-      take,
-      orderBy: { killmail_time: 'desc' },
-    });
-
-    const edges = killmails.map((km, index) => ({
-      node: {
-        id: km.killmail_id.toString(),
-        killmail_id: km.killmail_id,
-        killmailHash: km.killmail_hash,
-        killmailTime: km.killmail_time.toISOString(),
-        solarSystemId: km.solar_system_id,
-        createdAt: km.created_at.toISOString(),
-      } as any,
-      cursor: Buffer.from(`${skip + index + 1}`).toString('base64'),
-    }));
-
-    return {
-      edges,
-      pageInfo: {
-        hasNextPage: skip + take < totalCount,
-        hasPreviousPage: skip > 0,
-        currentPage: Math.floor(skip / take) + 1,
-        totalPages,
-        totalCount,
-      },
-    };
-  },
-
-  allianceKillmails: async (_, { allianceId, first, after }) => {
-    const take = first ?? 25;
-    const skip = after ? parseInt(Buffer.from(after, 'base64').toString()) : 0;
-
-    const totalCount = await prisma.killmail.count({
-      where: {
-        OR: [
-          { victim: { alliance_id: allianceId } },
-          { attackers: { some: { alliance_id: allianceId } } },
-        ],
-      },
-    });
-
-    const totalPages = Math.ceil(totalCount / take);
-
-    const killmails = await prisma.killmail.findMany({
-      where: {
-        OR: [
-          { victim: { alliance_id: allianceId } },
-          { attackers: { some: { alliance_id: allianceId } } },
-        ],
-      },
-      skip,
-      take,
-      orderBy: { killmail_time: 'desc' },
-    });
-
-    const edges = killmails.map((km, index) => ({
-      node: {
-        id: km.killmail_id.toString(),
-        killmail_id: km.killmail_id,
-        killmailHash: km.killmail_hash,
-        killmailTime: km.killmail_time.toISOString(),
-        solarSystemId: km.solar_system_id,
-        createdAt: km.created_at.toISOString(),
-      } as any,
-      cursor: Buffer.from(`${skip + index + 1}`).toString('base64'),
-    }));
-
-    return {
-      edges,
-      pageInfo: {
-        hasNextPage: skip + take < totalCount,
-        hasPreviousPage: skip > 0,
-        currentPage: Math.floor(skip / take) + 1,
-        totalPages,
-        totalCount,
-      },
-    };
-  },
-
-  myKillmails: async (_, { limit }, context: any) => {
-    // Check authentication
-    if (!context.user) {
-      throw new Error('Not authenticated');
-    }
-
-    const maxLimit = limit ?? 50;
-
-    try {
-      // Fetch user's killmails from ESI
-      const killmailList = await CharacterService.getCharacterKillmails(
-        context.user.characterId,
-        context.token
-      );
-
-      // Get first N items
-      const limitedList = killmailList.slice(0, maxLimit);
-
-      // Fetch details for each killmail
-      const killmailsWithDetails = await Promise.all(
-        limitedList.map(async (km) => {
-          try {
-            const detail = await KillmailService.getKillmailDetail(
-              km.killmail_id,
-              km.killmail_hash
-            );
-
-            return {
-              id: km.killmail_id.toString(),
-              killmailHash: km.killmail_hash,
-              killmailTime: detail.killmail_time,
-              victim: {
-                characterId: detail.victim.character_id ?? null,
-                corporationId: detail.victim.corporation_id,
-                shipTypeId: detail.victim.ship_type_id,
-                damageTaken: detail.victim.damage_taken,
-              },
-              attackers: detail.attackers.map((attacker) => ({
-                characterId: attacker.character_id ?? null,
-                corporationId: attacker.corporation_id ?? null,
-                shipTypeId: attacker.ship_type_id ?? null,
-                weaponTypeId: attacker.weapon_type_id ?? null,
-                finalBlow: attacker.final_blow,
-              })),
-              totalValue: null, // Value calculation will be added later
-            };
-          } catch (error) {
-            console.error(
-              `Failed to fetch killmail ${km.killmail_id}:`,
-              error
-            );
-            return null;
-          }
-        })
-      );
-
-      // Filter out null values
-      return killmailsWithDetails.filter((km) => km !== null) as any;
-    } catch (error) {
-      console.error('Failed to fetch character killmails:', error);
-      throw new Error('Failed to fetch your killmails');
-    }
-  },
-
-  myCorporationKillmails: async (_, { limit }, context: any) => {
-    // Check authentication
-    if (!context.user) {
-      throw new Error('Not authenticated');
-    }
-
-    const maxLimit = limit ?? 50;
-
-    try {
-      // First get user's corporation ID
-      const characterInfo = await CharacterService.getCharacterInfo(context.user.characterId);
-
-      if (!characterInfo.corporation_id) {
-        throw new Error('Character has no corporation');
-      }
-
-      console.log(`📊 Fetching corporation killmails for corp ${characterInfo.corporation_id}`);
-
-      // Fetch corporation killmails from ESI
-      const killmailList = await CorporationService.getCorporationKillmails(
-        characterInfo.corporation_id,
-        context.token
-      );
-
-      console.log(`✅ Found ${killmailList.length} corporation killmails`);
-
-      // Get first N items
-      const limitedList = killmailList.slice(0, maxLimit);
-
-      // Fetch details for each killmail
-      const killmailsWithDetails = await Promise.all(
-        limitedList.map(async (km) => {
-          try {
-            const detail = await KillmailService.getKillmailDetail(
-              km.killmail_id,
-              km.killmail_hash
-            );
-
-            return {
-              id: km.killmail_id.toString(),
-              killmailHash: km.killmail_hash,
-              killmailTime: detail.killmail_time,
-              victim: {
-                characterId: detail.victim.character_id ?? null,
-                corporationId: detail.victim.corporation_id,
-                shipTypeId: detail.victim.ship_type_id,
-                damageTaken: detail.victim.damage_taken,
-              },
-              attackers: detail.attackers.map((attacker) => ({
-                characterId: attacker.character_id ?? null,
-                corporationId: attacker.corporation_id ?? null,
-                shipTypeId: attacker.ship_type_id ?? null,
-                weaponTypeId: attacker.weapon_type_id ?? null,
-                finalBlow: attacker.final_blow,
-              })),
-              totalValue: null,
-            };
-          } catch (error) {
-            console.error(
-              `Failed to fetch killmail ${km.killmail_id}:`,
-              error
-            );
-            return null;
-          }
-        })
-      );
-
-      // Filter out null values
-      return killmailsWithDetails.filter((km) => km !== null) as any;
-    } catch (error) {
-      console.error('Failed to fetch corporation killmails:', error);
-      throw new Error(
-        error instanceof Error
-          ? error.message
-          : 'Failed to fetch corporation killmails'
-      );
-    }
-  },
 };
