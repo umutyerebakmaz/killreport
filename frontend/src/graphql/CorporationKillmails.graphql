@@ -1,5 +1,5 @@
-query CorporationKillmails($corporationId: Int!, $first: Int, $after: String) {
-  corporationKillmails(corporationId: $corporationId, first: $first, after: $after) {
+query CorporationKillmails($filter: KillmailFilter) {
+  killmails(filter: $filter) {
     edges {
       node {
         id

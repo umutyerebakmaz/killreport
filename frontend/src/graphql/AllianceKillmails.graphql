@@ -1,5 +1,5 @@
-query AllianceKillmails($allianceId: Int!, $first: Int, $after: String) {
-  allianceKillmails(allianceId: $allianceId, first: $first, after: $after) {
+query AllianceKillmails($filter: KillmailFilter) {
+  killmails(filter: $filter) {
     edges {
       node {
         id
