@@ -39,27 +39,31 @@ export const allianceQueries: QueryResolvers = {
 
     // Filter koşullarını oluştur
     const where: any = {};
-    if (filter) {
-      if (filter.search) {
-        where.OR = [
-          { name: { contains: filter.search, mode: 'insensitive' } },
-          { ticker: { contains: filter.search, mode: 'insensitive' } },
-        ];
+
+    if (filter?.search) {
+      // Trim Input: trim and replace multiple spaces with single space
+      const trim = filter.search.trim().replace(/\s+/g, ' ');
+      where.name = { startsWith: trim, mode: 'insensitive' };
+    }
+
+    if (filter?.name) {
+      // Normalize name: trim and replace multiple spaces with single space
+      const trim = filter.name.trim().replace(/\s+/g, ' ');
+      where.name = { startsWith: trim, mode: 'insensitive' };
+    }
+
+    if (filter?.ticker) {
+      where.ticker = { contains: filter.ticker, mode: 'insensitive' };
+    }
+
+    if (filter?.dateFoundedFrom || filter?.dateFoundedTo) {
+      where.date_founded = {};
+      if (filter.dateFoundedFrom) {
+        where.date_founded.gte = new Date(filter.dateFoundedFrom);
       }
-      if (filter.name) {
-        where.name = { contains: filter.name, mode: 'insensitive' };
-      }
-      if (filter.ticker) {
-        where.ticker = { contains: filter.ticker, mode: 'insensitive' };
-      }
-      if (filter.dateFoundedFrom || filter.dateFoundedTo) {
-        where.date_founded = {};
-        if (filter.dateFoundedFrom) {
-          where.date_founded.gte = new Date(filter.dateFoundedFrom);
-        }
-        if (filter.dateFoundedTo) {
-          where.date_founded.lte = new Date(filter.dateFoundedTo);
-        }
+
+      if (filter.dateFoundedTo) {
+        where.date_founded.lte = new Date(filter.dateFoundedTo);
       }
     }
 
