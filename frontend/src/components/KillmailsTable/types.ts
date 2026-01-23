@@ -18,6 +18,8 @@ export interface KillmailsTableProps {
     characterId?: number;
     /** Corporation ID for victim/attacker highlighting */
     corporationId?: number;
+    /** Alliance ID for victim/attacker highlighting */
+    allianceId?: number;
     /** Map of date -> total count for that date (to show correct totals) */
     dateCountsMap?: Map<string, number>;
 }
@@ -31,4 +33,6 @@ export interface KillmailRowProps {
     characterId?: number;
     /** Corporation ID for victim/attacker highlighting */
     corporationId?: number;
+    /** Alliance ID for victim/attacker highlighting */
+    allianceId?: number;
 }
