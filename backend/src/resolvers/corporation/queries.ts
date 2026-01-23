@@ -47,14 +47,15 @@ export const corporationQueries: QueryResolvers = {
     };
 
     if (filter?.search) {
-      where.OR = [
-        { name: { contains: filter.search, mode: 'insensitive' } },
-        { ticker: { contains: filter.search, mode: 'insensitive' } },
-      ];
+        // Trim Input: trim and replace multiple spaces with single space
+        const trim = filter.search.trim().replace(/\s+/g, ' ');
+        where.name = { startsWith: trim, mode: 'insensitive' };
     }
 
     if (filter?.name) {
-      where.name = { contains: filter.name, mode: 'insensitive' };
+      // Normalize name: trim and replace multiple spaces with single space
+      const trim = filter.name.trim().replace(/\s+/g, ' ');
+      where.name = { startsWith: trim, mode: 'insensitive' };
     }
 
     if (filter?.ticker) {
@@ -75,8 +76,8 @@ export const corporationQueries: QueryResolvers = {
       }
     }
 
-    // Build orderBy clause
-    let orderBy: any = { member_count: 'desc' }; // Default ordering
+    // orderBy
+    let orderBy: any = { member_count: 'desc' }; // default
 
     if (filter?.orderBy) {
       switch (filter.orderBy) {
