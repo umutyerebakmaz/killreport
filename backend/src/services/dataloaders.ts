@@ -363,33 +363,7 @@ export const createItemGroupsByCategoryLoader = () => {
   });
 };
 
-/**
- * Types by Item Group DataLoader
- */
-export const createTypesByGroupLoader = () => {
-  return new DataLoader<number, any[]>(async (groupIds) => {
-    console.log(`🔄 DataLoader: Batching ${groupIds.length} types by group queries`);
 
-    const types = await prisma.type.findMany({
-      where: {
-        group_id: { in: [...groupIds] },
-      },
-    });
-
-    const typesByGroup = new Map<number, any[]>();
-    groupIds.forEach(id => typesByGroup.set(id, []));
-
-    types.forEach(type => {
-      if (type.group_id) {
-        const existing = typesByGroup.get(type.group_id) || [];
-        existing.push(type);
-        typesByGroup.set(type.group_id, existing);
-      }
-    });
-
-    return groupIds.map(id => typesByGroup.get(id) || []);
-  });
-};
 
 /**
  * DataLoader Context - Her request için yeni instance
@@ -413,6 +387,8 @@ export interface DataLoaderContext {
     type: DataLoader<number, any>;
     itemGroupsByCategory: DataLoader<number, any[]>;
     typesByGroup: DataLoader<number, any[]>;
+    regionStats: DataLoader<number, { constellationCount: number; solarSystemCount: number }>;
+    regionSecurityStats: DataLoader<number, { highSec: number; lowSec: number; nullSec: number; wormhole: number; avgSecurity: number | null }>;
     corporationSnapshot: DataLoader<{ corporationId: number; date: Date }, any>;
     allianceSnapshot: DataLoader<{ allianceId: number; date: Date }, any>;
     typeDogmaAttributes: DataLoader<number, any[]>;
@@ -445,6 +421,8 @@ export const createDataLoaders = (): DataLoaderContext => ({
     type: createTypeLoader(),
     itemGroupsByCategory: createItemGroupsByCategoryLoader(),
     typesByGroup: createTypesByGroupLoader(),
+    regionStats: createRegionStatsLoader(),
+    regionSecurityStats: createRegionSecurityStatsLoader(),
     corporationSnapshot: createCorporationSnapshotLoader(),
     allianceSnapshot: createAllianceSnapshotLoader(),
     typeDogmaAttributes: createTypeDogmaAttributesLoader(),
@@ -730,6 +708,7 @@ export const createItemsLoader = () => {
     return killmailIds.map(id => itemsByKillmail.get(id) || []);
   });
 };
+
 /**
  * Market Price DataLoader - Batch loading for market prices
  * Fetches prices from database for multiple types at once
@@ -747,4 +726,180 @@ export const createMarketPriceLoader = () => {
     const priceMap = new Map(prices.map(p => [p.type_id, p]));
     return typeIds.map(id => priceMap.get(id) || null);
   });
+};
+
+/**
+ * Types by Group DataLoader - Batch loading for types by group_id
+ * Fetches all types for multiple groups at once
+ */
+export const createTypesByGroupLoader = () => {
+  return new DataLoader<number, any[]>(async (groupIds) => {
+    console.log('🔄 DataLoader: Batching', groupIds.length, 'types by group queries');
+
+    const types = await prisma.type.findMany({
+      where: {
+        group_id: { in: [...groupIds] },
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    const typesByGroup = new Map<number, any[]>();
+    for (const type of types) {
+      if (!typesByGroup.has(type.group_id)) {
+        typesByGroup.set(type.group_id, []);
+      }
+      typesByGroup.get(type.group_id)!.push(type);
+    }
+
+    return groupIds.map(id => typesByGroup.get(id) || []);
+  });
+};
+
+/**
+ * Region Stats DataLoader - Batch loading for region statistics
+ * Calculates constellation/system counts for multiple regions at once
+ */
+export const createRegionStatsLoader = () => {
+  return new DataLoader<number, { constellationCount: number; solarSystemCount: number }>(
+    async (regionIds) => {
+      console.log('🔄 DataLoader: Batching', regionIds.length, 'region stats queries');
+
+      // Fetch all constellations for these regions
+      const constellations = await prisma.constellation.findMany({
+        where: {
+          region_id: { in: [...regionIds] },
+        },
+        select: { id: true, region_id: true },
+      });
+
+      // Group constellations by region
+      const constByRegion = new Map<number, number[]>();
+      for (const const_obj of constellations) {
+        if (const_obj.region_id === null) continue;
+        if (!constByRegion.has(const_obj.region_id)) {
+          constByRegion.set(const_obj.region_id, []);
+        }
+        constByRegion.get(const_obj.region_id)!.push(const_obj.id);
+      }
+
+      // Fetch solar systems for all constellations
+      const allConstIds = constellations.map(c => c.id);
+      const solarSystems = await prisma.solarSystem.findMany({
+        where: {
+          constellation_id: { in: allConstIds },
+        },
+        select: { constellation_id: true },
+      });
+
+      // Count solar systems per constellation
+      const systemCountByConst = new Map<number, number>();
+      for (const sys of solarSystems) {
+        if (sys.constellation_id === null) continue;
+        systemCountByConst.set(
+          sys.constellation_id,
+          (systemCountByConst.get(sys.constellation_id) || 0) + 1
+        );
+      }
+
+      // Calculate stats for each region
+      return regionIds.map(regionId => {
+        const constIds = constByRegion.get(regionId) || [];
+        const constellationCount = constIds.length;
+        const solarSystemCount = constIds.reduce(
+          (sum, constId) => sum + (systemCountByConst.get(constId) || 0),
+          0
+        );
+
+        return { constellationCount, solarSystemCount };
+      });
+    }
+  );
+};
+
+/**
+ * Region Security Stats DataLoader - Batch loading for region security statistics
+ * Calculates security distribution for multiple regions at once
+ */
+export const createRegionSecurityStatsLoader = () => {
+  return new DataLoader<number, { highSec: number; lowSec: number; nullSec: number; wormhole: number; avgSecurity: number | null }>(
+    async (regionIds) => {
+      console.log('🔄 DataLoader: Batching', regionIds.length, 'region security stats queries');
+
+      // Fetch all constellations for these regions
+      const constellations = await prisma.constellation.findMany({
+        where: {
+          region_id: { in: [...regionIds] },
+        },
+        select: { id: true, region_id: true },
+      });
+
+      // Group constellations by region
+      const constByRegion = new Map<number, number[]>();
+      for (const const_obj of constellations) {
+        if (const_obj.region_id === null) continue;
+        if (!constByRegion.has(const_obj.region_id)) {
+          constByRegion.set(const_obj.region_id, []);
+        }
+        constByRegion.get(const_obj.region_id)!.push(const_obj.id);
+      }
+
+      // Fetch solar systems with security status
+      const allConstIds = constellations.map(c => c.id);
+      const solarSystems = await prisma.solarSystem.findMany({
+        where: {
+          constellation_id: { in: allConstIds },
+        },
+        select: { constellation_id: true, security_status: true },
+      });
+
+      // Group solar systems by region
+      const systemsByRegion = new Map<number, { security_status: number | null }[]>();
+      for (const sys of solarSystems) {
+        const constellation = constellations.find(c => c.id === sys.constellation_id);
+        if (constellation && constellation.region_id !== null) {
+          if (!systemsByRegion.has(constellation.region_id)) {
+            systemsByRegion.set(constellation.region_id, []);
+          }
+          systemsByRegion.get(constellation.region_id)!.push(sys);
+        }
+      }
+
+      // Calculate security stats for each region
+      return regionIds.map(regionId => {
+        const systems = systemsByRegion.get(regionId) || [];
+
+        let highSec = 0;
+        let lowSec = 0;
+        let nullSec = 0;
+        let wormhole = 0;
+        let totalSecurity = 0;
+        let validSecurityCount = 0;
+
+        for (const system of systems) {
+          const sec = system.security_status;
+          if (sec === null) {
+            wormhole++;
+            continue;
+          }
+          totalSecurity += sec;
+          validSecurityCount++;
+          if (sec >= 0.5) {
+            highSec++;
+          } else if (sec > 0.0) {
+            lowSec++;
+          } else {
+            nullSec++;
+          }
+        }
+
+        return {
+          highSec,
+          lowSec,
+          nullSec,
+          wormhole,
+          avgSecurity: validSecurityCount > 0 ? totalSecurity / validSecurityCount : null,
+        };
+      });
+    }
+  );
 };

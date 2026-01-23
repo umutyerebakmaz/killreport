@@ -7,9 +7,9 @@ import Paginator from "@/components/Paginator/Paginator";
 import TotalCorporationBadge from "@/components/TotalCorporationMember/TotalCorporationBadge";
 import TotalMemberBadge from "@/components/TotalMemberBadge/TotalMemberBadge";
 import {
-    useAllianceKillmailsQuery,
-    useAllianceQuery,
-    useKillmailsDateCountsQuery,
+  useAllianceKillmailsQuery,
+  useAllianceQuery,
+  useKillmailsDateCountsQuery,
 } from "@/generated/graphql";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -44,12 +44,11 @@ export default function AllianceDetailPage({
   const { data: killmailsData, loading: killmailsLoading } =
     useAllianceKillmailsQuery({
       variables: {
-        allianceId: parseInt(id),
-        first: pageSize,
-        after:
-          currentPage > 1
-            ? btoa(((currentPage - 1) * pageSize).toString())
-            : undefined,
+        filter: {
+          allianceId: parseInt(id),
+          page: currentPage,
+          limit: pageSize,
+        },
       },
       skip: activeTab !== "killmails",
     });
@@ -66,8 +65,7 @@ export default function AllianceDetailPage({
 
   // Memoize killmails array
   const killmails = useMemo(
-    () =>
-      killmailsData?.allianceKillmails.edges.map((edge) => edge.node) || [],
+    () => killmailsData?.killmails.edges.map((edge) => edge.node) || [],
     [killmailsData],
   );
 
@@ -80,7 +78,7 @@ export default function AllianceDetailPage({
     return map;
   }, [dateCountsData]);
 
-  const pageInfo = killmailsData?.allianceKillmails.pageInfo;
+  const pageInfo = killmailsData?.killmails.pageInfo;
   const totalPages = pageInfo?.totalPages || 0;
 
   // URL sync for pagination and tab
