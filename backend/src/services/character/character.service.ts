@@ -44,6 +44,15 @@ export class CharacterService {
 
     for (let page = 1; page <= maxPages; page++) {
       try {
+        // Add delay BEFORE each page fetch to prevent rate limiting
+        // Especially important when multiple users are being processed
+        if (page > 1) {
+          await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay between pages
+        } else {
+          // Even first page needs a small delay to prevent rapid successive calls
+          await new Promise(resolve => setTimeout(resolve, 500)); // 500ms delay for first page
+        }
+
         const killmails = await esiRateLimiter.execute(async () => {
           const url = `${ESI_BASE_URL}/characters/${characterId}/killmails/recent/?page=${page}`;
 
@@ -110,9 +119,6 @@ export class CharacterService {
         }
 
         console.log(`     ➡️  Continuing to page ${page + 1}...`);
-
-        // Add extra delay between pages to prevent rate limiting
-        await new Promise(resolve => setTimeout(resolve, 1000));
       } catch (error: any) {
         console.error(`     ❌ Error fetching page ${page}:`, error.message);
 
