@@ -160,6 +160,13 @@ export async function esiUserKillmailWorker() {
           } catch (error: any) {
             logger.error(`❌ Failed to process message:`, error.message);
 
+            // Handle rate limit errors - don't requeue to prevent infinite loop
+            if (error.message.includes('429') || error.message.includes('Rate limit')) {
+              logger.warn(`  ⏭️  Skipping user due to rate limit - will retry on next cron cycle`);
+              channel.ack(msg); // Acknowledge to prevent infinite retry loop
+              return;
+            }
+
             // Only requeue if it's a transient error (network, database, etc.)
             // Don't requeue auth errors
             if (error.message.includes('Token') ||
