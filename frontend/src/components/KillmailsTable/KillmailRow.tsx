@@ -27,6 +27,11 @@ export default function KillmailRow({
           ? "text-red-500" // Alliance is victim (loss)
           : "text-green-500" // Alliance is attacker (kill)
         : "text-orange-400"; // Default color when no characterId, corporationId, or allianceId
+
+  // Use backend-computed fields
+  const isSolo = km.isSoloKill;
+  const isNpcAttacker = km.hasNpcAttackers;
+
   return (
     <tr
       className={`transition-colors hover:bg-white/5 ${
@@ -286,7 +291,18 @@ export default function KillmailRow({
 
       {/* Attackers Column */}
       <td className="px-6 py-4 text-base align-top">
-        <span className="font-medium text-purple-400">{km.attackerCount}</span>
+        <div className="flex items-center gap-2">
+          {isSolo && (
+            <span className="px-2 py-0.5 text-xs font-medium text-purple-400 rounded bg-purple-400/10">
+              SOLO KILL
+            </span>
+          )}
+          {isNpcAttacker && (
+            <span className="px-2 py-0.5 text-xs font-medium text-red-400 rounded bg-red-400/10">
+              NPC
+            </span>
+          )}
+        </div>
       </td>
 
       {/* Damage Column */}
