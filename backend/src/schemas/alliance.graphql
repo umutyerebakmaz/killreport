@@ -7,6 +7,7 @@ type Alliance {
   createdByCorporation: Corporation
   createdBy: Character
   faction_id: Int
+  corporations: [Corporation!]!
   corporationCount: Int!
   memberCount: Int!
   metrics: AllianceMetrics

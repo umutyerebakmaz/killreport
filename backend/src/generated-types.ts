@@ -25,8 +25,7 @@ export type ActiveUsersPayload = {
 export type Alliance = {
   __typename?: 'Alliance';
   corporationCount: Scalars['Int']['output'];
-  /** @deprecated Use Query.corporations with allianceId filter for pagination */
-  corporations?: Maybe<Array<Corporation>>;
+  corporations: Array<Corporation>;
   createdBy?: Maybe<Character>;
   createdByCorporation?: Maybe<Corporation>;
   date_founded: Scalars['String']['output'];
@@ -1604,7 +1603,7 @@ export type ActiveUsersPayloadResolvers<ContextType = any, ParentType extends Re
 
 export type AllianceResolvers<ContextType = any, ParentType extends ResolversParentTypes['Alliance'] = ResolversParentTypes['Alliance']> = {
   corporationCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  corporations?: Resolver<Maybe<Array<ResolversTypes['Corporation']>>, ParentType, ContextType>;
+  corporations?: Resolver<Array<ResolversTypes['Corporation']>, ParentType, ContextType>;
   createdBy?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
   createdByCorporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType>;
   date_founded?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
