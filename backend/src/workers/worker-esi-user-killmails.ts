@@ -253,6 +253,17 @@ async function syncUserKillmailsFromESI(
           // This is critical when multiple workers or batches run concurrently
           await sleep(KILLMAIL_DETAIL_DELAY_MS);
 
+          // Check if killmail already exists to avoid duplicate constraint errors
+          const existingKillmail = await prismaWorker.killmail.findUnique({
+            where: { killmail_id: km.killmail_id },
+            select: { killmail_id: true },
+          });
+
+          if (existingKillmail) {
+            skippedCount++;
+            continue; // Skip to next killmail
+          }
+
           // Save to database in a transaction
           try {
             await prismaWorker.$transaction(async (tx) => {
