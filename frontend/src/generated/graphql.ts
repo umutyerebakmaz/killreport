@@ -3725,7 +3725,7 @@ export type SearchCorporationsSuspenseQueryHookResult = ReturnType<typeof useSea
 export type SearchCorporationsQueryResult = Apollo.QueryResult<SearchCorporationsQuery, SearchCorporationsQueryVariables>;
 export const SearchTypesDocument = gql`
     query SearchTypes($name: String!, $limit: Int = 40) {
-  types(filter: {name: $name, limit: $limit, categoryList: [6, 65]}) {
+  types(filter: {name: $name, limit: $limit, categoryList: [6, 22, 23, 40, 65]}) {
     edges {
       node {
         id
