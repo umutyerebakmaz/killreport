@@ -6,6 +6,8 @@ query CorporationKillmails($filter: KillmailFilter) {
         killmailTime
         totalValue
         attackerCount
+        isSoloKill
+        hasNpcAttackers
         victim {
           character {
             id
