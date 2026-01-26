@@ -9,6 +9,7 @@ subscription NewKillmail {
       name
       security_status
       constellation {
+        id
         name
         region {
           name
