@@ -56,7 +56,6 @@ query CharacterKillmails($filter: KillmailFilter) {
           }
         }
       }
-      cursor
     }
     pageInfo {
       hasNextPage
