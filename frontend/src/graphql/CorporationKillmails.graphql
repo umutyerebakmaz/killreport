@@ -56,7 +56,6 @@ query CorporationKillmails($filter: KillmailFilter) {
           }
         }
       }
-      cursor
     }
     pageInfo {
       hasNextPage
