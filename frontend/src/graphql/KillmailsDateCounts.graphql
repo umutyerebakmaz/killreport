@@ -1,0 +1,6 @@
+query KillmailsDateCounts($filter: KillmailFilter) {
+  killmailsDateCounts(filter: $filter) {
+    date
+    count
+  }
+}
