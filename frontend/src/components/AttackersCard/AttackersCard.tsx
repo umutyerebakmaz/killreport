@@ -1,6 +1,5 @@
 import AttackerRow from "@/components/AttackersCard/AttackerRow";
 import { KillmailQuery } from "@/generated/graphql";
-import { UserGroupIcon } from "@heroicons/react/24/outline";
 
 interface AttackersCardProps {
   attackers: NonNullable<KillmailQuery["killmail"]>["attackers"];
@@ -29,10 +28,11 @@ export default function AttackersCard({
 
   return (
     <div className="p-6 bg-white/5 backdrop-blur-sm inset-ring inset-ring-white/10">
-      <h3 className="flex items-center justify-end gap-2 mb-4 text-lg text-gray-400">
-        <UserGroupIcon className="w-5 h-5" />
-        Attackers ({attackers.length})
-      </h3>
+      <div className="flex justify-end">
+        <span className="px-2 py-0.5 text-xs font-medium text-gray-400  bg-white/5">
+          {killmail.attackerCount} ATTACKERS
+        </span>
+      </div>
 
       {/* All Attackers */}
       <div className="space-y-3">
