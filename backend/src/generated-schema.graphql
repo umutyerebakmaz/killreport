@@ -456,7 +456,9 @@ type Killmail {
   droppedValue: Float
   finalBlow: Attacker
   fitting: Fitting
+  hasNpcAttackers: Boolean!
   id: ID!
+  isSoloKill: Boolean!
   items: [KillmailItem!]!
   killmailHash: String!
   killmailTime: String!

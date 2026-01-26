@@ -517,7 +517,9 @@ export type Killmail = {
   droppedValue?: Maybe<Scalars['Float']['output']>;
   finalBlow?: Maybe<Attacker>;
   fitting?: Maybe<Fitting>;
+  hasNpcAttackers: Scalars['Boolean']['output'];
   id: Scalars['ID']['output'];
+  isSoloKill: Scalars['Boolean']['output'];
   items: Array<KillmailItem>;
   killmailHash: Scalars['String']['output'];
   killmailTime: Scalars['String']['output'];
@@ -1922,7 +1924,9 @@ export type KillmailResolvers<ContextType = any, ParentType extends ResolversPar
   droppedValue?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   finalBlow?: Resolver<Maybe<ResolversTypes['Attacker']>, ParentType, ContextType>;
   fitting?: Resolver<Maybe<ResolversTypes['Fitting']>, ParentType, ContextType>;
+  hasNpcAttackers?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  isSoloKill?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   items?: Resolver<Array<ResolversTypes['KillmailItem']>, ParentType, ContextType>;
   killmailHash?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   killmailTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

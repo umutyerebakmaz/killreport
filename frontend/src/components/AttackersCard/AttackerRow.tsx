@@ -8,6 +8,7 @@ interface AttackerProps {
   totalDamage: number;
   isFinalBlow?: boolean;
   isTopDamage?: boolean;
+  killmail: NonNullable<KillmailQuery["killmail"]>;
 }
 
 export default function AttackerRow({
@@ -15,11 +16,16 @@ export default function AttackerRow({
   totalDamage,
   isFinalBlow,
   isTopDamage,
+  killmail,
 }: AttackerProps) {
   const damagePercentage =
     totalDamage > 0
       ? ((attacker.damageDone / totalDamage) * 100).toFixed(1)
       : "0.0";
+
+  // Use backend-computed fields
+  const isSolo = killmail.isSoloKill;
+  const isNpcAttackers = killmail.hasNpcAttackers;
 
   // Check if attacker is NPC (no character but has corporation)
   const isNPC = !attacker.character?.id && attacker.corporation?.id;
@@ -144,7 +150,7 @@ export default function AttackerRow({
         <div className="flex justify-between w-full">
           {/* Character Name, Corporation, Alliance */}
           <div className="flex flex-col">
-            {/* Badges for Final Blow and Top Damage */}
+            {/* Badges for Final Blow, Top Damage, Solo, and NPC */}
             <div className="flex gap-2 mb-1">
               {isFinalBlow && (
                 <span className="px-2 py-0.5 text-xs font-medium text-red-400 rounded bg-red-400/10">
@@ -154,6 +160,16 @@ export default function AttackerRow({
               {isTopDamage && (
                 <span className="px-2 py-0.5 text-xs font-medium text-orange-400 rounded bg-orange-400/10">
                   TOP DAMAGE
+                </span>
+              )}
+              {isSolo && (
+                <span className="px-2 py-0.5 text-xs font-medium text-purple-400 rounded bg-purple-400/10">
+                  SOLO KILL
+                </span>
+              )}
+              {isNpcAttackers && (
+                <span className="px-2 py-0.5 text-xs font-medium text-red-400 rounded bg-red-400/10">
+                  NPC
                 </span>
               )}
             </div>

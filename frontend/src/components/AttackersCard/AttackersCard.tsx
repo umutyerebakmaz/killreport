@@ -4,13 +4,17 @@ import { UserGroupIcon } from "@heroicons/react/24/outline";
 
 interface AttackersCardProps {
   attackers: NonNullable<KillmailQuery["killmail"]>["attackers"];
+  killmail: NonNullable<KillmailQuery["killmail"]>;
 }
 
-export default function AttackersCard({ attackers }: AttackersCardProps) {
+export default function AttackersCard({
+  attackers,
+  killmail,
+}: AttackersCardProps) {
   // Calculate total damage from all attackers
   const totalDamage = attackers.reduce(
     (sum, attacker) => sum + attacker.damageDone,
-    0
+    0,
   );
 
   // Find top damage amount to identify top damage attacker
@@ -39,6 +43,7 @@ export default function AttackersCard({ attackers }: AttackersCardProps) {
             totalDamage={totalDamage}
             isFinalBlow={attacker.finalBlow}
             isTopDamage={attacker.damageDone === topDamageAmount}
+            killmail={killmail}
           />
         ))}
       </div>
