@@ -26,6 +26,7 @@ export type ActiveUsersPayload = {
 export type Alliance = {
   __typename?: 'Alliance';
   corporationCount: Scalars['Int']['output'];
+  /** @deprecated Use Query.corporations with allianceId filter for pagination */
   corporations?: Maybe<Array<Corporation>>;
   createdBy?: Maybe<Character>;
   createdByCorporation?: Maybe<Corporation>;
@@ -1296,7 +1297,14 @@ export type AllianceQueryVariables = Exact<{
 }>;
 
 
-export type AllianceQuery = { __typename?: 'Query', alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, memberCount: number, corporationCount: number, metrics?: { __typename?: 'AllianceMetrics', memberCountDelta7d?: number | null, corporationCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null, corporationCountGrowthRate7d?: number | null } | null, executor?: { __typename?: 'Corporation', id: number, name: string } | null, createdByCorporation?: { __typename?: 'Corporation', id: number, name: string } | null, createdBy?: { __typename?: 'Character', id: number, name: string } | null, corporations?: Array<{ __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, ceo?: { __typename?: 'Character', id: number, name: string } | null }> | null } | null };
+export type AllianceQuery = { __typename?: 'Query', alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, memberCount: number, corporationCount: number, metrics?: { __typename?: 'AllianceMetrics', memberCountDelta7d?: number | null, corporationCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null, corporationCountGrowthRate7d?: number | null } | null, executor?: { __typename?: 'Corporation', id: number, name: string } | null, createdByCorporation?: { __typename?: 'Corporation', id: number, name: string } | null, createdBy?: { __typename?: 'Character', id: number, name: string } | null } | null };
+
+export type AllianceCorporationsQueryVariables = Exact<{
+  filter?: InputMaybe<CorporationFilter>;
+}>;
+
+
+export type AllianceCorporationsQuery = { __typename?: 'Query', corporations: { __typename?: 'CorporationConnection', edges: Array<{ __typename?: 'CorporationEdge', cursor: string, node: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, ceo?: { __typename?: 'Character', id: number, name: string } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type AlliancesQueryVariables = Exact<{
   filter?: InputMaybe<AllianceFilter>;
@@ -1519,16 +1527,6 @@ export const AllianceDocument = gql`
       id
       name
     }
-    corporations {
-      id
-      name
-      ticker
-      member_count
-      ceo {
-        id
-        name
-      }
-    }
   }
 }
     `;
@@ -1568,6 +1566,68 @@ export type AllianceQueryHookResult = ReturnType<typeof useAllianceQuery>;
 export type AllianceLazyQueryHookResult = ReturnType<typeof useAllianceLazyQuery>;
 export type AllianceSuspenseQueryHookResult = ReturnType<typeof useAllianceSuspenseQuery>;
 export type AllianceQueryResult = Apollo.QueryResult<AllianceQuery, AllianceQueryVariables>;
+export const AllianceCorporationsDocument = gql`
+    query AllianceCorporations($filter: CorporationFilter) {
+  corporations(filter: $filter) {
+    edges {
+      node {
+        id
+        name
+        ticker
+        member_count
+        ceo {
+          id
+          name
+        }
+      }
+      cursor
+    }
+    pageInfo {
+      currentPage
+      totalPages
+      totalCount
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useAllianceCorporationsQuery__
+ *
+ * To run a query within a React component, call `useAllianceCorporationsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAllianceCorporationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAllianceCorporationsQuery({
+ *   variables: {
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useAllianceCorporationsQuery(baseOptions?: Apollo.QueryHookOptions<AllianceCorporationsQuery, AllianceCorporationsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<AllianceCorporationsQuery, AllianceCorporationsQueryVariables>(AllianceCorporationsDocument, options);
+      }
+export function useAllianceCorporationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AllianceCorporationsQuery, AllianceCorporationsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<AllianceCorporationsQuery, AllianceCorporationsQueryVariables>(AllianceCorporationsDocument, options);
+        }
+// @ts-ignore
+export function useAllianceCorporationsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AllianceCorporationsQuery, AllianceCorporationsQueryVariables>): Apollo.UseSuspenseQueryResult<AllianceCorporationsQuery, AllianceCorporationsQueryVariables>;
+export function useAllianceCorporationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AllianceCorporationsQuery, AllianceCorporationsQueryVariables>): Apollo.UseSuspenseQueryResult<AllianceCorporationsQuery | undefined, AllianceCorporationsQueryVariables>;
+export function useAllianceCorporationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AllianceCorporationsQuery, AllianceCorporationsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<AllianceCorporationsQuery, AllianceCorporationsQueryVariables>(AllianceCorporationsDocument, options);
+        }
+export type AllianceCorporationsQueryHookResult = ReturnType<typeof useAllianceCorporationsQuery>;
+export type AllianceCorporationsLazyQueryHookResult = ReturnType<typeof useAllianceCorporationsLazyQuery>;
+export type AllianceCorporationsSuspenseQueryHookResult = ReturnType<typeof useAllianceCorporationsSuspenseQuery>;
+export type AllianceCorporationsQueryResult = Apollo.QueryResult<AllianceCorporationsQuery, AllianceCorporationsQueryVariables>;
 export const AlliancesDocument = gql`
     query Alliances($filter: AllianceFilter) {
   alliances(filter: $filter) {

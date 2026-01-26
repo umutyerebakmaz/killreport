@@ -7,6 +7,8 @@ import Paginator from "@/components/Paginator/Paginator";
 import TotalCorporationBadge from "@/components/TotalCorporationMember/TotalCorporationBadge";
 import TotalMemberBadge from "@/components/TotalMemberBadge/TotalMemberBadge";
 import {
+  CorporationOrderBy,
+  useAllianceCorporationsQuery,
   useAllianceKillmailsQuery,
   useAllianceQuery,
   useKillmailsDateCountsQuery,
@@ -36,9 +38,27 @@ export default function AllianceDetailPage({
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(pageSizeFromUrl);
 
+  // Separate pagination for corporations
+  const [corporationsPage, setCorporationsPage] = useState(1);
+  const [corporationsPageSize, setCorporationsPageSize] = useState(100);
+
   const { data, loading, error } = useAllianceQuery({
     variables: { id: parseInt(id) },
   });
+
+  // Fetch corporations when members tab is active
+  const { data: corporationsData, loading: corporationsLoading } =
+    useAllianceCorporationsQuery({
+      variables: {
+        filter: {
+          allianceId: parseInt(id),
+          page: corporationsPage,
+          limit: corporationsPageSize,
+          orderBy: CorporationOrderBy.MemberCountDesc,
+        },
+      },
+      skip: activeTab !== "members",
+    });
 
   // Fetch killmails when killmails tab is active
   const { data: killmailsData, loading: killmailsLoading } =
@@ -69,6 +89,12 @@ export default function AllianceDetailPage({
     [killmailsData],
   );
 
+  // Memoize corporations array
+  const corporations = useMemo(
+    () => corporationsData?.corporations.edges.map((edge) => edge.node) || [],
+    [corporationsData],
+  );
+
   // Create a map of date -> total count for that date
   const dateCountsMap = useMemo(() => {
     const map = new Map<string, number>();
@@ -81,6 +107,9 @@ export default function AllianceDetailPage({
   const pageInfo = killmailsData?.killmails.pageInfo;
   const totalPages = pageInfo?.totalPages || 0;
 
+  const corporationsPageInfo = corporationsData?.corporations.pageInfo;
+  const corporationsTotalPages = corporationsPageInfo?.totalPages || 0;
+
   // URL sync for pagination and tab
   useEffect(() => {
     const params = new URLSearchParams();
@@ -88,9 +117,20 @@ export default function AllianceDetailPage({
     if (activeTab === "killmails") {
       params.set("page", currentPage.toString());
       params.set("pageSize", pageSize.toString());
+    } else if (activeTab === "members") {
+      params.set("page", corporationsPage.toString());
+      params.set("pageSize", corporationsPageSize.toString());
     }
     router.push(`/alliances/${id}?${params.toString()}`, { scroll: false });
-  }, [currentPage, pageSize, activeTab, id, router]);
+  }, [
+    currentPage,
+    pageSize,
+    corporationsPage,
+    corporationsPageSize,
+    activeTab,
+    id,
+    router,
+  ]);
 
   const handleNext = useCallback(
     () => pageInfo?.hasNextPage && setCurrentPage((prev) => prev + 1),
@@ -104,6 +144,26 @@ export default function AllianceDetailPage({
   const handleLast = useCallback(
     () => totalPages > 0 && setCurrentPage(totalPages),
     [totalPages],
+  );
+
+  // Corporation pagination handlers
+  const handleCorporationsNext = useCallback(
+    () =>
+      corporationsPageInfo?.hasNextPage &&
+      setCorporationsPage((prev) => prev + 1),
+    [corporationsPageInfo?.hasNextPage],
+  );
+  const handleCorporationsPrev = useCallback(
+    () =>
+      corporationsPageInfo?.hasPreviousPage &&
+      setCorporationsPage((prev) => prev - 1),
+    [corporationsPageInfo?.hasPreviousPage],
+  );
+  const handleCorporationsFirst = useCallback(() => setCorporationsPage(1), []);
+  const handleCorporationsLast = useCallback(
+    () =>
+      corporationsTotalPages > 0 && setCorporationsPage(corporationsTotalPages),
+    [corporationsTotalPages],
   );
 
   if (loading) {
@@ -314,68 +374,108 @@ export default function AllianceDetailPage({
           )}
 
           {activeTab === "members" && (
-            <div className="detail-tab-content">
-              <h2 className="mb-4 text-2xl font-bold">
-                Member Corporations ({alliance.corporations?.length || 0})
-              </h2>
-              {alliance.corporations && alliance.corporations.length > 0 ? (
-                <div className="overflow-hidden border border-white/10">
-                  <table className="table">
-                    <thead className="bg-white/5">
-                      <tr>
-                        <th className="th-cell">Corporation</th>
-                        <th className="th-cell">Ticker</th>
-                        <th className="th-cell">Members</th>
-                        <th className="th-cell">CEO</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/10">
-                      {alliance.corporations.map((corp) => (
-                        <tr
-                          key={corp.id}
-                          className="transition-colors hover:bg-white/5"
-                        >
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center gap-3">
-                              <img
-                                src={`https://images.evetech.net/Corporation/${corp.id}_64.png`}
-                                alt={corp.name}
-                                width={32}
-                                height={32}
-                              />
-                              <Link
-                                href={`/corporations/${corp.id}`}
-                                prefetch={false}
-                                className="text-cyan-400 hover:text-cyan-300"
-                              >
-                                {corp.name}
-                              </Link>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-sm text-yellow-400 whitespace-nowrap">
-                            [{corp.ticker}]
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-300 whitespace-nowrap">
-                            <TotalMemberBadge count={corp.member_count} />
-                          </td>
-                          <td className="px-6 py-4 text-sm whitespace-nowrap">
-                            {corp.ceo ? (
-                              <Link
-                                href={`/characters/${corp.ceo.id}`}
-                                prefetch={false}
-                                className="text-cyan-400 hover:text-cyan-300"
-                              >
-                                {corp.ceo.name}
-                              </Link>
-                            ) : (
-                              <span className="text-gray-500">N/A</span>
-                            )}
-                          </td>
+            <div className="alliance-corporations-tab">
+              <div className="sm:flex-auto">
+                <h1 className="flex items-center gap-3 text-3xl font-semibold text-white">
+                  Member Corporations
+                </h1>
+                <p className="mt-2 text-gray-400">
+                  Browse all corporations in this alliance. Click on a
+                  corporation to see detailed information and member statistics.
+                </p>
+                {corporationsPageInfo?.totalCount !== undefined && (
+                  <p className="mt-1 text-sm text-gray-500">
+                    Total: {corporationsPageInfo.totalCount.toLocaleString()}{" "}
+                    corporations
+                  </p>
+                )}
+              </div>
+
+              {corporationsLoading ? (
+                <Loader size="md" text="Loading corporations..." />
+              ) : corporations.length > 0 ? (
+                <>
+                  <div className="mt-6 overflow-hidden border border-white/10">
+                    <table className="table">
+                      <thead className="bg-white/5">
+                        <tr>
+                          <th className="th-cell">Corporation</th>
+                          <th className="th-cell">Ticker</th>
+                          <th className="th-cell">Members</th>
+                          <th className="th-cell">CEO</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody className="divide-y divide-white/10">
+                        {corporations.map((corp) => (
+                          <tr
+                            key={corp.id}
+                            className="transition-colors hover:bg-white/5"
+                          >
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center gap-3">
+                                <img
+                                  src={`https://images.evetech.net/Corporation/${corp.id}_64.png`}
+                                  alt={corp.name}
+                                  width={32}
+                                  height={32}
+                                />
+                                <Link
+                                  href={`/corporations/${corp.id}`}
+                                  prefetch={false}
+                                  className="text-cyan-400 hover:text-cyan-300"
+                                >
+                                  {corp.name}
+                                </Link>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-yellow-400 whitespace-nowrap">
+                              [{corp.ticker}]
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-300 whitespace-nowrap">
+                              <TotalMemberBadge count={corp.member_count} />
+                            </td>
+                            <td className="px-6 py-4 text-sm whitespace-nowrap">
+                              {corp.ceo ? (
+                                <Link
+                                  href={`/characters/${corp.ceo.id}`}
+                                  prefetch={false}
+                                  className="text-cyan-400 hover:text-cyan-300"
+                                >
+                                  {corp.ceo.name}
+                                </Link>
+                              ) : (
+                                <span className="text-gray-500">N/A</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {corporations.length > 0 && (
+                    <div className="mt-6">
+                      <Paginator
+                        hasNextPage={corporationsPageInfo?.hasNextPage ?? false}
+                        hasPrevPage={
+                          corporationsPageInfo?.hasPreviousPage ?? false
+                        }
+                        onNext={handleCorporationsNext}
+                        onPrev={handleCorporationsPrev}
+                        onFirst={handleCorporationsFirst}
+                        onLast={handleCorporationsLast}
+                        loading={corporationsLoading}
+                        currentPage={corporationsPage}
+                        totalPages={corporationsTotalPages}
+                        pageSize={corporationsPageSize}
+                        onPageSizeChange={(size) => {
+                          setCorporationsPageSize(size);
+                          setCorporationsPage(1);
+                        }}
+                      />
+                    </div>
+                  )}
+                </>
               ) : (
                 <p className="text-gray-400">No corporations found.</p>
               )}
