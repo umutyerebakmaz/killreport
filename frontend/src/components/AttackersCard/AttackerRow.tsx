@@ -174,28 +174,49 @@ export default function AttackerRow({
               )}
             </div>
 
-            {attacker.character?.id && (
-              <Tooltip content="Show Character Info">
-                <Link
-                  href={`/characters/${attacker.character?.id}`}
-                  className="font-medium text-gray-400 hover:text-blue-400"
-                  prefetch={false}
-                >
-                  {attacker.character?.name || "Unknown"}
-                </Link>
-              </Tooltip>
-            )}
-
-            {attacker.corporation?.id && (
-              <Tooltip content="Show Corporation Info">
-                <Link
-                  href={`/corporations/${attacker.corporation?.id}`}
-                  className="text-sm text-gray-400 hover:text-blue-400"
-                  prefetch={false}
-                >
-                  {attacker.corporation?.name || "Unknown"}
-                </Link>
-              </Tooltip>
+            {attacker.character?.id ? (
+              <>
+                <Tooltip content="Show Character Info">
+                  <Link
+                    href={`/characters/${attacker.character?.id}`}
+                    className="font-medium text-gray-400 hover:text-blue-400"
+                    prefetch={false}
+                  >
+                    {attacker.character?.name || "Unknown"}
+                  </Link>
+                </Tooltip>
+                {attacker.corporation?.id && (
+                  <Tooltip content="Show Corporation Info">
+                    <Link
+                      href={`/corporations/${attacker.corporation?.id}`}
+                      className="text-sm text-gray-400 hover:text-blue-400"
+                      prefetch={false}
+                    >
+                      {attacker.corporation?.name || "Unknown"}
+                    </Link>
+                  </Tooltip>
+                )}
+              </>
+            ) : (
+              <>
+                {/* NPC attacker: Show ship type name and corporation */}
+                {attacker.shipType?.name && (
+                  <div className="font-medium text-gray-400">
+                    {attacker.shipType.name}
+                  </div>
+                )}
+                {attacker.corporation?.id && (
+                  <Tooltip content="Show Corporation Info">
+                    <Link
+                      href={`/corporations/${attacker.corporation.id}`}
+                      className="text-sm text-gray-400 hover:text-blue-400"
+                      prefetch={false}
+                    >
+                      {attacker.corporation?.name || "Unknown"}
+                    </Link>
+                  </Tooltip>
+                )}
+              </>
             )}
 
             {attacker.alliance?.id && (
