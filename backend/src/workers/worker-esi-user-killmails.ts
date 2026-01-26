@@ -157,6 +157,11 @@ export async function esiUserKillmailWorker() {
             // Acknowledge message
             channel.ack(msg);
             logger.info(`✅ Completed: ${message.characterName}\n`);
+
+            // Add delay between users to prevent rate limiting
+            // This is critical when multiple users are queued
+            logger.debug(`⏸️  Waiting 10 seconds before next user to prevent rate limiting...\n`);
+            await new Promise(resolve => setTimeout(resolve, 10000));
           } catch (error: any) {
             logger.error(`❌ Failed to process message:`, error.message);
 
