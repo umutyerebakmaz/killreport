@@ -43,20 +43,28 @@ function KillmailsContent() {
   const [realtimeTotalCountIncrement, setRealtimeTotalCountIncrement] =
     useState(0);
 
-  // Subscribe to new killmails
+  // Subscribe to new killmails only when on first page and no filters are active
   const {
     data: subscriptionData,
     loading: subscriptionLoading,
     error: subscriptionError,
   } = useNewKillmailSubscription({
-    skip: currentPage !== 1, // Only subscribe when on first page
+    skip:
+      currentPage !== 1 ||
+      !!(filters.shipTypeId || filters.regionId || filters.systemId), // Skip if not on first page OR filters are active
   });
 
   // Debug subscription (removed for production performance)
 
-  // Add new killmail to the list when received
+  // Add new killmail to the list when received (only if no filters are active)
   useEffect(() => {
-    if (subscriptionData?.newKillmail && currentPage === 1) {
+    if (
+      subscriptionData?.newKillmail &&
+      currentPage === 1 &&
+      !filters.shipTypeId &&
+      !filters.regionId &&
+      !filters.systemId
+    ) {
       const km = subscriptionData.newKillmail;
 
       setNewKillmails((prev) => {
@@ -93,7 +101,7 @@ function KillmailsContent() {
         });
       }, 3000);
     }
-  }, [subscriptionData, currentPage]);
+  }, [subscriptionData, currentPage, filters]);
 
   // Reset new killmails when filters change
   useEffect(() => {
