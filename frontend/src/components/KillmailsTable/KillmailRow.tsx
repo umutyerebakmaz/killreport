@@ -194,7 +194,7 @@ export default function KillmailRow({
               />
             )}
             <div className="flex-1 min-w-0 space-y-1">
-              <div className="font-medium text-green-400">
+              <div className="font-medium text-green-600">
                 {km.finalBlow.character ? (
                   <Tooltip content="Show Character Info" position="top">
                     <Link
@@ -290,15 +290,19 @@ export default function KillmailRow({
       </td>
 
       {/* Attackers Column */}
-      <td className="px-6 py-4 text-base align-top">
-        <div className="flex items-center gap-2">
-          {isSolo && (
-            <span className="px-2 py-0.5 text-xs font-medium text-purple-400 rounded bg-purple-400/10">
-              SOLO KILL
+      <td className="px-6 py-4 text-base">
+        <div className="flex items-center justify-center gap-2">
+          {isSolo ? (
+            <span className="px-2 py-0.5 font-medium text-green-600 rounded bg-green-600/10">
+              SOLO
+            </span>
+          ) : (
+            <span className="px-2 py-0.5 font-medium text-purple-400  bg-purple-400/10">
+              {km.attackerCount}
             </span>
           )}
           {isNpcAttacker && (
-            <span className="px-2 py-0.5 text-xs font-medium text-red-400 rounded bg-red-400/10">
+            <span className="px-2 py-0.5 font-medium text-red-400 rounded bg-red-400/10">
               NPC
             </span>
           )}
@@ -306,8 +310,8 @@ export default function KillmailRow({
       </td>
 
       {/* Damage Column */}
-      <td className="px-6 py-4 text-base align-top">
-        <span className="font-medium text-red-400">
+      <td className="px-6 py-4 text-base">
+        <span className="flex items-center justify-center font-medium text-red-400">
           {km.victim?.damageTaken?.toLocaleString() || 0}
         </span>
       </td>
