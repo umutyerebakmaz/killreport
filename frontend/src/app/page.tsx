@@ -42,35 +42,28 @@ function KillmailsContent() {
     null,
   );
 
-  // Subscribe to new killmails
+  // Subscribe to new killmails only when on first page and no search filter is active
   const {
     data: subscriptionData,
     loading: subscriptionLoading,
     error: subscriptionError,
   } = useNewKillmailSubscription({
-    skip: currentPage !== 1, // Only subscribe when on first page
+    skip: currentPage !== 1 || debouncedSearch.length > 0, // Skip if not on first page OR search is active
   });
-
-  // Debug subscription
-  useEffect(() => {
-    console.log("🔔 Subscription state:", {
-      loading: subscriptionLoading,
-      error: subscriptionError?.message,
-      hasData: !!subscriptionData,
-      data: subscriptionData,
-    });
-  }, [subscriptionData, subscriptionLoading, subscriptionError]);
 
   // Dismiss toast handler
   const handleDismissToast = useCallback((id: string) => {
     setKillmailToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  // Add new killmail to the list when received
+  // Add new killmail to the list when received (only if no search filter is active)
   useEffect(() => {
-    if (subscriptionData?.newKillmail && currentPage === 1) {
+    if (
+      subscriptionData?.newKillmail &&
+      currentPage === 1 &&
+      debouncedSearch.length === 0
+    ) {
       const km = subscriptionData.newKillmail;
-      console.log("📨 New killmail received:", km.id);
 
       setNewKillmails((prev) => {
         // Check if killmail already exists
@@ -117,7 +110,7 @@ function KillmailsContent() {
         });
       }, 3000);
     }
-  }, [subscriptionData, currentPage]);
+  }, [subscriptionData, currentPage, debouncedSearch]);
 
   // Reset new killmails when filters change
   useEffect(() => {
@@ -151,13 +144,6 @@ function KillmailsContent() {
     ...newKillmails, // Add new real-time killmails first
     ...(data?.killmails.edges.map((edge) => edge.node) || []),
   ];
-
-  // DEBUG: Log first killmail to check structure
-  if (killmails.length > 0) {
-    console.log("First killmail:", killmails[0]);
-    console.log("Has attackerCount:", "attackerCount" in killmails[0]);
-    console.log("Has finalBlow:", "finalBlow" in killmails[0]);
-  }
 
   const pageInfo = data?.killmails.pageInfo;
   const totalPages = pageInfo?.totalPages || 0;
