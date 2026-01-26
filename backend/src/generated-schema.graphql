@@ -5,7 +5,7 @@ type ActiveUsersPayload {
 
 type Alliance {
   corporationCount: Int!
-  corporations: [Corporation!]
+  corporations: [Corporation!] @deprecated(reason: "Use Query.corporations with allianceId filter for pagination")
   createdBy: Character
   createdByCorporation: Corporation
   date_founded: String!
