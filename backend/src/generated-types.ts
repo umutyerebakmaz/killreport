@@ -25,6 +25,7 @@ export type ActiveUsersPayload = {
 export type Alliance = {
   __typename?: 'Alliance';
   corporationCount: Scalars['Int']['output'];
+  /** @deprecated Use Query.corporations with allianceId filter for pagination */
   corporations?: Maybe<Array<Corporation>>;
   createdBy?: Maybe<Character>;
   createdByCorporation?: Maybe<Corporation>;
