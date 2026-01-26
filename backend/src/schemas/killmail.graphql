@@ -38,6 +38,8 @@ type Killmail {
   destroyedValue: Float
   droppedValue: Float
   totalValue: Float
+  isSoloKill: Boolean!
+  hasNpcAttackers: Boolean!
   createdAt: String!
 }
 
