@@ -274,7 +274,7 @@ export default function KillmailDetailPage({
 
         {/* Right Column: Attackers (1/3 width) */}
         <div className="space-y-6 lg:col-span-1">
-          <AttackersCard attackers={attackers} />
+          <AttackersCard attackers={attackers} killmail={km} />
         </div>
       </div>
     </>
