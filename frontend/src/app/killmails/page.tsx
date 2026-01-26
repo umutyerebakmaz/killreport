@@ -10,7 +10,6 @@ import {
   useKillmailsQuery,
   useNewKillmailSubscription,
 } from "@/generated/graphql";
-import { FireIcon } from "@heroicons/react/24/outline";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 
@@ -70,7 +69,9 @@ function KillmailsContent() {
       });
 
       // Update date count for the killmail's date
-      const killmailDate = new Date(km.killmailTime).toISOString().split("T")[0];
+      const killmailDate = new Date(km.killmailTime)
+        .toISOString()
+        .split("T")[0];
       setRealtimeDateCounts((prev) => {
         const next = new Map(prev);
         next.set(killmailDate, (next.get(killmailDate) || 0) + 1);
@@ -223,7 +224,6 @@ function KillmailsContent() {
       <div className="sm:flex sm:items-center sm:justify-between">
         <div className="sm:flex-auto">
           <h1 className="flex items-center gap-3 text-3xl font-semibold text-white">
-            <FireIcon className="w-8 h-8 text-red-400" />
             Killmails
           </h1>
           <p className="mt-2 text-gray-400">
@@ -232,7 +232,7 @@ function KillmailsContent() {
           </p>
           {totalCount > 0 && (
             <p className="mt-1 text-sm text-gray-500">
-              Total: {totalCount.toLocaleString()} killmails
+              {totalCount.toLocaleString()} killmails
             </p>
           )}
         </div>
