@@ -121,6 +121,12 @@ export const killmailFields: KillmailResolvers = {
         });
 
         return allNpc;
+    },
+
+    totalValue: async (parent: any, _, context) => {
+        const killmailId = typeof parent.id === 'string' ? parseInt(parent.id) : parent.id;
+
+        // Victim'dan ship type'ı al
         const victim = await context.loaders.victim.load(killmailId);
 
         // Killmail'in tüm itemlarını al
