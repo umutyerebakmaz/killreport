@@ -56,7 +56,6 @@ query AllianceKillmails($filter: KillmailFilter) {
           }
         }
       }
-      cursor
     }
     pageInfo {
       hasNextPage
