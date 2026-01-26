@@ -7,13 +7,13 @@ const QUEUE_NAME = 'esi_type_price_queue';
 const BATCH_SIZE = 100;
 
 /**
- * Fetches all unique item type IDs from killmail_items and adds them to RabbitMQ queue
- * These will be processed by worker:prices
+ * Fetches all unique item type IDs from killmail_items and ship type IDs from victims
+ * Adds them to RabbitMQ queue to be processed by worker:prices
  *
  * Usage: yarn queue:prices
  */
 async function queuePrices() {
-  logger.info('Fetching unique item type IDs from killmail_items...');
+  logger.info('Fetching unique type IDs from killmail_items and victims...');
 
   try {
     // Get all unique item_type_id from killmail_items table
@@ -22,9 +22,21 @@ async function queuePrices() {
       distinct: ['item_type_id'],
     });
 
-    const typeIds = items.map((i) => i.item_type_id).sort((a, b) => a - b);
+    // Get all unique ship_type_id from victims table
+    const victims = await prisma.victim.findMany({
+      select: { ship_type_id: true },
+      distinct: ['ship_type_id'],
+    });
 
-    logger.info(`Found ${typeIds.length} unique item types`);
+    // Combine and deduplicate type IDs
+    const itemTypeIds = items.map((i) => i.item_type_id);
+    const shipTypeIds = victims.map((v) => v.ship_type_id);
+    const allTypeIds = [...new Set([...itemTypeIds, ...shipTypeIds])];
+    const typeIds = allTypeIds.sort((a, b) => a - b);
+
+    logger.info(`Found ${itemTypeIds.length} unique item types`);
+    logger.info(`Found ${shipTypeIds.length} unique ship types`);
+    logger.info(`Total unique types: ${typeIds.length}`);
     logger.info(`Adding to queue: ${QUEUE_NAME}`);
 
     const channel = await getRabbitMQChannel();
