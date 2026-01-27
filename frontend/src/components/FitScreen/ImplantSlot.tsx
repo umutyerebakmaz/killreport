@@ -1,18 +1,18 @@
 import Tooltip from "../Tooltip/Tooltip";
 
-interface ServiceSlotProps {
+interface ImplantSlotProps {
   slots: any[];
 }
 
-export default function ServiceSlot({ slots }: ServiceSlotProps) {
+export default function ImplantSlot({ slots }: ImplantSlotProps) {
   return (
-    <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 flex items-center justify-center gap-0.5">
+    <div className="absolute flex items-center justify-center gap-2 -translate-x-1/2 -bottom-1 left-1/2">
       {slots.map((slot) => {
         const module = slot.module;
-        const slotNumber = slot.slotIndex + 1;
+        const slotNumber = slot.slotIndex + 1; // slotIndex is 0-based, display as 1-10
 
         return (
-          <div key={`service-${slot.slotIndex}`}>
+          <div key={`implant-${slot.slotIndex}`}>
             {module ? (
               <Tooltip content={module.itemType.name}>
                 <div className="relative overflow-visible size-12">
@@ -26,8 +26,8 @@ export default function ServiceSlot({ slots }: ServiceSlotProps) {
                 </div>
               </Tooltip>
             ) : (
-              <Tooltip content={`Empty Service Slot ${slotNumber}`}>
-                <div className="relative flex items-center justify-center overflow-visible text-lg text-gray-500 border size-12 bg-white/5 border-white/10">
+              <Tooltip content={`Empty Implant Slot ${slotNumber}`}>
+                <div className="relative flex items-center justify-center px-2 overflow-visible text-lg text-gray-500 border size-12 bg-white/5 border-white/10">
                   {slotNumber}
                 </div>
               </Tooltip>
