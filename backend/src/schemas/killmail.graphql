@@ -91,7 +91,7 @@ type Fitting {
   rigs: SlotGroup!
   subsystems: SlotGroup!
   serviceSlots: SlotGroup!
-  implants: [FittingModule!]!
+  implants: SlotGroup!
   cargo: [FittingModule!]!
   droneBay: [FittingModule!]!
   fighterBay: [FittingModule!]!

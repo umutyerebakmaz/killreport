@@ -263,17 +263,23 @@ query Killmail($id: ID!) {
         }
       }
       implants {
-        itemType {
-          id
-          name
-          jitaPrice {
-            buy
-            sell
-            average
+        totalSlots
+        slots {
+          slotIndex
+          module {
+            itemType {
+              id
+              name
+              jitaPrice {
+                buy
+                sell
+                average
+              }
+            }
+            quantityDropped
+            quantityDestroyed
           }
         }
-        quantityDropped
-        quantityDestroyed
       }
       cargo {
         flag

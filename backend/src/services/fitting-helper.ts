@@ -291,7 +291,7 @@ export function organizeFitting(
 
     // Implants (Pod/Capsule slots) - flags are not sequential (89-91, 95-101)
     const implantFlags = [
-        InventoryFlag.Implant0,  // 89
+        InventoryFlag.Implant0,  // 89 // implantness
         InventoryFlag.Implant1,  // 90
         InventoryFlag.Implant2,  // 91
         InventoryFlag.Implant3,  // 95
