@@ -86,6 +86,15 @@ export default function KillmailDetailPage({
                         <ArrowTopRightOnSquareIcon className="w-4 h-4" />
                         EVE Tools
                       </a>
+                      <a
+                        href={`https://esi.evetech.net/killmails/${km.id}/${km.killmailHash}/`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-3 py-1 text-sm font-medium text-gray-300 transition-colors rounded bg-gray-800/50 hover:bg-gray-700/50 hover:text-white"
+                      >
+                        <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                        ESI Verified
+                      </a>
                     </div>
                   </div>
                   <FitScreen
