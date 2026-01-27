@@ -686,6 +686,63 @@ export default function KillmailSummaryCard({
         </div>
       )}
 
+      {/* Implants */}
+      {fitting?.implants &&
+        fitting.implants.slots &&
+        fitting.implants.slots.some((slot: any) => slot.module) && (
+          <div className="pb-4 mb-4 border-b border-white/10">
+            <h3 className="mb-2 font-bold text-gray-400 uppercase">Implants</h3>
+            <div className="space-y-2">
+              {(() => {
+                const modules = fitting.implants.slots
+                  .filter((slot: any) => slot.module)
+                  .map((slot: any) => slot.module);
+                const groupedImplants = groupItems(modules);
+
+                return groupedImplants.map((item, index) => {
+                  const totalQty =
+                    item.quantityDestroyed + item.quantityDropped || 1;
+                  const isDestroyed = item.quantityDestroyed > 0;
+                  const isDropped = item.quantityDropped > 0;
+                  const textColor = isDestroyed
+                    ? "text-red-400"
+                    : isDropped
+                      ? "text-green-500"
+                      : "text-white";
+
+                  return (
+                    <div
+                      key={`implant-${item.itemType.id}-${index}`}
+                      className="flex items-center gap-3 py-2"
+                    >
+                      <img
+                        src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                        alt={item.itemType.name}
+                        className="border bg-white/5 size-16 border-white/10"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className={`truncate ${textColor}`}>
+                          {item.itemType.name}
+                        </div>
+                      </div>
+                      <div className="flex gap-4 text-right">
+                        <div className={`${textColor} w-16`}>{totalQty}</div>
+                        <div className={`${textColor} tabular-nums w-40`}>
+                          {formatISK(
+                            getItemPrice(item.itemType.jitaPrice) * totalQty,
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+        )}
+
       {/* Cargo Bay */}
       {fitting?.cargo && fitting.cargo.length > 0 && (
         <div className="pb-4 mb-4 border-b border-white/10">
