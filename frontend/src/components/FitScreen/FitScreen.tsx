@@ -20,14 +20,6 @@ export default function FitScreen({ shipType, fitting }: FitScreenProps) {
   const services = fitting?.serviceSlots.slots || [];
   const implants = fitting?.implants?.slots || [];
 
-  // DEBUG: Log implants datai
-  console.log("🔍 FitScreen Debug:", {
-    shipType: shipType?.name,
-    implantsCount: implants.length,
-    implantsTotalSlots: fitting?.implants?.totalSlots,
-    implants: implants,
-  });
-
   // Check if slot types should be rendered based on totalSlots
   const hasSubsystems = (fitting?.subsystems.totalSlots || 0) > 0;
   const hasServiceSlots = (fitting?.serviceSlots.totalSlots || 0) > 0;
