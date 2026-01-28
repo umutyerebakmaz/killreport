@@ -651,6 +651,29 @@ type Race {
   name: String!
 }
 
+type RedisMetrics {
+  """Commands processed per second (instantaneous)"""
+  commandsPerSecond: Int!
+
+  """Redis connection status"""
+  connected: Boolean!
+
+  """Connected clients count"""
+  connectedClients: Int!
+
+  """Redis memory usage (human readable)"""
+  memoryUsage: String!
+
+  """Total commands processed"""
+  totalCommandsProcessed: Int!
+
+  """Number of keys in Redis"""
+  totalKeys: Int!
+
+  """Redis uptime in seconds"""
+  uptimeInSeconds: Int!
+}
+
 type RefreshCharacterResult {
   characterId: Int!
   message: String!
@@ -968,6 +991,9 @@ type WorkerStatus {
 
   """Status of individual queues (RabbitMQ-based workers)"""
   queues: [QueueStatus!]!
+
+  """Redis server metrics"""
+  redis: RedisMetrics
 
   """Status of standalone workers (non-RabbitMQ)"""
   standaloneWorkers: [StandaloneWorkerStatus!]!

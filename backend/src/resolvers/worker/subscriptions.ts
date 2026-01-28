@@ -1,6 +1,7 @@
 import { SubscriptionResolvers } from '@generated-types';
 import prisma from '@services/prisma';
 import { getAllQueueStats } from '@services/rabbitmq';
+import { CacheManager } from '@utils/cache-manager';
 import { checkWorkerProcess, QUEUE_WORKER_MAP, STANDALONE_WORKERS } from './helpers';
 
 /**
@@ -34,8 +35,11 @@ export const workerSubscriptions: SubscriptionResolvers = {
         subscribe: async function* () {
             // Emit status updates every 5 seconds
             while (true) {
-                const queueStats = await getAllQueueStats();
-                const databaseSizeMB = await getDatabaseSizeMB();
+                const [queueStats, databaseSizeMB, redisMetrics] = await Promise.all([
+                    getAllQueueStats(),
+                    getDatabaseSizeMB(),
+                    CacheManager.getRedisMetrics(),
+                ]);
 
                 // Enrich queue stats with worker process info
                 const queues = await Promise.all(
@@ -84,6 +88,7 @@ export const workerSubscriptions: SubscriptionResolvers = {
                         standaloneWorkers,
                         healthy,
                         databaseSizeMB,
+                        redis: redisMetrics,
                     },
                 };
 
