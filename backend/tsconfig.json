@@ -34,6 +34,9 @@
       ],
       "@generated/*": [
         "src/generated/*"
+      ],
+      "@helpers/*": [
+        "src/helpers/*"
       ]
     }
   },
