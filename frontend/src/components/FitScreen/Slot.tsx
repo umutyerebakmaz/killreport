@@ -12,9 +12,9 @@ interface SlotProps {
 export default function Slot({
   slots,
   startAngle = 0,
-  angleGap = 11.2,
+  angleGap = 11.5,
   translateX = -32,
-  translateY = -307,
+  translateY = -294,
   slotType = "high",
 }: SlotProps) {
   const slotIcon = `/icons/slot-${slotType}.png`;
@@ -26,6 +26,14 @@ export default function Slot({
       {slots.map((slot, index) => {
         const rotation = startAngle + index * angleGap;
         const module = slot.module;
+
+        const name = module?.charge
+          ? module.charge.itemType.name
+          : module?.itemType.name;
+
+        const id = module?.charge
+          ? module.charge.itemType.id
+          : module?.itemType.id;
 
         return (
           <div
@@ -41,109 +49,52 @@ export default function Slot({
                 transform: `translateY(${translateY}px) translateX(${translateX}px)`,
               }}
             >
-              <div className="slot-inner">
+              <div className="gap-y-0.5 slot-inner">
+                {/* if module exist */}
                 {module ? (
                   <>
-                    {/* Top div: Charge icon if exists, otherwise Module icon - ALWAYS with ring */}
-                    <Tooltip
-                      content={
-                        module.charge
-                          ? module.charge.itemType.name
-                          : module.itemType.name
-                      }
-                    >
-                      <div className="relative overflow-visible size-12">
-                        {/* Ring background - always show on top icon */}
-                        <svg
-                          className="absolute inset-0 overflow-visible size-12"
-                          viewBox="-2 -2 52 52"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M0 0 L48 0 L39 48 L9 48 Z"
-                            stroke="currentColor"
-                            fill="none"
-                            strokeWidth="1"
-                            className="text-gray-500"
-                          />
-                        </svg>
+                    {/* top div */}
+                    <Tooltip content={name}>
+                      <div className="border shrink-0 border-white/10 bg-white/5">
                         <img
-                          src={`https://images.evetech.net/types/${
-                            module.charge
-                              ? module.charge.itemType.id
-                              : module.itemType.id
-                          }/icon?size=64`}
-                          alt={
-                            module.charge
-                              ? module.charge.itemType.name
-                              : module.itemType.name
-                          }
-                          className="relative z-10 size-12"
+                          src={`https://images.evetech.net/types/${id}/icon?size=64`}
+                          alt={name}
+                          className="z-10 size-12"
                           style={{ transform: `rotate(${-rotation}deg)` }}
                         />
                       </div>
                     </Tooltip>
 
-                    {/* Bottom div: Module icon only if charge exists (no ring) */}
-                    <div className="relative size-12">
-                      {module.charge && (
-                        <Tooltip content={module.itemType.name}>
+                    {/* bottom div */}
+                    {module.charge && (
+                      <Tooltip content={module.itemType.name}>
+                        <div className="border border-white/10 bg-white/5">
                           <img
                             src={`https://images.evetech.net/types/${module.itemType.id}/icon?size=64`}
                             alt={module.itemType.name}
-                            className="relative z-10 size-12"
+                            className="size-12"
                             style={{ transform: `rotate(${-rotation}deg)` }}
                           />
-                        </Tooltip>
-                      )}
-                    </div>
+                        </div>
+                      </Tooltip>
+                    )}
                   </>
                 ) : (
                   <>
-                    {/* Empty slot - also show ring */}
+                    {/* top div empty  */}
                     <Tooltip content={`Empty ${slotTypeName} Slot`}>
-                      <div className="relative overflow-visible size-12">
-                        {/* Ring background */}
-                        <svg
-                          className="absolute inset-0 overflow-visible size-12"
-                          viewBox="-2 -2 52 52"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M0 0 L48 0 L39 48 L9 48 Z"
-                            stroke="currentColor"
-                            fill="none"
-                            strokeWidth="2"
-                            className="text-gray-500"
+                      <div className="w-12 h-12 shrink-0">
+                        <div className="border border-white/10 bg-white/5">
+                          <img
+                            src={slotIcon}
+                            alt={`${slotTypeName} Slot`}
+                            className="z-10 w-12 h-12"
                           />
-                        </svg>
-                        <svg
-                          className="absolute inset-0 overflow-visible size-12"
-                          width="48"
-                          height="48"
-                          viewBox="0 0 500 500"
-                        >
-                          <g id="slot">
-                            <path
-                              d="M 243 46 A 210 210 0 0 1 279 46.7 L 276 84.7 A 172 172 0 0 0 246 84 L 243 46"
-                              style={{
-                                fillOpacity: 0.1,
-                                strokeWidth: 1,
-                                strokeOpacity: 0.5,
-                              }}
-                            ></path>
-                          </g>
-                        </svg>
-                        <img
-                          src={slotIcon}
-                          alt={`${slotTypeName} Slot`}
-                          className="relative z-10 size-12"
-                        />
+                        </div>
                       </div>
                     </Tooltip>
-                    <div className="size-12"></div>
+                    {/* bottom div empty */}
+                    <div className="w-12 h-12 shrink-0"></div>
                   </>
                 )}
               </div>
