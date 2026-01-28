@@ -7,13 +7,13 @@
  */
 export const CACHE_TTL = {
   /** Killmail details never change */
-  KILLMAIL_DETAIL: 86400_000, // 24 hours
+  KILLMAIL_DETAIL: 7776000_000, // 90 days
 
-  /** Static game data (types, categories, groups) */
-  STATIC_GAME_DATA: 86400_000, // 24 hours
+  /** Static game data (types, categories, groups, dogma attributes) - never changes */
+  STATIC_GAME_DATA: 31536000_000, // 365 days (1 year)
 
-  /** Character/Corporation/Alliance info (updates occasionally) */
-  ENTITY_INFO: 1800_000, // 30 minutes
+  /** Character/Corporation/Alliance info (rarely changes) */
+  ENTITY_INFO: 31536000_000, // 365 days (1 year)
 
   /** Killmails list (new killmails arrive frequently) */
   KILLMAIL_LIST: 300_000, // 5 minutes
@@ -88,6 +88,12 @@ export const TTL_PER_SCHEMA_COORDINATE: Record<string, number> = {
   'Query.categories': CACHE_TTL.STATIC_GAME_DATA,
   'Query.itemGroups': CACHE_TTL.STATIC_GAME_DATA,
 
+  // Dogma static data queries (never change)
+  'Query.dogmaAttribute': CACHE_TTL.STATIC_GAME_DATA,
+  'Query.dogmaAttributes': CACHE_TTL.STATIC_GAME_DATA,
+  'Query.dogmaEffect': CACHE_TTL.STATIC_GAME_DATA,
+  'Query.dogmaEffects': CACHE_TTL.STATIC_GAME_DATA,
+
   // Entity info queries
   'Query.character': CACHE_TTL.ENTITY_INFO,
   'Query.characterDetail': CACHE_TTL.ENTITY_INFO,
@@ -106,9 +112,9 @@ export const TTL_PER_SCHEMA_COORDINATE: Record<string, number> = {
 };
 
 /**
- * Maximum TTL for sanity check (1 hour)
+ * Maximum TTL for sanity check (1 year for static data)
  */
-export const MAX_CACHE_TTL_SECONDS = 3600;
+export const MAX_CACHE_TTL_SECONDS = 31536000; // 365 days
 
 /**
  * Redis connection configuration

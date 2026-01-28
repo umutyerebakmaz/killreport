@@ -24,6 +24,31 @@ function formatQueueName(name: string): string {
     .join(" ");
 }
 
+// Format uptime in seconds to human readable format
+function formatUptime(seconds: number): string {
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+
+  if (days > 0) {
+    return `${days}d ${hours}h`;
+  } else if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  } else {
+    return `${minutes}m`;
+  }
+}
+
+// Format large numbers (e.g., 593100 -> "593.1K")
+function formatNumber(num: number): string {
+  if (num >= 1000000) {
+    return `${(num / 1000000).toFixed(1)}M`;
+  } else if (num >= 1000) {
+    return `${(num / 1000).toFixed(1)}K`;
+  }
+  return num.toString();
+}
+
 export default function WorkersPage() {
   const [isConnected, setIsConnected] = useState(false);
 
@@ -76,12 +101,12 @@ export default function WorkersPage() {
   const esiInfoQueues = queues.filter(
     (q: QueueInfo) =>
       (q.name.includes("_info_queue") || q.name.includes("_price_queue")) &&
-      q.name.startsWith("esi_")
+      q.name.startsWith("esi_"),
   );
 
   const esiSyncQueues = queues.filter(
     (q: QueueInfo) =>
-      q.name.includes("_alliance_corporations_") && q.name.startsWith("esi_")
+      q.name.includes("_alliance_corporations_") && q.name.startsWith("esi_"),
   );
 
   const esiUniverseQueues = queues.filter(
@@ -89,19 +114,19 @@ export default function WorkersPage() {
       (q.name.includes("_regions_") ||
         q.name.includes("_constellations_") ||
         q.name.includes("_solar_systems_")) &&
-      q.name.startsWith("esi_")
+      q.name.startsWith("esi_"),
   );
 
   const zkillQueues = queues.filter(
     (q: QueueInfo) =>
-      q.name.startsWith("zkillboard_") || q.name.startsWith("redisq_")
+      q.name.startsWith("zkillboard_") || q.name.startsWith("redisq_"),
   );
 
   const otherQueues = queues.filter(
     (q: QueueInfo) =>
       !q.name.startsWith("esi_") &&
       !q.name.startsWith("zkillboard_") &&
-      !q.name.startsWith("redisq_")
+      !q.name.startsWith("redisq_"),
   );
 
   return (
@@ -168,7 +193,7 @@ export default function WorkersPage() {
             label="Pending Jobs"
             value={queues.reduce(
               (sum: number, q: QueueInfo) => sum + q.messageCount,
-              0
+              0,
             )}
             color="yellow"
           />
@@ -176,7 +201,7 @@ export default function WorkersPage() {
             label="Processing"
             value={queues.reduce(
               (sum: number, q: QueueInfo) => sum + q.consumerCount,
-              0
+              0,
             )}
             color="purple"
           />
@@ -193,6 +218,60 @@ export default function WorkersPage() {
           />
         </div>
       </div>
+
+      {/* Redis Cache Status */}
+      {workerStatus?.redis && (
+        <div className="p-6 mb-6 border border-gray-800 bg-gray-900/50">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-4 h-4 rounded-full ${
+                  workerStatus.redis.connected
+                    ? "bg-green-500 animate-pulse"
+                    : "bg-red-500"
+                }`}
+              ></div>
+              <h2 className="text-lg font-semibold text-white">
+                Redis Cache Status
+              </h2>
+            </div>
+            <span
+              className={`text-sm font-semibold ${
+                workerStatus.redis.connected ? "text-green-400" : "text-red-400"
+              }`}
+            >
+              {workerStatus.redis.connected ? "Connected" : "Disconnected"}
+            </span>
+          </div>
+          <div className="grid grid-cols-5 gap-4">
+            <StatCard
+              label="Cached Keys"
+              value={workerStatus.redis.totalKeys}
+              color="blue"
+            />
+            <StatCard
+              label="Connected Clients"
+              value={workerStatus.redis.connectedClients}
+              color="green"
+            />
+            <StatCard
+              label="Total Commands"
+              value={formatNumber(workerStatus.redis.totalCommandsProcessed)}
+              color="yellow"
+            />
+            <StatCard
+              label="Commands/sec"
+              value={workerStatus.redis.commandsPerSecond}
+              color="purple"
+            />
+            <StatCard
+              label="Memory Used"
+              value={workerStatus.redis.memoryUsage}
+              color="cyan"
+            />
+          </div>
+        </div>
+      )}
 
       {standaloneWorkers.length > 0 && (
         <StandaloneWorkerSection workers={standaloneWorkers} />
@@ -250,6 +329,10 @@ function StatCard({ label, value, color }: any) {
     yellow: "border-yellow-500/30 bg-yellow-500/10 text-yellow-400",
     purple: "border-purple-500/30 bg-purple-500/10 text-purple-400",
     cyan: "border-cyan-500/30 bg-cyan-500/10 text-cyan-400",
+    orange: "border-orange-500/30 bg-orange-500/10 text-orange-400",
+    pink: "border-pink-500/30 bg-pink-500/10 text-pink-400",
+    indigo: "border-indigo-500/30 bg-indigo-500/10 text-indigo-400",
+    teal: "border-teal-500/30 bg-teal-500/10 text-teal-400",
   };
 
   return (
