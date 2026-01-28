@@ -5,7 +5,7 @@ import {
   KillmailResolvers,
   VictimResolvers,
 } from '@generated-types';
-import { organizeFitting } from '@services/fitting-helper';
+import { organizeFitting } from '@helpers/fitting-helper';
 
 /**
  * Killmail Field Resolvers
@@ -270,8 +270,7 @@ export const killmailFields: KillmailResolvers = {
       // 1249: Mobile Cynosural Inhibitor
       // 1250: Mobile Jump Disruptor
       // 1272: Mobile Micro Jump Unit
-      const noFittingGroupIds = [29, 31, 1246, 1247, 1249, 1250, 1272];
-
+      const noFittingGroupIds = [29, 31, 361, 1246, 1247, 1249, 1250, 1272];
       const shouldHaveFitting = groupId ? !noFittingGroupIds.includes(groupId) : true;
 
       // If ship shouldn't have fitting (including Capsules), return empty fitting with 0 slots
