@@ -937,6 +937,24 @@ export type Race = {
   name: Scalars['String']['output'];
 };
 
+export type RedisMetrics = {
+  __typename?: 'RedisMetrics';
+  /** Commands processed per second (instantaneous) */
+  commandsPerSecond: Scalars['Int']['output'];
+  /** Redis connection status */
+  connected: Scalars['Boolean']['output'];
+  /** Connected clients count */
+  connectedClients: Scalars['Int']['output'];
+  /** Redis memory usage (human readable) */
+  memoryUsage: Scalars['String']['output'];
+  /** Total commands processed */
+  totalCommandsProcessed: Scalars['Int']['output'];
+  /** Number of keys in Redis */
+  totalKeys: Scalars['Int']['output'];
+  /** Redis uptime in seconds */
+  uptimeInSeconds: Scalars['Int']['output'];
+};
+
 export type RefreshCharacterResult = {
   __typename?: 'RefreshCharacterResult';
   characterId: Scalars['Int']['output'];
@@ -1286,6 +1304,8 @@ export type WorkerStatus = {
   healthy: Scalars['Boolean']['output'];
   /** Status of individual queues (RabbitMQ-based workers) */
   queues: Array<QueueStatus>;
+  /** Redis server metrics */
+  redis?: Maybe<RedisMetrics>;
   /** Status of standalone workers (non-RabbitMQ) */
   standaloneWorkers: Array<StandaloneWorkerStatus>;
   /** Timestamp of the status check */
@@ -1435,6 +1455,7 @@ export type ResolversTypes = {
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   QueueStatus: ResolverTypeWrapper<QueueStatus>;
   Race: ResolverTypeWrapper<Race>;
+  RedisMetrics: ResolverTypeWrapper<RedisMetrics>;
   RefreshCharacterResult: ResolverTypeWrapper<RefreshCharacterResult>;
   Region: ResolverTypeWrapper<Region>;
   RegionConnection: ResolverTypeWrapper<RegionConnection>;
@@ -1551,6 +1572,7 @@ export type ResolversParentTypes = {
   Query: Record<PropertyKey, never>;
   QueueStatus: QueueStatus;
   Race: Race;
+  RedisMetrics: RedisMetrics;
   RefreshCharacterResult: RefreshCharacterResult;
   Region: Region;
   RegionConnection: RegionConnection;
@@ -2055,6 +2077,16 @@ export type RaceResolvers<ContextType = any, ParentType extends ResolversParentT
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
+export type RedisMetricsResolvers<ContextType = any, ParentType extends ResolversParentTypes['RedisMetrics'] = ResolversParentTypes['RedisMetrics']> = {
+  commandsPerSecond?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  connected?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  connectedClients?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  memoryUsage?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  totalCommandsProcessed?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  totalKeys?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  uptimeInSeconds?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
 export type RefreshCharacterResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['RefreshCharacterResult'] = ResolversParentTypes['RefreshCharacterResult']> = {
   characterId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2258,6 +2290,7 @@ export type WorkerStatusResolvers<ContextType = any, ParentType extends Resolver
   databaseSizeMB?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   healthy?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   queues?: Resolver<Array<ResolversTypes['QueueStatus']>, ParentType, ContextType>;
+  redis?: Resolver<Maybe<ResolversTypes['RedisMetrics']>, ParentType, ContextType>;
   standaloneWorkers?: Resolver<Array<ResolversTypes['StandaloneWorkerStatus']>, ParentType, ContextType>;
   timestamp?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
@@ -2314,6 +2347,7 @@ export type Resolvers<ContextType = any> = {
   Query?: QueryResolvers<ContextType>;
   QueueStatus?: QueueStatusResolvers<ContextType>;
   Race?: RaceResolvers<ContextType>;
+  RedisMetrics?: RedisMetricsResolvers<ContextType>;
   RefreshCharacterResult?: RefreshCharacterResultResolvers<ContextType>;
   Region?: RegionResolvers<ContextType>;
   RegionConnection?: RegionConnectionResolvers<ContextType>;
