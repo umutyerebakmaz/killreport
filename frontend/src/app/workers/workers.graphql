@@ -16,6 +16,12 @@ subscription WorkerStatusUpdates {
     timestamp
     healthy
     databaseSizeMB
+    redis {
+      memoryUsage
+      totalKeys
+      connectedClients
+      uptimeInSeconds
+    }
     queues {
       name
       messageCount

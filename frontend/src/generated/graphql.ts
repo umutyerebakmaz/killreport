@@ -938,6 +938,24 @@ export type Race = {
   name: Scalars['String']['output'];
 };
 
+export type RedisMetrics = {
+  __typename?: 'RedisMetrics';
+  /** Commands processed per second (instantaneous) */
+  commandsPerSecond: Scalars['Int']['output'];
+  /** Redis connection status */
+  connected: Scalars['Boolean']['output'];
+  /** Connected clients count */
+  connectedClients: Scalars['Int']['output'];
+  /** Redis memory usage (human readable) */
+  memoryUsage: Scalars['String']['output'];
+  /** Total commands processed */
+  totalCommandsProcessed: Scalars['Int']['output'];
+  /** Number of keys in Redis */
+  totalKeys: Scalars['Int']['output'];
+  /** Redis uptime in seconds */
+  uptimeInSeconds: Scalars['Int']['output'];
+};
+
 export type RefreshCharacterResult = {
   __typename?: 'RefreshCharacterResult';
   characterId: Scalars['Int']['output'];
@@ -1287,6 +1305,8 @@ export type WorkerStatus = {
   healthy: Scalars['Boolean']['output'];
   /** Status of individual queues (RabbitMQ-based workers) */
   queues: Array<QueueStatus>;
+  /** Redis server metrics */
+  redis?: Maybe<RedisMetrics>;
   /** Status of standalone workers (non-RabbitMQ) */
   standaloneWorkers: Array<StandaloneWorkerStatus>;
   /** Timestamp of the status check */
@@ -1392,12 +1412,12 @@ export type WorkerStatusQuery = { __typename?: 'Query', workerStatus: { __typena
 export type WorkerStatusUpdatesSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type WorkerStatusUpdatesSubscription = { __typename?: 'Subscription', workerStatusUpdates: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, databaseSizeMB: number, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean }> } };
+export type WorkerStatusUpdatesSubscription = { __typename?: 'Subscription', workerStatusUpdates: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, databaseSizeMB: number, redis?: { __typename?: 'RedisMetrics', memoryUsage: string, totalKeys: number, connectedClients: number, uptimeInSeconds: number } | null, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean }> } };
 
 export type WorkerStatusSubscriptionSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type WorkerStatusSubscriptionSubscription = { __typename?: 'Subscription', workerStatusUpdates: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, databaseSizeMB: number, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean, workerRunning: boolean, workerPid?: number | null, workerName?: string | null }>, standaloneWorkers: Array<{ __typename?: 'StandaloneWorkerStatus', name: string, running: boolean, pid?: number | null, description: string }> } };
+export type WorkerStatusSubscriptionSubscription = { __typename?: 'Subscription', workerStatusUpdates: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, databaseSizeMB: number, redis?: { __typename?: 'RedisMetrics', connected: boolean, memoryUsage: string, totalKeys: number, connectedClients: number, totalCommandsProcessed: number, commandsPerSecond: number, uptimeInSeconds: number } | null, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean, workerRunning: boolean, workerPid?: number | null, workerName?: string | null }>, standaloneWorkers: Array<{ __typename?: 'StandaloneWorkerStatus', name: string, running: boolean, pid?: number | null, description: string }> } };
 
 export type AllianceKillmailsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
@@ -2415,6 +2435,12 @@ export const WorkerStatusUpdatesDocument = gql`
     timestamp
     healthy
     databaseSizeMB
+    redis {
+      memoryUsage
+      totalKeys
+      connectedClients
+      uptimeInSeconds
+    }
     queues {
       name
       messageCount
@@ -2452,6 +2478,15 @@ export const WorkerStatusSubscriptionDocument = gql`
     timestamp
     healthy
     databaseSizeMB
+    redis {
+      connected
+      memoryUsage
+      totalKeys
+      connectedClients
+      totalCommandsProcessed
+      commandsPerSecond
+      uptimeInSeconds
+    }
     queues {
       name
       messageCount

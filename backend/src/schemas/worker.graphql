@@ -38,6 +38,48 @@ type WorkerStatus {
   Database size in megabytes (MB)
   """
   databaseSizeMB: Float!
+
+  """
+  Redis server metrics
+  """
+  redis: RedisMetrics
+}
+
+type RedisMetrics {
+  """
+  Redis connection status
+  """
+  connected: Boolean!
+
+  """
+  Redis memory usage (human readable)
+  """
+  memoryUsage: String!
+
+  """
+  Number of keys in Redis
+  """
+  totalKeys: Int!
+
+  """
+  Connected clients count
+  """
+  connectedClients: Int!
+
+  """
+  Total commands processed
+  """
+  totalCommandsProcessed: Int!
+
+  """
+  Commands processed per second (instantaneous)
+  """
+  commandsPerSecond: Int!
+
+  """
+  Redis uptime in seconds
+  """
+  uptimeInSeconds: Int!
 }
 
 type QueueStatus {
