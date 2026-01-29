@@ -946,6 +946,7 @@ type TypeEdge {
 
 input TypeFilter {
   categoryList: [Int!]
+  groupList: [Int!]
   group_id: Int
   limit: Int
   name: String
