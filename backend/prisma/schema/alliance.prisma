@@ -5,7 +5,7 @@ model Alliance {
   date_founded            DateTime
   creator_corporation_id  Int
   creator_id              Int
-  executor_corporation_id Int
+  executor_corporation_id Int?
   faction_id              Int?
   created_at              DateTime           @default(now())
   updated_at              DateTime           @updatedAt
