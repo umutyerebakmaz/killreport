@@ -58,6 +58,7 @@ input TypeFilter {
   limit: Int
   name: String
   group_id: Int
+  groupList: [Int!]
   categoryList: [Int!]
   published: Boolean
 }

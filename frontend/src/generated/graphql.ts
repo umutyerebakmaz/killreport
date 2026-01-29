@@ -1258,6 +1258,7 @@ export type TypeEdge = {
 
 export type TypeFilter = {
   categoryList?: InputMaybe<Array<Scalars['Int']['input']>>;
+  groupList?: InputMaybe<Array<Scalars['Int']['input']>>;
   group_id?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
@@ -3771,7 +3772,9 @@ export type SearchCorporationsSuspenseQueryHookResult = ReturnType<typeof useSea
 export type SearchCorporationsQueryResult = Apollo.QueryResult<SearchCorporationsQuery, SearchCorporationsQueryVariables>;
 export const SearchTypesDocument = gql`
     query SearchTypes($name: String!, $limit: Int = 40) {
-  types(filter: {name: $name, limit: $limit, categoryList: [6, 22, 23, 40, 65]}) {
+  types(
+    filter: {name: $name, limit: $limit, categoryList: [6, 22, 23, 40, 65], groupList: [1025]}
+  ) {
     edges {
       node {
         id

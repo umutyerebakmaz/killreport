@@ -1257,6 +1257,7 @@ export type TypeEdge = {
 
 export type TypeFilter = {
   categoryList?: InputMaybe<Array<Scalars['Int']['input']>>;
+  groupList?: InputMaybe<Array<Scalars['Int']['input']>>;
   group_id?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
