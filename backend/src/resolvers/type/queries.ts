@@ -43,6 +43,14 @@ export const typeQueries: QueryResolvers = {
       if (filter.name) {
         where.name = { contains: filter.name, mode: 'insensitive' };
       }
+
+      // Group filtering: merge groupList and categoryList
+      const allGroupIds: number[] = [];
+
+      if (filter.groupList !== undefined && filter.groupList !== null && filter.groupList.length > 0) {
+        allGroupIds.push(...filter.groupList);
+      }
+
       if (filter.categoryList !== undefined && filter.categoryList !== null && filter.categoryList.length > 0) {
         // İlk önce category_id'lere göre item_groups'tan group_id'leri al
         const groups = await prisma.itemGroup.findMany({
@@ -50,14 +58,13 @@ export const typeQueries: QueryResolvers = {
           select: { id: true },
         });
         const groupIds = groups.map(g => g.id);
-
-        if (groupIds.length > 0) {
-          where.group_id = { in: groupIds };
-        } else {
-          // Eğer hiç group bulunamazsa, boş sonuç döndürmek için impossible condition
-          where.group_id = -1;
-        }
+        allGroupIds.push(...groupIds);
       }
+
+      if (allGroupIds.length > 0) {
+        where.group_id = { in: [...new Set(allGroupIds)] }; // Remove duplicates
+      }
+
       if (filter.group_id !== undefined && filter.group_id !== null) {
         where.group_id = filter.group_id;
       }
