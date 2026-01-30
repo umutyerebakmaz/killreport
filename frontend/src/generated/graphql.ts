@@ -216,8 +216,8 @@ export type CharacterEdge = {
 };
 
 export type CharacterFilter = {
-  alliance_id?: InputMaybe<Scalars['Int']['input']>;
-  corporation_id?: InputMaybe<Scalars['Int']['input']>;
+  allianceId?: InputMaybe<Scalars['Int']['input']>;
+  corporationId?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   orderBy?: InputMaybe<CharacterOrderBy>;
@@ -1401,6 +1401,13 @@ export type CorporationQueryVariables = Exact<{
 
 export type CorporationQuery = { __typename?: 'Query', corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, date_founded?: string | null, member_count: number, tax_rate: number, url?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, ceo?: { __typename?: 'Character', id: number, name: string } | null, creator?: { __typename?: 'Character', id: number, name: string } | null, metrics?: { __typename?: 'CorporationMetrics', memberCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null } | null } | null };
 
+export type CorporationCharactersQueryVariables = Exact<{
+  filter?: InputMaybe<CharacterFilter>;
+}>;
+
+
+export type CorporationCharactersQuery = { __typename?: 'Query', characters: { __typename?: 'CharacterConnection', edges: Array<{ __typename?: 'CharacterEdge', node: { __typename?: 'Character', id: number, name: string, security_status?: number | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
 export type CorporationKillmailsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
 }>;
@@ -2373,6 +2380,62 @@ export type CorporationQueryHookResult = ReturnType<typeof useCorporationQuery>;
 export type CorporationLazyQueryHookResult = ReturnType<typeof useCorporationLazyQuery>;
 export type CorporationSuspenseQueryHookResult = ReturnType<typeof useCorporationSuspenseQuery>;
 export type CorporationQueryResult = Apollo.QueryResult<CorporationQuery, CorporationQueryVariables>;
+export const CorporationCharactersDocument = gql`
+    query CorporationCharacters($filter: CharacterFilter) {
+  characters(filter: $filter) {
+    edges {
+      node {
+        id
+        name
+        security_status
+      }
+    }
+    pageInfo {
+      currentPage
+      totalPages
+      totalCount
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useCorporationCharactersQuery__
+ *
+ * To run a query within a React component, call `useCorporationCharactersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCorporationCharactersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCorporationCharactersQuery({
+ *   variables: {
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useCorporationCharactersQuery(baseOptions?: Apollo.QueryHookOptions<CorporationCharactersQuery, CorporationCharactersQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CorporationCharactersQuery, CorporationCharactersQueryVariables>(CorporationCharactersDocument, options);
+      }
+export function useCorporationCharactersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CorporationCharactersQuery, CorporationCharactersQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CorporationCharactersQuery, CorporationCharactersQueryVariables>(CorporationCharactersDocument, options);
+        }
+// @ts-ignore
+export function useCorporationCharactersSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CorporationCharactersQuery, CorporationCharactersQueryVariables>): Apollo.UseSuspenseQueryResult<CorporationCharactersQuery, CorporationCharactersQueryVariables>;
+export function useCorporationCharactersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CorporationCharactersQuery, CorporationCharactersQueryVariables>): Apollo.UseSuspenseQueryResult<CorporationCharactersQuery | undefined, CorporationCharactersQueryVariables>;
+export function useCorporationCharactersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CorporationCharactersQuery, CorporationCharactersQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CorporationCharactersQuery, CorporationCharactersQueryVariables>(CorporationCharactersDocument, options);
+        }
+export type CorporationCharactersQueryHookResult = ReturnType<typeof useCorporationCharactersQuery>;
+export type CorporationCharactersLazyQueryHookResult = ReturnType<typeof useCorporationCharactersLazyQuery>;
+export type CorporationCharactersSuspenseQueryHookResult = ReturnType<typeof useCorporationCharactersSuspenseQuery>;
+export type CorporationCharactersQueryResult = Apollo.QueryResult<CorporationCharactersQuery, CorporationCharactersQueryVariables>;
 export const CorporationKillmailsDocument = gql`
     query CorporationKillmails($filter: KillmailFilter) {
   killmails(filter: $filter) {
