@@ -51,12 +51,12 @@ export const characterQueries: QueryResolvers = {
         where.name = { startsWith: trim, mode: 'insensitive' };
       }
 
-      if (filter.corporation_id) {
-        where.corporation_id = filter.corporation_id;
+      if (filter.corporationId) {
+        where.corporation_id = filter.corporationId;
       }
 
-      if (filter.alliance_id) {
-        where.alliance_id = filter.alliance_id;
+      if (filter.allianceId) {
+        where.alliance_id = filter.allianceId;
       }
 
     }

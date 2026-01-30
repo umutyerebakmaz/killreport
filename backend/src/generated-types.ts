@@ -215,8 +215,8 @@ export type CharacterEdge = {
 };
 
 export type CharacterFilter = {
-  alliance_id?: InputMaybe<Scalars['Int']['input']>;
-  corporation_id?: InputMaybe<Scalars['Int']['input']>;
+  allianceId?: InputMaybe<Scalars['Int']['input']>;
+  corporationId?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   orderBy?: InputMaybe<CharacterOrderBy>;

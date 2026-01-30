@@ -178,8 +178,8 @@ type CharacterEdge {
 }
 
 input CharacterFilter {
-  alliance_id: Int
-  corporation_id: Int
+  allianceId: Int
+  corporationId: Int
   limit: Int
   name: String
   orderBy: CharacterOrderBy

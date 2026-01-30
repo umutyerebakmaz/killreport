@@ -1,5 +1,6 @@
 "use client";
 
+import CharactersTable from "@/components/CharactersTable/CharactersTable";
 import KillmailsTable from "@/components/KillmailsTable";
 import { Loader } from "@/components/Loader/Loader";
 import MemberDeltaBadge from "@/components/MemberDeltaBadge/MemberDeltaBadge";
@@ -7,6 +8,7 @@ import Paginator from "@/components/Paginator/Paginator";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import TotalMemberBadge from "@/components/TotalMemberBadge/TotalMemberBadge";
 import {
+  useCorporationCharactersQuery,
   useCorporationKillmailsQuery,
   useCorporationQuery,
   useKillmailsDateCountsQuery,
@@ -36,6 +38,10 @@ export default function CorporationDetailPage({
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(pageSizeFromUrl);
 
+  // Separate pagination for characters
+  const [charactersPage, setCharactersPage] = useState(1);
+  const [charactersPageSize, setCharactersPageSize] = useState(100);
+
   const { data, loading, error } = useCorporationQuery({
     variables: { id: parseInt(id) },
   });
@@ -51,6 +57,18 @@ export default function CorporationDetailPage({
         },
       },
       skip: activeTab !== "killmails", // Only fetch when killmails tab is active
+    });
+
+  const { data: charactersData, loading: charactersLoading } =
+    useCorporationCharactersQuery({
+      variables: {
+        filter: {
+          corporationId: parseInt(id),
+          page: currentPage,
+          limit: pageSize,
+        },
+      },
+      skip: activeTab !== "members",
     });
 
   // Fetch date counts for correct totals per date
@@ -69,6 +87,12 @@ export default function CorporationDetailPage({
     [killmailsData],
   );
 
+  // Memoize characters array
+  const characters = useMemo(
+    () => charactersData?.characters.edges.map((edge) => edge.node) || [],
+    [charactersData],
+  );
+
   // Create a map of date -> total count for that date
   const dateCountsMap = useMemo(() => {
     const map = new Map<string, number>();
@@ -81,11 +105,18 @@ export default function CorporationDetailPage({
   const pageInfo = killmailsData?.killmails.pageInfo;
   const totalPages = pageInfo?.totalPages || 0;
 
+  const charactersPageInfo = charactersData?.characters.pageInfo;
+  const charactersTotalPages = charactersPageInfo?.totalPages || 0;
+
   // URL sync for pagination and tab
   useEffect(() => {
     const params = new URLSearchParams();
     params.set("tab", activeTab);
     if (activeTab === "killmails") {
+      params.set("page", currentPage.toString());
+      params.set("pageSize", pageSize.toString());
+    }
+    if (activeTab == "members") {
       params.set("page", currentPage.toString());
       params.set("pageSize", pageSize.toString());
     }
@@ -104,6 +135,24 @@ export default function CorporationDetailPage({
   const handleLast = useCallback(
     () => totalPages > 0 && setCurrentPage(totalPages),
     [totalPages],
+  );
+
+  // Character pagination handlers
+  const handleCharactersNext = useCallback(
+    () =>
+      charactersPageInfo?.hasNextPage && setCharactersPage((prev) => prev + 1),
+    [charactersPageInfo?.hasNextPage],
+  );
+  const handleCharactersPrev = useCallback(
+    () =>
+      charactersPageInfo?.hasPreviousPage &&
+      setCharactersPage((prev) => prev - 1),
+    [charactersPageInfo?.hasPreviousPage],
+  );
+  const handleCharactersFirst = useCallback(() => setCharactersPage(1), []);
+  const handleCharactersLast = useCallback(
+    () => charactersTotalPages > 0 && setCharactersPage(charactersTotalPages),
+    [charactersTotalPages],
   );
 
   if (loading) {
@@ -362,9 +411,27 @@ export default function CorporationDetailPage({
           {activeTab === "members" && (
             <div className="p-6 bg-white/5 border-white/10">
               <h2 className="mb-4 text-2xl font-bold">Members</h2>
-              <p className="text-gray-400">
-                Corporation members will be displayed here
-              </p>
+              <CharactersTable characters={characters} loading={false} />
+              {characters.length > 0 && (
+                <div className="mt-6">
+                  <Paginator
+                    hasNextPage={charactersPageInfo?.hasNextPage ?? false}
+                    hasPrevPage={charactersPageInfo?.hasPreviousPage ?? false}
+                    onNext={handleCharactersNext}
+                    onPrev={handleCharactersPrev}
+                    onFirst={handleCharactersFirst}
+                    onLast={handleCharactersLast}
+                    loading={charactersLoading}
+                    currentPage={charactersPage}
+                    totalPages={charactersTotalPages}
+                    pageSize={charactersPageSize}
+                    onPageSizeChange={(size) => {
+                      setCharactersPageSize(size);
+                      setCharactersPage(1);
+                    }}
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>

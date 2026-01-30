@@ -25,7 +25,7 @@ function CorporationsContent() {
     dateFoundedTo?: string;
   }>({});
 
-  const { data, loading, error, refetch } = useCorporationsQuery({
+  const { data, loading, error } = useCorporationsQuery({
     variables: {
       filter: {
         page: currentPage,
@@ -60,7 +60,7 @@ function CorporationsContent() {
     }
   }, [currentPage, orderBy]);
 
-  if (loading) return <div className="p-8">Loading...</div>;
+  if (loading) return <Loader size="md" text="Loading corporations..." className="py-12" />;
   if (error) return <div className="p-8">Error: {error.message}</div>;
 
   const corporations = data?.corporations.edges.map((edge) => edge.node) || [];
@@ -137,7 +137,7 @@ function CorporationsContent() {
           {corporations.map((corporation) =>
             corporation ? (
               <CorporationCard key={corporation.id} corporation={corporation} />
-            ) : null
+            ) : null,
           )}
         </div>
       </div>
@@ -163,7 +163,11 @@ function CorporationsContent() {
 
 export default function CorporationsPage() {
   return (
-    <Suspense fallback={<Loader size="lg" text="Loading corporations..." className="p-8" />}>
+    <Suspense
+      fallback={
+        <Loader size="lg" text="Loading corporations..." className="p-8" />
+      }
+    >
       <CorporationsContent />
     </Suspense>
   );
