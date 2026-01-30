@@ -40,7 +40,7 @@ export default function CorporationDetailPage({
 
   // Separate pagination for characters
   const [charactersPage, setCharactersPage] = useState(1);
-  const [charactersPageSize, setCharactersPageSize] = useState(100);
+  const [charactersPageSize, setCharactersPageSize] = useState(25);
 
   const { data, loading, error } = useCorporationQuery({
     variables: { id: parseInt(id) },
@@ -64,8 +64,8 @@ export default function CorporationDetailPage({
       variables: {
         filter: {
           corporationId: parseInt(id),
-          page: currentPage,
-          limit: pageSize,
+          page: charactersPage,
+          limit: charactersPageSize,
         },
       },
       skip: activeTab !== "members",
@@ -116,12 +116,20 @@ export default function CorporationDetailPage({
       params.set("page", currentPage.toString());
       params.set("pageSize", pageSize.toString());
     }
-    if (activeTab == "members") {
-      params.set("page", currentPage.toString());
-      params.set("pageSize", pageSize.toString());
+    if (activeTab === "members") {
+      params.set("page", charactersPage.toString());
+      params.set("pageSize", charactersPageSize.toString());
     }
     router.push(`/corporations/${id}?${params.toString()}`, { scroll: false });
-  }, [currentPage, pageSize, activeTab, id, router]);
+  }, [
+    currentPage,
+    pageSize,
+    activeTab,
+    id,
+    router,
+    charactersPage,
+    charactersPageSize,
+  ]);
 
   const handleNext = useCallback(
     () => pageInfo?.hasNextPage && setCurrentPage((prev) => prev + 1),
