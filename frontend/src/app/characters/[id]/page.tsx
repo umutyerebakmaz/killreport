@@ -182,6 +182,8 @@ export default function CharacterDetailPage({
 
   const bornDate = formatBornDate(character.birthday);
   const age = calculateAge(character.birthday);
+  const updatedAt = formatBornDate(character.updatedAt);
+  const updatedAtHuman = calculateAge(character.updatedAt);
 
   return (
     <main>
@@ -340,6 +342,10 @@ export default function CharacterDetailPage({
                     </p>
                   </div>
                 )}
+                <div className="flex flex-col items-end justify-end col-start-2 col-end-3 text-xs text-gray-500 justify-self-end">
+                  <div>{updatedAt}</div>
+                  <div>{updatedAtHuman} ago</div>
+                </div>
               </div>
             </div>
           )}

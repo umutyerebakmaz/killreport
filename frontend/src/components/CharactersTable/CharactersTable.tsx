@@ -1,10 +1,11 @@
 import { CorporationCharactersQuery } from "@/generated/graphql";
-import Loader from "../Loader";
 import Link from "next/link";
+import Loader from "../Loader";
 
 // Extract the Character type from the GraphQL query result
-export type Character =
-  NonNullable<CorporationCharactersQuery['characters']['edges'][number]['node']>;
+export type Character = NonNullable<
+  CorporationCharactersQuery["characters"]["edges"][number]["node"]
+>;
 
 interface CharactersTableProps {
   characters: Character[];
@@ -16,16 +17,12 @@ export default function CharactersTable({
   loading,
 }: CharactersTableProps) {
   if (loading) {
-    return (
-      <Loader size="md" text="Loading characters..." className="py-12" />
-    );
+    return <Loader size="md" text="Loading characters..." className="py-12" />;
   }
 
   if (characters.length === 0) {
     return (
-      <div className="py-12 text-center text-gray-400">
-        No character found
-      </div>
+      <div className="py-12 text-center text-gray-400">No character found</div>
     );
   }
 
@@ -45,8 +42,8 @@ export default function CharactersTable({
                   <img
                     src={`https://images.evetech.net/Character/${char.id}_64.png`}
                     alt={char.name}
-                    width={32}
-                    height={32}
+                    width={48}
+                    height={48}
                   />
                   <Link
                     href={`/characters/${char.id}`}
