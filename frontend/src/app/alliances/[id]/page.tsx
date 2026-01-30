@@ -1,6 +1,6 @@
 "use client";
 
-import CorporationTable from "@/components/CorporationTable/CorporationTable";
+import CorporationTable from "@/components/CorporationsTable/CorporationsTable";
 import KillmailsTable from "@/components/KillmailsTable";
 import { Loader } from "@/components/Loader/Loader";
 import MemberDeltaBadge from "@/components/MemberDeltaBadge/MemberDeltaBadge";
