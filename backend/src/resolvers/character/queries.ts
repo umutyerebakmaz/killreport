@@ -23,9 +23,10 @@ export const characterQueries: QueryResolvers = {
 
     const result = {
       ...character,
-      birthday: character.birthday.toISOString(),
+      updatedAt: character?.updated_at ? character.updated_at.toISOString() : new Date().toISOString(),
+      birthday: character?.birthday ? character.birthday.toISOString() : null,
     } as any;
-
+    console.log('xxxxx', result)
     // Cache for 30 minutes (character info updates occasionally)
     await redis.setex(cacheKey, 1800, JSON.stringify(result));
     return result;
@@ -107,7 +108,8 @@ export const characterQueries: QueryResolvers = {
       edges: characters.map((c: any, index: number) => ({
         node: {
           ...c,
-          birthday: c.birthday.toISOString(),
+          updatedAt: c.updated_at ? c.updated_at.toISOString() : new Date().toISOString(),
+          birthday: c.birthday ? c.birthday.toISOString() : null,
         },
         cursor: Buffer.from(`${skip + index}`).toString('base64'),
       })),

@@ -200,6 +200,7 @@ export type Character = {
   race?: Maybe<Race>;
   security_status?: Maybe<Scalars['Float']['output']>;
   title?: Maybe<Scalars['String']['output']>;
+  updatedAt?: Maybe<Scalars['String']['output']>;
 };
 
 export type CharacterConnection = {
@@ -1753,6 +1754,7 @@ export type CharacterResolvers<ContextType = any, ParentType extends ResolversPa
   race?: Resolver<Maybe<ResolversTypes['Race']>, ParentType, ContextType>;
   security_status?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  updatedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
 export type CharacterConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['CharacterConnection'] = ResolversParentTypes['CharacterConnection']> = {
