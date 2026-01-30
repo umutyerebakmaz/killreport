@@ -7,6 +7,7 @@ query Character($id: Int!) {
     gender
     description
     title
+    updatedAt
     corporation {
       id
       name

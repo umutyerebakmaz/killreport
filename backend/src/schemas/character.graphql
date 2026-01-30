@@ -11,6 +11,7 @@ type Character {
   description: String
   title: String
   faction_id: Int
+  updatedAt: String
 }
 
 input CharacterFilter {
