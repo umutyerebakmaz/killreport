@@ -165,6 +165,7 @@ type Character {
   race: Race
   security_status: Float
   title: String
+  updatedAt: String
 }
 
 type CharacterConnection {
