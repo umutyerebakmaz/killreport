@@ -1326,7 +1326,7 @@ export type AllianceCorporationsQueryVariables = Exact<{
 }>;
 
 
-export type AllianceCorporationsQuery = { __typename?: 'Query', corporations: { __typename?: 'CorporationConnection', edges: Array<{ __typename?: 'CorporationEdge', cursor: string, node: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, ceo?: { __typename?: 'Character', id: number, name: string } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type AllianceCorporationsQuery = { __typename?: 'Query', corporations: { __typename?: 'CorporationConnection', edges: Array<{ __typename?: 'CorporationEdge', node: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, ceo?: { __typename?: 'Character', id: number, name: string } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type AllianceKillmailsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
@@ -1597,7 +1597,6 @@ export const AllianceCorporationsDocument = gql`
           name
         }
       }
-      cursor
     }
     pageInfo {
       currentPage
