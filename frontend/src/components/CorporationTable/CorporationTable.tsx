@@ -1,24 +1,29 @@
-import { AllianceCorporationsQuery, Corporation } from "@/generated/graphql";
+import { AllianceCorporationsQuery } from "@/generated/graphql";
 import Loader from "../Loader";
 import Link from "next/link";
 import TotalMemberBadge from "../TotalMemberBadge/TotalMemberBadge";
 
-interface CorporationTableProps {
-  corporations: AllianceCorporationsQuery["corporations"];
+
+// Extract the Killmail type from the GraphQL query result
+export type Corporation =
+  NonNullable<AllianceCorporationsQuery['corporations']['edges'][number]['node']>;
+
+interface CorporationsTableProps {
+  corporations: Corporation[];
   loading: boolean;
 }
 
-export default function CorporationTable({
+export default function CorporationsTable({
   corporations,
   loading,
-}: CorporationTableProps) {
+}: CorporationsTableProps) {
   if (loading) {
     return (
       <Loader size="md" text="Loading corporations..." className="py-12" />
     );
   }
 
-  if (corporations?.length) {
+  if (corporations.length === 0) {
     return (
       <div className="py-12 text-center text-gray-400">
         No corporation found
