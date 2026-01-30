@@ -1,0 +1,13 @@
+query WorkerStatus {
+  workerStatus {
+    timestamp
+    healthy
+    queues {
+      name
+      messageCount
+      consumerCount
+      active
+    }
+  }
+}
+
