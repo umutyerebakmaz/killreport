@@ -18,8 +18,8 @@ input CharacterFilter {
   limit: Int
   search: String
   name: String
-  corporation_id: Int
-  alliance_id: Int
+  corporationId: Int
+  allianceId: Int
   orderBy: CharacterOrderBy
 }
 
