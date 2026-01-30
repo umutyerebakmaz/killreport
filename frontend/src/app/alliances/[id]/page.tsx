@@ -392,7 +392,7 @@ export default function AllianceDetailPage({
                 )}
               </div>
               {/* Member Corporation Table  */}
-              <CorporationTable corporations={corporations} loading={loading} />
+              <CorporationTable corporations={corporations} loading={corporationsLoading} />
                   {corporations.length > 0 && (
                     <div className="mt-6">
                       <Paginator
@@ -415,7 +415,6 @@ export default function AllianceDetailPage({
                       />
                     </div>
                   )}
-              )}
             </div>
           )}
         </div>
