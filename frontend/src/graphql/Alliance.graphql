@@ -26,28 +26,3 @@ query Alliance($id: Int!) {
     }
   }
 }
-
-query AllianceCorporations($filter: CorporationFilter) {
-  corporations(filter: $filter) {
-    edges {
-      node {
-        id
-        name
-        ticker
-        member_count
-        ceo {
-          id
-          name
-        }
-      }
-      cursor
-    }
-    pageInfo {
-      currentPage
-      totalPages
-      totalCount
-      hasNextPage
-      hasPreviousPage
-    }
-  }
-}
