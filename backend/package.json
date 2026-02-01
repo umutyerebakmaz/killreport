@@ -96,7 +96,7 @@
         "@graphql-codegen/schema-ast": "^5.0.0",
         "@graphql-codegen/typescript": "^5.0.2",
         "@graphql-codegen/typescript-resolvers": "^5.1.0",
-        "@parcel/watcher": "2.5.1",
+        "@parcel/watcher": "2.5.6",
         "@types/amqplib": "^0.10.8",
         "@types/ioredis": "^5.0.0",
         "@types/node": "^24.10.1",
