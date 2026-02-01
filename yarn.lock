@@ -2741,12 +2741,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/eslint-plugin-next@npm:16.0.0":
-  version: 16.0.0
-  resolution: "@next/eslint-plugin-next@npm:16.0.0"
+"@next/eslint-plugin-next@npm:16.1.6":
+  version: 16.1.6
+  resolution: "@next/eslint-plugin-next@npm:16.1.6"
   dependencies:
     fast-glob: "npm:3.3.1"
-  checksum: 10c0/ec39bd20b735897091ed47477626ebd0fe093867cc991fa36e38433dd638188f61c1d7270d6272fa1ccee004c23070edeb581dcadb8f2c3160dc908452c9a0de
+  checksum: 10c0/1498ded3421326738411eb11e794a5ef6aa01daeff0d89a12d05f360984527ccce2cc9588cc11477ee0e4b09a7570a640e7b6ff79ee3eb49c8cf0fc6b105a24b
   languageName: node
   linkType: hard
 
@@ -5627,11 +5627,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-config-next@npm:16.0.0":
-  version: 16.0.0
-  resolution: "eslint-config-next@npm:16.0.0"
+"eslint-config-next@npm:16.1.6":
+  version: 16.1.6
+  resolution: "eslint-config-next@npm:16.1.6"
   dependencies:
-    "@next/eslint-plugin-next": "npm:16.0.0"
+    "@next/eslint-plugin-next": "npm:16.1.6"
     eslint-import-resolver-node: "npm:^0.3.6"
     eslint-import-resolver-typescript: "npm:^3.5.2"
     eslint-plugin-import: "npm:^2.32.0"
@@ -5646,7 +5646,7 @@ __metadata:
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 10c0/75a12db8e566d3fe1285782455c9b93cac615e9f3d8dd4ebb2acdc4acf2e9fcdd01ecffda117989c53acc4ff0e9a19a0d06cb55e0b31db155c08798dd2312cfc
+  checksum: 10c0/2b4c13c3d556daf7b559d032276cd4ac2454413a574946cf1a689844784523ad44dd3bca525d4530e2cef5f5ecc036643e562792aea0a9140276b84866775bf2
   languageName: node
   linkType: hard
 
@@ -6187,7 +6187,7 @@ __metadata:
     "@types/react-dom": "npm:^19"
     baseline-browser-mapping: "npm:^2.9.11"
     eslint: "npm:^9"
-    eslint-config-next: "npm:16.0.0"
+    eslint-config-next: "npm:16.1.6"
     graphql: "npm:^16.11.0"
     graphql-sse: "npm:^2.6.0"
     next: "npm:16.0.10"
