@@ -348,13 +348,13 @@ module.exports = {
       time: true,
     },
 
-    // Backfill Values Worker (prefetch: 5)
+    // Backfill Values Worker (prefetch: 3)
     {
       name: 'worker-backfill-values',
       cwd: '/var/www/killreport/backend',
       script: 'yarn',
       args: 'worker:backfill-values',
-      instances: 5,
+      instances: 2,
       exec_mode: 'fork',
       env: {
         NODE_ENV: 'production',
