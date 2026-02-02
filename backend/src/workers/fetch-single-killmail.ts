@@ -7,6 +7,7 @@
  */
 
 import '../config';
+import { calculateKillmailValues } from '../helpers/calculate-killmail-values';
 import { KillmailService } from '../services/killmail';
 import prismaWorker from '../services/prisma-worker';
 
@@ -41,14 +42,27 @@ async function fetchSingleKillmail(killmailId: number, killmailHash: string) {
         // 3. Save to database
         console.log(`\n💾 Saving to database...`);
 
+        // ⚡ Calculate value fields before saving
+        const values = await calculateKillmailValues({
+            victim: { ship_type_id: detail.victim.ship_type_id },
+            items: detail.victim.items?.map(item => ({
+                item_type_id: item.item_type_id,
+                quantity_destroyed: item.quantity_destroyed,
+                quantity_dropped: item.quantity_dropped,
+            })) || []
+        });
+
         await prismaWorker.$transaction(async (tx) => {
-            // Create main killmail record
+            // Create main killmail record with cached values
             await tx.killmail.create({
                 data: {
                     killmail_id: killmailId,
                     killmail_hash: killmailHash,
                     killmail_time: new Date(detail.killmail_time),
                     solar_system_id: detail.solar_system_id,
+                    total_value: values.totalValue,
+                    destroyed_value: values.destroyedValue,
+                    dropped_value: values.droppedValue,
                 },
             });
 
