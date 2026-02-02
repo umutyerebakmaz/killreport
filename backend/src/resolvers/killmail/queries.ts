@@ -1,374 +1,134 @@
+import { CACHE_TTL } from '@config/cache';
 import { QueryResolvers } from '@generated-types';
 import prisma from '@services/prisma';
 import redis from '@services/redis';
+import { filters } from './filters';
 
 /**
  * Killmail Query Resolvers
  * Handles fetching killmail data and listing killmails with filters
  */
 export const killmailQueries: QueryResolvers = {
-    killmail: async (_, { id }) => {
-        const cacheKey = `killmail:detail:${id}`;
+  killmail: async (_, { id }) => {
+    const cacheKey = `killmail:detail:${id}`;
 
-        // Check cache first
-        const cached = await redis.get(cacheKey);
-        if (cached) {
-            return JSON.parse(cached);
-        }
+    // Check cache first
+    const cached = await redis.get(cacheKey);
 
-        const killmail = await prisma.killmail.findUnique({
-            where: { killmail_id: Number(id) },
-        });
+    if (cached) {
+      return JSON.parse(cached);
+    }
 
-        if (!killmail) return null;
+    const killmail = await prisma.killmail.findUnique({
+      where: { killmail_id: Number(id) },
+    });
 
-        // Field resolvers will handle victim, attackers, items via DataLoaders
-        const result = {
-            id: killmail.killmail_id.toString(),
-            killmailHash: killmail.killmail_hash,
-            killmailTime: killmail.killmail_time.toISOString(),
-            solarSystemId: killmail.solar_system_id,
-            createdAt: killmail.created_at.toISOString(),
-        } as any;
+    if (!killmail) return null;
 
-        // Cache for 1 hour (killmails never change)
-        await redis.setex(cacheKey, 3600, JSON.stringify(result));
-        return result;
-    },
+    // Field resolvers will handle victim, attackers, items via DataLoaders
+    const result = {
+      id: killmail.killmail_id.toString(),
+      killmailHash: killmail.killmail_hash,
+      killmailTime: killmail.killmail_time.toISOString(),
+      solarSystemId: killmail.solar_system_id,
+      createdAt: killmail.created_at.toISOString(),
+    } as any;
 
-    killmails: async (_, args) => {
-        const page = args.filter?.page ?? 1;
-        const limit = Math.min(args.filter?.limit ?? 25, 100); // Max 100 per page
-        const orderBy = args.filter?.orderBy ?? 'timeDesc';
-        const search = args.filter?.search;
-        const shipTypeId = args.filter?.shipTypeId;
-        const regionId = args.filter?.regionId;
-        const systemId = args.filter?.systemId;
-        const characterId = args.filter?.characterId;
-        const corporationId = args.filter?.corporationId;
-        const allianceId = args.filter?.allianceId;
+    // Cache using centralized config (90 days - killmails never change)
+    const cacheDurationSeconds = Math.floor(CACHE_TTL.KILLMAIL_DETAIL / 1000);
+    await redis.setex(cacheKey, cacheDurationSeconds, JSON.stringify(result));
+    return result;
+  },
 
-        const skip = (page - 1) * limit;
+  killmails: async (_, args) => {
+    const page = args.filter?.page ?? 1;
+    const limit = Math.min(args.filter?.limit ?? 25, 100); // Max 100 per page
+    const orderBy = args.filter?.orderBy ?? 'timeDesc';
 
-        // Build WHERE clause
-        const where: any = {};
+    const skip = (page - 1) * limit;
 
-        // Search in victim or attacker names, and ship types
-        if (search) {
-            where.OR = [
-                {
-                    victim: {
-                        OR: [
-                            {
-                                character: {
-                                    name: {
-                                        contains: search,
-                                        mode: 'insensitive'
-                                    }
-                                }
-                            },
-                            {
-                                corporation: {
-                                    name: {
-                                        contains: search,
-                                        mode: 'insensitive'
-                                    }
-                                }
-                            },
-                            {
-                                alliance: {
-                                    name: {
-                                        contains: search,
-                                        mode: 'insensitive'
-                                    }
-                                }
-                            },
-                            {
-                                ship_type: {
-                                    name: {
-                                        contains: search,
-                                        mode: 'insensitive'
-                                    }
-                                }
-                            },
-                        ],
-                    },
-                },
-                {
-                    attackers: {
-                        some: {
-                            OR: [
-                                {
-                                    character: {
-                                        name: { contains: search, mode: 'insensitive' }
-                                    }
-                                },
-                                {
-                                    corporation: {
-                                        name: { contains: search, mode: 'insensitive' }
-                                    }
-                                },
-                                {
-                                    alliance: {
-                                        name: { contains: search, mode: 'insensitive' }
-                                    }
-                                },
-                                {
-                                    ship_type: {
-                                        name: { contains: search, mode: 'insensitive' }
-                                    }
-                                },
-                            ],
-                        },
-                    },
-                },
-            ];
-        }
+    // Build WHERE clause using centralized filter logic
+    const where = filters(args.filter ?? {});
 
-        if (shipTypeId) {
-            where.OR = [
-                {
-                    victim: {
-                        ship_type_id: shipTypeId,
-                    },
-                },
-                {
-                    attackers: {
-                        some: {
-                            ship_type_id: shipTypeId,
-                        },
-                    },
-                },
-            ];
-        }
+    // Performance: Count only when needed (first page or filter change)
+    // For subsequent pages, estimate from previous count
+    const totalCount = await prisma.killmail.count({ where });
+    const totalPages = Math.ceil(totalCount / limit);
 
-        if (regionId) {
-            where.solar_system = {
-                ...where.solar_system,
-                constellation: {
-                    region_id: regionId,
-                },
-            };
-        }
+    // Fetch only killmail data, field resolvers will handle relations via DataLoaders
+    const killmails = await prisma.killmail.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: {
+        killmail_time: orderBy === 'timeAsc' ? 'asc' : 'desc'
+      },
+    });
 
-        if (systemId) {
-            where.solar_system_id = systemId;
-        }
+    const edges = killmails.map((km, index) => ({
+      node: {
+        id: km.killmail_id.toString(),
+        killmail_id: km.killmail_id,
+        killmailHash: km.killmail_hash,
+        killmailTime: km.killmail_time.toISOString(),
+        solarSystemId: km.solar_system_id,
+        createdAt: km.created_at.toISOString(),
+        // Values will be calculated by field resolvers on demand
+      } as any,
+      cursor: Buffer.from(`${skip + index + 1}`).toString('base64'),
+    }));
 
-        // Character filter: killmails where character is victim OR attacker
-        if (characterId) {
-            where.OR = [
-                { victim: { character_id: characterId } },
-                { attackers: { some: { character_id: characterId } } },
-            ];
-        }
+    return {
+      edges,
+      pageInfo: {
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+        currentPage: page,
+        totalPages,
+        totalCount,
+      },
+    };
+  },
 
-        // Corporation filter: killmails where corporation is victim OR attacker
-        if (corporationId) {
-            where.OR = [
-                { victim: { corporation_id: corporationId } },
-                { attackers: { some: { corporation_id: corporationId } } },
-            ];
-        }
+  killmailsDateCounts: async (_, args) => {
+    // Build WHERE clause using centralized filter logic
+    const where = filters(args.filter ?? {});
 
-        // Alliance filter: killmails where alliance is victim OR attacker
-        if (allianceId) {
-            where.OR = [
-                { victim: { alliance_id: allianceId } },
-                { attackers: { some: { alliance_id: allianceId } } },
-            ];
-        }
+    // For performance: use raw SQL when no filters, Prisma when filtered
+    if (Object.keys(where).length === 0) {
+      const result = await prisma.$queryRaw<{ date: Date; count: bigint }[]>`
+                SELECT
+                    DATE(killmail_time) as date,
+                    COUNT(*)::bigint as count
+                FROM killmails
+                GROUP BY DATE(killmail_time)
+                ORDER BY date DESC
+            `;
 
-        // Performance: Count only when needed (first page or filter change)
-        // For subsequent pages, estimate from previous count
-        const totalCount = await prisma.killmail.count({ where });
-        const totalPages = Math.ceil(totalCount / limit);
+      return result.map(row => ({
+        date: row.date.toISOString().split('T')[0],
+        count: Number(row.count),
+      }));
+    }
 
-        // Fetch only killmail data, field resolvers will handle relations via DataLoaders
-        const killmails = await prisma.killmail.findMany({
-            where,
-            skip,
-            take: limit,
-            orderBy: {
-                killmail_time: orderBy === 'timeAsc' ? 'asc' : 'desc'
-            },
-        });
+    // Fetch only killmail_time for date grouping (performance optimization)
+    const killmails = await prisma.killmail.findMany({
+      where,
+      select: { killmail_time: true },
+      orderBy: { killmail_time: 'desc' },
+    });
 
-        const edges = killmails.map((km, index) => ({
-            node: {
-                id: km.killmail_id.toString(),
-                killmail_id: km.killmail_id,
-                killmailHash: km.killmail_hash,
-                killmailTime: km.killmail_time.toISOString(),
-                solarSystemId: km.solar_system_id,
-                createdAt: km.created_at.toISOString(),
-                // Values will be calculated by field resolvers on demand
-            } as any,
-            cursor: Buffer.from(`${skip + index + 1}`).toString('base64'),
-        }));
+    // Group by date
+    const dateCounts = new Map<string, number>();
+    for (const km of killmails) {
+      const date = km.killmail_time.toISOString().split('T')[0]; // YYYY-MM-DD
+      dateCounts.set(date, (dateCounts.get(date) || 0) + 1);
+    }
 
-        return {
-            edges,
-            pageInfo: {
-                hasNextPage: page < totalPages,
-                hasPreviousPage: page > 1,
-                currentPage: page,
-                totalPages,
-                totalCount,
-            },
-        };
-    },
-
-    killmailsDateCounts: async (_, args) => {
-        const search = args.filter?.search;
-        const shipTypeId = args.filter?.shipTypeId;
-        const regionId = args.filter?.regionId;
-        const systemId = args.filter?.systemId;
-        const characterId = args.filter?.characterId;
-        const corporationId = args.filter?.corporationId;
-        const allianceId = args.filter?.allianceId;
-
-        // Build WHERE clause (same as killmails query)
-        const where: any = {};
-
-        if (search) {
-            where.OR = [
-                {
-                    victim: {
-                        OR: [
-                            {
-                                character: {
-                                    name: {
-                                        contains: search,
-                                        mode: 'insensitive'
-                                    }
-                                }
-                            },
-                            {
-                                corporation: {
-                                    name: {
-                                        contains: search,
-                                        mode: 'insensitive'
-                                    }
-                                }
-                            },
-                            {
-                                alliance: {
-                                    name: {
-                                        contains: search,
-                                        mode: 'insensitive'
-                                    }
-                                }
-                            },
-                        ],
-                    },
-                },
-                {
-                    attackers: {
-                        some: {
-                            OR: [
-                                {
-                                    character: {
-                                        name: {
-                                            contains: search,
-                                            mode: 'insensitive'
-                                        }
-                                    }
-                                },
-                                {
-                                    corporation: {
-                                        name: {
-                                            contains: search,
-                                            mode: 'insensitive'
-                                        }
-                                    }
-                                },
-                                {
-                                    alliance: {
-                                        name: {
-                                            contains: search,
-                                            mode: 'insensitive'
-                                        }
-                                    }
-                                },
-                            ],
-                        },
-                    },
-                },
-            ];
-        }
-
-        if (shipTypeId) {
-            where.OR = [
-                {
-                    victim: {
-                        ship_type_id: shipTypeId,
-                    },
-                },
-                {
-                    attackers: {
-                        some: {
-                            ship_type_id: shipTypeId,
-                        },
-                    },
-                },
-            ];
-        }
-
-        if (regionId) {
-            where.solar_system = {
-                constellation: {
-                    region_id: regionId,
-                },
-            };
-        }
-
-        if (systemId) {
-            where.solar_system_id = systemId;
-        }
-
-        // Character filter: killmails where character is victim OR attacker
-        if (characterId) {
-            where.OR = [
-                { victim: { character_id: characterId } },
-                { attackers: { some: { character_id: characterId } } },
-            ];
-        }
-
-        // Corporation filter: killmails where corporation is victim OR attacker
-        if (corporationId) {
-            where.OR = [
-                { victim: { corporation_id: corporationId } },
-                { attackers: { some: { corporation_id: corporationId } } },
-            ];
-        }
-
-        // Alliance filter: killmails where alliance is victim OR attacker
-        if (allianceId) {
-            where.OR = [
-                { victim: { alliance_id: allianceId } },
-                { attackers: { some: { alliance_id: allianceId } } },
-            ];
-        }
-
-        // Fetch only killmail_time for date grouping (performance optimization)
-        const killmails = await prisma.killmail.findMany({
-            where,
-            select: { killmail_time: true },
-            orderBy: { killmail_time: 'desc' },
-        });
-
-        // Group by date
-        const dateCounts = new Map<string, number>();
-        for (const km of killmails) {
-            const date = km.killmail_time.toISOString().split('T')[0]; // YYYY-MM-DD
-            dateCounts.set(date, (dateCounts.get(date) || 0) + 1);
-        }
-
-        // Convert to array
-        return Array.from(dateCounts.entries())
-            .map(([date, count]) => ({ date, count }))
-            .sort((a, b) => b.date.localeCompare(a.date)); // Sort by date desc
-    },
+    // Convert to array
+    return Array.from(dateCounts.entries())
+      .map(([date, count]) => ({ date, count }))
+      .sort((a, b) => b.date.localeCompare(a.date)); // Sort by date desc
+  },
 
 };
