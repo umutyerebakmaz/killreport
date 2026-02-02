@@ -4,11 +4,14 @@ set -e
 # Load environment variables
 export $(grep -v '^#' .env | xargs)
 
-# Create backup directory if it doesn't exist
-mkdir -p db_backups
+
+
+# Create backup directory in user home for cross-platform compatibility
+BACKUP_DIR="$HOME/backups/killreport_db_backups"
+mkdir -p "$BACKUP_DIR"
 
 # Create backup with proper transaction isolation and serializable snapshot
-BACKUP_FILE="db_backups/backup_$(date +%Y%m%d_%H%M%S).sql"
+BACKUP_FILE="$BACKUP_DIR/backup_$(date +%Y%m%d_%H%M%S).sql"
 
 echo "🔄 Creating transactional backup with proper dependency order..."
 
