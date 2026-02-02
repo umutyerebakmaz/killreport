@@ -122,11 +122,16 @@ export default function WorkersPage() {
       q.name.startsWith("zkillboard_") || q.name.startsWith("redisq_"),
   );
 
+  const backfillQueues = queues.filter((q: QueueInfo) =>
+    q.name.includes("backfill_"),
+  );
+
   const otherQueues = queues.filter(
     (q: QueueInfo) =>
       !q.name.startsWith("esi_") &&
       !q.name.startsWith("zkillboard_") &&
-      !q.name.startsWith("redisq_"),
+      !q.name.startsWith("redisq_") &&
+      !q.name.includes("backfill_"),
   );
 
   return (
@@ -306,6 +311,14 @@ export default function WorkersPage() {
           title="ESI Universe Workers"
           subtitle="Regions, constellations, solar systems"
           queues={esiUniverseQueues}
+        />
+      )}
+
+      {backfillQueues.length > 0 && (
+        <QueueSection
+          title="Maintenance & Backfill Workers"
+          subtitle="Historical data processing and value recalculation"
+          queues={backfillQueues}
         />
       )}
 

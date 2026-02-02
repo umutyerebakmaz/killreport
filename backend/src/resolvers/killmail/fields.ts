@@ -124,6 +124,11 @@ export const killmailFields: KillmailResolvers = {
     },
 
     totalValue: async (parent: any, _, context) => {
+        // ⚡ Return cached value if available (performance optimization)
+        if (parent.totalValue !== null && parent.totalValue !== undefined) {
+            return parent.totalValue;
+        }
+
         const killmailId = typeof parent.id === 'string' ? parseInt(parent.id) : parent.id;
 
         // Victim'dan ship type'ı al
@@ -167,6 +172,11 @@ export const killmailFields: KillmailResolvers = {
     },
 
     destroyedValue: async (parent: any, _, context) => {
+        // ⚡ Return cached value if available (performance optimization)
+        if (parent.destroyedValue !== null && parent.destroyedValue !== undefined) {
+            return parent.destroyedValue;
+        }
+
         const killmailId = typeof parent.id === 'string' ? parseInt(parent.id) : parent.id;
 
         // Victim'dan ship type'ı al
@@ -207,6 +217,11 @@ export const killmailFields: KillmailResolvers = {
     },
 
     droppedValue: async (parent: any, _, context) => {
+        // ⚡ Return cached value if available (performance optimization)
+        if (parent.droppedValue !== null && parent.droppedValue !== undefined) {
+            return parent.droppedValue;
+        }
+
         const killmailId = typeof parent.id === 'string' ? parseInt(parent.id) : parent.id;
 
         const items = await context.loaders.items.load(killmailId);
