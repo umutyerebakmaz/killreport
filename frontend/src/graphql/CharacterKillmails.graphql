@@ -6,8 +6,8 @@ query CharacterKillmails($filter: KillmailFilter) {
         killmailTime
         totalValue
         attackerCount
-        isSoloKill
-        hasNpcAttackers
+        solo
+        npc
         victim {
           character {
             id

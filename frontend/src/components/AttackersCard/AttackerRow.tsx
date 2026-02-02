@@ -24,8 +24,8 @@ export default function AttackerRow({
       : "0.0";
 
   // Use backend-computed fields
-  const isSolo = killmail.isSoloKill;
-  const isNpcAttackers = killmail.hasNpcAttackers;
+  const isSolo = killmail.solo;
+  const isNpcAttackers = killmail.npc;
 
   // Check if attacker is NPC (no character but has corporation)
   const isNPC = !attacker.character?.id && attacker.corporation?.id;
