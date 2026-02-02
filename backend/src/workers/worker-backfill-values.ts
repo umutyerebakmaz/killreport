@@ -22,224 +22,224 @@ import prismaWorker from '../services/prisma-worker';
 import { getRabbitMQChannel } from '../services/rabbitmq';
 
 const QUEUE_NAME = 'backfill_killmail_values_queue';
-const PREFETCH_COUNT = 5; // Process 5 killmails at a time
+const PREFETCH_COUNT = 3; // Process 3 killmails at a time
 const STATS_INTERVAL = 10; // Log stats every N processed killmails
 
 interface BackfillMessage {
-    killmailId: number;
-    queuedAt: string;
-    source: string;
+  killmailId: number;
+  queuedAt: string;
+  source: string;
 }
 
 interface KillmailWithItems {
-    killmail_id: number;
-    victim: { ship_type_id: number } | null;
-    items: Array<{
-        item_type_id: number;
-        quantity_destroyed: number | null;
-        quantity_dropped: number | null;
-    }>;
+  killmail_id: number;
+  victim: { ship_type_id: number } | null;
+  items: Array<{
+    item_type_id: number;
+    quantity_destroyed: number | null;
+    quantity_dropped: number | null;
+  }>;
 }
 
 /**
  * Calculate values for a single killmail
  */
 async function calculateValues(killmail: KillmailWithItems) {
-    if (!killmail.victim) {
-        return { totalValue: 0, destroyedValue: 0, droppedValue: 0 };
-    }
+  if (!killmail.victim) {
+    return { totalValue: 0, destroyedValue: 0, droppedValue: 0 };
+  }
 
-    const items = killmail.items || [];
+  const items = killmail.items || [];
 
-    // Collect all unique type IDs
-    const allTypeIds = [
-        killmail.victim.ship_type_id,
-        ...items.map(item => item.item_type_id)
-    ];
-    const uniqueTypeIds = [...new Set(allTypeIds)];
+  // Collect all unique type IDs
+  const allTypeIds = [
+    killmail.victim.ship_type_id,
+    ...items.map(item => item.item_type_id)
+  ];
+  const uniqueTypeIds = [...new Set(allTypeIds)];
 
-    // Fetch all market prices in one query
-    const marketPrices = await prismaWorker.marketPrice.findMany({
-        where: { type_id: { in: uniqueTypeIds } },
-        select: { type_id: true, sell: true }
-    });
+  // Fetch all market prices in one query
+  const marketPrices = await prismaWorker.marketPrice.findMany({
+    where: { type_id: { in: uniqueTypeIds } },
+    select: { type_id: true, sell: true }
+  });
 
-    // Create price map
-    const priceMap = new Map(
-        marketPrices.map(p => [p.type_id, p.sell || 0])
-    );
+  // Create price map
+  const priceMap = new Map(
+    marketPrices.map(p => [p.type_id, p.sell || 0])
+  );
 
-    // Calculate ship value
-    const shipPrice = priceMap.get(killmail.victim.ship_type_id) || 0;
+  // Calculate ship value
+  const shipPrice = priceMap.get(killmail.victim.ship_type_id) || 0;
 
-    let totalValue = shipPrice;
-    let destroyedValue = shipPrice;
-    let droppedValue = 0;
+  let totalValue = shipPrice;
+  let destroyedValue = shipPrice;
+  let droppedValue = 0;
 
-    // Calculate item values
-    for (const item of items) {
-        const price = priceMap.get(item.item_type_id) || 0;
-        const quantityDestroyed = item.quantity_destroyed || 0;
-        const quantityDropped = item.quantity_dropped || 0;
+  // Calculate item values
+  for (const item of items) {
+    const price = priceMap.get(item.item_type_id) || 0;
+    const quantityDestroyed = item.quantity_destroyed || 0;
+    const quantityDropped = item.quantity_dropped || 0;
 
-        destroyedValue += price * quantityDestroyed;
-        droppedValue += price * quantityDropped;
-        totalValue += price * (quantityDestroyed + quantityDropped);
-    }
+    destroyedValue += price * quantityDestroyed;
+    droppedValue += price * quantityDropped;
+    totalValue += price * (quantityDestroyed + quantityDropped);
+  }
 
-    return {
-        totalValue: Math.round(totalValue * 100) / 100,
-        destroyedValue: Math.round(destroyedValue * 100) / 100,
-        droppedValue: Math.round(droppedValue * 100) / 100
-    };
+  return {
+    totalValue: Math.round(totalValue * 100) / 100,
+    destroyedValue: Math.round(destroyedValue * 100) / 100,
+    droppedValue: Math.round(droppedValue * 100) / 100
+  };
 }
 
 async function backfillValuesWorker() {
-    logger.info('💰 Backfill Killmail Values Worker Started');
-    logger.info(`📦 Queue: ${QUEUE_NAME}`);
-    logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent`);
-    logger.info(`📊 Stats interval: Every ${STATS_INTERVAL} killmails\n`);
+  logger.info('💰 Backfill Killmail Values Worker Started');
+  logger.info(`📦 Queue: ${QUEUE_NAME}`);
+  logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent`);
+  logger.info(`📊 Stats interval: Every ${STATS_INTERVAL} killmails\n`);
 
-    let totalProcessed = 0;
-    let totalUpdated = 0;
-    let totalSkipped = 0;
-    let totalErrors = 0;
-    let startTime = Date.now();
-    let lastMessageTime = Date.now();
+  let totalProcessed = 0;
+  let totalUpdated = 0;
+  let totalSkipped = 0;
+  let totalErrors = 0;
+  let startTime = Date.now();
+  let lastMessageTime = Date.now();
 
-    try {
-        const channel = await getRabbitMQChannel();
+  try {
+    const channel = await getRabbitMQChannel();
 
-        await channel.assertQueue(QUEUE_NAME, {
-            durable: true,
-            arguments: { 'x-max-priority': 10 }
+    await channel.assertQueue(QUEUE_NAME, {
+      durable: true,
+      arguments: { 'x-max-priority': 10 }
+    });
+
+    channel.prefetch(PREFETCH_COUNT);
+
+    logger.info('✅ Connected to RabbitMQ');
+    logger.info('⏳ Waiting for killmails...\n');
+
+    // Check if queue is empty periodically
+    const emptyCheckInterval = setInterval(async () => {
+      const timeSinceLastMessage = Date.now() - lastMessageTime;
+      if (timeSinceLastMessage > 5000 && totalProcessed > 0) {
+        const elapsedSeconds = (Date.now() - startTime) / 1000;
+        const rate = totalProcessed / elapsedSeconds;
+
+        logger.info('\n' + '━'.repeat(60));
+        logger.info('✅ Queue completed!');
+        logger.info(`📊 Total: ${totalProcessed.toLocaleString()} processed`);
+        logger.info(`   ✓ Updated: ${totalUpdated.toLocaleString()}`);
+        logger.info(`   - Skipped: ${totalSkipped.toLocaleString()}`);
+        logger.info(`   ✗ Errors: ${totalErrors.toLocaleString()}`);
+        logger.info(`⏱️  Rate: ${rate.toFixed(2)} killmails/sec`);
+        logger.info(`🕐 Time: ${Math.floor(elapsedSeconds / 60)}m ${Math.floor(elapsedSeconds % 60)}s`);
+        logger.info('━'.repeat(60) + '\n');
+        logger.info('⏳ Waiting for new messages...\n');
+      }
+    }, 5000);
+
+    channel.consume(QUEUE_NAME, async (msg) => {
+      if (msg) lastMessageTime = Date.now();
+      if (!msg) return;
+
+      const message: BackfillMessage = JSON.parse(msg.content.toString());
+      const killmailId = message.killmailId;
+
+      try {
+        // Check if already has values (race condition protection)
+        const existing = await prismaWorker.killmail.findUnique({
+          where: { killmail_id: killmailId },
+          select: { total_value: true }
         });
 
-        channel.prefetch(PREFETCH_COUNT);
+        if (existing?.total_value !== null && existing?.total_value !== undefined) {
+          totalSkipped++;
+          totalProcessed++;
+          channel.ack(msg);
 
-        logger.info('✅ Connected to RabbitMQ');
-        logger.info('⏳ Waiting for killmails...\n');
+          if (totalProcessed % STATS_INTERVAL === 0) {
+            const rate = totalProcessed / ((Date.now() - startTime) / 1000);
+            logger.info(
+              `📊 [${totalProcessed}] Rate: ${rate.toFixed(2)}/sec | ` +
+              `Updated: ${totalUpdated} | Skipped: ${totalSkipped} | Errors: ${totalErrors}`
+            );
+          }
+          return;
+        }
 
-        // Check if queue is empty periodically
-        const emptyCheckInterval = setInterval(async () => {
-            const timeSinceLastMessage = Date.now() - lastMessageTime;
-            if (timeSinceLastMessage > 5000 && totalProcessed > 0) {
-                const elapsedSeconds = (Date.now() - startTime) / 1000;
-                const rate = totalProcessed / elapsedSeconds;
-
-                logger.info('\n' + '━'.repeat(60));
-                logger.info('✅ Queue completed!');
-                logger.info(`📊 Total: ${totalProcessed.toLocaleString()} processed`);
-                logger.info(`   ✓ Updated: ${totalUpdated.toLocaleString()}`);
-                logger.info(`   - Skipped: ${totalSkipped.toLocaleString()}`);
-                logger.info(`   ✗ Errors: ${totalErrors.toLocaleString()}`);
-                logger.info(`⏱️  Rate: ${rate.toFixed(2)} killmails/sec`);
-                logger.info(`🕐 Time: ${Math.floor(elapsedSeconds / 60)}m ${Math.floor(elapsedSeconds % 60)}s`);
-                logger.info('━'.repeat(60) + '\n');
-                logger.info('⏳ Waiting for new messages...\n');
+        // Fetch killmail with items
+        const killmail = await prismaWorker.killmail.findUnique({
+          where: { killmail_id: killmailId },
+          include: {
+            victim: { select: { ship_type_id: true } },
+            items: {
+              select: {
+                item_type_id: true,
+                quantity_destroyed: true,
+                quantity_dropped: true
+              }
             }
-        }, 5000);
-
-        channel.consume(QUEUE_NAME, async (msg) => {
-            if (msg) lastMessageTime = Date.now();
-            if (!msg) return;
-
-            const message: BackfillMessage = JSON.parse(msg.content.toString());
-            const killmailId = message.killmailId;
-
-            try {
-                // Check if already has values (race condition protection)
-                const existing = await prismaWorker.killmail.findUnique({
-                    where: { killmail_id: killmailId },
-                    select: { total_value: true }
-                });
-
-                if (existing?.total_value !== null && existing?.total_value !== undefined) {
-                    totalSkipped++;
-                    totalProcessed++;
-                    channel.ack(msg);
-
-                    if (totalProcessed % STATS_INTERVAL === 0) {
-                        const rate = totalProcessed / ((Date.now() - startTime) / 1000);
-                        logger.info(
-                            `📊 [${totalProcessed}] Rate: ${rate.toFixed(2)}/sec | ` +
-                            `Updated: ${totalUpdated} | Skipped: ${totalSkipped} | Errors: ${totalErrors}`
-                        );
-                    }
-                    return;
-                }
-
-                // Fetch killmail with items
-                const killmail = await prismaWorker.killmail.findUnique({
-                    where: { killmail_id: killmailId },
-                    include: {
-                        victim: { select: { ship_type_id: true } },
-                        items: {
-                            select: {
-                                item_type_id: true,
-                                quantity_destroyed: true,
-                                quantity_dropped: true
-                            }
-                        }
-                    }
-                });
-
-                if (!killmail) {
-                    logger.warn(`⚠️  [${totalProcessed + 1}] Killmail ${killmailId} not found`);
-                    totalSkipped++;
-                    totalProcessed++;
-                    channel.ack(msg);
-                    return;
-                }
-
-                // Calculate values
-                const values = await calculateValues(killmail);
-
-                // Update killmail
-                await prismaWorker.killmail.update({
-                    where: { killmail_id: killmailId },
-                    data: {
-                        total_value: values.totalValue,
-                        destroyed_value: values.destroyedValue,
-                        dropped_value: values.droppedValue
-                    }
-                });
-
-                totalUpdated++;
-                totalProcessed++;
-                channel.ack(msg);
-
-                // Log progress
-                if (totalProcessed % STATS_INTERVAL === 0) {
-                    const rate = totalProcessed / ((Date.now() - startTime) / 1000);
-                    logger.info(
-                        `📊 [${totalProcessed}] Rate: ${rate.toFixed(2)}/sec | ` +
-                        `Updated: ${totalUpdated} | Skipped: ${totalSkipped} | Errors: ${totalErrors}`
-                    );
-                }
-
-            } catch (error: any) {
-                totalErrors++;
-                totalProcessed++;
-                logger.error(`❌ [${totalProcessed}] Killmail ${killmailId} failed:`, error.message);
-                channel.ack(msg); // Ack to avoid reprocessing
-            }
+          }
         });
 
-        // Graceful shutdown
-        process.on('SIGINT', async () => {
-            logger.info('\n🛑 Shutting down gracefully...');
-            clearInterval(emptyCheckInterval);
-            await channel.close();
-            await prismaWorker.$disconnect();
-            process.exit(0);
+        if (!killmail) {
+          logger.warn(`⚠️  [${totalProcessed + 1}] Killmail ${killmailId} not found`);
+          totalSkipped++;
+          totalProcessed++;
+          channel.ack(msg);
+          return;
+        }
+
+        // Calculate values
+        const values = await calculateValues(killmail);
+
+        // Update killmail
+        await prismaWorker.killmail.update({
+          where: { killmail_id: killmailId },
+          data: {
+            total_value: values.totalValue,
+            destroyed_value: values.destroyedValue,
+            dropped_value: values.droppedValue
+          }
         });
 
-    } catch (error) {
-        logger.error('Worker failed to start', { error });
-        await prismaWorker.$disconnect();
-        process.exit(1);
-    }
+        totalUpdated++;
+        totalProcessed++;
+        channel.ack(msg);
+
+        // Log progress
+        if (totalProcessed % STATS_INTERVAL === 0) {
+          const rate = totalProcessed / ((Date.now() - startTime) / 1000);
+          logger.info(
+            `📊 [${totalProcessed}] Rate: ${rate.toFixed(2)}/sec | ` +
+            `Updated: ${totalUpdated} | Skipped: ${totalSkipped} | Errors: ${totalErrors}`
+          );
+        }
+
+      } catch (error: any) {
+        totalErrors++;
+        totalProcessed++;
+        logger.error(`❌ [${totalProcessed}] Killmail ${killmailId} failed:`, error.message);
+        channel.ack(msg); // Ack to avoid reprocessing
+      }
+    });
+
+    // Graceful shutdown
+    process.on('SIGINT', async () => {
+      logger.info('\n🛑 Shutting down gracefully...');
+      clearInterval(emptyCheckInterval);
+      await channel.close();
+      await prismaWorker.$disconnect();
+      process.exit(0);
+    });
+
+  } catch (error) {
+    logger.error('Worker failed to start', { error });
+    await prismaWorker.$disconnect();
+    process.exit(1);
+  }
 }
 
 backfillValuesWorker();
