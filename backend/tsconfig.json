@@ -26,8 +26,8 @@
       "@utils/*": [
         "src/utils/*"
       ],
-      "@config": [
-        "src/config.ts"
+      "@config/*": [
+        "src/config/*"
       ],
       "@generated-types": [
         "src/generated-types.ts"

@@ -7,8 +7,8 @@ query Killmail($id: ID!) {
     droppedValue
     totalValue
     attackerCount
-    isSoloKill
-    hasNpcAttackers
+    solo
+    npc
     solarSystem {
       id
       name

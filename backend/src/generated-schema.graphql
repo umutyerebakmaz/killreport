@@ -457,13 +457,13 @@ type Killmail {
   droppedValue: Float
   finalBlow: Attacker
   fitting: Fitting
-  hasNpcAttackers: Boolean!
   id: ID!
-  isSoloKill: Boolean!
   items: [KillmailItem!]!
   killmailHash: String!
   killmailTime: String!
+  npc: Boolean!
   solarSystem: SolarSystem!
+  solo: Boolean!
   totalValue: Float
   victim: Victim
 }

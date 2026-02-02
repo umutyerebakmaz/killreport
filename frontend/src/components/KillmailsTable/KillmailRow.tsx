@@ -29,8 +29,8 @@ export default function KillmailRow({
         : "text-orange-400"; // Default color when no characterId, corporationId, or allianceId
 
   // Use backend-computed fields
-  const isSolo = km.isSoloKill;
-  const isNpcAttacker = km.hasNpcAttackers;
+  const isSolo = km.solo;
+  const isNpcAttacker = km.npc;
 
   return (
     <tr
