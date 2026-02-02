@@ -32,6 +32,10 @@ export const killmailQueries: QueryResolvers = {
       killmailTime: killmail.killmail_time.toISOString(),
       solarSystemId: killmail.solar_system_id,
       createdAt: killmail.created_at.toISOString(),
+      // Include cached values from database for performance
+      totalValue: (killmail as any).total_value,
+      destroyedValue: (killmail as any).destroyed_value,
+      droppedValue: (killmail as any).dropped_value,
     } as any;
 
     // Cache using centralized config (90 days - killmails never change)
@@ -73,7 +77,10 @@ export const killmailQueries: QueryResolvers = {
         killmailTime: km.killmail_time.toISOString(),
         solarSystemId: km.solar_system_id,
         createdAt: km.created_at.toISOString(),
-        // Values will be calculated by field resolvers on demand
+        // Include cached values from database for performance
+        totalValue: (km as any).total_value,
+        destroyedValue: (km as any).destroyed_value,
+        droppedValue: (km as any).dropped_value,
       } as any,
       cursor: Buffer.from(`${skip + index + 1}`).toString('base64'),
     }));

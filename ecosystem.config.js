@@ -347,5 +347,24 @@ module.exports = {
       out_file: '/var/www/killreport/logs/worker-prices-out.log',
       time: true,
     },
+
+    // Backfill Values Worker (prefetch: 5)
+    {
+      name: 'worker-backfill-values',
+      cwd: '/var/www/killreport/backend',
+      script: 'yarn',
+      args: 'worker:backfill-values',
+      instances: 5,
+      exec_mode: 'fork',
+      env: {
+        NODE_ENV: 'production',
+        LOG_LEVEL: 'debug',
+      },
+      max_memory_restart: '512M',
+      autorestart: true,
+      error_file: '/var/www/killreport/logs/worker-backfill-values-error.log',
+      out_file: '/var/www/killreport/logs/worker-backfill-values-out.log',
+      time: true,
+    },
   ],
 };

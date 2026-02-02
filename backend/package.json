@@ -42,6 +42,7 @@
         "queue:type-dogma": "tsx src/queues/queue-type-dogma.ts",
         "queue:zkillboard": "tsx src/queues/queue-zkillboard-sync.ts",
         "queue:character-corporations": "tsx src/queues/queue-character-corporations.ts",
+        "queue:backfill-values": "tsx src/queues/queue-backfill-values.ts",
         "remove:all": "rm -rf node_modules yarn.lock package-lock.json pnpm-lock.yaml",
         "scan:entities": "tsx src/workers/scan-killmail-entities.ts",
         "snapshot:alliances": "tsx src/workers/worker-alliance-snapshots.ts",
@@ -67,7 +68,8 @@
         "worker:redisq": "tsx src/workers/worker-redisq-stream.ts",
         "worker:races": "tsx src/workers/worker-races.ts",
         "worker:bloodlines": "tsx src/workers/worker-bloodlines.ts",
-        "worker:prices": "tsx src/workers/worker-prices.ts"
+        "worker:prices": "tsx src/workers/worker-prices.ts",
+        "worker:backfill-values": "tsx src/workers/worker-backfill-values.ts"
     },
     "dependencies": {
         "@envelop/response-cache": "^9.0.0",
