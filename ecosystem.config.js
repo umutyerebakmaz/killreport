@@ -329,6 +329,24 @@ module.exports = {
       time: true,
     },
 
+    // Queue Backfill Values - Manual (one-time task, run with: pm2 start ecosystem.config.js --only queue-backfill-values)
+    {
+      name: 'queue-backfill-values',
+      cwd: '/var/www/killreport/backend',
+      script: 'yarn',
+      args: 'queue:backfill-values',
+      instances: 1,
+      exec_mode: 'fork',
+      autorestart: false,
+      env: {
+        NODE_ENV: 'production',
+        LOG_LEVEL: 'info',
+      },
+      error_file: '/var/www/killreport/logs/queue-backfill-values-error.log',
+      out_file: '/var/www/killreport/logs/queue-backfill-values-out.log',
+      time: true,
+    },
+
     // Price Worker (prefetch: 10)
     {
       name: 'worker-prices',
