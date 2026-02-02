@@ -18,5 +18,8 @@ model Attacker {
   @@index([character_id])
   @@index([corporation_id])
   @@index([killmail_id])
+  @@index([character_id, killmail_id])
+  @@index([corporation_id, killmail_id])
+  @@index([alliance_id, killmail_id])
   @@map("attackers")
 }
