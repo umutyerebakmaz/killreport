@@ -93,7 +93,7 @@ export const killmailFields: KillmailResolvers = {
         return count;
     },
 
-    isSoloKill: async (parent: any, _, context) => {
+    solo: async (parent: any, _, context) => {
         const killmailId = typeof parent.id === 'string' ? parseInt(parent.id) : parent.id;
 
         // Use attackerCount DataLoader to check if solo
@@ -102,7 +102,7 @@ export const killmailFields: KillmailResolvers = {
         return count === 1;
     },
 
-    hasNpcAttackers: async (parent: any, _, context) => {
+    npc: async (parent: any, _, context) => {
         const killmailId = typeof parent.id === 'string' ? parseInt(parent.id) : parent.id;
 
         // Load all attackers for this killmail
