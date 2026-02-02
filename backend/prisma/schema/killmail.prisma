@@ -3,6 +3,9 @@ model Killmail {
   killmail_hash   String
   killmail_time   DateTime
   solar_system_id Int
+  total_value     Float?         // Cached value calculated at insertion time
+  destroyed_value Float?         // Cached value calculated at insertion time
+  dropped_value   Float?         // Cached value calculated at insertion time
   created_at      DateTime       @default(now())
   updated_at      DateTime       @updatedAt
   attackers       Attacker[]
@@ -11,5 +14,6 @@ model Killmail {
 
   @@index([killmail_time])
   @@index([solar_system_id])
+  @@index([total_value(sort: Desc)])
   @@map("killmails")
 }

@@ -22,6 +22,8 @@ export const QUEUE_WORKER_MAP: Record<string, string[]> = {
     'esi_type_price_queue': ['worker:prices', 'worker-prices'],
 
     'zkillboard_character_queue': ['worker:zkillboard', 'worker-zkillboard'],
+
+    'backfill_killmail_values_queue': ['worker:backfill-values', 'worker-backfill-values'],
 };
 
 /**

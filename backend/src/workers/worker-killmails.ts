@@ -1,4 +1,5 @@
 import '../config';
+import { calculateKillmailValues } from '../helpers/calculate-killmail-values';
 import { KillmailService } from '../services/killmail';
 import logger from '../services/logger';
 import prismaWorker from '../services/prisma-worker';
@@ -155,16 +156,29 @@ async function syncUserKillmails(message: QueueMessage): Promise<void> {
                 // Fetch killmail details from ESI
                 const detail = await KillmailService.getKillmailDetail(zkillPkg.killmail_id, zkillPkg.zkb.hash);
 
+                // ⚡ Calculate value fields before saving
+                const values = await calculateKillmailValues({
+                    victim: { ship_type_id: detail.victim.ship_type_id },
+                    items: detail.victim.items?.map(item => ({
+                        item_type_id: item.item_type_id,
+                        quantity_destroyed: item.quantity_destroyed,
+                        quantity_dropped: item.quantity_dropped,
+                    })) || []
+                });
+
                 // Try to create killmail with all related data
                 try {
                     await prismaWorker.$transaction(async (tx) => {
-                        // 1. Create main killmail record
+                        // 1. Create main killmail record with cached values
                         await tx.killmail.create({
                             data: {
                                 killmail_id: zkillPkg.killmail_id,
                                 killmail_hash: zkillPkg.zkb.hash,
                                 killmail_time: new Date(detail.killmail_time),
                                 solar_system_id: detail.solar_system_id,
+                                total_value: values.totalValue,
+                                destroyed_value: values.destroyedValue,
+                                dropped_value: values.droppedValue,
                             },
                         });
 

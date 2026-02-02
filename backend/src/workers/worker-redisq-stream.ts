@@ -28,6 +28,7 @@ import logger from '../services/logger';
 import prismaWorker from '../services/prisma-worker';
 import { pubsub } from '../services/pubsub';
 import { TypeService } from '../services/type/type.service';
+import { calculateKillmailValues } from '../helpers/calculate-killmail-values';
 
 // Feature flag to disable enrichment (to prevent connection pool exhaustion)
 const ENABLE_ENRICHMENT = process.env.REDISQ_ENABLE_ENRICHMENT !== 'false';
@@ -526,15 +527,28 @@ async function saveKillmail(killmail: KillmailDetail, hash: string): Promise<boo
       return false; // Already exists
     }
 
+    // ⚡ Calculate value fields once before saving
+    const values = await calculateKillmailValues({
+      victim: { ship_type_id: victim.ship_type_id },
+      items: victim.items?.map(item => ({
+        item_type_id: item.item_type_id,
+        quantity_destroyed: item.quantity_destroyed,
+        quantity_dropped: item.quantity_dropped,
+      })) || []
+    });
+
     // Create killmail with attackers and victim in a transaction
     await prismaWorker.$transaction(async (tx) => {
-      // Create the killmail
+      // Create the killmail with cached values
       await tx.killmail.create({
         data: {
           killmail_id: killmail.killmail_id,
           killmail_hash: hash,
           killmail_time: new Date(killmail_time),
           solar_system_id,
+          total_value: values.totalValue,
+          destroyed_value: values.destroyedValue,
+          dropped_value: values.droppedValue,
         },
       });
 
