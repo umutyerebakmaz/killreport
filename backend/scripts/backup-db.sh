@@ -23,23 +23,22 @@ BACKUP_DIR="$HOME/backups/killreport_db_backups"
 mkdir -p "$BACKUP_DIR"
 
 
-# Create compressed backup with progress indicator (gzip + pv)
-BACKUP_FILE="$BACKUP_DIR/backup_$(date +%Y%m%d_%H%M%S).sql.gz"
+# Create plain SQL backup (no compression, no progress)
+BACKUP_FILE="$BACKUP_DIR/backup_$(date +%Y%m%d_%H%M%S).sql"
 
 
-echo "🔄 Creating compressed transactional backup with progress (gzip + pv)..."
+echo "🔄 Creating transactional backup (plain SQL, no compression, no progress)..."
 
 
 # Use pg_dump with serializable transaction to ensure consistency
-# Pipe through pv for progress, then gzip for compression
 pg_dump $DATABASE_URL \
   --data-only \
   --column-inserts \
   --no-owner \
   --no-acl \
   --serializable-deferrable \
-  | pv | gzip > "$BACKUP_FILE"
+  > "$BACKUP_FILE"
 
 echo "✅ Backup created: $BACKUP_FILE"
-echo "💡 This is a compressed, transactional data-only backup with progress indicator."
-echo "⚠️  When restoring, use: gunzip -c $BACKUP_FILE | psql \$DATABASE_URL"
+echo "💡 This is a transactional data-only backup (plain SQL)."
+echo "⚠️  When restoring, use: psql \$DATABASE_URL < $BACKUP_FILE"
