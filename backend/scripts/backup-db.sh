@@ -1,8 +1,20 @@
 #!/bin/bash
 set -e
 
-# Load environment variables
-export $(grep -v '^#' .env | xargs)
+
+# Use DATABASE_URL from argument if provided, else from .env
+if [ -n "$1" ]; then
+  DATABASE_URL="$1"
+  echo "ℹ️  Using DATABASE_URL from command line argument."
+else
+  # Load environment variables from .env
+  export $(grep -v '^#' .env | xargs)
+  if [ -z "$DATABASE_URL" ]; then
+    echo "❌ DATABASE_URL not set. Pass as argument or set in .env."
+    exit 1
+  fi
+  echo "ℹ️  Using DATABASE_URL from .env file."
+fi
 
 
 
