@@ -10,21 +10,29 @@ Geriye dönük killmail'ler için `total_value`, `destroyed_value`, `droppedValu
 - Eski killmail'lerin value'larını yeniden hesaplamak için
 - Market fiyat güncellemelerinden sonra recalculation için
 
-## 🏗️ Mimari
+## 🚀 Quick Start
 
+```bash
+# 1. Hiç hesaplanmamış (NULL) kayıtlar
+yarn queue:backfill-values --mode=null --limit=1000
+yarn worker:backfill-values
+
+# 2. Sıfır (0) hesaplanmış kayıtlar
+yarn queue:backfill-values --mode=zero --limit=1000
+yarn worker:backfill-values
+
+# 3. TÜM kayıtları yeniden hesapla
+yarn queue:backfill-values --mode=all --limit=1000
+yarn worker:backfill-values
 ```
-┌─────────────────────┐
-│  Queue Script       │
-│  queue-backfill-    │ → RabbitMQ Queue → ┌──────────────────┐
-│  values.ts          │    (killmail IDs)    │ Worker(s)        │
-│                     │                      │ worker-backfill- │
-│ • Finds NULL values │                      │ values.ts        │
-│ • Queues IDs        │                      │                  │
-└─────────────────────┘                      │ • Fetch killmail │
-                                             │ • Calculate      │
-                                             │ • Update DB      │
-                                             └──────────────────┘
-```
+
+⚠️ **ÖNEMLİ:** Mode seçimi kritik! `--mode=null` ile queue'ya eklenen 0 değerli kayıtlar worker tarafından **skip edilir**. Sıfır değerlileri işlemek için **mutlaka `--mode=zero` kullanın**.
+
+- **`null` mode**: Sadece `total_value IS NULL` olanları işler, diğerlerini skip eder
+- **`zero` mode**: Sadece `total_value = 0` olanları işler, diğerlerini skip eder
+- **`all` mode**: HİÇBİR kayıt skip edilmez, tümü yeniden hesaplanır
+
+Bu sayede aynı killmail'i birden fazla işlemekten kaçınılır ve mode'a göre doğru kayıtlar işlenir.
 
 ## 🚀 Kullanım
 
@@ -138,6 +146,22 @@ pm2 delete backfill-*
 
 ## ⚙️ Konfigürasyon
 
+### Mode Davranışı (ÖNEMLİ)
+
+Worker, queue'dan aldığı her message'daki `mode` bilgisine göre karar verir:
+
+| Mode   | Nasıl Davranır?                                         | Örnek                            |
+| ------ | ------------------------------------------------------- | -------------------------------- |
+| `null` | Sadece `total_value IS NULL` olanları işler             | 0 değerliler **skip edilir**     |
+| `zero` | Sadece `total_value = 0` olanları işler                 | NULL ve non-zero **skip edilir** |
+| `all`  | **Hiçbir kayıt skip edilmez**, hepsi yeniden hesaplanır | Tüm kayıtlar işlenir             |
+
+**Neden önemli?**
+
+- `--mode=null` ile queue'ya eklediğiniz 0 değerli kayıtlar, worker tarafından zaten hesaplanmış sayılır ve skip edilir
+- Sıfır değerlileri yeniden hesaplamak için **mutlaka `--mode=zero` kullanmalısınız**
+- Tüm kayıtları yeniden hesaplamak için `--mode=all` kullanın
+
 ### Worker Ayarları
 
 **`worker-backfill-values.ts` içinde:**
@@ -230,7 +254,25 @@ pm2 logs backfill-1 --lines 100
 
 ## ⚠️ Önemli Notlar
 
-### 1. Database Lock
+### 1. Mode Seçimi Çok Önemli!
+
+**Yanlış:**
+
+```bash
+# 0 değerli kayıtları null mode ile queue'ya eklemek
+yarn queue:backfill-values --mode=null
+# Worker bunları skip eder çünkü 0 !== NULL
+```
+
+**Doğru:**
+
+```bash
+# 0 değerli kayıtları zero mode ile queue'ya eklemek
+yarn queue:backfill-values --mode=zero
+# Worker bunları işler çünkü 0 === 0
+```
+
+### 2. Database Lock
 
 - Worker'lar `UPDATE` ile tek tek killmail güncelliyor
 - Çok sayıda paralel worker database'i yavaşlatabilir
