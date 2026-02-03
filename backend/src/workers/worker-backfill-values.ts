@@ -25,6 +25,10 @@ const QUEUE_NAME = 'backfill_killmail_values_queue';
 const PREFETCH_COUNT = 3; // Process 3 killmails at a time
 const STATS_INTERVAL = 10; // Log stats every N processed killmails
 
+// Capsule (pod) type_id - special handling for value calculations
+const CAPSULE_TYPE_ID = 670;
+const CAPSULE_VALUE = 10;
+
 type BackfillMode = 'null' | 'zero' | 'all';
 
 interface BackfillMessage {
@@ -73,7 +77,10 @@ async function calculateValues(killmail: KillmailWithItems) {
   );
 
   // Calculate ship value
-  const shipPrice = priceMap.get(killmail.victim.ship_type_id) || 0;
+  // Special case: Capsule (pod) has fixed value of 10 ISK
+  const shipPrice = killmail.victim.ship_type_id === CAPSULE_TYPE_ID 
+    ? CAPSULE_VALUE 
+    : (priceMap.get(killmail.victim.ship_type_id) || 0);
 
   let totalValue = shipPrice;
   let destroyedValue = shipPrice;

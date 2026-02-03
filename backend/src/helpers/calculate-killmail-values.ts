@@ -1,5 +1,9 @@
 import prismaWorker from '../services/prisma-worker';
 
+// Capsule (pod) type_id - special handling for value calculations
+const CAPSULE_TYPE_ID = 670;
+const CAPSULE_VALUE = 10;
+
 /**
  * Calculate totalValue, destroyedValue, droppedValue for a killmail
  * This is used during killmail insertion to cache values in database
@@ -45,7 +49,10 @@ export async function calculateKillmailValues(killmailData: {
   );
 
   // Calculate ship value (always destroyed)
-  const shipPrice = priceMap.get(killmailData.victim.ship_type_id) || 0;
+  // Special case: Capsule (pod) has fixed value of 10 ISK
+  const shipPrice = killmailData.victim.ship_type_id === CAPSULE_TYPE_ID 
+    ? CAPSULE_VALUE 
+    : (priceMap.get(killmailData.victim.ship_type_id) || 0);
 
   let totalValue = shipPrice;
   let destroyedValue = shipPrice;
@@ -116,7 +123,10 @@ export async function calculateKillmailValuesBatch(killmailsData: Array<{
   // Calculate values for each killmail
   return killmailsData.map(km => {
     const items = km.items || [];
-    const shipPrice = priceMap.get(km.victim.ship_type_id) || 0;
+    // Special case: Capsule (pod) has fixed value of 10 ISK
+    const shipPrice = km.victim.ship_type_id === CAPSULE_TYPE_ID 
+      ? CAPSULE_VALUE 
+      : (priceMap.get(km.victim.ship_type_id) || 0);
 
     let totalValue = shipPrice;
     let destroyedValue = shipPrice;
