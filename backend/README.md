@@ -119,6 +119,13 @@ yarn queue:character-corporations # Scan characters, queue missing corporations
 
 # Enrichment - scan killmails for missing entities
 yarn scan:entities                # Queue missing characters/corps/alliances/types
+
+# Backfill killmail values (calculate total_value for historical killmails)
+yarn queue:backfill-values                    # Queue NULL values (default)
+yarn queue:backfill-values --mode=null        # Queue only NULL values
+yarn queue:backfill-values --mode=zero        # Queue only ZERO values
+yarn queue:backfill-values --mode=all         # Queue ALL killmails (recalculate)
+yarn queue:backfill-values --limit=1000       # Process only 1000 killmails
 ```
 
 ### Workers
@@ -134,6 +141,7 @@ yarn worker:info:types            # Process type info queue (10 concurrent)
 # Killmail Workers
 yarn worker:zkillboard            # Process zKillboard killmail sync (2 concurrent)
 yarn worker:redisq                # Real-time RedisQ stream (live feed)
+yarn worker:backfill-values       # Calculate killmail values (5 concurrent)
 
 # Snapshot Workers
 yarn snapshot:alliances           # Generate alliance snapshots

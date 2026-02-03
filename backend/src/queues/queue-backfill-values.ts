@@ -1,10 +1,15 @@
 /**
  * Backfill Killmail Values Queue Script
  *
- * Finds all killmails with NULL total_value and queues them for value calculation
- * This is used for historical killmails that were created before value caching was implemented
+ * Finds killmails and queues them for value calculation based on mode
+ * This is used for historical killmails or to recalculate existing values
  *
- * Usage: yarn queue:backfill-values [--limit=10000]
+ * Usage: yarn queue:backfill-values [--limit=10000] [--mode=null|zero|all]
+ * 
+ * Modes:
+ * - null: Only killmails where total_value IS NULL (default)
+ * - zero: Only killmails where total_value = 0
+ * - all: All killmails (recalculate everything)
  */
 
 import '../config';
@@ -15,10 +20,39 @@ import { getRabbitMQChannel } from '../services/rabbitmq';
 const QUEUE_NAME = 'backfill_killmail_values_queue';
 const BATCH_SIZE = 500; // Process in batches of 500
 
+type BackfillMode = 'null' | 'zero' | 'all';
+
 interface BackfillMessage {
     killmailId: number;
     queuedAt: string;
     source: string;
+    mode?: BackfillMode;
+}
+
+function getWhereClause(mode: BackfillMode) {
+    switch (mode) {
+        case 'null':
+            return { total_value: null };
+        case 'zero':
+            return { total_value: 0 };
+        case 'all':
+            return {}; // No filter, all killmails
+        default:
+            return { total_value: null };
+    }
+}
+
+function getModeDescription(mode: BackfillMode): string {
+    switch (mode) {
+        case 'null':
+            return 'NULL values (not calculated yet)';
+        case 'zero':
+            return 'ZERO values (calculated as 0)';
+        case 'all':
+            return 'ALL killmails (recalculate everything)';
+        default:
+            return 'NULL values';
+    }
 }
 
 async function queueBackfillValues() {
@@ -26,24 +60,37 @@ async function queueBackfillValues() {
     const limitArg = args.find(arg => arg.startsWith('--limit='));
     const limit = limitArg ? parseInt(limitArg.split('=')[1]) : undefined;
 
+    const modeArg = args.find(arg => arg.startsWith('--mode='));
+    const mode: BackfillMode = (modeArg?.split('=')[1] as BackfillMode) || 'null';
+
+    // Validate mode
+    if (!['null', 'zero', 'all'].includes(mode)) {
+        logger.error(`❌ Invalid mode: ${mode}`);
+        logger.info('Valid modes: null, zero, all');
+        process.exit(1);
+    }
+
     logger.info('🔄 Backfill Killmail Values - Queue Script');
     logger.info('━'.repeat(60));
+    logger.info(`📋 Mode: ${getModeDescription(mode)}`);
 
     try {
-        // Count total killmails without values
+        const whereClause = getWhereClause(mode);
+
+        // Count total killmails matching the criteria
         const totalCount = await prismaWorker.killmail.count({
-            where: { total_value: null }
+            where: whereClause
         });
 
         if (totalCount === 0) {
-            logger.info('✅ All killmails already have values calculated!');
+            logger.info('✅ No killmails found matching the criteria!');
             logger.info('Nothing to backfill.');
             process.exit(0);
         }
 
         const toProcess = limit ? Math.min(limit, totalCount) : totalCount;
 
-        logger.info(`📊 Found ${totalCount.toLocaleString()} killmails without values`);
+        logger.info(`📊 Found ${totalCount.toLocaleString()} killmails matching criteria`);
         if (limit) {
             logger.info(`🎯 Processing limit: ${toProcess.toLocaleString()} killmails`);
         }
@@ -69,7 +116,7 @@ async function queueBackfillValues() {
             const take = Math.min(BATCH_SIZE, toProcess - queuedCount);
 
             const killmails = await prismaWorker.killmail.findMany({
-                where: { total_value: null },
+                where: whereClause,
                 select: { killmail_id: true },
                 orderBy: { killmail_time: 'desc' }, // Process newest first
                 skip: batchNumber * BATCH_SIZE,
@@ -83,7 +130,8 @@ async function queueBackfillValues() {
                 const message: BackfillMessage = {
                     killmailId: km.killmail_id,
                     queuedAt: new Date().toISOString(),
-                    source: 'queue-backfill-values'
+                    source: 'queue-backfill-values',
+                    mode
                 };
 
                 channel.sendToQueue(
@@ -106,6 +154,7 @@ async function queueBackfillValues() {
         logger.info('');
         logger.info('━'.repeat(60));
         logger.info(`✅ Successfully queued ${queuedCount.toLocaleString()} killmails`);
+        logger.info(`📋 Mode: ${getModeDescription(mode)}`);
         logger.info('');
         logger.info('🚀 Start the worker with:');
         logger.info('   yarn worker:backfill-values');
