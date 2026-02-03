@@ -25,10 +25,13 @@ const QUEUE_NAME = 'backfill_killmail_values_queue';
 const PREFETCH_COUNT = 3; // Process 3 killmails at a time
 const STATS_INTERVAL = 10; // Log stats every N processed killmails
 
+type BackfillMode = 'null' | 'zero' | 'all';
+
 interface BackfillMessage {
   killmailId: number;
   queuedAt: string;
   source: string;
+  mode?: BackfillMode;
 }
 
 interface KillmailWithItems {
@@ -148,13 +151,28 @@ async function backfillValuesWorker() {
       const killmailId = message.killmailId;
 
       try {
+        const mode: BackfillMode = message.mode || 'null';
+
         // Check if already has values (race condition protection)
         const existing = await prismaWorker.killmail.findUnique({
           where: { killmail_id: killmailId },
           select: { total_value: true }
         });
 
-        if (existing?.total_value !== null && existing?.total_value !== undefined) {
+        // Decide whether to skip based on mode
+        let shouldSkip = false;
+        if (mode === 'null') {
+          // Skip if value is not null (already calculated)
+          shouldSkip = existing?.total_value !== null && existing?.total_value !== undefined;
+        } else if (mode === 'zero') {
+          // Skip if value is not 0 (already calculated and non-zero)
+          shouldSkip = existing?.total_value !== 0;
+        } else if (mode === 'all') {
+          // Never skip, always recalculate
+          shouldSkip = false;
+        }
+
+        if (shouldSkip) {
           totalSkipped++;
           totalProcessed++;
           channel.ack(msg);
