@@ -68,6 +68,7 @@ Server runs on: **<http://localhost:4000/graphql>**
 - [GraphQL Schema](./src/generated-schema.graphql)
 - [Database Schema](./prisma/schema.prisma)
 - [**Killmail Enrichment System**](./src/docs/ENRICHMENT_README.md) - Automatic data enrichment for killmails
+- [**Capsule Value Calculation**](./docs/CAPSULE_VALUE_CALCULATION.md) - Fixed 10 ISK ship value for Capsules
 
 ### Workers & Background Jobs
 
