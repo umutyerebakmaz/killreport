@@ -200,4 +200,5 @@ bash test-killmails.sh        # Test killmail fetching
 - Enrichment: `backend/ENRICHMENT_README.md`
 - Character Sync: `backend/CHARACTER_KILLMAIL_WORKER.md`
 - Architecture: `backend/MODULAR_ARCHITECTURE.md`
+- Capsule Value Calculation: `backend/docs/CAPSULE_VALUE_CALCULATION.md` - Fixed 10 ISK ship value for Capsules
 - GraphQL Schema: `backend/src/generated-schema.graphql` (auto-generated)
