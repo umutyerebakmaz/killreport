@@ -31,22 +31,40 @@ Geriye dönük killmail'ler için `total_value`, `destroyed_value`, `droppedValu
 ### 1. Queue'ya Killmail'leri Ekle
 
 ```bash
-# Tüm NULL value'lu killmail'leri queue'ya ekle
+# Tüm NULL value'lu killmail'leri queue'ya ekle (varsayılan)
 yarn queue:backfill-values
+# veya açık şekilde:
+yarn queue:backfill-values --mode=null
+
+# Sadece 0 değerli killmail'leri yeniden hesapla
+yarn queue:backfill-values --mode=zero
+
+# TÜM killmail'leri yeniden hesapla
+yarn queue:backfill-values --mode=all
 
 # Limit ile (örnek: ilk 10,000 killmail)
 yarn queue:backfill-values --limit=10000
 
+# Mode ve limit birlikte
+yarn queue:backfill-values --mode=zero --limit=5000
+
 # Test için küçük batch
-yarn queue:backfill-values --limit=100
+yarn queue:backfill-values --mode=null --limit=100
 ```
+
+### Modlar
+
+- **`--mode=null`** (varsayılan): Sadece `total_value IS NULL` olan killmail'ler (hiç hesaplanmamış)
+- **`--mode=zero`**: Sadece `total_value = 0` olan killmail'ler (sıfır hesaplanmış)
+- **`--mode=all`**: TÜM killmail'ler (her şeyi yeniden hesapla)
 
 **Çıktı örneği:**
 
 ```
 🔄 Backfill Killmail Values - Queue Script
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📊 Found 125,432 killmails without values
+📋 Mode: NULL values (not calculated yet)
+📊 Found 125,432 killmails matching criteria
 📦 Queue: backfill_killmail_values_queue
 ⚙️  Batch size: 500
 
