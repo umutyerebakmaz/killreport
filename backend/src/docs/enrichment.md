@@ -258,3 +258,16 @@ This is normal! Characters, corporations, or alliances may have been deleted fro
 
 - Check worker logs
 - Test ESI accessibility: `curl https://esi.evetech.net/latest/status/`
+
+## Value Calculation
+
+For detailed information about killmail value calculations, including the special 10 ISK fixed value for Capsules, see:
+
+**[Capsule Value Calculation](../../../docs/CAPSULE_VALUE_CALCULATION.md)**
+
+Key points:
+
+- Capsules (type_id: 670) have a fixed ship value of 10 ISK
+- Other ships use market prices
+- Implants and items always use market prices
+- Values can be backfilled using: `yarn queue:backfill-values --mode=zero --capsules-only`

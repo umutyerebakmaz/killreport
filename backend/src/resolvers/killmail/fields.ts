@@ -7,6 +7,10 @@ import {
 } from '@generated-types';
 import { organizeFitting } from '@helpers/fitting-helper';
 
+// Capsule (pod) type_id - special handling for value calculations
+const CAPSULE_TYPE_ID = 670;
+const CAPSULE_VALUE = 10;
+
 /**
  * Killmail Field Resolvers
  * Handles nested fields and computed properties for Killmail type
@@ -156,8 +160,11 @@ export const killmailFields: KillmailResolvers = {
         let totalValue = 0;
 
         // Ship'i ekle (her zaman destroyed)
+        // Special case: Capsule (pod) has fixed value of 10 ISK
         if (victim?.ship_type_id) {
-            const shipPrice = priceMap.get(victim.ship_type_id) || 0;
+            const shipPrice = victim.ship_type_id === CAPSULE_TYPE_ID 
+                ? CAPSULE_VALUE 
+                : (priceMap.get(victim.ship_type_id) || 0);
             totalValue += shipPrice;
         }
 
@@ -201,8 +208,11 @@ export const killmailFields: KillmailResolvers = {
         let destroyedValue = 0;
 
         // Ship'i ekle (her zaman destroyed)
+        // Special case: Capsule (pod) has fixed value of 10 ISK
         if (victim?.ship_type_id) {
-            const shipPrice = priceMap.get(victim.ship_type_id) || 0;
+            const shipPrice = victim.ship_type_id === CAPSULE_TYPE_ID 
+                ? CAPSULE_VALUE 
+                : (priceMap.get(victim.ship_type_id) || 0);
             destroyedValue += shipPrice;
         }
 
