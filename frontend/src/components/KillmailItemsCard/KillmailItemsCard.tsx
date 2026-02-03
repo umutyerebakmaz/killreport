@@ -4,6 +4,15 @@ const getItemPrice = (jitaPrice: any) => {
   return jitaPrice?.sell || jitaPrice?.average || 0;
 };
 
+// Special handling for Capsule ship price
+const getShipPrice = (shipType: any) => {
+  // Capsule (type_id: 670) has fixed value of 10 ISK
+  if (shipType?.id === 670) {
+    return 10;
+  }
+  return getItemPrice(shipType?.jitaPrice);
+};
+
 // Render quantity with separate destroyed/dropped display
 const renderQuantity = (destroyed: number, dropped: number) => {
   const hasDestroyed = destroyed > 0;
@@ -117,9 +126,9 @@ export default function KillmailSummaryCard({
               )}
             </div>
             <div className="flex gap-4 text-right">
-              <div className="text-white">1</div>
+              <div className="text-red-400 tabular-nums">1</div>
               <div className="w-40 text-red-400 tabular-nums">
-                {formatISK(getItemPrice(victim.shipType.jitaPrice))}
+                {formatISK(getShipPrice(victim.shipType))}
               </div>
             </div>
           </div>
