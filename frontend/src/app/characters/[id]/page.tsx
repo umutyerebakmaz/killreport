@@ -1,5 +1,6 @@
 "use client";
 
+import EveHtmlRenderer from "@/components/EveHtmlRenderer";
 import KillmailsTable from "@/components/KillmailsTable";
 import { Loader } from "@/components/Loader/Loader";
 import Paginator from "@/components/Paginator/Paginator";
@@ -329,17 +330,22 @@ export default function CharacterDetailPage({
                 {character.title && (
                   <div className="col-span-2">
                     <span className="text-gray-400">Title</span>
-                    <span className="ml-2 font-semibold">
-                      {character.title}
-                    </span>
+                    <div className="mt-2">
+                      <EveHtmlRenderer
+                        html={character.title}
+                        className="text-sm font-semibold"
+                      />
+                    </div>
                   </div>
                 )}
                 {character.description && (
                   <div className="col-span-2">
                     <span className="text-gray-400">Description</span>
-                    <p className="mt-2 text-sm text-gray-300">
-                      {character.description}
-                    </p>
+                    <div className="mt-2">
+                      <EveHtmlRenderer
+                        html={character.description}
+                      />
+                    </div>
                   </div>
                 )}
                 <div className="flex flex-col items-end justify-end col-start-2 col-end-3 text-xs text-gray-500 justify-self-end">
