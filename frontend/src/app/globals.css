@@ -270,3 +270,16 @@ body {
   border-color: rgba(255, 255, 255, 0.3);
   transform: scale(1.05);
 }
+
+/* EVE Online HTML Description Styles */
+.eve-description {
+  @apply leading-relaxed;
+}
+
+.eve-description .eve-link {
+  @apply text-yellow-400 hover:text-yellow-300 no-underline transition-colors font-bold;
+}
+
+.eve-description a {
+  @apply text-yellow-400 hover:text-yellow-300 no-underline transition-colors;
+}
