@@ -1,7 +1,7 @@
 """
 Offset-based pagination info (page number + limit)
 """
-type OffsetPageInfo {
+type PageInfo {
   currentPage: Int!
   totalPages: Int!
   totalCount: Int!

@@ -21,7 +21,7 @@ type Alliance {
 
 type AllianceConnection {
   edges: [AllianceEdge!]!
-  pageInfo: OffsetPageInfo!
+  pageInfo: PageInfo!
 }
 
 type AllianceEdge {
@@ -137,7 +137,7 @@ type Category {
 
 type CategoryConnection {
   edges: [CategoryEdge!]!
-  pageInfo: OffsetPageInfo!
+  pageInfo: PageInfo!
 }
 
 type CategoryEdge {
@@ -170,7 +170,7 @@ type Character {
 
 type CharacterConnection {
   edges: [CharacterEdge!]!
-  pageInfo: OffsetPageInfo!
+  pageInfo: PageInfo!
 }
 
 type CharacterEdge {
@@ -207,7 +207,7 @@ type Constellation {
 
 type ConstellationConnection {
   edges: [ConstellationEdge!]!
-  pageInfo: OffsetPageInfo!
+  pageInfo: PageInfo!
 }
 
 type ConstellationEdge {
@@ -247,7 +247,7 @@ type Corporation {
 
 type CorporationConnection {
   edges: [CorporationEdge!]!
-  pageInfo: OffsetPageInfo!
+  pageInfo: PageInfo!
 }
 
 type CorporationEdge {
@@ -299,13 +299,6 @@ type CreateUserPayload {
   user: User
 }
 
-type CursorPageInfo {
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  nextCursor: Int
-  previousCursor: Int
-}
-
 type DogmaAttribute {
   created_at: String!
   default_value: Float
@@ -323,7 +316,7 @@ type DogmaAttribute {
 
 type DogmaAttributeConnection {
   edges: [DogmaAttributeEdge!]!
-  pageInfo: OffsetPageInfo!
+  pageInfo: PageInfo!
 }
 
 type DogmaAttributeEdge {
@@ -357,7 +350,7 @@ type DogmaEffect {
 
 type DogmaEffectConnection {
   edges: [DogmaEffectEdge!]!
-  pageInfo: OffsetPageInfo!
+  pageInfo: PageInfo!
 }
 
 type DogmaEffectEdge {
@@ -423,7 +416,7 @@ type ItemGroup {
 
 type ItemGroupConnection {
   edges: [ItemGroupEdge!]!
-  pageInfo: OffsetPageInfo!
+  pageInfo: PageInfo!
 }
 
 type ItemGroupEdge {
@@ -477,7 +470,7 @@ type Killmail {
 
 type KillmailConnection {
   edges: [KillmailEdge!]!
-  pageInfo: OffsetPageInfo!
+  pageInfo: PageInfo!
 }
 
 type KillmailDateCount {
@@ -564,7 +557,7 @@ type Mutation {
 }
 
 """Offset-based pagination info (page number + limit)"""
-type OffsetPageInfo {
+type PageInfo {
   currentPage: Int!
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
@@ -700,7 +693,7 @@ type Region {
 
 type RegionConnection {
   edges: [RegionEdge!]!
-  pageInfo: OffsetPageInfo!
+  pageInfo: PageInfo!
 }
 
 type RegionEdge {
@@ -747,7 +740,7 @@ type SolarSystem {
 
 type SolarSystemConnection {
   edges: [SolarSystemEdge!]!
-  pageInfo: OffsetPageInfo!
+  pageInfo: PageInfo!
 }
 
 type SolarSystemEdge {
@@ -929,7 +922,7 @@ type Type {
 
 type TypeConnection {
   edges: [TypeEdge!]!
-  pageInfo: OffsetPageInfo!
+  pageInfo: PageInfo!
 }
 
 type TypeDogmaAttribute {

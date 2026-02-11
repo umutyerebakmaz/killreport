@@ -24,7 +24,7 @@ type KillmailEdge {
 
 type KillmailConnection {
   edges: [KillmailEdge!]!
-  pageInfo: OffsetPageInfo!
+  pageInfo: PageInfo!
 }
 
 type KillmailDateCount {

@@ -48,7 +48,7 @@ export type AllianceSnapshotsArgs = {
 export type AllianceConnection = {
   __typename?: 'AllianceConnection';
   edges: Array<AllianceEdge>;
-  pageInfo: OffsetPageInfo;
+  pageInfo: PageInfo;
 };
 
 export type AllianceEdge = {
@@ -171,7 +171,7 @@ export type Category = {
 export type CategoryConnection = {
   __typename?: 'CategoryConnection';
   edges: Array<CategoryEdge>;
-  pageInfo: OffsetPageInfo;
+  pageInfo: PageInfo;
 };
 
 export type CategoryEdge = {
@@ -207,7 +207,7 @@ export type Character = {
 export type CharacterConnection = {
   __typename?: 'CharacterConnection';
   edges: Array<CharacterEdge>;
-  pageInfo: OffsetPageInfo;
+  pageInfo: PageInfo;
 };
 
 export type CharacterEdge = {
@@ -247,7 +247,7 @@ export type Constellation = {
 export type ConstellationConnection = {
   __typename?: 'ConstellationConnection';
   edges: Array<ConstellationEdge>;
-  pageInfo: OffsetPageInfo;
+  pageInfo: PageInfo;
 };
 
 export type ConstellationEdge = {
@@ -295,7 +295,7 @@ export type CorporationSnapshotsArgs = {
 export type CorporationConnection = {
   __typename?: 'CorporationConnection';
   edges: Array<CorporationEdge>;
-  pageInfo: OffsetPageInfo;
+  pageInfo: PageInfo;
 };
 
 export type CorporationEdge = {
@@ -351,14 +351,6 @@ export type CreateUserPayload = {
   user?: Maybe<User>;
 };
 
-export type CursorPageInfo = {
-  __typename?: 'CursorPageInfo';
-  hasNextPage: Scalars['Boolean']['output'];
-  hasPreviousPage: Scalars['Boolean']['output'];
-  nextCursor?: Maybe<Scalars['Int']['output']>;
-  previousCursor?: Maybe<Scalars['Int']['output']>;
-};
-
 export type DogmaAttribute = {
   __typename?: 'DogmaAttribute';
   created_at: Scalars['String']['output'];
@@ -378,7 +370,7 @@ export type DogmaAttribute = {
 export type DogmaAttributeConnection = {
   __typename?: 'DogmaAttributeConnection';
   edges: Array<DogmaAttributeEdge>;
-  pageInfo: OffsetPageInfo;
+  pageInfo: PageInfo;
 };
 
 export type DogmaAttributeEdge = {
@@ -415,7 +407,7 @@ export type DogmaEffect = {
 export type DogmaEffectConnection = {
   __typename?: 'DogmaEffectConnection';
   edges: Array<DogmaEffectEdge>;
-  pageInfo: OffsetPageInfo;
+  pageInfo: PageInfo;
 };
 
 export type DogmaEffectEdge = {
@@ -487,7 +479,7 @@ export type ItemGroup = {
 export type ItemGroupConnection = {
   __typename?: 'ItemGroupConnection';
   edges: Array<ItemGroupEdge>;
-  pageInfo: OffsetPageInfo;
+  pageInfo: PageInfo;
 };
 
 export type ItemGroupEdge = {
@@ -541,7 +533,7 @@ export type Killmail = {
 export type KillmailConnection = {
   __typename?: 'KillmailConnection';
   edges: Array<KillmailEdge>;
-  pageInfo: OffsetPageInfo;
+  pageInfo: PageInfo;
 };
 
 export type KillmailDateCount = {
@@ -719,8 +711,8 @@ export type MutationUpdateUserArgs = {
 };
 
 /** Offset-based pagination info (page number + limit) */
-export type OffsetPageInfo = {
-  __typename?: 'OffsetPageInfo';
+export type PageInfo = {
+  __typename?: 'PageInfo';
   currentPage: Scalars['Int']['output'];
   hasNextPage: Scalars['Boolean']['output'];
   hasPreviousPage: Scalars['Boolean']['output'];
@@ -986,7 +978,7 @@ export type Region = {
 export type RegionConnection = {
   __typename?: 'RegionConnection';
   edges: Array<RegionEdge>;
-  pageInfo: OffsetPageInfo;
+  pageInfo: PageInfo;
 };
 
 export type RegionEdge = {
@@ -1038,7 +1030,7 @@ export type SolarSystem = {
 export type SolarSystemConnection = {
   __typename?: 'SolarSystemConnection';
   edges: Array<SolarSystemEdge>;
-  pageInfo: OffsetPageInfo;
+  pageInfo: PageInfo;
 };
 
 export type SolarSystemEdge = {
@@ -1239,7 +1231,7 @@ export type TypeDogmaEffectsArgs = {
 export type TypeConnection = {
   __typename?: 'TypeConnection';
   edges: Array<TypeEdge>;
-  pageInfo: OffsetPageInfo;
+  pageInfo: PageInfo;
 };
 
 export type TypeDogmaAttribute = {
@@ -1334,21 +1326,21 @@ export type AllianceCorporationsQueryVariables = Exact<{
 }>;
 
 
-export type AllianceCorporationsQuery = { __typename?: 'Query', corporations: { __typename?: 'CorporationConnection', edges: Array<{ __typename?: 'CorporationEdge', node: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, ceo?: { __typename?: 'Character', id: number, name: string } | null } }>, pageInfo: { __typename?: 'OffsetPageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type AllianceCorporationsQuery = { __typename?: 'Query', corporations: { __typename?: 'CorporationConnection', edges: Array<{ __typename?: 'CorporationEdge', node: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, ceo?: { __typename?: 'Character', id: number, name: string } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type AllianceKillmailsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
 }>;
 
 
-export type AllianceKillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } } }>, pageInfo: { __typename?: 'OffsetPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+export type AllianceKillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
 
 export type AlliancesQueryVariables = Exact<{
   filter?: InputMaybe<AllianceFilter>;
 }>;
 
 
-export type AlliancesQuery = { __typename?: 'Query', alliances: { __typename?: 'AllianceConnection', edges: Array<{ __typename?: 'AllianceEdge', cursor: string, node: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, memberCount: number, corporationCount: number, metrics?: { __typename?: 'AllianceMetrics', memberCountDelta7d?: number | null, corporationCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null } | null } }>, pageInfo: { __typename?: 'OffsetPageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type AlliancesQuery = { __typename?: 'Query', alliances: { __typename?: 'AllianceConnection', edges: Array<{ __typename?: 'AllianceEdge', cursor: string, node: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, memberCount: number, corporationCount: number, metrics?: { __typename?: 'AllianceMetrics', memberCountDelta7d?: number | null, corporationCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type ActiveUsersUpdatesSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -1379,21 +1371,21 @@ export type CharacterKillmailsQueryVariables = Exact<{
 }>;
 
 
-export type CharacterKillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } } }>, pageInfo: { __typename?: 'OffsetPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+export type CharacterKillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
 
 export type CharactersQueryVariables = Exact<{
   filter?: InputMaybe<CharacterFilter>;
 }>;
 
 
-export type CharactersQuery = { __typename?: 'Query', characters: { __typename?: 'CharacterConnection', edges: Array<{ __typename?: 'CharacterEdge', cursor: string, node: { __typename?: 'Character', id: number, name: string, security_status?: number | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } }>, pageInfo: { __typename?: 'OffsetPageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CharactersQuery = { __typename?: 'Query', characters: { __typename?: 'CharacterConnection', edges: Array<{ __typename?: 'CharacterEdge', cursor: string, node: { __typename?: 'Character', id: number, name: string, security_status?: number | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type ConstellationsQueryVariables = Exact<{
   filter?: InputMaybe<ConstellationFilter>;
 }>;
 
 
-export type ConstellationsQuery = { __typename?: 'Query', constellations: { __typename?: 'ConstellationConnection', edges: Array<{ __typename?: 'ConstellationEdge', cursor: string, node: { __typename?: 'Constellation', id: number, name: string, solarSystemCount: number, securityStats: { __typename?: 'SecurityStats', highSec: number, lowSec: number, nullSec: number, wormhole: number, avgSecurity?: number | null }, region?: { __typename?: 'Region', id: number, name: string } | null } }>, pageInfo: { __typename?: 'OffsetPageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type ConstellationsQuery = { __typename?: 'Query', constellations: { __typename?: 'ConstellationConnection', edges: Array<{ __typename?: 'ConstellationEdge', cursor: string, node: { __typename?: 'Constellation', id: number, name: string, solarSystemCount: number, securityStats: { __typename?: 'SecurityStats', highSec: number, lowSec: number, nullSec: number, wormhole: number, avgSecurity?: number | null }, region?: { __typename?: 'Region', id: number, name: string } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type ConstellationQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -1414,21 +1406,21 @@ export type CorporationCharactersQueryVariables = Exact<{
 }>;
 
 
-export type CorporationCharactersQuery = { __typename?: 'Query', characters: { __typename?: 'CharacterConnection', edges: Array<{ __typename?: 'CharacterEdge', node: { __typename?: 'Character', id: number, name: string, security_status?: number | null } }>, pageInfo: { __typename?: 'OffsetPageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CorporationCharactersQuery = { __typename?: 'Query', characters: { __typename?: 'CharacterConnection', edges: Array<{ __typename?: 'CharacterEdge', node: { __typename?: 'Character', id: number, name: string, security_status?: number | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type CorporationKillmailsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
 }>;
 
 
-export type CorporationKillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } } }>, pageInfo: { __typename?: 'OffsetPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+export type CorporationKillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
 
 export type CorporationsQueryVariables = Exact<{
   filter?: InputMaybe<CorporationFilter>;
 }>;
 
 
-export type CorporationsQuery = { __typename?: 'Query', corporations: { __typename?: 'CorporationConnection', edges: Array<{ __typename?: 'CorporationEdge', cursor: string, node: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, date_founded?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, metrics?: { __typename?: 'CorporationMetrics', memberCountDelta1d?: number | null, memberCountDelta7d?: number | null, memberCountDelta30d?: number | null, memberCountGrowthRate1d?: number | null, memberCountGrowthRate7d?: number | null, memberCountGrowthRate30d?: number | null } | null } }>, pageInfo: { __typename?: 'OffsetPageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CorporationsQuery = { __typename?: 'Query', corporations: { __typename?: 'CorporationConnection', edges: Array<{ __typename?: 'CorporationEdge', cursor: string, node: { __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, date_founded?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, metrics?: { __typename?: 'CorporationMetrics', memberCountDelta1d?: number | null, memberCountDelta7d?: number | null, memberCountDelta30d?: number | null, memberCountGrowthRate1d?: number | null, memberCountGrowthRate7d?: number | null, memberCountGrowthRate30d?: number | null } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type KillmailQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1442,7 +1434,7 @@ export type KillmailsQueryVariables = Exact<{
 }>;
 
 
-export type KillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null } }>, pageInfo: { __typename?: 'OffsetPageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+export type KillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailConnection', edges: Array<{ __typename?: 'KillmailEdge', node: { __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
 
 export type KillmailsDateCountsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
@@ -1461,7 +1453,7 @@ export type RegionsQueryVariables = Exact<{
 }>;
 
 
-export type RegionsQuery = { __typename?: 'Query', regions: { __typename?: 'RegionConnection', edges: Array<{ __typename?: 'RegionEdge', cursor: string, node: { __typename?: 'Region', id: number, name: string, description?: string | null, constellationCount: number, solarSystemCount: number, securityStats: { __typename?: 'SecurityStats', highSec: number, lowSec: number, nullSec: number, wormhole: number, avgSecurity?: number | null } } }>, pageInfo: { __typename?: 'OffsetPageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type RegionsQuery = { __typename?: 'Query', regions: { __typename?: 'RegionConnection', edges: Array<{ __typename?: 'RegionEdge', cursor: string, node: { __typename?: 'Region', id: number, name: string, description?: string | null, constellationCount: number, solarSystemCount: number, securityStats: { __typename?: 'SecurityStats', highSec: number, lowSec: number, nullSec: number, wormhole: number, avgSecurity?: number | null } } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type RegionQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -1507,7 +1499,7 @@ export type SolarSystemsQueryVariables = Exact<{
 }>;
 
 
-export type SolarSystemsQuery = { __typename?: 'Query', solarSystems: { __typename?: 'SolarSystemConnection', edges: Array<{ __typename?: 'SolarSystemEdge', cursor: string, node: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, security_class?: string | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } }>, pageInfo: { __typename?: 'OffsetPageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type SolarSystemsQuery = { __typename?: 'Query', solarSystems: { __typename?: 'SolarSystemConnection', edges: Array<{ __typename?: 'SolarSystemEdge', cursor: string, node: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, security_class?: string | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type SolarSystemQueryVariables = Exact<{
   id: Scalars['Int']['input'];
