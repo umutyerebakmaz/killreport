@@ -1,0 +1,18 @@
+"""
+Organized fitting data for a ship
+Groups modules, rigs, and subsystems by their slot types
+"""
+type Fitting {
+  highSlots: SlotGroup!
+  midSlots: SlotGroup!
+  lowSlots: SlotGroup!
+  rigs: SlotGroup!
+  subsystems: SlotGroup!
+  serviceSlots: SlotGroup!
+  implants: SlotGroup!
+  cargo: [FittingModule!]!
+  droneBay: [FittingModule!]!
+  fighterBay: [FittingModule!]!
+  structureFuel: [FittingModule!]!
+  coreRoom: [FittingModule!]!
+}
