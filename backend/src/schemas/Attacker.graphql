@@ -1,0 +1,11 @@
+type Attacker {
+  character: Character
+  corporation: Corporation
+  alliance: Alliance
+  factionId: Int
+  shipType: Type
+  weaponType: Type
+  damageDone: Int!
+  finalBlow: Boolean!
+  securityStatus: Float
+}

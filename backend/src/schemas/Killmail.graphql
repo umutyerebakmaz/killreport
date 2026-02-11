@@ -1,3 +1,22 @@
+type Killmail {
+  id: ID!
+  killmailHash: String!
+  killmailTime: String!
+  solarSystem: SolarSystem!
+  victim: Victim
+  attackers: [Attacker!]!
+  attackerCount: Int!
+  finalBlow: Attacker
+  items: [KillmailItem!]!
+  fitting: Fitting
+  destroyedValue: Float
+  droppedValue: Float
+  totalValue: Float
+  solo: Boolean!
+  npc: Boolean!
+  createdAt: String!
+}
+
 type KillmailEdge {
   node: Killmail!
   cursor: String!
@@ -24,51 +43,10 @@ type SyncMyKillmailsPayload {
   clientMutationId: String
 }
 
-type Killmail {
-  id: ID!
-  killmailHash: String!
-  killmailTime: String!
-  solarSystem: SolarSystem!
-  victim: Victim
-  attackers: [Attacker!]!
-  attackerCount: Int!
-  finalBlow: Attacker
-  items: [KillmailItem!]!
-  fitting: Fitting
-  destroyedValue: Float
-  droppedValue: Float
-  totalValue: Float
-  solo: Boolean!
-  npc: Boolean!
-  createdAt: String!
-}
-
-type Victim {
-  character: Character
-  corporation: Corporation
-  alliance: Alliance
-  factionId: Int
-  shipType: Type!
-  damageTaken: Int!
-  position: Position
-}
-
 type Position {
   x: Float!
   y: Float!
   z: Float!
-}
-
-type Attacker {
-  character: Character
-  corporation: Corporation
-  alliance: Alliance
-  factionId: Int
-  shipType: Type
-  weaponType: Type
-  damageDone: Int!
-  finalBlow: Boolean!
-  securityStatus: Float
 }
 
 type KillmailItem {
@@ -80,24 +58,7 @@ type KillmailItem {
   charge: KillmailItem
 }
 
-"""
-Organized fitting data for a ship
-Groups modules, rigs, and subsystems by their slot types
-"""
-type Fitting {
-  highSlots: SlotGroup!
-  midSlots: SlotGroup!
-  lowSlots: SlotGroup!
-  rigs: SlotGroup!
-  subsystems: SlotGroup!
-  serviceSlots: SlotGroup!
-  implants: SlotGroup!
-  cargo: [FittingModule!]!
-  droneBay: [FittingModule!]!
-  fighterBay: [FittingModule!]!
-  structureFuel: [FittingModule!]!
-  coreRoom: [FittingModule!]!
-}
+
 
 """
 A group of slots with total slot count from dogma attributes
