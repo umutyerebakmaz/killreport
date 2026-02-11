@@ -19,16 +19,15 @@
  *   yarn worker:redisq
  */
 
-import '../config';
-import { AllianceService } from '../services/alliance/alliance.service';
-import { CharacterService } from '../services/character/character.service';
-import { CorporationService } from '../services/corporation/corporation.service';
-import { KillmailDetail, KillmailService } from '../services/killmail';
-import logger from '../services/logger';
-import prismaWorker from '../services/prisma-worker';
-import { pubsub } from '../services/pubsub';
-import { TypeService } from '../services/type/type.service';
-import { calculateKillmailValues } from '../helpers/calculate-killmail-values';
+import { calculateKillmailValues } from '@helpers/calculate-killmail-values';
+import { AllianceService } from '@services/alliance/alliance.service';
+import { CharacterService } from '@services/character/character.service';
+import { CorporationService } from '@services/corporation/corporation.service';
+import { KillmailDetail, KillmailService } from '@services/killmail';
+import logger from '@services/logger';
+import prismaWorker from '@services/prisma-worker';
+import { pubsub } from '@services/pubsub';
+import { TypeService } from '@services/type/type.service';
 
 // Feature flag to disable enrichment (to prevent connection pool exhaustion)
 const ENABLE_ENRICHMENT = process.env.REDISQ_ENABLE_ENRICHMENT !== 'false';

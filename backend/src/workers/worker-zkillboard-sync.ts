@@ -1,10 +1,9 @@
-import '../config';
-import { calculateKillmailValues } from '../helpers/calculate-killmail-values';
-import { KillmailService } from '../services/killmail';
-import logger from '../services/logger';
-import prismaWorker from '../services/prisma-worker';
-import { getRabbitMQChannel } from '../services/rabbitmq';
-import { getCharacterKillmailsFromZKill } from '../services/zkillboard';
+import { calculateKillmailValues } from '@helpers/calculate-killmail-values';
+import { KillmailService } from '@services/killmail';
+import logger from '@services/logger';
+import prismaWorker from '@services/prisma-worker';
+import { getRabbitMQChannel } from '@services/rabbitmq';
+import { getCharacterKillmailsFromZKill } from '@services/zkillboard';
 
 const QUEUE_NAME = 'zkillboard_character_queue';
 const PREFETCH_COUNT = 1; // Process 1 user at a time (strict zKillboard rate limit: 10s between same endpoint)

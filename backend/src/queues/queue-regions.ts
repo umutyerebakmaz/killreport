@@ -1,7 +1,6 @@
-import '../config';
-import logger from '../services/logger';
-import { getRabbitMQChannel } from '../services/rabbitmq';
-import { RegionService } from '../services/region';
+import logger from '@services/logger';
+import { getRabbitMQChannel } from '@services/rabbitmq';
+import { RegionService } from '@services/region';
 
 const QUEUE_NAME = 'esi_regions_queue';
 const BATCH_SIZE = 100;

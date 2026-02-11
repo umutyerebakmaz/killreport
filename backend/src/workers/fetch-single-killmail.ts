@@ -5,11 +5,9 @@
  * Usage: ts-node src/workers/fetch-single-killmail.ts <killmail_id> <killmail_hash>
  * Example: ts-node src/workers/fetch-single-killmail.ts 131757087 abc123...
  */
-
-import '../config';
-import { calculateKillmailValues } from '../helpers/calculate-killmail-values';
-import { KillmailService } from '../services/killmail';
-import prismaWorker from '../services/prisma-worker';
+import { calculateKillmailValues } from '@helpers/calculate-killmail-values';
+import { KillmailService } from '@services/killmail';
+import prismaWorker from '@services/prisma-worker';
 
 async function fetchSingleKillmail(killmailId: number, killmailHash: string) {
     console.log(`\n${'='.repeat(60)}`);
