@@ -80,7 +80,7 @@
     "@prisma/adapter-pg": "^7.1.0",
     "@prisma/client": "^7.1.0",
     "amqplib": "^0.10.9",
-    "axios": "^1.12.2",
+    "axios": "^1.13.5",
     "dataloader": "^2.2.3",
     "dotenv": "^17.2.3",
     "graphql": "16.11.0",
