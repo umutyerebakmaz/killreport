@@ -59,8 +59,19 @@ function CharactersContent() {
     }
   }, [currentPage, orderBy]);
 
-  if (loading) return <div className="p-8">Loading...</div>;
-  if (error) return <div className="p-8">Error: {error.message}</div>;
+  if (loading) {
+    return <Loader fullHeight size="lg" text="Loading characters..." />;
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-xl text-red-400">
+          Error: {error.message || "Character not found"}
+        </div>
+      </div>
+    );
+  }
 
   const characters = data?.characters.edges.map((edge) => edge.node) || [];
   const pageInfo = data?.characters.pageInfo;
@@ -135,7 +146,7 @@ function CharactersContent() {
           {characters.map((character) =>
             character ? (
               <CharacterCard key={character.id} character={character} />
-            ) : null
+            ) : null,
           )}
         </div>
       </div>
