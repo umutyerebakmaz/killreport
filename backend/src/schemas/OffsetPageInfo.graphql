@@ -1,0 +1,10 @@
+"""
+Offset-based pagination info (page number + limit)
+"""
+type OffsetPageInfo {
+  currentPage: Int!
+  totalPages: Int!
+  totalCount: Int!
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+}

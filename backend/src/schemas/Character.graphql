@@ -38,7 +38,7 @@ type CharacterEdge {
 
 type CharacterConnection {
   edges: [CharacterEdge!]!
-  pageInfo: PageInfo!
+  pageInfo: OffsetPageInfo!
 }
 
 extend type Query {
