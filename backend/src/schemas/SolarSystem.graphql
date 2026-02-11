@@ -28,7 +28,7 @@ type SolarSystemEdge {
 
 type SolarSystemConnection {
   edges: [SolarSystemEdge!]!
-  pageInfo: OffsetPageInfo!
+  pageInfo: PageInfo!
 }
 
 input SolarSystemFilter {

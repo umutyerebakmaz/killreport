@@ -20,7 +20,7 @@ type DogmaAttributeEdge {
 
 type DogmaAttributeConnection {
   edges: [DogmaAttributeEdge!]!
-  pageInfo: OffsetPageInfo!
+  pageInfo: PageInfo!
 }
 
 input DogmaAttributeFilter {

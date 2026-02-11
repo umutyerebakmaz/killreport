@@ -50,7 +50,7 @@ type TypeEdge {
 
 type TypeConnection {
   edges: [TypeEdge!]!
-  pageInfo: OffsetPageInfo!
+  pageInfo: PageInfo!
 }
 
 input TypeFilter {
