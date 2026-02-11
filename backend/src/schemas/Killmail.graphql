@@ -43,12 +43,6 @@ type SyncMyKillmailsPayload {
   clientMutationId: String
 }
 
-type Position {
-  x: Float!
-  y: Float!
-  z: Float!
-}
-
 type KillmailItem {
   itemType: Type!
   flag: Int!
