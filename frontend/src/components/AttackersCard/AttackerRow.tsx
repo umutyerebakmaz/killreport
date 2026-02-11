@@ -62,42 +62,6 @@ export default function AttackerRow({
                   </span>
                 </div>
               )}
-            {/* Logos Container - Bottom Right */}
-            <div className="absolute bottom-0 right-0 flex">
-              {/* Corporation Logo */}
-              {attacker.corporation?.id && (
-                <Tooltip
-                  content={`Corporation: ${
-                    attacker.corporation?.name || "Unknown"
-                  }`}
-                >
-                  <img
-                    src={`https://images.evetech.net/corporations/${attacker.corporation?.id}/logo?size=64`}
-                    alt={attacker.corporation?.name || "Corporation"}
-                    width={24}
-                    height={24}
-                    className="shadow-md bg-black/50 ring-1 ring-black/50"
-                    loading="lazy"
-                  />
-                </Tooltip>
-              )}
-
-              {/* Alliance Logo */}
-              {attacker.alliance?.id && (
-                <Tooltip
-                  content={`Alliance: ${attacker.alliance?.name || "Unknown"}`}
-                >
-                  <img
-                    src={`https://images.evetech.net/alliances/${attacker.alliance?.id}/logo?size=64`}
-                    alt={attacker.alliance?.name || "Alliance"}
-                    width={24}
-                    height={24}
-                    className="shadow-md bg-black/50 ring-1 ring-black/50"
-                    loading="lazy"
-                  />
-                </Tooltip>
-              )}
-            </div>
           </div>
         ) : isNPC && isNPCCorporation ? (
           <div className="relative shrink-0">
@@ -136,7 +100,7 @@ export default function AttackerRow({
                 alt={attacker.weaponType?.name || "Weapon"}
                 width={48}
                 height={48}
-                className="shadow-md"
+                className="bg-white/5"
                 loading="lazy"
               />
             ) : (
@@ -233,11 +197,50 @@ export default function AttackerRow({
           </div>
 
           {/* Damage, Damage Percentage */}
-          <div className="flex flex-col items-end justify-center text-sm gap-y-1">
-            <span className="text-red-400">
-              {attacker.damageDone.toLocaleString()} DMG
-            </span>
-            <span className="text-gray-400">{damagePercentage}%</span>
+          <div className="flex flex-col items-end justify-between text-sm gap-y-1">
+            <div className="flex flex-col items-end">
+              <span className="text-red-400">
+                {attacker.damageDone.toLocaleString()} DMG
+              </span>
+              <span className="text-gray-400">{damagePercentage}%</span>
+            </div>
+
+            {/* Alliance & Corporation Logos - Bottom Right */}
+            <div className="flex">
+              {/* Corporation Logo */}
+              {attacker.corporation?.id && (
+                <Tooltip
+                  content={`Corporation: ${
+                    attacker.corporation?.name || "Unknown"
+                  }`}
+                >
+                  <img
+                    src={`https://images.evetech.net/corporations/${attacker.corporation?.id}/logo?size=64`}
+                    alt={attacker.corporation?.name || "Corporation"}
+                    width={32}
+                    height={32}
+                    className="shadow-md bg-black/50 ring-1 ring-black/50"
+                    loading="lazy"
+                  />
+                </Tooltip>
+              )}
+
+              {/* Alliance Logo */}
+              {attacker.alliance?.id && (
+                <Tooltip
+                  content={`Alliance: ${attacker.alliance?.name || "Unknown"}`}
+                >
+                  <img
+                    src={`https://images.evetech.net/alliances/${attacker.alliance?.id}/logo?size=64`}
+                    alt={attacker.alliance?.name || "Alliance"}
+                    width={32}
+                    height={32}
+                    className="shadow-md bg-black/50 ring-1 ring-black/50"
+                    loading="lazy"
+                  />
+                </Tooltip>
+              )}
+            </div>
           </div>
         </div>
       </div>
