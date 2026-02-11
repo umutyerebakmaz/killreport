@@ -2,12 +2,10 @@
  * Category Info Worker
  * Fetches category information from ESI and saves to database
  */
-
-import '../config';
-import { CategoryService } from '../services/category';
-import logger from '../services/logger';
-import prismaWorker from '../services/prisma-worker';
-import { getRabbitMQChannel } from '../services/rabbitmq';
+import { CategoryService } from '@services/category';
+import logger from '@services/logger';
+import prismaWorker from '@services/prisma-worker';
+import { getRabbitMQChannel } from '@services/rabbitmq';
 
 const QUEUE_NAME = 'esi_category_info_queue';
 const PREFETCH_COUNT = 10; // Process 10 categories concurrently
