@@ -36,7 +36,7 @@ export default function KillmailDetailPage({
 
   const km = data.killmail;
   const victim = km.victim;
-  const attackers = km.attackers || [];
+  const attackers = km.attackers || []; // final blow, top damage ve +8 toplam 10 ilk yuklemede.
   const fitting = km.fitting;
 
   // Check if victim is a structure

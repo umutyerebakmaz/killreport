@@ -52,7 +52,7 @@ type AllianceConnection {
   pageInfo: PageInfo!
 }
 
-type PageInfo {
+type OffsetPageInfo {
   currentPage: Int!
   totalPages: Int!
   totalCount: Int!

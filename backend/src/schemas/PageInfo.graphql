@@ -1,4 +1,4 @@
-type PageInfo {
+type CursorPageInfo {
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
   nextCursor: Int
