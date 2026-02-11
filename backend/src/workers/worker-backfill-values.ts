@@ -15,11 +15,9 @@
  * Run multiple instances in parallel for faster processing:
  *   yarn worker:backfill-values & yarn worker:backfill-values & yarn worker:backfill-values
  */
-
-import '../config';
-import logger from '../services/logger';
-import prismaWorker from '../services/prisma-worker';
-import { getRabbitMQChannel } from '../services/rabbitmq';
+import logger from '@services/logger';
+import prismaWorker from '@services/prisma-worker';
+import { getRabbitMQChannel } from '@services/rabbitmq';
 
 const QUEUE_NAME = 'backfill_killmail_values_queue';
 const PREFETCH_COUNT = 3; // Process 3 killmails at a time
@@ -78,8 +76,8 @@ async function calculateValues(killmail: KillmailWithItems) {
 
   // Calculate ship value
   // Special case: Capsule (pod) has fixed value of 10 ISK
-  const shipPrice = killmail.victim.ship_type_id === CAPSULE_TYPE_ID 
-    ? CAPSULE_VALUE 
+  const shipPrice = killmail.victim.ship_type_id === CAPSULE_TYPE_ID
+    ? CAPSULE_VALUE
     : (priceMap.get(killmail.victim.ship_type_id) || 0);
 
   let totalValue = shipPrice;
