@@ -658,9 +658,9 @@ yarn worker:info:corporations
  * [Açıklama]
  */
 
-import "../config";
-import prisma from "../services/prisma";
-import { getRabbitMQChannel } from "../services/rabbitmq";
+import { config } from "@config/config";
+import prisma from "@services/prisma";
+import { getRabbitMQChannel } from "@services/rabbitmq";
 
 const QUEUE_NAME = "your_queue_name";
 const PREFETCH_COUNT = 5; // Concurrency
@@ -712,7 +712,7 @@ async function yourWorker() {
           channel.nack(msg, false, true); // Requeue
         }
       },
-      { noAck: false }
+      { noAck: false },
     );
   } catch (error) {
     console.error("💥 Worker failed to start:", error);

@@ -1,4 +1,3 @@
-import '../config';
 import prisma from './prisma';
 import { getRabbitMQChannel } from './rabbitmq';
 
