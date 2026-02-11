@@ -190,7 +190,7 @@ export default function CharacterDetailPage({
     <main>
       <div className="alliance-detail-card">
         {/* Portrait and Character Name */}
-        <div className="flex items-center justify-center gap-6">
+        <div className="flex items-center justify-center">
           <img
             src={`https://images.evetech.net/characters/${character.id}/portrait?size=256`}
             alt={character.name}
@@ -198,12 +198,50 @@ export default function CharacterDetailPage({
             height={128}
             className="shadow-md"
           />
-          <div className="flex-1">
+
+          {/* Alliance & Corporation Logos - Bottom Right */}
+          <div className="flex flex-col">
+            {/* Corporation Logo */}
+            {character.corporation?.id && (
+              <Tooltip
+                content={`Corporation: ${
+                  character.corporation?.name || "Unknown"
+                }`}
+              >
+                <img
+                  src={`https://images.evetech.net/corporations/${character.corporation?.id}/logo?size=64`}
+                  alt={character.corporation?.name || "Corporation"}
+                  width={64}
+                  height={64}
+                  className="shadow-md "
+                  loading="lazy"
+                />
+              </Tooltip>
+            )}
+
+            {/* Alliance Logo */}
+            {character.alliance?.id && (
+              <Tooltip
+                content={`Alliance: ${character.alliance?.name || "Unknown"}`}
+              >
+                <img
+                  src={`https://images.evetech.net/alliances/${character.alliance?.id}/logo?size=64`}
+                  alt={character.alliance?.name || "Alliance"}
+                  width={64}
+                  height={64}
+                  className="shadow-md"
+                  loading="lazy"
+                />
+              </Tooltip>
+            )}
+          </div>
+
+          <div className="flex-1 pl-6">
             <h1 className="text-4xl font-bold">{character.name}</h1>
 
             {/* Corporation */}
             {character.corporation && (
-              <div className="mt-3">
+              <div>
                 <Tooltip content="Corporation" position="top">
                   <Link
                     href={`/corporations/${character.corporation.id}`}
@@ -220,7 +258,7 @@ export default function CharacterDetailPage({
 
             {/* Alliance */}
             {character.alliance && (
-              <div className="mt-2">
+              <div>
                 <Tooltip content="Alliance" position="top">
                   <Link
                     href={`/alliances/${character.alliance.id}`}
@@ -236,7 +274,7 @@ export default function CharacterDetailPage({
             )}
 
             {/* Age */}
-            <div className="mt-2">
+            <div>
               <span className="text-sm text-gray-400">{age}</span>
             </div>
           </div>
@@ -342,9 +380,7 @@ export default function CharacterDetailPage({
                   <div className="col-span-2">
                     <span className="text-gray-400">Description</span>
                     <div className="mt-2">
-                      <EveHtmlRenderer
-                        html={character.description}
-                      />
+                      <EveHtmlRenderer html={character.description} />
                     </div>
                   </div>
                 )}
