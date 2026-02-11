@@ -15,7 +15,6 @@
  * - --capsules-only: Only process Capsule (pod) killmails (type_id: 670)
  */
 
-import '../config';
 import logger from '../services/logger';
 import prismaWorker from '../services/prisma-worker';
 import { getRabbitMQChannel } from '../services/rabbitmq';
