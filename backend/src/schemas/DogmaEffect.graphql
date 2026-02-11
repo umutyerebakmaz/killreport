@@ -22,7 +22,7 @@ type DogmaEffectEdge {
 
 type DogmaEffectConnection {
   edges: [DogmaEffectEdge!]!
-  pageInfo: OffsetPageInfo!
+  pageInfo: PageInfo!
 }
 
 input DogmaEffectFilter {
