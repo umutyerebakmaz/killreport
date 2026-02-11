@@ -6,7 +6,6 @@
  * Usage: yarn worker:prices
  */
 
-import '@config';
 import logger from '@services/logger';
 import { MarketService } from '@services/market/market.service';
 import prismaWorker from '@services/prisma-worker';
