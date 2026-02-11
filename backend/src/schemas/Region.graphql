@@ -28,7 +28,7 @@ type RegionEdge {
 
 type RegionConnection {
   edges: [RegionEdge!]!
-  pageInfo: OffsetPageInfo!
+  pageInfo: PageInfo!
 }
 
 input RegionFilter {

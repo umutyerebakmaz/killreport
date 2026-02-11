@@ -42,7 +42,7 @@ type CorporationEdge {
 
 type CorporationConnection {
   edges: [CorporationEdge!]!
-  pageInfo: OffsetPageInfo!
+  pageInfo: PageInfo!
 }
 
 input CorporationFilter {

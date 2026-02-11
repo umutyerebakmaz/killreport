@@ -14,7 +14,7 @@ type CategoryEdge {
 
 type CategoryConnection {
   edges: [CategoryEdge!]!
-  pageInfo: OffsetPageInfo!
+  pageInfo: PageInfo!
 }
 
 input CategoryFilter {

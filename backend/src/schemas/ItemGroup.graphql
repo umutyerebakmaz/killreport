@@ -10,7 +10,7 @@ type ItemGroup {
 
 type ItemGroupConnection {
   edges: [ItemGroupEdge!]!
-  pageInfo: OffsetPageInfo!
+  pageInfo: PageInfo!
 }
 
 type ItemGroupEdge {
