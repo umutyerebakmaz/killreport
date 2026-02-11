@@ -49,15 +49,7 @@ type AllianceEdge {
 
 type AllianceConnection {
   edges: [AllianceEdge!]!
-  pageInfo: PageInfo!
-}
-
-type OffsetPageInfo {
-  currentPage: Int!
-  totalPages: Int!
-  totalCount: Int!
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
+  pageInfo: OffsetPageInfo!
 }
 
 input AllianceFilter {

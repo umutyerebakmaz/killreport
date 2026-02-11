@@ -113,7 +113,7 @@ export const allianceQueries: QueryResolvers = {
       },
     });
 
-    const pageInfo: PageInfo = {
+    const pageInfo: OffsetPageInfo = {
       currentPage,
       totalPages,
       totalCount,
