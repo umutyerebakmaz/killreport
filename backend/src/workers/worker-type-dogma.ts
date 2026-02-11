@@ -3,11 +3,10 @@
  * Fetches dogma attributes and effects for types from ESI and saves to database
  */
 
-import '../config';
 import logger from '../services/logger';
-import prismaWorker from '../services/prisma-worker';
-import { getRabbitMQChannel } from '../services/rabbitmq';
-import { TypeService } from '../services/type';
+import prismaWorker from '@services/prisma-worker';
+import { getRabbitMQChannel } from '@services/rabbitmq';
+import { TypeService } from '@services/type';
 
 const QUEUE_NAME = 'esi_type_dogma_queue';
 const PREFETCH_COUNT = 10; // Process 10 types concurrently (ESI rate limit friendly)

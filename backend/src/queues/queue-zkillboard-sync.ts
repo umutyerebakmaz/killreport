@@ -1,7 +1,6 @@
-import '../config';
-import logger from '../services/logger';
-import prismaWorker from '../services/prisma-worker';
-import { getRabbitMQChannel } from '../services/rabbitmq';
+import logger from '@services/logger';
+import prismaWorker from '@services/prisma-worker';
+import { getRabbitMQChannel } from '@services/rabbitmq';
 
 const QUEUE_NAME = 'zkillboard_character_queue';
 

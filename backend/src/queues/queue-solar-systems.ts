@@ -1,7 +1,6 @@
-import '../config';
-import logger from '../services/logger';
-import { getRabbitMQChannel } from '../services/rabbitmq';
-import { SolarSystemService } from '../services/solar-system/solar-system.service';
+import logger from '@services/logger';
+import { getRabbitMQChannel } from '@services/rabbitmq';
+import { SolarSystemService } from '@services/solar-system/solar-system.service';
 
 const QUEUE_NAME = 'esi_solar_systems_queue';
 const BATCH_SIZE = 100;

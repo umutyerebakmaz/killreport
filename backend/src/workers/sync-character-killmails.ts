@@ -1,9 +1,9 @@
-import '../config';
-import { KillmailService } from '../services/killmail';
-import logger from '../services/logger';
-import prismaWorker from '../services/prisma-worker';
-import { pubsub } from '../services/pubsub';
-import { getCharacterKillmailsFromZKill } from '../services/zkillboard';
+import { calculateKillmailValues } from '@helpers/calculate-killmail-values';
+import { KillmailService } from '@services/killmail';
+import logger from '@services/logger';
+import prismaWorker from '@services/prisma-worker';
+import { pubsub } from '@services/pubsub';
+import { getCharacterKillmailsFromZKill } from '@services/zkillboard';
 
 const MAX_PAGES = 50; // Configurable
 

@@ -1,7 +1,6 @@
-import '../config';
-import { CategoryService } from '../services/category';
-import logger from '../services/logger';
-import { getRabbitMQChannel } from '../services/rabbitmq';
+import { CategoryService } from '@services/category';
+import logger from '@services/logger';
+import { getRabbitMQChannel } from '@services/rabbitmq';
 
 const QUEUE_NAME = 'esi_category_info_queue';
 const BATCH_SIZE = 50;

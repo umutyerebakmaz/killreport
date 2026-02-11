@@ -3,11 +3,10 @@
  * Fetches dogma attribute information from ESI and saves to database
  */
 
-import '../config';
-import { DogmaAttributeService } from '../services/dogma';
-import logger from '../services/logger';
-import prismaWorker from '../services/prisma-worker';
-import { getRabbitMQChannel } from '../services/rabbitmq';
+import { DogmaAttributeService } from '@services/dogma';
+import logger from '@services/logger';
+import prismaWorker from '@services/prisma-worker';
+import { getRabbitMQChannel } from '@services/rabbitmq';
 
 const QUEUE_NAME = 'esi_dogma_attribute_info_queue';
 const PREFETCH_COUNT = 50; // Process 50 attributes concurrently (max ESI rate limit)

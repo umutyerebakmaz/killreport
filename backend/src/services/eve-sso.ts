@@ -1,5 +1,5 @@
+import { config } from '@config/config';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
-import { config } from '../config';
 
 const JWKS = createRemoteJWKSet(new URL(config.eveSso.jwksUrl));
 

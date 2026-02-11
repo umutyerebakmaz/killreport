@@ -2,11 +2,11 @@
  * EVE SSO Authentication Callback Handler
  */
 
+import { config } from '@config/config';
 import { IncomingMessage, ServerResponse } from 'http';
-import { config } from '../config';
-import { exchangeCodeForToken, verifyToken } from '../services/eve-sso';
-import logger from '../services/logger';
-import prisma from '../services/prisma';
+import { exchangeCodeForToken, verifyToken } from '@services/eve-sso';
+import logger from '@services/logger';
+import prisma from '@services/prisma';
 
 /**
  * Handle EVE SSO callback after user authorizes
