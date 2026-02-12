@@ -31,19 +31,14 @@ enum CharacterOrderBy {
   securityStatusDesc
 }
 
-type CharacterEdge {
-  node: Character!
-  cursor: String!
-}
-
-type CharacterConnection {
-  edges: [CharacterEdge!]!
+type CharactersResponse {
+  items: [Character!]!
   pageInfo: PageInfo!
 }
 
 extend type Query {
   character(id: Int!): Character
-  characters(filter: CharacterFilter): CharacterConnection!
+  characters(filter: CharacterFilter): CharactersResponse!
 }
 
 extend type Mutation {
