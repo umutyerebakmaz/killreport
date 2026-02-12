@@ -1,19 +1,17 @@
 query SearchCharacters($search: String!, $limit: Int = 40) {
   characters(filter: { search: $search, limit: $limit }) {
-    edges {
-      node {
+    items {
+      id
+      name
+      corporation {
         id
         name
-        corporation {
-          id
-          name
-          ticker
-        }
-        alliance {
-          id
-          name
-          ticker
-        }
+        ticker
+      }
+      alliance {
+        id
+        name
+        ticker
       }
     }
   }

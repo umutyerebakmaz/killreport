@@ -1,16 +1,14 @@
 query SearchCorporations($search: String!, $limit: Int = 40) {
   corporations(filter: { search: $search, limit: $limit }) {
-    edges {
-      node {
+    items {
+      id
+      name
+      ticker
+      member_count
+      alliance {
         id
         name
         ticker
-        member_count
-        alliance {
-          id
-          name
-          ticker
-        }
       }
     }
   }

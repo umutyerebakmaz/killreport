@@ -17,13 +17,8 @@ type Killmail {
   createdAt: String!
 }
 
-type KillmailEdge {
-  node: Killmail!
-  cursor: String!
-}
-
-type KillmailConnection {
-  edges: [KillmailEdge!]!
+type KillmailsResponse {
+  items: [Killmail!]!
   pageInfo: PageInfo!
 }
 
@@ -51,8 +46,6 @@ type KillmailItem {
   singleton: Int!
   charge: KillmailItem
 }
-
-
 
 """
 A group of slots with total slot count from dogma attributes
@@ -108,9 +101,9 @@ extend type Query {
   killmail(id: ID!): Killmail
 
   """
-  Lists all killmails (with pagination using Relay-style connection)
+  Lists all killmails with pagination
   """
-  killmails(filter: KillmailFilter): KillmailConnection!
+  killmails(filter: KillmailFilter): KillmailsResponse!
 
   """
   Returns count of killmails grouped by date (for the current filter)

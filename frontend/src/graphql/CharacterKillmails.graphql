@@ -1,60 +1,58 @@
 query CharacterKillmails($filter: KillmailFilter) {
   killmails(filter: $filter) {
-    edges {
-      node {
-        id
-        killmailTime
-        totalValue
-        attackerCount
-        solo
-        npc
-        victim {
-          character {
-            id
-            name
-          }
-          corporation {
-            id
-            name
-          }
-          alliance {
-            id
-            name
-          }
-          shipType {
-            id
-            name
-            group {
-              name
-            }
-          }
-          damageTaken
-        }
-        finalBlow {
-          character {
-            id
-            name
-          }
-          corporation {
-            id
-            name
-          }
-          alliance {
-            id
-            name
-          }
-        }
-        solarSystem {
+    items {
+      id
+      killmailTime
+      totalValue
+      attackerCount
+      solo
+      npc
+      victim {
+        character {
           id
           name
-          security_status
-          constellation {
+        }
+        corporation {
+          id
+          name
+        }
+        alliance {
+          id
+          name
+        }
+        shipType {
+          id
+          name
+          group {
+            name
+          }
+        }
+        damageTaken
+      }
+      finalBlow {
+        character {
+          id
+          name
+        }
+        corporation {
+          id
+          name
+        }
+        alliance {
+          id
+          name
+        }
+      }
+      solarSystem {
+        id
+        name
+        security_status
+        constellation {
+          id
+          name
+          region {
             id
             name
-            region {
-              id
-              name
-            }
           }
         }
       }

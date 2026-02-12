@@ -73,7 +73,7 @@ function CharactersContent() {
     );
   }
 
-  const characters = data?.characters.edges.map((edge) => edge.node) || [];
+  const characters = data?.characters.items || [];
   const pageInfo = data?.characters.pageInfo;
   const totalPages = pageInfo?.totalPages || 0;
 
