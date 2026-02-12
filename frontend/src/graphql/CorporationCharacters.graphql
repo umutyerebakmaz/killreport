@@ -1,11 +1,9 @@
 query CorporationCharacters($filter: CharacterFilter) {
   characters(filter: $filter) {
-    edges {
-      node {
-        id
-        name
-        security_status
-      }
+    items {
+      id
+      name
+      security_status
     }
     pageInfo {
       currentPage

@@ -43,13 +43,8 @@ type TypeDogmaEffect {
   effect: DogmaEffect!
 }
 
-type TypeEdge {
-  node: Type!
-  cursor: String!
-}
-
-type TypeConnection {
-  edges: [TypeEdge!]!
+type TypesResponse {
+  items: [Type!]!
   pageInfo: PageInfo!
 }
 
@@ -87,7 +82,7 @@ type StartTypeDogmaSyncPayload {
 
 extend type Query {
   type(id: Int!): Type
-  types(filter: TypeFilter): TypeConnection!
+  types(filter: TypeFilter): TypesResponse!
 }
 
 extend type Mutation {
