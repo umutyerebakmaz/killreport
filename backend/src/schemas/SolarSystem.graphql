@@ -21,13 +21,8 @@ enum SolarSystemOrderBy {
   securityStatusDesc
 }
 
-type SolarSystemEdge {
-  node: SolarSystem!
-  cursor: String!
-}
-
-type SolarSystemConnection {
-  edges: [SolarSystemEdge!]!
+type SolarSystemsResponse {
+  items: [SolarSystem!]!
   pageInfo: PageInfo!
 }
 
@@ -45,7 +40,7 @@ input SolarSystemFilter {
 
 extend type Query {
   solarSystem(id: Int!): SolarSystem
-  solarSystems(filter: SolarSystemFilter): SolarSystemConnection!
+  solarSystems(filter: SolarSystemFilter): SolarSystemsResponse!
 }
 
 # extend type Mutation {

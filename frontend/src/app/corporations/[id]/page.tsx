@@ -83,13 +83,13 @@ export default function CorporationDetailPage({
 
   // Memoize killmails array
   const killmails = useMemo(
-    () => killmailsData?.killmails.edges.map((edge) => edge.node) || [],
+    () => killmailsData?.killmails.items || [],
     [killmailsData],
   );
 
   // Memoize characters array
   const characters = useMemo(
-    () => charactersData?.characters.edges.map((edge) => edge.node) || [],
+    () => charactersData?.characters.items || [],
     [charactersData],
   );
 

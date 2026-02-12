@@ -72,13 +72,10 @@ export const dogmaAttributeQueries: QueryResolvers = {
         };
 
         return {
-            edges: dogmaAttributes.map((attr: any, index: number) => ({
-                node: {
-                    ...attr,
-                    created_at: attr.created_at.toISOString(),
-                    updated_at: attr.updated_at.toISOString(),
-                },
-                cursor: Buffer.from(`${skip + index}`).toString('base64'),
+            items: dogmaAttributes.map((attr: any) => ({
+                ...attr,
+                created_at: attr.created_at.toISOString(),
+                updated_at: attr.updated_at.toISOString(),
             })),
             pageInfo,
         };

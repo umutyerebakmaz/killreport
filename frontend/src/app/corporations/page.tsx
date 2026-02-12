@@ -60,10 +60,13 @@ function CorporationsContent() {
     }
   }, [currentPage, orderBy]);
 
-  if (loading) return <Loader size="md" text="Loading corporations..." className="py-12" />;
+  if (loading)
+    return (
+      <Loader size="md" text="Loading corporations..." className="py-12" />
+    );
   if (error) return <div className="p-8">Error: {error.message}</div>;
 
-  const corporations = data?.corporations.edges.map((edge) => edge.node) || [];
+  const corporations = data?.corporations.items || [];
   const pageInfo = data?.corporations.pageInfo;
   const totalPages = pageInfo?.totalPages || 0;
 

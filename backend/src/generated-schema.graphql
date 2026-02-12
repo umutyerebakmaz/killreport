@@ -19,16 +19,6 @@ type Alliance {
   ticker: String!
 }
 
-type AllianceConnection {
-  edges: [AllianceEdge!]!
-  pageInfo: PageInfo!
-}
-
-type AllianceEdge {
-  cursor: String!
-  node: Alliance!
-}
-
 input AllianceFilter {
   dateFoundedFrom: String
   dateFoundedTo: String
@@ -66,6 +56,11 @@ type AllianceSnapshot {
   corporationCount: Int!
   date: String!
   memberCount: Int!
+}
+
+type AlliancesResponse {
+  items: [Alliance!]!
+  pageInfo: PageInfo!
 }
 
 type Attacker {
@@ -126,6 +121,11 @@ type CacheStats {
   totalKeys: Int!
 }
 
+type CategoriesResponse {
+  items: [Category!]!
+  pageInfo: PageInfo!
+}
+
 type Category {
   created_at: String!
   groups: [ItemGroup!]!
@@ -133,16 +133,6 @@ type Category {
   name: String!
   published: Boolean!
   updated_at: String!
-}
-
-type CategoryConnection {
-  edges: [CategoryEdge!]!
-  pageInfo: PageInfo!
-}
-
-type CategoryEdge {
-  cursor: String!
-  node: Category!
 }
 
 input CategoryFilter {
@@ -168,16 +158,6 @@ type Character {
   updatedAt: String
 }
 
-type CharacterConnection {
-  edges: [CharacterEdge!]!
-  pageInfo: PageInfo!
-}
-
-type CharacterEdge {
-  cursor: String!
-  node: Character!
-}
-
 input CharacterFilter {
   allianceId: Int
   corporationId: Int
@@ -195,6 +175,11 @@ enum CharacterOrderBy {
   securityStatusDesc
 }
 
+type CharactersResponse {
+  items: [Character!]!
+  pageInfo: PageInfo!
+}
+
 type Constellation {
   id: Int!
   name: String!
@@ -203,16 +188,6 @@ type Constellation {
   securityStats: SecurityStats!
   solarSystemCount: Int!
   solarSystems: [SolarSystem!]!
-}
-
-type ConstellationConnection {
-  edges: [ConstellationEdge!]!
-  pageInfo: PageInfo!
-}
-
-type ConstellationEdge {
-  cursor: String!
-  node: Constellation!
 }
 
 input ConstellationFilter {
@@ -229,6 +204,11 @@ enum ConstellationOrderBy {
   nameDesc
 }
 
+type ConstellationsResponse {
+  items: [Constellation!]!
+  pageInfo: PageInfo!
+}
+
 type Corporation {
   alliance: Alliance
   ceo: Character
@@ -243,16 +223,6 @@ type Corporation {
   tax_rate: Float!
   ticker: String!
   url: String
-}
-
-type CorporationConnection {
-  edges: [CorporationEdge!]!
-  pageInfo: PageInfo!
-}
-
-type CorporationEdge {
-  cursor: String!
-  node: Corporation!
 }
 
 input CorporationFilter {
@@ -288,6 +258,11 @@ type CorporationSnapshot {
   memberCount: Int!
 }
 
+type CorporationsResponse {
+  items: [Corporation!]!
+  pageInfo: PageInfo!
+}
+
 input CreateUserInput {
   clientMutationId: String
   email: String!
@@ -314,21 +289,16 @@ type DogmaAttribute {
   updated_at: String!
 }
 
-type DogmaAttributeConnection {
-  edges: [DogmaAttributeEdge!]!
-  pageInfo: PageInfo!
-}
-
-type DogmaAttributeEdge {
-  cursor: String!
-  node: DogmaAttribute!
-}
-
 input DogmaAttributeFilter {
   limit: Int
   page: Int
   published: Boolean
   search: String
+}
+
+type DogmaAttributesResponse {
+  items: [DogmaAttribute!]!
+  pageInfo: PageInfo!
 }
 
 type DogmaEffect {
@@ -348,22 +318,17 @@ type DogmaEffect {
   updated_at: String!
 }
 
-type DogmaEffectConnection {
-  edges: [DogmaEffectEdge!]!
-  pageInfo: PageInfo!
-}
-
-type DogmaEffectEdge {
-  cursor: String!
-  node: DogmaEffect!
-}
-
 input DogmaEffectFilter {
   effect_category: Int
   limit: Int
   page: Int
   published: Boolean
   search: String
+}
+
+type DogmaEffectsResponse {
+  items: [DogmaEffect!]!
+  pageInfo: PageInfo!
 }
 
 """
@@ -414,22 +379,17 @@ type ItemGroup {
   updated_at: String!
 }
 
-type ItemGroupConnection {
-  edges: [ItemGroupEdge!]!
-  pageInfo: PageInfo!
-}
-
-type ItemGroupEdge {
-  cursor: String!
-  node: ItemGroup!
-}
-
 input ItemGroupFilter {
   category_id: Int
   limit: Int
   page: Int
   published: Boolean
   search: String
+}
+
+type ItemGroupsResponse {
+  items: [ItemGroup!]!
+  pageInfo: PageInfo!
 }
 
 type JitaPrice {
@@ -468,19 +428,9 @@ type Killmail {
   victim: Victim
 }
 
-type KillmailConnection {
-  edges: [KillmailEdge!]!
-  pageInfo: PageInfo!
-}
-
 type KillmailDateCount {
   count: Int!
   date: String!
-}
-
-type KillmailEdge {
-  cursor: String!
-  node: Killmail!
 }
 
 input KillmailFilter {
@@ -508,6 +458,11 @@ type KillmailItem {
 enum KillmailOrderBy {
   timeAsc
   timeDesc
+}
+
+type KillmailsResponse {
+  items: [Killmail!]!
+  pageInfo: PageInfo!
 }
 
 type Mutation {
@@ -575,32 +530,32 @@ type Query {
   _empty: String
   activeUsersCount: Int!
   alliance(id: Int!): Alliance
-  alliances(filter: AllianceFilter): AllianceConnection!
+  alliances(filter: AllianceFilter): AlliancesResponse!
   bloodline(id: Int!): Bloodline
   bloodlines: [Bloodline!]!
 
   """Cache statistics and memory usage"""
   cacheStats: CacheStats!
-  categories(filter: CategoryFilter): CategoryConnection!
+  categories(filter: CategoryFilter): CategoriesResponse!
   category(id: Int!): Category
   character(id: Int!): Character
-  characters(filter: CharacterFilter): CharacterConnection!
+  characters(filter: CharacterFilter): CharactersResponse!
   constellation(id: Int!): Constellation
-  constellations(filter: ConstellationFilter): ConstellationConnection!
+  constellations(filter: ConstellationFilter): ConstellationsResponse!
   corporation(id: Int!): Corporation
-  corporations(filter: CorporationFilter): CorporationConnection!
+  corporations(filter: CorporationFilter): CorporationsResponse!
   dogmaAttribute(id: Int!): DogmaAttribute
-  dogmaAttributes(filter: DogmaAttributeFilter): DogmaAttributeConnection!
+  dogmaAttributes(filter: DogmaAttributeFilter): DogmaAttributesResponse!
   dogmaEffect(id: Int!): DogmaEffect
-  dogmaEffects(filter: DogmaEffectFilter): DogmaEffectConnection!
+  dogmaEffects(filter: DogmaEffectFilter): DogmaEffectsResponse!
   itemGroup(id: Int!): ItemGroup
-  itemGroups(filter: ItemGroupFilter): ItemGroupConnection!
+  itemGroups(filter: ItemGroupFilter): ItemGroupsResponse!
 
   """Fetches a single killmail"""
   killmail(id: ID!): Killmail
 
-  """Lists all killmails (with pagination using Relay-style connection)"""
-  killmails(filter: KillmailFilter): KillmailConnection!
+  """Lists all killmails with pagination"""
+  killmails(filter: KillmailFilter): KillmailsResponse!
 
   """Returns count of killmails grouped by date (for the current filter)"""
   killmailsDateCounts(filter: KillmailFilter): [KillmailDateCount!]!
@@ -610,11 +565,11 @@ type Query {
   race(id: Int!): Race
   races: [Race!]!
   region(id: Int!): Region
-  regions(filter: RegionFilter): RegionConnection!
+  regions(filter: RegionFilter): RegionsResponse!
   solarSystem(id: Int!): SolarSystem
-  solarSystems(filter: SolarSystemFilter): SolarSystemConnection!
+  solarSystems(filter: SolarSystemFilter): SolarSystemsResponse!
   type(id: Int!): Type
-  types(filter: TypeFilter): TypeConnection!
+  types(filter: TypeFilter): TypesResponse!
   user(id: ID!): User
   users: [User!]!
 
@@ -691,16 +646,6 @@ type Region {
   solarSystemCount: Int!
 }
 
-type RegionConnection {
-  edges: [RegionEdge!]!
-  pageInfo: PageInfo!
-}
-
-type RegionEdge {
-  cursor: String!
-  node: Region!
-}
-
 input RegionFilter {
   limit: Int
   name: String
@@ -712,6 +657,11 @@ input RegionFilter {
 enum RegionOrderBy {
   nameAsc
   nameDesc
+}
+
+type RegionsResponse {
+  items: [Region!]!
+  pageInfo: PageInfo!
 }
 
 type SecurityStats {
@@ -738,16 +688,6 @@ type SolarSystem {
   star_id: Int
 }
 
-type SolarSystemConnection {
-  edges: [SolarSystemEdge!]!
-  pageInfo: PageInfo!
-}
-
-type SolarSystemEdge {
-  cursor: String!
-  node: SolarSystem!
-}
-
 input SolarSystemFilter {
   constellation_id: Int
   limit: Int
@@ -765,6 +705,11 @@ enum SolarSystemOrderBy {
   nameDesc
   securityStatusAsc
   securityStatusDesc
+}
+
+type SolarSystemsResponse {
+  items: [SolarSystem!]!
+  pageInfo: PageInfo!
 }
 
 type StandaloneWorkerStatus {
@@ -920,11 +865,6 @@ type Type {
   volume: Float
 }
 
-type TypeConnection {
-  edges: [TypeEdge!]!
-  pageInfo: PageInfo!
-}
-
 type TypeDogmaAttribute {
   attribute: DogmaAttribute!
   attribute_id: Int!
@@ -939,11 +879,6 @@ type TypeDogmaEffect {
   type_id: Int!
 }
 
-type TypeEdge {
-  cursor: String!
-  node: Type!
-}
-
 input TypeFilter {
   categoryList: [Int!]
   groupList: [Int!]
@@ -952,6 +887,11 @@ input TypeFilter {
   name: String
   page: Int
   published: Boolean
+}
+
+type TypesResponse {
+  items: [Type!]!
+  pageInfo: PageInfo!
 }
 
 input UpdateUserInput {

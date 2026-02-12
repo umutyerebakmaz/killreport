@@ -51,7 +51,7 @@ export default function CharacterFilters({
         limit: 20,
       },
       skip: debouncedSearch.length < 3, // Only search after 3 characters
-    }
+    },
   );
 
   const hasActiveFilters = search || name || corporationId || allianceId;
@@ -75,8 +75,8 @@ export default function CharacterFilters({
   useEffect(() => {
     if (
       debouncedSearch.length >= 3 &&
-      searchData?.characters?.edges &&
-      searchData.characters.edges.length > 0
+      searchData?.characters?.items &&
+      searchData.characters.items.length > 0
     ) {
       setShowDropdown(true);
     }
@@ -130,8 +130,8 @@ export default function CharacterFilters({
               // Show dropdown if we have valid search results
               if (
                 search.length >= 3 &&
-                searchData?.characters?.edges &&
-                searchData.characters.edges.length > 0
+                searchData?.characters?.items &&
+                searchData.characters.items.length > 0
               ) {
                 setShowDropdown(true);
               }
@@ -146,12 +146,11 @@ export default function CharacterFilters({
 
           {/* Dropdown Results */}
           {showDropdown &&
-            searchData?.characters?.edges &&
-            searchData.characters.edges.length > 0 && (
+            searchData?.characters?.items &&
+            searchData.characters.items.length > 0 && (
               <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
                 <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto md:grid-cols-2 character-dropdown-scroll max-h-96">
-                  {searchData.characters.edges.map((edge) => {
-                    const character = edge.node;
+                  {searchData.characters.items.map((character) => {
                     const avatarUrl = `https://images.evetech.net/characters/${character.id}/portrait?size=128`;
 
                     return (
@@ -200,7 +199,7 @@ export default function CharacterFilters({
           {showDropdown &&
             debouncedSearch.length >= 3 &&
             !searchLoading &&
-            searchData?.characters?.edges?.length === 0 && (
+            searchData?.characters?.items?.length === 0 && (
               <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
                 <div className="p-4 text-sm text-gray-400">
                   No characters found for "{debouncedSearch}"

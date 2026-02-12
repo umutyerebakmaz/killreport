@@ -15,13 +15,8 @@ type DogmaEffect {
   updated_at: String!
 }
 
-type DogmaEffectEdge {
-  node: DogmaEffect!
-  cursor: String!
-}
-
-type DogmaEffectConnection {
-  edges: [DogmaEffectEdge!]!
+type DogmaEffectsResponse {
+  items: [DogmaEffect!]!
   pageInfo: PageInfo!
 }
 
@@ -45,7 +40,7 @@ type StartDogmaEffectSyncPayload {
 
 extend type Query {
   dogmaEffect(id: Int!): DogmaEffect
-  dogmaEffects(filter: DogmaEffectFilter): DogmaEffectConnection!
+  dogmaEffects(filter: DogmaEffectFilter): DogmaEffectsResponse!
 }
 
 extend type Mutation {

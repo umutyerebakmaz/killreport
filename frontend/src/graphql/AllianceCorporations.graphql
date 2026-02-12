@@ -1,15 +1,13 @@
 query AllianceCorporations($filter: CorporationFilter) {
   corporations(filter: $filter) {
-    edges {
-      node {
+    items {
+      id
+      name
+      ticker
+      member_count
+      ceo {
         id
         name
-        ticker
-        member_count
-        ceo {
-          id
-          name
-        }
       }
     }
     pageInfo {

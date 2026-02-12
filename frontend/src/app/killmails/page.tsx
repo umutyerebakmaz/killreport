@@ -163,9 +163,9 @@ function KillmailsContent() {
   const killmails = useMemo(
     () => [
       ...newKillmails, // Add new real-time killmails first
-      ...(data?.killmails.edges.map((edge) => edge.node) || []),
+      ...(data?.killmails.items || []),
     ],
-    [newKillmails, data?.killmails.edges],
+    [newKillmails, data?.killmails.items],
   );
 
   // Create a map of date -> total count for that date

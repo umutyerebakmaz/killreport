@@ -86,13 +86,13 @@ export default function AllianceDetailPage({
 
   // Memoize killmails array
   const killmails = useMemo(
-    () => killmailsData?.killmails.edges.map((edge) => edge.node) || [],
+    () => killmailsData?.killmails.items || [],
     [killmailsData],
   );
 
   // Memoize corporations array
   const corporations = useMemo(
-    () => corporationsData?.corporations.edges.map((edge) => edge.node) || [],
+    () => corporationsData?.corporations.items || [],
     [corporationsData],
   );
 
@@ -392,29 +392,30 @@ export default function AllianceDetailPage({
                 )}
               </div>
               {/* Member Corporation Table  */}
-              <CorporationTable corporations={corporations} loading={corporationsLoading} />
-                  {corporations.length > 0 && (
-                    <div className="mt-6">
-                      <Paginator
-                        hasNextPage={corporationsPageInfo?.hasNextPage ?? false}
-                        hasPrevPage={
-                          corporationsPageInfo?.hasPreviousPage ?? false
-                        }
-                        onNext={handleCorporationsNext}
-                        onPrev={handleCorporationsPrev}
-                        onFirst={handleCorporationsFirst}
-                        onLast={handleCorporationsLast}
-                        loading={corporationsLoading}
-                        currentPage={corporationsPage}
-                        totalPages={corporationsTotalPages}
-                        pageSize={corporationsPageSize}
-                        onPageSizeChange={(size) => {
-                          setCorporationsPageSize(size);
-                          setCorporationsPage(1);
-                        }}
-                      />
-                    </div>
-                  )}
+              <CorporationTable
+                corporations={corporations}
+                loading={corporationsLoading}
+              />
+              {corporations.length > 0 && (
+                <div className="mt-6">
+                  <Paginator
+                    hasNextPage={corporationsPageInfo?.hasNextPage ?? false}
+                    hasPrevPage={corporationsPageInfo?.hasPreviousPage ?? false}
+                    onNext={handleCorporationsNext}
+                    onPrev={handleCorporationsPrev}
+                    onFirst={handleCorporationsFirst}
+                    onLast={handleCorporationsLast}
+                    loading={corporationsLoading}
+                    currentPage={corporationsPage}
+                    totalPages={corporationsTotalPages}
+                    pageSize={corporationsPageSize}
+                    onPageSizeChange={(size) => {
+                      setCorporationsPageSize(size);
+                      setCorporationsPage(1);
+                    }}
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>

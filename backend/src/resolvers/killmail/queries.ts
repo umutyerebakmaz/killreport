@@ -54,12 +54,11 @@ export const killmailQueries: QueryResolvers = {
     // Build WHERE clause using centralized filter logic
     const where = filters(args.filter ?? {});
 
-    // Performance: Count only when needed (first page or filter change)
-    // For subsequent pages, estimate from previous count
+    // Count total matching records
     const totalCount = await prisma.killmail.count({ where });
     const totalPages = Math.ceil(totalCount / limit);
 
-    // Fetch only killmail data, field resolvers will handle relations via DataLoaders
+    // Fetch killmails - field resolvers will handle relations via DataLoaders
     const killmails = await prisma.killmail.findMany({
       where,
       skip,
@@ -69,24 +68,22 @@ export const killmailQueries: QueryResolvers = {
       },
     });
 
-    const edges = killmails.map((km, index) => ({
-      node: {
-        id: km.killmail_id.toString(),
-        killmail_id: km.killmail_id,
-        killmailHash: km.killmail_hash,
-        killmailTime: km.killmail_time.toISOString(),
-        solarSystemId: km.solar_system_id,
-        createdAt: km.created_at.toISOString(),
-        // Include cached values from database for performance
-        totalValue: (km as any).total_value,
-        destroyedValue: (km as any).destroyed_value,
-        droppedValue: (km as any).dropped_value,
-      } as any,
-      cursor: Buffer.from(`${skip + index + 1}`).toString('base64'),
-    }));
+    // Map to GraphQL response format
+    const items = killmails.map((km) => ({
+      id: km.killmail_id.toString(),
+      killmail_id: km.killmail_id,
+      killmailHash: km.killmail_hash,
+      killmailTime: km.killmail_time.toISOString(),
+      solarSystemId: km.solar_system_id,
+      createdAt: km.created_at.toISOString(),
+      // Include cached values from database for performance
+      totalValue: (km as any).total_value,
+      destroyedValue: (km as any).destroyed_value,
+      droppedValue: (km as any).dropped_value,
+    })) as any[];
 
     return {
-      edges,
+      items,
       pageInfo: {
         hasNextPage: page < totalPages,
         hasPreviousPage: page > 1,

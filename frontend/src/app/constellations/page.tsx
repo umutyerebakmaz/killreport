@@ -74,8 +74,7 @@ function ConstellationsContent() {
   if (error)
     return <div className="p-8 text-red-500">Error: {error.message}</div>;
 
-  const constellations =
-    data?.constellations.edges.map((edge) => edge.node) || [];
+  const constellations = data?.constellations.items || [];
   const pageInfo = data?.constellations.pageInfo;
   const totalPages = pageInfo?.totalPages || 0;
 

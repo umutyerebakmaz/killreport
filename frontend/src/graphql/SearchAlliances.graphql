@@ -1,13 +1,11 @@
 query SearchAlliances($search: String!, $limit: Int = 40) {
   alliances(filter: { search: $search, limit: $limit }) {
-    edges {
-      node {
-        id
-        name
-        ticker
-        memberCount
-        corporationCount
-      }
+    items {
+      id
+      name
+      ticker
+      memberCount
+      corporationCount
     }
   }
 }

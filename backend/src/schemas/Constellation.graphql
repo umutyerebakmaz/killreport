@@ -19,13 +19,8 @@ enum ConstellationOrderBy {
   nameDesc
 }
 
-type ConstellationEdge {
-  node: Constellation!
-  cursor: String!
-}
-
-type ConstellationConnection {
-  edges: [ConstellationEdge!]!
+type ConstellationsResponse {
+  items: [Constellation!]!
   pageInfo: PageInfo!
 }
 
@@ -50,7 +45,7 @@ type StartConstellationSyncPayload {
 
 extend type Query {
   constellation(id: Int!): Constellation
-  constellations(filter: ConstellationFilter): ConstellationConnection!
+  constellations(filter: ConstellationFilter): ConstellationsResponse!
 }
 
 extend type Mutation {

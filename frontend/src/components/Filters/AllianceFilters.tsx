@@ -76,8 +76,8 @@ export default function AllianceFilters({
   useEffect(() => {
     if (
       debouncedSearch.length >= 3 &&
-      searchData?.alliances?.edges &&
-      searchData.alliances.edges.length > 0
+      searchData?.alliances?.items &&
+      searchData.alliances.items.length > 0
     ) {
       setShowDropdown(true);
     }
@@ -133,8 +133,8 @@ export default function AllianceFilters({
               // Show dropdown if we have valid search results
               if (
                 search.length >= 3 &&
-                searchData?.alliances?.edges &&
-                searchData.alliances.edges.length > 0
+                searchData?.alliances?.items &&
+                searchData.alliances.items.length > 0
               ) {
                 setShowDropdown(true);
               }
@@ -149,12 +149,11 @@ export default function AllianceFilters({
 
           {/* Dropdown Results */}
           {showDropdown &&
-            searchData?.alliances?.edges &&
-            searchData.alliances.edges.length > 0 && (
+            searchData?.alliances?.items &&
+            searchData.alliances.items.length > 0 && (
               <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
                 <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto md:grid-cols-2 character-dropdown-scroll max-h-96">
-                  {searchData.alliances.edges.map((edge) => {
-                    const alliance = edge.node;
+                  {searchData.alliances.items.map((alliance) => {
                     const logoUrl = `https://images.evetech.net/alliances/${alliance.id}/logo?size=128`;
 
                     return (
@@ -200,7 +199,7 @@ export default function AllianceFilters({
           {showDropdown &&
             debouncedSearch.length >= 3 &&
             !searchLoading &&
-            searchData?.alliances?.edges?.length === 0 && (
+            searchData?.alliances?.items?.length === 0 && (
               <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
                 <div className="p-4 text-sm text-gray-400">
                   No alliances found for "{debouncedSearch}"

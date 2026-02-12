@@ -1,23 +1,20 @@
 query Constellations($filter: ConstellationFilter) {
   constellations(filter: $filter) {
-    edges {
-      node {
+    items {
+      id
+      name
+      solarSystemCount
+      securityStats {
+        highSec
+        lowSec
+        nullSec
+        wormhole
+        avgSecurity
+      }
+      region {
         id
         name
-        solarSystemCount
-        securityStats {
-          highSec
-          lowSec
-          nullSec
-          wormhole
-          avgSecurity
-        }
-        region {
-          id
-          name
-        }
       }
-      cursor
     }
     pageInfo {
       currentPage
