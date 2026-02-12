@@ -249,7 +249,7 @@ export default function AttackersCard({
               <Link
                 key={`independent-corp-${corp.id}`}
                 href={`/corporations/${corp.id}`}
-                className="flex items-center gap-2 px-3 py-2 transition-all bg-white/5 hover:bg-white/10 inset-ring inset-ring-white/10 hover:inset-ring-white/20"
+                className="flex items-center gap-2 px-3 py-2 transition-all hover:bg-white/10 inset-ring inset-ring-white/10 hover:inset-ring-white/20"
                 prefetch={false}
               >
                 <div className="w-4" /> {/* Spacer for alignment */}
@@ -264,7 +264,7 @@ export default function AttackersCard({
                 <span className="flex-1 text-sm text-gray-300">
                   {corp.name}
                 </span>
-                <span className="px-2 py-0.5 text-xs font-medium text-gray-400 bg-white/10 rounded">
+                <span className="px-2 py-0.5 text-xs font-medium text-gray-400">
                   {corp.count}
                 </span>
               </Link>
