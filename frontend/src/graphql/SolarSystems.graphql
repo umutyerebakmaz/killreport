@@ -1,21 +1,18 @@
 query SolarSystems($filter: SolarSystemFilter) {
   solarSystems(filter: $filter) {
-    edges {
-      node {
+    items {
+      id
+      name
+      security_status
+      security_class
+      constellation {
         id
         name
-        security_status
-        security_class
-        constellation {
+        region {
           id
           name
-          region {
-            id
-            name
-          }
         }
       }
-      cursor
     }
     pageInfo {
       currentPage

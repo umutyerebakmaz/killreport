@@ -62,7 +62,7 @@ function RegionsContent() {
   if (error)
     return <div className="p-8 text-red-500">Error: {error.message}</div>;
 
-  const regions = data?.regions.edges.map((edge) => edge.node) || [];
+  const regions = data?.regions.items || [];
   const pageInfo = data?.regions.pageInfo;
   const totalPages = pageInfo?.totalPages || 0;
 

@@ -38,7 +38,7 @@ export default function SolarSystemFilters({
   const [search, setSearch] = useState(initialSearch);
   const [selectedRegionId, setSelectedRegionId] = useState(initialRegionId);
   const [selectedConstellationId, setSelectedConstellationId] = useState(
-    initialConstellationId
+    initialConstellationId,
   );
   const [securityFilter, setSecurityFilter] = useState(initialSecurity);
 
@@ -66,9 +66,8 @@ export default function SolarSystemFilters({
     skip: !selectedRegionId,
   });
 
-  const regions = regionsData?.regions.edges.map((edge) => edge.node) || [];
-  const constellations =
-    constellationsData?.constellations.edges.map((edge) => edge.node) || [];
+  const regions = regionsData?.regions.items || [];
+  const constellations = constellationsData?.constellations.items || [];
 
   const hasActiveFilters =
     !!search ||

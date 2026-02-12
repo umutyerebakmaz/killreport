@@ -64,7 +64,7 @@ function AlliancesContent() {
     return <Loader size="lg" text="Loading alliances..." className="p-8" />;
   if (error) return <div className="p-8">Error: {error.message}</div>;
 
-  const alliances = data?.alliances.edges.map((edge) => edge.node) || [];
+  const alliances = data?.alliances.items || [];
   const pageInfo = data?.alliances.pageInfo;
   const totalPages = pageInfo?.totalPages || 0;
 
@@ -137,7 +137,7 @@ function AlliancesContent() {
           {alliances.map((alliance) =>
             alliance ? (
               <AllianceCard key={alliance.id} alliance={alliance} />
-            ) : null
+            ) : null,
           )}
         </div>
       </div>

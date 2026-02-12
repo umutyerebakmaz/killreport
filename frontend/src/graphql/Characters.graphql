@@ -1,22 +1,19 @@
 query Characters($filter: CharacterFilter) {
   characters(filter: $filter) {
-    edges {
-      node {
+    items {
+      id
+      name
+      security_status
+      corporation {
         id
         name
-        security_status
-        corporation {
-          id
-          name
-          ticker
-        }
-        alliance {
-          id
-          name
-          ticker
-        }
+        ticker
       }
-      cursor
+      alliance {
+        id
+        name
+        ticker
+      }
     }
     pageInfo {
       currentPage

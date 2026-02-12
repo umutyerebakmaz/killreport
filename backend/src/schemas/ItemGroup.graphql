@@ -8,14 +8,9 @@ type ItemGroup {
   types: [Type!]!
 }
 
-type ItemGroupConnection {
-  edges: [ItemGroupEdge!]!
+type ItemGroupsResponse {
+  items: [ItemGroup!]!
   pageInfo: PageInfo!
-}
-
-type ItemGroupEdge {
-  node: ItemGroup!
-  cursor: String!
 }
 
 input ItemGroupFilter {
@@ -28,7 +23,7 @@ input ItemGroupFilter {
 
 extend type Query {
   itemGroup(id: Int!): ItemGroup
-  itemGroups(filter: ItemGroupFilter): ItemGroupConnection!
+  itemGroups(filter: ItemGroupFilter): ItemGroupsResponse!
 }
 
 extend type Mutation {

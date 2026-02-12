@@ -44,18 +44,6 @@ export type AllianceSnapshotsArgs = {
   days?: InputMaybe<Scalars['Int']['input']>;
 };
 
-export type AllianceConnection = {
-  __typename?: 'AllianceConnection';
-  edges: Array<AllianceEdge>;
-  pageInfo: PageInfo;
-};
-
-export type AllianceEdge = {
-  __typename?: 'AllianceEdge';
-  cursor: Scalars['String']['output'];
-  node: Alliance;
-};
-
 export type AllianceFilter = {
   dateFoundedFrom?: InputMaybe<Scalars['String']['input']>;
   dateFoundedTo?: InputMaybe<Scalars['String']['input']>;
@@ -95,6 +83,12 @@ export type AllianceSnapshot = {
   corporationCount: Scalars['Int']['output'];
   date: Scalars['String']['output'];
   memberCount: Scalars['Int']['output'];
+};
+
+export type AlliancesResponse = {
+  __typename?: 'AlliancesResponse';
+  items: Array<Alliance>;
+  pageInfo: PageInfo;
 };
 
 export type Attacker = {
@@ -157,6 +151,12 @@ export type CacheStats = {
   totalKeys: Scalars['Int']['output'];
 };
 
+export type CategoriesResponse = {
+  __typename?: 'CategoriesResponse';
+  items: Array<Category>;
+  pageInfo: PageInfo;
+};
+
 export type Category = {
   __typename?: 'Category';
   created_at: Scalars['String']['output'];
@@ -165,18 +165,6 @@ export type Category = {
   name: Scalars['String']['output'];
   published: Scalars['Boolean']['output'];
   updated_at: Scalars['String']['output'];
-};
-
-export type CategoryConnection = {
-  __typename?: 'CategoryConnection';
-  edges: Array<CategoryEdge>;
-  pageInfo: PageInfo;
-};
-
-export type CategoryEdge = {
-  __typename?: 'CategoryEdge';
-  cursor: Scalars['String']['output'];
-  node: Category;
 };
 
 export type CategoryFilter = {
@@ -203,18 +191,6 @@ export type Character = {
   updatedAt?: Maybe<Scalars['String']['output']>;
 };
 
-export type CharacterConnection = {
-  __typename?: 'CharacterConnection';
-  edges: Array<CharacterEdge>;
-  pageInfo: PageInfo;
-};
-
-export type CharacterEdge = {
-  __typename?: 'CharacterEdge';
-  cursor: Scalars['String']['output'];
-  node: Character;
-};
-
 export type CharacterFilter = {
   allianceId?: InputMaybe<Scalars['Int']['input']>;
   corporationId?: InputMaybe<Scalars['Int']['input']>;
@@ -232,6 +208,12 @@ export enum CharacterOrderBy {
   SecurityStatusDesc = 'securityStatusDesc'
 }
 
+export type CharactersResponse = {
+  __typename?: 'CharactersResponse';
+  items: Array<Character>;
+  pageInfo: PageInfo;
+};
+
 export type Constellation = {
   __typename?: 'Constellation';
   id: Scalars['Int']['output'];
@@ -241,18 +223,6 @@ export type Constellation = {
   securityStats: SecurityStats;
   solarSystemCount: Scalars['Int']['output'];
   solarSystems: Array<SolarSystem>;
-};
-
-export type ConstellationConnection = {
-  __typename?: 'ConstellationConnection';
-  edges: Array<ConstellationEdge>;
-  pageInfo: PageInfo;
-};
-
-export type ConstellationEdge = {
-  __typename?: 'ConstellationEdge';
-  cursor: Scalars['String']['output'];
-  node: Constellation;
 };
 
 export type ConstellationFilter = {
@@ -268,6 +238,12 @@ export enum ConstellationOrderBy {
   NameAsc = 'nameAsc',
   NameDesc = 'nameDesc'
 }
+
+export type ConstellationsResponse = {
+  __typename?: 'ConstellationsResponse';
+  items: Array<Constellation>;
+  pageInfo: PageInfo;
+};
 
 export type Corporation = {
   __typename?: 'Corporation';
@@ -289,18 +265,6 @@ export type Corporation = {
 
 export type CorporationSnapshotsArgs = {
   days?: InputMaybe<Scalars['Int']['input']>;
-};
-
-export type CorporationConnection = {
-  __typename?: 'CorporationConnection';
-  edges: Array<CorporationEdge>;
-  pageInfo: PageInfo;
-};
-
-export type CorporationEdge = {
-  __typename?: 'CorporationEdge';
-  cursor: Scalars['String']['output'];
-  node: Corporation;
 };
 
 export type CorporationFilter = {
@@ -338,6 +302,12 @@ export type CorporationSnapshot = {
   memberCount: Scalars['Int']['output'];
 };
 
+export type CorporationsResponse = {
+  __typename?: 'CorporationsResponse';
+  items: Array<Corporation>;
+  pageInfo: PageInfo;
+};
+
 export type CreateUserInput = {
   clientMutationId?: InputMaybe<Scalars['String']['input']>;
   email: Scalars['String']['input'];
@@ -366,23 +336,17 @@ export type DogmaAttribute = {
   updated_at: Scalars['String']['output'];
 };
 
-export type DogmaAttributeConnection = {
-  __typename?: 'DogmaAttributeConnection';
-  edges: Array<DogmaAttributeEdge>;
-  pageInfo: PageInfo;
-};
-
-export type DogmaAttributeEdge = {
-  __typename?: 'DogmaAttributeEdge';
-  cursor: Scalars['String']['output'];
-  node: DogmaAttribute;
-};
-
 export type DogmaAttributeFilter = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   published?: InputMaybe<Scalars['Boolean']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type DogmaAttributesResponse = {
+  __typename?: 'DogmaAttributesResponse';
+  items: Array<DogmaAttribute>;
+  pageInfo: PageInfo;
 };
 
 export type DogmaEffect = {
@@ -403,24 +367,18 @@ export type DogmaEffect = {
   updated_at: Scalars['String']['output'];
 };
 
-export type DogmaEffectConnection = {
-  __typename?: 'DogmaEffectConnection';
-  edges: Array<DogmaEffectEdge>;
-  pageInfo: PageInfo;
-};
-
-export type DogmaEffectEdge = {
-  __typename?: 'DogmaEffectEdge';
-  cursor: Scalars['String']['output'];
-  node: DogmaEffect;
-};
-
 export type DogmaEffectFilter = {
   effect_category?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   published?: InputMaybe<Scalars['Boolean']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type DogmaEffectsResponse = {
+  __typename?: 'DogmaEffectsResponse';
+  items: Array<DogmaEffect>;
+  pageInfo: PageInfo;
 };
 
 /**
@@ -475,24 +433,18 @@ export type ItemGroup = {
   updated_at: Scalars['String']['output'];
 };
 
-export type ItemGroupConnection = {
-  __typename?: 'ItemGroupConnection';
-  edges: Array<ItemGroupEdge>;
-  pageInfo: PageInfo;
-};
-
-export type ItemGroupEdge = {
-  __typename?: 'ItemGroupEdge';
-  cursor: Scalars['String']['output'];
-  node: ItemGroup;
-};
-
 export type ItemGroupFilter = {
   category_id?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   published?: InputMaybe<Scalars['Boolean']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type ItemGroupsResponse = {
+  __typename?: 'ItemGroupsResponse';
+  items: Array<ItemGroup>;
+  pageInfo: PageInfo;
 };
 
 export type JitaPrice = {
@@ -529,22 +481,10 @@ export type Killmail = {
   victim?: Maybe<Victim>;
 };
 
-export type KillmailConnection = {
-  __typename?: 'KillmailConnection';
-  edges: Array<KillmailEdge>;
-  pageInfo: PageInfo;
-};
-
 export type KillmailDateCount = {
   __typename?: 'KillmailDateCount';
   count: Scalars['Int']['output'];
   date: Scalars['String']['output'];
-};
-
-export type KillmailEdge = {
-  __typename?: 'KillmailEdge';
-  cursor: Scalars['String']['output'];
-  node: Killmail;
 };
 
 export type KillmailFilter = {
@@ -574,6 +514,12 @@ export enum KillmailOrderBy {
   TimeAsc = 'timeAsc',
   TimeDesc = 'timeDesc'
 }
+
+export type KillmailsResponse = {
+  __typename?: 'KillmailsResponse';
+  items: Array<Killmail>;
+  pageInfo: PageInfo;
+};
 
 export type Mutation = {
   __typename?: 'Mutation';
@@ -731,29 +677,29 @@ export type Query = {
   _empty?: Maybe<Scalars['String']['output']>;
   activeUsersCount: Scalars['Int']['output'];
   alliance?: Maybe<Alliance>;
-  alliances: AllianceConnection;
+  alliances: AlliancesResponse;
   bloodline?: Maybe<Bloodline>;
   bloodlines: Array<Bloodline>;
   /** Cache statistics and memory usage */
   cacheStats: CacheStats;
-  categories: CategoryConnection;
+  categories: CategoriesResponse;
   category?: Maybe<Category>;
   character?: Maybe<Character>;
-  characters: CharacterConnection;
+  characters: CharactersResponse;
   constellation?: Maybe<Constellation>;
-  constellations: ConstellationConnection;
+  constellations: ConstellationsResponse;
   corporation?: Maybe<Corporation>;
-  corporations: CorporationConnection;
+  corporations: CorporationsResponse;
   dogmaAttribute?: Maybe<DogmaAttribute>;
-  dogmaAttributes: DogmaAttributeConnection;
+  dogmaAttributes: DogmaAttributesResponse;
   dogmaEffect?: Maybe<DogmaEffect>;
-  dogmaEffects: DogmaEffectConnection;
+  dogmaEffects: DogmaEffectsResponse;
   itemGroup?: Maybe<ItemGroup>;
-  itemGroups: ItemGroupConnection;
+  itemGroups: ItemGroupsResponse;
   /** Fetches a single killmail */
   killmail?: Maybe<Killmail>;
-  /** Lists all killmails (with pagination using Relay-style connection) */
-  killmails: KillmailConnection;
+  /** Lists all killmails with pagination */
+  killmails: KillmailsResponse;
   /** Returns count of killmails grouped by date (for the current filter) */
   killmailsDateCounts: Array<KillmailDateCount>;
   /** Mevcut authenticated kullanıcının bilgilerini döner */
@@ -761,11 +707,11 @@ export type Query = {
   race?: Maybe<Race>;
   races: Array<Race>;
   region?: Maybe<Region>;
-  regions: RegionConnection;
+  regions: RegionsResponse;
   solarSystem?: Maybe<SolarSystem>;
-  solarSystems: SolarSystemConnection;
+  solarSystems: SolarSystemsResponse;
   type?: Maybe<Type>;
-  types: TypeConnection;
+  types: TypesResponse;
   user?: Maybe<User>;
   users: Array<User>;
   /** Get current status of all workers and queues */
@@ -974,18 +920,6 @@ export type Region = {
   solarSystemCount: Scalars['Int']['output'];
 };
 
-export type RegionConnection = {
-  __typename?: 'RegionConnection';
-  edges: Array<RegionEdge>;
-  pageInfo: PageInfo;
-};
-
-export type RegionEdge = {
-  __typename?: 'RegionEdge';
-  cursor: Scalars['String']['output'];
-  node: Region;
-};
-
 export type RegionFilter = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
@@ -998,6 +932,12 @@ export enum RegionOrderBy {
   NameAsc = 'nameAsc',
   NameDesc = 'nameDesc'
 }
+
+export type RegionsResponse = {
+  __typename?: 'RegionsResponse';
+  items: Array<Region>;
+  pageInfo: PageInfo;
+};
 
 export type SecurityStats = {
   __typename?: 'SecurityStats';
@@ -1026,18 +966,6 @@ export type SolarSystem = {
   star_id?: Maybe<Scalars['Int']['output']>;
 };
 
-export type SolarSystemConnection = {
-  __typename?: 'SolarSystemConnection';
-  edges: Array<SolarSystemEdge>;
-  pageInfo: PageInfo;
-};
-
-export type SolarSystemEdge = {
-  __typename?: 'SolarSystemEdge';
-  cursor: Scalars['String']['output'];
-  node: SolarSystem;
-};
-
 export type SolarSystemFilter = {
   constellation_id?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -1056,6 +984,12 @@ export enum SolarSystemOrderBy {
   SecurityStatusAsc = 'securityStatusAsc',
   SecurityStatusDesc = 'securityStatusDesc'
 }
+
+export type SolarSystemsResponse = {
+  __typename?: 'SolarSystemsResponse';
+  items: Array<SolarSystem>;
+  pageInfo: PageInfo;
+};
 
 export type StandaloneWorkerStatus = {
   __typename?: 'StandaloneWorkerStatus';
@@ -1227,12 +1161,6 @@ export type TypeDogmaEffectsArgs = {
   ids?: InputMaybe<Array<Scalars['Int']['input']>>;
 };
 
-export type TypeConnection = {
-  __typename?: 'TypeConnection';
-  edges: Array<TypeEdge>;
-  pageInfo: PageInfo;
-};
-
 export type TypeDogmaAttribute = {
   __typename?: 'TypeDogmaAttribute';
   attribute: DogmaAttribute;
@@ -1249,12 +1177,6 @@ export type TypeDogmaEffect = {
   type_id: Scalars['Int']['output'];
 };
 
-export type TypeEdge = {
-  __typename?: 'TypeEdge';
-  cursor: Scalars['String']['output'];
-  node: Type;
-};
-
 export type TypeFilter = {
   categoryList?: InputMaybe<Array<Scalars['Int']['input']>>;
   groupList?: InputMaybe<Array<Scalars['Int']['input']>>;
@@ -1263,6 +1185,12 @@ export type TypeFilter = {
   name?: InputMaybe<Scalars['String']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   published?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+export type TypesResponse = {
+  __typename?: 'TypesResponse';
+  items: Array<Type>;
+  pageInfo: PageInfo;
 };
 
 export type UpdateUserInput = {
@@ -1388,12 +1316,11 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 export type ResolversTypes = {
   ActiveUsersPayload: ResolverTypeWrapper<ActiveUsersPayload>;
   Alliance: ResolverTypeWrapper<Alliance>;
-  AllianceConnection: ResolverTypeWrapper<AllianceConnection>;
-  AllianceEdge: ResolverTypeWrapper<AllianceEdge>;
   AllianceFilter: AllianceFilter;
   AllianceMetrics: ResolverTypeWrapper<AllianceMetrics>;
   AllianceOrderBy: AllianceOrderBy;
   AllianceSnapshot: ResolverTypeWrapper<AllianceSnapshot>;
+  AlliancesResponse: ResolverTypeWrapper<AlliancesResponse>;
   Attacker: ResolverTypeWrapper<Attacker>;
   AuthPayload: ResolverTypeWrapper<AuthPayload>;
   AuthUrl: ResolverTypeWrapper<AuthUrl>;
@@ -1401,37 +1328,31 @@ export type ResolversTypes = {
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   CacheOperation: ResolverTypeWrapper<CacheOperation>;
   CacheStats: ResolverTypeWrapper<CacheStats>;
+  CategoriesResponse: ResolverTypeWrapper<CategoriesResponse>;
   Category: ResolverTypeWrapper<Category>;
-  CategoryConnection: ResolverTypeWrapper<CategoryConnection>;
-  CategoryEdge: ResolverTypeWrapper<CategoryEdge>;
   CategoryFilter: CategoryFilter;
   Character: ResolverTypeWrapper<Character>;
-  CharacterConnection: ResolverTypeWrapper<CharacterConnection>;
-  CharacterEdge: ResolverTypeWrapper<CharacterEdge>;
   CharacterFilter: CharacterFilter;
   CharacterOrderBy: CharacterOrderBy;
+  CharactersResponse: ResolverTypeWrapper<CharactersResponse>;
   Constellation: ResolverTypeWrapper<Constellation>;
-  ConstellationConnection: ResolverTypeWrapper<ConstellationConnection>;
-  ConstellationEdge: ResolverTypeWrapper<ConstellationEdge>;
   ConstellationFilter: ConstellationFilter;
   ConstellationOrderBy: ConstellationOrderBy;
+  ConstellationsResponse: ResolverTypeWrapper<ConstellationsResponse>;
   Corporation: ResolverTypeWrapper<Corporation>;
-  CorporationConnection: ResolverTypeWrapper<CorporationConnection>;
-  CorporationEdge: ResolverTypeWrapper<CorporationEdge>;
   CorporationFilter: CorporationFilter;
   CorporationMetrics: ResolverTypeWrapper<CorporationMetrics>;
   CorporationOrderBy: CorporationOrderBy;
   CorporationSnapshot: ResolverTypeWrapper<CorporationSnapshot>;
+  CorporationsResponse: ResolverTypeWrapper<CorporationsResponse>;
   CreateUserInput: CreateUserInput;
   CreateUserPayload: ResolverTypeWrapper<CreateUserPayload>;
   DogmaAttribute: ResolverTypeWrapper<DogmaAttribute>;
-  DogmaAttributeConnection: ResolverTypeWrapper<DogmaAttributeConnection>;
-  DogmaAttributeEdge: ResolverTypeWrapper<DogmaAttributeEdge>;
   DogmaAttributeFilter: DogmaAttributeFilter;
+  DogmaAttributesResponse: ResolverTypeWrapper<DogmaAttributesResponse>;
   DogmaEffect: ResolverTypeWrapper<DogmaEffect>;
-  DogmaEffectConnection: ResolverTypeWrapper<DogmaEffectConnection>;
-  DogmaEffectEdge: ResolverTypeWrapper<DogmaEffectEdge>;
   DogmaEffectFilter: DogmaEffectFilter;
+  DogmaEffectsResponse: ResolverTypeWrapper<DogmaEffectsResponse>;
   Fitting: ResolverTypeWrapper<Fitting>;
   FittingModule: ResolverTypeWrapper<FittingModule>;
   FittingSlot: ResolverTypeWrapper<FittingSlot>;
@@ -1439,17 +1360,15 @@ export type ResolversTypes = {
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   ItemGroup: ResolverTypeWrapper<ItemGroup>;
-  ItemGroupConnection: ResolverTypeWrapper<ItemGroupConnection>;
-  ItemGroupEdge: ResolverTypeWrapper<ItemGroupEdge>;
   ItemGroupFilter: ItemGroupFilter;
+  ItemGroupsResponse: ResolverTypeWrapper<ItemGroupsResponse>;
   JitaPrice: ResolverTypeWrapper<JitaPrice>;
   Killmail: ResolverTypeWrapper<Killmail>;
-  KillmailConnection: ResolverTypeWrapper<KillmailConnection>;
   KillmailDateCount: ResolverTypeWrapper<KillmailDateCount>;
-  KillmailEdge: ResolverTypeWrapper<KillmailEdge>;
   KillmailFilter: KillmailFilter;
   KillmailItem: ResolverTypeWrapper<KillmailItem>;
   KillmailOrderBy: KillmailOrderBy;
+  KillmailsResponse: ResolverTypeWrapper<KillmailsResponse>;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   PageInfo: ResolverTypeWrapper<PageInfo>;
   Position: ResolverTypeWrapper<Position>;
@@ -1459,17 +1378,15 @@ export type ResolversTypes = {
   RedisMetrics: ResolverTypeWrapper<RedisMetrics>;
   RefreshCharacterResult: ResolverTypeWrapper<RefreshCharacterResult>;
   Region: ResolverTypeWrapper<Region>;
-  RegionConnection: ResolverTypeWrapper<RegionConnection>;
-  RegionEdge: ResolverTypeWrapper<RegionEdge>;
   RegionFilter: RegionFilter;
   RegionOrderBy: RegionOrderBy;
+  RegionsResponse: ResolverTypeWrapper<RegionsResponse>;
   SecurityStats: ResolverTypeWrapper<SecurityStats>;
   SlotGroup: ResolverTypeWrapper<SlotGroup>;
   SolarSystem: ResolverTypeWrapper<SolarSystem>;
-  SolarSystemConnection: ResolverTypeWrapper<SolarSystemConnection>;
-  SolarSystemEdge: ResolverTypeWrapper<SolarSystemEdge>;
   SolarSystemFilter: SolarSystemFilter;
   SolarSystemOrderBy: SolarSystemOrderBy;
+  SolarSystemsResponse: ResolverTypeWrapper<SolarSystemsResponse>;
   StandaloneWorkerStatus: ResolverTypeWrapper<StandaloneWorkerStatus>;
   StartAllianceSyncInput: StartAllianceSyncInput;
   StartAllianceSyncPayload: ResolverTypeWrapper<StartAllianceSyncPayload>;
@@ -1494,11 +1411,10 @@ export type ResolversTypes = {
   SyncMyKillmailsInput: SyncMyKillmailsInput;
   SyncMyKillmailsPayload: ResolverTypeWrapper<SyncMyKillmailsPayload>;
   Type: ResolverTypeWrapper<Type>;
-  TypeConnection: ResolverTypeWrapper<TypeConnection>;
   TypeDogmaAttribute: ResolverTypeWrapper<TypeDogmaAttribute>;
   TypeDogmaEffect: ResolverTypeWrapper<TypeDogmaEffect>;
-  TypeEdge: ResolverTypeWrapper<TypeEdge>;
   TypeFilter: TypeFilter;
+  TypesResponse: ResolverTypeWrapper<TypesResponse>;
   UpdateUserInput: UpdateUserInput;
   UpdateUserPayload: ResolverTypeWrapper<UpdateUserPayload>;
   User: ResolverTypeWrapper<User>;
@@ -1510,11 +1426,10 @@ export type ResolversTypes = {
 export type ResolversParentTypes = {
   ActiveUsersPayload: ActiveUsersPayload;
   Alliance: Alliance;
-  AllianceConnection: AllianceConnection;
-  AllianceEdge: AllianceEdge;
   AllianceFilter: AllianceFilter;
   AllianceMetrics: AllianceMetrics;
   AllianceSnapshot: AllianceSnapshot;
+  AlliancesResponse: AlliancesResponse;
   Attacker: Attacker;
   AuthPayload: AuthPayload;
   AuthUrl: AuthUrl;
@@ -1522,34 +1437,28 @@ export type ResolversParentTypes = {
   Boolean: Scalars['Boolean']['output'];
   CacheOperation: CacheOperation;
   CacheStats: CacheStats;
+  CategoriesResponse: CategoriesResponse;
   Category: Category;
-  CategoryConnection: CategoryConnection;
-  CategoryEdge: CategoryEdge;
   CategoryFilter: CategoryFilter;
   Character: Character;
-  CharacterConnection: CharacterConnection;
-  CharacterEdge: CharacterEdge;
   CharacterFilter: CharacterFilter;
+  CharactersResponse: CharactersResponse;
   Constellation: Constellation;
-  ConstellationConnection: ConstellationConnection;
-  ConstellationEdge: ConstellationEdge;
   ConstellationFilter: ConstellationFilter;
+  ConstellationsResponse: ConstellationsResponse;
   Corporation: Corporation;
-  CorporationConnection: CorporationConnection;
-  CorporationEdge: CorporationEdge;
   CorporationFilter: CorporationFilter;
   CorporationMetrics: CorporationMetrics;
   CorporationSnapshot: CorporationSnapshot;
+  CorporationsResponse: CorporationsResponse;
   CreateUserInput: CreateUserInput;
   CreateUserPayload: CreateUserPayload;
   DogmaAttribute: DogmaAttribute;
-  DogmaAttributeConnection: DogmaAttributeConnection;
-  DogmaAttributeEdge: DogmaAttributeEdge;
   DogmaAttributeFilter: DogmaAttributeFilter;
+  DogmaAttributesResponse: DogmaAttributesResponse;
   DogmaEffect: DogmaEffect;
-  DogmaEffectConnection: DogmaEffectConnection;
-  DogmaEffectEdge: DogmaEffectEdge;
   DogmaEffectFilter: DogmaEffectFilter;
+  DogmaEffectsResponse: DogmaEffectsResponse;
   Fitting: Fitting;
   FittingModule: FittingModule;
   FittingSlot: FittingSlot;
@@ -1557,16 +1466,14 @@ export type ResolversParentTypes = {
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
   ItemGroup: ItemGroup;
-  ItemGroupConnection: ItemGroupConnection;
-  ItemGroupEdge: ItemGroupEdge;
   ItemGroupFilter: ItemGroupFilter;
+  ItemGroupsResponse: ItemGroupsResponse;
   JitaPrice: JitaPrice;
   Killmail: Killmail;
-  KillmailConnection: KillmailConnection;
   KillmailDateCount: KillmailDateCount;
-  KillmailEdge: KillmailEdge;
   KillmailFilter: KillmailFilter;
   KillmailItem: KillmailItem;
+  KillmailsResponse: KillmailsResponse;
   Mutation: Record<PropertyKey, never>;
   PageInfo: PageInfo;
   Position: Position;
@@ -1576,15 +1483,13 @@ export type ResolversParentTypes = {
   RedisMetrics: RedisMetrics;
   RefreshCharacterResult: RefreshCharacterResult;
   Region: Region;
-  RegionConnection: RegionConnection;
-  RegionEdge: RegionEdge;
   RegionFilter: RegionFilter;
+  RegionsResponse: RegionsResponse;
   SecurityStats: SecurityStats;
   SlotGroup: SlotGroup;
   SolarSystem: SolarSystem;
-  SolarSystemConnection: SolarSystemConnection;
-  SolarSystemEdge: SolarSystemEdge;
   SolarSystemFilter: SolarSystemFilter;
+  SolarSystemsResponse: SolarSystemsResponse;
   StandaloneWorkerStatus: StandaloneWorkerStatus;
   StartAllianceSyncInput: StartAllianceSyncInput;
   StartAllianceSyncPayload: StartAllianceSyncPayload;
@@ -1609,11 +1514,10 @@ export type ResolversParentTypes = {
   SyncMyKillmailsInput: SyncMyKillmailsInput;
   SyncMyKillmailsPayload: SyncMyKillmailsPayload;
   Type: Type;
-  TypeConnection: TypeConnection;
   TypeDogmaAttribute: TypeDogmaAttribute;
   TypeDogmaEffect: TypeDogmaEffect;
-  TypeEdge: TypeEdge;
   TypeFilter: TypeFilter;
+  TypesResponse: TypesResponse;
   UpdateUserInput: UpdateUserInput;
   UpdateUserPayload: UpdateUserPayload;
   User: User;
@@ -1642,16 +1546,6 @@ export type AllianceResolvers<ContextType = any, ParentType extends ResolversPar
   ticker?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
-export type AllianceConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['AllianceConnection'] = ResolversParentTypes['AllianceConnection']> = {
-  edges?: Resolver<Array<ResolversTypes['AllianceEdge']>, ParentType, ContextType>;
-  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
-};
-
-export type AllianceEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['AllianceEdge'] = ResolversParentTypes['AllianceEdge']> = {
-  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  node?: Resolver<ResolversTypes['Alliance'], ParentType, ContextType>;
-};
-
 export type AllianceMetricsResolvers<ContextType = any, ParentType extends ResolversParentTypes['AllianceMetrics'] = ResolversParentTypes['AllianceMetrics']> = {
   corporationCountDelta1d?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   corporationCountDelta7d?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
@@ -1671,6 +1565,11 @@ export type AllianceSnapshotResolvers<ContextType = any, ParentType extends Reso
   corporationCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   date?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   memberCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type AlliancesResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['AlliancesResponse'] = ResolversParentTypes['AlliancesResponse']> = {
+  items?: Resolver<Array<ResolversTypes['Alliance']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
 };
 
 export type AttackerResolvers<ContextType = any, ParentType extends ResolversParentTypes['Attacker'] = ResolversParentTypes['Attacker']> = {
@@ -1721,6 +1620,11 @@ export type CacheStatsResolvers<ContextType = any, ParentType extends ResolversP
   totalKeys?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
+export type CategoriesResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['CategoriesResponse'] = ResolversParentTypes['CategoriesResponse']> = {
+  items?: Resolver<Array<ResolversTypes['Category']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+};
+
 export type CategoryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Category'] = ResolversParentTypes['Category']> = {
   created_at?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   groups?: Resolver<Array<ResolversTypes['ItemGroup']>, ParentType, ContextType>;
@@ -1728,16 +1632,6 @@ export type CategoryResolvers<ContextType = any, ParentType extends ResolversPar
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   published?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   updated_at?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-};
-
-export type CategoryConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['CategoryConnection'] = ResolversParentTypes['CategoryConnection']> = {
-  edges?: Resolver<Array<ResolversTypes['CategoryEdge']>, ParentType, ContextType>;
-  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
-};
-
-export type CategoryEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['CategoryEdge'] = ResolversParentTypes['CategoryEdge']> = {
-  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  node?: Resolver<ResolversTypes['Category'], ParentType, ContextType>;
 };
 
 export type CharacterResolvers<ContextType = any, ParentType extends ResolversParentTypes['Character'] = ResolversParentTypes['Character']> = {
@@ -1756,14 +1650,9 @@ export type CharacterResolvers<ContextType = any, ParentType extends ResolversPa
   updatedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
-export type CharacterConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['CharacterConnection'] = ResolversParentTypes['CharacterConnection']> = {
-  edges?: Resolver<Array<ResolversTypes['CharacterEdge']>, ParentType, ContextType>;
+export type CharactersResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['CharactersResponse'] = ResolversParentTypes['CharactersResponse']> = {
+  items?: Resolver<Array<ResolversTypes['Character']>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
-};
-
-export type CharacterEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['CharacterEdge'] = ResolversParentTypes['CharacterEdge']> = {
-  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  node?: Resolver<ResolversTypes['Character'], ParentType, ContextType>;
 };
 
 export type ConstellationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Constellation'] = ResolversParentTypes['Constellation']> = {
@@ -1776,14 +1665,9 @@ export type ConstellationResolvers<ContextType = any, ParentType extends Resolve
   solarSystems?: Resolver<Array<ResolversTypes['SolarSystem']>, ParentType, ContextType>;
 };
 
-export type ConstellationConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['ConstellationConnection'] = ResolversParentTypes['ConstellationConnection']> = {
-  edges?: Resolver<Array<ResolversTypes['ConstellationEdge']>, ParentType, ContextType>;
+export type ConstellationsResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['ConstellationsResponse'] = ResolversParentTypes['ConstellationsResponse']> = {
+  items?: Resolver<Array<ResolversTypes['Constellation']>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
-};
-
-export type ConstellationEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['ConstellationEdge'] = ResolversParentTypes['ConstellationEdge']> = {
-  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  node?: Resolver<ResolversTypes['Constellation'], ParentType, ContextType>;
 };
 
 export type CorporationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Corporation'] = ResolversParentTypes['Corporation']> = {
@@ -1802,16 +1686,6 @@ export type CorporationResolvers<ContextType = any, ParentType extends Resolvers
   url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
-export type CorporationConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['CorporationConnection'] = ResolversParentTypes['CorporationConnection']> = {
-  edges?: Resolver<Array<ResolversTypes['CorporationEdge']>, ParentType, ContextType>;
-  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
-};
-
-export type CorporationEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['CorporationEdge'] = ResolversParentTypes['CorporationEdge']> = {
-  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  node?: Resolver<ResolversTypes['Corporation'], ParentType, ContextType>;
-};
-
 export type CorporationMetricsResolvers<ContextType = any, ParentType extends ResolversParentTypes['CorporationMetrics'] = ResolversParentTypes['CorporationMetrics']> = {
   memberCountDelta1d?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   memberCountDelta7d?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
@@ -1824,6 +1698,11 @@ export type CorporationMetricsResolvers<ContextType = any, ParentType extends Re
 export type CorporationSnapshotResolvers<ContextType = any, ParentType extends ResolversParentTypes['CorporationSnapshot'] = ResolversParentTypes['CorporationSnapshot']> = {
   date?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   memberCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type CorporationsResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['CorporationsResponse'] = ResolversParentTypes['CorporationsResponse']> = {
+  items?: Resolver<Array<ResolversTypes['Corporation']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
 };
 
 export type CreateUserPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['CreateUserPayload'] = ResolversParentTypes['CreateUserPayload']> = {
@@ -1846,14 +1725,9 @@ export type DogmaAttributeResolvers<ContextType = any, ParentType extends Resolv
   updated_at?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
-export type DogmaAttributeConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['DogmaAttributeConnection'] = ResolversParentTypes['DogmaAttributeConnection']> = {
-  edges?: Resolver<Array<ResolversTypes['DogmaAttributeEdge']>, ParentType, ContextType>;
+export type DogmaAttributesResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['DogmaAttributesResponse'] = ResolversParentTypes['DogmaAttributesResponse']> = {
+  items?: Resolver<Array<ResolversTypes['DogmaAttribute']>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
-};
-
-export type DogmaAttributeEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['DogmaAttributeEdge'] = ResolversParentTypes['DogmaAttributeEdge']> = {
-  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  node?: Resolver<ResolversTypes['DogmaAttribute'], ParentType, ContextType>;
 };
 
 export type DogmaEffectResolvers<ContextType = any, ParentType extends ResolversParentTypes['DogmaEffect'] = ResolversParentTypes['DogmaEffect']> = {
@@ -1873,14 +1747,9 @@ export type DogmaEffectResolvers<ContextType = any, ParentType extends Resolvers
   updated_at?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
-export type DogmaEffectConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['DogmaEffectConnection'] = ResolversParentTypes['DogmaEffectConnection']> = {
-  edges?: Resolver<Array<ResolversTypes['DogmaEffectEdge']>, ParentType, ContextType>;
+export type DogmaEffectsResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['DogmaEffectsResponse'] = ResolversParentTypes['DogmaEffectsResponse']> = {
+  items?: Resolver<Array<ResolversTypes['DogmaEffect']>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
-};
-
-export type DogmaEffectEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['DogmaEffectEdge'] = ResolversParentTypes['DogmaEffectEdge']> = {
-  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  node?: Resolver<ResolversTypes['DogmaEffect'], ParentType, ContextType>;
 };
 
 export type FittingResolvers<ContextType = any, ParentType extends ResolversParentTypes['Fitting'] = ResolversParentTypes['Fitting']> = {
@@ -1922,14 +1791,9 @@ export type ItemGroupResolvers<ContextType = any, ParentType extends ResolversPa
   updated_at?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
-export type ItemGroupConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemGroupConnection'] = ResolversParentTypes['ItemGroupConnection']> = {
-  edges?: Resolver<Array<ResolversTypes['ItemGroupEdge']>, ParentType, ContextType>;
+export type ItemGroupsResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemGroupsResponse'] = ResolversParentTypes['ItemGroupsResponse']> = {
+  items?: Resolver<Array<ResolversTypes['ItemGroup']>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
-};
-
-export type ItemGroupEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['ItemGroupEdge'] = ResolversParentTypes['ItemGroupEdge']> = {
-  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  node?: Resolver<ResolversTypes['ItemGroup'], ParentType, ContextType>;
 };
 
 export type JitaPriceResolvers<ContextType = any, ParentType extends ResolversParentTypes['JitaPrice'] = ResolversParentTypes['JitaPrice']> = {
@@ -1959,19 +1823,9 @@ export type KillmailResolvers<ContextType = any, ParentType extends ResolversPar
   victim?: Resolver<Maybe<ResolversTypes['Victim']>, ParentType, ContextType>;
 };
 
-export type KillmailConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['KillmailConnection'] = ResolversParentTypes['KillmailConnection']> = {
-  edges?: Resolver<Array<ResolversTypes['KillmailEdge']>, ParentType, ContextType>;
-  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
-};
-
 export type KillmailDateCountResolvers<ContextType = any, ParentType extends ResolversParentTypes['KillmailDateCount'] = ResolversParentTypes['KillmailDateCount']> = {
   count?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   date?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-};
-
-export type KillmailEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['KillmailEdge'] = ResolversParentTypes['KillmailEdge']> = {
-  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  node?: Resolver<ResolversTypes['Killmail'], ParentType, ContextType>;
 };
 
 export type KillmailItemResolvers<ContextType = any, ParentType extends ResolversParentTypes['KillmailItem'] = ResolversParentTypes['KillmailItem']> = {
@@ -1981,6 +1835,11 @@ export type KillmailItemResolvers<ContextType = any, ParentType extends Resolver
   quantityDestroyed?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   quantityDropped?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   singleton?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type KillmailsResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['KillmailsResponse'] = ResolversParentTypes['KillmailsResponse']> = {
+  items?: Resolver<Array<ResolversTypes['Killmail']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
 };
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
@@ -2026,36 +1885,36 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   activeUsersCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType, RequireFields<QueryAllianceArgs, 'id'>>;
-  alliances?: Resolver<ResolversTypes['AllianceConnection'], ParentType, ContextType, Partial<QueryAlliancesArgs>>;
+  alliances?: Resolver<ResolversTypes['AlliancesResponse'], ParentType, ContextType, Partial<QueryAlliancesArgs>>;
   bloodline?: Resolver<Maybe<ResolversTypes['Bloodline']>, ParentType, ContextType, RequireFields<QueryBloodlineArgs, 'id'>>;
   bloodlines?: Resolver<Array<ResolversTypes['Bloodline']>, ParentType, ContextType>;
   cacheStats?: Resolver<ResolversTypes['CacheStats'], ParentType, ContextType>;
-  categories?: Resolver<ResolversTypes['CategoryConnection'], ParentType, ContextType, Partial<QueryCategoriesArgs>>;
+  categories?: Resolver<ResolversTypes['CategoriesResponse'], ParentType, ContextType, Partial<QueryCategoriesArgs>>;
   category?: Resolver<Maybe<ResolversTypes['Category']>, ParentType, ContextType, RequireFields<QueryCategoryArgs, 'id'>>;
   character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType, RequireFields<QueryCharacterArgs, 'id'>>;
-  characters?: Resolver<ResolversTypes['CharacterConnection'], ParentType, ContextType, Partial<QueryCharactersArgs>>;
+  characters?: Resolver<ResolversTypes['CharactersResponse'], ParentType, ContextType, Partial<QueryCharactersArgs>>;
   constellation?: Resolver<Maybe<ResolversTypes['Constellation']>, ParentType, ContextType, RequireFields<QueryConstellationArgs, 'id'>>;
-  constellations?: Resolver<ResolversTypes['ConstellationConnection'], ParentType, ContextType, Partial<QueryConstellationsArgs>>;
+  constellations?: Resolver<ResolversTypes['ConstellationsResponse'], ParentType, ContextType, Partial<QueryConstellationsArgs>>;
   corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType, RequireFields<QueryCorporationArgs, 'id'>>;
-  corporations?: Resolver<ResolversTypes['CorporationConnection'], ParentType, ContextType, Partial<QueryCorporationsArgs>>;
+  corporations?: Resolver<ResolversTypes['CorporationsResponse'], ParentType, ContextType, Partial<QueryCorporationsArgs>>;
   dogmaAttribute?: Resolver<Maybe<ResolversTypes['DogmaAttribute']>, ParentType, ContextType, RequireFields<QueryDogmaAttributeArgs, 'id'>>;
-  dogmaAttributes?: Resolver<ResolversTypes['DogmaAttributeConnection'], ParentType, ContextType, Partial<QueryDogmaAttributesArgs>>;
+  dogmaAttributes?: Resolver<ResolversTypes['DogmaAttributesResponse'], ParentType, ContextType, Partial<QueryDogmaAttributesArgs>>;
   dogmaEffect?: Resolver<Maybe<ResolversTypes['DogmaEffect']>, ParentType, ContextType, RequireFields<QueryDogmaEffectArgs, 'id'>>;
-  dogmaEffects?: Resolver<ResolversTypes['DogmaEffectConnection'], ParentType, ContextType, Partial<QueryDogmaEffectsArgs>>;
+  dogmaEffects?: Resolver<ResolversTypes['DogmaEffectsResponse'], ParentType, ContextType, Partial<QueryDogmaEffectsArgs>>;
   itemGroup?: Resolver<Maybe<ResolversTypes['ItemGroup']>, ParentType, ContextType, RequireFields<QueryItemGroupArgs, 'id'>>;
-  itemGroups?: Resolver<ResolversTypes['ItemGroupConnection'], ParentType, ContextType, Partial<QueryItemGroupsArgs>>;
+  itemGroups?: Resolver<ResolversTypes['ItemGroupsResponse'], ParentType, ContextType, Partial<QueryItemGroupsArgs>>;
   killmail?: Resolver<Maybe<ResolversTypes['Killmail']>, ParentType, ContextType, RequireFields<QueryKillmailArgs, 'id'>>;
-  killmails?: Resolver<ResolversTypes['KillmailConnection'], ParentType, ContextType, Partial<QueryKillmailsArgs>>;
+  killmails?: Resolver<ResolversTypes['KillmailsResponse'], ParentType, ContextType, Partial<QueryKillmailsArgs>>;
   killmailsDateCounts?: Resolver<Array<ResolversTypes['KillmailDateCount']>, ParentType, ContextType, Partial<QueryKillmailsDateCountsArgs>>;
   me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   race?: Resolver<Maybe<ResolversTypes['Race']>, ParentType, ContextType, RequireFields<QueryRaceArgs, 'id'>>;
   races?: Resolver<Array<ResolversTypes['Race']>, ParentType, ContextType>;
   region?: Resolver<Maybe<ResolversTypes['Region']>, ParentType, ContextType, RequireFields<QueryRegionArgs, 'id'>>;
-  regions?: Resolver<ResolversTypes['RegionConnection'], ParentType, ContextType, Partial<QueryRegionsArgs>>;
+  regions?: Resolver<ResolversTypes['RegionsResponse'], ParentType, ContextType, Partial<QueryRegionsArgs>>;
   solarSystem?: Resolver<Maybe<ResolversTypes['SolarSystem']>, ParentType, ContextType, RequireFields<QuerySolarSystemArgs, 'id'>>;
-  solarSystems?: Resolver<ResolversTypes['SolarSystemConnection'], ParentType, ContextType, Partial<QuerySolarSystemsArgs>>;
+  solarSystems?: Resolver<ResolversTypes['SolarSystemsResponse'], ParentType, ContextType, Partial<QuerySolarSystemsArgs>>;
   type?: Resolver<Maybe<ResolversTypes['Type']>, ParentType, ContextType, RequireFields<QueryTypeArgs, 'id'>>;
-  types?: Resolver<ResolversTypes['TypeConnection'], ParentType, ContextType, Partial<QueryTypesArgs>>;
+  types?: Resolver<ResolversTypes['TypesResponse'], ParentType, ContextType, Partial<QueryTypesArgs>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
   users?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
   workerStatus?: Resolver<ResolversTypes['WorkerStatus'], ParentType, ContextType>;
@@ -2104,14 +1963,9 @@ export type RegionResolvers<ContextType = any, ParentType extends ResolversParen
   solarSystemCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
-export type RegionConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['RegionConnection'] = ResolversParentTypes['RegionConnection']> = {
-  edges?: Resolver<Array<ResolversTypes['RegionEdge']>, ParentType, ContextType>;
+export type RegionsResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['RegionsResponse'] = ResolversParentTypes['RegionsResponse']> = {
+  items?: Resolver<Array<ResolversTypes['Region']>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
-};
-
-export type RegionEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['RegionEdge'] = ResolversParentTypes['RegionEdge']> = {
-  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  node?: Resolver<ResolversTypes['Region'], ParentType, ContextType>;
 };
 
 export type SecurityStatsResolvers<ContextType = any, ParentType extends ResolversParentTypes['SecurityStats'] = ResolversParentTypes['SecurityStats']> = {
@@ -2137,14 +1991,9 @@ export type SolarSystemResolvers<ContextType = any, ParentType extends Resolvers
   star_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
 };
 
-export type SolarSystemConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['SolarSystemConnection'] = ResolversParentTypes['SolarSystemConnection']> = {
-  edges?: Resolver<Array<ResolversTypes['SolarSystemEdge']>, ParentType, ContextType>;
+export type SolarSystemsResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['SolarSystemsResponse'] = ResolversParentTypes['SolarSystemsResponse']> = {
+  items?: Resolver<Array<ResolversTypes['SolarSystem']>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
-};
-
-export type SolarSystemEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['SolarSystemEdge'] = ResolversParentTypes['SolarSystemEdge']> = {
-  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  node?: Resolver<ResolversTypes['SolarSystem'], ParentType, ContextType>;
 };
 
 export type StandaloneWorkerStatusResolvers<ContextType = any, ParentType extends ResolversParentTypes['StandaloneWorkerStatus'] = ResolversParentTypes['StandaloneWorkerStatus']> = {
@@ -2240,11 +2089,6 @@ export type TypeResolvers<ContextType = any, ParentType extends ResolversParentT
   volume?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
 };
 
-export type TypeConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['TypeConnection'] = ResolversParentTypes['TypeConnection']> = {
-  edges?: Resolver<Array<ResolversTypes['TypeEdge']>, ParentType, ContextType>;
-  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
-};
-
 export type TypeDogmaAttributeResolvers<ContextType = any, ParentType extends ResolversParentTypes['TypeDogmaAttribute'] = ResolversParentTypes['TypeDogmaAttribute']> = {
   attribute?: Resolver<ResolversTypes['DogmaAttribute'], ParentType, ContextType>;
   attribute_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -2259,9 +2103,9 @@ export type TypeDogmaEffectResolvers<ContextType = any, ParentType extends Resol
   type_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
-export type TypeEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['TypeEdge'] = ResolversParentTypes['TypeEdge']> = {
-  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  node?: Resolver<ResolversTypes['Type'], ParentType, ContextType>;
+export type TypesResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['TypesResponse'] = ResolversParentTypes['TypesResponse']> = {
+  items?: Resolver<Array<ResolversTypes['Type']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
 };
 
 export type UpdateUserPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['UpdateUserPayload'] = ResolversParentTypes['UpdateUserPayload']> = {
@@ -2298,49 +2142,40 @@ export type WorkerStatusResolvers<ContextType = any, ParentType extends Resolver
 export type Resolvers<ContextType = any> = {
   ActiveUsersPayload?: ActiveUsersPayloadResolvers<ContextType>;
   Alliance?: AllianceResolvers<ContextType>;
-  AllianceConnection?: AllianceConnectionResolvers<ContextType>;
-  AllianceEdge?: AllianceEdgeResolvers<ContextType>;
   AllianceMetrics?: AllianceMetricsResolvers<ContextType>;
   AllianceSnapshot?: AllianceSnapshotResolvers<ContextType>;
+  AlliancesResponse?: AlliancesResponseResolvers<ContextType>;
   Attacker?: AttackerResolvers<ContextType>;
   AuthPayload?: AuthPayloadResolvers<ContextType>;
   AuthUrl?: AuthUrlResolvers<ContextType>;
   Bloodline?: BloodlineResolvers<ContextType>;
   CacheOperation?: CacheOperationResolvers<ContextType>;
   CacheStats?: CacheStatsResolvers<ContextType>;
+  CategoriesResponse?: CategoriesResponseResolvers<ContextType>;
   Category?: CategoryResolvers<ContextType>;
-  CategoryConnection?: CategoryConnectionResolvers<ContextType>;
-  CategoryEdge?: CategoryEdgeResolvers<ContextType>;
   Character?: CharacterResolvers<ContextType>;
-  CharacterConnection?: CharacterConnectionResolvers<ContextType>;
-  CharacterEdge?: CharacterEdgeResolvers<ContextType>;
+  CharactersResponse?: CharactersResponseResolvers<ContextType>;
   Constellation?: ConstellationResolvers<ContextType>;
-  ConstellationConnection?: ConstellationConnectionResolvers<ContextType>;
-  ConstellationEdge?: ConstellationEdgeResolvers<ContextType>;
+  ConstellationsResponse?: ConstellationsResponseResolvers<ContextType>;
   Corporation?: CorporationResolvers<ContextType>;
-  CorporationConnection?: CorporationConnectionResolvers<ContextType>;
-  CorporationEdge?: CorporationEdgeResolvers<ContextType>;
   CorporationMetrics?: CorporationMetricsResolvers<ContextType>;
   CorporationSnapshot?: CorporationSnapshotResolvers<ContextType>;
+  CorporationsResponse?: CorporationsResponseResolvers<ContextType>;
   CreateUserPayload?: CreateUserPayloadResolvers<ContextType>;
   DogmaAttribute?: DogmaAttributeResolvers<ContextType>;
-  DogmaAttributeConnection?: DogmaAttributeConnectionResolvers<ContextType>;
-  DogmaAttributeEdge?: DogmaAttributeEdgeResolvers<ContextType>;
+  DogmaAttributesResponse?: DogmaAttributesResponseResolvers<ContextType>;
   DogmaEffect?: DogmaEffectResolvers<ContextType>;
-  DogmaEffectConnection?: DogmaEffectConnectionResolvers<ContextType>;
-  DogmaEffectEdge?: DogmaEffectEdgeResolvers<ContextType>;
+  DogmaEffectsResponse?: DogmaEffectsResponseResolvers<ContextType>;
   Fitting?: FittingResolvers<ContextType>;
   FittingModule?: FittingModuleResolvers<ContextType>;
   FittingSlot?: FittingSlotResolvers<ContextType>;
   ItemGroup?: ItemGroupResolvers<ContextType>;
-  ItemGroupConnection?: ItemGroupConnectionResolvers<ContextType>;
-  ItemGroupEdge?: ItemGroupEdgeResolvers<ContextType>;
+  ItemGroupsResponse?: ItemGroupsResponseResolvers<ContextType>;
   JitaPrice?: JitaPriceResolvers<ContextType>;
   Killmail?: KillmailResolvers<ContextType>;
-  KillmailConnection?: KillmailConnectionResolvers<ContextType>;
   KillmailDateCount?: KillmailDateCountResolvers<ContextType>;
-  KillmailEdge?: KillmailEdgeResolvers<ContextType>;
   KillmailItem?: KillmailItemResolvers<ContextType>;
+  KillmailsResponse?: KillmailsResponseResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;
   Position?: PositionResolvers<ContextType>;
@@ -2350,13 +2185,11 @@ export type Resolvers<ContextType = any> = {
   RedisMetrics?: RedisMetricsResolvers<ContextType>;
   RefreshCharacterResult?: RefreshCharacterResultResolvers<ContextType>;
   Region?: RegionResolvers<ContextType>;
-  RegionConnection?: RegionConnectionResolvers<ContextType>;
-  RegionEdge?: RegionEdgeResolvers<ContextType>;
+  RegionsResponse?: RegionsResponseResolvers<ContextType>;
   SecurityStats?: SecurityStatsResolvers<ContextType>;
   SlotGroup?: SlotGroupResolvers<ContextType>;
   SolarSystem?: SolarSystemResolvers<ContextType>;
-  SolarSystemConnection?: SolarSystemConnectionResolvers<ContextType>;
-  SolarSystemEdge?: SolarSystemEdgeResolvers<ContextType>;
+  SolarSystemsResponse?: SolarSystemsResponseResolvers<ContextType>;
   StandaloneWorkerStatus?: StandaloneWorkerStatusResolvers<ContextType>;
   StartAllianceSyncPayload?: StartAllianceSyncPayloadResolvers<ContextType>;
   StartCategorySyncPayload?: StartCategorySyncPayloadResolvers<ContextType>;
@@ -2370,10 +2203,9 @@ export type Resolvers<ContextType = any> = {
   Subscription?: SubscriptionResolvers<ContextType>;
   SyncMyKillmailsPayload?: SyncMyKillmailsPayloadResolvers<ContextType>;
   Type?: TypeResolvers<ContextType>;
-  TypeConnection?: TypeConnectionResolvers<ContextType>;
   TypeDogmaAttribute?: TypeDogmaAttributeResolvers<ContextType>;
   TypeDogmaEffect?: TypeDogmaEffectResolvers<ContextType>;
-  TypeEdge?: TypeEdgeResolvers<ContextType>;
+  TypesResponse?: TypesResponseResolvers<ContextType>;
   UpdateUserPayload?: UpdateUserPayloadResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
   Victim?: VictimResolvers<ContextType>;

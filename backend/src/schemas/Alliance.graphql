@@ -21,13 +21,8 @@ enum AllianceOrderBy {
   memberCountDesc
 }
 
-type AllianceEdge {
-  node: Alliance!
-  cursor: String!
-}
-
-type AllianceConnection {
-  edges: [AllianceEdge!]!
+type AlliancesResponse {
+  items: [Alliance!]!
   pageInfo: PageInfo!
 }
 
@@ -43,7 +38,7 @@ type StartAllianceSyncPayload {
 
 extend type Query {
   alliance(id: Int!): Alliance
-  alliances(filter: AllianceFilter): AllianceConnection!
+  alliances(filter: AllianceFilter): AlliancesResponse!
 }
 
 extend type Mutation {

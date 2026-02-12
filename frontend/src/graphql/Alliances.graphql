@@ -1,20 +1,17 @@
 query Alliances($filter: AllianceFilter) {
   alliances(filter: $filter) {
-    edges {
-      node {
-        id
-        name
-        ticker
-        date_founded
-        memberCount
-        corporationCount
-        metrics {
-          memberCountDelta7d
-          corporationCountDelta7d
-          memberCountGrowthRate7d
-        }
+    items {
+      id
+      name
+      ticker
+      date_founded
+      memberCount
+      corporationCount
+      metrics {
+        memberCountDelta7d
+        corporationCountDelta7d
+        memberCountGrowthRate7d
       }
-      cursor
     }
     pageInfo {
       currentPage

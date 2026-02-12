@@ -21,13 +21,8 @@ enum RegionOrderBy {
   nameDesc
 }
 
-type RegionEdge {
-  node: Region!
-  cursor: String!
-}
-
-type RegionConnection {
-  edges: [RegionEdge!]!
+type RegionsResponse {
+  items: [Region!]!
   pageInfo: PageInfo!
 }
 
@@ -51,7 +46,7 @@ type StartRegionSyncPayload {
 
 extend type Query {
   region(id: Int!): Region
-  regions(filter: RegionFilter): RegionConnection!
+  regions(filter: RegionFilter): RegionsResponse!
 }
 
 extend type Mutation {

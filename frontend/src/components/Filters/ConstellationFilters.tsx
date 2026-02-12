@@ -39,7 +39,7 @@ export default function ConstellationFilters({
     },
   });
 
-  const regions = regionsData?.regions.edges.map((edge) => edge.node) || [];
+  const regions = regionsData?.regions.items || [];
   const hasActiveFilters = !!search || !!selectedRegionId;
 
   const handleSubmit = (e: React.FormEvent) => {

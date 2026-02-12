@@ -35,13 +35,8 @@ enum CorporationOrderBy {
   memberCountDesc
 }
 
-type CorporationEdge {
-  node: Corporation!
-  cursor: String!
-}
-
-type CorporationConnection {
-  edges: [CorporationEdge!]!
+type CorporationsResponse {
+  items: [Corporation!]!
   pageInfo: PageInfo!
 }
 
@@ -59,5 +54,5 @@ input CorporationFilter {
 
 extend type Query {
   corporation(id: Int!): Corporation
-  corporations(filter: CorporationFilter): CorporationConnection!
+  corporations(filter: CorporationFilter): CorporationsResponse!
 }

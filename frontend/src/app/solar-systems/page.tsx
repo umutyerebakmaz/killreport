@@ -85,7 +85,7 @@ function SolarSystemsContent() {
     setSearchTerm(filters.search || "");
     setSelectedRegionId(filters.region_id ? filters.region_id.toString() : "");
     setSelectedConstellationId(
-      filters.constellation_id ? filters.constellation_id.toString() : ""
+      filters.constellation_id ? filters.constellation_id.toString() : "",
     );
     setSecurityStatusMin(filters.securityStatusMin);
     setSecurityStatusMax(filters.securityStatusMax);
@@ -125,7 +125,7 @@ function SolarSystemsContent() {
   if (error)
     return <div className="p-8 text-red-500">Error: {error.message}</div>;
 
-  const systems = data?.solarSystems.edges.map((edge) => edge.node) || [];
+  const systems = data?.solarSystems.items || [];
   const pageInfo = data?.solarSystems.pageInfo;
   const totalPages = pageInfo?.totalPages || 0;
 

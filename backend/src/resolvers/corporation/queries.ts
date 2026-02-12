@@ -1,4 +1,4 @@
-import { Corporation, CorporationConnection, PageInfo, QueryResolvers } from '@generated-types';
+import { Corporation, PageInfo, QueryResolvers } from '@generated-types';
 import prisma from '@services/prisma';
 import redis from '@services/redis';
 
@@ -35,7 +35,7 @@ export const corporationQueries: QueryResolvers = {
     return result;
   },
 
-  corporations: async (_, { filter }): Promise<CorporationConnection> => {
+  corporations: async (_, { filter }) => {
     const page = filter?.page || 1;
     const limit = filter?.limit || 25;
     const skip = (page - 1) * limit;
@@ -47,9 +47,9 @@ export const corporationQueries: QueryResolvers = {
     };
 
     if (filter?.search) {
-        // Trim Input: trim and replace multiple spaces with single space
-        const trim = filter.search.trim().replace(/\s+/g, ' ');
-        where.name = { startsWith: trim, mode: 'insensitive' };
+      // Trim Input: trim and replace multiple spaces with single space
+      const trim = filter.search.trim().replace(/\s+/g, ' ');
+      where.name = { startsWith: trim, mode: 'insensitive' };
     }
 
     if (filter?.name) {
@@ -106,15 +106,12 @@ export const corporationQueries: QueryResolvers = {
       prisma.corporation.count({ where }),
     ]);
 
-    const edges = corporations.map((corp: any) => ({
-      node: {
-        ...corp,
-        date_founded: corp.date_founded?.toISOString() || null,
-        // BigInt'i String'e dönüştür (JSON.stringify BigInt'i serialize edemez)
-        shares: corp.shares ? corp.shares.toString() : null,
-      } as any, // Field resolver'lar eksik field'ları otomatik doldurur
-      cursor: Buffer.from(`${corp.id}`).toString('base64'),
-    }));
+    const items = corporations.map((corp: any) => ({
+      ...corp,
+      date_founded: corp.date_founded?.toISOString() || null,
+      // BigInt'i String'e dönüştür (JSON.stringify BigInt'i serialize edemez)
+      shares: corp.shares ? corp.shares.toString() : null,
+    })) as any[]; // Field resolver'lar eksik field'ları otomatik doldurur
 
     const totalPages = Math.ceil(totalCount / limit);
 
@@ -127,7 +124,7 @@ export const corporationQueries: QueryResolvers = {
     };
 
     return {
-      edges,
+      items,
       pageInfo,
     };
   },

@@ -13,13 +13,8 @@ type DogmaAttribute {
   updated_at: String!
 }
 
-type DogmaAttributeEdge {
-  node: DogmaAttribute!
-  cursor: String!
-}
-
-type DogmaAttributeConnection {
-  edges: [DogmaAttributeEdge!]!
+type DogmaAttributesResponse {
+  items: [DogmaAttribute!]!
   pageInfo: PageInfo!
 }
 
@@ -42,7 +37,7 @@ type StartDogmaAttributeSyncPayload {
 
 extend type Query {
   dogmaAttribute(id: Int!): DogmaAttribute
-  dogmaAttributes(filter: DogmaAttributeFilter): DogmaAttributeConnection!
+  dogmaAttributes(filter: DogmaAttributeFilter): DogmaAttributesResponse!
 }
 
 extend type Mutation {

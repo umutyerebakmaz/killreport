@@ -72,7 +72,7 @@ export default function SolarSystemDetailPage({
 
   // Memoize killmails array
   const killmails = useMemo(
-    () => killmailsData?.killmails.edges.map((edge) => edge.node) || [],
+    () => killmailsData?.killmails.items || [],
     [killmailsData],
   );
 

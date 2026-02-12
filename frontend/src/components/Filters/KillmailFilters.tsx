@@ -34,7 +34,7 @@ export default function KillmailFilters({
   const [isOpen, setIsOpen] = useState(false);
   const [typeSearch, setTypeSearch] = useState(""); // TypeName aramasi icin
   const [shipTypeId, setShipTypeId] = useState<number | undefined>(
-    initialShipTypeId
+    initialShipTypeId,
   ); // Secilen gemi ID
   const [shipTypeName, setShipTypeName] = useState(""); // Secilen gemi ismi (display)
   const [regionId, setRegionId] = useState("");
@@ -84,8 +84,8 @@ export default function KillmailFilters({
   useEffect(() => {
     if (
       debouncedSearch.length >= 3 &&
-      typeData?.types?.edges &&
-      typeData.types.edges.length > 0
+      typeData?.types?.items &&
+      typeData.types.items.length > 0
     ) {
       setShowDropdown(true);
     }
@@ -148,8 +148,8 @@ export default function KillmailFilters({
               // Show dropdown if we have valid search results
               if (
                 typeSearch.length >= 3 &&
-                typeData?.types?.edges &&
-                typeData.types.edges.length > 0
+                typeData?.types?.items &&
+                typeData.types.items.length > 0
               ) {
                 setShowDropdown(true);
               }
@@ -164,12 +164,11 @@ export default function KillmailFilters({
 
           {/* Dropdown Results */}
           {showDropdown &&
-            typeData?.types?.edges &&
-            typeData.types.edges.length > 0 && (
+            typeData?.types?.items &&
+            typeData.types.items.length > 0 && (
               <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
                 <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto md:grid-cols-2 character-dropdown-scroll max-h-96">
-                  {typeData.types.edges.map((edge) => {
-                    const type = edge.node;
+                  {typeData.types.items.map((type) => {
                     const iconUrl = `https://images.evetech.net/types/${type.id}/icon?size=64`;
 
                     return (
@@ -211,7 +210,7 @@ export default function KillmailFilters({
           {showDropdown &&
             debouncedSearch.length >= 3 &&
             !typeLoading &&
-            typeData?.types?.edges?.length === 0 && (
+            typeData?.types?.items?.length === 0 && (
               <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
                 <div className="p-4 text-sm text-gray-400">
                   No ships found for "{debouncedSearch}"
