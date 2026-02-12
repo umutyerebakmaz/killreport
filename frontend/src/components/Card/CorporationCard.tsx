@@ -8,7 +8,7 @@ import MemberDeltaBadge from "../MemberDeltaBadge/MemberDeltaBadge";
 import TotalMemberBadge from "../TotalMemberBadge/TotalMemberBadge";
 
 // useCorporationsQuery'nin döndüğü Corporation type'ını extract et
-type Corporation = CorporationsQuery["corporations"]["edges"][number]["node"];
+type Corporation = CorporationsQuery["corporations"]["items"][number];
 
 type CorporationCardProps = {
   corporation: Corporation;

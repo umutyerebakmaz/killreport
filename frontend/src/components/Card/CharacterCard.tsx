@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 // useCharactersQuery'nin döndüğü Character type'ını extract et
-type Character = CharactersQuery["characters"]["edges"][number]["node"];
+type Character = CharactersQuery["characters"]["items"][number];
 
 type CharacterCardProps = {
   character: Character;
