@@ -233,7 +233,7 @@ export default function AttackersCard({
                           <span className="flex-1 text-xs text-gray-400">
                             {corp.name}
                           </span>
-                          <span className="px-1.5 py-0.5 text-xs font-medium text-gray-500 bg-white/10 rounded">
+                          <span className="px-1.5 py-0.5 text-xs font-medium text-gray-500">
                             {corp.count}
                           </span>
                         </Link>
