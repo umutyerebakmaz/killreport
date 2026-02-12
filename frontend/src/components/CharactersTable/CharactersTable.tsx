@@ -4,7 +4,7 @@ import Loader from "../Loader";
 
 // Extract the Character type from the GraphQL query result
 export type Character = NonNullable<
-  CorporationCharactersQuery["characters"]["edges"][number]["node"]
+  CorporationCharactersQuery["characters"]["items"][number]
 >;
 
 interface CharactersTableProps {
