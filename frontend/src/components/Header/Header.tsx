@@ -11,18 +11,8 @@ import {
   PopoverGroup,
   PopoverPanel,
 } from "@headlessui/react";
-import {
-  ChevronDownIcon,
-  PhoneIcon,
-  PlayCircleIcon,
-} from "@heroicons/react/20/solid";
-import {
-  Bars3Icon,
-  GlobeAltIcon,
-  MapIcon,
-  MapPinIcon,
-  XMarkIcon,
-} from "@heroicons/react/24/outline";
+import { ChevronDownIcon } from "@heroicons/react/20/solid";
+import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import React, { useState } from "react";
 import ActiveUsersCounter from "../ActiveUsersCounter";
 import AuthButton from "../AuthButton/AuthButton";
@@ -93,12 +83,6 @@ export default function Header() {
             >
               <div className="p-4">
                 <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
-                  <div className="flex items-center justify-center flex-none size-11 bg-gray-700/50 group-hover:bg-gray-700">
-                    <GlobeAltIcon
-                      aria-hidden="true"
-                      className="text-gray-400 size-6 group-hover:text-cyan-400"
-                    />
-                  </div>
                   <div className="flex-auto">
                     <a
                       href="/regions"
@@ -114,12 +98,6 @@ export default function Header() {
                   </div>
                 </div>
                 <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
-                  <div className="flex items-center justify-center flex-none size-11 bg-gray-700/50 group-hover:bg-gray-700">
-                    <MapIcon
-                      aria-hidden="true"
-                      className="text-gray-400 size-6 group-hover:text-cyan-400"
-                    />
-                  </div>
                   <div className="flex-auto">
                     <a
                       href="/constellations"
@@ -134,12 +112,6 @@ export default function Header() {
                   </div>
                 </div>
                 <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
-                  <div className="flex items-center justify-center flex-none size-11 bg-gray-700/50 group-hover:bg-gray-700">
-                    <MapPinIcon
-                      aria-hidden="true"
-                      className="text-gray-400 size-6 group-hover:text-cyan-400"
-                    />
-                  </div>
                   <div className="flex-auto">
                     <a
                       href="/solar-systems"
@@ -153,28 +125,6 @@ export default function Header() {
                     </p>
                   </div>
                 </div>
-              </div>
-              <div className="grid grid-cols-2 divide-x divide-white/10 bg-gray-700/50">
-                <a
-                  href="/killmails"
-                  className="flex items-center justify-center gap-x-2.5 p-3 text-base font-semibold text-white hover:bg-cyan-900/50"
-                >
-                  <PlayCircleIcon
-                    aria-hidden="true"
-                    className="flex-none text-gray-500 size-5"
-                  />
-                  Browse Killmails
-                </a>
-                <a
-                  href="/stats"
-                  className="flex items-center justify-center gap-x-2.5 p-3 text-base font-semibold text-white hover:bg-cyan-900/50"
-                >
-                  <PhoneIcon
-                    aria-hidden="true"
-                    className="flex-none text-gray-500 size-5"
-                  />
-                  View Statistics
-                </a>
               </div>
             </PopoverPanel>
           </Popover>
