@@ -1,0 +1,5 @@
+type AllianceSnapshot {
+  date: String!
+  memberCount: Int!
+  corporationCount: Int!
+}

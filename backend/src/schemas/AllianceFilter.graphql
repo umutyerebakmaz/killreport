@@ -1,0 +1,10 @@
+input AllianceFilter {
+  page: Int
+  limit: Int
+  search: String
+  name: String
+  ticker: String
+  dateFoundedFrom: String
+  dateFoundedTo: String
+  orderBy: AllianceOrderBy
+}

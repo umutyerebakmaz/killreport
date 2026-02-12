@@ -1,0 +1,14 @@
+type AllianceMetrics {
+  memberCountDelta1d: Int
+  memberCountDelta7d: Int
+  memberCountDelta30d: Int
+  corporationCountDelta1d: Int
+  corporationCountDelta7d: Int
+  corporationCountDelta30d: Int
+  memberCountGrowthRate1d: Float
+  memberCountGrowthRate7d: Float
+  memberCountGrowthRate30d: Float
+  corporationCountGrowthRate1d: Float
+  corporationCountGrowthRate7d: Float
+  corporationCountGrowthRate30d: Float
+}
