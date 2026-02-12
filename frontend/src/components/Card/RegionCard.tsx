@@ -6,7 +6,7 @@ import { GlobeAltIcon, MapIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 
 // useRegionsQuery'nin döndüğü Region type'ını extract et
-type Region = RegionsQuery["regions"]["edges"][number]["node"];
+type Region = RegionsQuery["regions"]["items"][number];
 
 type RegionCardProps = {
   region: Region;
