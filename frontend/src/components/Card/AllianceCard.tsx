@@ -9,7 +9,7 @@ import TotalCorporationBadge from "../TotalCorporationMember/TotalCorporationBad
 import TotalMemberBadge from "../TotalMemberBadge/TotalMemberBadge";
 
 // useAlliancesQuery'nin döndüğü Alliance type'ını extract et
-type Alliance = AlliancesQuery["alliances"]["edges"][number]["node"];
+type Alliance = AlliancesQuery["alliances"]["items"][number];
 
 type AllianceCardProps = {
   alliance: Alliance;
