@@ -7,13 +7,8 @@ type Category {
   groups: [ItemGroup!]!
 }
 
-type CategoryEdge {
-  node: Category!
-  cursor: String!
-}
-
-type CategoryConnection {
-  edges: [CategoryEdge!]!
+type CategoriesResponse {
+  items: [Category!]!
   pageInfo: PageInfo!
 }
 
@@ -36,7 +31,7 @@ type StartCategorySyncPayload {
 
 extend type Query {
   category(id: Int!): Category
-  categories(filter: CategoryFilter): CategoryConnection!
+  categories(filter: CategoryFilter): CategoriesResponse!
 }
 
 extend type Mutation {

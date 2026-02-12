@@ -1,27 +1,24 @@
 query Corporations($filter: CorporationFilter) {
   corporations(filter: $filter) {
-    edges {
-      node {
+    items {
+      id
+      name
+      ticker
+      member_count
+      date_founded
+      alliance {
         id
         name
         ticker
-        member_count
-        date_founded
-        alliance {
-          id
-          name
-          ticker
-        }
-        metrics {
-          memberCountDelta1d
-          memberCountDelta7d
-          memberCountDelta30d
-          memberCountGrowthRate1d
-          memberCountGrowthRate7d
-          memberCountGrowthRate30d
-        }
       }
-      cursor
+      metrics {
+        memberCountDelta1d
+        memberCountDelta7d
+        memberCountDelta30d
+        memberCountGrowthRate1d
+        memberCountGrowthRate7d
+        memberCountGrowthRate30d
+      }
     }
     pageInfo {
       currentPage
