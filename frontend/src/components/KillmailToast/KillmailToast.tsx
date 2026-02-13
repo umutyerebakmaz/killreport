@@ -79,7 +79,7 @@ function KillmailToastItem({
         transitionDelay: `${index * 50}ms`,
       }}
     >
-      <div className="relative flex items-start gap-3 p-3 border shadow-xl bg-gray-900/95 backdrop-blur-md border-red-500/30 hover:border-red-500/50 transition-colors min-w-[320px] max-w-[380px]">
+      <div className="relative flex items-start gap-3 p-3 border shadow-xl bg-gray-900/95 backdrop-blur-md border-red-500/30 hover:border-red-500/50 transition-colors min-w-[320px] max-w-95">
         {/* Ship Image */}
         <div className="relative shrink-0">
           {shipImageUrl ? (
