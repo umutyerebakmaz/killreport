@@ -14,8 +14,8 @@ import { useEffect, useRef, useState } from "react";
 interface KillmailFiltersProps {
   onFilterChange: (filters: {
     shipTypeId?: number;
-    regionId?: number;
-    systemId?: number;
+    minAttackers?: number;
+    maxAttackers?: number;
   }) => void;
   onClearFilters: () => void;
   orderBy?: string;
@@ -37,8 +37,8 @@ export default function KillmailFilters({
     initialShipTypeId,
   ); // Secilen gemi ID
   const [shipTypeName, setShipTypeName] = useState(""); // Secilen gemi ismi (display)
-  const [regionId, setRegionId] = useState("");
-  const [systemId, setSystemId] = useState("");
+  const [minAttackers, setMinAttackers] = useState("");
+  const [maxAttackers, setMaxAttackers] = useState("");
 
   // Ship search dropdown state
   const [showDropdown, setShowDropdown] = useState(false);
@@ -56,7 +56,8 @@ export default function KillmailFilters({
     skip: debouncedSearch.length < 3, // Only search after 3 characters
   });
 
-  const hasActiveFilters = shipTypeId || regionId || systemId;
+  const hasActiveFilters =
+    shipTypeId || minAttackers || maxAttackers;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -101,8 +102,8 @@ export default function KillmailFilters({
     // Apply filter immediately with ship type ID
     onFilterChange({
       shipTypeId: typeId,
-      regionId: regionId ? Number(regionId) : undefined,
-      systemId: systemId ? Number(systemId) : undefined,
+      minAttackers: minAttackers ? Number(minAttackers) : undefined,
+      maxAttackers: maxAttackers ? Number(maxAttackers) : undefined,
     });
   };
 
@@ -110,8 +111,8 @@ export default function KillmailFilters({
     e.preventDefault();
     onFilterChange({
       shipTypeId: shipTypeId,
-      regionId: regionId ? Number(regionId) : undefined,
-      systemId: systemId ? Number(systemId) : undefined,
+      minAttackers: minAttackers ? Number(minAttackers) : undefined,
+      maxAttackers: maxAttackers ? Number(maxAttackers) : undefined,
     });
   };
 
@@ -119,8 +120,8 @@ export default function KillmailFilters({
     setTypeSearch("");
     setShipTypeId(undefined);
     setShipTypeName("");
-    setRegionId("");
-    setSystemId("");
+    setMinAttackers("");
+    setMaxAttackers("");
     onClearFilters();
   };
 
@@ -235,7 +236,13 @@ export default function KillmailFilters({
           Filters
           {hasActiveFilters && (
             <span className="badge">
-              {[shipTypeId, regionId, systemId].filter(Boolean).length}
+              {
+                [
+                  shipTypeId,
+                  minAttackers,
+                  maxAttackers,
+                ].filter(Boolean).length
+              }
             </span>
           )}
         </button>
@@ -300,39 +307,41 @@ export default function KillmailFilters({
               />
             </div>
 
-            {/* Region ID Filter */}
+            {/* Min Attackers Filter */}
             <div>
               <label
-                htmlFor="filter-region"
+                htmlFor="filter-min-attackers"
                 className="block mb-2 text-xs font-medium text-gray-400"
               >
-                Region ID
+                Min Attackers
               </label>
               <input
                 type="number"
-                id="filter-region"
-                placeholder="Region ID..."
-                value={regionId}
-                onChange={(e) => setRegionId(e.target.value)}
+                id="filter-min-attackers"
+                placeholder="Min attackers..."
+                value={minAttackers}
+                onChange={(e) => setMinAttackers(e.target.value)}
                 className="input"
+                min="1"
               />
             </div>
 
-            {/* System ID Filter */}
+            {/* Max Attackers Filter */}
             <div>
               <label
-                htmlFor="filter-system"
+                htmlFor="filter-max-attackers"
                 className="block mb-2 text-xs font-medium text-gray-400"
               >
-                System ID
+                Max Attackers
               </label>
               <input
                 type="number"
-                id="filter-system"
-                placeholder="System ID..."
-                value={systemId}
-                onChange={(e) => setSystemId(e.target.value)}
+                id="filter-max-attackers"
+                placeholder="Max attackers..."
+                value={maxAttackers}
+                onChange={(e) => setMaxAttackers(e.target.value)}
                 className="input"
+                min="1"
               />
             </div>
           </div>
