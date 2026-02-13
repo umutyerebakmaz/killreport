@@ -78,9 +78,9 @@ export default function KillmailDetailPage({
           >
             <div className="victim-card">
               {/* Grid container: FitScreen (1/2) + Summary (1/2) */}
-              <div className="grid grid-cols-3 gap-6">
-                {/* FitScreen - Left (2/3) */}
-                <div className="col-span-2">
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                {/* FitScreen - Left (2/3) on desktop, full width on tablet */}
+                <div className="lg:col-span-2">
                   <div className="flex items-center justify-between pb-2">
                     <div className="flex items-center gap-2 pb-6">
                       <a
@@ -134,8 +134,8 @@ export default function KillmailDetailPage({
                   />
                 </div>
 
-                {/* Killmail Summary Card - Right (1/3) */}
-                <div>
+                {/* Killmail Summary Card - Right (1/3) on desktop, full width on tablet */}
+                <div className="lg:col-span-1">
                   <div className="space-y-3">
                     {/* Character, Corp, Alliance Images */}
                     {victim?.character?.id && (
