@@ -4,10 +4,8 @@ node_modules
 
 /src/generated/prisma
 
-# Certificate files
-certs/*.crt
-certs/*.pem
-certs/*.key
+# Certificate files - ignore entire certs directory
+certs/
 
 # Log files
 logs/
