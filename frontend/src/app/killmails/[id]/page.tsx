@@ -7,8 +7,11 @@ import { Loader } from "@/components/Loader/Loader";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import { useKillmailQuery } from "@/generated/graphql";
 import { formatISK } from "@/utils/formatISK";
-import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
-import { use } from "react";
+import {
+  ArrowTopRightOnSquareIcon,
+  CheckIcon,
+} from "@heroicons/react/24/outline";
+import { use, useState } from "react";
 
 export default function KillmailDetailPage({
   params,
@@ -16,9 +19,21 @@ export default function KillmailDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const [copied, setCopied] = useState(false);
   const { data, loading, error } = useKillmailQuery({
     variables: { id },
   });
+
+  const handleShare = async () => {
+    try {
+      const shareUrl = `${window.location.origin}/killmails/${id}`;
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy to clipboard:", err);
+    }
+  };
 
   if (loading) {
     return <Loader fullHeight size="lg" text="Loading killmail..." />;
@@ -95,6 +110,22 @@ export default function KillmailDetailPage({
                         <ArrowTopRightOnSquareIcon className="w-4 h-4" />
                         ESI Verified
                       </a>
+                      <button
+                        onClick={handleShare}
+                        className="flex items-center gap-2 px-3 py-1 text-sm font-medium text-gray-300 transition-colors rounded bg-gray-800/50 hover:bg-gray-700/50 hover:text-white"
+                      >
+                        {copied ? (
+                          <>
+                            <CheckIcon className="w-4 h-4" />
+                            Copied!
+                          </>
+                        ) : (
+                          <>
+                            <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                            Share
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
                   <FitScreen
