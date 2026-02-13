@@ -30,7 +30,8 @@ export default function AttackersCard({
   );
 
   // Find top damage amount to identify top damage attacker
-  const topDamageAmount = Math.max(...attackers.map((a) => a.damageDone));
+  const topDamageAmount =
+    attackers.length > 0 ? Math.max(...attackers.map((a) => a.damageDone)) : 0;
 
   // Sort attackers: Final Blow first, then by damage descending
   const sortedAttackers = [...attackers].sort((a, b) => {
@@ -135,9 +136,7 @@ export default function AttackersCard({
             attacker={attacker}
             totalDamage={totalDamage}
             isFinalBlow={attacker.finalBlow}
-            isTopDamage={
-              attacker.damageDone === topDamageAmount && !attacker.finalBlow
-            }
+            isTopDamage={attacker.damageDone === topDamageAmount}
             killmail={killmail}
           />
         ))}
