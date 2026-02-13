@@ -161,7 +161,7 @@ export default function WorkersPage() {
       </div>
 
       <div className="p-6 mb-6 border border-gray-800 bg-gray-900/50">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-center">
           <div>
             <h2 className="text-lg font-semibold text-white">System Health</h2>
             <p className="text-sm text-gray-400">
@@ -187,7 +187,7 @@ export default function WorkersPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-5 gap-4 mt-6">
+        <div className="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
           <StatCard label="Total Queues" value={queues.length} color="blue" />
           <StatCard
             label="Active Workers"
@@ -227,7 +227,7 @@ export default function WorkersPage() {
       {/* Redis Cache Status */}
       {workerStatus?.redis && (
         <div className="p-6 mb-6 border border-gray-800 bg-gray-900/50">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col items-start justify-between gap-4 mb-6 lg:flex-row lg:items-center">
             <div className="flex items-center gap-3">
               <div
                 className={`w-4 h-4 rounded-full ${
@@ -248,7 +248,7 @@ export default function WorkersPage() {
               {workerStatus.redis.connected ? "Connected" : "Disconnected"}
             </span>
           </div>
-          <div className="grid grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
             <StatCard
               label="Cached Keys"
               value={workerStatus.redis.totalKeys}
@@ -367,20 +367,20 @@ function StandaloneWorkerSection({ workers }: any) {
           Long-running processes (not RabbitMQ-based)
         </p>
       </div>
-      <div className="overflow-hidden border border-gray-800 ">
-        <table className="w-full">
+      <div className="overflow-x-auto border border-gray-800 ">
+        <table className="w-full min-w-max">
           <thead className="bg-gray-900/50">
             <tr>
-              <th className="px-4 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase">
+              <th className="px-2 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase md:px-4">
                 Status
               </th>
-              <th className="px-4 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase">
+              <th className="px-2 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase md:px-4">
                 Worker Name
               </th>
-              <th className="px-4 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase">
+              <th className="px-2 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase md:px-4">
                 Description
               </th>
-              <th className="px-4 py-3 text-xs font-semibold tracking-wider text-center text-gray-400 uppercase">
+              <th className="px-2 py-3 text-xs font-semibold tracking-wider text-center text-gray-400 uppercase md:px-4">
                 Process ID
               </th>
             </tr>
@@ -391,7 +391,7 @@ function StandaloneWorkerSection({ workers }: any) {
                 key={worker.name}
                 className="transition-colors hover:bg-gray-900/30"
               >
-                <td className="px-4 py-4">
+                <td className="px-2 py-4 md:px-4">
                   <div className="flex items-center gap-2">
                     <div
                       className={`w-3 h-3 rounded-full ${
@@ -399,7 +399,7 @@ function StandaloneWorkerSection({ workers }: any) {
                       }`}
                     ></div>
                     <span
-                      className={`text-sm font-medium ${
+                      className={`text-xs md:text-sm font-medium ${
                         worker.running ? "text-green-400" : "text-gray-500"
                       }`}
                     >
@@ -407,23 +407,23 @@ function StandaloneWorkerSection({ workers }: any) {
                     </span>
                   </div>
                 </td>
-                <td className="px-4 py-4">
-                  <div className="text-sm font-medium text-gray-300">
+                <td className="px-2 py-4 md:px-4">
+                  <div className="text-xs font-medium text-gray-300 md:text-sm">
                     {worker.name}
                   </div>
                 </td>
-                <td className="px-4 py-4">
-                  <span className="text-sm text-gray-400">
+                <td className="px-2 py-4 md:px-4">
+                  <span className="text-xs text-gray-400 md:text-sm">
                     {worker.description}
                   </span>
                 </td>
-                <td className="px-4 py-4 text-center">
+                <td className="px-2 py-4 text-center md:px-4">
                   {worker.pid ? (
-                    <span className="inline-flex items-center px-3 py-1 font-mono text-sm font-semibold text-blue-400 rounded-full bg-blue-500/20">
+                    <span className="inline-flex items-center px-2 py-1 font-mono text-xs font-semibold text-blue-400 rounded-full md:px-3 md:text-sm bg-blue-500/20">
                       {worker.pid}
                     </span>
                   ) : (
-                    <span className="text-sm text-gray-500">-</span>
+                    <span className="text-xs text-gray-500 md:text-sm">-</span>
                   )}
                 </td>
               </tr>
@@ -442,26 +442,26 @@ function QueueSection({ title, subtitle, queues }: any) {
         <h2 className="text-xl font-semibold text-white">{title}</h2>
         {subtitle && <p className="mt-1 text-sm text-gray-400">{subtitle}</p>}
       </div>
-      <div className="overflow-hidden border border-gray-800 ">
-        <table className="w-full">
+      <div className="overflow-x-auto border border-gray-800 ">
+        <table className="w-full min-w-max">
           <thead className="bg-gray-900/50">
             <tr>
-              <th className="px-4 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase">
+              <th className="px-2 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase md:px-4">
                 Queue Status
               </th>
-              <th className="px-4 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase">
+              <th className="px-2 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase md:px-4">
                 Worker Process
               </th>
-              <th className="px-4 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase">
+              <th className="px-2 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase md:px-4">
                 Queue Name
               </th>
-              <th className="px-4 py-3 text-xs font-semibold tracking-wider text-center text-gray-400 uppercase">
+              <th className="px-2 py-3 text-xs font-semibold tracking-wider text-center text-gray-400 uppercase md:px-4">
                 Pending Jobs
               </th>
-              <th className="px-4 py-3 text-xs font-semibold tracking-wider text-center text-gray-400 uppercase">
+              <th className="px-2 py-3 text-xs font-semibold tracking-wider text-center text-gray-400 uppercase md:px-4">
                 Consumers
               </th>
-              <th className="px-4 py-3 text-xs font-semibold tracking-wider text-center text-gray-400 uppercase">
+              <th className="px-2 py-3 text-xs font-semibold tracking-wider text-center text-gray-400 uppercase md:px-4">
                 PID
               </th>
             </tr>
@@ -472,7 +472,7 @@ function QueueSection({ title, subtitle, queues }: any) {
                 key={queue.name}
                 className="transition-colors hover:bg-gray-900/30"
               >
-                <td className="px-4 py-4">
+                <td className="px-2 py-4 md:px-4">
                   <div className="flex items-center gap-2">
                     <div
                       className={`w-3 h-3 rounded-full ${
@@ -480,7 +480,7 @@ function QueueSection({ title, subtitle, queues }: any) {
                       }`}
                     ></div>
                     <span
-                      className={`text-sm font-medium ${
+                      className={`text-xs md:text-sm font-medium ${
                         queue.active ? "text-green-400" : "text-gray-500"
                       }`}
                     >
@@ -488,7 +488,7 @@ function QueueSection({ title, subtitle, queues }: any) {
                     </span>
                   </div>
                 </td>
-                <td className="px-4 py-4">
+                <td className="px-2 py-4 md:px-4">
                   <div className="flex items-center gap-2">
                     <div
                       className={`w-3 h-3 rounded-full ${
@@ -496,7 +496,7 @@ function QueueSection({ title, subtitle, queues }: any) {
                       }`}
                     ></div>
                     <span
-                      className={`text-sm font-medium ${
+                      className={`text-xs md:text-sm font-medium ${
                         queue.workerRunning ? "text-blue-400" : "text-gray-500"
                       }`}
                     >
@@ -509,17 +509,17 @@ function QueueSection({ title, subtitle, queues }: any) {
                     </div>
                   )}
                 </td>
-                <td className="px-4 py-4">
-                  <div className="text-sm font-medium text-gray-300">
+                <td className="px-2 py-4 md:px-4">
+                  <div className="text-xs font-medium text-gray-300 md:text-sm">
                     {formatQueueName(queue.name)}
                   </div>
                   <div className="mt-0.5 text-xs font-mono text-gray-500">
                     {queue.name}
                   </div>
                 </td>
-                <td className="px-4 py-4 text-center">
+                <td className="px-2 py-4 text-center md:px-4">
                   <span
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
+                    className={`inline-flex items-center px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-semibold ${
                       queue.messageCount > 0
                         ? "bg-yellow-500/20 text-yellow-400"
                         : "bg-gray-800 text-gray-400"
@@ -528,9 +528,9 @@ function QueueSection({ title, subtitle, queues }: any) {
                     {queue.messageCount.toLocaleString()}
                   </span>
                 </td>
-                <td className="px-4 py-4 text-center">
+                <td className="px-2 py-4 text-center md:px-4">
                   <span
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
+                    className={`inline-flex items-center px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-semibold ${
                       queue.consumerCount > 0
                         ? "bg-green-500/20 text-green-400"
                         : "bg-gray-800 text-gray-400"
@@ -539,13 +539,13 @@ function QueueSection({ title, subtitle, queues }: any) {
                     {queue.consumerCount}
                   </span>
                 </td>
-                <td className="px-4 py-4 text-center">
+                <td className="px-2 py-4 text-center md:px-4">
                   {queue.workerPid ? (
-                    <span className="inline-flex items-center px-3 py-1 font-mono text-sm font-semibold text-blue-400 rounded-full bg-blue-500/20">
+                    <span className="inline-flex items-center px-2 py-1 font-mono text-xs font-semibold text-blue-400 rounded-full md:px-3 md:text-sm bg-blue-500/20">
                       {queue.workerPid}
                     </span>
                   ) : (
-                    <span className="text-sm text-gray-500">-</span>
+                    <span className="text-xs text-gray-500 md:text-sm">-</span>
                   )}
                 </td>
               </tr>
