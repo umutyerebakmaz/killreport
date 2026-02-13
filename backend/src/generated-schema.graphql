@@ -438,6 +438,8 @@ input KillmailFilter {
   characterId: Int
   corporationId: Int
   limit: Int
+  maxAttackers: Int
+  minAttackers: Int
   orderBy: KillmailOrderBy
   page: Int
   regionId: Int
