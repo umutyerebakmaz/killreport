@@ -65,7 +65,7 @@ export default function KillmailDetailPage({
   return (
     <>
       {/* Header */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-3">
         {/* Left Column: FitScreen (2/3 width) */}
         <div className="space-y-6 lg:col-span-2">
           {/* Fit + Victim */}
@@ -300,8 +300,15 @@ export default function KillmailDetailPage({
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Killmail Summary Card */}
+        {/* Right Column: Attackers (1/3 width) */}
+        <div className="space-y-6 lg:col-span-1">
+          <AttackersCard attackers={attackers} killmail={km} />
+        </div>
+
+        {/* Killmail Summary Card */}
+        <div className="lg:col-span-2">
           <KillmailSummaryCard
             victim={victim}
             fitting={fitting}
@@ -310,11 +317,6 @@ export default function KillmailDetailPage({
             droppedValue={droppedValue}
             totalValue={totalValue}
           />
-        </div>
-
-        {/* Right Column: Attackers (1/3 width) */}
-        <div className="space-y-6 lg:col-span-1">
-          <AttackersCard attackers={attackers} killmail={km} />
         </div>
       </div>
     </>
