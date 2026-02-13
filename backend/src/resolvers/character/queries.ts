@@ -26,7 +26,6 @@ export const characterQueries: QueryResolvers = {
             updatedAt: character?.updated_at ? character.updated_at.toISOString() : new Date().toISOString(),
             birthday: character?.birthday ? character.birthday.toISOString() : null,
         } as any;
-        console.log('xxxxx', result)
         // Cache for 30 minutes (character info updates occasionally)
         await redis.setex(cacheKey, 1800, JSON.stringify(result));
         return result;
