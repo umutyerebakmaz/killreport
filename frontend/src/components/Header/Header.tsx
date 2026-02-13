@@ -169,7 +169,7 @@ export default function Header() {
         className="lg:hidden"
       >
         <div className="fixed inset-0 z-50" />
-        <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full p-6 overflow-y-auto bg-gray-900 sm:max-w-sm sm:ring-1 sm:ring-gray-100/10">
+        <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full p-6 overflow-y-auto bg-stone-900 sm:max-w-sm sm:ring-1 sm:ring-gray-100/10">
           <div className="flex items-center justify-between">
             <a href="#" className="-m-1.5 p-1.5">
               <span className="sr-only">KILLREPORT</span>
@@ -217,20 +217,6 @@ export default function Header() {
                       className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
                     >
                       SOLAR SYSTEMS
-                    </DisclosureButton>
-                    <DisclosureButton
-                      as="a"
-                      href="/killmails"
-                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
-                    >
-                      Browse Killmails
-                    </DisclosureButton>
-                    <DisclosureButton
-                      as="a"
-                      href="/stats"
-                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
-                    >
-                      View Statistics
                     </DisclosureButton>
                   </DisclosurePanel>
                 </Disclosure>
