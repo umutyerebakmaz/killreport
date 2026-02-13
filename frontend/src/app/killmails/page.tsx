@@ -30,6 +30,8 @@ function KillmailsContent() {
     shipTypeId?: number;
     regionId?: number;
     systemId?: number;
+    minAttackers?: number;
+    maxAttackers?: number;
   }>({
     shipTypeId: shipTypeIdFromUrl,
   });
@@ -51,7 +53,13 @@ function KillmailsContent() {
   } = useNewKillmailSubscription({
     skip:
       currentPage !== 1 ||
-      !!(filters.shipTypeId || filters.regionId || filters.systemId), // Skip if not on first page OR filters are active
+      !!(
+        filters.shipTypeId ||
+        filters.regionId ||
+        filters.systemId ||
+        filters.minAttackers ||
+        filters.maxAttackers
+      ), // Skip if not on first page OR filters are active
   });
 
   // Debug subscription (removed for production performance)
@@ -63,7 +71,9 @@ function KillmailsContent() {
       currentPage === 1 &&
       !filters.shipTypeId &&
       !filters.regionId &&
-      !filters.systemId
+      !filters.systemId &&
+      !filters.minAttackers &&
+      !filters.maxAttackers
     ) {
       const km = subscriptionData.newKillmail;
 
@@ -114,6 +124,8 @@ function KillmailsContent() {
     shipTypeId?: number;
     regionId?: number;
     systemId?: number;
+    minAttackers?: number;
+    maxAttackers?: number;
   }) => {
     setFilters(newFilters);
     setCurrentPage(1); // Reset to first page when filters change
@@ -133,6 +145,8 @@ function KillmailsContent() {
         shipTypeId: filters.shipTypeId,
         regionId: filters.regionId,
         systemId: filters.systemId,
+        minAttackers: filters.minAttackers,
+        maxAttackers: filters.maxAttackers,
       },
     },
   });
@@ -144,6 +158,8 @@ function KillmailsContent() {
         shipTypeId: filters.shipTypeId,
         regionId: filters.regionId,
         systemId: filters.systemId,
+        minAttackers: filters.minAttackers,
+        maxAttackers: filters.maxAttackers,
       },
     },
   });

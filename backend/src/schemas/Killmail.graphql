@@ -76,19 +76,6 @@ type FittingModule {
   charge: FittingModule
 }
 
-input KillmailFilter {
-  page: Int
-  limit: Int
-  orderBy: KillmailOrderBy
-  search: String
-  shipTypeId: Int
-  regionId: Int
-  systemId: Int
-  characterId: Int
-  corporationId: Int
-  allianceId: Int
-}
-
 enum KillmailOrderBy {
   timeDesc
   timeAsc
