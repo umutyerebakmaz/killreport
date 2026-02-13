@@ -4,6 +4,11 @@ node_modules
 
 /src/generated/prisma
 
+# Certificate files
+certs/*.crt
+certs/*.pem
+certs/*.key
+
 # Log files
 logs/
 *.log
