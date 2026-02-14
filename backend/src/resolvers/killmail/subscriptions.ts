@@ -32,7 +32,10 @@ export const killmailSubscriptions: SubscriptionResolvers = {
                 killmailTime: killmail.killmail_time.toISOString(),
                 solarSystemId: killmail.solar_system_id,
                 createdAt: killmail.created_at.toISOString(),
-                totalValue: null,
+                totalValue: (killmail as any).total_value,
+                destroyedValue: (killmail as any).destroyed_value,
+                droppedValue: (killmail as any).dropped_value,
+                attackerCount: (killmail as any).attacker_count ?? 0,
             } as any;
         },
     },
