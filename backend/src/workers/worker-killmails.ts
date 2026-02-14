@@ -178,6 +178,7 @@ async function syncUserKillmails(message: QueueMessage): Promise<void> {
                                 total_value: values.totalValue,
                                 destroyed_value: values.destroyedValue,
                                 dropped_value: values.droppedValue,
+                                attacker_count: detail.attackers.length,
                             },
                         });
 
