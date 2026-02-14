@@ -88,7 +88,11 @@ export const killmailFields: KillmailResolvers = {
     };
   },
 
-  // attackerCount removed - already returned from query with attacker_count field
+  attackerCount: (parent: any) => {
+    // Return cached attacker_count from database (set during killmail creation)
+    // Check both camelCase (from query) and snake_case (from raw DB)
+    return parent.attackerCount ?? parent.attacker_count ?? 0;
+  },
 
   solo: (parent: any) => {
     // Use cached attacker_count from database
