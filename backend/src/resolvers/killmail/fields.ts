@@ -804,4 +804,3 @@ export const fittingModuleFields: FittingModuleResolvers = {
     return parent.charge || null;
   },
 };
-
