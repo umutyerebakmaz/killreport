@@ -97,6 +97,7 @@ async function syncCharacterKillmails() {
                         total_value: values.totalValue,
                         destroyed_value: values.destroyedValue,
                         dropped_value: values.droppedValue,
+                        attacker_count: details.attackers.length,
                         victim: {
                             create: {
                                 character_id: details.victim.character_id || null,

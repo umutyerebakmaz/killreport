@@ -53,6 +53,7 @@ async function fetchAndSaveKillmail() {
                     killmail_hash: hash,
                     killmail_time: new Date(detail.killmail_time),
                     solar_system_id: detail.solar_system_id,
+                    attacker_count: detail.attackers.length,
                 },
             });
 

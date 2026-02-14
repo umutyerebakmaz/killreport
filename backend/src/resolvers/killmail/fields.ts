@@ -88,22 +88,11 @@ export const killmailFields: KillmailResolvers = {
     };
   },
 
-  attackerCount: async (parent: any, _, context) => {
-    const killmailId = typeof parent.id === 'string' ? parseInt(parent.id) : parent.id;
+  // attackerCount removed - already returned from query with attacker_count field
 
-    // Use optimized attackerCount DataLoader - batch loads counts for multiple killmails
-    const count = await context.loaders.attackerCount.load(killmailId);
-
-    return count;
-  },
-
-  solo: async (parent: any, _, context) => {
-    const killmailId = typeof parent.id === 'string' ? parseInt(parent.id) : parent.id;
-
-    // Use attackerCount DataLoader to check if solo
-    const count = await context.loaders.attackerCount.load(killmailId);
-
-    return count === 1;
+  solo: (parent: any) => {
+    // Use cached attacker_count from database
+    return (parent.attacker_count ?? 0) === 1;
   },
 
   npc: async (parent: any, _, context) => {
