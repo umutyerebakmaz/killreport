@@ -396,7 +396,6 @@ export interface DataLoaderContext {
     victim: DataLoader<number, any>;
     attackers: DataLoader<number, any[]>;
     finalBlow: DataLoader<number, any>;
-    attackerCount: DataLoader<number, number>;
     items: DataLoader<number, any[]>;
     marketPrice: DataLoader<number, any>;
   };
@@ -430,7 +429,6 @@ export const createDataLoaders = (): DataLoaderContext => ({
     victim: createVictimLoader(),
     attackers: createAttackersLoader(),
     finalBlow: createFinalBlowLoader(),
-    attackerCount: createAttackerCountLoader(),
     items: createItemsLoader(),
     marketPrice: createMarketPriceLoader(),
   },
@@ -654,37 +652,11 @@ export const createFinalBlowLoader = () => {
 /**
  * Attacker Count DataLoader
  * Batch loads attacker counts for multiple killmails
- * More efficient than doing individual count queries
- */
-export const createAttackerCountLoader = () => {
-  return new DataLoader<number, number>(async (killmailIds) => {
-    logger.debug('DataLoader: Batching attacker count queries', { count: killmailIds.length });
-
-    // Group by killmail_id and count
-    const counts = await prisma.attacker.groupBy({
-      by: ['killmail_id'],
-      where: {
-        killmail_id: { in: [...killmailIds] },
-      },
-      _count: {
-        _all: true,  // Count all rows, not just a specific field
-      },
-    });
-
-    // Map killmail_id -> count
-    const countMap = new Map<number, number>();
-    counts.forEach(item => {
-      countMap.set(item.killmail_id, item._count._all);
-    });
-
-    // Return counts in same order as keys, default to 0 if not found
-    return killmailIds.map(id => countMap.get(id) || 0);
-  });
-};
-
 /**
  * Killmail Items DataLoader - Batch loading for items
  * Fetches items for multiple killmails at once
+ *
+ * Note: attackerCount DataLoader removed - now using cached attacker_count column from database
  */
 export const createItemsLoader = () => {
   return new DataLoader<number, any[]>(async (killmailIds) => {
