@@ -36,6 +36,7 @@ export const killmailQueries: QueryResolvers = {
       totalValue: (killmail as any).total_value,
       destroyedValue: (killmail as any).destroyed_value,
       droppedValue: (killmail as any).dropped_value,
+      attackerCount: (killmail as any).attacker_count,
     } as any;
 
     // Cache using centralized config (90 days - killmails never change)
@@ -80,6 +81,7 @@ export const killmailQueries: QueryResolvers = {
       totalValue: (km as any).total_value,
       destroyedValue: (km as any).destroyed_value,
       droppedValue: (km as any).dropped_value,
+      attackerCount: (km as any).attacker_count,
     })) as any[];
 
     return {

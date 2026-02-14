@@ -6,6 +6,7 @@ model Killmail {
   total_value     Float?         // Cached value calculated at insertion time
   destroyed_value Float?         // Cached value calculated at insertion time
   dropped_value   Float?         // Cached value calculated at insertion time
+  attacker_count  Int?           // Cached attacker count at insertion time
   created_at      DateTime       @default(now())
   updated_at      DateTime       @updatedAt
   attackers       Attacker[]
@@ -15,5 +16,6 @@ model Killmail {
   @@index([killmail_time])
   @@index([solar_system_id])
   @@index([total_value(sort: Desc)])
+  @@index([attacker_count])
   @@map("killmails")
 }

@@ -13,6 +13,8 @@ export function filters(filter: KillmailFilter): any {
   const characterId = filter.characterId;
   const corporationId = filter.corporationId;
   const allianceId = filter.allianceId;
+  const minAttackers = filter.minAttackers;
+  const maxAttackers = filter.maxAttackers;
 
   // Ship type filter: victim OR attacker (own OR group)
   if (shipTypeId) {
@@ -106,6 +108,23 @@ export function filters(filter: KillmailFilter): any {
   if (systemId) {
     andConditions.push({
       solar_system_id: systemId,
+    });
+  }
+
+  // Attacker count filters
+  if (minAttackers !== undefined && minAttackers !== null) {
+    andConditions.push({
+      attacker_count: {
+        gte: minAttackers,
+      },
+    });
+  }
+
+  if (maxAttackers !== undefined && maxAttackers !== null) {
+    andConditions.push({
+      attacker_count: {
+        lte: maxAttackers,
+      },
     });
   }
 
