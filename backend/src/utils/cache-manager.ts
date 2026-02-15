@@ -36,6 +36,8 @@ export class CacheManager {
             redis.del(`killmail:detail:${killmailId}`),
             this.clearPattern(`response-cache:*:Killmail:*`),
             this.clearPattern(`response-cache:*:Killmails:*`),
+            this.clearPattern(`killmails:list:*`), // Clear killmails list cache
+            this.clearPattern(`killmails:dateCounts:*`), // Clear date counts cache
         ]);
         logger.info(`Cleared cache for killmail ${killmailId}`);
     }
@@ -82,6 +84,8 @@ export class CacheManager {
     static async clearAllKillmails(): Promise<void> {
         await Promise.all([
             this.clearPattern('killmail:detail:*'),
+            this.clearPattern('killmails:list:*'), // Clear killmails list cache
+            this.clearPattern('killmails:dateCounts:*'), // Clear date counts cache
             this.clearPattern('response-cache:*:Killmail*'),
         ]);
         logger.info('Cleared all killmail caches');

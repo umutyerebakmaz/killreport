@@ -17,6 +17,7 @@ model Attacker {
   @@index([alliance_id])
   @@index([character_id])
   @@index([corporation_id])
+  @@index([ship_type_id])
   @@index([killmail_id])
   @@index([character_id, killmail_id])
   @@index([corporation_id, killmail_id])
