@@ -37,6 +37,9 @@
       ],
       "@helpers/*": [
         "src/helpers/*"
+      ],
+      "@plugins/*": [
+        "src/plugins/*"
       ]
     }
   },
