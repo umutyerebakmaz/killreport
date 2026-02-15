@@ -20,8 +20,8 @@
       "@resolvers/*": [
         "src/resolvers/*"
       ],
-      "@types/*": [
-        "src/types/*"
+      "@app-types/*": [
+        "src/app-types/*"
       ],
       "@utils/*": [
         "src/utils/*"
