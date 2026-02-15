@@ -6,19 +6,20 @@ import { createServer } from 'node:http';
 import path from 'path';
 
 import { config } from '@config/config';
-import { REDIS_CONFIG } from './config/cache';
+import { VerifiedCharacter } from '@app-types/context';
+import { REDIS_CONFIG } from '@config/cache';
 import { handleAuthCallback } from './handlers/auth-callback.handler';
-import { createDisableIntrospectionPlugin } from './plugins/disable-introspection.plugin';
-import { createRateLimitPlugin } from './plugins/rate-limit.plugin';
-import { createResponseCachePlugin } from './plugins/response-cache.plugin';
+import { createDisableIntrospectionPlugin } from '@plugins/disable-introspection.plugin';
+import { createRateLimitPlugin } from '@plugins/rate-limit.plugin';
+import { createResponseCachePlugin } from '@plugins/response-cache.plugin';
 import { resolvers } from './resolvers';
-import { trackActiveUser } from './resolvers/analytics';
-import { createDataLoaders } from './services/dataloaders';
-import { verifyToken } from './services/eve-sso';
-import logger from './services/logger';
-import { ensureAllQueuesExist } from './services/rabbitmq';
-import { userKillmailCron } from './services/user-killmail-cron';
-import { VerifiedCharacter } from './types/context';
+import { trackActiveUser } from '@resolvers/analytics';
+import { createDataLoaders } from '@services/dataloaders';
+import { verifyToken } from '@services/eve-sso';
+import logger from '@services/logger';
+import { scheduleMaterializedViewRefresh } from '@services/materialized-view-refresh';
+import { ensureAllQueuesExist } from '@services/rabbitmq';
+import { userKillmailCron } from '@services/user-killmail-cron';
 
 /**
  * GraphQL Context - extends DataLoader context with auth info
@@ -198,4 +199,7 @@ server.listen(port, () => {
   ensureAllQueuesExist().catch((error) => {
     logger.error('Failed to ensure RabbitMQ queues:', error);
   });
+
+  // Start materialized view refresh scheduler
+  scheduleMaterializedViewRefresh();
 });
