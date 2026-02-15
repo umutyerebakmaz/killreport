@@ -26,6 +26,7 @@ export interface DataLoaderContext {
         race: DataLoader<number, any, number>;
         bloodline: DataLoader<number, any, number>;
         corporationsByAlliance: DataLoader<number, any[], number>;
+        charactersByCorp: DataLoader<number, any[], number>;
         region: DataLoader<number, any, number>;
         constellation: DataLoader<number, any, number>;
         solarSystem: DataLoader<number, any, number>;
@@ -35,14 +36,26 @@ export interface DataLoaderContext {
         itemGroup: DataLoader<number, any, number>;
         type: DataLoader<number, any, number>;
         itemGroupsByCategory: DataLoader<number, any[], number>;
+        typesByGroup: DataLoader<number, any[], number>;
+        regionStats: DataLoader<number, { constellationCount: number; solarSystemCount: number }, number>;
+        regionSecurityStats: DataLoader<number, { highSec: number; lowSec: number; nullSec: number; wormhole: number; avgSecurity: number | null }, number>;
         corporationSnapshot: DataLoader<{ corporationId: number; date: Date }, any, string>;
         allianceSnapshot: DataLoader<{ allianceId: number; date: Date }, any, string>;
         typeDogmaAttributes: DataLoader<number, any[], number>;
         typeDogmaEffects: DataLoader<number, any[], number>;
         victim: DataLoader<number, any, number>;
         attackers: DataLoader<number, any[], number>;
+        finalBlow: DataLoader<number, any, number>;
         items: DataLoader<number, any[], number>;
         marketPrice: DataLoader<number, any, number>;
+        victimKillmailsByCharacter: DataLoader<number, number[], number>;
+        attackerKillmailsByCharacter: DataLoader<number, number[], number>;
+        victimKillmailsByShipType: DataLoader<number, number[], number>;
+        attackerKillmailsByShipType: DataLoader<number, number[], number>;
+        victimKillmailsByCorporation: DataLoader<number, number[], number>;
+        attackerKillmailsByCorporation: DataLoader<number, number[], number>;
+        victimKillmailsByAlliance: DataLoader<number, number[], number>;
+        attackerKillmailsByAlliance: DataLoader<number, number[], number>;
     };
 }
 
