@@ -56,8 +56,7 @@ export default function KillmailFilters({
     skip: debouncedSearch.length < 3, // Only search after 3 characters
   });
 
-  const hasActiveFilters =
-    shipTypeId || minAttackers || maxAttackers;
+  const hasActiveFilters = shipTypeId || minAttackers || maxAttackers;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -98,13 +97,7 @@ export default function KillmailFilters({
     setShipTypeName(typeName);
     setTypeSearch(""); // Clear arama inputunu
     setShowDropdown(false);
-
-    // Apply filter immediately with ship type ID
-    onFilterChange({
-      shipTypeId: typeId,
-      minAttackers: minAttackers ? Number(minAttackers) : undefined,
-      maxAttackers: maxAttackers ? Number(maxAttackers) : undefined,
-    });
+    // Filter will be applied when user clicks "Apply Filters" button
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -236,13 +229,7 @@ export default function KillmailFilters({
           Filters
           {hasActiveFilters && (
             <span className="badge">
-              {
-                [
-                  shipTypeId,
-                  minAttackers,
-                  maxAttackers,
-                ].filter(Boolean).length
-              }
+              {[shipTypeId, minAttackers, maxAttackers].filter(Boolean).length}
             </span>
           )}
         </button>
