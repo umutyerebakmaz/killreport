@@ -1,17 +1,17 @@
-# Query Optimization Deployment - Quick Checklist
+# Materialized View Deployment - Quick Checklist
 
 ## 📋 Pre-Deployment
 
-- [ ] Kod değişiklikleri review edildi
-- [ ] Database backup alındı
-- [ ] Deployment zamanı belirlendi (sakin saatler tercih edilir)
-- [ ] Rollback planı hazır
+- [ ] Code changes reviewed
+- [ ] Database backup completed
+- [ ] Deployment time scheduled (prefer off-peak hours)
+- [ ] Rollback plan ready
 
 ---
 
 ## 🚀 Deployment Steps
 
-### 1. Kod Deploy
+### 1. Deploy Code
 
 ```bash
 cd /root/killreport
@@ -21,7 +21,7 @@ npm install
 npm run build
 ```
 
-**Status:** [ ] Tamamlandı
+**Status:** [ ] Completed
 
 ---
 
@@ -32,25 +32,25 @@ cd /root/killreport/backend
 npx prisma migrate deploy
 ```
 
-**Beklenen süre:** 30-60 saniye
-**Status:** [ ] Tamamlandı
+**Expected duration:** 30-60 seconds
+**Status:** [ ] Completed
 
 ---
 
 ### 3. Verify Materialized View
 
-**Navicat SQL Console'da çalıştır:**
+**Run in Navicat SQL Console:**
 
 ```sql
--- View var mı?
+-- Does view exist?
 SELECT EXISTS (SELECT FROM pg_matviews WHERE matviewname = 'killmail_filters_mv') as exists;
 
--- Kaç kayıt var?
+-- How many records?
 SELECT COUNT(*) as records FROM killmail_filters_mv;
 ```
 
-**Beklenen:** `exists = t` (true), `records > 0`
-**Status:** [ ] Tamamlandı
+**Expected:** `exists = t` (true), `records > 0`
+**Status:** [ ] Completed
 
 ---
 
@@ -61,8 +61,8 @@ pm2 restart backend
 pm2 logs backend --lines 50
 ```
 
-**Check for:** Error yok, "🎯 Using Materialized View" log var
-**Status:** [ ] Tamamlandı
+**Check for:** No errors, "🎯 Using Materialized View" log present
+**Status:** [ ] Completed
 
 ---
 
@@ -74,44 +74,44 @@ curl -X POST https://api.killreport.com/graphql \
   -d '{"query":"query{killmails(filter:{allianceId:99000006,page:1,limit:25}){items{id}pageInfo{totalCount}}}"}'
 ```
 
-**Beklenen:** 200 OK, data döndü, error yok
-**Status:** [ ] Tamamlandı
+**Expected:** 200 OK, data returned, no errors
+**Status:** [ ] Completed
 
 ---
 
 ## ✅ Post-Deployment Verification
 
-### Immediate Checks (0-10 dakika sonra)
+### Immediate Checks (0-10 minutes after)
 
-- [ ] Frontend killmail sayfası çalışıyor
-- [ ] Alliance filtresi error vermiyor
-- [ ] PM2 logs temiz (error yok)
-- [ ] Response times < 2 saniye
+- [ ] Frontend killmail page working
+- [ ] Alliance filter not throwing errors
+- [ ] PM2 logs clean (no errors)
+- [ ] Response times < 2 seconds
 
-### Short-term Checks (1-2 saat sonra)
+### Short-term Checks (1-2 hours after)
 
-- [ ] Kullanıcı şikayeti yok
+- [ ] No user complaints
 - [ ] Error rate normal
-- [ ] Materialized view refresh çalışıyor (log kontrol)
-- [ ] Cache hit rate iyi
+- [ ] Materialized view refresh working (check logs)
+- [ ] Cache hit rate good
 
-### Long-term Checks (24 saat sonra)
+### Long-term Checks (24 hours after)
 
-- [ ] Performance metrics stabile
-- [ ] Database disk kullanımı normal
-- [ ] Query patterns expected
+- [ ] Performance metrics stable
+- [ ] Database disk usage normal
+- [ ] Query patterns as expected
 - [ ] No memory leaks
 
 ---
 
 ## ⚠️ Rollback Triggers
 
-Aşağıdaki durumlardan biri oluşursa ROLLBACK yap:
+If any of the following occur, perform ROLLBACK:
 
-- [ ] Alliance queries hala error veriyor
-- [ ] Response time > 5 saniye consistently
-- [ ] Database CPU > 90% sürekli
-- [ ] Backend crash ediyor
+- [ ] Alliance queries still throwing errors
+- [ ] Response time > 5 seconds consistently
+- [ ] Database CPU > 90% continuously
+- [ ] Backend crashing
 
 **Rollback Command:**
 
