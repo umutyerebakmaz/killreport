@@ -1,0 +1,16 @@
+query SearchCharacter($id: Int!) {
+  character(id: $id) {
+    id
+    name
+    corporation {
+      id
+      name
+      ticker
+    }
+    alliance {
+      id
+      name
+      ticker
+    }
+  }
+}
