@@ -1,0 +1,10 @@
+query SearchType($id: Int!) {
+  type(id: $id) {
+    id
+    name
+    group {
+      id
+      name
+    }
+  }
+}
