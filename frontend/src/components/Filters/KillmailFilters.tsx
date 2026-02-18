@@ -1,5 +1,6 @@
 "use client";
 
+import RadioGroup from "@/components/RadioGroup/RadioGroup";
 import { useSearchTypesQuery } from "@/generated/graphql";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
@@ -8,12 +9,13 @@ import {
   MagnifyingGlassIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 interface KillmailFiltersProps {
   onFilterChange: (filters: {
     shipTypeId?: number;
+    victim?: boolean;
+    attacker?: boolean;
     minAttackers?: number;
     maxAttackers?: number;
   }) => void;
@@ -21,6 +23,9 @@ interface KillmailFiltersProps {
   orderBy?: string;
   onOrderByChange: (orderBy: string) => void;
   initialShipTypeId?: number;
+  initialMinAttackers?: number;
+  initialMaxAttackers?: number;
+  initialRole?: "all" | "victim" | "attacker";
 }
 
 export default function KillmailFilters({
@@ -29,16 +34,23 @@ export default function KillmailFilters({
   orderBy = "timeDesc",
   onOrderByChange,
   initialShipTypeId,
+  initialMinAttackers,
+  initialMaxAttackers,
+  initialRole = "all",
 }: KillmailFiltersProps) {
-  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [typeSearch, setTypeSearch] = useState(""); // TypeName aramasi icin
+  const [typeSearch, setTypeSearch] = useState("");
   const [shipTypeId, setShipTypeId] = useState<number | undefined>(
     initialShipTypeId,
-  ); // Secilen gemi ID
-  const [shipTypeName, setShipTypeName] = useState(""); // Secilen gemi ismi (display)
-  const [minAttackers, setMinAttackers] = useState("");
-  const [maxAttackers, setMaxAttackers] = useState("");
+  );
+  const [shipTypeName, setShipTypeName] = useState("");
+  const [minAttackers, setMinAttackers] = useState(
+    initialMinAttackers ? String(initialMinAttackers) : "",
+  );
+  const [maxAttackers, setMaxAttackers] = useState(
+    initialMaxAttackers ? String(initialMaxAttackers) : "",
+  );
+  const [role, setRole] = useState<"all" | "victim" | "attacker">(initialRole);
 
   // Ship search dropdown state
   const [showDropdown, setShowDropdown] = useState(false);
@@ -56,7 +68,11 @@ export default function KillmailFilters({
     skip: debouncedSearch.length < 3, // Only search after 3 characters
   });
 
-  const hasActiveFilters = shipTypeId || minAttackers || maxAttackers;
+  const hasActiveFilters =
+    shipTypeId ||
+    minAttackers ||
+    maxAttackers ||
+    (shipTypeId && role !== "all");
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -75,10 +91,20 @@ export default function KillmailFilters({
 
   // Sync state when initial props change (e.g., when URL changes)
   useEffect(() => {
-    if (initialShipTypeId !== undefined) {
-      setShipTypeId(initialShipTypeId);
-    }
+    if (initialShipTypeId !== undefined) setShipTypeId(initialShipTypeId);
   }, [initialShipTypeId]);
+
+  useEffect(() => {
+    setMinAttackers(initialMinAttackers ? String(initialMinAttackers) : "");
+  }, [initialMinAttackers]);
+
+  useEffect(() => {
+    setMaxAttackers(initialMaxAttackers ? String(initialMaxAttackers) : "");
+  }, [initialMaxAttackers]);
+
+  useEffect(() => {
+    setRole(initialRole);
+  }, [initialRole]);
 
   // Show dropdown when we have results
   useEffect(() => {
@@ -103,7 +129,21 @@ export default function KillmailFilters({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onFilterChange({
-      shipTypeId: shipTypeId,
+      shipTypeId,
+      victim: shipTypeId
+        ? role === "victim"
+          ? true
+          : role === "attacker"
+            ? false
+            : undefined
+        : undefined,
+      attacker: shipTypeId
+        ? role === "attacker"
+          ? true
+          : role === "victim"
+            ? false
+            : undefined
+        : undefined,
       minAttackers: minAttackers ? Number(minAttackers) : undefined,
       maxAttackers: maxAttackers ? Number(maxAttackers) : undefined,
     });
@@ -115,6 +155,7 @@ export default function KillmailFilters({
     setShipTypeName("");
     setMinAttackers("");
     setMaxAttackers("");
+    setRole("all");
     onClearFilters();
   };
 
@@ -219,52 +260,58 @@ export default function KillmailFilters({
           Search
         </button>
 
-        {/* Advanced Filters Toggle */}
-        <button
-          type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          className={`button ${hasActiveFilters ? "active-filter-button" : ""}`}
-        >
-          <FunnelIcon className="w-5 h-5" />
-          Filters
-          {hasActiveFilters && (
-            <span className="badge">
-              {[shipTypeId, minAttackers, maxAttackers].filter(Boolean).length}
-            </span>
-          )}
-        </button>
-
-        {/* Clear All Button */}
-        {hasActiveFilters && (
+        {/* Right side: Filters, Clear, OrderBy */}
+        <div className="flex items-center gap-3 ml-auto">
+          {/* Advanced Filters Toggle */}
           <button
             type="button"
-            onClick={handleClearAll}
-            className="clear-filter-button"
+            onClick={() => setIsOpen(!isOpen)}
+            className={`button ${hasActiveFilters ? "active-filter-button" : ""}`}
           >
-            <XMarkIcon className="w-5 h-5" />
-            Clear
+            <FunnelIcon className="w-5 h-5" />
+            Filters
+            {hasActiveFilters && (
+              <span className="badge">
+                {
+                  [shipTypeId, minAttackers, maxAttackers].filter(Boolean)
+                    .length
+                }
+              </span>
+            )}
           </button>
-        )}
 
-        {/* OrderBy Dropdown */}
-        <div className="select-option-container">
-          <select
-            value={orderBy}
-            onChange={(e) => onOrderByChange(e.target.value)}
-            className="select"
-          >
-            <option value="timeDesc">
-              {orderBy === "timeDesc" ? "✓" : "\u00A0\u00A0"}
-              {"   "}
-              Newest First
-            </option>
-            <option value="timeAsc">
-              {orderBy === "timeAsc" ? "✓" : "\u00A0\u00A0"}
-              {"   "}
-              Oldest First
-            </option>
-          </select>
-          <ChevronDownIcon className="chevron-down-icon" />
+          {/* Clear All Button */}
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={handleClearAll}
+              className="clear-filter-button"
+            >
+              <XMarkIcon className="w-5 h-5" />
+              Clear
+            </button>
+          )}
+
+          {/* OrderBy Dropdown */}
+          <div className="select-option-container">
+            <select
+              value={orderBy}
+              onChange={(e) => onOrderByChange(e.target.value)}
+              className="select"
+            >
+              <option value="timeDesc">
+                {orderBy === "timeDesc" ? "✓" : "\u00A0\u00A0"}
+                {"   "}
+                Newest First
+              </option>
+              <option value="timeAsc">
+                {orderBy === "timeAsc" ? "✓" : "\u00A0\u00A0"}
+                {"   "}
+                Oldest First
+              </option>
+            </select>
+            <ChevronDownIcon className="chevron-down-icon" />
+          </div>
         </div>
       </div>
 
@@ -292,6 +339,21 @@ export default function KillmailFilters({
                 readOnly
                 className="input bg-gray-800/50"
               />
+              {/* Role radio group — disabled until a ship is selected */}
+              <div
+                className={`mt-2 w-1/2 ${!shipTypeId ? "opacity-40 pointer-events-none" : ""}`}
+              >
+                <RadioGroup
+                  name="ship-type-role"
+                  value={role}
+                  onChange={setRole}
+                  options={[
+                    { value: "all", label: "All" },
+                    { value: "victim", label: "Victim" },
+                    { value: "attacker", label: "Attacker" },
+                  ]}
+                />
+              </div>
             </div>
 
             {/* Min Attackers Filter */}
