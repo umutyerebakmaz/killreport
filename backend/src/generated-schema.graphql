@@ -435,6 +435,7 @@ type KillmailDateCount {
 
 input KillmailFilter {
   allianceId: Int
+  attacker: Boolean
   characterId: Int
   corporationId: Int
   limit: Int
@@ -446,6 +447,7 @@ input KillmailFilter {
   search: String
   shipTypeId: Int
   systemId: Int
+  victim: Boolean
 }
 
 type KillmailItem {
