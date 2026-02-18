@@ -4,6 +4,8 @@ input KillmailFilter {
   orderBy: KillmailOrderBy
   search: String
   shipTypeId: Int
+  victim: Boolean
+  attacker: Boolean
   regionId: Int
   systemId: Int
   characterId: Int

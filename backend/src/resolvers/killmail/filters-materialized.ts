@@ -21,6 +21,8 @@ export async function filtersMaterialized(filter: KillmailFilter): Promise<numbe
 
   const {
     shipTypeId,
+    victim,
+    attacker,
     regionId,
     systemId,
     characterId,
@@ -30,10 +32,20 @@ export async function filtersMaterialized(filter: KillmailFilter): Promise<numbe
     maxAttackers
   } = filter;
 
-  // Ship type filter (victim OR attacker)
+  // Ship type filter: respects victim / attacker checkboxes
   if (shipTypeId !== undefined && shipTypeId !== null) {
+    const onlyVictim = victim === true && !attacker;
+    const onlyAttacker = attacker === true && !victim;
+
     params.push(shipTypeId);
-    conditions.push(`(victim_ship_type_id = $${paramIndex} OR $${paramIndex} = ANY(attacker_ship_type_ids))`);
+    if (onlyVictim) {
+      conditions.push(`victim_ship_type_id = $${paramIndex}`);
+    } else if (onlyAttacker) {
+      conditions.push(`$${paramIndex} = ANY(attacker_ship_type_ids)`);
+    } else {
+      // Both checked or neither checked → victim OR attacker (default)
+      conditions.push(`(victim_ship_type_id = $${paramIndex} OR $${paramIndex} = ANY(attacker_ship_type_ids))`);
+    }
     paramIndex++;
   }
 

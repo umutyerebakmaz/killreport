@@ -22,18 +22,46 @@ function KillmailsContent() {
   const shipTypeIdFromUrl = searchParams.get("shipTypeId")
     ? Number(searchParams.get("shipTypeId"))
     : undefined;
+  const minAttackersFromUrl = searchParams.get("minAttackers")
+    ? Number(searchParams.get("minAttackers"))
+    : undefined;
+  const maxAttackersFromUrl = searchParams.get("maxAttackers")
+    ? Number(searchParams.get("maxAttackers"))
+    : undefined;
+  const shipTypeRoleFromUrl =
+    (searchParams.get("shipTypeRole") as
+      | "all"
+      | "victim"
+      | "attacker"
+      | null) ?? "all";
 
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(25);
   const [orderBy, setOrderBy] = useState<string>(orderByFromUrl);
   const [filters, setFilters] = useState<{
     shipTypeId?: number;
+    victim?: boolean;
+    attacker?: boolean;
     regionId?: number;
     systemId?: number;
     minAttackers?: number;
     maxAttackers?: number;
   }>({
     shipTypeId: shipTypeIdFromUrl,
+    minAttackers: minAttackersFromUrl,
+    maxAttackers: maxAttackersFromUrl,
+    victim:
+      shipTypeIdFromUrl && shipTypeRoleFromUrl === "victim"
+        ? true
+        : shipTypeIdFromUrl && shipTypeRoleFromUrl === "attacker"
+          ? false
+          : undefined,
+    attacker:
+      shipTypeIdFromUrl && shipTypeRoleFromUrl === "attacker"
+        ? true
+        : shipTypeIdFromUrl && shipTypeRoleFromUrl === "victim"
+          ? false
+          : undefined,
   });
   const [newKillmails, setNewKillmails] = useState<any[]>([]);
   const [animatingKillmails, setAnimatingKillmails] = useState<Set<string>>(
@@ -122,6 +150,8 @@ function KillmailsContent() {
 
   const handleFilterChange = (newFilters: {
     shipTypeId?: number;
+    victim?: boolean;
+    attacker?: boolean;
     regionId?: number;
     systemId?: number;
     minAttackers?: number;
@@ -143,6 +173,8 @@ function KillmailsContent() {
         limit: pageSize,
         orderBy: orderBy as any,
         shipTypeId: filters.shipTypeId,
+        victim: filters.victim,
+        attacker: filters.attacker,
         regionId: filters.regionId,
         systemId: filters.systemId,
         minAttackers: filters.minAttackers,
@@ -156,6 +188,8 @@ function KillmailsContent() {
     variables: {
       filter: {
         shipTypeId: filters.shipTypeId,
+        victim: filters.victim,
+        attacker: filters.attacker,
         regionId: filters.regionId,
         systemId: filters.systemId,
         minAttackers: filters.minAttackers,
@@ -171,9 +205,26 @@ function KillmailsContent() {
     params.set("orderBy", orderBy);
     if (filters.shipTypeId) {
       params.set("shipTypeId", filters.shipTypeId.toString());
+      if (filters.victim === true && filters.attacker === false)
+        params.set("shipTypeRole", "victim");
+      else if (filters.attacker === true && filters.victim === false)
+        params.set("shipTypeRole", "attacker");
     }
+    if (filters.minAttackers)
+      params.set("minAttackers", filters.minAttackers.toString());
+    if (filters.maxAttackers)
+      params.set("maxAttackers", filters.maxAttackers.toString());
     router.push(`/killmails?${params.toString()}`, { scroll: false });
-  }, [currentPage, orderBy, filters.shipTypeId, router]);
+  }, [
+    currentPage,
+    orderBy,
+    filters.shipTypeId,
+    filters.victim,
+    filters.attacker,
+    filters.minAttackers,
+    filters.maxAttackers,
+    router,
+  ]);
 
   // Memoize killmails array to prevent unnecessary recalculations
   const killmails = useMemo(
@@ -270,6 +321,9 @@ function KillmailsContent() {
           orderBy={orderBy}
           onOrderByChange={setOrderBy}
           initialShipTypeId={shipTypeIdFromUrl}
+          initialMinAttackers={minAttackersFromUrl}
+          initialMaxAttackers={maxAttackersFromUrl}
+          initialRole={shipTypeRoleFromUrl}
         />
       </div>
 
