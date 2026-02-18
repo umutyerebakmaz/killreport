@@ -38,8 +38,13 @@ function KillmailsContent() {
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(25);
   const [orderBy, setOrderBy] = useState<string>(orderByFromUrl);
+  const characterIdFromUrl = searchParams.get("characterId")
+    ? Number(searchParams.get("characterId"))
+    : undefined;
+
   const [filters, setFilters] = useState<{
     shipTypeId?: number;
+    characterId?: number;
     victim?: boolean;
     attacker?: boolean;
     regionId?: number;
@@ -47,6 +52,7 @@ function KillmailsContent() {
     minAttackers?: number;
     maxAttackers?: number;
   }>({
+    characterId: characterIdFromUrl,
     shipTypeId: shipTypeIdFromUrl,
     minAttackers: minAttackersFromUrl,
     maxAttackers: maxAttackersFromUrl,
@@ -150,6 +156,7 @@ function KillmailsContent() {
 
   const handleFilterChange = (newFilters: {
     shipTypeId?: number;
+    characterId?: number;
     victim?: boolean;
     attacker?: boolean;
     regionId?: number;
@@ -173,6 +180,7 @@ function KillmailsContent() {
         limit: pageSize,
         orderBy: orderBy as any,
         shipTypeId: filters.shipTypeId,
+        characterId: filters.characterId,
         victim: filters.victim,
         attacker: filters.attacker,
         regionId: filters.regionId,
@@ -188,6 +196,7 @@ function KillmailsContent() {
     variables: {
       filter: {
         shipTypeId: filters.shipTypeId,
+        characterId: filters.characterId,
         victim: filters.victim,
         attacker: filters.attacker,
         regionId: filters.regionId,
@@ -203,6 +212,8 @@ function KillmailsContent() {
     const params = new URLSearchParams();
     params.set("page", currentPage.toString());
     params.set("orderBy", orderBy);
+    if (filters.characterId)
+      params.set("characterId", filters.characterId.toString());
     if (filters.shipTypeId) {
       params.set("shipTypeId", filters.shipTypeId.toString());
       if (filters.victim === true && filters.attacker === false)
@@ -218,6 +229,7 @@ function KillmailsContent() {
   }, [
     currentPage,
     orderBy,
+    filters.characterId,
     filters.shipTypeId,
     filters.victim,
     filters.attacker,
@@ -321,6 +333,7 @@ function KillmailsContent() {
           orderBy={orderBy}
           onOrderByChange={setOrderBy}
           initialShipTypeId={shipTypeIdFromUrl}
+          initialCharacterId={characterIdFromUrl}
           initialMinAttackers={minAttackersFromUrl}
           initialMaxAttackers={maxAttackersFromUrl}
           initialRole={shipTypeRoleFromUrl}
