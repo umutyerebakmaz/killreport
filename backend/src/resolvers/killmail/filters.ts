@@ -8,6 +8,8 @@ export function filters(filter: KillmailFilter): any {
   const where: any = {};
   const andConditions: any[] = [];
   const shipTypeId = filter.shipTypeId;
+  const victim = filter.victim;
+  const attacker = filter.attacker;
   const regionId = filter.regionId;
   const systemId = filter.systemId;
   const characterId = filter.characterId;
@@ -16,24 +18,28 @@ export function filters(filter: KillmailFilter): any {
   const minAttackers = filter.minAttackers;
   const maxAttackers = filter.maxAttackers;
 
-  // Ship type filter: victim OR attacker (own OR group)
+  // Ship type filter: respects victim / attacker checkboxes
   if (shipTypeId) {
-    andConditions.push({
-      OR: [
-        {
-          victim: {
-            ship_type_id: shipTypeId,
-          },
-        },
-        {
-          attackers: {
-            some: {
-              ship_type_id: shipTypeId,
-            },
-          },
-        },
-      ]
-    });
+    const onlyVictim = victim === true && !attacker;
+    const onlyAttacker = attacker === true && !victim;
+
+    if (onlyVictim) {
+      andConditions.push({
+        victim: { ship_type_id: shipTypeId },
+      });
+    } else if (onlyAttacker) {
+      andConditions.push({
+        attackers: { some: { ship_type_id: shipTypeId } },
+      });
+    } else {
+      // Both checked or neither checked → victim OR attacker (default)
+      andConditions.push({
+        OR: [
+          { victim: { ship_type_id: shipTypeId } },
+          { attackers: { some: { ship_type_id: shipTypeId } } },
+        ],
+      });
+    }
   }
 
   // Character filter: victim OR attacker (own OR group)
