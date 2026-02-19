@@ -41,6 +41,13 @@ function KillmailsContent() {
       | "attacker"
       | null) ?? "all";
 
+  const characterRoleFromUrl =
+    (searchParams.get("characterRole") as
+      | "all"
+      | "victim"
+      | "attacker"
+      | null) ?? "all";
+
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(25);
   const [orderBy, setOrderBy] = useState<string>(orderByFromUrl);
@@ -53,6 +60,8 @@ function KillmailsContent() {
     characterId?: number;
     victim?: boolean;
     attacker?: boolean;
+    characterVictim?: boolean;
+    characterAttacker?: boolean;
     regionId?: number;
     systemId?: number;
     minAttackers?: number;
@@ -76,6 +85,18 @@ function KillmailsContent() {
       shipTypeIdFromUrl && shipTypeRoleFromUrl === "attacker"
         ? true
         : shipTypeIdFromUrl && shipTypeRoleFromUrl === "victim"
+          ? false
+          : undefined,
+    characterVictim:
+      characterIdFromUrl && characterRoleFromUrl === "victim"
+        ? true
+        : characterIdFromUrl && characterRoleFromUrl === "attacker"
+          ? false
+          : undefined,
+    characterAttacker:
+      characterIdFromUrl && characterRoleFromUrl === "attacker"
+        ? true
+        : characterIdFromUrl && characterRoleFromUrl === "victim"
           ? false
           : undefined,
   });
@@ -173,6 +194,8 @@ function KillmailsContent() {
     characterId?: number;
     victim?: boolean;
     attacker?: boolean;
+    characterVictim?: boolean;
+    characterAttacker?: boolean;
     regionId?: number;
     systemId?: number;
     minAttackers?: number;
@@ -199,6 +222,8 @@ function KillmailsContent() {
         characterId: filters.characterId,
         victim: filters.victim,
         attacker: filters.attacker,
+        characterVictim: filters.characterVictim,
+        characterAttacker: filters.characterAttacker,
         regionId: filters.regionId,
         systemId: filters.systemId,
         minAttackers: filters.minAttackers,
@@ -217,6 +242,8 @@ function KillmailsContent() {
         characterId: filters.characterId,
         victim: filters.victim,
         attacker: filters.attacker,
+        characterVictim: filters.characterVictim,
+        characterAttacker: filters.characterAttacker,
         regionId: filters.regionId,
         systemId: filters.systemId,
         minAttackers: filters.minAttackers,
@@ -232,14 +259,25 @@ function KillmailsContent() {
     const params = new URLSearchParams();
     params.set("page", currentPage.toString());
     params.set("orderBy", orderBy);
-    if (filters.characterId)
-      params.set("characterId", filters.characterId.toString());
     if (filters.shipTypeId) {
       params.set("shipTypeId", filters.shipTypeId.toString());
       if (filters.victim === true && filters.attacker === false)
         params.set("shipTypeRole", "victim");
       else if (filters.attacker === true && filters.victim === false)
         params.set("shipTypeRole", "attacker");
+    }
+    if (filters.characterId) {
+      params.set("characterId", filters.characterId.toString());
+      if (
+        filters.characterVictim === true &&
+        filters.characterAttacker === false
+      )
+        params.set("characterRole", "victim");
+      else if (
+        filters.characterAttacker === true &&
+        filters.characterVictim === false
+      )
+        params.set("characterRole", "attacker");
     }
     if (filters.minAttackers)
       params.set("minAttackers", filters.minAttackers.toString());
@@ -255,6 +293,8 @@ function KillmailsContent() {
     filters.shipTypeId,
     filters.victim,
     filters.attacker,
+    filters.characterVictim,
+    filters.characterAttacker,
     filters.minAttackers,
     filters.maxAttackers,
     filters.minValue,
@@ -362,7 +402,8 @@ function KillmailsContent() {
           initialMaxAttackers={maxAttackersFromUrl}
           initialMinValue={minValueFromUrl}
           initialMaxValue={maxValueFromUrl}
-          initialRole={shipTypeRoleFromUrl}
+          initialShipRole={shipTypeRoleFromUrl}
+          initialCharacterRole={characterRoleFromUrl}
         />
       </div>
 
