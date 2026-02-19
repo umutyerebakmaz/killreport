@@ -26,6 +26,8 @@ export async function filtersMaterialized(filter: KillmailFilter): Promise<numbe
     regionId,
     systemId,
     characterId,
+    characterVictim,
+    characterAttacker,
     corporationId,
     allianceId,
     minAttackers,
@@ -49,10 +51,20 @@ export async function filtersMaterialized(filter: KillmailFilter): Promise<numbe
     paramIndex++;
   }
 
-  // Character filter (victim OR attacker)
+  // Character filter: respects characterVictim / characterAttacker checkboxes
   if (characterId !== undefined && characterId !== null) {
+    const onlyCharVictim = characterVictim === true && !characterAttacker;
+    const onlyCharAttacker = characterAttacker === true && !characterVictim;
+
     params.push(characterId);
-    conditions.push(`(victim_character_id = $${paramIndex} OR $${paramIndex} = ANY(attacker_character_ids))`);
+    if (onlyCharVictim) {
+      conditions.push(`victim_character_id = $${paramIndex}`);
+    } else if (onlyCharAttacker) {
+      conditions.push(`$${paramIndex} = ANY(attacker_character_ids)`);
+    } else {
+      // Both or neither → victim OR attacker (default)
+      conditions.push(`(victim_character_id = $${paramIndex} OR $${paramIndex} = ANY(attacker_character_ids))`);
+    }
     paramIndex++;
   }
 

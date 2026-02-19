@@ -22,6 +22,8 @@ interface KillmailFiltersProps {
     characterId?: number;
     victim?: boolean;
     attacker?: boolean;
+    characterVictim?: boolean;
+    characterAttacker?: boolean;
     minAttackers?: number;
     maxAttackers?: number;
     minValue?: number;
@@ -36,7 +38,8 @@ interface KillmailFiltersProps {
   initialMaxAttackers?: number;
   initialMinValue?: number;
   initialMaxValue?: number;
-  initialRole?: "all" | "victim" | "attacker";
+  initialShipRole?: "all" | "victim" | "attacker";
+  initialCharacterRole?: "all" | "victim" | "attacker";
 }
 
 export default function KillmailFilters({
@@ -50,7 +53,8 @@ export default function KillmailFilters({
   initialMaxAttackers,
   initialMinValue,
   initialMaxValue,
-  initialRole = "all",
+  initialShipRole = "all",
+  initialCharacterRole = "all",
 }: KillmailFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [typeSearch, setTypeSearch] = useState("");
@@ -70,7 +74,12 @@ export default function KillmailFilters({
   const [maxValue, setMaxValue] = useState(
     initialMaxValue ? String(initialMaxValue) : "",
   );
-  const [role, setRole] = useState<"all" | "victim" | "attacker">(initialRole);
+  const [shipRole, setShipRole] = useState<"all" | "victim" | "attacker">(
+    initialShipRole,
+  );
+  const [characterRole, setCharacterRole] = useState<
+    "all" | "victim" | "attacker"
+  >(initialCharacterRole);
 
   // Pilot search state
   const [pilotSearch, setPilotSearch] = useState("");
@@ -140,7 +149,8 @@ export default function KillmailFilters({
     maxAttackers ||
     minValue ||
     maxValue ||
-    (shipTypeId && role !== "all");
+    (shipTypeId && shipRole !== "all") ||
+    (characterId && characterRole !== "all");
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -189,8 +199,12 @@ export default function KillmailFilters({
   }, [initialMaxValue]);
 
   useEffect(() => {
-    setRole(initialRole);
-  }, [initialRole]);
+    setShipRole(initialShipRole);
+  }, [initialShipRole]);
+
+  useEffect(() => {
+    setCharacterRole(initialCharacterRole);
+  }, [initialCharacterRole]);
 
   // Show dropdown when we have results
   useEffect(() => {
@@ -234,22 +248,34 @@ export default function KillmailFilters({
     onFilterChange({
       shipTypeId,
       characterId,
-      victim:
-        shipTypeId || characterId
-          ? role === "victim"
-            ? true
-            : role === "attacker"
-              ? false
-              : undefined
-          : undefined,
-      attacker:
-        shipTypeId || characterId
-          ? role === "attacker"
-            ? true
-            : role === "victim"
-              ? false
-              : undefined
-          : undefined,
+      victim: shipTypeId
+        ? shipRole === "victim"
+          ? true
+          : shipRole === "attacker"
+            ? false
+            : undefined
+        : undefined,
+      attacker: shipTypeId
+        ? shipRole === "attacker"
+          ? true
+          : shipRole === "victim"
+            ? false
+            : undefined
+        : undefined,
+      characterVictim: characterId
+        ? characterRole === "victim"
+          ? true
+          : characterRole === "attacker"
+            ? false
+            : undefined
+        : undefined,
+      characterAttacker: characterId
+        ? characterRole === "attacker"
+          ? true
+          : characterRole === "victim"
+            ? false
+            : undefined
+        : undefined,
       minAttackers: minAttackers ? Number(minAttackers) : undefined,
       maxAttackers: maxAttackers ? Number(maxAttackers) : undefined,
       minValue: minValue ? Number(minValue) : undefined,
@@ -268,7 +294,8 @@ export default function KillmailFilters({
     setMaxAttackers("");
     setMinValue("");
     setMaxValue("");
-    setRole("all");
+    setShipRole("all");
+    setCharacterRole("all");
     onClearFilters();
   };
 
@@ -629,75 +656,94 @@ export default function KillmailFilters({
 
             {/* RIGHT: Chips + Role */}
             {(characterId || shipTypeId) && (
-              <div className="flex flex-col gap-3 min-w-48">
+              <div className="flex flex-col gap-4 min-w-48">
                 <p className="text-xs font-medium text-gray-400">Selected</p>
+
+                {/* Character chip + its own RadioGroup */}
                 {characterId && (
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-gray-700/50">
-                      <img
-                        src={`https://images.evetech.net/characters/${characterId}/portrait?size=64`}
-                        alt={characterName}
-                        className="object-cover size-8"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src =
-                            "/images/default-avatar.png";
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-gray-700/50">
+                        <img
+                          src={`https://images.evetech.net/characters/${characterId}/portrait?size=64`}
+                          alt={characterName}
+                          className="object-cover size-8"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src =
+                              "/images/default-avatar.png";
+                          }}
+                        />
+                        <span className="font-semibold truncate">
+                          {characterName}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCharacterId(undefined);
+                          setCharacterName("");
+                          setCharacterRole("all");
                         }}
-                      />
-                      <span className="font-semibold truncate">
-                        {characterName}
-                      </span>
+                        className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                      >
+                        <XMarkIcon className="w-4 h-4" />
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCharacterId(undefined);
-                        setCharacterName("");
-                      }}
-                      className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
-                    >
-                      <XMarkIcon className="w-4 h-4" />
-                    </button>
+                    <RadioGroup
+                      name="character-role"
+                      value={characterRole}
+                      onChange={setCharacterRole}
+                      options={[
+                        { value: "all", label: "All" },
+                        { value: "victim", label: "Victim" },
+                        { value: "attacker", label: "Attacker" },
+                      ]}
+                    />
                   </div>
                 )}
+
+                {/* Ship chip + its own RadioGroup */}
                 {shipTypeId && (
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-gray-700/50">
-                      <img
-                        src={`https://images.evetech.net/types/${shipTypeId}/icon?size=64`}
-                        alt={shipTypeName}
-                        className="object-cover size-8"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src =
-                            "/images/default-ship.png";
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-gray-700/50">
+                        <img
+                          src={`https://images.evetech.net/types/${shipTypeId}/icon?size=64`}
+                          alt={shipTypeName}
+                          className="object-cover size-8"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src =
+                              "/images/default-ship.png";
+                          }}
+                        />
+                        <span className="font-semibold truncate">
+                          {shipTypeName}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShipTypeId(undefined);
+                          setShipTypeName("");
+                          setShipRole("all");
                         }}
-                      />
-                      <span className="font-semibold truncate">
-                        {shipTypeName}
-                      </span>
+                        className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                      >
+                        <XMarkIcon className="w-4 h-4" />
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShipTypeId(undefined);
-                        setShipTypeName("");
-                        setRole("all");
-                      }}
-                      className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
-                    >
-                      <XMarkIcon className="w-4 h-4" />
-                    </button>
+                    <RadioGroup
+                      name="ship-type-role"
+                      value={shipRole}
+                      onChange={setShipRole}
+                      options={[
+                        { value: "all", label: "All" },
+                        { value: "victim", label: "Victim" },
+                        { value: "attacker", label: "Attacker" },
+                      ]}
+                    />
                   </div>
                 )}
-                <RadioGroup
-                  name="ship-type-role"
-                  value={role}
-                  onChange={setRole}
-                  options={[
-                    { value: "all", label: "All" },
-                    { value: "victim", label: "Victim" },
-                    { value: "attacker", label: "Attacker" },
-                  ]}
-                />
               </div>
             )}
           </div>

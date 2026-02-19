@@ -76,24 +76,36 @@ type Attacker {
 }
 
 type AuthPayload {
-  """JWT access token"""
+  """
+  JWT access token
+  """
   accessToken: String!
 
-  """Token geçerlilik süresi (saniye)"""
+  """
+  Token geçerlilik süresi (saniye)
+  """
   expiresIn: Int!
 
-  """Token yenilemek için kullanılan refresh token"""
+  """
+  Token yenilemek için kullanılan refresh token
+  """
   refreshToken: String
 
-  """Authenticated kullanıcı bilgileri"""
+  """
+  Authenticated kullanıcı bilgileri
+  """
   user: User!
 }
 
 type AuthUrl {
-  """CSRF koruması için state parametresi"""
+  """
+  CSRF koruması için state parametresi
+  """
   state: String!
 
-  """Eve Online SSO authorization URL'i"""
+  """
+  Eve Online SSO authorization URL'i
+  """
   url: String!
 }
 
@@ -350,7 +362,9 @@ type Fitting {
   subsystems: SlotGroup!
 }
 
-"""Represents a fitted module or item"""
+"""
+Represents a fitted module or item
+"""
 type FittingModule {
   charge: FittingModule
   flag: Int!
@@ -393,19 +407,29 @@ type ItemGroupsResponse {
 }
 
 type JitaPrice {
-  """Average of buy and sell"""
+  """
+  Average of buy and sell
+  """
   average: Float!
 
-  """Highest buy order (instant sell price)"""
+  """
+  Highest buy order (instant sell price)
+  """
   buy: Float!
 
-  """Lowest sell order (instant buy price)"""
+  """
+  Lowest sell order (instant buy price)
+  """
   sell: Float!
 
-  """Data source timestamp"""
+  """
+  Data source timestamp
+  """
   updatedAt: String!
 
-  """Total market volume"""
+  """
+  Total market volume
+  """
   volume: Float
 }
 
@@ -436,7 +460,9 @@ type KillmailDateCount {
 input KillmailFilter {
   allianceId: Int
   attacker: Boolean
+  characterAttacker: Boolean
   characterId: Int
+  characterVictim: Boolean
   corporationId: Int
   limit: Int
   maxAttackers: Int
@@ -474,39 +500,65 @@ type KillmailsResponse {
 type Mutation {
   _empty: String
 
-  """Authorization code ile authentication yapar ve token döner"""
+  """
+  Authorization code ile authentication yapar ve token döner
+  """
   authenticateWithCode(code: String!, state: String!): AuthPayload!
 
-  """Clear all killmail caches (use after large data updates)"""
+  """
+  Clear all killmail caches (use after large data updates)
+  """
   clearAllKillmailCaches: CacheOperation!
 
-  """Clear cache for a specific alliance"""
+  """
+  Clear cache for a specific alliance
+  """
   clearAllianceCache(allianceId: Int!): CacheOperation!
 
-  """Clear cache for a specific character"""
+  """
+  Clear cache for a specific character
+  """
   clearCharacterCache(characterId: Int!): CacheOperation!
 
-  """Clear cache for a specific corporation"""
+  """
+  Clear cache for a specific corporation
+  """
   clearCorporationCache(corporationId: Int!): CacheOperation!
 
-  """Clear cache for a specific killmail"""
+  """
+  Clear cache for a specific killmail
+  """
   clearKillmailCache(killmailId: Int!): CacheOperation!
   createUser(input: CreateUserInput!): CreateUserPayload!
 
-  """Eve Online SSO login için authorization URL'i oluşturur"""
+  """
+  Eve Online SSO login için authorization URL'i oluşturur
+  """
   login: AuthUrl!
   refreshCharacter(characterId: Int!): RefreshCharacterResult!
 
-  """Refresh token kullanarak yeni access token alır"""
+  """
+  Refresh token kullanarak yeni access token alır
+  """
   refreshToken(refreshToken: String!): AuthPayload!
   startAllianceSync(input: StartAllianceSyncInput!): StartAllianceSyncPayload!
   startCategorySync(input: StartCategorySyncInput!): StartCategorySyncPayload!
-  startConstellationSync(input: StartConstellationSyncInput!): StartConstellationSyncPayload!
-  startDogmaAttributeSync(input: StartDogmaAttributeSyncInput!): StartDogmaAttributeSyncPayload!
-  startDogmaEffectSync(input: StartDogmaEffectSyncInput!): StartDogmaEffectSyncPayload!
-  startItemGroupSync(input: StartItemGroupSyncInput!): StartItemGroupSyncPayload!
+  startConstellationSync(
+    input: StartConstellationSyncInput!
+  ): StartConstellationSyncPayload!
+  startDogmaAttributeSync(
+    input: StartDogmaAttributeSyncInput!
+  ): StartDogmaAttributeSyncPayload!
+  startDogmaEffectSync(
+    input: StartDogmaEffectSyncInput!
+  ): StartDogmaEffectSyncPayload!
+  startItemGroupSync(
+    input: StartItemGroupSyncInput!
+  ): StartItemGroupSyncPayload!
   startRegionSync(input: StartRegionSyncInput!): StartRegionSyncPayload!
-  startTypeDogmaSync(input: StartTypeDogmaSyncInput!): StartTypeDogmaSyncPayload!
+  startTypeDogmaSync(
+    input: StartTypeDogmaSyncInput!
+  ): StartTypeDogmaSyncPayload!
   startTypeSync(input: StartTypeSyncInput!): StartTypeSyncPayload!
 
   """
@@ -517,7 +569,9 @@ type Mutation {
   updateUser(input: UpdateUserInput!): UpdateUserPayload!
 }
 
-"""Offset-based pagination info (page number + limit)"""
+"""
+Offset-based pagination info (page number + limit)
+"""
 type PageInfo {
   currentPage: Int!
   hasNextPage: Boolean!
@@ -540,7 +594,9 @@ type Query {
   bloodline(id: Int!): Bloodline
   bloodlines: [Bloodline!]!
 
-  """Cache statistics and memory usage"""
+  """
+  Cache statistics and memory usage
+  """
   cacheStats: CacheStats!
   categories(filter: CategoryFilter): CategoriesResponse!
   category(id: Int!): Category
@@ -557,16 +613,24 @@ type Query {
   itemGroup(id: Int!): ItemGroup
   itemGroups(filter: ItemGroupFilter): ItemGroupsResponse!
 
-  """Fetches a single killmail"""
+  """
+  Fetches a single killmail
+  """
   killmail(id: ID!): Killmail
 
-  """Lists all killmails with pagination"""
+  """
+  Lists all killmails with pagination
+  """
   killmails(filter: KillmailFilter): KillmailsResponse!
 
-  """Returns count of killmails grouped by date (for the current filter)"""
+  """
+  Returns count of killmails grouped by date (for the current filter)
+  """
   killmailsDateCounts(filter: KillmailFilter): [KillmailDateCount!]!
 
-  """Mevcut authenticated kullanıcının bilgilerini döner"""
+  """
+  Mevcut authenticated kullanıcının bilgilerini döner
+  """
   me: User
   race(id: Int!): Race
   races: [Race!]!
@@ -579,30 +643,46 @@ type Query {
   user(id: ID!): User
   users: [User!]!
 
-  """Get current status of all workers and queues"""
+  """
+  Get current status of all workers and queues
+  """
   workerStatus: WorkerStatus!
 }
 
 type QueueStatus {
-  """Is there at least one active consumer"""
+  """
+  Is there at least one active consumer
+  """
   active: Boolean!
 
-  """Number of active consumers processing from this queue"""
+  """
+  Number of active consumers processing from this queue
+  """
   consumerCount: Int!
 
-  """Number of messages waiting to be processed"""
+  """
+  Number of messages waiting to be processed
+  """
   messageCount: Int!
 
-  """Name of the queue"""
+  """
+  Name of the queue
+  """
   name: String!
 
-  """Worker script name (e.g., worker:info:corporations)"""
+  """
+  Worker script name (e.g., worker:info:corporations)
+  """
   workerName: String
 
-  """Process ID of the running worker"""
+  """
+  Process ID of the running worker
+  """
   workerPid: Int
 
-  """Is the worker process running (detected via ps aux)"""
+  """
+  Is the worker process running (detected via ps aux)
+  """
   workerRunning: Boolean!
 }
 
@@ -613,25 +693,39 @@ type Race {
 }
 
 type RedisMetrics {
-  """Commands processed per second (instantaneous)"""
+  """
+  Commands processed per second (instantaneous)
+  """
   commandsPerSecond: Int!
 
-  """Redis connection status"""
+  """
+  Redis connection status
+  """
   connected: Boolean!
 
-  """Connected clients count"""
+  """
+  Connected clients count
+  """
   connectedClients: Int!
 
-  """Redis memory usage (human readable)"""
+  """
+  Redis memory usage (human readable)
+  """
   memoryUsage: String!
 
-  """Total commands processed"""
+  """
+  Total commands processed
+  """
   totalCommandsProcessed: Int!
 
-  """Number of keys in Redis"""
+  """
+  Number of keys in Redis
+  """
   totalKeys: Int!
 
-  """Redis uptime in seconds"""
+  """
+  Redis uptime in seconds
+  """
   uptimeInSeconds: Int!
 }
 
@@ -678,7 +772,9 @@ type SecurityStats {
   wormhole: Int!
 }
 
-"""A group of slots with total slot count from dogma attributes"""
+"""
+A group of slots with total slot count from dogma attributes
+"""
 type SlotGroup {
   slots: [FittingSlot!]!
   totalSlots: Int!
@@ -719,16 +815,24 @@ type SolarSystemsResponse {
 }
 
 type StandaloneWorkerStatus {
-  """Description of what this worker does"""
+  """
+  Description of what this worker does
+  """
   description: String!
 
-  """Name of the worker"""
+  """
+  Name of the worker
+  """
   name: String!
 
-  """Process ID if running"""
+  """
+  Process ID if running
+  """
   pid: Int
 
-  """Is the worker currently running"""
+  """
+  Is the worker currently running
+  """
   running: Boolean!
 }
 
@@ -862,7 +966,9 @@ type Type {
   icon_id: Int
   id: Int!
 
-  """Jita market price (cached, updates every 4 hours)"""
+  """
+  Jita market price (cached, updates every 4 hours)
+  """
   jitaPrice: JitaPrice
   mass: Float
   name: String!
@@ -930,21 +1036,33 @@ type Victim {
 }
 
 type WorkerStatus {
-  """Database size in megabytes (MB)"""
+  """
+  Database size in megabytes (MB)
+  """
   databaseSizeMB: Float!
 
-  """Overall system health"""
+  """
+  Overall system health
+  """
   healthy: Boolean!
 
-  """Status of individual queues (RabbitMQ-based workers)"""
+  """
+  Status of individual queues (RabbitMQ-based workers)
+  """
   queues: [QueueStatus!]!
 
-  """Redis server metrics"""
+  """
+  Redis server metrics
+  """
   redis: RedisMetrics
 
-  """Status of standalone workers (non-RabbitMQ)"""
+  """
+  Status of standalone workers (non-RabbitMQ)
+  """
   standaloneWorkers: [StandaloneWorkerStatus!]!
 
-  """Timestamp of the status check"""
+  """
+  Timestamp of the status check
+  """
   timestamp: String!
 }

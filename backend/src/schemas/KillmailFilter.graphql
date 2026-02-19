@@ -6,11 +6,13 @@ input KillmailFilter {
   shipTypeId: Int
   victim: Boolean
   attacker: Boolean
-  regionId: Int
-  systemId: Int
   characterId: Int
+  characterVictim: Boolean
+  characterAttacker: Boolean
   corporationId: Int
   allianceId: Int
+  regionId: Int
+  systemId: Int
   minAttackers: Int
   maxAttackers: Int
   minValue: Float
