@@ -440,7 +440,9 @@ input KillmailFilter {
   corporationId: Int
   limit: Int
   maxAttackers: Int
+  maxValue: Float
   minAttackers: Int
+  minValue: Float
   orderBy: KillmailOrderBy
   page: Int
   regionId: Int

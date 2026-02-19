@@ -28,6 +28,12 @@ function KillmailsContent() {
   const maxAttackersFromUrl = searchParams.get("maxAttackers")
     ? Number(searchParams.get("maxAttackers"))
     : undefined;
+  const minValueFromUrl = searchParams.get("minValue")
+    ? Number(searchParams.get("minValue"))
+    : undefined;
+  const maxValueFromUrl = searchParams.get("maxValue")
+    ? Number(searchParams.get("maxValue"))
+    : undefined;
   const shipTypeRoleFromUrl =
     (searchParams.get("shipTypeRole") as
       | "all"
@@ -51,11 +57,15 @@ function KillmailsContent() {
     systemId?: number;
     minAttackers?: number;
     maxAttackers?: number;
+    minValue?: number;
+    maxValue?: number;
   }>({
     characterId: characterIdFromUrl,
     shipTypeId: shipTypeIdFromUrl,
     minAttackers: minAttackersFromUrl,
     maxAttackers: maxAttackersFromUrl,
+    minValue: minValueFromUrl,
+    maxValue: maxValueFromUrl,
     victim:
       shipTypeIdFromUrl && shipTypeRoleFromUrl === "victim"
         ? true
@@ -92,7 +102,9 @@ function KillmailsContent() {
         filters.regionId ||
         filters.systemId ||
         filters.minAttackers ||
-        filters.maxAttackers
+        filters.maxAttackers ||
+        filters.minValue ||
+        filters.maxValue
       ), // Skip if not on first page OR filters are active
   });
 
@@ -107,7 +119,9 @@ function KillmailsContent() {
       !filters.regionId &&
       !filters.systemId &&
       !filters.minAttackers &&
-      !filters.maxAttackers
+      !filters.maxAttackers &&
+      !filters.minValue &&
+      !filters.maxValue
     ) {
       const km = subscriptionData.newKillmail;
 
@@ -163,6 +177,8 @@ function KillmailsContent() {
     systemId?: number;
     minAttackers?: number;
     maxAttackers?: number;
+    minValue?: number;
+    maxValue?: number;
   }) => {
     setFilters(newFilters);
     setCurrentPage(1); // Reset to first page when filters change
@@ -187,6 +203,8 @@ function KillmailsContent() {
         systemId: filters.systemId,
         minAttackers: filters.minAttackers,
         maxAttackers: filters.maxAttackers,
+        minValue: filters.minValue,
+        maxValue: filters.maxValue,
       },
     },
   });
@@ -203,6 +221,8 @@ function KillmailsContent() {
         systemId: filters.systemId,
         minAttackers: filters.minAttackers,
         maxAttackers: filters.maxAttackers,
+        minValue: filters.minValue,
+        maxValue: filters.maxValue,
       },
     },
   });
@@ -225,6 +245,8 @@ function KillmailsContent() {
       params.set("minAttackers", filters.minAttackers.toString());
     if (filters.maxAttackers)
       params.set("maxAttackers", filters.maxAttackers.toString());
+    if (filters.minValue) params.set("minValue", filters.minValue.toString());
+    if (filters.maxValue) params.set("maxValue", filters.maxValue.toString());
     router.push(`/killmails?${params.toString()}`, { scroll: false });
   }, [
     currentPage,
@@ -235,6 +257,8 @@ function KillmailsContent() {
     filters.attacker,
     filters.minAttackers,
     filters.maxAttackers,
+    filters.minValue,
+    filters.maxValue,
     router,
   ]);
 
@@ -336,6 +360,8 @@ function KillmailsContent() {
           initialCharacterId={characterIdFromUrl}
           initialMinAttackers={minAttackersFromUrl}
           initialMaxAttackers={maxAttackersFromUrl}
+          initialMinValue={minValueFromUrl}
+          initialMaxValue={maxValueFromUrl}
           initialRole={shipTypeRoleFromUrl}
         />
       </div>
