@@ -112,27 +112,35 @@ export const killmailQueries: QueryResolvers = {
       }
 
       // Build optional value filter conditions (total_value not in materialized view)
-      const valueConditions: string[] = [];
+      // Two variants with different param indices:
+      //   countWhereClause: $1=ids, $2=minValue, $3=maxValue
+      //   mainWhereClause:  $1=ids, $2=limit, $3=skip, $4=minValue, $5=maxValue
       const valueParams: number[] = [];
-      let valueParamIdx = 4; // $1=ids, $2=limit, $3=skip
+
+      const countValueConditions: string[] = [];
+      let countParamIdx = 2; // $1=ids
+
+      const mainValueConditions: string[] = [];
+      let mainParamIdx = 4; // $1=ids, $2=limit, $3=skip
 
       if (args.filter?.minValue !== undefined && args.filter?.minValue !== null) {
-        valueConditions.push(`total_value >= $${valueParamIdx}`);
+        countValueConditions.push(`total_value >= $${countParamIdx++}`);
+        mainValueConditions.push(`total_value >= $${mainParamIdx++}`);
         valueParams.push(args.filter.minValue);
-        valueParamIdx++;
       }
       if (args.filter?.maxValue !== undefined && args.filter?.maxValue !== null) {
-        valueConditions.push(`total_value <= $${valueParamIdx}`);
+        countValueConditions.push(`total_value <= $${countParamIdx++}`);
+        mainValueConditions.push(`total_value <= $${mainParamIdx++}`);
         valueParams.push(args.filter.maxValue);
-        valueParamIdx++;
       }
-      const valueWhereClause = valueConditions.length > 0 ? ` AND ${valueConditions.join(' AND ')}` : '';
+      const countWhereClause = countValueConditions.length > 0 ? ` AND ${countValueConditions.join(' AND ')}` : '';
+      const mainWhereClause = mainValueConditions.length > 0 ? ` AND ${mainValueConditions.join(' AND ')}` : '';
 
       // If value filters are active, count against the killmails table directly
       let totalCount: number;
       if (valueParams.length > 0) {
         const countResult = await prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
-          `SELECT COUNT(*) as count FROM killmails WHERE killmail_id = ANY($1)${valueWhereClause}`,
+          `SELECT COUNT(*) as count FROM killmails WHERE killmail_id = ANY($1::int[])${countWhereClause}`,
           killmailIds,
           ...valueParams
         );
@@ -168,7 +176,7 @@ export const killmailQueries: QueryResolvers = {
           dropped_value,
           attacker_count
         FROM killmails
-        WHERE killmail_id = ANY($1)${valueWhereClause}
+        WHERE killmail_id = ANY($1::int[])${mainWhereClause}
         ORDER BY killmail_time ${orderDirection}
         LIMIT $2
         OFFSET $3`,
@@ -388,7 +396,7 @@ export const killmailQueries: QueryResolvers = {
             DATE(killmail_time) as date,
             COUNT(*)::bigint as count
           FROM killmails
-          WHERE killmail_id = ANY($1)
+          WHERE killmail_id = ANY($1::int[])
           GROUP BY DATE(killmail_time)
           ORDER BY date DESC`,
           filteredIds
@@ -490,3 +498,4 @@ export const killmailQueries: QueryResolvers = {
   },
 
 };
+

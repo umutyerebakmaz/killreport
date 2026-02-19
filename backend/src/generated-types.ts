@@ -490,7 +490,9 @@ export type KillmailDateCount = {
 export type KillmailFilter = {
   allianceId?: InputMaybe<Scalars['Int']['input']>;
   attacker?: InputMaybe<Scalars['Boolean']['input']>;
+  characterAttacker?: InputMaybe<Scalars['Boolean']['input']>;
   characterId?: InputMaybe<Scalars['Int']['input']>;
+  characterVictim?: InputMaybe<Scalars['Boolean']['input']>;
   corporationId?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   maxAttackers?: InputMaybe<Scalars['Int']['input']>;
