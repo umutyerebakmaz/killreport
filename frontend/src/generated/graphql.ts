@@ -495,7 +495,9 @@ export type KillmailFilter = {
   corporationId?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   maxAttackers?: InputMaybe<Scalars['Int']['input']>;
+  maxValue?: InputMaybe<Scalars['Float']['input']>;
   minAttackers?: InputMaybe<Scalars['Int']['input']>;
+  minValue?: InputMaybe<Scalars['Float']['input']>;
   orderBy?: InputMaybe<KillmailOrderBy>;
   page?: InputMaybe<Scalars['Int']['input']>;
   regionId?: InputMaybe<Scalars['Int']['input']>;
