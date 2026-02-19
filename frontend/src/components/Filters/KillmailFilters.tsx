@@ -24,6 +24,8 @@ interface KillmailFiltersProps {
     attacker?: boolean;
     minAttackers?: number;
     maxAttackers?: number;
+    minValue?: number;
+    maxValue?: number;
   }) => void;
   onClearFilters: () => void;
   orderBy?: string;
@@ -32,6 +34,8 @@ interface KillmailFiltersProps {
   initialCharacterId?: number;
   initialMinAttackers?: number;
   initialMaxAttackers?: number;
+  initialMinValue?: number;
+  initialMaxValue?: number;
   initialRole?: "all" | "victim" | "attacker";
 }
 
@@ -44,6 +48,8 @@ export default function KillmailFilters({
   initialCharacterId,
   initialMinAttackers,
   initialMaxAttackers,
+  initialMinValue,
+  initialMaxValue,
   initialRole = "all",
 }: KillmailFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -57,6 +63,12 @@ export default function KillmailFilters({
   );
   const [maxAttackers, setMaxAttackers] = useState(
     initialMaxAttackers ? String(initialMaxAttackers) : "",
+  );
+  const [minValue, setMinValue] = useState(
+    initialMinValue ? String(initialMinValue) : "",
+  );
+  const [maxValue, setMaxValue] = useState(
+    initialMaxValue ? String(initialMaxValue) : "",
   );
   const [role, setRole] = useState<"all" | "victim" | "attacker">(initialRole);
 
@@ -126,6 +138,8 @@ export default function KillmailFilters({
     characterId ||
     minAttackers ||
     maxAttackers ||
+    minValue ||
+    maxValue ||
     (shipTypeId && role !== "all");
 
   // Close dropdown when clicking outside
@@ -165,6 +179,14 @@ export default function KillmailFilters({
   useEffect(() => {
     setMaxAttackers(initialMaxAttackers ? String(initialMaxAttackers) : "");
   }, [initialMaxAttackers]);
+
+  useEffect(() => {
+    setMinValue(initialMinValue ? String(initialMinValue) : "");
+  }, [initialMinValue]);
+
+  useEffect(() => {
+    setMaxValue(initialMaxValue ? String(initialMaxValue) : "");
+  }, [initialMaxValue]);
 
   useEffect(() => {
     setRole(initialRole);
@@ -230,6 +252,8 @@ export default function KillmailFilters({
           : undefined,
       minAttackers: minAttackers ? Number(minAttackers) : undefined,
       maxAttackers: maxAttackers ? Number(maxAttackers) : undefined,
+      minValue: minValue ? Number(minValue) : undefined,
+      maxValue: maxValue ? Number(maxValue) : undefined,
     });
   };
 
@@ -242,6 +266,8 @@ export default function KillmailFilters({
     setCharacterName("");
     setMinAttackers("");
     setMaxAttackers("");
+    setMinValue("");
+    setMaxValue("");
     setRole("all");
     onClearFilters();
   };
@@ -261,9 +287,14 @@ export default function KillmailFilters({
           {hasActiveFilters && (
             <span className="badge">
               {
-                [shipTypeId, characterId, minAttackers, maxAttackers].filter(
-                  Boolean,
-                ).length
+                [
+                  shipTypeId,
+                  characterId,
+                  minAttackers,
+                  maxAttackers,
+                  minValue,
+                  maxValue,
+                ].filter(Boolean).length
               }
             </span>
           )}
@@ -552,6 +583,46 @@ export default function KillmailFilters({
                   onChange={(e) => setMaxAttackers(e.target.value)}
                   className="input"
                   min="1"
+                />
+              </div>
+
+              {/* Min Value */}
+              <div>
+                <label
+                  htmlFor="filter-min-value"
+                  className="block mb-2 text-xs font-medium text-gray-400"
+                >
+                  Min Value (ISK)
+                </label>
+                <input
+                  type="number"
+                  id="filter-min-value"
+                  placeholder="Min ISK value..."
+                  value={minValue}
+                  onChange={(e) => setMinValue(e.target.value)}
+                  className="input"
+                  min="0"
+                  step="1000000"
+                />
+              </div>
+
+              {/* Max Value */}
+              <div>
+                <label
+                  htmlFor="filter-max-value"
+                  className="block mb-2 text-xs font-medium text-gray-400"
+                >
+                  Max Value (ISK)
+                </label>
+                <input
+                  type="number"
+                  id="filter-max-value"
+                  placeholder="Max ISK value..."
+                  value={maxValue}
+                  onChange={(e) => setMaxValue(e.target.value)}
+                  className="input"
+                  min="0"
+                  step="1000000"
                 />
               </div>
             </div>

@@ -111,8 +111,36 @@ export const killmailQueries: QueryResolvers = {
         return emptyResult;
       }
 
-      // Use the length of killmailIds as total count to avoid parameter limit issues
-      const totalCount = killmailIds.length;
+      // Build optional value filter conditions (total_value not in materialized view)
+      const valueConditions: string[] = [];
+      const valueParams: number[] = [];
+      let valueParamIdx = 4; // $1=ids, $2=limit, $3=skip
+
+      if (args.filter?.minValue !== undefined && args.filter?.minValue !== null) {
+        valueConditions.push(`total_value >= $${valueParamIdx}`);
+        valueParams.push(args.filter.minValue);
+        valueParamIdx++;
+      }
+      if (args.filter?.maxValue !== undefined && args.filter?.maxValue !== null) {
+        valueConditions.push(`total_value <= $${valueParamIdx}`);
+        valueParams.push(args.filter.maxValue);
+        valueParamIdx++;
+      }
+      const valueWhereClause = valueConditions.length > 0 ? ` AND ${valueConditions.join(' AND ')}` : '';
+
+      // If value filters are active, count against the killmails table directly
+      let totalCount: number;
+      if (valueParams.length > 0) {
+        const countResult = await prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
+          `SELECT COUNT(*) as count FROM killmails WHERE killmail_id = ANY($1)${valueWhereClause}`,
+          killmailIds,
+          ...valueParams
+        );
+        totalCount = Number(countResult[0].count);
+      } else {
+        // Use the length of killmailIds as total count to avoid extra query
+        totalCount = killmailIds.length;
+      }
 
       // For large result sets, use raw SQL with array to avoid parameter limit
       // PostgreSQL can handle large arrays efficiently with ANY()
@@ -140,13 +168,14 @@ export const killmailQueries: QueryResolvers = {
           dropped_value,
           attacker_count
         FROM killmails
-        WHERE killmail_id = ANY($1)
+        WHERE killmail_id = ANY($1)${valueWhereClause}
         ORDER BY killmail_time ${orderDirection}
         LIMIT $2
         OFFSET $3`,
         killmailIds,
         limit,
-        skip
+        skip,
+        ...valueParams
       );
 
       const totalPages = Math.ceil(totalCount / limit);
@@ -211,6 +240,20 @@ export const killmailQueries: QueryResolvers = {
         where.attacker_count = {
           ...where.attacker_count,
           lte: args.filter.maxAttackers,
+        };
+      }
+
+      if (args.filter?.minValue !== undefined && args.filter?.minValue !== null) {
+        where.total_value = {
+          ...where.total_value,
+          gte: args.filter.minValue,
+        };
+      }
+
+      if (args.filter?.maxValue !== undefined && args.filter?.maxValue !== null) {
+        where.total_value = {
+          ...where.total_value,
+          lte: args.filter.maxValue,
         };
       }
 
@@ -314,19 +357,45 @@ export const killmailQueries: QueryResolvers = {
         // Early exit - no results
         result = [];
       } else {
+        // Pre-filter IDs by value if value filters are present
+        let filteredIds = killmailIds;
+        if (
+          (args.filter?.minValue !== undefined && args.filter?.minValue !== null) ||
+          (args.filter?.maxValue !== undefined && args.filter?.maxValue !== null)
+        ) {
+          const vConds: string[] = [];
+          const vParams: any[] = [killmailIds];
+          let vIdx = 2;
+          if (args.filter?.minValue !== undefined && args.filter?.minValue !== null) {
+            vConds.push(`total_value >= $${vIdx}`);
+            vParams.push(args.filter.minValue);
+            vIdx++;
+          }
+          if (args.filter?.maxValue !== undefined && args.filter?.maxValue !== null) {
+            vConds.push(`total_value <= $${vIdx}`);
+            vParams.push(args.filter.maxValue);
+          }
+          const filtered = await prisma.$queryRawUnsafe<Array<{ killmail_id: number }>>(
+            `SELECT killmail_id FROM killmails WHERE killmail_id = ANY($1) AND ${vConds.join(' AND ')}`,
+            ...vParams
+          );
+          filteredIds = filtered.map(r => r.killmail_id);
+        }
+
         // Query by IDs (much faster than JOINs)
-        const rawCounts = await prisma.$queryRaw<Array<{ date: Date; count: bigint }>>`
-          SELECT
+        const rawCounts = await prisma.$queryRawUnsafe<Array<{ date: Date; count: bigint }>>(
+          `SELECT
             DATE(killmail_time) as date,
             COUNT(*)::bigint as count
           FROM killmails
-          WHERE killmail_id = ANY(${killmailIds})
+          WHERE killmail_id = ANY($1)
           GROUP BY DATE(killmail_time)
-          ORDER BY date DESC
-        `;
+          ORDER BY date DESC`,
+          filteredIds
+        );
 
         result = rawCounts.map(item => ({
-          date: item.date.toISOString().split('T')[0],
+          date: new Date(item.date).toISOString().split('T')[0],
           count: Number(item.count),
         }));
       }
@@ -376,6 +445,20 @@ export const killmailQueries: QueryResolvers = {
         where.attacker_count = {
           ...where.attacker_count,
           lte: args.filter.maxAttackers,
+        };
+      }
+
+      if (args.filter?.minValue !== undefined && args.filter?.minValue !== null) {
+        where.total_value = {
+          ...where.total_value,
+          gte: args.filter.minValue,
+        };
+      }
+
+      if (args.filter?.maxValue !== undefined && args.filter?.maxValue !== null) {
+        where.total_value = {
+          ...where.total_value,
+          lte: args.filter.maxValue,
         };
       }
 
