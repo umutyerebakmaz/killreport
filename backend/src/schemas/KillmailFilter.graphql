@@ -13,4 +13,6 @@ input KillmailFilter {
   allianceId: Int
   minAttackers: Int
   maxAttackers: Int
+  minValue: Float
+  maxValue: Float
 }
