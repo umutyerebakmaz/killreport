@@ -1,6 +1,7 @@
 "use client";
 
 import CharactersTable from "@/components/CharactersTable/CharactersTable";
+import CorporationGrowthChart from "@/components/CorporationGrowthChart/CorporationGrowthChart";
 import KillmailsTable from "@/components/KillmailsTable";
 import { Loader } from "@/components/Loader/Loader";
 import MemberDeltaBadge from "@/components/MemberDeltaBadge/MemberDeltaBadge";
@@ -9,6 +10,7 @@ import Tooltip from "@/components/Tooltip/Tooltip";
 import TotalMemberBadge from "@/components/TotalMemberBadge/TotalMemberBadge";
 import {
   useCorporationCharactersQuery,
+  useCorporationGrowthQuery,
   useCorporationKillmailsQuery,
   useCorporationQuery,
   useKillmailsDateCountsQuery,
@@ -21,7 +23,7 @@ interface CorporationDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-type TabType = "attributes" | "killmails" | "members";
+type TabType = "attributes" | "killmails" | "members" | "growth";
 
 export default function CorporationDetailPage({
   params,
@@ -80,6 +82,13 @@ export default function CorporationDetailPage({
     },
     skip: activeTab !== "killmails",
   });
+
+  // Fetch growth snapshots only when growth tab is active
+  const { data: growthData, loading: growthLoading } =
+    useCorporationGrowthQuery({
+      variables: { id: parseInt(id), days: 90 },
+      skip: activeTab !== "growth",
+    });
 
   // Memoize killmails array
   const killmails = useMemo(
@@ -189,6 +198,7 @@ export default function CorporationDetailPage({
     { id: "attributes" as TabType, label: "Attributes" },
     { id: "killmails" as TabType, label: "Killmails" },
     { id: "members" as TabType, label: "Members" },
+    { id: "growth" as TabType, label: "Growth" },
   ];
 
   // Delta verilerini al (haftalık değişim)
@@ -440,6 +450,15 @@ export default function CorporationDetailPage({
                   />
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === "growth" && (
+            <div className="detail-tab-content">
+              <CorporationGrowthChart
+                snapshots={growthData?.corporation?.snapshots ?? []}
+                loading={growthLoading}
+              />
             </div>
           )}
         </div>
