@@ -1345,6 +1345,14 @@ export type CorporationQueryVariables = Exact<{
 
 export type CorporationQuery = { __typename?: 'Query', corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, date_founded?: string | null, member_count: number, tax_rate: number, url?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, ceo?: { __typename?: 'Character', id: number, name: string } | null, creator?: { __typename?: 'Character', id: number, name: string } | null, metrics?: { __typename?: 'CorporationMetrics', memberCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null } | null } | null };
 
+export type CorporationGrowthQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+  days?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type CorporationGrowthQuery = { __typename?: 'Query', corporation?: { __typename?: 'Corporation', id: number, snapshots: Array<{ __typename?: 'CorporationSnapshot', date: string, memberCount: number }> } | null };
+
 export type CorporationCharactersQueryVariables = Exact<{
   filter?: InputMaybe<CharacterFilter>;
 }>;
@@ -2373,6 +2381,54 @@ export type CorporationQueryHookResult = ReturnType<typeof useCorporationQuery>;
 export type CorporationLazyQueryHookResult = ReturnType<typeof useCorporationLazyQuery>;
 export type CorporationSuspenseQueryHookResult = ReturnType<typeof useCorporationSuspenseQuery>;
 export type CorporationQueryResult = Apollo.QueryResult<CorporationQuery, CorporationQueryVariables>;
+export const CorporationGrowthDocument = gql`
+    query CorporationGrowth($id: Int!, $days: Int) {
+  corporation(id: $id) {
+    id
+    snapshots(days: $days) {
+      date
+      memberCount
+    }
+  }
+}
+    `;
+
+/**
+ * __useCorporationGrowthQuery__
+ *
+ * To run a query within a React component, call `useCorporationGrowthQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCorporationGrowthQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCorporationGrowthQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *      days: // value for 'days'
+ *   },
+ * });
+ */
+export function useCorporationGrowthQuery(baseOptions: Apollo.QueryHookOptions<CorporationGrowthQuery, CorporationGrowthQueryVariables> & ({ variables: CorporationGrowthQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CorporationGrowthQuery, CorporationGrowthQueryVariables>(CorporationGrowthDocument, options);
+      }
+export function useCorporationGrowthLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CorporationGrowthQuery, CorporationGrowthQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CorporationGrowthQuery, CorporationGrowthQueryVariables>(CorporationGrowthDocument, options);
+        }
+// @ts-ignore
+export function useCorporationGrowthSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CorporationGrowthQuery, CorporationGrowthQueryVariables>): Apollo.UseSuspenseQueryResult<CorporationGrowthQuery, CorporationGrowthQueryVariables>;
+export function useCorporationGrowthSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CorporationGrowthQuery, CorporationGrowthQueryVariables>): Apollo.UseSuspenseQueryResult<CorporationGrowthQuery | undefined, CorporationGrowthQueryVariables>;
+export function useCorporationGrowthSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CorporationGrowthQuery, CorporationGrowthQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CorporationGrowthQuery, CorporationGrowthQueryVariables>(CorporationGrowthDocument, options);
+        }
+export type CorporationGrowthQueryHookResult = ReturnType<typeof useCorporationGrowthQuery>;
+export type CorporationGrowthLazyQueryHookResult = ReturnType<typeof useCorporationGrowthLazyQuery>;
+export type CorporationGrowthSuspenseQueryHookResult = ReturnType<typeof useCorporationGrowthSuspenseQuery>;
+export type CorporationGrowthQueryResult = Apollo.QueryResult<CorporationGrowthQuery, CorporationGrowthQueryVariables>;
 export const CorporationCharactersDocument = gql`
     query CorporationCharacters($filter: CharacterFilter) {
   characters(filter: $filter) {
