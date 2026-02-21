@@ -26,3 +26,13 @@ query Corporation($id: Int!) {
     }
   }
 }
+
+query CorporationGrowth($id: Int!, $days: Int) {
+  corporation(id: $id) {
+    id
+    snapshots(days: $days) {
+      date
+      memberCount
+    }
+  }
+}
