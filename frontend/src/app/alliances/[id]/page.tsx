@@ -1,5 +1,6 @@
 "use client";
 
+import AllianceGrowthChart from "@/components/AllianceGrowthChart/AllianceGrowthChart";
 import CorporationTable from "@/components/CorporationsTable/CorporationsTable";
 import KillmailsTable from "@/components/KillmailsTable";
 import { Loader } from "@/components/Loader/Loader";
@@ -10,6 +11,7 @@ import TotalMemberBadge from "@/components/TotalMemberBadge/TotalMemberBadge";
 import {
   CorporationOrderBy,
   useAllianceCorporationsQuery,
+  useAllianceGrowthQuery,
   useAllianceKillmailsQuery,
   useAllianceQuery,
   useKillmailsDateCountsQuery,
@@ -22,7 +24,12 @@ interface AllianceDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-type TabType = "attributes" | "killmails" | "war-history" | "members";
+type TabType =
+  | "attributes"
+  | "growth"
+  | "killmails"
+  | "war-history"
+  | "members";
 
 export default function AllianceDetailPage({
   params,
@@ -82,6 +89,12 @@ export default function AllianceDetailPage({
       },
     },
     skip: activeTab !== "killmails",
+  });
+
+  // Fetch growth snapshots only when growth tab is active
+  const { data: growthData, loading: growthLoading } = useAllianceGrowthQuery({
+    variables: { id: parseInt(id), days: 90 },
+    skip: activeTab !== "growth",
   });
 
   // Memoize killmails array
@@ -194,6 +207,7 @@ export default function AllianceDetailPage({
     { id: "killmails" as TabType, label: "Killmails" },
     { id: "war-history" as TabType, label: "War History" },
     { id: "members" as TabType, label: "Members" },
+    { id: "growth" as TabType, label: "Growth" },
   ];
 
   // Delta verilerini al (haftalık değişim)
@@ -321,6 +335,15 @@ export default function AllianceDetailPage({
                   </span>
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeTab === "growth" && (
+            <div className="detail-tab-content">
+              <AllianceGrowthChart
+                snapshots={growthData?.alliance?.snapshots ?? []}
+                loading={growthLoading}
+              />
             </div>
           )}
 
