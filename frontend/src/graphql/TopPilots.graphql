@@ -1,0 +1,21 @@
+query TopPilots($filter: TopPilotsFilter) {
+  topPilots(filter: $filter) {
+    rank
+    killCount
+    character {
+      id
+      name
+      security_status
+      corporation {
+        id
+        name
+        ticker
+      }
+      alliance {
+        id
+        name
+        ticker
+      }
+    }
+  }
+}
