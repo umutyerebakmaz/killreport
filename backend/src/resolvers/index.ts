@@ -27,6 +27,7 @@ import { solarSystemFields, solarSystemQueries } from './solar-system';
 import { typeFields, typeMutations, typeQueries } from './type';
 import { userMutations, userQueries } from './user';
 import { workerQueries, workerSubscriptions } from './worker';
+import { leaderboardQueries } from './leaderboard';
 
 export const resolvers: Resolvers = {
     Query: {
@@ -49,6 +50,7 @@ export const resolvers: Resolvers = {
         ...cacheQueries,
         ...workerQueries,
         ...analyticsQueries,
+        ...leaderboardQueries,
     },
     Mutation: {
         ...authMutations,

@@ -718,6 +718,14 @@ export type Query = {
   regions: RegionsResponse;
   solarSystem?: Maybe<SolarSystem>;
   solarSystems: SolarSystemsResponse;
+  /** Returns top pilots ranked by total kill count over the last 90 days (rolling window) */
+  top90DaysPilots: Array<Top90DaysPilot>;
+  /** Returns top pilots ranked by total kill count for a given calendar month (default: current month) */
+  topMonthlyPilots: Array<TopMonthlyPilot>;
+  /** Returns top pilots ranked by kill count for a given day (default: today) */
+  topPilots: Array<TopPilot>;
+  /** Returns top pilots ranked by total kill count for a given week (Mon–Sun); defaults to current week */
+  topWeeklyPilots: Array<TopWeeklyPilot>;
   type?: Maybe<Type>;
   types: TypesResponse;
   user?: Maybe<User>;
@@ -849,6 +857,26 @@ export type QuerySolarSystemArgs = {
 
 export type QuerySolarSystemsArgs = {
   filter?: InputMaybe<SolarSystemFilter>;
+};
+
+
+export type QueryTop90DaysPilotsArgs = {
+  filter?: InputMaybe<Top90DaysPilotsFilter>;
+};
+
+
+export type QueryTopMonthlyPilotsArgs = {
+  filter?: InputMaybe<TopMonthlyPilotsFilter>;
+};
+
+
+export type QueryTopPilotsArgs = {
+  filter?: InputMaybe<TopPilotsFilter>;
+};
+
+
+export type QueryTopWeeklyPilotsArgs = {
+  filter?: InputMaybe<TopWeeklyPilotsFilter>;
 };
 
 
@@ -1140,6 +1168,60 @@ export type SyncMyKillmailsPayload = {
   syncedCount: Scalars['Int']['output'];
 };
 
+export type Top90DaysPilot = {
+  __typename?: 'Top90DaysPilot';
+  character?: Maybe<Character>;
+  killCount: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+};
+
+export type Top90DaysPilotsFilter = {
+  /** Max 100; default 100 */
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type TopMonthlyPilot = {
+  __typename?: 'TopMonthlyPilot';
+  character?: Maybe<Character>;
+  killCount: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+};
+
+export type TopMonthlyPilotsFilter = {
+  /** Max 100; default 100 */
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  /** Year-month string YYYY-MM; defaults to current month (UTC) */
+  month?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type TopPilot = {
+  __typename?: 'TopPilot';
+  character?: Maybe<Character>;
+  killCount: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+};
+
+export type TopPilotsFilter = {
+  /** ISO date string YYYY-MM-DD; defaults to today (UTC) */
+  date?: InputMaybe<Scalars['String']['input']>;
+  /** Max 100; default 100 */
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type TopWeeklyPilot = {
+  __typename?: 'TopWeeklyPilot';
+  character?: Maybe<Character>;
+  killCount: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+};
+
+export type TopWeeklyPilotsFilter = {
+  /** Max 100; default 100 */
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  /** ISO date string YYYY-MM-DD for the Monday (start) of the week; defaults to current week's Monday (UTC) */
+  weekStart?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type Type = {
   __typename?: 'Type';
   capacity?: Maybe<Scalars['Float']['output']>;
@@ -1418,6 +1500,14 @@ export type ResolversTypes = {
   Subscription: ResolverTypeWrapper<Record<PropertyKey, never>>;
   SyncMyKillmailsInput: SyncMyKillmailsInput;
   SyncMyKillmailsPayload: ResolverTypeWrapper<SyncMyKillmailsPayload>;
+  Top90DaysPilot: ResolverTypeWrapper<Top90DaysPilot>;
+  Top90DaysPilotsFilter: Top90DaysPilotsFilter;
+  TopMonthlyPilot: ResolverTypeWrapper<TopMonthlyPilot>;
+  TopMonthlyPilotsFilter: TopMonthlyPilotsFilter;
+  TopPilot: ResolverTypeWrapper<TopPilot>;
+  TopPilotsFilter: TopPilotsFilter;
+  TopWeeklyPilot: ResolverTypeWrapper<TopWeeklyPilot>;
+  TopWeeklyPilotsFilter: TopWeeklyPilotsFilter;
   Type: ResolverTypeWrapper<Type>;
   TypeDogmaAttribute: ResolverTypeWrapper<TypeDogmaAttribute>;
   TypeDogmaEffect: ResolverTypeWrapper<TypeDogmaEffect>;
@@ -1521,6 +1611,14 @@ export type ResolversParentTypes = {
   Subscription: Record<PropertyKey, never>;
   SyncMyKillmailsInput: SyncMyKillmailsInput;
   SyncMyKillmailsPayload: SyncMyKillmailsPayload;
+  Top90DaysPilot: Top90DaysPilot;
+  Top90DaysPilotsFilter: Top90DaysPilotsFilter;
+  TopMonthlyPilot: TopMonthlyPilot;
+  TopMonthlyPilotsFilter: TopMonthlyPilotsFilter;
+  TopPilot: TopPilot;
+  TopPilotsFilter: TopPilotsFilter;
+  TopWeeklyPilot: TopWeeklyPilot;
+  TopWeeklyPilotsFilter: TopWeeklyPilotsFilter;
   Type: Type;
   TypeDogmaAttribute: TypeDogmaAttribute;
   TypeDogmaEffect: TypeDogmaEffect;
@@ -1921,6 +2019,10 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   regions?: Resolver<ResolversTypes['RegionsResponse'], ParentType, ContextType, Partial<QueryRegionsArgs>>;
   solarSystem?: Resolver<Maybe<ResolversTypes['SolarSystem']>, ParentType, ContextType, RequireFields<QuerySolarSystemArgs, 'id'>>;
   solarSystems?: Resolver<ResolversTypes['SolarSystemsResponse'], ParentType, ContextType, Partial<QuerySolarSystemsArgs>>;
+  top90DaysPilots?: Resolver<Array<ResolversTypes['Top90DaysPilot']>, ParentType, ContextType, Partial<QueryTop90DaysPilotsArgs>>;
+  topMonthlyPilots?: Resolver<Array<ResolversTypes['TopMonthlyPilot']>, ParentType, ContextType, Partial<QueryTopMonthlyPilotsArgs>>;
+  topPilots?: Resolver<Array<ResolversTypes['TopPilot']>, ParentType, ContextType, Partial<QueryTopPilotsArgs>>;
+  topWeeklyPilots?: Resolver<Array<ResolversTypes['TopWeeklyPilot']>, ParentType, ContextType, Partial<QueryTopWeeklyPilotsArgs>>;
   type?: Resolver<Maybe<ResolversTypes['Type']>, ParentType, ContextType, RequireFields<QueryTypeArgs, 'id'>>;
   types?: Resolver<ResolversTypes['TypesResponse'], ParentType, ContextType, Partial<QueryTypesArgs>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
@@ -2080,6 +2182,30 @@ export type SyncMyKillmailsPayloadResolvers<ContextType = any, ParentType extend
   syncedCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
+export type Top90DaysPilotResolvers<ContextType = any, ParentType extends ResolversParentTypes['Top90DaysPilot'] = ResolversParentTypes['Top90DaysPilot']> = {
+  character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
+  killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type TopMonthlyPilotResolvers<ContextType = any, ParentType extends ResolversParentTypes['TopMonthlyPilot'] = ResolversParentTypes['TopMonthlyPilot']> = {
+  character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
+  killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type TopPilotResolvers<ContextType = any, ParentType extends ResolversParentTypes['TopPilot'] = ResolversParentTypes['TopPilot']> = {
+  character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
+  killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type TopWeeklyPilotResolvers<ContextType = any, ParentType extends ResolversParentTypes['TopWeeklyPilot'] = ResolversParentTypes['TopWeeklyPilot']> = {
+  character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
+  killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
 export type TypeResolvers<ContextType = any, ParentType extends ResolversParentTypes['Type'] = ResolversParentTypes['Type']> = {
   capacity?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   created_at?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2210,6 +2336,10 @@ export type Resolvers<ContextType = any> = {
   StartTypeSyncPayload?: StartTypeSyncPayloadResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
   SyncMyKillmailsPayload?: SyncMyKillmailsPayloadResolvers<ContextType>;
+  Top90DaysPilot?: Top90DaysPilotResolvers<ContextType>;
+  TopMonthlyPilot?: TopMonthlyPilotResolvers<ContextType>;
+  TopPilot?: TopPilotResolvers<ContextType>;
+  TopWeeklyPilot?: TopWeeklyPilotResolvers<ContextType>;
   Type?: TypeResolvers<ContextType>;
   TypeDogmaAttribute?: TypeDogmaAttributeResolvers<ContextType>;
   TypeDogmaEffect?: TypeDogmaEffectResolvers<ContextType>;

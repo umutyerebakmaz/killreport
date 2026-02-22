@@ -1,0 +1,19 @@
+query Top90DaysPilots($filter: Top90DaysPilotsFilter) {
+  top90DaysPilots(filter: $filter) {
+    rank
+    killCount
+    character {
+      id
+      name
+      security_status
+      corporation {
+        id
+        name
+      }
+      alliance {
+        id
+        name
+      }
+    }
+  }
+}
