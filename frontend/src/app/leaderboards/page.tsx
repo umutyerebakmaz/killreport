@@ -82,7 +82,7 @@ function PilotList({
               {/* Rank */}
               <div className="flex items-center justify-center w-16 shrink-0">
                 <span
-                  className={`text-4xl font-black tabular-nums ${
+                  className={`text-3xl font-black tabular-nums ${
                     pilot.rank === 1
                       ? "text-yellow-400"
                       : pilot.rank === 2
@@ -105,8 +105,8 @@ function PilotList({
                       : `https://images.evetech.net/characters/0/portrait?size=128`
                   }
                   alt={char?.name ?? "Unknown"}
-                  width={96}
-                  height={96}
+                  width={64}
+                  height={64}
                   className="shadow-md"
                   loading="lazy"
                 />
@@ -121,12 +121,15 @@ function PilotList({
 
               {/* Info */}
               <div className="flex justify-between w-full min-w-0">
-                <div className="flex flex-col min-w-0">
+                <div className="flex flex-col min-w-0 overflow-hidden">
                   {char ? (
-                    <Tooltip content="Show Character Info">
+                    <Tooltip
+                      content="Show Character Info"
+                      className="!w-full min-w-0 overflow-hidden"
+                    >
                       <Link
                         href={`/characters/${char.id}`}
-                        className="font-medium text-gray-400 truncate hover:text-blue-400"
+                        className="block font-medium text-gray-400 truncate hover:text-blue-400"
                         prefetch={false}
                       >
                         {char.name}
@@ -138,10 +141,13 @@ function PilotList({
                     </span>
                   )}
                   {char?.corporation && (
-                    <Tooltip content="Show Corporation Info">
+                    <Tooltip
+                      content="Show Corporation Info"
+                      className="!w-full min-w-0 overflow-hidden"
+                    >
                       <Link
                         href={`/corporations/${char.corporation.id}`}
-                        className="text-sm text-gray-400 truncate hover:text-blue-400"
+                        className="block text-sm text-gray-400 truncate hover:text-blue-400"
                         prefetch={false}
                       >
                         {char.corporation.name}
@@ -149,10 +155,13 @@ function PilotList({
                     </Tooltip>
                   )}
                   {char?.alliance && (
-                    <Tooltip content="Show Alliance Info">
+                    <Tooltip
+                      content="Show Alliance Info"
+                      className="!w-full min-w-0 overflow-hidden"
+                    >
                       <Link
                         href={`/alliances/${char.alliance.id}`}
-                        className="text-sm text-gray-400 truncate hover:text-blue-400"
+                        className="block text-sm text-gray-400 truncate hover:text-blue-400"
                         prefetch={false}
                       >
                         {char.alliance.name}
@@ -468,7 +477,7 @@ function MonthlyLeaderboard() {
         >
           <ChevronLeftIcon className="w-4 h-4" />
         </button>
-        <span className="flex-1 text-xs text-center text-gray-300 font-medium min-w-0 truncate">
+        <span className="flex-1 min-w-0 text-xs font-medium text-center text-gray-300 truncate">
           {monthLabel}
         </span>
         {isCurrentMonth && (
