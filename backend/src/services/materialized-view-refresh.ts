@@ -36,6 +36,25 @@ export async function refreshMaterializedView(): Promise<void> {
 }
 
 /**
+ * Refresh the daily_pilot_kills_mv materialized view
+ * Pre-aggregated kill counts per pilot per UTC day — used by the leaderboard.
+ * Refresh is cheap (only touches today's rows need recomputing).
+ */
+export async function refreshDailyPilotKillsMv(): Promise<void> {
+    const startTime = Date.now();
+    try {
+        logger.info('🔄 Refreshing daily_pilot_kills_mv...');
+        await prisma.$executeRawUnsafe('REFRESH MATERIALIZED VIEW CONCURRENTLY daily_pilot_kills_mv');
+        const duration = Date.now() - startTime;
+        logger.info(`✅ daily_pilot_kills_mv refreshed in ${duration}ms`);
+    } catch (error) {
+        const duration = Date.now() - startTime;
+        logger.error(`❌ Error refreshing daily_pilot_kills_mv after ${duration}ms:`, error);
+        throw error;
+    }
+}
+
+/**
  * Check if materialized view needs refresh
  * Returns true if view is stale (hasn't been refreshed recently)
  */
@@ -118,6 +137,8 @@ export function scheduleMaterializedViewRefresh(): NodeJS.Timeout {
             if (await needsRefresh()) {
                 await refreshMaterializedView();
             }
+
+            await refreshDailyPilotKillsMv();
         } catch (error) {
             logger.error('❌ Error in initial materialized view refresh:', error);
         }
@@ -131,6 +152,9 @@ export function scheduleMaterializedViewRefresh(): NodeJS.Timeout {
             } else {
                 logger.info('✨ Materialized view is up to date, skipping refresh');
             }
+
+            // daily_pilot_kills_mv: always refresh — cheap incremental computation
+            await refreshDailyPilotKillsMv();
         } catch (error) {
             logger.error('❌ Error in scheduled materialized view refresh:', error);
         }

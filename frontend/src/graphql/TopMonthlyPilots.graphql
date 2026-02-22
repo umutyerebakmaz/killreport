@@ -1,0 +1,19 @@
+query TopMonthlyPilots($filter: TopMonthlyPilotsFilter) {
+  topMonthlyPilots(filter: $filter) {
+    rank
+    killCount
+    character {
+      id
+      name
+      security_status
+      corporation {
+        id
+        name
+      }
+      alliance {
+        id
+        name
+      }
+    }
+  }
+}

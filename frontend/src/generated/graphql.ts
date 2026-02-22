@@ -719,6 +719,14 @@ export type Query = {
   regions: RegionsResponse;
   solarSystem?: Maybe<SolarSystem>;
   solarSystems: SolarSystemsResponse;
+  /** Returns top pilots ranked by total kill count over the last 90 days (rolling window) */
+  top90DaysPilots: Array<Top90DaysPilot>;
+  /** Returns top pilots ranked by total kill count for a given calendar month (default: current month) */
+  topMonthlyPilots: Array<TopMonthlyPilot>;
+  /** Returns top pilots ranked by kill count for a given day (default: today) */
+  topPilots: Array<TopPilot>;
+  /** Returns top pilots ranked by total kill count for a given week (Mon–Sun); defaults to current week */
+  topWeeklyPilots: Array<TopWeeklyPilot>;
   type?: Maybe<Type>;
   types: TypesResponse;
   user?: Maybe<User>;
@@ -850,6 +858,26 @@ export type QuerySolarSystemArgs = {
 
 export type QuerySolarSystemsArgs = {
   filter?: InputMaybe<SolarSystemFilter>;
+};
+
+
+export type QueryTop90DaysPilotsArgs = {
+  filter?: InputMaybe<Top90DaysPilotsFilter>;
+};
+
+
+export type QueryTopMonthlyPilotsArgs = {
+  filter?: InputMaybe<TopMonthlyPilotsFilter>;
+};
+
+
+export type QueryTopPilotsArgs = {
+  filter?: InputMaybe<TopPilotsFilter>;
+};
+
+
+export type QueryTopWeeklyPilotsArgs = {
+  filter?: InputMaybe<TopWeeklyPilotsFilter>;
 };
 
 
@@ -1139,6 +1167,60 @@ export type SyncMyKillmailsPayload = {
   message: Scalars['String']['output'];
   success: Scalars['Boolean']['output'];
   syncedCount: Scalars['Int']['output'];
+};
+
+export type Top90DaysPilot = {
+  __typename?: 'Top90DaysPilot';
+  character?: Maybe<Character>;
+  killCount: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+};
+
+export type Top90DaysPilotsFilter = {
+  /** Max 100; default 100 */
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type TopMonthlyPilot = {
+  __typename?: 'TopMonthlyPilot';
+  character?: Maybe<Character>;
+  killCount: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+};
+
+export type TopMonthlyPilotsFilter = {
+  /** Max 100; default 100 */
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  /** Year-month string YYYY-MM; defaults to current month (UTC) */
+  month?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type TopPilot = {
+  __typename?: 'TopPilot';
+  character?: Maybe<Character>;
+  killCount: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+};
+
+export type TopPilotsFilter = {
+  /** ISO date string YYYY-MM-DD; defaults to today (UTC) */
+  date?: InputMaybe<Scalars['String']['input']>;
+  /** Max 100; default 100 */
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type TopWeeklyPilot = {
+  __typename?: 'TopWeeklyPilot';
+  character?: Maybe<Character>;
+  killCount: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+};
+
+export type TopWeeklyPilotsFilter = {
+  /** Max 100; default 100 */
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  /** ISO date string YYYY-MM-DD for the Monday (start) of the week; defaults to current week's Monday (UTC) */
+  weekStart?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type Type = {
@@ -1473,6 +1555,34 @@ export type SolarSystemQueryVariables = Exact<{
 
 
 export type SolarSystemQuery = { __typename?: 'Query', solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, security_class?: string | null, star_id?: number | null, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } | null };
+
+export type Top90DaysPilotsQueryVariables = Exact<{
+  filter?: InputMaybe<Top90DaysPilotsFilter>;
+}>;
+
+
+export type Top90DaysPilotsQuery = { __typename?: 'Query', top90DaysPilots: Array<{ __typename?: 'Top90DaysPilot', rank: number, killCount: number, character?: { __typename?: 'Character', id: number, name: string, security_status?: number | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null }> };
+
+export type TopMonthlyPilotsQueryVariables = Exact<{
+  filter?: InputMaybe<TopMonthlyPilotsFilter>;
+}>;
+
+
+export type TopMonthlyPilotsQuery = { __typename?: 'Query', topMonthlyPilots: Array<{ __typename?: 'TopMonthlyPilot', rank: number, killCount: number, character?: { __typename?: 'Character', id: number, name: string, security_status?: number | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null }> };
+
+export type TopPilotsQueryVariables = Exact<{
+  filter?: InputMaybe<TopPilotsFilter>;
+}>;
+
+
+export type TopPilotsQuery = { __typename?: 'Query', topPilots: Array<{ __typename?: 'TopPilot', rank: number, killCount: number, character?: { __typename?: 'Character', id: number, name: string, security_status?: number | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } | null }> };
+
+export type TopWeeklyPilotsQueryVariables = Exact<{
+  filter?: InputMaybe<TopWeeklyPilotsFilter>;
+}>;
+
+
+export type TopWeeklyPilotsQuery = { __typename?: 'Query', topWeeklyPilots: Array<{ __typename?: 'TopWeeklyPilot', rank: number, killCount: number, character?: { __typename?: 'Character', id: number, name: string, security_status?: number | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null }> };
 
 export type WorkerStatusSubscriptionSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -3853,6 +3963,236 @@ export type SolarSystemQueryHookResult = ReturnType<typeof useSolarSystemQuery>;
 export type SolarSystemLazyQueryHookResult = ReturnType<typeof useSolarSystemLazyQuery>;
 export type SolarSystemSuspenseQueryHookResult = ReturnType<typeof useSolarSystemSuspenseQuery>;
 export type SolarSystemQueryResult = Apollo.QueryResult<SolarSystemQuery, SolarSystemQueryVariables>;
+export const Top90DaysPilotsDocument = gql`
+    query Top90DaysPilots($filter: Top90DaysPilotsFilter) {
+  top90DaysPilots(filter: $filter) {
+    rank
+    killCount
+    character {
+      id
+      name
+      security_status
+      corporation {
+        id
+        name
+      }
+      alliance {
+        id
+        name
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useTop90DaysPilotsQuery__
+ *
+ * To run a query within a React component, call `useTop90DaysPilotsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTop90DaysPilotsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTop90DaysPilotsQuery({
+ *   variables: {
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useTop90DaysPilotsQuery(baseOptions?: Apollo.QueryHookOptions<Top90DaysPilotsQuery, Top90DaysPilotsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<Top90DaysPilotsQuery, Top90DaysPilotsQueryVariables>(Top90DaysPilotsDocument, options);
+      }
+export function useTop90DaysPilotsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Top90DaysPilotsQuery, Top90DaysPilotsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<Top90DaysPilotsQuery, Top90DaysPilotsQueryVariables>(Top90DaysPilotsDocument, options);
+        }
+// @ts-ignore
+export function useTop90DaysPilotsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<Top90DaysPilotsQuery, Top90DaysPilotsQueryVariables>): Apollo.UseSuspenseQueryResult<Top90DaysPilotsQuery, Top90DaysPilotsQueryVariables>;
+export function useTop90DaysPilotsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<Top90DaysPilotsQuery, Top90DaysPilotsQueryVariables>): Apollo.UseSuspenseQueryResult<Top90DaysPilotsQuery | undefined, Top90DaysPilotsQueryVariables>;
+export function useTop90DaysPilotsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<Top90DaysPilotsQuery, Top90DaysPilotsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<Top90DaysPilotsQuery, Top90DaysPilotsQueryVariables>(Top90DaysPilotsDocument, options);
+        }
+export type Top90DaysPilotsQueryHookResult = ReturnType<typeof useTop90DaysPilotsQuery>;
+export type Top90DaysPilotsLazyQueryHookResult = ReturnType<typeof useTop90DaysPilotsLazyQuery>;
+export type Top90DaysPilotsSuspenseQueryHookResult = ReturnType<typeof useTop90DaysPilotsSuspenseQuery>;
+export type Top90DaysPilotsQueryResult = Apollo.QueryResult<Top90DaysPilotsQuery, Top90DaysPilotsQueryVariables>;
+export const TopMonthlyPilotsDocument = gql`
+    query TopMonthlyPilots($filter: TopMonthlyPilotsFilter) {
+  topMonthlyPilots(filter: $filter) {
+    rank
+    killCount
+    character {
+      id
+      name
+      security_status
+      corporation {
+        id
+        name
+      }
+      alliance {
+        id
+        name
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useTopMonthlyPilotsQuery__
+ *
+ * To run a query within a React component, call `useTopMonthlyPilotsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTopMonthlyPilotsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTopMonthlyPilotsQuery({
+ *   variables: {
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useTopMonthlyPilotsQuery(baseOptions?: Apollo.QueryHookOptions<TopMonthlyPilotsQuery, TopMonthlyPilotsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TopMonthlyPilotsQuery, TopMonthlyPilotsQueryVariables>(TopMonthlyPilotsDocument, options);
+      }
+export function useTopMonthlyPilotsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TopMonthlyPilotsQuery, TopMonthlyPilotsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TopMonthlyPilotsQuery, TopMonthlyPilotsQueryVariables>(TopMonthlyPilotsDocument, options);
+        }
+// @ts-ignore
+export function useTopMonthlyPilotsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<TopMonthlyPilotsQuery, TopMonthlyPilotsQueryVariables>): Apollo.UseSuspenseQueryResult<TopMonthlyPilotsQuery, TopMonthlyPilotsQueryVariables>;
+export function useTopMonthlyPilotsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<TopMonthlyPilotsQuery, TopMonthlyPilotsQueryVariables>): Apollo.UseSuspenseQueryResult<TopMonthlyPilotsQuery | undefined, TopMonthlyPilotsQueryVariables>;
+export function useTopMonthlyPilotsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<TopMonthlyPilotsQuery, TopMonthlyPilotsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<TopMonthlyPilotsQuery, TopMonthlyPilotsQueryVariables>(TopMonthlyPilotsDocument, options);
+        }
+export type TopMonthlyPilotsQueryHookResult = ReturnType<typeof useTopMonthlyPilotsQuery>;
+export type TopMonthlyPilotsLazyQueryHookResult = ReturnType<typeof useTopMonthlyPilotsLazyQuery>;
+export type TopMonthlyPilotsSuspenseQueryHookResult = ReturnType<typeof useTopMonthlyPilotsSuspenseQuery>;
+export type TopMonthlyPilotsQueryResult = Apollo.QueryResult<TopMonthlyPilotsQuery, TopMonthlyPilotsQueryVariables>;
+export const TopPilotsDocument = gql`
+    query TopPilots($filter: TopPilotsFilter) {
+  topPilots(filter: $filter) {
+    rank
+    killCount
+    character {
+      id
+      name
+      security_status
+      corporation {
+        id
+        name
+        ticker
+      }
+      alliance {
+        id
+        name
+        ticker
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useTopPilotsQuery__
+ *
+ * To run a query within a React component, call `useTopPilotsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTopPilotsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTopPilotsQuery({
+ *   variables: {
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useTopPilotsQuery(baseOptions?: Apollo.QueryHookOptions<TopPilotsQuery, TopPilotsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TopPilotsQuery, TopPilotsQueryVariables>(TopPilotsDocument, options);
+      }
+export function useTopPilotsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TopPilotsQuery, TopPilotsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TopPilotsQuery, TopPilotsQueryVariables>(TopPilotsDocument, options);
+        }
+// @ts-ignore
+export function useTopPilotsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<TopPilotsQuery, TopPilotsQueryVariables>): Apollo.UseSuspenseQueryResult<TopPilotsQuery, TopPilotsQueryVariables>;
+export function useTopPilotsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<TopPilotsQuery, TopPilotsQueryVariables>): Apollo.UseSuspenseQueryResult<TopPilotsQuery | undefined, TopPilotsQueryVariables>;
+export function useTopPilotsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<TopPilotsQuery, TopPilotsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<TopPilotsQuery, TopPilotsQueryVariables>(TopPilotsDocument, options);
+        }
+export type TopPilotsQueryHookResult = ReturnType<typeof useTopPilotsQuery>;
+export type TopPilotsLazyQueryHookResult = ReturnType<typeof useTopPilotsLazyQuery>;
+export type TopPilotsSuspenseQueryHookResult = ReturnType<typeof useTopPilotsSuspenseQuery>;
+export type TopPilotsQueryResult = Apollo.QueryResult<TopPilotsQuery, TopPilotsQueryVariables>;
+export const TopWeeklyPilotsDocument = gql`
+    query TopWeeklyPilots($filter: TopWeeklyPilotsFilter) {
+  topWeeklyPilots(filter: $filter) {
+    rank
+    killCount
+    character {
+      id
+      name
+      security_status
+      corporation {
+        id
+        name
+      }
+      alliance {
+        id
+        name
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useTopWeeklyPilotsQuery__
+ *
+ * To run a query within a React component, call `useTopWeeklyPilotsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTopWeeklyPilotsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTopWeeklyPilotsQuery({
+ *   variables: {
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useTopWeeklyPilotsQuery(baseOptions?: Apollo.QueryHookOptions<TopWeeklyPilotsQuery, TopWeeklyPilotsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TopWeeklyPilotsQuery, TopWeeklyPilotsQueryVariables>(TopWeeklyPilotsDocument, options);
+      }
+export function useTopWeeklyPilotsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TopWeeklyPilotsQuery, TopWeeklyPilotsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TopWeeklyPilotsQuery, TopWeeklyPilotsQueryVariables>(TopWeeklyPilotsDocument, options);
+        }
+// @ts-ignore
+export function useTopWeeklyPilotsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<TopWeeklyPilotsQuery, TopWeeklyPilotsQueryVariables>): Apollo.UseSuspenseQueryResult<TopWeeklyPilotsQuery, TopWeeklyPilotsQueryVariables>;
+export function useTopWeeklyPilotsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<TopWeeklyPilotsQuery, TopWeeklyPilotsQueryVariables>): Apollo.UseSuspenseQueryResult<TopWeeklyPilotsQuery | undefined, TopWeeklyPilotsQueryVariables>;
+export function useTopWeeklyPilotsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<TopWeeklyPilotsQuery, TopWeeklyPilotsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<TopWeeklyPilotsQuery, TopWeeklyPilotsQueryVariables>(TopWeeklyPilotsDocument, options);
+        }
+export type TopWeeklyPilotsQueryHookResult = ReturnType<typeof useTopWeeklyPilotsQuery>;
+export type TopWeeklyPilotsLazyQueryHookResult = ReturnType<typeof useTopWeeklyPilotsLazyQuery>;
+export type TopWeeklyPilotsSuspenseQueryHookResult = ReturnType<typeof useTopWeeklyPilotsSuspenseQuery>;
+export type TopWeeklyPilotsQueryResult = Apollo.QueryResult<TopWeeklyPilotsQuery, TopWeeklyPilotsQueryVariables>;
 export const WorkerStatusSubscriptionDocument = gql`
     subscription WorkerStatusSubscription {
   workerStatusUpdates {
