@@ -9,6 +9,7 @@ interface TooltipProps {
   children: ReactNode;
   position?: TooltipPosition;
   wrapText?: boolean;
+  className?: string;
 }
 
 export default function Tooltip({
@@ -16,6 +17,7 @@ export default function Tooltip({
   children,
   position = "top",
   wrapText = false,
+  className,
 }: TooltipProps) {
   const [show, setShow] = useState(false);
   const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 });
@@ -68,7 +70,7 @@ export default function Tooltip({
     <>
       <div
         ref={triggerRef}
-        className="tooltip-trigger"
+        className={`tooltip-trigger${className ? ` ${className}` : ""}`}
         onMouseEnter={handleEnter}
         onMouseLeave={handleLeave}
       >
