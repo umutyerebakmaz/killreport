@@ -1,0 +1,85 @@
+type TopPilot {
+  rank: Int!
+  killCount: Int!
+  character: Character
+}
+
+input TopPilotsFilter {
+  """
+  ISO date string YYYY-MM-DD; defaults to today (UTC)
+  """
+  date: String
+  """
+  Max 100; default 100
+  """
+  limit: Int
+}
+
+type TopWeeklyPilot {
+  rank: Int!
+  killCount: Int!
+  character: Character
+}
+
+input TopWeeklyPilotsFilter {
+  """
+  ISO date string YYYY-MM-DD for the Monday (start) of the week; defaults to current week's Monday (UTC)
+  """
+  weekStart: String
+  """
+  Max 100; default 100
+  """
+  limit: Int
+}
+
+type TopMonthlyPilot {
+  rank: Int!
+  killCount: Int!
+  character: Character
+}
+
+input TopMonthlyPilotsFilter {
+  """
+  Year-month string YYYY-MM; defaults to current month (UTC)
+  """
+  month: String
+  """
+  Max 100; default 100
+  """
+  limit: Int
+}
+
+type Top90DaysPilot {
+  rank: Int!
+  killCount: Int!
+  character: Character
+}
+
+input Top90DaysPilotsFilter {
+  """
+  Max 100; default 100
+  """
+  limit: Int
+}
+
+extend type Query {
+  """
+  Returns top pilots ranked by kill count for a given day (default: today)
+  """
+  topPilots(filter: TopPilotsFilter): [TopPilot!]!
+
+  """
+  Returns top pilots ranked by total kill count for a given week (Mon–Sun); defaults to current week
+  """
+  topWeeklyPilots(filter: TopWeeklyPilotsFilter): [TopWeeklyPilot!]!
+
+  """
+  Returns top pilots ranked by total kill count over the last 90 days (rolling window)
+  """
+  top90DaysPilots(filter: Top90DaysPilotsFilter): [Top90DaysPilot!]!
+
+  """
+  Returns top pilots ranked by total kill count for a given calendar month (default: current month)
+  """
+  topMonthlyPilots(filter: TopMonthlyPilotsFilter): [TopMonthlyPilot!]!
+}
