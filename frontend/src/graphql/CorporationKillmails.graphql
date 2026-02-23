@@ -26,6 +26,10 @@ query CorporationKillmails($filter: KillmailFilter) {
           group {
             name
           }
+          dogmaAttributes(ids: [422, 1692]) {
+            attribute_id
+            value
+          }
         }
         damageTaken
       }
