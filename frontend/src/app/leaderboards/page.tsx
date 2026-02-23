@@ -512,10 +512,10 @@ function LeaderboardsContent() {
   return (
     <div className="flex flex-col gap-6">
       {/* Page Header */}
-      <div className="flex items-center gap-3">
-        <TrophyIcon className="text-yellow-400 w-7 h-7" />
-        <h1 className="text-3xl font-semibold text-white">Leaderboards</h1>
-      </div>
+      {/* Notice */}
+      <p className="text-xs text-gray-500">
+        Updated every 5 minutes. Ranked by kill count only.
+      </p>
 
       {/* Side by side */}
       <div className="flex flex-col gap-8 lg:flex-row lg:gap-6">
