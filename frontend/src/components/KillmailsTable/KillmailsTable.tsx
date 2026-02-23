@@ -65,11 +65,11 @@ export default function KillmailsTable({
               <colgroup>
                 <col className="w-28" />
                 <col className="w-56" />
-                <col className="w-56" />
-                <col className="w-56" />
-                <col className="w-48" />
-                <col className="w-28" />
-                <col className="w-28" />
+                <col className="w-64" />
+                <col className="w-64" />
+                <col className="w-36" />
+                <col className="w-20" />
+                <col className="w-20" />
               </colgroup>
               <thead className="bg-white/5">
                 <tr>
