@@ -1,8 +1,10 @@
 "use client";
 
 import SecurityStatus from "@/components/SecurityStatus/SecurityStatus";
+import ShipTierBadge from "@/components/ShipTierBadge/ShipTierBadge";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import { formatISK } from "@/utils/formatISK";
+import { getShipTier } from "@/utils/shipTier";
 import Link from "next/link";
 import { KillmailRowProps } from "./types";
 
@@ -61,6 +63,7 @@ export default function KillmailRow({
   // Use backend-computed fields
   const isSolo = km.solo;
   const isNpcAttacker = km.npc;
+  const shipTier = getShipTier(km.victim?.shipType?.dogmaAttributes);
 
   return (
     <tr
@@ -113,10 +116,20 @@ export default function KillmailRow({
                 className="relative block shrink-0"
                 prefetch={false}
               >
+                {/* Left gradient border: brown → transparent top to bottom */}
+                <div className="absolute top-0 left-0 z-10 w-px h-full bg-linear-to-b from-amber-800 to-transparent" />
+                {/* Top gradient border: brown → transparent left to right */}
+                <div className="absolute top-0 left-0 z-10 w-full h-px bg-linear-to-r from-amber-800 to-transparent" />
+                {/* Ship tier badge */}
+                {shipTier && (
+                  <div className="absolute top-0 left-0 z-20">
+                    <ShipTierBadge tier={shipTier} />
+                  </div>
+                )}
                 <img
                   src={`https://images.evetech.net/types/${km.victim.shipType?.id}/render?size=128`}
                   alt={km.victim?.shipType?.name || "Ship"}
-                  className="transition-opacity border border-white/10 size-20 hover:opacity-80"
+                  className="transition-opacity size-20 hover:opacity-80"
                   loading="lazy"
                 />
                 <div className="absolute w-3 h-3 bg-red-500 rounded-full -top-1 -right-1 animate-pulse" />
