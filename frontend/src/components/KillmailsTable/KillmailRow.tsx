@@ -28,13 +28,43 @@ export default function KillmailRow({
           : "text-green-500" // Alliance is attacker (kill)
         : "text-orange-400"; // Default color when no characterId, corporationId, or allianceId
 
+  // Determine row background color based on victim/attacker involvement
+  const rowBgColor = characterId
+    ? km.victim?.character?.id === characterId
+      ? "bg-red-500/15" // Character is victim (loss)
+      : "bg-green-500/15" // Character is attacker (kill)
+    : corporationId
+      ? km.victim?.corporation?.id === corporationId
+        ? "bg-red-500/20" // Corporation is victim (loss)
+        : "bg-green-500/20" // Corporation is attacker (kill)
+      : allianceId
+        ? km.victim?.alliance?.id === allianceId
+          ? "bg-red-500/20" // Alliance is victim (loss)
+          : "bg-green-500/20" // Alliance is attacker (kill)
+        : ""; // No background when no id provided
+
+  // Determine row hover color based on victim/attacker involvement
+  const rowHoverColor = characterId
+    ? km.victim?.character?.id === characterId
+      ? "hover:bg-red-500/20" // Character is victim (loss)
+      : "hover:bg-green-500/20" // Character is attacker (kill)
+    : corporationId
+      ? km.victim?.corporation?.id === corporationId
+        ? "hover:bg-red-500/30" // Corporation is victim (loss)
+        : "hover:bg-green-500/20" // Corporation is attacker (kill)
+      : allianceId
+        ? km.victim?.alliance?.id === allianceId
+          ? "hover:bg-red-500/30" // Alliance is victim (loss)
+          : "hover:bg-green-500/20" // Alliance is attacker (kill)
+        : "hover:bg-white/5"; // Default hover
+
   // Use backend-computed fields
   const isSolo = km.solo;
   const isNpcAttacker = km.npc;
 
   return (
     <tr
-      className={`transition-colors hover:bg-white/5 ${
+      className={`transition-colors ${rowHoverColor} ${rowBgColor} ${
         isAnimating ? "animate-slide-in-row" : ""
       }`}
       style={isAnimating ? { display: "table-row" } : undefined}
@@ -244,6 +274,12 @@ export default function KillmailRow({
       <td className="px-6 py-4 text-base align-top">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
+            {km.solarSystem?.security_status !== null &&
+              km.solarSystem?.security_status !== undefined && (
+                <SecurityStatus
+                  securityStatus={km.solarSystem.security_status}
+                />
+              )}
             <Tooltip content="Show Solar System Info" position="top">
               <Link
                 href={`/solar-systems/${km.solarSystem?.id}`}
@@ -253,12 +289,6 @@ export default function KillmailRow({
                 {km.solarSystem?.name || "Unknown"}
               </Link>
             </Tooltip>
-            {km.solarSystem?.security_status !== null &&
-              km.solarSystem?.security_status !== undefined && (
-                <SecurityStatus
-                  securityStatus={km.solarSystem.security_status}
-                />
-              )}
           </div>
           {km.solarSystem?.constellation && (
             <div className="text-base text-purple-500">

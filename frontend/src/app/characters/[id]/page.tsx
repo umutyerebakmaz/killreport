@@ -19,7 +19,7 @@ interface CharacterDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-type TabType = "attributes" | "killmails" | "statistics";
+type TabType = "bio" | "killmails" | "statistics";
 
 export default function CharacterDetailPage({
   params,
@@ -30,7 +30,7 @@ export default function CharacterDetailPage({
 
   const pageFromUrl = Number(searchParams.get("page")) || 1;
   const pageSizeFromUrl = Number(searchParams.get("pageSize")) || 25;
-  const tabFromUrl = (searchParams.get("tab") as TabType) || "attributes";
+  const tabFromUrl = (searchParams.get("tab") as TabType) || "bio";
 
   const [activeTab, setActiveTab] = useState<TabType>(tabFromUrl);
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
@@ -129,7 +129,7 @@ export default function CharacterDetailPage({
   }
 
   const tabs = [
-    { id: "attributes" as TabType, label: "Attributes" },
+    { id: "bio" as TabType, label: "Bio" },
     { id: "killmails" as TabType, label: "Killmails" },
     { id: "statistics" as TabType, label: "Statistics" },
   ];
@@ -188,7 +188,7 @@ export default function CharacterDetailPage({
 
   return (
     <main>
-      <div className="alliance-detail-card">
+      <div className="character-detail-card">
         {/* Portrait and Character Name */}
         <div className="flex items-center justify-center">
           <img
@@ -213,7 +213,7 @@ export default function CharacterDetailPage({
                   alt={character.corporation?.name || "Corporation"}
                   width={64}
                   height={64}
-                  className="shadow-md "
+                  className="shadow-md"
                   loading="lazy"
                 />
               </Tooltip>
@@ -237,6 +237,16 @@ export default function CharacterDetailPage({
           </div>
 
           <div className="flex-1 pl-6">
+            {character.title && (
+              <div className="col-span-2">
+                <div className="mt-2">
+                  <EveHtmlRenderer
+                    html={character.title}
+                    className="text-sm font-semibold"
+                  />
+                </div>
+              </div>
+            )}
             <h1 className="text-4xl font-bold">{character.name}</h1>
 
             {/* Corporation */}
@@ -248,7 +258,7 @@ export default function CharacterDetailPage({
                     prefetch={false}
                     className="inline-flex items-center gap-2 hover:text-gray-300"
                   >
-                    <span className="text-base font-semibold">
+                    <span className="text-base">
                       {`Member of ${character.corporation.name} [${character.corporation.ticker}]`}
                     </span>
                   </Link>
@@ -265,9 +275,7 @@ export default function CharacterDetailPage({
                     prefetch={false}
                     className="inline-flex items-center gap-2 text-yellow-400 hover:text-yellow-300"
                   >
-                    <span className="text-base font-bold">
-                      {character.alliance.name}
-                    </span>
+                    <span className="text-base">{character.alliance.name}</span>
                   </Link>
                 </Tooltip>
               </div>
@@ -301,42 +309,9 @@ export default function CharacterDetailPage({
 
         {/* Tab Content */}
         <div className="mt-6">
-          {activeTab === "attributes" && (
+          {activeTab === "bio" && (
             <div className="p-6 bg-white/5 border-white/10">
-              <h2 className="mb-4 text-2xl font-bold">Attributes</h2>
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="text-gray-400">Corporation</span>
-                  <span className="ml-2 font-semibold">
-                    {character.corporation ? (
-                      <Link
-                        href={`/corporations/${character.corporation.id}`}
-                        prefetch={false}
-                        className="text-cyan-400 hover:text-cyan-300"
-                      >
-                        {character.corporation.name}
-                      </Link>
-                    ) : (
-                      "N/A"
-                    )}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-400">Alliance</span>
-                  <span className="ml-2 font-semibold">
-                    {character.alliance ? (
-                      <Link
-                        href={`/alliances/${character.alliance.id}`}
-                        prefetch={false}
-                        className="text-cyan-400 hover:text-cyan-300"
-                      >
-                        {character.alliance.name}
-                      </Link>
-                    ) : (
-                      "None"
-                    )}
-                  </span>
-                </div>
                 <div>
                   <span className="text-gray-400">Born</span>
                   <span className="ml-2 font-semibold">{bornDate}</span>
@@ -347,38 +322,8 @@ export default function CharacterDetailPage({
                     {securityStatus}
                   </span>
                 </div>
-                <div>
-                  <span className="text-gray-400">Gender</span>
-                  <span className="ml-2 font-semibold capitalize">
-                    {character.gender}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-400">Race</span>
-                  <span className="ml-2 font-semibold">
-                    {character.race?.name || "N/A"}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-400">Bloodline</span>
-                  <span className="ml-2 font-semibold">
-                    {character.bloodline?.name || "N/A"}
-                  </span>
-                </div>
-                {character.title && (
-                  <div className="col-span-2">
-                    <span className="text-gray-400">Title</span>
-                    <div className="mt-2">
-                      <EveHtmlRenderer
-                        html={character.title}
-                        className="text-sm font-semibold"
-                      />
-                    </div>
-                  </div>
-                )}
                 {character.description && (
                   <div className="col-span-2">
-                    <span className="text-gray-400">Description</span>
                     <div className="mt-2">
                       <EveHtmlRenderer html={character.description} />
                     </div>
