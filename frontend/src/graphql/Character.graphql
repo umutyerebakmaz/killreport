@@ -4,7 +4,6 @@ query Character($id: Int!) {
     name
     birthday
     security_status
-    gender
     description
     title
     updatedAt
@@ -12,21 +11,11 @@ query Character($id: Int!) {
       id
       name
       ticker
-      member_count
     }
     alliance {
       id
       name
       ticker
-      memberCount
-    }
-    race {
-      id
-      name
-    }
-    bloodline {
-      id
-      name
     }
   }
 }
