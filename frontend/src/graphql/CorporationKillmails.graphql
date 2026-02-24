@@ -50,7 +50,7 @@ query CorporationKillmails($filter: KillmailFilter) {
       solarSystem {
         id
         name
-        security_status
+        securityStatus
         constellation {
           id
           name

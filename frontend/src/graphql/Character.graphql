@@ -3,7 +3,7 @@ query Character($id: Int!) {
     id
     name
     birthday
-    security_status
+    securityStatus
     description
     title
     updatedAt
