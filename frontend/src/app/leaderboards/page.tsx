@@ -44,7 +44,7 @@ type PilotEntry = {
   character?: {
     id: number;
     name: string;
-    security_status?: number | null;
+    securityStatus?: number | null;
     corporation?: { id: number; name: string } | null;
     alliance?: { id: number; name: string } | null;
   } | null;
@@ -72,7 +72,7 @@ function PilotList({
     <div className="flex flex-col border divide-y divide-white/5 border-white/10">
       {pilots.map((pilot) => {
         const char = pilot.character;
-        const secColor = getSecurityStatusColor(char?.security_status);
+        const secColor = getSecurityStatusColor(char?.securityStatus);
         return (
           <div
             key={pilot.rank}
@@ -110,10 +110,10 @@ function PilotList({
                   className="shadow-md"
                   loading="lazy"
                 />
-                {char?.security_status != null && (
+                {char?.securityStatus != null && (
                   <div className="absolute bottom-0 left-0 px-1.5 py-0.5 text-xs font-semibold bg-black/70 backdrop-blur-sm">
                     <span className={secColor}>
-                      {char.security_status.toFixed(1)}
+                      {char.securityStatus.toFixed(1)}
                     </span>
                   </div>
                 )}
