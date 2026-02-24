@@ -1,4 +1,5 @@
 import { CharacterResolvers } from '@generated-types';
+import prisma from '@services/prisma';
 
 /**
  * Character Field Resolvers
@@ -50,5 +51,73 @@ export const characterFields: CharacterResolvers = {
   securityStatus: (parent) => {
     const prismaChar = parent as any;
     return prismaChar.security_status ?? null;
+  },
+
+  // Top 10 alliances this character killed most
+  // Uses pre-computed materialized view for O(1) lookup
+  topAllianceTargets: async (parent, _args, context) => {
+    const characterId = (parent as any).id;
+
+    type AllianceTopTargetRow = {
+      character_id: bigint;
+      alliance_id: number;
+      kill_count: bigint;
+      alliance_name: string;
+    };
+
+    const results = await prisma.$queryRaw<AllianceTopTargetRow[]>`
+      SELECT
+        character_id,
+        alliance_id,
+        kill_count,
+        alliance_name
+      FROM character_top_alliance_targets_mv
+      WHERE character_id = ${characterId}
+      ORDER BY kill_count DESC
+      LIMIT 10
+    `;
+
+    return results.map(row => ({
+      killCount: Number(row.kill_count),
+      alliance: {
+        id: row.alliance_id,
+        name: row.alliance_name,
+        // Return minimal data - full Alliance object not needed
+      } as any,
+    }));
+  },
+
+  // Top 10 corporations this character killed most
+  // Uses pre-computed materialized view for O(1) lookup
+  topCorporationTargets: async (parent, _args, context) => {
+    const characterId = (parent as any).id;
+
+    type CorporationTopTargetRow = {
+      character_id: bigint;
+      corporation_id: number;
+      kill_count: bigint;
+      corporation_name: string;
+    };
+
+    const results = await prisma.$queryRaw<CorporationTopTargetRow[]>`
+      SELECT
+        character_id,
+        corporation_id,
+        kill_count,
+        corporation_name
+      FROM character_top_corporation_targets_mv
+      WHERE character_id = ${characterId}
+      ORDER BY kill_count DESC
+      LIMIT 10
+    `;
+
+    return results.map(row => ({
+      killCount: Number(row.kill_count),
+      corporation: {
+        id: row.corporation_id,
+        name: row.corporation_name,
+        // Return minimal data - full Corporation object not needed
+      } as any,
+    }));
   },
 };

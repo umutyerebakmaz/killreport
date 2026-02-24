@@ -17,5 +17,19 @@ query Character($id: Int!) {
       name
       ticker
     }
+    topAllianceTargets {
+      killCount
+      alliance {
+        id
+        name
+      }
+    }
+    topCorporationTargets {
+      killCount
+      corporation {
+        id
+        name
+      }
+    }
   }
 }
