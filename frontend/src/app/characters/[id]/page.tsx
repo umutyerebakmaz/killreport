@@ -134,8 +134,8 @@ export default function CharacterDetailPage({
     { id: "statistics" as TabType, label: "Statistics" },
   ];
 
-  const securityStatus = character.security_status?.toFixed(1) ?? "N/A";
-  const securityColor = getSecurityStatusColor(character.security_status);
+  const securityStatus = character.securityStatus?.toFixed(1) ?? "N/A";
+  const securityColor = getSecurityStatusColor(character.securityStatus);
 
   // Born tarihi formatı: 2023.12.10 17:30
   const formatBornDate = (dateString: string | null | undefined) => {

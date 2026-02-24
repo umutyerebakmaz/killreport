@@ -233,19 +233,19 @@ export default function KillmailDetailPage({
                         <span className="text-gray-400">
                           {km.solarSystem?.name}
                         </span>
-                        {km.solarSystem?.security_status !== undefined &&
-                          km.solarSystem.security_status !== null && (
+                        {km.solarSystem?.securityStatus !== undefined &&
+                          km.solarSystem.securityStatus !== null && (
                             <span
                               className={
-                                km.solarSystem.security_status >= 0.5
+                                km.solarSystem.securityStatus >= 0.5
                                   ? "text-green-400"
-                                  : km.solarSystem.security_status > 0
+                                  : km.solarSystem.securityStatus > 0
                                     ? "text-yellow-400"
                                     : "text-red-400"
                               }
                             >
                               {" "}
-                              ({km.solarSystem.security_status.toFixed(1)})
+                              ({km.solarSystem.securityStatus.toFixed(1)})
                             </span>
                           )}
                         {km.solarSystem?.constellation?.region && (

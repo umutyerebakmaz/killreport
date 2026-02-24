@@ -16,8 +16,8 @@ type CharacterCardProps = {
 export default function CharacterCard({ character }: CharacterCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  const securityStatus = character.security_status?.toFixed(1) ?? "N/A";
-  const securityColor = getSecurityStatusColor(character.security_status);
+  const securityStatus = character.securityStatus?.toFixed(1) ?? "N/A";
+  const securityColor = getSecurityStatusColor(character.securityStatus);
 
   return (
     <div className="character-card">
