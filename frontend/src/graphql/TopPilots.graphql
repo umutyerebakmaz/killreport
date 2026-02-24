@@ -5,7 +5,7 @@ query TopPilots($filter: TopPilotsFilter) {
     character {
       id
       name
-      security_status
+      securityStatus
       corporation {
         id
         name
