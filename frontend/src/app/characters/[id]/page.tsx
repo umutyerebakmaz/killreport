@@ -285,6 +285,17 @@ export default function CharacterDetailPage({
             <div>
               <span className="text-sm text-gray-400">{age}</span>
             </div>
+
+            {/* Security Status */}
+            {character.securityStatus && (
+              <div>
+                <span
+                  className={`text-sm font-semibold ${getSecurityStatusColor(character.securityStatus)}`}
+                >
+                  {character.securityStatus.toFixed(1)}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -312,16 +323,6 @@ export default function CharacterDetailPage({
           {activeTab === "bio" && (
             <div className="p-6 bg-white/5 border-white/10">
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="text-gray-400">Born</span>
-                  <span className="ml-2 font-semibold">{bornDate}</span>
-                </div>
-                <div>
-                  <span className="text-gray-400">Security Status</span>
-                  <span className={`ml-2 font-semibold ${securityColor}`}>
-                    {securityStatus}
-                  </span>
-                </div>
                 {character.description && (
                   <div className="col-span-2">
                     <div className="mt-2">
