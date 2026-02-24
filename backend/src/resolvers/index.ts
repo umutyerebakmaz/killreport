@@ -1,6 +1,7 @@
 import { Resolvers } from '@generated-types';
 import { allianceFields, allianceMutations, allianceQueries } from './alliance';
 import { analyticsQueries, analyticsSubscriptions } from './analytics';
+import { attackerFields } from './attacker';
 import { authMutations, authQueries } from './auth';
 import { bloodlineFields, bloodlineQueries } from './bloodline';
 import { cacheMutations, cacheQueries } from './cache';
@@ -12,22 +13,21 @@ import { dogmaAttributeMutations, dogmaAttributeQueries } from './dogma-attribut
 import { dogmaEffectMutations, dogmaEffectQueries } from './dogma-effect';
 import { itemGroupFields, itemGroupMutations, itemGroupQueries } from './item-group';
 import {
-    attackerFields,
     fittingModuleFields,
     killmailFields,
     killmailItemFields,
     killmailMutations,
     killmailQueries,
     killmailSubscriptions,
-    victimFields,
+    victimFields
 } from './killmail';
+import { leaderboardQueries } from './leaderboard';
 import { raceQueries } from './race';
 import { regionFields, regionMutations, regionQueries } from './region';
 import { solarSystemFields, solarSystemQueries } from './solar-system';
 import { typeFields, typeMutations, typeQueries } from './type';
 import { userMutations, userQueries } from './user';
 import { workerQueries, workerSubscriptions } from './worker';
-import { leaderboardQueries } from './leaderboard';
 
 export const resolvers: Resolvers = {
     Query: {

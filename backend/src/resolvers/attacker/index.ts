@@ -1,0 +1,1 @@
+export { attackerFields } from './fields';

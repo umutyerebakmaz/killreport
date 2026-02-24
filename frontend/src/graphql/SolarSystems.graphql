@@ -3,7 +3,7 @@ query SolarSystems($filter: SolarSystemFilter) {
     items {
       id
       name
-      security_status
+      securityStatus
       security_class
       constellation {
         id
@@ -28,7 +28,7 @@ query SolarSystem($id: Int!) {
   solarSystem(id: $id) {
     id
     name
-    security_status
+    securityStatus
     security_class
     star_id
     position {

@@ -7,7 +7,7 @@ type Position {
 type SolarSystem {
   id: Int!
   name: String!
-  security_status: Float
+  securityStatus: Float
   security_class: String
   star_id: Int
   position: Position

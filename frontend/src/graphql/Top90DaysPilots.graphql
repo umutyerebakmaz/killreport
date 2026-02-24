@@ -5,7 +5,7 @@ query Top90DaysPilots($filter: Top90DaysPilotsFilter) {
     character {
       id
       name
-      security_status
+      securityStatus
       corporation {
         id
         name

@@ -5,7 +5,7 @@ query TopMonthlyPilots($filter: TopMonthlyPilotsFilter) {
     character {
       id
       name
-      security_status
+      securityStatus
       corporation {
         id
         name

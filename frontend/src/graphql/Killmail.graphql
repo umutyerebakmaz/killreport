@@ -12,7 +12,7 @@ query Killmail($id: ID!) {
     solarSystem {
       id
       name
-      security_status
+      securityStatus
       constellation {
         id
         name
