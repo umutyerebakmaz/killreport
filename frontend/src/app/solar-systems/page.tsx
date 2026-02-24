@@ -245,7 +245,7 @@ function SolarSystemsContent() {
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <SecurityBadge securityStatus={system.security_status} />
+                    <SecurityBadge securityStatus={system.securityStatus} />
                   </td>
                   <td className="px-6 py-4 text-gray-400">
                     {system.security_class || "-"}

@@ -136,8 +136,8 @@ export default function ConstellationDetailPage({
                       constellation.securityStats.avgSecurity >= 0.5
                         ? "text-green-400"
                         : constellation.securityStats.avgSecurity > 0
-                        ? "text-yellow-400"
-                        : "text-red-400"
+                          ? "text-yellow-400"
+                          : "text-red-400"
                     }`}
                   >
                     {constellation.securityStats.avgSecurity.toFixed(2)}
@@ -312,7 +312,7 @@ export default function ConstellationDetailPage({
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <SecurityBadge
-                            securityStatus={system.security_status}
+                            securityStatus={system.securityStatus}
                           />
                         </td>
                         <td className="px-6 py-4 text-gray-400 whitespace-nowrap">

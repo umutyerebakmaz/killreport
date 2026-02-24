@@ -135,8 +135,8 @@ export default function SolarSystemDetailPage({
     );
   }
 
-  const securityColor = getSecurityColor(system.security_status);
-  const securityLabel = getSecurityLabel(system.security_status);
+  const securityColor = getSecurityColor(system.securityStatus);
+  const securityLabel = getSecurityLabel(system.securityStatus);
 
   const tabs = [
     { id: "attributes" as TabType, label: "Attributes" },
@@ -170,11 +170,11 @@ export default function SolarSystemDetailPage({
           <div className="flex items-start gap-6">
             <div
               className={`flex items-center justify-center w-24 h-24 shadow-md shrink-0 ${
-                system.security_status != null && system.security_status >= 0.5
+                system.securityStatus != null && system.securityStatus >= 0.5
                   ? "bg-green-500/20 border border-green-500/50"
-                  : system.security_status != null && system.security_status > 0
+                  : system.securityStatus != null && system.securityStatus > 0
                     ? "bg-yellow-500/20 border border-yellow-500/50"
-                    : system.security_status != null
+                    : system.securityStatus != null
                       ? "bg-red-500/20 border border-red-500/50"
                       : "bg-purple-500/20 border border-purple-500/50"
               }`}
@@ -185,7 +185,7 @@ export default function SolarSystemDetailPage({
               <h1 className="text-4xl font-bold text-white">{system.name}</h1>
               <div className="flex items-center gap-4 mt-2">
                 <SecurityBadge
-                  securityStatus={system.security_status}
+                  securityStatus={system.securityStatus}
                   showLabel={true}
                 />
               </div>
@@ -229,8 +229,8 @@ export default function SolarSystemDetailPage({
               <div className="flex justify-between">
                 <dt className="text-gray-400">Security</dt>
                 <dd className={`font-medium ${securityColor}`}>
-                  {system.security_status != null
-                    ? system.security_status.toFixed(2)
+                  {system.securityStatus != null
+                    ? system.securityStatus.toFixed(2)
                     : "W-Space"}
                 </dd>
               </div>
@@ -286,8 +286,8 @@ export default function SolarSystemDetailPage({
                 <div className="flex justify-between">
                   <dt className="text-gray-400">Security Status</dt>
                   <dd className={`${securityColor}`}>
-                    {system.security_status != null
-                      ? system.security_status.toFixed(5)
+                    {system.securityStatus != null
+                      ? system.securityStatus.toFixed(5)
                       : "N/A"}
                   </dd>
                 </div>
