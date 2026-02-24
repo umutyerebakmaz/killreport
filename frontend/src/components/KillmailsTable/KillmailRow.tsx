@@ -287,10 +287,10 @@ export default function KillmailRow({
       <td className="px-6 py-4 text-base align-top">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            {km.solarSystem?.security_status !== null &&
-              km.solarSystem?.security_status !== undefined && (
+            {km.solarSystem?.securityStatus !== null &&
+              km.solarSystem?.securityStatus !== undefined && (
                 <SecurityStatus
-                  securityStatus={km.solarSystem.security_status}
+                  securityStatus={km.solarSystem.securityStatus}
                 />
               )}
             <Tooltip content="Show Solar System Info" position="top">
