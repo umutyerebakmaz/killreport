@@ -187,7 +187,7 @@ export type Character = {
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
   race?: Maybe<Race>;
-  security_status?: Maybe<Scalars['Float']['output']>;
+  securityStatus?: Maybe<Scalars['Float']['output']>;
   title?: Maybe<Scalars['String']['output']>;
   updatedAt?: Maybe<Scalars['String']['output']>;
 };
@@ -998,8 +998,8 @@ export type SolarSystem = {
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
   position?: Maybe<Position>;
+  securityStatus?: Maybe<Scalars['Float']['output']>;
   security_class?: Maybe<Scalars['String']['output']>;
-  security_status?: Maybe<Scalars['Float']['output']>;
   star_id?: Maybe<Scalars['Int']['output']>;
 };
 
@@ -1359,7 +1359,7 @@ export type AllianceKillmailsQueryVariables = Exact<{
 }>;
 
 
-export type AllianceKillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailsResponse', items: Array<{ __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+export type AllianceKillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailsResponse', items: Array<{ __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
 
 export type AlliancesQueryVariables = Exact<{
   filter?: InputMaybe<AllianceFilter>;
@@ -1390,21 +1390,21 @@ export type CharacterQueryVariables = Exact<{
 }>;
 
 
-export type CharacterQuery = { __typename?: 'Query', character?: { __typename?: 'Character', id: number, name: string, birthday: string, security_status?: number | null, description?: string | null, title?: string | null, updatedAt?: string | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } | null };
+export type CharacterQuery = { __typename?: 'Query', character?: { __typename?: 'Character', id: number, name: string, birthday: string, securityStatus?: number | null, description?: string | null, title?: string | null, updatedAt?: string | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } | null };
 
 export type CharacterKillmailsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
 }>;
 
 
-export type CharacterKillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailsResponse', items: Array<{ __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+export type CharacterKillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailsResponse', items: Array<{ __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
 
 export type CharactersQueryVariables = Exact<{
   filter?: InputMaybe<CharacterFilter>;
 }>;
 
 
-export type CharactersQuery = { __typename?: 'Query', characters: { __typename?: 'CharactersResponse', items: Array<{ __typename?: 'Character', id: number, name: string, security_status?: number | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CharactersQuery = { __typename?: 'Query', characters: { __typename?: 'CharactersResponse', items: Array<{ __typename?: 'Character', id: number, name: string, securityStatus?: number | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type ConstellationsQueryVariables = Exact<{
   filter?: InputMaybe<ConstellationFilter>;
@@ -1418,7 +1418,7 @@ export type ConstellationQueryVariables = Exact<{
 }>;
 
 
-export type ConstellationQuery = { __typename?: 'Query', constellation?: { __typename?: 'Constellation', id: number, name: string, solarSystemCount: number, securityStats: { __typename?: 'SecurityStats', highSec: number, lowSec: number, nullSec: number, wormhole: number, avgSecurity?: number | null }, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, region?: { __typename?: 'Region', id: number, name: string } | null, solarSystems: Array<{ __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, security_class?: string | null }> } | null };
+export type ConstellationQuery = { __typename?: 'Query', constellation?: { __typename?: 'Constellation', id: number, name: string, solarSystemCount: number, securityStats: { __typename?: 'SecurityStats', highSec: number, lowSec: number, nullSec: number, wormhole: number, avgSecurity?: number | null }, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, region?: { __typename?: 'Region', id: number, name: string } | null, solarSystems: Array<{ __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, security_class?: string | null }> } | null };
 
 export type CorporationQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -1440,14 +1440,14 @@ export type CorporationCharactersQueryVariables = Exact<{
 }>;
 
 
-export type CorporationCharactersQuery = { __typename?: 'Query', characters: { __typename?: 'CharactersResponse', items: Array<{ __typename?: 'Character', id: number, name: string, security_status?: number | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CorporationCharactersQuery = { __typename?: 'Query', characters: { __typename?: 'CharactersResponse', items: Array<{ __typename?: 'Character', id: number, name: string, securityStatus?: number | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type CorporationKillmailsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
 }>;
 
 
-export type CorporationKillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailsResponse', items: Array<{ __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+export type CorporationKillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailsResponse', items: Array<{ __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
 
 export type CorporationsQueryVariables = Exact<{
   filter?: InputMaybe<CorporationFilter>;
@@ -1461,14 +1461,14 @@ export type KillmailQueryVariables = Exact<{
 }>;
 
 
-export type KillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', id: string, killmailHash: string, killmailTime: string, destroyedValue?: number | null, droppedValue?: number | null, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType: { __typename?: 'Type', id: number, name: string, description?: string | null, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } } | null, attackers: Array<{ __typename?: 'Attacker', damageDone: number, finalBlow: boolean, securityStatus?: number | null, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } | null, weaponType?: { __typename?: 'Type', id: number, name: string } | null }>, fitting?: { __typename?: 'Fitting', highSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null }, charge?: { __typename?: 'FittingModule', quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } } | null } | null }> }, midSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null }, charge?: { __typename?: 'FittingModule', quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } } | null } | null }> }, lowSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null }, charge?: { __typename?: 'FittingModule', quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } } | null } | null }> }, rigs: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null } } | null }> }, subsystems: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null } } | null }> }, serviceSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null } } | null }> }, implants: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } } | null }> }, cargo: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } }>, droneBay: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } }>, fighterBay: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } }>, structureFuel: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } }>, coreRoom: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } }> } | null } | null };
+export type KillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', id: string, killmailHash: string, killmailTime: string, destroyedValue?: number | null, droppedValue?: number | null, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType: { __typename?: 'Type', id: number, name: string, description?: string | null, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } } | null, attackers: Array<{ __typename?: 'Attacker', damageDone: number, finalBlow: boolean, securityStatus?: number | null, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null } | null, weaponType?: { __typename?: 'Type', id: number, name: string } | null }>, fitting?: { __typename?: 'Fitting', highSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null }, charge?: { __typename?: 'FittingModule', quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } } | null } | null }> }, midSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null }, charge?: { __typename?: 'FittingModule', quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } } | null } | null }> }, lowSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null }, charge?: { __typename?: 'FittingModule', quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } } | null } | null }> }, rigs: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null } } | null }> }, subsystems: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null } } | null }> }, serviceSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null } } | null }> }, implants: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } } | null }> }, cargo: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } }>, droneBay: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } }>, fighterBay: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } }>, structureFuel: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } }>, coreRoom: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null } }> } | null } | null };
 
 export type KillmailsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
 }>;
 
 
-export type KillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailsResponse', items: Array<{ __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+export type KillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailsResponse', items: Array<{ __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
 
 export type KillmailsDateCountsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
@@ -1480,7 +1480,7 @@ export type KillmailsDateCountsQuery = { __typename?: 'Query', killmailsDateCoun
 export type NewKillmailSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type NewKillmailSubscription = { __typename?: 'Subscription', newKillmail: { __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null } };
+export type NewKillmailSubscription = { __typename?: 'Subscription', newKillmail: { __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null } };
 
 export type RegionsQueryVariables = Exact<{
   filter?: InputMaybe<RegionFilter>;
@@ -1547,42 +1547,42 @@ export type SolarSystemsQueryVariables = Exact<{
 }>;
 
 
-export type SolarSystemsQuery = { __typename?: 'Query', solarSystems: { __typename?: 'SolarSystemsResponse', items: Array<{ __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, security_class?: string | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type SolarSystemsQuery = { __typename?: 'Query', solarSystems: { __typename?: 'SolarSystemsResponse', items: Array<{ __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, security_class?: string | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type SolarSystemQueryVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
 
 
-export type SolarSystemQuery = { __typename?: 'Query', solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, security_status?: number | null, security_class?: string | null, star_id?: number | null, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } | null };
+export type SolarSystemQuery = { __typename?: 'Query', solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, security_class?: string | null, star_id?: number | null, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } | null };
 
 export type Top90DaysPilotsQueryVariables = Exact<{
   filter?: InputMaybe<Top90DaysPilotsFilter>;
 }>;
 
 
-export type Top90DaysPilotsQuery = { __typename?: 'Query', top90DaysPilots: Array<{ __typename?: 'Top90DaysPilot', rank: number, killCount: number, character?: { __typename?: 'Character', id: number, name: string, security_status?: number | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null }> };
+export type Top90DaysPilotsQuery = { __typename?: 'Query', top90DaysPilots: Array<{ __typename?: 'Top90DaysPilot', rank: number, killCount: number, character?: { __typename?: 'Character', id: number, name: string, securityStatus?: number | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null }> };
 
 export type TopMonthlyPilotsQueryVariables = Exact<{
   filter?: InputMaybe<TopMonthlyPilotsFilter>;
 }>;
 
 
-export type TopMonthlyPilotsQuery = { __typename?: 'Query', topMonthlyPilots: Array<{ __typename?: 'TopMonthlyPilot', rank: number, killCount: number, character?: { __typename?: 'Character', id: number, name: string, security_status?: number | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null }> };
+export type TopMonthlyPilotsQuery = { __typename?: 'Query', topMonthlyPilots: Array<{ __typename?: 'TopMonthlyPilot', rank: number, killCount: number, character?: { __typename?: 'Character', id: number, name: string, securityStatus?: number | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null }> };
 
 export type TopPilotsQueryVariables = Exact<{
   filter?: InputMaybe<TopPilotsFilter>;
 }>;
 
 
-export type TopPilotsQuery = { __typename?: 'Query', topPilots: Array<{ __typename?: 'TopPilot', rank: number, killCount: number, character?: { __typename?: 'Character', id: number, name: string, security_status?: number | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } | null }> };
+export type TopPilotsQuery = { __typename?: 'Query', topPilots: Array<{ __typename?: 'TopPilot', rank: number, killCount: number, character?: { __typename?: 'Character', id: number, name: string, securityStatus?: number | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } | null }> };
 
 export type TopWeeklyPilotsQueryVariables = Exact<{
   filter?: InputMaybe<TopWeeklyPilotsFilter>;
 }>;
 
 
-export type TopWeeklyPilotsQuery = { __typename?: 'Query', topWeeklyPilots: Array<{ __typename?: 'TopWeeklyPilot', rank: number, killCount: number, character?: { __typename?: 'Character', id: number, name: string, security_status?: number | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null }> };
+export type TopWeeklyPilotsQuery = { __typename?: 'Query', topWeeklyPilots: Array<{ __typename?: 'TopWeeklyPilot', rank: number, killCount: number, character?: { __typename?: 'Character', id: number, name: string, securityStatus?: number | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null }> };
 
 export type WorkerStatusSubscriptionSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -1827,7 +1827,7 @@ export const AllianceKillmailsDocument = gql`
       solarSystem {
         id
         name
-        security_status
+        securityStatus
         constellation {
           id
           name
@@ -2063,7 +2063,7 @@ export const CharacterDocument = gql`
     id
     name
     birthday
-    security_status
+    securityStatus
     description
     title
     updatedAt
@@ -2169,7 +2169,7 @@ export const CharacterKillmailsDocument = gql`
       solarSystem {
         id
         name
-        security_status
+        securityStatus
         constellation {
           id
           name
@@ -2232,7 +2232,7 @@ export const CharactersDocument = gql`
     items {
       id
       name
-      security_status
+      securityStatus
       corporation {
         id
         name
@@ -2380,7 +2380,7 @@ export const ConstellationDocument = gql`
     solarSystems {
       id
       name
-      security_status
+      securityStatus
       security_class
     }
   }
@@ -2542,7 +2542,7 @@ export const CorporationCharactersDocument = gql`
     items {
       id
       name
-      security_status
+      securityStatus
     }
     pageInfo {
       currentPage
@@ -2643,7 +2643,7 @@ export const CorporationKillmailsDocument = gql`
       solarSystem {
         id
         name
-        security_status
+        securityStatus
         constellation {
           id
           name
@@ -2784,7 +2784,7 @@ export const KillmailDocument = gql`
     solarSystem {
       id
       name
-      security_status
+      securityStatus
       constellation {
         id
         name
@@ -3180,7 +3180,7 @@ export const KillmailsDocument = gql`
       solarSystem {
         id
         name
-        security_status
+        securityStatus
         constellation {
           id
           name
@@ -3331,7 +3331,7 @@ export const NewKillmailDocument = gql`
     solarSystem {
       id
       name
-      security_status
+      securityStatus
       constellation {
         id
         name
@@ -3855,7 +3855,7 @@ export const SolarSystemsDocument = gql`
     items {
       id
       name
-      security_status
+      securityStatus
       security_class
       constellation {
         id
@@ -3917,7 +3917,7 @@ export const SolarSystemDocument = gql`
   solarSystem(id: $id) {
     id
     name
-    security_status
+    securityStatus
     security_class
     star_id
     position {
@@ -3980,7 +3980,7 @@ export const Top90DaysPilotsDocument = gql`
     character {
       id
       name
-      security_status
+      securityStatus
       corporation {
         id
         name
@@ -4037,7 +4037,7 @@ export const TopMonthlyPilotsDocument = gql`
     character {
       id
       name
-      security_status
+      securityStatus
       corporation {
         id
         name
@@ -4094,7 +4094,7 @@ export const TopPilotsDocument = gql`
     character {
       id
       name
-      security_status
+      securityStatus
       corporation {
         id
         name
@@ -4153,7 +4153,7 @@ export const TopWeeklyPilotsDocument = gql`
     character {
       id
       name
-      security_status
+      securityStatus
       corporation {
         id
         name

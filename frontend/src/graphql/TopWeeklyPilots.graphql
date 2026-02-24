@@ -5,7 +5,7 @@ query TopWeeklyPilots($filter: TopWeeklyPilotsFilter) {
     character {
       id
       name
-      security_status
+      securityStatus
       corporation {
         id
         name
