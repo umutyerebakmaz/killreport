@@ -86,6 +86,12 @@ export type AllianceSnapshot = {
   memberCount: Scalars['Int']['output'];
 };
 
+export type AllianceTopTarget = {
+  __typename?: 'AllianceTopTarget';
+  alliance: Alliance;
+  killCount: Scalars['Int']['output'];
+};
+
 export type AlliancesResponse = {
   __typename?: 'AlliancesResponse';
   items: Array<Alliance>;
@@ -189,6 +195,8 @@ export type Character = {
   race?: Maybe<Race>;
   securityStatus?: Maybe<Scalars['Float']['output']>;
   title?: Maybe<Scalars['String']['output']>;
+  topAllianceTargets: Array<AllianceTopTarget>;
+  topCorporationTargets: Array<CorporationTopTarget>;
   updatedAt?: Maybe<Scalars['String']['output']>;
 };
 
@@ -301,6 +309,12 @@ export type CorporationSnapshot = {
   __typename?: 'CorporationSnapshot';
   date: Scalars['String']['output'];
   memberCount: Scalars['Int']['output'];
+};
+
+export type CorporationTopTarget = {
+  __typename?: 'CorporationTopTarget';
+  corporation: Corporation;
+  killCount: Scalars['Int']['output'];
 };
 
 export type CorporationsResponse = {
@@ -1390,7 +1404,7 @@ export type CharacterQueryVariables = Exact<{
 }>;
 
 
-export type CharacterQuery = { __typename?: 'Query', character?: { __typename?: 'Character', id: number, name: string, birthday: string, securityStatus?: number | null, description?: string | null, title?: string | null, updatedAt?: string | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } | null };
+export type CharacterQuery = { __typename?: 'Query', character?: { __typename?: 'Character', id: number, name: string, birthday: string, securityStatus?: number | null, description?: string | null, title?: string | null, updatedAt?: string | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, topAllianceTargets: Array<{ __typename?: 'AllianceTopTarget', killCount: number, alliance: { __typename?: 'Alliance', id: number, name: string } }>, topCorporationTargets: Array<{ __typename?: 'CorporationTopTarget', killCount: number, corporation: { __typename?: 'Corporation', id: number, name: string } }> } | null };
 
 export type CharacterKillmailsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
@@ -2076,6 +2090,20 @@ export const CharacterDocument = gql`
       id
       name
       ticker
+    }
+    topAllianceTargets {
+      killCount
+      alliance {
+        id
+        name
+      }
+    }
+    topCorporationTargets {
+      killCount
+      corporation {
+        id
+        name
+      }
     }
   }
 }

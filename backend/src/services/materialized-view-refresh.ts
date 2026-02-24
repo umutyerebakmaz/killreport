@@ -55,6 +55,42 @@ export async function refreshDailyPilotKillsMv(): Promise<void> {
 }
 
 /**
+ * Refresh character top alliance targets materialized view
+ * Pre-aggregated top 10 alliance targets per character — used by character detail page.
+ */
+export async function refreshCharacterTopAllianceTargetsMv(): Promise<void> {
+    const startTime = Date.now();
+    try {
+        logger.info('🔄 Refreshing character_top_alliance_targets_mv...');
+        await prisma.$executeRawUnsafe('REFRESH MATERIALIZED VIEW CONCURRENTLY character_top_alliance_targets_mv');
+        const duration = Date.now() - startTime;
+        logger.info(`✅ character_top_alliance_targets_mv refreshed in ${duration}ms`);
+    } catch (error) {
+        const duration = Date.now() - startTime;
+        logger.error(`❌ Error refreshing character_top_alliance_targets_mv after ${duration}ms:`, error);
+        throw error;
+    }
+}
+
+/**
+ * Refresh character top corporation targets materialized view
+ * Pre-aggregated top 10 corporation targets per character — used by character detail page.
+ */
+export async function refreshCharacterTopCorporationTargetsMv(): Promise<void> {
+    const startTime = Date.now();
+    try {
+        logger.info('🔄 Refreshing character_top_corporation_targets_mv...');
+        await prisma.$executeRawUnsafe('REFRESH MATERIALIZED VIEW CONCURRENTLY character_top_corporation_targets_mv');
+        const duration = Date.now() - startTime;
+        logger.info(`✅ character_top_corporation_targets_mv refreshed in ${duration}ms`);
+    } catch (error) {
+        const duration = Date.now() - startTime;
+        logger.error(`❌ Error refreshing character_top_corporation_targets_mv after ${duration}ms:`, error);
+        throw error;
+    }
+}
+
+/**
  * Check if materialized view needs refresh
  * Returns true if view is stale (hasn't been refreshed recently)
  */
@@ -139,6 +175,12 @@ export function scheduleMaterializedViewRefresh(): NodeJS.Timeout {
             }
 
             await refreshDailyPilotKillsMv();
+
+            // Refresh character target views in parallel for better performance
+            await Promise.all([
+                refreshCharacterTopAllianceTargetsMv(),
+                refreshCharacterTopCorporationTargetsMv()
+            ]);
         } catch (error) {
             logger.error('❌ Error in initial materialized view refresh:', error);
         }
@@ -155,6 +197,12 @@ export function scheduleMaterializedViewRefresh(): NodeJS.Timeout {
 
             // daily_pilot_kills_mv: always refresh — cheap incremental computation
             await refreshDailyPilotKillsMv();
+
+            // character top targets: refresh both views in parallel for better performance
+            await Promise.all([
+                refreshCharacterTopAllianceTargetsMv(),
+                refreshCharacterTopCorporationTargetsMv()
+            ]);
         } catch (error) {
             logger.error('❌ Error in scheduled materialized view refresh:', error);
         }

@@ -5,6 +5,7 @@ import KillmailsTable from "@/components/KillmailsTable";
 import { Loader } from "@/components/Loader/Loader";
 import Paginator from "@/components/Paginator/Paginator";
 import Tooltip from "@/components/Tooltip/Tooltip";
+import TopTargetsCard from "@/components/TopTargetsCard";
 import {
   useCharacterKillmailsQuery,
   useCharacterQuery,
@@ -30,7 +31,7 @@ export default function CharacterDetailPage({
 
   const pageFromUrl = Number(searchParams.get("page")) || 1;
   const pageSizeFromUrl = Number(searchParams.get("pageSize")) || 25;
-  const tabFromUrl = (searchParams.get("tab") as TabType) || "bio";
+  const tabFromUrl = (searchParams.get("tab") as TabType) || "killmails";
 
   const [activeTab, setActiveTab] = useState<TabType>(tabFromUrl);
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
@@ -127,6 +128,22 @@ export default function CharacterDetailPage({
       </div>
     );
   }
+
+  // Map alliance targets from GraphQL
+  const allianceTargets =
+    character?.topAllianceTargets?.map((target) => ({
+      id: target.alliance.id,
+      name: target.alliance.name,
+      count: target.killCount,
+    })) || [];
+
+  // Map corporation targets from GraphQL
+  const corporationTargets =
+    character?.topCorporationTargets?.map((target) => ({
+      id: target.corporation.id,
+      name: target.corporation.name,
+      count: target.killCount,
+    })) || [];
 
   const tabs = [
     { id: "bio" as TabType, label: "Bio" },
@@ -236,7 +253,7 @@ export default function CharacterDetailPage({
             )}
           </div>
 
-          <div className="flex-1 pl-6">
+          <div className="flex-1 min-w-0 pl-6">
             {character.title && (
               <div className="col-span-2">
                 <div className="mt-2">
@@ -247,18 +264,18 @@ export default function CharacterDetailPage({
                 </div>
               </div>
             )}
-            <h1 className="text-4xl font-bold">{character.name}</h1>
+            <h1 className="text-4xl font-bold truncate">{character.name}</h1>
 
             {/* Corporation */}
             {character.corporation && (
-              <div>
+              <div className="min-w-0">
                 <Tooltip content="Corporation" position="top">
                   <Link
                     href={`/corporations/${character.corporation.id}`}
                     prefetch={false}
-                    className="inline-flex items-center gap-2 hover:text-gray-300"
+                    className="inline-flex items-center max-w-full min-w-0 gap-2 hover:text-gray-300"
                   >
-                    <span className="text-base">
+                    <span className="text-base truncate">
                       {`Member of ${character.corporation.name} [${character.corporation.ticker}]`}
                     </span>
                   </Link>
@@ -268,14 +285,16 @@ export default function CharacterDetailPage({
 
             {/* Alliance */}
             {character.alliance && (
-              <div>
+              <div className="min-w-0">
                 <Tooltip content="Alliance" position="top">
                   <Link
                     href={`/alliances/${character.alliance.id}`}
                     prefetch={false}
-                    className="inline-flex items-center gap-2 text-yellow-400 hover:text-yellow-300"
+                    className="inline-flex items-center max-w-full min-w-0 gap-2 text-yellow-400 hover:text-yellow-300"
                   >
-                    <span className="text-base">{character.alliance.name}</span>
+                    <span className="text-base truncate">
+                      {character.alliance.name}
+                    </span>
                   </Link>
                 </Tooltip>
               </div>
@@ -341,7 +360,6 @@ export default function CharacterDetailPage({
           {activeTab === "killmails" && (
             <div className="killmails-tab">
               <div className="mb-6">
-                <h2 className="text-2xl font-bold">Killmails</h2>
                 {pageInfo?.totalCount !== undefined && (
                   <p className="mt-1 text-sm text-gray-500">
                     Total: {pageInfo.totalCount.toLocaleString()} killmails
@@ -349,33 +367,62 @@ export default function CharacterDetailPage({
                 )}
               </div>
 
-              <KillmailsTable
-                killmails={killmails}
-                loading={killmailsLoading}
-                characterId={parseInt(id)}
-                dateCountsMap={dateCountsMap}
-              />
-
-              {killmails.length > 0 && (
-                <div className="mt-6">
-                  <Paginator
-                    hasNextPage={pageInfo?.hasNextPage ?? false}
-                    hasPrevPage={pageInfo?.hasPreviousPage ?? false}
-                    onNext={handleNext}
-                    onPrev={handlePrev}
-                    onFirst={handleFirst}
-                    onLast={handleLast}
+              {/* 2-column grid layout */}
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+                {/* Left side - Killmails Table (takes 3 columns) */}
+                <div className="lg:col-span-3">
+                  <KillmailsTable
+                    killmails={killmails}
                     loading={killmailsLoading}
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    pageSize={pageSize}
-                    onPageSizeChange={(size) => {
-                      setPageSize(size);
-                      setCurrentPage(1);
-                    }}
+                    characterId={parseInt(id)}
+                    dateCountsMap={dateCountsMap}
+                  />
+
+                  {killmails.length > 0 && (
+                    <div className="mt-6">
+                      <Paginator
+                        hasNextPage={pageInfo?.hasNextPage ?? false}
+                        hasPrevPage={pageInfo?.hasPreviousPage ?? false}
+                        onNext={handleNext}
+                        onPrev={handlePrev}
+                        onFirst={handleFirst}
+                        onLast={handleLast}
+                        loading={killmailsLoading}
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        pageSize={pageSize}
+                        onPageSizeChange={(size) => {
+                          setPageSize(size);
+                          setCurrentPage(1);
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Right side - Top Targets Cards */}
+                <div className="space-y-6 lg:col-span-1 lg:-mt-9">
+                  <TopTargetsCard
+                    title="Top Alliance Targets"
+                    subtitle="Most killed alliances"
+                    targets={allianceTargets}
+                    targetType="alliance"
+                    linkPrefix="/alliances"
+                    emptyText="No alliance targets yet"
+                    loading={loading}
+                  />
+
+                  <TopTargetsCard
+                    title="Top Corp Targets"
+                    subtitle="Most killed corporations"
+                    targets={corporationTargets}
+                    targetType="corporation"
+                    linkPrefix="/corporations"
+                    emptyText="No corporation targets yet"
+                    loading={loading}
                   />
                 </div>
-              )}
+              </div>
             </div>
           )}
 

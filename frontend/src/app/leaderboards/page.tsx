@@ -125,7 +125,7 @@ function PilotList({
                   {char ? (
                     <Tooltip
                       content="Show Character Info"
-                      className="!w-full min-w-0 overflow-hidden"
+                      className="w-full! min-w-0 overflow-hidden"
                     >
                       <Link
                         href={`/characters/${char.id}`}
@@ -143,7 +143,7 @@ function PilotList({
                   {char?.corporation && (
                     <Tooltip
                       content="Show Corporation Info"
-                      className="!w-full min-w-0 overflow-hidden"
+                      className="w-full! min-w-0 overflow-hidden"
                     >
                       <Link
                         href={`/corporations/${char.corporation.id}`}
@@ -157,7 +157,7 @@ function PilotList({
                   {char?.alliance && (
                     <Tooltip
                       content="Show Alliance Info"
-                      className="!w-full min-w-0 overflow-hidden"
+                      className="w-full! min-w-0 overflow-hidden"
                     >
                       <Link
                         href={`/alliances/${char.alliance.id}`}
@@ -251,7 +251,7 @@ function DailyLeaderboard() {
       </div>
 
       {/* Navigation */}
-      <div className="flex items-center gap-2 min-h-[38px]">
+      <div className="flex items-center gap-2 min-h-9.5">
         <button
           onClick={prevDay}
           className="p-1.5 text-gray-400 border cursor-pointer border-white/10 hover:text-white hover:border-white/30 shrink-0"
@@ -264,7 +264,7 @@ function DailyLeaderboard() {
           value={selectedDate}
           max={today}
           onChange={(e) => e.target.value && setSelectedDate(e.target.value)}
-          className="px-2 py-1.5 text-xs select flex-1 min-w-0 [color-scheme:dark]"
+          className="px-2 py-1.5 text-xs select flex-1 min-w-0 scheme-dark"
         />
         <span className="hidden text-xs text-gray-400 sm:block shrink-0">
           {displayDate}
@@ -469,7 +469,7 @@ function MonthlyLeaderboard() {
       </div>
 
       {/* Navigation */}
-      <div className="flex items-center gap-2 min-h-[38px]">
+      <div className="flex items-center gap-2 min-h-9.5">
         <button
           onClick={prevMonth}
           className="p-1.5 text-gray-400 border cursor-pointer border-white/10 hover:text-white hover:border-white/30 shrink-0"
