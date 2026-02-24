@@ -7,7 +7,7 @@ type Character {
   bloodline: Bloodline
   race: Race
   gender: String!
-  security_status: Float
+  securityStatus: Float
   description: String
   title: String
   faction_id: Int

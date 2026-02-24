@@ -45,4 +45,10 @@ export const characterFields: CharacterResolvers = {
     const bloodline = await context.loaders.bloodline.load(prismaChar.bloodline_id);
     return bloodline || null;
   },
+
+  // Map Prisma's security_status (snake_case) to GraphQL's securityStatus (camelCase)
+  securityStatus: (parent) => {
+    const prismaChar = parent as any;
+    return prismaChar.security_status ?? null;
+  },
 };

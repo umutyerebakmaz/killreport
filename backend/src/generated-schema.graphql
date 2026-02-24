@@ -153,7 +153,7 @@ type Character {
   id: Int!
   name: String!
   race: Race
-  security_status: Float
+  securityStatus: Float
   title: String
   updatedAt: String
 }
@@ -711,8 +711,8 @@ type SolarSystem {
   id: Int!
   name: String!
   position: Position
+  securityStatus: Float
   security_class: String
-  security_status: Float
   star_id: Int
 }
 

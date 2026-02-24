@@ -3,7 +3,7 @@ query CorporationCharacters($filter: CharacterFilter) {
     items {
       id
       name
-      security_status
+      securityStatus
     }
     pageInfo {
       currentPage

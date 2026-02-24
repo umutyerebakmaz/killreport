@@ -3,7 +3,7 @@ query Characters($filter: CharacterFilter) {
     items {
       id
       name
-      security_status
+      securityStatus
       corporation {
         id
         name

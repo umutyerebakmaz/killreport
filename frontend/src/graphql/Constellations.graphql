@@ -50,7 +50,7 @@ query Constellation($id: Int!) {
     solarSystems {
       id
       name
-      security_status
+      securityStatus
       security_class
     }
   }
