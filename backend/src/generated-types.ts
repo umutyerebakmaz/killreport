@@ -85,6 +85,12 @@ export type AllianceSnapshot = {
   memberCount: Scalars['Int']['output'];
 };
 
+export type AllianceTopTarget = {
+  __typename?: 'AllianceTopTarget';
+  alliance: Alliance;
+  killCount: Scalars['Int']['output'];
+};
+
 export type AlliancesResponse = {
   __typename?: 'AlliancesResponse';
   items: Array<Alliance>;
@@ -188,6 +194,8 @@ export type Character = {
   race?: Maybe<Race>;
   securityStatus?: Maybe<Scalars['Float']['output']>;
   title?: Maybe<Scalars['String']['output']>;
+  topAllianceTargets: Array<AllianceTopTarget>;
+  topCorporationTargets: Array<CorporationTopTarget>;
   updatedAt?: Maybe<Scalars['String']['output']>;
 };
 
@@ -300,6 +308,12 @@ export type CorporationSnapshot = {
   __typename?: 'CorporationSnapshot';
   date: Scalars['String']['output'];
   memberCount: Scalars['Int']['output'];
+};
+
+export type CorporationTopTarget = {
+  __typename?: 'CorporationTopTarget';
+  corporation: Corporation;
+  killCount: Scalars['Int']['output'];
 };
 
 export type CorporationsResponse = {
@@ -1410,6 +1424,7 @@ export type ResolversTypes = {
   AllianceMetrics: ResolverTypeWrapper<AllianceMetrics>;
   AllianceOrderBy: AllianceOrderBy;
   AllianceSnapshot: ResolverTypeWrapper<AllianceSnapshot>;
+  AllianceTopTarget: ResolverTypeWrapper<AllianceTopTarget>;
   AlliancesResponse: ResolverTypeWrapper<AlliancesResponse>;
   Attacker: ResolverTypeWrapper<Attacker>;
   AuthPayload: ResolverTypeWrapper<AuthPayload>;
@@ -1434,6 +1449,7 @@ export type ResolversTypes = {
   CorporationMetrics: ResolverTypeWrapper<CorporationMetrics>;
   CorporationOrderBy: CorporationOrderBy;
   CorporationSnapshot: ResolverTypeWrapper<CorporationSnapshot>;
+  CorporationTopTarget: ResolverTypeWrapper<CorporationTopTarget>;
   CorporationsResponse: ResolverTypeWrapper<CorporationsResponse>;
   CreateUserInput: CreateUserInput;
   CreateUserPayload: ResolverTypeWrapper<CreateUserPayload>;
@@ -1527,6 +1543,7 @@ export type ResolversParentTypes = {
   AllianceFilter: AllianceFilter;
   AllianceMetrics: AllianceMetrics;
   AllianceSnapshot: AllianceSnapshot;
+  AllianceTopTarget: AllianceTopTarget;
   AlliancesResponse: AlliancesResponse;
   Attacker: Attacker;
   AuthPayload: AuthPayload;
@@ -1548,6 +1565,7 @@ export type ResolversParentTypes = {
   CorporationFilter: CorporationFilter;
   CorporationMetrics: CorporationMetrics;
   CorporationSnapshot: CorporationSnapshot;
+  CorporationTopTarget: CorporationTopTarget;
   CorporationsResponse: CorporationsResponse;
   CreateUserInput: CreateUserInput;
   CreateUserPayload: CreateUserPayload;
@@ -1673,6 +1691,11 @@ export type AllianceSnapshotResolvers<ContextType = any, ParentType extends Reso
   memberCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
+export type AllianceTopTargetResolvers<ContextType = any, ParentType extends ResolversParentTypes['AllianceTopTarget'] = ResolversParentTypes['AllianceTopTarget']> = {
+  alliance?: Resolver<ResolversTypes['Alliance'], ParentType, ContextType>;
+  killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
 export type AlliancesResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['AlliancesResponse'] = ResolversParentTypes['AlliancesResponse']> = {
   items?: Resolver<Array<ResolversTypes['Alliance']>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
@@ -1753,6 +1776,8 @@ export type CharacterResolvers<ContextType = any, ParentType extends ResolversPa
   race?: Resolver<Maybe<ResolversTypes['Race']>, ParentType, ContextType>;
   securityStatus?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  topAllianceTargets?: Resolver<Array<ResolversTypes['AllianceTopTarget']>, ParentType, ContextType>;
+  topCorporationTargets?: Resolver<Array<ResolversTypes['CorporationTopTarget']>, ParentType, ContextType>;
   updatedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
@@ -1804,6 +1829,11 @@ export type CorporationMetricsResolvers<ContextType = any, ParentType extends Re
 export type CorporationSnapshotResolvers<ContextType = any, ParentType extends ResolversParentTypes['CorporationSnapshot'] = ResolversParentTypes['CorporationSnapshot']> = {
   date?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   memberCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type CorporationTopTargetResolvers<ContextType = any, ParentType extends ResolversParentTypes['CorporationTopTarget'] = ResolversParentTypes['CorporationTopTarget']> = {
+  corporation?: Resolver<ResolversTypes['Corporation'], ParentType, ContextType>;
+  killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
 export type CorporationsResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['CorporationsResponse'] = ResolversParentTypes['CorporationsResponse']> = {
@@ -2278,6 +2308,7 @@ export type Resolvers<ContextType = any> = {
   Alliance?: AllianceResolvers<ContextType>;
   AllianceMetrics?: AllianceMetricsResolvers<ContextType>;
   AllianceSnapshot?: AllianceSnapshotResolvers<ContextType>;
+  AllianceTopTarget?: AllianceTopTargetResolvers<ContextType>;
   AlliancesResponse?: AlliancesResponseResolvers<ContextType>;
   Attacker?: AttackerResolvers<ContextType>;
   AuthPayload?: AuthPayloadResolvers<ContextType>;
@@ -2294,6 +2325,7 @@ export type Resolvers<ContextType = any> = {
   Corporation?: CorporationResolvers<ContextType>;
   CorporationMetrics?: CorporationMetricsResolvers<ContextType>;
   CorporationSnapshot?: CorporationSnapshotResolvers<ContextType>;
+  CorporationTopTarget?: CorporationTopTargetResolvers<ContextType>;
   CorporationsResponse?: CorporationsResponseResolvers<ContextType>;
   CreateUserPayload?: CreateUserPayloadResolvers<ContextType>;
   DogmaAttribute?: DogmaAttributeResolvers<ContextType>;

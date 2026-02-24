@@ -58,6 +58,11 @@ type AllianceSnapshot {
   memberCount: Int!
 }
 
+type AllianceTopTarget {
+  alliance: Alliance!
+  killCount: Int!
+}
+
 type AlliancesResponse {
   items: [Alliance!]!
   pageInfo: PageInfo!
@@ -155,6 +160,8 @@ type Character {
   race: Race
   securityStatus: Float
   title: String
+  topAllianceTargets: [AllianceTopTarget!]!
+  topCorporationTargets: [CorporationTopTarget!]!
   updatedAt: String
 }
 
@@ -256,6 +263,11 @@ enum CorporationOrderBy {
 type CorporationSnapshot {
   date: String!
   memberCount: Int!
+}
+
+type CorporationTopTarget {
+  corporation: Corporation!
+  killCount: Int!
 }
 
 type CorporationsResponse {

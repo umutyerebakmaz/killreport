@@ -12,6 +12,18 @@ type Character {
   title: String
   faction_id: Int
   updatedAt: String
+  topAllianceTargets: [AllianceTopTarget!]!
+  topCorporationTargets: [CorporationTopTarget!]!
+}
+
+type AllianceTopTarget {
+  alliance: Alliance!
+  killCount: Int!
+}
+
+type CorporationTopTarget {
+  corporation: Corporation!
+  killCount: Int!
 }
 
 input CharacterFilter {
