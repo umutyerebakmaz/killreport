@@ -448,12 +448,12 @@ function KillmailsContent() {
                                       {km.solarSystem?.name || "Unknown"}
                                     </Link>
                                   </Tooltip>
-                                  {km.solarSystem?.security_status !== null &&
-                                    km.solarSystem?.security_status !==
+                                  {km.solarSystem?.securityStatus !== null &&
+                                    km.solarSystem?.securityStatus !==
                                       undefined && (
                                       <SecurityStatus
                                         securityStatus={
-                                          km.solarSystem.security_status
+                                          km.solarSystem.securityStatus
                                         }
                                       />
                                     )}
