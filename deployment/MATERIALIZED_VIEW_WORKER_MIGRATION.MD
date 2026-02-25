@@ -269,7 +269,7 @@ pm2 logs killreport-backend | grep "Scheduling materialized view refresh"
 
 ### Before (Server-Based)
 
-```
+```text
 API Server Process:
 ├── GraphQL API (65% CPU)
 ├── MV Refresh (30-40% CPU spike every 5 min)
@@ -283,7 +283,7 @@ Issues:
 
 ### After (Worker-Based)
 
-```
+```text
 API Server Process:
 └── GraphQL API (5-15% CPU)
     ✅ Consistent, responsive
@@ -337,13 +337,18 @@ Not recommended! Only run ONE instance of this worker. Multiple instances would 
 
 ---
 
-**Migration Date:** ********\_********
-**Deployed By:** ********\_********
-**Status:** [ ] Success [ ] Rolled Back [ ] Issues
+**Migration Date:** February 25, 2026
+**Deployed By:** Umut Yerebakmaz (umutyerebakmaz)
+**Status:** [x] Success [ ] Rolled Back [ ] Issues
 
 **Notes:**
 
-```
-_________________________________________________________________
-_________________________________________________________________
+```text
+- Materialized view refresh successfully migrated from API server to dedicated worker
+- API server CPU usage stabilized (no longer affected by MV refresh spikes)
+- Worker process running independently with 256MB memory limit
+- Deployment completed without downtime
+- All materialized views refreshing correctly every 5 minutes
+- Character target views throttled to 10-minute intervals as designed
+- Monitoring confirmed: API responsive during refresh cycles
 ```
