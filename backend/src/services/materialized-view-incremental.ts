@@ -27,7 +27,7 @@ interface RefreshLog {
  */
 async function getRefreshLog(viewName: string): Promise<RefreshLog | null> {
   const result = await prismaWorker.$queryRaw<RefreshLog[]>`
-        SELECT * FROM materialized_view_refresh_log
+        SELECT * FROM refresh_log
         WHERE view_name = ${viewName}
     `;
   return result[0] || null;
@@ -45,7 +45,7 @@ async function updateRefreshLog(
 ): Promise<void> {
   if (isFullRefresh) {
     await prismaWorker.$executeRaw`
-            UPDATE materialized_view_refresh_log
+            UPDATE refresh_log
             SET last_full_refresh_at = NOW(),
                 last_incremental_refresh_at = NOW(),
                 last_processed_killmail_id = ${lastKillmailId},
@@ -56,7 +56,7 @@ async function updateRefreshLog(
         `;
   } else {
     await prismaWorker.$executeRaw`
-            UPDATE materialized_view_refresh_log
+            UPDATE refresh_log
             SET last_incremental_refresh_at = NOW(),
                 last_processed_killmail_id = ${lastKillmailId},
                 last_processed_killmail_time = ${lastKillmailTime},
@@ -84,11 +84,11 @@ function needsFullRefresh(lastFullRefresh: Date | null): boolean {
 }
 
 /**
- * Incremental refresh for killmail_filters_mv
+ * Incremental refresh for killmail_filters
  * Only processes killmails added since last refresh
  */
 export async function incrementalRefreshKillmailFilters(): Promise<void> {
-  const viewName = 'killmail_filters_mv';
+  const viewName = 'killmail_filters';
   const startTime = Date.now();
 
   try {
@@ -126,9 +126,9 @@ export async function incrementalRefreshKillmailFilters(): Promise<void> {
     // Set memory for better performance
     await prismaWorker.$executeRawUnsafe(`SET LOCAL maintenance_work_mem = '256MB'`);
 
-    // Insert new killmail data into MV (using ON CONFLICT to handle duplicates)
+    // Insert new killmail data into table (using ON CONFLICT to handle duplicates)
     await prismaWorker.$executeRaw`
-            INSERT INTO killmail_filters_mv (
+            INSERT INTO killmail_filters (
                 killmail_id,
                 killmail_time,
                 solar_system_id,
@@ -202,7 +202,7 @@ export async function incrementalRefreshKillmailFilters(): Promise<void> {
 
     // Get total record count
     const totalRecords = await prismaWorker.$queryRaw<Array<{ count: bigint }>>`
-            SELECT COUNT(*) as count FROM killmail_filters_mv
+            SELECT COUNT(*) as count FROM killmail_filters
         `;
 
     // Update tracking log
@@ -227,17 +227,71 @@ export async function incrementalRefreshKillmailFilters(): Promise<void> {
 }
 
 /**
- * Full refresh for killmail_filters_mv (used once per day)
+ * Full refresh for killmail_filters (used once per day)
+ * Now using TRUNCATE + INSERT since it's a regular table (not materialized view)
  */
 export async function fullRefreshKillmailFilters(): Promise<void> {
-  const viewName = 'killmail_filters_mv';
+  const viewName = 'killmail_filters';
   const startTime = Date.now();
 
   try {
     logger.info(`🔄 Starting FULL refresh for ${viewName}...`);
 
     await prismaWorker.$executeRawUnsafe(`SET LOCAL maintenance_work_mem = '256MB'`);
-    await prismaWorker.$executeRawUnsafe(`REFRESH MATERIALIZED VIEW CONCURRENTLY ${viewName}`);
+
+    // Truncate table (faster than DELETE)
+    await prismaWorker.$executeRawUnsafe(`TRUNCATE TABLE ${viewName}`);
+
+    // Re-insert all data
+    await prismaWorker.$executeRaw`
+      INSERT INTO killmail_filters (
+        killmail_id,
+        killmail_time,
+        solar_system_id,
+        attacker_count,
+        constellation_id,
+        region_id,
+        victim_ship_type_id,
+        victim_character_id,
+        victim_corporation_id,
+        victim_alliance_id,
+        attacker_ship_type_ids,
+        attacker_character_ids,
+        attacker_corporation_ids,
+        attacker_alliance_ids
+      )
+      SELECT
+        k.killmail_id,
+        k.killmail_time,
+        k.solar_system_id,
+        k.attacker_count,
+        ss.constellation_id,
+        c.region_id,
+        v.ship_type_id as victim_ship_type_id,
+        v.character_id as victim_character_id,
+        v.corporation_id as victim_corporation_id,
+        v.alliance_id as victim_alliance_id,
+        array_agg(DISTINCT a.ship_type_id) FILTER (WHERE a.ship_type_id IS NOT NULL) as attacker_ship_type_ids,
+        array_agg(DISTINCT a.character_id) FILTER (WHERE a.character_id IS NOT NULL) as attacker_character_ids,
+        array_agg(DISTINCT a.corporation_id) FILTER (WHERE a.corporation_id IS NOT NULL) as attacker_corporation_ids,
+        array_agg(DISTINCT a.alliance_id) FILTER (WHERE a.alliance_id IS NOT NULL) as attacker_alliance_ids
+      FROM killmails k
+      INNER JOIN victims v ON k.killmail_id = v.killmail_id
+      LEFT JOIN attackers a ON k.killmail_id = a.killmail_id
+      LEFT JOIN solar_systems ss ON k.solar_system_id = ss.system_id
+      LEFT JOIN constellations c ON ss.constellation_id = c.constellation_id
+      GROUP BY
+        k.killmail_id,
+        k.killmail_time,
+        k.solar_system_id,
+        k.attacker_count,
+        ss.constellation_id,
+        c.region_id,
+        v.ship_type_id,
+        v.character_id,
+        v.corporation_id,
+        v.alliance_id
+    `;
 
     // Get the latest killmail info for tracking
     const latestKillmail = await prismaWorker.$queryRaw<Array<{ killmail_id: number; killmail_time: Date }>>`
@@ -249,7 +303,7 @@ export async function fullRefreshKillmailFilters(): Promise<void> {
 
     // Get total record count
     const totalRecords = await prismaWorker.$queryRaw<Array<{ count: bigint }>>`
-            SELECT COUNT(*) as count FROM killmail_filters_mv
+            SELECT COUNT(*) as count FROM killmail_filters
         `;
 
     // Update tracking log
@@ -274,11 +328,11 @@ export async function fullRefreshKillmailFilters(): Promise<void> {
 }
 
 /**
- * Incremental refresh for daily_pilot_kills_mv
+ * Incremental refresh for daily_pilot_kills
  * Only refreshes last 6 hours of data (efficient for 5-minute refresh cycle)
  */
 export async function incrementalRefreshDailyPilotKills(): Promise<void> {
-  const viewName = 'daily_pilot_kills_mv';
+  const viewName = 'daily_pilot_kills';
   const startTime = Date.now();
 
   try {
@@ -306,14 +360,14 @@ export async function incrementalRefreshDailyPilotKills(): Promise<void> {
 
     // Delete affected days (today and possibly yesterday)
     await prismaWorker.$executeRaw`
-            DELETE FROM daily_pilot_kills_mv
+            DELETE FROM daily_pilot_kills
             WHERE kill_date >= ${affectedDateStart}
         `;
 
     // Re-insert ENTIRE affected day(s) from their start (not just last 6 hours)
     // This ensures no data loss for the affected day
     await prismaWorker.$executeRaw`
-            INSERT INTO daily_pilot_kills_mv (kill_date, character_id, kill_count)
+            INSERT INTO daily_pilot_kills (kill_date, character_id, kill_count)
             SELECT
                 DATE(k.killmail_time AT TIME ZONE 'UTC') as kill_date,
                 a.character_id,
@@ -329,7 +383,7 @@ export async function incrementalRefreshDailyPilotKills(): Promise<void> {
 
     // Get total record count
     const totalRecords = await prismaWorker.$queryRaw<Array<{ count: bigint }>>`
-            SELECT COUNT(*) as count FROM daily_pilot_kills_mv
+            SELECT COUNT(*) as count FROM daily_pilot_kills
         `;
 
     // Update tracking log
@@ -346,20 +400,35 @@ export async function incrementalRefreshDailyPilotKills(): Promise<void> {
 }
 
 /**
- * Full refresh for daily_pilot_kills_mv
+ * Full refresh for daily_pilot_kills
  */
 async function fullRefreshDailyPilotKills(): Promise<void> {
-  const viewName = 'daily_pilot_kills_mv';
+  const viewName = 'daily_pilot_kills';
   const startTime = Date.now();
 
   try {
     logger.info(`🔄 Starting FULL refresh for ${viewName}...`);
 
     await prismaWorker.$executeRawUnsafe(`SET LOCAL maintenance_work_mem = '128MB'`);
-    await prismaWorker.$executeRawUnsafe(`REFRESH MATERIALIZED VIEW CONCURRENTLY ${viewName}`);
+
+    // Truncate table (faster than DELETE)
+    await prismaWorker.$executeRawUnsafe(`TRUNCATE TABLE ${viewName}`);
+
+    // Re-insert all data
+    await prismaWorker.$executeRaw`
+      INSERT INTO daily_pilot_kills (kill_date, character_id, kill_count)
+      SELECT
+        DATE(k.killmail_time AT TIME ZONE 'UTC') AS kill_date,
+        a.character_id,
+        COUNT(*)::int AS kill_count
+      FROM attackers a
+      INNER JOIN killmails k ON a.killmail_id = k.killmail_id
+      WHERE a.character_id IS NOT NULL
+      GROUP BY DATE(k.killmail_time AT TIME ZONE 'UTC'), a.character_id
+    `;
 
     const totalRecords = await prismaWorker.$queryRaw<Array<{ count: bigint }>>`
-            SELECT COUNT(*) as count FROM daily_pilot_kills_mv
+            SELECT COUNT(*) as count FROM daily_pilot_kills
         `;
 
     await updateRefreshLog(viewName, true, null, new Date(), totalRecords[0].count);
