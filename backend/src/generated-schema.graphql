@@ -595,6 +595,11 @@ type Query {
   top90DaysPilots(filter: Top90DaysPilotsFilter): [Top90DaysPilot!]!
 
   """
+  Returns top pilots ranked by total kill count over the last 7 days (rolling window, today - 6 days)
+  """
+  topLast7DaysPilots(filter: TopLast7DaysPilotsFilter): [TopLast7DaysPilot!]!
+
+  """
   Returns top pilots ranked by total kill count for a given calendar month (default: current month)
   """
   topMonthlyPilots(filter: TopMonthlyPilotsFilter): [TopMonthlyPilot!]!
@@ -893,6 +898,17 @@ type Top90DaysPilot {
 }
 
 input Top90DaysPilotsFilter {
+  """Max 100; default 100"""
+  limit: Int
+}
+
+type TopLast7DaysPilot {
+  character: Character
+  killCount: Int!
+  rank: Int!
+}
+
+input TopLast7DaysPilotsFilter {
   """Max 100; default 100"""
   limit: Int
 }
