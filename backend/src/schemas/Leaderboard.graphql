@@ -62,6 +62,19 @@ input Top90DaysPilotsFilter {
   limit: Int
 }
 
+type TopLast7DaysPilot {
+  rank: Int!
+  killCount: Int!
+  character: Character
+}
+
+input TopLast7DaysPilotsFilter {
+  """
+  Max 100; default 100
+  """
+  limit: Int
+}
+
 extend type Query {
   """
   Returns top pilots ranked by kill count for a given day (default: today)
@@ -72,6 +85,11 @@ extend type Query {
   Returns top pilots ranked by total kill count for a given week (Mon–Sun); defaults to current week
   """
   topWeeklyPilots(filter: TopWeeklyPilotsFilter): [TopWeeklyPilot!]!
+
+  """
+  Returns top pilots ranked by total kill count over the last 7 days (rolling window, today - 6 days)
+  """
+  topLast7DaysPilots(filter: TopLast7DaysPilotsFilter): [TopLast7DaysPilot!]!
 
   """
   Returns top pilots ranked by total kill count over the last 90 days (rolling window)

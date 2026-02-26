@@ -734,6 +734,8 @@ export type Query = {
   solarSystems: SolarSystemsResponse;
   /** Returns top pilots ranked by total kill count over the last 90 days (rolling window) */
   top90DaysPilots: Array<Top90DaysPilot>;
+  /** Returns top pilots ranked by total kill count over the last 7 days (rolling window, today - 6 days) */
+  topLast7DaysPilots: Array<TopLast7DaysPilot>;
   /** Returns top pilots ranked by total kill count for a given calendar month (default: current month) */
   topMonthlyPilots: Array<TopMonthlyPilot>;
   /** Returns top pilots ranked by kill count for a given day (default: today) */
@@ -876,6 +878,11 @@ export type QuerySolarSystemsArgs = {
 
 export type QueryTop90DaysPilotsArgs = {
   filter?: InputMaybe<Top90DaysPilotsFilter>;
+};
+
+
+export type QueryTopLast7DaysPilotsArgs = {
+  filter?: InputMaybe<TopLast7DaysPilotsFilter>;
 };
 
 
@@ -1190,6 +1197,18 @@ export type Top90DaysPilot = {
 };
 
 export type Top90DaysPilotsFilter = {
+  /** Max 100; default 100 */
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type TopLast7DaysPilot = {
+  __typename?: 'TopLast7DaysPilot';
+  character?: Maybe<Character>;
+  killCount: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+};
+
+export type TopLast7DaysPilotsFilter = {
   /** Max 100; default 100 */
   limit?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -1518,6 +1537,8 @@ export type ResolversTypes = {
   SyncMyKillmailsPayload: ResolverTypeWrapper<SyncMyKillmailsPayload>;
   Top90DaysPilot: ResolverTypeWrapper<Top90DaysPilot>;
   Top90DaysPilotsFilter: Top90DaysPilotsFilter;
+  TopLast7DaysPilot: ResolverTypeWrapper<TopLast7DaysPilot>;
+  TopLast7DaysPilotsFilter: TopLast7DaysPilotsFilter;
   TopMonthlyPilot: ResolverTypeWrapper<TopMonthlyPilot>;
   TopMonthlyPilotsFilter: TopMonthlyPilotsFilter;
   TopPilot: ResolverTypeWrapper<TopPilot>;
@@ -1631,6 +1652,8 @@ export type ResolversParentTypes = {
   SyncMyKillmailsPayload: SyncMyKillmailsPayload;
   Top90DaysPilot: Top90DaysPilot;
   Top90DaysPilotsFilter: Top90DaysPilotsFilter;
+  TopLast7DaysPilot: TopLast7DaysPilot;
+  TopLast7DaysPilotsFilter: TopLast7DaysPilotsFilter;
   TopMonthlyPilot: TopMonthlyPilot;
   TopMonthlyPilotsFilter: TopMonthlyPilotsFilter;
   TopPilot: TopPilot;
@@ -2050,6 +2073,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   solarSystem?: Resolver<Maybe<ResolversTypes['SolarSystem']>, ParentType, ContextType, RequireFields<QuerySolarSystemArgs, 'id'>>;
   solarSystems?: Resolver<ResolversTypes['SolarSystemsResponse'], ParentType, ContextType, Partial<QuerySolarSystemsArgs>>;
   top90DaysPilots?: Resolver<Array<ResolversTypes['Top90DaysPilot']>, ParentType, ContextType, Partial<QueryTop90DaysPilotsArgs>>;
+  topLast7DaysPilots?: Resolver<Array<ResolversTypes['TopLast7DaysPilot']>, ParentType, ContextType, Partial<QueryTopLast7DaysPilotsArgs>>;
   topMonthlyPilots?: Resolver<Array<ResolversTypes['TopMonthlyPilot']>, ParentType, ContextType, Partial<QueryTopMonthlyPilotsArgs>>;
   topPilots?: Resolver<Array<ResolversTypes['TopPilot']>, ParentType, ContextType, Partial<QueryTopPilotsArgs>>;
   topWeeklyPilots?: Resolver<Array<ResolversTypes['TopWeeklyPilot']>, ParentType, ContextType, Partial<QueryTopWeeklyPilotsArgs>>;
@@ -2218,6 +2242,12 @@ export type Top90DaysPilotResolvers<ContextType = any, ParentType extends Resolv
   rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
+export type TopLast7DaysPilotResolvers<ContextType = any, ParentType extends ResolversParentTypes['TopLast7DaysPilot'] = ResolversParentTypes['TopLast7DaysPilot']> = {
+  character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
+  killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
 export type TopMonthlyPilotResolvers<ContextType = any, ParentType extends ResolversParentTypes['TopMonthlyPilot'] = ResolversParentTypes['TopMonthlyPilot']> = {
   character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
   killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -2369,6 +2399,7 @@ export type Resolvers<ContextType = any> = {
   Subscription?: SubscriptionResolvers<ContextType>;
   SyncMyKillmailsPayload?: SyncMyKillmailsPayloadResolvers<ContextType>;
   Top90DaysPilot?: Top90DaysPilotResolvers<ContextType>;
+  TopLast7DaysPilot?: TopLast7DaysPilotResolvers<ContextType>;
   TopMonthlyPilot?: TopMonthlyPilotResolvers<ContextType>;
   TopPilot?: TopPilotResolvers<ContextType>;
   TopWeeklyPilot?: TopWeeklyPilotResolvers<ContextType>;
