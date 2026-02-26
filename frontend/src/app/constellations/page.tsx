@@ -134,7 +134,7 @@ function ConstellationsContent() {
       {/* Table */}
       <div className="mt-6 overflow-hidden border border-white/10">
         <table className="table">
-          <thead className="bg-white/5">
+          <thead className="bg-neutral-900">
             <tr>
               <th className="text-left th-cell">Constellation</th>
               <th className="text-left th-cell">Region</th>
