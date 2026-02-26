@@ -1,0 +1,11 @@
+query TopLast7DaysAlliances($filter: TopLast7DaysAlliancesFilter) {
+  topLast7DaysAlliances(filter: $filter) {
+    rank
+    killCount
+    alliance {
+      id
+      name
+      ticker
+    }
+  }
+}

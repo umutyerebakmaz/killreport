@@ -5,11 +5,15 @@ import KillmailFilters from "@/components/Filters/KillmailFilters";
 import KillmailsTable from "@/components/KillmailsTable";
 import Loader from "@/components/Loader";
 import Paginator from "@/components/Paginator/Paginator";
+import TopAllianceCard from "@/components/TopAllianceCard/TopAllianceCard";
 import TopCharacterCard from "@/components/TopCharacterCard/TopCharacterCard";
+import TopCorporationCard from "@/components/TopCorporationCard/TopCorporationCard";
 import {
   useKillmailsDateCountsQuery,
   useKillmailsQuery,
   useNewKillmailSubscription,
+  useTopLast7DaysAlliancesQuery,
+  useTopLast7DaysCorporationsQuery,
   useTopLast7DaysPilotsQuery,
 } from "@/generated/graphql";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -115,6 +119,18 @@ function KillmailsContent() {
   // Fetch last 7 days top characters for sidebar (rolling data)
   const { data: weeklyPilotsData, loading: weeklyPilotsLoading } =
     useTopLast7DaysPilotsQuery({
+      variables: { filter: { limit: 10 } },
+    });
+
+  // Fetch last 7 days top corporations for sidebar (rolling data)
+  const { data: weeklyCorporationsData, loading: weeklyCorporationsLoading } =
+    useTopLast7DaysCorporationsQuery({
+      variables: { filter: { limit: 10 } },
+    });
+
+  // Fetch last 7 days top alliances for sidebar (rolling data)
+  const { data: weeklyAlliancesData, loading: weeklyAlliancesLoading } =
+    useTopLast7DaysAlliancesQuery({
       variables: { filter: { limit: 10 } },
     });
 
@@ -473,6 +489,34 @@ function KillmailsContent() {
             }
             loading={weeklyPilotsLoading}
             emptyText="No pilot data available"
+          />
+          <TopCorporationCard
+            title="Top Weekly Corporations"
+            subtitle="Most active corporations (rolling)"
+            corporations={
+              weeklyCorporationsData?.topLast7DaysCorporations?.map((corp) => ({
+                id: corp.corporation?.id || 0,
+                name: corp.corporation?.name || "Unknown",
+                ticker: corp.corporation?.ticker,
+                killCount: corp.killCount,
+              })) || []
+            }
+            loading={weeklyCorporationsLoading}
+            emptyText="No corporation data available"
+          />
+          <TopAllianceCard
+            title="Top Weekly Alliances"
+            subtitle="Most active alliances (rolling)"
+            alliances={
+              weeklyAlliancesData?.topLast7DaysAlliances?.map((alliance) => ({
+                id: alliance.alliance?.id || 0,
+                name: alliance.alliance?.name || "Unknown",
+                ticker: alliance.alliance?.ticker,
+                killCount: alliance.killCount,
+              })) || []
+            }
+            loading={weeklyAlliancesLoading}
+            emptyText="No alliance data available"
           />
         </div>
       </div>
