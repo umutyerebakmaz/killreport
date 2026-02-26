@@ -4,19 +4,19 @@
  * @returns Formatted ISK string (e.g., "1.50M ISK", "2.30B ISK")
  */
 export function formatISK(amount: number | null | undefined): string {
-  if (!amount) return "0 ISK";
+  if (!amount) return "0";
 
   const absAmount = Math.abs(amount);
 
   if (absAmount >= 1_000_000_000_000) {
-    return `${(amount / 1_000_000_000_000).toFixed(2)}T ISK`;
+    return `${(amount / 1_000_000_000_000).toFixed(2)}T`;
   } else if (absAmount >= 1_000_000_000) {
-    return `${(amount / 1_000_000_000).toFixed(2)}B ISK`;
+    return `${(amount / 1_000_000_000).toFixed(2)}B`;
   } else if (absAmount >= 1_000_000) {
-    return `${(amount / 1_000_000).toFixed(2)}M ISK`;
+    return `${(amount / 1_000_000).toFixed(2)}M`;
   } else if (absAmount >= 1_000) {
-    return `${(amount / 1_000).toFixed(2)}K ISK`;
+    return `${(amount / 1_000).toFixed(2)}K`;
   }
 
-  return `${Math.round(amount).toLocaleString()} ISK`;
+  return `${Math.round(amount).toLocaleString()}`;
 }

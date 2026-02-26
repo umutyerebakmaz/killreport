@@ -61,25 +61,25 @@ export default function KillmailsTable({
 
           {/* Table for this date */}
           <div className="border border-white/10">
-            <table className="table table-fixed w-full">
+            <table className="table w-full table-fixed">
               <colgroup>
-                <col className="w-28" />
-                <col className="w-56" />
-                <col className="w-64" />
-                <col className="w-64" />
-                <col className="w-36" />
-                <col className="w-20" />
-                <col className="w-20" />
+                <col className="w-12" />
+                <col className="w-24" />
+                <col className="w-30" />
+                <col className="w-30" />
+                <col className="w-18" />
+                <col className="w-12" />
+                <col className="w-12" />
               </colgroup>
               <thead className="bg-white/5">
                 <tr>
-                  <th className="th-cell">Time</th>
-                  <th className="th-cell">Ship</th>
-                  <th className="th-cell">Victim</th>
-                  <th className="th-cell">Final Blow</th>
-                  <th className="th-cell">System</th>
-                  <th className="th-cell">Attackers</th>
-                  <th className="th-cell">Damage</th>
+                  <th className="text-left th-cell">Time</th>
+                  <th className="text-left th-cell">Ship</th>
+                  <th className="text-left th-cell">Victim</th>
+                  <th className="text-left th-cell">Final Blow</th>
+                  <th className="text-left th-cell">System</th>
+                  <th className="text-left th-cell">Attackers</th>
+                  <th className="text-right th-cell">Damage</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10">
