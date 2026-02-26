@@ -115,8 +115,8 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
                       region.securityStats.avgSecurity >= 0.5
                         ? "text-green-400"
                         : region.securityStats.avgSecurity > 0
-                        ? "text-yellow-400"
-                        : "text-red-400"
+                          ? "text-yellow-400"
+                          : "text-red-400"
                     }`}
                   >
                     {region.securityStats.avgSecurity.toFixed(2)}
@@ -233,7 +233,7 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
                     <th className="th-cell">Avg Security</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/10">
+                <tbody className="divide-y divide-white/5">
                   {region.constellations && region.constellations.length > 0 ? (
                     region.constellations.map((constellation) => (
                       <tr
@@ -282,12 +282,12 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
                                 constellation.securityStats.avgSecurity >= 0.5
                                   ? "text-green-400"
                                   : constellation.securityStats.avgSecurity > 0
-                                  ? "text-yellow-400"
-                                  : "text-red-400"
+                                    ? "text-yellow-400"
+                                    : "text-red-400"
                               }`}
                             >
                               {constellation.securityStats.avgSecurity.toFixed(
-                                2
+                                2,
                               )}
                             </span>
                           ) : (

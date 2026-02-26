@@ -34,7 +34,7 @@ export default function CharactersTable({
             <th className="th-cell">Name</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-white/10">
+        <tbody className="divide-y divide-white/5">
           {characters.map((char) => (
             <tr key={char.id} className="transition-colors hover:bg-white/5">
               <td className="px-6 py-4 whitespace-nowrap">

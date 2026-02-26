@@ -290,7 +290,7 @@ export default function ConstellationDetailPage({
                     <th className="th-cell">Security Class</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/10">
+                <tbody className="divide-y divide-white/5">
                   {constellation.solarSystems &&
                   constellation.solarSystems.length > 0 ? (
                     constellation.solarSystems.map((system) => (

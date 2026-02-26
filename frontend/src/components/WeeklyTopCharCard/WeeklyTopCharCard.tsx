@@ -14,7 +14,7 @@ export default function WeeklyTopCharCard() {
   const pilots = data?.topWeeklyPilots ?? [];
 
   return (
-    <div className="flex flex-col border bg-white/5 border-white/10">
+    <div className="flex flex-col border bg-neutral-900 hover:bg-neutral-800">
       {/* Header */}
       <div className="flex items-center gap-2 p-4 border-b border-white/10">
         <CalendarDaysIcon className="w-4 h-4 text-cyan-400 shrink-0" />
@@ -23,9 +23,9 @@ export default function WeeklyTopCharCard() {
 
       {/* Pilots List */}
       {loading ? (
-        <div className="p-4 text-xs text-gray-500 text-center">Loading...</div>
+        <div className="p-4 text-xs text-center text-gray-500">Loading...</div>
       ) : pilots.length === 0 ? (
-        <div className="p-4 text-xs text-gray-500 text-center">
+        <div className="p-4 text-xs text-center text-gray-500">
           No data available
         </div>
       ) : (
@@ -78,7 +78,7 @@ export default function WeeklyTopCharCard() {
                   </div>
 
                   {/* Info */}
-                  <div className="flex flex-col min-w-0 flex-1 gap-1">
+                  <div className="flex flex-col flex-1 min-w-0 gap-1">
                     {char ? (
                       <Tooltip
                         content="Show Character"

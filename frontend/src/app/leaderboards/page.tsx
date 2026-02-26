@@ -76,7 +76,7 @@ function PilotList({
         return (
           <div
             key={pilot.rank}
-            className="p-3 transition-colors duration-100 bg-white/5 hover:bg-white/8"
+            className="p-3 transition-colors duration-100 bg-neutral-900 hover:bg-neutral-800"
           >
             <div className="flex items-center gap-3">
               {/* Rank */}

@@ -6,7 +6,6 @@ import Loader from "@/components/Loader";
 import Paginator from "@/components/Paginator/Paginator";
 import SecurityBadge from "@/components/SecurityStatus/SecurityStatus";
 import { useSolarSystemsQuery } from "@/generated/graphql";
-import { GlobeAltIcon, MapIcon, MapPinIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -143,7 +142,6 @@ function SolarSystemsContent() {
       <div className="sm:flex sm:items-center sm:justify-between">
         <div className="sm:flex-auto">
           <h1 className="flex items-center gap-3 text-3xl font-semibold text-white">
-            <MapPinIcon className="w-8 h-8 text-orange-500" />
             Solar Systems
           </h1>
           <p className="mt-2 text-gray-400">
@@ -167,16 +165,16 @@ function SolarSystemsContent() {
       {/* Table */}
       <div className="mt-6 overflow-hidden border border-white/10">
         <table className="table">
-          <thead className="bg-white/5">
+          <thead className="bg-neutral-900">
             <tr>
-              <th className="th-cell">Solar System</th>
-              <th className="th-cell">Constellation</th>
-              <th className="th-cell">Region</th>
-              <th className="th-cell">Security Status</th>
-              <th className="th-cell">Security Class</th>
+              <th className="text-left th-cell">Solar System</th>
+              <th className="text-left th-cell">Constellation</th>
+              <th className="text-left th-cell">Region</th>
+              <th className="text-left th-cell">Security Status</th>
+              <th className="text-left th-cell">Security Class</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/10">
+          <tbody className="divide-y divide-white/5">
             {loading ? (
               <tr>
                 <td
@@ -202,15 +200,14 @@ function SolarSystemsContent() {
               systems.map((system) => (
                 <tr
                   key={system.id}
-                  className="transition-colors hover:bg-white/5"
+                  className="transition-colors hover:bg-neutral-800 bg-neutral-900"
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <MapPinIcon className="w-5 h-5 text-orange-500 shrink-0" />
                       <Link
                         href={`/solar-systems/${system.id}`}
                         prefetch={false}
-                        className="font-medium text-orange-400 transition-colors hover:text-orange-300"
+                        className="font-medium text-gray-400 transition-colors hover:text-gray-300"
                       >
                         {system.name}
                       </Link>
@@ -221,9 +218,8 @@ function SolarSystemsContent() {
                       <Link
                         href={`/constellations/${system.constellation.id}`}
                         prefetch={false}
-                        className="flex items-center gap-2 text-gray-300 transition-colors hover:text-cyan-400"
+                        className="flex items-center gap-2 text-gray-300 transition-colors hover:text-gray-400"
                       >
-                        <MapIcon className="w-4 h-4 text-purple-500" />
                         {system.constellation.name}
                       </Link>
                     ) : (
@@ -235,9 +231,8 @@ function SolarSystemsContent() {
                       <Link
                         href={`/regions/${system.constellation.region.id}`}
                         prefetch={false}
-                        className="flex items-center gap-2 text-gray-300 transition-colors hover:text-cyan-400"
+                        className="flex items-center gap-2 text-gray-300 transition-colors hover:text-gray-400"
                       >
-                        <GlobeAltIcon className="w-4 h-4 text-cyan-500" />
                         {system.constellation.region.name}
                       </Link>
                     ) : (

@@ -83,7 +83,7 @@ export default function KillmailRow({
               </Link>
             </Tooltip>
           )}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 leading-tight">
             <div className="font-medium text-orange-400">
               {km.victim?.shipType?.name || "Unknown Ship"}
             </div>
@@ -92,6 +92,9 @@ export default function KillmailRow({
                 {km.victim.shipType.group.name}
               </div>
             )}
+            <div className="text-base text-red-400">
+              {km.victim?.damageTaken?.toLocaleString() || 0}
+            </div>
           </div>
         </div>
       </td>
@@ -116,7 +119,7 @@ export default function KillmailRow({
               loading="lazy"
             />
           )}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 leading-tight">
             <div className="min-w-0">
               {km.victim?.character ? (
                 <Tooltip
@@ -195,7 +198,7 @@ export default function KillmailRow({
                 loading="lazy"
               />
             )}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 leading-tight">
               <div className="min-w-0">
                 {km.finalBlow.character ? (
                   <Tooltip
@@ -256,51 +259,47 @@ export default function KillmailRow({
 
       {/* System Column */}
       <td className="px-4 py-4 text-base align-top">
-        <div>
-          <div className="flex items-center gap-2">
-            {km.solarSystem?.securityStatus !== null &&
-              km.solarSystem?.securityStatus !== undefined && (
-                <SecurityStatus
-                  securityStatus={km.solarSystem.securityStatus}
-                />
-              )}
-            <Tooltip content="Show Solar System Info" position="top">
+        <div className="flex items-center gap-2">
+          {km.solarSystem?.securityStatus !== null &&
+            km.solarSystem?.securityStatus !== undefined && (
+              <SecurityStatus securityStatus={km.solarSystem.securityStatus} />
+            )}
+          <Tooltip content="Show Solar System Info" position="top">
+            <Link
+              href={`/solar-systems/${km.solarSystem?.id}`}
+              className="font-medium text-orange-400 transition-colors hover:text-orange-500"
+              prefetch={false}
+            >
+              {km.solarSystem?.name || "Unknown"}
+            </Link>
+          </Tooltip>
+        </div>
+        {km.solarSystem?.constellation && (
+          <div className="text-base text-purple-500">
+            <Tooltip content="Show Constellation Info" position="top">
               <Link
-                href={`/solar-systems/${km.solarSystem?.id}`}
-                className="font-medium text-orange-400 transition-colors hover:text-orange-500"
+                href={`/constellations/${km.solarSystem.constellation?.id}`}
+                className="transition-colors hover:text-purple-400"
                 prefetch={false}
               >
-                {km.solarSystem?.name || "Unknown"}
+                {km.solarSystem.constellation.name}
               </Link>
             </Tooltip>
           </div>
-          {km.solarSystem?.constellation && (
-            <div className="text-base text-purple-500">
-              <Tooltip content="Show Constellation Info" position="top">
-                <Link
-                  href={`/constellations/${km.solarSystem.constellation?.id}`}
-                  className="transition-colors hover:text-purple-400"
-                  prefetch={false}
-                >
-                  {km.solarSystem.constellation.name}
-                </Link>
-              </Tooltip>
-            </div>
-          )}
-          {km.solarSystem?.constellation?.region && (
-            <div className="text-base text-blue-400">
-              <Tooltip content="Show Region Info" position="top">
-                <Link
-                  href={`/regions/${km.solarSystem.constellation.region.id}`}
-                  className="transition-colors hover:text-blue-300"
-                  prefetch={false}
-                >
-                  {km.solarSystem.constellation.region.name}
-                </Link>
-              </Tooltip>
-            </div>
-          )}
-        </div>
+        )}
+        {km.solarSystem?.constellation?.region && (
+          <div className="text-base text-blue-400">
+            <Tooltip content="Show Region Info" position="top">
+              <Link
+                href={`/regions/${km.solarSystem.constellation.region.id}`}
+                className="transition-colors hover:text-blue-300"
+                prefetch={false}
+              >
+                {km.solarSystem.constellation.region.name}
+              </Link>
+            </Tooltip>
+          </div>
+        )}
       </td>
 
       {/* Attackers Column */}
@@ -321,13 +320,6 @@ export default function KillmailRow({
             </span>
           )}
         </div>
-      </td>
-
-      {/* Damage Column */}
-      <td className="px-4 py-4 text-base">
-        <span className="flex items-center justify-end font-medium text-red-400">
-          {km.victim?.damageTaken?.toLocaleString() || 0}
-        </span>
       </td>
     </tr>
   );
