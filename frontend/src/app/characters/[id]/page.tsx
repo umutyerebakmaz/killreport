@@ -358,7 +358,7 @@ export default function CharacterDetailPage({
           )}
 
           {activeTab === "killmails" && (
-            <div className="killmails-tab">
+           <div className="killmails-tab">
               <div className="mb-6">
                 {pageInfo?.totalCount !== undefined && (
                   <p className="mt-1 text-sm text-gray-500">
