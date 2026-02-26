@@ -24,7 +24,7 @@ body {
 .system-card,
 .fit-and-victim,
 .items-card {
-  @apply border bg-white/5 border-white/10;
+  @apply border bg-neutral-900 border-neutral-800;
 }
 
 .alliance-detail-card,
@@ -33,7 +33,7 @@ body {
 .system-detail-card,
 .corporation-detail-card,
 .character-detail-card {
-  @apply border bg-white/5 border-white/10 p-6 flex flex-col;
+  @apply border bg-neutral-900 border-neutral-800 p-6 flex flex-col;
 }
 
 .select-option-container {

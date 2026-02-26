@@ -121,15 +121,15 @@ export default function AttackersCard({
   const remainingCount = sortedAttackers.length - initialCount;
 
   return (
-    <div className="p-6 bg-white/5 backdrop-blur-sm inset-ring inset-ring-white/10">
-      <div className="flex justify-end">
-        <span className="px-2 py-0.5 text-xs font-medium text-gray-400  bg-white/5">
+    <div>
+      <div className="flex justify-end px-4 py-2 border-b bg-neutral-900 hover:bg-neutral-800">
+        <span className="text-lg font-semibold text-gray-300">
           {killmail.attackerCount} ATTACKERS
         </span>
       </div>
 
       {/* All Attackers */}
-      <div className="mt-4 space-y-3">
+      <div className="flex flex-col divide-y divide-white/5">
         {displayedAttackers.map((attacker, index) => (
           <AttackerRow
             key={index}
@@ -146,7 +146,7 @@ export default function AttackersCard({
       {remainingCount > 0 && !showAll && (
         <button
           onClick={() => setShowAll(true)}
-          className="flex items-center justify-center w-full gap-2 px-4 py-3 mt-3 font-medium text-gray-300 transition-all bg-white/5 hover:bg-white/10 inset-ring inset-ring-white/10 hover:inset-ring-white/20"
+          className="flex items-center justify-center w-full gap-2 px-4 py-3 font-medium text-gray-300 transition-all border-t bg-neutral-900 hover:bg-neutral-800 border-white/10"
         >
           <ChevronDownIcon className="w-5 h-5" />
           <span>Show other {remainingCount} participants</span>
@@ -157,7 +157,7 @@ export default function AttackersCard({
       {showAll && sortedAttackers.length > initialCount && (
         <button
           onClick={() => setShowAll(false)}
-          className="flex items-center justify-center w-full gap-2 px-4 py-3 mt-3 font-medium text-gray-300 transition-all bg-white/5 hover:bg-white/10 inset-ring inset-ring-white/10 hover:inset-ring-white/20"
+          className="flex items-center justify-center w-full gap-2 px-4 py-3 font-medium text-gray-300 transition-all bg-white/5 hover:bg-white/10 inset-ring inset-ring-white/10 hover:inset-ring-white/20"
         >
           <ChevronUpIcon className="w-5 h-5" />
           <span>Show less</span>
@@ -170,7 +170,7 @@ export default function AttackersCard({
           <h3 className="mb-3 text-sm font-semibold text-gray-300">
             Involved Alliances and Corps
           </h3>
-          <div className="space-y-1">
+          <div className="divide-y divide-white/5">
             {/* Alliances with nested corporations */}
             {allianceArray.map((alliance) => {
               const isExpanded = expandedAlliances.has(alliance.id);
@@ -183,7 +183,7 @@ export default function AttackersCard({
                   {/* Alliance Row */}
                   <div
                     onClick={() => toggleAlliance(alliance.id)}
-                    className="flex items-center gap-2 px-3 py-2 transition-all cursor-pointer hover:bg-white/10 inset-ring inset-ring-white/10 hover:inset-ring-white/20"
+                    className="flex items-center gap-2 px-3 py-2 transition-colors duration-100 cursor-pointer bg-neutral-900 hover:bg-neutral-800"
                   >
                     {isExpanded ? (
                       <ChevronDownIcon className="w-4 h-4 text-gray-400" />
@@ -193,14 +193,14 @@ export default function AttackersCard({
                     <img
                       src={`https://images.evetech.net/Alliance/${alliance.id}_64.png`}
                       alt={alliance.name}
-                      width={24}
-                      height={24}
+                      width={32}
+                      height={32}
                       className="shadow-sm"
                       loading="lazy"
                     />
                     <Link
                       href={`/alliances/${alliance.id}`}
-                      className="flex-1 text-sm text-gray-300 hover:text-blue-400"
+                      className="flex-1 text-base text-gray-300 hover:text-blue-400"
                       prefetch={false}
                       onClick={(e) => e.stopPropagation()}
                     >
@@ -218,18 +218,18 @@ export default function AttackersCard({
                         <Link
                           key={`corp-${corp.id}`}
                           href={`/corporations/${corp.id}`}
-                          className="flex items-center gap-2 px-3 py-1.5 transition-all hover:bg-white/10 inset-ring inset-ring-white/10 hover:inset-ring-white/20"
+                          className="flex items-center gap-2 px-3 py-1.5 transition-colors duration-100 bg-neutral-900 hover:bg-neutral-800"
                           prefetch={false}
                         >
                           <img
                             src={`https://images.evetech.net/corporations/${corp.id}/logo?size=64`}
                             alt={corp.name}
-                            width={20}
-                            height={20}
+                            width={32}
+                            height={32}
                             className="shadow-sm"
                             loading="lazy"
                           />
-                          <span className="flex-1 text-xs text-gray-400">
+                          <span className="flex-1 text-base text-gray-300">
                             {corp.name}
                           </span>
                           <span className="px-1.5 py-0.5 text-xs font-medium text-gray-500">
@@ -248,19 +248,19 @@ export default function AttackersCard({
               <Link
                 key={`independent-corp-${corp.id}`}
                 href={`/corporations/${corp.id}`}
-                className="flex items-center gap-2 px-3 py-2 transition-all hover:bg-white/10 inset-ring inset-ring-white/10 hover:inset-ring-white/20"
+                className="flex items-center gap-2 px-3 py-2 transition-colors duration-100 bg-neutral-900 hover:bg-neutral-800"
                 prefetch={false}
               >
                 <div className="w-4" /> {/* Spacer for alignment */}
                 <img
                   src={`https://images.evetech.net/corporations/${corp.id}/logo?size=64`}
                   alt={corp.name}
-                  width={24}
-                  height={24}
+                  width={32}
+                  height={32}
                   className="shadow-sm"
                   loading="lazy"
                 />
-                <span className="flex-1 text-sm text-gray-300">
+                <span className="flex-1 text-base text-gray-300">
                   {corp.name}
                 </span>
                 <span className="px-2 py-0.5 text-xs font-medium text-gray-400">

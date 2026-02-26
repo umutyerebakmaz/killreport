@@ -9,7 +9,6 @@ import Tooltip from "@/components/Tooltip/Tooltip";
 import { useRegionsQuery } from "@/generated/graphql";
 import {
   ChevronDownIcon,
-  GlobeAltIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
@@ -80,7 +79,6 @@ function RegionsContent() {
       <div className="sm:flex sm:items-center sm:justify-between">
         <div className="sm:flex-auto">
           <h1 className="flex items-center gap-3 text-3xl font-semibold text-white">
-            <GlobeAltIcon className="w-8 h-8 text-cyan-400" />
             Regions
           </h1>
           <p className="mt-2 text-gray-400">
@@ -143,16 +141,16 @@ function RegionsContent() {
       {/* Table */}
       <div className="mt-6 overflow-hidden border border-white/10">
         <table className="table">
-          <thead className="bg-white/5">
+          <thead className="bg-neutral-800">
             <tr>
-              <th className="th-cell">Region</th>
-              <th className="th-cell">Constellations</th>
-              <th className="th-cell">Systems</th>
-              <th className="th-cell">Security Distribution</th>
-              <th className="th-cell">Avg Security</th>
+              <th className="text-left th-cell">Region</th>
+              <th className="text-left th-cell">Constellations</th>
+              <th className="text-left th-cell">Systems</th>
+              <th className="text-left th-cell">Security Distribution</th>
+              <th className="text-left th-cell">Avg Security</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/10">
+          <tbody className="divide-y divide-white/5">
             {loading ? (
               <tr>
                 <td colSpan={5} className="px-6 py-12">
@@ -172,15 +170,14 @@ function RegionsContent() {
               regions.map((region) => (
                 <tr
                   key={region.id}
-                  className="transition-colors hover:bg-white/5"
+                  className="transition-colors hover:bg-neutral-800 bg-neutral-900"
                 >
                   <td className="px-6 py-4 text-base">
-                    <div className="flex items-center gap-3">
-                      <GlobeAltIcon className="w-5 h-5 text-cyan-500" />
+                    <div className="flex items-center">
                       <Link
                         href={`/regions/${region.id}`}
                         prefetch={false}
-                        className="font-medium transition-colors text-cyan-400 hover:text-cyan-300"
+                        className="font-medium text-gray-400 transition-colors hover:text-cyan-300"
                       >
                         {region.name}
                       </Link>

@@ -1,8 +1,7 @@
 .table {
-  @apply min-w-full divide-y divide-white/10 bg-black;
+  @apply min-w-full divide-y divide-white/5 bg-black;
 }
 
 .th-cell {
   @apply px-4 py-4 text-base tracking-wider  text-gray-400 font-semibold;
 }
-
