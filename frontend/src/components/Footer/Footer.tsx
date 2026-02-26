@@ -67,7 +67,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-custom-dark">
+    <footer className="bg-neutral-900">
       <div className="px-6 pt-16 pb-8 mx-auto sm:pt-24 lg:px-8 xl:px-12 2xl:px-16 lg:pt-32 max-w-[1920px]">
         <div className="xl:grid xl:grid-cols-3 xl:gap-8">
           <div className="space-y-8">
