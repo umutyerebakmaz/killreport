@@ -3,9 +3,11 @@
 import SecurityStatus from "@/components/SecurityStatus/SecurityStatus";
 import ShipTierBadge from "@/components/ShipTierBadge/ShipTierBadge";
 import Tooltip from "@/components/Tooltip/Tooltip";
+import { formatKillmailDateTime, formatKillmailTime } from "@/utils/date";
 import { formatISK } from "@/utils/formatISK";
 import { getShipTier } from "@/utils/shipTier";
 import Link from "next/link";
+import { getKillmailRowStyles } from "./killmailRowStyles";
 import { KillmailRowProps } from "./types";
 
 export default function KillmailRow({
@@ -15,50 +17,13 @@ export default function KillmailRow({
   corporationId,
   allianceId,
 }: KillmailRowProps) {
-  // Determine totalValue color based on character, corporation, or alliance involvement
-  const totalValueColor = characterId
-    ? km.victim?.character?.id === characterId
-      ? "text-red-500" // Character is victim (loss)
-      : "text-green-500" // Character is attacker (kill)
-    : corporationId
-      ? km.victim?.corporation?.id === corporationId
-        ? "text-red-500" // Corporation is victim (loss)
-        : "text-green-500" // Corporation is attacker (kill)
-      : allianceId
-        ? km.victim?.alliance?.id === allianceId
-          ? "text-red-500" // Alliance is victim (loss)
-          : "text-green-500" // Alliance is attacker (kill)
-        : "text-orange-400"; // Default color when no characterId, corporationId, or allianceId
-
-  // Determine row background color based on victim/attacker involvement
-  const rowBgColor = characterId
-    ? km.victim?.character?.id === characterId
-      ? "bg-red-500/15" // Character is victim (loss)
-      : "bg-green-500/15" // Character is attacker (kill)
-    : corporationId
-      ? km.victim?.corporation?.id === corporationId
-        ? "bg-red-500/20" // Corporation is victim (loss)
-        : "bg-green-500/20" // Corporation is attacker (kill)
-      : allianceId
-        ? km.victim?.alliance?.id === allianceId
-          ? "bg-red-500/20" // Alliance is victim (loss)
-          : "bg-green-500/20" // Alliance is attacker (kill)
-        : ""; // No background when no id provided
-
-  // Determine row hover color based on victim/attacker involvement
-  const rowHoverColor = characterId
-    ? km.victim?.character?.id === characterId
-      ? "hover:bg-red-500/20" // Character is victim (loss)
-      : "hover:bg-green-500/20" // Character is attacker (kill)
-    : corporationId
-      ? km.victim?.corporation?.id === corporationId
-        ? "hover:bg-red-500/30" // Corporation is victim (loss)
-        : "hover:bg-green-500/20" // Corporation is attacker (kill)
-      : allianceId
-        ? km.victim?.alliance?.id === allianceId
-          ? "hover:bg-red-500/30" // Alliance is victim (loss)
-          : "hover:bg-green-500/20" // Alliance is attacker (kill)
-        : "hover:bg-white/5"; // Default hover
+  // Get row styling based on entity involvement (victim vs attacker)
+  const { totalValueColor, rowBgColor, rowHoverColor } = getKillmailRowStyles({
+    killmail: km,
+    characterId,
+    corporationId,
+    allianceId,
+  });
 
   // Use backend-computed fields
   const isSolo = km.solo;
@@ -75,28 +40,11 @@ export default function KillmailRow({
       {/* Time & Value Column */}
       <td className="px-4 py-4 text-base align-top">
         <Tooltip
-          content={`${new Date(km.killmailTime).toLocaleDateString("en-US", {
-            timeZone: "UTC",
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })} ${new Date(km.killmailTime).toLocaleTimeString("en-US", {
-            timeZone: "UTC",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-            hour12: false,
-          })} UTC`}
+          content={formatKillmailDateTime(km.killmailTime)}
           position="top"
         >
           <div className="text-gray-400">
-            {new Date(km.killmailTime).toLocaleTimeString("en-US", {
-              timeZone: "UTC",
-              hour: "2-digit",
-              minute: "2-digit",
-              second: "2-digit",
-              hour12: false,
-            })}
+            {formatKillmailTime(km.killmailTime)}
           </div>
           {km.totalValue && (
             <div className={`font-medium tabular-nums ${totalValueColor}`}>
@@ -132,7 +80,6 @@ export default function KillmailRow({
                   className="transition-opacity size-20 hover:opacity-80"
                   loading="lazy"
                 />
-                <div className="absolute w-3 h-3 bg-red-500 rounded-full -top-1 -right-1 animate-pulse" />
               </Link>
             </Tooltip>
           )}
@@ -169,8 +116,8 @@ export default function KillmailRow({
               loading="lazy"
             />
           )}
-          <div className="flex-1 min-w-0 space-y-1">
-            <div className="min-w-0 font-medium text-red-500">
+          <div className="flex-1 min-w-0">
+            <div className="min-w-0">
               {km.victim?.character ? (
                 <Tooltip
                   content="Show Character Info"
@@ -179,7 +126,7 @@ export default function KillmailRow({
                 >
                   <Link
                     href={`/characters/${km.victim.character.id}`}
-                    className="block truncate transition-colors hover:text-red-400"
+                    className="block font-medium text-gray-400 truncate transition-colors hover:text-blue-400"
                     prefetch={false}
                   >
                     {km.victim.character.name}
@@ -190,7 +137,7 @@ export default function KillmailRow({
               )}
             </div>
             {km.victim?.corporation && (
-              <div className="min-w-0 text-base text-gray-400">
+              <div className="min-w-0">
                 <Tooltip
                   content="Show Corporation Info"
                   position="top"
@@ -198,7 +145,7 @@ export default function KillmailRow({
                 >
                   <Link
                     href={`/corporations/${km.victim.corporation?.id}`}
-                    className="block truncate transition-colors hover:text-cyan-400"
+                    className="block text-base text-gray-400 truncate transition-colors hover:text-blue-400"
                     prefetch={false}
                   >
                     {km.victim.corporation?.name}
@@ -215,7 +162,7 @@ export default function KillmailRow({
                 >
                   <Link
                     href={`/alliances/${km.victim.alliance.id}`}
-                    className="block truncate transition-colors hover:text-cyan-400"
+                    className="block truncate transition-colors hover:text-blue-400"
                     prefetch={false}
                   >
                     {km.victim.alliance.name}
@@ -248,8 +195,8 @@ export default function KillmailRow({
                 loading="lazy"
               />
             )}
-            <div className="flex-1 min-w-0 space-y-1">
-              <div className="min-w-0 font-medium text-green-600">
+            <div className="flex-1 min-w-0">
+              <div className="min-w-0">
                 {km.finalBlow.character ? (
                   <Tooltip
                     content="Show Character Info"
@@ -258,7 +205,7 @@ export default function KillmailRow({
                   >
                     <Link
                       href={`/characters/${km.finalBlow.character.id}`}
-                      className="block truncate transition-colors hover:text-green-300"
+                      className="block font-medium text-gray-400 truncate transition-colors hover:text-blue-400"
                       prefetch={false}
                     >
                       {km.finalBlow.character.name}
@@ -277,7 +224,7 @@ export default function KillmailRow({
                   >
                     <Link
                       href={`/corporations/${km.finalBlow.corporation.id}`}
-                      className="block truncate transition-colors hover:text-cyan-400"
+                      className="block text-gray-400 truncate transition-colors hover:text-blue-400"
                       prefetch={false}
                     >
                       {km.finalBlow.corporation.name}
@@ -294,7 +241,7 @@ export default function KillmailRow({
                   >
                     <Link
                       href={`/alliances/${km.finalBlow.alliance.id}`}
-                      className="block truncate transition-colors hover:text-cyan-400"
+                      className="block truncate transition-colors hover:text-blue-400"
                       prefetch={false}
                     >
                       {km.finalBlow.alliance.name}
@@ -309,7 +256,7 @@ export default function KillmailRow({
 
       {/* System Column */}
       <td className="px-4 py-4 text-base align-top">
-        <div className="space-y-1">
+        <div>
           <div className="flex items-center gap-2">
             {km.solarSystem?.securityStatus !== null &&
               km.solarSystem?.securityStatus !== undefined && (
@@ -341,11 +288,11 @@ export default function KillmailRow({
             </div>
           )}
           {km.solarSystem?.constellation?.region && (
-            <div className="text-base text-cyan-400">
+            <div className="text-base text-blue-400">
               <Tooltip content="Show Region Info" position="top">
                 <Link
                   href={`/regions/${km.solarSystem.constellation.region.id}`}
-                  className="transition-colors hover:text-cyan-300"
+                  className="transition-colors hover:text-blue-300"
                   prefetch={false}
                 >
                   {km.solarSystem.constellation.region.name}
