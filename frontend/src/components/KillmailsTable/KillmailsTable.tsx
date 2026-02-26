@@ -63,15 +63,15 @@ export default function KillmailsTable({
           <div className="border border-white/10">
             <table className="table w-full table-fixed">
               <colgroup>
-                <col className="w-12" />
-                <col className="w-24" />
+                <col className="w-10" />
                 <col className="w-30" />
                 <col className="w-30" />
-                <col className="w-18" />
+                <col className="w-30" />
+                <col className="w-16" />
                 <col className="w-12" />
                 <col className="w-12" />
               </colgroup>
-              <thead className="bg-white/5">
+              <thead className="bg-white/10">
                 <tr>
                   <th className="text-left th-cell">Time</th>
                   <th className="text-left th-cell">Ship</th>

@@ -49,3 +49,41 @@ export const calculateAge = (dateString: string | null | undefined) => {
   if (parts.length === 2) return parts.join(" and ");
   return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
 };
+
+/**
+ * Formats a killmail time to display format (HH:MM:SS)
+ * @param dateString - ISO date string
+ * @returns Time string in UTC
+ */
+export const formatKillmailTime = (dateString: string) => {
+  return new Date(dateString).toLocaleTimeString("en-US", {
+    timeZone: "UTC",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+};
+
+/**
+ * Formats a killmail date and time for tooltip display
+ * @param dateString - ISO date string
+ * @returns Formatted date and time string in UTC
+ */
+export const formatKillmailDateTime = (dateString: string) => {
+  const date = new Date(dateString);
+  const dateStr = date.toLocaleDateString("en-US", {
+    timeZone: "UTC",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  const timeStr = date.toLocaleTimeString("en-US", {
+    timeZone: "UTC",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+  return `${dateStr} ${timeStr} UTC`;
+};
