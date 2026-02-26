@@ -734,6 +734,10 @@ export type Query = {
   solarSystems: SolarSystemsResponse;
   /** Returns top pilots ranked by total kill count over the last 90 days (rolling window) */
   top90DaysPilots: Array<Top90DaysPilot>;
+  /** Returns top alliances ranked by total kill count over the last 7 days (rolling window, today - 6 days) */
+  topLast7DaysAlliances: Array<TopLast7DaysAlliance>;
+  /** Returns top corporations ranked by total kill count over the last 7 days (rolling window, today - 6 days) */
+  topLast7DaysCorporations: Array<TopLast7DaysCorporation>;
   /** Returns top pilots ranked by total kill count over the last 7 days (rolling window, today - 6 days) */
   topLast7DaysPilots: Array<TopLast7DaysPilot>;
   /** Returns top pilots ranked by total kill count for a given calendar month (default: current month) */
@@ -878,6 +882,16 @@ export type QuerySolarSystemsArgs = {
 
 export type QueryTop90DaysPilotsArgs = {
   filter?: InputMaybe<Top90DaysPilotsFilter>;
+};
+
+
+export type QueryTopLast7DaysAlliancesArgs = {
+  filter?: InputMaybe<TopLast7DaysAlliancesFilter>;
+};
+
+
+export type QueryTopLast7DaysCorporationsArgs = {
+  filter?: InputMaybe<TopLast7DaysCorporationsFilter>;
 };
 
 
@@ -1197,6 +1211,30 @@ export type Top90DaysPilot = {
 };
 
 export type Top90DaysPilotsFilter = {
+  /** Max 100; default 100 */
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type TopLast7DaysAlliance = {
+  __typename?: 'TopLast7DaysAlliance';
+  alliance?: Maybe<Alliance>;
+  killCount: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+};
+
+export type TopLast7DaysAlliancesFilter = {
+  /** Max 100; default 100 */
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type TopLast7DaysCorporation = {
+  __typename?: 'TopLast7DaysCorporation';
+  corporation?: Maybe<Corporation>;
+  killCount: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+};
+
+export type TopLast7DaysCorporationsFilter = {
   /** Max 100; default 100 */
   limit?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -1537,6 +1575,10 @@ export type ResolversTypes = {
   SyncMyKillmailsPayload: ResolverTypeWrapper<SyncMyKillmailsPayload>;
   Top90DaysPilot: ResolverTypeWrapper<Top90DaysPilot>;
   Top90DaysPilotsFilter: Top90DaysPilotsFilter;
+  TopLast7DaysAlliance: ResolverTypeWrapper<TopLast7DaysAlliance>;
+  TopLast7DaysAlliancesFilter: TopLast7DaysAlliancesFilter;
+  TopLast7DaysCorporation: ResolverTypeWrapper<TopLast7DaysCorporation>;
+  TopLast7DaysCorporationsFilter: TopLast7DaysCorporationsFilter;
   TopLast7DaysPilot: ResolverTypeWrapper<TopLast7DaysPilot>;
   TopLast7DaysPilotsFilter: TopLast7DaysPilotsFilter;
   TopMonthlyPilot: ResolverTypeWrapper<TopMonthlyPilot>;
@@ -1652,6 +1694,10 @@ export type ResolversParentTypes = {
   SyncMyKillmailsPayload: SyncMyKillmailsPayload;
   Top90DaysPilot: Top90DaysPilot;
   Top90DaysPilotsFilter: Top90DaysPilotsFilter;
+  TopLast7DaysAlliance: TopLast7DaysAlliance;
+  TopLast7DaysAlliancesFilter: TopLast7DaysAlliancesFilter;
+  TopLast7DaysCorporation: TopLast7DaysCorporation;
+  TopLast7DaysCorporationsFilter: TopLast7DaysCorporationsFilter;
   TopLast7DaysPilot: TopLast7DaysPilot;
   TopLast7DaysPilotsFilter: TopLast7DaysPilotsFilter;
   TopMonthlyPilot: TopMonthlyPilot;
@@ -2073,6 +2119,8 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   solarSystem?: Resolver<Maybe<ResolversTypes['SolarSystem']>, ParentType, ContextType, RequireFields<QuerySolarSystemArgs, 'id'>>;
   solarSystems?: Resolver<ResolversTypes['SolarSystemsResponse'], ParentType, ContextType, Partial<QuerySolarSystemsArgs>>;
   top90DaysPilots?: Resolver<Array<ResolversTypes['Top90DaysPilot']>, ParentType, ContextType, Partial<QueryTop90DaysPilotsArgs>>;
+  topLast7DaysAlliances?: Resolver<Array<ResolversTypes['TopLast7DaysAlliance']>, ParentType, ContextType, Partial<QueryTopLast7DaysAlliancesArgs>>;
+  topLast7DaysCorporations?: Resolver<Array<ResolversTypes['TopLast7DaysCorporation']>, ParentType, ContextType, Partial<QueryTopLast7DaysCorporationsArgs>>;
   topLast7DaysPilots?: Resolver<Array<ResolversTypes['TopLast7DaysPilot']>, ParentType, ContextType, Partial<QueryTopLast7DaysPilotsArgs>>;
   topMonthlyPilots?: Resolver<Array<ResolversTypes['TopMonthlyPilot']>, ParentType, ContextType, Partial<QueryTopMonthlyPilotsArgs>>;
   topPilots?: Resolver<Array<ResolversTypes['TopPilot']>, ParentType, ContextType, Partial<QueryTopPilotsArgs>>;
@@ -2242,6 +2290,18 @@ export type Top90DaysPilotResolvers<ContextType = any, ParentType extends Resolv
   rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
+export type TopLast7DaysAllianceResolvers<ContextType = any, ParentType extends ResolversParentTypes['TopLast7DaysAlliance'] = ResolversParentTypes['TopLast7DaysAlliance']> = {
+  alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType>;
+  killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type TopLast7DaysCorporationResolvers<ContextType = any, ParentType extends ResolversParentTypes['TopLast7DaysCorporation'] = ResolversParentTypes['TopLast7DaysCorporation']> = {
+  corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType>;
+  killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
 export type TopLast7DaysPilotResolvers<ContextType = any, ParentType extends ResolversParentTypes['TopLast7DaysPilot'] = ResolversParentTypes['TopLast7DaysPilot']> = {
   character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
   killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -2399,6 +2459,8 @@ export type Resolvers<ContextType = any> = {
   Subscription?: SubscriptionResolvers<ContextType>;
   SyncMyKillmailsPayload?: SyncMyKillmailsPayloadResolvers<ContextType>;
   Top90DaysPilot?: Top90DaysPilotResolvers<ContextType>;
+  TopLast7DaysAlliance?: TopLast7DaysAllianceResolvers<ContextType>;
+  TopLast7DaysCorporation?: TopLast7DaysCorporationResolvers<ContextType>;
   TopLast7DaysPilot?: TopLast7DaysPilotResolvers<ContextType>;
   TopMonthlyPilot?: TopMonthlyPilotResolvers<ContextType>;
   TopPilot?: TopPilotResolvers<ContextType>;
