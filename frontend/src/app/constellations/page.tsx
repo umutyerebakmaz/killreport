@@ -8,7 +8,6 @@ import Paginator from "@/components/Paginator/Paginator";
 import SecurityStatsBar from "@/components/SecurityStatus/SecurityStatsBar";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import { useConstellationsQuery } from "@/generated/graphql";
-import { GlobeAltIcon, MapIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -92,7 +91,6 @@ function ConstellationsContent() {
       <div className="sm:flex sm:items-center sm:justify-between">
         <div className="sm:flex-auto">
           <h1 className="flex items-center gap-3 text-3xl font-semibold text-white">
-            <MapIcon className="w-8 h-8 text-purple-500" />
             Constellations
           </h1>
           <p className="mt-2 text-gray-400">
@@ -138,14 +136,14 @@ function ConstellationsContent() {
         <table className="table">
           <thead className="bg-white/5">
             <tr>
-              <th className="th-cell">Constellation</th>
-              <th className="th-cell">Region</th>
-              <th className="th-cell">Systems</th>
-              <th className="th-cell">Security Distribution</th>
-              <th className="th-cell">Avg Security</th>
+              <th className="text-left th-cell">Constellation</th>
+              <th className="text-left th-cell">Region</th>
+              <th className="text-left th-cell">Systems</th>
+              <th className="text-left th-cell">Security Distribution</th>
+              <th className="text-left th-cell">Avg Security</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/10">
+          <tbody className="divide-y divide-white/5">
             {loading ? (
               <tr>
                 <td
@@ -171,15 +169,14 @@ function ConstellationsContent() {
               constellations.map((constellation) => (
                 <tr
                   key={constellation.id}
-                  className="transition-colors hover:bg-white/5"
+                  className="transition-colors hover:bg-neutral-800 bg-neutral-900"
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <MapIcon className="w-5 h-5 text-purple-500" />
                       <Link
                         href={`/constellations/${constellation.id}`}
                         prefetch={false}
-                        className="font-medium text-purple-500 transition-colors hover:text-purple-400"
+                        className="font-medium text-gray-400 transition-colors hover:text-gray-400"
                       >
                         {constellation.name}
                       </Link>
@@ -190,9 +187,8 @@ function ConstellationsContent() {
                       <Link
                         href={`/regions/${constellation.region.id}`}
                         prefetch={false}
-                        className="flex items-center gap-2 transition-colors text-cyan-500 hover:text-cyan-400"
+                        className="flex items-center gap-2 text-gray-400 transition-colors hover:text-gray-400"
                       >
-                        <GlobeAltIcon className="w-4 h-4 text-cyan-500" />
                         {constellation.region.name}
                       </Link>
                     ) : (
