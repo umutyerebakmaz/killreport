@@ -34,7 +34,7 @@ export default function AttackerRow({
     attacker.corporation?.id && attacker.corporation.id < 2000000;
 
   return (
-    <div className="p-3 bg-white/5">
+    <div className="p-3 transition-colors duration-100 bg-neutral-900 hover:bg-neutral-800">
       <div className="flex">
         {/* Character/Corporation Image */}
         {attacker.character?.id ? (
@@ -113,7 +113,7 @@ export default function AttackerRow({
 
         <div className="flex justify-between w-full">
           {/* Character Name, Corporation, Alliance */}
-          <div className="flex flex-col">
+          <div className="flex flex-col leading-tight space-y-0.5">
             {/* Badges for Final Blow, Top Damage, Solo, and NPC */}
             <div className="flex gap-2 mb-1">
               {isFinalBlow && !isSolo && (
@@ -140,6 +140,12 @@ export default function AttackerRow({
 
             {attacker.character?.id ? (
               <>
+                {/* Ship Name */}
+                {attacker.shipType?.name && (
+                  <div className="text-base text-orange-400">
+                    {attacker.shipType.name}
+                  </div>
+                )}
                 <Tooltip content="Show Character Info">
                   <Link
                     href={`/characters/${attacker.character?.id}`}
@@ -165,7 +171,7 @@ export default function AttackerRow({
               <>
                 {/* NPC attacker: Show ship type name and corporation */}
                 {attacker.shipType?.name && (
-                  <div className="font-medium text-gray-400">
+                  <div className="text-base text-orange-400">
                     {attacker.shipType.name}
                   </div>
                 )}

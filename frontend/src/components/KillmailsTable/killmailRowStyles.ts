@@ -36,8 +36,8 @@ export function getKillmailRowStyles({
   if (!hasEntity) {
     return {
       totalValueColor: "text-orange-400",
-      rowBgColor: "bg-white/5",
-      rowHoverColor: "hover:bg-white/8",
+      rowBgColor: "bg-neutral-900",
+      rowHoverColor: "hover:bg-neutral-800",
     };
   }
 

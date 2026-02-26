@@ -197,7 +197,7 @@ function KillmailsContent() {
             detailed information.
           </p>
           {totalKillmailCount !== null && (
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-400">
               Total: {totalKillmailCount.toLocaleString()} killmails
             </p>
           )}
@@ -249,7 +249,7 @@ function KillmailsContent() {
                 {/* Date Header */}
                 <h2 className="flex items-center gap-2 text-xl font-semibold">
                   <span className="text-gray-200">{date}</span>
-                  <span className="text-sm font-normal text-gray-500">
+                  <span className="text-sm font-normal text-gray-400">
                     ({typedKillmails.length} killmail
                     {typedKillmails.length !== 1 ? "s" : ""})
                   </span>
@@ -269,7 +269,7 @@ function KillmailsContent() {
                         <th className="th-cell">Damage</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/10">
+                    <tbody className="divide-y divide-white/5">
                       {typedKillmails.map((km) => {
                         const isAnimating = animatingKillmails.has(km.id);
 

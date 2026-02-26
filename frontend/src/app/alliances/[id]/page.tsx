@@ -352,7 +352,7 @@ export default function AllianceDetailPage({
               <div className="mb-6">
                 <h2 className="text-2xl font-bold">Killmails</h2>
                 {pageInfo?.totalCount !== undefined && (
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-sm text-gray-400">
                     Total: {pageInfo.totalCount.toLocaleString()} killmails
                   </p>
                 )}
@@ -408,7 +408,7 @@ export default function AllianceDetailPage({
                   corporation to see detailed information and member statistics.
                 </p>
                 {corporationsPageInfo?.totalCount !== undefined && (
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-sm text-gray-400">
                     Total: {corporationsPageInfo.totalCount.toLocaleString()}{" "}
                     corporations
                   </p>

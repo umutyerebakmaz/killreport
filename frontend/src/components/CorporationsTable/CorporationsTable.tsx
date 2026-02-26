@@ -34,17 +34,20 @@ export default function CorporationsTable({
   return (
     <div className="mt-6 overflow-hidden border border-white/10">
       <table className="table">
-        <thead className="bg-white/5">
+        <thead className="bg-neutral-950">
           <tr>
-            <th className="th-cell">Corporation</th>
-            <th className="th-cell">Ticker</th>
-            <th className="th-cell">Members</th>
-            <th className="th-cell">CEO</th>
+            <th className="text-left th-cell">Corporation</th>
+            <th className="text-left th-cell">Ticker</th>
+            <th className="text-left th-cell">Members</th>
+            <th className="text-left th-cell">CEO</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-white/10">
+        <tbody className="divide-y divide-white/5">
           {corporations.map((corp) => (
-            <tr key={corp.id} className="transition-colors hover:bg-white/5">
+            <tr
+              key={corp.id}
+              className="transition-colors bg-neutral-950 hover:bg-neutral-900"
+            >
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center gap-3">
                   <img
