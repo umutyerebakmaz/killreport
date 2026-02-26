@@ -49,7 +49,7 @@ export default function TopCharacterCard({
   }
 
   return (
-    <div className="top-character">
+    <div className="top-character-card">
       <div className="p-4 border-b border-white/10">
         <h3 className="text-lg font-semibold text-white">{title}</h3>
         {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
@@ -66,7 +66,7 @@ export default function TopCharacterCard({
             return (
               <div
                 key={character.id}
-                className="p-3 transition-colors duration-100 bg-white/5 hover:bg-white/8"
+                className="p-3 transition-colors duration-100 bg-neutral-900 hover:bg-neutral-800"
               >
                 <div className="flex items-center gap-3">
                   {/* Rank */}

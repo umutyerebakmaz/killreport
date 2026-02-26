@@ -47,7 +47,7 @@ export default function KillmailsTable({
           {/* Date Header */}
           <h2 className="flex items-center gap-2 text-xl font-semibold">
             <span className="text-gray-200">{date}</span>
-            <span className="text-sm font-normal text-gray-500">
+            <span className="text-sm font-normal text-gray-400">
               (
               {dateCountsMap?.get(date) ?? (dateKillmails as Killmail[]).length}{" "}
               killmail
@@ -60,7 +60,7 @@ export default function KillmailsTable({
           </h2>
 
           {/* Table for this date */}
-          <div className="border border-white/10">
+          <div className="border border-neutral-800">
             <table className="table w-full table-fixed">
               <colgroup>
                 <col className="w-10" />
@@ -69,9 +69,8 @@ export default function KillmailsTable({
                 <col className="w-30" />
                 <col className="w-16" />
                 <col className="w-12" />
-                <col className="w-12" />
               </colgroup>
-              <thead className="bg-white/10">
+              <thead className="bg-neutral-900">
                 <tr>
                   <th className="text-left th-cell">Time</th>
                   <th className="text-left th-cell">Ship</th>
@@ -79,10 +78,9 @@ export default function KillmailsTable({
                   <th className="text-left th-cell">Final Blow</th>
                   <th className="text-left th-cell">System</th>
                   <th className="text-left th-cell">Attackers</th>
-                  <th className="text-right th-cell">Damage</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/10">
+              <tbody className="divide-y divide-white/5">
                 {(dateKillmails as Killmail[]).map((km) => (
                   <KillmailRow
                     key={km.id}
