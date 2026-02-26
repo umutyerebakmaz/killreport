@@ -122,7 +122,7 @@ export default function AttackersCard({
 
   return (
     <div>
-      <div className="flex justify-end px-4 py-2 border-b bg-neutral-900 hover:bg-neutral-800">
+      <div className="flex justify-end px-4 py-2 border-b border-neutral-800 bg-neutral-900 hover:bg-neutral-800">
         <span className="text-lg font-semibold text-gray-300">
           {killmail.attackerCount} ATTACKERS
         </span>
