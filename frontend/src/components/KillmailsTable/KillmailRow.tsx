@@ -73,7 +73,7 @@ export default function KillmailRow({
       style={isAnimating ? { display: "table-row" } : undefined}
     >
       {/* Time & Value Column */}
-      <td className="px-6 py-4 text-base align-top">
+      <td className="px-4 py-4 text-base align-top">
         <Tooltip
           content={`${new Date(km.killmailTime).toLocaleDateString("en-US", {
             timeZone: "UTC",
@@ -107,7 +107,7 @@ export default function KillmailRow({
       </td>
 
       {/* Ship Column */}
-      <td className="px-6 py-4 text-base align-top">
+      <td className="px-4 py-4 text-base align-top">
         <div className="flex items-start gap-3">
           {km.victim?.shipType && (
             <Tooltip content="View Killmail Details" position="top">
@@ -117,7 +117,7 @@ export default function KillmailRow({
                 prefetch={false}
               >
                 {/* Left gradient border: brown → transparent top to bottom */}
-                <div className="absolute top-0 left-0 z-10 w-px h-full bg-linear-to-b from-amber-800 to-transparent" />
+                <div className="absolute top-0 left-0 z-10 w-px h-full bg-linear-to-b from-a<immber-800 to-transparent" />
                 {/* Top gradient border: brown → transparent left to right */}
                 <div className="absolute top-0 left-0 z-10 w-full h-px bg-linear-to-r from-amber-800 to-transparent" />
                 {/* Ship tier badge */}
@@ -150,7 +150,7 @@ export default function KillmailRow({
       </td>
 
       {/* Victim Column */}
-      <td className="px-6 py-4 text-base align-top">
+      <td className="px-4 py-4 text-base align-top">
         <div className="flex items-center gap-3">
           {/* Alliance logo if exists, otherwise corporation logo */}
           {(km.victim?.alliance?.id || km.victim?.corporation?.id) && (
@@ -165,17 +165,21 @@ export default function KillmailRow({
                 km.victim?.corporation?.name ||
                 "Logo"
               }
-              className="size-20"
+              className="shadow-md size-20"
               loading="lazy"
             />
           )}
           <div className="flex-1 min-w-0 space-y-1">
-            <div className="font-medium text-red-500 min-w-0">
+            <div className="min-w-0 font-medium text-red-500">
               {km.victim?.character ? (
-                <Tooltip content="Show Character Info" position="top" className="!w-full min-w-0">
+                <Tooltip
+                  content="Show Character Info"
+                  position="top"
+                  className="w-full! min-w-0"
+                >
                   <Link
                     href={`/characters/${km.victim.character.id}`}
-                    className="block transition-colors truncate hover:text-red-400"
+                    className="block truncate transition-colors hover:text-red-400"
                     prefetch={false}
                   >
                     {km.victim.character.name}
@@ -186,11 +190,15 @@ export default function KillmailRow({
               )}
             </div>
             {km.victim?.corporation && (
-              <div className="text-base text-gray-400 min-w-0">
-                <Tooltip content="Show Corporation Info" position="top" className="!w-full min-w-0">
+              <div className="min-w-0 text-base text-gray-400">
+                <Tooltip
+                  content="Show Corporation Info"
+                  position="top"
+                  className="w-full! min-w-0"
+                >
                   <Link
                     href={`/corporations/${km.victim.corporation?.id}`}
-                    className="block transition-colors truncate hover:text-cyan-400"
+                    className="block truncate transition-colors hover:text-cyan-400"
                     prefetch={false}
                   >
                     {km.victim.corporation?.name}
@@ -199,11 +207,15 @@ export default function KillmailRow({
               </div>
             )}
             {km.victim?.alliance && (
-              <div className="text-base text-gray-500 min-w-0">
-                <Tooltip content="Show Alliance Info" position="top" className="!w-full min-w-0">
+              <div className="min-w-0 text-base text-gray-500">
+                <Tooltip
+                  content="Show Alliance Info"
+                  position="top"
+                  className="w-full! min-w-0"
+                >
                   <Link
                     href={`/alliances/${km.victim.alliance.id}`}
-                    className="block transition-colors truncate hover:text-cyan-400"
+                    className="block truncate transition-colors hover:text-cyan-400"
                     prefetch={false}
                   >
                     {km.victim.alliance.name}
@@ -216,7 +228,7 @@ export default function KillmailRow({
       </td>
 
       {/* Final Blow Column */}
-      <td className="px-6 py-4 text-base align-top">
+      <td className="px-4 py-4 text-base align-top">
         {km.finalBlow && (
           <div className="flex items-center gap-3">
             {/* Alliance logo if exists, otherwise corporation logo */}
@@ -232,17 +244,21 @@ export default function KillmailRow({
                   km.finalBlow.corporation?.name ||
                   "Logo"
                 }
-                className="size-20"
+                className="shadow-md size-20"
                 loading="lazy"
               />
             )}
             <div className="flex-1 min-w-0 space-y-1">
-              <div className="font-medium text-green-600 min-w-0">
+              <div className="min-w-0 font-medium text-green-600">
                 {km.finalBlow.character ? (
-                  <Tooltip content="Show Character Info" position="top" className="!w-full min-w-0">
+                  <Tooltip
+                    content="Show Character Info"
+                    position="top"
+                    className="w-full! min-w-0"
+                  >
                     <Link
                       href={`/characters/${km.finalBlow.character.id}`}
-                      className="block transition-colors truncate hover:text-green-300"
+                      className="block truncate transition-colors hover:text-green-300"
                       prefetch={false}
                     >
                       {km.finalBlow.character.name}
@@ -253,11 +269,15 @@ export default function KillmailRow({
                 )}
               </div>
               {km.finalBlow.corporation && (
-                <div className="text-base text-gray-400 min-w-0">
-                  <Tooltip content="Show Corporation Info" position="top" className="!w-full min-w-0">
+                <div className="min-w-0 text-base text-gray-400">
+                  <Tooltip
+                    content="Show Corporation Info"
+                    position="top"
+                    className="w-full! min-w-0"
+                  >
                     <Link
                       href={`/corporations/${km.finalBlow.corporation.id}`}
-                      className="block transition-colors truncate hover:text-cyan-400"
+                      className="block truncate transition-colors hover:text-cyan-400"
                       prefetch={false}
                     >
                       {km.finalBlow.corporation.name}
@@ -266,11 +286,15 @@ export default function KillmailRow({
                 </div>
               )}
               {km.finalBlow.alliance && (
-                <div className="text-base text-gray-500 min-w-0">
-                  <Tooltip content="Show Alliance Info" position="top" className="!w-full min-w-0">
+                <div className="min-w-0 text-base text-gray-500">
+                  <Tooltip
+                    content="Show Alliance Info"
+                    position="top"
+                    className="w-full! min-w-0"
+                  >
                     <Link
                       href={`/alliances/${km.finalBlow.alliance.id}`}
-                      className="block transition-colors truncate hover:text-cyan-400"
+                      className="block truncate transition-colors hover:text-cyan-400"
                       prefetch={false}
                     >
                       {km.finalBlow.alliance.name}
@@ -284,7 +308,7 @@ export default function KillmailRow({
       </td>
 
       {/* System Column */}
-      <td className="px-6 py-4 text-base align-top">
+      <td className="px-4 py-4 text-base align-top">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             {km.solarSystem?.securityStatus !== null &&
@@ -333,7 +357,7 @@ export default function KillmailRow({
       </td>
 
       {/* Attackers Column */}
-      <td className="px-6 py-4 text-base">
+      <td className="px-4 py-4 text-base">
         <div className="flex items-center justify-center gap-2">
           {isSolo ? (
             <span className="px-2 py-0.5 font-medium text-green-600 rounded bg-green-600/10">
@@ -353,8 +377,8 @@ export default function KillmailRow({
       </td>
 
       {/* Damage Column */}
-      <td className="px-6 py-4 text-base">
-        <span className="flex items-center justify-center font-medium text-red-400">
+      <td className="px-4 py-4 text-base">
+        <span className="flex items-center justify-end font-medium text-red-400">
           {km.victim?.damageTaken?.toLocaleString() || 0}
         </span>
       </td>
