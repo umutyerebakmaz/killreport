@@ -1,0 +1,11 @@
+query TopLast7DaysCorporations($filter: TopLast7DaysCorporationsFilter) {
+  topLast7DaysCorporations(filter: $filter) {
+    rank
+    killCount
+    corporation {
+      id
+      name
+      ticker
+    }
+  }
+}

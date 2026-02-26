@@ -595,6 +595,16 @@ type Query {
   top90DaysPilots(filter: Top90DaysPilotsFilter): [Top90DaysPilot!]!
 
   """
+  Returns top alliances ranked by total kill count over the last 7 days (rolling window, today - 6 days)
+  """
+  topLast7DaysAlliances(filter: TopLast7DaysAlliancesFilter): [TopLast7DaysAlliance!]!
+
+  """
+  Returns top corporations ranked by total kill count over the last 7 days (rolling window, today - 6 days)
+  """
+  topLast7DaysCorporations(filter: TopLast7DaysCorporationsFilter): [TopLast7DaysCorporation!]!
+
+  """
   Returns top pilots ranked by total kill count over the last 7 days (rolling window, today - 6 days)
   """
   topLast7DaysPilots(filter: TopLast7DaysPilotsFilter): [TopLast7DaysPilot!]!
@@ -898,6 +908,28 @@ type Top90DaysPilot {
 }
 
 input Top90DaysPilotsFilter {
+  """Max 100; default 100"""
+  limit: Int
+}
+
+type TopLast7DaysAlliance {
+  alliance: Alliance
+  killCount: Int!
+  rank: Int!
+}
+
+input TopLast7DaysAlliancesFilter {
+  """Max 100; default 100"""
+  limit: Int
+}
+
+type TopLast7DaysCorporation {
+  corporation: Corporation
+  killCount: Int!
+  rank: Int!
+}
+
+input TopLast7DaysCorporationsFilter {
   """Max 100; default 100"""
   limit: Int
 }

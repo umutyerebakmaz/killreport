@@ -23,6 +23,7 @@ import { calculateKillmailValues } from '@helpers/calculate-killmail-values';
 import { AllianceService } from '@services/alliance/alliance.service';
 import { CharacterService } from '@services/character/character.service';
 import { CorporationService } from '@services/corporation/corporation.service';
+import { updateDailyAggregatesRealtime } from '@services/daily-aggregates-realtime';
 import { KillmailDetail, KillmailService } from '@services/killmail';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
@@ -586,6 +587,14 @@ async function saveKillmail(killmail: KillmailDetail, hash: string): Promise<boo
                     })),
                 });
             }
+
+            // ⚡ Update daily aggregates in real-time (pilots, corps, alliances)
+            await updateDailyAggregatesRealtime(tx, {
+                killmail_time: new Date(killmail_time),
+                character_ids: attackers.map(a => a.character_id || null),
+                corporation_ids: attackers.map(a => a.corporation_id || null),
+                alliance_ids: attackers.map(a => a.alliance_id || null),
+            });
 
             // Create items (dropped/destroyed)
             if (victim.items && victim.items.length > 0) {
