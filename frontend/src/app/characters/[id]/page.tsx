@@ -314,7 +314,7 @@ export default function CharacterDetailPage({
             <div className="killmails-tab">
               <div className="mb-6">
                 {pageInfo?.totalCount !== undefined && (
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-sm text-gray-400">
                     Total: {pageInfo.totalCount.toLocaleString()} killmails
                   </p>
                 )}
