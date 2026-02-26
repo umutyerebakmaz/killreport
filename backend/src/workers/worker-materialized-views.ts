@@ -4,11 +4,18 @@
  * Periodically refreshes materialized views for high-performance queries.
  * Runs independently from the API server for better isolation and stability.
  *
+ * ⚡ NEW: Real-time incremental updates
+ * - Daily tables (pilot/corp/alliance kills) are now updated in REAL-TIME
+ *   as killmails are saved (see daily-aggregates-realtime.ts)
+ * - This worker now serves as a FALLBACK/CONSISTENCY CHECK
+ * - Runs every 5 minutes to catch any missed updates
+ * - Full refresh still happens once per day at 3 AM UTC
+ *
  * Features:
- * - Staggered refresh to reduce CPU spikes (30s delays)
+ * - Staggered refresh to reduce CPU spikes (10-20s delays)
  * - Character view throttling (10 min intervals)
  * - Intelligent refresh (only when new data exists)
- * - Memory optimization (128-256MB maintenance_work_mem)
+ * - Memory optimization (128MB maintenance_work_mem)
  * - Cleanup on shutdown
  *
  * Usage:
@@ -19,7 +26,12 @@
  */
 
 import logger from '@services/logger';
-import { incrementalRefreshDailyPilotKills, incrementalRefreshKillmailFilters } from '@services/materialized-view-incremental';
+import {
+  incrementalRefreshDailyAllianceKills,
+  incrementalRefreshDailyCorporationKills,
+  incrementalRefreshDailyPilotKills,
+  incrementalRefreshKillmailFilters
+} from '@services/materialized-view-incremental';
 import prismaWorker from '@services/prisma-worker';
 
 // Track active timeouts for cleanup
@@ -91,6 +103,8 @@ function markCharacterViewRefreshed(): void {
  * OPTIMIZATION: Uses incremental refresh for main views
  * - killmail_filters: Incremental (only new records)
  * - daily_pilot_kills: Incremental (only last 6 hours)
+ * - daily_corporation_kills: Incremental (only last 6 hours)
+ * - daily_alliance_kills: Incremental (only last 6 hours)
  * - Character views: Full refresh but staggered by 30-60s
  */
 async function performRefreshCycle() {
@@ -114,6 +128,28 @@ async function performRefreshCycle() {
       }
     }, 10000); // 10 second stagger
     activeTimeouts.push(timeout0);
+
+    // 2b. Daily corporation kills - INCREMENTAL refresh
+    const timeout0b = setTimeout(async () => {
+      try {
+        logger.info('🔄 Starting daily_corporation_kills incremental refresh...');
+        await incrementalRefreshDailyCorporationKills();
+      } catch (error) {
+        logger.error('❌ Error refreshing daily corporation kills:', error);
+      }
+    }, 15000); // 15 second stagger
+    activeTimeouts.push(timeout0b);
+
+    // 2c. Daily alliance kills - INCREMENTAL refresh
+    const timeout0c = setTimeout(async () => {
+      try {
+        logger.info('🔄 Starting daily_alliance_kills incremental refresh...');
+        await incrementalRefreshDailyAllianceKills();
+      } catch (error) {
+        logger.error('❌ Error refreshing daily alliance kills:', error);
+      }
+    }, 20000); // 20 second stagger
+    activeTimeouts.push(timeout0c);
 
     // 3. Character target views - only refresh if throttle period has passed
     if (needsCharacterViewRefresh()) {
