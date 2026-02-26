@@ -44,7 +44,7 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 bg-custom-dark-90 backdrop-blur-sm">
+    <header className="sticky top-0 z-50 backdrop-blur-sm bg-neutral-900">
       <nav
         aria-label="Global"
         className="flex items-center justify-between p-6 mx-auto lg:px-8 xl:px-12 2xl:px-16 max-w-480"
