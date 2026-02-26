@@ -5,10 +5,12 @@ import KillmailFilters from "@/components/Filters/KillmailFilters";
 import KillmailsTable from "@/components/KillmailsTable";
 import Loader from "@/components/Loader";
 import Paginator from "@/components/Paginator/Paginator";
+import TopCharacterCard from "@/components/TopCharacterCard/TopCharacterCard";
 import {
   useKillmailsDateCountsQuery,
   useKillmailsQuery,
   useNewKillmailSubscription,
+  useTopLast7DaysPilotsQuery,
 } from "@/generated/graphql";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
@@ -109,6 +111,12 @@ function KillmailsContent() {
   >(new Map());
   const [realtimeTotalCountIncrement, setRealtimeTotalCountIncrement] =
     useState(0);
+
+  // Fetch last 7 days top characters for sidebar (rolling data)
+  const { data: weeklyPilotsData, loading: weeklyPilotsLoading } =
+    useTopLast7DaysPilotsQuery({
+      variables: { filter: { limit: 10 } },
+    });
 
   // Subscribe to new killmails only when on first page and no filters are active
   const {
@@ -407,33 +415,66 @@ function KillmailsContent() {
         />
       </div>
 
-      {/* Killmails Table */}
-      <div className="mt-6">
-        <KillmailsTable
-          killmails={killmails}
-          animatingKillmails={animatingKillmails}
-          loading={loading}
-          dateCountsMap={dateCountsMap}
-        />
-      </div>
+      {/* 2-column grid layout */}
+      <div className="grid grid-cols-1 gap-6 mt-6 lg:grid-cols-4">
+        {/* Left side - Killmails Table (takes 3 columns) */}
+        <div className="lg:col-span-3">
+          <KillmailsTable
+            killmails={killmails}
+            animatingKillmails={animatingKillmails}
+            loading={loading}
+            dateCountsMap={dateCountsMap}
+          />
 
-      <div className="mt-6">
-        <Paginator
-          hasNextPage={pageInfo?.hasNextPage ?? false}
-          hasPrevPage={pageInfo?.hasPreviousPage ?? false}
-          onNext={handleNext}
-          onPrev={handlePrev}
-          onFirst={handleFirst}
-          onLast={handleLast}
-          loading={loading}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          pageSize={pageSize}
-          onPageSizeChange={(size) => {
-            setPageSize(size);
-            setCurrentPage(1);
-          }}
-        />
+          <div className="mt-6">
+            <Paginator
+              hasNextPage={pageInfo?.hasNextPage ?? false}
+              hasPrevPage={pageInfo?.hasPreviousPage ?? false}
+              onNext={handleNext}
+              onPrev={handlePrev}
+              onFirst={handleFirst}
+              onLast={handleLast}
+              loading={loading}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Right side - Sidebar */}
+        <div className="space-y-6 lg:col-span-1 lg:-mt-9">
+          <TopCharacterCard
+            title="Top Weekly Pilots"
+            subtitle="Most active pilots (rolling)"
+            characters={
+              weeklyPilotsData?.topLast7DaysPilots?.map((pilot) => ({
+                id: pilot.character?.id || 0,
+                name: pilot.character?.name || "Unknown",
+                killCount: pilot.killCount,
+                securityStatus: pilot.character?.securityStatus,
+                corporation: pilot.character?.corporation
+                  ? {
+                      id: pilot.character.corporation.id,
+                      name: pilot.character.corporation.name,
+                    }
+                  : null,
+                alliance: pilot.character?.alliance
+                  ? {
+                      id: pilot.character.alliance.id,
+                      name: pilot.character.alliance.name,
+                    }
+                  : null,
+              })) || []
+            }
+            loading={weeklyPilotsLoading}
+            emptyText="No pilot data available"
+          />
+        </div>
       </div>
     </div>
   );
