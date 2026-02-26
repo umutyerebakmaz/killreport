@@ -1,5 +1,6 @@
 import { calculateKillmailValues } from '@helpers/calculate-killmail-values';
 import { CorporationService } from '@services/corporation/corporation.service';
+import { updateDailyAggregatesRealtime } from '@services/daily-aggregates-realtime';
 import { KillmailService } from '@services/killmail/killmail.service';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
@@ -286,6 +287,14 @@ async function syncCorporationKillmailsFromESI(
                                     final_blow: attacker.final_blow,
                                     security_status: attacker.security_status || 0,
                                 })),
+                            });
+
+                            // ⚡ Update daily aggregates in real-time
+                            await updateDailyAggregatesRealtime(tx, {
+                                killmail_time: new Date(detail.killmail_time),
+                                character_ids: detail.attackers.map(a => a.character_id || null),
+                                corporation_ids: detail.attackers.map(a => a.corporation_id || null),
+                                alliance_ids: detail.attackers.map(a => a.alliance_id || null),
                             });
                         }
 
