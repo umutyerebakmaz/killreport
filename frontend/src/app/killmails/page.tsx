@@ -16,6 +16,10 @@ import {
   useTopLast7DaysCorporationsQuery,
   useTopLast7DaysPilotsQuery,
 } from "@/generated/graphql";
+import {
+  buildKillmailFiltersUrl,
+  parseKillmailFiltersFromUrl,
+} from "@/utils/filterUrlHelpers";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 
@@ -23,44 +27,14 @@ function KillmailsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const pageFromUrl = Number(searchParams.get("page")) || 1;
-  const orderByFromUrl = searchParams.get("orderBy") || "timeDesc";
-  const shipTypeIdFromUrl = searchParams.get("shipTypeId")
-    ? Number(searchParams.get("shipTypeId"))
-    : undefined;
-  const minAttackersFromUrl = searchParams.get("minAttackers")
-    ? Number(searchParams.get("minAttackers"))
-    : undefined;
-  const maxAttackersFromUrl = searchParams.get("maxAttackers")
-    ? Number(searchParams.get("maxAttackers"))
-    : undefined;
-  const minValueFromUrl = searchParams.get("minValue")
-    ? Number(searchParams.get("minValue"))
-    : undefined;
-  const maxValueFromUrl = searchParams.get("maxValue")
-    ? Number(searchParams.get("maxValue"))
-    : undefined;
-  const shipTypeRoleFromUrl =
-    (searchParams.get("shipTypeRole") as
-      | "all"
-      | "victim"
-      | "attacker"
-      | null) ?? "all";
+  // Parse all filters from URL
+  const urlFilters = useMemo(
+    () => parseKillmailFiltersFromUrl(searchParams),
+    [searchParams],
+  );
 
-  const characterRoleFromUrl =
-    (searchParams.get("characterRole") as
-      | "all"
-      | "victim"
-      | "attacker"
-      | null) ?? "all";
-
-  const [currentPage, setCurrentPage] = useState(pageFromUrl);
+  const [currentPage, setCurrentPage] = useState(urlFilters.page);
   const [pageSize, setPageSize] = useState(25);
-  const [orderBy, setOrderBy] = useState<string>(orderByFromUrl);
-  const characterIdFromUrl = searchParams.get("characterId")
-    ? Number(searchParams.get("characterId"))
-    : undefined;
-
   const [filters, setFilters] = useState<{
     shipTypeId?: number;
     characterId?: number;
@@ -75,36 +49,16 @@ function KillmailsContent() {
     minValue?: number;
     maxValue?: number;
   }>({
-    characterId: characterIdFromUrl,
-    shipTypeId: shipTypeIdFromUrl,
-    minAttackers: minAttackersFromUrl,
-    maxAttackers: maxAttackersFromUrl,
-    minValue: minValueFromUrl,
-    maxValue: maxValueFromUrl,
-    victim:
-      shipTypeIdFromUrl && shipTypeRoleFromUrl === "victim"
-        ? true
-        : shipTypeIdFromUrl && shipTypeRoleFromUrl === "attacker"
-          ? false
-          : undefined,
-    attacker:
-      shipTypeIdFromUrl && shipTypeRoleFromUrl === "attacker"
-        ? true
-        : shipTypeIdFromUrl && shipTypeRoleFromUrl === "victim"
-          ? false
-          : undefined,
-    characterVictim:
-      characterIdFromUrl && characterRoleFromUrl === "victim"
-        ? true
-        : characterIdFromUrl && characterRoleFromUrl === "attacker"
-          ? false
-          : undefined,
-    characterAttacker:
-      characterIdFromUrl && characterRoleFromUrl === "attacker"
-        ? true
-        : characterIdFromUrl && characterRoleFromUrl === "victim"
-          ? false
-          : undefined,
+    characterId: urlFilters.characterId,
+    shipTypeId: urlFilters.shipTypeId,
+    minAttackers: urlFilters.minAttackers,
+    maxAttackers: urlFilters.maxAttackers,
+    minValue: urlFilters.minValue,
+    maxValue: urlFilters.maxValue,
+    victim: urlFilters.victim,
+    attacker: urlFilters.attacker,
+    characterVictim: urlFilters.characterVictim,
+    characterAttacker: urlFilters.characterAttacker,
   });
   const [newKillmails, setNewKillmails] = useState<any[]>([]);
   const [animatingKillmails, setAnimatingKillmails] = useState<Set<string>>(
@@ -211,7 +165,7 @@ function KillmailsContent() {
     setNewKillmails([]);
     setRealtimeDateCounts(new Map());
     setRealtimeTotalCountIncrement(0);
-  }, [currentPage, orderBy, filters]);
+  }, [currentPage, filters]);
 
   const handleFilterChange = (newFilters: {
     shipTypeId?: number;
@@ -241,7 +195,7 @@ function KillmailsContent() {
       filter: {
         page: currentPage,
         limit: pageSize,
-        orderBy: orderBy as any,
+        orderBy: "timeDesc" as any,
         shipTypeId: filters.shipTypeId,
         characterId: filters.characterId,
         victim: filters.victim,
@@ -280,39 +234,10 @@ function KillmailsContent() {
 
   // URL sync
   useEffect(() => {
-    const params = new URLSearchParams();
-    params.set("page", currentPage.toString());
-    params.set("orderBy", orderBy);
-    if (filters.shipTypeId) {
-      params.set("shipTypeId", filters.shipTypeId.toString());
-      if (filters.victim === true && filters.attacker === false)
-        params.set("shipTypeRole", "victim");
-      else if (filters.attacker === true && filters.victim === false)
-        params.set("shipTypeRole", "attacker");
-    }
-    if (filters.characterId) {
-      params.set("characterId", filters.characterId.toString());
-      if (
-        filters.characterVictim === true &&
-        filters.characterAttacker === false
-      )
-        params.set("characterRole", "victim");
-      else if (
-        filters.characterAttacker === true &&
-        filters.characterVictim === false
-      )
-        params.set("characterRole", "attacker");
-    }
-    if (filters.minAttackers)
-      params.set("minAttackers", filters.minAttackers.toString());
-    if (filters.maxAttackers)
-      params.set("maxAttackers", filters.maxAttackers.toString());
-    if (filters.minValue) params.set("minValue", filters.minValue.toString());
-    if (filters.maxValue) params.set("maxValue", filters.maxValue.toString());
-    router.push(`/killmails?${params.toString()}`, { scroll: false });
+    const urlParams = buildKillmailFiltersUrl(currentPage, filters);
+    router.push(`/killmails?${urlParams}`, { scroll: false });
   }, [
     currentPage,
-    orderBy,
     filters.characterId,
     filters.shipTypeId,
     filters.victim,
@@ -418,16 +343,14 @@ function KillmailsContent() {
         <KillmailFilters
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}
-          orderBy={orderBy}
-          onOrderByChange={setOrderBy}
-          initialShipTypeId={shipTypeIdFromUrl}
-          initialCharacterId={characterIdFromUrl}
-          initialMinAttackers={minAttackersFromUrl}
-          initialMaxAttackers={maxAttackersFromUrl}
-          initialMinValue={minValueFromUrl}
-          initialMaxValue={maxValueFromUrl}
-          initialShipRole={shipTypeRoleFromUrl}
-          initialCharacterRole={characterRoleFromUrl}
+          initialShipTypeId={urlFilters.shipTypeId}
+          initialCharacterId={urlFilters.characterId}
+          initialMinAttackers={urlFilters.minAttackers}
+          initialMaxAttackers={urlFilters.maxAttackers}
+          initialMinValue={urlFilters.minValue}
+          initialMaxValue={urlFilters.maxValue}
+          initialShipRole={urlFilters.shipTypeRole}
+          initialCharacterRole={urlFilters.characterRole}
         />
       </div>
 
