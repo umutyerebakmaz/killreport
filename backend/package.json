@@ -70,7 +70,9 @@
         "worker:bloodlines": "tsx src/workers/worker-bloodlines.ts",
         "worker:prices": "tsx src/workers/worker-prices.ts",
         "worker:backfill-values": "tsx src/workers/worker-backfill-values.ts",
-        "worker:materialized-views": "tsx src/workers/worker-materialized-views.ts"
+        "worker:materialized-views": "tsx src/workers/worker-materialized-views.ts",
+        "worker:retention-cleanup": "tsx src/workers/worker-retention-cleanup.ts",
+        "cleanup:retention": "tsx cleanup-retention.ts"
     },
     "dependencies": {
         "@envelop/response-cache": "^9.0.0",
