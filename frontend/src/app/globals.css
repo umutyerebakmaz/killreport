@@ -41,7 +41,7 @@ body {
 }
 
 .select {
-  @apply px-4 py-2.5 pr-10 text-sm font-medium text-white transition-all duration-200 border appearance-none cursor-pointer bg-gray-900/70 border-gray-700/70 shadow-sm hover:bg-gray-800/80 hover:border-cyan-500/50 hover:shadow-cyan-500/10 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500;
+  @apply px-4 py-2.5 pr-10 text-sm font-medium text-white transition-all duration-200 border appearance-none cursor-pointer bg-gray-900/70 border-gray-700/70 shadow-sm hover:bg-gray-800/80 hover:border-white/5 focus:outline-none focus:ring-2 focus:ring-white/5 focus:border-white/5;
 }
 
 .select:disabled {
@@ -53,11 +53,11 @@ body {
 }
 
 .select option:hover {
-  @apply bg-linear-to-r from-gray-800 to-gray-800/90 text-cyan-400 cursor-pointer;
+  @apply bg-linear-to-r from-gray-800 to-gray-800/90 text-white cursor-pointer;
 }
 
 .select option:checked {
-  @apply bg-linear-to-r from-cyan-900/30 to-cyan-800/20 text-cyan-300 font-semibold;
+  @apply bg-linear-to-r from-gray-800/30 to-gray-700/20 text-gray-200 font-semibold;
 }
 
 /* Custom scrollbar for select dropdowns */
@@ -74,7 +74,7 @@ body {
 }
 
 .select::-webkit-scrollbar-thumb:hover {
-  @apply bg-cyan-600;
+  @apply bg-gray-600;
 }
 
 /* Custom scrollbar for character dropdown */
@@ -91,7 +91,7 @@ body {
 }
 
 .character-dropdown-scroll::-webkit-scrollbar-thumb:hover {
-  @apply bg-cyan-600;
+  @apply bg-gray-600;
 }
 
 .select-option-container .chevron-down-icon {
@@ -99,7 +99,7 @@ body {
 }
 
 .select-option-container:hover .chevron-down-icon {
-  @apply text-cyan-400;
+  @apply text-gray-300;
 }
 
 .alliance-name,
