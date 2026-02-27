@@ -289,7 +289,8 @@ export default function ChangelogPage() {
                 </div>
               ),
             )}
-        </div>
+          </div>
+        )}
       </section>
 
       {/* Releases Section */}
