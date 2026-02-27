@@ -12,6 +12,7 @@ const navigation = {
   resources: [
     { name: "API Documentation", href: "/graphql" },
     { name: "Workers Status", href: "/workers" },
+    { name: "Changelog", href: "/changelog" },
     { name: "EVE Online", href: "https://www.eveonline.com" },
     { name: "zKillboard", href: "https://zkillboard.com" },
   ],
