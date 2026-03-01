@@ -249,6 +249,7 @@ export default function CorporationDetailPage({
       id: ship.shipType.id,
       name: ship.shipType.name,
       killCount: ship.killCount,
+      dogmaAttributes: ship.shipType.dogmaAttributes,
     })) || [];
 
   // Map top attacker ships from independent query (used ships)
@@ -257,6 +258,7 @@ export default function CorporationDetailPage({
       id: ship.shipType.id,
       name: ship.shipType.name,
       killCount: ship.killCount,
+      dogmaAttributes: ship.shipType.dogmaAttributes,
     })) || [];
 
   // Map alliance targets from independent query

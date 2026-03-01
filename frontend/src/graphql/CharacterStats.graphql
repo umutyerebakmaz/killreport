@@ -35,6 +35,10 @@ query CharacterTopShipTargets($characterId: Int!, $filter: TopTargetFilter) {
     shipType {
       id
       name
+      dogmaAttributes(ids: [422, 1692]) {
+        attribute_id
+        value
+      }
     }
   }
 }
@@ -45,6 +49,10 @@ query CharacterTopShips($characterId: Int!, $filter: TopTargetFilter) {
     shipType {
       id
       name
+      dogmaAttributes(ids: [422, 1692]) {
+        attribute_id
+        value
+      }
     }
   }
 }

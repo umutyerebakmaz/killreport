@@ -44,6 +44,10 @@ query CorporationTopShipTargets(
     shipType {
       id
       name
+      dogmaAttributes(ids: [422, 1692]) {
+        attribute_id
+        value
+      }
     }
   }
 }
@@ -54,6 +58,10 @@ query CorporationTopShips($corporationId: Int!, $filter: TopTargetFilter) {
     shipType {
       id
       name
+      dogmaAttributes(ids: [422, 1692]) {
+        attribute_id
+        value
+      }
     }
   }
 }
