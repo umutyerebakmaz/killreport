@@ -1,5 +1,34 @@
 # KillReport - AI Coding Agent Instructions
 
+## Core Development Principles
+
+### Package Manager
+
+**ALWAYS USE YARN**: This project uses Yarn as the package manager. Never use npm commands.
+
+- ✅ `yarn install`, `yarn add`, `yarn dev`, `yarn codegen`
+- ❌ `npm install`, `npm run`, etc.
+
+### Separation of Concerns (SoC)
+
+**MANDATORY**: Always follow separation of concerns principle in all implementations:
+
+- **Services Layer** (`backend/src/services/`): Business logic, database queries, external API calls
+- **Resolvers Layer** (`backend/src/resolvers/`): GraphQL orchestration only, delegate to services
+- **Schema Layer** (`backend/src/schemas/`): GraphQL type definitions, independent and modular
+- **Workers Layer** (`backend/src/workers/`): Queue processing, isolated from API logic
+- **Components Layer** (`frontend/src/components/`): Reusable UI, no business logic
+- **Utilities Layer** (`utils/`, `helpers/`): Pure functions, no side effects
+
+**Examples**:
+
+- ✅ Resolver calls service → Service queries database
+- ❌ Resolver contains database query logic
+- ✅ Independent top-level queries for statistics (parallel execution)
+- ❌ Nested resolvers that cause N+1 problems
+- ✅ Services use Redis caching, resolvers don't know about cache
+- ❌ Mixing API logic with worker queue processing
+
 ## Architecture Overview
 
 **Full-stack EVE Online killmail tracker**: Next.js 15 frontend + GraphQL Yoga backend + PostgreSQL + RabbitMQ workers

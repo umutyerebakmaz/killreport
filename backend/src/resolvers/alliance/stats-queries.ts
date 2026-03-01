@@ -36,4 +36,12 @@ export const allianceStatsQueries: QueryResolvers = {
     allianceTopShipTargets: async (_, { allianceId, filter }) => {
         return AllianceStatsService.getTopShipTargets(allianceId, filter);
     },
+
+    /**
+     * Get top 10 ship types that an alliance has used most (as attacker)
+     * Cached in Redis with smart TTL based on time filter
+     */
+    allianceTopShips: async (_, { allianceId, filter }) => {
+        return AllianceStatsService.getTopShips(allianceId, filter);
+    },
 };

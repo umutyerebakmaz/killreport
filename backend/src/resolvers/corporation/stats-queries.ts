@@ -36,4 +36,12 @@ export const corporationStatsQueries: QueryResolvers = {
     corporationTopShipTargets: async (_, { corporationId, filter }) => {
         return CorporationStatsService.getTopShipTargets(corporationId, filter);
     },
+
+    /**
+     * Get top 10 ship types that a corporation has used most (as attacker)
+     * Cached in Redis with smart TTL based on time filter
+     */
+    corporationTopShips: async (_, { corporationId, filter }) => {
+        return CorporationStatsService.getTopShips(corporationId, filter);
+    },
 };

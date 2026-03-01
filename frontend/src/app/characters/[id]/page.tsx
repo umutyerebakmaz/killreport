@@ -12,6 +12,7 @@ import {
   useCharacterQuery,
   useCharacterTopAllianceTargetsQuery,
   useCharacterTopCorporationTargetsQuery,
+  useCharacterTopShipsQuery,
   useCharacterTopShipTargetsQuery,
   useKillmailsDateCountsQuery,
 } from "@/generated/graphql";
@@ -65,6 +66,13 @@ export default function CharacterDetailPage({
 
   const { data: shipTargetsData, loading: shipTargetsLoading } =
     useCharacterTopShipTargetsQuery({
+      variables: {
+        characterId: parseInt(id),
+      },
+    });
+
+  const { data: topShipsData, loading: topShipsLoading } =
+    useCharacterTopShipsQuery({
       variables: {
         characterId: parseInt(id),
       },
@@ -174,9 +182,17 @@ export default function CharacterDetailPage({
       count: target.killCount,
     })) || [];
 
-  // Map top ships from independent query
-  const topShips =
+  // Map top ship targets from independent query
+  const topShipTargets =
     shipTargetsData?.characterTopShipTargets?.map((ship) => ({
+      id: ship.shipType.id,
+      name: ship.shipType.name,
+      killCount: ship.killCount,
+    })) || [];
+
+  // Map top attacker ships from independent query
+  const topAttackerShips =
+    topShipsData?.characterTopShips?.map((ship) => ({
       id: ship.shipType.id,
       name: ship.shipType.name,
       killCount: ship.killCount,
@@ -414,9 +430,17 @@ export default function CharacterDetailPage({
                   <TopShipsCard
                     title="Top Ship Targets"
                     subtitle="Most killed ship types"
-                    ships={topShips}
+                    ships={topShipTargets}
                     emptyText="No ships killed yet"
                     loading={shipTargetsLoading}
+                  />
+
+                  <TopShipsCard
+                    title="Top Attacker Ships"
+                    subtitle="Most used ship types"
+                    ships={topAttackerShips}
+                    emptyText="No ships used yet"
+                    loading={topShipsLoading}
                   />
                 </div>
               </div>

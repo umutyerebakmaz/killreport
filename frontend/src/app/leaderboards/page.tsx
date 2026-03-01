@@ -81,19 +81,17 @@ function PilotList({
             <div className="flex items-center gap-3">
               {/* Rank */}
               <div className="flex items-center justify-center w-16 shrink-0">
-                <span
-                  className={`text-3xl font-black tabular-nums ${
-                    pilot.rank === 1
-                      ? "text-yellow-400"
-                      : pilot.rank === 2
-                        ? "text-gray-300"
-                        : pilot.rank === 3
-                          ? "text-amber-600"
-                          : "text-gray-600"
-                  }`}
-                >
-                  #{pilot.rank}
-                </span>
+                {pilot.rank === 1 ? (
+                  <span className="text-4xl">🥇</span>
+                ) : pilot.rank === 2 ? (
+                  <span className="text-4xl">🥈</span>
+                ) : pilot.rank === 3 ? (
+                  <span className="text-4xl">🥉</span>
+                ) : (
+                  <span className="text-3xl font-black text-gray-600 tabular-nums">
+                    #{pilot.rank}
+                  </span>
+                )}
               </div>
 
               {/* Portrait */}
@@ -219,7 +217,7 @@ function DailyLeaderboard() {
   const isToday = selectedDate === today;
 
   const { data, loading } = useTopPilotsQuery({
-    variables: { filter: { date: selectedDate, limit: 100 } },
+    variables: { filter: { date: selectedDate, limit: 10 } },
   });
 
   function prevDay() {
@@ -304,7 +302,7 @@ function WeeklyLeaderboard() {
   const isCurrentWeek = weekStart === currentWeekStart;
 
   const { data, loading } = useTopWeeklyPilotsQuery({
-    variables: { filter: { weekStart, limit: 100 } },
+    variables: { filter: { weekStart, limit: 10 } },
   });
 
   function prevWeek() {
@@ -379,7 +377,7 @@ function WeeklyLeaderboard() {
 
 function Last90DaysLeaderboard() {
   const { data, loading } = useTop90DaysPilotsQuery({
-    variables: { filter: { limit: 100 } },
+    variables: { filter: { limit: 10 } },
   });
 
   const today = toDateString(new Date());
@@ -429,7 +427,7 @@ function MonthlyLeaderboard() {
   const isCurrentMonth = month === defaultMonth;
 
   const { data, loading } = useTopMonthlyPilotsQuery({
-    variables: { filter: { month, limit: 100 } },
+    variables: { filter: { month, limit: 10 } },
   });
 
   function prevMonth() {
