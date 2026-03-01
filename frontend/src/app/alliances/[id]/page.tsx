@@ -16,6 +16,9 @@ import {
   useAllianceGrowthQuery,
   useAllianceKillmailsQuery,
   useAllianceQuery,
+  useAllianceTopAllianceTargetsQuery,
+  useAllianceTopCorporationTargetsQuery,
+  useAllianceTopShipTargetsQuery,
   useKillmailsDateCountsQuery,
 } from "@/generated/graphql";
 import Link from "next/link";
@@ -57,6 +60,28 @@ export default function AllianceDetailPage({
       id: parseInt(id),
     },
   });
+
+  // Fetch top targets independently - these run in parallel
+  const { data: allianceTargetsData, loading: allianceTargetsLoading } =
+    useAllianceTopAllianceTargetsQuery({
+      variables: {
+        allianceId: parseInt(id),
+      },
+    });
+
+  const { data: corporationTargetsData, loading: corporationTargetsLoading } =
+    useAllianceTopCorporationTargetsQuery({
+      variables: {
+        allianceId: parseInt(id),
+      },
+    });
+
+  const { data: shipTargetsData, loading: shipTargetsLoading } =
+    useAllianceTopShipTargetsQuery({
+      variables: {
+        allianceId: parseInt(id),
+      },
+    });
 
   // Fetch corporations when members tab is active
   const { data: corporationsData, loading: corporationsLoading } =
@@ -218,28 +243,28 @@ export default function AllianceDetailPage({
   const memberDelta7d = alliance.metrics?.memberCountDelta7d ?? null;
   const memberGrowthRate7d = alliance.metrics?.memberCountGrowthRate7d ?? null;
 
-  // Map alliance targets from GraphQL
+  // Map top ships from independent query
+  const topShips =
+    shipTargetsData?.allianceTopShipTargets?.map((ship) => ({
+      id: ship.shipType.id,
+      name: ship.shipType.name,
+      killCount: ship.killCount,
+    })) || [];
+
+  // Map alliance targets from independent query
   const allianceTargets =
-    alliance?.topAllianceTargets?.map((target) => ({
+    allianceTargetsData?.allianceTopAllianceTargets?.map((target) => ({
       id: target.alliance.id,
       name: target.alliance.name,
       count: target.killCount,
     })) || [];
 
-  // Map corporation targets from GraphQL
+  // Map corporation targets from independent query
   const corporationTargets =
-    alliance?.topCorporationTargets?.map((target) => ({
+    corporationTargetsData?.allianceTopCorporationTargets?.map((target) => ({
       id: target.corporation.id,
       name: target.corporation.name,
       count: target.killCount,
-    })) || [];
-
-  // Map top ships from GraphQL
-  const topShips =
-    alliance?.topShipTargets?.map((ship) => ({
-      id: ship.shipType.id,
-      name: ship.shipType.name,
-      killCount: ship.killCount,
     })) || [];
 
   return (
@@ -428,7 +453,7 @@ export default function AllianceDetailPage({
                     targetType="alliance"
                     linkPrefix="/alliances"
                     emptyText="No alliance targets yet"
-                    loading={loading}
+                    loading={allianceTargetsLoading}
                   />
 
                   <TopTargetsCard
@@ -438,7 +463,7 @@ export default function AllianceDetailPage({
                     targetType="corporation"
                     linkPrefix="/corporations"
                     emptyText="No corporation targets yet"
-                    loading={loading}
+                    loading={corporationTargetsLoading}
                   />
 
                   <TopShipsCard
@@ -446,7 +471,7 @@ export default function AllianceDetailPage({
                     subtitle="Most killed ship types"
                     ships={topShips}
                     emptyText="No ships killed yet"
-                    loading={loading}
+                    loading={shipTargetsLoading}
                   />
                 </div>
               </div>

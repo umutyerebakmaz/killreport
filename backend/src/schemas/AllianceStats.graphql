@@ -1,0 +1,22 @@
+# Alliance statistics - independent top-level queries
+# These queries are decoupled from Alliance type for better performance and caching
+
+extend type Query {
+  # Top 10 alliances that an alliance has killed most
+  allianceTopAllianceTargets(
+    allianceId: Int!
+    filter: TopTargetFilter
+  ): [AllianceTopTarget!]!
+
+  # Top 10 corporations that an alliance has killed most
+  allianceTopCorporationTargets(
+    allianceId: Int!
+    filter: TopTargetFilter
+  ): [CorporationTopTarget!]!
+
+  # Top 10 ship types that an alliance has killed most
+  allianceTopShipTargets(
+    allianceId: Int!
+    filter: TopTargetFilter
+  ): [ShipTopKill!]!
+}

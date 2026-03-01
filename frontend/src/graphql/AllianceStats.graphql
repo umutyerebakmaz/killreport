@@ -1,0 +1,37 @@
+# Independent alliance statistics queries
+# These queries are decoupled from Alliance query for better performance and parallel execution
+
+query AllianceTopAllianceTargets($allianceId: Int!, $filter: TopTargetFilter) {
+  allianceTopAllianceTargets(allianceId: $allianceId, filter: $filter) {
+    killCount
+    alliance {
+      id
+      name
+      ticker
+    }
+  }
+}
+
+query AllianceTopCorporationTargets(
+  $allianceId: Int!
+  $filter: TopTargetFilter
+) {
+  allianceTopCorporationTargets(allianceId: $allianceId, filter: $filter) {
+    killCount
+    corporation {
+      id
+      name
+      ticker
+    }
+  }
+}
+
+query AllianceTopShipTargets($allianceId: Int!, $filter: TopTargetFilter) {
+  allianceTopShipTargets(allianceId: $allianceId, filter: $filter) {
+    killCount
+    shipType {
+      id
+      name
+    }
+  }
+}
