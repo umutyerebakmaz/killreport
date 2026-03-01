@@ -733,6 +733,9 @@ export type Query = {
   _empty?: Maybe<Scalars['String']['output']>;
   activeUsersCount: Scalars['Int']['output'];
   alliance?: Maybe<Alliance>;
+  allianceTopAllianceTargets: Array<AllianceTopTarget>;
+  allianceTopCorporationTargets: Array<CorporationTopTarget>;
+  allianceTopShipTargets: Array<ShipTopKill>;
   alliances: AlliancesResponse;
   bloodline?: Maybe<Bloodline>;
   bloodlines: Array<Bloodline>;
@@ -797,6 +800,24 @@ export type Query = {
 
 export type QueryAllianceArgs = {
   id: Scalars['Int']['input'];
+};
+
+
+export type QueryAllianceTopAllianceTargetsArgs = {
+  allianceId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+};
+
+
+export type QueryAllianceTopCorporationTargetsArgs = {
+  allianceId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+};
+
+
+export type QueryAllianceTopShipTargetsArgs = {
+  allianceId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
 };
 
 
@@ -2186,6 +2207,9 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   activeUsersCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType, RequireFields<QueryAllianceArgs, 'id'>>;
+  allianceTopAllianceTargets?: Resolver<Array<ResolversTypes['AllianceTopTarget']>, ParentType, ContextType, RequireFields<QueryAllianceTopAllianceTargetsArgs, 'allianceId'>>;
+  allianceTopCorporationTargets?: Resolver<Array<ResolversTypes['CorporationTopTarget']>, ParentType, ContextType, RequireFields<QueryAllianceTopCorporationTargetsArgs, 'allianceId'>>;
+  allianceTopShipTargets?: Resolver<Array<ResolversTypes['ShipTopKill']>, ParentType, ContextType, RequireFields<QueryAllianceTopShipTargetsArgs, 'allianceId'>>;
   alliances?: Resolver<ResolversTypes['AlliancesResponse'], ParentType, ContextType, Partial<QueryAlliancesArgs>>;
   bloodline?: Resolver<Maybe<ResolversTypes['Bloodline']>, ParentType, ContextType, RequireFields<QueryBloodlineArgs, 'id'>>;
   bloodlines?: Resolver<Array<ResolversTypes['Bloodline']>, ParentType, ContextType>;

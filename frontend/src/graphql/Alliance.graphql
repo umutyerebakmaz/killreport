@@ -1,4 +1,4 @@
-query Alliance($id: Int!, $filter: TopTargetFilter) {
+query Alliance($id: Int!) {
   alliance(id: $id) {
     id
     name
@@ -23,29 +23,6 @@ query Alliance($id: Int!, $filter: TopTargetFilter) {
     createdBy {
       id
       name
-    }
-    topShipTargets(filter: $filter) {
-      killCount
-      shipType {
-        id
-        name
-      }
-    }
-    topAllianceTargets(filter: $filter) {
-      killCount
-      alliance {
-        id
-        name
-        ticker
-      }
-    }
-    topCorporationTargets(filter: $filter) {
-      killCount
-      corporation {
-        id
-        name
-        ticker
-      }
     }
   }
 }
