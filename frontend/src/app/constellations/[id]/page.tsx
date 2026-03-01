@@ -283,7 +283,7 @@ export default function ConstellationDetailPage({
           {activeTab === "systems" && (
             <div className="overflow-hidden border border-white/10">
               <table className="table">
-                <thead className="bg-white/5">
+                <thead className="bg-neutral-800">
                   <tr>
                     <th className="th-cell">Solar System</th>
                     <th className="th-cell">Security Status</th>

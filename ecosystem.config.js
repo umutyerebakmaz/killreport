@@ -385,12 +385,12 @@ module.exports = {
       time: true,
     },
 
-    // Materialized View Refresh Worker (scheduler)
+    // Top Targets Cleanup Worker (scheduler)
     {
-      name: 'worker-materialized-views',
+      name: 'worker-top-targets-cleanup',
       cwd: '/var/www/killreport/backend',
       script: 'yarn',
-      args: 'worker:materialized-views',
+      args: 'worker:top-targets-cleanup',
       instances: 1,
       exec_mode: 'fork',
       env: {
@@ -402,27 +402,6 @@ module.exports = {
       restart_delay: 5000,
       error_file: '/var/www/killreport/logs/worker-mv-refresh-error.log',
       out_file: '/var/www/killreport/logs/worker-mv-refresh-out.log',
-      time: true,
-    },
-
-    // Data Retention Cleanup Worker (Weekly: Sunday 2 AM UTC)
-    {
-      name: 'worker-retention-cleanup',
-      cwd: '/var/www/killreport/backend',
-      script: 'yarn',
-      args: 'worker:retention-cleanup',
-      instances: 1,
-      exec_mode: 'fork',
-      autorestart: false,
-      cron_restart: '0 2 * * 0',  // Every Sunday at 2 AM UTC
-      env: {
-        NODE_ENV: 'production',
-        LOG_LEVEL: 'info',
-        RETENTION_DAYS: '1825',  // Keep 5 years of data (customize as needed)
-      },
-      max_memory_restart: '256M',
-      error_file: '/var/www/killreport/logs/worker-retention-cleanup-error.log',
-      out_file: '/var/www/killreport/logs/worker-retention-cleanup-out.log',
       time: true,
     },
   ],

@@ -258,7 +258,7 @@ function KillmailsContent() {
                 {/* Table for this date */}
                 <div className="border border-white/10">
                   <table className="table">
-                    <thead className="bg-white/5">
+                    <thead className="gb-neutral-800">
                       <tr>
                         <th className="th-cell">Time</th>
                         <th className="th-cell">Ship</th>

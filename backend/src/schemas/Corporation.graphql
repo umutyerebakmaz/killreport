@@ -12,6 +12,9 @@ type Corporation {
   url: String
   metrics: CorporationMetrics
   snapshots(days: Int): [CorporationSnapshot!]!
+  topAllianceTargets(filter: TimeFilter): [AllianceTopTarget!]!
+  topCorporationTargets(filter: TimeFilter): [CorporationTopTarget!]!
+  topShipTargets(filter: TimeFilter): [ShipTopKill!]!
 }
 
 type CorporationMetrics {

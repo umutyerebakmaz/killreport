@@ -5,6 +5,7 @@ import KillmailsTable from "@/components/KillmailsTable";
 import { Loader } from "@/components/Loader/Loader";
 import Paginator from "@/components/Paginator/Paginator";
 import Tooltip from "@/components/Tooltip/Tooltip";
+import TopShipsCard from "@/components/TopShipsCard";
 import TopTargetsCard from "@/components/TopTargetsCard";
 import {
   useCharacterKillmailsQuery,
@@ -39,7 +40,9 @@ export default function CharacterDetailPage({
   const [pageSize, setPageSize] = useState(pageSizeFromUrl);
 
   const { data, loading, error } = useCharacterQuery({
-    variables: { id: parseInt(id) },
+    variables: {
+      id: parseInt(id),
+    },
   });
 
   // Fetch killmails when killmails tab is active
@@ -144,6 +147,14 @@ export default function CharacterDetailPage({
       id: target.corporation.id,
       name: target.corporation.name,
       count: target.killCount,
+    })) || [];
+
+  // Map top ships from GraphQL
+  const topShips =
+    character?.topShipTargets?.map((ship) => ({
+      id: ship.shipType.id,
+      name: ship.shipType.name,
+      killCount: ship.killCount,
     })) || [];
 
   const tabs = [
@@ -372,6 +383,14 @@ export default function CharacterDetailPage({
                     targetType="corporation"
                     linkPrefix="/corporations"
                     emptyText="No corporation targets yet"
+                    loading={loading}
+                  />
+
+                  <TopShipsCard
+                    title="Top Ship Targets"
+                    subtitle="Most killed ship types"
+                    ships={topShips}
+                    emptyText="No ships killed yet"
                     loading={loading}
                   />
                 </div>
