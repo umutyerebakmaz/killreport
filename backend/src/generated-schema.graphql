@@ -554,6 +554,9 @@ type Query {
   _empty: String
   activeUsersCount: Int!
   alliance(id: Int!): Alliance
+  allianceTopAllianceTargets(allianceId: Int!, filter: TopTargetFilter): [AllianceTopTarget!]!
+  allianceTopCorporationTargets(allianceId: Int!, filter: TopTargetFilter): [CorporationTopTarget!]!
+  allianceTopShipTargets(allianceId: Int!, filter: TopTargetFilter): [ShipTopKill!]!
   alliances(filter: AllianceFilter): AlliancesResponse!
   bloodline(id: Int!): Bloodline
   bloodlines: [Bloodline!]!
