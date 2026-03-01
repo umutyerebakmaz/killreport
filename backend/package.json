@@ -70,7 +70,6 @@
     "worker:bloodlines": "tsx src/workers/worker-bloodlines.ts",
     "worker:prices": "tsx src/workers/worker-prices.ts",
     "worker:backfill-values": "tsx src/workers/worker-backfill-values.ts",
-    "worker:top-targets-cleanup": "tsx src/workers/worker-top-targets-cleanup.ts",
     "populate:char-alliance": "tsx populate-scripts/character-top-alliance.ts",
     "populate:char-corp": "tsx populate-scripts/character-top-corporation.ts",
     "populate:char-ships": "tsx populate-scripts/character-top-ships.ts",

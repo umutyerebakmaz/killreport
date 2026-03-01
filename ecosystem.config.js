@@ -384,25 +384,5 @@ module.exports = {
       out_file: '/var/www/killreport/logs/worker-backfill-values-out.log',
       time: true,
     },
-
-    // Top Targets Cleanup Worker (scheduler)
-    {
-      name: 'worker-top-targets-cleanup',
-      cwd: '/var/www/killreport/backend',
-      script: 'yarn',
-      args: 'worker:top-targets-cleanup',
-      instances: 1,
-      exec_mode: 'fork',
-      env: {
-        NODE_ENV: 'production',
-        LOG_LEVEL: 'debug',
-      },
-      max_memory_restart: '256M',
-      autorestart: true,
-      restart_delay: 5000,
-      error_file: '/var/www/killreport/logs/worker-mv-refresh-error.log',
-      out_file: '/var/www/killreport/logs/worker-mv-refresh-out.log',
-      time: true,
-    },
   ],
 };
