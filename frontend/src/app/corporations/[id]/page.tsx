@@ -61,6 +61,7 @@ export default function CorporationDetailPage({
     useCorporationTopAllianceTargetsQuery({
       variables: {
         corporationId: parseInt(id),
+        filter: "LAST_7_DAYS" as any,
       },
     });
 
@@ -68,6 +69,7 @@ export default function CorporationDetailPage({
     useCorporationTopCorporationTargetsQuery({
       variables: {
         corporationId: parseInt(id),
+        filter: "LAST_7_DAYS" as any,
       },
     });
 
@@ -75,6 +77,7 @@ export default function CorporationDetailPage({
     useCorporationTopShipTargetsQuery({
       variables: {
         corporationId: parseInt(id),
+        filter: "LAST_7_DAYS" as any,
       },
     });
 
@@ -82,6 +85,7 @@ export default function CorporationDetailPage({
     useCorporationTopShipsQuery({
       variables: {
         corporationId: parseInt(id),
+        filter: "LAST_7_DAYS" as any,
       },
     });
 
