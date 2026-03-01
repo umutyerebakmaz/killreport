@@ -570,6 +570,9 @@ type Query {
   constellation(id: Int!): Constellation
   constellations(filter: ConstellationFilter): ConstellationsResponse!
   corporation(id: Int!): Corporation
+  corporationTopAllianceTargets(corporationId: Int!, filter: TopTargetFilter): [AllianceTopTarget!]!
+  corporationTopCorporationTargets(corporationId: Int!, filter: TopTargetFilter): [CorporationTopTarget!]!
+  corporationTopShipTargets(corporationId: Int!, filter: TopTargetFilter): [ShipTopKill!]!
   corporations(filter: CorporationFilter): CorporationsResponse!
   dogmaAttribute(id: Int!): DogmaAttribute
   dogmaAttributes(filter: DogmaAttributeFilter): DogmaAttributesResponse!

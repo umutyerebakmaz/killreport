@@ -1,0 +1,49 @@
+# Independent corporation statistics queries
+# These queries are decoupled from Corporation query for better performance and parallel execution
+
+query CorporationTopAllianceTargets(
+  $corporationId: Int!
+  $filter: TopTargetFilter
+) {
+  corporationTopAllianceTargets(
+    corporationId: $corporationId
+    filter: $filter
+  ) {
+    killCount
+    alliance {
+      id
+      name
+      ticker
+    }
+  }
+}
+
+query CorporationTopCorporationTargets(
+  $corporationId: Int!
+  $filter: TopTargetFilter
+) {
+  corporationTopCorporationTargets(
+    corporationId: $corporationId
+    filter: $filter
+  ) {
+    killCount
+    corporation {
+      id
+      name
+      ticker
+    }
+  }
+}
+
+query CorporationTopShipTargets(
+  $corporationId: Int!
+  $filter: TopTargetFilter
+) {
+  corporationTopShipTargets(corporationId: $corporationId, filter: $filter) {
+    killCount
+    shipType {
+      id
+      name
+    }
+  }
+}
