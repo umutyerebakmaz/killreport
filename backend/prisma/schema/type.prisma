@@ -10,9 +10,9 @@ model Type {
   icon_id     Int?
   created_at  DateTime             @default(now())
   updated_at  DateTime             @updatedAt
-  attributes  TypeDogmaAttribute[]
-  effects     TypeDogmaEffect[]
-  marketPrice MarketPrice?
+  attributes                TypeDogmaAttribute[]
+  effects                   TypeDogmaEffect[]
+  marketPrice               MarketPrice?
 
   @@index([group_id])
   @@map("types")

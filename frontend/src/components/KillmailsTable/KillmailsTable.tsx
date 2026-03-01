@@ -70,7 +70,7 @@ export default function KillmailsTable({
                 <col className="w-16" />
                 <col className="w-12" />
               </colgroup>
-              <thead className="bg-neutral-900">
+              <thead className="bg-neutral-800">
                 <tr>
                   <th className="text-left th-cell">Time</th>
                   <th className="text-left th-cell">Ship</th>

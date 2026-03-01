@@ -1,4 +1,4 @@
-query Corporation($id: Int!) {
+query Corporation($id: Int!, $filter: TimeFilter) {
   corporation(id: $id) {
     id
     name
@@ -23,6 +23,29 @@ query Corporation($id: Int!) {
     metrics {
       memberCountDelta7d
       memberCountGrowthRate7d
+    }
+    topShipTargets(filter: $filter) {
+      killCount
+      shipType {
+        id
+        name
+      }
+    }
+    topAllianceTargets(filter: $filter) {
+      killCount
+      alliance {
+        id
+        name
+        ticker
+      }
+    }
+    topCorporationTargets(filter: $filter) {
+      killCount
+      corporation {
+        id
+        name
+        ticker
+      }
     }
   }
 }

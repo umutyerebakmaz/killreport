@@ -341,11 +341,11 @@ export async function fullRefreshKillmailFilters(): Promise<void> {
 }
 
 /**
- * Incremental refresh for daily_pilot_kills
+ * Incremental refresh for character_kill_stats
  * Only refreshes last 6 hours of data (efficient for 5-minute refresh cycle)
  */
-export async function incrementalRefreshDailyPilotKills(): Promise<void> {
-    const viewName = 'daily_pilot_kills';
+export async function incrementalRefreshCharacterKillStats(): Promise<void> {
+    const viewName = 'character_kill_stats';
     const startTime = Date.now();
 
     try {
@@ -356,7 +356,7 @@ export async function incrementalRefreshDailyPilotKills(): Promise<void> {
 
         if (shouldDoFull) {
             logger.info('⚡ Full refresh needed (scheduled daily refresh)');
-            await fullRefreshDailyPilotKills();
+            await fullRefreshCharacterKillStats();
             return;
         }
 
@@ -373,14 +373,14 @@ export async function incrementalRefreshDailyPilotKills(): Promise<void> {
 
         // Delete affected days (today and possibly yesterday)
         await prismaWorker.$executeRaw`
-            DELETE FROM daily_pilot_kills
+            DELETE FROM character_kill_stats
             WHERE kill_date >= ${affectedDateStart}
         `;
 
         // Re-insert ENTIRE affected day(s) from their start (not just last 6 hours)
         // This ensures no data loss for the affected day
         await prismaWorker.$executeRaw`
-            INSERT INTO daily_pilot_kills (kill_date, character_id, kill_count)
+            INSERT INTO character_kill_stats (kill_date, character_id, kill_count)
             SELECT
                 DATE(k.killmail_time AT TIME ZONE 'UTC') as kill_date,
                 a.character_id,
@@ -396,7 +396,7 @@ export async function incrementalRefreshDailyPilotKills(): Promise<void> {
 
         // Get total record count
         const totalRecords = await prismaWorker.$queryRaw<Array<{ count: bigint }>>`
-            SELECT COUNT(*) as count FROM daily_pilot_kills
+            SELECT COUNT(*) as count FROM character_kill_stats
         `;
 
         // Update tracking log
@@ -413,10 +413,10 @@ export async function incrementalRefreshDailyPilotKills(): Promise<void> {
 }
 
 /**
- * Full refresh for daily_pilot_kills
+ * Full refresh for character_kill_stats
  */
-async function fullRefreshDailyPilotKills(): Promise<void> {
-    const viewName = 'daily_pilot_kills';
+async function fullRefreshCharacterKillStats(): Promise<void> {
+    const viewName = 'character_kill_stats';
     const startTime = Date.now();
 
     try {
@@ -429,7 +429,7 @@ async function fullRefreshDailyPilotKills(): Promise<void> {
 
         // Re-insert all data
         await prismaWorker.$executeRaw`
-      INSERT INTO daily_pilot_kills (kill_date, character_id, kill_count)
+      INSERT INTO character_kill_stats (kill_date, character_id, kill_count)
       SELECT
         DATE(k.killmail_time AT TIME ZONE 'UTC') AS kill_date,
         a.character_id,
@@ -441,7 +441,7 @@ async function fullRefreshDailyPilotKills(): Promise<void> {
     `;
 
         const totalRecords = await prismaWorker.$queryRaw<Array<{ count: bigint }>>`
-            SELECT COUNT(*) as count FROM daily_pilot_kills
+            SELECT COUNT(*) as count FROM character_kill_stats
         `;
 
         await updateRefreshLog(viewName, true, null, new Date(), totalRecords[0].count);
@@ -457,11 +457,11 @@ async function fullRefreshDailyPilotKills(): Promise<void> {
 }
 
 /**
- * Incremental refresh for daily_corporation_kills
+ * Incremental refresh for corporation_kill_stats
  * Only refreshes last 6 hours of data (efficient for 5-minute refresh cycle)
  */
-export async function incrementalRefreshDailyCorporationKills(): Promise<void> {
-    const viewName = 'daily_corporation_kills';
+export async function incrementalRefreshCorporationKillStats(): Promise<void> {
+    const viewName = 'corporation_kill_stats';
     const startTime = Date.now();
 
     try {
@@ -472,7 +472,7 @@ export async function incrementalRefreshDailyCorporationKills(): Promise<void> {
 
         if (shouldDoFull) {
             logger.info('⚡ Full refresh needed (scheduled daily refresh)');
-            await fullRefreshDailyCorporationKills();
+            await fullRefreshCorporationKillStats();
             return;
         }
 
@@ -487,13 +487,13 @@ export async function incrementalRefreshDailyCorporationKills(): Promise<void> {
 
         // Delete affected days
         await prismaWorker.$executeRaw`
-            DELETE FROM daily_corporation_kills
+            DELETE FROM corporation_kill_stats
             WHERE kill_date >= ${affectedDateStart}
         `;
 
         // Re-insert affected day(s)
         await prismaWorker.$executeRaw`
-            INSERT INTO daily_corporation_kills (kill_date, corporation_id, kill_count)
+            INSERT INTO corporation_kill_stats (kill_date, corporation_id, kill_count)
             SELECT
                 DATE(k.killmail_time AT TIME ZONE 'UTC') as kill_date,
                 a.corporation_id,
@@ -508,7 +508,7 @@ export async function incrementalRefreshDailyCorporationKills(): Promise<void> {
         `;
 
         const totalRecords = await prismaWorker.$queryRaw<Array<{ count: bigint }>>`
-            SELECT COUNT(*) as count FROM daily_corporation_kills
+            SELECT COUNT(*) as count FROM corporation_kill_stats
         `;
 
         await updateRefreshLog(viewName, false, null, new Date(), totalRecords[0].count);
@@ -524,10 +524,10 @@ export async function incrementalRefreshDailyCorporationKills(): Promise<void> {
 }
 
 /**
- * Full refresh for daily_corporation_kills
+ * Full refresh for corporation_kill_stats
  */
-async function fullRefreshDailyCorporationKills(): Promise<void> {
-    const viewName = 'daily_corporation_kills';
+async function fullRefreshCorporationKillStats(): Promise<void> {
+    const viewName = 'corporation_kill_stats';
     const startTime = Date.now();
 
     try {
@@ -538,7 +538,7 @@ async function fullRefreshDailyCorporationKills(): Promise<void> {
         await prismaWorker.$executeRawUnsafe(`TRUNCATE TABLE ${viewName}`);
 
         await prismaWorker.$executeRaw`
-      INSERT INTO daily_corporation_kills (kill_date, corporation_id, kill_count)
+      INSERT INTO corporation_kill_stats (kill_date, corporation_id, kill_count)
       SELECT
         DATE(k.killmail_time AT TIME ZONE 'UTC') AS kill_date,
         a.corporation_id,
@@ -550,7 +550,7 @@ async function fullRefreshDailyCorporationKills(): Promise<void> {
     `;
 
         const totalRecords = await prismaWorker.$queryRaw<Array<{ count: bigint }>>`
-            SELECT COUNT(*) as count FROM daily_corporation_kills
+            SELECT COUNT(*) as count FROM corporation_kill_stats
         `;
 
         await updateRefreshLog(viewName, true, null, new Date(), totalRecords[0].count);
@@ -566,11 +566,11 @@ async function fullRefreshDailyCorporationKills(): Promise<void> {
 }
 
 /**
- * Incremental refresh for daily_alliance_kills
+ * Incremental refresh for alliance_kill_stats
  * Only refreshes last 6 hours of data (efficient for 5-minute refresh cycle)
  */
-export async function incrementalRefreshDailyAllianceKills(): Promise<void> {
-    const viewName = 'daily_alliance_kills';
+export async function incrementalRefreshAllianceKillStats(): Promise<void> {
+    const viewName = 'alliance_kill_stats';
     const startTime = Date.now();
 
     try {
@@ -581,7 +581,7 @@ export async function incrementalRefreshDailyAllianceKills(): Promise<void> {
 
         if (shouldDoFull) {
             logger.info('⚡ Full refresh needed (scheduled daily refresh)');
-            await fullRefreshDailyAllianceKills();
+            await fullRefreshAllianceKillStats();
             return;
         }
 
@@ -596,13 +596,13 @@ export async function incrementalRefreshDailyAllianceKills(): Promise<void> {
 
         // Delete affected days
         await prismaWorker.$executeRaw`
-            DELETE FROM daily_alliance_kills
+            DELETE FROM alliance_kill_stats
             WHERE kill_date >= ${affectedDateStart}
         `;
 
         // Re-insert affected day(s)
         await prismaWorker.$executeRaw`
-            INSERT INTO daily_alliance_kills (kill_date, alliance_id, kill_count)
+            INSERT INTO alliance_kill_stats (kill_date, alliance_id, kill_count)
             SELECT
                 DATE(k.killmail_time AT TIME ZONE 'UTC') as kill_date,
                 a.alliance_id,
@@ -617,7 +617,7 @@ export async function incrementalRefreshDailyAllianceKills(): Promise<void> {
         `;
 
         const totalRecords = await prismaWorker.$queryRaw<Array<{ count: bigint }>>`
-            SELECT COUNT(*) as count FROM daily_alliance_kills
+            SELECT COUNT(*) as count FROM alliance_kill_stats
         `;
 
         await updateRefreshLog(viewName, false, null, new Date(), totalRecords[0].count);
@@ -633,10 +633,10 @@ export async function incrementalRefreshDailyAllianceKills(): Promise<void> {
 }
 
 /**
- * Full refresh for daily_alliance_kills
+ * Full refresh for alliance_kill_stats
  */
-async function fullRefreshDailyAllianceKills(): Promise<void> {
-    const viewName = 'daily_alliance_kills';
+async function fullRefreshAllianceKillStats(): Promise<void> {
+    const viewName = 'alliance_kill_stats';
     const startTime = Date.now();
 
     try {
@@ -647,7 +647,7 @@ async function fullRefreshDailyAllianceKills(): Promise<void> {
         await prismaWorker.$executeRawUnsafe(`TRUNCATE TABLE ${viewName}`);
 
         await prismaWorker.$executeRaw`
-      INSERT INTO daily_alliance_kills (kill_date, alliance_id, kill_count)
+      INSERT INTO alliance_kill_stats (kill_date, alliance_id, kill_count)
       SELECT
         DATE(k.killmail_time AT TIME ZONE 'UTC') AS kill_date,
         a.alliance_id,
@@ -659,7 +659,7 @@ async function fullRefreshDailyAllianceKills(): Promise<void> {
     `;
 
         const totalRecords = await prismaWorker.$queryRaw<Array<{ count: bigint }>>`
-            SELECT COUNT(*) as count FROM daily_alliance_kills
+            SELECT COUNT(*) as count FROM alliance_kill_stats
         `;
 
         await updateRefreshLog(viewName, true, null, new Date(), totalRecords[0].count);

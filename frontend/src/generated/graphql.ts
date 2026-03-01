@@ -38,11 +38,29 @@ export type Alliance = {
   name: Scalars['String']['output'];
   snapshots: Array<AllianceSnapshot>;
   ticker: Scalars['String']['output'];
+  topAllianceTargets: Array<AllianceTopTarget>;
+  topCorporationTargets: Array<CorporationTopTarget>;
+  topShipTargets: Array<ShipTopKill>;
 };
 
 
 export type AllianceSnapshotsArgs = {
   days?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type AllianceTopAllianceTargetsArgs = {
+  filter?: InputMaybe<TimeFilter>;
+};
+
+
+export type AllianceTopCorporationTargetsArgs = {
+  filter?: InputMaybe<TimeFilter>;
+};
+
+
+export type AllianceTopShipTargetsArgs = {
+  filter?: InputMaybe<TimeFilter>;
 };
 
 export type AllianceFilter = {
@@ -197,7 +215,23 @@ export type Character = {
   title?: Maybe<Scalars['String']['output']>;
   topAllianceTargets: Array<AllianceTopTarget>;
   topCorporationTargets: Array<CorporationTopTarget>;
+  topShipTargets: Array<ShipTopKill>;
   updatedAt?: Maybe<Scalars['String']['output']>;
+};
+
+
+export type CharacterTopAllianceTargetsArgs = {
+  filter?: InputMaybe<TimeFilter>;
+};
+
+
+export type CharacterTopCorporationTargetsArgs = {
+  filter?: InputMaybe<TimeFilter>;
+};
+
+
+export type CharacterTopShipTargetsArgs = {
+  filter?: InputMaybe<TimeFilter>;
 };
 
 export type CharacterFilter = {
@@ -268,12 +302,30 @@ export type Corporation = {
   snapshots: Array<CorporationSnapshot>;
   tax_rate: Scalars['Float']['output'];
   ticker: Scalars['String']['output'];
+  topAllianceTargets: Array<AllianceTopTarget>;
+  topCorporationTargets: Array<CorporationTopTarget>;
+  topShipTargets: Array<ShipTopKill>;
   url?: Maybe<Scalars['String']['output']>;
 };
 
 
 export type CorporationSnapshotsArgs = {
   days?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type CorporationTopAllianceTargetsArgs = {
+  filter?: InputMaybe<TimeFilter>;
+};
+
+
+export type CorporationTopCorporationTargetsArgs = {
+  filter?: InputMaybe<TimeFilter>;
+};
+
+
+export type CorporationTopShipTargetsArgs = {
+  filter?: InputMaybe<TimeFilter>;
 };
 
 export type CorporationFilter = {
@@ -1020,6 +1072,12 @@ export type SecurityStats = {
   wormhole: Scalars['Int']['output'];
 };
 
+export type ShipTopKill = {
+  __typename?: 'ShipTopKill';
+  killCount: Scalars['Int']['output'];
+  shipType: Type;
+};
+
 /** A group of slots with total slot count from dogma attributes */
 export type SlotGroup = {
   __typename?: 'SlotGroup';
@@ -1203,6 +1261,13 @@ export type SyncMyKillmailsPayload = {
   success: Scalars['Boolean']['output'];
   syncedCount: Scalars['Int']['output'];
 };
+
+export enum TimeFilter {
+  AllTime = 'allTime',
+  Last7Days = 'last7Days',
+  Last90Days = 'last90Days',
+  Today = 'today'
+}
 
 export type Top90DaysPilot = {
   __typename?: 'Top90DaysPilot';
@@ -1405,10 +1470,11 @@ export type WorkerStatus = {
 
 export type AllianceQueryVariables = Exact<{
   id: Scalars['Int']['input'];
+  filter?: InputMaybe<TimeFilter>;
 }>;
 
 
-export type AllianceQuery = { __typename?: 'Query', alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, memberCount: number, corporationCount: number, metrics?: { __typename?: 'AllianceMetrics', memberCountDelta7d?: number | null, corporationCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null, corporationCountGrowthRate7d?: number | null } | null, executor?: { __typename?: 'Corporation', id: number, name: string } | null, createdByCorporation?: { __typename?: 'Corporation', id: number, name: string } | null, createdBy?: { __typename?: 'Character', id: number, name: string } | null } | null };
+export type AllianceQuery = { __typename?: 'Query', alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, memberCount: number, corporationCount: number, metrics?: { __typename?: 'AllianceMetrics', memberCountDelta7d?: number | null, corporationCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null, corporationCountGrowthRate7d?: number | null } | null, executor?: { __typename?: 'Corporation', id: number, name: string } | null, createdByCorporation?: { __typename?: 'Corporation', id: number, name: string } | null, createdBy?: { __typename?: 'Character', id: number, name: string } | null, topShipTargets: Array<{ __typename?: 'ShipTopKill', killCount: number, shipType: { __typename?: 'Type', id: number, name: string } }>, topAllianceTargets: Array<{ __typename?: 'AllianceTopTarget', killCount: number, alliance: { __typename?: 'Alliance', id: number, name: string, ticker: string } }>, topCorporationTargets: Array<{ __typename?: 'CorporationTopTarget', killCount: number, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string } }> } | null };
 
 export type AllianceGrowthQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -1458,10 +1524,11 @@ export type RefreshTokenMutation = { __typename?: 'Mutation', refreshToken: { __
 
 export type CharacterQueryVariables = Exact<{
   id: Scalars['Int']['input'];
+  filter?: InputMaybe<TimeFilter>;
 }>;
 
 
-export type CharacterQuery = { __typename?: 'Query', character?: { __typename?: 'Character', id: number, name: string, birthday: string, securityStatus?: number | null, description?: string | null, title?: string | null, updatedAt?: string | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, topAllianceTargets: Array<{ __typename?: 'AllianceTopTarget', killCount: number, alliance: { __typename?: 'Alliance', id: number, name: string } }>, topCorporationTargets: Array<{ __typename?: 'CorporationTopTarget', killCount: number, corporation: { __typename?: 'Corporation', id: number, name: string } }> } | null };
+export type CharacterQuery = { __typename?: 'Query', character?: { __typename?: 'Character', id: number, name: string, birthday: string, securityStatus?: number | null, description?: string | null, title?: string | null, updatedAt?: string | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, topAllianceTargets: Array<{ __typename?: 'AllianceTopTarget', killCount: number, alliance: { __typename?: 'Alliance', id: number, name: string, ticker: string } }>, topCorporationTargets: Array<{ __typename?: 'CorporationTopTarget', killCount: number, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string } }>, topShipTargets: Array<{ __typename?: 'ShipTopKill', killCount: number, shipType: { __typename?: 'Type', id: number, name: string } }> } | null };
 
 export type CharacterKillmailsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
@@ -1493,10 +1560,11 @@ export type ConstellationQuery = { __typename?: 'Query', constellation?: { __typ
 
 export type CorporationQueryVariables = Exact<{
   id: Scalars['Int']['input'];
+  filter?: InputMaybe<TimeFilter>;
 }>;
 
 
-export type CorporationQuery = { __typename?: 'Query', corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, date_founded?: string | null, member_count: number, tax_rate: number, url?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, ceo?: { __typename?: 'Character', id: number, name: string } | null, creator?: { __typename?: 'Character', id: number, name: string } | null, metrics?: { __typename?: 'CorporationMetrics', memberCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null } | null } | null };
+export type CorporationQuery = { __typename?: 'Query', corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string, date_founded?: string | null, member_count: number, tax_rate: number, url?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, ceo?: { __typename?: 'Character', id: number, name: string } | null, creator?: { __typename?: 'Character', id: number, name: string } | null, metrics?: { __typename?: 'CorporationMetrics', memberCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null } | null, topShipTargets: Array<{ __typename?: 'ShipTopKill', killCount: number, shipType: { __typename?: 'Type', id: number, name: string } }>, topAllianceTargets: Array<{ __typename?: 'AllianceTopTarget', killCount: number, alliance: { __typename?: 'Alliance', id: number, name: string, ticker: string } }>, topCorporationTargets: Array<{ __typename?: 'CorporationTopTarget', killCount: number, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string } }> } | null };
 
 export type CorporationGrowthQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -1693,7 +1761,7 @@ export type WorkerStatusQuery = { __typename?: 'Query', workerStatus: { __typena
 
 
 export const AllianceDocument = gql`
-    query Alliance($id: Int!) {
+    query Alliance($id: Int!, $filter: TimeFilter) {
   alliance(id: $id) {
     id
     name
@@ -1719,6 +1787,29 @@ export const AllianceDocument = gql`
       id
       name
     }
+    topShipTargets(filter: $filter) {
+      killCount
+      shipType {
+        id
+        name
+      }
+    }
+    topAllianceTargets(filter: $filter) {
+      killCount
+      alliance {
+        id
+        name
+        ticker
+      }
+    }
+    topCorporationTargets(filter: $filter) {
+      killCount
+      corporation {
+        id
+        name
+        ticker
+      }
+    }
   }
 }
     `;
@@ -1736,6 +1827,7 @@ export const AllianceDocument = gql`
  * const { data, loading, error } = useAllianceQuery({
  *   variables: {
  *      id: // value for 'id'
+ *      filter: // value for 'filter'
  *   },
  * });
  */
@@ -2150,7 +2242,7 @@ export type RefreshTokenMutationHookResult = ReturnType<typeof useRefreshTokenMu
 export type RefreshTokenMutationResult = Apollo.MutationResult<RefreshTokenMutation>;
 export type RefreshTokenMutationOptions = Apollo.BaseMutationOptions<RefreshTokenMutation, RefreshTokenMutationVariables>;
 export const CharacterDocument = gql`
-    query Character($id: Int!) {
+    query Character($id: Int!, $filter: TimeFilter) {
   character(id: $id) {
     id
     name
@@ -2169,16 +2261,25 @@ export const CharacterDocument = gql`
       name
       ticker
     }
-    topAllianceTargets {
+    topAllianceTargets(filter: $filter) {
       killCount
       alliance {
         id
         name
+        ticker
       }
     }
-    topCorporationTargets {
+    topCorporationTargets(filter: $filter) {
       killCount
       corporation {
+        id
+        name
+        ticker
+      }
+    }
+    topShipTargets(filter: $filter) {
+      killCount
+      shipType {
         id
         name
       }
@@ -2200,6 +2301,7 @@ export const CharacterDocument = gql`
  * const { data, loading, error } = useCharacterQuery({
  *   variables: {
  *      id: // value for 'id'
+ *      filter: // value for 'filter'
  *   },
  * });
  */
@@ -2529,7 +2631,7 @@ export type ConstellationLazyQueryHookResult = ReturnType<typeof useConstellatio
 export type ConstellationSuspenseQueryHookResult = ReturnType<typeof useConstellationSuspenseQuery>;
 export type ConstellationQueryResult = Apollo.QueryResult<ConstellationQuery, ConstellationQueryVariables>;
 export const CorporationDocument = gql`
-    query Corporation($id: Int!) {
+    query Corporation($id: Int!, $filter: TimeFilter) {
   corporation(id: $id) {
     id
     name
@@ -2555,6 +2657,29 @@ export const CorporationDocument = gql`
       memberCountDelta7d
       memberCountGrowthRate7d
     }
+    topShipTargets(filter: $filter) {
+      killCount
+      shipType {
+        id
+        name
+      }
+    }
+    topAllianceTargets(filter: $filter) {
+      killCount
+      alliance {
+        id
+        name
+        ticker
+      }
+    }
+    topCorporationTargets(filter: $filter) {
+      killCount
+      corporation {
+        id
+        name
+        ticker
+      }
+    }
   }
 }
     `;
@@ -2572,6 +2697,7 @@ export const CorporationDocument = gql`
  * const { data, loading, error } = useCorporationQuery({
  *   variables: {
  *      id: // value for 'id'
+ *      filter: // value for 'filter'
  *   },
  * });
  */

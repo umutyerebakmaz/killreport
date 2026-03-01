@@ -225,7 +225,7 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
           {activeTab === "constellations" && (
             <div className="overflow-hidden border border-white/10">
               <table className="table">
-                <thead className="bg-white/5">
+                <thead className="bg-neutral-800">
                   <tr>
                     <th className="th-cell">Constellation</th>
                     <th className="th-cell">Systems</th>

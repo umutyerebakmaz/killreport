@@ -17,6 +17,9 @@ type Alliance {
   name: String!
   snapshots(days: Int): [AllianceSnapshot!]!
   ticker: String!
+  topAllianceTargets(filter: TimeFilter): [AllianceTopTarget!]!
+  topCorporationTargets(filter: TimeFilter): [CorporationTopTarget!]!
+  topShipTargets(filter: TimeFilter): [ShipTopKill!]!
 }
 
 input AllianceFilter {
@@ -160,8 +163,9 @@ type Character {
   race: Race
   securityStatus: Float
   title: String
-  topAllianceTargets: [AllianceTopTarget!]!
-  topCorporationTargets: [CorporationTopTarget!]!
+  topAllianceTargets(filter: TimeFilter): [AllianceTopTarget!]!
+  topCorporationTargets(filter: TimeFilter): [CorporationTopTarget!]!
+  topShipTargets(filter: TimeFilter): [ShipTopKill!]!
   updatedAt: String
 }
 
@@ -229,6 +233,9 @@ type Corporation {
   snapshots(days: Int): [CorporationSnapshot!]!
   tax_rate: Float!
   ticker: String!
+  topAllianceTargets(filter: TimeFilter): [AllianceTopTarget!]!
+  topCorporationTargets(filter: TimeFilter): [CorporationTopTarget!]!
+  topShipTargets(filter: TimeFilter): [ShipTopKill!]!
   url: String
 }
 
@@ -727,6 +734,11 @@ type SecurityStats {
   wormhole: Int!
 }
 
+type ShipTopKill {
+  killCount: Int!
+  shipType: Type!
+}
+
 """A group of slots with total slot count from dogma attributes"""
 type SlotGroup {
   slots: [FittingSlot!]!
@@ -899,6 +911,13 @@ type SyncMyKillmailsPayload {
   message: String!
   success: Boolean!
   syncedCount: Int!
+}
+
+enum TimeFilter {
+  allTime
+  last7Days
+  last90Days
+  today
 }
 
 type Top90DaysPilot {

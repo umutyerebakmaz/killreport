@@ -5,7 +5,7 @@ import redis from '@services/redis';
 /**
  * Leaderboard Query Resolvers
  *
- * Uses the daily_pilot_kills table for O(1) indexed lookups.
+ * Uses the character_kill_stats table for O(1) indexed lookups.
  * The view is pre-aggregated per (kill_date, character_id) and refreshed every
  * 5 minutes by the scheduled materialized-view refresh service.
  *
@@ -36,7 +36,7 @@ export const leaderboardQueries: QueryResolvers = {
     type Row = { character_id: number; kill_count: bigint };
     const rows = await prisma.$queryRaw<Row[]>`
       SELECT character_id, SUM(kill_count) AS kill_count
-      FROM   daily_pilot_kills
+      FROM   character_kill_stats
       WHERE  kill_date >= ${weekStart}::date
         AND  kill_date <  (${weekStart}::date + INTERVAL '7 days')
       GROUP  BY character_id
@@ -86,13 +86,13 @@ export const leaderboardQueries: QueryResolvers = {
       return JSON.parse(cached);
     }
 
-    // Fast leaderboard read from the daily_pilot_kills table
-    // Index: idx_daily_pilot_kills_date_count → (kill_date, kill_count DESC)
+    // Fast leaderboard read from the character_kill_stats table
+    // Index: idx_character_kill_stats_date_count → (kill_date, kill_count DESC)
     type Row = { character_id: number; kill_count: number };
 
     const rows = await prisma.$queryRaw<Row[]>`
             SELECT character_id, kill_count
-            FROM   daily_pilot_kills
+            FROM   character_kill_stats
             WHERE  kill_date = ${targetDate}::date
             ORDER  BY kill_count DESC
             LIMIT  ${limit}
@@ -145,7 +145,7 @@ export const leaderboardQueries: QueryResolvers = {
     type Row = { character_id: number; kill_count: bigint };
     const rows = await prisma.$queryRaw<Row[]>`
       SELECT character_id, SUM(kill_count) AS kill_count
-      FROM   daily_pilot_kills
+      FROM   character_kill_stats
       WHERE  kill_date >= (${today}::date - INTERVAL '6 days')
         AND  kill_date <= ${today}::date
       GROUP  BY character_id
@@ -193,7 +193,7 @@ export const leaderboardQueries: QueryResolvers = {
     type Row = { character_id: number; kill_count: bigint };
     const rows = await prisma.$queryRaw<Row[]>`
       SELECT character_id, SUM(kill_count) AS kill_count
-      FROM   daily_pilot_kills
+      FROM   character_kill_stats
       WHERE  kill_date >= (${today}::date - INTERVAL '89 days')
       GROUP  BY character_id
       ORDER  BY kill_count DESC
@@ -249,7 +249,7 @@ export const leaderboardQueries: QueryResolvers = {
     type Row = { character_id: number; kill_count: bigint };
     const rows = await prisma.$queryRaw<Row[]>`
       SELECT character_id, SUM(kill_count) AS kill_count
-      FROM   daily_pilot_kills
+      FROM   character_kill_stats
       WHERE  kill_date >= ${monthStart}::date
         AND  kill_date <  ${nextMonthStart}::date
       GROUP  BY character_id
@@ -298,7 +298,7 @@ export const leaderboardQueries: QueryResolvers = {
     type Row = { corporation_id: number; kill_count: bigint };
     const rows = await prisma.$queryRaw<Row[]>`
             SELECT corporation_id, SUM(kill_count) AS kill_count
-            FROM   daily_corporation_kills
+            FROM   corporation_kill_stats
             WHERE  kill_date >= (${today}::date - INTERVAL '6 days')
               AND  kill_date <= ${today}::date
             GROUP  BY corporation_id
@@ -345,7 +345,7 @@ export const leaderboardQueries: QueryResolvers = {
     type Row = { alliance_id: number; kill_count: bigint };
     const rows = await prisma.$queryRaw<Row[]>`
             SELECT alliance_id, SUM(kill_count) AS kill_count
-            FROM   daily_alliance_kills
+            FROM   alliance_kill_stats
             WHERE  kill_date >= (${today}::date - INTERVAL '6 days')
               AND  kill_date <= ${today}::date
             GROUP  BY alliance_id

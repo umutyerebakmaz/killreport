@@ -15,7 +15,7 @@ model Corporation {
   url             String?
   created_at      DateTime              @default(now())
   updated_at      DateTime              @updatedAt
-  snapshots       CorporationSnapshot[]
+  snapshots                    CorporationSnapshot[]
 
   @@index([alliance_id])
   @@map("corporations")

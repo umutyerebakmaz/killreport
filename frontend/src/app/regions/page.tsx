@@ -141,7 +141,7 @@ function RegionsContent() {
       {/* Table */}
       <div className="mt-6 overflow-hidden border border-white/10">
         <table className="table">
-          <thead className="bg-neutral-900">
+          <thead className="bg-neutral-800">
             <tr>
               <th className="text-left th-cell">Region</th>
               <th className="text-left th-cell">Constellations</th>
