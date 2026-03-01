@@ -8,7 +8,7 @@ import { cacheMutations, cacheQueries } from './cache';
 import { categoryFields, categoryMutations, categoryQueries } from './category';
 import { characterFields, characterMutations, characterQueries, characterStatsQueries } from './character';
 import { constellationFields, constellationMutations, constellationQueries } from './constellation';
-import { corporationFields, corporationQueries } from './corporation';
+import { corporationFields, corporationQueries, corporationStatsQueries } from './corporation';
 import { dogmaAttributeMutations, dogmaAttributeQueries } from './dogma-attribute';
 import { dogmaEffectMutations, dogmaEffectQueries } from './dogma-effect';
 import { itemGroupFields, itemGroupMutations, itemGroupQueries } from './item-group';
@@ -38,6 +38,7 @@ export const resolvers: Resolvers = {
         ...killmailQueries,
         ...allianceQueries,
         ...corporationQueries,
+        ...corporationStatsQueries,
         ...raceQueries,
         ...bloodlineQueries,
         ...categoryQueries,

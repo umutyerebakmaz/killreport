@@ -1,0 +1,22 @@
+# Corporation statistics - independent top-level queries
+# These queries are decoupled from Corporation type for better performance and caching
+
+extend type Query {
+  # Top 10 alliances that a corporation has killed most
+  corporationTopAllianceTargets(
+    corporationId: Int!
+    filter: TopTargetFilter
+  ): [AllianceTopTarget!]!
+
+  # Top 10 corporations that a corporation has killed most
+  corporationTopCorporationTargets(
+    corporationId: Int!
+    filter: TopTargetFilter
+  ): [CorporationTopTarget!]!
+
+  # Top 10 ship types that a corporation has killed most
+  corporationTopShipTargets(
+    corporationId: Int!
+    filter: TopTargetFilter
+  ): [ShipTopKill!]!
+}

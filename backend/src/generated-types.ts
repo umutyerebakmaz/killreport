@@ -748,6 +748,9 @@ export type Query = {
   constellation?: Maybe<Constellation>;
   constellations: ConstellationsResponse;
   corporation?: Maybe<Corporation>;
+  corporationTopAllianceTargets: Array<AllianceTopTarget>;
+  corporationTopCorporationTargets: Array<CorporationTopTarget>;
+  corporationTopShipTargets: Array<ShipTopKill>;
   corporations: CorporationsResponse;
   dogmaAttribute?: Maybe<DogmaAttribute>;
   dogmaAttributes: DogmaAttributesResponse;
@@ -857,6 +860,24 @@ export type QueryConstellationsArgs = {
 
 export type QueryCorporationArgs = {
   id: Scalars['Int']['input'];
+};
+
+
+export type QueryCorporationTopAllianceTargetsArgs = {
+  corporationId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+};
+
+
+export type QueryCorporationTopCorporationTargetsArgs = {
+  corporationId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+};
+
+
+export type QueryCorporationTopShipTargetsArgs = {
+  corporationId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
 };
 
 
@@ -2179,6 +2200,9 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   constellation?: Resolver<Maybe<ResolversTypes['Constellation']>, ParentType, ContextType, RequireFields<QueryConstellationArgs, 'id'>>;
   constellations?: Resolver<ResolversTypes['ConstellationsResponse'], ParentType, ContextType, Partial<QueryConstellationsArgs>>;
   corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType, RequireFields<QueryCorporationArgs, 'id'>>;
+  corporationTopAllianceTargets?: Resolver<Array<ResolversTypes['AllianceTopTarget']>, ParentType, ContextType, RequireFields<QueryCorporationTopAllianceTargetsArgs, 'corporationId'>>;
+  corporationTopCorporationTargets?: Resolver<Array<ResolversTypes['CorporationTopTarget']>, ParentType, ContextType, RequireFields<QueryCorporationTopCorporationTargetsArgs, 'corporationId'>>;
+  corporationTopShipTargets?: Resolver<Array<ResolversTypes['ShipTopKill']>, ParentType, ContextType, RequireFields<QueryCorporationTopShipTargetsArgs, 'corporationId'>>;
   corporations?: Resolver<ResolversTypes['CorporationsResponse'], ParentType, ContextType, Partial<QueryCorporationsArgs>>;
   dogmaAttribute?: Resolver<Maybe<ResolversTypes['DogmaAttribute']>, ParentType, ContextType, RequireFields<QueryDogmaAttributeArgs, 'id'>>;
   dogmaAttributes?: Resolver<ResolversTypes['DogmaAttributesResponse'], ParentType, ContextType, Partial<QueryDogmaAttributesArgs>>;

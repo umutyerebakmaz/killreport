@@ -749,6 +749,9 @@ export type Query = {
   constellation?: Maybe<Constellation>;
   constellations: ConstellationsResponse;
   corporation?: Maybe<Corporation>;
+  corporationTopAllianceTargets: Array<AllianceTopTarget>;
+  corporationTopCorporationTargets: Array<CorporationTopTarget>;
+  corporationTopShipTargets: Array<ShipTopKill>;
   corporations: CorporationsResponse;
   dogmaAttribute?: Maybe<DogmaAttribute>;
   dogmaAttributes: DogmaAttributesResponse;
@@ -858,6 +861,24 @@ export type QueryConstellationsArgs = {
 
 export type QueryCorporationArgs = {
   id: Scalars['Int']['input'];
+};
+
+
+export type QueryCorporationTopAllianceTargetsArgs = {
+  corporationId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+};
+
+
+export type QueryCorporationTopCorporationTargetsArgs = {
+  corporationId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+};
+
+
+export type QueryCorporationTopShipTargetsArgs = {
+  corporationId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
 };
 
 
@@ -1613,6 +1634,30 @@ export type CorporationKillmailsQueryVariables = Exact<{
 
 
 export type CorporationKillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailsResponse', items: Array<{ __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+
+export type CorporationTopAllianceTargetsQueryVariables = Exact<{
+  corporationId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+}>;
+
+
+export type CorporationTopAllianceTargetsQuery = { __typename?: 'Query', corporationTopAllianceTargets: Array<{ __typename?: 'AllianceTopTarget', killCount: number, alliance: { __typename?: 'Alliance', id: number, name: string, ticker: string } }> };
+
+export type CorporationTopCorporationTargetsQueryVariables = Exact<{
+  corporationId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+}>;
+
+
+export type CorporationTopCorporationTargetsQuery = { __typename?: 'Query', corporationTopCorporationTargets: Array<{ __typename?: 'CorporationTopTarget', killCount: number, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string } }> };
+
+export type CorporationTopShipTargetsQueryVariables = Exact<{
+  corporationId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+}>;
+
+
+export type CorporationTopShipTargetsQuery = { __typename?: 'Query', corporationTopShipTargets: Array<{ __typename?: 'ShipTopKill', killCount: number, shipType: { __typename?: 'Type', id: number, name: string } }> };
 
 export type CorporationsQueryVariables = Exact<{
   filter?: InputMaybe<CorporationFilter>;
@@ -3080,6 +3125,152 @@ export type CorporationKillmailsQueryHookResult = ReturnType<typeof useCorporati
 export type CorporationKillmailsLazyQueryHookResult = ReturnType<typeof useCorporationKillmailsLazyQuery>;
 export type CorporationKillmailsSuspenseQueryHookResult = ReturnType<typeof useCorporationKillmailsSuspenseQuery>;
 export type CorporationKillmailsQueryResult = Apollo.QueryResult<CorporationKillmailsQuery, CorporationKillmailsQueryVariables>;
+export const CorporationTopAllianceTargetsDocument = gql`
+    query CorporationTopAllianceTargets($corporationId: Int!, $filter: TopTargetFilter) {
+  corporationTopAllianceTargets(corporationId: $corporationId, filter: $filter) {
+    killCount
+    alliance {
+      id
+      name
+      ticker
+    }
+  }
+}
+    `;
+
+/**
+ * __useCorporationTopAllianceTargetsQuery__
+ *
+ * To run a query within a React component, call `useCorporationTopAllianceTargetsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCorporationTopAllianceTargetsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCorporationTopAllianceTargetsQuery({
+ *   variables: {
+ *      corporationId: // value for 'corporationId'
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useCorporationTopAllianceTargetsQuery(baseOptions: Apollo.QueryHookOptions<CorporationTopAllianceTargetsQuery, CorporationTopAllianceTargetsQueryVariables> & ({ variables: CorporationTopAllianceTargetsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CorporationTopAllianceTargetsQuery, CorporationTopAllianceTargetsQueryVariables>(CorporationTopAllianceTargetsDocument, options);
+      }
+export function useCorporationTopAllianceTargetsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CorporationTopAllianceTargetsQuery, CorporationTopAllianceTargetsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CorporationTopAllianceTargetsQuery, CorporationTopAllianceTargetsQueryVariables>(CorporationTopAllianceTargetsDocument, options);
+        }
+// @ts-ignore
+export function useCorporationTopAllianceTargetsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CorporationTopAllianceTargetsQuery, CorporationTopAllianceTargetsQueryVariables>): Apollo.UseSuspenseQueryResult<CorporationTopAllianceTargetsQuery, CorporationTopAllianceTargetsQueryVariables>;
+export function useCorporationTopAllianceTargetsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CorporationTopAllianceTargetsQuery, CorporationTopAllianceTargetsQueryVariables>): Apollo.UseSuspenseQueryResult<CorporationTopAllianceTargetsQuery | undefined, CorporationTopAllianceTargetsQueryVariables>;
+export function useCorporationTopAllianceTargetsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CorporationTopAllianceTargetsQuery, CorporationTopAllianceTargetsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CorporationTopAllianceTargetsQuery, CorporationTopAllianceTargetsQueryVariables>(CorporationTopAllianceTargetsDocument, options);
+        }
+export type CorporationTopAllianceTargetsQueryHookResult = ReturnType<typeof useCorporationTopAllianceTargetsQuery>;
+export type CorporationTopAllianceTargetsLazyQueryHookResult = ReturnType<typeof useCorporationTopAllianceTargetsLazyQuery>;
+export type CorporationTopAllianceTargetsSuspenseQueryHookResult = ReturnType<typeof useCorporationTopAllianceTargetsSuspenseQuery>;
+export type CorporationTopAllianceTargetsQueryResult = Apollo.QueryResult<CorporationTopAllianceTargetsQuery, CorporationTopAllianceTargetsQueryVariables>;
+export const CorporationTopCorporationTargetsDocument = gql`
+    query CorporationTopCorporationTargets($corporationId: Int!, $filter: TopTargetFilter) {
+  corporationTopCorporationTargets(corporationId: $corporationId, filter: $filter) {
+    killCount
+    corporation {
+      id
+      name
+      ticker
+    }
+  }
+}
+    `;
+
+/**
+ * __useCorporationTopCorporationTargetsQuery__
+ *
+ * To run a query within a React component, call `useCorporationTopCorporationTargetsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCorporationTopCorporationTargetsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCorporationTopCorporationTargetsQuery({
+ *   variables: {
+ *      corporationId: // value for 'corporationId'
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useCorporationTopCorporationTargetsQuery(baseOptions: Apollo.QueryHookOptions<CorporationTopCorporationTargetsQuery, CorporationTopCorporationTargetsQueryVariables> & ({ variables: CorporationTopCorporationTargetsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CorporationTopCorporationTargetsQuery, CorporationTopCorporationTargetsQueryVariables>(CorporationTopCorporationTargetsDocument, options);
+      }
+export function useCorporationTopCorporationTargetsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CorporationTopCorporationTargetsQuery, CorporationTopCorporationTargetsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CorporationTopCorporationTargetsQuery, CorporationTopCorporationTargetsQueryVariables>(CorporationTopCorporationTargetsDocument, options);
+        }
+// @ts-ignore
+export function useCorporationTopCorporationTargetsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CorporationTopCorporationTargetsQuery, CorporationTopCorporationTargetsQueryVariables>): Apollo.UseSuspenseQueryResult<CorporationTopCorporationTargetsQuery, CorporationTopCorporationTargetsQueryVariables>;
+export function useCorporationTopCorporationTargetsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CorporationTopCorporationTargetsQuery, CorporationTopCorporationTargetsQueryVariables>): Apollo.UseSuspenseQueryResult<CorporationTopCorporationTargetsQuery | undefined, CorporationTopCorporationTargetsQueryVariables>;
+export function useCorporationTopCorporationTargetsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CorporationTopCorporationTargetsQuery, CorporationTopCorporationTargetsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CorporationTopCorporationTargetsQuery, CorporationTopCorporationTargetsQueryVariables>(CorporationTopCorporationTargetsDocument, options);
+        }
+export type CorporationTopCorporationTargetsQueryHookResult = ReturnType<typeof useCorporationTopCorporationTargetsQuery>;
+export type CorporationTopCorporationTargetsLazyQueryHookResult = ReturnType<typeof useCorporationTopCorporationTargetsLazyQuery>;
+export type CorporationTopCorporationTargetsSuspenseQueryHookResult = ReturnType<typeof useCorporationTopCorporationTargetsSuspenseQuery>;
+export type CorporationTopCorporationTargetsQueryResult = Apollo.QueryResult<CorporationTopCorporationTargetsQuery, CorporationTopCorporationTargetsQueryVariables>;
+export const CorporationTopShipTargetsDocument = gql`
+    query CorporationTopShipTargets($corporationId: Int!, $filter: TopTargetFilter) {
+  corporationTopShipTargets(corporationId: $corporationId, filter: $filter) {
+    killCount
+    shipType {
+      id
+      name
+    }
+  }
+}
+    `;
+
+/**
+ * __useCorporationTopShipTargetsQuery__
+ *
+ * To run a query within a React component, call `useCorporationTopShipTargetsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCorporationTopShipTargetsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCorporationTopShipTargetsQuery({
+ *   variables: {
+ *      corporationId: // value for 'corporationId'
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useCorporationTopShipTargetsQuery(baseOptions: Apollo.QueryHookOptions<CorporationTopShipTargetsQuery, CorporationTopShipTargetsQueryVariables> & ({ variables: CorporationTopShipTargetsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CorporationTopShipTargetsQuery, CorporationTopShipTargetsQueryVariables>(CorporationTopShipTargetsDocument, options);
+      }
+export function useCorporationTopShipTargetsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CorporationTopShipTargetsQuery, CorporationTopShipTargetsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CorporationTopShipTargetsQuery, CorporationTopShipTargetsQueryVariables>(CorporationTopShipTargetsDocument, options);
+        }
+// @ts-ignore
+export function useCorporationTopShipTargetsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CorporationTopShipTargetsQuery, CorporationTopShipTargetsQueryVariables>): Apollo.UseSuspenseQueryResult<CorporationTopShipTargetsQuery, CorporationTopShipTargetsQueryVariables>;
+export function useCorporationTopShipTargetsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CorporationTopShipTargetsQuery, CorporationTopShipTargetsQueryVariables>): Apollo.UseSuspenseQueryResult<CorporationTopShipTargetsQuery | undefined, CorporationTopShipTargetsQueryVariables>;
+export function useCorporationTopShipTargetsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CorporationTopShipTargetsQuery, CorporationTopShipTargetsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CorporationTopShipTargetsQuery, CorporationTopShipTargetsQueryVariables>(CorporationTopShipTargetsDocument, options);
+        }
+export type CorporationTopShipTargetsQueryHookResult = ReturnType<typeof useCorporationTopShipTargetsQuery>;
+export type CorporationTopShipTargetsLazyQueryHookResult = ReturnType<typeof useCorporationTopShipTargetsLazyQuery>;
+export type CorporationTopShipTargetsSuspenseQueryHookResult = ReturnType<typeof useCorporationTopShipTargetsSuspenseQuery>;
+export type CorporationTopShipTargetsQueryResult = Apollo.QueryResult<CorporationTopShipTargetsQuery, CorporationTopShipTargetsQueryVariables>;
 export const CorporationsDocument = gql`
     query Corporations($filter: CorporationFilter) {
   corporations(filter: $filter) {
