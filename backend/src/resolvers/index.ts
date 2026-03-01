@@ -1,5 +1,5 @@
 import { Resolvers } from '@generated-types';
-import { allianceFields, allianceMutations, allianceQueries } from './alliance';
+import { allianceFields, allianceMutations, allianceQueries, allianceStatsQueries } from './alliance';
 import { analyticsQueries, analyticsSubscriptions } from './analytics';
 import { attackerFields } from './attacker';
 import { authMutations, authQueries } from './auth';
@@ -37,6 +37,7 @@ export const resolvers: Resolvers = {
         ...characterStatsQueries,
         ...killmailQueries,
         ...allianceQueries,
+        ...allianceStatsQueries,
         ...corporationQueries,
         ...corporationStatsQueries,
         ...raceQueries,
