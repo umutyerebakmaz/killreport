@@ -4,13 +4,13 @@ import prisma from '@services/prisma';
 
 function timeFilter(filter: string | null | undefined): Prisma.Sql {
     switch (filter) {
-        case 'last90Days':
+        case 'LAST_90_DAYS':
             return Prisma.sql`AND kf.killmail_time >= NOW() - INTERVAL '90 days'`;
-        case 'last7Days':
+        case 'LAST_7_DAYS':
             return Prisma.sql`AND kf.killmail_time >= NOW() - INTERVAL '7 days'`;
-        case 'today':
+        case 'TODAY':
             return Prisma.sql`AND DATE(kf.killmail_time) = CURRENT_DATE`;
-        default: // allTime
+        default: // ALL_TIME
             return Prisma.sql``;
     }
 }

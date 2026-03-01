@@ -3,10 +3,11 @@
  *
  * This index file re-exports all character resolvers using the barrel pattern.
  * This allows clean imports in the parent index.ts:
- * `import { characterQueries, characterMutations, characterFields } from './character'`
+ * `import { characterQueries, characterMutations, characterFields, characterStatsQueries } from './character'`
  */
 
 export { characterFields } from './fields';
 export { characterMutations } from './mutations';
 export { characterQueries } from './queries';
+export { characterStatsQueries } from './stats-queries';
 

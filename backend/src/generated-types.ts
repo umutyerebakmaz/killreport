@@ -49,17 +49,17 @@ export type AllianceSnapshotsArgs = {
 
 
 export type AllianceTopAllianceTargetsArgs = {
-  filter?: InputMaybe<TimeFilter>;
+  filter?: InputMaybe<TopTargetFilter>;
 };
 
 
 export type AllianceTopCorporationTargetsArgs = {
-  filter?: InputMaybe<TimeFilter>;
+  filter?: InputMaybe<TopTargetFilter>;
 };
 
 
 export type AllianceTopShipTargetsArgs = {
-  filter?: InputMaybe<TimeFilter>;
+  filter?: InputMaybe<TopTargetFilter>;
 };
 
 export type AllianceFilter = {
@@ -212,25 +212,7 @@ export type Character = {
   race?: Maybe<Race>;
   securityStatus?: Maybe<Scalars['Float']['output']>;
   title?: Maybe<Scalars['String']['output']>;
-  topAllianceTargets: Array<AllianceTopTarget>;
-  topCorporationTargets: Array<CorporationTopTarget>;
-  topShipTargets: Array<ShipTopKill>;
   updatedAt?: Maybe<Scalars['String']['output']>;
-};
-
-
-export type CharacterTopAllianceTargetsArgs = {
-  filter?: InputMaybe<TimeFilter>;
-};
-
-
-export type CharacterTopCorporationTargetsArgs = {
-  filter?: InputMaybe<TimeFilter>;
-};
-
-
-export type CharacterTopShipTargetsArgs = {
-  filter?: InputMaybe<TimeFilter>;
 };
 
 export type CharacterFilter = {
@@ -314,17 +296,17 @@ export type CorporationSnapshotsArgs = {
 
 
 export type CorporationTopAllianceTargetsArgs = {
-  filter?: InputMaybe<TimeFilter>;
+  filter?: InputMaybe<TopTargetFilter>;
 };
 
 
 export type CorporationTopCorporationTargetsArgs = {
-  filter?: InputMaybe<TimeFilter>;
+  filter?: InputMaybe<TopTargetFilter>;
 };
 
 
 export type CorporationTopShipTargetsArgs = {
-  filter?: InputMaybe<TimeFilter>;
+  filter?: InputMaybe<TopTargetFilter>;
 };
 
 export type CorporationFilter = {
@@ -759,6 +741,9 @@ export type Query = {
   categories: CategoriesResponse;
   category?: Maybe<Category>;
   character?: Maybe<Character>;
+  characterTopAllianceTargets: Array<AllianceTopTarget>;
+  characterTopCorporationTargets: Array<CorporationTopTarget>;
+  characterTopShipTargets: Array<ShipTopKill>;
   characters: CharactersResponse;
   constellation?: Maybe<Constellation>;
   constellations: ConstellationsResponse;
@@ -834,6 +819,24 @@ export type QueryCategoryArgs = {
 
 export type QueryCharacterArgs = {
   id: Scalars['Int']['input'];
+};
+
+
+export type QueryCharacterTopAllianceTargetsArgs = {
+  characterId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+};
+
+
+export type QueryCharacterTopCorporationTargetsArgs = {
+  characterId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+};
+
+
+export type QueryCharacterTopShipTargetsArgs = {
+  characterId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
 };
 
 
@@ -1261,13 +1264,6 @@ export type SyncMyKillmailsPayload = {
   syncedCount: Scalars['Int']['output'];
 };
 
-export enum TimeFilter {
-  AllTime = 'allTime',
-  Last7Days = 'last7Days',
-  Last90Days = 'last90Days',
-  Today = 'today'
-}
-
 export type Top90DaysPilot = {
   __typename?: 'Top90DaysPilot';
   character?: Maybe<Character>;
@@ -1343,6 +1339,13 @@ export type TopPilotsFilter = {
   /** Max 100; default 100 */
   limit?: InputMaybe<Scalars['Int']['input']>;
 };
+
+export enum TopTargetFilter {
+  AllTime = 'ALL_TIME',
+  Last_7Days = 'LAST_7_DAYS',
+  Last_90Days = 'LAST_90_DAYS',
+  Today = 'TODAY'
+}
 
 export type TopWeeklyPilot = {
   __typename?: 'TopWeeklyPilot';
@@ -1639,7 +1642,6 @@ export type ResolversTypes = {
   Subscription: ResolverTypeWrapper<Record<PropertyKey, never>>;
   SyncMyKillmailsInput: SyncMyKillmailsInput;
   SyncMyKillmailsPayload: ResolverTypeWrapper<SyncMyKillmailsPayload>;
-  TimeFilter: TimeFilter;
   Top90DaysPilot: ResolverTypeWrapper<Top90DaysPilot>;
   Top90DaysPilotsFilter: Top90DaysPilotsFilter;
   TopLast7DaysAlliance: ResolverTypeWrapper<TopLast7DaysAlliance>;
@@ -1652,6 +1654,7 @@ export type ResolversTypes = {
   TopMonthlyPilotsFilter: TopMonthlyPilotsFilter;
   TopPilot: ResolverTypeWrapper<TopPilot>;
   TopPilotsFilter: TopPilotsFilter;
+  TopTargetFilter: TopTargetFilter;
   TopWeeklyPilot: ResolverTypeWrapper<TopWeeklyPilot>;
   TopWeeklyPilotsFilter: TopWeeklyPilotsFilter;
   Type: ResolverTypeWrapper<Type>;
@@ -1916,9 +1919,6 @@ export type CharacterResolvers<ContextType = any, ParentType extends ResolversPa
   race?: Resolver<Maybe<ResolversTypes['Race']>, ParentType, ContextType>;
   securityStatus?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  topAllianceTargets?: Resolver<Array<ResolversTypes['AllianceTopTarget']>, ParentType, ContextType, Partial<CharacterTopAllianceTargetsArgs>>;
-  topCorporationTargets?: Resolver<Array<ResolversTypes['CorporationTopTarget']>, ParentType, ContextType, Partial<CharacterTopCorporationTargetsArgs>>;
-  topShipTargets?: Resolver<Array<ResolversTypes['ShipTopKill']>, ParentType, ContextType, Partial<CharacterTopShipTargetsArgs>>;
   updatedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
@@ -2172,6 +2172,9 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   categories?: Resolver<ResolversTypes['CategoriesResponse'], ParentType, ContextType, Partial<QueryCategoriesArgs>>;
   category?: Resolver<Maybe<ResolversTypes['Category']>, ParentType, ContextType, RequireFields<QueryCategoryArgs, 'id'>>;
   character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType, RequireFields<QueryCharacterArgs, 'id'>>;
+  characterTopAllianceTargets?: Resolver<Array<ResolversTypes['AllianceTopTarget']>, ParentType, ContextType, RequireFields<QueryCharacterTopAllianceTargetsArgs, 'characterId'>>;
+  characterTopCorporationTargets?: Resolver<Array<ResolversTypes['CorporationTopTarget']>, ParentType, ContextType, RequireFields<QueryCharacterTopCorporationTargetsArgs, 'characterId'>>;
+  characterTopShipTargets?: Resolver<Array<ResolversTypes['ShipTopKill']>, ParentType, ContextType, RequireFields<QueryCharacterTopShipTargetsArgs, 'characterId'>>;
   characters?: Resolver<ResolversTypes['CharactersResponse'], ParentType, ContextType, Partial<QueryCharactersArgs>>;
   constellation?: Resolver<Maybe<ResolversTypes['Constellation']>, ParentType, ContextType, RequireFields<QueryConstellationArgs, 'id'>>;
   constellations?: Resolver<ResolversTypes['ConstellationsResponse'], ParentType, ContextType, Partial<QueryConstellationsArgs>>;
