@@ -1,0 +1,22 @@
+# Character statistics - independent top-level queries
+# These queries are decoupled from Character type for better performance and caching
+
+extend type Query {
+  # Top 10 alliances that a character has killed most
+  characterTopAllianceTargets(
+    characterId: Int!
+    filter: TopTargetFilter
+  ): [AllianceTopTarget!]!
+
+  # Top 10 corporations that a character has killed most
+  characterTopCorporationTargets(
+    characterId: Int!
+    filter: TopTargetFilter
+  ): [CorporationTopTarget!]!
+
+  # Top 10 ship types that a character has killed most
+  characterTopShipTargets(
+    characterId: Int!
+    filter: TopTargetFilter
+  ): [ShipTopKill!]!
+}

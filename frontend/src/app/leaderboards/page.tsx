@@ -128,7 +128,7 @@ function PilotList({
                       className="w-full! min-w-0 overflow-hidden"
                     >
                       <Link
-                        href={`/characters/${char.id}`}
+                        href={`/characters/${char.id}?tab=killmails`}
                         className="block font-medium text-gray-400 truncate hover:text-blue-400"
                         prefetch={false}
                       >
@@ -146,7 +146,7 @@ function PilotList({
                       className="w-full! min-w-0 overflow-hidden"
                     >
                       <Link
-                        href={`/corporations/${char.corporation.id}`}
+                        href={`/corporations/${char.corporation.id}?tab=killmails`}
                         className="block text-sm text-gray-400 truncate hover:text-blue-400"
                         prefetch={false}
                       >
@@ -160,7 +160,7 @@ function PilotList({
                       className="w-full! min-w-0 overflow-hidden"
                     >
                       <Link
-                        href={`/alliances/${char.alliance.id}`}
+                        href={`/alliances/${char.alliance.id}?tab=killmails`}
                         className="block text-sm text-gray-400 truncate hover:text-blue-400"
                         prefetch={false}
                       >

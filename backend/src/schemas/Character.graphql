@@ -12,24 +12,6 @@ type Character {
   title: String
   faction_id: Int
   updatedAt: String
-  topAllianceTargets(filter: TimeFilter): [AllianceTopTarget!]!
-  topCorporationTargets(filter: TimeFilter): [CorporationTopTarget!]!
-  topShipTargets(filter: TimeFilter): [ShipTopKill!]!
-}
-
-type AllianceTopTarget {
-  alliance: Alliance!
-  killCount: Int!
-}
-
-type CorporationTopTarget {
-  corporation: Corporation!
-  killCount: Int!
-}
-
-type ShipTopKill {
-  shipType: Type!
-  killCount: Int!
 }
 
 input CharacterFilter {

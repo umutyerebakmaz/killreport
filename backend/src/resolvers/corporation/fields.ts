@@ -3,15 +3,15 @@ import { Prisma } from '@generated/prisma/client';
 import prisma from '@services/prisma';
 
 /**
- * Returns a Prisma.Sql fragment for filtering killmail_time by TimeFilter enum.
+ * Returns a Prisma.Sql fragment for filtering killmail_time by TopTargetFilter enum.
  * Uses killmail_filters table with GIN indexes for fast queries.
  */
 function timeFilter(filter: string | null | undefined): Prisma.Sql {
     switch (filter) {
-        case 'last90Days': return Prisma.sql`AND kf.killmail_time >= NOW() - INTERVAL '90 days'`;
-        case 'last7Days': return Prisma.sql`AND kf.killmail_time >= NOW() - INTERVAL '7 days'`;
-        case 'today': return Prisma.sql`AND DATE(kf.killmail_time) = CURRENT_DATE`;
-        default: return Prisma.sql``; // allTime – no constraint
+        case 'LAST_90_DAYS': return Prisma.sql`AND kf.killmail_time >= NOW() - INTERVAL '90 days'`;
+        case 'LAST_7_DAYS': return Prisma.sql`AND kf.killmail_time >= NOW() - INTERVAL '7 days'`;
+        case 'TODAY': return Prisma.sql`AND DATE(kf.killmail_time) = CURRENT_DATE`;
+        default: return Prisma.sql``; // ALL_TIME – no constraint
     }
 }
 

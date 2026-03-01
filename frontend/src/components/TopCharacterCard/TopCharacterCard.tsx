@@ -113,7 +113,7 @@ export default function TopCharacterCard({
                         className="w-full! min-w-0"
                       >
                         <Link
-                          href={`/characters/${character.id}`}
+                          href={`/characters/${character.id}?tab=killmails`}
                           className="block min-w-0 font-medium leading-tight text-gray-400 truncate hover:text-blue-400"
                           prefetch={false}
                         >
@@ -126,7 +126,7 @@ export default function TopCharacterCard({
                           className="w-full! min-w-0"
                         >
                           <Link
-                            href={`/corporations/${character.corporation.id}`}
+                            href={`/corporations/${character.corporation.id}?tab=killmails`}
                             className="block text-sm leading-tight text-gray-500 truncate hover:text-blue-400"
                             prefetch={false}
                           >
@@ -140,7 +140,7 @@ export default function TopCharacterCard({
                           className="w-full! min-w-0"
                         >
                           <Link
-                            href={`/alliances/${character.alliance.id}`}
+                            href={`/alliances/${character.alliance.id}?tab=killmails`}
                             className="block text-sm leading-tight text-gray-500 truncate hover:text-blue-400"
                             prefetch={false}
                           >
