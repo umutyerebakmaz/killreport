@@ -15,7 +15,7 @@ Previously, leaderboard queries (Top Pilots, Top Corporations, Top Alliances) we
 
 #### Layer 1: Real-time Updates (PRIMARY)
 
-**File**: [`daily-aggregates-realtime.ts`](../src/services/daily-aggregates-realtime.ts)
+**File**: [`kill-stats-realtime.ts`](../src/services/kill-stats-realtime.ts)
 
 Every killmail save triggers immediate updates to daily aggregation tables:
 
@@ -33,7 +33,7 @@ await updateDailyAggregatesRealtime(tx, {
 
 - `INSERT ... ON CONFLICT DO UPDATE SET kill_count = kill_count + 1`
 - Atomic increments using PostgreSQL upsert
-- Updates 3 tables in parallel: `daily_pilot_kills`, `daily_corporation_kills`, `daily_alliance_kills`
+- Updates 3 tables in parallel: `character_kill_stats`, `corporation_kill_stats`, `alliance_kill_stats`
 - Overhead: <5ms per killmail
 - Zero latency for leaderboards ⚡
 
@@ -60,10 +60,10 @@ Runs every 5 minutes to ensure consistency:
 
 ```sql
 -- Delete affected days
-DELETE FROM daily_pilot_kills WHERE kill_date >= :six_hours_ago;
+DELETE FROM character_kill_stats WHERE kill_date >= :six_hours_ago;
 
 -- Re-insert from source
-INSERT INTO daily_pilot_kills (kill_date, character_id, kill_count)
+INSERT INTO character_kill_stats (kill_date, character_id, kill_count)
 SELECT DATE(k.killmail_time), a.character_id, COUNT(*)
 FROM attackers a
 JOIN killmails k ON a.killmail_id = k.killmail_id
@@ -74,40 +74,40 @@ ON CONFLICT (kill_date, character_id) DO UPDATE SET kill_count = EXCLUDED.kill_c
 
 ## Database Tables
 
-### daily_pilot_kills
+### character_kill_stats
 
 ```sql
-CREATE TABLE daily_pilot_kills (
+CREATE TABLE character_kill_stats (
     kill_date DATE NOT NULL,
     character_id INT NOT NULL,
     kill_count INT NOT NULL,
     PRIMARY KEY (kill_date, character_id)
 );
-CREATE INDEX idx_daily_pilot_kills_date_count ON daily_pilot_kills(kill_date, kill_count DESC);
+CREATE INDEX idx_character_kill_stats_date_count ON character_kill_stats(kill_date, kill_count DESC);
 ```
 
-### daily_corporation_kills
+### corporation_kill_stats
 
 ```sql
-CREATE TABLE daily_corporation_kills (
+CREATE TABLE corporation_kill_stats (
     kill_date DATE NOT NULL,
     corporation_id INT NOT NULL,
     kill_count INT NOT NULL,
     PRIMARY KEY (kill_date, corporation_id)
 );
-CREATE INDEX idx_daily_corporation_kills_date_count ON daily_corporation_kills(kill_date, kill_count DESC);
+CREATE INDEX idx_corporation_kill_stats_date_count ON corporation_kill_stats(kill_date, kill_count DESC);
 ```
 
-### daily_alliance_kills
+### alliance_kill_stats
 
 ```sql
-CREATE TABLE daily_alliance_kills (
+CREATE TABLE alliance_kill_stats (
     kill_date DATE NOT NULL,
     alliance_id INT NOT NULL,
     kill_count INT NOT NULL,
     PRIMARY KEY (kill_date, alliance_id)
 );
-CREATE INDEX idx_daily_alliance_kills_date_count ON daily_alliance_kills(kill_date, kill_count DESC);
+CREATE INDEX idx_alliance_kill_stats_date_count ON alliance_kill_stats(kill_date, kill_count DESC);
 ```
 
 ## Query Performance
@@ -130,7 +130,7 @@ LIMIT 100;
 ```sql
 -- <50ms, index scan only
 SELECT corporation_id, SUM(kill_count) as kill_count
-FROM daily_corporation_kills
+FROM corporation_kill_stats
 WHERE kill_date >= CURRENT_DATE - INTERVAL '6 days'
 GROUP BY corporation_id
 ORDER BY kill_count DESC
@@ -153,29 +153,29 @@ LIMIT 100;
 
 ```sql
 SELECT
-    'daily_pilot_kills' as table_name,
+    'character_kill_stats' as table_name,
     COUNT(*) as records,
-    pg_size_pretty(pg_total_relation_size('daily_pilot_kills')) as size
-FROM daily_pilot_kills
+    pg_size_pretty(pg_total_relation_size('character_kill_stats')) as size
+FROM character_kill_stats
 UNION ALL
 SELECT
-    'daily_corporation_kills',
+    'corporation_kill_stats',
     COUNT(*),
-    pg_size_pretty(pg_total_relation_size('daily_corporation_kills'))
-FROM daily_corporation_kills
+    pg_size_pretty(pg_total_relation_size('corporation_kill_stats'))
+FROM corporation_kill_stats
 UNION ALL
 SELECT
-    'daily_alliance_kills',
+    'alliance_kill_stats',
     COUNT(*),
-    pg_size_pretty(pg_total_relation_size('daily_alliance_kills'))
-FROM daily_alliance_kills;
+    pg_size_pretty(pg_total_relation_size('alliance_kill_stats'))
+FROM alliance_kill_stats;
 ```
 
 ### Check last refresh
 
 ```sql
 SELECT * FROM refresh_log
-WHERE view_name IN ('daily_pilot_kills', 'daily_corporation_kills', 'daily_alliance_kills')
+WHERE view_name IN ('character_kill_stats', 'corporation_kill_stats', 'alliance_kill_stats')
 ORDER BY last_incremental_refresh_at DESC;
 ```
 
@@ -185,7 +185,7 @@ ORDER BY last_incremental_refresh_at DESC;
 # Watch leaderboard while killmails arrive
 psql -d killreport -c "
 SELECT corporation_id, kill_count
-FROM daily_corporation_kills
+FROM corporation_kill_stats
 WHERE kill_date = CURRENT_DATE
 ORDER BY kill_count DESC
 LIMIT 10;

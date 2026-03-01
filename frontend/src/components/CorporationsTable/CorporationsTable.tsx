@@ -34,7 +34,7 @@ export default function CorporationsTable({
   return (
     <div className="mt-6 overflow-hidden border border-white/10">
       <table className="table">
-        <thead className="bg-neutral-950">
+        <thead className="bg-neutral-800">
           <tr>
             <th className="text-left th-cell">Corporation</th>
             <th className="text-left th-cell">Ticker</th>

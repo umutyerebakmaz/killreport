@@ -369,7 +369,7 @@ function StandaloneWorkerSection({ workers }: any) {
       </div>
       <div className="overflow-x-auto border border-gray-800 ">
         <table className="w-full min-w-max">
-          <thead className="bg-gray-900/50">
+          <thead className="bg-neutral-800">
             <tr>
               <th className="px-2 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase md:px-4">
                 Status
@@ -444,7 +444,7 @@ function QueueSection({ title, subtitle, queues }: any) {
       </div>
       <div className="overflow-x-auto border border-gray-800 ">
         <table className="w-full min-w-max">
-          <thead className="bg-gray-900/50">
+          <thead className="bg-neutral-800">
             <tr>
               <th className="px-2 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase md:px-4">
                 Queue Status

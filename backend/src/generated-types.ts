@@ -37,11 +37,29 @@ export type Alliance = {
   name: Scalars['String']['output'];
   snapshots: Array<AllianceSnapshot>;
   ticker: Scalars['String']['output'];
+  topAllianceTargets: Array<AllianceTopTarget>;
+  topCorporationTargets: Array<CorporationTopTarget>;
+  topShipTargets: Array<ShipTopKill>;
 };
 
 
 export type AllianceSnapshotsArgs = {
   days?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type AllianceTopAllianceTargetsArgs = {
+  filter?: InputMaybe<TimeFilter>;
+};
+
+
+export type AllianceTopCorporationTargetsArgs = {
+  filter?: InputMaybe<TimeFilter>;
+};
+
+
+export type AllianceTopShipTargetsArgs = {
+  filter?: InputMaybe<TimeFilter>;
 };
 
 export type AllianceFilter = {
@@ -196,7 +214,23 @@ export type Character = {
   title?: Maybe<Scalars['String']['output']>;
   topAllianceTargets: Array<AllianceTopTarget>;
   topCorporationTargets: Array<CorporationTopTarget>;
+  topShipTargets: Array<ShipTopKill>;
   updatedAt?: Maybe<Scalars['String']['output']>;
+};
+
+
+export type CharacterTopAllianceTargetsArgs = {
+  filter?: InputMaybe<TimeFilter>;
+};
+
+
+export type CharacterTopCorporationTargetsArgs = {
+  filter?: InputMaybe<TimeFilter>;
+};
+
+
+export type CharacterTopShipTargetsArgs = {
+  filter?: InputMaybe<TimeFilter>;
 };
 
 export type CharacterFilter = {
@@ -267,12 +301,30 @@ export type Corporation = {
   snapshots: Array<CorporationSnapshot>;
   tax_rate: Scalars['Float']['output'];
   ticker: Scalars['String']['output'];
+  topAllianceTargets: Array<AllianceTopTarget>;
+  topCorporationTargets: Array<CorporationTopTarget>;
+  topShipTargets: Array<ShipTopKill>;
   url?: Maybe<Scalars['String']['output']>;
 };
 
 
 export type CorporationSnapshotsArgs = {
   days?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type CorporationTopAllianceTargetsArgs = {
+  filter?: InputMaybe<TimeFilter>;
+};
+
+
+export type CorporationTopCorporationTargetsArgs = {
+  filter?: InputMaybe<TimeFilter>;
+};
+
+
+export type CorporationTopShipTargetsArgs = {
+  filter?: InputMaybe<TimeFilter>;
 };
 
 export type CorporationFilter = {
@@ -1019,6 +1071,12 @@ export type SecurityStats = {
   wormhole: Scalars['Int']['output'];
 };
 
+export type ShipTopKill = {
+  __typename?: 'ShipTopKill';
+  killCount: Scalars['Int']['output'];
+  shipType: Type;
+};
+
 /** A group of slots with total slot count from dogma attributes */
 export type SlotGroup = {
   __typename?: 'SlotGroup';
@@ -1202,6 +1260,13 @@ export type SyncMyKillmailsPayload = {
   success: Scalars['Boolean']['output'];
   syncedCount: Scalars['Int']['output'];
 };
+
+export enum TimeFilter {
+  AllTime = 'allTime',
+  Last7Days = 'last7Days',
+  Last90Days = 'last90Days',
+  Today = 'today'
+}
 
 export type Top90DaysPilot = {
   __typename?: 'Top90DaysPilot';
@@ -1545,6 +1610,7 @@ export type ResolversTypes = {
   RegionOrderBy: RegionOrderBy;
   RegionsResponse: ResolverTypeWrapper<RegionsResponse>;
   SecurityStats: ResolverTypeWrapper<SecurityStats>;
+  ShipTopKill: ResolverTypeWrapper<ShipTopKill>;
   SlotGroup: ResolverTypeWrapper<SlotGroup>;
   SolarSystem: ResolverTypeWrapper<SolarSystem>;
   SolarSystemFilter: SolarSystemFilter;
@@ -1573,6 +1639,7 @@ export type ResolversTypes = {
   Subscription: ResolverTypeWrapper<Record<PropertyKey, never>>;
   SyncMyKillmailsInput: SyncMyKillmailsInput;
   SyncMyKillmailsPayload: ResolverTypeWrapper<SyncMyKillmailsPayload>;
+  TimeFilter: TimeFilter;
   Top90DaysPilot: ResolverTypeWrapper<Top90DaysPilot>;
   Top90DaysPilotsFilter: Top90DaysPilotsFilter;
   TopLast7DaysAlliance: ResolverTypeWrapper<TopLast7DaysAlliance>;
@@ -1665,6 +1732,7 @@ export type ResolversParentTypes = {
   RegionFilter: RegionFilter;
   RegionsResponse: RegionsResponse;
   SecurityStats: SecurityStats;
+  ShipTopKill: ShipTopKill;
   SlotGroup: SlotGroup;
   SolarSystem: SolarSystem;
   SolarSystemFilter: SolarSystemFilter;
@@ -1737,6 +1805,9 @@ export type AllianceResolvers<ContextType = any, ParentType extends ResolversPar
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   snapshots?: Resolver<Array<ResolversTypes['AllianceSnapshot']>, ParentType, ContextType, Partial<AllianceSnapshotsArgs>>;
   ticker?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  topAllianceTargets?: Resolver<Array<ResolversTypes['AllianceTopTarget']>, ParentType, ContextType, Partial<AllianceTopAllianceTargetsArgs>>;
+  topCorporationTargets?: Resolver<Array<ResolversTypes['CorporationTopTarget']>, ParentType, ContextType, Partial<AllianceTopCorporationTargetsArgs>>;
+  topShipTargets?: Resolver<Array<ResolversTypes['ShipTopKill']>, ParentType, ContextType, Partial<AllianceTopShipTargetsArgs>>;
 };
 
 export type AllianceMetricsResolvers<ContextType = any, ParentType extends ResolversParentTypes['AllianceMetrics'] = ResolversParentTypes['AllianceMetrics']> = {
@@ -1845,8 +1916,9 @@ export type CharacterResolvers<ContextType = any, ParentType extends ResolversPa
   race?: Resolver<Maybe<ResolversTypes['Race']>, ParentType, ContextType>;
   securityStatus?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  topAllianceTargets?: Resolver<Array<ResolversTypes['AllianceTopTarget']>, ParentType, ContextType>;
-  topCorporationTargets?: Resolver<Array<ResolversTypes['CorporationTopTarget']>, ParentType, ContextType>;
+  topAllianceTargets?: Resolver<Array<ResolversTypes['AllianceTopTarget']>, ParentType, ContextType, Partial<CharacterTopAllianceTargetsArgs>>;
+  topCorporationTargets?: Resolver<Array<ResolversTypes['CorporationTopTarget']>, ParentType, ContextType, Partial<CharacterTopCorporationTargetsArgs>>;
+  topShipTargets?: Resolver<Array<ResolversTypes['ShipTopKill']>, ParentType, ContextType, Partial<CharacterTopShipTargetsArgs>>;
   updatedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
@@ -1883,6 +1955,9 @@ export type CorporationResolvers<ContextType = any, ParentType extends Resolvers
   snapshots?: Resolver<Array<ResolversTypes['CorporationSnapshot']>, ParentType, ContextType, Partial<CorporationSnapshotsArgs>>;
   tax_rate?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   ticker?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  topAllianceTargets?: Resolver<Array<ResolversTypes['AllianceTopTarget']>, ParentType, ContextType, Partial<CorporationTopAllianceTargetsArgs>>;
+  topCorporationTargets?: Resolver<Array<ResolversTypes['CorporationTopTarget']>, ParentType, ContextType, Partial<CorporationTopCorporationTargetsArgs>>;
+  topShipTargets?: Resolver<Array<ResolversTypes['ShipTopKill']>, ParentType, ContextType, Partial<CorporationTopShipTargetsArgs>>;
   url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
@@ -2188,6 +2263,11 @@ export type SecurityStatsResolvers<ContextType = any, ParentType extends Resolve
   wormhole?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
+export type ShipTopKillResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShipTopKill'] = ResolversParentTypes['ShipTopKill']> = {
+  killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  shipType?: Resolver<ResolversTypes['Type'], ParentType, ContextType>;
+};
+
 export type SlotGroupResolvers<ContextType = any, ParentType extends ResolversParentTypes['SlotGroup'] = ResolversParentTypes['SlotGroup']> = {
   slots?: Resolver<Array<ResolversTypes['FittingSlot']>, ParentType, ContextType>;
   totalSlots?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -2443,6 +2523,7 @@ export type Resolvers<ContextType = any> = {
   Region?: RegionResolvers<ContextType>;
   RegionsResponse?: RegionsResponseResolvers<ContextType>;
   SecurityStats?: SecurityStatsResolvers<ContextType>;
+  ShipTopKill?: ShipTopKillResolvers<ContextType>;
   SlotGroup?: SlotGroupResolvers<ContextType>;
   SolarSystem?: SolarSystemResolvers<ContextType>;
   SolarSystemsResponse?: SolarSystemsResponseResolvers<ContextType>;
