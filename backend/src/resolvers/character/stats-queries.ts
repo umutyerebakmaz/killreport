@@ -36,4 +36,12 @@ export const characterStatsQueries: QueryResolvers = {
     characterTopShipTargets: async (_, { characterId, filter }) => {
         return CharacterStatsService.getTopShipTargets(characterId, filter);
     },
+
+    /**
+     * Get top 10 ship types that a character has used most (as attacker)
+     * Cached in Redis with smart TTL based on time filter
+     */
+    characterTopShips: async (_, { characterId, filter }) => {
+        return CharacterStatsService.getTopShips(characterId, filter);
+    },
 };

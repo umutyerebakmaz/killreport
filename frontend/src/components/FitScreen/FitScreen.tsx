@@ -39,6 +39,12 @@ export default function FitScreen({ shipType, fitting }: FitScreenProps) {
                 src={`https://images.evetech.net/types/${shipType.id}/render?size=512`}
                 alt={shipType.name}
                 className="hull-image"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (target.src.includes("/render?")) {
+                    target.src = `https://images.evetech.net/types/${shipType.id}/icon?size=512`;
+                  }
+                }}
               />
             )}
           </div>

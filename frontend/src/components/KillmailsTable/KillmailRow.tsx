@@ -75,10 +75,17 @@ export default function KillmailRow({
                   </div>
                 )}
                 <img
-                  src={`https://images.evetech.net/types/${km.victim.shipType?.id}/render?size=128`}
+                  src={`https://images.evetech.net/types/${km.victim?.shipType?.id}/render?size=128`}
                   alt={km.victim?.shipType?.name || "Ship"}
                   className="transition-opacity size-20 hover:opacity-80"
                   loading="lazy"
+                  onError={(e) => {
+                    // Fallback to icon if render fails (e.g., for some faction ships)
+                    const target = e.target as HTMLImageElement;
+                    if (target.src.includes("/render?")) {
+                      target.src = `https://images.evetech.net/types/${km.victim?.shipType?.id}/icon?size=128`;
+                    }
+                  }}
                 />
               </Link>
             </Tooltip>
@@ -89,7 +96,7 @@ export default function KillmailRow({
             </div>
             {km.victim?.shipType?.group && (
               <div className="text-base text-gray-500">
-                {km.victim.shipType.group.name}
+                {km.victim?.shipType?.group?.name}
               </div>
             )}
             <div className="text-base text-red-400">

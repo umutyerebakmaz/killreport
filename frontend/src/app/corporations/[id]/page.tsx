@@ -18,6 +18,7 @@ import {
   useCorporationTopAllianceTargetsQuery,
   useCorporationTopCorporationTargetsQuery,
   useCorporationTopShipTargetsQuery,
+  useCorporationTopShipsQuery,
   useKillmailsDateCountsQuery,
 } from "@/generated/graphql";
 import Link from "next/link";
@@ -72,6 +73,13 @@ export default function CorporationDetailPage({
 
   const { data: shipTargetsData, loading: shipTargetsLoading } =
     useCorporationTopShipTargetsQuery({
+      variables: {
+        corporationId: parseInt(id),
+      },
+    });
+
+  const { data: shipsData, loading: shipsLoading } =
+    useCorporationTopShipsQuery({
       variables: {
         corporationId: parseInt(id),
       },
@@ -235,9 +243,17 @@ export default function CorporationDetailPage({
   const memberGrowthRate7d =
     corporation.metrics?.memberCountGrowthRate7d ?? null;
 
-  // Map top ships from independent query
-  const topShips =
+  // Map top ship targets from independent query (killed ships)
+  const topShipTargets =
     shipTargetsData?.corporationTopShipTargets?.map((ship) => ({
+      id: ship.shipType.id,
+      name: ship.shipType.name,
+      killCount: ship.killCount,
+    })) || [];
+
+  // Map top attacker ships from independent query (used ships)
+  const topAttackerShips =
+    shipsData?.corporationTopShips?.map((ship) => ({
       id: ship.shipType.id,
       name: ship.shipType.name,
       killCount: ship.killCount,
@@ -508,9 +524,17 @@ export default function CorporationDetailPage({
                   <TopShipsCard
                     title="Top Ship Targets"
                     subtitle="Most killed ship types"
-                    ships={topShips}
+                    ships={topShipTargets}
                     emptyText="No ships killed yet"
                     loading={shipTargetsLoading}
+                  />
+
+                  <TopShipsCard
+                    title="Top Attacker Ships"
+                    subtitle="Most used ship types"
+                    ships={topAttackerShips}
+                    emptyText="No ships used yet"
+                    loading={shipsLoading}
                   />
                 </div>
               </div>

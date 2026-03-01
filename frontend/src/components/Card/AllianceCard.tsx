@@ -56,7 +56,7 @@ export default function AllianceCard({ alliance }: AllianceCardProps) {
           </div>
           <Tooltip content="Show Alliance Info">
             <Link
-              href={`/alliances/${alliance.id}`}
+              href={`/alliances/${alliance.id}?tab=killmails`}
               className="alliance-name"
               prefetch={false}
             >

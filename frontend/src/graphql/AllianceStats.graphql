@@ -35,3 +35,13 @@ query AllianceTopShipTargets($allianceId: Int!, $filter: TopTargetFilter) {
     }
   }
 }
+
+query AllianceTopShips($allianceId: Int!, $filter: TopTargetFilter) {
+  allianceTopShips(allianceId: $allianceId, filter: $filter) {
+    killCount
+    shipType {
+      id
+      name
+    }
+  }
+}

@@ -18,6 +18,7 @@ import {
   useAllianceQuery,
   useAllianceTopAllianceTargetsQuery,
   useAllianceTopCorporationTargetsQuery,
+  useAllianceTopShipsQuery,
   useAllianceTopShipTargetsQuery,
   useKillmailsDateCountsQuery,
 } from "@/generated/graphql";
@@ -82,6 +83,12 @@ export default function AllianceDetailPage({
         allianceId: parseInt(id),
       },
     });
+
+  const { data: shipsData, loading: shipsLoading } = useAllianceTopShipsQuery({
+    variables: {
+      allianceId: parseInt(id),
+    },
+  });
 
   // Fetch corporations when members tab is active
   const { data: corporationsData, loading: corporationsLoading } =
@@ -243,9 +250,17 @@ export default function AllianceDetailPage({
   const memberDelta7d = alliance.metrics?.memberCountDelta7d ?? null;
   const memberGrowthRate7d = alliance.metrics?.memberCountGrowthRate7d ?? null;
 
-  // Map top ships from independent query
-  const topShips =
+  // Map top ship targets from independent query (killed ships)
+  const topShipTargets =
     shipTargetsData?.allianceTopShipTargets?.map((ship) => ({
+      id: ship.shipType.id,
+      name: ship.shipType.name,
+      killCount: ship.killCount,
+    })) || [];
+
+  // Map top attacker ships from independent query (used ships)
+  const topAttackerShips =
+    shipsData?.allianceTopShips?.map((ship) => ({
       id: ship.shipType.id,
       name: ship.shipType.name,
       killCount: ship.killCount,
@@ -469,9 +484,17 @@ export default function AllianceDetailPage({
                   <TopShipsCard
                     title="Top Ship Targets"
                     subtitle="Most killed ship types"
-                    ships={topShips}
+                    ships={topShipTargets}
                     emptyText="No ships killed yet"
                     loading={shipTargetsLoading}
+                  />
+
+                  <TopShipsCard
+                    title="Top Attacker Ships"
+                    subtitle="Most used ship types"
+                    ships={topAttackerShips}
+                    emptyText="No ships used yet"
+                    loading={shipsLoading}
                   />
                 </div>
               </div>

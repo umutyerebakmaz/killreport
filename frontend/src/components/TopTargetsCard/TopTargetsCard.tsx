@@ -45,7 +45,7 @@ export default function TopTargetsCard({
   if (loading) {
     return (
       <div className="">
-        <div className="p-4 border-b border-white/10">
+        <div className="py-4 border-b border-white/10">
           <h3 className="text-lg font-semibold text-white">{title}</h3>
           {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
         </div>
@@ -58,7 +58,7 @@ export default function TopTargetsCard({
 
   return (
     <div className="top-targets">
-      <div className="p-4 border-b border-white/10">
+      <div className="py-4 border-b border-white/10">
         <h3 className="text-lg font-semibold text-white">{title}</h3>
         {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
       </div>
@@ -111,7 +111,7 @@ export default function TopTargetsCard({
                     className="w-full! min-w-0"
                   >
                     <Link
-                      href={`${linkPrefix}/${target.id}`}
+                      href={`${linkPrefix}/${target.id}?tab=killmails`}
                       className="block min-w-0 font-medium text-gray-400 truncate hover:text-blue-400"
                       prefetch={false}
                     >
