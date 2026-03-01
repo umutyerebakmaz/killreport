@@ -127,8 +127,8 @@ export default function AttackerRow({
                 </span>
               )}
               {isSolo && (
-                <span className="px-2 py-0.5 text-xs font-medium text-purple-400 rounded bg-purple-400/10">
-                  SOLO KILL
+                <span className="px-2 py-0.5 font-medium text-green-600 rounded bg-green-600/10">
+                  SOLO
                 </span>
               )}
               {isNpcAttackers && (

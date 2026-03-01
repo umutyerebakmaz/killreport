@@ -3,6 +3,7 @@
 import Tooltip from "@/components/Tooltip/Tooltip";
 import { getSecurityStatusColor } from "@/utils/securityStatus";
 import Link from "next/link";
+import { ReactNode } from "react";
 
 export interface TopCharacter {
   id: number;
@@ -21,7 +22,7 @@ export interface TopCharacter {
 
 export interface TopCharacterCardProps {
   title: string;
-  subtitle?: string;
+  subtitle?: ReactNode;
   characters: TopCharacter[];
   loading?: boolean;
   emptyText?: string;
@@ -37,9 +38,13 @@ export default function TopCharacterCard({
   if (loading) {
     return (
       <div>
-        <div className="p-4 border-b border-white/10">
+        <div className="py-4 border-b border-white/10">
           <h3 className="text-lg font-semibold text-white">{title}</h3>
-          {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
+          {subtitle && (
+            <p className="flex items-center justify-between text-xs text-gray-500">
+              {subtitle}
+            </p>
+          )}
         </div>
         <div className="flex items-center justify-center py-12">
           <div className="text-sm text-gray-400">Loading...</div>
@@ -50,9 +55,13 @@ export default function TopCharacterCard({
 
   return (
     <div className="top-character-card">
-      <div className="p-4 border-b border-white/10">
+      <div className="py-4 border-b border-white/10">
         <h3 className="text-lg font-semibold text-white">{title}</h3>
-        {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
+        {subtitle && (
+          <p className="flex items-center justify-between text-xs text-gray-500">
+            {subtitle}
+          </p>
+        )}
       </div>
 
       {characters.length === 0 ? (

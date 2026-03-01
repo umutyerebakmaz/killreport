@@ -1,0 +1,10 @@
+query TopLast7DaysAttackerShips($filter: TopLast7DaysAttackerShipsFilter) {
+  topLast7DaysAttackerShips(filter: $filter) {
+    rank
+    killCount
+    shipType {
+      id
+      name
+    }
+  }
+}

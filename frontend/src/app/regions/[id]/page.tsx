@@ -93,7 +93,7 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
 
           {/* Security Stats Card */}
           {region.securityStats && (
-            <div className="bg-white/5 border border-white/10 p-4 min-w-[280px]">
+            <div className="bg-white/5 border border-white/10 p-4 min-w-70">
               <h3 className="mb-3 text-sm font-medium text-gray-400">
                 Security Distribution
               </h3>

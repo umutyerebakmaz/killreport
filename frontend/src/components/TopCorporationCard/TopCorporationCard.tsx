@@ -2,6 +2,7 @@
 
 import Tooltip from "@/components/Tooltip/Tooltip";
 import Link from "next/link";
+import { ReactNode } from "react";
 
 export interface TopCorporation {
   id: number;
@@ -12,7 +13,7 @@ export interface TopCorporation {
 
 export interface TopCorporationCardProps {
   title: string;
-  subtitle?: string;
+  subtitle?: ReactNode;
   corporations: TopCorporation[];
   loading?: boolean;
   emptyText?: string;
@@ -28,9 +29,13 @@ export default function TopCorporationCard({
   if (loading) {
     return (
       <div>
-        <div className="p-4 border-b border-white/10">
+        <div className="py-4 border-b border-white/10">
           <h3 className="text-lg font-semibold text-white">{title}</h3>
-          {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
+          {subtitle && (
+            <p className="flex items-center justify-between text-xs text-gray-500">
+              {subtitle}
+            </p>
+          )}
         </div>
         <div className="flex items-center justify-center py-12">
           <div className="text-sm text-gray-400">Loading...</div>
@@ -41,9 +46,13 @@ export default function TopCorporationCard({
 
   return (
     <div className="top-corporation-card">
-      <div className="p-4 border-b border-white/10">
+      <div className="py-4 border-b border-white/10">
         <h3 className="text-lg font-semibold text-white">{title}</h3>
-        {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
+        {subtitle && (
+          <p className="flex items-center justify-between text-xs text-gray-500">
+            {subtitle}
+          </p>
+        )}
       </div>
 
       {corporations.length === 0 ? (

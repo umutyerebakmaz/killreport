@@ -1,0 +1,9 @@
+query CorporationTopShips($corporationId: Int!, $filter: TopTargetFilter) {
+  corporationTopShips(corporationId: $corporationId, filter: $filter) {
+    killCount
+    shipType {
+      id
+      name
+    }
+  }
+}

@@ -65,6 +65,13 @@ function KillmailToastItem({
     ? `https://images.evetech.net/types/${toast.victimShipTypeId}/render?size=64`
     : null;
 
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const target = e.target as HTMLImageElement;
+    if (target.src.includes("/render?") && toast.victimShipTypeId) {
+      target.src = `https://images.evetech.net/types/${toast.victimShipTypeId}/icon?size=64`;
+    }
+  };
+
   return (
     <div
       className={`
@@ -87,6 +94,7 @@ function KillmailToastItem({
               src={shipImageUrl}
               alt={toast.victimShipName || "Ship"}
               className="object-cover bg-gray-800 border border-gray-700 w-14 h-14"
+              onError={handleImageError}
             />
           ) : (
             <div className="flex items-center justify-center bg-gray-800 border border-gray-700 w-14 h-14">

@@ -1,6 +1,7 @@
 "use client";
 
 import Tooltip from "@/components/Tooltip/Tooltip";
+import { ReactNode } from "react";
 
 export interface TopShip {
   id: number;
@@ -10,7 +11,7 @@ export interface TopShip {
 
 export interface TopShipsCardProps {
   title: string;
-  subtitle?: string;
+  subtitle?: ReactNode;
   ships: TopShip[];
   loading?: boolean;
   emptyText?: string;
@@ -26,9 +27,13 @@ export default function TopShipsCard({
   if (loading) {
     return (
       <div className="">
-        <div className="p-4 border-b border-white/10">
+        <div className="py-4 border-b border-white/10">
           <h3 className="text-lg font-semibold text-white">{title}</h3>
-          {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
+          {subtitle && (
+            <p className="flex items-center justify-between text-xs text-gray-500">
+              {subtitle}
+            </p>
+          )}
         </div>
         <div className="flex items-center justify-center py-12">
           <div className="text-sm text-gray-400">Loading...</div>
@@ -39,9 +44,13 @@ export default function TopShipsCard({
 
   return (
     <div className="top-ships">
-      <div className="p-4 border-b border-white/10">
+      <div className="py-4 border-b border-white/10">
         <h3 className="text-lg font-semibold text-white">{title}</h3>
-        {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
+        {subtitle && (
+          <p className="flex items-center justify-between text-xs text-gray-500">
+            {subtitle}
+          </p>
+        )}
       </div>
 
       {ships.length === 0 ? (
@@ -80,7 +89,7 @@ export default function TopShipsCard({
                     alt={ship.name}
                     width={48}
                     height={48}
-                    className="shadow-md bg-black/50 ring-1 ring-black/50"
+                    className="shadow-md"
                     loading="lazy"
                   />
                 </div>
