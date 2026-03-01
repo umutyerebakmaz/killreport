@@ -1,8 +1,8 @@
 # Time-based filter for top-targets stats.
 # Used on Character, Corporation and Alliance topXxxTargets fields.
-enum TimeFilter {
-  allTime
-  last90Days
-  last7Days
-  today
+enum TopTargetFilter {
+  ALL_TIME
+  LAST_90_DAYS
+  LAST_7_DAYS
+  TODAY
 }

@@ -50,17 +50,17 @@ export type AllianceSnapshotsArgs = {
 
 
 export type AllianceTopAllianceTargetsArgs = {
-  filter?: InputMaybe<TimeFilter>;
+  filter?: InputMaybe<TopTargetFilter>;
 };
 
 
 export type AllianceTopCorporationTargetsArgs = {
-  filter?: InputMaybe<TimeFilter>;
+  filter?: InputMaybe<TopTargetFilter>;
 };
 
 
 export type AllianceTopShipTargetsArgs = {
-  filter?: InputMaybe<TimeFilter>;
+  filter?: InputMaybe<TopTargetFilter>;
 };
 
 export type AllianceFilter = {
@@ -213,25 +213,7 @@ export type Character = {
   race?: Maybe<Race>;
   securityStatus?: Maybe<Scalars['Float']['output']>;
   title?: Maybe<Scalars['String']['output']>;
-  topAllianceTargets: Array<AllianceTopTarget>;
-  topCorporationTargets: Array<CorporationTopTarget>;
-  topShipTargets: Array<ShipTopKill>;
   updatedAt?: Maybe<Scalars['String']['output']>;
-};
-
-
-export type CharacterTopAllianceTargetsArgs = {
-  filter?: InputMaybe<TimeFilter>;
-};
-
-
-export type CharacterTopCorporationTargetsArgs = {
-  filter?: InputMaybe<TimeFilter>;
-};
-
-
-export type CharacterTopShipTargetsArgs = {
-  filter?: InputMaybe<TimeFilter>;
 };
 
 export type CharacterFilter = {
@@ -315,17 +297,17 @@ export type CorporationSnapshotsArgs = {
 
 
 export type CorporationTopAllianceTargetsArgs = {
-  filter?: InputMaybe<TimeFilter>;
+  filter?: InputMaybe<TopTargetFilter>;
 };
 
 
 export type CorporationTopCorporationTargetsArgs = {
-  filter?: InputMaybe<TimeFilter>;
+  filter?: InputMaybe<TopTargetFilter>;
 };
 
 
 export type CorporationTopShipTargetsArgs = {
-  filter?: InputMaybe<TimeFilter>;
+  filter?: InputMaybe<TopTargetFilter>;
 };
 
 export type CorporationFilter = {
@@ -760,6 +742,9 @@ export type Query = {
   categories: CategoriesResponse;
   category?: Maybe<Category>;
   character?: Maybe<Character>;
+  characterTopAllianceTargets: Array<AllianceTopTarget>;
+  characterTopCorporationTargets: Array<CorporationTopTarget>;
+  characterTopShipTargets: Array<ShipTopKill>;
   characters: CharactersResponse;
   constellation?: Maybe<Constellation>;
   constellations: ConstellationsResponse;
@@ -835,6 +820,24 @@ export type QueryCategoryArgs = {
 
 export type QueryCharacterArgs = {
   id: Scalars['Int']['input'];
+};
+
+
+export type QueryCharacterTopAllianceTargetsArgs = {
+  characterId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+};
+
+
+export type QueryCharacterTopCorporationTargetsArgs = {
+  characterId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+};
+
+
+export type QueryCharacterTopShipTargetsArgs = {
+  characterId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
 };
 
 
@@ -1262,13 +1265,6 @@ export type SyncMyKillmailsPayload = {
   syncedCount: Scalars['Int']['output'];
 };
 
-export enum TimeFilter {
-  AllTime = 'allTime',
-  Last7Days = 'last7Days',
-  Last90Days = 'last90Days',
-  Today = 'today'
-}
-
 export type Top90DaysPilot = {
   __typename?: 'Top90DaysPilot';
   character?: Maybe<Character>;
@@ -1344,6 +1340,13 @@ export type TopPilotsFilter = {
   /** Max 100; default 100 */
   limit?: InputMaybe<Scalars['Int']['input']>;
 };
+
+export enum TopTargetFilter {
+  AllTime = 'ALL_TIME',
+  Last_7Days = 'LAST_7_DAYS',
+  Last_90Days = 'LAST_90_DAYS',
+  Today = 'TODAY'
+}
 
 export type TopWeeklyPilot = {
   __typename?: 'TopWeeklyPilot';
@@ -1470,7 +1473,7 @@ export type WorkerStatus = {
 
 export type AllianceQueryVariables = Exact<{
   id: Scalars['Int']['input'];
-  filter?: InputMaybe<TimeFilter>;
+  filter?: InputMaybe<TopTargetFilter>;
 }>;
 
 
@@ -1524,11 +1527,10 @@ export type RefreshTokenMutation = { __typename?: 'Mutation', refreshToken: { __
 
 export type CharacterQueryVariables = Exact<{
   id: Scalars['Int']['input'];
-  filter?: InputMaybe<TimeFilter>;
 }>;
 
 
-export type CharacterQuery = { __typename?: 'Query', character?: { __typename?: 'Character', id: number, name: string, birthday: string, securityStatus?: number | null, description?: string | null, title?: string | null, updatedAt?: string | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, topAllianceTargets: Array<{ __typename?: 'AllianceTopTarget', killCount: number, alliance: { __typename?: 'Alliance', id: number, name: string, ticker: string } }>, topCorporationTargets: Array<{ __typename?: 'CorporationTopTarget', killCount: number, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string } }>, topShipTargets: Array<{ __typename?: 'ShipTopKill', killCount: number, shipType: { __typename?: 'Type', id: number, name: string } }> } | null };
+export type CharacterQuery = { __typename?: 'Query', character?: { __typename?: 'Character', id: number, name: string, birthday: string, securityStatus?: number | null, description?: string | null, title?: string | null, updatedAt?: string | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } | null };
 
 export type CharacterKillmailsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
@@ -1536,6 +1538,30 @@ export type CharacterKillmailsQueryVariables = Exact<{
 
 
 export type CharacterKillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailsResponse', items: Array<{ __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+
+export type CharacterTopAllianceTargetsQueryVariables = Exact<{
+  characterId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+}>;
+
+
+export type CharacterTopAllianceTargetsQuery = { __typename?: 'Query', characterTopAllianceTargets: Array<{ __typename?: 'AllianceTopTarget', killCount: number, alliance: { __typename?: 'Alliance', id: number, name: string, ticker: string } }> };
+
+export type CharacterTopCorporationTargetsQueryVariables = Exact<{
+  characterId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+}>;
+
+
+export type CharacterTopCorporationTargetsQuery = { __typename?: 'Query', characterTopCorporationTargets: Array<{ __typename?: 'CorporationTopTarget', killCount: number, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string } }> };
+
+export type CharacterTopShipTargetsQueryVariables = Exact<{
+  characterId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+}>;
+
+
+export type CharacterTopShipTargetsQuery = { __typename?: 'Query', characterTopShipTargets: Array<{ __typename?: 'ShipTopKill', killCount: number, shipType: { __typename?: 'Type', id: number, name: string } }> };
 
 export type CharactersQueryVariables = Exact<{
   filter?: InputMaybe<CharacterFilter>;
@@ -1560,7 +1586,7 @@ export type ConstellationQuery = { __typename?: 'Query', constellation?: { __typ
 
 export type CorporationQueryVariables = Exact<{
   id: Scalars['Int']['input'];
-  filter?: InputMaybe<TimeFilter>;
+  filter?: InputMaybe<TopTargetFilter>;
 }>;
 
 
@@ -1761,7 +1787,7 @@ export type WorkerStatusQuery = { __typename?: 'Query', workerStatus: { __typena
 
 
 export const AllianceDocument = gql`
-    query Alliance($id: Int!, $filter: TimeFilter) {
+    query Alliance($id: Int!, $filter: TopTargetFilter) {
   alliance(id: $id) {
     id
     name
@@ -2242,7 +2268,7 @@ export type RefreshTokenMutationHookResult = ReturnType<typeof useRefreshTokenMu
 export type RefreshTokenMutationResult = Apollo.MutationResult<RefreshTokenMutation>;
 export type RefreshTokenMutationOptions = Apollo.BaseMutationOptions<RefreshTokenMutation, RefreshTokenMutationVariables>;
 export const CharacterDocument = gql`
-    query Character($id: Int!, $filter: TimeFilter) {
+    query Character($id: Int!) {
   character(id: $id) {
     id
     name
@@ -2261,29 +2287,6 @@ export const CharacterDocument = gql`
       name
       ticker
     }
-    topAllianceTargets(filter: $filter) {
-      killCount
-      alliance {
-        id
-        name
-        ticker
-      }
-    }
-    topCorporationTargets(filter: $filter) {
-      killCount
-      corporation {
-        id
-        name
-        ticker
-      }
-    }
-    topShipTargets(filter: $filter) {
-      killCount
-      shipType {
-        id
-        name
-      }
-    }
   }
 }
     `;
@@ -2301,7 +2304,6 @@ export const CharacterDocument = gql`
  * const { data, loading, error } = useCharacterQuery({
  *   variables: {
  *      id: // value for 'id'
- *      filter: // value for 'filter'
  *   },
  * });
  */
@@ -2434,6 +2436,152 @@ export type CharacterKillmailsQueryHookResult = ReturnType<typeof useCharacterKi
 export type CharacterKillmailsLazyQueryHookResult = ReturnType<typeof useCharacterKillmailsLazyQuery>;
 export type CharacterKillmailsSuspenseQueryHookResult = ReturnType<typeof useCharacterKillmailsSuspenseQuery>;
 export type CharacterKillmailsQueryResult = Apollo.QueryResult<CharacterKillmailsQuery, CharacterKillmailsQueryVariables>;
+export const CharacterTopAllianceTargetsDocument = gql`
+    query CharacterTopAllianceTargets($characterId: Int!, $filter: TopTargetFilter) {
+  characterTopAllianceTargets(characterId: $characterId, filter: $filter) {
+    killCount
+    alliance {
+      id
+      name
+      ticker
+    }
+  }
+}
+    `;
+
+/**
+ * __useCharacterTopAllianceTargetsQuery__
+ *
+ * To run a query within a React component, call `useCharacterTopAllianceTargetsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCharacterTopAllianceTargetsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCharacterTopAllianceTargetsQuery({
+ *   variables: {
+ *      characterId: // value for 'characterId'
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useCharacterTopAllianceTargetsQuery(baseOptions: Apollo.QueryHookOptions<CharacterTopAllianceTargetsQuery, CharacterTopAllianceTargetsQueryVariables> & ({ variables: CharacterTopAllianceTargetsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CharacterTopAllianceTargetsQuery, CharacterTopAllianceTargetsQueryVariables>(CharacterTopAllianceTargetsDocument, options);
+      }
+export function useCharacterTopAllianceTargetsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CharacterTopAllianceTargetsQuery, CharacterTopAllianceTargetsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CharacterTopAllianceTargetsQuery, CharacterTopAllianceTargetsQueryVariables>(CharacterTopAllianceTargetsDocument, options);
+        }
+// @ts-ignore
+export function useCharacterTopAllianceTargetsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CharacterTopAllianceTargetsQuery, CharacterTopAllianceTargetsQueryVariables>): Apollo.UseSuspenseQueryResult<CharacterTopAllianceTargetsQuery, CharacterTopAllianceTargetsQueryVariables>;
+export function useCharacterTopAllianceTargetsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CharacterTopAllianceTargetsQuery, CharacterTopAllianceTargetsQueryVariables>): Apollo.UseSuspenseQueryResult<CharacterTopAllianceTargetsQuery | undefined, CharacterTopAllianceTargetsQueryVariables>;
+export function useCharacterTopAllianceTargetsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CharacterTopAllianceTargetsQuery, CharacterTopAllianceTargetsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CharacterTopAllianceTargetsQuery, CharacterTopAllianceTargetsQueryVariables>(CharacterTopAllianceTargetsDocument, options);
+        }
+export type CharacterTopAllianceTargetsQueryHookResult = ReturnType<typeof useCharacterTopAllianceTargetsQuery>;
+export type CharacterTopAllianceTargetsLazyQueryHookResult = ReturnType<typeof useCharacterTopAllianceTargetsLazyQuery>;
+export type CharacterTopAllianceTargetsSuspenseQueryHookResult = ReturnType<typeof useCharacterTopAllianceTargetsSuspenseQuery>;
+export type CharacterTopAllianceTargetsQueryResult = Apollo.QueryResult<CharacterTopAllianceTargetsQuery, CharacterTopAllianceTargetsQueryVariables>;
+export const CharacterTopCorporationTargetsDocument = gql`
+    query CharacterTopCorporationTargets($characterId: Int!, $filter: TopTargetFilter) {
+  characterTopCorporationTargets(characterId: $characterId, filter: $filter) {
+    killCount
+    corporation {
+      id
+      name
+      ticker
+    }
+  }
+}
+    `;
+
+/**
+ * __useCharacterTopCorporationTargetsQuery__
+ *
+ * To run a query within a React component, call `useCharacterTopCorporationTargetsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCharacterTopCorporationTargetsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCharacterTopCorporationTargetsQuery({
+ *   variables: {
+ *      characterId: // value for 'characterId'
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useCharacterTopCorporationTargetsQuery(baseOptions: Apollo.QueryHookOptions<CharacterTopCorporationTargetsQuery, CharacterTopCorporationTargetsQueryVariables> & ({ variables: CharacterTopCorporationTargetsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CharacterTopCorporationTargetsQuery, CharacterTopCorporationTargetsQueryVariables>(CharacterTopCorporationTargetsDocument, options);
+      }
+export function useCharacterTopCorporationTargetsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CharacterTopCorporationTargetsQuery, CharacterTopCorporationTargetsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CharacterTopCorporationTargetsQuery, CharacterTopCorporationTargetsQueryVariables>(CharacterTopCorporationTargetsDocument, options);
+        }
+// @ts-ignore
+export function useCharacterTopCorporationTargetsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CharacterTopCorporationTargetsQuery, CharacterTopCorporationTargetsQueryVariables>): Apollo.UseSuspenseQueryResult<CharacterTopCorporationTargetsQuery, CharacterTopCorporationTargetsQueryVariables>;
+export function useCharacterTopCorporationTargetsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CharacterTopCorporationTargetsQuery, CharacterTopCorporationTargetsQueryVariables>): Apollo.UseSuspenseQueryResult<CharacterTopCorporationTargetsQuery | undefined, CharacterTopCorporationTargetsQueryVariables>;
+export function useCharacterTopCorporationTargetsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CharacterTopCorporationTargetsQuery, CharacterTopCorporationTargetsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CharacterTopCorporationTargetsQuery, CharacterTopCorporationTargetsQueryVariables>(CharacterTopCorporationTargetsDocument, options);
+        }
+export type CharacterTopCorporationTargetsQueryHookResult = ReturnType<typeof useCharacterTopCorporationTargetsQuery>;
+export type CharacterTopCorporationTargetsLazyQueryHookResult = ReturnType<typeof useCharacterTopCorporationTargetsLazyQuery>;
+export type CharacterTopCorporationTargetsSuspenseQueryHookResult = ReturnType<typeof useCharacterTopCorporationTargetsSuspenseQuery>;
+export type CharacterTopCorporationTargetsQueryResult = Apollo.QueryResult<CharacterTopCorporationTargetsQuery, CharacterTopCorporationTargetsQueryVariables>;
+export const CharacterTopShipTargetsDocument = gql`
+    query CharacterTopShipTargets($characterId: Int!, $filter: TopTargetFilter) {
+  characterTopShipTargets(characterId: $characterId, filter: $filter) {
+    killCount
+    shipType {
+      id
+      name
+    }
+  }
+}
+    `;
+
+/**
+ * __useCharacterTopShipTargetsQuery__
+ *
+ * To run a query within a React component, call `useCharacterTopShipTargetsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCharacterTopShipTargetsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCharacterTopShipTargetsQuery({
+ *   variables: {
+ *      characterId: // value for 'characterId'
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useCharacterTopShipTargetsQuery(baseOptions: Apollo.QueryHookOptions<CharacterTopShipTargetsQuery, CharacterTopShipTargetsQueryVariables> & ({ variables: CharacterTopShipTargetsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CharacterTopShipTargetsQuery, CharacterTopShipTargetsQueryVariables>(CharacterTopShipTargetsDocument, options);
+      }
+export function useCharacterTopShipTargetsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CharacterTopShipTargetsQuery, CharacterTopShipTargetsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CharacterTopShipTargetsQuery, CharacterTopShipTargetsQueryVariables>(CharacterTopShipTargetsDocument, options);
+        }
+// @ts-ignore
+export function useCharacterTopShipTargetsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CharacterTopShipTargetsQuery, CharacterTopShipTargetsQueryVariables>): Apollo.UseSuspenseQueryResult<CharacterTopShipTargetsQuery, CharacterTopShipTargetsQueryVariables>;
+export function useCharacterTopShipTargetsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CharacterTopShipTargetsQuery, CharacterTopShipTargetsQueryVariables>): Apollo.UseSuspenseQueryResult<CharacterTopShipTargetsQuery | undefined, CharacterTopShipTargetsQueryVariables>;
+export function useCharacterTopShipTargetsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CharacterTopShipTargetsQuery, CharacterTopShipTargetsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CharacterTopShipTargetsQuery, CharacterTopShipTargetsQueryVariables>(CharacterTopShipTargetsDocument, options);
+        }
+export type CharacterTopShipTargetsQueryHookResult = ReturnType<typeof useCharacterTopShipTargetsQuery>;
+export type CharacterTopShipTargetsLazyQueryHookResult = ReturnType<typeof useCharacterTopShipTargetsLazyQuery>;
+export type CharacterTopShipTargetsSuspenseQueryHookResult = ReturnType<typeof useCharacterTopShipTargetsSuspenseQuery>;
+export type CharacterTopShipTargetsQueryResult = Apollo.QueryResult<CharacterTopShipTargetsQuery, CharacterTopShipTargetsQueryVariables>;
 export const CharactersDocument = gql`
     query Characters($filter: CharacterFilter) {
   characters(filter: $filter) {
@@ -2631,7 +2779,7 @@ export type ConstellationLazyQueryHookResult = ReturnType<typeof useConstellatio
 export type ConstellationSuspenseQueryHookResult = ReturnType<typeof useConstellationSuspenseQuery>;
 export type ConstellationQueryResult = Apollo.QueryResult<ConstellationQuery, ConstellationQueryVariables>;
 export const CorporationDocument = gql`
-    query Corporation($id: Int!, $filter: TimeFilter) {
+    query Corporation($id: Int!, $filter: TopTargetFilter) {
   corporation(id: $id) {
     id
     name
