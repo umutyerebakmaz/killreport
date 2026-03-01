@@ -19,4 +19,7 @@ extend type Query {
     characterId: Int!
     filter: TopTargetFilter
   ): [ShipTopKill!]!
+
+  # Top 10 ship types that a character has used most (as attacker)
+  characterTopShips(characterId: Int!, filter: TopTargetFilter): [ShipTopKill!]!
 }

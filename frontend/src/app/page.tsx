@@ -341,6 +341,13 @@ function KillmailsContent() {
                                         }
                                         className="transition-opacity border size-20 border-amber-500 hover:opacity-80"
                                         loading="lazy"
+                                        onError={(e) => {
+                                          const target =
+                                            e.target as HTMLImageElement;
+                                          if (target.src.includes("/render?")) {
+                                            target.src = `https://images.evetech.net/types/${km.victim.shipType?.id}/icon?size=128`;
+                                          }
+                                        }}
                                       />
                                       <div className="absolute w-3 h-3 bg-red-500 rounded-full -top-1 -right-1 animate-pulse" />
                                     </Link>

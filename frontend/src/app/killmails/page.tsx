@@ -8,13 +8,16 @@ import Paginator from "@/components/Paginator/Paginator";
 import TopAllianceCard from "@/components/TopAllianceCard/TopAllianceCard";
 import TopCharacterCard from "@/components/TopCharacterCard/TopCharacterCard";
 import TopCorporationCard from "@/components/TopCorporationCard/TopCorporationCard";
+import TopShipsCard from "@/components/TopShipsCard/TopShipsCard";
 import {
   useKillmailsDateCountsQuery,
   useKillmailsQuery,
   useNewKillmailSubscription,
   useTopLast7DaysAlliancesQuery,
+  useTopLast7DaysAttackerShipsQuery,
   useTopLast7DaysCorporationsQuery,
   useTopLast7DaysPilotsQuery,
+  useTopLast7DaysShipsQuery,
 } from "@/generated/graphql";
 import {
   buildKillmailFiltersUrl,
@@ -85,6 +88,18 @@ function KillmailsContent() {
   // Fetch last 7 days top alliances for sidebar (rolling data)
   const { data: weeklyAlliancesData, loading: weeklyAlliancesLoading } =
     useTopLast7DaysAlliancesQuery({
+      variables: { filter: { limit: 10 } },
+    });
+
+  // Fetch last 7 days top ships for sidebar (rolling data)
+  const { data: weeklyShipsData, loading: weeklyShipsLoading } =
+    useTopLast7DaysShipsQuery({
+      variables: { filter: { limit: 10 } },
+    });
+
+  // Fetch last 7 days top attacker ships for sidebar (rolling data)
+  const { data: weeklyAttackerShipsData, loading: weeklyAttackerShipsLoading } =
+    useTopLast7DaysAttackerShipsQuery({
       variables: { filter: { limit: 10 } },
     });
 
@@ -389,7 +404,14 @@ function KillmailsContent() {
         <div className="space-y-6 lg:col-span-1 lg:-mt-9">
           <TopCharacterCard
             title="Top Weekly Pilots"
-            subtitle="Most active pilots (rolling)"
+            subtitle={
+              <>
+                Most active pilots{" "}
+                <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
+                  ROLLING
+                </span>
+              </>
+            }
             characters={
               weeklyPilotsData?.topLast7DaysPilots?.map((pilot) => ({
                 id: pilot.character?.id || 0,
@@ -415,7 +437,14 @@ function KillmailsContent() {
           />
           <TopCorporationCard
             title="Top Weekly Corporations"
-            subtitle="Most active corporations (rolling)"
+            subtitle={
+              <>
+                Most active corporations{" "}
+                <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
+                  ROLLING
+                </span>
+              </>
+            }
             corporations={
               weeklyCorporationsData?.topLast7DaysCorporations?.map((corp) => ({
                 id: corp.corporation?.id || 0,
@@ -429,7 +458,14 @@ function KillmailsContent() {
           />
           <TopAllianceCard
             title="Top Weekly Alliances"
-            subtitle="Most active alliances (rolling)"
+            subtitle={
+              <>
+                Most active alliances{" "}
+                <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
+                  ROLLING
+                </span>
+              </>
+            }
             alliances={
               weeklyAlliancesData?.topLast7DaysAlliances?.map((alliance) => ({
                 id: alliance.alliance?.id || 0,
@@ -440,6 +476,48 @@ function KillmailsContent() {
             }
             loading={weeklyAlliancesLoading}
             emptyText="No alliance data available"
+          />
+          <TopShipsCard
+            title="Top Weekly Ships"
+            subtitle={
+              <>
+                Most used attacker ships{" "}
+                <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
+                  ROLLING
+                </span>
+              </>
+            }
+            ships={
+              weeklyAttackerShipsData?.topLast7DaysAttackerShips?.map(
+                (ship) => ({
+                  id: ship.shipType?.id || 0,
+                  name: ship.shipType?.name || "Unknown",
+                  killCount: ship.killCount,
+                }),
+              ) || []
+            }
+            loading={weeklyAttackerShipsLoading}
+            emptyText="No ship data available"
+          />
+          <TopShipsCard
+            title="Top Weekly Ship Targets"
+            subtitle={
+              <>
+                Most killed ship types{" "}
+                <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
+                  ROLLING
+                </span>
+              </>
+            }
+            ships={
+              weeklyShipsData?.topLast7DaysShips?.map((ship) => ({
+                id: ship.shipType?.id || 0,
+                name: ship.shipType?.name || "Unknown",
+                killCount: ship.killCount,
+              })) || []
+            }
+            loading={weeklyShipsLoading}
+            emptyText="No ship data available"
           />
         </div>
       </div>

@@ -139,7 +139,7 @@ export default function KillmailDetailPage({
                   <div className="space-y-3">
                     {/* Character, Corp, Alliance Images */}
                     {victim?.character?.id && (
-                      <div className="flex items-start">
+                      <div className="flex items-start overflow-hidden">
                         {/* Character Portrait */}
                         <Tooltip content="Show Victim Info" position="top">
                           <a href={`/characters/${victim.character?.id}`}>
@@ -148,13 +148,13 @@ export default function KillmailDetailPage({
                               alt={victim.character?.name || "Character"}
                               width={96}
                               height={96}
-                              className="shadow-md"
+                              className="shadow-md shrink-0"
                               loading="lazy"
                             />
                           </a>
                         </Tooltip>
 
-                        <div className="flex flex-col">
+                        <div className="flex flex-col shrink-0">
                           {/* Alliance Portrait */}
                           <a href={`/alliances/${victim.alliance?.id}`}>
                             <img
@@ -179,36 +179,30 @@ export default function KillmailDetailPage({
                           </a>
                         </div>
 
-                        <div className="flex flex-col items-start justify-start pl-4">
-                          <Tooltip content="Show Victim Info" position="top">
-                            <a
-                              href={`/characters/${victim.character?.id}`}
-                              className="text-gray-400 transition-colors hover:text-blue-400"
-                            >
-                              {victim.character?.name}
-                            </a>
-                          </Tooltip>
-
-                          <Tooltip
-                            content="Show Corporation Info"
-                            position="top"
+                        <div className="flex flex-col items-start justify-start flex-1 min-w-0 pl-4 overflow-hidden">
+                          <a
+                            href={`/characters/${victim.character?.id}`}
+                            title={victim.character?.name || "Character"}
+                            className="block w-full text-gray-400 truncate transition-colors hover:text-blue-400"
                           >
-                            <a
-                              href={`/corporations/${victim.corporation?.id}`}
-                              className="text-gray-400 transition-colors hover:text-blue-400"
-                            >
-                              {victim.corporation?.name}
-                            </a>
-                          </Tooltip>
+                            {victim.character?.name}
+                          </a>
 
-                          <Tooltip content="Show Alliance Info" position="top">
-                            <a
-                              href={`/alliances/${victim.alliance?.id}`}
-                              className="text-gray-400 transition-colors hover:text-blue-400"
-                            >
-                              {victim.alliance?.name}
-                            </a>
-                          </Tooltip>
+                          <a
+                            href={`/corporations/${victim.corporation?.id}`}
+                            title={victim.corporation?.name || "Corporation"}
+                            className="block w-full text-gray-400 truncate transition-colors hover:text-blue-400"
+                          >
+                            {victim.corporation?.name}
+                          </a>
+
+                          <a
+                            href={`/alliances/${victim.alliance?.id}`}
+                            title={victim.alliance?.name || "Alliance"}
+                            className="block w-full text-gray-400 truncate transition-colors hover:text-blue-400"
+                          >
+                            {victim.alliance?.name}
+                          </a>
                         </div>
                       </div>
                     )}

@@ -101,6 +101,32 @@ input TopLast7DaysAlliancesFilter {
   limit: Int
 }
 
+type TopLast7DaysShip {
+  rank: Int!
+  killCount: Int!
+  shipType: Type
+}
+
+input TopLast7DaysShipsFilter {
+  """
+  Max 100; default 100
+  """
+  limit: Int
+}
+
+type TopLast7DaysAttackerShip {
+  rank: Int!
+  killCount: Int!
+  shipType: Type
+}
+
+input TopLast7DaysAttackerShipsFilter {
+  """
+  Max 100; default 100
+  """
+  limit: Int
+}
+
 extend type Query {
   """
   Returns top pilots ranked by kill count for a given day (default: today)
@@ -130,6 +156,18 @@ extend type Query {
   topLast7DaysAlliances(
     filter: TopLast7DaysAlliancesFilter
   ): [TopLast7DaysAlliance!]!
+
+  """
+  Returns top ship types ranked by total kill count over the last 7 days (rolling window, today - 6 days)
+  """
+  topLast7DaysShips(filter: TopLast7DaysShipsFilter): [TopLast7DaysShip!]!
+
+  """
+  Returns top attacker ship types by usage count over the last 7 days (rolling window, today - 6 days)
+  """
+  topLast7DaysAttackerShips(
+    filter: TopLast7DaysAttackerShipsFilter
+  ): [TopLast7DaysAttackerShip!]!
 
   """
   Returns top pilots ranked by total kill count over the last 90 days (rolling window)

@@ -38,3 +38,13 @@ query CharacterTopShipTargets($characterId: Int!, $filter: TopTargetFilter) {
     }
   }
 }
+
+query CharacterTopShips($characterId: Int!, $filter: TopTargetFilter) {
+  characterTopShips(characterId: $characterId, filter: $filter) {
+    killCount
+    shipType {
+      id
+      name
+    }
+  }
+}

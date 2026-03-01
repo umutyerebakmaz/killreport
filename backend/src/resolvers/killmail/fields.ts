@@ -53,7 +53,9 @@ export const killmailFields: KillmailResolvers = {
 
     solo: (parent: any) => {
         // Use cached attacker_count from database
-        return (parent.attacker_count ?? 0) === 1;
+        // Check both camelCase (from query) and snake_case (from raw DB)
+        const count = parent.attackerCount ?? parent.attacker_count ?? 0;
+        return count === 1;
     },
 
     npc: async (parent: any, _, context) => {
