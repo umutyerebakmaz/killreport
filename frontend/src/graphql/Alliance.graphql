@@ -1,4 +1,4 @@
-query Alliance($id: Int!, $filter: TimeFilter) {
+query Alliance($id: Int!, $filter: TopTargetFilter) {
   alliance(id: $id) {
     id
     name

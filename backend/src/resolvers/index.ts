@@ -6,7 +6,7 @@ import { authMutations, authQueries } from './auth';
 import { bloodlineFields, bloodlineQueries } from './bloodline';
 import { cacheMutations, cacheQueries } from './cache';
 import { categoryFields, categoryMutations, categoryQueries } from './category';
-import { characterFields, characterMutations, characterQueries } from './character';
+import { characterFields, characterMutations, characterQueries, characterStatsQueries } from './character';
 import { constellationFields, constellationMutations, constellationQueries } from './constellation';
 import { corporationFields, corporationQueries } from './corporation';
 import { dogmaAttributeMutations, dogmaAttributeQueries } from './dogma-attribute';
@@ -34,6 +34,7 @@ export const resolvers: Resolvers = {
         ...authQueries,
         ...userQueries,
         ...characterQueries,
+        ...characterStatsQueries,
         ...killmailQueries,
         ...allianceQueries,
         ...corporationQueries,

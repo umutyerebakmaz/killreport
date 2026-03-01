@@ -96,7 +96,7 @@ export default function TopCorporationCard({
                         className="w-full! min-w-0"
                       >
                         <Link
-                          href={`/corporations/${corporation.id}`}
+                          href={`/corporations/${corporation.id}?=tab=killmails`}
                           className="block min-w-0 font-medium leading-tight text-gray-400 truncate hover:text-blue-400"
                           prefetch={false}
                         >

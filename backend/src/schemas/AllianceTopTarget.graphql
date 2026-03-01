@@ -1,0 +1,4 @@
+type AllianceTopTarget {
+  alliance: Alliance!
+  killCount: Int!
+}

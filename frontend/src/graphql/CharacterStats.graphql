@@ -1,0 +1,40 @@
+# Independent character statistics queries
+# These queries are decoupled from Character query for better performance and parallel execution
+
+query CharacterTopAllianceTargets(
+  $characterId: Int!
+  $filter: TopTargetFilter
+) {
+  characterTopAllianceTargets(characterId: $characterId, filter: $filter) {
+    killCount
+    alliance {
+      id
+      name
+      ticker
+    }
+  }
+}
+
+query CharacterTopCorporationTargets(
+  $characterId: Int!
+  $filter: TopTargetFilter
+) {
+  characterTopCorporationTargets(characterId: $characterId, filter: $filter) {
+    killCount
+    corporation {
+      id
+      name
+      ticker
+    }
+  }
+}
+
+query CharacterTopShipTargets($characterId: Int!, $filter: TopTargetFilter) {
+  characterTopShipTargets(characterId: $characterId, filter: $filter) {
+    killCount
+    shipType {
+      id
+      name
+    }
+  }
+}

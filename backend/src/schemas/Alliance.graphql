@@ -12,9 +12,9 @@ type Alliance {
   memberCount: Int!
   metrics: AllianceMetrics
   snapshots(days: Int): [AllianceSnapshot!]!
-  topAllianceTargets(filter: TimeFilter): [AllianceTopTarget!]!
-  topCorporationTargets(filter: TimeFilter): [CorporationTopTarget!]!
-  topShipTargets(filter: TimeFilter): [ShipTopKill!]!
+  topAllianceTargets(filter: TopTargetFilter): [AllianceTopTarget!]!
+  topCorporationTargets(filter: TopTargetFilter): [CorporationTopTarget!]!
+  topShipTargets(filter: TopTargetFilter): [ShipTopKill!]!
 }
 
 enum AllianceOrderBy {

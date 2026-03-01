@@ -1,4 +1,4 @@
-query Corporation($id: Int!, $filter: TimeFilter) {
+query Corporation($id: Int!, $filter: TopTargetFilter) {
   corporation(id: $id) {
     id
     name
