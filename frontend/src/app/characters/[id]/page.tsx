@@ -54,6 +54,7 @@ export default function CharacterDetailPage({
     useCharacterTopAllianceTargetsQuery({
       variables: {
         characterId: parseInt(id),
+        filter: "LAST_7_DAYS" as any,
       },
     });
 
@@ -61,6 +62,7 @@ export default function CharacterDetailPage({
     useCharacterTopCorporationTargetsQuery({
       variables: {
         characterId: parseInt(id),
+        filter: "LAST_7_DAYS" as any,
       },
     });
 
@@ -68,6 +70,7 @@ export default function CharacterDetailPage({
     useCharacterTopShipTargetsQuery({
       variables: {
         characterId: parseInt(id),
+        filter: "LAST_7_DAYS" as any,
       },
     });
 
@@ -75,6 +78,7 @@ export default function CharacterDetailPage({
     useCharacterTopShipsQuery({
       variables: {
         characterId: parseInt(id),
+        filter: "LAST_7_DAYS" as any,
       },
     });
 
