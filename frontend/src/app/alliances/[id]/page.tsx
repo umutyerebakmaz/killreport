@@ -67,6 +67,7 @@ export default function AllianceDetailPage({
     useAllianceTopAllianceTargetsQuery({
       variables: {
         allianceId: parseInt(id),
+        filter: "LAST_7_DAYS" as any,
       },
     });
 
@@ -74,6 +75,7 @@ export default function AllianceDetailPage({
     useAllianceTopCorporationTargetsQuery({
       variables: {
         allianceId: parseInt(id),
+        filter: "LAST_7_DAYS" as any,
       },
     });
 
@@ -81,12 +83,14 @@ export default function AllianceDetailPage({
     useAllianceTopShipTargetsQuery({
       variables: {
         allianceId: parseInt(id),
+        filter: "LAST_7_DAYS" as any,
       },
     });
 
   const { data: shipsData, loading: shipsLoading } = useAllianceTopShipsQuery({
     variables: {
       allianceId: parseInt(id),
+      filter: "LAST_7_DAYS" as any,
     },
   });
 
