@@ -188,6 +188,7 @@ export default function CharacterDetailPage({
       id: ship.shipType.id,
       name: ship.shipType.name,
       killCount: ship.killCount,
+      dogmaAttributes: ship.shipType.dogmaAttributes,
     })) || [];
 
   // Map top attacker ships from independent query
@@ -196,6 +197,7 @@ export default function CharacterDetailPage({
       id: ship.shipType.id,
       name: ship.shipType.name,
       killCount: ship.killCount,
+      dogmaAttributes: ship.shipType.dogmaAttributes,
     })) || [];
 
   const tabs = [

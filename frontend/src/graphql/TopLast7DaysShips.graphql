@@ -5,6 +5,10 @@ query TopLast7DaysShips($filter: TopLast7DaysShipsFilter) {
     shipType {
       id
       name
+      dogmaAttributes {
+        attribute_id
+        value
+      }
     }
   }
 }
