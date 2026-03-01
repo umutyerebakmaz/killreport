@@ -1,4 +1,4 @@
-query Character($id: Int!) {
+query Character($id: Int!, $filter: TimeFilter) {
   character(id: $id) {
     id
     name
@@ -17,16 +17,25 @@ query Character($id: Int!) {
       name
       ticker
     }
-    topAllianceTargets {
+    topAllianceTargets(filter: $filter) {
       killCount
       alliance {
         id
         name
+        ticker
       }
     }
-    topCorporationTargets {
+    topCorporationTargets(filter: $filter) {
       killCount
       corporation {
+        id
+        name
+        ticker
+      }
+    }
+    topShipTargets(filter: $filter) {
+      killCount
+      shipType {
         id
         name
       }

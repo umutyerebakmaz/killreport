@@ -7,6 +7,8 @@ import { Loader } from "@/components/Loader/Loader";
 import MemberDeltaBadge from "@/components/MemberDeltaBadge/MemberDeltaBadge";
 import Paginator from "@/components/Paginator/Paginator";
 import Tooltip from "@/components/Tooltip/Tooltip";
+import TopShipsCard from "@/components/TopShipsCard";
+import TopTargetsCard from "@/components/TopTargetsCard";
 import TotalMemberBadge from "@/components/TotalMemberBadge/TotalMemberBadge";
 import {
   useCorporationCharactersQuery,
@@ -45,7 +47,9 @@ export default function CorporationDetailPage({
   const [charactersPageSize, setCharactersPageSize] = useState(25);
 
   const { data, loading, error } = useCorporationQuery({
-    variables: { id: parseInt(id) },
+    variables: {
+      id: parseInt(id),
+    },
   });
 
   // Fetch killmails when killmails tab is active
@@ -205,6 +209,31 @@ export default function CorporationDetailPage({
   const memberDelta7d = corporation.metrics?.memberCountDelta7d ?? null;
   const memberGrowthRate7d =
     corporation.metrics?.memberCountGrowthRate7d ?? null;
+
+  // Map top ships from GraphQL
+  const topShips =
+    corporation?.topShipTargets?.map((ship) => ({
+      id: ship.shipType.id,
+      name: ship.shipType.name,
+      killCount: ship.killCount,
+    })) || [];
+
+  // Map alliance targets from GraphQL
+  const allianceTargets =
+    corporation?.topAllianceTargets?.map((target) => ({
+      id: target.alliance.id,
+      name: target.alliance.name,
+      count: target.killCount,
+    })) || [];
+
+  // Map corporation targets from GraphQL
+  const corporationTargets =
+    corporation?.topCorporationTargets?.map((target) => ({
+      id: target.corporation.id,
+      name: target.corporation.name,
+      count: target.killCount,
+    })) || [];
+
   // Date founded'ı formatla (DD.MM.YYYY)
   const foundedDate = corporation.date_founded
     ? new Date(corporation.date_founded).toLocaleDateString("tr-TR", {
@@ -396,33 +425,70 @@ export default function CorporationDetailPage({
                 )}
               </div>
 
-              <KillmailsTable
-                killmails={killmails}
-                loading={killmailsLoading}
-                corporationId={parseInt(id)}
-                dateCountsMap={dateCountsMap}
-              />
-
-              {killmails.length > 0 && (
-                <div className="mt-6">
-                  <Paginator
-                    hasNextPage={pageInfo?.hasNextPage ?? false}
-                    hasPrevPage={pageInfo?.hasPreviousPage ?? false}
-                    onNext={handleNext}
-                    onPrev={handlePrev}
-                    onFirst={handleFirst}
-                    onLast={handleLast}
+              {/* 2-column grid layout */}
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+                {/* Left side - Killmails Table (takes 3 columns) */}
+                <div className="lg:col-span-3">
+                  <KillmailsTable
+                    killmails={killmails}
                     loading={killmailsLoading}
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    pageSize={pageSize}
-                    onPageSizeChange={(size) => {
-                      setPageSize(size);
-                      setCurrentPage(1);
-                    }}
+                    corporationId={parseInt(id)}
+                    dateCountsMap={dateCountsMap}
+                  />
+
+                  {killmails.length > 0 && (
+                    <div className="mt-6">
+                      <Paginator
+                        hasNextPage={pageInfo?.hasNextPage ?? false}
+                        hasPrevPage={pageInfo?.hasPreviousPage ?? false}
+                        onNext={handleNext}
+                        onPrev={handlePrev}
+                        onFirst={handleFirst}
+                        onLast={handleLast}
+                        loading={killmailsLoading}
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        pageSize={pageSize}
+                        onPageSizeChange={(size) => {
+                          setPageSize(size);
+                          setCurrentPage(1);
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Right side - Top Targets Cards */}
+                <div className="space-y-6 lg:col-span-1 lg:-mt-9">
+                  <TopTargetsCard
+                    title="Top Alliance Targets"
+                    subtitle="Most killed alliances"
+                    targets={allianceTargets}
+                    targetType="alliance"
+                    linkPrefix="/alliances"
+                    emptyText="No alliance targets yet"
+                    loading={loading}
+                  />
+
+                  <TopTargetsCard
+                    title="Top Corp Targets"
+                    subtitle="Most killed corporations"
+                    targets={corporationTargets}
+                    targetType="corporation"
+                    linkPrefix="/corporations"
+                    emptyText="No corporation targets yet"
+                    loading={loading}
+                  />
+
+                  <TopShipsCard
+                    title="Top Ship Targets"
+                    subtitle="Most killed ship types"
+                    ships={topShips}
+                    emptyText="No ships killed yet"
+                    loading={loading}
                   />
                 </div>
-              )}
+              </div>
             </div>
           )}
 

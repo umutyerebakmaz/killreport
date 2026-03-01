@@ -1,0 +1,111 @@
+"use client";
+
+import Tooltip from "@/components/Tooltip/Tooltip";
+
+export interface TopShip {
+  id: number;
+  name: string;
+  killCount: number;
+}
+
+export interface TopShipsCardProps {
+  title: string;
+  subtitle?: string;
+  ships: TopShip[];
+  loading?: boolean;
+  emptyText?: string;
+}
+
+export default function TopShipsCard({
+  title,
+  subtitle,
+  ships,
+  loading = false,
+  emptyText = "No ships yet",
+}: TopShipsCardProps) {
+  if (loading) {
+    return (
+      <div className="">
+        <div className="p-4 border-b border-white/10">
+          <h3 className="text-lg font-semibold text-white">{title}</h3>
+          {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-sm text-gray-400">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="top-ships">
+      <div className="p-4 border-b border-white/10">
+        <h3 className="text-lg font-semibold text-white">{title}</h3>
+        {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
+      </div>
+
+      {ships.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-3 py-12 text-gray-500">
+          <p className="text-sm font-medium text-center">{emptyText}</p>
+        </div>
+      ) : (
+        <div className="flex flex-col divide-y divide-white/5">
+          {ships.map((ship, index) => (
+            <div
+              key={ship.id}
+              className="p-3 transition-colors duration-100 bg-neutral-800 hover:bg-neutral-700"
+            >
+              <div className="flex items-center gap-3">
+                {/* Rank */}
+                <div className="flex items-center justify-center w-8 shrink-0">
+                  <span
+                    className={`text-xl font-black tabular-nums ${
+                      index === 0
+                        ? "text-yellow-400"
+                        : index === 1
+                          ? "text-gray-300"
+                          : index === 2
+                            ? "text-amber-600"
+                            : "text-gray-600"
+                    }`}
+                  >
+                    #{index + 1}
+                  </span>
+                </div>
+
+                {/* Ship Image */}
+                <div className="relative shrink-0">
+                  <img
+                    src={`https://images.evetech.net/types/${ship.id}/icon?size=64`}
+                    alt={ship.name}
+                    width={48}
+                    height={48}
+                    className="shadow-md bg-black/50 ring-1 ring-black/50"
+                    loading="lazy"
+                  />
+                </div>
+
+                {/* Info */}
+                <div className="flex items-center justify-between flex-1 min-w-0 gap-2">
+                  <Tooltip
+                    content={`View ship details`}
+                    className="w-full! min-w-0"
+                  >
+                    <span className="block min-w-0 font-medium text-gray-400 truncate">
+                      {ship.name}
+                    </span>
+                  </Tooltip>
+
+                  {/* Kill Count */}
+                  <span className="text-sm font-semibold text-gray-400 tabular-nums whitespace-nowrap shrink-0">
+                    {ship.killCount}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

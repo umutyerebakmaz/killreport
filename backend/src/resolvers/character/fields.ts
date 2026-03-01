@@ -1,5 +1,19 @@
 import { CharacterResolvers } from '@generated-types';
+import { Prisma } from '@generated/prisma/client';
 import prisma from '@services/prisma';
+
+/**
+ * Returns a Prisma.Sql fragment for filtering killmail_time by TimeFilter enum.
+ * Uses killmail_filters table with GIN indexes for fast queries.
+ */
+function timeFilter(filter: string | null | undefined): Prisma.Sql {
+  switch (filter) {
+    case 'last90Days': return Prisma.sql`AND kf.killmail_time >= NOW() - INTERVAL '90 days'`;
+    case 'last7Days': return Prisma.sql`AND kf.killmail_time >= NOW() - INTERVAL '7 days'`;
+    case 'today': return Prisma.sql`AND DATE(kf.killmail_time) = CURRENT_DATE`;
+    default: return Prisma.sql``; // allTime – no constraint
+  }
+}
 
 /**
  * Character Field Resolvers
@@ -53,26 +67,31 @@ export const characterFields: CharacterResolvers = {
     return prismaChar.security_status ?? null;
   },
 
-  // Top 10 alliances this character killed most
-  // Uses pre-computed materialized view for O(1) lookup
-  topAllianceTargets: async (parent, _args, context) => {
+  // Top 10 alliances this character killed most.
+  // Uses killmail_filters with GIN indexes - fast and simple.
+  topAllianceTargets: async (parent, args, _context) => {
     const characterId = (parent as any).id;
+    const filter = timeFilter((args as any).filter);
 
-    type AllianceTopTargetRow = {
-      character_id: bigint;
-      alliance_id: number;
-      kill_count: bigint;
+    type Row = {
+      victim_alliance_id: number;
       alliance_name: string;
+      alliance_ticker: string;
+      kill_count: bigint;
     };
 
-    const results = await prisma.$queryRaw<AllianceTopTargetRow[]>`
+    const results = await prisma.$queryRaw<Row[]>`
       SELECT
-        character_id,
-        alliance_id,
-        kill_count,
-        alliance_name
-      FROM character_top_alliance_targets_mv
-      WHERE character_id = ${characterId}
+        kf.victim_alliance_id,
+        a.name AS alliance_name,
+        a.ticker AS alliance_ticker,
+        COUNT(*)::BIGINT AS kill_count
+      FROM killmail_filters kf
+      INNER JOIN alliances a ON a.id = kf.victim_alliance_id
+      WHERE ${characterId} = ANY(kf.attacker_character_ids)
+        AND kf.victim_alliance_id IS NOT NULL
+        ${filter}
+      GROUP BY kf.victim_alliance_id, a.name, a.ticker
       ORDER BY kill_count DESC
       LIMIT 10
     `;
@@ -80,33 +99,38 @@ export const characterFields: CharacterResolvers = {
     return results.map(row => ({
       killCount: Number(row.kill_count),
       alliance: {
-        id: row.alliance_id,
+        id: row.victim_alliance_id,
         name: row.alliance_name,
-        // Return minimal data - full Alliance object not needed
+        ticker: row.alliance_ticker,
       } as any,
     }));
   },
 
-  // Top 10 corporations this character killed most
-  // Uses pre-computed materialized view for O(1) lookup
-  topCorporationTargets: async (parent, _args, context) => {
+  // Top 10 corporations this character killed most.
+  // Uses killmail_filters with GIN indexes - fast and simple.
+  topCorporationTargets: async (parent, args, _context) => {
     const characterId = (parent as any).id;
+    const filter = timeFilter((args as any).filter);
 
-    type CorporationTopTargetRow = {
-      character_id: bigint;
-      corporation_id: number;
-      kill_count: bigint;
+    type Row = {
+      victim_corporation_id: number;
       corporation_name: string;
+      corporation_ticker: string;
+      kill_count: bigint;
     };
 
-    const results = await prisma.$queryRaw<CorporationTopTargetRow[]>`
+    const results = await prisma.$queryRaw<Row[]>`
       SELECT
-        character_id,
-        corporation_id,
-        kill_count,
-        corporation_name
-      FROM character_top_corporation_targets_mv
-      WHERE character_id = ${characterId}
+        kf.victim_corporation_id,
+        co.name AS corporation_name,
+        co.ticker AS corporation_ticker,
+        COUNT(*)::BIGINT AS kill_count
+      FROM killmail_filters kf
+      INNER JOIN corporations co ON co.id = kf.victim_corporation_id
+      WHERE ${characterId} = ANY(kf.attacker_character_ids)
+        AND kf.victim_corporation_id IS NOT NULL
+        ${filter}
+      GROUP BY kf.victim_corporation_id, co.name, co.ticker
       ORDER BY kill_count DESC
       LIMIT 10
     `;
@@ -114,9 +138,45 @@ export const characterFields: CharacterResolvers = {
     return results.map(row => ({
       killCount: Number(row.kill_count),
       corporation: {
-        id: row.corporation_id,
+        id: row.victim_corporation_id,
         name: row.corporation_name,
-        // Return minimal data - full Corporation object not needed
+        ticker: row.corporation_ticker,
+      } as any,
+    }));
+  },
+
+  // Top 10 ship types this character killed most.
+  // Uses killmail_filters with GIN indexes - fast and simple.
+  topShipTargets: async (parent, args, _context) => {
+    const characterId = (parent as any).id;
+    const filter = timeFilter((args as any).filter);
+
+    type Row = {
+      victim_ship_type_id: number;
+      ship_name: string;
+      kill_count: bigint;
+    };
+
+    const results = await prisma.$queryRaw<Row[]>`
+      SELECT
+        kf.victim_ship_type_id,
+        t.name AS ship_name,
+        COUNT(*)::BIGINT AS kill_count
+      FROM killmail_filters kf
+      INNER JOIN types t ON t.id = kf.victim_ship_type_id
+      WHERE ${characterId} = ANY(kf.attacker_character_ids)
+        AND kf.victim_ship_type_id IS NOT NULL
+        ${filter}
+      GROUP BY kf.victim_ship_type_id, t.name
+      ORDER BY kill_count DESC
+      LIMIT 10
+    `;
+
+    return results.map(row => ({
+      killCount: Number(row.kill_count),
+      shipType: {
+        id: row.victim_ship_type_id,
+        name: row.ship_name,
       } as any,
     }));
   },

@@ -201,5 +201,5 @@ server.listen(port, () => {
 
     // NOTE: Materialized view refresh is now handled by a separate worker
     // Run: yarn worker:materialized-views (or start via PM2)
-    // See: src/workers/worker-materialized-views.ts
+    // See: src/workers/worker-top-targets-cleanup.ts
 });

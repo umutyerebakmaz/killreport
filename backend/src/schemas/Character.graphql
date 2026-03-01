@@ -12,8 +12,9 @@ type Character {
   title: String
   faction_id: Int
   updatedAt: String
-  topAllianceTargets: [AllianceTopTarget!]!
-  topCorporationTargets: [CorporationTopTarget!]!
+  topAllianceTargets(filter: TimeFilter): [AllianceTopTarget!]!
+  topCorporationTargets(filter: TimeFilter): [CorporationTopTarget!]!
+  topShipTargets(filter: TimeFilter): [ShipTopKill!]!
 }
 
 type AllianceTopTarget {
@@ -23,6 +24,11 @@ type AllianceTopTarget {
 
 type CorporationTopTarget {
   corporation: Corporation!
+  killCount: Int!
+}
+
+type ShipTopKill {
+  shipType: Type!
   killCount: Int!
 }
 

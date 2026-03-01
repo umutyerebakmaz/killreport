@@ -23,8 +23,9 @@ import { calculateKillmailValues } from '@helpers/calculate-killmail-values';
 import { AllianceService } from '@services/alliance/alliance.service';
 import { CharacterService } from '@services/character/character.service';
 import { CorporationService } from '@services/corporation/corporation.service';
-import { updateDailyAggregatesRealtime } from '@services/daily-aggregates-realtime';
+import { updateDailyAggregatesRealtime } from '@services/kill-stats-realtime';
 import { KillmailDetail, KillmailService } from '@services/killmail';
+import { insertKillmailFilter } from '@services/killmail-filters-realtime';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { pubsub } from '@services/pubsub';
@@ -627,6 +628,24 @@ async function saveKillmail(killmail: KillmailDetail, hash: string): Promise<boo
             } else {
                 logger.debug(`   ℹ️  No items to save for killmail ${killmail.killmail_id}`);
             }
+        });
+
+        // ⚡ Insert into killmail_filters for fast GIN queries
+        insertKillmailFilter({
+            killmail_id: BigInt(killmail.killmail_id),
+            killmail_time: new Date(killmail_time),
+            solar_system_id: solar_system_id,
+            attacker_count: attackers.length,
+            victim_ship_type_id: victim.ship_type_id || null,
+            victim_character_id: victim.character_id || null,
+            victim_corporation_id: victim.corporation_id || null,
+            victim_alliance_id: victim.alliance_id || null,
+            attacker_ship_type_ids: attackers.map(a => a.ship_type_id || null),
+            attacker_character_ids: attackers.map(a => a.character_id || null),
+            attacker_corporation_ids: attackers.map(a => a.corporation_id || null),
+            attacker_alliance_ids: attackers.map(a => a.alliance_id || null),
+        }).catch((error: any) => {
+            logger.error(`Failed to insert killmail_filters for ${killmail.killmail_id}:`, error);
         });
 
         // Publish new killmail event to subscribers (only ID - resolver will fetch full data)

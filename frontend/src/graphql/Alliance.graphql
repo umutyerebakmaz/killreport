@@ -1,4 +1,4 @@
-query Alliance($id: Int!) {
+query Alliance($id: Int!, $filter: TimeFilter) {
   alliance(id: $id) {
     id
     name
@@ -23,6 +23,29 @@ query Alliance($id: Int!) {
     createdBy {
       id
       name
+    }
+    topShipTargets(filter: $filter) {
+      killCount
+      shipType {
+        id
+        name
+      }
+    }
+    topAllianceTargets(filter: $filter) {
+      killCount
+      alliance {
+        id
+        name
+        ticker
+      }
+    }
+    topCorporationTargets(filter: $filter) {
+      killCount
+      corporation {
+        id
+        name
+        ticker
+      }
     }
   }
 }
