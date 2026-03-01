@@ -1623,7 +1623,7 @@ export type AllianceTopShipTargetsQueryVariables = Exact<{
 }>;
 
 
-export type AllianceTopShipTargetsQuery = { __typename?: 'Query', allianceTopShipTargets: Array<{ __typename?: 'ShipTopKill', killCount: number, shipType: { __typename?: 'Type', id: number, name: string } }> };
+export type AllianceTopShipTargetsQuery = { __typename?: 'Query', allianceTopShipTargets: Array<{ __typename?: 'ShipTopKill', killCount: number, shipType: { __typename?: 'Type', id: number, name: string, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } }> };
 
 export type AllianceTopShipsQueryVariables = Exact<{
   allianceId: Scalars['Int']['input'];
@@ -1631,7 +1631,7 @@ export type AllianceTopShipsQueryVariables = Exact<{
 }>;
 
 
-export type AllianceTopShipsQuery = { __typename?: 'Query', allianceTopShips: Array<{ __typename?: 'ShipTopKill', killCount: number, shipType: { __typename?: 'Type', id: number, name: string } }> };
+export type AllianceTopShipsQuery = { __typename?: 'Query', allianceTopShips: Array<{ __typename?: 'ShipTopKill', killCount: number, shipType: { __typename?: 'Type', id: number, name: string, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } }> };
 
 export type AlliancesQueryVariables = Exact<{
   filter?: InputMaybe<AllianceFilter>;
@@ -1693,7 +1693,7 @@ export type CharacterTopShipTargetsQueryVariables = Exact<{
 }>;
 
 
-export type CharacterTopShipTargetsQuery = { __typename?: 'Query', characterTopShipTargets: Array<{ __typename?: 'ShipTopKill', killCount: number, shipType: { __typename?: 'Type', id: number, name: string } }> };
+export type CharacterTopShipTargetsQuery = { __typename?: 'Query', characterTopShipTargets: Array<{ __typename?: 'ShipTopKill', killCount: number, shipType: { __typename?: 'Type', id: number, name: string, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } }> };
 
 export type CharacterTopShipsQueryVariables = Exact<{
   characterId: Scalars['Int']['input'];
@@ -1701,7 +1701,7 @@ export type CharacterTopShipsQueryVariables = Exact<{
 }>;
 
 
-export type CharacterTopShipsQuery = { __typename?: 'Query', characterTopShips: Array<{ __typename?: 'ShipTopKill', killCount: number, shipType: { __typename?: 'Type', id: number, name: string } }> };
+export type CharacterTopShipsQuery = { __typename?: 'Query', characterTopShips: Array<{ __typename?: 'ShipTopKill', killCount: number, shipType: { __typename?: 'Type', id: number, name: string, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } }> };
 
 export type CharactersQueryVariables = Exact<{
   filter?: InputMaybe<CharacterFilter>;
@@ -1776,7 +1776,7 @@ export type CorporationTopShipTargetsQueryVariables = Exact<{
 }>;
 
 
-export type CorporationTopShipTargetsQuery = { __typename?: 'Query', corporationTopShipTargets: Array<{ __typename?: 'ShipTopKill', killCount: number, shipType: { __typename?: 'Type', id: number, name: string } }> };
+export type CorporationTopShipTargetsQuery = { __typename?: 'Query', corporationTopShipTargets: Array<{ __typename?: 'ShipTopKill', killCount: number, shipType: { __typename?: 'Type', id: number, name: string, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } }> };
 
 export type CorporationTopShipsQueryVariables = Exact<{
   corporationId: Scalars['Int']['input'];
@@ -1784,7 +1784,7 @@ export type CorporationTopShipsQueryVariables = Exact<{
 }>;
 
 
-export type CorporationTopShipsQuery = { __typename?: 'Query', corporationTopShips: Array<{ __typename?: 'ShipTopKill', killCount: number, shipType: { __typename?: 'Type', id: number, name: string } }> };
+export type CorporationTopShipsQuery = { __typename?: 'Query', corporationTopShips: Array<{ __typename?: 'ShipTopKill', killCount: number, shipType: { __typename?: 'Type', id: number, name: string, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } }> };
 
 export type CorporationsQueryVariables = Exact<{
   filter?: InputMaybe<CorporationFilter>;
@@ -1912,7 +1912,7 @@ export type TopLast7DaysAttackerShipsQueryVariables = Exact<{
 }>;
 
 
-export type TopLast7DaysAttackerShipsQuery = { __typename?: 'Query', topLast7DaysAttackerShips: Array<{ __typename?: 'TopLast7DaysAttackerShip', rank: number, killCount: number, shipType?: { __typename?: 'Type', id: number, name: string } | null }> };
+export type TopLast7DaysAttackerShipsQuery = { __typename?: 'Query', topLast7DaysAttackerShips: Array<{ __typename?: 'TopLast7DaysAttackerShip', rank: number, killCount: number, shipType?: { __typename?: 'Type', id: number, name: string, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } | null }> };
 
 export type TopLast7DaysCorporationsQueryVariables = Exact<{
   filter?: InputMaybe<TopLast7DaysCorporationsFilter>;
@@ -1933,7 +1933,7 @@ export type TopLast7DaysShipsQueryVariables = Exact<{
 }>;
 
 
-export type TopLast7DaysShipsQuery = { __typename?: 'Query', topLast7DaysShips: Array<{ __typename?: 'TopLast7DaysShip', rank: number, killCount: number, shipType?: { __typename?: 'Type', id: number, name: string } | null }> };
+export type TopLast7DaysShipsQuery = { __typename?: 'Query', topLast7DaysShips: Array<{ __typename?: 'TopLast7DaysShip', rank: number, killCount: number, shipType?: { __typename?: 'Type', id: number, name: string, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } | null }> };
 
 export type TopMonthlyPilotsQueryVariables = Exact<{
   filter?: InputMaybe<TopMonthlyPilotsFilter>;
@@ -2361,6 +2361,10 @@ export const AllianceTopShipTargetsDocument = gql`
     shipType {
       id
       name
+      dogmaAttributes(ids: [422, 1692]) {
+        attribute_id
+        value
+      }
     }
   }
 }
@@ -2409,6 +2413,10 @@ export const AllianceTopShipsDocument = gql`
     shipType {
       id
       name
+      dogmaAttributes(ids: [422, 1692]) {
+        attribute_id
+        value
+      }
     }
   }
 }
@@ -2897,6 +2905,10 @@ export const CharacterTopShipTargetsDocument = gql`
     shipType {
       id
       name
+      dogmaAttributes(ids: [422, 1692]) {
+        attribute_id
+        value
+      }
     }
   }
 }
@@ -2945,6 +2957,10 @@ export const CharacterTopShipsDocument = gql`
     shipType {
       id
       name
+      dogmaAttributes(ids: [422, 1692]) {
+        attribute_id
+        value
+      }
     }
   }
 }
@@ -3589,6 +3605,10 @@ export const CorporationTopShipTargetsDocument = gql`
     shipType {
       id
       name
+      dogmaAttributes(ids: [422, 1692]) {
+        attribute_id
+        value
+      }
     }
   }
 }
@@ -3637,6 +3657,10 @@ export const CorporationTopShipsDocument = gql`
     shipType {
       id
       name
+      dogmaAttributes(ids: [422, 1692]) {
+        attribute_id
+        value
+      }
     }
   }
 }
@@ -5064,6 +5088,10 @@ export const TopLast7DaysAttackerShipsDocument = gql`
     shipType {
       id
       name
+      dogmaAttributes {
+        attribute_id
+        value
+      }
     }
   }
 }
@@ -5218,6 +5246,10 @@ export const TopLast7DaysShipsDocument = gql`
     shipType {
       id
       name
+      dogmaAttributes {
+        attribute_id
+        value
+      }
     }
   }
 }

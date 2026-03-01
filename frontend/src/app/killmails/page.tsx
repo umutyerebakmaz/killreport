@@ -493,6 +493,7 @@ function KillmailsContent() {
                   id: ship.shipType?.id || 0,
                   name: ship.shipType?.name || "Unknown",
                   killCount: ship.killCount,
+                  dogmaAttributes: ship.shipType?.dogmaAttributes,
                 }),
               ) || []
             }
@@ -514,6 +515,7 @@ function KillmailsContent() {
                 id: ship.shipType?.id || 0,
                 name: ship.shipType?.name || "Unknown",
                 killCount: ship.killCount,
+                dogmaAttributes: ship.shipType?.dogmaAttributes,
               })) || []
             }
             loading={weeklyShipsLoading}
