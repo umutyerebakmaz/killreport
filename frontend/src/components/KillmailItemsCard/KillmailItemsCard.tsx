@@ -13,6 +13,20 @@ const getShipPrice = (shipType: any) => {
   return getItemPrice(shipType?.jitaPrice);
 };
 
+// Check if item is a blueprint
+const isBlueprint = (itemType: any) => {
+  return itemType?.group?.category?.name === "Blueprint";
+};
+
+// Get item image URL with blueprint support
+const getItemImageUrl = (itemType: any, size: number = 64) => {
+  const typeId = itemType?.id;
+  if (!typeId) return "";
+
+  const blueprint = isBlueprint(itemType);
+  return `https://images.evetech.net/types/${typeId}/${blueprint ? "bp" : "icon"}?size=${size}`;
+};
+
 // Render quantity with separate destroyed/dropped display
 const renderQuantity = (destroyed: number, dropped: number) => {
   const hasDestroyed = destroyed > 0;
@@ -178,7 +192,7 @@ export default function KillmailSummaryCard({
                           className="flex items-center gap-3 py-2"
                         >
                           <img
-                            src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                            src={getItemImageUrl(item.itemType, 64)}
                             alt={item.itemType.name}
                             className="border bg-white/5 size-16 border-white/10"
                             loading="lazy"
@@ -222,7 +236,7 @@ export default function KillmailSummaryCard({
                           className="flex items-center gap-3 py-2"
                         >
                           <img
-                            src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                            src={getItemImageUrl(item.itemType, 64)}
                             alt={item.itemType.name}
                             className="border bg-white/5 size-16 border-white/10"
                             loading="lazy"
@@ -295,7 +309,7 @@ export default function KillmailSummaryCard({
                         className="flex items-center gap-3 py-2"
                       >
                         <img
-                          src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                          src={getItemImageUrl(item.itemType, 64)}
                           alt={item.itemType.name}
                           className="border bg-white/5 size-16 border-white/10"
                           loading="lazy"
@@ -338,7 +352,7 @@ export default function KillmailSummaryCard({
                         className="flex items-center gap-3 py-2"
                       >
                         <img
-                          src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                          src={getItemImageUrl(item.itemType, 64)}
                           alt={item.itemType.name}
                           className="border bg-white/5 size-16 border-white/10"
                           loading="lazy"
@@ -395,7 +409,7 @@ export default function KillmailSummaryCard({
                     className="flex items-center gap-3 py-2"
                   >
                     <img
-                      src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                      src={getItemImageUrl(item.itemType, 64)}
                       alt={item.itemType.name}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
@@ -450,7 +464,7 @@ export default function KillmailSummaryCard({
                     className="flex items-center gap-3 py-2"
                   >
                     <img
-                      src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                      src={getItemImageUrl(item.itemType, 64)}
                       alt={item.itemType.name}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
@@ -505,7 +519,7 @@ export default function KillmailSummaryCard({
                     className="flex items-center gap-3 py-2"
                   >
                     <img
-                      src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                      src={getItemImageUrl(item.itemType, 64)}
                       alt={item.itemType.name}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
@@ -564,7 +578,7 @@ export default function KillmailSummaryCard({
                       className="flex items-center gap-3 py-2"
                     >
                       <img
-                        src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                        src={getItemImageUrl(item.itemType, 64)}
                         alt={item.itemType.name}
                         className="border bg-white/5 size-16 border-white/10"
                         loading="lazy"
@@ -615,7 +629,7 @@ export default function KillmailSummaryCard({
                     className="flex items-center gap-3 px-2 py-2"
                   >
                     <img
-                      src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                      src={getItemImageUrl(item.itemType, 64)}
                       alt={item.itemType.name}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
@@ -668,7 +682,7 @@ export default function KillmailSummaryCard({
                     className="flex items-center gap-3 py-2"
                   >
                     <img
-                      src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                      src={getItemImageUrl(item.itemType, 64)}
                       alt={item.itemType.name}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
@@ -728,7 +742,7 @@ export default function KillmailSummaryCard({
                       className="flex items-center gap-3 py-2"
                     >
                       <img
-                        src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                        src={getItemImageUrl(item.itemType, 64)}
                         alt={item.itemType.name}
                         className="border bg-white/5 size-16 border-white/10"
                         loading="lazy"
@@ -782,7 +796,7 @@ export default function KillmailSummaryCard({
                     className="flex items-center gap-3 py-2"
                   >
                     <img
-                      src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                      src={getItemImageUrl(item.itemType, 64)}
                       alt={item.itemType.name}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
@@ -840,7 +854,7 @@ export default function KillmailSummaryCard({
                     className="flex items-center gap-3 py-2"
                   >
                     <img
-                      src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                      src={getItemImageUrl(item.itemType, 64)}
                       alt={item.itemType.name}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
@@ -896,7 +910,7 @@ export default function KillmailSummaryCard({
                     className="flex items-center gap-3 py-2"
                   >
                     <img
-                      src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                      src={getItemImageUrl(item.itemType, 64)}
                       alt={item.itemType.name}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
@@ -954,7 +968,7 @@ export default function KillmailSummaryCard({
                       className="flex items-center gap-3 py-2"
                     >
                       <img
-                        src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                        src={getItemImageUrl(item.itemType, 64)}
                         alt={item.itemType.name}
                         className="border bg-white/5 size-16 border-white/10"
                         loading="lazy"
@@ -1008,7 +1022,7 @@ export default function KillmailSummaryCard({
                     className="flex items-center gap-3 py-2"
                   >
                     <img
-                      src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                      src={getItemImageUrl(item.itemType, 64)}
                       alt={item.itemType.name}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
