@@ -68,7 +68,7 @@ export default function TopShipsCard({
             return (
               <div
                 key={ship.id}
-                className="p-3 transition-colors duration-100 bg-neutral-800 hover:bg-neutral-700"
+                className="p-3 transition-colors duration-100 bg-neutral-900 hover:bg-neutral-800"
               >
                 <div className="flex items-center gap-3">
                   {/* Rank */}
