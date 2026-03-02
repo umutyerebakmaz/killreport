@@ -18,6 +18,14 @@ const isBlueprint = (itemType: any) => {
   return itemType?.group?.category?.name === "Blueprint";
 };
 
+// Get item name with "Copy" suffix for BPCs
+const getItemName = (itemType: any, singleton: number) => {
+  const name = itemType?.name || "";
+  const blueprint = isBlueprint(itemType);
+  const isCopy = blueprint && singleton === 2;
+  return isCopy ? `${name} Copy` : name;
+};
+
 // Get item image URL with blueprint support (BPO vs BPC)
 const getItemImageUrl = (
   itemType: any,
@@ -210,14 +218,14 @@ export default function KillmailSummaryCard({
                               item.singleton,
                               64,
                             )}
-                            alt={item.itemType.name}
+                            alt={getItemName(item.itemType, item.singleton)}
                             className="border bg-white/5 size-16 border-white/10"
                             loading="lazy"
                             decoding="async"
                           />
                           <div className="flex-1 min-w-0">
                             <div className={`truncate ${textColor}`}>
-                              {item.itemType.name}
+                              {getItemName(item.itemType, item.singleton)}
                             </div>
                           </div>
                           <div className="flex items-center gap-4 text-right">
@@ -258,14 +266,14 @@ export default function KillmailSummaryCard({
                               item.singleton,
                               64,
                             )}
-                            alt={item.itemType.name}
+                            alt={getItemName(item.itemType, item.singleton)}
                             className="border bg-white/5 size-16 border-white/10"
                             loading="lazy"
                             decoding="async"
                           />
                           <div className="flex-1 min-w-0">
                             <div className={`truncate ${textColor}`}>
-                              {item.itemType.name}
+                              {getItemName(item.itemType, item.singleton)}
                             </div>
                           </div>
                           <div className="flex items-center gap-4 text-right">
@@ -335,14 +343,14 @@ export default function KillmailSummaryCard({
                             item.singleton,
                             64,
                           )}
-                          alt={item.itemType.name}
+                          alt={getItemName(item.itemType, item.singleton)}
                           className="border bg-white/5 size-16 border-white/10"
                           loading="lazy"
                           decoding="async"
                         />
                         <div className="flex-1 min-w-0">
                           <div className={`truncate ${textColor}`}>
-                            {item.itemType.name}
+                            {getItemName(item.itemType, item.singleton)}
                           </div>
                         </div>
                         <div className="flex items-center gap-4 text-right">
@@ -382,14 +390,14 @@ export default function KillmailSummaryCard({
                             item.singleton,
                             64,
                           )}
-                          alt={item.itemType.name}
+                          alt={getItemName(item.itemType, item.singleton)}
                           className="border bg-white/5 size-16 border-white/10"
                           loading="lazy"
                           decoding="async"
                         />
                         <div className="flex-1 min-w-0">
                           <div className={`truncate ${textColor}`}>
-                            {item.itemType.name}
+                            {getItemName(item.itemType, item.singleton)}
                           </div>
                         </div>
                         <div className="flex gap-4 text-right">
@@ -439,14 +447,14 @@ export default function KillmailSummaryCard({
                   >
                     <img
                       src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                      alt={item.itemType.name}
+                      alt={getItemName(item.itemType, item.singleton)}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
                       decoding="async"
                     />
                     <div className="flex-1 min-w-0">
                       <div className={`truncate ${textColor}`}>
-                        {item.itemType.name}
+                        {getItemName(item.itemType, item.singleton)}
                       </div>
                     </div>
                     <div className="flex gap-4 text-right">
@@ -494,14 +502,14 @@ export default function KillmailSummaryCard({
                   >
                     <img
                       src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                      alt={item.itemType.name}
+                      alt={getItemName(item.itemType, item.singleton)}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
                       decoding="async"
                     />
                     <div className="flex-1 min-w-0">
                       <div className={`truncate ${textColor}`}>
-                        {item.itemType.name}
+                        {getItemName(item.itemType, item.singleton)}
                       </div>
                     </div>
                     <div className="flex gap-4 text-right">
@@ -549,14 +557,14 @@ export default function KillmailSummaryCard({
                   >
                     <img
                       src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                      alt={item.itemType.name}
+                      alt={getItemName(item.itemType, item.singleton)}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
                       decoding="async"
                     />
                     <div className="flex-1 min-w-0">
                       <div className={`truncate ${textColor}`}>
-                        {item.itemType.name}
+                        {getItemName(item.itemType, item.singleton)}
                       </div>
                     </div>
                     <div className="flex gap-4 text-right">
@@ -608,14 +616,14 @@ export default function KillmailSummaryCard({
                     >
                       <img
                         src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                        alt={item.itemType.name}
+                        alt={getItemName(item.itemType, item.singleton)}
                         className="border bg-white/5 size-16 border-white/10"
                         loading="lazy"
                         decoding="async"
                       />
                       <div className="flex-1 min-w-0">
                         <div className={`truncate ${textColor}`}>
-                          {item.itemType.name}
+                          {getItemName(item.itemType, item.singleton)}
                         </div>
                       </div>
                       <div className="flex gap-4 text-right">
@@ -659,14 +667,14 @@ export default function KillmailSummaryCard({
                   >
                     <img
                       src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                      alt={item.itemType.name}
+                      alt={getItemName(item.itemType, item.singleton)}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
                       decoding="async"
                     />
                     <div className="flex-1 min-w-0">
                       <div className={`truncate ${textColor} font-medium`}>
-                        {item.itemType.name}
+                        {getItemName(item.itemType, item.singleton)}
                       </div>
                     </div>
                     <div className="flex gap-4 text-right">
@@ -712,14 +720,14 @@ export default function KillmailSummaryCard({
                   >
                     <img
                       src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                      alt={item.itemType.name}
+                      alt={getItemName(item.itemType, item.singleton)}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
                       decoding="async"
                     />
                     <div className="flex-1 min-w-0">
                       <div className={`truncate ${textColor}`}>
-                        {item.itemType.name}
+                        {getItemName(item.itemType, item.singleton)}
                       </div>
                     </div>
                     <div className="flex items-center gap-4 text-right">
@@ -772,14 +780,14 @@ export default function KillmailSummaryCard({
                     >
                       <img
                         src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                        alt={item.itemType.name}
+                        alt={getItemName(item.itemType, item.singleton)}
                         className="border bg-white/5 size-16 border-white/10"
                         loading="lazy"
                         decoding="async"
                       />
                       <div className="flex-1 min-w-0">
                         <div className={`truncate ${textColor}`}>
-                          {item.itemType.name}
+                          {getItemName(item.itemType, item.singleton)}
                         </div>
                       </div>
                       <div className="flex items-center gap-4 text-right">
@@ -826,14 +834,14 @@ export default function KillmailSummaryCard({
                   >
                     <img
                       src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                      alt={item.itemType.name}
+                      alt={getItemName(item.itemType, item.singleton)}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
                       decoding="async"
                     />
                     <div className="flex-1 min-w-0">
                       <div className={`truncate ${textColor}`}>
-                        {item.itemType.name}
+                        {getItemName(item.itemType, item.singleton)}
                       </div>
                     </div>
                     <div className="flex items-center gap-4 text-right">
@@ -884,14 +892,14 @@ export default function KillmailSummaryCard({
                   >
                     <img
                       src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                      alt={item.itemType.name}
+                      alt={getItemName(item.itemType, item.singleton)}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
                       decoding="async"
                     />
                     <div className="flex-1 min-w-0">
                       <div className={`truncate ${textColor}`}>
-                        {item.itemType.name}
+                        {getItemName(item.itemType, item.singleton)}
                       </div>
                     </div>
                     <div className="flex items-center gap-4 text-right">
@@ -940,14 +948,14 @@ export default function KillmailSummaryCard({
                   >
                     <img
                       src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                      alt={item.itemType.name}
+                      alt={getItemName(item.itemType, item.singleton)}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
                       decoding="async"
                     />
                     <div className="flex-1 min-w-0">
                       <div className={`truncate ${textColor}`}>
-                        {item.itemType.name}
+                        {getItemName(item.itemType, item.singleton)}
                       </div>
                     </div>
                     <div className="flex items-center gap-4 text-right">
@@ -998,14 +1006,14 @@ export default function KillmailSummaryCard({
                     >
                       <img
                         src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                        alt={item.itemType.name}
+                        alt={getItemName(item.itemType, item.singleton)}
                         className="border bg-white/5 size-16 border-white/10"
                         loading="lazy"
                         decoding="async"
                       />
                       <div className="flex-1 min-w-0">
                         <div className={`truncate ${textColor}`}>
-                          {item.itemType.name}
+                          {getItemName(item.itemType, item.singleton)}
                         </div>
                       </div>
                       <div className="flex items-center gap-4 text-right">
@@ -1052,14 +1060,14 @@ export default function KillmailSummaryCard({
                   >
                     <img
                       src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                      alt={item.itemType.name}
+                      alt={getItemName(item.itemType, item.singleton)}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
                       decoding="async"
                     />
                     <div className="flex-1 min-w-0">
                       <div className={`truncate ${textColor}`}>
-                        {item.itemType.name}
+                        {getItemName(item.itemType, item.singleton)}
                       </div>
                     </div>
                     <div className="flex items-center gap-4 text-right">
