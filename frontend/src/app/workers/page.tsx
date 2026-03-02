@@ -160,7 +160,7 @@ export default function WorkersPage() {
         </div>
       </div>
 
-      <div className="p-6 mb-6 border border-gray-800 bg-gray-900/50">
+      <div className="p-6 mb-6 border border-white/5 bg-neutral-900">
         <div className="flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-center">
           <div>
             <h2 className="text-lg font-semibold text-white">System Health</h2>
@@ -226,7 +226,7 @@ export default function WorkersPage() {
 
       {/* Redis Cache Status */}
       {workerStatus?.redis && (
-        <div className="p-6 mb-6 border border-gray-800 bg-gray-900/50">
+        <div className="p-6 mb-6 border border-white/5 bg-neutral-900">
           <div className="flex flex-col items-start justify-between gap-4 mb-6 lg:flex-row lg:items-center">
             <div className="flex items-center gap-3">
               <div
@@ -327,7 +327,7 @@ export default function WorkersPage() {
       )}
 
       {queues.length === 0 && standaloneWorkers.length === 0 && (
-        <div className="p-12 text-center border border-gray-800 bg-gray-900/50">
+        <div className="p-12 text-center border border-white/5 bg-gray-900/50">
           <p className="text-gray-400">No workers found</p>
         </div>
       )}
@@ -367,7 +367,7 @@ function StandaloneWorkerSection({ workers }: any) {
           Long-running processes (not RabbitMQ-based)
         </p>
       </div>
-      <div className="overflow-x-auto border border-gray-800 ">
+      <div className="overflow-x-auto border border-white/5">
         <table className="w-full min-w-max">
           <thead className="bg-neutral-800">
             <tr>
@@ -389,7 +389,7 @@ function StandaloneWorkerSection({ workers }: any) {
             {workers.map((worker: any) => (
               <tr
                 key={worker.name}
-                className="transition-colors hover:bg-gray-900/30"
+                className="transition-colors bg-neutral-900 hover:bg-neutral-800"
               >
                 <td className="px-2 py-4 md:px-4">
                   <div className="flex items-center gap-2">
@@ -442,7 +442,7 @@ function QueueSection({ title, subtitle, queues }: any) {
         <h2 className="text-xl font-semibold text-white">{title}</h2>
         {subtitle && <p className="mt-1 text-sm text-gray-400">{subtitle}</p>}
       </div>
-      <div className="overflow-x-auto border border-gray-800 ">
+      <div className="overflow-x-auto border border-white/5">
         <table className="w-full min-w-max">
           <thead className="bg-neutral-800">
             <tr>
@@ -466,11 +466,11 @@ function QueueSection({ title, subtitle, queues }: any) {
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-800">
+          <tbody className="divide-y divide-white/5">
             {queues.map((queue: QueueInfo) => (
               <tr
                 key={queue.name}
-                className="transition-colors hover:bg-gray-900/30"
+                className="transition-colors bg-neutral-900 hover:bg-neutral-800"
               >
                 <td className="px-2 py-4 md:px-4">
                   <div className="flex items-center gap-2">
