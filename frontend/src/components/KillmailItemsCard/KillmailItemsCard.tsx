@@ -679,9 +679,12 @@ export default function KillmailSummaryCard({
                         {item.itemType.name}
                       </div>
                     </div>
-                    <div className="flex gap-4 text-right">
-                      <div className={`${textColor} w-16`}>{totalQty}</div>
-                      <div className={`${textColor} tabular-nums w-40`}>
+                    <div className="flex items-center gap-4 text-right">
+                      {renderQuantity(
+                        item.quantityDestroyed,
+                        item.quantityDropped,
+                      )}
+                      <div className={`w-40 tabular-nums ${textColor}`}>
                         {formatISK(
                           getItemPrice(item.itemType.jitaPrice) * totalQty,
                         )}
@@ -736,9 +739,12 @@ export default function KillmailSummaryCard({
                           {item.itemType.name}
                         </div>
                       </div>
-                      <div className="flex gap-4 text-right">
-                        <div className={`${textColor} w-16`}>{totalQty}</div>
-                        <div className={`${textColor} tabular-nums w-40`}>
+                      <div className="flex items-center gap-4 text-right">
+                        {renderQuantity(
+                          item.quantityDestroyed,
+                          item.quantityDropped,
+                        )}
+                        <div className={`w-40 tabular-nums ${textColor}`}>
                           {formatISK(
                             getItemPrice(item.itemType.jitaPrice) * totalQty,
                           )}
@@ -753,9 +759,9 @@ export default function KillmailSummaryCard({
         )}
 
       {/* Cargo Bay */}
-      {fitting?.cargo && fitting.cargo.length > 0 && (
-        <div className="pb-4 mb-4 border-b border-white/10">
-          <h3 className="mb-2 font-bold text-gray-400 uppercase">Cargo Bay</h3>
+      <div className="pb-4 mb-4 border-b border-white/10">
+        <h3 className="mb-2 font-bold text-gray-400 uppercase">Cargo Bay</h3>
+        {fitting?.cargo && fitting.cargo.length > 0 ? (
           <div className="space-y-2">
             {(() => {
               const groupedCargo = groupItems(fitting.cargo);
@@ -787,9 +793,12 @@ export default function KillmailSummaryCard({
                         {item.itemType.name}
                       </div>
                     </div>
-                    <div className="flex gap-4 text-right">
-                      <div className={`${textColor} w-16`}>{totalQty}</div>
-                      <div className={`${textColor} tabular-nums w-40`}>
+                    <div className="flex items-center gap-4 text-right">
+                      {renderQuantity(
+                        item.quantityDestroyed,
+                        item.quantityDropped,
+                      )}
+                      <div className={`w-40 tabular-nums ${textColor}`}>
                         {formatISK(
                           getItemPrice(item.itemType.jitaPrice) * totalQty,
                         )}
@@ -800,8 +809,10 @@ export default function KillmailSummaryCard({
               });
             })()}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="py-4 text-center text-gray-500">Empty Cargo Hold</div>
+        )}
+      </div>
 
       {/* Fighter Bay */}
       {fitting?.fighterBay && fitting.fighterBay.length > 0 && (
@@ -840,9 +851,12 @@ export default function KillmailSummaryCard({
                         {item.itemType.name}
                       </div>
                     </div>
-                    <div className="flex gap-4 text-right">
-                      <div className={`${textColor} w-16`}>{totalQty}</div>
-                      <div className={`${textColor} tabular-nums w-40`}>
+                    <div className="flex items-center gap-4 text-right">
+                      {renderQuantity(
+                        item.quantityDestroyed,
+                        item.quantityDropped,
+                      )}
+                      <div className={`w-40 tabular-nums ${textColor}`}>
                         {formatISK(
                           getItemPrice(item.itemType.jitaPrice) * totalQty,
                         )}
@@ -895,9 +909,12 @@ export default function KillmailSummaryCard({
                           {item.itemType.name}
                         </div>
                       </div>
-                      <div className="flex gap-4 text-right">
-                        <div className={`${textColor} w-16`}>{totalQty}</div>
-                        <div className={`${textColor} tabular-nums w-40`}>
+                      <div className="flex items-center gap-4 text-right">
+                        {renderQuantity(
+                          item.quantityDestroyed,
+                          item.quantityDropped,
+                        )}
+                        <div className={`w-40 tabular-nums ${textColor}`}>
                           {formatISK(
                             getItemPrice(item.itemType.jitaPrice) * totalQty,
                           )}
@@ -946,9 +963,12 @@ export default function KillmailSummaryCard({
                         {item.itemType.name}
                       </div>
                     </div>
-                    <div className="flex gap-4 text-right">
-                      <div className={`${textColor} w-16`}>{totalQty}</div>
-                      <div className={`${textColor} tabular-nums w-40`}>
+                    <div className="flex items-center gap-4 text-right">
+                      {renderQuantity(
+                        item.quantityDestroyed,
+                        item.quantityDropped,
+                      )}
+                      <div className={`w-40 tabular-nums ${textColor}`}>
                         {formatISK(
                           getItemPrice(item.itemType.jitaPrice) * totalQty,
                         )}
