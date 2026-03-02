@@ -1,4 +1,5 @@
-import React from "react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import React, { useState } from "react";
 
 interface LoaderProps {
   /** Size of the spinner (default: md) */
@@ -25,22 +26,42 @@ const textSizeClasses = {
   xl: "text-xl",
 };
 
+const lottieSize = {
+  sm: 80,
+  md: 120,
+  lg: 160,
+  xl: 240,
+};
+
 export const Loader: React.FC<LoaderProps> = ({
   size = "md",
   text,
   fullHeight = false,
   className = "",
 }) => {
+  const [lottieError, setLottieError] = useState(false);
+
   const containerClasses = fullHeight
     ? "flex items-center justify-center min-h-screen"
     : "flex items-center justify-center";
 
   return (
     <div className={`${containerClasses} ${className}`}>
-      <div className="flex items-center gap-3">
-        <div
-          className={`${sizeClasses[size]} border-cyan-500 rounded-full animate-spin border-t-transparent`}
-        />
+      <div className="flex flex-col items-center gap-3">
+        {!lottieError ? (
+          <DotLottieReact
+            src="/animations/loader.json"
+            loop
+            autoplay
+            style={{ width: lottieSize[size], height: lottieSize[size] }}
+            onError={() => setLottieError(true)}
+          />
+        ) : (
+          // Fallback spinner
+          <div
+            className={`${sizeClasses[size]} border-cyan-500 rounded-full animate-spin border-t-transparent`}
+          />
+        )}
         {text && (
           <span className={`${textSizeClasses[size]} text-gray-400`}>
             {text}
