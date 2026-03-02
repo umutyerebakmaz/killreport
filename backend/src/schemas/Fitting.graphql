@@ -12,6 +12,7 @@ type Fitting {
   implants: SlotGroup!
   cargo: [FittingModule!]!
   droneBay: [FittingModule!]!
+  fleetHangar: [FittingModule!]!
   fighterBay: [FittingModule!]!
   structureFuel: [FittingModule!]!
   coreRoom: [FittingModule!]!

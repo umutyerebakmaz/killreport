@@ -275,6 +275,10 @@ export function organizeFitting(
     const droneBayItems = flagGroups.get(InventoryFlag.DroneBay) || [];
     const droneBay = droneBayItems.map((item) => convertToFittingModule([item]));
 
+    // Fleet Hangar
+    const fleetHangarItems = flagGroups.get(InventoryFlag.FleetHangar) || [];
+    const fleetHangar = fleetHangarItems.map((item) => convertToFittingModule([item]));
+
     // Fighter Bay (includes all fighter tube flags)
     const fighterBayItems: RawKillmailItem[] = [];
     for (
@@ -334,6 +338,7 @@ export function organizeFitting(
         implants,
         cargo,
         droneBay,
+        fleetHangar,
         fighterBay,
         structureFuel,
         coreRoom,
