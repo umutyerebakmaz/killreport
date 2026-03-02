@@ -3,6 +3,7 @@
 import { Loader } from "@/components/Loader/Loader";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import Link from "next/link";
+import { ReactNode } from "react";
 
 export interface TopTarget {
   id: number;
@@ -12,12 +13,13 @@ export interface TopTarget {
 
 export interface TopTargetsCardProps {
   title: string;
-  subtitle?: string;
+  subtitle?: ReactNode;
   targets: TopTarget[];
   loading?: boolean;
   emptyText?: string;
   targetType: "alliance" | "corporation" | "character";
   linkPrefix: string; // e.g., "/alliances", "/corporations", "/characters"
+  variant?: "detail" | "list";
 }
 
 export default function TopTargetsCard({
@@ -28,6 +30,7 @@ export default function TopTargetsCard({
   emptyText = "No targets yet",
   targetType,
   linkPrefix,
+  variant = "detail",
 }: TopTargetsCardProps) {
   // Get image URL based on target type
   const getImageUrl = (id: number, type: typeof targetType): string => {
@@ -48,7 +51,11 @@ export default function TopTargetsCard({
       <div className="">
         <div className="py-4 border-b border-white/10">
           <h3 className="text-lg font-semibold text-white">{title}</h3>
-          {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
+          {subtitle && (
+            <p className="flex items-center justify-between text-xs text-gray-500">
+              {subtitle}
+            </p>
+          )}
         </div>
         <div className="flex items-center justify-center py-12">
           <Loader size="lg" />
@@ -61,7 +68,11 @@ export default function TopTargetsCard({
     <div className="top-targets">
       <div className="py-4 border-b border-white/10">
         <h3 className="text-lg font-semibold text-white">{title}</h3>
-        {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
+        {subtitle && (
+          <p className="flex items-center justify-between text-xs text-gray-500">
+            {subtitle}
+          </p>
+        )}
       </div>
 
       {targets.length === 0 ? (
@@ -73,7 +84,11 @@ export default function TopTargetsCard({
           {targets.map((target, index) => (
             <div
               key={target.id}
-              className="p-3 transition-colors duration-100 bg-neutral-800 hover:bg-neutral-700"
+              className={`p-3 duration-100 transition-color ${
+                variant === "list"
+                  ? "bg-neutral-900 hover:bg-neutral-800"
+                  : "bg-neutral-800 hover:bg-neutral-700"
+              }`}
             >
               <div className="flex items-center gap-3">
                 {/* Rank */}
@@ -121,7 +136,7 @@ export default function TopTargetsCard({
                   </Tooltip>
 
                   {/* Kill Count */}
-                  <span className="text-sm font-semibold text-gray-400 tabular-nums whitespace-nowrap shrink-0">
+                  <span className="text-lg font-semibold text-gray-400 tabular-nums whitespace-nowrap shrink-0">
                     {target.count}
                   </span>
                 </div>

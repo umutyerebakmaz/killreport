@@ -6,6 +6,7 @@ import KillmailsTable from "@/components/KillmailsTable";
 import { Loader } from "@/components/Loader/Loader";
 import MemberDeltaBadge from "@/components/MemberDeltaBadge/MemberDeltaBadge";
 import Paginator from "@/components/Paginator/Paginator";
+import TopCharacterCard from "@/components/TopCharacterCard/TopCharacterCard";
 import TopShipsCard from "@/components/TopShipsCard";
 import TopTargetsCard from "@/components/TopTargetsCard";
 import TotalCorporationBadge from "@/components/TotalCorporationMember/TotalCorporationBadge";
@@ -17,6 +18,7 @@ import {
   useAllianceKillmailsQuery,
   useAllianceQuery,
   useAllianceTopAllianceTargetsQuery,
+  useAllianceTopCharactersQuery,
   useAllianceTopCorporationTargetsQuery,
   useAllianceTopShipsQuery,
   useAllianceTopShipTargetsQuery,
@@ -93,6 +95,14 @@ export default function AllianceDetailPage({
       filter: "LAST_7_DAYS" as any,
     },
   });
+
+  const { data: topCharactersData, loading: topCharactersLoading } =
+    useAllianceTopCharactersQuery({
+      variables: {
+        allianceId: parseInt(id),
+        filter: "LAST_7_DAYS" as any,
+      },
+    });
 
   // Fetch corporations when members tab is active
   const { data: corporationsData, loading: corporationsLoading } =
@@ -288,6 +298,27 @@ export default function AllianceDetailPage({
       count: target.killCount,
     })) || [];
 
+  // Map top characters from independent query
+  const topCharacters =
+    topCharactersData?.allianceTopCharacters?.map((target) => ({
+      id: target.character.id,
+      name: target.character.name,
+      killCount: target.killCount,
+      securityStatus: target.character.securityStatus,
+      corporation: target.character.corporation
+        ? {
+            id: target.character.corporation.id,
+            name: target.character.corporation.name,
+          }
+        : null,
+      alliance: target.character.alliance
+        ? {
+            id: target.character.alliance.id,
+            name: target.character.alliance.name,
+          }
+        : null,
+    })) || [];
+
   return (
     <main>
       <div className="alliance-detail-card">
@@ -467,9 +498,46 @@ export default function AllianceDetailPage({
 
                 {/* Right side - Top Targets Cards */}
                 <div className="space-y-6 lg:col-span-1 lg:-mt-9">
+                  <TopCharacterCard
+                    title="Most Active Pilots"
+                    subtitle={
+                      <>
+                        Last 7 days{" "}
+                        <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
+                          ROLLING
+                        </span>
+                      </>
+                    }
+                    characters={topCharacters}
+                    emptyText="No pilots yet"
+                    loading={topCharactersLoading}
+                  />
+
+                  <TopShipsCard
+                    title="Most Used Ships"
+                    subtitle={
+                      <>
+                        Last 7 days{" "}
+                        <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
+                          ROLLING
+                        </span>
+                      </>
+                    }
+                    ships={topAttackerShips}
+                    emptyText="No ships used yet"
+                    loading={shipsLoading}
+                  />
+
                   <TopTargetsCard
-                    title="Top Alliance Targets"
-                    subtitle="Most killed alliances"
+                    title="Most Killed Alliances"
+                    subtitle={
+                      <>
+                        Last 7 days{" "}
+                        <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
+                          ROLLING
+                        </span>
+                      </>
+                    }
                     targets={allianceTargets}
                     targetType="alliance"
                     linkPrefix="/alliances"
@@ -478,8 +546,15 @@ export default function AllianceDetailPage({
                   />
 
                   <TopTargetsCard
-                    title="Top Corp Targets"
-                    subtitle="Most killed corporations"
+                    title="Most Killed Corporations"
+                    subtitle={
+                      <>
+                        Last 7 days{" "}
+                        <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
+                          ROLLING
+                        </span>
+                      </>
+                    }
                     targets={corporationTargets}
                     targetType="corporation"
                     linkPrefix="/corporations"
@@ -488,19 +563,18 @@ export default function AllianceDetailPage({
                   />
 
                   <TopShipsCard
-                    title="Top Ship Targets"
-                    subtitle="Most killed ship types"
+                    title="Most Killed Ships"
+                    subtitle={
+                      <>
+                        Last 7 days{" "}
+                        <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
+                          ROLLING
+                        </span>
+                      </>
+                    }
                     ships={topShipTargets}
                     emptyText="No ships killed yet"
                     loading={shipTargetsLoading}
-                  />
-
-                  <TopShipsCard
-                    title="Top Attacker Ships"
-                    subtitle="Most used ship types"
-                    ships={topAttackerShips}
-                    emptyText="No ships used yet"
-                    loading={shipsLoading}
                   />
                 </div>
               </div>

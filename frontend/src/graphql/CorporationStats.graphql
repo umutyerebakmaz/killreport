@@ -65,3 +65,22 @@ query CorporationTopShips($corporationId: Int!, $filter: TopTargetFilter) {
     }
   }
 }
+
+query CorporationTopCharacters($corporationId: Int!, $filter: TopTargetFilter) {
+  corporationTopCharacters(corporationId: $corporationId, filter: $filter) {
+    killCount
+    character {
+      id
+      name
+      securityStatus
+      corporation {
+        id
+        name
+      }
+      alliance {
+        id
+        name
+      }
+    }
+  }
+}

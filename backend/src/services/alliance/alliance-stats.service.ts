@@ -287,3 +287,75 @@ export async function invalidateAllianceStats(allianceId: number): Promise<void>
         await redis.del(...keys);
     }
 }
+
+/**
+ * Top 10 characters (pilots) with most kills in this alliance.
+ * Uses killmail_filters with GIN indexes + attackers join for character-level data.
+ * Results are cached in Redis with smart TTL.
+ */
+export async function getTopCharacters(
+    allianceId: number,
+    filter?: string | null
+): Promise<Array<{ killCount: number; character: any }>> {
+    const cacheKey = getCacheKey(allianceId, 'characters', filter);
+
+    // Check cache first
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+        return JSON.parse(cached);
+    }
+
+    // Query database
+    type Row = {
+        character_id: number;
+        character_name: string;
+        security_status: number | null;
+        corp_id: number | null;
+        corp_name: string | null;
+        alliance_id: number | null;
+        alliance_name: string | null;
+        kill_count: bigint;
+    };
+
+    const filterSql = timeFilter(filter);
+    const results = await prisma.$queryRaw<Row[]>`
+    SELECT
+      a.character_id,
+      ch.name AS character_name,
+      ch.security_status,
+      ch.corporation_id AS corp_id,
+      co.name AS corp_name,
+      ch.alliance_id,
+      al.name AS alliance_name,
+      COUNT(*)::BIGINT AS kill_count
+    FROM attackers a
+    INNER JOIN killmail_filters kf ON kf.killmail_id = a.killmail_id
+    INNER JOIN characters ch ON ch.id = a.character_id
+    LEFT JOIN corporations co ON co.id = ch.corporation_id
+    LEFT JOIN alliances al ON al.id = ch.alliance_id
+    WHERE ${allianceId} = ANY(kf.attacker_alliance_ids)
+      AND a.character_id IS NOT NULL
+      AND a.alliance_id = ${allianceId}
+      ${filterSql}
+    GROUP BY a.character_id, ch.name, ch.security_status, ch.corporation_id, co.name, ch.alliance_id, al.name
+    ORDER BY kill_count DESC
+    LIMIT 10
+  `;
+
+    const mapped = results.map((row: Row) => ({
+        killCount: Number(row.kill_count),
+        character: {
+            id: row.character_id,
+            name: row.character_name,
+            securityStatus: row.security_status,
+            corporation: row.corp_id ? { id: row.corp_id, name: row.corp_name } : null,
+            alliance: row.alliance_id ? { id: row.alliance_id, name: row.alliance_name } : null,
+        },
+    }));
+
+    // Cache with smart TTL
+    const ttl = calculateTTL(filter);
+    await redis.setex(cacheKey, ttl, JSON.stringify(mapped));
+
+    return mapped;
+}
