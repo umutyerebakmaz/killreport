@@ -49,11 +49,12 @@ const groupItems = (items: any[]) => {
 
   items.forEach((item) => {
     const typeId = item.itemType.id;
+    const singleton = item.singleton;
     const isDestroyed = (item.quantityDestroyed || 0) > 0;
     const isDropped = (item.quantityDropped || 0) > 0;
 
     if (isDestroyed) {
-      const key = `${typeId}-destroyed`;
+      const key = `${typeId}-${singleton}-destroyed`;
       const existing = grouped.get(key);
 
       if (existing) {
@@ -69,7 +70,7 @@ const groupItems = (items: any[]) => {
     }
 
     if (isDropped) {
-      const key = `${typeId}-dropped`;
+      const key = `${typeId}-${singleton}-dropped`;
       const existing = grouped.get(key);
 
       if (existing) {

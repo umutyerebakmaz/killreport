@@ -5,7 +5,8 @@
 
 // Check if item is a blueprint
 export const isBlueprint = (itemType: any): boolean => {
-  return itemType?.group?.category?.name === "Blueprint";
+  const categoryName = itemType?.group?.category?.name;
+  return categoryName?.toLowerCase() === "blueprint";
 };
 
 // Get item name with "Copy" suffix for BPCs
@@ -33,4 +34,4 @@ export const getItemImageUrl = (
   // Blueprint: singleton=1 is BPO (Original), singleton=2 is BPC (Copy)
   const isCopy = singleton === 2;
   return `https://images.evetech.net/types/${typeId}/${isCopy ? "bpc" : "bp"}?size=${size}`;
-};
+}
