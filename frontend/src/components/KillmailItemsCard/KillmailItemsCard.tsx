@@ -101,13 +101,6 @@ export default function KillmailSummaryCard({
   droppedValue,
   totalValue,
 }: KillmailSummaryCardProps) {
-  // Debug: Fleet Hangar kontrolü
-  console.log("🔍 Fitting data:", {
-    hasFleetHangar: !!fitting?.fleetHangar,
-    fleetHangarLength: fitting?.fleetHangar?.length || 0,
-    fleetHangarData: fitting?.fleetHangar,
-  });
-
   return (
     <div className="p-6 items-card">
       {/* Ship */}
