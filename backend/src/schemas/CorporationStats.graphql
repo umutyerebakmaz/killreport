@@ -25,4 +25,10 @@ extend type Query {
     corporationId: Int!
     filter: TopTargetFilter
   ): [ShipTopKill!]!
+
+  # Top 10 characters (pilots) with most kills in a corporation
+  corporationTopCharacters(
+    corporationId: Int!
+    filter: TopTargetFilter
+  ): [CharacterTopTarget!]!
 }

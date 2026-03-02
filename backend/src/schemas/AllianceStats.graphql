@@ -22,4 +22,10 @@ extend type Query {
 
   # Top 10 ship types that an alliance has used most (as attacker)
   allianceTopShips(allianceId: Int!, filter: TopTargetFilter): [ShipTopKill!]!
+
+  # Top 10 characters (pilots) with most kills in an alliance
+  allianceTopCharacters(
+    allianceId: Int!
+    filter: TopTargetFilter
+  ): [CharacterTopTarget!]!
 }

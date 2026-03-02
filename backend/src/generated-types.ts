@@ -232,6 +232,12 @@ export enum CharacterOrderBy {
   SecurityStatusDesc = 'securityStatusDesc'
 }
 
+export type CharacterTopTarget = {
+  __typename?: 'CharacterTopTarget';
+  character: Character;
+  killCount: Scalars['Int']['output'];
+};
+
 export type CharactersResponse = {
   __typename?: 'CharactersResponse';
   items: Array<Character>;
@@ -736,6 +742,7 @@ export type Query = {
   activeUsersCount: Scalars['Int']['output'];
   alliance?: Maybe<Alliance>;
   allianceTopAllianceTargets: Array<AllianceTopTarget>;
+  allianceTopCharacters: Array<CharacterTopTarget>;
   allianceTopCorporationTargets: Array<CorporationTopTarget>;
   allianceTopShipTargets: Array<ShipTopKill>;
   allianceTopShips: Array<ShipTopKill>;
@@ -756,6 +763,7 @@ export type Query = {
   constellations: ConstellationsResponse;
   corporation?: Maybe<Corporation>;
   corporationTopAllianceTargets: Array<AllianceTopTarget>;
+  corporationTopCharacters: Array<CharacterTopTarget>;
   corporationTopCorporationTargets: Array<CorporationTopTarget>;
   corporationTopShipTargets: Array<ShipTopKill>;
   corporationTopShips: Array<ShipTopKill>;
@@ -813,6 +821,12 @@ export type QueryAllianceArgs = {
 
 
 export type QueryAllianceTopAllianceTargetsArgs = {
+  allianceId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+};
+
+
+export type QueryAllianceTopCharactersArgs = {
   allianceId: Scalars['Int']['input'];
   filter?: InputMaybe<TopTargetFilter>;
 };
@@ -906,6 +920,12 @@ export type QueryCorporationArgs = {
 
 
 export type QueryCorporationTopAllianceTargetsArgs = {
+  corporationId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+};
+
+
+export type QueryCorporationTopCharactersArgs = {
   corporationId: Scalars['Int']['input'];
   filter?: InputMaybe<TopTargetFilter>;
 };
@@ -1667,6 +1687,7 @@ export type ResolversTypes = {
   Character: ResolverTypeWrapper<Character>;
   CharacterFilter: CharacterFilter;
   CharacterOrderBy: CharacterOrderBy;
+  CharacterTopTarget: ResolverTypeWrapper<CharacterTopTarget>;
   CharactersResponse: ResolverTypeWrapper<CharactersResponse>;
   Constellation: ResolverTypeWrapper<Constellation>;
   ConstellationFilter: ConstellationFilter;
@@ -1797,6 +1818,7 @@ export type ResolversParentTypes = {
   CategoryFilter: CategoryFilter;
   Character: Character;
   CharacterFilter: CharacterFilter;
+  CharacterTopTarget: CharacterTopTarget;
   CharactersResponse: CharactersResponse;
   Constellation: Constellation;
   ConstellationFilter: ConstellationFilter;
@@ -2031,6 +2053,11 @@ export type CharacterResolvers<ContextType = any, ParentType extends ResolversPa
   securityStatus?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   updatedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
+export type CharacterTopTargetResolvers<ContextType = any, ParentType extends ResolversParentTypes['CharacterTopTarget'] = ResolversParentTypes['CharacterTopTarget']> = {
+  character?: Resolver<ResolversTypes['Character'], ParentType, ContextType>;
+  killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
 export type CharactersResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['CharactersResponse'] = ResolversParentTypes['CharactersResponse']> = {
@@ -2278,6 +2305,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   activeUsersCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType, RequireFields<QueryAllianceArgs, 'id'>>;
   allianceTopAllianceTargets?: Resolver<Array<ResolversTypes['AllianceTopTarget']>, ParentType, ContextType, RequireFields<QueryAllianceTopAllianceTargetsArgs, 'allianceId'>>;
+  allianceTopCharacters?: Resolver<Array<ResolversTypes['CharacterTopTarget']>, ParentType, ContextType, RequireFields<QueryAllianceTopCharactersArgs, 'allianceId'>>;
   allianceTopCorporationTargets?: Resolver<Array<ResolversTypes['CorporationTopTarget']>, ParentType, ContextType, RequireFields<QueryAllianceTopCorporationTargetsArgs, 'allianceId'>>;
   allianceTopShipTargets?: Resolver<Array<ResolversTypes['ShipTopKill']>, ParentType, ContextType, RequireFields<QueryAllianceTopShipTargetsArgs, 'allianceId'>>;
   allianceTopShips?: Resolver<Array<ResolversTypes['ShipTopKill']>, ParentType, ContextType, RequireFields<QueryAllianceTopShipsArgs, 'allianceId'>>;
@@ -2297,6 +2325,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   constellations?: Resolver<ResolversTypes['ConstellationsResponse'], ParentType, ContextType, Partial<QueryConstellationsArgs>>;
   corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType, RequireFields<QueryCorporationArgs, 'id'>>;
   corporationTopAllianceTargets?: Resolver<Array<ResolversTypes['AllianceTopTarget']>, ParentType, ContextType, RequireFields<QueryCorporationTopAllianceTargetsArgs, 'corporationId'>>;
+  corporationTopCharacters?: Resolver<Array<ResolversTypes['CharacterTopTarget']>, ParentType, ContextType, RequireFields<QueryCorporationTopCharactersArgs, 'corporationId'>>;
   corporationTopCorporationTargets?: Resolver<Array<ResolversTypes['CorporationTopTarget']>, ParentType, ContextType, RequireFields<QueryCorporationTopCorporationTargetsArgs, 'corporationId'>>;
   corporationTopShipTargets?: Resolver<Array<ResolversTypes['ShipTopKill']>, ParentType, ContextType, RequireFields<QueryCorporationTopShipTargetsArgs, 'corporationId'>>;
   corporationTopShips?: Resolver<Array<ResolversTypes['ShipTopKill']>, ParentType, ContextType, RequireFields<QueryCorporationTopShipsArgs, 'corporationId'>>;
@@ -2627,6 +2656,7 @@ export type Resolvers<ContextType = any> = {
   CategoriesResponse?: CategoriesResponseResolvers<ContextType>;
   Category?: CategoryResolvers<ContextType>;
   Character?: CharacterResolvers<ContextType>;
+  CharacterTopTarget?: CharacterTopTargetResolvers<ContextType>;
   CharactersResponse?: CharactersResponseResolvers<ContextType>;
   Constellation?: ConstellationResolvers<ContextType>;
   ConstellationsResponse?: ConstellationsResponseResolvers<ContextType>;

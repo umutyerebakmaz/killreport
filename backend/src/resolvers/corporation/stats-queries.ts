@@ -44,4 +44,12 @@ export const corporationStatsQueries: QueryResolvers = {
     corporationTopShips: async (_, { corporationId, filter }) => {
         return CorporationStatsService.getTopShips(corporationId, filter);
     },
+
+    /**
+     * Get top 10 characters (pilots) with most kills in a corporation
+     * Cached in Redis with smart TTL based on time filter
+     */
+    corporationTopCharacters: async (_, { corporationId, filter }) => {
+        return CorporationStatsService.getTopCharacters(corporationId, filter);
+    },
 };

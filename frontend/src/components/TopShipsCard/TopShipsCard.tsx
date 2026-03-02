@@ -19,6 +19,7 @@ export interface TopShipsCardProps {
   ships: TopShip[];
   loading?: boolean;
   emptyText?: string;
+  variant?: "detail" | "list";
 }
 
 export default function TopShipsCard({
@@ -27,6 +28,7 @@ export default function TopShipsCard({
   ships,
   loading = false,
   emptyText = "No ships yet",
+  variant = "detail",
 }: TopShipsCardProps) {
   if (loading) {
     return (
@@ -69,7 +71,11 @@ export default function TopShipsCard({
             return (
               <div
                 key={ship.id}
-                className="p-3 transition-colors duration-100 bg-neutral-900 hover:bg-neutral-800"
+                className={`p-3 transition-colors duration-100 ${
+                  variant === "list"
+                    ? "bg-neutral-900 hover:bg-neutral-800"
+                    : "bg-neutral-800 hover:bg-neutral-700"
+                }`}
               >
                 <div className="flex items-center gap-3">
                   {/* Rank */}
@@ -124,7 +130,7 @@ export default function TopShipsCard({
                     </Tooltip>
 
                     {/* Kill Count */}
-                    <span className="text-sm font-semibold text-gray-400 tabular-nums whitespace-nowrap shrink-0">
+                    <span className="text-lg font-semibold text-gray-400 tabular-nums whitespace-nowrap shrink-0">
                       {ship.killCount}
                     </span>
                   </div>
