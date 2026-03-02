@@ -2702,6 +2702,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@lottiefiles/dotlottie-react@npm:^0.18.3":
+  version: 0.18.3
+  resolution: "@lottiefiles/dotlottie-react@npm:0.18.3"
+  dependencies:
+    "@lottiefiles/dotlottie-web": "npm:0.65.0"
+  peerDependencies:
+    react: ^17 || ^18 || ^19
+  checksum: 10c0/cd223109f588de442049d803ffd28b43a864d3f23f20a7859cae51313072287d44fee5d92bbdf3c0b10449325d1f1b4ddced42555df453aa8449e747eab4efb7
+  languageName: node
+  linkType: hard
+
+"@lottiefiles/dotlottie-web@npm:0.65.0":
+  version: 0.65.0
+  resolution: "@lottiefiles/dotlottie-web@npm:0.65.0"
+  checksum: 10c0/3c624ad9b7e945c7686e12d51317c36c9b958f4d6f20188652f917062308f95365fbff690f75d95fbae03f1c9b8945ea5cc954c4f25cb7b64d25c3c24dc8be77
+  languageName: node
+  linkType: hard
+
 "@mrleebo/prisma-ast@npm:0.12.1":
   version: 0.12.1
   resolution: "@mrleebo/prisma-ast@npm:0.12.1"
@@ -6204,6 +6222,7 @@ __metadata:
     "@graphql-codegen/typescript-react-apollo": "npm:^4.3.3"
     "@headlessui/react": "npm:^2.2.9"
     "@heroicons/react": "npm:^2.2.0"
+    "@lottiefiles/dotlottie-react": "npm:^0.18.3"
     "@tailwindcss/postcss": "npm:^4.1.15"
     "@types/node": "npm:^22.0.0"
     "@types/react": "npm:^19"
