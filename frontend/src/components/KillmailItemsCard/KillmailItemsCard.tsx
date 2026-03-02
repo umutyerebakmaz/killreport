@@ -101,6 +101,13 @@ export default function KillmailSummaryCard({
   droppedValue,
   totalValue,
 }: KillmailSummaryCardProps) {
+  // Debug: Fleet Hangar kontrolü
+  console.log("🔍 Fitting data:", {
+    hasFleetHangar: !!fitting?.fleetHangar,
+    fleetHangarLength: fitting?.fleetHangar?.length || 0,
+    fleetHangarData: fitting?.fleetHangar,
+  });
+
   return (
     <div className="p-6 items-card">
       {/* Ship */}
@@ -813,6 +820,62 @@ export default function KillmailSummaryCard({
           <div className="py-4 text-center text-gray-500">Empty Cargo Hold</div>
         )}
       </div>
+
+      {/* Fleet Hangar */}
+      {fitting?.fleetHangar && fitting.fleetHangar.length > 0 && (
+        <div className="pb-4 mb-4 border-b border-white/10">
+          <h3 className="mb-2 font-bold text-gray-400 uppercase">
+            Fleet Hangar
+          </h3>
+          <div className="space-y-2">
+            {(() => {
+              const groupedFleetHangar = groupItems(fitting.fleetHangar);
+              return groupedFleetHangar.map((item, index) => {
+                const totalQty =
+                  item.quantityDestroyed + item.quantityDropped || 1;
+                const isDestroyed = item.quantityDestroyed > 0;
+                const isDropped = item.quantityDropped > 0;
+                const textColor = isDestroyed
+                  ? "text-red-400"
+                  : isDropped
+                    ? "text-green-500"
+                    : "text-white";
+
+                return (
+                  <div
+                    key={`fleet-hangar-${item.itemType.id}-${index}`}
+                    className="flex items-center gap-3 py-2"
+                  >
+                    <img
+                      src={`https://images.evetech.net/types/${item.itemType.id}/icon?size=64`}
+                      alt={item.itemType.name}
+                      className="border bg-white/5 size-16 border-white/10"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className={`truncate ${textColor}`}>
+                        {item.itemType.name}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-right">
+                      {renderQuantity(
+                        item.quantityDestroyed,
+                        item.quantityDropped,
+                      )}
+                      <div className={`w-40 tabular-nums ${textColor}`}>
+                        {formatISK(
+                          getItemPrice(item.itemType.jitaPrice) * totalQty,
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+        </div>
+      )}
 
       {/* Fighter Bay */}
       {fitting?.fighterBay && fitting.fighterBay.length > 0 && (

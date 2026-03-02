@@ -439,6 +439,7 @@ export type Fitting = {
   coreRoom: Array<FittingModule>;
   droneBay: Array<FittingModule>;
   fighterBay: Array<FittingModule>;
+  fleetHangar: Array<FittingModule>;
   highSlots: SlotGroup;
   implants: SlotGroup;
   lowSlots: SlotGroup;
@@ -2146,6 +2147,7 @@ export type FittingResolvers<ContextType = any, ParentType extends ResolversPare
   coreRoom?: Resolver<Array<ResolversTypes['FittingModule']>, ParentType, ContextType>;
   droneBay?: Resolver<Array<ResolversTypes['FittingModule']>, ParentType, ContextType>;
   fighterBay?: Resolver<Array<ResolversTypes['FittingModule']>, ParentType, ContextType>;
+  fleetHangar?: Resolver<Array<ResolversTypes['FittingModule']>, ParentType, ContextType>;
   highSlots?: Resolver<ResolversTypes['SlotGroup'], ParentType, ContextType>;
   implants?: Resolver<ResolversTypes['SlotGroup'], ParentType, ContextType>;
   lowSlots?: Resolver<ResolversTypes['SlotGroup'], ParentType, ContextType>;
