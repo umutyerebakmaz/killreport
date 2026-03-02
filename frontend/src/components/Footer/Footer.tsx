@@ -1,15 +1,8 @@
 "use client";
 
+import { useCharacterQuery } from "@/generated/graphql";
+import ChevronRightIcon from "@heroicons/react/24/outline/ChevronRightIcon";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-
-interface CharacterInfo {
-  name: string;
-  corporationId: number;
-  corporationName: string;
-  allianceId?: number;
-  allianceName?: string;
-}
 
 const navigation = {
   explore: [
@@ -69,48 +62,10 @@ const navigation = {
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const characterId = 365974960;
-  const [characterInfo, setCharacterInfo] = useState<CharacterInfo | null>(
-    null,
-  );
 
-  useEffect(() => {
-    const fetchCharacterInfo = async () => {
-      try {
-        // Fetch character basic info
-        const charRes = await fetch(
-          `https://esi.evetech.net/latest/characters/${characterId}/`,
-        );
-        const charData = await charRes.json();
-
-        // Fetch corporation info
-        const corpRes = await fetch(
-          `https://esi.evetech.net/latest/corporations/${charData.corporation_id}/`,
-        );
-        const corpData = await corpRes.json();
-
-        let allianceData = null;
-        if (charData.alliance_id) {
-          // Fetch alliance info if character is in an alliance
-          const allianceRes = await fetch(
-            `https://esi.evetech.net/latest/alliances/${charData.alliance_id}/`,
-          );
-          allianceData = await allianceRes.json();
-        }
-
-        setCharacterInfo({
-          name: charData.name,
-          corporationId: charData.corporation_id,
-          corporationName: corpData.name,
-          allianceId: charData.alliance_id,
-          allianceName: allianceData?.name,
-        });
-      } catch (error) {
-        console.error("Failed to fetch character info:", error);
-      }
-    };
-
-    fetchCharacterInfo();
-  }, [characterId]);
+  const { data: characterData } = useCharacterQuery({
+    variables: { id: characterId },
+  });
 
   return (
     <footer className="bg-neutral-900">
@@ -242,16 +197,16 @@ export default function Footer() {
                   />
                   <div className="flex-1">
                     <p className="mb-1 text-sm font-semibold text-gray-200">
-                      {characterInfo?.name || "General XAN"}
+                      {characterData?.character?.name || "General XAN"}
                     </p>
-                    {characterInfo && (
+                    {characterData?.character && (
                       <div className="space-y-1">
                         <p className="text-gray-400 text-sm/3">
-                          {characterInfo.corporationName}
+                          {characterData.character.corporation?.name}
                         </p>
-                        {characterInfo.allianceName && (
+                        {characterData.character.alliance?.name && (
                           <p className="text-gray-400 text-sm/3">
-                            {characterInfo.allianceName}
+                            {characterData.character.alliance.name}
                           </p>
                         )}
                       </div>
@@ -259,28 +214,18 @@ export default function Footer() {
                   </div>
                 </div>
                 <p className="mb-4 text-gray-300 text-sm/6">
-                  Feel free to reach out in-game to discuss killmails, form
-                  fleets, or get real-time updates.
+                  Killreport is built on player feedback—just like EVE itself.
+                  Have ideas, suggestions, or questions? Reach out in-game or
+                  start a conversation on GitHub let's shape the future of this
+                  platform together!
                 </p>
                 <Link
-                  href={`/chchevaracters/${characterId}`}
+                  href={`/characters/${characterId}`}
                   className="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold text-gray-300 transition-all bg-neutral-900 hover:bg-neutral-800 hover:text-gray-100"
                   prefetch={false}
                 >
                   View Character
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="m8.25 4.5 7.5 7.5-7.5 7.5"
-                    />
-                  </svg>
+                  <ChevronRightIcon className="w-4 h-4" />
                 </Link>
               </div>
             </div>
