@@ -10,7 +10,7 @@ export enum InventoryFlag {
     // Cargo & Holds
     Cargo = 5,
     DroneBay = 87,
-    FleetHangar = 155,
+    FleetHangar = 90, // Fleet/Ship Hangar
     StructureFuel = 172,
     StructureCoreRoom = 180,
     FighterBay = 158,
