@@ -18,13 +18,23 @@ const isBlueprint = (itemType: any) => {
   return itemType?.group?.category?.name === "Blueprint";
 };
 
-// Get item image URL with blueprint support
-const getItemImageUrl = (itemType: any, size: number = 64) => {
+// Get item image URL with blueprint support (BPO vs BPC)
+const getItemImageUrl = (
+  itemType: any,
+  singleton: number = 1,
+  size: number = 64,
+) => {
   const typeId = itemType?.id;
   if (!typeId) return "";
 
   const blueprint = isBlueprint(itemType);
-  return `https://images.evetech.net/types/${typeId}/${blueprint ? "bp" : "icon"}?size=${size}`;
+  if (!blueprint) {
+    return `https://images.evetech.net/types/${typeId}/icon?size=${size}`;
+  }
+
+  // Blueprint: singleton=1 is BPO (Original), singleton=2 is BPC (Copy)
+  const isCopy = singleton === 2;
+  return `https://images.evetech.net/types/${typeId}/${isCopy ? "bpc" : "bp"}?size=${size}`;
 };
 
 // Render quantity with separate destroyed/dropped display
@@ -54,6 +64,7 @@ const groupItems = (items: any[]) => {
     string,
     {
       itemType: any;
+      singleton: number;
       quantityDestroyed: number;
       quantityDropped: number;
     }
@@ -73,6 +84,7 @@ const groupItems = (items: any[]) => {
       } else {
         grouped.set(key, {
           itemType: item.itemType,
+          singleton: item.singleton,
           quantityDestroyed: item.quantityDestroyed || 0,
           quantityDropped: 0,
         });
@@ -88,6 +100,7 @@ const groupItems = (items: any[]) => {
       } else {
         grouped.set(key, {
           itemType: item.itemType,
+          singleton: item.singleton,
           quantityDestroyed: 0,
           quantityDropped: item.quantityDropped || 0,
         });
@@ -192,7 +205,11 @@ export default function KillmailSummaryCard({
                           className="flex items-center gap-3 py-2"
                         >
                           <img
-                            src={getItemImageUrl(item.itemType, 64)}
+                            src={getItemImageUrl(
+                              item.itemType,
+                              item.singleton,
+                              64,
+                            )}
                             alt={item.itemType.name}
                             className="border bg-white/5 size-16 border-white/10"
                             loading="lazy"
@@ -236,7 +253,11 @@ export default function KillmailSummaryCard({
                           className="flex items-center gap-3 py-2"
                         >
                           <img
-                            src={getItemImageUrl(item.itemType, 64)}
+                            src={getItemImageUrl(
+                              item.itemType,
+                              item.singleton,
+                              64,
+                            )}
                             alt={item.itemType.name}
                             className="border bg-white/5 size-16 border-white/10"
                             loading="lazy"
@@ -309,7 +330,11 @@ export default function KillmailSummaryCard({
                         className="flex items-center gap-3 py-2"
                       >
                         <img
-                          src={getItemImageUrl(item.itemType, 64)}
+                          src={getItemImageUrl(
+                            item.itemType,
+                            item.singleton,
+                            64,
+                          )}
                           alt={item.itemType.name}
                           className="border bg-white/5 size-16 border-white/10"
                           loading="lazy"
@@ -352,7 +377,11 @@ export default function KillmailSummaryCard({
                         className="flex items-center gap-3 py-2"
                       >
                         <img
-                          src={getItemImageUrl(item.itemType, 64)}
+                          src={getItemImageUrl(
+                            item.itemType,
+                            item.singleton,
+                            64,
+                          )}
                           alt={item.itemType.name}
                           className="border bg-white/5 size-16 border-white/10"
                           loading="lazy"
@@ -409,7 +438,7 @@ export default function KillmailSummaryCard({
                     className="flex items-center gap-3 py-2"
                   >
                     <img
-                      src={getItemImageUrl(item.itemType, 64)}
+                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
                       alt={item.itemType.name}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
@@ -464,7 +493,7 @@ export default function KillmailSummaryCard({
                     className="flex items-center gap-3 py-2"
                   >
                     <img
-                      src={getItemImageUrl(item.itemType, 64)}
+                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
                       alt={item.itemType.name}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
@@ -519,7 +548,7 @@ export default function KillmailSummaryCard({
                     className="flex items-center gap-3 py-2"
                   >
                     <img
-                      src={getItemImageUrl(item.itemType, 64)}
+                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
                       alt={item.itemType.name}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
@@ -578,7 +607,7 @@ export default function KillmailSummaryCard({
                       className="flex items-center gap-3 py-2"
                     >
                       <img
-                        src={getItemImageUrl(item.itemType, 64)}
+                        src={getItemImageUrl(item.itemType, item.singleton, 64)}
                         alt={item.itemType.name}
                         className="border bg-white/5 size-16 border-white/10"
                         loading="lazy"
@@ -629,7 +658,7 @@ export default function KillmailSummaryCard({
                     className="flex items-center gap-3 px-2 py-2"
                   >
                     <img
-                      src={getItemImageUrl(item.itemType, 64)}
+                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
                       alt={item.itemType.name}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
@@ -682,7 +711,7 @@ export default function KillmailSummaryCard({
                     className="flex items-center gap-3 py-2"
                   >
                     <img
-                      src={getItemImageUrl(item.itemType, 64)}
+                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
                       alt={item.itemType.name}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
@@ -742,7 +771,7 @@ export default function KillmailSummaryCard({
                       className="flex items-center gap-3 py-2"
                     >
                       <img
-                        src={getItemImageUrl(item.itemType, 64)}
+                        src={getItemImageUrl(item.itemType, item.singleton, 64)}
                         alt={item.itemType.name}
                         className="border bg-white/5 size-16 border-white/10"
                         loading="lazy"
@@ -796,7 +825,7 @@ export default function KillmailSummaryCard({
                     className="flex items-center gap-3 py-2"
                   >
                     <img
-                      src={getItemImageUrl(item.itemType, 64)}
+                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
                       alt={item.itemType.name}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
@@ -854,7 +883,7 @@ export default function KillmailSummaryCard({
                     className="flex items-center gap-3 py-2"
                   >
                     <img
-                      src={getItemImageUrl(item.itemType, 64)}
+                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
                       alt={item.itemType.name}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
@@ -910,7 +939,7 @@ export default function KillmailSummaryCard({
                     className="flex items-center gap-3 py-2"
                   >
                     <img
-                      src={getItemImageUrl(item.itemType, 64)}
+                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
                       alt={item.itemType.name}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
@@ -968,7 +997,7 @@ export default function KillmailSummaryCard({
                       className="flex items-center gap-3 py-2"
                     >
                       <img
-                        src={getItemImageUrl(item.itemType, 64)}
+                        src={getItemImageUrl(item.itemType, item.singleton, 64)}
                         alt={item.itemType.name}
                         className="border bg-white/5 size-16 border-white/10"
                         loading="lazy"
@@ -1022,7 +1051,7 @@ export default function KillmailSummaryCard({
                     className="flex items-center gap-3 py-2"
                   >
                     <img
-                      src={getItemImageUrl(item.itemType, 64)}
+                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
                       alt={item.itemType.name}
                       className="border bg-white/5 size-16 border-white/10"
                       loading="lazy"
