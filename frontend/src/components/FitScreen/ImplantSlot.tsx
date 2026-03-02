@@ -1,3 +1,4 @@
+import { getItemImageUrl } from "@/utils/itemImageUrl";
 import Tooltip from "../Tooltip/Tooltip";
 
 interface ImplantSlotProps {
@@ -19,7 +20,7 @@ export default function ImplantSlot({ slots }: ImplantSlotProps) {
                   {/* Ring background */}
                   <div className="absolute inset-0 overflow-visible border border-white/10 size-12 bg-white/5"></div>
                   <img
-                    src={`https://images.evetech.net/types/${module.itemType.id}/icon?size=64`}
+                    src={getItemImageUrl(module.itemType, module.singleton, 64)}
                     alt={module.itemType.name}
                     className="relative z-10 size-12"
                   />
