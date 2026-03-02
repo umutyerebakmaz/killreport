@@ -311,6 +311,21 @@ query Killmail($id: ID!) {
         quantityDropped
         quantityDestroyed
       }
+      fleetHangar {
+        flag
+        singleton
+        itemType {
+          id
+          name
+          jitaPrice {
+            buy
+            sell
+            average
+          }
+        }
+        quantityDropped
+        quantityDestroyed
+      }
       fighterBay {
         flag
         singleton
