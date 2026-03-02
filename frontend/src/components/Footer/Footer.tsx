@@ -1,4 +1,15 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
+
+interface CharacterInfo {
+  name: string;
+  corporationId: number;
+  corporationName: string;
+  allianceId?: number;
+  allianceName?: string;
+}
 
 const navigation = {
   explore: [
@@ -66,11 +77,54 @@ const navigation = {
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const characterId = 365974960;
+  const [characterInfo, setCharacterInfo] = useState<CharacterInfo | null>(
+    null,
+  );
+
+  useEffect(() => {
+    const fetchCharacterInfo = async () => {
+      try {
+        // Fetch character basic info
+        const charRes = await fetch(
+          `https://esi.evetech.net/latest/characters/${characterId}/`,
+        );
+        const charData = await charRes.json();
+
+        // Fetch corporation info
+        const corpRes = await fetch(
+          `https://esi.evetech.net/latest/corporations/${charData.corporation_id}/`,
+        );
+        const corpData = await corpRes.json();
+
+        let allianceData = null;
+        if (charData.alliance_id) {
+          // Fetch alliance info if character is in an alliance
+          const allianceRes = await fetch(
+            `https://esi.evetech.net/latest/alliances/${charData.alliance_id}/`,
+          );
+          allianceData = await allianceRes.json();
+        }
+
+        setCharacterInfo({
+          name: charData.name,
+          corporationId: charData.corporation_id,
+          corporationName: corpData.name,
+          allianceId: charData.alliance_id,
+          allianceName: allianceData?.name,
+        });
+      } catch (error) {
+        console.error("Failed to fetch character info:", error);
+      }
+    };
+
+    fetchCharacterInfo();
+  }, [characterId]);
 
   return (
     <footer className="bg-neutral-900">
       <div className="px-6 pt-16 pb-8 mx-auto sm:pt-24 lg:px-8 xl:px-12 2xl:px-16 lg:pt-32 max-w-[1920px]">
-        <div className="xl:grid xl:grid-cols-3 xl:gap-8">
+        <div className="xl:grid xl:grid-cols-4 xl:gap-8">
           <div className="space-y-8">
             <span className="text-2xl font-semibold tracking-tight text-gray-200">
               KILLREPORT
@@ -180,6 +234,50 @@ export default function Footer() {
                     </li>
                   ))}
                 </ul>
+              </div>
+            </div>
+          </div>
+          <div className="mt-10 xl:mt-0">
+            <h3 className="font-semibold text-white text-sm/6">
+              In-Game Contact
+            </h3>
+            <div className="mt-6 space-y-4">
+              <div className="p-4 border bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border-cyan-500/30">
+                <div className="flex items-start gap-4 mb-4">
+                  <img
+                    src={`https://images.evetech.net/characters/${characterId}/portrait?size=128`}
+                    alt="General XAN"
+                    className="w-16 h-16"
+                  />
+                  <div className="flex-1">
+                    <p className="mb-1 text-sm font-semibold text-gray-200">
+                      {characterInfo?.name || "General XAN"}
+                    </p>
+                    {characterInfo && (
+                      <div className="space-y-1">
+                        <p className="text-gray-400 text-sm/3">
+                          {characterInfo.corporationName}
+                        </p>
+                        {characterInfo.allianceName && (
+                          <p className="text-gray-400 text-sm/3">
+                            {characterInfo.allianceName}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <p className="mb-4 text-gray-300 text-sm/6">
+                  Feel free to reach out in-game to discuss killmails, form
+                  fleets, or get real-time updates.
+                </p>
+                <Link
+                  href={`/characters/${characterId}`}
+                  className="inline-block px-3 py-2 text-xs font-semibold text-gray-300 transition-all bg-neutral-900 hover:bg-neutral-800 hover:text-gray-100"
+                  prefetch={false}
+                >
+                  View Character →
+                </Link>
               </div>
             </div>
           </div>
