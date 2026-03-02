@@ -91,6 +91,7 @@ query Killmail($id: ID!) {
           slotIndex
           module {
             flag
+            singleton
             itemType {
               id
               name
@@ -106,6 +107,7 @@ query Killmail($id: ID!) {
             quantityDropped
             quantityDestroyed
             charge {
+              singleton
               itemType {
                 id
                 name
@@ -113,6 +115,9 @@ query Killmail($id: ID!) {
                   buy
                   sell
                   average
+                }
+                group {
+                  name
                 }
               }
               quantityDropped
@@ -127,6 +132,7 @@ query Killmail($id: ID!) {
           slotIndex
           module {
             flag
+            singleton
             itemType {
               id
               name
@@ -142,6 +148,7 @@ query Killmail($id: ID!) {
             quantityDropped
             quantityDestroyed
             charge {
+              singleton
               itemType {
                 id
                 name
@@ -149,6 +156,9 @@ query Killmail($id: ID!) {
                   buy
                   sell
                   average
+                }
+                group {
+                  name
                 }
               }
               quantityDropped
@@ -163,6 +173,7 @@ query Killmail($id: ID!) {
           slotIndex
           module {
             flag
+            singleton
             itemType {
               id
               name
@@ -178,6 +189,7 @@ query Killmail($id: ID!) {
             quantityDropped
             quantityDestroyed
             charge {
+              singleton
               itemType {
                 id
                 name
@@ -185,6 +197,9 @@ query Killmail($id: ID!) {
                   buy
                   sell
                   average
+                }
+                group {
+                  name
                 }
               }
               quantityDropped
@@ -199,6 +214,7 @@ query Killmail($id: ID!) {
           slotIndex
           module {
             flag
+            singleton
             itemType {
               id
               name
@@ -222,6 +238,7 @@ query Killmail($id: ID!) {
           slotIndex
           module {
             flag
+            singleton
             itemType {
               id
               name
@@ -245,6 +262,7 @@ query Killmail($id: ID!) {
           slotIndex
           module {
             flag
+            singleton
             itemType {
               id
               name
@@ -267,6 +285,7 @@ query Killmail($id: ID!) {
         slots {
           slotIndex
           module {
+            singleton
             itemType {
               id
               name
@@ -274,6 +293,9 @@ query Killmail($id: ID!) {
                 buy
                 sell
                 average
+              }
+              group {
+                name
               }
             }
             quantityDropped
