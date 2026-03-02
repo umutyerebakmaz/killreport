@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader } from "@/components/Loader/Loader";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import { useTopWeeklyPilotsQuery } from "@/generated/graphql";
 import { getSecurityStatusColor } from "@/utils/securityStatus";
@@ -23,7 +24,9 @@ export default function WeeklyTopCharCard() {
 
       {/* Pilots List */}
       {loading ? (
-        <div className="p-4 text-xs text-center text-gray-500">Loading...</div>
+        <div className="flex items-center justify-center p-8">
+          <Loader size="md" />
+        </div>
       ) : pilots.length === 0 ? (
         <div className="p-4 text-xs text-center text-gray-500">
           No data available
