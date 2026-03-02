@@ -787,6 +787,17 @@ export default function KillmailSummaryCard({
             {(() => {
               const groupedCargo = groupItems(fitting.cargo);
               return groupedCargo.map((item, index) => {
+                // Debug for type 25949
+                if (item.itemType.id === 25949) {
+                  console.log("🔍 Cargo Item 25949 Full Object:", {
+                    itemType: item.itemType,
+                    singleton: item.singleton,
+                    group: item.itemType.group,
+                    category: item.itemType.group?.category,
+                    categoryName: item.itemType.group?.category?.name,
+                  });
+                }
+
                 const totalQty =
                   item.quantityDestroyed + item.quantityDropped || 1;
                 const isDestroyed = item.quantityDestroyed > 0;
