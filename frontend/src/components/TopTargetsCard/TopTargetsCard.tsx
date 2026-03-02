@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader } from "@/components/Loader/Loader";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import Link from "next/link";
 
@@ -50,7 +51,7 @@ export default function TopTargetsCard({
           {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
         </div>
         <div className="flex items-center justify-center py-12">
-          <div className="text-sm text-gray-400">Loading...</div>
+          <Loader size="lg" />
         </div>
       </div>
     );

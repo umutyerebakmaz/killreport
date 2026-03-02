@@ -2,7 +2,7 @@
 
 import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
 import SolarSystemFilters from "@/components/Filters/SolarSystemFilters";
-import Loader from "@/components/Loader";
+import { Loader } from "@/components/Loader/Loader";
 import Paginator from "@/components/Paginator/Paginator";
 import SecurityBadge from "@/components/SecurityStatus/SecurityStatus";
 import { useSolarSystemsQuery } from "@/generated/graphql";
@@ -181,9 +181,8 @@ function SolarSystemsContent() {
                   colSpan={5}
                   className="px-6 py-12 text-center text-gray-400"
                 >
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="w-5 h-5 border-2 rounded-full animate-spin border-cyan-500 border-t-transparent" />
-                    Loading solar systems...
+                  <div className="flex items-center justify-center">
+                    <Loader size="lg" />
                   </div>
                 </td>
               </tr>

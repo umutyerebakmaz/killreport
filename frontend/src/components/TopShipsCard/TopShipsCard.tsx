@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader } from "@/components/Loader/Loader";
 import ShipTierBadge from "@/components/ShipTierBadge/ShipTierBadge";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import { getShipTier } from "@/utils/shipTier";
@@ -39,7 +40,7 @@ export default function TopShipsCard({
           )}
         </div>
         <div className="flex items-center justify-center py-12">
-          <div className="text-sm text-gray-400">Loading...</div>
+          <Loader size="lg" />
         </div>
       </div>
     );
