@@ -42,6 +42,10 @@ query Killmail($id: ID!) {
         id
         name
         description
+        dogmaAttributes(ids: [422, 1692]) {
+          attribute_id
+          value
+        }
         jitaPrice {
           buy
           sell

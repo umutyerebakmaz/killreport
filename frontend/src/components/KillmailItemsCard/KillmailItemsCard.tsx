@@ -1,5 +1,7 @@
 import { formatISK } from "@/utils/formatISK";
 import { getItemImageUrl, getItemName } from "@/utils/itemImageUrl";
+import { getShipTier } from "@/utils/shipTier";
+import ShipTierBadge from "../ShipTierBadge/ShipTierBadge";
 
 const getItemPrice = (jitaPrice: any) => {
   return jitaPrice?.sell || jitaPrice?.average || 0;
@@ -113,13 +115,29 @@ export default function KillmailSummaryCard({
         <div className="pb-4 mb-4 border-b border-white/10">
           <h3 className="mb-2 font-bold text-gray-400 uppercase">Ship</h3>
           <div className="flex items-center gap-3 py-2">
-            <img
-              src={`https://images.evetech.net/types/${victim.shipType.id}/icon?size=64`}
-              alt={victim.shipType.name}
-              className="border size-16 border-amber-900/80"
-              loading="lazy"
-              decoding="async"
-            />
+            <div className="relative shrink-0">
+              {getShipTier(victim.shipType.dogmaAttributes) && (
+                <div className="absolute top-0 left-0 z-20">
+                  <ShipTierBadge
+                    tier={getShipTier(victim.shipType.dogmaAttributes)}
+                    className="size-5"
+                  />
+                </div>
+              )}
+              <img
+                src={`https://images.evetech.net/types/${victim.shipType.id}/render?size=128`}
+                alt={victim.shipType.name}
+                className="border size-16 border-amber-900/80"
+                loading="lazy"
+                decoding="async"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (target.src.includes("/render?")) {
+                    target.src = `https://images.evetech.net/types/${victim.shipType.id}/icon?size=128`;
+                  }
+                }}
+              />
+            </div>
             <div className="flex-1 min-w-0">
               <div className="font-medium text-white truncate">
                 {victim.shipType.name}
