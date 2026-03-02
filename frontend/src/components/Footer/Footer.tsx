@@ -263,11 +263,24 @@ export default function Footer() {
                   fleets, or get real-time updates.
                 </p>
                 <Link
-                  href={`/characters/${characterId}`}
-                  className="inline-block px-3 py-2 text-xs font-semibold text-gray-300 transition-all bg-neutral-900 hover:bg-neutral-800 hover:text-gray-100"
+                  href={`/chchevaracters/${characterId}`}
+                  className="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold text-gray-300 transition-all bg-neutral-900 hover:bg-neutral-800 hover:text-gray-100"
                   prefetch={false}
                 >
-                  View Character →
+                  View Character
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="m8.25 4.5 7.5 7.5-7.5 7.5"
+                    />
+                  </svg>
                 </Link>
               </div>
             </div>
