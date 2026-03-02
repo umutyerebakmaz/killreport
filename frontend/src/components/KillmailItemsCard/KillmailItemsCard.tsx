@@ -798,9 +798,9 @@ export default function KillmailSummaryCard({
         )}
 
       {/* Cargo Bay */}
-      <div className="pb-4 mb-4 border-b border-white/10">
-        <h3 className="mb-2 font-bold text-gray-400 uppercase">Cargo Bay</h3>
-        {fitting?.cargo && fitting.cargo.length > 0 ? (
+      {fitting?.cargo && fitting.cargo.length > 0 && (
+        <div className="pb-4 mb-4 border-b border-white/10">
+          <h3 className="mb-2 font-bold text-gray-400 uppercase">Cargo Bay</h3>
           <div className="space-y-2">
             {(() => {
               const groupedCargo = groupItems(fitting.cargo);
@@ -859,10 +859,8 @@ export default function KillmailSummaryCard({
               });
             })()}
           </div>
-        ) : (
-          <div className="py-4 text-center text-gray-500">Empty Cargo Hold</div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Fleet Hangar */}
       {fitting?.fleetHangar && fitting.fleetHangar.length > 0 && (
