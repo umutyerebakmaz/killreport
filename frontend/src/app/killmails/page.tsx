@@ -419,12 +419,12 @@ function KillmailsContent() {
         </div>
 
         {/* Right side - Sidebar */}
-        <div className="space-y-6 lg:col-span-1 lg:-mt-9">
+        <div className="space-y-6 lg:col-span-1 lg:-mt-11">
           <TopCharacterCard
-            title="Top Weekly Pilots"
+            title="Most Active Pilots"
             subtitle={
               <>
-                Most active pilots{" "}
+                Last 7 days{" "}
                 <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
                   ROLLING
                 </span>
@@ -452,12 +452,13 @@ function KillmailsContent() {
             }
             loading={weeklyPilotsLoading}
             emptyText="No pilot data available"
+            variant="list"
           />
           <TopCorporationCard
-            title="Top Weekly Corporations"
+            title="Most Active Corporations"
             subtitle={
               <>
-                Most active corporations{" "}
+                Last 7 days{" "}
                 <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
                   ROLLING
                 </span>
@@ -473,12 +474,13 @@ function KillmailsContent() {
             }
             loading={weeklyCorporationsLoading}
             emptyText="No corporation data available"
+            variant="list"
           />
           <TopAllianceCard
-            title="Top Weekly Alliances"
+            title="Most Active Alliances"
             subtitle={
               <>
-                Most active alliances{" "}
+                Last 7 days{" "}
                 <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
                   ROLLING
                 </span>
@@ -494,12 +496,13 @@ function KillmailsContent() {
             }
             loading={weeklyAlliancesLoading}
             emptyText="No alliance data available"
+            variant="list"
           />
           <TopShipsCard
-            title="Top Weekly Ships"
+            title="Most Used Ships"
             subtitle={
               <>
-                Most used attacker ships{" "}
+                Last 7 days{" "}
                 <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
                   ROLLING
                 </span>
@@ -517,12 +520,13 @@ function KillmailsContent() {
             }
             loading={weeklyAttackerShipsLoading}
             emptyText="No ship data available"
+            variant="list"
           />
           <TopShipsCard
-            title="Top Weekly Ship Targets"
+            title="Most Killed Ships"
             subtitle={
               <>
-                Most killed ship types{" "}
+                Last 7 days{" "}
                 <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
                   ROLLING
                 </span>
@@ -538,6 +542,7 @@ function KillmailsContent() {
             }
             loading={weeklyShipsLoading}
             emptyText="No ship data available"
+            variant="list"
           />
         </div>
       </div>

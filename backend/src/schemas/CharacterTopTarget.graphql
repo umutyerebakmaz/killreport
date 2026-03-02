@@ -1,0 +1,4 @@
+type CharacterTopTarget {
+  character: Character!
+  killCount: Int!
+}

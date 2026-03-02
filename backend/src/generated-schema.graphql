@@ -183,6 +183,11 @@ enum CharacterOrderBy {
   securityStatusDesc
 }
 
+type CharacterTopTarget {
+  character: Character!
+  killCount: Int!
+}
+
 type CharactersResponse {
   items: [Character!]!
   pageInfo: PageInfo!
@@ -557,6 +562,7 @@ type Query {
   activeUsersCount: Int!
   alliance(id: Int!): Alliance
   allianceTopAllianceTargets(allianceId: Int!, filter: TopTargetFilter): [AllianceTopTarget!]!
+  allianceTopCharacters(allianceId: Int!, filter: TopTargetFilter): [CharacterTopTarget!]!
   allianceTopCorporationTargets(allianceId: Int!, filter: TopTargetFilter): [CorporationTopTarget!]!
   allianceTopShipTargets(allianceId: Int!, filter: TopTargetFilter): [ShipTopKill!]!
   allianceTopShips(allianceId: Int!, filter: TopTargetFilter): [ShipTopKill!]!
@@ -578,6 +584,7 @@ type Query {
   constellations(filter: ConstellationFilter): ConstellationsResponse!
   corporation(id: Int!): Corporation
   corporationTopAllianceTargets(corporationId: Int!, filter: TopTargetFilter): [AllianceTopTarget!]!
+  corporationTopCharacters(corporationId: Int!, filter: TopTargetFilter): [CharacterTopTarget!]!
   corporationTopCorporationTargets(corporationId: Int!, filter: TopTargetFilter): [CorporationTopTarget!]!
   corporationTopShipTargets(corporationId: Int!, filter: TopTargetFilter): [ShipTopKill!]!
   corporationTopShips(corporationId: Int!, filter: TopTargetFilter): [ShipTopKill!]!

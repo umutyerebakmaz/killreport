@@ -53,3 +53,22 @@ query AllianceTopShips($allianceId: Int!, $filter: TopTargetFilter) {
     }
   }
 }
+
+query AllianceTopCharacters($allianceId: Int!, $filter: TopTargetFilter) {
+  allianceTopCharacters(allianceId: $allianceId, filter: $filter) {
+    killCount
+    character {
+      id
+      name
+      securityStatus
+      corporation {
+        id
+        name
+      }
+      alliance {
+        id
+        name
+      }
+    }
+  }
+}

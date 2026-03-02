@@ -27,6 +27,7 @@ export interface TopCharacterCardProps {
   characters: TopCharacter[];
   loading?: boolean;
   emptyText?: string;
+  variant?: "detail" | "list";
 }
 
 export default function TopCharacterCard({
@@ -35,6 +36,7 @@ export default function TopCharacterCard({
   characters,
   loading = false,
   emptyText = "No characters",
+  variant = "detail",
 }: TopCharacterCardProps) {
   if (loading) {
     return (
@@ -76,24 +78,26 @@ export default function TopCharacterCard({
             return (
               <div
                 key={character.id}
-                className="p-3 transition-colors duration-100 bg-neutral-900 hover:bg-neutral-800"
+                className={`p-3 transition-colors duration-100 ${
+                  variant === "list"
+                    ? "bg-neutral-900 hover:bg-neutral-800"
+                    : "bg-neutral-800 hover:bg-neutral-700"
+                }`}
               >
                 <div className="flex items-center gap-3">
                   {/* Rank */}
-                  <div className="flex items-center justify-center w-8 shrink-0">
-                    <span
-                      className={`text-xl font-black tabular-nums ${
-                        index === 0
-                          ? "text-yellow-400"
-                          : index === 1
-                            ? "text-gray-300"
-                            : index === 2
-                              ? "text-amber-600"
-                              : "text-gray-600"
-                      }`}
-                    >
-                      #{index + 1}
-                    </span>
+                  <div className="flex items-center justify-center w-12 shrink-0">
+                    {index === 0 ? (
+                      <span className="text-3xl">🥇</span>
+                    ) : index === 1 ? (
+                      <span className="text-3xl">🥈</span>
+                    ) : index === 2 ? (
+                      <span className="text-3xl">🥉</span>
+                    ) : (
+                      <span className="text-xl font-black text-gray-600 tabular-nums">
+                        #{index + 1}
+                      </span>
+                    )}
                   </div>
 
                   {/* Portrait */}
@@ -161,8 +165,8 @@ export default function TopCharacterCard({
                     </div>
 
                     {/* Kill Count */}
-                    <span className="text-base font-semibold text-gray-400 tabular-nums whitespace-nowrap shrink-0">
-                      {character.killCount.toLocaleString()}
+                    <span className="text-lg font-semibold text-gray-400 tabular-nums whitespace-nowrap shrink-0">
+                      {character.killCount}
                     </span>
                   </div>
                 </div>
