@@ -27,11 +27,30 @@ export const getItemImageUrl = (
   if (!typeId) return "";
 
   const blueprint = isBlueprint(itemType);
+
+  // Debug - Type 25949 için
+  if (typeId === 25949) {
+    console.log("🔍 Type 25949 Debug:", {
+      typeId,
+      singleton,
+      blueprint,
+      categoryName: itemType?.group?.category?.name,
+      groupName: itemType?.group?.name,
+      itemTypeName: itemType?.name,
+    });
+  }
+
   if (!blueprint) {
     return `https://images.evetech.net/types/${typeId}/icon?size=${size}`;
   }
 
   // Blueprint: singleton=1 is BPO (Original), singleton=2 is BPC (Copy)
   const isCopy = singleton === 2;
-  return `https://images.evetech.net/types/${typeId}/${isCopy ? "bpc" : "bp"}?size=${size}`;
+  const url = `https://images.evetech.net/types/${typeId}/${isCopy ? "bpc" : "bp"}?size=${size}`;
+
+  if (typeId === 25949) {
+    console.log("🎯 Generated URL:", url);
+  }
+
+  return url;
 }
