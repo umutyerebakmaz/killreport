@@ -1,0 +1,23 @@
+query SearchItemGroups($search: String!, $limit: Int = 20) {
+  itemGroups(filter: { search: $search, limit: $limit, category_id: 6 }) {
+    items {
+      id
+      name
+      category {
+        id
+        name
+      }
+    }
+  }
+}
+
+query SearchItemGroup($id: Int!) {
+  itemGroup(id: $id) {
+    id
+    name
+    category {
+      id
+      name
+    }
+  }
+}

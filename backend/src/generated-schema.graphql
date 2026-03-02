@@ -466,6 +466,7 @@ input KillmailFilter {
   page: Int
   regionId: Int
   search: String
+  shipGroupIds: [Int!]
   shipTypeId: Int
   systemId: Int
   victim: Boolean

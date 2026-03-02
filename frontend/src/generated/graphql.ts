@@ -553,6 +553,7 @@ export type KillmailFilter = {
   page?: InputMaybe<Scalars['Int']['input']>;
   regionId?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
+  shipGroupIds?: InputMaybe<Array<Scalars['Int']['input']>>;
   shipTypeId?: InputMaybe<Scalars['Int']['input']>;
   systemId?: InputMaybe<Scalars['Int']['input']>;
   victim?: InputMaybe<Scalars['Boolean']['input']>;
@@ -1864,6 +1865,21 @@ export type SearchCorporationsQueryVariables = Exact<{
 
 
 export type SearchCorporationsQuery = { __typename?: 'Query', corporations: { __typename?: 'CorporationsResponse', items: Array<{ __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null }> } };
+
+export type SearchItemGroupsQueryVariables = Exact<{
+  search: Scalars['String']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type SearchItemGroupsQuery = { __typename?: 'Query', itemGroups: { __typename?: 'ItemGroupsResponse', items: Array<{ __typename?: 'ItemGroup', id: number, name: string, category: { __typename?: 'Category', id: number, name: string } }> } };
+
+export type SearchItemGroupQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type SearchItemGroupQuery = { __typename?: 'Query', itemGroup?: { __typename?: 'ItemGroup', id: number, name: string, category: { __typename?: 'Category', id: number, name: string } } | null };
 
 export type SearchTypeQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -4828,6 +4844,105 @@ export type SearchCorporationsQueryHookResult = ReturnType<typeof useSearchCorpo
 export type SearchCorporationsLazyQueryHookResult = ReturnType<typeof useSearchCorporationsLazyQuery>;
 export type SearchCorporationsSuspenseQueryHookResult = ReturnType<typeof useSearchCorporationsSuspenseQuery>;
 export type SearchCorporationsQueryResult = Apollo.QueryResult<SearchCorporationsQuery, SearchCorporationsQueryVariables>;
+export const SearchItemGroupsDocument = gql`
+    query SearchItemGroups($search: String!, $limit: Int = 20) {
+  itemGroups(filter: {search: $search, limit: $limit, category_id: 6}) {
+    items {
+      id
+      name
+      category {
+        id
+        name
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useSearchItemGroupsQuery__
+ *
+ * To run a query within a React component, call `useSearchItemGroupsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchItemGroupsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchItemGroupsQuery({
+ *   variables: {
+ *      search: // value for 'search'
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useSearchItemGroupsQuery(baseOptions: Apollo.QueryHookOptions<SearchItemGroupsQuery, SearchItemGroupsQueryVariables> & ({ variables: SearchItemGroupsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SearchItemGroupsQuery, SearchItemGroupsQueryVariables>(SearchItemGroupsDocument, options);
+      }
+export function useSearchItemGroupsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SearchItemGroupsQuery, SearchItemGroupsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SearchItemGroupsQuery, SearchItemGroupsQueryVariables>(SearchItemGroupsDocument, options);
+        }
+// @ts-ignore
+export function useSearchItemGroupsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SearchItemGroupsQuery, SearchItemGroupsQueryVariables>): Apollo.UseSuspenseQueryResult<SearchItemGroupsQuery, SearchItemGroupsQueryVariables>;
+export function useSearchItemGroupsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchItemGroupsQuery, SearchItemGroupsQueryVariables>): Apollo.UseSuspenseQueryResult<SearchItemGroupsQuery | undefined, SearchItemGroupsQueryVariables>;
+export function useSearchItemGroupsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchItemGroupsQuery, SearchItemGroupsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SearchItemGroupsQuery, SearchItemGroupsQueryVariables>(SearchItemGroupsDocument, options);
+        }
+export type SearchItemGroupsQueryHookResult = ReturnType<typeof useSearchItemGroupsQuery>;
+export type SearchItemGroupsLazyQueryHookResult = ReturnType<typeof useSearchItemGroupsLazyQuery>;
+export type SearchItemGroupsSuspenseQueryHookResult = ReturnType<typeof useSearchItemGroupsSuspenseQuery>;
+export type SearchItemGroupsQueryResult = Apollo.QueryResult<SearchItemGroupsQuery, SearchItemGroupsQueryVariables>;
+export const SearchItemGroupDocument = gql`
+    query SearchItemGroup($id: Int!) {
+  itemGroup(id: $id) {
+    id
+    name
+    category {
+      id
+      name
+    }
+  }
+}
+    `;
+
+/**
+ * __useSearchItemGroupQuery__
+ *
+ * To run a query within a React component, call `useSearchItemGroupQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchItemGroupQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchItemGroupQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useSearchItemGroupQuery(baseOptions: Apollo.QueryHookOptions<SearchItemGroupQuery, SearchItemGroupQueryVariables> & ({ variables: SearchItemGroupQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SearchItemGroupQuery, SearchItemGroupQueryVariables>(SearchItemGroupDocument, options);
+      }
+export function useSearchItemGroupLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SearchItemGroupQuery, SearchItemGroupQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SearchItemGroupQuery, SearchItemGroupQueryVariables>(SearchItemGroupDocument, options);
+        }
+// @ts-ignore
+export function useSearchItemGroupSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SearchItemGroupQuery, SearchItemGroupQueryVariables>): Apollo.UseSuspenseQueryResult<SearchItemGroupQuery, SearchItemGroupQueryVariables>;
+export function useSearchItemGroupSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchItemGroupQuery, SearchItemGroupQueryVariables>): Apollo.UseSuspenseQueryResult<SearchItemGroupQuery | undefined, SearchItemGroupQueryVariables>;
+export function useSearchItemGroupSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchItemGroupQuery, SearchItemGroupQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SearchItemGroupQuery, SearchItemGroupQueryVariables>(SearchItemGroupDocument, options);
+        }
+export type SearchItemGroupQueryHookResult = ReturnType<typeof useSearchItemGroupQuery>;
+export type SearchItemGroupLazyQueryHookResult = ReturnType<typeof useSearchItemGroupLazyQuery>;
+export type SearchItemGroupSuspenseQueryHookResult = ReturnType<typeof useSearchItemGroupSuspenseQuery>;
+export type SearchItemGroupQueryResult = Apollo.QueryResult<SearchItemGroupQuery, SearchItemGroupQueryVariables>;
 export const SearchTypeDocument = gql`
     query SearchType($id: Int!) {
   type(id: $id) {

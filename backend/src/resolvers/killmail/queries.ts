@@ -81,6 +81,7 @@ export const killmailQueries: QueryResolvers = {
         // Determine filter strategy: Use Materialized View for entity filters
         const hasEntityFilter =
             args.filter?.shipTypeId ||
+            args.filter?.shipGroupIds?.length ||
             args.filter?.characterId ||
             args.filter?.corporationId ||
             args.filter?.allianceId;

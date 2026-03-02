@@ -4,6 +4,7 @@ import RadioGroup from "@/components/RadioGroup/RadioGroup";
 import {
   useSearchCharacterQuery,
   useSearchCharactersQuery,
+  useSearchItemGroupsQuery,
   useSearchTypeQuery,
   useSearchTypesQuery,
 } from "@/generated/graphql";
@@ -14,6 +15,7 @@ import { useEffect, useRef, useState } from "react";
 interface KillmailFiltersProps {
   onFilterChange: (filters: {
     shipTypeId?: number;
+    shipGroupIds?: number[];
     characterId?: number;
     victim?: boolean;
     attacker?: boolean;
@@ -26,6 +28,7 @@ interface KillmailFiltersProps {
   }) => void;
   onClearFilters: () => void;
   initialShipTypeId?: number;
+  initialShipGroupIds?: number[];
   initialCharacterId?: number;
   initialMinAttackers?: number;
   initialMaxAttackers?: number;
@@ -39,6 +42,7 @@ export default function KillmailFilters({
   onFilterChange,
   onClearFilters,
   initialShipTypeId,
+  initialShipGroupIds,
   initialCharacterId,
   initialMinAttackers,
   initialMaxAttackers,
@@ -53,6 +57,18 @@ export default function KillmailFilters({
     initialShipTypeId,
   );
   const [shipTypeName, setShipTypeName] = useState("");
+
+  // Ship group search state
+  const [groupSearch, setGroupSearch] = useState("");
+  const [shipGroupIds, setShipGroupIds] = useState<number[]>(
+    initialShipGroupIds || [],
+  );
+  const [shipGroupNames, setShipGroupNames] = useState<Map<number, string>>(
+    new Map(),
+  );
+  const [showGroupDropdown, setShowGroupDropdown] = useState(false);
+  const groupDropdownRef = useRef<HTMLDivElement>(null);
+
   const [minAttackers, setMinAttackers] = useState(
     initialMinAttackers ? String(initialMinAttackers) : "",
   );
@@ -88,6 +104,7 @@ export default function KillmailFilters({
   // Debounce the search query
   const debouncedSearch = useDebounce(typeSearch, 500);
   const debouncedPilotSearch = useDebounce(pilotSearch, 500);
+  const debouncedGroupSearch = useDebounce(groupSearch, 500);
 
   // GraphQL query for ship type search
   const { data: typeData, loading: typeLoading } = useSearchTypesQuery({
@@ -96,6 +113,15 @@ export default function KillmailFilters({
       limit: 20,
     },
     skip: debouncedSearch.length < 3,
+  });
+
+  // GraphQL query for ship group search
+  const { data: groupData, loading: groupLoading } = useSearchItemGroupsQuery({
+    variables: {
+      search: debouncedGroupSearch,
+      limit: 20,
+    },
+    skip: debouncedGroupSearch.length < 2,
   });
 
   // Fetch initial character name from URL param
@@ -135,6 +161,7 @@ export default function KillmailFilters({
 
   const hasActiveFilters =
     shipTypeId ||
+    shipGroupIds.length > 0 ||
     characterId ||
     minAttackers ||
     maxAttackers ||
@@ -153,6 +180,12 @@ export default function KillmailFilters({
         setShowDropdown(false);
       }
       if (
+        groupDropdownRef.current &&
+        !groupDropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowGroupDropdown(false);
+      }
+      if (
         pilotDropdownRef.current &&
         !pilotDropdownRef.current.contains(event.target as Node)
       ) {
@@ -168,6 +201,10 @@ export default function KillmailFilters({
   useEffect(() => {
     if (initialShipTypeId !== undefined) setShipTypeId(initialShipTypeId);
   }, [initialShipTypeId]);
+
+  useEffect(() => {
+    if (initialShipGroupIds !== undefined) setShipGroupIds(initialShipGroupIds);
+  }, [initialShipGroupIds]);
 
   useEffect(() => {
     if (initialCharacterId !== undefined) setCharacterId(initialCharacterId);
@@ -210,6 +247,16 @@ export default function KillmailFilters({
 
   useEffect(() => {
     if (
+      debouncedGroupSearch.length >= 2 &&
+      groupData?.itemGroups?.items &&
+      groupData.itemGroups.items.length > 0
+    ) {
+      setShowGroupDropdown(true);
+    }
+  }, [debouncedGroupSearch, groupData]);
+
+  useEffect(() => {
+    if (
       debouncedPilotSearch.length >= 3 &&
       pilotData?.characters?.items &&
       pilotData.characters.items.length > 0
@@ -227,6 +274,23 @@ export default function KillmailFilters({
     // Filter will be applied when user clicks "Apply Filters" button
   };
 
+  const handleGroupSelect = (groupId: number, groupName: string) => {
+    // Add to selected groups if not already selected
+    if (!shipGroupIds.includes(groupId)) {
+      setShipGroupIds([...shipGroupIds, groupId]);
+      setShipGroupNames(new Map(shipGroupNames).set(groupId, groupName));
+    }
+    setGroupSearch("");
+    setShowGroupDropdown(false);
+  };
+
+  const handleGroupRemove = (groupId: number) => {
+    setShipGroupIds(shipGroupIds.filter((id) => id !== groupId));
+    const newMap = new Map(shipGroupNames);
+    newMap.delete(groupId);
+    setShipGroupNames(newMap);
+  };
+
   const handlePilotSelect = (id: number, name: string) => {
     setCharacterId(id);
     setCharacterName(name);
@@ -236,23 +300,27 @@ export default function KillmailFilters({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onFilterChange({
+
+    const filterData = {
       shipTypeId,
+      shipGroupIds: shipGroupIds.length > 0 ? shipGroupIds : undefined,
       characterId,
-      victim: shipTypeId
-        ? shipRole === "victim"
-          ? true
-          : shipRole === "attacker"
-            ? false
-            : undefined
-        : undefined,
-      attacker: shipTypeId
-        ? shipRole === "attacker"
-          ? true
-          : shipRole === "victim"
-            ? false
-            : undefined
-        : undefined,
+      victim:
+        shipTypeId || shipGroupIds.length > 0
+          ? shipRole === "victim"
+            ? true
+            : shipRole === "attacker"
+              ? false
+              : undefined
+          : undefined,
+      attacker:
+        shipTypeId || shipGroupIds.length > 0
+          ? shipRole === "attacker"
+            ? true
+            : shipRole === "victim"
+              ? false
+              : undefined
+          : undefined,
       characterVictim: characterId
         ? characterRole === "victim"
           ? true
@@ -271,13 +339,19 @@ export default function KillmailFilters({
       maxAttackers: maxAttackers ? Number(maxAttackers) : undefined,
       minValue: minValue ? Number(minValue) : undefined,
       maxValue: maxValue ? Number(maxValue) : undefined,
-    });
+    };
+
+    console.log("🔍 Frontend filter data:", filterData);
+    onFilterChange(filterData);
   };
 
   const handleClearAll = () => {
     setTypeSearch("");
     setShipTypeId(undefined);
     setShipTypeName("");
+    setGroupSearch("");
+    setShipGroupIds([]);
+    setShipGroupNames(new Map());
     setPilotSearch("");
     setCharacterId(undefined);
     setCharacterName("");
@@ -289,6 +363,10 @@ export default function KillmailFilters({
     setCharacterRole("all");
     onClearFilters();
   };
+
+  function pluralizeGroupName(name: string): import("react").ReactNode {
+    throw new Error("Function not implemented.");
+  }
 
   return (
     <form onSubmit={handleSubmit} className="mb-8">
@@ -307,6 +385,7 @@ export default function KillmailFilters({
               {
                 [
                   shipTypeId,
+                  shipGroupIds.length > 0,
                   characterId,
                   minAttackers,
                   maxAttackers,
@@ -544,6 +623,96 @@ export default function KillmailFilters({
               </div>
             </div>
 
+            {/* Ship Group Search */}
+            <div>
+              <label
+                htmlFor="filter-ship-group"
+                className="block mb-2 text-xs font-medium text-gray-400"
+              >
+                Ship Group (e.g., Assault Frigate)
+              </label>
+              <div ref={groupDropdownRef}>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    id="filter-ship-group"
+                    placeholder="Search ship group (min 2 letters)..."
+                    value={groupSearch}
+                    onChange={(e) => {
+                      setGroupSearch(e.target.value);
+                      if (e.target.value.length >= 2)
+                        setShowGroupDropdown(true);
+                      else setShowGroupDropdown(false);
+                    }}
+                    onFocus={() => {
+                      if (
+                        groupSearch.length >= 2 &&
+                        groupData?.itemGroups?.items &&
+                        groupData.itemGroups.items.length > 0
+                      )
+                        setShowGroupDropdown(true);
+                    }}
+                    className="search-input"
+                  />
+                  {groupLoading && groupSearch.length >= 2 && (
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <div className="w-5 h-5 border-2 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
+                    </div>
+                  )}
+
+                  {/* Ship Group Dropdown */}
+                  {showGroupDropdown &&
+                    groupData?.itemGroups?.items &&
+                    groupData.itemGroups.items.length > 0 && (
+                      <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                        <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto character-dropdown-scroll max-h-96">
+                          {groupData.itemGroups.items.map((group) => (
+                            <button
+                              key={group.id}
+                              type="button"
+                              onClick={() =>
+                                handleGroupSelect(group.id, group.name)
+                              }
+                              disabled={shipGroupIds.includes(group.id)}
+                              className={`relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5 ${shipGroupIds.includes(group.id) ? "opacity-50 cursor-not-allowed" : ""}`}
+                            >
+                              <div className="flex-auto min-w-0 text-left">
+                                <div className="font-semibold text-white truncate">
+                                  {group.name}
+                                </div>
+                                <div className="text-sm text-gray-400 truncate">
+                                  {group.category?.name || "Unknown Category"}
+                                </div>
+                              </div>
+                              {shipGroupIds.includes(group.id) && (
+                                <div className="text-xs text-green-500">
+                                  ✓ Selected
+                                </div>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                  {/* No Results */}
+                  {showGroupDropdown &&
+                    debouncedGroupSearch.length >= 2 &&
+                    !groupLoading &&
+                    groupData?.itemGroups?.items?.length === 0 && (
+                      <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                        <div className="p-4 text-sm text-gray-400">
+                          No ship groups found for "{debouncedGroupSearch}"
+                        </div>
+                      </div>
+                    )}
+                </div>
+              </div>
+            </div>
+
             {/* Min Attackers */}
             <div>
               <label
@@ -624,7 +793,7 @@ export default function KillmailFilters({
           </div>
 
           {/* RIGHT: Chips + Role */}
-          {(characterId || shipTypeId) && (
+          {(characterId || shipTypeId || shipGroupIds.length > 0) && (
             <div className="flex flex-col gap-4 min-w-48">
               <p className="text-xs font-medium text-gray-400">Selected</p>
 
@@ -711,6 +880,43 @@ export default function KillmailFilters({
                       { value: "attacker", label: "Attacker" },
                     ]}
                   />
+                </div>
+              )}
+
+              {/* Ship Groups chips */}
+              {shipGroupIds.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  <div className="text-xs font-medium text-gray-400">
+                    Ship Groups
+                  </div>
+                  {shipGroupIds.map((groupId) => (
+                    <div key={groupId} className="flex items-center gap-2">
+                      <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-blue-900/30">
+                        <span className="font-semibold truncate">
+                          {shipGroupNames.get(groupId) || `Group ${groupId}`}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleGroupRemove(groupId)}
+                        className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                      >
+                        <XMarkIcon className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  {!shipTypeId && (
+                    <RadioGroup
+                      name="ship-group-role"
+                      value={shipRole}
+                      onChange={setShipRole}
+                      options={[
+                        { value: "all", label: "All" },
+                        { value: "victim", label: "Victim" },
+                        { value: "attacker", label: "Attacker" },
+                      ]}
+                    />
+                  )}
                 </div>
               )}
             </div>
