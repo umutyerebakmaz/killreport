@@ -1,3 +1,4 @@
+import { getItemImageUrl } from "@/utils/itemImageUrl";
 import Tooltip from "../Tooltip/Tooltip";
 
 interface SlotProps {
@@ -57,7 +58,15 @@ export default function Slot({
                     <Tooltip content={name}>
                       <div className="border shrink-0 border-white/10 bg-white/5">
                         <img
-                          src={`https://images.evetech.net/types/${id}/icon?size=64`}
+                          src={getItemImageUrl(
+                            module?.charge
+                              ? module.charge.itemType
+                              : module.itemType,
+                            module?.charge
+                              ? module.charge.singleton
+                              : module.singleton,
+                            64,
+                          )}
                           alt={name}
                           className="z-10 size-12"
                           style={{ transform: `rotate(${-rotation}deg)` }}
@@ -70,7 +79,11 @@ export default function Slot({
                       <Tooltip content={module.itemType.name}>
                         <div className="border border-white/10 bg-white/5">
                           <img
-                            src={`https://images.evetech.net/types/${module.itemType.id}/icon?size=64`}
+                            src={getItemImageUrl(
+                              module.itemType,
+                              module.singleton,
+                              64,
+                            )}
                             alt={module.itemType.name}
                             className="size-12"
                             style={{ transform: `rotate(${-rotation}deg)` }}

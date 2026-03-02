@@ -1,4 +1,5 @@
 import { formatISK } from "@/utils/formatISK";
+import { getItemImageUrl, getItemName } from "@/utils/itemImageUrl";
 
 const getItemPrice = (jitaPrice: any) => {
   return jitaPrice?.sell || jitaPrice?.average || 0;
@@ -11,38 +12,6 @@ const getShipPrice = (shipType: any) => {
     return 10;
   }
   return getItemPrice(shipType?.jitaPrice);
-};
-
-// Check if item is a blueprint
-const isBlueprint = (itemType: any) => {
-  return itemType?.group?.category?.name === "Blueprint";
-};
-
-// Get item name with "Copy" suffix for BPCs
-const getItemName = (itemType: any, singleton: number) => {
-  const name = itemType?.name || "";
-  const blueprint = isBlueprint(itemType);
-  const isCopy = blueprint && singleton === 2;
-  return isCopy ? `${name} Copy` : name;
-};
-
-// Get item image URL with blueprint support (BPO vs BPC)
-const getItemImageUrl = (
-  itemType: any,
-  singleton: number = 1,
-  size: number = 64,
-) => {
-  const typeId = itemType?.id;
-  if (!typeId) return "";
-
-  const blueprint = isBlueprint(itemType);
-  if (!blueprint) {
-    return `https://images.evetech.net/types/${typeId}/icon?size=${size}`;
-  }
-
-  // Blueprint: singleton=1 is BPO (Original), singleton=2 is BPC (Copy)
-  const isCopy = singleton === 2;
-  return `https://images.evetech.net/types/${typeId}/${isCopy ? "bpc" : "bp"}?size=${size}`;
 };
 
 // Render quantity with separate destroyed/dropped display
