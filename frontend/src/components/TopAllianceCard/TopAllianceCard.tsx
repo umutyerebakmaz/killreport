@@ -18,6 +18,7 @@ export interface TopAllianceCardProps {
   alliances: TopAlliance[];
   loading?: boolean;
   emptyText?: string;
+  variant?: "detail" | "list";
 }
 
 export default function TopAllianceCard({
@@ -26,6 +27,7 @@ export default function TopAllianceCard({
   alliances,
   loading = false,
   emptyText = "No alliances",
+  variant = "detail",
 }: TopAllianceCardProps) {
   if (loading) {
     return (
@@ -66,7 +68,11 @@ export default function TopAllianceCard({
             return (
               <div
                 key={alliance.id}
-                className="p-3 transition-colors duration-100 bg-neutral-900 hover:bg-neutral-800"
+                className={`p-3 transition-colors duration-100 ${
+                  variant === "list"
+                    ? "bg-neutral-900 hover:bg-neutral-800"
+                    : "bg-neutral-800 hover:bg-neutral-700"
+                }`}
               >
                 <div className="flex items-center gap-3">
                   {/* Rank */}

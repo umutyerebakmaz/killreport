@@ -44,4 +44,12 @@ export const allianceStatsQueries: QueryResolvers = {
     allianceTopShips: async (_, { allianceId, filter }) => {
         return AllianceStatsService.getTopShips(allianceId, filter);
     },
+
+    /**
+     * Get top 10 characters (pilots) with most kills in an alliance
+     * Cached in Redis with smart TTL based on time filter
+     */
+    allianceTopCharacters: async (_, { allianceId, filter }) => {
+        return AllianceStatsService.getTopCharacters(allianceId, filter);
+    },
 };
