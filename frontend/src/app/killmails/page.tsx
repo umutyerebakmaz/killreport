@@ -40,6 +40,7 @@ function KillmailsContent() {
   const [pageSize, setPageSize] = useState(25);
   const [filters, setFilters] = useState<{
     shipTypeId?: number;
+    shipGroupIds?: number[];
     characterId?: number;
     victim?: boolean;
     attacker?: boolean;
@@ -54,6 +55,7 @@ function KillmailsContent() {
   }>({
     characterId: urlFilters.characterId,
     shipTypeId: urlFilters.shipTypeId,
+    shipGroupIds: urlFilters.shipGroupIds,
     minAttackers: urlFilters.minAttackers,
     maxAttackers: urlFilters.maxAttackers,
     minValue: urlFilters.minValue,
@@ -212,6 +214,7 @@ function KillmailsContent() {
         limit: pageSize,
         orderBy: "timeDesc" as any,
         shipTypeId: filters.shipTypeId,
+        shipGroupIds: filters.shipGroupIds,
         characterId: filters.characterId,
         victim: filters.victim,
         attacker: filters.attacker,
@@ -225,6 +228,18 @@ function KillmailsContent() {
         maxValue: filters.maxValue,
       },
     },
+    onCompleted: (data) => {
+      console.log("🔍 GraphQL Query Variables:", {
+        shipTypeId: filters.shipTypeId,
+        shipGroupIds: filters.shipGroupIds,
+        victim: filters.victim,
+        attacker: filters.attacker,
+      });
+      console.log("🔍 GraphQL Response:", {
+        itemsCount: data?.killmails?.items?.length,
+        totalCount: data?.killmails?.pageInfo?.totalCount,
+      });
+    },
   });
 
   // Fetch date counts for correct totals per date
@@ -232,6 +247,7 @@ function KillmailsContent() {
     variables: {
       filter: {
         shipTypeId: filters.shipTypeId,
+        shipGroupIds: filters.shipGroupIds,
         characterId: filters.characterId,
         victim: filters.victim,
         attacker: filters.attacker,
@@ -255,6 +271,7 @@ function KillmailsContent() {
     currentPage,
     filters.characterId,
     filters.shipTypeId,
+    filters.shipGroupIds,
     filters.victim,
     filters.attacker,
     filters.characterVictim,
@@ -359,6 +376,7 @@ function KillmailsContent() {
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}
           initialShipTypeId={urlFilters.shipTypeId}
+          initialShipGroupIds={urlFilters.shipGroupIds}
           initialCharacterId={urlFilters.characterId}
           initialMinAttackers={urlFilters.minAttackers}
           initialMaxAttackers={urlFilters.maxAttackers}
