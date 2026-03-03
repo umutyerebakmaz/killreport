@@ -317,11 +317,11 @@ ORDER BY killmail_count DESC;
 
 ## Related Files
 
-- Queue Script: [`backend/src/queues/queue-user-esi-killmails.ts`](../src/queues/queue-user-esi-killmails.ts)
-- Worker: [`backend/src/workers/worker-esi-user-killmails.ts`](../src/workers/worker-esi-user-killmails.ts)
-- Character Service: [`backend/src/services/character/character.service.ts`](../src/services/character/character.service.ts)
-- Killmail Service: [`backend/src/services/killmail/killmail.service.ts`](../src/services/killmail/killmail.service.ts)
-- PM2 Config: [`ecosystem.config.js`](../../ecosystem.config.js)
+- Queue Script: [`backend/src/queues/queue-user-esi-killmails.ts`](/backend/src/queues/queue-user-esi-killmails.ts)
+- Worker: [`backend/src/workers/worker-esi-user-killmails.ts`](/backend/src/workers/worker-esi-user-killmails.ts)
+- Character Service: [`backend/src/services/character/character.service.ts`](/backend/src/services/character/character.service.ts)
+- Killmail Service: [`backend/src/services/killmail/killmail.service.ts`](/backend/src/services/killmail/killmail.service.ts)
+- PM2 Config: [`ecosystem.config.js`](/ecosystem.config.js)
 
 ## License
 

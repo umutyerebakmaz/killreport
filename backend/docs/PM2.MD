@@ -22,13 +22,13 @@ pm2 logs killreport-backend
 pm2 restart killreport-backend
 ```
 
-| Property               | Value                                          |
-| ---------------------- | ---------------------------------------------- |
-| **Command**            | `yarn start`                                   |
-| **Port**               | 4000                                           |
-| **Description**        | GraphQL Yoga API server                        |
-| **Memory Limit**       | 1 GB                                           |
-| **Log**                | `/var/www/killreport/logs/backend-*.log`       |
+| Property                  | Value                                          |
+| ------------------------- | ---------------------------------------------- |
+| **Command**               | `yarn start`                                   |
+| **Port**                  | 4000                                           |
+| **Description**           | GraphQL Yoga API server                        |
+| **Memory Limit**          | 1 GB                                           |
+| **Log**                   | `/var/www/killreport/logs/backend-*.log`       |
 | **Environment Variables** | `NODE_ENV=production`, `USE_REDIS_PUBSUB=true` |
 
 **What it does:**
@@ -48,13 +48,13 @@ pm2 logs killreport-frontend
 pm2 restart killreport-frontend
 ```
 
-| Property          | Value                                     |
-| ----------------- | ----------------------------------------- |
-| **Command**       | `yarn start`                              |
-| **Port**          | 3000                                      |
-| **Description**   | Next.js 15 App Router frontend            |
-| **Memory Limit**  | 1 GB                                      |
-| **Log**           | `/var/www/killreport/logs/frontend-*.log` |
+| Property         | Value                                     |
+| ---------------- | ----------------------------------------- |
+| **Command**      | `yarn start`                              |
+| **Port**         | 3000                                      |
+| **Description**  | Next.js 15 App Router frontend            |
+| **Memory Limit** | 1 GB                                      |
+| **Log**          | `/var/www/killreport/logs/frontend-*.log` |
 
 **What it does:**
 
@@ -76,14 +76,14 @@ pm2 start ecosystem.config.js --only worker-redisq
 pm2 logs worker-redisq
 ```
 
-| Property           | Value                                          |
-| ------------------ | ---------------------------------------------- |
-| **Command**        | `yarn worker:redisq`                           |
-| **Description**    | RedisQ stream - Real-time killmail ingestion   |
-| **Memory Limit**   | 512 MB                                         |
-| **Autorestart**    | ✅ Yes                                         |
-| **Restart Delay**  | 5 seconds                                      |
-| **Log**            | `/var/www/killreport/logs/worker-redisq-*.log` |
+| Property          | Value                                          |
+| ----------------- | ---------------------------------------------- |
+| **Command**       | `yarn worker:redisq`                           |
+| **Description**   | RedisQ stream - Real-time killmail ingestion   |
+| **Memory Limit**  | 512 MB                                         |
+| **Autorestart**   | ✅ Yes                                         |
+| **Restart Delay** | 5 seconds                                      |
+| **Log**           | `/var/www/killreport/logs/worker-redisq-*.log` |
 
 **What it does:**
 
@@ -295,14 +295,14 @@ pm2 trigger queue-characters  # Manual trigger
 pm2 logs queue-characters
 ```
 
-| Property          | Value                                             |
-| ----------------- | ------------------------------------------------- |
-| **Command**       | `yarn queue:characters`                           |
-| **Run Time**      | 1st of every month 00:00 UTC                      |
-| **Cron**          | `0 0 1 * *`                                       |
-| **Description**   | Adds all characters to queue (monthly)            |
-| **Autorestart**   | ❌ No (one-time)                                  |
-| **Log**           | `/var/www/killreport/logs/queue-characters-*.log` |
+| Property        | Value                                             |
+| --------------- | ------------------------------------------------- |
+| **Command**     | `yarn queue:characters`                           |
+| **Run Time**    | 1st of every month 00:00 UTC                      |
+| **Cron**        | `0 0 1 * *`                                       |
+| **Description** | Adds all characters to queue (monthly)            |
+| **Autorestart** | ❌ No (one-time)                                  |
+| **Log**         | `/var/www/killreport/logs/queue-characters-*.log` |
 
 **What it does:**
 
@@ -327,14 +327,14 @@ pm2 trigger queue-alliances
 pm2 logs queue-alliances
 ```
 
-| Property          | Value                                            |
-| ----------------- | ------------------------------------------------ |
-| **Command**       | `yarn queue:alliances`                           |
-| **Run Time**      | Every Sunday 00:00 UTC (weekly)                  |
-| **Cron**          | `0 0 * * 0`                                      |
-| **Description**   | Fetches all alliances from ESI and adds to queue |
-| **Autorestart**   | ❌ No (one-time)                                 |
-| **Log**           | `/var/www/killreport/logs/queue-alliances-*.log` |
+| Property        | Value                                            |
+| --------------- | ------------------------------------------------ |
+| **Command**     | `yarn queue:alliances`                           |
+| **Run Time**    | Every Sunday 00:00 UTC (weekly)                  |
+| **Cron**        | `0 0 * * 0`                                      |
+| **Description** | Fetches all alliances from ESI and adds to queue |
+| **Autorestart** | ❌ No (one-time)                                 |
+| **Log**         | `/var/www/killreport/logs/queue-alliances-*.log` |
 
 **What it does:**
 
@@ -359,14 +359,14 @@ pm2 trigger queue-alliance-corporations
 pm2 logs queue-alliance-corporations
 ```
 
-| Property          | Value                                                           |
-| ----------------- | --------------------------------------------------------------- |
-| **Command**       | `yarn queue:alliance-corporations`                              |
-| **Run Time**      | Every Sunday 00:10 UTC (weekly)                                 |
-| **Cron**          | `10 0 * * 0`                                                    |
-| **Description**   | Adds to queue to discover corporations of alliances             |
-| **Autorestart**   | ❌ No (one-time)                                                |
-| **Log**           | `/var/www/killreport/logs/queue-alliance-corporations-*.log`    |
+| Property        | Value                                                        |
+| --------------- | ------------------------------------------------------------ |
+| **Command**     | `yarn queue:alliance-corporations`                           |
+| **Run Time**    | Every Sunday 00:10 UTC (weekly)                              |
+| **Cron**        | `10 0 * * 0`                                                 |
+| **Description** | Adds to queue to discover corporations of alliances          |
+| **Autorestart** | ❌ No (one-time)                                             |
+| **Log**         | `/var/www/killreport/logs/queue-alliance-corporations-*.log` |
 
 **What it does:**
 
@@ -391,14 +391,14 @@ pm2 trigger queue-character-corporations
 pm2 logs queue-character-corporations
 ```
 
-| Property          | Value                                                         |
-| ----------------- | ------------------------------------------------------------- |
-| **Command**       | `yarn queue:character-corporations`                           |
-| **Run Time**      | Every day 04:00 UTC                                           |
-| **Cron**          | `0 4 * * *`                                                   |
-| **Description**   | Detects missing corporations and adds to queue                |
-| **Autorestart**   | ❌ No                                                         |
-| **Log**           | `/var/www/killreport/logs/queue-character-corporations-*.log` |
+| Property        | Value                                                         |
+| --------------- | ------------------------------------------------------------- |
+| **Command**     | `yarn queue:character-corporations`                           |
+| **Run Time**    | Every day 04:00 UTC                                           |
+| **Cron**        | `0 4 * * *`                                                   |
+| **Description** | Detects missing corporations and adds to queue                |
+| **Autorestart** | ❌ No                                                         |
+| **Log**         | `/var/www/killreport/logs/queue-character-corporations-*.log` |
 
 **What it does:**
 
@@ -419,14 +419,14 @@ pm2 trigger snapshot-alliances
 pm2 logs snapshot-alliances
 ```
 
-| Property          | Value                                               |
-| ----------------- | --------------------------------------------------- |
-| **Command**       | `yarn snapshot:alliances`                           |
-| **Run Time**      | Every day 01:00 UTC                                 |
-| **Cron**          | `0 1 * * *`                                         |
-| **Description**   | Takes daily snapshot of alliance information        |
-| **Autorestart**   | ❌ No                                               |
-| **Log**           | `/var/www/killreport/logs/snapshot-alliances-*.log` |
+| Property        | Value                                               |
+| --------------- | --------------------------------------------------- |
+| **Command**     | `yarn snapshot:alliances`                           |
+| **Run Time**    | Every day 01:00 UTC                                 |
+| **Cron**        | `0 1 * * *`                                         |
+| **Description** | Takes daily snapshot of alliance information        |
+| **Autorestart** | ❌ No                                               |
+| **Log**         | `/var/www/killreport/logs/snapshot-alliances-*.log` |
 
 **What it does:**
 
@@ -446,14 +446,14 @@ pm2 trigger snapshot-corporations
 pm2 logs snapshot-corporations
 ```
 
-| Property          | Value                                                  |
-| ----------------- | ------------------------------------------------------ |
-| **Command**       | `yarn snapshot:corporations`                           |
-| **Run Time**      | Every day 01:00 UTC                                    |
-| **Cron**          | `0 1 * * *`                                            |
-| **Description**   | Takes daily snapshot of corporation information        |
-| **Autorestart**   | ❌ No                                                  |
-| **Log**           | `/var/www/killreport/logs/snapshot-corporations-*.log` |
+| Property        | Value                                                  |
+| --------------- | ------------------------------------------------------ |
+| **Command**     | `yarn snapshot:corporations`                           |
+| **Run Time**    | Every day 01:00 UTC                                    |
+| **Cron**        | `0 1 * * *`                                            |
+| **Description** | Takes daily snapshot of corporation information        |
+| **Autorestart** | ❌ No                                                  |
+| **Log**         | `/var/www/killreport/logs/snapshot-corporations-*.log` |
 
 **What it does:**
 
@@ -472,14 +472,14 @@ pm2 trigger update-alliance-counts
 pm2 logs update-alliance-counts
 ```
 
-| Property          | Value                                                   |
-| ----------------- | ------------------------------------------------------- |
-| **Command**       | `yarn update:alliance-counts`                           |
-| **Run Time**      | Every day 01:00 UTC                                     |
-| **Cron**          | `0 1 * * *`                                             |
-| **Description**   | Updates alliance statistics                             |
-| **Autorestart**   | ❌ No                                                   |
-| **Log**           | `/var/www/killreport/logs/update-alliance-counts-*.log` |
+| Property        | Value                                                   |
+| --------------- | ------------------------------------------------------- |
+| **Command**     | `yarn update:alliance-counts`                           |
+| **Run Time**    | Every day 01:00 UTC                                     |
+| **Cron**        | `0 1 * * *`                                             |
+| **Description** | Updates alliance statistics                             |
+| **Autorestart** | ❌ No                                                   |
+| **Log**         | `/var/www/killreport/logs/update-alliance-counts-*.log` |
 
 **What it does:**
 
@@ -602,15 +602,15 @@ pm2 plus
 
 ### Scheduled Tasks (5)
 
-| PM2 Name                       | Command                             | Run Time           | Description                           |
-| ------------------------------ | ----------------------------------- | ------------------ | ------------------------------------- |
-| `queue-characters`             | `yarn queue:characters`             | 1st of month 00:00 UTC | Add characters to queue (monthly)     |
-| `queue-alliances`              | `yarn queue:alliances`              | Sunday 00:00 UTC   | Add alliances to queue (weekly)       |
-| `queue-alliance-corporations`  | `yarn queue:alliance-corporations`  | Sunday 00:10 UTC   | Discover alliance corps (weekly)      |
-| `queue-character-corporations` | `yarn queue:character-corporations` | Daily 04:00 UTC    | Add missing corps to queue            |
-| `snapshot-alliances`           | `yarn snapshot:alliances`           | Daily 01:00 UTC    | Alliance snapshot                     |
-| `snapshot-corporations`        | `yarn snapshot:corporations`        | Daily 01:00 UTC    | Corporation snapshot                  |
-| `update-alliance-counts`       | `yarn update:alliance-counts`       | Daily 01:00 UTC    | Alliance statistics                   |
+| PM2 Name                       | Command                             | Run Time               | Description                       |
+| ------------------------------ | ----------------------------------- | ---------------------- | --------------------------------- |
+| `queue-characters`             | `yarn queue:characters`             | 1st of month 00:00 UTC | Add characters to queue (monthly) |
+| `queue-alliances`              | `yarn queue:alliances`              | Sunday 00:00 UTC       | Add alliances to queue (weekly)   |
+| `queue-alliance-corporations`  | `yarn queue:alliance-corporations`  | Sunday 00:10 UTC       | Discover alliance corps (weekly)  |
+| `queue-character-corporations` | `yarn queue:character-corporations` | Daily 04:00 UTC        | Add missing corps to queue        |
+| `snapshot-alliances`           | `yarn snapshot:alliances`           | Daily 01:00 UTC        | Alliance snapshot                 |
+| `snapshot-corporations`        | `yarn snapshot:corporations`        | Daily 01:00 UTC        | Corporation snapshot              |
+| `update-alliance-counts`       | `yarn update:alliance-counts`       | Daily 01:00 UTC        | Alliance statistics               |
 
 ---
 
@@ -680,15 +680,15 @@ Continuous ──────▶ worker-redisq (real-time killmail stream)
 
 ## 📅 Scheduled Tasks - Weekly Calendar
 
-| Day          | Time (UTC) | Job                          | Description                               |
-| ------------ | ---------- | ---------------------------- | ----------------------------------------- |
-| **Sunday**   | 00:00      | queue-alliances              | Fetches all alliances from ESI, adds to queue |
-| **Sunday**   | 00:10      | queue-alliance-corporations  | Discovers alliance corporations           |
-| **Every day** | 01:00     | snapshot-alliances           | Takes alliance snapshot (parallel)        |
-| **Every day** | 01:00     | update-alliance-counts       | Updates alliance killmail counts (parallel) |
-| **Every day** | 01:00     | snapshot-corporations        | Takes corporation snapshot (parallel)     |
-| **Every day** | 04:00     | queue-character-corporations | Detects missing corporations              |
-| **Monthly**  | 00:00      | queue-characters (1st day)   | Adds all characters to queue              |
+| Day           | Time (UTC) | Job                          | Description                                   |
+| ------------- | ---------- | ---------------------------- | --------------------------------------------- |
+| **Sunday**    | 00:00      | queue-alliances              | Fetches all alliances from ESI, adds to queue |
+| **Sunday**    | 00:10      | queue-alliance-corporations  | Discovers alliance corporations               |
+| **Every day** | 01:00      | snapshot-alliances           | Takes alliance snapshot (parallel)            |
+| **Every day** | 01:00      | update-alliance-counts       | Updates alliance killmail counts (parallel)   |
+| **Every day** | 01:00      | snapshot-corporations        | Takes corporation snapshot (parallel)         |
+| **Every day** | 04:00      | queue-character-corporations | Detects missing corporations                  |
+| **Monthly**   | 00:00      | queue-characters (1st day)   | Adds all characters to queue                  |
 
 ---
 
@@ -887,7 +887,7 @@ pm2 start ecosystem.config.js --only worker-redisq
 - [Worker Documentation](./WORKERS_DOCUMENTATION.MD) - Worker details
 - [Enrichment System](./ENRICHMENT_README.MD) - Entity enrichment
 - [Production Deployment](./PRODUCTION_DEPLOYMENT.MD) - Deployment guide
-- [CRON Schedule](../../deployment/CRON_SCHEDULE.MD) - Scheduled tasks
+- [CRON Schedule](/deployment/CRON_SCHEDULE.MD) - Scheduled tasks
 
 ---
 

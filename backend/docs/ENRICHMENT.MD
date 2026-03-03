@@ -263,7 +263,7 @@ This is normal! Characters, corporations, or alliances may have been deleted fro
 
 For detailed information about killmail value calculations, including the special 10 ISK fixed value for Capsules, see:
 
-**[Capsule Value Calculation](../../../docs/CAPSULE_VALUE_CALCULATION.MD)**
+**[Capsule Value Calculation](/backend/docs/CAPSULE_VALUE_CALCULATION.MD)**
 
 Key points:
 
