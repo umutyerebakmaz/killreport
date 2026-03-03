@@ -253,17 +253,21 @@ bash test-killmails.sh        # Test killmail fetching
 
 ## Leaderboard System Architecture
 
-**Pre-aggregated Tables**: O(1) lookup for maximum performance
+**Real-Time Aggregation Tables**: O(1) lookup with zero latency updates
 
 - `character_kill_stats` - Daily aggregated: (kill_date, character_id, kill_count)
 - `corporation_kill_stats` - Daily aggregated per corporation
 - `alliance_kill_stats` - Daily aggregated per alliance
 
-**Materialized View Pattern**:
+**Real-Time Update Strategy**:
 
-- Views refresh every 5 minutes via cron job
+- ✅ **Transaction-based**: Updates happen IN TRANSACTION when saving killmails
+- ✅ **Atomic UPSERT**: Uses `ON CONFLICT DO UPDATE` for concurrency safety
+- ✅ **Zero latency**: Leaderboards reflect new kills within seconds
+- ✅ **No scheduled jobs**: No cron, no refresh delays, no materialized views
 - Composite indexes: `(kill_date, kill_count DESC)` for fast sorted queries
 - All resolvers located in: `backend/src/resolvers/leaderboard/queries.ts`
+- Update logic in: `backend/src/services/kill-stats-realtime.ts`
 
 **Query Pattern Example**:
 
@@ -286,9 +290,10 @@ const rows = await prisma.$queryRaw`
 
 **Cache Strategy**:
 
-- **Current day/week/month**: 300 seconds (5 min) - aligns with MV refresh rate
+- **Current day/week/month**: 300 seconds (5 min) - balances freshness vs performance
 - **Past dates**: 3600 seconds (1 hour) - historical data never changes
 - **Cache key pattern**: `leaderboard:{queryName}:{dateParam}:{limitParam}`
+- Cache provides fast reads while real-time updates ensure data accuracy
 
 **Available Queries**:
 
