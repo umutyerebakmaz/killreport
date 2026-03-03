@@ -13,7 +13,7 @@ Previously, leaderboard queries (Top Pilots, Top Corporations, Top Alliances) we
 
 ### ✅ Solution: Real-time Updates
 
-**File**: [`kill-stats-realtime.ts`](../../services/kill-stats-realtime.ts)
+**File**: [`kill-stats-realtime.ts`](../../src/services/kill-stats-realtime.ts)
 
 Every killmail save triggers immediate updates to daily aggregation tables:
 
@@ -37,10 +37,10 @@ await updateDailyAggregatesRealtime(tx, {
 
 **Integrated in**:
 
-- [`worker-redisq-stream.ts`](../../workers/worker-redisq-stream.ts) - Real-time zKillboard stream
-- [`worker-killmails.ts`](../../workers/worker-killmails.ts) - Character killmail sync
-- [`worker-zkillboard-sync.ts`](../../workers/worker-zkillboard-sync.ts) - Bulk zKillboard sync
-- [`worker-esi-corporation-killmails.ts`](../../workers/worker-esi-corporation-killmails.ts) - Corp killmail sync
+- [`worker-redisq-stream.ts`](../../src/workers/worker-redisq-stream.ts) - Real-time zKillboard stream
+- [`worker-killmails.ts`](../../src/workers/worker-killmails.ts) - Character killmail sync
+- [`worker-zkillboard-sync.ts`](../../src/workers/worker-zkillboard-sync.ts) - Bulk zKillboard sync
+- [`worker-esi-corporation-killmails.ts`](../../src/workers/worker-esi-corporation-killmails.ts) - Corp killmail sync
 
 ## Database Tables
 
