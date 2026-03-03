@@ -142,35 +142,17 @@ export async function filtersMaterialized(filter: KillmailFilter): Promise<numbe
     WHERE ${whereClause}
   `;
 
-  console.log(`🔍 Materialized View Query:`, { query, params });
+  console.log(`🔍 killmail_filters Query:`, { query, params });
 
   try {
     const result = await prisma.$queryRawUnsafe<Array<{ killmail_id: number }>>(query, ...params);
     const killmailIds = result.map(r => r.killmail_id);
 
-    console.log(`✅ Materialized View returned ${killmailIds.length} killmail IDs`);
+    console.log(`✅ killmail_filters returned ${killmailIds.length} killmail IDs`);
 
     return killmailIds;
   } catch (error) {
-    console.error('❌ Materialized View query error:', error);
+    console.error('❌ killmail_filters query error:', error);
     throw error;
-  }
-}
-
-/**
- * Check if materialized view exists and is ready
- */
-export async function isMaterializedViewReady(): Promise<boolean> {
-  try {
-    const result = await prisma.$queryRaw<Array<{ exists: boolean }>>`
-      SELECT EXISTS (
-        SELECT FROM pg_matviews
-        WHERE tablename = 'killmail_filters'
-      ) as exists
-    `;
-    return result[0]?.exists || false;
-  } catch (error) {
-    console.error('❌ Error checking materialized view:', error);
-    return false;
   }
 }

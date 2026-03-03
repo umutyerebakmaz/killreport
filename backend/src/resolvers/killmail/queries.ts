@@ -78,7 +78,7 @@ export const killmailQueries: QueryResolvers = {
             return JSON.parse(cached);
         }
 
-        // Determine filter strategy: Use Materialized View for entity filters
+        // Determine filter strategy: Use killmail_filters pre-computed table for entity filters
         const hasEntityFilter =
             args.filter?.shipTypeId ||
             args.filter?.shipGroupIds?.length ||
@@ -87,9 +87,9 @@ export const killmailQueries: QueryResolvers = {
             args.filter?.allianceId;
 
         if (hasEntityFilter) {
-            console.log('🎯 Using Materialized View strategy for entity filters');
+            console.log('🎯 Using killmail_filters strategy for entity filters');
 
-            // Use materialized view for faster queries
+            // Use killmail_filters pre-computed table for faster queries
             const killmailIds = await filtersMaterialized(args.filter ?? {});
 
             if (killmailIds.length === 0) {
@@ -112,7 +112,7 @@ export const killmailQueries: QueryResolvers = {
                 return emptyResult;
             }
 
-            // Build optional value filter conditions (total_value not in materialized view)
+            // Build optional value filter conditions (total_value not in killmail_filters)
             // Two variants with different param indices:
             //   countWhereClause: $1=ids, $2=minValue, $3=maxValue
             //   mainWhereClause:  $1=ids, $2=limit, $3=skip, $4=minValue, $5=maxValue
@@ -357,9 +357,9 @@ export const killmailQueries: QueryResolvers = {
         let result: { date: string; count: number }[];
 
         if (hasEntityFilter) {
-            console.log('🎯 Using Materialized View for date counts with entity filters');
+            console.log('🎯 Using killmail_filters for date counts with entity filters');
 
-            // Use materialized view for entity filters
+            // Use killmail_filters pre-computed table for entity filters
             const killmailIds = await filtersMaterialized(args.filter ?? {});
 
             if (killmailIds.length === 0) {
