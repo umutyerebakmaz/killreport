@@ -827,4 +827,4 @@ Example:
 ✅ All leaderboard features have been implemented. There are currently no additional planned features.
 
 > **Last Updated:** March 3, 2026
-> **Related Documents:** [KILL_STATS_REALTIME.md](KILL_STATS_REALTIME.md) · [LEADERBOARD_QUERIES.MD](../LEADERBOARD_QUERIES.MD) · [CACHE_STRATEGY.MD](../CACHE_STRATEGY.MD) · [ARCHITECTURE.MD](../ARCHITECTURE.MD)
+> **Related Documents:** [KILL_STATS_REALTIME.md](KILL_STATS_REALTIME.md) · [LEADERBOARD_QUERIES.MD](/backend/docs/LEADERBOARD_QUERIES.MD) · [CACHE_STRATEGY.MD](/backend/docs/CACHE_STRATEGY.MD) · [ARCHITECTURE.MD](/backend/docs/ARCHITECTURE.MD)

@@ -13,7 +13,7 @@ KillReport GraphQL API implements Redis-based rate limiting to prevent abuse and
 
 ### Implementation
 
-Rate limiting is implemented as a GraphQL Yoga plugin in [plugins/rate-limit.plugin.ts](../plugins/rate-limit.plugin.ts) and enabled in [server.ts](../server.ts).
+Rate limiting is implemented as a GraphQL Yoga plugin in [plugins/rate-limit.plugin.ts](/backend/src/plugins/rate-limit.plugin.ts) and enabled in [server.ts](/backend/src/server.ts).
 
 ```typescript
 createRateLimitPlugin({
@@ -216,7 +216,7 @@ try {
 
 ### Permanent Change
 
-Edit [server.ts](../server.ts):
+Edit [server.ts](/backend/src/server.ts):
 
 ```typescript
 createRateLimitPlugin({
@@ -321,5 +321,5 @@ redis-cli keys "ratelimit:*" | xargs redis-cli del
 ## Related Documentation
 
 - [Response Caching](./RESPONSE_CACHING.MD) - How caching reduces rate limit pressure
-- [Redis Setup](../../redis/REDIS_SETUP.MD) - Redis configuration
-- [GraphQL API](../README.MD) - General API documentation
+- [Redis Setup](/backend/redis/REDIS_SETUP.MD) - Redis configuration
+- [GraphQL API](/backend/README.MD) - General API documentation
