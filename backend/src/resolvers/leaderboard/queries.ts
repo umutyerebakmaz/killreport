@@ -5,12 +5,14 @@ import redis from '@services/redis';
 /**
  * Leaderboard Query Resolvers
  *
- * Uses the character_kill_stats table for O(1) indexed lookups.
- * The table is pre-aggregated per (kill_date, character_id) and updated
- * in real-time via kill-stats-realtime.ts whenever a killmail is saved.
+ * Uses real-time aggregation tables (character_kill_stats, corporation_kill_stats, alliance_kill_stats)
+ * for O(1) indexed lookups. These tables are updated IMMEDIATELY via atomic UPSERT operations
+ * whenever a killmail is saved (transaction-based, zero latency).
  *
  * Query cost: single index scan on (kill_date, kill_count DESC)
  * vs. the old approach: full GROUP BY scan over 15k+ attackers rows per day.
+ *
+ * See: backend/docs/LEADERBOARD_QUERIES.MD for architecture details.
  */
 /** Returns the Monday (UTC) of the week containing the given date string */
 function getWeekMonday(dateStr: string): string {
@@ -126,7 +128,7 @@ export const leaderboardQueries: QueryResolvers = {
       };
     });
 
-    // Cache 5 minutes for today (real-time stats supersede on next killmail save),
+    // Cache 5 minutes for today (next mv refresh will supersede anyway),
     // 1 hour for past dates (those never change)
     const isToday = targetDate === new Date().toISOString().split('T')[0];
     await redis.setex(cacheKey, isToday ? 300 : 3600, JSON.stringify(result));
@@ -224,7 +226,7 @@ export const leaderboardQueries: QueryResolvers = {
       };
     });
 
-    // Cache 5 minutes (rolling data, updated real-time)
+    // Cache 5 minutes (refreshes with MV)
     await redis.setex(cacheKey, 300, JSON.stringify(result));
     return result;
   },
