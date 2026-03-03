@@ -533,6 +533,34 @@ export const resolvers: Resolvers = {
 - Modify generated files (`generated-types.ts`, `generated-schema.graphql`)
 - Use npm commands (YARN ONLY)
 
+## Documentation Best Practices
+
+### Markdown File Links
+
+**CRITICAL for GitHub compatibility**: When creating links in markdown documentation files:
+
+**✅ CORRECT - Use absolute paths from repository root:**
+
+```markdown
+[kill-stats-realtime.ts](/backend/src/services/kill-stats-realtime.ts)
+[worker-redisq-stream.ts](/backend/src/workers/worker-redisq-stream.ts)
+```
+
+**❌ WRONG - Relative paths don't work reliably on GitHub:**
+
+```markdown
+[kill-stats-realtime.ts](../../src/services/kill-stats-realtime.ts)
+[worker-redisq-stream.ts](../workers/worker-redisq-stream.ts)
+```
+
+**Why**:
+
+- Absolute paths starting with `/` resolve from repository root on GitHub
+- Relative paths (`../../`) often break when viewing on GitHub web interface
+- Absolute paths work both locally and on GitHub consistently
+
+**Pattern**: `/backend/src/{folder}/{file}.ts` for backend files
+
 ## Documentation References
 
 - **EVE SSO**: `backend/EVE_SSO_README.md`
