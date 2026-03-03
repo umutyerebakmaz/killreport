@@ -15,7 +15,7 @@ Previously, leaderboard queries (Top Pilots, Top Corporations, Top Alliances) we
 
 #### Layer 1: Real-time Updates (PRIMARY)
 
-**File**: [`kill-stats-realtime.ts`](../src/services/kill-stats-realtime.ts)
+**File**: [`kill-stats-realtime.ts`](/backend/src/services/kill-stats-realtime.ts)
 
 Every killmail save triggers immediate updates to daily aggregation tables:
 
@@ -39,15 +39,15 @@ await updateDailyAggregatesRealtime(tx, {
 
 **Integrated in**:
 
-- [`worker-redisq-stream.ts`](../src/workers/worker-redisq-stream.ts) - Real-time zKillboard stream
-- [`worker-killmails.ts`](../src/workers/worker-killmails.ts) - Character killmail sync
-- [`worker-zkillboard-sync.ts`](../src/workers/worker-zkillboard-sync.ts) - Bulk zKillboard sync
-- [`worker-esi-corporation-killmails.ts`](../src/workers/worker-esi-corporation-killmails.ts) - Corp killmail sync
+- [`worker-redisq-stream.ts`](/backend/src/workers/worker-redisq-stream.ts) - Real-time zKillboard stream
+- [`worker-killmails.ts`](/backend/src/workers/worker-killmails.ts) - Character killmail sync
+- [`worker-zkillboard-sync.ts`](/backend/src/workers/worker-zkillboard-sync.ts) - Bulk zKillboard sync
+- [`worker-esi-corporation-killmails.ts`](/backend/src/workers/worker-esi-corporation-killmails.ts) - Corp killmail sync
 
 #### Layer 2: Periodic Refresh (FALLBACK)
 
-**File**: [`materialized-view-incremental.ts`](../src/services/materialized-view-incremental.ts)
-**Worker**: [`worker-materialized-views.ts`](../src/workers/worker-materialized-views.ts)
+**File**: [`materialized-view-incremental.ts`](/backend/src/services/materialized-view-incremental.ts)
+**Worker**: [`worker-materialized-views.ts`](/backend/src/workers/worker-materialized-views.ts)
 
 Runs every 5 minutes to ensure consistency:
 
