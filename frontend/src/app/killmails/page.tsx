@@ -47,6 +47,7 @@ function KillmailsContent() {
     characterVictim?: boolean;
     characterAttacker?: boolean;
     regionId?: number;
+    constellationId?: number;
     systemId?: number;
     minAttackers?: number;
     maxAttackers?: number;
@@ -57,6 +58,7 @@ function KillmailsContent() {
     shipTypeId: urlFilters.shipTypeId,
     shipGroupIds: urlFilters.shipGroupIds,
     systemId: urlFilters.systemId,
+    constellationId: urlFilters.constellationId,
     minAttackers: urlFilters.minAttackers,
     maxAttackers: urlFilters.maxAttackers,
     minValue: urlFilters.minValue,
@@ -198,6 +200,7 @@ function KillmailsContent() {
     characterVictim?: boolean;
     characterAttacker?: boolean;
     regionId?: number;
+    constellationId?: number;
     systemId?: number;
     minAttackers?: number;
     maxAttackers?: number;
@@ -227,6 +230,7 @@ function KillmailsContent() {
         characterVictim: filters.characterVictim,
         characterAttacker: filters.characterAttacker,
         regionId: filters.regionId,
+        constellationId: filters.constellationId,
         systemId: filters.systemId,
         minAttackers: filters.minAttackers,
         maxAttackers: filters.maxAttackers,
@@ -260,6 +264,7 @@ function KillmailsContent() {
         characterVictim: filters.characterVictim,
         characterAttacker: filters.characterAttacker,
         regionId: filters.regionId,
+        constellationId: filters.constellationId,
         systemId: filters.systemId,
         minAttackers: filters.minAttackers,
         maxAttackers: filters.maxAttackers,
@@ -282,6 +287,8 @@ function KillmailsContent() {
     filters.attacker,
     filters.characterVictim,
     filters.characterAttacker,
+    filters.systemId,
+    filters.constellationId,
     filters.minAttackers,
     filters.maxAttackers,
     filters.minValue,
@@ -385,6 +392,7 @@ function KillmailsContent() {
           initialShipGroupIds={urlFilters.shipGroupIds}
           initialCharacterId={urlFilters.characterId}
           initialSystemId={urlFilters.systemId}
+          initialConstellationId={urlFilters.constellationId}
           initialMinAttackers={urlFilters.minAttackers}
           initialMaxAttackers={urlFilters.maxAttackers}
           initialMinValue={urlFilters.minValue}

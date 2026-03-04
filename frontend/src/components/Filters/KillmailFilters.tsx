@@ -4,6 +4,7 @@ import RadioGroup from "@/components/RadioGroup/RadioGroup";
 import {
   useSearchCharacterQuery,
   useSearchCharactersQuery,
+  useSearchConstellationsQuery,
   useSearchItemGroupsQuery,
   useSearchSolarSystemsQuery,
   useSearchTypeQuery,
@@ -19,6 +20,7 @@ interface KillmailFiltersProps {
     shipGroupIds?: number[];
     characterId?: number;
     systemId?: number;
+    constellationId?: number;
     victim?: boolean;
     attacker?: boolean;
     characterVictim?: boolean;
@@ -33,6 +35,7 @@ interface KillmailFiltersProps {
   initialShipGroupIds?: number[];
   initialCharacterId?: number;
   initialSystemId?: number;
+  initialConstellationId?: number;
   initialMinAttackers?: number;
   initialMaxAttackers?: number;
   initialMinValue?: number;
@@ -48,6 +51,7 @@ export default function KillmailFilters({
   initialShipGroupIds,
   initialCharacterId,
   initialSystemId,
+  initialConstellationId,
   initialMinAttackers,
   initialMaxAttackers,
   initialMinValue,
@@ -108,6 +112,16 @@ export default function KillmailFilters({
   const [showSolarSystemDropdown, setShowSolarSystemDropdown] = useState(false);
   const solarSystemDropdownRef = useRef<HTMLDivElement>(null);
 
+  // Constellation search state
+  const [constellationSearch, setConstellationSearch] = useState("");
+  const [constellationId, setConstellationId] = useState<number | undefined>(
+    initialConstellationId,
+  );
+  const [constellationName, setConstellationName] = useState("");
+  const [showConstellationDropdown, setShowConstellationDropdown] =
+    useState(false);
+  const constellationDropdownRef = useRef<HTMLDivElement>(null);
+
   // Ship search dropdown state
   const [showDropdown, setShowDropdown] = useState(false);
   const shipDropdownRef = useRef<HTMLDivElement>(null);
@@ -117,6 +131,7 @@ export default function KillmailFilters({
   const debouncedPilotSearch = useDebounce(pilotSearch, 500);
   const debouncedGroupSearch = useDebounce(groupSearch, 500);
   const debouncedSolarSystemSearch = useDebounce(solarSystemSearch, 500);
+  const debouncedConstellationSearch = useDebounce(constellationSearch, 500);
 
   // GraphQL query for ship type search
   const { data: typeData, loading: typeLoading } = useSearchTypesQuery({
@@ -181,11 +196,22 @@ export default function KillmailFilters({
       skip: debouncedSolarSystemSearch.length < 3,
     });
 
+  // GraphQL query for constellation search
+  const { data: constellationData, loading: constellationLoading } =
+    useSearchConstellationsQuery({
+      variables: {
+        search: debouncedConstellationSearch,
+        limit: 20,
+      },
+      skip: debouncedConstellationSearch.length < 3,
+    });
+
   const hasActiveFilters =
     shipTypeId ||
     shipGroupIds.length > 0 ||
     characterId ||
     systemId ||
+    constellationId ||
     minAttackers ||
     maxAttackers ||
     minValue ||
@@ -220,6 +246,12 @@ export default function KillmailFilters({
       ) {
         setShowSolarSystemDropdown(false);
       }
+      if (
+        constellationDropdownRef.current &&
+        !constellationDropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowConstellationDropdown(false);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -242,6 +274,11 @@ export default function KillmailFilters({
   useEffect(() => {
     if (initialSystemId !== undefined) setSystemId(initialSystemId);
   }, [initialSystemId]);
+
+  useEffect(() => {
+    if (initialConstellationId !== undefined)
+      setConstellationId(initialConstellationId);
+  }, [initialConstellationId]);
 
   useEffect(() => {
     setMinAttackers(initialMinAttackers ? String(initialMinAttackers) : "");
@@ -308,6 +345,16 @@ export default function KillmailFilters({
     }
   }, [debouncedSolarSystemSearch, solarSystemData]);
 
+  useEffect(() => {
+    if (
+      debouncedConstellationSearch.length >= 3 &&
+      constellationData?.constellations?.items &&
+      constellationData.constellations.items.length > 0
+    ) {
+      setShowConstellationDropdown(true);
+    }
+  }, [debouncedConstellationSearch, constellationData]);
+
   const handleShipSelect = (typeId: number, typeName: string) => {
     // Store both ID and name
     setShipTypeId(typeId);
@@ -348,6 +395,13 @@ export default function KillmailFilters({
     setShowSolarSystemDropdown(false);
   };
 
+  const handleConstellationSelect = (id: number, name: string) => {
+    setConstellationId(id);
+    setConstellationName(name);
+    setConstellationSearch("");
+    setShowConstellationDropdown(false);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -356,6 +410,7 @@ export default function KillmailFilters({
       shipGroupIds: shipGroupIds.length > 0 ? shipGroupIds : undefined,
       characterId,
       systemId,
+      constellationId,
       victim:
         shipTypeId || shipGroupIds.length > 0
           ? shipRole === "victim"
@@ -885,6 +940,120 @@ export default function KillmailFilters({
               </div>
             </div>
 
+            {/* Constellation Search */}
+            <div>
+              <label
+                htmlFor="filter-constellation"
+                className="block mb-2 text-xs font-medium text-gray-400"
+              >
+                Constellation
+              </label>
+              <div ref={constellationDropdownRef}>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    id="filter-constellation"
+                    placeholder="Search constellation (min 3 letters)..."
+                    value={constellationSearch}
+                    onChange={(e) => {
+                      setConstellationSearch(e.target.value);
+                      if (e.target.value.length >= 3)
+                        setShowConstellationDropdown(true);
+                      else setShowConstellationDropdown(false);
+                    }}
+                    onFocus={() => {
+                      if (
+                        constellationSearch.length >= 3 &&
+                        constellationData?.constellations?.items &&
+                        constellationData.constellations.items.length > 0
+                      )
+                        setShowConstellationDropdown(true);
+                    }}
+                    className="search-input"
+                  />
+                  {constellationLoading && constellationSearch.length >= 3 && (
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <div className="w-5 h-5 border-2 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
+                    </div>
+                  )}
+
+                  {/* Constellation Dropdown */}
+                  {showConstellationDropdown &&
+                    constellationData?.constellations?.items &&
+                    constellationData.constellations.items.length > 0 && (
+                      <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                        <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto character-dropdown-scroll max-h-96">
+                          {constellationData.constellations.items.map(
+                            (constellation: any) => {
+                              const avgSec =
+                                constellation.securityStats?.avgSecurity ?? 0;
+                              const securityColor =
+                                avgSec >= 0.5
+                                  ? "text-green-400"
+                                  : avgSec > 0
+                                    ? "text-yellow-400"
+                                    : "text-red-400";
+
+                              return (
+                                <button
+                                  key={constellation.id}
+                                  type="button"
+                                  onClick={() =>
+                                    handleConstellationSelect(
+                                      constellation.id,
+                                      constellation.name,
+                                    )
+                                  }
+                                  className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
+                                >
+                                  <div className="flex-auto min-w-0 text-left">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-semibold text-white truncate">
+                                        {constellation.name}
+                                      </span>
+                                      <span
+                                        className={`text-xs font-semibold ${securityColor}`}
+                                      >
+                                        {avgSec.toFixed(1)}
+                                      </span>
+                                    </div>
+                                    <div className="text-sm text-gray-400">
+                                      {constellation.region?.name && (
+                                        <div className="text-gray-400 truncate">
+                                          {constellation.region.name} ·{" "}
+                                          {constellation.solarSystemCount}{" "}
+                                          systems
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </button>
+                              );
+                            },
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                  {/* No Results */}
+                  {showConstellationDropdown &&
+                    debouncedConstellationSearch.length >= 3 &&
+                    !constellationLoading &&
+                    constellationData?.constellations?.items?.length === 0 && (
+                      <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                        <div className="p-4 text-sm text-gray-400">
+                          No constellations found for "
+                          {debouncedConstellationSearch}"
+                        </div>
+                      </div>
+                    )}
+                </div>
+              </div>
+            </div>
+
             {/* Min Attackers */}
             <div>
               <label
@@ -1112,6 +1281,32 @@ export default function KillmailFilters({
                       onClick={() => {
                         setSystemId(undefined);
                         setSolarSystemName("");
+                      }}
+                      className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                    >
+                      <XMarkIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Constellation chip */}
+              {constellationId && (
+                <div className="flex flex-col gap-2">
+                  <div className="text-xs font-medium text-gray-400">
+                    Constellation
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
+                      <span className="font-semibold truncate">
+                        {constellationName}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setConstellationId(undefined);
+                        setConstellationName("");
                       }}
                       className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
                     >

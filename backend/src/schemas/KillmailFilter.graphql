@@ -13,6 +13,7 @@ input KillmailFilter {
   corporationId: Int
   allianceId: Int
   regionId: Int
+  constellationId: Int
   systemId: Int
   minAttackers: Int
   maxAttackers: Int

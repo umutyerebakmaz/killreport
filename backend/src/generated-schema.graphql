@@ -461,6 +461,7 @@ input KillmailFilter {
   characterAttacker: Boolean
   characterId: Int
   characterVictim: Boolean
+  constellationId: Int
   corporationId: Int
   limit: Int
   maxAttackers: Int
