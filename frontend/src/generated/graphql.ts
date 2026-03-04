@@ -1895,6 +1895,13 @@ export type SearchCharactersQueryVariables = Exact<{
 
 export type SearchCharactersQuery = { __typename?: 'Query', characters: { __typename?: 'CharactersResponse', items: Array<{ __typename?: 'Character', id: number, name: string, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null }> } };
 
+export type SearchConstellationQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type SearchConstellationQuery = { __typename?: 'Query', constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null };
+
 export type SearchConstellationsQueryVariables = Exact<{
   search: Scalars['String']['input'];
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -1925,6 +1932,13 @@ export type SearchItemGroupQueryVariables = Exact<{
 
 
 export type SearchItemGroupQuery = { __typename?: 'Query', itemGroup?: { __typename?: 'ItemGroup', id: number, name: string, category: { __typename?: 'Category', id: number, name: string } } | null };
+
+export type SearchSolarSystemQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type SearchSolarSystemQuery = { __typename?: 'Query', solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string } | null } | null };
 
 export type SearchSolarSystemsQueryVariables = Exact<{
   search: Scalars['String']['input'];
@@ -4961,6 +4975,54 @@ export type SearchCharactersQueryHookResult = ReturnType<typeof useSearchCharact
 export type SearchCharactersLazyQueryHookResult = ReturnType<typeof useSearchCharactersLazyQuery>;
 export type SearchCharactersSuspenseQueryHookResult = ReturnType<typeof useSearchCharactersSuspenseQuery>;
 export type SearchCharactersQueryResult = Apollo.QueryResult<SearchCharactersQuery, SearchCharactersQueryVariables>;
+export const SearchConstellationDocument = gql`
+    query SearchConstellation($id: Int!) {
+  constellation(id: $id) {
+    id
+    name
+    region {
+      id
+      name
+    }
+  }
+}
+    `;
+
+/**
+ * __useSearchConstellationQuery__
+ *
+ * To run a query within a React component, call `useSearchConstellationQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchConstellationQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchConstellationQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useSearchConstellationQuery(baseOptions: Apollo.QueryHookOptions<SearchConstellationQuery, SearchConstellationQueryVariables> & ({ variables: SearchConstellationQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SearchConstellationQuery, SearchConstellationQueryVariables>(SearchConstellationDocument, options);
+      }
+export function useSearchConstellationLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SearchConstellationQuery, SearchConstellationQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SearchConstellationQuery, SearchConstellationQueryVariables>(SearchConstellationDocument, options);
+        }
+// @ts-ignore
+export function useSearchConstellationSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SearchConstellationQuery, SearchConstellationQueryVariables>): Apollo.UseSuspenseQueryResult<SearchConstellationQuery, SearchConstellationQueryVariables>;
+export function useSearchConstellationSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchConstellationQuery, SearchConstellationQueryVariables>): Apollo.UseSuspenseQueryResult<SearchConstellationQuery | undefined, SearchConstellationQueryVariables>;
+export function useSearchConstellationSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchConstellationQuery, SearchConstellationQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SearchConstellationQuery, SearchConstellationQueryVariables>(SearchConstellationDocument, options);
+        }
+export type SearchConstellationQueryHookResult = ReturnType<typeof useSearchConstellationQuery>;
+export type SearchConstellationLazyQueryHookResult = ReturnType<typeof useSearchConstellationLazyQuery>;
+export type SearchConstellationSuspenseQueryHookResult = ReturnType<typeof useSearchConstellationSuspenseQuery>;
+export type SearchConstellationQueryResult = Apollo.QueryResult<SearchConstellationQuery, SearchConstellationQueryVariables>;
 export const SearchConstellationsDocument = gql`
     query SearchConstellations($search: String!, $limit: Int = 40) {
   constellations(filter: {search: $search, limit: $limit}) {
@@ -5173,6 +5235,55 @@ export type SearchItemGroupQueryHookResult = ReturnType<typeof useSearchItemGrou
 export type SearchItemGroupLazyQueryHookResult = ReturnType<typeof useSearchItemGroupLazyQuery>;
 export type SearchItemGroupSuspenseQueryHookResult = ReturnType<typeof useSearchItemGroupSuspenseQuery>;
 export type SearchItemGroupQueryResult = Apollo.QueryResult<SearchItemGroupQuery, SearchItemGroupQueryVariables>;
+export const SearchSolarSystemDocument = gql`
+    query SearchSolarSystem($id: Int!) {
+  solarSystem(id: $id) {
+    id
+    name
+    securityStatus
+    constellation {
+      id
+      name
+    }
+  }
+}
+    `;
+
+/**
+ * __useSearchSolarSystemQuery__
+ *
+ * To run a query within a React component, call `useSearchSolarSystemQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchSolarSystemQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchSolarSystemQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useSearchSolarSystemQuery(baseOptions: Apollo.QueryHookOptions<SearchSolarSystemQuery, SearchSolarSystemQueryVariables> & ({ variables: SearchSolarSystemQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SearchSolarSystemQuery, SearchSolarSystemQueryVariables>(SearchSolarSystemDocument, options);
+      }
+export function useSearchSolarSystemLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SearchSolarSystemQuery, SearchSolarSystemQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SearchSolarSystemQuery, SearchSolarSystemQueryVariables>(SearchSolarSystemDocument, options);
+        }
+// @ts-ignore
+export function useSearchSolarSystemSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SearchSolarSystemQuery, SearchSolarSystemQueryVariables>): Apollo.UseSuspenseQueryResult<SearchSolarSystemQuery, SearchSolarSystemQueryVariables>;
+export function useSearchSolarSystemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchSolarSystemQuery, SearchSolarSystemQueryVariables>): Apollo.UseSuspenseQueryResult<SearchSolarSystemQuery | undefined, SearchSolarSystemQueryVariables>;
+export function useSearchSolarSystemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchSolarSystemQuery, SearchSolarSystemQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SearchSolarSystemQuery, SearchSolarSystemQueryVariables>(SearchSolarSystemDocument, options);
+        }
+export type SearchSolarSystemQueryHookResult = ReturnType<typeof useSearchSolarSystemQuery>;
+export type SearchSolarSystemLazyQueryHookResult = ReturnType<typeof useSearchSolarSystemLazyQuery>;
+export type SearchSolarSystemSuspenseQueryHookResult = ReturnType<typeof useSearchSolarSystemSuspenseQuery>;
+export type SearchSolarSystemQueryResult = Apollo.QueryResult<SearchSolarSystemQuery, SearchSolarSystemQueryVariables>;
 export const SearchSolarSystemsDocument = gql`
     query SearchSolarSystems($search: String!, $limit: Int = 40) {
   solarSystems(filter: {search: $search, limit: $limit}) {

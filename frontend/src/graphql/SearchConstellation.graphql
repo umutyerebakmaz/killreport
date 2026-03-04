@@ -1,0 +1,10 @@
+query SearchConstellation($id: Int!) {
+  constellation(id: $id) {
+    id
+    name
+    region {
+      id
+      name
+    }
+  }
+}
