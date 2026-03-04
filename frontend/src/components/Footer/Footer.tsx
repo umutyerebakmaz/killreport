@@ -92,6 +92,20 @@ export default function Footer() {
                 </a>
               ))}
             </div>
+            <div className="mt-6">
+              <a
+                href="https://www.digitalocean.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block"
+              >
+                <img
+                  src="https://img.shields.io/badge/Powered_by-DigitalOcean-0080FF?style=for-the-badge&logo=digitalocean&logoColor=white"
+                  alt="Powered by DigitalOcean"
+                  className="h-7"
+                />
+              </a>
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-8 mt-16 xl:col-span-2 xl:mt-0">
             <div className="md:grid md:grid-cols-2 md:gap-8">
