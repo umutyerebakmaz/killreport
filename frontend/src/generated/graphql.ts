@@ -1917,6 +1917,14 @@ export type SearchItemGroupQueryVariables = Exact<{
 
 export type SearchItemGroupQuery = { __typename?: 'Query', itemGroup?: { __typename?: 'ItemGroup', id: number, name: string, category: { __typename?: 'Category', id: number, name: string } } | null };
 
+export type SearchSolarSystemsQueryVariables = Exact<{
+  search: Scalars['String']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type SearchSolarSystemsQuery = { __typename?: 'Query', solarSystems: { __typename?: 'SolarSystemsResponse', items: Array<{ __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, security_class?: string | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }> } };
+
 export type SearchTypeQueryVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
@@ -5097,6 +5105,63 @@ export type SearchItemGroupQueryHookResult = ReturnType<typeof useSearchItemGrou
 export type SearchItemGroupLazyQueryHookResult = ReturnType<typeof useSearchItemGroupLazyQuery>;
 export type SearchItemGroupSuspenseQueryHookResult = ReturnType<typeof useSearchItemGroupSuspenseQuery>;
 export type SearchItemGroupQueryResult = Apollo.QueryResult<SearchItemGroupQuery, SearchItemGroupQueryVariables>;
+export const SearchSolarSystemsDocument = gql`
+    query SearchSolarSystems($search: String!, $limit: Int = 40) {
+  solarSystems(filter: {search: $search, limit: $limit}) {
+    items {
+      id
+      name
+      securityStatus
+      security_class
+      constellation {
+        id
+        name
+        region {
+          id
+          name
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useSearchSolarSystemsQuery__
+ *
+ * To run a query within a React component, call `useSearchSolarSystemsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchSolarSystemsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchSolarSystemsQuery({
+ *   variables: {
+ *      search: // value for 'search'
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useSearchSolarSystemsQuery(baseOptions: Apollo.QueryHookOptions<SearchSolarSystemsQuery, SearchSolarSystemsQueryVariables> & ({ variables: SearchSolarSystemsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SearchSolarSystemsQuery, SearchSolarSystemsQueryVariables>(SearchSolarSystemsDocument, options);
+      }
+export function useSearchSolarSystemsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SearchSolarSystemsQuery, SearchSolarSystemsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SearchSolarSystemsQuery, SearchSolarSystemsQueryVariables>(SearchSolarSystemsDocument, options);
+        }
+// @ts-ignore
+export function useSearchSolarSystemsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SearchSolarSystemsQuery, SearchSolarSystemsQueryVariables>): Apollo.UseSuspenseQueryResult<SearchSolarSystemsQuery, SearchSolarSystemsQueryVariables>;
+export function useSearchSolarSystemsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchSolarSystemsQuery, SearchSolarSystemsQueryVariables>): Apollo.UseSuspenseQueryResult<SearchSolarSystemsQuery | undefined, SearchSolarSystemsQueryVariables>;
+export function useSearchSolarSystemsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchSolarSystemsQuery, SearchSolarSystemsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SearchSolarSystemsQuery, SearchSolarSystemsQueryVariables>(SearchSolarSystemsDocument, options);
+        }
+export type SearchSolarSystemsQueryHookResult = ReturnType<typeof useSearchSolarSystemsQuery>;
+export type SearchSolarSystemsLazyQueryHookResult = ReturnType<typeof useSearchSolarSystemsLazyQuery>;
+export type SearchSolarSystemsSuspenseQueryHookResult = ReturnType<typeof useSearchSolarSystemsSuspenseQuery>;
+export type SearchSolarSystemsQueryResult = Apollo.QueryResult<SearchSolarSystemsQuery, SearchSolarSystemsQueryVariables>;
 export const SearchTypeDocument = gql`
     query SearchType($id: Int!) {
   type(id: $id) {
