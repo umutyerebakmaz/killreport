@@ -8,7 +8,7 @@
 
 ## 🏗️ Current Cache Architecture (3 Layers)
 
-```
+```text
 ┌─────────────────────────────────────────────────┐
 │  1. GraphQL Response Cache (Redis)              │  ← Top layer
 │     TTL: 5 minutes - 1 hour                     │

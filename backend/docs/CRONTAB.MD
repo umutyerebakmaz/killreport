@@ -14,7 +14,7 @@
 
 ## 📖 Cron Format Explanation
 
-```
+```text
 ┌───────────── Minute (0 - 59)
 │ ┌───────────── Hour (0 - 23)
 │ │ ┌───────────── Day of Month (1 - 31)

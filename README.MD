@@ -1,19 +1,14 @@
 # 🚀 KillReport
 
 **Modern EVE Online Killmail Tracking & Analytics Platform**
-
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![GraphQL](https://img.shields.io/badge/GraphQL-E10098?style=for-the-badge&logo=graphql&logoColor=white)](https://graphql.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
 [![RabbitMQ](https://img.shields.io/badge/RabbitMQ-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white)](https://www.rabbitmq.com/)
-
 _Track, analyze, and visualize EVE Online killmails with real-time data synchronization_
-
-[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Architecture](#-architecture) • [Contributing](#-contributing)
-
-
+[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Architecture](#-architecture) •[Contributing](#-contributing)
 
 ---
 
@@ -46,13 +41,14 @@ KillReport is a full-stack application built for EVE Online players and corporat
 
 ### Technical Highlights
 
-- 🎨 **Modern Stack**: Next.js 15 (App Router), React 19, TypeScript
+- 🎨 **Modern Stack**: Next.js 16 (App Router), React 19, TypeScript 5+
 - 🚀 **GraphQL API**: Type-safe API with automatic code generation
-- 💾 **Database**: PostgreSQL with Prisma ORM
+- 💾 **Database**: PostgreSQL with Prisma ORM and Materialized Views
 - 🔧 **Background Jobs**: RabbitMQ-based distributed task queue
 - 📡 **External APIs**: Integration with zKillboard and EVE ESI
 - 🧪 **Type Safety**: Full TypeScript coverage across frontend and backend
 - 🎯 **DataLoader**: Optimized database queries to prevent N+1 problems
+- ⚡ **Performance**: Redis caching and optimized query patterns
 
 ---
 
@@ -123,11 +119,16 @@ yarn dev:frontend # Terminal 2 - Starts on http://localhost:3000
 - **[Character Sync Quick Reference](./backend/src/docs/CHARACTER_SYNC_QUICKREF.MD)** - Quick commands for character sync
 - **[EVE SSO Documentation](./backend/src/docs/EVE_SSO_README.MD)** - Deep dive into SSO integration
 
+#### Performance & Analysis
+
+- **[Top Charts Cost Analysis](./TOP_CHARTS_COST_ANALYSIS.md)** - Materialized views performance analysis and cost comparison
+- **[Unique Features Proposal](./UNIQUE_FEATURES_PROPOSAL.md)** - Planned features and roadmap
+
 ---
 
 ## 🏗️ Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                         Frontend (Next.js)                       │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
@@ -162,11 +163,11 @@ yarn dev:frontend # Terminal 2 - Starts on http://localhost:3000
 
 **Frontend:**
 
-- Next.js 16 with App Router
-- React 19 with Server Components
-- Apollo Client for GraphQL
-- Tailwind CSS 4 for styling
-- TypeScript for type safety
+- Next.js 16.0.10 with App Router
+- React 19.2.0 with Server Components
+- Apollo Client 3.11 for GraphQL
+- Tailwind CSS 4.1.15 for styling
+- TypeScript 5+ for type safety
 
 **Backend:**
 
@@ -188,7 +189,7 @@ yarn dev:frontend # Terminal 2 - Starts on http://localhost:3000
 
 ### Project Structure
 
-```
+```text
 killreport/
 ├── frontend/              # Next.js application
 │   ├── src/
@@ -322,11 +323,13 @@ This project is open source and available under the [MIT License](LICENSE).
 
 - **Issues**: [GitHub Issues](https://github.com/umutyerebakmaz/killreport/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/umutyerebakmaz/killreport/discussions)
+- **In-Game Contact**: General XAN (EVE Online character)
+  - Feel free to send ISK, feedback, or questions in-game
+  - All donations and feedback are appreciated!
 
 ---
 
 **Made with ❤️ for the EVE Online community**
-
 ⭐ Star this repository if you find it useful!
 
 </div>
