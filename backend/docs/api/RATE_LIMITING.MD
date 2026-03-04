@@ -320,6 +320,5 @@ redis-cli keys "ratelimit:*" | xargs redis-cli del
 
 ## Related Documentation
 
-- [Response Caching](./RESPONSE_CACHING.MD) - How caching reduces rate limit pressure
 - [Redis Setup](/backend/redis/REDIS_SETUP.MD) - Redis configuration
 - [GraphQL API](/backend/README.MD) - General API documentation

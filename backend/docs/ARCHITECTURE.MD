@@ -322,6 +322,6 @@ WORKER_ID=3 yarn worker:redisq &
 
 ## Learn More
 
-- [REDIS_SETUP.MD](REDIS_SETUP.MD) - Detailed Redis configuration
-- [docs/WORKER_DOCUMENTATION.MD](docs/WORKER_DOCUMENTATION.MD) - Worker patterns
-- [docs/ENRICHMENT.MD](docs/ENRICHMENT.MD) - Entity enrichment system
+- [REDIS_SETUP.MD](/backend/redis/REDIS_SETUP.MD) - Detailed Redis configuration
+- [docs/WORKER_DOCUMENTATION.MD](/backend/docs/workers/WORKER_DOCUMENTATION.MD) - Worker patterns
+- [docs/ENRICHMENT.MD](/backend/docs/workers/ENRICHMENT.MD) - Entity enrichment system

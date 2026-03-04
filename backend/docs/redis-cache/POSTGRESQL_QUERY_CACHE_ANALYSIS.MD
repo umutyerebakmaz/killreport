@@ -301,5 +301,5 @@ LIMIT 20;
 - [backend/src/services/redis.ts](/backend/src/services/redis.ts)
 - [backend/src/services/dataloaders.ts](/backend/src/services/dataloaders.ts)
 - [backend/src/services/prisma.ts](/backend/src/services/prisma.ts)
-- [backend/CACHE_STRATEGY.MD](./CACHE_STRATEGY.MD)
-- [backend/POOL_CONNECTION_FIX.MD](./POOL_CONNECTION_FIX.MD)
+- [CACHE_STRATEGY.MD](/backend/docs/redis-cache/CACHE_STRATEGY.MD)
+- [POOL_CONNECTION_FIX.MD](/backend/docs/api/POOL_CONNECTION_FIX.MD)
