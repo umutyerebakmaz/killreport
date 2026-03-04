@@ -56,6 +56,7 @@ function KillmailsContent() {
     characterId: urlFilters.characterId,
     shipTypeId: urlFilters.shipTypeId,
     shipGroupIds: urlFilters.shipGroupIds,
+    systemId: urlFilters.systemId,
     minAttackers: urlFilters.minAttackers,
     maxAttackers: urlFilters.maxAttackers,
     minValue: urlFilters.minValue,
@@ -115,6 +116,8 @@ function KillmailsContent() {
       currentPage !== 1 ||
       !!(
         filters.shipTypeId ||
+        filters.shipGroupIds?.length ||
+        filters.characterId ||
         filters.regionId ||
         filters.systemId ||
         filters.minAttackers ||
@@ -132,6 +135,8 @@ function KillmailsContent() {
       subscriptionData?.newKillmail &&
       currentPage === 1 &&
       !filters.shipTypeId &&
+      !filters.shipGroupIds?.length &&
+      !filters.characterId &&
       !filters.regionId &&
       !filters.systemId &&
       !filters.minAttackers &&
@@ -186,6 +191,7 @@ function KillmailsContent() {
 
   const handleFilterChange = (newFilters: {
     shipTypeId?: number;
+    shipGroupIds?: number[];
     characterId?: number;
     victim?: boolean;
     attacker?: boolean;
@@ -378,6 +384,7 @@ function KillmailsContent() {
           initialShipTypeId={urlFilters.shipTypeId}
           initialShipGroupIds={urlFilters.shipGroupIds}
           initialCharacterId={urlFilters.characterId}
+          initialSystemId={urlFilters.systemId}
           initialMinAttackers={urlFilters.minAttackers}
           initialMaxAttackers={urlFilters.maxAttackers}
           initialMinValue={urlFilters.minValue}
