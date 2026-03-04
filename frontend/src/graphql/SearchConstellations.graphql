@@ -1,0 +1,20 @@
+query SearchConstellations($search: String!, $limit: Int = 40) {
+  constellations(filter: { search: $search, limit: $limit }) {
+    items {
+      id
+      name
+      solarSystemCount
+      securityStats {
+        highSec
+        lowSec
+        nullSec
+        wormhole
+        avgSecurity
+      }
+      region {
+        id
+        name
+      }
+    }
+  }
+}
