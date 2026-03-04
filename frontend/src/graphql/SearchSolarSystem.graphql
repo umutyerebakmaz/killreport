@@ -1,0 +1,11 @@
+query SearchSolarSystem($id: Int!) {
+  solarSystem(id: $id) {
+    id
+    name
+    securityStatus
+    constellation {
+      id
+      name
+    }
+  }
+}

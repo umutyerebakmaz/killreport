@@ -39,6 +39,7 @@ export interface DataLoaderContext {
         typesByGroup: DataLoader<number, any[], number>;
         regionStats: DataLoader<number, { constellationCount: number; solarSystemCount: number }, number>;
         regionSecurityStats: DataLoader<number, { highSec: number; lowSec: number; nullSec: number; wormhole: number; avgSecurity: number | null }, number>;
+        constellationSecurityStats: DataLoader<number, { highSec: number; lowSec: number; nullSec: number; wormhole: number; avgSecurity: number | null }, number>;
         corporationSnapshot: DataLoader<{ corporationId: number; date: Date }, any, string>;
         allianceSnapshot: DataLoader<{ allianceId: number; date: Date }, any, string>;
         typeDogmaAttributes: DataLoader<number, any[], number>;
