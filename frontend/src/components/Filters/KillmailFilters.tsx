@@ -5,6 +5,7 @@ import {
   useSearchCharacterQuery,
   useSearchCharactersQuery,
   useSearchItemGroupsQuery,
+  useSearchSolarSystemsQuery,
   useSearchTypeQuery,
   useSearchTypesQuery,
 } from "@/generated/graphql";
@@ -17,6 +18,7 @@ interface KillmailFiltersProps {
     shipTypeId?: number;
     shipGroupIds?: number[];
     characterId?: number;
+    systemId?: number;
     victim?: boolean;
     attacker?: boolean;
     characterVictim?: boolean;
@@ -30,6 +32,7 @@ interface KillmailFiltersProps {
   initialShipTypeId?: number;
   initialShipGroupIds?: number[];
   initialCharacterId?: number;
+  initialSystemId?: number;
   initialMinAttackers?: number;
   initialMaxAttackers?: number;
   initialMinValue?: number;
@@ -44,6 +47,7 @@ export default function KillmailFilters({
   initialShipTypeId,
   initialShipGroupIds,
   initialCharacterId,
+  initialSystemId,
   initialMinAttackers,
   initialMaxAttackers,
   initialMinValue,
@@ -97,6 +101,13 @@ export default function KillmailFilters({
   const [showPilotDropdown, setShowPilotDropdown] = useState(false);
   const pilotDropdownRef = useRef<HTMLDivElement>(null);
 
+  // Solar system search state
+  const [solarSystemSearch, setSolarSystemSearch] = useState("");
+  const [systemId, setSystemId] = useState<number | undefined>(initialSystemId);
+  const [solarSystemName, setSolarSystemName] = useState("");
+  const [showSolarSystemDropdown, setShowSolarSystemDropdown] = useState(false);
+  const solarSystemDropdownRef = useRef<HTMLDivElement>(null);
+
   // Ship search dropdown state
   const [showDropdown, setShowDropdown] = useState(false);
   const shipDropdownRef = useRef<HTMLDivElement>(null);
@@ -105,6 +116,7 @@ export default function KillmailFilters({
   const debouncedSearch = useDebounce(typeSearch, 500);
   const debouncedPilotSearch = useDebounce(pilotSearch, 500);
   const debouncedGroupSearch = useDebounce(groupSearch, 500);
+  const debouncedSolarSystemSearch = useDebounce(solarSystemSearch, 500);
 
   // GraphQL query for ship type search
   const { data: typeData, loading: typeLoading } = useSearchTypesQuery({
@@ -159,10 +171,21 @@ export default function KillmailFilters({
     skip: debouncedPilotSearch.length < 3,
   });
 
+  // GraphQL query for solar system search
+  const { data: solarSystemData, loading: solarSystemLoading } =
+    useSearchSolarSystemsQuery({
+      variables: {
+        search: debouncedSolarSystemSearch,
+        limit: 20,
+      },
+      skip: debouncedSolarSystemSearch.length < 3,
+    });
+
   const hasActiveFilters =
     shipTypeId ||
     shipGroupIds.length > 0 ||
     characterId ||
+    systemId ||
     minAttackers ||
     maxAttackers ||
     minValue ||
@@ -191,6 +214,12 @@ export default function KillmailFilters({
       ) {
         setShowPilotDropdown(false);
       }
+      if (
+        solarSystemDropdownRef.current &&
+        !solarSystemDropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowSolarSystemDropdown(false);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -209,6 +238,10 @@ export default function KillmailFilters({
   useEffect(() => {
     if (initialCharacterId !== undefined) setCharacterId(initialCharacterId);
   }, [initialCharacterId]);
+
+  useEffect(() => {
+    if (initialSystemId !== undefined) setSystemId(initialSystemId);
+  }, [initialSystemId]);
 
   useEffect(() => {
     setMinAttackers(initialMinAttackers ? String(initialMinAttackers) : "");
@@ -265,6 +298,16 @@ export default function KillmailFilters({
     }
   }, [debouncedPilotSearch, pilotData]);
 
+  useEffect(() => {
+    if (
+      debouncedSolarSystemSearch.length >= 3 &&
+      solarSystemData?.solarSystems?.items &&
+      solarSystemData.solarSystems.items.length > 0
+    ) {
+      setShowSolarSystemDropdown(true);
+    }
+  }, [debouncedSolarSystemSearch, solarSystemData]);
+
   const handleShipSelect = (typeId: number, typeName: string) => {
     // Store both ID and name
     setShipTypeId(typeId);
@@ -298,6 +341,13 @@ export default function KillmailFilters({
     setShowPilotDropdown(false);
   };
 
+  const handleSolarSystemSelect = (id: number, name: string) => {
+    setSystemId(id);
+    setSolarSystemName(name);
+    setSolarSystemSearch("");
+    setShowSolarSystemDropdown(false);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -305,6 +355,7 @@ export default function KillmailFilters({
       shipTypeId,
       shipGroupIds: shipGroupIds.length > 0 ? shipGroupIds : undefined,
       characterId,
+      systemId,
       victim:
         shipTypeId || shipGroupIds.length > 0
           ? shipRole === "victim"
@@ -355,6 +406,9 @@ export default function KillmailFilters({
     setPilotSearch("");
     setCharacterId(undefined);
     setCharacterName("");
+    setSolarSystemSearch("");
+    setSystemId(undefined);
+    setSolarSystemName("");
     setMinAttackers("");
     setMaxAttackers("");
     setMinValue("");
@@ -387,6 +441,7 @@ export default function KillmailFilters({
                   shipTypeId,
                   shipGroupIds.length > 0,
                   characterId,
+                  systemId,
                   minAttackers,
                   maxAttackers,
                   minValue,
@@ -713,6 +768,123 @@ export default function KillmailFilters({
               </div>
             </div>
 
+            {/* Solar System Search */}
+            <div>
+              <label
+                htmlFor="filter-solar-system"
+                className="block mb-2 text-xs font-medium text-gray-400"
+              >
+                Solar System
+              </label>
+              <div ref={solarSystemDropdownRef}>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    id="filter-solar-system"
+                    placeholder="Search solar system (min 3 letters)..."
+                    value={solarSystemSearch}
+                    onChange={(e) => {
+                      setSolarSystemSearch(e.target.value);
+                      if (e.target.value.length >= 3)
+                        setShowSolarSystemDropdown(true);
+                      else setShowSolarSystemDropdown(false);
+                    }}
+                    onFocus={() => {
+                      if (
+                        solarSystemSearch.length >= 3 &&
+                        solarSystemData?.solarSystems?.items &&
+                        solarSystemData.solarSystems.items.length > 0
+                      )
+                        setShowSolarSystemDropdown(true);
+                    }}
+                    className="search-input"
+                  />
+                  {solarSystemLoading && solarSystemSearch.length >= 3 && (
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <div className="w-5 h-5 border-2 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
+                    </div>
+                  )}
+
+                  {/* Solar System Dropdown */}
+                  {showSolarSystemDropdown &&
+                    solarSystemData?.solarSystems?.items &&
+                    solarSystemData.solarSystems.items.length > 0 && (
+                      <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                        <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto character-dropdown-scroll max-h-96">
+                          {solarSystemData.solarSystems.items.map((system) => {
+                            const securityClass =
+                              system.security_class || "Unknown";
+                            const securityColor =
+                              securityClass === "A" ||
+                              securityClass === "B" ||
+                              securityClass === "C"
+                                ? "text-green-400"
+                                : securityClass === "D" ||
+                                    securityClass === "E" ||
+                                    securityClass === "F"
+                                  ? "text-yellow-400"
+                                  : securityClass === "G"
+                                    ? "text-orange-400"
+                                    : "text-red-400";
+
+                            return (
+                              <button
+                                key={system.id}
+                                type="button"
+                                onClick={() =>
+                                  handleSolarSystemSelect(
+                                    system.id,
+                                    system.name,
+                                  )
+                                }
+                                className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
+                              >
+                                <div className="flex-auto min-w-0 text-left">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-semibold text-white truncate">
+                                      {system.name}
+                                    </span>
+                                    <span
+                                      className={`text-xs font-semibold ${securityColor}`}
+                                    >
+                                      {system.securityStatus?.toFixed(1)}
+                                    </span>
+                                  </div>
+                                  <div className="text-sm text-gray-400">
+                                    {system.constellation?.region?.name && (
+                                      <div className="text-gray-400 truncate">
+                                        {system.constellation.region.name} ›{" "}
+                                        {system.constellation?.name}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                  {/* No Results */}
+                  {showSolarSystemDropdown &&
+                    debouncedSolarSystemSearch.length >= 3 &&
+                    !solarSystemLoading &&
+                    solarSystemData?.solarSystems?.items?.length === 0 && (
+                      <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                        <div className="p-4 text-sm text-gray-400">
+                          No solar systems found for "
+                          {debouncedSolarSystemSearch}"
+                        </div>
+                      </div>
+                    )}
+                </div>
+              </div>
+            </div>
+
             {/* Min Attackers */}
             <div>
               <label
@@ -793,7 +965,10 @@ export default function KillmailFilters({
           </div>
 
           {/* RIGHT: Chips + Role */}
-          {(characterId || shipTypeId || shipGroupIds.length > 0) && (
+          {(characterId ||
+            shipTypeId ||
+            shipGroupIds.length > 0 ||
+            systemId) && (
             <div className="flex flex-col gap-4 min-w-48">
               <p className="text-xs font-medium text-gray-400">Selected</p>
 
@@ -917,6 +1092,32 @@ export default function KillmailFilters({
                       ]}
                     />
                   )}
+                </div>
+              )}
+
+              {/* Solar System chip */}
+              {systemId && (
+                <div className="flex flex-col gap-2">
+                  <div className="text-xs font-medium text-gray-400">
+                    Solar System
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
+                      <span className="font-semibold truncate">
+                        {solarSystemName}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSystemId(undefined);
+                        setSolarSystemName("");
+                      }}
+                      className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                    >
+                      <XMarkIcon className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
