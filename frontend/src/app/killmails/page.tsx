@@ -119,7 +119,12 @@ function KillmailsContent() {
         filters.shipTypeId ||
         filters.shipGroupIds?.length ||
         filters.characterId ||
+        filters.victim ||
+        filters.attacker ||
+        filters.characterVictim ||
+        filters.characterAttacker ||
         filters.regionId ||
+        filters.constellationId ||
         filters.systemId ||
         filters.minAttackers ||
         filters.maxAttackers ||
@@ -138,7 +143,12 @@ function KillmailsContent() {
       !filters.shipTypeId &&
       !filters.shipGroupIds?.length &&
       !filters.characterId &&
+      !filters.victim &&
+      !filters.attacker &&
+      !filters.characterVictim &&
+      !filters.characterAttacker &&
       !filters.regionId &&
+      !filters.constellationId &&
       !filters.systemId &&
       !filters.minAttackers &&
       !filters.maxAttackers &&
