@@ -84,7 +84,7 @@ yarn prisma:migrate
 yarn dev
 ```
 
-Server starts on http://localhost:4000/graphql
+Server starts on <http://localhost:4000/graphql>
 
 ### 4. Start Workers (Separate Terminals)
 
@@ -254,9 +254,9 @@ sudo -u postgres psql -c "SELECT 1"
 
 ### Management UIs
 
-- **RabbitMQ**: http://localhost:15672 (guest/guest)
-- **Prisma Studio**: `yarn prisma:studio` → http://localhost:5555
-- **GraphiQL**: http://localhost:4000/graphql
+- **RabbitMQ**: <http://localhost:15672> (guest/guest)
+- **Prisma Studio**: `yarn prisma:studio` → <http://localhost:5555>
+- **GraphiQL**: <http://localhost:4000/graphql>
 
 ## Troubleshooting
 
