@@ -1,6 +1,8 @@
 import { KillmailQuery } from "@/generated/graphql";
+import { getShipTier } from "@/utils/shipTier";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import ShipTierBadge from "../ShipTierBadge/ShipTierBadge";
 import Tooltip from "../Tooltip/Tooltip";
 
 interface AttackerProps {
@@ -78,20 +80,31 @@ export default function AttackerRow({
 
         <div className="flex flex-col pr-4 shrink-0">
           <Tooltip content={attacker.shipType?.name || "Unknown Ship"}>
-            {attacker.shipType?.id ? (
-              <img
-                src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=64`}
-                alt={attacker.shipType?.name || "Ship"}
-                width={48}
-                height={48}
-                className="shadow-md"
-                loading="lazy"
-              />
-            ) : (
-              <div className="flex items-center justify-center shadow-md size-12">
-                <QuestionMarkCircleIcon className="w-8 h-8 text-gray-400" />
-              </div>
-            )}
+            <div className="relative">
+              {attacker.shipType?.id &&
+                getShipTier(attacker.shipType?.dogmaAttributes) && (
+                  <div className="absolute top-0 left-0 z-20">
+                    <ShipTierBadge
+                      tier={getShipTier(attacker.shipType?.dogmaAttributes)}
+                      className="size-4"
+                    />
+                  </div>
+                )}
+              {attacker.shipType?.id ? (
+                <img
+                  src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=64`}
+                  alt={attacker.shipType?.name || "Ship"}
+                  width={48}
+                  height={48}
+                  className="shadow-md"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="flex items-center justify-center shadow-md size-12">
+                  <QuestionMarkCircleIcon className="w-8 h-8 text-gray-400" />
+                </div>
+              )}
+            </div>
           </Tooltip>
           <Tooltip content={attacker.weaponType?.name || "Unknown Weapon"}>
             {attacker.weaponType?.id ? (
