@@ -102,7 +102,7 @@ psql $DATABASE_URL < /root/killreport/backend/manual-migration-add-values.sql
 
 To populate values for old killmails, use the backfill system:
 
-**Detailed guide:** [`docs/BACKFILL_VALUES_GUIDE.MD`](./BACKFILL_VALUES_GUIDE.MD)
+**Detailed guide:** [`docs/BACKFILL_VALUES_GUIDE.MD`](/backend/docs/workers/BACKFILL_VALUES_GUIDE.MD)
 
 **Quick usage:**
 

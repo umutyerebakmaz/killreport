@@ -464,10 +464,10 @@ yarn sync:character 95465499 999
 
 ## Related Documentation
 
-- [Alliance Worker](./ALLIANCE_WORKER_README.MD)
-- [Corporation Worker](./CORPORATION_WORKER_README.MD)
-- [Queue System](./MODULAR_ARCHITECTURE.MD)
-- [ESI Integration](./EVE_SSO_README.MD)
+- [Worker Documentation](/backend/docs/workers/WORKER_DOCUMENTATION.MD)
+- [Enrichment System](/backend/docs/workers/ENRICHMENT.MD)
+- [ESI Integration](/backend/docs/authentication/EVE_SSO_README.MD)
+- [Architecture](/backend/docs/ARCHITECTURE.MD)
 
 ## Support
 

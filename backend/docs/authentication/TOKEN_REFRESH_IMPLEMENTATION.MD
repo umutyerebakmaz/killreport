@@ -4,7 +4,7 @@
 
 ### 1. Queue Script Token Validation
 
-**File**: [`queue-user-esi-killmails.ts`](backend/src/queues/queue-user-esi-killmails.ts)
+**File**: [`queue-user-esi-killmails.ts`](/backend/src/queues/queue-user-esi-killmails.ts)
 
 **Changes**:
 
@@ -29,7 +29,7 @@ where: {
 
 ### 2. Worker Token Refresh Logic
 
-**File**: [`worker-esi-user-killmails.ts`](backend/src/workers/worker-esi-user-killmails.ts)
+**File**: [`worker-esi-user-killmails.ts`](/backend/src/workers/worker-esi-user-killmails.ts)
 
 **Changes**:
 
@@ -315,9 +315,9 @@ refreshAccessToken(refreshToken)
 
 **Related Files**:
 
-- Queue: [`queue-user-esi-killmails.ts`](backend/src/queues/queue-user-esi-killmails.ts)
-- Worker: [`worker-esi-user-killmails.ts`](backend/src/workers/worker-esi-user-killmails.ts)
-- SSO Service: [`eve-sso.ts`](backend/src/services/eve-sso.ts)
-- Docs: [`ESI_USER_KILLMAIL_SYNC.MD`](backend/src/docs/ESI_USER_KILLMAIL_SYNC.MD)
+- Queue: [`queue-user-esi-killmails.ts`](/backend/src/queues/queue-user-esi-killmails.ts)
+- Worker: [`worker-esi-user-killmails.ts`](/backend/src/workers/worker-esi-user-killmails.ts)
+- SSO Service: [`eve-sso.ts`](/backend/src/services/eve-sso.ts)
+- Docs: [`ESI_USER_KILLMAIL_SYNC.MD`](/backend/docs/ESI_USER_KILLMAIL_SYNC.MD)
 
 **Status**: ✅ Implemented and Ready for Testing
