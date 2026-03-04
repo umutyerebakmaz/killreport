@@ -106,4 +106,4 @@ yarn sync:character 196379789
 
 ## Full Documentation
 
-See [CHARACTER_KILLMAIL_WORKER.MD](./CHARACTER_KILLMAIL_WORKER.MD) for complete documentation.
+See [CHARACTER_KILLMAIL_WORKER.MD](/backend/docs/CHARACTER_KILLMAIL_WORKER.MD) for complete documentation.
