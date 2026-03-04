@@ -15,6 +15,7 @@ input KillmailFilter {
   regionId: Int
   constellationId: Int
   systemId: Int
+  securitySpace: String
   minAttackers: Int
   maxAttackers: Int
   minValue: Float
