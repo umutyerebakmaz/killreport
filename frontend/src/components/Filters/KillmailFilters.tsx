@@ -27,6 +27,7 @@ interface KillmailFiltersProps {
     attacker?: boolean;
     characterVictim?: boolean;
     characterAttacker?: boolean;
+    securitySpace?: string;
     minAttackers?: number;
     maxAttackers?: number;
     minValue?: number;
@@ -44,6 +45,13 @@ interface KillmailFiltersProps {
   initialMaxValue?: number;
   initialShipRole?: "all" | "victim" | "attacker";
   initialCharacterRole?: "all" | "victim" | "attacker";
+  initialSecuritySpace?:
+    | "all"
+    | "highsec"
+    | "lowsec"
+    | "nullsec"
+    | "wormhole"
+    | "abyssal";
 }
 
 export default function KillmailFilters({
@@ -60,6 +68,7 @@ export default function KillmailFilters({
   initialMaxValue,
   initialShipRole = "all",
   initialCharacterRole = "all",
+  initialSecuritySpace = "all",
 }: KillmailFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [typeSearch, setTypeSearch] = useState("");
@@ -97,6 +106,9 @@ export default function KillmailFilters({
   const [characterRole, setCharacterRole] = useState<
     "all" | "victim" | "attacker"
   >(initialCharacterRole);
+  const [securitySpace, setSecuritySpace] = useState<
+    "all" | "highsec" | "lowsec" | "nullsec" | "wormhole" | "abyssal"
+  >(initialSecuritySpace);
 
   // Pilot search state
   const [pilotSearch, setPilotSearch] = useState("");
@@ -245,7 +257,8 @@ export default function KillmailFilters({
     minValue ||
     maxValue ||
     (shipTypeId && shipRole !== "all") ||
-    (characterId && characterRole !== "all");
+    (characterId && characterRole !== "all") ||
+    securitySpace !== "all";
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -346,6 +359,10 @@ export default function KillmailFilters({
   useEffect(() => {
     setCharacterRole(initialCharacterRole);
   }, [initialCharacterRole]);
+
+  useEffect(() => {
+    setSecuritySpace(initialSecuritySpace);
+  }, [initialSecuritySpace]);
 
   // Show dropdown when we have results
   useEffect(() => {
@@ -484,6 +501,7 @@ export default function KillmailFilters({
             ? false
             : undefined
         : undefined,
+      securitySpace: securitySpace !== "all" ? securitySpace : undefined,
       minAttackers: minAttackers ? Number(minAttackers) : undefined,
       maxAttackers: maxAttackers ? Number(maxAttackers) : undefined,
       minValue: minValue ? Number(minValue) : undefined,
@@ -515,6 +533,7 @@ export default function KillmailFilters({
     setMaxValue("");
     setShipRole("all");
     setCharacterRole("all");
+    setSecuritySpace("all");
     onClearFilters();
   };
 
@@ -543,6 +562,7 @@ export default function KillmailFilters({
                   characterId,
                   systemId,
                   constellationId,
+                  securitySpace !== "all",
                   minAttackers,
                   maxAttackers,
                   minValue,
@@ -1179,90 +1199,121 @@ export default function KillmailFilters({
             </div>
           </div>
 
-          {/* RIGHT: Chips + Role */}
-          {(characterId ||
-            shipTypeId ||
-            shipGroupIds.length > 0 ||
-            systemId ||
-            constellationId) && (
-            <div className="flex flex-col gap-4 min-w-48">
-              <p className="text-xs font-medium text-gray-400">Selected</p>
+          {/* RIGHT: Chips + Role & Security Space */}
+          <div className="flex flex-col gap-4 min-w-48">
+            <p className="text-xs font-medium text-gray-400">Selected</p>
 
-              {/* Character chip + its own RadioGroup */}
-              {characterId && (
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-gray-700/50">
-                      <img
-                        src={`https://images.evetech.net/characters/${characterId}/portrait?size=64`}
-                        alt={characterName}
-                        className="object-cover size-8"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src =
-                            "/images/default-avatar.png";
-                        }}
-                      />
-                      <span className="font-semibold truncate">
-                        {characterName}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCharacterId(undefined);
-                        setCharacterName("");
-                        setCharacterRole("all");
+            {/* Character chip + its own RadioGroup */}
+            {characterId && (
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-gray-700/50">
+                    <img
+                      src={`https://images.evetech.net/characters/${characterId}/portrait?size=64`}
+                      alt={characterName}
+                      className="object-cover size-8"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          "/images/default-avatar.png";
                       }}
-                      className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
-                    >
-                      <XMarkIcon className="w-4 h-4" />
-                    </button>
+                    />
+                    <span className="font-semibold truncate">
+                      {characterName}
+                    </span>
                   </div>
-                  <RadioGroup
-                    name="character-role"
-                    value={characterRole}
-                    onChange={setCharacterRole}
-                    options={[
-                      { value: "all", label: "All" },
-                      { value: "victim", label: "Victim" },
-                      { value: "attacker", label: "Attacker" },
-                    ]}
-                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCharacterId(undefined);
+                      setCharacterName("");
+                      setCharacterRole("all");
+                    }}
+                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                  >
+                    <XMarkIcon className="w-4 h-4" />
+                  </button>
                 </div>
-              )}
+                <RadioGroup
+                  name="character-role"
+                  value={characterRole}
+                  onChange={setCharacterRole}
+                  options={[
+                    { value: "all", label: "All" },
+                    { value: "victim", label: "Victim" },
+                    { value: "attacker", label: "Attacker" },
+                  ]}
+                />
+              </div>
+            )}
 
-              {/* Ship chip + its own RadioGroup */}
-              {shipTypeId && (
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-gray-700/50">
-                      <img
-                        src={`https://images.evetech.net/types/${shipTypeId}/icon?size=64`}
-                        alt={shipTypeName}
-                        className="object-cover size-8"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src =
-                            "/images/default-ship.png";
-                        }}
-                      />
+            {/* Ship chip + its own RadioGroup */}
+            {shipTypeId && (
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-gray-700/50">
+                    <img
+                      src={`https://images.evetech.net/types/${shipTypeId}/icon?size=64`}
+                      alt={shipTypeName}
+                      className="object-cover size-8"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          "/images/default-ship.png";
+                      }}
+                    />
+                    <span className="font-semibold truncate">
+                      {shipTypeName}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShipTypeId(undefined);
+                      setShipTypeName("");
+                      setShipRole("all");
+                    }}
+                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                  >
+                    <XMarkIcon className="w-4 h-4" />
+                  </button>
+                </div>
+                <RadioGroup
+                  name="ship-type-role"
+                  value={shipRole}
+                  onChange={setShipRole}
+                  options={[
+                    { value: "all", label: "All" },
+                    { value: "victim", label: "Victim" },
+                    { value: "attacker", label: "Attacker" },
+                  ]}
+                />
+              </div>
+            )}
+
+            {/* Ship Groups chips */}
+            {shipGroupIds.length > 0 && (
+              <div className="flex flex-col gap-2">
+                <div className="text-xs font-medium text-gray-400">
+                  Ship Groups
+                </div>
+                {shipGroupIds.map((groupId) => (
+                  <div key={groupId} className="flex items-center gap-2">
+                    <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-blue-900/30">
                       <span className="font-semibold truncate">
-                        {shipTypeName}
+                        {shipGroupNames.get(groupId) || `Group ${groupId}`}
                       </span>
                     </div>
                     <button
                       type="button"
-                      onClick={() => {
-                        setShipTypeId(undefined);
-                        setShipTypeName("");
-                        setShipRole("all");
-                      }}
+                      onClick={() => handleGroupRemove(groupId)}
                       className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
                     >
                       <XMarkIcon className="w-4 h-4" />
                     </button>
                   </div>
+                ))}
+                {!shipTypeId && (
                   <RadioGroup
-                    name="ship-type-role"
+                    name="ship-group-role"
                     value={shipRole}
                     onChange={setShipRole}
                     options={[
@@ -1271,118 +1322,100 @@ export default function KillmailFilters({
                       { value: "attacker", label: "Attacker" },
                     ]}
                   />
-                </div>
-              )}
+                )}
+              </div>
+            )}
 
-              {/* Ship Groups chips */}
-              {shipGroupIds.length > 0 && (
-                <div className="flex flex-col gap-2">
-                  <div className="text-xs font-medium text-gray-400">
-                    Ship Groups
-                  </div>
-                  {shipGroupIds.map((groupId) => (
-                    <div key={groupId} className="flex items-center gap-2">
-                      <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-blue-900/30">
-                        <span className="font-semibold truncate">
-                          {shipGroupNames.get(groupId) || `Group ${groupId}`}
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleGroupRemove(groupId)}
-                        className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
-                      >
-                        <XMarkIcon className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                  {!shipTypeId && (
-                    <RadioGroup
-                      name="ship-group-role"
-                      value={shipRole}
-                      onChange={setShipRole}
-                      options={[
-                        { value: "all", label: "All" },
-                        { value: "victim", label: "Victim" },
-                        { value: "attacker", label: "Attacker" },
-                      ]}
-                    />
-                  )}
+            {/* Solar System chip */}
+            {systemId && (
+              <div className="flex flex-col gap-2">
+                <div className="text-xs font-medium text-gray-400">
+                  Solar System
                 </div>
-              )}
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
+                    <span className="font-semibold truncate">
+                      {solarSystemName || `System ${systemId}`}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      console.log(
+                        "🔍 System chip remove clicked, current state:",
+                        {
+                          systemId,
+                          solarSystemName,
+                          constellationId,
+                          constellationName,
+                        },
+                      );
+                      setSystemId(undefined);
+                      setSolarSystemName("");
+                    }}
+                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                  >
+                    <XMarkIcon className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
 
-              {/* Solar System chip */}
-              {systemId && (
-                <div className="flex flex-col gap-2">
-                  <div className="text-xs font-medium text-gray-400">
-                    Solar System
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
-                      <span className="font-semibold truncate">
-                        {solarSystemName || `System ${systemId}`}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        console.log(
-                          "🔍 System chip remove clicked, current state:",
-                          {
-                            systemId,
-                            solarSystemName,
-                            constellationId,
-                            constellationName,
-                          },
-                        );
-                        setSystemId(undefined);
-                        setSolarSystemName("");
-                      }}
-                      className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
-                    >
-                      <XMarkIcon className="w-4 h-4" />
-                    </button>
-                  </div>
+            {/* Constellation chip */}
+            {constellationId && (
+              <div className="flex flex-col gap-2">
+                <div className="text-xs font-medium text-gray-400">
+                  Constellation
                 </div>
-              )}
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
+                    <span className="font-semibold truncate">
+                      {constellationName || `Constellation ${constellationId}`}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      console.log(
+                        "🔍 Constellation chip remove clicked, current state:",
+                        {
+                          constellationId,
+                          constellationName,
+                          systemId,
+                          solarSystemName,
+                        },
+                      );
+                      setConstellationId(undefined);
+                      setConstellationName("");
+                    }}
+                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                  >
+                    <XMarkIcon className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
 
-              {/* Constellation chip */}
-              {constellationId && (
-                <div className="flex flex-col gap-2">
-                  <div className="text-xs font-medium text-gray-400">
-                    Constellation
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
-                      <span className="font-semibold truncate">
-                        {constellationName ||
-                          `Constellation ${constellationId}`}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        console.log(
-                          "🔍 Constellation chip remove clicked, current state:",
-                          {
-                            constellationId,
-                            constellationName,
-                            systemId,
-                            solarSystemName,
-                          },
-                        );
-                        setConstellationId(undefined);
-                        setConstellationName("");
-                      }}
-                      className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
-                    >
-                      <XMarkIcon className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
+            {/* Security Space - Always visible */}
+            <div className="flex flex-col gap-2">
+              <div className="text-xs font-medium text-gray-400">
+                Security Space
+              </div>
+              <RadioGroup
+                name="security-space"
+                value={securitySpace}
+                onChange={setSecuritySpace}
+                options={[
+                  { value: "all", label: "All" },
+                  { value: "highsec", label: "HighSec" },
+                  { value: "lowsec", label: "LowSec" },
+                  { value: "nullsec", label: "NullSec" },
+                  { value: "wormhole", label: "Wormhole" },
+                  { value: "abyssal", label: "Abyssal" },
+                ]}
+              />
             </div>
-          )}
+          </div>
         </div>
 
         <div className="flex justify-end pt-4 border-t border-white/5">

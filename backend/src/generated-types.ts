@@ -559,6 +559,7 @@ export type KillmailFilter = {
   page?: InputMaybe<Scalars['Int']['input']>;
   regionId?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
+  securitySpace?: InputMaybe<Scalars['String']['input']>;
   shipGroupIds?: InputMaybe<Array<Scalars['Int']['input']>>;
   shipTypeId?: InputMaybe<Scalars['Int']['input']>;
   systemId?: InputMaybe<Scalars['Int']['input']>;

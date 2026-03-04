@@ -472,6 +472,7 @@ input KillmailFilter {
   page: Int
   regionId: Int
   search: String
+  securitySpace: String
   shipGroupIds: [Int!]
   shipTypeId: Int
   systemId: Int
