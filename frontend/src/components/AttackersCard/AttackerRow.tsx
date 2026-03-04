@@ -29,12 +29,6 @@ export default function AttackerRow({
   const isSolo = killmail.solo;
   const isNpcAttackers = killmail.npc;
 
-  // Check if attacker is NPC (no character but has corporation)
-  const isNPC = !attacker.character?.id && attacker.corporation?.id;
-  // NPC corporations have IDs < 2000000
-  const isNPCCorporation =
-    attacker.corporation?.id && attacker.corporation.id < 2000000;
-
   return (
     <div className="p-3 transition-colors duration-100 bg-neutral-900 hover:bg-neutral-800">
       <div className="flex">
@@ -65,18 +59,25 @@ export default function AttackerRow({
                 </div>
               )}
           </div>
-        ) : isNPC && isNPCCorporation ? (
+        ) : attacker.corporation?.id ? (
           <div className="relative shrink-0">
             <img
               src={`https://images.evetech.net/corporations/${attacker.corporation?.id}/logo?size=128`}
-              alt={attacker.corporation?.name || "NPC Corporation"}
+              alt={attacker.corporation?.name || "Corporation"}
               width={96}
               height={96}
               className="shadow-md"
               loading="lazy"
             />
           </div>
-        ) : null}
+        ) : (
+          <div
+            className="relative flex items-center justify-center shadow-md shrink-0 bg-neutral-800"
+            style={{ width: 96, height: 96 }}
+          >
+            <span className="text-2xl font-bold text-red-500">NPC</span>
+          </div>
+        )}
 
         <div className="flex flex-col pr-4 shrink-0">
           <Tooltip content={attacker.shipType?.name || "Unknown Ship"}>
@@ -111,6 +112,15 @@ export default function AttackerRow({
               <img
                 src={`https://images.evetech.net/types/${attacker.weaponType?.id}/icon?size=64`}
                 alt={attacker.weaponType?.name || "Weapon"}
+                width={48}
+                height={48}
+                className="bg-white/5"
+                loading="lazy"
+              />
+            ) : attacker.shipType?.id ? (
+              <img
+                src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=64`}
+                alt={attacker.shipType?.name || "Ship"}
                 width={48}
                 height={48}
                 className="bg-white/5"
