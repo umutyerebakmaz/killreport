@@ -13,6 +13,7 @@ export interface KillmailFilters {
     regionId?: number;
     constellationId?: number;
     systemId?: number;
+    securitySpace?: string;
     minAttackers?: number;
     maxAttackers?: number;
     minValue?: number;
@@ -23,6 +24,7 @@ export interface ParsedUrlFilters extends KillmailFilters {
     page: number;
     shipTypeRole: "all" | "victim" | "attacker";
     characterRole: "all" | "victim" | "attacker";
+    securitySpaceRole: "all" | "highsec" | "lowsec" | "nullsec" | "wormhole" | "abyssal";
 }
 
 /**
@@ -75,6 +77,9 @@ export function parseKillmailFiltersFromUrl(
     const characterRoleFromUrl =
         (searchParams.get("characterRole") as "all" | "victim" | "attacker" | null) ?? "all";
 
+    const securitySpaceRoleFromUrl =
+        (searchParams.get("securitySpace") as "all" | "highsec" | "lowsec" | "nullsec" | "wormhole" | "abyssal" | null) ?? "all";
+
     // Build filters object
     const filters: KillmailFilters = {
         shipTypeId: shipTypeIdFromUrl,
@@ -82,6 +87,7 @@ export function parseKillmailFiltersFromUrl(
         characterId: characterIdFromUrl,
         systemId: systemIdFromUrl,
         constellationId: constellationIdFromUrl,
+        securitySpace: securitySpaceRoleFromUrl !== "all" ? securitySpaceRoleFromUrl : undefined,
         minAttackers: minAttackersFromUrl,
         maxAttackers: maxAttackersFromUrl,
         minValue: minValueFromUrl,
@@ -116,6 +122,7 @@ export function parseKillmailFiltersFromUrl(
         page,
         shipTypeRole: shipTypeRoleFromUrl,
         characterRole: characterRoleFromUrl,
+        securitySpaceRole: securitySpaceRoleFromUrl,
         ...filters,
     };
 }
@@ -190,6 +197,10 @@ export function buildKillmailFiltersUrl(
 
     if (filters.constellationId) {
         params.set("constellationId", filters.constellationId.toString());
+    }
+
+    if (filters.securitySpace && filters.securitySpace !== "all") {
+        params.set("securitySpace", filters.securitySpace);
     }
 
     return params.toString();

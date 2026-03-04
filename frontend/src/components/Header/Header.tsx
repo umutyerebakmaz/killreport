@@ -128,9 +128,36 @@ export default function Header() {
               </div>
             </PopoverPanel>
           </Popover>
-          <a href="/killmails" className="font-semibold text-white">
-            KILLMAILS
-          </a>
+          <Popover className="relative">
+            <PopoverButton className="flex items-center font-semibold text-white cursor-pointer gap-x-1">
+              KILLMAILS
+              <ChevronDownIcon
+                aria-hidden="true"
+                className="flex-none text-gray-500 size-5"
+              />
+            </PopoverButton>
+            <PopoverPanel
+              transition
+              className="absolute z-10 w-screen max-w-md mt-3 overflow-hidden transition -translate-x-1/2 bg-stone-900 left-1/2 outline-1 -outline-offset-1 outline-white/10 data-closed:translate-y-1 data-closed:opacity-0 data-enter:duration-200 data-enter:ease-out data-leave:duration-150 data-leave:ease-in"
+            >
+              <div className="p-4">
+                <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
+                  <div className="flex-auto">
+                    <a
+                      href="/killmails?ssc=null"
+                      className="block font-semibold text-white"
+                    >
+                      WORMHOLES
+                      <span className="absolute inset-0" />
+                    </a>
+                    <p className="mt-1 text-gray-400">
+                      Explore wormhole space killmails and statistics
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </PopoverPanel>
+          </Popover>
           <a href="/alliances" className="font-semibold text-white">
             ALLIANCES
           </a>
@@ -223,12 +250,24 @@ export default function Header() {
                     </DisclosureButton>
                   </DisclosurePanel>
                 </Disclosure>
-                <a
-                  href="/killmails"
-                  className="block px-3 py-2 -mx-3 font-semibold text-white text-base/7 hover:bg-white/5"
-                >
-                  KILLMAILS
-                </a>
+                <Disclosure as="div" className="-mx-3">
+                  <DisclosureButton className="group flex w-full items-center justify-between py-2 pr-3.5 pl-3 text-base/7 font-semibold text-white hover:bg-white/5">
+                    KILLMAILS
+                    <ChevronDownIcon
+                      aria-hidden="true"
+                      className="flex-none size-5 group-data-open:rotate-180"
+                    />
+                  </DisclosureButton>
+                  <DisclosurePanel className="mt-2 space-y-2">
+                    <DisclosureButton
+                      as="a"
+                      href="/killmails?page=1&ssc=null"
+                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
+                    >
+                      WORMHOLES
+                    </DisclosureButton>
+                  </DisclosurePanel>
+                </Disclosure>
                 <a
                   href="/alliances"
                   className="block px-3 py-2 -mx-3 font-semibold text-white text-base/7 hover:bg-white/5"
