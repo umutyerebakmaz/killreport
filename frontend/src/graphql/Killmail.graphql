@@ -78,6 +78,10 @@ query Killmail($id: ID!) {
       shipType {
         id
         name
+        dogmaAttributes(ids: [422, 1692]) {
+          attribute_id
+          value
+        }
         group {
           name
         }
