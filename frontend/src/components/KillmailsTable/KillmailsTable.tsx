@@ -65,18 +65,18 @@ export default function KillmailsTable({
               <colgroup>
                 <col className="w-10" />
                 <col className="w-30" />
-                <col className="w-30" />
-                <col className="w-30" />
                 <col className="w-16" />
+                <col className="w-30" />
+                <col className="w-30" />
                 <col className="w-12" />
               </colgroup>
               <thead className="bg-neutral-800">
                 <tr>
                   <th className="text-left th-cell">Time</th>
                   <th className="text-left th-cell">Ship</th>
+                  <th className="text-left th-cell">System</th>
                   <th className="text-left th-cell">Victim</th>
                   <th className="text-left th-cell">Final Blow</th>
-                  <th className="text-left th-cell">System</th>
                   <th className="text-left th-cell">Attackers</th>
                 </tr>
               </thead>
