@@ -32,7 +32,7 @@
 
 ### Data Flow
 
-```
+```text
 ┌─────────────────┐
 │  User Login     │
 │  (SSO)          │
@@ -159,7 +159,7 @@ class UserKillmailCron {
 
 **Console Output:**
 
-```
+```text
 ──────────────────────────────────────────────────────────────────────
 🕐 [06.01.2026 14:30:00] Running background sync...
 ──────────────────────────────────────────────────────────────────────
@@ -203,7 +203,7 @@ yarn queue:user-killmails --force --full
 
 **Console Output:**
 
-```
+```text
 📡 Queueing users for ESI killmail sync...
 
 ✓ Found 5 active user(s) with valid tokens
@@ -263,7 +263,7 @@ async function esiUserKillmailWorker() {
 
 **Worker Process:**
 
-```
+```text
 1. Message Received
    ↓
 2. Token Check (expired?)
@@ -294,7 +294,7 @@ async function esiUserKillmailWorker() {
 
 **Console Output:**
 
-```
+```text
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 👤 Processing: John Doe (ID: 95465499)
 🆔 User ID: 1
@@ -499,7 +499,7 @@ interface UserKillmailMessage {
 
 ### Scenario 1: First Login (First Time User)
 
-```
+```text
 1. User logs in via SSO
    ↓
 2. Auth resolver runs:
@@ -521,7 +521,7 @@ interface UserKillmailMessage {
 
 ### Scenario 2: Background Sync (After 10 Minutes)
 
-```
+```text
 1. Cron job runs (after 10 minutes)
    ↓
 2. User found:
@@ -542,7 +542,7 @@ interface UserKillmailMessage {
 
 ### Scenario 3: Login Again (Within 15 Minutes)
 
-```
+```text
 1. User logs in again
    ↓
 2. Auth resolver checks:
@@ -559,7 +559,7 @@ interface UserKillmailMessage {
 
 ### Scenario 4: Manual Full Sync
 
-```
+```text
 1. Admin runs command:
    yarn queue:user-killmails --force --full
    ↓
@@ -638,7 +638,7 @@ tsx redis/check-queue.ts
 
 **Output:**
 
-```
+```text
 🔍 Checking RabbitMQ queue status...
 
 📦 Queue: esi_user_killmails_queue
@@ -735,7 +735,7 @@ WHERE created_at > CURRENT_DATE;
 
 **Symptoms:**
 
-```
+```text
 📊 Messages in queue: 0
 👥 Consumers: 0
 ```
@@ -756,7 +756,7 @@ pm2 start ecosystem.config.js --only worker-user-killmails
 
 **Symptoms:**
 
-```
+```text
 📊 Messages in queue: 100
 👥 Consumers: 0
 ```
@@ -784,7 +784,7 @@ pm2 restart worker-user-killmails
 
 **Symptoms:**
 
-```
+```text
 ⚠️  Queue is empty. No users queued for killmail sync.
 ```
 
@@ -795,6 +795,7 @@ pm2 restart worker-user-killmails
 1. Login via SSO in frontend
 2. Make sure tokens haven't expired
 3. Check database:
+
    ```sql
    SELECT character_name, expires_at
    FROM users
@@ -850,7 +851,7 @@ const KILLMAIL_DETAIL_DELAY_MS = 100; // Decrease from 150 to 100
 
 **Log:**
 
-```
+```bash
 ⏭️  Skipped: 125467890 (already in database)
 ```
 

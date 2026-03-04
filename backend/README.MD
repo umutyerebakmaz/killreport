@@ -60,23 +60,30 @@ Server runs on: **<http://localhost:4000/graphql>**
 
 ### Operations & Maintenance
 
-- [**📅 Daily Operations Guide**](./DAILY_OPERATIONS.MD) - Daily character/corporation sync and maintenance tasks
+- [**📅 Daily Operations Guide**](./docs/DAILY.MD) - Daily character/corporation sync and maintenance tasks
 
 ### Core Features
 
-- [EVE SSO Authentication](./src/docs/EVE_SSO_README.MD)
+- [EVE SSO Authentication](./docs/EVE_SSO_README.MD)
 - [GraphQL Schema](./src/generated-schema.graphql)
 - [Database Schema](./prisma/schema.prisma)
-- [**Killmail Enrichment System**](./src/docs/ENRICHMENT_README.MD) - Automatic data enrichment for killmails
+- [**Killmail Enrichment System**](./docs/ENRICHMENT.MD) - Automatic data enrichment for killmails
 - [**Capsule Value Calculation**](./docs/CAPSULE_VALUE_CALCULATION.MD) - Fixed 10 ISK ship value for Capsules
 
 ### Workers & Background Jobs
 
-- [**Complete Workers Documentation**](./src/docs/WORKERS_DOCUMENTATION.MD) - All workers and queue systems
-- [**RedisQ Real-Time Stream**](./src/docs/REDISQ_STREAM.MD) - Live killmail feed from zKillboard
-- [**Character Killmail Worker**](./src/docs/CHARACTER_KILLMAIL_WORKER.MD) - Sync killmails for any character
-- [Alliance Documentation](./src/docs/ALLIANCE.MD) - Alliance data management
-- [Alliance Corporations](./src/docs/ALLIANCE_CORPORATION.MD) - Alliance corporation syncing
+- [**Complete Workers Documentation**](./docs/WORKER_DOCUMENTATION.MD) - All workers and queue systems
+- [**RedisQ Real-Time Stream**](./docs/REDISQ_STREAM.MD) - Live killmail feed from zKillboard
+- [**Character Killmail Worker**](./docs/CHARACTER_KILLMAIL_WORKER.MD) - Sync killmails for any character
+- [Alliance Documentation](./docs/ALLIANCE.MD) - Alliance data management
+- [Alliance Corporations](./docs/ALLIANCE_CORPORATION.MD) - Alliance corporation syncing
+- [Corporation Killmail Sync](./docs/CORPORATION_KILLMAIL_SYNC.MD) - Corporation killmail synchronization
+
+### Performance & Optimization
+
+- [**Top Charts Cost Analysis**](../TOP_CHARTS_COST_ANALYSIS.md) - Materialized views performance analysis
+- [Cache Strategy](./docs/CACHE_STRATEGY.MD) - Caching implementation and optimization
+- [Performance Improvements](./docs/PERFORMANCE_IMPROVEMENTS.MD) - Database and query optimizations
 
 ### API Integration
 
@@ -342,3 +349,12 @@ yarn prisma:generate
 ## License
 
 MIT
+
+---
+
+## 📞 Contact
+
+- **In-Game**: General XAN (EVE Online)
+- **Issues**: [GitHub Issues](https://github.com/umutyerebakmaz/killreport/issues)
+
+Feel free to send ISK, feedback, or questions in-game!
