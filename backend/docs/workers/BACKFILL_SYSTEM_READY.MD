@@ -41,10 +41,7 @@ mutation {
   startKillmailBackfill(
     input: {
       characterId: 2117325769
-      options: {
-        fromDate: "2023-01-01"
-        maxPages: 10
-      }
+      options: { fromDate: "2023-01-01", maxPages: 10 }
     }
   ) {
     success
@@ -99,9 +96,9 @@ When backfilling character killmails:
 
 ```typescript
 interface BackfillOptions {
-  fromDate?: string;      // "2023-01-01" (only this date and after)
-  maxPages?: number;      // 10 (max 10 pages = 1000 killmails)
-  limit?: number;         // 100 (killmails per page, max 200)
+  fromDate?: string; // "2023-01-01" (only this date and after)
+  maxPages?: number; // 10 (max 10 pages = 1000 killmails)
+  limit?: number; // 100 (killmails per page, max 200)
   skipExisting?: boolean; // Default: true (skip duplicates)
 }
 ```
@@ -113,11 +110,7 @@ mutation {
   startKillmailBackfill(
     input: {
       characterId: 2117325769
-      options: {
-        fromDate: "2024-01-01"
-        maxPages: 5
-        limit: 200
-      }
+      options: { fromDate: "2024-01-01", maxPages: 5, limit: 200 }
     }
   ) {
     success
@@ -170,10 +163,10 @@ Both can run simultaneously.
 
 ### Queue Names
 
-| Worker                 | Queue Name                  | Purpose      |
-| ---------------------- | --------------------------- | ------------ |
-| worker-zkillboard      | zkillboard_character_queue  | Old system   |
-| worker-backfill        | zkillboard_backfill_queue   | New system   |
+| Worker            | Queue Name                 | Purpose    |
+| ----------------- | -------------------------- | ---------- |
+| worker-zkillboard | zkillboard_character_queue | Old system |
+| worker-backfill   | zkillboard_backfill_queue  | New system |
 
 ---
 
@@ -200,23 +193,22 @@ Both can run simultaneously.
 
 ## 🚀 Production Readiness
 
-| Feature               | Status |
-| --------------------- | ------ |
-| Rate limiting         | ✅     |
-| Duplicate prevention  | ✅     |
-| Entity enrichment     | ✅     |
-| Error handling        | ✅     |
-| Logging               | ✅     |
-| GraphQL integration   | ✅     |
-| PM2 support           | ✅     |
-| Tested in production  | ✅     |
+| Feature              | Status |
+| -------------------- | ------ |
+| Rate limiting        | ✅     |
+| Duplicate prevention | ✅     |
+| Entity enrichment    | ✅     |
+| Error handling       | ✅     |
+| Logging              | ✅     |
+| GraphQL integration  | ✅     |
+| PM2 support          | ✅     |
+| Tested in production | ✅     |
 
 ---
 
 ## 📚 Documentation
 
-- **Queue Usage Guide:** [QUEUE_BACKFILL_GUIDE.MD](./QUEUE_BACKFILL_GUIDE.MD)
-- **Full Value Backfill:** [BACKFILL_VALUES_GUIDE.MD](./BACKFILL_VALUES_GUIDE.MD)
+- **Full Value Backfill:** [BACKFILL_VALUES_GUIDE.MD](/backend/docs/workers/BACKFILL_VALUES_GUIDE.MD)
 
 ---
 
