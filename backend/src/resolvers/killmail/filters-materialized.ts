@@ -27,6 +27,7 @@ export async function filtersMaterialized(filter: KillmailFilter): Promise<numbe
     regionId,
     constellationId,
     systemId,
+    securitySpace,
     characterId,
     characterVictim,
     characterAttacker,
@@ -36,7 +37,7 @@ export async function filtersMaterialized(filter: KillmailFilter): Promise<numbe
     maxAttackers
   } = filter;
 
-  console.log('🔍 Filter input:', { shipTypeId, shipGroupIds, victim, attacker });
+  console.log('🔍 Filter input:', { shipTypeId, shipGroupIds, securitySpace, victim, attacker });
 
   // Collect all ship type IDs (from direct shipTypeId or from shipGroupIds)
   let allShipTypeIds: number[] = [];
@@ -126,6 +127,26 @@ export async function filtersMaterialized(filter: KillmailFilter): Promise<numbe
     params.push(systemId);
     conditions.push(`solar_system_id = $${paramIndex}`);
     paramIndex++;
+  }
+
+  // Security space filter: highsec, lowsec, nullsec, wormhole, abyssal
+  if (securitySpace !== undefined && securitySpace !== null && securitySpace !== "all") {
+    if (securitySpace === "highsec") {
+      // K-space highsec only (exclude wormhole/abyssal with similar security status)
+      conditions.push(`(security_status >= 0.5 AND solar_system_id < 31000000)`);
+    } else if (securitySpace === "lowsec") {
+      // K-space lowsec only (exclude wormhole/abyssal)
+      conditions.push(`(security_status > 0.0 AND security_status < 0.5 AND solar_system_id < 31000000)`);
+    } else if (securitySpace === "nullsec") {
+      // K-space nullsec only (security <= 0.0 but exclude wormhole/abyssal which also have -0.99)
+      conditions.push(`(security_status <= 0.0 AND solar_system_id < 31000000)`);
+    } else if (securitySpace === "wormhole") {
+      // Wormhole systems: 31M range (Thera, J-codes etc.) excluding Pochven
+      conditions.push(`(solar_system_id >= 31000000 AND solar_system_id < 32000000 AND region_id != 10000070)`);
+    } else if (securitySpace === "abyssal") {
+      // Abyssal Deadspace systems: AD001-AD200 (32000001-32000200)
+      conditions.push(`(solar_system_id >= 32000001 AND solar_system_id <= 32000200)`);
+    }
   }
 
   // Attacker count filters

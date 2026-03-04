@@ -48,6 +48,7 @@ function KillmailsContent() {
     regionId?: number;
     constellationId?: number;
     systemId?: number;
+    securitySpace?: string;
     minAttackers?: number;
     maxAttackers?: number;
     minValue?: number;
@@ -58,6 +59,7 @@ function KillmailsContent() {
     shipGroupIds: urlFilters.shipGroupIds,
     systemId: urlFilters.systemId,
     constellationId: urlFilters.constellationId,
+    securitySpace: urlFilters.securitySpace,
     minAttackers: urlFilters.minAttackers,
     maxAttackers: urlFilters.maxAttackers,
     minValue: urlFilters.minValue,
@@ -241,6 +243,7 @@ function KillmailsContent() {
         regionId: filters.regionId,
         constellationId: filters.constellationId,
         systemId: filters.systemId,
+        securitySpace: filters.securitySpace,
         minAttackers: filters.minAttackers,
         maxAttackers: filters.maxAttackers,
         minValue: filters.minValue,
@@ -275,6 +278,7 @@ function KillmailsContent() {
         regionId: filters.regionId,
         constellationId: filters.constellationId,
         systemId: filters.systemId,
+        securitySpace: filters.securitySpace,
         minAttackers: filters.minAttackers,
         maxAttackers: filters.maxAttackers,
         minValue: filters.minValue,
@@ -298,6 +302,7 @@ function KillmailsContent() {
     filters.characterAttacker,
     filters.systemId,
     filters.constellationId,
+    filters.securitySpace,
     filters.minAttackers,
     filters.maxAttackers,
     filters.minValue,
@@ -408,6 +413,7 @@ function KillmailsContent() {
           initialMaxValue={urlFilters.maxValue}
           initialShipRole={urlFilters.shipTypeRole}
           initialCharacterRole={urlFilters.characterRole}
+          initialSecuritySpace={urlFilters.securitySpaceRole}
         />
       </div>
 
