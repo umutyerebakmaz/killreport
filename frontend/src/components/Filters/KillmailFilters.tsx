@@ -4,8 +4,10 @@ import RadioGroup from "@/components/RadioGroup/RadioGroup";
 import {
   useSearchCharacterQuery,
   useSearchCharactersQuery,
+  useSearchConstellationQuery,
   useSearchConstellationsQuery,
   useSearchItemGroupsQuery,
+  useSearchSolarSystemQuery,
   useSearchSolarSystemsQuery,
   useSearchTypeQuery,
   useSearchTypesQuery,
@@ -154,28 +156,54 @@ export default function KillmailFilters({
   // Fetch initial character name from URL param
   const { data: initialCharacterData } = useSearchCharacterQuery({
     variables: { id: initialCharacterId! },
-    skip: !initialCharacterId || !!characterName,
+    skip: !initialCharacterId,
   });
 
   // Fetch initial ship type name from URL param
   const { data: initialTypeData } = useSearchTypeQuery({
     variables: { id: initialShipTypeId! },
-    skip: !initialShipTypeId || !!shipTypeName,
+    skip: !initialShipTypeId,
+  });
+
+  // Fetch initial solar system name from URL param
+  const { data: initialSolarSystemData } = useSearchSolarSystemQuery({
+    variables: { id: initialSystemId! },
+    skip: !initialSystemId,
+  });
+
+  // Fetch initial constellation name from URL param
+  const { data: initialConstellationData } = useSearchConstellationQuery({
+    variables: { id: initialConstellationId! },
+    skip: !initialConstellationId,
   });
 
   // Populate character name from initial fetch
   useEffect(() => {
-    if (initialCharacterData?.character?.name && !characterName) {
+    if (initialCharacterData?.character?.name) {
       setCharacterName(initialCharacterData.character.name);
     }
-  }, [initialCharacterData, characterName]);
+  }, [initialCharacterData]);
 
   // Populate ship type name from initial fetch
   useEffect(() => {
-    if (initialTypeData?.type?.name && !shipTypeName) {
+    if (initialTypeData?.type?.name) {
       setShipTypeName(initialTypeData.type.name);
     }
-  }, [initialTypeData, shipTypeName]);
+  }, [initialTypeData]);
+
+  // Populate solar system name from initial fetch
+  useEffect(() => {
+    if (initialSolarSystemData?.solarSystem?.name) {
+      setSolarSystemName(initialSolarSystemData.solarSystem.name);
+    }
+  }, [initialSolarSystemData]);
+
+  // Populate constellation name from initial fetch
+  useEffect(() => {
+    if (initialConstellationData?.constellation?.name) {
+      setConstellationName(initialConstellationData.constellation.name);
+    }
+  }, [initialConstellationData]);
 
   // GraphQL query for pilot search
   const { data: pilotData, loading: pilotLoading } = useSearchCharactersQuery({
@@ -260,7 +288,11 @@ export default function KillmailFilters({
 
   // Sync state when initial props change (e.g., when URL changes)
   useEffect(() => {
-    if (initialShipTypeId !== undefined) setShipTypeId(initialShipTypeId);
+    setShipTypeId(initialShipTypeId);
+    // Clear name when shipTypeId is undefined
+    if (!initialShipTypeId) {
+      setShipTypeName("");
+    }
   }, [initialShipTypeId]);
 
   useEffect(() => {
@@ -268,16 +300,27 @@ export default function KillmailFilters({
   }, [initialShipGroupIds]);
 
   useEffect(() => {
-    if (initialCharacterId !== undefined) setCharacterId(initialCharacterId);
+    setCharacterId(initialCharacterId);
+    // Clear name when characterId is undefined
+    if (!initialCharacterId) {
+      setCharacterName("");
+    }
   }, [initialCharacterId]);
 
   useEffect(() => {
-    if (initialSystemId !== undefined) setSystemId(initialSystemId);
+    setSystemId(initialSystemId);
+    // Clear name when systemId is undefined
+    if (!initialSystemId) {
+      setSolarSystemName("");
+    }
   }, [initialSystemId]);
 
   useEffect(() => {
-    if (initialConstellationId !== undefined)
-      setConstellationId(initialConstellationId);
+    setConstellationId(initialConstellationId);
+    // Clear name when constellationId is undefined
+    if (!initialConstellationId) {
+      setConstellationName("");
+    }
   }, [initialConstellationId]);
 
   useEffect(() => {
@@ -447,7 +490,6 @@ export default function KillmailFilters({
       maxValue: maxValue ? Number(maxValue) : undefined,
     };
 
-    console.log("🔍 Frontend filter data:", filterData);
     onFilterChange(filterData);
   };
 
@@ -464,6 +506,9 @@ export default function KillmailFilters({
     setSolarSystemSearch("");
     setSystemId(undefined);
     setSolarSystemName("");
+    setConstellationSearch("");
+    setConstellationId(undefined);
+    setConstellationName("");
     setMinAttackers("");
     setMaxAttackers("");
     setMinValue("");
@@ -497,6 +542,7 @@ export default function KillmailFilters({
                   shipGroupIds.length > 0,
                   characterId,
                   systemId,
+                  constellationId,
                   minAttackers,
                   maxAttackers,
                   minValue,
@@ -1137,7 +1183,8 @@ export default function KillmailFilters({
           {(characterId ||
             shipTypeId ||
             shipGroupIds.length > 0 ||
-            systemId) && (
+            systemId ||
+            constellationId) && (
             <div className="flex flex-col gap-4 min-w-48">
               <p className="text-xs font-medium text-gray-400">Selected</p>
 
@@ -1273,12 +1320,21 @@ export default function KillmailFilters({
                   <div className="flex items-center gap-2">
                     <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
                       <span className="font-semibold truncate">
-                        {solarSystemName}
+                        {solarSystemName || `System ${systemId}`}
                       </span>
                     </div>
                     <button
                       type="button"
                       onClick={() => {
+                        console.log(
+                          "🔍 System chip remove clicked, current state:",
+                          {
+                            systemId,
+                            solarSystemName,
+                            constellationId,
+                            constellationName,
+                          },
+                        );
                         setSystemId(undefined);
                         setSolarSystemName("");
                       }}
@@ -1299,12 +1355,22 @@ export default function KillmailFilters({
                   <div className="flex items-center gap-2">
                     <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
                       <span className="font-semibold truncate">
-                        {constellationName}
+                        {constellationName ||
+                          `Constellation ${constellationId}`}
                       </span>
                     </div>
                     <button
                       type="button"
                       onClick={() => {
+                        console.log(
+                          "🔍 Constellation chip remove clicked, current state:",
+                          {
+                            constellationId,
+                            constellationName,
+                            systemId,
+                            solarSystemName,
+                          },
+                        );
                         setConstellationId(undefined);
                         setConstellationName("");
                       }}

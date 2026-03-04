@@ -31,10 +31,9 @@ function KillmailsContent() {
   const searchParams = useSearchParams();
 
   // Parse all filters from URL
-  const urlFilters = useMemo(
-    () => parseKillmailFiltersFromUrl(searchParams),
-    [searchParams],
-  );
+  const urlFilters = useMemo(() => {
+    return parseKillmailFiltersFromUrl(searchParams);
+  }, [searchParams]);
 
   const [currentPage, setCurrentPage] = useState(urlFilters.page);
   const [pageSize, setPageSize] = useState(25);
