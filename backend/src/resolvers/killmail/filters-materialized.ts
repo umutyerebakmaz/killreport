@@ -25,6 +25,7 @@ export async function filtersMaterialized(filter: KillmailFilter): Promise<numbe
     victim,
     attacker,
     regionId,
+    constellationId,
     systemId,
     characterId,
     characterVictim,
@@ -112,6 +113,12 @@ export async function filtersMaterialized(filter: KillmailFilter): Promise<numbe
   if (regionId !== undefined && regionId !== null) {
     params.push(regionId);
     conditions.push(`region_id = $${paramIndex}`);
+    paramIndex++;
+  }
+
+  if (constellationId !== undefined && constellationId !== null) {
+    params.push(constellationId);
+    conditions.push(`constellation_id = $${paramIndex}`);
     paramIndex++;
   }
 
