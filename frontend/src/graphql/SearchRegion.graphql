@@ -1,0 +1,6 @@
+query SearchRegion($id: Int!) {
+  region(id: $id) {
+    id
+    name
+  }
+}

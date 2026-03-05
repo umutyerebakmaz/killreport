@@ -84,24 +84,36 @@ type Attacker {
 }
 
 type AuthPayload {
-  """JWT access token"""
+  """
+  JWT access token
+  """
   accessToken: String!
 
-  """Token geçerlilik süresi (saniye)"""
+  """
+  Token geçerlilik süresi (saniye)
+  """
   expiresIn: Int!
 
-  """Token yenilemek için kullanılan refresh token"""
+  """
+  Token yenilemek için kullanılan refresh token
+  """
   refreshToken: String
 
-  """Authenticated kullanıcı bilgileri"""
+  """
+  Authenticated kullanıcı bilgileri
+  """
   user: User!
 }
 
 type AuthUrl {
-  """CSRF koruması için state parametresi"""
+  """
+  CSRF koruması için state parametresi
+  """
   state: String!
 
-  """Eve Online SSO authorization URL'i"""
+  """
+  Eve Online SSO authorization URL'i
+  """
   url: String!
 }
 
@@ -372,7 +384,9 @@ type Fitting {
   subsystems: SlotGroup!
 }
 
-"""Represents a fitted module or item"""
+"""
+Represents a fitted module or item
+"""
 type FittingModule {
   charge: FittingModule
   flag: Int!
@@ -415,19 +429,29 @@ type ItemGroupsResponse {
 }
 
 type JitaPrice {
-  """Average of buy and sell"""
+  """
+  Average of buy and sell
+  """
   average: Float!
 
-  """Highest buy order (instant sell price)"""
+  """
+  Highest buy order (instant sell price)
+  """
   buy: Float!
 
-  """Lowest sell order (instant buy price)"""
+  """
+  Lowest sell order (instant buy price)
+  """
   sell: Float!
 
-  """Data source timestamp"""
+  """
+  Data source timestamp
+  """
   updatedAt: String!
 
-  """Total market volume"""
+  """
+  Total market volume
+  """
   volume: Float
 }
 
@@ -501,39 +525,65 @@ type KillmailsResponse {
 type Mutation {
   _empty: String
 
-  """Authorization code ile authentication yapar ve token döner"""
+  """
+  Authorization code ile authentication yapar ve token döner
+  """
   authenticateWithCode(code: String!, state: String!): AuthPayload!
 
-  """Clear all killmail caches (use after large data updates)"""
+  """
+  Clear all killmail caches (use after large data updates)
+  """
   clearAllKillmailCaches: CacheOperation!
 
-  """Clear cache for a specific alliance"""
+  """
+  Clear cache for a specific alliance
+  """
   clearAllianceCache(allianceId: Int!): CacheOperation!
 
-  """Clear cache for a specific character"""
+  """
+  Clear cache for a specific character
+  """
   clearCharacterCache(characterId: Int!): CacheOperation!
 
-  """Clear cache for a specific corporation"""
+  """
+  Clear cache for a specific corporation
+  """
   clearCorporationCache(corporationId: Int!): CacheOperation!
 
-  """Clear cache for a specific killmail"""
+  """
+  Clear cache for a specific killmail
+  """
   clearKillmailCache(killmailId: Int!): CacheOperation!
   createUser(input: CreateUserInput!): CreateUserPayload!
 
-  """Eve Online SSO login için authorization URL'i oluşturur"""
+  """
+  Eve Online SSO login için authorization URL'i oluşturur
+  """
   login: AuthUrl!
   refreshCharacter(characterId: Int!): RefreshCharacterResult!
 
-  """Refresh token kullanarak yeni access token alır"""
+  """
+  Refresh token kullanarak yeni access token alır
+  """
   refreshToken(refreshToken: String!): AuthPayload!
   startAllianceSync(input: StartAllianceSyncInput!): StartAllianceSyncPayload!
   startCategorySync(input: StartCategorySyncInput!): StartCategorySyncPayload!
-  startConstellationSync(input: StartConstellationSyncInput!): StartConstellationSyncPayload!
-  startDogmaAttributeSync(input: StartDogmaAttributeSyncInput!): StartDogmaAttributeSyncPayload!
-  startDogmaEffectSync(input: StartDogmaEffectSyncInput!): StartDogmaEffectSyncPayload!
-  startItemGroupSync(input: StartItemGroupSyncInput!): StartItemGroupSyncPayload!
+  startConstellationSync(
+    input: StartConstellationSyncInput!
+  ): StartConstellationSyncPayload!
+  startDogmaAttributeSync(
+    input: StartDogmaAttributeSyncInput!
+  ): StartDogmaAttributeSyncPayload!
+  startDogmaEffectSync(
+    input: StartDogmaEffectSyncInput!
+  ): StartDogmaEffectSyncPayload!
+  startItemGroupSync(
+    input: StartItemGroupSyncInput!
+  ): StartItemGroupSyncPayload!
   startRegionSync(input: StartRegionSyncInput!): StartRegionSyncPayload!
-  startTypeDogmaSync(input: StartTypeDogmaSyncInput!): StartTypeDogmaSyncPayload!
+  startTypeDogmaSync(
+    input: StartTypeDogmaSyncInput!
+  ): StartTypeDogmaSyncPayload!
   startTypeSync(input: StartTypeSyncInput!): StartTypeSyncPayload!
 
   """
@@ -544,7 +594,9 @@ type Mutation {
   updateUser(input: UpdateUserInput!): UpdateUserPayload!
 }
 
-"""Offset-based pagination info (page number + limit)"""
+"""
+Offset-based pagination info (page number + limit)
+"""
 type PageInfo {
   currentPage: Int!
   hasNextPage: Boolean!
@@ -563,33 +615,71 @@ type Query {
   _empty: String
   activeUsersCount: Int!
   alliance(id: Int!): Alliance
-  allianceTopAllianceTargets(allianceId: Int!, filter: TopTargetFilter): [AllianceTopTarget!]!
-  allianceTopCharacters(allianceId: Int!, filter: TopTargetFilter): [CharacterTopTarget!]!
-  allianceTopCorporationTargets(allianceId: Int!, filter: TopTargetFilter): [CorporationTopTarget!]!
-  allianceTopShipTargets(allianceId: Int!, filter: TopTargetFilter): [ShipTopKill!]!
+  allianceTopAllianceTargets(
+    allianceId: Int!
+    filter: TopTargetFilter
+  ): [AllianceTopTarget!]!
+  allianceTopCharacters(
+    allianceId: Int!
+    filter: TopTargetFilter
+  ): [CharacterTopTarget!]!
+  allianceTopCorporationTargets(
+    allianceId: Int!
+    filter: TopTargetFilter
+  ): [CorporationTopTarget!]!
+  allianceTopShipTargets(
+    allianceId: Int!
+    filter: TopTargetFilter
+  ): [ShipTopKill!]!
   allianceTopShips(allianceId: Int!, filter: TopTargetFilter): [ShipTopKill!]!
   alliances(filter: AllianceFilter): AlliancesResponse!
   bloodline(id: Int!): Bloodline
   bloodlines: [Bloodline!]!
 
-  """Cache statistics and memory usage"""
+  """
+  Cache statistics and memory usage
+  """
   cacheStats: CacheStats!
   categories(filter: CategoryFilter): CategoriesResponse!
   category(id: Int!): Category
   character(id: Int!): Character
-  characterTopAllianceTargets(characterId: Int!, filter: TopTargetFilter): [AllianceTopTarget!]!
-  characterTopCorporationTargets(characterId: Int!, filter: TopTargetFilter): [CorporationTopTarget!]!
-  characterTopShipTargets(characterId: Int!, filter: TopTargetFilter): [ShipTopKill!]!
+  characterTopAllianceTargets(
+    characterId: Int!
+    filter: TopTargetFilter
+  ): [AllianceTopTarget!]!
+  characterTopCorporationTargets(
+    characterId: Int!
+    filter: TopTargetFilter
+  ): [CorporationTopTarget!]!
+  characterTopShipTargets(
+    characterId: Int!
+    filter: TopTargetFilter
+  ): [ShipTopKill!]!
   characterTopShips(characterId: Int!, filter: TopTargetFilter): [ShipTopKill!]!
   characters(filter: CharacterFilter): CharactersResponse!
   constellation(id: Int!): Constellation
   constellations(filter: ConstellationFilter): ConstellationsResponse!
   corporation(id: Int!): Corporation
-  corporationTopAllianceTargets(corporationId: Int!, filter: TopTargetFilter): [AllianceTopTarget!]!
-  corporationTopCharacters(corporationId: Int!, filter: TopTargetFilter): [CharacterTopTarget!]!
-  corporationTopCorporationTargets(corporationId: Int!, filter: TopTargetFilter): [CorporationTopTarget!]!
-  corporationTopShipTargets(corporationId: Int!, filter: TopTargetFilter): [ShipTopKill!]!
-  corporationTopShips(corporationId: Int!, filter: TopTargetFilter): [ShipTopKill!]!
+  corporationTopAllianceTargets(
+    corporationId: Int!
+    filter: TopTargetFilter
+  ): [AllianceTopTarget!]!
+  corporationTopCharacters(
+    corporationId: Int!
+    filter: TopTargetFilter
+  ): [CharacterTopTarget!]!
+  corporationTopCorporationTargets(
+    corporationId: Int!
+    filter: TopTargetFilter
+  ): [CorporationTopTarget!]!
+  corporationTopShipTargets(
+    corporationId: Int!
+    filter: TopTargetFilter
+  ): [ShipTopKill!]!
+  corporationTopShips(
+    corporationId: Int!
+    filter: TopTargetFilter
+  ): [ShipTopKill!]!
   corporations(filter: CorporationFilter): CorporationsResponse!
   dogmaAttribute(id: Int!): DogmaAttribute
   dogmaAttributes(filter: DogmaAttributeFilter): DogmaAttributesResponse!
@@ -598,16 +688,24 @@ type Query {
   itemGroup(id: Int!): ItemGroup
   itemGroups(filter: ItemGroupFilter): ItemGroupsResponse!
 
-  """Fetches a single killmail"""
+  """
+  Fetches a single killmail
+  """
   killmail(id: ID!): Killmail
 
-  """Lists all killmails with pagination"""
+  """
+  Lists all killmails with pagination
+  """
   killmails(filter: KillmailFilter): KillmailsResponse!
 
-  """Returns count of killmails grouped by date (for the current filter)"""
+  """
+  Returns count of killmails grouped by date (for the current filter)
+  """
   killmailsDateCounts(filter: KillmailFilter): [KillmailDateCount!]!
 
-  """Mevcut authenticated kullanıcının bilgilerini döner"""
+  """
+  Mevcut authenticated kullanıcının bilgilerini döner
+  """
   me: User
   race(id: Int!): Race
   races: [Race!]!
@@ -624,17 +722,23 @@ type Query {
   """
   Returns top alliances ranked by total kill count over the last 7 days (rolling window, today - 6 days)
   """
-  topLast7DaysAlliances(filter: TopLast7DaysAlliancesFilter): [TopLast7DaysAlliance!]!
+  topLast7DaysAlliances(
+    filter: TopLast7DaysAlliancesFilter
+  ): [TopLast7DaysAlliance!]!
 
   """
   Returns top attacker ship types by usage count over the last 7 days (rolling window, today - 6 days)
   """
-  topLast7DaysAttackerShips(filter: TopLast7DaysAttackerShipsFilter): [TopLast7DaysAttackerShip!]!
+  topLast7DaysAttackerShips(
+    filter: TopLast7DaysAttackerShipsFilter
+  ): [TopLast7DaysAttackerShip!]!
 
   """
   Returns top corporations ranked by total kill count over the last 7 days (rolling window, today - 6 days)
   """
-  topLast7DaysCorporations(filter: TopLast7DaysCorporationsFilter): [TopLast7DaysCorporation!]!
+  topLast7DaysCorporations(
+    filter: TopLast7DaysCorporationsFilter
+  ): [TopLast7DaysCorporation!]!
 
   """
   Returns top pilots ranked by total kill count over the last 7 days (rolling window, today - 6 days)
@@ -665,30 +769,46 @@ type Query {
   user(id: ID!): User
   users: [User!]!
 
-  """Get current status of all workers and queues"""
+  """
+  Get current status of all workers and queues
+  """
   workerStatus: WorkerStatus!
 }
 
 type QueueStatus {
-  """Is there at least one active consumer"""
+  """
+  Is there at least one active consumer
+  """
   active: Boolean!
 
-  """Number of active consumers processing from this queue"""
+  """
+  Number of active consumers processing from this queue
+  """
   consumerCount: Int!
 
-  """Number of messages waiting to be processed"""
+  """
+  Number of messages waiting to be processed
+  """
   messageCount: Int!
 
-  """Name of the queue"""
+  """
+  Name of the queue
+  """
   name: String!
 
-  """Worker script name (e.g., worker:info:corporations)"""
+  """
+  Worker script name (e.g., worker:info:corporations)
+  """
   workerName: String
 
-  """Process ID of the running worker"""
+  """
+  Process ID of the running worker
+  """
   workerPid: Int
 
-  """Is the worker process running (detected via ps aux)"""
+  """
+  Is the worker process running (detected via ps aux)
+  """
   workerRunning: Boolean!
 }
 
@@ -699,25 +819,39 @@ type Race {
 }
 
 type RedisMetrics {
-  """Commands processed per second (instantaneous)"""
+  """
+  Commands processed per second (instantaneous)
+  """
   commandsPerSecond: Int!
 
-  """Redis connection status"""
+  """
+  Redis connection status
+  """
   connected: Boolean!
 
-  """Connected clients count"""
+  """
+  Connected clients count
+  """
   connectedClients: Int!
 
-  """Redis memory usage (human readable)"""
+  """
+  Redis memory usage (human readable)
+  """
   memoryUsage: String!
 
-  """Total commands processed"""
+  """
+  Total commands processed
+  """
   totalCommandsProcessed: Int!
 
-  """Number of keys in Redis"""
+  """
+  Number of keys in Redis
+  """
   totalKeys: Int!
 
-  """Redis uptime in seconds"""
+  """
+  Redis uptime in seconds
+  """
   uptimeInSeconds: Int!
 }
 
@@ -769,7 +903,9 @@ type ShipTopKill {
   shipType: Type!
 }
 
-"""A group of slots with total slot count from dogma attributes"""
+"""
+A group of slots with total slot count from dogma attributes
+"""
 type SlotGroup {
   slots: [FittingSlot!]!
   totalSlots: Int!
@@ -810,16 +946,24 @@ type SolarSystemsResponse {
 }
 
 type StandaloneWorkerStatus {
-  """Description of what this worker does"""
+  """
+  Description of what this worker does
+  """
   description: String!
 
-  """Name of the worker"""
+  """
+  Name of the worker
+  """
   name: String!
 
-  """Process ID if running"""
+  """
+  Process ID if running
+  """
   pid: Int
 
-  """Is the worker currently running"""
+  """
+  Is the worker currently running
+  """
   running: Boolean!
 }
 
@@ -950,7 +1094,9 @@ type Top90DaysPilot {
 }
 
 input Top90DaysPilotsFilter {
-  """Max 100; default 100"""
+  """
+  Max 100; default 100
+  """
   limit: Int
 }
 
@@ -961,7 +1107,9 @@ type TopLast7DaysAlliance {
 }
 
 input TopLast7DaysAlliancesFilter {
-  """Max 100; default 100"""
+  """
+  Max 100; default 100
+  """
   limit: Int
 }
 
@@ -972,7 +1120,9 @@ type TopLast7DaysAttackerShip {
 }
 
 input TopLast7DaysAttackerShipsFilter {
-  """Max 100; default 100"""
+  """
+  Max 100; default 100
+  """
   limit: Int
 }
 
@@ -983,7 +1133,9 @@ type TopLast7DaysCorporation {
 }
 
 input TopLast7DaysCorporationsFilter {
-  """Max 100; default 100"""
+  """
+  Max 100; default 100
+  """
   limit: Int
 }
 
@@ -994,7 +1146,9 @@ type TopLast7DaysPilot {
 }
 
 input TopLast7DaysPilotsFilter {
-  """Max 100; default 100"""
+  """
+  Max 100; default 100
+  """
   limit: Int
 }
 
@@ -1005,7 +1159,9 @@ type TopLast7DaysShip {
 }
 
 input TopLast7DaysShipsFilter {
-  """Max 100; default 100"""
+  """
+  Max 100; default 100
+  """
   limit: Int
 }
 
@@ -1016,10 +1172,14 @@ type TopMonthlyPilot {
 }
 
 input TopMonthlyPilotsFilter {
-  """Max 100; default 100"""
+  """
+  Max 100; default 100
+  """
   limit: Int
 
-  """Year-month string YYYY-MM; defaults to current month (UTC)"""
+  """
+  Year-month string YYYY-MM; defaults to current month (UTC)
+  """
   month: String
 }
 
@@ -1030,10 +1190,14 @@ type TopPilot {
 }
 
 input TopPilotsFilter {
-  """ISO date string YYYY-MM-DD; defaults to today (UTC)"""
+  """
+  ISO date string YYYY-MM-DD; defaults to today (UTC)
+  """
   date: String
 
-  """Max 100; default 100"""
+  """
+  Max 100; default 100
+  """
   limit: Int
 }
 
@@ -1051,7 +1215,9 @@ type TopWeeklyPilot {
 }
 
 input TopWeeklyPilotsFilter {
-  """Max 100; default 100"""
+  """
+  Max 100; default 100
+  """
   limit: Int
 
   """
@@ -1070,7 +1236,9 @@ type Type {
   icon_id: Int
   id: Int!
 
-  """Jita market price (cached, updates every 4 hours)"""
+  """
+  Jita market price (cached, updates every 4 hours)
+  """
   jitaPrice: JitaPrice
   mass: Float
   name: String!
@@ -1138,21 +1306,33 @@ type Victim {
 }
 
 type WorkerStatus {
-  """Database size in megabytes (MB)"""
+  """
+  Database size in megabytes (MB)
+  """
   databaseSizeMB: Float!
 
-  """Overall system health"""
+  """
+  Overall system health
+  """
   healthy: Boolean!
 
-  """Status of individual queues (RabbitMQ-based workers)"""
+  """
+  Status of individual queues (RabbitMQ-based workers)
+  """
   queues: [QueueStatus!]!
 
-  """Redis server metrics"""
+  """
+  Redis server metrics
+  """
   redis: RedisMetrics
 
-  """Status of standalone workers (non-RabbitMQ)"""
+  """
+  Status of standalone workers (non-RabbitMQ)
+  """
   standaloneWorkers: [StandaloneWorkerStatus!]!
 
-  """Timestamp of the status check"""
+  """
+  Timestamp of the status check
+  """
   timestamp: String!
 }

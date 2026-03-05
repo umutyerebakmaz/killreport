@@ -7,6 +7,8 @@ import {
   useSearchConstellationQuery,
   useSearchConstellationsQuery,
   useSearchItemGroupsQuery,
+  useSearchRegionQuery,
+  useSearchRegionsQuery,
   useSearchSolarSystemQuery,
   useSearchSolarSystemsQuery,
   useSearchTypeQuery,
@@ -23,6 +25,7 @@ interface KillmailFiltersProps {
     characterId?: number;
     systemId?: number;
     constellationId?: number;
+    regionId?: number;
     victim?: boolean;
     attacker?: boolean;
     characterVictim?: boolean;
@@ -39,6 +42,7 @@ interface KillmailFiltersProps {
   initialCharacterId?: number;
   initialSystemId?: number;
   initialConstellationId?: number;
+  initialRegionId?: number;
   initialMinAttackers?: number;
   initialMaxAttackers?: number;
   initialMinValue?: number;
@@ -62,6 +66,7 @@ export default function KillmailFilters({
   initialCharacterId,
   initialSystemId,
   initialConstellationId,
+  initialRegionId,
   initialMinAttackers,
   initialMaxAttackers,
   initialMinValue,
@@ -136,6 +141,13 @@ export default function KillmailFilters({
     useState(false);
   const constellationDropdownRef = useRef<HTMLDivElement>(null);
 
+  // Region search state
+  const [regionSearch, setRegionSearch] = useState("");
+  const [regionId, setRegionId] = useState<number | undefined>(initialRegionId);
+  const [regionName, setRegionName] = useState("");
+  const [showRegionDropdown, setShowRegionDropdown] = useState(false);
+  const regionDropdownRef = useRef<HTMLDivElement>(null);
+
   // Ship search dropdown state
   const [showDropdown, setShowDropdown] = useState(false);
   const shipDropdownRef = useRef<HTMLDivElement>(null);
@@ -146,6 +158,7 @@ export default function KillmailFilters({
   const debouncedGroupSearch = useDebounce(groupSearch, 500);
   const debouncedSolarSystemSearch = useDebounce(solarSystemSearch, 500);
   const debouncedConstellationSearch = useDebounce(constellationSearch, 500);
+  const debouncedRegionSearch = useDebounce(regionSearch, 500);
 
   // GraphQL query for ship type search
   const { data: typeData, loading: typeLoading } = useSearchTypesQuery({
@@ -189,6 +202,21 @@ export default function KillmailFilters({
     skip: !initialConstellationId,
   });
 
+  // Fetch initial region name from URL param
+  const { data: initialRegionData } = useSearchRegionQuery({
+    variables: { id: initialRegionId! },
+    skip: !initialRegionId,
+  });
+
+  // Debug: Log region query data
+  useEffect(() => {
+    console.log("🔍 Region Query Debug:", {
+      initialRegionId,
+      initialRegionData,
+      regionName: initialRegionData?.region?.name,
+    });
+  }, [initialRegionId, initialRegionData]);
+
   // Populate character name from initial fetch
   useEffect(() => {
     if (initialCharacterData?.character?.name) {
@@ -216,6 +244,13 @@ export default function KillmailFilters({
       setConstellationName(initialConstellationData.constellation.name);
     }
   }, [initialConstellationData]);
+
+  // Populate region name from initial fetch
+  useEffect(() => {
+    if (initialRegionData?.region?.name) {
+      setRegionName(initialRegionData.region.name);
+    }
+  }, [initialRegionData]);
 
   // GraphQL query for pilot search
   const { data: pilotData, loading: pilotLoading } = useSearchCharactersQuery({
@@ -246,12 +281,22 @@ export default function KillmailFilters({
       skip: debouncedConstellationSearch.length < 3,
     });
 
+  // GraphQL query for region search
+  const { data: regionsData, loading: regionLoading } = useSearchRegionsQuery({
+    variables: {
+      search: debouncedRegionSearch,
+      limit: 40,
+    },
+    skip: debouncedRegionSearch.length < 3,
+  });
+
   const hasActiveFilters =
     shipTypeId ||
     shipGroupIds.length > 0 ||
     characterId ||
     systemId ||
     constellationId ||
+    regionId ||
     minAttackers ||
     maxAttackers ||
     minValue ||
@@ -292,6 +337,12 @@ export default function KillmailFilters({
         !constellationDropdownRef.current.contains(event.target as Node)
       ) {
         setShowConstellationDropdown(false);
+      }
+      if (
+        regionDropdownRef.current &&
+        !regionDropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowRegionDropdown(false);
       }
     };
 
@@ -335,6 +386,14 @@ export default function KillmailFilters({
       setConstellationName("");
     }
   }, [initialConstellationId]);
+
+  useEffect(() => {
+    setRegionId(initialRegionId);
+    // Clear name when regionId is undefined
+    if (!initialRegionId) {
+      setRegionName("");
+    }
+  }, [initialRegionId]);
 
   useEffect(() => {
     setMinAttackers(initialMinAttackers ? String(initialMinAttackers) : "");
@@ -415,6 +474,16 @@ export default function KillmailFilters({
     }
   }, [debouncedConstellationSearch, constellationData]);
 
+  useEffect(() => {
+    if (
+      debouncedRegionSearch.length >= 3 &&
+      regionsData?.regions?.items &&
+      regionsData.regions.items.length > 0
+    ) {
+      setShowRegionDropdown(true);
+    }
+  }, [debouncedRegionSearch, regionsData]);
+
   const handleShipSelect = (typeId: number, typeName: string) => {
     // Store both ID and name
     setShipTypeId(typeId);
@@ -462,6 +531,13 @@ export default function KillmailFilters({
     setShowConstellationDropdown(false);
   };
 
+  const handleRegionSelect = (id: number, name: string) => {
+    setRegionId(id);
+    setRegionName(name);
+    setRegionSearch("");
+    setShowRegionDropdown(false);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -471,6 +547,7 @@ export default function KillmailFilters({
       characterId,
       systemId,
       constellationId,
+      regionId,
       victim:
         shipTypeId || shipGroupIds.length > 0
           ? shipRole === "victim"
@@ -527,6 +604,9 @@ export default function KillmailFilters({
     setConstellationSearch("");
     setConstellationId(undefined);
     setConstellationName("");
+    setRegionSearch("");
+    setRegionId(undefined);
+    setRegionName("");
     setMinAttackers("");
     setMaxAttackers("");
     setMinValue("");
@@ -562,6 +642,7 @@ export default function KillmailFilters({
                   characterId,
                   systemId,
                   constellationId,
+                  regionId,
                   securitySpace !== "all",
                   minAttackers,
                   maxAttackers,
@@ -1006,6 +1087,109 @@ export default function KillmailFilters({
               </div>
             </div>
 
+            {/* Region Search */}
+            <div>
+              <label
+                htmlFor="filter-region"
+                className="block mb-2 text-xs font-medium text-gray-400"
+              >
+                Region
+              </label>
+              <div ref={regionDropdownRef}>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    id="filter-region"
+                    placeholder="Search region (min 3 letters)..."
+                    value={regionSearch}
+                    onChange={(e) => {
+                      setRegionSearch(e.target.value);
+                      if (e.target.value.length >= 3)
+                        setShowRegionDropdown(true);
+                      else setShowRegionDropdown(false);
+                    }}
+                    onFocus={() => {
+                      if (
+                        regionSearch.length >= 3 &&
+                        regionsData?.regions?.items &&
+                        regionsData.regions.items.length > 0
+                      )
+                        setShowRegionDropdown(true);
+                    }}
+                    className="search-input"
+                  />
+                  {regionLoading && regionSearch.length >= 3 && (
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <div className="w-5 h-5 border-2 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
+                    </div>
+                  )}
+
+                  {/* Region Dropdown */}
+                  {showRegionDropdown &&
+                    regionsData?.regions?.items &&
+                    regionsData.regions.items.length > 0 && (
+                      <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                        <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto character-dropdown-scroll max-h-96">
+                          {regionsData.regions.items.map((region: any) => {
+                            const avgSec =
+                              region.securityStats?.avgSecurity ?? 0;
+                            const securityColor =
+                              avgSec >= 0.5
+                                ? "text-green-400"
+                                : avgSec > 0
+                                  ? "text-yellow-400"
+                                  : "text-red-400";
+
+                            return (
+                              <button
+                                key={region.id}
+                                type="button"
+                                onClick={() =>
+                                  handleRegionSelect(region.id, region.name)
+                                }
+                                className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
+                              >
+                                <div className="flex-auto min-w-0 text-left">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-semibold text-white truncate">
+                                      {region.name}
+                                    </span>
+                                    <span
+                                      className={`text-xs font-semibold ${securityColor}`}
+                                    >
+                                      {avgSec.toFixed(1)}
+                                    </span>
+                                  </div>
+                                  <div className="text-sm text-gray-400">
+                                    {region.constellationCount} constellations ·{" "}
+                                    {region.solarSystemCount} systems
+                                  </div>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                  {/* No Results */}
+                  {showRegionDropdown &&
+                    debouncedRegionSearch.length >= 3 &&
+                    !regionLoading &&
+                    regionsData?.regions?.items?.length === 0 && (
+                      <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                        <div className="p-4 text-sm text-gray-400">
+                          No regions found for "{debouncedRegionSearch}"
+                        </div>
+                      </div>
+                    )}
+                </div>
+              </div>
+            </div>
+
             {/* Constellation Search */}
             <div>
               <label
@@ -1352,6 +1536,30 @@ export default function KillmailFilters({
                       );
                       setSystemId(undefined);
                       setSolarSystemName("");
+                    }}
+                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                  >
+                    <XMarkIcon className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Region chip */}
+            {regionId && (
+              <div className="flex flex-col gap-2">
+                <div className="text-xs font-medium text-gray-400">Region</div>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
+                    <span className="font-semibold truncate">
+                      {regionName || `Region ${regionId}`}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRegionId(undefined);
+                      setRegionName("");
                     }}
                     className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
                   >

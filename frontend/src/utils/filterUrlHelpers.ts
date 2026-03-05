@@ -71,6 +71,10 @@ export function parseKillmailFiltersFromUrl(
         ? Number(searchParams.get("constellationId"))
         : undefined;
 
+    const regionIdFromUrl = searchParams.get("regionId")
+        ? Number(searchParams.get("regionId"))
+        : undefined;
+
     const shipTypeRoleFromUrl =
         (searchParams.get("shipTypeRole") as "all" | "victim" | "attacker" | null) ?? "all";
 
@@ -87,6 +91,7 @@ export function parseKillmailFiltersFromUrl(
         characterId: characterIdFromUrl,
         systemId: systemIdFromUrl,
         constellationId: constellationIdFromUrl,
+        regionId: regionIdFromUrl,
         securitySpace: securitySpaceRoleFromUrl !== "all" ? securitySpaceRoleFromUrl : undefined,
         minAttackers: minAttackersFromUrl,
         maxAttackers: maxAttackersFromUrl,
@@ -197,6 +202,10 @@ export function buildKillmailFiltersUrl(
 
     if (filters.constellationId) {
         params.set("constellationId", filters.constellationId.toString());
+    }
+
+    if (filters.regionId) {
+        params.set("regionId", filters.regionId.toString());
     }
 
     if (filters.securitySpace && filters.securitySpace !== "all") {
