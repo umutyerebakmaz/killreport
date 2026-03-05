@@ -144,7 +144,7 @@ export default function Header() {
                 <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
                   <div className="flex-auto">
                     <a
-                      href="/killmails?ssc=null"
+                      href="/killmails?page=1&securitySpace=wormhole"
                       className="block font-semibold text-white"
                     >
                       WORMHOLES
