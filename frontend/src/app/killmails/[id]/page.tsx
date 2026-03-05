@@ -138,71 +138,110 @@ export default function KillmailDetailPage({
                 <div className="lg:col-span-1">
                   <div className="space-y-3">
                     {/* Character, Corp, Alliance Images */}
-                    {victim?.character?.id && (
+                    {(victim?.character?.id ||
+                      victim?.corporation?.id ||
+                      victim?.alliance?.id) && (
                       <div className="flex items-start overflow-hidden">
-                        {/* Character Portrait */}
-                        <Tooltip content="Show Victim Info" position="top">
-                          <a href={`/characters/${victim.character?.id}`}>
-                            <img
-                              src={`https://images.evetech.net/characters/${victim.character?.id}/portrait?size=128`}
-                              alt={victim.character?.name || "Character"}
-                              width={96}
-                              height={96}
-                              className="shadow-md shrink-0"
-                              loading="lazy"
-                            />
-                          </a>
-                        </Tooltip>
+                        {/* Character Portrait or Ship Render */}
+                        {victim?.character?.id ? (
+                          <Tooltip content="Show Victim Info" position="top">
+                            <a href={`/characters/${victim.character?.id}`}>
+                              <img
+                                src={`https://images.evetech.net/characters/${victim.character?.id}/portrait?size=128`}
+                                alt={victim.character?.name || "Character"}
+                                width={96}
+                                height={96}
+                                className="shadow-md shrink-0"
+                                loading="lazy"
+                              />
+                            </a>
+                          </Tooltip>
+                        ) : victim?.shipType?.id ? (
+                          <Tooltip
+                            content={victim.shipType.name || "Structure"}
+                            position="top"
+                          >
+                            <div
+                              className="flex items-center justify-center bg-gray-800/50 shrink-0"
+                              style={{ width: 96, height: 96 }}
+                            >
+                              <img
+                                src={`https://images.evetech.net/types/${victim.shipType.id}/render?size=128`}
+                                alt={victim.shipType.name || "Structure"}
+                                width={96}
+                                height={96}
+                                className="shadow-md shrink-0"
+                                loading="lazy"
+                              />
+                            </div>
+                          </Tooltip>
+                        ) : null}
 
                         <div className="flex flex-col shrink-0">
+                          {/* Corporation Portrait */}
+                          {victim?.corporation?.id && (
+                            <a href={`/corporations/${victim.corporation?.id}`}>
+                              <img
+                                src={`https://images.evetech.net/corporations/${victim.corporation?.id}/logo?size=64`}
+                                alt={victim.corporation?.name || "Corporation"}
+                                width={48}
+                                height={48}
+                                className="shadow-sm"
+                                loading="lazy"
+                              />
+                            </a>
+                          )}
                           {/* Alliance Portrait */}
-                          <a href={`/alliances/${victim.alliance?.id}`}>
-                            <img
-                              src={`https://images.evetech.net/corporations/${victim.corporation?.id}/logo?size=64`}
-                              alt={victim.corporation?.name || "Corporation"}
-                              width={48}
-                              height={48}
-                              className="shadow-sm"
-                              loading="lazy"
-                            />
-                          </a>
-                          <a href={`/corporations/${victim.corporation?.id}`}>
-                            {/* Corporation Portrait */}
-                            <img
-                              src={`https://images.evetech.net/alliances/${victim.alliance?.id}/logo?size=64`}
-                              alt={victim.alliance?.name || "Alliance"}
-                              width={48}
-                              height={48}
-                              className="shadow-sm"
-                              loading="lazy"
-                            />
-                          </a>
+                          {victim?.alliance?.id && (
+                            <a href={`/alliances/${victim.alliance?.id}`}>
+                              <img
+                                src={`https://images.evetech.net/alliances/${victim.alliance?.id}/logo?size=64`}
+                                alt={victim.alliance?.name || "Alliance"}
+                                width={48}
+                                height={48}
+                                className="shadow-sm"
+                                loading="lazy"
+                              />
+                            </a>
+                          )}
                         </div>
 
                         <div className="flex flex-col items-start justify-start flex-1 min-w-0 pl-4 overflow-hidden">
-                          <a
-                            href={`/characters/${victim.character?.id}`}
-                            title={victim.character?.name || "Character"}
-                            className="block w-full text-gray-400 truncate transition-colors hover:text-blue-400"
-                          >
-                            {victim.character?.name}
-                          </a>
+                          {victim?.character?.id && (
+                            <a
+                              href={`/characters/${victim.character?.id}`}
+                              title={victim.character?.name || "Character"}
+                              className="block w-full text-gray-400 truncate transition-colors hover:text-blue-400"
+                            >
+                              {victim.character?.name}
+                            </a>
+                          )}
 
-                          <a
-                            href={`/corporations/${victim.corporation?.id}`}
-                            title={victim.corporation?.name || "Corporation"}
-                            className="block w-full text-gray-400 truncate transition-colors hover:text-blue-400"
-                          >
-                            {victim.corporation?.name}
-                          </a>
+                          {victim?.corporation?.id && (
+                            <Tooltip content="Show corporation info">
+                              <a
+                                href={`/corporations/${victim.corporation?.id}`}
+                                title={
+                                  victim.corporation?.name || "Corporation"
+                                }
+                                className="block w-full text-gray-400 truncate transition-colors hover:text-blue-400"
+                              >
+                                {victim.corporation?.name}
+                              </a>
+                            </Tooltip>
+                          )}
 
-                          <a
-                            href={`/alliances/${victim.alliance?.id}`}
-                            title={victim.alliance?.name || "Alliance"}
-                            className="block w-full text-gray-400 truncate transition-colors hover:text-blue-400"
-                          >
-                            {victim.alliance?.name}
-                          </a>
+                          {victim?.alliance?.id && (
+                            <Tooltip content="Show alliance info">
+                              <a
+                                href={`/alliances/${victim.alliance?.id}`}
+                                title={victim.alliance?.name || "Alliance"}
+                                className="block w-full text-gray-400 truncate transition-colors hover:text-blue-400"
+                              >
+                                {victim.alliance?.name}
+                              </a>
+                            </Tooltip>
+                          )}
                         </div>
                       </div>
                     )}
