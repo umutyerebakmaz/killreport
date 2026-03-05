@@ -1,0 +1,17 @@
+query SearchRegions($search: String!, $limit: Int = 40) {
+  regions(filter: { search: $search, limit: $limit }) {
+    items {
+      id
+      name
+      solarSystemCount
+      constellationCount
+      securityStats {
+        highSec
+        lowSec
+        nullSec
+        wormhole
+        avgSecurity
+      }
+    }
+  }
+}

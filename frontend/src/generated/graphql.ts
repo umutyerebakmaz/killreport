@@ -1934,6 +1934,21 @@ export type SearchItemGroupQueryVariables = Exact<{
 
 export type SearchItemGroupQuery = { __typename?: 'Query', itemGroup?: { __typename?: 'ItemGroup', id: number, name: string, category: { __typename?: 'Category', id: number, name: string } } | null };
 
+export type SearchRegionQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type SearchRegionQuery = { __typename?: 'Query', region?: { __typename?: 'Region', id: number, name: string } | null };
+
+export type SearchRegionsQueryVariables = Exact<{
+  search: Scalars['String']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type SearchRegionsQuery = { __typename?: 'Query', regions: { __typename?: 'RegionsResponse', items: Array<{ __typename?: 'Region', id: number, name: string, solarSystemCount: number, constellationCount: number, securityStats: { __typename?: 'SecurityStats', highSec: number, lowSec: number, nullSec: number, wormhole: number, avgSecurity?: number | null } }> } };
+
 export type SearchSolarSystemQueryVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
@@ -5236,6 +5251,106 @@ export type SearchItemGroupQueryHookResult = ReturnType<typeof useSearchItemGrou
 export type SearchItemGroupLazyQueryHookResult = ReturnType<typeof useSearchItemGroupLazyQuery>;
 export type SearchItemGroupSuspenseQueryHookResult = ReturnType<typeof useSearchItemGroupSuspenseQuery>;
 export type SearchItemGroupQueryResult = Apollo.QueryResult<SearchItemGroupQuery, SearchItemGroupQueryVariables>;
+export const SearchRegionDocument = gql`
+    query SearchRegion($id: Int!) {
+  region(id: $id) {
+    id
+    name
+  }
+}
+    `;
+
+/**
+ * __useSearchRegionQuery__
+ *
+ * To run a query within a React component, call `useSearchRegionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchRegionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchRegionQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useSearchRegionQuery(baseOptions: Apollo.QueryHookOptions<SearchRegionQuery, SearchRegionQueryVariables> & ({ variables: SearchRegionQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SearchRegionQuery, SearchRegionQueryVariables>(SearchRegionDocument, options);
+      }
+export function useSearchRegionLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SearchRegionQuery, SearchRegionQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SearchRegionQuery, SearchRegionQueryVariables>(SearchRegionDocument, options);
+        }
+// @ts-ignore
+export function useSearchRegionSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SearchRegionQuery, SearchRegionQueryVariables>): Apollo.UseSuspenseQueryResult<SearchRegionQuery, SearchRegionQueryVariables>;
+export function useSearchRegionSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchRegionQuery, SearchRegionQueryVariables>): Apollo.UseSuspenseQueryResult<SearchRegionQuery | undefined, SearchRegionQueryVariables>;
+export function useSearchRegionSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchRegionQuery, SearchRegionQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SearchRegionQuery, SearchRegionQueryVariables>(SearchRegionDocument, options);
+        }
+export type SearchRegionQueryHookResult = ReturnType<typeof useSearchRegionQuery>;
+export type SearchRegionLazyQueryHookResult = ReturnType<typeof useSearchRegionLazyQuery>;
+export type SearchRegionSuspenseQueryHookResult = ReturnType<typeof useSearchRegionSuspenseQuery>;
+export type SearchRegionQueryResult = Apollo.QueryResult<SearchRegionQuery, SearchRegionQueryVariables>;
+export const SearchRegionsDocument = gql`
+    query SearchRegions($search: String!, $limit: Int = 40) {
+  regions(filter: {search: $search, limit: $limit}) {
+    items {
+      id
+      name
+      solarSystemCount
+      constellationCount
+      securityStats {
+        highSec
+        lowSec
+        nullSec
+        wormhole
+        avgSecurity
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useSearchRegionsQuery__
+ *
+ * To run a query within a React component, call `useSearchRegionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchRegionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchRegionsQuery({
+ *   variables: {
+ *      search: // value for 'search'
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useSearchRegionsQuery(baseOptions: Apollo.QueryHookOptions<SearchRegionsQuery, SearchRegionsQueryVariables> & ({ variables: SearchRegionsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SearchRegionsQuery, SearchRegionsQueryVariables>(SearchRegionsDocument, options);
+      }
+export function useSearchRegionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SearchRegionsQuery, SearchRegionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SearchRegionsQuery, SearchRegionsQueryVariables>(SearchRegionsDocument, options);
+        }
+// @ts-ignore
+export function useSearchRegionsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SearchRegionsQuery, SearchRegionsQueryVariables>): Apollo.UseSuspenseQueryResult<SearchRegionsQuery, SearchRegionsQueryVariables>;
+export function useSearchRegionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchRegionsQuery, SearchRegionsQueryVariables>): Apollo.UseSuspenseQueryResult<SearchRegionsQuery | undefined, SearchRegionsQueryVariables>;
+export function useSearchRegionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchRegionsQuery, SearchRegionsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SearchRegionsQuery, SearchRegionsQueryVariables>(SearchRegionsDocument, options);
+        }
+export type SearchRegionsQueryHookResult = ReturnType<typeof useSearchRegionsQuery>;
+export type SearchRegionsLazyQueryHookResult = ReturnType<typeof useSearchRegionsLazyQuery>;
+export type SearchRegionsSuspenseQueryHookResult = ReturnType<typeof useSearchRegionsSuspenseQuery>;
+export type SearchRegionsQueryResult = Apollo.QueryResult<SearchRegionsQuery, SearchRegionsQueryVariables>;
 export const SearchSolarSystemDocument = gql`
     query SearchSolarSystem($id: Int!) {
   solarSystem(id: $id) {
