@@ -8,8 +8,8 @@ psql $DATABASE_URL << EOF
 SELECT pg_advisory_unlock_all();
 
 -- Check if migration is stuck
-SELECT migration_name, finished_at, started_at 
-FROM "_prisma_migrations" 
+SELECT migration_name, finished_at, started_at
+FROM "_prisma_migrations"
 WHERE migration_name = '20260304000000_add_security_fields_to_killmail_filters';
 
 -- Mark as failed if stuck
