@@ -57,6 +57,7 @@ function KillmailsContent() {
     characterId: urlFilters.characterId,
     shipTypeId: urlFilters.shipTypeId,
     shipGroupIds: urlFilters.shipGroupIds,
+    regionId: urlFilters.regionId,
     systemId: urlFilters.systemId,
     constellationId: urlFilters.constellationId,
     securitySpace: urlFilters.securitySpace,
@@ -407,6 +408,7 @@ function KillmailsContent() {
           initialCharacterId={urlFilters.characterId}
           initialSystemId={urlFilters.systemId}
           initialConstellationId={urlFilters.constellationId}
+          initialRegionId={urlFilters.regionId}
           initialMinAttackers={urlFilters.minAttackers}
           initialMaxAttackers={urlFilters.maxAttackers}
           initialMinValue={urlFilters.minValue}

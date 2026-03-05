@@ -144,6 +144,20 @@ export default function Header() {
                 <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
                   <div className="flex-auto">
                     <a
+                      href="/killmails?page=1&regionId=10000070"
+                      className="block font-semibold text-white"
+                    >
+                      POCHVEN
+                      <span className="absolute inset-0" />
+                    </a>
+                    <p className="mt-1 text-gray-400">
+                      Explore Pochven triglavian space killmails and statistics
+                    </p>
+                  </div>
+                </div>
+                <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
+                  <div className="flex-auto">
+                    <a
                       href="/killmails?page=1&securitySpace=wormhole"
                       className="block font-semibold text-white"
                     >
@@ -261,7 +275,14 @@ export default function Header() {
                   <DisclosurePanel className="mt-2 space-y-2">
                     <DisclosureButton
                       as="a"
-                      href="/killmails?page=1&ssc=null"
+                      href="/killmails?page=1&regionId=10000070"
+                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
+                    >
+                      POCHVEN
+                    </DisclosureButton>
+                    <DisclosureButton
+                      as="a"
+                      href="/killmails?page=1&securitySpace=wormhole"
                       className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
                     >
                       WORMHOLES
