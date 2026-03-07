@@ -4,7 +4,6 @@ query SolarSystems($filter: SolarSystemFilter) {
       id
       name
       securityStatus
-      security_class
       constellation {
         id
         name

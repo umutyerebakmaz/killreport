@@ -1385,8 +1385,14 @@ export type TopLast7DaysAlliance = {
 };
 
 export type TopLast7DaysAlliancesFilter = {
+  /** Filter by constellation ID */
+  constellationId?: InputMaybe<Scalars['Int']['input']>;
   /** Max 100; default 100 */
   limit?: InputMaybe<Scalars['Int']['input']>;
+  /** Filter by region ID */
+  regionId?: InputMaybe<Scalars['Int']['input']>;
+  /** Filter by solar system ID */
+  systemId?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type TopLast7DaysAttackerShip = {
@@ -1409,8 +1415,14 @@ export type TopLast7DaysCorporation = {
 };
 
 export type TopLast7DaysCorporationsFilter = {
+  /** Filter by constellation ID */
+  constellationId?: InputMaybe<Scalars['Int']['input']>;
   /** Max 100; default 100 */
   limit?: InputMaybe<Scalars['Int']['input']>;
+  /** Filter by region ID */
+  regionId?: InputMaybe<Scalars['Int']['input']>;
+  /** Filter by solar system ID */
+  systemId?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type TopLast7DaysPilot = {
@@ -1421,8 +1433,14 @@ export type TopLast7DaysPilot = {
 };
 
 export type TopLast7DaysPilotsFilter = {
+  /** Filter by constellation ID */
+  constellationId?: InputMaybe<Scalars['Int']['input']>;
   /** Max 100; default 100 */
   limit?: InputMaybe<Scalars['Int']['input']>;
+  /** Filter by region ID */
+  regionId?: InputMaybe<Scalars['Int']['input']>;
+  /** Filter by solar system ID */
+  systemId?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type TopLast7DaysShip = {
@@ -1433,8 +1451,14 @@ export type TopLast7DaysShip = {
 };
 
 export type TopLast7DaysShipsFilter = {
+  /** Filter by constellation ID */
+  constellationId?: InputMaybe<Scalars['Int']['input']>;
   /** Max 100; default 100 */
   limit?: InputMaybe<Scalars['Int']['input']>;
+  /** Filter by region ID */
+  regionId?: InputMaybe<Scalars['Int']['input']>;
+  /** Filter by solar system ID */
+  systemId?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type TopMonthlyPilot = {
