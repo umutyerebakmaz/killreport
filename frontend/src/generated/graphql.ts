@@ -1386,8 +1386,14 @@ export type TopLast7DaysAlliance = {
 };
 
 export type TopLast7DaysAlliancesFilter = {
+  /** Filter by constellation ID */
+  constellationId?: InputMaybe<Scalars['Int']['input']>;
   /** Max 100; default 100 */
   limit?: InputMaybe<Scalars['Int']['input']>;
+  /** Filter by region ID */
+  regionId?: InputMaybe<Scalars['Int']['input']>;
+  /** Filter by solar system ID */
+  systemId?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type TopLast7DaysAttackerShip = {
@@ -1410,8 +1416,14 @@ export type TopLast7DaysCorporation = {
 };
 
 export type TopLast7DaysCorporationsFilter = {
+  /** Filter by constellation ID */
+  constellationId?: InputMaybe<Scalars['Int']['input']>;
   /** Max 100; default 100 */
   limit?: InputMaybe<Scalars['Int']['input']>;
+  /** Filter by region ID */
+  regionId?: InputMaybe<Scalars['Int']['input']>;
+  /** Filter by solar system ID */
+  systemId?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type TopLast7DaysPilot = {
@@ -1422,8 +1434,14 @@ export type TopLast7DaysPilot = {
 };
 
 export type TopLast7DaysPilotsFilter = {
+  /** Filter by constellation ID */
+  constellationId?: InputMaybe<Scalars['Int']['input']>;
   /** Max 100; default 100 */
   limit?: InputMaybe<Scalars['Int']['input']>;
+  /** Filter by region ID */
+  regionId?: InputMaybe<Scalars['Int']['input']>;
+  /** Filter by solar system ID */
+  systemId?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type TopLast7DaysShip = {
@@ -1434,8 +1452,14 @@ export type TopLast7DaysShip = {
 };
 
 export type TopLast7DaysShipsFilter = {
+  /** Filter by constellation ID */
+  constellationId?: InputMaybe<Scalars['Int']['input']>;
   /** Max 100; default 100 */
   limit?: InputMaybe<Scalars['Int']['input']>;
+  /** Filter by region ID */
+  regionId?: InputMaybe<Scalars['Int']['input']>;
+  /** Filter by solar system ID */
+  systemId?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type TopMonthlyPilot = {
@@ -1984,7 +2008,7 @@ export type SolarSystemsQueryVariables = Exact<{
 }>;
 
 
-export type SolarSystemsQuery = { __typename?: 'Query', solarSystems: { __typename?: 'SolarSystemsResponse', items: Array<{ __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, security_class?: string | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type SolarSystemsQuery = { __typename?: 'Query', solarSystems: { __typename?: 'SolarSystemsResponse', items: Array<{ __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type SolarSystemQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -5565,7 +5589,6 @@ export const SolarSystemsDocument = gql`
       id
       name
       securityStatus
-      security_class
       constellation {
         id
         name
