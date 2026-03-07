@@ -41,26 +41,6 @@ export function getKillmailRowStyles({
     (allianceId && km.finalBlow?.alliance?.id === allianceId),
   );
 
-  // Debug logging
-  console.log('🔍 KillmailRowStyles Debug:', {
-    killmailId: km.id,
-    variant,
-    hasEntity,
-    isVictim,
-    isFinalBlow,
-    entityIds: { characterId, corporationId, allianceId },
-    victimIds: {
-      characterId: km.victim?.character?.id,
-      corporationId: km.victim?.corporation?.id,
-      allianceId: km.victim?.alliance?.id,
-    },
-    finalBlowIds: {
-      characterId: km.finalBlow?.character?.id,
-      corporationId: km.finalBlow?.corporation?.id,
-      allianceId: km.finalBlow?.alliance?.id,
-    },
-  });
-
   // No entity provided - use neutral colors based on variant
   if (!hasEntity) {
     return {
