@@ -1,12 +1,11 @@
 "use client";
 
 import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
+import SolarSystemCard from "@/components/Cards/SolarSystemCard";
 import SolarSystemFilters from "@/components/Filters/SolarSystemFilters";
 import { Loader } from "@/components/Loader/Loader";
 import Paginator from "@/components/Paginator/Paginator";
-import SecurityBadge from "@/components/SecurityStatus/SecurityStatus";
 import { useSolarSystemsQuery } from "@/generated/graphql";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
@@ -162,93 +161,23 @@ function SolarSystemsContent() {
           initialSecurity={securityFilter}
         />
       </div>
-      {/* Table */}
-      <div className="mt-6 overflow-hidden border border-white/10">
-        <table className="table">
-          <thead className="bg-neutral-900">
-            <tr>
-              <th className="text-left th-cell">Solar System</th>
-              <th className="text-left th-cell">Constellation</th>
-              <th className="text-left th-cell">Region</th>
-              <th className="text-left th-cell">Security Status</th>
-              <th className="text-left th-cell">Security Class</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5">
-            {loading ? (
-              <tr>
-                <td
-                  colSpan={5}
-                  className="px-6 py-12 text-center text-gray-400"
-                >
-                  <div className="flex items-center justify-center">
-                    <Loader size="lg" />
-                  </div>
-                </td>
-              </tr>
-            ) : systems.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={5}
-                  className="px-6 py-12 text-center text-gray-400"
-                >
-                  No solar systems found
-                </td>
-              </tr>
-            ) : (
-              systems.map((system) => (
-                <tr
-                  key={system.id}
-                  className="transition-colors hover:bg-neutral-800 bg-neutral-900"
-                >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <Link
-                        href={`/solar-systems/${system.id}`}
-                        prefetch={false}
-                        className="font-medium text-gray-400 transition-colors hover:text-gray-300"
-                      >
-                        {system.name}
-                      </Link>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    {system.constellation ? (
-                      <Link
-                        href={`/constellations/${system.constellation.id}`}
-                        prefetch={false}
-                        className="flex items-center gap-2 text-gray-300 transition-colors hover:text-gray-400"
-                      >
-                        {system.constellation.name}
-                      </Link>
-                    ) : (
-                      <span className="text-gray-500">Unknown</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    {system.constellation?.region ? (
-                      <Link
-                        href={`/regions/${system.constellation.region.id}`}
-                        prefetch={false}
-                        className="flex items-center gap-2 text-gray-300 transition-colors hover:text-gray-400"
-                      >
-                        {system.constellation.region.name}
-                      </Link>
-                    ) : (
-                      <span className="text-gray-500">Unknown</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <SecurityBadge securityStatus={system.securityStatus} />
-                  </td>
-                  <td className="px-6 py-4 text-gray-400">
-                    {system.security_class || "-"}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+      {/* Grid Layout */}
+      <div className="mt-6">
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader size="lg" />
+          </div>
+        ) : systems.length === 0 ? (
+          <div className="px-6 py-12 text-center text-gray-400 border rounded-lg border-white/10 bg-neutral-900">
+            No solar systems found
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+            {systems.map((system) => (
+              <SolarSystemCard key={system.id} system={system} />
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="mt-6">
