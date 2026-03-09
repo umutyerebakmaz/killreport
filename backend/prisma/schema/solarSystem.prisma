@@ -10,6 +10,8 @@ model SolarSystem {
   position_z       Float?
   constellation    Constellation? @relation(fields: [constellation_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
+  system_kills     SystemKills[]
+
   @@index([constellation_id])
   @@map("solar_systems")
 }
