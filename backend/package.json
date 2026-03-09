@@ -48,6 +48,7 @@
     "snapshot:alliances": "tsx src/workers/worker-alliance-snapshots.ts",
     "snapshot:corporations": "tsx src/workers/worker-corporation-snapshots.ts",
     "sync:character": "tsx src/workers/sync-character-killmails.ts",
+    "worker:system-kills": "tsx src/workers/worker-system-kills.ts",
     "update:alliance-counts": "tsx src/workers/update-alliance-counts.ts",
     "worker:alliance-corporations": "tsx src/workers/worker-alliance-corporations.ts",
     "worker:constellations": "tsx src/workers/worker-constellations.ts",
