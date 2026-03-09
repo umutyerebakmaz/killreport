@@ -623,7 +623,7 @@ export default function KillmailFilters({
 
   return (
     <form onSubmit={handleSubmit} className="mb-8">
-      {/* Top Bar: Filters, Clear, OrderBy */}
+      {/* Top Bar: Filters, Clear */}
       <div className="flex items-center justify-end gap-3">
         {/* Advanced Filters Toggle */}
         <button
