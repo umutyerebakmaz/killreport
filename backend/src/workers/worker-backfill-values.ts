@@ -43,6 +43,7 @@ interface KillmailWithItems {
     item_type_id: number;
     quantity_destroyed: number | null;
     quantity_dropped: number | null;
+    singleton: number;
   }>;
 }
 
@@ -69,9 +70,57 @@ async function calculateValues(killmail: KillmailWithItems) {
     select: { type_id: true, sell: true }
   });
 
-  // Create price map
+  // Fetch type info to get group_ids
+  const typeInfo = await prismaWorker.type.findMany({
+    where: { id: { in: uniqueTypeIds } },
+    select: {
+      id: true,
+      group_id: true
+    }
+  });
+
+  // Get unique group IDs
+  const groupIds = [...new Set(typeInfo.map(t => t.group_id))];
+
+  // Fetch groups
+  const groups = await prismaWorker.itemGroup.findMany({
+    where: {
+      id: { in: groupIds }
+    },
+    select: {
+      id: true,
+      category_id: true
+    }
+  });
+
+  // Get unique category IDs
+  const categoryIds = [...new Set(groups.map(g => g.category_id))];
+
+  // Fetch categories
+  const categories = await prismaWorker.category.findMany({
+    where: {
+      id: { in: categoryIds }
+    },
+    select: {
+      id: true,
+      name: true
+    }
+  });
+
+  // Create maps for quick lookup
   const priceMap = new Map(
     marketPrices.map(p => [p.type_id, p.sell || 0])
+  );
+
+  const categoryMap = new Map(categories.map(c => [c.id, c]));
+  const groupMap = new Map(groups.map(g => [g.id, g]));
+
+  const blueprintMap = new Map(
+    typeInfo.map(t => {
+      const group = groupMap.get(t.group_id);
+      const category = group ? categoryMap.get(group.category_id) : null;
+      return [t.id, category?.name?.toLowerCase() === 'blueprint'];
+    })
   );
 
   // Calculate ship value
@@ -86,7 +135,16 @@ async function calculateValues(killmail: KillmailWithItems) {
 
   // Calculate item values
   for (const item of items) {
-    const price = priceMap.get(item.item_type_id) || 0;
+    let price = priceMap.get(item.item_type_id) || 0;
+
+    // Blueprint Copy (singleton=2) has no value, only Blueprint Original (singleton=1) has value
+    const isBlueprint = blueprintMap.get(item.item_type_id) || false;
+    const isBlueprintCopy = isBlueprint && item.singleton === 2;
+
+    if (isBlueprintCopy) {
+      price = 0; // Blueprint copies are worthless
+    }
+
     const quantityDestroyed = item.quantity_destroyed || 0;
     const quantityDropped = item.quantity_dropped || 0;
 
@@ -201,7 +259,8 @@ async function backfillValuesWorker() {
               select: {
                 item_type_id: true,
                 quantity_destroyed: true,
-                quantity_dropped: true
+                quantity_dropped: true,
+                singleton: true
               }
             }
           }

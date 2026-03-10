@@ -1,18 +1,53 @@
 /**
  * EVE Online Inventory Flag Mappings
- * Source: EVE Static Data Export (SDE)
+ * Source: EVE Static Data Export (SDE) - Fuzzwork Database
+ * Reference: https://www.fuzzwork.co.uk/dump/latest/invFlags.csv
  *
- * Flag numaraları item'ların gemideki pozisyonunu temsil eder.
+ * Flag numaraları item'ların gemideki/structure'daki pozisyonunu temsil eder.
  * Bu değerler EVE Online'da sabittir ve nadiren değişir.
  */
 
 export enum InventoryFlag {
-  // Cargo & Holds
+  // ==================== BASIC CARGO & HOLDS ====================
   Cargo = 5,
   DroneBay = 87,
-  FleetHangar = 155, // Fleet/Ship Hangar (Specialized Ship Hold)
+  ShipHangar = 90,
+
+  // ==================== SPECIALIZED CARGO HOLDS ====================
+  // Industrial & Hauler Ships
+  SpecializedFuelBay = 133,
+  SpecializedOreHold = 134,
+  SpecializedGasHold = 135,
+  SpecializedMineralHold = 136,
+  SpecializedSalvageHold = 137,
+  SpecializedShipHold = 138,
+  SpecializedSmallShipHold = 139,
+  SpecializedMediumShipHold = 140,
+  SpecializedLargeShipHold = 141,
+  SpecializedIndustrialShipHold = 142,
+  SpecializedAmmoHold = 143,
+  SpecializedCommandCenterHold = 148,
+  SpecializedPlanetaryCommoditiesHold = 149,
+  SpecializedMaterialBay = 151,
+  QuafeBay = 154, // Special event ship hold
+  SpecializedIceHold = 181,
+  SpecializedAsteroidHold = 182,
+
+  // ==================== FLEET & CORPORATION HOLDS ====================
+  FleetHangar = 155, // Command Ships, Freighters
+  BoosterBay = 176, // Black Ops Ships
+  SubsystemBay = 177, // T3 Ship subsystems storage
+  RafflesHangar = 178, // Raffle/Lottery Hangar
+  FrigateEscapeBay = 179, // Bowhead, Freighters
+  CorpProjectsHangar = 184, // Corporation projects
+  InfrastructureHold = 185, // Infrastructure/Colony Resources
+  MoonMaterialBay = 186, // Haulers for moon materials
+
+  // ==================== STRUCTURE HOLDS ====================
   StructureFuel = 172,
-  StructureCoreRoom = 180,
+  StructureDeedBay = 180,
+
+  // ==================== FIGHTER BAY ====================
   FighterBay = 158,
   FighterTube0 = 159,
   FighterTube1 = 160,
@@ -20,7 +55,8 @@ export enum InventoryFlag {
   FighterTube3 = 162,
   FighterTube4 = 163,
 
-  // Module Slots
+  // ==================== MODULE SLOTS ====================
+  // Low Slots (Armor, Damage Mods, Engineering)
   LoSlot0 = 11,
   LoSlot1 = 12,
   LoSlot2 = 13,
@@ -30,6 +66,7 @@ export enum InventoryFlag {
   LoSlot6 = 17,
   LoSlot7 = 18,
 
+  // Mid Slots (Shield, Tackle, EWAR, Propulsion)
   MedSlot0 = 19,
   MedSlot1 = 20,
   MedSlot2 = 21,
@@ -39,6 +76,7 @@ export enum InventoryFlag {
   MedSlot6 = 25,
   MedSlot7 = 26,
 
+  // High Slots (Weapons, Mining Lasers, Utility)
   HiSlot0 = 27,
   HiSlot1 = 28,
   HiSlot2 = 29,
@@ -48,30 +86,32 @@ export enum InventoryFlag {
   HiSlot6 = 33,
   HiSlot7 = 34,
 
-  // Rigs
+  // ==================== RIG SLOTS ====================
   RigSlot0 = 92,
   RigSlot1 = 93,
   RigSlot2 = 94,
+  RigSlot3 = 95,
+  RigSlot4 = 96,
+  RigSlot5 = 97,
+  RigSlot6 = 98,
+  RigSlot7 = 99,
 
-  // Subsystems (T3 Cruisers/Destroyers)
+  // ==================== SUBSYSTEMS (T3 Ships) ====================
   SubSystem0 = 125,
   SubSystem1 = 126,
   SubSystem2 = 127,
   SubSystem3 = 128,
+  SubSystem4 = 129,
+  SubSystem5 = 130,
+  SubSystem6 = 131,
+  SubSystem7 = 132,
 
-  // Implant Slots (Pod/Capsule)
-  Implant0 = 89,
-  Implant1 = 90,
-  Implant2 = 91,
-  Implant3 = 95,
-  Implant4 = 96,
-  Implant5 = 97,
-  Implant6 = 98,
-  Implant7 = 99,
-  Implant8 = 100,
-  Implant9 = 101,
+  // ==================== IMPLANTS (LEGACY - Pod/Capsule) ====================
+  // Note: In EVE SDE, only flag 89 exists for implants
+  // Multiple implants use the same flag with different container IDs
+  Implant = 89,
 
-  // Service Slots (Upwell Structures)
+  // ==================== SERVICE SLOTS (Upwell Structures) ====================
   ServiceSlot0 = 164,
   ServiceSlot1 = 165,
   ServiceSlot2 = 166,
@@ -116,22 +156,29 @@ export const FLAG_CATEGORIES: Record<string, FlagCategory> = {
     name: 'Rig Slots',
     description: 'Permanent Ship Modifications',
     min: 92,
-    max: 94,
+    max: 99, // Updated: 8 rig slots (was 94)
     color: '#3b82f6', // blue
   },
   subsystem: {
     name: 'Subsystem Slots',
     description: 'T3 Cruiser/Destroyer Subsystems',
     min: 125,
-    max: 128,
+    max: 132, // Updated: 8 subsystem slots (was 128)
     color: '#8b5cf6', // purple
   },
   cargo: {
-    name: 'Cargo Hold',
+    name: 'Cargo',
     description: 'Ship Cargo Bay',
     min: 5,
     max: 5,
     color: '#6b7280', // gray
+  },
+  specializedHold: {
+    name: 'Specialized Hold',
+    description: 'Specialized Cargo Bays (Ore, Gas, Minerals, etc.)',
+    min: 133,
+    max: 186, // Covers all specialized holds (133-143, 148-149, 151, 154, 176-186)
+    color: '#78716c', // stone-500
   },
   droneBay: {
     name: 'Drone Bay',
