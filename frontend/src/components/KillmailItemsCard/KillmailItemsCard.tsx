@@ -807,10 +807,10 @@ export default function KillmailSummaryCard({
           </div>
         )}
 
-      {/* Cargo Bay */}
+      {/* Cargo */}
       {fitting?.cargo && fitting.cargo.length > 0 && (
         <div className="pb-4 mb-4 border-b border-white/10">
-          <h3 className="mb-2 font-bold text-gray-400 uppercase">Cargo Bay</h3>
+          <h3 className="mb-2 font-bold text-gray-400 uppercase">Cargo</h3>
           <div className="space-y-2">
             {(() => {
               const groupedCargo = groupItems(fitting.cargo);
@@ -872,6 +872,116 @@ export default function KillmailSummaryCard({
         </div>
       )}
 
+      {/* Fuel Bay */}
+      {fitting?.fuelBay && fitting.fuelBay.length > 0 && (
+        <div className="pb-4 mb-4 border-b border-white/10">
+          <h3 className="mb-2 font-bold text-gray-400 uppercase">Fuel Bay</h3>
+          <div className="space-y-2">
+            {(() => {
+              const groupedFuelBay = groupItems(fitting.fuelBay);
+              return groupedFuelBay.map((item, index) => {
+                const totalQty =
+                  item.quantityDestroyed + item.quantityDropped || 1;
+                const isDestroyed = item.quantityDestroyed > 0;
+                const isDropped = item.quantityDropped > 0;
+                const textColor = isDestroyed
+                  ? "text-red-400"
+                  : isDropped
+                    ? "text-green-500"
+                    : "text-white";
+
+                return (
+                  <div
+                    key={`fuel-bay-${item.itemType.id}-${index}`}
+                    className="flex items-center gap-3 py-2"
+                  >
+                    <img
+                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
+                      alt={getItemName(item.itemType, item.singleton)}
+                      className="border bg-white/5 size-16 border-white/10"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className={`truncate ${textColor}`}>
+                        {getItemName(item.itemType, item.singleton)}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-right">
+                      {renderQuantity(
+                        item.quantityDestroyed,
+                        item.quantityDropped,
+                      )}
+                      <div className={`w-40 tabular-nums ${textColor}`}>
+                        {formatISK(
+                          getItemPrice(item.itemType.jitaPrice) * totalQty,
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+        </div>
+      )}
+
+      {/* Mining Hold */}
+      {fitting?.oreHold && fitting.oreHold.length > 0 && (
+        <div className="pb-4 mb-4 border-b border-white/10">
+          <h3 className="mb-2 font-bold text-gray-400 uppercase">
+            Mining Hold
+          </h3>
+          <div className="space-y-2">
+            {(() => {
+              const groupedOreHold = groupItems(fitting.oreHold);
+              return groupedOreHold.map((item, index) => {
+                const totalQty =
+                  item.quantityDestroyed + item.quantityDropped || 1;
+                const isDestroyed = item.quantityDestroyed > 0;
+                const isDropped = item.quantityDropped > 0;
+                const textColor = isDestroyed
+                  ? "text-red-400"
+                  : isDropped
+                    ? "text-green-500"
+                    : "text-white";
+
+                return (
+                  <div
+                    key={`ore-hold-${item.itemType.id}-${index}`}
+                    className="flex items-center gap-3 py-2"
+                  >
+                    <img
+                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
+                      alt={getItemName(item.itemType, item.singleton)}
+                      className="border bg-white/5 size-16 border-white/10"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className={`truncate ${textColor}`}>
+                        {getItemName(item.itemType, item.singleton)}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-right">
+                      {renderQuantity(
+                        item.quantityDestroyed,
+                        item.quantityDropped,
+                      )}
+                      <div className={`w-40 tabular-nums ${textColor}`}>
+                        {formatISK(
+                          getItemPrice(item.itemType.jitaPrice) * totalQty,
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+        </div>
+      )}
+
       {/* Fleet Hangar */}
       {fitting?.fleetHangar && fitting.fleetHangar.length > 0 && (
         <div className="pb-4 mb-4 border-b border-white/10">
@@ -895,6 +1005,402 @@ export default function KillmailSummaryCard({
                 return (
                   <div
                     key={`fleet-hangar-${item.itemType.id}-${index}`}
+                    className="flex items-center gap-3 py-2"
+                  >
+                    <img
+                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
+                      alt={getItemName(item.itemType, item.singleton)}
+                      className="border bg-white/5 size-16 border-white/10"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className={`truncate ${textColor}`}>
+                        {getItemName(item.itemType, item.singleton)}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-right">
+                      {renderQuantity(
+                        item.quantityDestroyed,
+                        item.quantityDropped,
+                      )}
+                      <div className={`w-40 tabular-nums ${textColor}`}>
+                        {formatISK(
+                          getItemPrice(item.itemType.jitaPrice) * totalQty,
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+        </div>
+      )}
+
+      {/* Infrastructure Hangar */}
+      {fitting?.infrastructureHangar &&
+        fitting.infrastructureHangar.length > 0 && (
+          <div className="pb-4 mb-4 border-b border-white/10">
+            <h3 className="mb-2 font-bold text-gray-400 uppercase">
+              Infrastructure Hangar
+            </h3>
+            <div className="space-y-2">
+              {(() => {
+                const groupedInfrastructureHangar = groupItems(
+                  fitting.infrastructureHangar,
+                );
+                return groupedInfrastructureHangar.map((item, index) => {
+                  const totalQty =
+                    item.quantityDestroyed + item.quantityDropped || 1;
+                  const isDestroyed = item.quantityDestroyed > 0;
+                  const isDropped = item.quantityDropped > 0;
+                  const textColor = isDestroyed
+                    ? "text-red-400"
+                    : isDropped
+                      ? "text-green-500"
+                      : "text-white";
+
+                  return (
+                    <div
+                      key={`infrastructure-hangar-${item.itemType.id}-${index}`}
+                      className="flex items-center gap-3 py-2"
+                    >
+                      <img
+                        src={getItemImageUrl(item.itemType, item.singleton, 64)}
+                        alt={getItemName(item.itemType, item.singleton)}
+                        className="border bg-white/5 size-16 border-white/10"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className={`truncate ${textColor}`}>
+                          {getItemName(item.itemType, item.singleton)}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 text-right">
+                        {renderQuantity(
+                          item.quantityDestroyed,
+                          item.quantityDropped,
+                        )}
+                        <div className={`w-40 tabular-nums ${textColor}`}>
+                          {formatISK(
+                            getItemPrice(item.itemType.jitaPrice) * totalQty,
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+        )}
+
+      {/* Gas Hold */}
+      {fitting?.gasHold && fitting.gasHold.length > 0 && (
+        <div className="pb-4 mb-4 border-b border-white/10">
+          <h3 className="mb-2 font-bold text-gray-400 uppercase">Gas Hold</h3>
+          <div className="space-y-2">
+            {(() => {
+              const groupedGasHold = groupItems(fitting.gasHold);
+              return groupedGasHold.map((item, index) => {
+                const totalQty =
+                  item.quantityDestroyed + item.quantityDropped || 1;
+                const isDestroyed = item.quantityDestroyed > 0;
+                const isDropped = item.quantityDropped > 0;
+                const textColor = isDestroyed
+                  ? "text-red-400"
+                  : isDropped
+                    ? "text-green-500"
+                    : "text-white";
+
+                return (
+                  <div
+                    key={`gas-hold-${item.itemType.id}-${index}`}
+                    className="flex items-center gap-3 py-2"
+                  >
+                    <img
+                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
+                      alt={getItemName(item.itemType, item.singleton)}
+                      className="border bg-white/5 size-16 border-white/10"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className={`truncate ${textColor}`}>
+                        {getItemName(item.itemType, item.singleton)}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-right">
+                      {renderQuantity(
+                        item.quantityDestroyed,
+                        item.quantityDropped,
+                      )}
+                      <div className={`w-40 tabular-nums ${textColor}`}>
+                        {formatISK(
+                          getItemPrice(item.itemType.jitaPrice) * totalQty,
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+        </div>
+      )}
+
+      {/* Mineral Hold */}
+      {fitting?.mineralHold && fitting.mineralHold.length > 0 && (
+        <div className="pb-4 mb-4 border-b border-white/10">
+          <h3 className="mb-2 font-bold text-gray-400 uppercase">
+            Mineral Hold
+          </h3>
+          <div className="space-y-2">
+            {(() => {
+              const groupedMineralHold = groupItems(fitting.mineralHold);
+              return groupedMineralHold.map((item, index) => {
+                const totalQty =
+                  item.quantityDestroyed + item.quantityDropped || 1;
+                const isDestroyed = item.quantityDestroyed > 0;
+                const isDropped = item.quantityDropped > 0;
+                const textColor = isDestroyed
+                  ? "text-red-400"
+                  : isDropped
+                    ? "text-green-500"
+                    : "text-white";
+
+                return (
+                  <div
+                    key={`mineral-hold-${item.itemType.id}-${index}`}
+                    className="flex items-center gap-3 py-2"
+                  >
+                    <img
+                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
+                      alt={getItemName(item.itemType, item.singleton)}
+                      className="border bg-white/5 size-16 border-white/10"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className={`truncate ${textColor}`}>
+                        {getItemName(item.itemType, item.singleton)}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-right">
+                      {renderQuantity(
+                        item.quantityDestroyed,
+                        item.quantityDropped,
+                      )}
+                      <div className={`w-40 tabular-nums ${textColor}`}>
+                        {formatISK(
+                          getItemPrice(item.itemType.jitaPrice) * totalQty,
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+        </div>
+      )}
+
+      {/* Salvage Hold */}
+      {fitting?.salvageHold && fitting.salvageHold.length > 0 && (
+        <div className="pb-4 mb-4 border-b border-white/10">
+          <h3 className="mb-2 font-bold text-gray-400 uppercase">
+            Salvage Hold
+          </h3>
+          <div className="space-y-2">
+            {(() => {
+              const groupedSalvageHold = groupItems(fitting.salvageHold);
+              return groupedSalvageHold.map((item, index) => {
+                const totalQty =
+                  item.quantityDestroyed + item.quantityDropped || 1;
+                const isDestroyed = item.quantityDestroyed > 0;
+                const isDropped = item.quantityDropped > 0;
+                const textColor = isDestroyed
+                  ? "text-red-400"
+                  : isDropped
+                    ? "text-green-500"
+                    : "text-white";
+
+                return (
+                  <div
+                    key={`salvage-hold-${item.itemType.id}-${index}`}
+                    className="flex items-center gap-3 py-2"
+                  >
+                    <img
+                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
+                      alt={getItemName(item.itemType, item.singleton)}
+                      className="border bg-white/5 size-16 border-white/10"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className={`truncate ${textColor}`}>
+                        {getItemName(item.itemType, item.singleton)}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-right">
+                      {renderQuantity(
+                        item.quantityDestroyed,
+                        item.quantityDropped,
+                      )}
+                      <div className={`w-40 tabular-nums ${textColor}`}>
+                        {formatISK(
+                          getItemPrice(item.itemType.jitaPrice) * totalQty,
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+        </div>
+      )}
+
+      {/* Planetary Commodities Hold */}
+      {fitting?.planetaryCommoditiesHold &&
+        fitting.planetaryCommoditiesHold.length > 0 && (
+          <div className="pb-4 mb-4 border-b border-white/10">
+            <h3 className="mb-2 font-bold text-gray-400 uppercase">
+              Planetary Commodities Hold
+            </h3>
+            <div className="space-y-2">
+              {(() => {
+                const groupedPlanetaryCommodities = groupItems(
+                  fitting.planetaryCommoditiesHold,
+                );
+                return groupedPlanetaryCommodities.map((item, index) => {
+                  const totalQty =
+                    item.quantityDestroyed + item.quantityDropped || 1;
+                  const isDestroyed = item.quantityDestroyed > 0;
+                  const isDropped = item.quantityDropped > 0;
+                  const textColor = isDestroyed
+                    ? "text-red-400"
+                    : isDropped
+                      ? "text-green-500"
+                      : "text-white";
+
+                  return (
+                    <div
+                      key={`planetary-commodities-${item.itemType.id}-${index}`}
+                      className="flex items-center gap-3 py-2"
+                    >
+                      <img
+                        src={getItemImageUrl(item.itemType, item.singleton, 64)}
+                        alt={getItemName(item.itemType, item.singleton)}
+                        className="border bg-white/5 size-16 border-white/10"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className={`truncate ${textColor}`}>
+                          {getItemName(item.itemType, item.singleton)}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 text-right">
+                        {renderQuantity(
+                          item.quantityDestroyed,
+                          item.quantityDropped,
+                        )}
+                        <div className={`w-40 tabular-nums ${textColor}`}>
+                          {formatISK(
+                            getItemPrice(item.itemType.jitaPrice) * totalQty,
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+        )}
+
+      {/* Ice Hold */}
+      {fitting?.iceHold && fitting.iceHold.length > 0 && (
+        <div className="pb-4 mb-4 border-b border-white/10">
+          <h3 className="mb-2 font-bold text-gray-400 uppercase">Ice Hold</h3>
+          <div className="space-y-2">
+            {(() => {
+              const groupedIceHold = groupItems(fitting.iceHold);
+              return groupedIceHold.map((item, index) => {
+                const totalQty =
+                  item.quantityDestroyed + item.quantityDropped || 1;
+                const isDestroyed = item.quantityDestroyed > 0;
+                const isDropped = item.quantityDropped > 0;
+                const textColor = isDestroyed
+                  ? "text-red-400"
+                  : isDropped
+                    ? "text-green-500"
+                    : "text-white";
+
+                return (
+                  <div
+                    key={`ice-hold-${item.itemType.id}-${index}`}
+                    className="flex items-center gap-3 py-2"
+                  >
+                    <img
+                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
+                      alt={getItemName(item.itemType, item.singleton)}
+                      className="border bg-white/5 size-16 border-white/10"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className={`truncate ${textColor}`}>
+                        {getItemName(item.itemType, item.singleton)}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-right">
+                      {renderQuantity(
+                        item.quantityDestroyed,
+                        item.quantityDropped,
+                      )}
+                      <div className={`w-40 tabular-nums ${textColor}`}>
+                        {formatISK(
+                          getItemPrice(item.itemType.jitaPrice) * totalQty,
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+        </div>
+      )}
+
+      {/* Infrastructure Hold */}
+      {fitting?.infrastructureHold && fitting.infrastructureHold.length > 0 && (
+        <div className="pb-4 mb-4 border-b border-white/10">
+          <h3 className="mb-2 font-bold text-gray-400 uppercase">
+            Infrastructure Hold
+          </h3>
+          <div className="space-y-2">
+            {(() => {
+              const groupedInfrastructureHold = groupItems(
+                fitting.infrastructureHold,
+              );
+              return groupedInfrastructureHold.map((item, index) => {
+                const totalQty =
+                  item.quantityDestroyed + item.quantityDropped || 1;
+                const isDestroyed = item.quantityDestroyed > 0;
+                const isDropped = item.quantityDropped > 0;
+                const textColor = isDestroyed
+                  ? "text-red-400"
+                  : isDropped
+                    ? "text-green-500"
+                    : "text-white";
+
+                return (
+                  <div
+                    key={`infrastructure-hold-${item.itemType.id}-${index}`}
                     className="flex items-center gap-3 py-2"
                   >
                     <img
