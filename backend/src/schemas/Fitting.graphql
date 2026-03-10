@@ -13,6 +13,20 @@ type Fitting {
   cargo: [FittingModule!]!
   droneBay: [FittingModule!]!
   fleetHangar: [FittingModule!]!
+
+  # Specialized Cargo Holds
+  fuelBay: [FittingModule!]!
+  oreHold: [FittingModule!]!
+  gasHold: [FittingModule!]!
+  mineralHold: [FittingModule!]!
+  salvageHold: [FittingModule!]!
+  planetaryCommoditiesHold: [FittingModule!]!
+  iceHold: [FittingModule!]!
+  infrastructureHold: [FittingModule!]!
+
+  # Other Specialized Holds (combined for backward compatibility)
+  infrastructureHangar: [FittingModule!]!
+
   fighterBay: [FittingModule!]!
   structureFuel: [FittingModule!]!
   coreRoom: [FittingModule!]!
