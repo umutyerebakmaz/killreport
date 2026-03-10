@@ -550,8 +550,18 @@ export default function SolarSystemFilters({
                 >
                   <option value="nameAsc">Name A-Z</option>
                   <option value="nameDesc">Name Z-A</option>
-                  <option value="securityStatusDesc">Security ↓</option>
-                  <option value="securityStatusAsc">Security ↑</option>
+                  <option value="securityStatusDesc">
+                    Security (Highest First)
+                  </option>
+                  <option value="securityStatusAsc">
+                    Security (Lowest First)
+                  </option>
+                  <option value="shipKillsDesc">Ship Kills (Most First)</option>
+                  <option value="shipKillsAsc">Ship Kills (Least First)</option>
+                  <option value="podKillsDesc">Pod Kills (Most First)</option>
+                  <option value="podKillsAsc">Pod Kills (Least First)</option>
+                  <option value="npcKillsDesc">NPC Kills (Most First)</option>
+                  <option value="npcKillsAsc">NPC Kills (Least First)</option>
                 </select>
                 <ChevronDownIcon className="chevron-down-icon" />
               </div>

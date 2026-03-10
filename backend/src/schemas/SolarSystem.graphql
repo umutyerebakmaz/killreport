@@ -4,6 +4,31 @@ type Position {
   z: Float!
 }
 
+type SystemKills {
+  id: Int!
+  system_id: Int!
+  npc_kills: Int!
+  pod_kills: Int!
+  ship_kills: Int!
+  timestamp: String!
+  solar_system: SolarSystem
+}
+
+type SystemKillsStats {
+  system_id: Int!
+  system_name: String!
+  total_kills: Int!
+  latest_ship_kills: Int
+  latest_pod_kills: Int
+  latest_npc_kills: Int
+  latest_timestamp: String
+}
+
+input SystemKillsFilter {
+  system_id: Int!
+  hours: Int # Default 24 hours
+}
+
 type SolarSystem {
   id: Int!
   name: String!
@@ -12,6 +37,7 @@ type SolarSystem {
   star_id: Int
   position: Position
   constellation: Constellation
+  latestKills: SystemKills
 }
 
 enum SolarSystemOrderBy {
@@ -19,6 +45,12 @@ enum SolarSystemOrderBy {
   nameDesc
   securityStatusAsc
   securityStatusDesc
+  shipKillsDesc
+  shipKillsAsc
+  podKillsDesc
+  podKillsAsc
+  npcKillsDesc
+  npcKillsAsc
 }
 
 type SolarSystemsResponse {
@@ -41,6 +73,15 @@ input SolarSystemFilter {
 extend type Query {
   solarSystem(id: Int!): SolarSystem
   solarSystems(filter: SolarSystemFilter): SolarSystemsResponse!
+
+  # Get hourly kill snapshots for a specific system (for charts)
+  systemKillsHistory(filter: SystemKillsFilter!): [SystemKills!]!
+
+  # Get latest kills for a system
+  systemLatestKills(system_id: Int!): SystemKills
+
+  # Get top active systems (most kills in last 24h)
+  topActiveSystems(limit: Int): [SystemKillsStats!]!
 }
 
 # extend type Mutation {
