@@ -362,11 +362,20 @@ type Fitting {
   droneBay: [FittingModule!]!
   fighterBay: [FittingModule!]!
   fleetHangar: [FittingModule!]!
+  fuelBay: [FittingModule!]!
+  gasHold: [FittingModule!]!
   highSlots: SlotGroup!
+  iceHold: [FittingModule!]!
   implants: SlotGroup!
+  infrastructureHangar: [FittingModule!]!
+  infrastructureHold: [FittingModule!]!
   lowSlots: SlotGroup!
   midSlots: SlotGroup!
+  mineralHold: [FittingModule!]!
+  oreHold: [FittingModule!]!
+  planetaryCommoditiesHold: [FittingModule!]!
   rigs: SlotGroup!
+  salvageHold: [FittingModule!]!
   serviceSlots: SlotGroup!
   structureFuel: [FittingModule!]!
   subsystems: SlotGroup!

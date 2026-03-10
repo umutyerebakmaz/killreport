@@ -31,6 +31,15 @@ export interface Fitting {
     cargo: FittingModule[];
     droneBay: FittingModule[];
     fleetHangar: FittingModule[];
+    fuelBay: FittingModule[];
+    oreHold: FittingModule[];
+    gasHold: FittingModule[];
+    mineralHold: FittingModule[];
+    salvageHold: FittingModule[];
+    planetaryCommoditiesHold: FittingModule[];
+    iceHold: FittingModule[];
+    infrastructureHold: FittingModule[];
+    infrastructureHangar: FittingModule[];
     fighterBay: FittingModule[];
     structureFuel: FittingModule[];
     coreRoom: FittingModule[];
