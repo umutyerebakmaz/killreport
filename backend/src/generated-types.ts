@@ -790,8 +790,11 @@ export type Query = {
   regions: RegionsResponse;
   solarSystem?: Maybe<SolarSystem>;
   solarSystems: SolarSystemsResponse;
+  systemKillsHistory: Array<SystemKills>;
+  systemLatestKills?: Maybe<SystemKills>;
   /** Returns top pilots ranked by total kill count over the last 90 days (rolling window) */
   top90DaysPilots: Array<Top90DaysPilot>;
+  topActiveSystems: Array<SystemKillsStats>;
   /** Returns top alliances ranked by total kill count over the last 7 days (rolling window, today - 6 days) */
   topLast7DaysAlliances: Array<TopLast7DaysAlliance>;
   /** Returns top attacker ship types by usage count over the last 7 days (rolling window, today - 6 days) */
@@ -1026,8 +1029,23 @@ export type QuerySolarSystemsArgs = {
 };
 
 
+export type QuerySystemKillsHistoryArgs = {
+  filter: SystemKillsFilter;
+};
+
+
+export type QuerySystemLatestKillsArgs = {
+  system_id: Scalars['Int']['input'];
+};
+
+
 export type QueryTop90DaysPilotsArgs = {
   filter?: InputMaybe<Top90DaysPilotsFilter>;
+};
+
+
+export type QueryTopActiveSystemsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1192,6 +1210,7 @@ export type SolarSystem = {
   __typename?: 'SolarSystem';
   constellation?: Maybe<Constellation>;
   id: Scalars['Int']['output'];
+  latestKills?: Maybe<SystemKills>;
   name: Scalars['String']['output'];
   position?: Maybe<Position>;
   securityStatus?: Maybe<Scalars['Float']['output']>;
@@ -1214,8 +1233,14 @@ export type SolarSystemFilter = {
 export enum SolarSystemOrderBy {
   NameAsc = 'nameAsc',
   NameDesc = 'nameDesc',
+  NpcKillsAsc = 'npcKillsAsc',
+  NpcKillsDesc = 'npcKillsDesc',
+  PodKillsAsc = 'podKillsAsc',
+  PodKillsDesc = 'podKillsDesc',
   SecurityStatusAsc = 'securityStatusAsc',
-  SecurityStatusDesc = 'securityStatusDesc'
+  SecurityStatusDesc = 'securityStatusDesc',
+  ShipKillsAsc = 'shipKillsAsc',
+  ShipKillsDesc = 'shipKillsDesc'
 }
 
 export type SolarSystemsResponse = {
@@ -1363,6 +1388,33 @@ export type SyncMyKillmailsPayload = {
   message: Scalars['String']['output'];
   success: Scalars['Boolean']['output'];
   syncedCount: Scalars['Int']['output'];
+};
+
+export type SystemKills = {
+  __typename?: 'SystemKills';
+  id: Scalars['Int']['output'];
+  npc_kills: Scalars['Int']['output'];
+  pod_kills: Scalars['Int']['output'];
+  ship_kills: Scalars['Int']['output'];
+  solar_system?: Maybe<SolarSystem>;
+  system_id: Scalars['Int']['output'];
+  timestamp: Scalars['String']['output'];
+};
+
+export type SystemKillsFilter = {
+  hours?: InputMaybe<Scalars['Int']['input']>;
+  system_id: Scalars['Int']['input'];
+};
+
+export type SystemKillsStats = {
+  __typename?: 'SystemKillsStats';
+  latest_npc_kills?: Maybe<Scalars['Int']['output']>;
+  latest_pod_kills?: Maybe<Scalars['Int']['output']>;
+  latest_ship_kills?: Maybe<Scalars['Int']['output']>;
+  latest_timestamp?: Maybe<Scalars['String']['output']>;
+  system_id: Scalars['Int']['output'];
+  system_name: Scalars['String']['output'];
+  total_kills: Scalars['Int']['output'];
 };
 
 export type Top90DaysPilot = {
@@ -1792,6 +1844,9 @@ export type ResolversTypes = {
   Subscription: ResolverTypeWrapper<Record<PropertyKey, never>>;
   SyncMyKillmailsInput: SyncMyKillmailsInput;
   SyncMyKillmailsPayload: ResolverTypeWrapper<SyncMyKillmailsPayload>;
+  SystemKills: ResolverTypeWrapper<SystemKills>;
+  SystemKillsFilter: SystemKillsFilter;
+  SystemKillsStats: ResolverTypeWrapper<SystemKillsStats>;
   Top90DaysPilot: ResolverTypeWrapper<Top90DaysPilot>;
   Top90DaysPilotsFilter: Top90DaysPilotsFilter;
   TopLast7DaysAlliance: ResolverTypeWrapper<TopLast7DaysAlliance>;
@@ -1918,6 +1973,9 @@ export type ResolversParentTypes = {
   Subscription: Record<PropertyKey, never>;
   SyncMyKillmailsInput: SyncMyKillmailsInput;
   SyncMyKillmailsPayload: SyncMyKillmailsPayload;
+  SystemKills: SystemKills;
+  SystemKillsFilter: SystemKillsFilter;
+  SystemKillsStats: SystemKillsStats;
   Top90DaysPilot: Top90DaysPilot;
   Top90DaysPilotsFilter: Top90DaysPilotsFilter;
   TopLast7DaysAlliance: TopLast7DaysAlliance;
@@ -2372,7 +2430,10 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   regions?: Resolver<ResolversTypes['RegionsResponse'], ParentType, ContextType, Partial<QueryRegionsArgs>>;
   solarSystem?: Resolver<Maybe<ResolversTypes['SolarSystem']>, ParentType, ContextType, RequireFields<QuerySolarSystemArgs, 'id'>>;
   solarSystems?: Resolver<ResolversTypes['SolarSystemsResponse'], ParentType, ContextType, Partial<QuerySolarSystemsArgs>>;
+  systemKillsHistory?: Resolver<Array<ResolversTypes['SystemKills']>, ParentType, ContextType, RequireFields<QuerySystemKillsHistoryArgs, 'filter'>>;
+  systemLatestKills?: Resolver<Maybe<ResolversTypes['SystemKills']>, ParentType, ContextType, RequireFields<QuerySystemLatestKillsArgs, 'system_id'>>;
   top90DaysPilots?: Resolver<Array<ResolversTypes['Top90DaysPilot']>, ParentType, ContextType, Partial<QueryTop90DaysPilotsArgs>>;
+  topActiveSystems?: Resolver<Array<ResolversTypes['SystemKillsStats']>, ParentType, ContextType, Partial<QueryTopActiveSystemsArgs>>;
   topLast7DaysAlliances?: Resolver<Array<ResolversTypes['TopLast7DaysAlliance']>, ParentType, ContextType, Partial<QueryTopLast7DaysAlliancesArgs>>;
   topLast7DaysAttackerShips?: Resolver<Array<ResolversTypes['TopLast7DaysAttackerShip']>, ParentType, ContextType, Partial<QueryTopLast7DaysAttackerShipsArgs>>;
   topLast7DaysCorporations?: Resolver<Array<ResolversTypes['TopLast7DaysCorporation']>, ParentType, ContextType, Partial<QueryTopLast7DaysCorporationsArgs>>;
@@ -2457,6 +2518,7 @@ export type SlotGroupResolvers<ContextType = any, ParentType extends ResolversPa
 export type SolarSystemResolvers<ContextType = any, ParentType extends ResolversParentTypes['SolarSystem'] = ResolversParentTypes['SolarSystem']> = {
   constellation?: Resolver<Maybe<ResolversTypes['Constellation']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  latestKills?: Resolver<Maybe<ResolversTypes['SystemKills']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   position?: Resolver<Maybe<ResolversTypes['Position']>, ParentType, ContextType>;
   securityStatus?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
@@ -2543,6 +2605,26 @@ export type SyncMyKillmailsPayloadResolvers<ContextType = any, ParentType extend
   message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   syncedCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type SystemKillsResolvers<ContextType = any, ParentType extends ResolversParentTypes['SystemKills'] = ResolversParentTypes['SystemKills']> = {
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  npc_kills?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  pod_kills?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  ship_kills?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  solar_system?: Resolver<Maybe<ResolversTypes['SolarSystem']>, ParentType, ContextType>;
+  system_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  timestamp?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type SystemKillsStatsResolvers<ContextType = any, ParentType extends ResolversParentTypes['SystemKillsStats'] = ResolversParentTypes['SystemKillsStats']> = {
+  latest_npc_kills?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  latest_pod_kills?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  latest_ship_kills?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  latest_timestamp?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  system_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  system_name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  total_kills?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
 export type Top90DaysPilotResolvers<ContextType = any, ParentType extends ResolversParentTypes['Top90DaysPilot'] = ResolversParentTypes['Top90DaysPilot']> = {
@@ -2733,6 +2815,8 @@ export type Resolvers<ContextType = any> = {
   StartTypeSyncPayload?: StartTypeSyncPayloadResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
   SyncMyKillmailsPayload?: SyncMyKillmailsPayloadResolvers<ContextType>;
+  SystemKills?: SystemKillsResolvers<ContextType>;
+  SystemKillsStats?: SystemKillsStatsResolvers<ContextType>;
   Top90DaysPilot?: Top90DaysPilotResolvers<ContextType>;
   TopLast7DaysAlliance?: TopLast7DaysAllianceResolvers<ContextType>;
   TopLast7DaysAttackerShip?: TopLast7DaysAttackerShipResolvers<ContextType>;

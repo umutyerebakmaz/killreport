@@ -87,3 +87,37 @@ export const formatKillmailDateTime = (dateString: string) => {
   });
   return `${dateStr} ${timeStr} UTC`;
 };
+
+/**
+ * Formats a date string to "time ago" format
+ * @param dateInput - ISO date string or Date object
+ * @param short - If true, uses short format (5m ago, 2h ago). Default: false
+ * @returns Human-readable time ago string (e.g., "2 hours ago", "just now")
+ */
+export const formatTimeAgo = (
+  dateInput: string | Date,
+  short: boolean = false,
+) => {
+  const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+  const now = new Date();
+  const diffInMinutes = (now.getTime() - date.getTime()) / (1000 * 60);
+
+  if (diffInMinutes < 1) {
+    return "just now";
+  } else if (diffInMinutes < 60) {
+    const mins = Math.floor(diffInMinutes);
+    return short
+      ? `${mins}m ago`
+      : `${mins} ${mins === 1 ? "minute" : "minutes"} ago`;
+  } else if (diffInMinutes < 1440) {
+    const hours = Math.floor(diffInMinutes / 60);
+    return short
+      ? `${hours}h ago`
+      : `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
+  } else {
+    const days = Math.floor(diffInMinutes / 1440);
+    return short
+      ? `${days}d ago`
+      : `${days} ${days === 1 ? "day" : "days"} ago`;
+  }
+};
