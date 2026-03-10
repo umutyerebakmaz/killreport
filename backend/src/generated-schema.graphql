@@ -615,11 +615,14 @@ type Query {
   regions(filter: RegionFilter): RegionsResponse!
   solarSystem(id: Int!): SolarSystem
   solarSystems(filter: SolarSystemFilter): SolarSystemsResponse!
+  systemKillsHistory(filter: SystemKillsFilter!): [SystemKills!]!
+  systemLatestKills(system_id: Int!): SystemKills
 
   """
   Returns top pilots ranked by total kill count over the last 90 days (rolling window)
   """
   top90DaysPilots(filter: Top90DaysPilotsFilter): [Top90DaysPilot!]!
+  topActiveSystems(limit: Int): [SystemKillsStats!]!
 
   """
   Returns top alliances ranked by total kill count over the last 7 days (rolling window, today - 6 days)
@@ -778,6 +781,7 @@ type SlotGroup {
 type SolarSystem {
   constellation: Constellation
   id: Int!
+  latestKills: SystemKills
   name: String!
   position: Position
   securityStatus: Float
@@ -800,8 +804,14 @@ input SolarSystemFilter {
 enum SolarSystemOrderBy {
   nameAsc
   nameDesc
+  npcKillsAsc
+  npcKillsDesc
+  podKillsAsc
+  podKillsDesc
   securityStatusAsc
   securityStatusDesc
+  shipKillsAsc
+  shipKillsDesc
 }
 
 type SolarSystemsResponse {
@@ -941,6 +951,31 @@ type SyncMyKillmailsPayload {
   message: String!
   success: Boolean!
   syncedCount: Int!
+}
+
+type SystemKills {
+  id: Int!
+  npc_kills: Int!
+  pod_kills: Int!
+  ship_kills: Int!
+  solar_system: SolarSystem
+  system_id: Int!
+  timestamp: String!
+}
+
+input SystemKillsFilter {
+  hours: Int
+  system_id: Int!
+}
+
+type SystemKillsStats {
+  latest_npc_kills: Int
+  latest_pod_kills: Int
+  latest_ship_kills: Int
+  latest_timestamp: String
+  system_id: Int!
+  system_name: String!
+  total_kills: Int!
 }
 
 type Top90DaysPilot {

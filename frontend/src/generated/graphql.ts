@@ -791,8 +791,11 @@ export type Query = {
   regions: RegionsResponse;
   solarSystem?: Maybe<SolarSystem>;
   solarSystems: SolarSystemsResponse;
+  systemKillsHistory: Array<SystemKills>;
+  systemLatestKills?: Maybe<SystemKills>;
   /** Returns top pilots ranked by total kill count over the last 90 days (rolling window) */
   top90DaysPilots: Array<Top90DaysPilot>;
+  topActiveSystems: Array<SystemKillsStats>;
   /** Returns top alliances ranked by total kill count over the last 7 days (rolling window, today - 6 days) */
   topLast7DaysAlliances: Array<TopLast7DaysAlliance>;
   /** Returns top attacker ship types by usage count over the last 7 days (rolling window, today - 6 days) */
@@ -1027,8 +1030,23 @@ export type QuerySolarSystemsArgs = {
 };
 
 
+export type QuerySystemKillsHistoryArgs = {
+  filter: SystemKillsFilter;
+};
+
+
+export type QuerySystemLatestKillsArgs = {
+  system_id: Scalars['Int']['input'];
+};
+
+
 export type QueryTop90DaysPilotsArgs = {
   filter?: InputMaybe<Top90DaysPilotsFilter>;
+};
+
+
+export type QueryTopActiveSystemsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1193,6 +1211,7 @@ export type SolarSystem = {
   __typename?: 'SolarSystem';
   constellation?: Maybe<Constellation>;
   id: Scalars['Int']['output'];
+  latestKills?: Maybe<SystemKills>;
   name: Scalars['String']['output'];
   position?: Maybe<Position>;
   securityStatus?: Maybe<Scalars['Float']['output']>;
@@ -1215,8 +1234,14 @@ export type SolarSystemFilter = {
 export enum SolarSystemOrderBy {
   NameAsc = 'nameAsc',
   NameDesc = 'nameDesc',
+  NpcKillsAsc = 'npcKillsAsc',
+  NpcKillsDesc = 'npcKillsDesc',
+  PodKillsAsc = 'podKillsAsc',
+  PodKillsDesc = 'podKillsDesc',
   SecurityStatusAsc = 'securityStatusAsc',
-  SecurityStatusDesc = 'securityStatusDesc'
+  SecurityStatusDesc = 'securityStatusDesc',
+  ShipKillsAsc = 'shipKillsAsc',
+  ShipKillsDesc = 'shipKillsDesc'
 }
 
 export type SolarSystemsResponse = {
@@ -1364,6 +1389,33 @@ export type SyncMyKillmailsPayload = {
   message: Scalars['String']['output'];
   success: Scalars['Boolean']['output'];
   syncedCount: Scalars['Int']['output'];
+};
+
+export type SystemKills = {
+  __typename?: 'SystemKills';
+  id: Scalars['Int']['output'];
+  npc_kills: Scalars['Int']['output'];
+  pod_kills: Scalars['Int']['output'];
+  ship_kills: Scalars['Int']['output'];
+  solar_system?: Maybe<SolarSystem>;
+  system_id: Scalars['Int']['output'];
+  timestamp: Scalars['String']['output'];
+};
+
+export type SystemKillsFilter = {
+  hours?: InputMaybe<Scalars['Int']['input']>;
+  system_id: Scalars['Int']['input'];
+};
+
+export type SystemKillsStats = {
+  __typename?: 'SystemKillsStats';
+  latest_npc_kills?: Maybe<Scalars['Int']['output']>;
+  latest_pod_kills?: Maybe<Scalars['Int']['output']>;
+  latest_ship_kills?: Maybe<Scalars['Int']['output']>;
+  latest_timestamp?: Maybe<Scalars['String']['output']>;
+  system_id: Scalars['Int']['output'];
+  system_name: Scalars['String']['output'];
+  total_kills: Scalars['Int']['output'];
 };
 
 export type Top90DaysPilot = {
@@ -2008,7 +2060,7 @@ export type SolarSystemsQueryVariables = Exact<{
 }>;
 
 
-export type SolarSystemsQuery = { __typename?: 'Query', solarSystems: { __typename?: 'SolarSystemsResponse', items: Array<{ __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type SolarSystemsQuery = { __typename?: 'Query', solarSystems: { __typename?: 'SolarSystemsResponse', items: Array<{ __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null, latestKills?: { __typename?: 'SystemKills', ship_kills: number, pod_kills: number, npc_kills: number, timestamp: string } | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type SolarSystemQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -5596,6 +5648,12 @@ export const SolarSystemsDocument = gql`
           id
           name
         }
+      }
+      latestKills {
+        ship_kills
+        pod_kills
+        npc_kills
+        timestamp
       }
     }
     pageInfo {

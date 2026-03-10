@@ -1,5 +1,6 @@
 import SecurityBadge from "@/components/SecurityStatus/SecurityStatus";
 import Tooltip from "@/components/Tooltip/Tooltip";
+import { formatTimeAgo } from "@/utils/date";
 import Link from "next/link";
 
 interface SolarSystemCardProps {
@@ -15,13 +16,34 @@ interface SolarSystemCardProps {
         name: string;
       } | null;
     } | null;
+    latestKills?: {
+      ship_kills: number;
+      pod_kills: number;
+      npc_kills: number;
+      timestamp: string;
+    } | null;
   };
 }
 
 export default function SolarSystemCard({ system }: SolarSystemCardProps) {
+  // Format kill stats as single line, hiding zero values
+  const formatKillStats = (kills: {
+    ship_kills: number;
+    pod_kills: number;
+    npc_kills: number;
+  }) => {
+    const parts = [];
+    if (kills.ship_kills > 0) parts.push(`${kills.ship_kills} ships`);
+    if (kills.pod_kills > 0) parts.push(`${kills.pod_kills} pods`);
+    if (kills.npc_kills > 0) parts.push(`${kills.npc_kills} NPC`);
+
+    if (parts.length === 0) return "No activity";
+    return `${parts.join(", ")} killed`;
+  };
+
   return (
     <div className="p-4 transition-all border bg-neutral-900 border-white/5 hover:bg-neutral-800 hover:border-white/20">
-      {/* Row 1: Security Status + System Name */}
+      {/* Security Status + System Name */}
       <div className="flex items-center gap-3">
         <SecurityBadge securityStatus={system.securityStatus ?? 0} />
         <Tooltip content="Show solar system detail">
@@ -35,7 +57,7 @@ export default function SolarSystemCard({ system }: SolarSystemCardProps) {
         </Tooltip>
       </div>
 
-      {/* Row 2: Constellation */}
+      {/* Constellation */}
       <div>
         {system.constellation ? (
           <Tooltip content="Show constellation detail">
@@ -52,7 +74,7 @@ export default function SolarSystemCard({ system }: SolarSystemCardProps) {
         )}
       </div>
 
-      {/* Row 3: Region */}
+      {/* Region */}
       <div>
         {system.constellation?.region ? (
           <Tooltip content="Show region detail">
@@ -68,6 +90,24 @@ export default function SolarSystemCard({ system }: SolarSystemCardProps) {
           <span className="text-sm text-gray-500">Unknown Region</span>
         )}
       </div>
+
+      {/* Kill statistics and timestamp at the bottom */}
+      {system.latestKills && (
+        <div className="pt-3 mt-3 border-t border-white/10">
+          <div className="flex items-center justify-between text-sm">
+            <Tooltip content="Kill statistics in last hour">
+              <span className="text-gray-400">
+                {formatKillStats(system.latestKills)}
+              </span>
+            </Tooltip>
+            <Tooltip content="Last update time">
+              <span className="text-xs text-gray-500">
+                {formatTimeAgo(system.latestKills.timestamp)}
+              </span>
+            </Tooltip>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
