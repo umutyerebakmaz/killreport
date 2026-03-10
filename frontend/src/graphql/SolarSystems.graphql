@@ -12,6 +12,12 @@ query SolarSystems($filter: SolarSystemFilter) {
           name
         }
       }
+      latestKills {
+        ship_kills
+        pod_kills
+        npc_kills
+        timestamp
+      }
     }
     pageInfo {
       currentPage
