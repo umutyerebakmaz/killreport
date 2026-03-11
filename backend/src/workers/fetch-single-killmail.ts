@@ -47,6 +47,7 @@ async function fetchSingleKillmail(killmailId: number, killmailHash: string) {
                 item_type_id: item.item_type_id,
                 quantity_destroyed: item.quantity_destroyed,
                 quantity_dropped: item.quantity_dropped,
+                singleton: item.singleton,
             })) || []
         });
 

@@ -428,6 +428,7 @@ function KillmailsContent() {
             animatingKillmails={animatingKillmails}
             loading={loading}
             dateCountsMap={dateCountsMap}
+            variant="list"
           />
 
           <div className="mt-6">
