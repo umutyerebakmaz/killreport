@@ -157,7 +157,25 @@ export const killmailQueries: QueryResolvers = {
 
             // For large result sets, use raw SQL with array to avoid parameter limit
             // PostgreSQL can handle large arrays efficiently with ANY()
-            const orderDirection = orderBy === 'timeAsc' ? 'ASC' : 'DESC';
+            const orderByClause = orderBy === 'timeAsc' ? 'killmail_time ASC'
+                : orderBy === 'timeDesc' ? 'killmail_time DESC'
+                    : orderBy === 'valueAsc' ? 'total_value ASC NULLS LAST'
+                        : 'total_value DESC NULLS LAST'; // valueDesc
+
+            // Add date filters if provided
+            const dateConditions: string[] = [];
+            const dateParams: any[] = [];
+            let dateParamIdx = mainParamIdx;
+
+            if (args.filter?.startDate) {
+                dateConditions.push(`killmail_time >= $${dateParamIdx++}`);
+                dateParams.push(new Date(args.filter.startDate));
+            }
+            if (args.filter?.endDate) {
+                dateConditions.push(`killmail_time <= $${dateParamIdx++}`);
+                dateParams.push(new Date(args.filter.endDate));
+            }
+            const dateWhereClause = dateConditions.length > 0 ? ` AND ${dateConditions.join(' AND ')}` : '';
 
             const killmails = await prisma.$queryRawUnsafe<Array<{
                 killmail_id: number;
@@ -181,14 +199,15 @@ export const killmailQueries: QueryResolvers = {
           dropped_value,
           attacker_count
         FROM killmails
-        WHERE killmail_id = ANY($1::int[])${mainWhereClause}
-        ORDER BY killmail_time ${orderDirection}
+        WHERE killmail_id = ANY($1::int[])${mainWhereClause}${dateWhereClause}
+        ORDER BY ${orderByClause}
         LIMIT $2
         OFFSET $3`,
                 killmailIds,
                 limit,
                 skip,
-                ...valueParams
+                ...valueParams,
+                ...dateParams
             );
 
             const totalPages = Math.ceil(totalCount / limit);
@@ -242,19 +261,34 @@ export const killmailQueries: QueryResolvers = {
                 };
             }
 
+            // Add date filters
+            if (args.filter?.startDate || args.filter?.endDate) {
+                where.killmail_time = {};
+                if (args.filter?.startDate) {
+                    where.killmail_time.gte = new Date(args.filter.startDate);
+                }
+                if (args.filter?.endDate) {
+                    where.killmail_time.lte = new Date(args.filter.endDate);
+                }
+            }
+
             // Count total matching records
             const totalCount = await prisma.killmail.count({ where });
 
             const totalPages = Math.ceil(totalCount / limit);
+
+            // Determine orderBy clause
+            const prismaOrderBy = orderBy === 'timeAsc' ? { killmail_time: 'asc' as const }
+                : orderBy === 'timeDesc' ? { killmail_time: 'desc' as const }
+                    : orderBy === 'valueAsc' ? { total_value: 'asc' as const }
+                        : { total_value: 'desc' as const }; // valueDesc
 
             // Fetch killmails - field resolvers will handle relations via DataLoaders
             const killmails = await prisma.killmail.findMany({
                 where,
                 skip,
                 take: limit,
-                orderBy: {
-                    killmail_time: orderBy === 'timeAsc' ? 'asc' : 'desc'
-                },
+                orderBy: prismaOrderBy,
                 select: {
                     killmail_id: true,
                     killmail_hash: true,

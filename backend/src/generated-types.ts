@@ -559,6 +559,7 @@ export type KillmailFilter = {
   characterVictim?: InputMaybe<Scalars['Boolean']['input']>;
   constellationId?: InputMaybe<Scalars['Int']['input']>;
   corporationId?: InputMaybe<Scalars['Int']['input']>;
+  endDate?: InputMaybe<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   maxAttackers?: InputMaybe<Scalars['Int']['input']>;
   maxValue?: InputMaybe<Scalars['Float']['input']>;
@@ -571,6 +572,7 @@ export type KillmailFilter = {
   securitySpace?: InputMaybe<Scalars['String']['input']>;
   shipGroupIds?: InputMaybe<Array<Scalars['Int']['input']>>;
   shipTypeId?: InputMaybe<Scalars['Int']['input']>;
+  startDate?: InputMaybe<Scalars['String']['input']>;
   systemId?: InputMaybe<Scalars['Int']['input']>;
   victim?: InputMaybe<Scalars['Boolean']['input']>;
 };
@@ -587,7 +589,9 @@ export type KillmailItem = {
 
 export enum KillmailOrderBy {
   TimeAsc = 'timeAsc',
-  TimeDesc = 'timeDesc'
+  TimeDesc = 'timeDesc',
+  ValueAsc = 'valueAsc',
+  ValueDesc = 'valueDesc'
 }
 
 export type KillmailsResponse = {
