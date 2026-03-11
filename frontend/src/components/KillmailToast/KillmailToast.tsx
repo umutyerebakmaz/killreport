@@ -1,5 +1,6 @@
 "use client";
 
+import { formatTimeAgo } from "@/utils/date";
 import { formatISK } from "@/utils/formatISK";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
@@ -18,15 +19,6 @@ interface KillmailToast {
 interface KillmailToastContainerProps {
   toasts: KillmailToast[];
   onDismiss: (id: string) => void;
-}
-
-function formatTimeAgo(date: Date): string {
-  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (seconds < 60) return "just now";
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  return `${hours}h ago`;
 }
 
 function KillmailToastItem({
@@ -146,7 +138,7 @@ function KillmailToastItem({
               <span className="text-xs text-gray-600">•</span>
             )}
             <span className="text-xs text-gray-600">
-              {formatTimeAgo(toast.timestamp)}
+              {formatTimeAgo(toast.timestamp, true)}
             </span>
           </div>
         </div>

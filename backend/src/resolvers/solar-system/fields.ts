@@ -1,4 +1,5 @@
 import { SolarSystemResolvers } from '@generated-types';
+import prisma from '@services/prisma';
 
 /**
  * SolarSystem Field Resolvers
@@ -28,5 +29,19 @@ export const solarSystemFields: SolarSystemResolvers = {
     securityStatus: (parent) => {
         const prismaParent = parent as any;
         return prismaParent.security_status ?? null;
+    },
+
+    // Get latest kills for this system
+    latestKills: async (parent) => {
+        const prismaParent = parent as any;
+        const latestKill = await prisma.systemKills.findFirst({
+            where: {
+                system_id: prismaParent.id,
+            },
+            orderBy: {
+                timestamp: 'desc',
+            },
+        });
+        return latestKill as any;
     },
 };

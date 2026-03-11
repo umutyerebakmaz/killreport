@@ -5,6 +5,7 @@ interface KillmailRowStylesParams {
   characterId?: number;
   corporationId?: number;
   allianceId?: number;
+  variant?: "detail" | "list";
 }
 
 interface KillmailRowStyles {
@@ -22,6 +23,7 @@ export function getKillmailRowStyles({
   characterId,
   corporationId,
   allianceId,
+  variant = "list",
 }: KillmailRowStylesParams): KillmailRowStyles {
   const hasEntity = Boolean(characterId || corporationId || allianceId);
 
@@ -29,15 +31,33 @@ export function getKillmailRowStyles({
   const isVictim = Boolean(
     (characterId && km.victim?.character?.id === characterId) ||
     (corporationId && km.victim?.corporation?.id === corporationId) ||
-    (allianceId && km.victim?.alliance?.id === allianceId)
+    (allianceId && km.victim?.alliance?.id === allianceId),
   );
 
-  // No entity provided - use neutral colors
+  // Check if the entity is the final blow (attacker indicator)
+  const isFinalBlow = Boolean(
+    (characterId && km.finalBlow?.character?.id === characterId) ||
+    (corporationId && km.finalBlow?.corporation?.id === corporationId) ||
+    (allianceId && km.finalBlow?.alliance?.id === allianceId),
+  );
+
+  // No entity provided - use neutral colors based on variant
   if (!hasEntity) {
     return {
       totalValueColor: "text-orange-400",
-      rowBgColor: "bg-neutral-900",
-      rowHoverColor: "hover:bg-neutral-800",
+      rowBgColor: variant === "list" ? "bg-neutral-900" : "bg-neutral-800",
+      rowHoverColor:
+        variant === "list" ? "hover:bg-neutral-800" : "hover:bg-neutral-700",
+    };
+  }
+
+  // Entity exists but is neither victim nor attacker - use neutral colors based on variant
+  if (!isVictim && !isFinalBlow) {
+    return {
+      totalValueColor: "text-orange-400",
+      rowBgColor: variant === "list" ? "bg-neutral-900" : "bg-neutral-800",
+      rowHoverColor:
+        variant === "list" ? "hover:bg-neutral-800" : "hover:bg-neutral-700",
     };
   }
 
@@ -56,4 +76,6 @@ export function getKillmailRowStyles({
     rowBgColor: characterId ? "bg-green-500/15" : "bg-green-500/20",
     rowHoverColor: "hover:bg-green-500/20",
   };
+
+  console.log();
 }
