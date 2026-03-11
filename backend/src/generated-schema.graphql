@@ -472,6 +472,7 @@ input KillmailFilter {
   characterVictim: Boolean
   constellationId: Int
   corporationId: Int
+  endDate: String
   limit: Int
   maxAttackers: Int
   maxValue: Float
@@ -484,6 +485,7 @@ input KillmailFilter {
   securitySpace: String
   shipGroupIds: [Int!]
   shipTypeId: Int
+  startDate: String
   systemId: Int
   victim: Boolean
 }
@@ -500,6 +502,8 @@ type KillmailItem {
 enum KillmailOrderBy {
   timeAsc
   timeDesc
+  valueAsc
+  valueDesc
 }
 
 type KillmailsResponse {
