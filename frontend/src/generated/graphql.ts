@@ -2076,7 +2076,7 @@ export type SolarSystemQueryVariables = Exact<{
 }>;
 
 
-export type SolarSystemQuery = { __typename?: 'Query', solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, security_class?: string | null, star_id?: number | null, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } | null };
+export type SolarSystemQuery = { __typename?: 'Query', solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, star_id?: number | null, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null, latestKills?: { __typename?: 'SystemKills', ship_kills: number, pod_kills: number, npc_kills: number, timestamp: string } | null } | null };
 
 export type Top90DaysPilotsQueryVariables = Exact<{
   filter?: InputMaybe<Top90DaysPilotsFilter>;
@@ -5906,7 +5906,6 @@ export const SolarSystemDocument = gql`
     id
     name
     securityStatus
-    security_class
     star_id
     position {
       x
@@ -5920,6 +5919,12 @@ export const SolarSystemDocument = gql`
         id
         name
       }
+    }
+    latestKills {
+      ship_kills
+      pod_kills
+      npc_kills
+      timestamp
     }
   }
 }
