@@ -258,41 +258,18 @@ export default function SolarSystemDetailPage({
           </div>
 
           {/* Kill Statistics Card */}
-          <div className="p-4 border bg-white/5 border-white/10 min-w-70">
-            <h3 className="mb-3 text-sm font-medium text-gray-400">
-              Recent Activity
-            </h3>
-            {system.latestKills ? (
-              <dl className="space-y-2">
-                <div className="flex justify-between">
-                  <dt className="text-gray-400">Ship Kills</dt>
-                  <dd className="font-medium text-red-400">
-                    {system.latestKills.ship_kills.toLocaleString()}
-                  </dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-gray-400">Pod Kills</dt>
-                  <dd className="font-medium text-yellow-400">
-                    {system.latestKills.pod_kills.toLocaleString()}
-                  </dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-gray-400">NPC Kills</dt>
-                  <dd className="font-medium text-blue-400">
-                    {system.latestKills.npc_kills.toLocaleString()}
-                  </dd>
-                </div>
-                <div className="pt-2 mt-2 border-t border-white/10">
-                  <dt className="text-xs text-gray-500">Last updated</dt>
-                  <dd className="text-sm text-gray-300">
-                    {formatTimeAgo(system.latestKills.timestamp)}
-                  </dd>
-                </div>
-              </dl>
-            ) : (
-              <p className="text-sm text-gray-500">No recent activity</p>
-            )}
-          </div>
+          {system.latestKills ? (
+            <div className="flex flex-col items-end space-y-2 text-xs text-gray-400">
+              <span>
+                {system.latestKills.ship_kills.toLocaleString()} ships,{" "}
+                {system.latestKills.pod_kills.toLocaleString()}
+                pods, {system.latestKills.npc_kills.toLocaleString()} NPC killed
+              </span>
+              <span>{formatTimeAgo(system.latestKills.timestamp)}</span>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">No recent activity</p>
+          )}
         </div>
 
         {/* Tabs */}
