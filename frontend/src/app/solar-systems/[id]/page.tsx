@@ -262,8 +262,8 @@ export default function SolarSystemDetailPage({
             <div className="flex flex-col items-end space-y-2 text-xs text-gray-400">
               <span>
                 {system.latestKills.ship_kills.toLocaleString()} ships,{" "}
-                {system.latestKills.pod_kills.toLocaleString()}
-                pods, {system.latestKills.npc_kills.toLocaleString()} NPC killed
+                {system.latestKills.pod_kills.toLocaleString()} pods,{" "}
+                {system.latestKills.npc_kills.toLocaleString()} NPC killed
               </span>
               <span>{formatTimeAgo(system.latestKills.timestamp)}</span>
             </div>
