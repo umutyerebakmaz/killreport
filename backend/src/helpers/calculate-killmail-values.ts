@@ -17,6 +17,7 @@ export async function calculateKillmailValues(killmailData: {
     item_type_id: number;
     quantity_destroyed?: number;
     quantity_dropped?: number;
+    singleton?: number;
   }>;
 }): Promise<{
   totalValue: number;
@@ -43,15 +44,65 @@ export async function calculateKillmailValues(killmailData: {
     }
   });
 
-  // Create price map for quick lookup
+  // Fetch type info to get group_ids
+  const typeInfo = await prismaWorker.type.findMany({
+    where: {
+      id: { in: uniqueTypeIds }
+    },
+    select: {
+      id: true,
+      group_id: true
+    }
+  });
+
+  // Get unique group IDs
+  const groupIds = [...new Set(typeInfo.map(t => t.group_id))];
+
+  // Fetch groups
+  const groups = await prismaWorker.itemGroup.findMany({
+    where: {
+      id: { in: groupIds }
+    },
+    select: {
+      id: true,
+      category_id: true
+    }
+  });
+
+  // Get unique category IDs
+  const categoryIds = [...new Set(groups.map(g => g.category_id))];
+
+  // Fetch categories
+  const categories = await prismaWorker.category.findMany({
+    where: {
+      id: { in: categoryIds }
+    },
+    select: {
+      id: true,
+      name: true
+    }
+  });
+
+  // Create maps for quick lookup
   const priceMap = new Map(
     marketPrices.map(p => [p.type_id, p.sell || 0])
   );
 
+  const categoryMap = new Map(categories.map(c => [c.id, c]));
+  const groupMap = new Map(groups.map(g => [g.id, g]));
+
+  const blueprintMap = new Map(
+    typeInfo.map(t => {
+      const group = groupMap.get(t.group_id);
+      const category = group ? categoryMap.get(group.category_id) : null;
+      return [t.id, category?.name?.toLowerCase() === 'blueprint'];
+    })
+  );
+
   // Calculate ship value (always destroyed)
   // Special case: Capsule (pod) has fixed value of 10 ISK
-  const shipPrice = killmailData.victim.ship_type_id === CAPSULE_TYPE_ID 
-    ? CAPSULE_VALUE 
+  const shipPrice = killmailData.victim.ship_type_id === CAPSULE_TYPE_ID
+    ? CAPSULE_VALUE
     : (priceMap.get(killmailData.victim.ship_type_id) || 0);
 
   let totalValue = shipPrice;
@@ -60,7 +111,16 @@ export async function calculateKillmailValues(killmailData: {
 
   // Calculate item values
   for (const item of items) {
-    const price = priceMap.get(item.item_type_id) || 0;
+    let price = priceMap.get(item.item_type_id) || 0;
+
+    // Blueprint Copy (singleton=2) has no value, only Blueprint Original (singleton=1) has value
+    const isBlueprint = blueprintMap.get(item.item_type_id) || false;
+    const isBlueprintCopy = isBlueprint && item.singleton === 2;
+
+    if (isBlueprintCopy) {
+      price = 0; // Blueprint copies are worthless
+    }
+
     const quantityDestroyed = item.quantity_destroyed || 0;
     const quantityDropped = item.quantity_dropped || 0;
 
@@ -89,6 +149,7 @@ export async function calculateKillmailValuesBatch(killmailsData: Array<{
     item_type_id: number;
     quantity_destroyed?: number;
     quantity_dropped?: number;
+    singleton?: number;
   }>;
 }>): Promise<Array<{
   totalValue: number;
@@ -116,16 +177,67 @@ export async function calculateKillmailValuesBatch(killmailsData: Array<{
     }
   });
 
+  // Fetch type info to get group_ids
+  const typeInfo = await prismaWorker.type.findMany({
+    where: {
+      id: { in: Array.from(allTypeIds) }
+    },
+    select: {
+      id: true,
+      group_id: true
+    }
+  });
+
+  // Get unique group IDs
+  const groupIds = [...new Set(typeInfo.map(t => t.group_id))];
+
+  // Fetch groups
+  const groups = await prismaWorker.itemGroup.findMany({
+    where: {
+      id: { in: groupIds }
+    },
+    select: {
+      id: true,
+      category_id: true
+    }
+  });
+
+  // Get unique category IDs
+  const categoryIds = [...new Set(groups.map(g => g.category_id))];
+
+  // Fetch categories
+  const categories = await prismaWorker.category.findMany({
+    where: {
+      id: { in: categoryIds }
+    },
+    select: {
+      id: true,
+      name: true
+    }
+  });
+
+  // Create maps for quick lookup
   const priceMap = new Map(
     marketPrices.map(p => [p.type_id, p.sell || 0])
+  );
+
+  const categoryMap = new Map(categories.map(c => [c.id, c]));
+  const groupMap = new Map(groups.map(g => [g.id, g]));
+
+  const blueprintMap = new Map(
+    typeInfo.map(t => {
+      const group = groupMap.get(t.group_id);
+      const category = group ? categoryMap.get(group.category_id) : null;
+      return [t.id, category?.name?.toLowerCase() === 'blueprint'];
+    })
   );
 
   // Calculate values for each killmail
   return killmailsData.map(km => {
     const items = km.items || [];
     // Special case: Capsule (pod) has fixed value of 10 ISK
-    const shipPrice = km.victim.ship_type_id === CAPSULE_TYPE_ID 
-      ? CAPSULE_VALUE 
+    const shipPrice = km.victim.ship_type_id === CAPSULE_TYPE_ID
+      ? CAPSULE_VALUE
       : (priceMap.get(km.victim.ship_type_id) || 0);
 
     let totalValue = shipPrice;
@@ -133,7 +245,16 @@ export async function calculateKillmailValuesBatch(killmailsData: Array<{
     let droppedValue = 0;
 
     for (const item of items) {
-      const price = priceMap.get(item.item_type_id) || 0;
+      let price = priceMap.get(item.item_type_id) || 0;
+
+      // Blueprint Copy (singleton=2) has no value, only Blueprint Original (singleton=1) has value
+      const isBlueprint = blueprintMap.get(item.item_type_id) || false;
+      const isBlueprintCopy = isBlueprint && item.singleton === 2;
+
+      if (isBlueprintCopy) {
+        price = 0; // Blueprint copies are worthless
+      }
+
       const quantityDestroyed = item.quantity_destroyed || 0;
       const quantityDropped = item.quantity_dropped || 0;
 

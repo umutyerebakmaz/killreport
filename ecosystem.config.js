@@ -310,6 +310,25 @@ module.exports = {
       time: true,
     },
 
+    // System Kills Worker (Hourly at minute 0)
+    {
+      name: 'worker-system-kills',
+      cwd: '/var/www/killreport/backend',
+      script: 'yarn',
+      args: 'worker:system-kills',
+      instances: 1,
+      exec_mode: 'fork',
+      autorestart: false,
+      cron_restart: '0 * * * *',
+      env: {
+        NODE_ENV: 'production',
+        LOG_LEVEL: 'info',
+      },
+      error_file: '/var/www/killreport/logs/worker-system-kills-error.log',
+      out_file: '/var/www/killreport/logs/worker-system-kills-out.log',
+      time: true,
+    },
+
     // Queue Prices - Daily at 09:00 Turkey Time (06:00 UTC)
     {
       name: 'queue-prices',
