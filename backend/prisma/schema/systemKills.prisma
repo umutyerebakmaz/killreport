@@ -1,0 +1,15 @@
+model SystemKills {
+  id               Int          @id @default(autoincrement())
+  system_id        Int
+  npc_kills        Int          @default(0)
+  pod_kills        Int          @default(0)
+  ship_kills       Int          @default(0)
+  timestamp        DateTime     @default(now())
+
+  solar_system     SolarSystem  @relation(fields: [system_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([system_id, timestamp])
+  @@index([system_id, timestamp]) // 24-hour graph queries
+  @@index([ship_kills])
+  @@map("system_kills")
+}

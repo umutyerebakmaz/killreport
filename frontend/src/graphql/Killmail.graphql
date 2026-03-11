@@ -374,6 +374,195 @@ query Killmail($id: ID!) {
         quantityDropped
         quantityDestroyed
       }
+      infrastructureHangar {
+        flag
+        singleton
+        itemType {
+          id
+          name
+          jitaPrice {
+            buy
+            sell
+            average
+          }
+          group {
+            name
+            category {
+              name
+            }
+          }
+        }
+        quantityDropped
+        quantityDestroyed
+      }
+      fuelBay {
+        flag
+        singleton
+        itemType {
+          id
+          name
+          jitaPrice {
+            buy
+            sell
+            average
+          }
+          group {
+            name
+            category {
+              name
+            }
+          }
+        }
+        quantityDropped
+        quantityDestroyed
+      }
+      oreHold {
+        flag
+        singleton
+        itemType {
+          id
+          name
+          jitaPrice {
+            buy
+            sell
+            average
+          }
+          group {
+            name
+            category {
+              name
+            }
+          }
+        }
+        quantityDropped
+        quantityDestroyed
+      }
+      gasHold {
+        flag
+        singleton
+        itemType {
+          id
+          name
+          jitaPrice {
+            buy
+            sell
+            average
+          }
+          group {
+            name
+            category {
+              name
+            }
+          }
+        }
+        quantityDropped
+        quantityDestroyed
+      }
+      mineralHold {
+        flag
+        singleton
+        itemType {
+          id
+          name
+          jitaPrice {
+            buy
+            sell
+            average
+          }
+          group {
+            name
+            category {
+              name
+            }
+          }
+        }
+        quantityDropped
+        quantityDestroyed
+      }
+      salvageHold {
+        flag
+        singleton
+        itemType {
+          id
+          name
+          jitaPrice {
+            buy
+            sell
+            average
+          }
+          group {
+            name
+            category {
+              name
+            }
+          }
+        }
+        quantityDropped
+        quantityDestroyed
+      }
+      planetaryCommoditiesHold {
+        flag
+        singleton
+        itemType {
+          id
+          name
+          jitaPrice {
+            buy
+            sell
+            average
+          }
+          group {
+            name
+            category {
+              name
+            }
+          }
+        }
+        quantityDropped
+        quantityDestroyed
+      }
+      iceHold {
+        flag
+        singleton
+        itemType {
+          id
+          name
+          jitaPrice {
+            buy
+            sell
+            average
+          }
+          group {
+            name
+            category {
+              name
+            }
+          }
+        }
+        quantityDropped
+        quantityDestroyed
+      }
+      infrastructureHold {
+        flag
+        singleton
+        itemType {
+          id
+          name
+          jitaPrice {
+            buy
+            sell
+            average
+          }
+          group {
+            name
+            category {
+              name
+            }
+          }
+        }
+        quantityDropped
+        quantityDestroyed
+      }
       fighterBay {
         flag
         singleton

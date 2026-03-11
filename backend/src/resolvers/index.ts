@@ -25,6 +25,8 @@ import { leaderboardQueries } from './leaderboard';
 import { raceQueries } from './race';
 import { regionFields, regionMutations, regionQueries } from './region';
 import { solarSystemFields, solarSystemQueries } from './solar-system';
+import { systemKillsFields } from './system-kills/fields';
+import { systemKillsQueries } from './system-kills/queries';
 import { typeFields, typeMutations, typeQueries } from './type';
 import { userMutations, userQueries } from './user';
 import { workerQueries, workerSubscriptions } from './worker';
@@ -50,6 +52,7 @@ export const resolvers: Resolvers = {
         ...constellationQueries,
         ...regionQueries,
         ...solarSystemQueries,
+        ...systemKillsQueries,
         ...cacheQueries,
         ...workerQueries,
         ...analyticsQueries,
@@ -85,6 +88,7 @@ export const resolvers: Resolvers = {
     Constellation: constellationFields,
     Region: regionFields,
     SolarSystem: solarSystemFields,
+    SystemKills: systemKillsFields,
     Killmail: killmailFields,
     Victim: victimFields,
     Attacker: attackerFields,

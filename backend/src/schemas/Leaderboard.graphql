@@ -73,6 +73,18 @@ input TopLast7DaysPilotsFilter {
   Max 100; default 100
   """
   limit: Int
+  """
+  Filter by region ID
+  """
+  regionId: Int
+  """
+  Filter by constellation ID
+  """
+  constellationId: Int
+  """
+  Filter by solar system ID
+  """
+  systemId: Int
 }
 
 type TopLast7DaysCorporation {
@@ -86,6 +98,18 @@ input TopLast7DaysCorporationsFilter {
   Max 100; default 100
   """
   limit: Int
+  """
+  Filter by region ID
+  """
+  regionId: Int
+  """
+  Filter by constellation ID
+  """
+  constellationId: Int
+  """
+  Filter by solar system ID
+  """
+  systemId: Int
 }
 
 type TopLast7DaysAlliance {
@@ -99,6 +123,18 @@ input TopLast7DaysAlliancesFilter {
   Max 100; default 100
   """
   limit: Int
+  """
+  Filter by region ID
+  """
+  regionId: Int
+  """
+  Filter by constellation ID
+  """
+  constellationId: Int
+  """
+  Filter by solar system ID
+  """
+  systemId: Int
 }
 
 type TopLast7DaysShip {
@@ -112,6 +148,18 @@ input TopLast7DaysShipsFilter {
   Max 100; default 100
   """
   limit: Int
+  """
+  Filter by region ID
+  """
+  regionId: Int
+  """
+  Filter by constellation ID
+  """
+  constellationId: Int
+  """
+  Filter by solar system ID
+  """
+  systemId: Int
 }
 
 type TopLast7DaysAttackerShip {
