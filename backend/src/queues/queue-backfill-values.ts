@@ -4,7 +4,7 @@
  * Finds killmails and queues them for value calculation based on mode
  * This is used for historical killmails or to recalculate existing values
  *
- * Usage: yarn queue:backfill-values [--limit=10000] [--mode=null|zero|all] [--capsules-only]
+ * Usage: yarn queue:backfill-values [--limit=10000] [--mode=null|zero|all] [--capsules-only] [--killmail-id=133900250]
  *
  * Modes:
  * - null: Only killmails where total_value IS NULL (default)
@@ -13,6 +13,7 @@
  *
  * Filters:
  * - --capsules-only: Only process Capsule (pod) killmails (type_id: 670)
+ * - --killmail-id: Process only a specific killmail by ID
  */
 
 import logger from '../services/logger';
@@ -70,6 +71,9 @@ async function queueBackfillValues() {
 
   const capsulesOnly = args.includes('--capsules-only');
 
+  const killmailIdArg = args.find(arg => arg.startsWith('--killmail-id='));
+  const killmailId = killmailIdArg ? parseInt(killmailIdArg.split('=')[1]) : undefined;
+
   // Validate mode
   if (!['null', 'zero', 'all'].includes(mode)) {
     logger.error(`❌ Invalid mode: ${mode}`);
@@ -77,16 +81,26 @@ async function queueBackfillValues() {
     process.exit(1);
   }
 
-  const scriptTitle = capsulesOnly ? '🚀 Backfill CAPSULE Killmail Values' : '🔄 Backfill Killmail Values';
+  const scriptTitle = killmailId
+    ? '🎯 Backfill Single Killmail Value'
+    : capsulesOnly
+      ? '🚀 Backfill CAPSULE Killmail Values'
+      : '🔄 Backfill Killmail Values';
   logger.info(`${scriptTitle} - Queue Script`);
   logger.info('━'.repeat(60));
-  if (capsulesOnly) {
-    logger.info(`🛸 Filter: Capsule (pod) killmails only (type_id: ${CAPSULE_TYPE_ID})`);
+  if (killmailId) {
+    logger.info(`🎯 Killmail ID: ${killmailId}`);
+  } else {
+    if (capsulesOnly) {
+      logger.info(`🛸 Filter: Capsule (pod) killmails only (type_id: ${CAPSULE_TYPE_ID})`);
+    }
+    logger.info(`📋 Mode: ${getModeDescription(mode)}`);
   }
-  logger.info(`📋 Mode: ${getModeDescription(mode)}`);
 
   try {
-    const whereClause = getWhereClause(mode, capsulesOnly);
+    const whereClause = killmailId
+      ? { killmail_id: killmailId }
+      : getWhereClause(mode, capsulesOnly);
 
     // Count total killmails matching the criteria
     const totalCount = await prismaWorker.killmail.count({
@@ -94,18 +108,26 @@ async function queueBackfillValues() {
     });
 
     if (totalCount === 0) {
-      const target = capsulesOnly ? 'Capsule killmails' : 'killmails';
-      logger.info(`✅ No ${target} found matching the criteria!`);
-      logger.info('Nothing to backfill.');
+      if (killmailId) {
+        logger.info(`❌ Killmail ${killmailId} not found!`);
+      } else {
+        const target = capsulesOnly ? 'Capsule killmails' : 'killmails';
+        logger.info(`✅ No ${target} found matching the criteria!`);
+        logger.info('Nothing to backfill.');
+      }
       process.exit(0);
     }
 
     const toProcess = limit ? Math.min(limit, totalCount) : totalCount;
 
-    const targetDesc = capsulesOnly ? 'Capsule killmails' : 'killmails';
-    logger.info(`📊 Found ${totalCount.toLocaleString()} ${targetDesc} matching criteria`);
-    if (limit) {
-      logger.info(`🎯 Processing limit: ${toProcess.toLocaleString()} killmails`);
+    const targetDesc = killmailId ? 'killmail' : capsulesOnly ? 'Capsule killmails' : 'killmails';
+    if (killmailId) {
+      logger.info(`✅ Found killmail ${killmailId}`);
+    } else {
+      logger.info(`📊 Found ${totalCount.toLocaleString()} ${targetDesc} matching criteria`);
+      if (limit) {
+        logger.info(`🎯 Processing limit: ${toProcess.toLocaleString()} killmails`);
+      }
     }
     logger.info(`📦 Queue: ${QUEUE_NAME}`);
     logger.info(`⚙️  Batch size: ${BATCH_SIZE}`);

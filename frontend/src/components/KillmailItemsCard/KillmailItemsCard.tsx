@@ -1,9 +1,21 @@
 import { formatISK } from "@/utils/formatISK";
-import { getItemImageUrl, getItemName } from "@/utils/itemImageUrl";
+import {
+  getItemImageUrl,
+  getItemName,
+  isBlueprint,
+} from "@/utils/itemImageUrl";
 import { getShipTier } from "@/utils/shipTier";
 import ShipTierBadge from "../ShipTierBadge/ShipTierBadge";
 
-const getItemPrice = (jitaPrice: any) => {
+const getItemPrice = (itemType: any, singleton: number = 1, jitaPrice: any) => {
+  // Blueprint Copy (singleton !== 1) has minimal value
+  const blueprint = isBlueprint(itemType);
+  const isCopy = blueprint && singleton !== 1;
+
+  if (isCopy) {
+    return 0.01; // Blueprint copies have minimal value
+  }
+
   return jitaPrice?.sell || jitaPrice?.average || 0;
 };
 
@@ -13,7 +25,7 @@ const getShipPrice = (shipType: any) => {
   if (shipType?.id === 670) {
     return 10;
   }
-  return getItemPrice(shipType?.jitaPrice);
+  return getItemPrice(shipType, 1, shipType?.jitaPrice);
 };
 
 // Render quantity with separate destroyed/dropped display
@@ -223,8 +235,11 @@ export default function KillmailSummaryCard({
                             )}
                             <div className={`w-40 tabular-nums ${textColor}`}>
                               {formatISK(
-                                getItemPrice(item.itemType.jitaPrice) *
-                                  totalQty,
+                                getItemPrice(
+                                  item.itemType,
+                                  item.singleton,
+                                  item.itemType.jitaPrice,
+                                ) * totalQty,
                               )}
                             </div>
                           </div>
@@ -271,8 +286,11 @@ export default function KillmailSummaryCard({
                             )}
                             <div className={`w-40 tabular-nums ${textColor}`}>
                               {formatISK(
-                                getItemPrice(item.itemType.jitaPrice) *
-                                  totalQty,
+                                getItemPrice(
+                                  item.itemType,
+                                  item.singleton,
+                                  item.itemType.jitaPrice,
+                                ) * totalQty,
                               )}
                             </div>
                           </div>
@@ -351,8 +369,11 @@ export default function KillmailSummaryCard({
                             )}
                             <div className={`w-40 tabular-nums ${textColor}`}>
                               {formatISK(
-                                getItemPrice(item.itemType.jitaPrice) *
-                                  totalQty,
+                                getItemPrice(
+                                  item.itemType,
+                                  item.singleton,
+                                  item.itemType.jitaPrice,
+                                ) * totalQty,
                               )}
                             </div>
                           </div>
@@ -398,8 +419,11 @@ export default function KillmailSummaryCard({
                             </div>
                             <div className={`${textColor} tabular-nums w-40`}>
                               {formatISK(
-                                getItemPrice(item.itemType.jitaPrice) *
-                                  totalQty,
+                                getItemPrice(
+                                  item.itemType,
+                                  item.singleton,
+                                  item.itemType.jitaPrice,
+                                ) * totalQty,
                               )}
                             </div>
                           </div>
@@ -459,7 +483,11 @@ export default function KillmailSummaryCard({
                         <div className={`${textColor} w-16`}>{totalQty}</div>
                         <div className={`${textColor} tabular-nums w-40`}>
                           {formatISK(
-                            getItemPrice(item.itemType.jitaPrice) * totalQty,
+                            getItemPrice(
+                              item.itemType,
+                              item.singleton,
+                              item.itemType.jitaPrice,
+                            ) * totalQty,
                           )}
                         </div>
                       </div>
@@ -514,7 +542,11 @@ export default function KillmailSummaryCard({
                       <div className={`${textColor} w-16`}>{totalQty}</div>
                       <div className={`${textColor} tabular-nums w-40`}>
                         {formatISK(
-                          getItemPrice(item.itemType.jitaPrice) * totalQty,
+                          getItemPrice(
+                            item.itemType,
+                            item.singleton,
+                            item.itemType.jitaPrice,
+                          ) * totalQty,
                         )}
                       </div>
                     </div>
@@ -569,7 +601,11 @@ export default function KillmailSummaryCard({
                       <div className={`${textColor} w-16`}>{totalQty}</div>
                       <div className={`${textColor} tabular-nums w-40`}>
                         {formatISK(
-                          getItemPrice(item.itemType.jitaPrice) * totalQty,
+                          getItemPrice(
+                            item.itemType,
+                            item.singleton,
+                            item.itemType.jitaPrice,
+                          ) * totalQty,
                         )}
                       </div>
                     </div>
@@ -628,7 +664,11 @@ export default function KillmailSummaryCard({
                         <div className={`${textColor} w-16`}>{totalQty}</div>
                         <div className={`${textColor} tabular-nums w-40`}>
                           {formatISK(
-                            getItemPrice(item.itemType.jitaPrice) * totalQty,
+                            getItemPrice(
+                              item.itemType,
+                              item.singleton,
+                              item.itemType.jitaPrice,
+                            ) * totalQty,
                           )}
                         </div>
                       </div>
@@ -681,7 +721,11 @@ export default function KillmailSummaryCard({
                         className={`${textColor} tabular-nums w-40 font-semibold`}
                       >
                         {formatISK(
-                          getItemPrice(item.itemType.jitaPrice) * totalQty,
+                          getItemPrice(
+                            item.itemType,
+                            item.singleton,
+                            item.itemType.jitaPrice,
+                          ) * totalQty,
                         )}
                       </div>
                     </div>
@@ -735,7 +779,11 @@ export default function KillmailSummaryCard({
                       )}
                       <div className={`w-40 tabular-nums ${textColor}`}>
                         {formatISK(
-                          getItemPrice(item.itemType.jitaPrice) * totalQty,
+                          getItemPrice(
+                            item.itemType,
+                            item.singleton,
+                            item.itemType.jitaPrice,
+                          ) * totalQty,
                         )}
                       </div>
                     </div>
@@ -795,7 +843,11 @@ export default function KillmailSummaryCard({
                         )}
                         <div className={`w-40 tabular-nums ${textColor}`}>
                           {formatISK(
-                            getItemPrice(item.itemType.jitaPrice) * totalQty,
+                            getItemPrice(
+                              item.itemType,
+                              item.singleton,
+                              item.itemType.jitaPrice,
+                            ) * totalQty,
                           )}
                         </div>
                       </div>
@@ -860,7 +912,11 @@ export default function KillmailSummaryCard({
                       )}
                       <div className={`w-40 tabular-nums ${textColor}`}>
                         {formatISK(
-                          getItemPrice(item.itemType.jitaPrice) * totalQty,
+                          getItemPrice(
+                            item.itemType,
+                            item.singleton,
+                            item.itemType.jitaPrice,
+                          ) * totalQty,
                         )}
                       </div>
                     </div>
@@ -914,7 +970,11 @@ export default function KillmailSummaryCard({
                       )}
                       <div className={`w-40 tabular-nums ${textColor}`}>
                         {formatISK(
-                          getItemPrice(item.itemType.jitaPrice) * totalQty,
+                          getItemPrice(
+                            item.itemType,
+                            item.singleton,
+                            item.itemType.jitaPrice,
+                          ) * totalQty,
                         )}
                       </div>
                     </div>
@@ -970,7 +1030,11 @@ export default function KillmailSummaryCard({
                       )}
                       <div className={`w-40 tabular-nums ${textColor}`}>
                         {formatISK(
-                          getItemPrice(item.itemType.jitaPrice) * totalQty,
+                          getItemPrice(
+                            item.itemType,
+                            item.singleton,
+                            item.itemType.jitaPrice,
+                          ) * totalQty,
                         )}
                       </div>
                     </div>
@@ -1026,7 +1090,11 @@ export default function KillmailSummaryCard({
                       )}
                       <div className={`w-40 tabular-nums ${textColor}`}>
                         {formatISK(
-                          getItemPrice(item.itemType.jitaPrice) * totalQty,
+                          getItemPrice(
+                            item.itemType,
+                            item.singleton,
+                            item.itemType.jitaPrice,
+                          ) * totalQty,
                         )}
                       </div>
                     </div>
@@ -1085,7 +1153,11 @@ export default function KillmailSummaryCard({
                         )}
                         <div className={`w-40 tabular-nums ${textColor}`}>
                           {formatISK(
-                            getItemPrice(item.itemType.jitaPrice) * totalQty,
+                            getItemPrice(
+                              item.itemType,
+                              item.singleton,
+                              item.itemType.jitaPrice,
+                            ) * totalQty,
                           )}
                         </div>
                       </div>
@@ -1139,7 +1211,11 @@ export default function KillmailSummaryCard({
                       )}
                       <div className={`w-40 tabular-nums ${textColor}`}>
                         {formatISK(
-                          getItemPrice(item.itemType.jitaPrice) * totalQty,
+                          getItemPrice(
+                            item.itemType,
+                            item.singleton,
+                            item.itemType.jitaPrice,
+                          ) * totalQty,
                         )}
                       </div>
                     </div>
@@ -1195,7 +1271,11 @@ export default function KillmailSummaryCard({
                       )}
                       <div className={`w-40 tabular-nums ${textColor}`}>
                         {formatISK(
-                          getItemPrice(item.itemType.jitaPrice) * totalQty,
+                          getItemPrice(
+                            item.itemType,
+                            item.singleton,
+                            item.itemType.jitaPrice,
+                          ) * totalQty,
                         )}
                       </div>
                     </div>
@@ -1251,7 +1331,11 @@ export default function KillmailSummaryCard({
                       )}
                       <div className={`w-40 tabular-nums ${textColor}`}>
                         {formatISK(
-                          getItemPrice(item.itemType.jitaPrice) * totalQty,
+                          getItemPrice(
+                            item.itemType,
+                            item.singleton,
+                            item.itemType.jitaPrice,
+                          ) * totalQty,
                         )}
                       </div>
                     </div>
@@ -1310,7 +1394,11 @@ export default function KillmailSummaryCard({
                         )}
                         <div className={`w-40 tabular-nums ${textColor}`}>
                           {formatISK(
-                            getItemPrice(item.itemType.jitaPrice) * totalQty,
+                            getItemPrice(
+                              item.itemType,
+                              item.singleton,
+                              item.itemType.jitaPrice,
+                            ) * totalQty,
                           )}
                         </div>
                       </div>
@@ -1364,7 +1452,11 @@ export default function KillmailSummaryCard({
                       )}
                       <div className={`w-40 tabular-nums ${textColor}`}>
                         {formatISK(
-                          getItemPrice(item.itemType.jitaPrice) * totalQty,
+                          getItemPrice(
+                            item.itemType,
+                            item.singleton,
+                            item.itemType.jitaPrice,
+                          ) * totalQty,
                         )}
                       </div>
                     </div>
@@ -1422,7 +1514,11 @@ export default function KillmailSummaryCard({
                       )}
                       <div className={`w-40 tabular-nums ${textColor}`}>
                         {formatISK(
-                          getItemPrice(item.itemType.jitaPrice) * totalQty,
+                          getItemPrice(
+                            item.itemType,
+                            item.singleton,
+                            item.itemType.jitaPrice,
+                          ) * totalQty,
                         )}
                       </div>
                     </div>
@@ -1478,7 +1574,11 @@ export default function KillmailSummaryCard({
                       )}
                       <div className={`w-40 tabular-nums ${textColor}`}>
                         {formatISK(
-                          getItemPrice(item.itemType.jitaPrice) * totalQty,
+                          getItemPrice(
+                            item.itemType,
+                            item.singleton,
+                            item.itemType.jitaPrice,
+                          ) * totalQty,
                         )}
                       </div>
                     </div>
@@ -1536,7 +1636,11 @@ export default function KillmailSummaryCard({
                         )}
                         <div className={`w-40 tabular-nums ${textColor}`}>
                           {formatISK(
-                            getItemPrice(item.itemType.jitaPrice) * totalQty,
+                            getItemPrice(
+                              item.itemType,
+                              item.singleton,
+                              item.itemType.jitaPrice,
+                            ) * totalQty,
                           )}
                         </div>
                       </div>
@@ -1590,7 +1694,11 @@ export default function KillmailSummaryCard({
                       )}
                       <div className={`w-40 tabular-nums ${textColor}`}>
                         {formatISK(
-                          getItemPrice(item.itemType.jitaPrice) * totalQty,
+                          getItemPrice(
+                            item.itemType,
+                            item.singleton,
+                            item.itemType.jitaPrice,
+                          ) * totalQty,
                         )}
                       </div>
                     </div>

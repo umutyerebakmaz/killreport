@@ -366,24 +366,6 @@ module.exports = {
       time: true,
     },
 
-    // Queue Blueprint Killmails - Manual (run with: pm2 start ecosystem.config.js --only queue-blueprint-killmails)
-    {
-      name: 'queue-blueprint-killmails',
-      cwd: '/var/www/killreport/backend',
-      script: 'yarn',
-      args: 'queue:blueprint-killmails',
-      instances: 1,
-      exec_mode: 'fork',
-      autorestart: false,
-      env: {
-        NODE_ENV: 'production',
-        LOG_LEVEL: 'info',
-      },
-      error_file: '/var/www/killreport/logs/queue-blueprint-killmails-error.log',
-      out_file: '/var/www/killreport/logs/queue-blueprint-killmails-out.log',
-      time: true,
-    },
-
     // Queue All Killmails - Manual (run with: pm2 start ecosystem.config.js --only queue-all-killmails)
     {
       name: 'queue-all-killmails',
