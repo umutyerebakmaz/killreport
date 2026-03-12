@@ -427,7 +427,7 @@ module.exports = {
       cwd: '/var/www/killreport/backend',
       script: 'yarn',
       args: 'worker:backfill-values',
-      instances: 1,
+      instances: 3,
       exec_mode: 'fork',
       env: {
         NODE_ENV: 'production',
