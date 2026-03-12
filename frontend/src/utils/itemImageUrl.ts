@@ -35,12 +35,12 @@ export const getItemImageUrl = (
 
     const blueprint = isBlueprint(itemType);
 
-    // Debug - Type 25949 için
-    if (typeId === 25949) {
-        console.log("🔍 Type 25949 Debug:", {
+    // Debug - All blueprints
+    if (blueprint) {
+        console.log("🔍 Blueprint Debug:", {
             typeId,
             singleton,
-            blueprint,
+            isCopy: singleton === 2,
             categoryName: itemType?.group?.category?.name,
             groupName: itemType?.group?.name,
             itemTypeName: itemType?.name,
@@ -55,8 +55,8 @@ export const getItemImageUrl = (
     const isCopy = singleton === 2;
     const url = `https://images.evetech.net/types/${typeId}/${isCopy ? "bpc" : "bp"}?size=${size}`;
 
-    if (typeId === 25949) {
-        console.log("🎯 Generated URL:", url);
+    if (blueprint) {
+        console.log("🎯 Generated URL:", url, isCopy ? "(BPC)" : "(BPO)");
     }
 
     return url;
