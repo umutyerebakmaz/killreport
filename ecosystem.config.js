@@ -366,6 +366,42 @@ module.exports = {
       time: true,
     },
 
+    // Queue Blueprint Killmails - Manual (run with: pm2 start ecosystem.config.js --only queue-blueprint-killmails)
+    {
+      name: 'queue-blueprint-killmails',
+      cwd: '/var/www/killreport/backend',
+      script: 'yarn',
+      args: 'queue:blueprint-killmails',
+      instances: 1,
+      exec_mode: 'fork',
+      autorestart: false,
+      env: {
+        NODE_ENV: 'production',
+        LOG_LEVEL: 'info',
+      },
+      error_file: '/var/www/killreport/logs/queue-blueprint-killmails-error.log',
+      out_file: '/var/www/killreport/logs/queue-blueprint-killmails-out.log',
+      time: true,
+    },
+
+    // Queue All Killmails - Manual (run with: pm2 start ecosystem.config.js --only queue-all-killmails)
+    {
+      name: 'queue-all-killmails',
+      cwd: '/var/www/killreport/backend',
+      script: 'yarn',
+      args: 'queue:all-killmails',
+      instances: 1,
+      exec_mode: 'fork',
+      autorestart: false,
+      env: {
+        NODE_ENV: 'production',
+        LOG_LEVEL: 'info',
+      },
+      error_file: '/var/www/killreport/logs/queue-all-killmails-error.log',
+      out_file: '/var/www/killreport/logs/queue-all-killmails-out.log',
+      time: true,
+    },
+
     // Price Worker (prefetch: 10)
     {
       name: 'worker-prices',
@@ -385,13 +421,13 @@ module.exports = {
       time: true,
     },
 
-    // Backfill Values Worker (prefetch: 3)
+    // Backfill Values Worker (prefetch: 10, 5 instances = 50 parallel jobs)
     {
       name: 'worker-backfill-values',
       cwd: '/var/www/killreport/backend',
       script: 'yarn',
       args: 'worker:backfill-values',
-      instances: 2,
+      instances: 3,
       exec_mode: 'fork',
       env: {
         NODE_ENV: 'production',
