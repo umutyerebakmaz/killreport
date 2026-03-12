@@ -1,19 +1,14 @@
 /**
  * Backfill Killmail Values Queue Script
  *
- * Finds killmails and queues them for value calculation based on mode
- * This is used for historical killmails or to recalculate existing values
+ * Queues killmails for value recalculation. Always recalculates everything.
  *
- * Usage: yarn queue:backfill-values [--limit=10000] [--mode=null|zero|all] [--capsules-only] [--killmail-id=133900250]
- *
- * Modes:
- * - null: Only killmails where total_value IS NULL (default)
- * - zero: Only killmails where total_value = 0
- * - all: All killmails (recalculate everything)
+ * Usage: yarn queue:backfill-values [--limit=10000] [--capsules-only] [--id=133900250]
  *
  * Filters:
  * - --capsules-only: Only process Capsule (pod) killmails (type_id: 670)
- * - --killmail-id: Process only a specific killmail by ID
+ * - --id: Process only a specific killmail by ID
+ * - --limit: Limit the number of killmails to queue
  */
 
 import logger from '../services/logger';
@@ -24,41 +19,14 @@ const QUEUE_NAME = 'backfill_killmail_values_queue';
 const BATCH_SIZE = 500; // Process in batches of 500
 const CAPSULE_TYPE_ID = 670; // EVE Online Capsule type_id
 
-type BackfillMode = 'null' | 'zero' | 'all';
-
 interface BackfillMessage {
   killmailId: number;
   queuedAt: string;
   source: string;
-  mode?: BackfillMode;
 }
 
-function getWhereClause(mode: BackfillMode, capsulesOnly: boolean) {
-  const capsuleFilter = capsulesOnly ? { victim: { ship_type_id: CAPSULE_TYPE_ID } } : {};
-
-  switch (mode) {
-    case 'null':
-      return { ...capsuleFilter, total_value: null };
-    case 'zero':
-      return { ...capsuleFilter, total_value: 0 };
-    case 'all':
-      return capsuleFilter; // Only capsule filter if enabled
-    default:
-      return { ...capsuleFilter, total_value: null };
-  }
-}
-
-function getModeDescription(mode: BackfillMode): string {
-  switch (mode) {
-    case 'null':
-      return 'NULL values (not calculated yet)';
-    case 'zero':
-      return 'ZERO values (calculated as 0)';
-    case 'all':
-      return 'ALL killmails (recalculate everything)';
-    default:
-      return 'NULL values';
-  }
+function getWhereClause(capsulesOnly: boolean) {
+  return capsulesOnly ? { victim: { ship_type_id: CAPSULE_TYPE_ID } } : {};
 }
 
 async function queueBackfillValues() {
@@ -66,20 +34,10 @@ async function queueBackfillValues() {
   const limitArg = args.find(arg => arg.startsWith('--limit='));
   const limit = limitArg ? parseInt(limitArg.split('=')[1]) : undefined;
 
-  const modeArg = args.find(arg => arg.startsWith('--mode='));
-  const mode: BackfillMode = (modeArg?.split('=')[1] as BackfillMode) || 'null';
-
   const capsulesOnly = args.includes('--capsules-only');
 
-  const killmailIdArg = args.find(arg => arg.startsWith('--killmail-id='));
+  const killmailIdArg = args.find(arg => arg.startsWith('--id='));
   const killmailId = killmailIdArg ? parseInt(killmailIdArg.split('=')[1]) : undefined;
-
-  // Validate mode
-  if (!['null', 'zero', 'all'].includes(mode)) {
-    logger.error(`❌ Invalid mode: ${mode}`);
-    logger.info('Valid modes: null, zero, all');
-    process.exit(1);
-  }
 
   const scriptTitle = killmailId
     ? '🎯 Backfill Single Killmail Value'
@@ -90,17 +48,14 @@ async function queueBackfillValues() {
   logger.info('━'.repeat(60));
   if (killmailId) {
     logger.info(`🎯 Killmail ID: ${killmailId}`);
-  } else {
-    if (capsulesOnly) {
-      logger.info(`🛸 Filter: Capsule (pod) killmails only (type_id: ${CAPSULE_TYPE_ID})`);
-    }
-    logger.info(`📋 Mode: ${getModeDescription(mode)}`);
+  } else if (capsulesOnly) {
+    logger.info(`🛸 Filter: Capsule (pod) killmails only (type_id: ${CAPSULE_TYPE_ID})`);
   }
 
   try {
     const whereClause = killmailId
       ? { killmail_id: killmailId }
-      : getWhereClause(mode, capsulesOnly);
+      : getWhereClause(capsulesOnly);
 
     // Count total killmails matching the criteria
     const totalCount = await prismaWorker.killmail.count({
@@ -166,7 +121,6 @@ async function queueBackfillValues() {
           killmailId: km.killmail_id,
           queuedAt: new Date().toISOString(),
           source: 'queue-backfill-values',
-          mode
         };
 
         channel.sendToQueue(
@@ -192,7 +146,6 @@ async function queueBackfillValues() {
     if (capsulesOnly) {
       logger.info(`🛸 Ship type: Capsule (type_id ${CAPSULE_TYPE_ID})`);
     }
-    logger.info(`📋 Mode: ${getModeDescription(mode)}`);
     logger.info('');
     logger.info('🚀 Start the worker with:');
     logger.info('   yarn worker:backfill-values');
