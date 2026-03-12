@@ -213,23 +213,44 @@ async function backfillValuesWorker() {
       const message: BackfillMessage = JSON.parse(msg.content.toString());
       const killmailId = message.killmailId;
 
+      // Validate killmailId
+      if (!killmailId || typeof killmailId !== 'number') {
+        logger.warn(`⚠️  Invalid killmailId in message: ${JSON.stringify(message)}`);
+        totalErrors++;
+        totalProcessed++;
+        channel.ack(msg); // Remove invalid message
+        return;
+      }
+
       try {
         const mode: BackfillMode = message.mode || 'null';
 
         // Check if already has values (race condition protection)
         const existing = await prismaWorker.killmail.findUnique({
           where: { killmail_id: killmailId },
-          select: { total_value: true }
+          select: {
+            killmail_id: true,
+            total_value: true,
+          }
         });
+
+        // If killmail doesn't exist, skip
+        if (!existing) {
+          logger.warn(`⚠️  [${totalProcessed + 1}] Killmail ${killmailId} not found in database`);
+          totalSkipped++;
+          totalProcessed++;
+          channel.ack(msg);
+          return;
+        }
 
         // Decide whether to skip based on mode
         let shouldSkip = false;
         if (mode === 'null') {
           // Skip if value is not null (already calculated)
-          shouldSkip = existing?.total_value !== null && existing?.total_value !== undefined;
+          shouldSkip = existing.total_value !== null && existing.total_value !== undefined;
         } else if (mode === 'zero') {
           // Skip if value is not 0 (already calculated and non-zero)
-          shouldSkip = existing?.total_value !== 0;
+          shouldSkip = existing.total_value !== 0;
         } else if (mode === 'all') {
           // Never skip, always recalculate
           shouldSkip = false;

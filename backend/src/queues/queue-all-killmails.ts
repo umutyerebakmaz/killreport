@@ -13,7 +13,10 @@ async function queueAllKillmails() {
   console.log('⏳ Processing in batches (count may take long, skipping...)\\n');
 
   const channel = await getRabbitMQChannel();
-  await channel.assertQueue(QUEUE_NAME, { durable: true });
+  await channel.assertQueue(QUEUE_NAME, {
+    durable: true,
+    arguments: { 'x-max-priority': 10 },
+  });
 
   let queued = 0;
   let lastKillmailId = 0;
@@ -36,7 +39,9 @@ async function queueAllKillmails() {
 
     for (const km of killmails) {
       const message = JSON.stringify({
-        killmail_id: km.killmail_id,
+        killmailId: km.killmail_id,
+        queuedAt: new Date().toISOString(),
+        source: 'all_killmails_recalculation',
         mode: 'all', // Force full recalculation
       });
 
