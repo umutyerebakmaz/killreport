@@ -43,7 +43,6 @@
     "queue:zkillboard": "tsx src/queues/queue-zkillboard-sync.ts",
     "queue:character-corporations": "tsx src/queues/queue-character-corporations.ts",
     "queue:backfill-values": "tsx src/queues/queue-backfill-values.ts",
-    "queue:blueprint-killmails": "tsx src/queues/queue-blueprint-killmails.ts",
     "queue:all-killmails": "tsx src/queues/queue-all-killmails.ts",
     "remove:all": "rm -rf node_modules yarn.lock package-lock.json pnpm-lock.yaml",
     "scan:entities": "tsx src/workers/scan-killmail-entities.ts",
