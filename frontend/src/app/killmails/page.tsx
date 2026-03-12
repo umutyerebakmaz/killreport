@@ -2,6 +2,7 @@
 
 import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
 import KillmailFilters from "@/components/Filters/KillmailFilters";
+import KillmailCarousel from "@/components/KillmailCarousel/KillmailCarousel";
 import KillmailsTable from "@/components/KillmailsTable";
 import Loader from "@/components/Loader";
 import Paginator from "@/components/Paginator/Paginator";
@@ -23,6 +24,7 @@ import {
   buildKillmailFiltersUrl,
   parseKillmailFiltersFromUrl,
 } from "@/utils/filterUrlHelpers";
+import { CAPSULE_GROUPS, STRUCTURE_GROUPS } from "@/utils/shipGroups";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 
@@ -109,6 +111,54 @@ function KillmailsContent() {
     useTopLast7DaysAttackerShipsQuery({
       variables: { filter: { limit: 10 } },
     });
+
+  // Calculate date 7 days ago for carousels
+  const sevenDaysAgo = useMemo(() => {
+    const date = new Date();
+    date.setDate(date.getDate() - 7);
+    return date.toISOString();
+  }, []);
+  const today = useMemo(() => new Date().toISOString(), []);
+
+  // Most Valuable Structures - Last 7 Days (for carousel)
+  const { data: structuresData, loading: structuresLoading } =
+    useKillmailsQuery({
+      variables: {
+        filter: {
+          shipGroupIds: STRUCTURE_GROUPS,
+          orderBy: "valueDesc" as any,
+          limit: 20,
+          startDate: sevenDaysAgo,
+          endDate: today,
+        },
+      },
+    });
+
+  // Most Valuable Ships - Last 7 Days (for carousel, will filter out structures and capsules)
+  const { data: allShipsData, loading: shipsLoading } = useKillmailsQuery({
+    variables: {
+      filter: {
+        orderBy: "valueDesc" as any,
+        limit: 50, // Get more to have enough after filtering
+        startDate: sevenDaysAgo,
+        endDate: today,
+      },
+    },
+  });
+
+  // Filter out structures and capsules from ships data
+  const shipsData = useMemo(() => {
+    if (!allShipsData?.killmails?.items) return [];
+
+    const excludedGroupIds = [...STRUCTURE_GROUPS, ...CAPSULE_GROUPS];
+    return allShipsData.killmails.items
+      .filter((km) => {
+        const shipGroupId = km.victim?.shipType?.group?.id;
+        if (!shipGroupId) return false;
+        return !excludedGroupIds.includes(shipGroupId);
+      })
+      .slice(0, 20) as any[]; // Take only top 20 after filtering
+  }, [allShipsData]);
 
   // Subscribe to new killmails only when on first page and no filters are active
   const {
@@ -396,6 +446,23 @@ function KillmailsContent() {
             </p>
           )}
         </div>
+      </div>
+
+      {/* Most Valuable Carousels - Last 7 Days */}
+      <div className="mt-8 space-y-6">
+        <KillmailCarousel
+          title="🚀 Most Valuable Ships"
+          subtitle="Last 7 Days - Highest value ship kills"
+          killmails={shipsData || []}
+          loading={shipsLoading}
+        />
+
+        <KillmailCarousel
+          title="🏢 Most Valuable Structures"
+          subtitle="Last 7 Days - Citadels, Engineering Complexes, and Refineries"
+          killmails={(structuresData?.killmails.items as any) || []}
+          loading={structuresLoading}
+        />
       </div>
 
       {/* Filters */}
