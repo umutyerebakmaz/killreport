@@ -2,6 +2,7 @@
 
 import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
 import KillmailFilters from "@/components/Filters/KillmailFilters";
+import KillmailCarousel from "@/components/KillmailCarousel/KillmailCarousel";
 import KillmailsTable from "@/components/KillmailsTable";
 import Loader from "@/components/Loader";
 import Paginator from "@/components/Paginator/Paginator";
@@ -23,6 +24,7 @@ import {
   buildKillmailFiltersUrl,
   parseKillmailFiltersFromUrl,
 } from "@/utils/filterUrlHelpers";
+import { CAPSULE_GROUPS, STRUCTURE_GROUPS } from "@/utils/shipGroups";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 

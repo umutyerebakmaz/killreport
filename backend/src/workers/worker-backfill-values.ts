@@ -20,8 +20,8 @@ import prismaWorker from '@services/prisma-worker';
 import { getRabbitMQChannel } from '@services/rabbitmq';
 
 const QUEUE_NAME = 'backfill_killmail_values_queue';
-const PREFETCH_COUNT = 3; // Process 3 killmails at a time
-const STATS_INTERVAL = 10; // Log stats every N processed killmails
+const PREFETCH_COUNT = 10; // Process 10 killmails at a time
+const STATS_INTERVAL = 50; // Log stats every N processed killmails
 
 // Capsule (pod) type_id - special handling for value calculations
 const CAPSULE_TYPE_ID = 670;
