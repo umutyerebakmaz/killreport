@@ -1,5 +1,5 @@
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
-import React, { useState } from "react";
+import Lottie from "lottie-react";
+import React, { useEffect, useState } from "react";
 
 interface LoaderProps {
   /** Size of the spinner (default: md) */
@@ -39,7 +39,15 @@ export const Loader: React.FC<LoaderProps> = ({
   fullHeight = false,
   className = "",
 }) => {
+  const [animationData, setAnimationData] = useState<any>(null);
   const [lottieError, setLottieError] = useState(false);
+
+  useEffect(() => {
+    fetch("/animations/loader.json")
+      .then((response) => response.json())
+      .then((data) => setAnimationData(data))
+      .catch(() => setLottieError(true));
+  }, []);
 
   const containerClasses = fullHeight
     ? "flex items-center justify-center min-h-screen"
@@ -48,13 +56,12 @@ export const Loader: React.FC<LoaderProps> = ({
   return (
     <div className={`${containerClasses} ${className}`}>
       <div className="flex flex-col items-center gap-3">
-        {!lottieError ? (
-          <DotLottieReact
-            src="/animations/loader.json"
+        {!lottieError && animationData ? (
+          <Lottie
+            animationData={animationData}
             loop
             autoplay
             style={{ width: lottieSize[size], height: lottieSize[size] }}
-            onError={() => setLottieError(true)}
           />
         ) : (
           // Fallback spinner
