@@ -20,4 +20,6 @@ input KillmailFilter {
   maxAttackers: Int
   minValue: Float
   maxValue: Float
+  startDate: String
+  endDate: String
 }

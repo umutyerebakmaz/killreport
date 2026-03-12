@@ -37,6 +37,7 @@ query Killmails($filter: KillmailFilter) {
           id
           name
           group {
+            id
             name
           }
           dogmaAttributes(ids: [422, 1692]) {

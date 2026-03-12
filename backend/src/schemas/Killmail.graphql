@@ -79,6 +79,8 @@ type FittingModule {
 enum KillmailOrderBy {
   timeDesc
   timeAsc
+  valueDesc
+  valueAsc
 }
 
 extend type Query {
