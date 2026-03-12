@@ -301,7 +301,11 @@ function KillmailsContent() {
         maxValue: filters.maxValue,
       },
     },
-    onCompleted: (data) => {
+  });
+
+  // Debug logging - replaces deprecated onCompleted callback
+  useEffect(() => {
+    if (data) {
       console.log("🔍 GraphQL Query Variables:", {
         shipTypeId: filters.shipTypeId,
         shipGroupIds: filters.shipGroupIds,
@@ -312,8 +316,8 @@ function KillmailsContent() {
         itemsCount: data?.killmails?.items?.length,
         totalCount: data?.killmails?.pageInfo?.totalCount,
       });
-    },
-  });
+    }
+  }, [data, filters]);
 
   // Fetch date counts for correct totals per date
   const { data: dateCountsData } = useKillmailsDateCountsQuery({
