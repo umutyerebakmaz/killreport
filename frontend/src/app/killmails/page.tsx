@@ -467,7 +467,6 @@ function KillmailsContent() {
 
       {/* Filters */}
       <div className="mt-6">
-        ....
         <KillmailFilters
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}
