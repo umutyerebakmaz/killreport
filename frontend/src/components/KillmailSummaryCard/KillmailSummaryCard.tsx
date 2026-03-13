@@ -1,26 +1,8 @@
 import { formatISK } from "@/utils/formatISK";
-import {
-  getItemImageUrl,
-  getItemName,
-  isBlueprint,
-} from "@/utils/itemImageUrl";
+import { isBlueprint } from "@/utils/itemImageUrl";
 import { getShipTier } from "@/utils/shipTier";
 import ShipTierBadge from "../ShipTierBadge/ShipTierBadge";
-
-const getItemPrice = (itemType: any, singleton: number = 1, jitaPrice: any) => {
-  // Blueprint Copy (singleton === 2) has minimal value
-  // singleton = 0: Stackable normal item or BPO → market price
-  // singleton = 1: Assembled/fitted unique item → market price
-  // singleton = 2: Blueprint Copy (BPC) → 0.01 ISK
-  const blueprint = isBlueprint(itemType);
-  const isCopy = blueprint && singleton === 2;
-
-  if (isCopy) {
-    return 0.01; // Blueprint copies have minimal value
-  }
-
-  return jitaPrice?.sell || jitaPrice?.average || 0;
-};
+import FittingSection from "./FittingSection";
 
 // Special handling for Capsule ship price
 const getShipPrice = (shipType: any) => {
@@ -28,82 +10,15 @@ const getShipPrice = (shipType: any) => {
   if (shipType?.id === 670) {
     return 10;
   }
-  return getItemPrice(shipType, 1, shipType?.jitaPrice);
-};
+  const jitaPrice = shipType?.jitaPrice;
+  const blueprint = isBlueprint(shipType);
+  const isCopy = blueprint && 2 === 2; // Ships are never copies
 
-// Render quantity with separate destroyed/dropped display
-const renderQuantity = (destroyed: number, dropped: number) => {
-  const hasDestroyed = destroyed > 0;
-  const hasDropped = dropped > 0;
-
-  if (hasDestroyed && hasDropped) {
-    return (
-      <div className="flex flex-col w-16 leading-tight">
-        <span className="text-red-400">{destroyed}</span>
-        <span className="text-green-500">{dropped}</span>
-      </div>
-    );
-  } else if (hasDestroyed) {
-    return <div className="w-16 text-red-400">{destroyed}</div>;
-  } else if (hasDropped) {
-    return <div className="w-16 text-green-500">{dropped}</div>;
-  } else {
-    return <div className="w-16 text-white">1</div>;
+  if (isCopy) {
+    return 0.01;
   }
-};
 
-// Group items by type ID AND status (destroyed/dropped separately)
-const groupItems = (items: any[]) => {
-  const grouped = new Map<
-    string,
-    {
-      itemType: any;
-      singleton: number;
-      quantityDestroyed: number;
-      quantityDropped: number;
-    }
-  >();
-
-  items.forEach((item) => {
-    const typeId = item.itemType.id;
-    const singleton = item.singleton;
-    const isDestroyed = (item.quantityDestroyed || 0) > 0;
-    const isDropped = (item.quantityDropped || 0) > 0;
-
-    if (isDestroyed) {
-      const key = `${typeId}-${singleton}-destroyed`;
-      const existing = grouped.get(key);
-
-      if (existing) {
-        existing.quantityDestroyed += item.quantityDestroyed || 0;
-      } else {
-        grouped.set(key, {
-          itemType: item.itemType,
-          singleton: item.singleton,
-          quantityDestroyed: item.quantityDestroyed || 0,
-          quantityDropped: 0,
-        });
-      }
-    }
-
-    if (isDropped) {
-      const key = `${typeId}-${singleton}-dropped`;
-      const existing = grouped.get(key);
-
-      if (existing) {
-        existing.quantityDropped += item.quantityDropped || 0;
-      } else {
-        grouped.set(key, {
-          itemType: item.itemType,
-          singleton: item.singleton,
-          quantityDestroyed: 0,
-          quantityDropped: item.quantityDropped || 0,
-        });
-      }
-    }
-  });
-
-  return Array.from(grouped.values());
+  return jitaPrice?.sell || jitaPrice?.average || 0;
 };
 
 interface KillmailSummaryCardProps {
@@ -176,1541 +91,256 @@ export default function KillmailSummaryCard({
       {/* High Slots */}
       {fitting?.highSlots &&
         fitting.highSlots.slots.some((slot: any) => slot.module) && (
-          <div className="pb-4 mb-4 border-b border-white/10">
-            <h3 className="mb-2 font-bold text-gray-400 uppercase">
-              High Slots
-            </h3>
-            <div className="space-y-2">
-              {(() => {
-                const modules: any[] = [];
-                const charges: any[] = [];
-
-                fitting.highSlots.slots.forEach((slot: any) => {
-                  if (slot.module) {
-                    modules.push(slot.module);
-                    if (slot.module.charge) {
-                      charges.push(slot.module.charge);
-                    }
-                  }
-                });
-
-                const groupedModules = groupItems(modules);
-                const groupedCharges = groupItems(charges);
-
-                return (
-                  <>
-                    {groupedModules.map((item, index) => {
-                      const totalQty =
-                        item.quantityDestroyed + item.quantityDropped || 1;
-                      const isDestroyed = item.quantityDestroyed > 0;
-                      const isDropped = item.quantityDropped > 0;
-                      const textColor = isDestroyed
-                        ? "text-red-400"
-                        : isDropped
-                          ? "text-green-500"
-                          : "text-white";
-
-                      return (
-                        <div
-                          key={`module-${item.itemType.id}-${index}`}
-                          className="flex items-center gap-3 py-2"
-                        >
-                          <img
-                            src={getItemImageUrl(
-                              item.itemType,
-                              item.singleton,
-                              64,
-                            )}
-                            alt={getItemName(item.itemType, item.singleton)}
-                            className="border bg-white/5 size-16 border-white/10"
-                            loading="lazy"
-                            decoding="async"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className={`truncate ${textColor}`}>
-                              {getItemName(item.itemType, item.singleton)}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-4 text-right">
-                            {renderQuantity(
-                              item.quantityDestroyed,
-                              item.quantityDropped,
-                            )}
-                            <div className={`w-40 tabular-nums ${textColor}`}>
-                              {formatISK(
-                                getItemPrice(
-                                  item.itemType,
-                                  item.singleton,
-                                  item.itemType.jitaPrice,
-                                ) * totalQty,
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-
-                    {groupedCharges.map((item, index) => {
-                      const totalQty =
-                        item.quantityDestroyed + item.quantityDropped || 1;
-                      const isDestroyed = item.quantityDestroyed > 0;
-                      const isDropped = item.quantityDropped > 0;
-                      const textColor = isDestroyed
-                        ? "text-red-400"
-                        : isDropped
-                          ? "text-green-500"
-                          : "text-gray-400";
-
-                      return (
-                        <div
-                          key={`charge-${item.itemType.id}-${index}`}
-                          className="flex items-center gap-3 py-2"
-                        >
-                          <img
-                            src={getItemImageUrl(
-                              item.itemType,
-                              item.singleton,
-                              64,
-                            )}
-                            alt={getItemName(item.itemType, item.singleton)}
-                            className="border bg-white/5 size-16 border-white/10"
-                            loading="lazy"
-                            decoding="async"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className={`truncate ${textColor}`}>
-                              {getItemName(item.itemType, item.singleton)}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-4 text-right">
-                            {renderQuantity(
-                              item.quantityDestroyed,
-                              item.quantityDropped,
-                            )}
-                            <div className={`w-40 tabular-nums ${textColor}`}>
-                              {formatISK(
-                                getItemPrice(
-                                  item.itemType,
-                                  item.singleton,
-                                  item.itemType.jitaPrice,
-                                ) * totalQty,
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </>
-                );
-              })()}
-            </div>
-          </div>
+          <FittingSection
+            title="High Slots"
+            items={fitting.highSlots.slots
+              .filter((slot: any) => slot.module)
+              .map((slot: any) => slot.module)}
+            keyPrefix="high"
+            hasCharges={true}
+          />
         )}
 
       {/* Mid Slots */}
       {fitting?.midSlots &&
         fitting.midSlots.slots.some((slot: any) => slot.module) && (
-          <div className="pb-4 mb-4 border-b border-white/10">
-            <h3 className="mb-2 font-bold text-gray-400 uppercase">
-              Mid Slots
-            </h3>
-            <div className="space-y-2">
-              {(() => {
-                const modules: any[] = [];
-                const charges: any[] = [];
-
-                fitting.midSlots.slots.forEach((slot: any) => {
-                  if (slot.module) {
-                    modules.push(slot.module);
-                    if (slot.module.charge) {
-                      charges.push(slot.module.charge);
-                    }
-                  }
-                });
-
-                const groupedModules = groupItems(modules);
-                const groupedCharges = groupItems(charges);
-
-                return (
-                  <>
-                    {groupedModules.map((item, index) => {
-                      const totalQty =
-                        item.quantityDestroyed + item.quantityDropped || 1;
-                      const isDestroyed = item.quantityDestroyed > 0;
-                      const isDropped = item.quantityDropped > 0;
-                      const textColor = isDestroyed
-                        ? "text-red-400"
-                        : isDropped
-                          ? "text-green-500"
-                          : "text-white";
-
-                      return (
-                        <div
-                          key={`module-${item.itemType.id}-${index}`}
-                          className="flex items-center gap-3 py-2"
-                        >
-                          <img
-                            src={getItemImageUrl(
-                              item.itemType,
-                              item.singleton,
-                              64,
-                            )}
-                            alt={getItemName(item.itemType, item.singleton)}
-                            className="border bg-white/5 size-16 border-white/10"
-                            loading="lazy"
-                            decoding="async"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className={`truncate ${textColor}`}>
-                              {getItemName(item.itemType, item.singleton)}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-4 text-right">
-                            {renderQuantity(
-                              item.quantityDestroyed,
-                              item.quantityDropped,
-                            )}
-                            <div className={`w-40 tabular-nums ${textColor}`}>
-                              {formatISK(
-                                getItemPrice(
-                                  item.itemType,
-                                  item.singleton,
-                                  item.itemType.jitaPrice,
-                                ) * totalQty,
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-
-                    {groupedCharges.map((item, index) => {
-                      const totalQty =
-                        item.quantityDestroyed + item.quantityDropped || 1;
-                      const isDestroyed = item.quantityDestroyed > 0;
-                      const isDropped = item.quantityDropped > 0;
-                      const textColor = isDestroyed
-                        ? "text-red-400"
-                        : isDropped
-                          ? "text-green-500"
-                          : "text-white";
-
-                      return (
-                        <div
-                          key={`charge-${item.itemType.id}-${index}`}
-                          className="flex items-center gap-3 py-2"
-                        >
-                          <img
-                            src={getItemImageUrl(
-                              item.itemType,
-                              item.singleton,
-                              64,
-                            )}
-                            alt={getItemName(item.itemType, item.singleton)}
-                            className="border bg-white/5 size-16 border-white/10"
-                            loading="lazy"
-                            decoding="async"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className={`truncate ${textColor}`}>
-                              {getItemName(item.itemType, item.singleton)}
-                            </div>
-                          </div>
-                          <div className="flex gap-4 text-right">
-                            <div className={`${textColor} w-16`}>
-                              {totalQty}
-                            </div>
-                            <div className={`${textColor} tabular-nums w-40`}>
-                              {formatISK(
-                                getItemPrice(
-                                  item.itemType,
-                                  item.singleton,
-                                  item.itemType.jitaPrice,
-                                ) * totalQty,
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </>
-                );
-              })()}
-            </div>
-          </div>
+          <FittingSection
+            title="Mid Slots"
+            items={fitting.midSlots.slots
+              .filter((slot: any) => slot.module)
+              .map((slot: any) => slot.module)}
+            keyPrefix="mid"
+            hasCharges={true}
+          />
         )}
 
       {/* Low Slots */}
       {fitting?.lowSlots &&
         fitting.lowSlots.slots.some((slot: any) => slot.module) && (
-          <div className="pb-4 mb-4 border-b border-white/10">
-            <h3 className="mb-2 font-bold text-gray-400 uppercase">
-              Low Slots
-            </h3>
-            <div className="space-y-2">
-              {(() => {
-                const modules = fitting.lowSlots.slots
-                  .filter((slot: any) => slot.module)
-                  .map((slot: any) => slot.module);
-                const groupedModules = groupItems(modules);
-
-                return groupedModules.map((item, index) => {
-                  const totalQty =
-                    item.quantityDestroyed + item.quantityDropped || 1;
-                  const isDestroyed = item.quantityDestroyed > 0;
-                  const isDropped = item.quantityDropped > 0;
-                  const textColor = isDestroyed
-                    ? "text-red-400"
-                    : isDropped
-                      ? "text-green-500"
-                      : "text-white";
-
-                  return (
-                    <div
-                      key={`low-${item.itemType.id}-${index}`}
-                      className="flex items-center gap-3 py-2"
-                    >
-                      <img
-                        src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                        alt={getItemName(item.itemType, item.singleton)}
-                        className="border bg-white/5 size-16 border-white/10"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className={`truncate ${textColor}`}>
-                          {getItemName(item.itemType, item.singleton)}
-                        </div>
-                      </div>
-                      <div className="flex gap-4 text-right">
-                        <div className={`${textColor} w-16`}>{totalQty}</div>
-                        <div className={`${textColor} tabular-nums w-40`}>
-                          {formatISK(
-                            getItemPrice(
-                              item.itemType,
-                              item.singleton,
-                              item.itemType.jitaPrice,
-                            ) * totalQty,
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                });
-              })()}
-            </div>
-          </div>
+          <FittingSection
+            title="Low Slots"
+            items={fitting.lowSlots.slots
+              .filter((slot: any) => slot.module)
+              .map((slot: any) => slot.module)}
+            keyPrefix="low"
+            hasCharges={false}
+          />
         )}
 
       {/* Rigs */}
       {fitting?.rigs && fitting.rigs.slots.length > 0 && (
-        <div className="pb-4 mb-4 border-b border-white/10">
-          <h3 className="mb-2 font-bold text-gray-400 uppercase">Rigs</h3>
-          <div className="space-y-2">
-            {(() => {
-              const modules = fitting.rigs.slots
-                .filter((slot: any) => slot.module)
-                .map((slot: any) => slot.module);
-              const groupedModules = groupItems(modules);
-
-              return groupedModules.map((item, index) => {
-                const totalQty =
-                  item.quantityDestroyed + item.quantityDropped || 1;
-                const isDestroyed = item.quantityDestroyed > 0;
-                const isDropped = item.quantityDropped > 0;
-                const textColor = isDestroyed
-                  ? "text-red-400"
-                  : isDropped
-                    ? "text-green-500"
-                    : "text-white";
-
-                return (
-                  <div
-                    key={`rig-${item.itemType.id}-${index}`}
-                    className="flex items-center gap-3 py-2"
-                  >
-                    <img
-                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                      alt={getItemName(item.itemType, item.singleton)}
-                      className="border bg-white/5 size-16 border-white/10"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className={`truncate ${textColor}`}>
-                        {getItemName(item.itemType, item.singleton)}
-                      </div>
-                    </div>
-                    <div className="flex gap-4 text-right">
-                      <div className={`${textColor} w-16`}>{totalQty}</div>
-                      <div className={`${textColor} tabular-nums w-40`}>
-                        {formatISK(
-                          getItemPrice(
-                            item.itemType,
-                            item.singleton,
-                            item.itemType.jitaPrice,
-                          ) * totalQty,
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              });
-            })()}
-          </div>
-        </div>
+        <FittingSection
+          title="Rigs"
+          items={fitting.rigs.slots
+            .filter((slot: any) => slot.module)
+            .map((slot: any) => slot.module)}
+          keyPrefix="rig"
+          hasCharges={false}
+        />
       )}
 
       {/* Subsystems */}
       {fitting?.subsystems && fitting.subsystems.slots.length > 0 && (
-        <div className="pb-4 mb-4 border-b border-white/10">
-          <h3 className="mb-2 font-bold text-gray-400 uppercase">Subsystems</h3>
-          <div className="space-y-2">
-            {(() => {
-              const modules = fitting.subsystems.slots
-                .filter((slot: any) => slot.module)
-                .map((slot: any) => slot.module);
-              const groupedModules = groupItems(modules);
-
-              return groupedModules.map((item, index) => {
-                const totalQty =
-                  item.quantityDestroyed + item.quantityDropped || 1;
-                const isDestroyed = item.quantityDestroyed > 0;
-                const isDropped = item.quantityDropped > 0;
-                const textColor = isDestroyed
-                  ? "text-red-400"
-                  : isDropped
-                    ? "text-green-500"
-                    : "text-white";
-
-                return (
-                  <div
-                    key={`subsystem-${item.itemType.id}-${index}`}
-                    className="flex items-center gap-3 py-2"
-                  >
-                    <img
-                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                      alt={getItemName(item.itemType, item.singleton)}
-                      className="border bg-white/5 size-16 border-white/10"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className={`truncate ${textColor}`}>
-                        {getItemName(item.itemType, item.singleton)}
-                      </div>
-                    </div>
-                    <div className="flex gap-4 text-right">
-                      <div className={`${textColor} w-16`}>{totalQty}</div>
-                      <div className={`${textColor} tabular-nums w-40`}>
-                        {formatISK(
-                          getItemPrice(
-                            item.itemType,
-                            item.singleton,
-                            item.itemType.jitaPrice,
-                          ) * totalQty,
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              });
-            })()}
-          </div>
-        </div>
+        <FittingSection
+          title="Subsystems"
+          items={fitting.subsystems.slots
+            .filter((slot: any) => slot.module)
+            .map((slot: any) => slot.module)}
+          keyPrefix="subsystem"
+          hasCharges={false}
+        />
       )}
 
       {/* Service Slots */}
       {isStructure &&
         fitting?.serviceSlots &&
         fitting.serviceSlots.slots.some((slot: any) => slot.module) && (
-          <div className="pb-4 mb-4 border-b border-white/10">
-            <h3 className="mb-2 font-bold text-gray-400 uppercase">
-              Service Slots
-            </h3>
-            <div className="space-y-2">
-              {(() => {
-                const modules = fitting.serviceSlots.slots
-                  .filter((slot: any) => slot.module)
-                  .map((slot: any) => slot.module);
-                const groupedModules = groupItems(modules);
-
-                return groupedModules.map((item, index) => {
-                  const totalQty =
-                    item.quantityDestroyed + item.quantityDropped || 1;
-                  const isDestroyed = item.quantityDestroyed > 0;
-                  const isDropped = item.quantityDropped > 0;
-                  const textColor = isDestroyed
-                    ? "text-red-400"
-                    : isDropped
-                      ? "text-green-500"
-                      : "text-white";
-
-                  return (
-                    <div
-                      key={`service-${item.itemType.id}-${index}`}
-                      className="flex items-center gap-3 py-2"
-                    >
-                      <img
-                        src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                        alt={getItemName(item.itemType, item.singleton)}
-                        className="border bg-white/5 size-16 border-white/10"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className={`truncate ${textColor}`}>
-                          {getItemName(item.itemType, item.singleton)}
-                        </div>
-                      </div>
-                      <div className="flex gap-4 text-right">
-                        <div className={`${textColor} w-16`}>{totalQty}</div>
-                        <div className={`${textColor} tabular-nums w-40`}>
-                          {formatISK(
-                            getItemPrice(
-                              item.itemType,
-                              item.singleton,
-                              item.itemType.jitaPrice,
-                            ) * totalQty,
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                });
-              })()}
-            </div>
-          </div>
+          <FittingSection
+            title="Service Slots"
+            items={fitting.serviceSlots.slots
+              .filter((slot: any) => slot.module)
+              .map((slot: any) => slot.module)}
+            keyPrefix="service"
+            hasCharges={false}
+          />
         )}
 
-      {/* Implants */}
+      {/* Implants (array version) */}
       {fitting?.implants && fitting.implants.length > 0 && (
-        <div className="pb-4 mb-4 border-b border-white/10">
-          <h3 className="mb-2 font-bold text-gray-400 uppercase">Implants</h3>
-          <div className="space-y-2">
-            {(() => {
-              const groupedImplants = groupItems(fitting.implants);
-              return groupedImplants.map((item, index) => {
-                const totalQty =
-                  item.quantityDestroyed + item.quantityDropped || 1;
-                const isDestroyed = item.quantityDestroyed > 0;
-                const isDropped = item.quantityDropped > 0;
-                const textColor = isDestroyed
-                  ? "text-red-400"
-                  : isDropped
-                    ? "text-green-500"
-                    : "text-white";
-
-                return (
-                  <div
-                    key={`implant-${item.itemType.id}-${index}`}
-                    className="flex items-center gap-3 px-2 py-2"
-                  >
-                    <img
-                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                      alt={getItemName(item.itemType, item.singleton)}
-                      className="border bg-white/5 size-16 border-white/10"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className={`truncate ${textColor} font-medium`}>
-                        {getItemName(item.itemType, item.singleton)}
-                      </div>
-                    </div>
-                    <div className="flex gap-4 text-right">
-                      <div className={`${textColor} w-16`}>{totalQty}</div>
-                      <div
-                        className={`${textColor} tabular-nums w-40 font-semibold`}
-                      >
-                        {formatISK(
-                          getItemPrice(
-                            item.itemType,
-                            item.singleton,
-                            item.itemType.jitaPrice,
-                          ) * totalQty,
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              });
-            })()}
-          </div>
-        </div>
+        <FittingSection
+          title="Implants"
+          items={fitting.implants}
+          keyPrefix="implant"
+          hasCharges={false}
+        />
       )}
 
       {/* Drone Bay */}
       {fitting?.droneBay && fitting.droneBay.length > 0 && (
-        <div className="pb-4 mb-4 border-b border-white/10">
-          <h3 className="mb-2 font-bold text-gray-400 uppercase">Drone Bay</h3>
-          <div className="space-y-2">
-            {(() => {
-              const groupedDrones = groupItems(fitting.droneBay);
-              return groupedDrones.map((item, index) => {
-                const totalQty =
-                  item.quantityDestroyed + item.quantityDropped || 1;
-                const isDestroyed = item.quantityDestroyed > 0;
-                const isDropped = item.quantityDropped > 0;
-                const textColor = isDestroyed
-                  ? "text-red-400"
-                  : isDropped
-                    ? "text-green-500"
-                    : "text-white";
-
-                return (
-                  <div
-                    key={`drone-${item.itemType.id}-${index}`}
-                    className="flex items-center gap-3 py-2"
-                  >
-                    <img
-                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                      alt={getItemName(item.itemType, item.singleton)}
-                      className="border bg-white/5 size-16 border-white/10"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className={`truncate ${textColor}`}>
-                        {getItemName(item.itemType, item.singleton)}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 text-right">
-                      {renderQuantity(
-                        item.quantityDestroyed,
-                        item.quantityDropped,
-                      )}
-                      <div className={`w-40 tabular-nums ${textColor}`}>
-                        {formatISK(
-                          getItemPrice(
-                            item.itemType,
-                            item.singleton,
-                            item.itemType.jitaPrice,
-                          ) * totalQty,
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              });
-            })()}
-          </div>
-        </div>
+        <FittingSection
+          title="Drone Bay"
+          items={fitting.droneBay}
+          keyPrefix="drone"
+          hasCharges={false}
+        />
       )}
 
-      {/* Implants */}
+      {/* Implants (slot version) */}
       {fitting?.implants &&
         fitting.implants.slots &&
         fitting.implants.slots.some((slot: any) => slot.module) && (
-          <div className="pb-4 mb-4 border-b border-white/10">
-            <h3 className="mb-2 font-bold text-gray-400 uppercase">Implants</h3>
-            <div className="space-y-2">
-              {(() => {
-                const modules = fitting.implants.slots
-                  .filter((slot: any) => slot.module)
-                  .map((slot: any) => slot.module);
-                const groupedImplants = groupItems(modules);
-
-                return groupedImplants.map((item, index) => {
-                  const totalQty =
-                    item.quantityDestroyed + item.quantityDropped || 1;
-                  const isDestroyed = item.quantityDestroyed > 0;
-                  const isDropped = item.quantityDropped > 0;
-                  const textColor = isDestroyed
-                    ? "text-red-400"
-                    : isDropped
-                      ? "text-green-500"
-                      : "text-white";
-
-                  return (
-                    <div
-                      key={`implant-${item.itemType.id}-${index}`}
-                      className="flex items-center gap-3 py-2"
-                    >
-                      <img
-                        src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                        alt={getItemName(item.itemType, item.singleton)}
-                        className="border bg-white/5 size-16 border-white/10"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className={`truncate ${textColor}`}>
-                          {getItemName(item.itemType, item.singleton)}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4 text-right">
-                        {renderQuantity(
-                          item.quantityDestroyed,
-                          item.quantityDropped,
-                        )}
-                        <div className={`w-40 tabular-nums ${textColor}`}>
-                          {formatISK(
-                            getItemPrice(
-                              item.itemType,
-                              item.singleton,
-                              item.itemType.jitaPrice,
-                            ) * totalQty,
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                });
-              })()}
-            </div>
-          </div>
+          <FittingSection
+            title="Implants"
+            items={fitting.implants.slots
+              .filter((slot: any) => slot.module)
+              .map((slot: any) => slot.module)}
+            keyPrefix="implant-slot"
+            hasCharges={false}
+          />
         )}
 
       {/* Cargo */}
       {fitting?.cargo && fitting.cargo.length > 0 && (
-        <div className="pb-4 mb-4 border-b border-white/10">
-          <h3 className="mb-2 font-bold text-gray-400 uppercase">Cargo</h3>
-          <div className="space-y-2">
-            {(() => {
-              const groupedCargo = groupItems(fitting.cargo);
-              return groupedCargo.map((item, index) => {
-                // Debug for type 25949
-                if (item.itemType.id === 25949) {
-                  console.log("🔍 Cargo Item 25949 Full Object:", {
-                    itemType: item.itemType,
-                    singleton: item.singleton,
-                    group: item.itemType.group,
-                    category: item.itemType.group?.category,
-                    categoryName: item.itemType.group?.category?.name,
-                  });
-                }
-
-                const totalQty =
-                  item.quantityDestroyed + item.quantityDropped || 1;
-                const isDestroyed = item.quantityDestroyed > 0;
-                const isDropped = item.quantityDropped > 0;
-                const textColor = isDestroyed
-                  ? "text-red-400"
-                  : isDropped
-                    ? "text-green-500"
-                    : "text-white";
-
-                return (
-                  <div
-                    key={`cargo-${item.itemType.id}-${index}`}
-                    className="flex items-center gap-3 py-2"
-                  >
-                    <img
-                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                      alt={getItemName(item.itemType, item.singleton)}
-                      className="border bg-white/5 size-16 border-white/10"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className={`truncate ${textColor}`}>
-                        {getItemName(item.itemType, item.singleton)}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 text-right">
-                      {renderQuantity(
-                        item.quantityDestroyed,
-                        item.quantityDropped,
-                      )}
-                      <div className={`w-40 tabular-nums ${textColor}`}>
-                        {formatISK(
-                          getItemPrice(
-                            item.itemType,
-                            item.singleton,
-                            item.itemType.jitaPrice,
-                          ) * totalQty,
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              });
-            })()}
-          </div>
-        </div>
+        <FittingSection
+          title="Cargo"
+          items={fitting.cargo}
+          keyPrefix="cargo"
+          hasCharges={false}
+        />
       )}
 
       {/* Fuel Bay */}
       {fitting?.fuelBay && fitting.fuelBay.length > 0 && (
-        <div className="pb-4 mb-4 border-b border-white/10">
-          <h3 className="mb-2 font-bold text-gray-400 uppercase">Fuel Bay</h3>
-          <div className="space-y-2">
-            {(() => {
-              const groupedFuelBay = groupItems(fitting.fuelBay);
-              return groupedFuelBay.map((item, index) => {
-                const totalQty =
-                  item.quantityDestroyed + item.quantityDropped || 1;
-                const isDestroyed = item.quantityDestroyed > 0;
-                const isDropped = item.quantityDropped > 0;
-                const textColor = isDestroyed
-                  ? "text-red-400"
-                  : isDropped
-                    ? "text-green-500"
-                    : "text-white";
-
-                return (
-                  <div
-                    key={`fuel-bay-${item.itemType.id}-${index}`}
-                    className="flex items-center gap-3 py-2"
-                  >
-                    <img
-                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                      alt={getItemName(item.itemType, item.singleton)}
-                      className="border bg-white/5 size-16 border-white/10"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className={`truncate ${textColor}`}>
-                        {getItemName(item.itemType, item.singleton)}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 text-right">
-                      {renderQuantity(
-                        item.quantityDestroyed,
-                        item.quantityDropped,
-                      )}
-                      <div className={`w-40 tabular-nums ${textColor}`}>
-                        {formatISK(
-                          getItemPrice(
-                            item.itemType,
-                            item.singleton,
-                            item.itemType.jitaPrice,
-                          ) * totalQty,
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              });
-            })()}
-          </div>
-        </div>
+        <FittingSection
+          title="Fuel Bay"
+          items={fitting.fuelBay}
+          keyPrefix="fuel-bay"
+          hasCharges={false}
+        />
       )}
 
       {/* Mining Hold */}
       {fitting?.oreHold && fitting.oreHold.length > 0 && (
-        <div className="pb-4 mb-4 border-b border-white/10">
-          <h3 className="mb-2 font-bold text-gray-400 uppercase">
-            Mining Hold
-          </h3>
-          <div className="space-y-2">
-            {(() => {
-              const groupedOreHold = groupItems(fitting.oreHold);
-              return groupedOreHold.map((item, index) => {
-                const totalQty =
-                  item.quantityDestroyed + item.quantityDropped || 1;
-                const isDestroyed = item.quantityDestroyed > 0;
-                const isDropped = item.quantityDropped > 0;
-                const textColor = isDestroyed
-                  ? "text-red-400"
-                  : isDropped
-                    ? "text-green-500"
-                    : "text-white";
-
-                return (
-                  <div
-                    key={`ore-hold-${item.itemType.id}-${index}`}
-                    className="flex items-center gap-3 py-2"
-                  >
-                    <img
-                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                      alt={getItemName(item.itemType, item.singleton)}
-                      className="border bg-white/5 size-16 border-white/10"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className={`truncate ${textColor}`}>
-                        {getItemName(item.itemType, item.singleton)}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 text-right">
-                      {renderQuantity(
-                        item.quantityDestroyed,
-                        item.quantityDropped,
-                      )}
-                      <div className={`w-40 tabular-nums ${textColor}`}>
-                        {formatISK(
-                          getItemPrice(
-                            item.itemType,
-                            item.singleton,
-                            item.itemType.jitaPrice,
-                          ) * totalQty,
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              });
-            })()}
-          </div>
-        </div>
+        <FittingSection
+          title="Mining Hold"
+          items={fitting.oreHold}
+          keyPrefix="ore-hold"
+          hasCharges={false}
+        />
       )}
 
       {/* Fleet Hangar */}
       {fitting?.fleetHangar && fitting.fleetHangar.length > 0 && (
-        <div className="pb-4 mb-4 border-b border-white/10">
-          <h3 className="mb-2 font-bold text-gray-400 uppercase">
-            Fleet Hangar
-          </h3>
-          <div className="space-y-2">
-            {(() => {
-              const groupedFleetHangar = groupItems(fitting.fleetHangar);
-              return groupedFleetHangar.map((item, index) => {
-                const totalQty =
-                  item.quantityDestroyed + item.quantityDropped || 1;
-                const isDestroyed = item.quantityDestroyed > 0;
-                const isDropped = item.quantityDropped > 0;
-                const textColor = isDestroyed
-                  ? "text-red-400"
-                  : isDropped
-                    ? "text-green-500"
-                    : "text-white";
-
-                return (
-                  <div
-                    key={`fleet-hangar-${item.itemType.id}-${index}`}
-                    className="flex items-center gap-3 py-2"
-                  >
-                    <img
-                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                      alt={getItemName(item.itemType, item.singleton)}
-                      className="border bg-white/5 size-16 border-white/10"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className={`truncate ${textColor}`}>
-                        {getItemName(item.itemType, item.singleton)}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 text-right">
-                      {renderQuantity(
-                        item.quantityDestroyed,
-                        item.quantityDropped,
-                      )}
-                      <div className={`w-40 tabular-nums ${textColor}`}>
-                        {formatISK(
-                          getItemPrice(
-                            item.itemType,
-                            item.singleton,
-                            item.itemType.jitaPrice,
-                          ) * totalQty,
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              });
-            })()}
-          </div>
-        </div>
+        <FittingSection
+          title="Fleet Hangar"
+          items={fitting.fleetHangar}
+          keyPrefix="fleet-hangar"
+          hasCharges={false}
+        />
       )}
 
       {/* Infrastructure Hangar */}
       {fitting?.infrastructureHangar &&
         fitting.infrastructureHangar.length > 0 && (
-          <div className="pb-4 mb-4 border-b border-white/10">
-            <h3 className="mb-2 font-bold text-gray-400 uppercase">
-              Infrastructure Hangar
-            </h3>
-            <div className="space-y-2">
-              {(() => {
-                const groupedInfrastructureHangar = groupItems(
-                  fitting.infrastructureHangar,
-                );
-                return groupedInfrastructureHangar.map((item, index) => {
-                  const totalQty =
-                    item.quantityDestroyed + item.quantityDropped || 1;
-                  const isDestroyed = item.quantityDestroyed > 0;
-                  const isDropped = item.quantityDropped > 0;
-                  const textColor = isDestroyed
-                    ? "text-red-400"
-                    : isDropped
-                      ? "text-green-500"
-                      : "text-white";
-
-                  return (
-                    <div
-                      key={`infrastructure-hangar-${item.itemType.id}-${index}`}
-                      className="flex items-center gap-3 py-2"
-                    >
-                      <img
-                        src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                        alt={getItemName(item.itemType, item.singleton)}
-                        className="border bg-white/5 size-16 border-white/10"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className={`truncate ${textColor}`}>
-                          {getItemName(item.itemType, item.singleton)}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4 text-right">
-                        {renderQuantity(
-                          item.quantityDestroyed,
-                          item.quantityDropped,
-                        )}
-                        <div className={`w-40 tabular-nums ${textColor}`}>
-                          {formatISK(
-                            getItemPrice(
-                              item.itemType,
-                              item.singleton,
-                              item.itemType.jitaPrice,
-                            ) * totalQty,
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                });
-              })()}
-            </div>
-          </div>
+          <FittingSection
+            title="Infrastructure Hangar"
+            items={fitting.infrastructureHangar}
+            keyPrefix="infrastructure-hangar"
+            hasCharges={false}
+          />
         )}
 
       {/* Gas Hold */}
       {fitting?.gasHold && fitting.gasHold.length > 0 && (
-        <div className="pb-4 mb-4 border-b border-white/10">
-          <h3 className="mb-2 font-bold text-gray-400 uppercase">Gas Hold</h3>
-          <div className="space-y-2">
-            {(() => {
-              const groupedGasHold = groupItems(fitting.gasHold);
-              return groupedGasHold.map((item, index) => {
-                const totalQty =
-                  item.quantityDestroyed + item.quantityDropped || 1;
-                const isDestroyed = item.quantityDestroyed > 0;
-                const isDropped = item.quantityDropped > 0;
-                const textColor = isDestroyed
-                  ? "text-red-400"
-                  : isDropped
-                    ? "text-green-500"
-                    : "text-white";
-
-                return (
-                  <div
-                    key={`gas-hold-${item.itemType.id}-${index}`}
-                    className="flex items-center gap-3 py-2"
-                  >
-                    <img
-                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                      alt={getItemName(item.itemType, item.singleton)}
-                      className="border bg-white/5 size-16 border-white/10"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className={`truncate ${textColor}`}>
-                        {getItemName(item.itemType, item.singleton)}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 text-right">
-                      {renderQuantity(
-                        item.quantityDestroyed,
-                        item.quantityDropped,
-                      )}
-                      <div className={`w-40 tabular-nums ${textColor}`}>
-                        {formatISK(
-                          getItemPrice(
-                            item.itemType,
-                            item.singleton,
-                            item.itemType.jitaPrice,
-                          ) * totalQty,
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              });
-            })()}
-          </div>
-        </div>
+        <FittingSection
+          title="Gas Hold"
+          items={fitting.gasHold}
+          keyPrefix="gas-hold"
+          hasCharges={false}
+        />
       )}
 
       {/* Mineral Hold */}
       {fitting?.mineralHold && fitting.mineralHold.length > 0 && (
-        <div className="pb-4 mb-4 border-b border-white/10">
-          <h3 className="mb-2 font-bold text-gray-400 uppercase">
-            Mineral Hold
-          </h3>
-          <div className="space-y-2">
-            {(() => {
-              const groupedMineralHold = groupItems(fitting.mineralHold);
-              return groupedMineralHold.map((item, index) => {
-                const totalQty =
-                  item.quantityDestroyed + item.quantityDropped || 1;
-                const isDestroyed = item.quantityDestroyed > 0;
-                const isDropped = item.quantityDropped > 0;
-                const textColor = isDestroyed
-                  ? "text-red-400"
-                  : isDropped
-                    ? "text-green-500"
-                    : "text-white";
-
-                return (
-                  <div
-                    key={`mineral-hold-${item.itemType.id}-${index}`}
-                    className="flex items-center gap-3 py-2"
-                  >
-                    <img
-                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                      alt={getItemName(item.itemType, item.singleton)}
-                      className="border bg-white/5 size-16 border-white/10"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className={`truncate ${textColor}`}>
-                        {getItemName(item.itemType, item.singleton)}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 text-right">
-                      {renderQuantity(
-                        item.quantityDestroyed,
-                        item.quantityDropped,
-                      )}
-                      <div className={`w-40 tabular-nums ${textColor}`}>
-                        {formatISK(
-                          getItemPrice(
-                            item.itemType,
-                            item.singleton,
-                            item.itemType.jitaPrice,
-                          ) * totalQty,
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              });
-            })()}
-          </div>
-        </div>
+        <FittingSection
+          title="Mineral Hold"
+          items={fitting.mineralHold}
+          keyPrefix="mineral-hold"
+          hasCharges={false}
+        />
       )}
 
       {/* Salvage Hold */}
       {fitting?.salvageHold && fitting.salvageHold.length > 0 && (
-        <div className="pb-4 mb-4 border-b border-white/10">
-          <h3 className="mb-2 font-bold text-gray-400 uppercase">
-            Salvage Hold
-          </h3>
-          <div className="space-y-2">
-            {(() => {
-              const groupedSalvageHold = groupItems(fitting.salvageHold);
-              return groupedSalvageHold.map((item, index) => {
-                const totalQty =
-                  item.quantityDestroyed + item.quantityDropped || 1;
-                const isDestroyed = item.quantityDestroyed > 0;
-                const isDropped = item.quantityDropped > 0;
-                const textColor = isDestroyed
-                  ? "text-red-400"
-                  : isDropped
-                    ? "text-green-500"
-                    : "text-white";
-
-                return (
-                  <div
-                    key={`salvage-hold-${item.itemType.id}-${index}`}
-                    className="flex items-center gap-3 py-2"
-                  >
-                    <img
-                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                      alt={getItemName(item.itemType, item.singleton)}
-                      className="border bg-white/5 size-16 border-white/10"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className={`truncate ${textColor}`}>
-                        {getItemName(item.itemType, item.singleton)}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 text-right">
-                      {renderQuantity(
-                        item.quantityDestroyed,
-                        item.quantityDropped,
-                      )}
-                      <div className={`w-40 tabular-nums ${textColor}`}>
-                        {formatISK(
-                          getItemPrice(
-                            item.itemType,
-                            item.singleton,
-                            item.itemType.jitaPrice,
-                          ) * totalQty,
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              });
-            })()}
-          </div>
-        </div>
+        <FittingSection
+          title="Salvage Hold"
+          items={fitting.salvageHold}
+          keyPrefix="salvage-hold"
+          hasCharges={false}
+        />
       )}
 
       {/* Planetary Commodities Hold */}
       {fitting?.planetaryCommoditiesHold &&
         fitting.planetaryCommoditiesHold.length > 0 && (
-          <div className="pb-4 mb-4 border-b border-white/10">
-            <h3 className="mb-2 font-bold text-gray-400 uppercase">
-              Planetary Commodities Hold
-            </h3>
-            <div className="space-y-2">
-              {(() => {
-                const groupedPlanetaryCommodities = groupItems(
-                  fitting.planetaryCommoditiesHold,
-                );
-                return groupedPlanetaryCommodities.map((item, index) => {
-                  const totalQty =
-                    item.quantityDestroyed + item.quantityDropped || 1;
-                  const isDestroyed = item.quantityDestroyed > 0;
-                  const isDropped = item.quantityDropped > 0;
-                  const textColor = isDestroyed
-                    ? "text-red-400"
-                    : isDropped
-                      ? "text-green-500"
-                      : "text-white";
-
-                  return (
-                    <div
-                      key={`planetary-commodities-${item.itemType.id}-${index}`}
-                      className="flex items-center gap-3 py-2"
-                    >
-                      <img
-                        src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                        alt={getItemName(item.itemType, item.singleton)}
-                        className="border bg-white/5 size-16 border-white/10"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className={`truncate ${textColor}`}>
-                          {getItemName(item.itemType, item.singleton)}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4 text-right">
-                        {renderQuantity(
-                          item.quantityDestroyed,
-                          item.quantityDropped,
-                        )}
-                        <div className={`w-40 tabular-nums ${textColor}`}>
-                          {formatISK(
-                            getItemPrice(
-                              item.itemType,
-                              item.singleton,
-                              item.itemType.jitaPrice,
-                            ) * totalQty,
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                });
-              })()}
-            </div>
-          </div>
+          <FittingSection
+            title="Planetary Commodities Hold"
+            items={fitting.planetaryCommoditiesHold}
+            keyPrefix="planetary-commodities"
+            hasCharges={false}
+          />
         )}
 
       {/* Ice Hold */}
       {fitting?.iceHold && fitting.iceHold.length > 0 && (
-        <div className="pb-4 mb-4 border-b border-white/10">
-          <h3 className="mb-2 font-bold text-gray-400 uppercase">Ice Hold</h3>
-          <div className="space-y-2">
-            {(() => {
-              const groupedIceHold = groupItems(fitting.iceHold);
-              return groupedIceHold.map((item, index) => {
-                const totalQty =
-                  item.quantityDestroyed + item.quantityDropped || 1;
-                const isDestroyed = item.quantityDestroyed > 0;
-                const isDropped = item.quantityDropped > 0;
-                const textColor = isDestroyed
-                  ? "text-red-400"
-                  : isDropped
-                    ? "text-green-500"
-                    : "text-white";
-
-                return (
-                  <div
-                    key={`ice-hold-${item.itemType.id}-${index}`}
-                    className="flex items-center gap-3 py-2"
-                  >
-                    <img
-                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                      alt={getItemName(item.itemType, item.singleton)}
-                      className="border bg-white/5 size-16 border-white/10"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className={`truncate ${textColor}`}>
-                        {getItemName(item.itemType, item.singleton)}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 text-right">
-                      {renderQuantity(
-                        item.quantityDestroyed,
-                        item.quantityDropped,
-                      )}
-                      <div className={`w-40 tabular-nums ${textColor}`}>
-                        {formatISK(
-                          getItemPrice(
-                            item.itemType,
-                            item.singleton,
-                            item.itemType.jitaPrice,
-                          ) * totalQty,
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              });
-            })()}
-          </div>
-        </div>
+        <FittingSection
+          title="Ice Hold"
+          items={fitting.iceHold}
+          keyPrefix="ice-hold"
+          hasCharges={false}
+        />
       )}
 
       {/* Infrastructure Hold */}
       {fitting?.infrastructureHold && fitting.infrastructureHold.length > 0 && (
-        <div className="pb-4 mb-4 border-b border-white/10">
-          <h3 className="mb-2 font-bold text-gray-400 uppercase">
-            Infrastructure Hold
-          </h3>
-          <div className="space-y-2">
-            {(() => {
-              const groupedInfrastructureHold = groupItems(
-                fitting.infrastructureHold,
-              );
-              return groupedInfrastructureHold.map((item, index) => {
-                const totalQty =
-                  item.quantityDestroyed + item.quantityDropped || 1;
-                const isDestroyed = item.quantityDestroyed > 0;
-                const isDropped = item.quantityDropped > 0;
-                const textColor = isDestroyed
-                  ? "text-red-400"
-                  : isDropped
-                    ? "text-green-500"
-                    : "text-white";
-
-                return (
-                  <div
-                    key={`infrastructure-hold-${item.itemType.id}-${index}`}
-                    className="flex items-center gap-3 py-2"
-                  >
-                    <img
-                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                      alt={getItemName(item.itemType, item.singleton)}
-                      className="border bg-white/5 size-16 border-white/10"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className={`truncate ${textColor}`}>
-                        {getItemName(item.itemType, item.singleton)}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 text-right">
-                      {renderQuantity(
-                        item.quantityDestroyed,
-                        item.quantityDropped,
-                      )}
-                      <div className={`w-40 tabular-nums ${textColor}`}>
-                        {formatISK(
-                          getItemPrice(
-                            item.itemType,
-                            item.singleton,
-                            item.itemType.jitaPrice,
-                          ) * totalQty,
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              });
-            })()}
-          </div>
-        </div>
+        <FittingSection
+          title="Infrastructure Hold"
+          items={fitting.infrastructureHold}
+          keyPrefix="infrastructure-hold"
+          hasCharges={false}
+        />
       )}
 
       {/* Fighter Bay */}
       {fitting?.fighterBay && fitting.fighterBay.length > 0 && (
-        <div className="pb-4 mb-4 border-b border-white/10">
-          <h3 className="mb-2 font-bold text-gray-400 uppercase">
-            Fighter Bay
-          </h3>
-          <div className="space-y-2">
-            {(() => {
-              const groupedFighters = groupItems(fitting.fighterBay);
-              return groupedFighters.map((item, index) => {
-                const totalQty =
-                  item.quantityDestroyed + item.quantityDropped || 1;
-                const isDestroyed = item.quantityDestroyed > 0;
-                const isDropped = item.quantityDropped > 0;
-                const textColor = isDestroyed
-                  ? "text-red-400"
-                  : isDropped
-                    ? "text-green-500"
-                    : "text-white";
-
-                return (
-                  <div
-                    key={`fighter-${item.itemType.id}-${index}`}
-                    className="flex items-center gap-3 py-2"
-                  >
-                    <img
-                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                      alt={getItemName(item.itemType, item.singleton)}
-                      className="border bg-white/5 size-16 border-white/10"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className={`truncate ${textColor}`}>
-                        {getItemName(item.itemType, item.singleton)}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 text-right">
-                      {renderQuantity(
-                        item.quantityDestroyed,
-                        item.quantityDropped,
-                      )}
-                      <div className={`w-40 tabular-nums ${textColor}`}>
-                        {formatISK(
-                          getItemPrice(
-                            item.itemType,
-                            item.singleton,
-                            item.itemType.jitaPrice,
-                          ) * totalQty,
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              });
-            })()}
-          </div>
-        </div>
+        <FittingSection
+          title="Fighter Bay"
+          items={fitting.fighterBay}
+          keyPrefix="fighter"
+          hasCharges={false}
+        />
       )}
 
       {/* Structure Fuel */}
       {isStructure &&
         fitting?.structureFuel &&
         fitting.structureFuel.length > 0 && (
-          <div className="pb-4 mb-4 border-b border-white/10">
-            <h3 className="mb-2 font-bold text-gray-400 uppercase">
-              Structure Fuel
-            </h3>
-            <div className="space-y-2">
-              {(() => {
-                const groupedFuel = groupItems(fitting.structureFuel);
-                return groupedFuel.map((item, index) => {
-                  const totalQty =
-                    item.quantityDestroyed + item.quantityDropped || 1;
-                  const isDestroyed = item.quantityDestroyed > 0;
-                  const isDropped = item.quantityDropped > 0;
-                  const textColor = isDestroyed
-                    ? "text-red-400"
-                    : isDropped
-                      ? "text-green-500"
-                      : "text-white";
-
-                  return (
-                    <div
-                      key={`fuel-${item.itemType.id}-${index}`}
-                      className="flex items-center gap-3 py-2"
-                    >
-                      <img
-                        src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                        alt={getItemName(item.itemType, item.singleton)}
-                        className="border bg-white/5 size-16 border-white/10"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className={`truncate ${textColor}`}>
-                          {getItemName(item.itemType, item.singleton)}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4 text-right">
-                        {renderQuantity(
-                          item.quantityDestroyed,
-                          item.quantityDropped,
-                        )}
-                        <div className={`w-40 tabular-nums ${textColor}`}>
-                          {formatISK(
-                            getItemPrice(
-                              item.itemType,
-                              item.singleton,
-                              item.itemType.jitaPrice,
-                            ) * totalQty,
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                });
-              })()}
-            </div>
-          </div>
+          <FittingSection
+            title="Structure Fuel"
+            items={fitting.structureFuel}
+            keyPrefix="fuel"
+            hasCharges={false}
+          />
         )}
 
       {/* Core Room */}
       {isStructure && fitting?.coreRoom && fitting.coreRoom.length > 0 && (
-        <div className="pb-4 mb-4 border-b border-white/10">
-          <h3 className="mb-2 font-bold text-gray-400 uppercase">Core Room</h3>
-          <div className="space-y-2">
-            {(() => {
-              const groupedCore = groupItems(fitting.coreRoom);
-              return groupedCore.map((item, index) => {
-                const totalQty =
-                  item.quantityDestroyed + item.quantityDropped || 1;
-                const isDestroyed = item.quantityDestroyed > 0;
-                const isDropped = item.quantityDropped > 0;
-                const textColor = isDestroyed
-                  ? "text-red-400"
-                  : isDropped
-                    ? "text-green-500"
-                    : "text-white";
-
-                return (
-                  <div
-                    key={`core-${item.itemType.id}-${index}`}
-                    className="flex items-center gap-3 py-2"
-                  >
-                    <img
-                      src={getItemImageUrl(item.itemType, item.singleton, 64)}
-                      alt={getItemName(item.itemType, item.singleton)}
-                      className="border bg-white/5 size-16 border-white/10"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className={`truncate ${textColor}`}>
-                        {getItemName(item.itemType, item.singleton)}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 text-right">
-                      {renderQuantity(
-                        item.quantityDestroyed,
-                        item.quantityDropped,
-                      )}
-                      <div className={`w-40 tabular-nums ${textColor}`}>
-                        {formatISK(
-                          getItemPrice(
-                            item.itemType,
-                            item.singleton,
-                            item.itemType.jitaPrice,
-                          ) * totalQty,
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              });
-            })()}
-          </div>
-        </div>
+        <FittingSection
+          title="Core Room"
+          items={fitting.coreRoom}
+          keyPrefix="core"
+          hasCharges={false}
+        />
       )}
 
       {/* Value Summary */}
