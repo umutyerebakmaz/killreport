@@ -3,7 +3,7 @@
 import SecurityStatus from "@/components/SecurityStatus/SecurityStatus";
 import ShipTierBadge from "@/components/ShipTierBadge/ShipTierBadge";
 import Tooltip from "@/components/Tooltip/Tooltip";
-import { formatKillmailDateTime, formatKillmailTime } from "@/utils/date";
+import { formatKillmailDate, formatKillmailDateTime } from "@/utils/date";
 import { formatISK } from "@/utils/formatISK";
 import { getShipTier } from "@/utils/shipTier";
 import Link from "next/link";
@@ -60,7 +60,7 @@ export default function KillmailCard({
   return (
     <Link
       href={`/killmails/${km.id}`}
-      className="block w-full transition-all duration-200 border rounded-lg bg-neutral-900 border-white/10 hover:bg-neutral-800 hover:border-orange-500/50"
+      className="block w-full transition-all duration-200 border bg-neutral-900 border-white/10 hover:bg-neutral-800 hover:border-white/5"
       prefetch={false}
     >
       <div className="p-4">
@@ -72,7 +72,7 @@ export default function KillmailCard({
               position="top"
             >
               <div className="text-sm text-gray-400">
-                {formatKillmailTime(km.killmailTime)}
+                {formatKillmailDate(km.killmailTime)}
               </div>
             </Tooltip>
             {km.totalValue && (
@@ -82,7 +82,7 @@ export default function KillmailCard({
             )}
           </div>
           {rank !== undefined && (
-            <div className="flex items-center justify-center px-3 py-1 rounded-full bg-white/5">
+            <div className="flex items-center justify-center">
               <span
                 className={`text-lg font-black tabular-nums ${
                   rank === 1
@@ -112,7 +112,7 @@ export default function KillmailCard({
               <img
                 src={`https://images.evetech.net/types/${km.victim.shipType.id}/render?size=128`}
                 alt={km.victim.shipType.name || "Ship"}
-                className="size-24"
+                className="size-32"
                 loading="lazy"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;

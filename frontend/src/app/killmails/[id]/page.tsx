@@ -2,7 +2,7 @@
 
 import AttackersCard from "@/components/AttackersCard";
 import FitScreen from "@/components/FitScreen/FitScreen";
-import KillmailSummaryCard from "@/components/KillmailItemsCard/KillmailItemsCard";
+import KillmailSummaryCard from "@/components/KillmailSummaryCard/KillmailSummaryCard";
 import { Loader } from "@/components/Loader/Loader";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import { useKillmailQuery } from "@/generated/graphql";

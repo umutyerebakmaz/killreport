@@ -455,14 +455,14 @@ function KillmailsContent() {
       {/* Most Valuable Carousels - Last 7 Days */}
       <div className="mt-8 space-y-6">
         <KillmailCarousel
-          title="🚀 Most Valuable Ships"
+          title="Most Valuable Ships"
           subtitle="Last 7 Days - Highest value ship kills"
           killmails={shipsData || []}
           loading={shipsLoading}
         />
 
         <KillmailCarousel
-          title="🏢 Most Valuable Structures"
+          title="Most Valuable Structures"
           subtitle="Last 7 Days - Citadels, Engineering Complexes, and Refineries"
           killmails={(structuresData?.killmails.items as any) || []}
           loading={structuresLoading}
