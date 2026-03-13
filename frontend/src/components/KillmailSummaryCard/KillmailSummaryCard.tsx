@@ -8,9 +8,12 @@ import { getShipTier } from "@/utils/shipTier";
 import ShipTierBadge from "../ShipTierBadge/ShipTierBadge";
 
 const getItemPrice = (itemType: any, singleton: number = 1, jitaPrice: any) => {
-  // Blueprint Copy (singleton !== 1) has minimal value
+  // Blueprint Copy (singleton === 2) has minimal value
+  // singleton = 0: Stackable normal item or BPO → market price
+  // singleton = 1: Assembled/fitted unique item → market price
+  // singleton = 2: Blueprint Copy (BPC) → 0.01 ISK
   const blueprint = isBlueprint(itemType);
-  const isCopy = blueprint && singleton !== 1;
+  const isCopy = blueprint && singleton === 2;
 
   if (isCopy) {
     return 0.01; // Blueprint copies have minimal value

@@ -126,6 +126,9 @@ query Killmail($id: ID!) {
                 }
                 group {
                   name
+                  category {
+                    name
+                  }
                 }
               }
               quantityDropped
@@ -233,6 +236,9 @@ query Killmail($id: ID!) {
               }
               group {
                 name
+                category {
+                  name
+                }
               }
             }
             quantityDropped
@@ -257,6 +263,9 @@ query Killmail($id: ID!) {
               }
               group {
                 name
+                category {
+                  name
+                }
               }
             }
             quantityDropped
@@ -281,6 +290,9 @@ query Killmail($id: ID!) {
               }
               group {
                 name
+                category {
+                  name
+                }
               }
             }
             quantityDropped
@@ -304,6 +316,9 @@ query Killmail($id: ID!) {
               }
               group {
                 name
+                category {
+                  name
+                }
               }
             }
             quantityDropped
