@@ -89,9 +89,9 @@ export default function FittingSection({
   const groupedCharges = hasCharges ? groupItems(charges) : [];
 
   return (
-    <div className="pb-4 mb-4 border-b border-white/10">
-      <h3 className="mb-2 font-bold text-gray-400 uppercase">{title}</h3>
-      <div className="space-y-2">
+    <div className="border-b fitting-section border-white/10">
+      <h3 className="py-2 pl-2 font-bold text-gray-400 uppercase">{title}</h3>
+      <div className="flex flex-col divide-y divide-white/10">
         {groupedModules.map((item, index) => (
           <FittingItem
             key={`${keyPrefix}-module-${item.itemType.id}-${index}`}
