@@ -418,7 +418,7 @@ function KillmailsContent() {
   // Handle error state
   if (error) {
     return (
-      <div className="">
+      <div>
         <Breadcrumb items={[{ label: "Killmails" }]} />
         <div className="p-8 text-red-500">Error: {error.message}</div>
       </div>
@@ -426,7 +426,7 @@ function KillmailsContent() {
   }
 
   return (
-    <div className="">
+    <div>
       <Breadcrumb items={[{ label: "Killmails" }]} />
 
       {/* New Killmail Toast Stack */}
@@ -434,23 +434,6 @@ function KillmailsContent() {
         toasts={killmailToasts}
         onDismiss={handleDismissToast}
       /> */}
-
-      <div className="sm:flex sm:items-center sm:justify-between">
-        <div className="sm:flex-auto">
-          <h1 className="flex items-center gap-3 text-3xl font-semibold text-white">
-            Killmails
-          </h1>
-          <p className="mt-2 text-gray-400">
-            Browse all killmails from New Eden. Click on a killmail to see
-            detailed information.
-          </p>
-          {totalCount > 0 && (
-            <p className="mt-1 text-sm text-gray-400">
-              {totalCount.toLocaleString()} killmails
-            </p>
-          )}
-        </div>
-      </div>
 
       {/* Most Valuable Carousels - Last 7 Days */}
       <div className="mt-8 space-y-6">
@@ -488,6 +471,23 @@ function KillmailsContent() {
           initialCharacterRole={urlFilters.characterRole}
           initialSecuritySpace={urlFilters.securitySpaceRole}
         />
+      </div>
+
+      <div className="sm:flex sm:items-center sm:justify-between">
+        <div className="sm:flex-auto">
+          <h1 className="flex items-center gap-3 text-3xl font-semibold text-white">
+            Killmails
+          </h1>
+          <p className="mt-2 text-gray-400">
+            Browse all killmails from New Eden. Click on a killmail to see
+            detailed information.
+          </p>
+          {totalCount > 0 && (
+            <p className="mt-1 text-sm text-gray-400">
+              {totalCount.toLocaleString()} killmails
+            </p>
+          )}
+        </div>
       </div>
 
       {/* 2-column grid layout */}

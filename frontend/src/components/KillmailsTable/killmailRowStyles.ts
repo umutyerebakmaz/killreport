@@ -34,11 +34,13 @@ export function getKillmailRowStyles({
     (allianceId && km.victim?.alliance?.id === allianceId),
   );
 
-  // Check if the entity is the final blow (attacker indicator)
-  const isFinalBlow = Boolean(
-    (characterId && km.finalBlow?.character?.id === characterId) ||
-    (corporationId && km.finalBlow?.corporation?.id === corporationId) ||
-    (allianceId && km.finalBlow?.alliance?.id === allianceId),
+  // Check if the entity is among the attackers
+  // For corporations/alliances: check if ANY attacker belongs to that entity
+  // For characters: check if the character is in the attackers list
+  const isAttacker = Boolean(
+    (characterId && km.attackers?.some(a => a.character?.id === characterId)) ||
+    (corporationId && km.attackers?.some(a => a.corporation?.id === corporationId)) ||
+    (allianceId && km.attackers?.some(a => a.alliance?.id === allianceId)),
   );
 
   // No entity provided - use neutral colors based on variant
@@ -52,7 +54,7 @@ export function getKillmailRowStyles({
   }
 
   // Entity exists but is neither victim nor attacker - use neutral colors based on variant
-  if (!isVictim && !isFinalBlow) {
+  if (!isVictim && !isAttacker) {
     return {
       totalValueColor: "text-orange-400",
       rowBgColor: variant === "list" ? "bg-neutral-900" : "bg-neutral-800",
