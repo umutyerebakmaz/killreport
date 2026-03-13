@@ -76,8 +76,6 @@ export function getKillmailRowStyles({
   return {
     totalValueColor: "text-green-500",
     rowBgColor: characterId ? "bg-green-500/15" : "bg-green-500/20",
-    rowHoverColor: "hover:bg-green-500/20",
+    rowHoverColor: characterId ? "hover:bg-green-500/20" : "hover:bg-green-500/30",
   };
-
-  console.log();
 }
