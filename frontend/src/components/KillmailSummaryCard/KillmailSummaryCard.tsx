@@ -39,12 +39,12 @@ export default function KillmailSummaryCard({
   totalValue,
 }: KillmailSummaryCardProps) {
   return (
-    <div className="p-6 items-card">
+    <div className="border bg-neutral-900 border-neutral-800">
       {/* Ship */}
       {victim?.shipType && (
-        <div className="pb-4 mb-4 border-b border-white/10">
-          <h3 className="mb-2 font-bold text-gray-400 uppercase">Ship</h3>
-          <div className="flex items-center gap-3 py-2">
+        <div className="border-b border-white/10">
+          <h3 className="py-2 pl-2 font-bold text-gray-400 uppercase">Ship</h3>
+          <div className="flex items-center gap-3 px-2 py-2 hover:bg-red-700/50 bg-red-700/40">
             <div className="relative shrink-0">
               {getShipTier(victim.shipType.dogmaAttributes) && (
                 <div className="absolute top-0 left-0 z-20">
@@ -69,18 +69,18 @@ export default function KillmailSummaryCard({
               />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-medium text-white truncate">
+              <div className="font-medium text-orange-400 truncate">
                 {victim.shipType.name}
               </div>
               {victim.shipType.group && (
-                <div className="text-gray-500">
+                <div className="text-gray-300">
                   {victim.shipType.group.name}
                 </div>
               )}
             </div>
             <div className="flex gap-4 text-right">
-              <div className="text-red-400 tabular-nums">1</div>
-              <div className="w-40 text-red-400 tabular-nums">
+              <div className="text-gray-300 tabular-nums">1</div>
+              <div className="w-40 text-gray-300 tabular-nums">
                 {formatISK(getShipPrice(victim.shipType))}
               </div>
             </div>
@@ -345,27 +345,21 @@ export default function KillmailSummaryCard({
 
       {/* Value Summary */}
       <div>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-gray-400">Destroyed</span>
-            <span className="text-red-400 tabular-nums">
-              {formatISK(destroyedValue)}
-            </span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-gray-400">Dropped</span>
-            <span className="text-green-400 tabular-nums">
-              {formatISK(droppedValue)}
-            </span>
-          </div>
-          <div className="flex items-center justify-between pt-2 border-t border-white/10">
-            <span className="text-base font-semibold text-gray-400">
-              Total Value
-            </span>
-            <span className="text-xl font-bold text-yellow-400 tabular-nums">
-              {formatISK(totalValue)}
-            </span>
-          </div>
+        <div className="flex items-center justify-between h-8 px-2">
+          <span className="text-gray-400">Destroyed</span>
+          <span className="tabular-nums">{formatISK(destroyedValue)}</span>
+        </div>
+
+        <div className="flex items-center justify-between h-8 px-2">
+          <span className="text-gray-400">Dropped</span>
+          <span className="tabular-nums">{formatISK(droppedValue)}</span>
+        </div>
+
+        <div className="flex items-center justify-between h-8 px-2">
+          <span className="font-semibold">Total Value</span>
+          <span className="font-bold tabular-nums">
+            {formatISK(totalValue)}
+          </span>
         </div>
       </div>
     </div>
