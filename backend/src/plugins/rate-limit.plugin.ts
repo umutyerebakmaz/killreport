@@ -3,9 +3,9 @@
  * Prevents abuse by limiting requests per IP/user
  */
 
+import logger from '@services/logger';
+import { redisCache } from '@services/redis-cache';
 import { Plugin } from 'graphql-yoga';
-import logger from '../services/logger';
-import { redisCache } from '../services/redis-cache';
 
 interface RateLimitConfig {
   /** Maximum requests per window */
