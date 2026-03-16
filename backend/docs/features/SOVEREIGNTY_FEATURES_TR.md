@@ -465,12 +465,12 @@ Bu özellikler yüksek etkiyle hızlı bir şekilde uygulanabilir:
 
 ## 🔥 **Benzersiz Değer Teklifi:**
 
-### Bu Özelliği Özel Kılan:
+### Bu Özelliği Özel Kılan
 
 **Başka kimsenin bu veri kombinasyonu yok:**
 Kapsamlı killmail veritabanınız sovereignty verileriyle birleştirildiğinde, rakiplerin kopyalayamayacağı benzersiz istihbarat fırsatları yaratır.
 
-### Benzersiz Analizler:
+### Benzersiz Analizler
 
 **1. Savaş Sonucu Tahmin Motoru:**
 
@@ -525,7 +525,7 @@ Kapsamlı killmail veritabanınız sovereignty verileriyle birleştirildiğinde,
 - İmparatorluk sınırlarındaki zayıf noktalar
 - Optimal saldırı zamanlaması analizi
 
-### Rekabet Avantajları:
+### Rekabet Avantajları
 
 **vs zkillboard:**
 
@@ -557,7 +557,7 @@ Kapsamlı killmail veritabanınız sovereignty verileriyle birleştirildiğinde,
 
 ## 📊 **Veri Şeması Önerileri:**
 
-### Gerekli Veritabanı Tabloları:
+### Gerekli Veritabanı Tabloları ve İlişkiler
 
 ```prisma
 // Sovereignty Kampanya Geçmişi
@@ -713,7 +713,7 @@ model CampaignCombatStats {
 }
 ```
 
-### Mevcut Tablolara Ek Değişiklikler:
+### Mevcut Tablolara Ek Değişiklikler
 
 ```prisma
 // Mevcut Killmail modeline ekle
