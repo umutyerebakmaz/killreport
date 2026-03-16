@@ -136,8 +136,22 @@ async function backfillValuesWorker() {
           }))
         });
 
+        // Log calculated values for debugging
+        if (totalProcessed % 10 === 0) {
+          logger.info(`💰 [${totalProcessed + 1}] KM ${killmailId}: Total=${values.totalValue.toFixed(2)}, Destroyed=${values.destroyedValue.toFixed(2)}, Dropped=${values.droppedValue.toFixed(2)}`);
+        }
+
+        // Skip update if all values are zero (no market data)
+        if (values.totalValue === 0 && values.destroyedValue === 0 && values.droppedValue === 0) {
+          logger.warn(`⚠️  [${totalProcessed + 1}] Killmail ${killmailId} has zero values - skipping update`);
+          totalSkipped++;
+          totalProcessed++;
+          channel.ack(msg);
+          return;
+        }
+
         // Update killmail
-        await prismaWorker.killmail.update({
+        const updated = await prismaWorker.killmail.update({
           where: { killmail_id: killmailId },
           data: {
             total_value: values.totalValue,
@@ -146,7 +160,14 @@ async function backfillValuesWorker() {
           }
         });
 
-        totalUpdated++;
+        // Verify the update
+        if (updated.total_value !== values.totalValue) {
+          logger.error(`❌ [${totalProcessed + 1}] Killmail ${killmailId} update FAILED! Expected ${values.totalValue}, got ${updated.total_value}`);
+          totalErrors++;
+        } else {
+          totalUpdated++;
+        }
+
         totalProcessed++;
         channel.ack(msg);
 
