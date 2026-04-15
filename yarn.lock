@@ -3765,7 +3765,7 @@ __metadata:
     axios: "npm:^1.12.2"
     dataloader: "npm:^2.2.3"
     dotenv: "npm:^17.2.3"
-    graphql: "npm:16.11.0"
+    graphql: "npm:16.13.2"
     graphql-codegen-schema-ast: "npm:^0.18.2"
     graphql-ws: "npm:^6.0.6"
     graphql-yoga: "npm:5.16.0"
@@ -5828,10 +5828,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql@npm:16.11.0":
-  version: 16.11.0
-  resolution: "graphql@npm:16.11.0"
-  checksum: 10c0/124da7860a2292e9acf2fed0c71fc0f6a9b9ca865d390d112bdd563c1f474357141501c12891f4164fe984315764736ad67f705219c62f7580681d431a85db88
+"graphql@npm:16.13.2":
+  version: 16.13.2
+  resolution: "graphql@npm:16.13.2"
+  checksum: 10c0/64e822a0a0e4398781e4bc9765b88d370c08261498b517add4b878038ef7be2005b6b394a79a5102b9379d57052f60bc7f23fec8f39808d101984a74772ebd9d
   languageName: node
   linkType: hard
 
