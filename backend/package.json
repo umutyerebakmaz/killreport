@@ -117,7 +117,7 @@
     "@types/winston": "^2.4.4",
     "@types/ws": "^8.18.1",
     "graphql-codegen-schema-ast": "^0.18.2",
-    "nodemon": "3.1.10",
+    "nodemon": "3.1.14",
     "prisma": "^7.1.0",
     "ts-node": "10.9.2",
     "tsx": "^4.21.0",
