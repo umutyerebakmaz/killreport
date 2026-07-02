@@ -4,7 +4,7 @@
  */
 
 import Redis from 'ioredis';
-import { REDIS_CONFIG } from '../config/cache';
+import { REDIS_CONFIG } from '@config/cache';
 import logger from './logger';
 
 /**

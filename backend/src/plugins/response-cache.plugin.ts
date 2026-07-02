@@ -5,7 +5,7 @@
 import { useResponseCache } from '@envelop/response-cache';
 import logger from '@services/logger';
 import { redisCache } from '@services/redis-cache';
-import { CACHE_TTL, MAX_CACHE_TTL_SECONDS, PUBLIC_CACHE_QUERIES, TTL_PER_SCHEMA_COORDINATE } from '../config/cache';
+import { CACHE_TTL, MAX_CACHE_TTL_SECONDS, PUBLIC_CACHE_QUERIES, TTL_PER_SCHEMA_COORDINATE } from '@config/cache';
 
 /**
  * Extract operation name from request
