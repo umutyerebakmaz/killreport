@@ -17,10 +17,16 @@ if (!connectionString) {
 const caCertPath = path.join(__dirname, '../../certs/ca-certificate.crt');
 const ca = fs.existsSync(caCertPath) ? fs.readFileSync(caCertPath).toString() : undefined;
 
+// Local development (localhost) Postgres does not support SSL — disable it there.
+// Prod (DigitalOcean domain) keeps CA-verified SSL unchanged.
+const isLocalDb = /@(localhost|127\.0\.0\.1)[:/]/.test(connectionString);
+
 // Configure pg Pool with SSL options using CA certificate
 const pool = new Pool({
   connectionString,
-  ssl: ca
+  ssl: isLocalDb
+    ? false // Local Postgres: no SSL
+    : ca
     ? {
       ca, // Use DigitalOcean's CA certificate
       rejectUnauthorized: true, // Verify the certificate (secure)
