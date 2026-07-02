@@ -184,6 +184,9 @@ export default function Header() {
           <a href="/leaderboards" className="font-semibold text-white">
             LEADERBOARDS
           </a>
+          <a href="/sovereignty" className="font-semibold text-white">
+            SOVEREIGNTY
+          </a>
           <a href="/workers" className="font-semibold text-white">
             WORKERS
           </a>
@@ -312,6 +315,12 @@ export default function Header() {
                   className="block px-3 py-2 -mx-3 font-semibold text-white text-base/7 hover:bg-white/5"
                 >
                   LEADERBOARDS
+                </a>
+                <a
+                  href="/sovereignty"
+                  className="block px-3 py-2 -mx-3 font-semibold text-white text-base/7 hover:bg-white/5"
+                >
+                  SOVEREIGNTY
                 </a>
                 <a
                   href="/workers"

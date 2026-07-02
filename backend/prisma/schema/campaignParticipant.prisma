@@ -1,0 +1,13 @@
+model CampaignParticipant {
+  id          Int      @id @default(autoincrement())
+  campaign_id Int
+  alliance_id Int
+  score       Float
+  updated_at  DateTime @updatedAt
+
+  campaign    SovereigntyCampaign @relation(fields: [campaign_id], references: [campaign_id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([campaign_id, alliance_id])
+  @@index([alliance_id])
+  @@map("campaign_participants")
+}

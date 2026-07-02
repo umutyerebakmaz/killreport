@@ -61,6 +61,18 @@ type AllianceSnapshot {
   memberCount: Int!
 }
 
+"""
+An alliance ranked by the number of systems it currently holds sovereignty over.
+"""
+type AllianceTerritoryRank {
+  allianceId: Int!
+  allianceName: String
+  allianceTicker: String
+  ihubCount: Int!
+  rank: Int!
+  systemsControlled: Int!
+}
+
 type AllianceTopTarget {
   alliance: Alliance!
   killCount: Int!
@@ -576,6 +588,9 @@ type Query {
   _empty: String
   activeUsersCount: Int!
   alliance(id: Int!): Alliance
+
+  """Top alliances ranked by number of systems currently controlled."""
+  allianceTerritoryRankings(limit: Int): [AllianceTerritoryRank!]!
   allianceTopAllianceTargets(allianceId: Int!, filter: TopTargetFilter): [AllianceTopTarget!]!
   allianceTopCharacters(allianceId: Int!, filter: TopTargetFilter): [CharacterTopTarget!]!
   allianceTopCorporationTargets(allianceId: Int!, filter: TopTargetFilter): [CorporationTopTarget!]!
@@ -624,10 +639,19 @@ type Query {
   me: User
   race(id: Int!): Race
   races: [Race!]!
+
+  """Most recently detected territory ownership changes."""
+  recentTerritoryChanges(limit: Int): [TerritoryChange!]!
   region(id: Int!): Region
   regions(filter: RegionFilter): RegionsResponse!
   solarSystem(id: Int!): SolarSystem
   solarSystems(filter: SolarSystemFilter): SolarSystemsResponse!
+
+  """Currently active sovereignty campaigns, newest first."""
+  sovereigntyActiveCampaigns(limit: Int): [SovereigntyCampaign!]!
+
+  """Summary counts for the current sovereignty state."""
+  sovereigntyOverview: SovereigntyOverview!
   systemKillsHistory(filter: SystemKillsFilter!): [SystemKills!]!
   systemLatestKills(system_id: Int!): SystemKills
 
@@ -832,6 +856,46 @@ type SolarSystemsResponse {
   pageInfo: PageInfo!
 }
 
+"""An active sovereignty campaign (contested TCU / IHub / station)."""
+type SovereigntyCampaign {
+  attackersScore: Float
+  campaignId: Int!
+  constellationId: Int!
+  defenderId: Int
+  defenderName: String
+  defenderScore: Float
+  defenderTicker: String
+  eventType: String!
+
+  """ISK destroyed in this campaign's war zone."""
+  iskDestroyed: Float!
+  regionId: Int
+  regionName: String
+  solarSystemId: Int!
+  solarSystemName: String
+  startTime: String!
+  structureId: String!
+
+  """
+  Killmails correlated to this campaign (0 until fighting happens in its window).
+  """
+  warKills: Int!
+}
+
+"""High-level summary of the current sovereignty state."""
+type SovereigntyOverview {
+  activeCampaigns: Int!
+
+  """Total ISK destroyed across all active sovereignty campaigns."""
+  iskDestroyed: Float!
+  ownedSystems: Int!
+  trackedAlliances: Int!
+  trackedStructures: Int!
+
+  """Total killmails correlated to active sovereignty campaigns."""
+  warKills: Int!
+}
+
 type StandaloneWorkerStatus {
   """Description of what this worker does"""
   description: String!
@@ -989,6 +1053,19 @@ type SystemKillsStats {
   system_id: Int!
   system_name: String!
   total_kills: Int!
+}
+
+"""A logged change of sovereignty ownership for a system."""
+type TerritoryChange {
+  changeType: String!
+  detectedAt: String!
+  id: String!
+  newOwnerId: Int
+  newOwnerName: String
+  previousOwnerId: Int
+  previousOwnerName: String
+  solarSystemId: Int!
+  solarSystemName: String
 }
 
 type Top90DaysPilot {
