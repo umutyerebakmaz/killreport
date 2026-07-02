@@ -1,7 +1,7 @@
 import { AllianceService } from '@services/alliance';
 import logger from '@services/logger';
 import { getRabbitMQChannel } from '@services/rabbitmq';
-import '../config';
+import '@config/config';
 
 const QUEUE_NAME = 'esi_alliance_info_queue';
 const BATCH_SIZE = 100;
