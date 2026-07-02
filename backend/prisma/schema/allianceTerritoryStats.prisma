@@ -1,0 +1,18 @@
+model AllianceTerritoryStats {
+  id                  Int      @id @default(autoincrement())
+  alliance_id         Int
+  date                DateTime @db.Date
+  systems_controlled  Int      @default(0)
+  tcu_count           Int      @default(0)
+  ihub_count          Int      @default(0)
+  campaigns_attacking Int      @default(0)
+  campaigns_defending Int      @default(0)
+  systems_gained      Int      @default(0)
+  systems_lost        Int      @default(0)
+  created_at          DateTime @default(now())
+
+  @@unique([alliance_id, date])
+  @@index([date])
+  @@index([systems_controlled])
+  @@map("alliance_territory_stats")
+}

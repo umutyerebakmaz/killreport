@@ -1,0 +1,12 @@
+model CampaignCombatStats {
+  campaign_id     Int      @id
+  war_kills       Int      @default(0)
+  isk_destroyed   Float    @default(0)
+  ships_destroyed Int      @default(0)
+  last_correlated DateTime @updatedAt
+
+  campaign        SovereigntyCampaign @relation(fields: [campaign_id], references: [campaign_id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([isk_destroyed])
+  @@map("campaign_combat_stats")
+}
