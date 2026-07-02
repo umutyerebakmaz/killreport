@@ -1,0 +1,187 @@
+import { QueryResolvers } from '@generated-types';
+import prisma from '@services/prisma';
+
+/**
+ * Sovereignty Query Resolvers
+ *
+ * Reads from the sovereignty foundation tables (populated by the
+ * worker-sovereignty-* cron workers) and enriches EVE entity ids with
+ * human-readable names where those entities exist in our database.
+ *
+ * Serialization notes (no custom scalars in this codebase):
+ *   - DateTime  -> String via .toISOString()
+ *   - BigInt    -> String via .toString()
+ */
+
+type NameRow = { id: number; name: string; ticker: string };
+
+async function allianceNames(ids: (number | null | undefined)[]): Promise<Map<number, NameRow>> {
+  const unique = [...new Set(ids.filter((x): x is number => typeof x === 'number'))];
+  if (unique.length === 0) return new Map();
+  const rows = await prisma.alliance.findMany({
+    where: { id: { in: unique } },
+    select: { id: true, name: true, ticker: true },
+  });
+  return new Map(rows.map((r) => [r.id, r]));
+}
+
+async function systemInfo(
+  ids: number[]
+): Promise<Map<number, { name: string; constellation_id: number | null }>> {
+  const unique = [...new Set(ids)];
+  if (unique.length === 0) return new Map();
+  const rows = await prisma.solarSystem.findMany({
+    where: { id: { in: unique } },
+    select: { id: true, name: true, constellation_id: true },
+  });
+  return new Map(rows.map((r) => [r.id, { name: r.name, constellation_id: r.constellation_id }]));
+}
+
+export const sovereigntyQueries: QueryResolvers = {
+  sovereigntyOverview: async () => {
+    const [ownedSystems, activeCampaigns, trackedStructures, alliances, war] = await Promise.all([
+      prisma.sovereigntyMapCurrent.count(),
+      prisma.sovereigntyCampaign.count({ where: { end_time: null } }),
+      prisma.sovereigntyStructure.count({ where: { destroyed_at: null } }),
+      prisma.sovereigntyMapCurrent.findMany({
+        where: { alliance_id: { not: null } },
+        distinct: ['alliance_id'],
+        select: { alliance_id: true },
+      }),
+      prisma.killmail.aggregate({
+        where: { is_war_related: true },
+        _count: { _all: true },
+        _sum: { total_value: true },
+      }),
+    ]);
+    return {
+      ownedSystems,
+      activeCampaigns,
+      trackedStructures,
+      trackedAlliances: alliances.length,
+      warKills: war._count._all,
+      iskDestroyed: war._sum.total_value ?? 0,
+    };
+  },
+
+  sovereigntyActiveCampaigns: async (_, { limit }) => {
+    const campaigns = await prisma.sovereigntyCampaign.findMany({
+      where: { end_time: null },
+      orderBy: { start_time: 'desc' },
+      take: limit ?? 100,
+    });
+
+    const systems = await systemInfo(campaigns.map((c) => c.solar_system_id));
+    const defenders = await allianceNames(campaigns.map((c) => c.defender_id));
+
+    const combatStats = await prisma.campaignCombatStats.findMany({
+      where: { campaign_id: { in: campaigns.map((c) => c.campaign_id) } },
+    });
+    const combatByCampaign = new Map(combatStats.map((s) => [s.campaign_id, s]));
+
+    // Resolve region via constellation -> region
+    const constellationIds = [...new Set(
+      [...systems.values()].map((s) => s.constellation_id).filter((x): x is number => x != null)
+    )];
+    const constellations = constellationIds.length
+      ? await prisma.constellation.findMany({
+        where: { id: { in: constellationIds } },
+        select: { id: true, region_id: true },
+      })
+      : [];
+    const constToRegion = new Map(constellations.map((c) => [c.id, c.region_id]));
+    const regionIds = [...new Set(constellations.map((c) => c.region_id).filter((x): x is number => x != null))];
+    const regions = regionIds.length
+      ? await prisma.region.findMany({ where: { id: { in: regionIds } }, select: { id: true, name: true } })
+      : [];
+    const regionNames = new Map(regions.map((r) => [r.id, r.name]));
+
+    return campaigns.map((c) => {
+      const sys = systems.get(c.solar_system_id);
+      const regionId = sys?.constellation_id != null ? constToRegion.get(sys.constellation_id) ?? null : null;
+      const def = c.defender_id != null ? defenders.get(c.defender_id) : null;
+      return {
+        campaignId: c.campaign_id,
+        eventType: c.event_type,
+        solarSystemId: c.solar_system_id,
+        solarSystemName: sys?.name ?? null,
+        constellationId: c.constellation_id,
+        regionId,
+        regionName: regionId != null ? regionNames.get(regionId) ?? null : null,
+        structureId: c.structure_id.toString(),
+        defenderId: c.defender_id,
+        defenderName: def?.name ?? null,
+        defenderTicker: def?.ticker ?? null,
+        defenderScore: c.defender_score,
+        attackersScore: c.attackers_score,
+        startTime: c.start_time.toISOString(),
+        warKills: combatByCampaign.get(c.campaign_id)?.war_kills ?? 0,
+        iskDestroyed: combatByCampaign.get(c.campaign_id)?.isk_destroyed ?? 0,
+      };
+    });
+  },
+
+  allianceTerritoryRankings: async (_, { limit }) => {
+    const take = limit ?? 25;
+    const grouped = await prisma.sovereigntyMapCurrent.groupBy({
+      by: ['alliance_id'],
+      where: { alliance_id: { not: null } },
+      _count: { _all: true },
+      orderBy: { _count: { alliance_id: 'desc' } },
+      take,
+    });
+
+    const allianceIds = grouped.map((g) => g.alliance_id).filter((x): x is number => x != null);
+    const names = await allianceNames(allianceIds);
+
+    const ihubs = allianceIds.length
+      ? await prisma.sovereigntyStructure.groupBy({
+        by: ['alliance_id'],
+        where: { destroyed_at: null, structure_type_id: 32458, alliance_id: { in: allianceIds } },
+        _count: { _all: true },
+      })
+      : [];
+    const ihubCounts = new Map(ihubs.map((i) => [i.alliance_id, i._count._all]));
+
+    return grouped.map((g, idx) => {
+      const a = g.alliance_id != null ? names.get(g.alliance_id) : null;
+      return {
+        rank: idx + 1,
+        allianceId: g.alliance_id as number,
+        allianceName: a?.name ?? null,
+        allianceTicker: a?.ticker ?? null,
+        systemsControlled: g._count._all,
+        ihubCount: (g.alliance_id != null ? ihubCounts.get(g.alliance_id) : 0) ?? 0,
+      };
+    });
+  },
+
+  recentTerritoryChanges: async (_, { limit }) => {
+    const changes = await prisma.territoryChange.findMany({
+      orderBy: { detected_at: 'desc' },
+      take: limit ?? 50,
+    });
+
+    const systems = await systemInfo(changes.map((c) => c.solar_system_id));
+    const names = await allianceNames([
+      ...changes.map((c) => c.previous_owner_id),
+      ...changes.map((c) => c.new_owner_id),
+    ]);
+
+    return changes.map((c) => {
+      const prev = c.previous_owner_id != null ? names.get(c.previous_owner_id) : null;
+      const next = c.new_owner_id != null ? names.get(c.new_owner_id) : null;
+      return {
+        id: c.id.toString(),
+        solarSystemId: c.solar_system_id,
+        solarSystemName: systems.get(c.solar_system_id)?.name ?? null,
+        previousOwnerId: c.previous_owner_id,
+        previousOwnerName: prev?.name ?? null,
+        newOwnerId: c.new_owner_id,
+        newOwnerName: next?.name ?? null,
+        changeType: c.change_type,
+        detectedAt: c.detected_at.toISOString(),
+      };
+    });
+  },
+};

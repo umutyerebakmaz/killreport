@@ -1,0 +1,24 @@
+model SovereigntyCampaign {
+  campaign_id      Int       @id
+  constellation_id Int
+  solar_system_id  Int
+  structure_id     BigInt
+  event_type       String // tcu_defense, ihub_defense, station_defense, station_freeport
+  defender_id      Int?
+  defender_score   Float?
+  attackers_score  Float?
+  start_time       DateTime
+  end_time         DateTime? // null while active; set when the campaign disappears from ESI
+  outcome          String? // defender_won, attacker_won, abandoned (populated in a later phase)
+  first_seen       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+
+  participants     CampaignParticipant[]
+  combatStats      CampaignCombatStats?
+
+  @@index([solar_system_id, start_time])
+  @@index([constellation_id])
+  @@index([defender_id])
+  @@index([end_time])
+  @@map("sovereignty_campaigns")
+}
