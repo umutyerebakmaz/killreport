@@ -104,6 +104,17 @@ export type AllianceSnapshot = {
   memberCount: Scalars['Int']['output'];
 };
 
+/** An alliance ranked by the number of systems it currently holds sovereignty over. */
+export type AllianceTerritoryRank = {
+  __typename?: 'AllianceTerritoryRank';
+  allianceId: Scalars['Int']['output'];
+  allianceName?: Maybe<Scalars['String']['output']>;
+  allianceTicker?: Maybe<Scalars['String']['output']>;
+  ihubCount: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+  systemsControlled: Scalars['Int']['output'];
+};
+
 export type AllianceTopTarget = {
   __typename?: 'AllianceTopTarget';
   alliance: Alliance;
@@ -757,6 +768,8 @@ export type Query = {
   _empty?: Maybe<Scalars['String']['output']>;
   activeUsersCount: Scalars['Int']['output'];
   alliance?: Maybe<Alliance>;
+  /** Top alliances ranked by number of systems currently controlled. */
+  allianceTerritoryRankings: Array<AllianceTerritoryRank>;
   allianceTopAllianceTargets: Array<AllianceTopTarget>;
   allianceTopCharacters: Array<CharacterTopTarget>;
   allianceTopCorporationTargets: Array<CorporationTopTarget>;
@@ -800,10 +813,16 @@ export type Query = {
   me?: Maybe<User>;
   race?: Maybe<Race>;
   races: Array<Race>;
+  /** Most recently detected territory ownership changes. */
+  recentTerritoryChanges: Array<TerritoryChange>;
   region?: Maybe<Region>;
   regions: RegionsResponse;
   solarSystem?: Maybe<SolarSystem>;
   solarSystems: SolarSystemsResponse;
+  /** Currently active sovereignty campaigns, newest first. */
+  sovereigntyActiveCampaigns: Array<SovereigntyCampaign>;
+  /** Summary counts for the current sovereignty state. */
+  sovereigntyOverview: SovereigntyOverview;
   systemKillsHistory: Array<SystemKills>;
   systemLatestKills?: Maybe<SystemKills>;
   /** Returns top pilots ranked by total kill count over the last 90 days (rolling window) */
@@ -836,6 +855,11 @@ export type Query = {
 
 export type QueryAllianceArgs = {
   id: Scalars['Int']['input'];
+};
+
+
+export type QueryAllianceTerritoryRankingsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1023,6 +1047,11 @@ export type QueryRaceArgs = {
 };
 
 
+export type QueryRecentTerritoryChangesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
 export type QueryRegionArgs = {
   id: Scalars['Int']['input'];
 };
@@ -1040,6 +1069,11 @@ export type QuerySolarSystemArgs = {
 
 export type QuerySolarSystemsArgs = {
   filter?: InputMaybe<SolarSystemFilter>;
+};
+
+
+export type QuerySovereigntyActiveCampaignsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1263,6 +1297,42 @@ export type SolarSystemsResponse = {
   pageInfo: PageInfo;
 };
 
+/** An active sovereignty campaign (contested TCU / IHub / station). */
+export type SovereigntyCampaign = {
+  __typename?: 'SovereigntyCampaign';
+  attackersScore?: Maybe<Scalars['Float']['output']>;
+  campaignId: Scalars['Int']['output'];
+  constellationId: Scalars['Int']['output'];
+  defenderId?: Maybe<Scalars['Int']['output']>;
+  defenderName?: Maybe<Scalars['String']['output']>;
+  defenderScore?: Maybe<Scalars['Float']['output']>;
+  defenderTicker?: Maybe<Scalars['String']['output']>;
+  eventType: Scalars['String']['output'];
+  /** ISK destroyed in this campaign's war zone. */
+  iskDestroyed: Scalars['Float']['output'];
+  regionId?: Maybe<Scalars['Int']['output']>;
+  regionName?: Maybe<Scalars['String']['output']>;
+  solarSystemId: Scalars['Int']['output'];
+  solarSystemName?: Maybe<Scalars['String']['output']>;
+  startTime: Scalars['String']['output'];
+  structureId: Scalars['String']['output'];
+  /** Killmails correlated to this campaign (0 until fighting happens in its window). */
+  warKills: Scalars['Int']['output'];
+};
+
+/** High-level summary of the current sovereignty state. */
+export type SovereigntyOverview = {
+  __typename?: 'SovereigntyOverview';
+  activeCampaigns: Scalars['Int']['output'];
+  /** Total ISK destroyed across all active sovereignty campaigns. */
+  iskDestroyed: Scalars['Float']['output'];
+  ownedSystems: Scalars['Int']['output'];
+  trackedAlliances: Scalars['Int']['output'];
+  trackedStructures: Scalars['Int']['output'];
+  /** Total killmails correlated to active sovereignty campaigns. */
+  warKills: Scalars['Int']['output'];
+};
+
 export type StandaloneWorkerStatus = {
   __typename?: 'StandaloneWorkerStatus';
   /** Description of what this worker does */
@@ -1429,6 +1499,20 @@ export type SystemKillsStats = {
   system_id: Scalars['Int']['output'];
   system_name: Scalars['String']['output'];
   total_kills: Scalars['Int']['output'];
+};
+
+/** A logged change of sovereignty ownership for a system. */
+export type TerritoryChange = {
+  __typename?: 'TerritoryChange';
+  changeType: Scalars['String']['output'];
+  detectedAt: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  newOwnerId?: Maybe<Scalars['Int']['output']>;
+  newOwnerName?: Maybe<Scalars['String']['output']>;
+  previousOwnerId?: Maybe<Scalars['Int']['output']>;
+  previousOwnerName?: Maybe<Scalars['String']['output']>;
+  solarSystemId: Scalars['Int']['output'];
+  solarSystemName?: Maybe<Scalars['String']['output']>;
 };
 
 export type Top90DaysPilot = {
@@ -2081,6 +2165,11 @@ export type SolarSystemQueryVariables = Exact<{
 
 
 export type SolarSystemQuery = { __typename?: 'Query', solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, star_id?: number | null, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null, latestKills?: { __typename?: 'SystemKills', ship_kills: number, pod_kills: number, npc_kills: number, timestamp: string } | null } | null };
+
+export type SovereigntyDashboardQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type SovereigntyDashboardQuery = { __typename?: 'Query', sovereigntyOverview: { __typename?: 'SovereigntyOverview', ownedSystems: number, activeCampaigns: number, trackedStructures: number, trackedAlliances: number, warKills: number, iskDestroyed: number }, allianceTerritoryRankings: Array<{ __typename?: 'AllianceTerritoryRank', rank: number, allianceId: number, allianceName?: string | null, allianceTicker?: string | null, systemsControlled: number, ihubCount: number }>, sovereigntyActiveCampaigns: Array<{ __typename?: 'SovereigntyCampaign', campaignId: number, eventType: string, solarSystemId: number, solarSystemName?: string | null, regionName?: string | null, defenderId?: number | null, defenderName?: string | null, defenderTicker?: string | null, defenderScore?: number | null, attackersScore?: number | null, startTime: string, warKills: number, iskDestroyed: number }>, recentTerritoryChanges: Array<{ __typename?: 'TerritoryChange', id: string, solarSystemId: number, solarSystemName?: string | null, previousOwnerId?: number | null, previousOwnerName?: string | null, newOwnerId?: number | null, newOwnerName?: string | null, changeType: string, detectedAt: string }> };
 
 export type Top90DaysPilotsQueryVariables = Exact<{
   filter?: InputMaybe<Top90DaysPilotsFilter>;
@@ -6041,6 +6130,87 @@ export type SolarSystemQueryHookResult = ReturnType<typeof useSolarSystemQuery>;
 export type SolarSystemLazyQueryHookResult = ReturnType<typeof useSolarSystemLazyQuery>;
 export type SolarSystemSuspenseQueryHookResult = ReturnType<typeof useSolarSystemSuspenseQuery>;
 export type SolarSystemQueryResult = Apollo.QueryResult<SolarSystemQuery, SolarSystemQueryVariables>;
+export const SovereigntyDashboardDocument = gql`
+    query SovereigntyDashboard {
+  sovereigntyOverview {
+    ownedSystems
+    activeCampaigns
+    trackedStructures
+    trackedAlliances
+    warKills
+    iskDestroyed
+  }
+  allianceTerritoryRankings(limit: 25) {
+    rank
+    allianceId
+    allianceName
+    allianceTicker
+    systemsControlled
+    ihubCount
+  }
+  sovereigntyActiveCampaigns(limit: 50) {
+    campaignId
+    eventType
+    solarSystemId
+    solarSystemName
+    regionName
+    defenderId
+    defenderName
+    defenderTicker
+    defenderScore
+    attackersScore
+    startTime
+    warKills
+    iskDestroyed
+  }
+  recentTerritoryChanges(limit: 25) {
+    id
+    solarSystemId
+    solarSystemName
+    previousOwnerId
+    previousOwnerName
+    newOwnerId
+    newOwnerName
+    changeType
+    detectedAt
+  }
+}
+    `;
+
+/**
+ * __useSovereigntyDashboardQuery__
+ *
+ * To run a query within a React component, call `useSovereigntyDashboardQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSovereigntyDashboardQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSovereigntyDashboardQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useSovereigntyDashboardQuery(baseOptions?: Apollo.QueryHookOptions<SovereigntyDashboardQuery, SovereigntyDashboardQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SovereigntyDashboardQuery, SovereigntyDashboardQueryVariables>(SovereigntyDashboardDocument, options);
+      }
+export function useSovereigntyDashboardLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SovereigntyDashboardQuery, SovereigntyDashboardQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SovereigntyDashboardQuery, SovereigntyDashboardQueryVariables>(SovereigntyDashboardDocument, options);
+        }
+// @ts-ignore
+export function useSovereigntyDashboardSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SovereigntyDashboardQuery, SovereigntyDashboardQueryVariables>): Apollo.UseSuspenseQueryResult<SovereigntyDashboardQuery, SovereigntyDashboardQueryVariables>;
+export function useSovereigntyDashboardSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SovereigntyDashboardQuery, SovereigntyDashboardQueryVariables>): Apollo.UseSuspenseQueryResult<SovereigntyDashboardQuery | undefined, SovereigntyDashboardQueryVariables>;
+export function useSovereigntyDashboardSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SovereigntyDashboardQuery, SovereigntyDashboardQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SovereigntyDashboardQuery, SovereigntyDashboardQueryVariables>(SovereigntyDashboardDocument, options);
+        }
+export type SovereigntyDashboardQueryHookResult = ReturnType<typeof useSovereigntyDashboardQuery>;
+export type SovereigntyDashboardLazyQueryHookResult = ReturnType<typeof useSovereigntyDashboardLazyQuery>;
+export type SovereigntyDashboardSuspenseQueryHookResult = ReturnType<typeof useSovereigntyDashboardSuspenseQuery>;
+export type SovereigntyDashboardQueryResult = Apollo.QueryResult<SovereigntyDashboardQuery, SovereigntyDashboardQueryVariables>;
 export const Top90DaysPilotsDocument = gql`
     query Top90DaysPilots($filter: Top90DaysPilotsFilter) {
   top90DaysPilots(filter: $filter) {
