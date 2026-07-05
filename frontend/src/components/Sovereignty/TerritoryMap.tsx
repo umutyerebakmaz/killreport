@@ -35,20 +35,27 @@ const TOP_N = 15;
  */
 export function TerritoryMap({ points }: { points: MapPoint[] }) {
   const option = useMemo(() => {
-    // A handful of anomalous systems sit thousands of light-years from known
-    // space and would otherwise squash the whole galaxy into a corner. Clamp the
-    // axes to the robust 1st–99th percentile of the data (+margin) so the main
-    // cluster fills the view; the rare outliers just fall off-canvas.
-    const bounds = (vals: number[]) => {
+    if (points.length === 0) return {};
+
+    // Square data window with EQUAL span on both axes so the galaxy keeps its
+    // shape (paired with the near-square grid below, x and y stay at the same
+    // px/ly scale). On large sets, clip far-flung anomalous systems via the
+    // 1st–99th percentile; on small sets (a filtered region) use the true extent
+    // so no frontier system falls off-canvas.
+    const extent = (vals: number[]) => {
       const s = [...vals].sort((a, b) => a - b);
-      const at = (q: number) => s[Math.min(s.length - 1, Math.max(0, Math.floor(q * (s.length - 1))))];
-      const lo = at(0.01);
-      const hi = at(0.99);
-      const margin = (hi - lo) * 0.05 || 1;
-      return { min: lo - margin, max: hi + margin };
+      const n = s.length;
+      if (n <= 20) return { lo: s[0], hi: s[n - 1] };
+      const at = (q: number) => s[Math.round(q * (n - 1))];
+      return { lo: at(0.01), hi: at(0.99) };
     };
-    const xB = bounds(points.map((p) => p.x));
-    const yB = bounds(points.map((p) => p.y));
+    const xr = extent(points.map((p) => p.x));
+    const yr = extent(points.map((p) => p.y));
+    const cx = (xr.lo + xr.hi) / 2;
+    const cy = (yr.lo + yr.hi) / 2;
+    const half = (Math.max(xr.hi - xr.lo, yr.hi - yr.lo) / 2) * 1.05 || 1;
+    const xB = { min: cx - half, max: cx + half };
+    const yB = { min: cy - half, max: cy + half };
 
     // Rank alliances by number of systems held.
     const counts = new Map<number, { name: string; count: number }>();
@@ -64,36 +71,36 @@ export function TerritoryMap({ points }: { points: MapPoint[] }) {
     const colorByAlliance = new Map<number, string>();
     top.forEach(([id], i) => colorByAlliance.set(id, PALETTE[i % PALETTE.length]));
 
-    // Bucket points into series: one per top alliance, plus Other and Unclaimed.
-    const buckets = new Map<string, { color: string; data: (number | string)[][] }>();
-    const bucketFor = (p: MapPoint): { key: string; color: string } => {
-      if (p.allianceId == null) return { key: "Unclaimed", color: UNCLAIMED_COLOR };
-      const c = colorByAlliance.get(p.allianceId);
-      if (c) return { key: counts.get(p.allianceId)!.name, color: c };
-      return { key: "Other", color: OTHER_COLOR };
+    // Bucket points into series keyed by a STABLE key (alliance id, not display
+    // name — so two alliances that share a name never merge), plus Other and
+    // Unclaimed.
+    const buckets = new Map<string, { name: string; color: string; data: (number | string)[][] }>();
+    const bucketFor = (p: MapPoint): { key: string; name: string; color: string } => {
+      if (p.allianceId == null) return { key: "unclaimed", name: "Unclaimed", color: UNCLAIMED_COLOR };
+      const color = colorByAlliance.get(p.allianceId);
+      if (color) return { key: `a:${p.allianceId}`, name: counts.get(p.allianceId)!.name, color };
+      return { key: "other", name: "Other", color: OTHER_COLOR };
     };
     for (const p of points) {
-      const { key, color } = bucketFor(p);
-      const b = buckets.get(key) ?? { color, data: [] };
+      const { key, name, color } = bucketFor(p);
+      const b = buckets.get(key) ?? { name, color, data: [] };
       b.data.push([p.x, p.y, p.systemName ?? String(p.systemId), p.regionName ?? "", p.allianceName ?? "—"]);
       buckets.set(key, b);
     }
 
-    // Order series so Unclaimed/Other draw first (underneath the colored alliances).
-    const orderedKeys = [...buckets.keys()].sort((a, b) => {
-      const rank = (k: string) => (k === "Unclaimed" ? 0 : k === "Other" ? 1 : 2);
-      return rank(a) - rank(b);
-    });
+    // Draw Unclaimed/Other underneath the colored alliance layers.
+    const rank = (k: string) => (k === "unclaimed" ? 0 : k === "other" ? 1 : 2);
+    const orderedKeys = [...buckets.keys()].sort((a, b) => rank(a) - rank(b));
 
     const series = orderedKeys.map((key) => {
       const b = buckets.get(key)!;
       return {
-        name: key,
+        name: b.name,
         type: "scatter",
         large: true,
         largeThreshold: 500,
-        symbolSize: key === "Unclaimed" ? 2.5 : 4,
-        itemStyle: { color: b.color, opacity: key === "Unclaimed" ? 0.5 : 0.9 },
+        symbolSize: key === "unclaimed" ? 2.5 : 4,
+        itemStyle: { color: b.color, opacity: key === "unclaimed" ? 0.5 : 0.9 },
         data: b.data,
       };
     });
@@ -105,8 +112,7 @@ export function TerritoryMap({ points }: { points: MapPoint[] }) {
         top: 0,
         textStyle: { color: "#d1d5db" },
         pageTextStyle: { color: "#d1d5db" },
-        // Keep the big background layers off by default focus but still visible.
-        data: orderedKeys,
+        data: series.map((s) => s.name),
       },
       tooltip: {
         trigger: "item",
@@ -115,7 +121,8 @@ export function TerritoryMap({ points }: { points: MapPoint[] }) {
           return `<strong>${name}</strong><br/>Region: ${region || "—"}<br/>Alliance: ${alliance || "—"}`;
         },
       },
-      grid: { left: 8, right: 8, top: 36, bottom: 8, containLabel: false },
+      // Near-square plot area so the equal-span window keeps x/y at one scale.
+      grid: { left: "24%", right: "24%", top: 36, bottom: 8, containLabel: false },
       xAxis: { show: false, type: "value", min: xB.min, max: xB.max },
       yAxis: { show: false, type: "value", min: yB.min, max: yB.max },
       dataZoom: [

@@ -737,9 +737,9 @@ type Query {
   sovereigntyCampaignHistory(limit: Int, offset: Int): SovereigntyCampaignHistoryPage!
 
   """
-  Sov-held systems with coordinates for the territory map; optional region filter.
+  All sov-held systems with coordinates, for the territory map (filter by region client-side).
   """
-  sovereigntyMapPoints(regionId: Int): [SovMapPoint!]!
+  sovereigntyMapPoints: [SovMapPoint!]!
 
   """Distribution of resolved campaign outcomes."""
   sovereigntyOutcomeStats: SovereigntyOutcomeStats!

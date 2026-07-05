@@ -1,5 +1,5 @@
-query SovereigntyMap($regionId: Int) {
-  sovereigntyMapPoints(regionId: $regionId) {
+query SovereigntyMap {
+  sovereigntyMapPoints {
     systemId
     systemName
     x
