@@ -17,10 +17,14 @@
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { pubsub } from '@services/pubsub';
+import { buildSovereigntyAlert } from '@services/sovereignty/alert-builder';
 import { SovereigntyService } from '@services/sovereignty/sovereignty.service';
 
 // "Nobody really contested" threshold for outcome inference (scores are 0..1).
 const OUTCOME_EPS = 0.05;
+
+// Cap alerts per run so a first-run/reseed or a big shift can't flood clients.
+const MAX_ALERTS = 25;
 
 /**
  * Infers a campaign outcome from its last-known scores when it ends. Heuristic
@@ -45,13 +49,23 @@ async function syncSovereigntyCampaigns() {
 
     const now = new Date();
     let participantCount = 0;
+    let startedAlerts = 0;
 
-    // Ids already in the DB — anything in the ESI feed but not here is a NEW
-    // campaign we should alert on.
+    // Which of THIS feed's campaigns already exist (scoped to the feed, not the
+    // whole history). Anything in the feed but not here is a new campaign. On a
+    // first-run/empty table we suppress start alerts — that's a baseline import,
+    // not a wave of new wars.
+    const esiIds = campaigns.map((c) => c.campaign_id);
+    const isBaseline = (await prismaWorker.sovereigntyCampaign.count()) === 0;
     const existingIds = new Set(
-      (await prismaWorker.sovereigntyCampaign.findMany({ select: { campaign_id: true } })).map(
-        (c) => c.campaign_id
-      )
+      esiIds.length > 0
+        ? (
+          await prismaWorker.sovereigntyCampaign.findMany({
+            where: { campaign_id: { in: esiIds } },
+            select: { campaign_id: true },
+          })
+        ).map((c) => c.campaign_id)
+        : []
     );
 
     for (const campaign of campaigns) {
@@ -98,13 +112,16 @@ async function syncSovereigntyCampaigns() {
         participantCount++;
       }
 
-      // Alert on a genuinely new campaign (wasn't in the DB before this run).
-      if (!existingIds.has(campaign.campaign_id)) {
-        pubsub.publish('SOVEREIGNTY_ALERT', {
+      // Alert on a genuinely new campaign (in the feed but not previously stored),
+      // skipping the first-run baseline and capping per run.
+      if (!isBaseline && !existingIds.has(campaign.campaign_id) && startedAlerts < MAX_ALERTS) {
+        startedAlerts++;
+        const alert = await buildSovereigntyAlert(prismaWorker, {
           type: 'campaign_started',
           systemId: campaign.solar_system_id,
           defenderId: campaign.defender_id ?? null,
         });
+        pubsub.publish('SOVEREIGNTY_ALERT', alert);
       }
     }
 
@@ -138,12 +155,13 @@ async function syncSovereigntyCampaigns() {
             data: { end_time: now, outcome },
           });
           endedCount++;
-          pubsub.publish('SOVEREIGNTY_ALERT', {
+          const alert = await buildSovereigntyAlert(prismaWorker, {
             type: 'campaign_ended',
             systemId: c.solar_system_id,
             defenderId: c.defender_id,
             outcome,
           });
+          pubsub.publish('SOVEREIGNTY_ALERT', alert);
         } catch (err) {
           logger.error(`Failed to end campaign ${c.campaign_id}`, { err });
         }

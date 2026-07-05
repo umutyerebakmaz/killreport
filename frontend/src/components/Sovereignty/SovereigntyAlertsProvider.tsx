@@ -1,7 +1,7 @@
 "use client";
 
 import { SovereigntyAlertSubscription, useSovereigntyAlertSubscription } from "@/generated/graphql";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { AlertToastStack, type ToastAlert } from "./AlertToast";
 
 export type SovAlert = SovereigntyAlertSubscription["sovereigntyAlert"];
@@ -41,7 +41,10 @@ export function SovereigntyAlertsProvider({ children }: { children: React.ReactN
   useEffect(() => {
     try {
       const raw = localStorage.getItem(RECENT_KEY);
-      if (raw) setRecent(JSON.parse(raw));
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) setRecent(parsed);
+      }
       setUnread(Number(localStorage.getItem(UNREAD_KEY)) || 0);
     } catch {
       /* ignore corrupt storage */
@@ -49,44 +52,45 @@ export function SovereigntyAlertsProvider({ children }: { children: React.ReactN
     seeded.current = true;
   }, []);
 
-  const { data } = useSovereigntyAlertSubscription();
+  // onData fires once PER event (unlike an effect keyed on the hook's `data`,
+  // which only sees the latest of a burst), so a 25-change reshuffle isn't lost.
+  useSovereigntyAlertSubscription({
+    onData: ({ data }) => {
+      const alert = data.data?.sovereigntyAlert;
+      if (!alert || !seeded.current) return;
 
-  useEffect(() => {
-    const alert = data?.sovereigntyAlert;
-    // Ignore until persisted state is loaded, so we don't clobber it.
-    if (!alert || !seeded.current) return;
+      setRecent((prev) => {
+        const next = [alert, ...prev].slice(0, CAP);
+        try {
+          localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+        } catch {
+          /* quota / disabled */
+        }
+        return next;
+      });
+      setUnread((u) => {
+        const n = u + 1;
+        try {
+          localStorage.setItem(UNREAD_KEY, String(n));
+        } catch {
+          /* quota / disabled */
+        }
+        return n;
+      });
+      const id = `t${toastSeq.current++}`;
+      setToasts((t) => [{ id, type: alert.type, message: alert.message }, ...t].slice(0, 5));
+    },
+  });
 
-    setRecent((prev) => {
-      const next = [alert, ...prev].slice(0, CAP);
-      try {
-        localStorage.setItem(RECENT_KEY, JSON.stringify(next));
-      } catch {
-        /* quota / disabled */
-      }
-      return next;
-    });
-    setUnread((u) => {
-      const n = u + 1;
-      try {
-        localStorage.setItem(UNREAD_KEY, String(n));
-      } catch {
-        /* quota / disabled */
-      }
-      return n;
-    });
-    const id = `t${toastSeq.current++}`;
-    setToasts((t) => [{ id, type: alert.type, message: alert.message }, ...t].slice(0, 5));
-  }, [data]);
-
-  const markAllRead = () => {
+  const markAllRead = useCallback(() => {
     setUnread(0);
     try {
       localStorage.setItem(UNREAD_KEY, "0");
     } catch {
       /* ignore */
     }
-  };
-  const clear = () => {
+  }, []);
+  const clear = useCallback(() => {
     setRecent([]);
     setUnread(0);
     try {
@@ -95,8 +99,11 @@ export function SovereigntyAlertsProvider({ children }: { children: React.ReactN
     } catch {
       /* ignore */
     }
-  };
-  const dismissToast = (id: string) => setToasts((t) => t.filter((x) => x.id !== id));
+  }, []);
+  const dismissToast = useCallback(
+    (id: string) => setToasts((t) => t.filter((x) => x.id !== id)),
+    [],
+  );
 
   return (
     <AlertsContext.Provider value={{ recent, unread, markAllRead, clear }}>
