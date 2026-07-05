@@ -30,12 +30,56 @@ type SovereigntyCampaign {
   defenderScore: Float
   attackersScore: Float
   startTime: String!
+  "Set once the campaign resolves and leaves ESI; null while active."
+  endTime: String
+  "defender_won / attacker_won / abandoned; null while active or unresolved."
+  outcome: String
+  "Hours from start to end; null while active."
+  durationHours: Float
   "Killmails correlated to this campaign (0 until fighting happens in its window)."
   warKills: Int!
   "ISK destroyed in this campaign's war zone."
   iskDestroyed: Float!
+  "ISK lost by the defender side (victim alliance == defender)."
+  defenderIskLost: Float!
+  "ISK lost by the attacker/third-party side."
+  attackerIskLost: Float!
+  defenderShipsLost: Int!
+  attackerShipsLost: Int!
   "Alliances contesting this campaign (attackers and/or defender) with their score."
   participants: [CampaignParticipant!]!
+}
+
+"""
+Distribution of resolved campaign outcomes.
+"""
+type SovereigntyOutcomeStats {
+  defenderWon: Int!
+  attackerWon: Int!
+  abandoned: Int!
+  totalResolved: Int!
+}
+
+"""
+An alliance's defensive record across resolved campaigns it defended.
+"""
+type AllianceDefenseRecord {
+  rank: Int!
+  allianceId: Int!
+  allianceName: String
+  allianceTicker: String
+  defensesWon: Int!
+  defensesTotal: Int!
+  "Won / total, 0..1."
+  defenseSuccessRate: Float!
+}
+
+"""
+A page of resolved (ended) sovereignty campaigns.
+"""
+type SovereigntyCampaignHistoryPage {
+  items: [SovereigntyCampaign!]!
+  totalCount: Int!
 }
 
 """
@@ -144,4 +188,10 @@ extend type Query {
   sovereigntyUpcomingTimers(hoursAhead: Int, limit: Int): [SovereigntyStructureInfo!]!
   "Active sovereignty campaigns grouped by region, hottest first."
   activeCampaignsByRegion(limit: Int): [RegionCampaignCount!]!
+  "Resolved (ended) campaigns, newest-ended first, paginated."
+  sovereigntyCampaignHistory(limit: Int, offset: Int): SovereigntyCampaignHistoryPage!
+  "Distribution of resolved campaign outcomes."
+  sovereigntyOutcomeStats: SovereigntyOutcomeStats!
+  "Alliances ranked by successful defenses of ended campaigns."
+  topDefenders(limit: Int): [AllianceDefenseRecord!]!
 }

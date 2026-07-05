@@ -50,6 +50,8 @@ query SovereigntyDashboard {
     startTime
     warKills
     iskDestroyed
+    defenderIskLost
+    attackerIskLost
     participants {
       allianceId
       allianceName

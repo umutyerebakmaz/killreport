@@ -2,6 +2,7 @@
 
 import Loader from "@/components/Loader";
 import { AllianceLink } from "@/components/Sovereignty/AllianceLink";
+import { IskWarBar } from "@/components/Sovereignty/IskWarBar";
 import { ScoreBar } from "@/components/Sovereignty/ScoreBar";
 import { useSovereigntyDashboardQuery } from "@/generated/graphql";
 import { formatTimeAgo, formatRelativeTime } from "@/utils/date";
@@ -54,13 +55,22 @@ function SovereigntyContent() {
     <div className="max-w-6xl px-4 py-8 mx-auto">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-3xl font-semibold text-white">Sovereignty</h1>
-        <Link
-          href="/sovereignty/structures"
-          prefetch={false}
-          className="text-sm text-cyan-400 hover:text-cyan-300"
-        >
-          Structures &amp; Timers →
-        </Link>
+        <div className="flex gap-4">
+          <Link
+            href="/sovereignty/structures"
+            prefetch={false}
+            className="text-sm text-cyan-400 hover:text-cyan-300"
+          >
+            Structures &amp; Timers →
+          </Link>
+          <Link
+            href="/sovereignty/history"
+            prefetch={false}
+            className="text-sm text-cyan-400 hover:text-cyan-300"
+          >
+            History →
+          </Link>
+        </div>
       </div>
       <h2 className="mt-2 text-xl text-white">Null-sec territory control &amp; active wars across New Eden</h2>
 
@@ -214,19 +224,19 @@ function SovereigntyContent() {
             <tbody className="divide-y divide-white/5">
               {campaigns.map((c) => {
                 const expanded = expandedCampaignId === c.campaignId;
-                const hasParticipants = c.participants.length > 0;
+                const hasDetail = c.participants.length > 0 || c.warKills > 0;
                 return (
                   <Fragment key={c.campaignId}>
                     <tr
-                      className={`transition-colors bg-neutral-950 ${hasParticipants ? "cursor-pointer hover:bg-neutral-900" : ""}`}
+                      className={`transition-colors bg-neutral-950 ${hasDetail ? "cursor-pointer hover:bg-neutral-900" : ""}`}
                       onClick={
-                        hasParticipants
+                        hasDetail
                           ? () => setExpandedCampaignId(expanded ? null : c.campaignId)
                           : undefined
                       }
                     >
                       <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
-                        {hasParticipants ? (expanded ? "▾" : "▸") : ""}
+                        {hasDetail ? (expanded ? "▾" : "▸") : ""}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <Link
@@ -269,19 +279,29 @@ function SovereigntyContent() {
                     {expanded && (
                       <tr className="bg-neutral-900">
                         <td colSpan={9} className="px-4 py-3">
-                          <div className="text-xs tracking-wider text-gray-400 uppercase">Participants</div>
-                          <ul className="mt-2 space-y-1">
-                            {c.participants.slice(0, 8).map((p) => (
-                              <li key={p.allianceId} className="flex items-center justify-between max-w-md text-sm">
-                                <AllianceLink id={p.allianceId} name={p.allianceName} ticker={p.allianceTicker} />
-                                <span className="text-gray-400">{Math.round(p.score * 100)}%</span>
-                              </li>
-                            ))}
-                          </ul>
-                          {c.participants.length > 8 && (
-                            <div className="mt-1 text-xs text-gray-500">
-                              +{c.participants.length - 8} more
+                          {c.warKills > 0 && (
+                            <div className="mb-4">
+                              <div className="mb-1 text-xs tracking-wider text-gray-400 uppercase">ISK War</div>
+                              <IskWarBar defenderLost={c.defenderIskLost} attackerLost={c.attackerIskLost} />
                             </div>
+                          )}
+                          {c.participants.length > 0 && (
+                            <>
+                              <div className="text-xs tracking-wider text-gray-400 uppercase">Participants</div>
+                              <ul className="mt-2 space-y-1">
+                                {c.participants.slice(0, 8).map((p) => (
+                                  <li key={p.allianceId} className="flex items-center justify-between max-w-md text-sm">
+                                    <AllianceLink id={p.allianceId} name={p.allianceName} ticker={p.allianceTicker} />
+                                    <span className="text-gray-400">{Math.round(p.score * 100)}%</span>
+                                  </li>
+                                ))}
+                              </ul>
+                              {c.participants.length > 8 && (
+                                <div className="mt-1 text-xs text-gray-500">
+                                  +{c.participants.length - 8} more
+                                </div>
+                              )}
+                            </>
                           )}
                         </td>
                       </tr>
