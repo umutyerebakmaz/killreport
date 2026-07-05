@@ -167,6 +167,95 @@ async function activityLeaderboard(
   });
 }
 
+type CampaignRow = {
+  campaign_id: number;
+  constellation_id: number;
+  solar_system_id: number;
+  structure_id: bigint;
+  event_type: string;
+  defender_id: number | null;
+  defender_score: number | null;
+  attackers_score: number | null;
+  start_time: Date;
+  end_time: Date | null;
+  outcome: string | null;
+};
+
+/**
+ * Shared enrichment for campaign rows (active or ended): system/region/defender
+ * names, per-campaign combat stats incl. the attacker-vs-defender split,
+ * participants, outcome, and duration. Used by active-campaigns and history.
+ */
+async function enrichCampaigns(campaigns: CampaignRow[]) {
+  if (campaigns.length === 0) return [];
+  const ids = campaigns.map((c) => c.campaign_id);
+
+  const [systems, defenders, combatStats, participants] = await Promise.all([
+    systemInfo(campaigns.map((c) => c.solar_system_id)),
+    allianceNames(campaigns.map((c) => c.defender_id)),
+    prisma.campaignCombatStats.findMany({ where: { campaign_id: { in: ids } } }),
+    prisma.campaignParticipant.findMany({
+      where: { campaign_id: { in: ids } },
+      orderBy: { score: 'desc' },
+    }),
+  ]);
+
+  const combatByCampaign = new Map(combatStats.map((s) => [s.campaign_id, s]));
+  const participantNames = await allianceNames(participants.map((p) => p.alliance_id));
+  const participantsByCampaign = new Map<number, typeof participants>();
+  for (const p of participants) {
+    const list = participantsByCampaign.get(p.campaign_id) ?? [];
+    list.push(p);
+    participantsByCampaign.set(p.campaign_id, list);
+  }
+
+  const regions = await resolveRegions(systems);
+
+  return campaigns.map((c) => {
+    const sys = systems.get(c.solar_system_id);
+    const regionId = regions.regionIdForSystem(c.solar_system_id);
+    const def = c.defender_id != null ? defenders.get(c.defender_id) : null;
+    const cs = combatByCampaign.get(c.campaign_id);
+    const durationHours = c.end_time
+      ? Math.round(((c.end_time.getTime() - c.start_time.getTime()) / 3_600_000) * 10) / 10
+      : null;
+    return {
+      campaignId: c.campaign_id,
+      eventType: c.event_type,
+      solarSystemId: c.solar_system_id,
+      solarSystemName: sys?.name ?? null,
+      constellationId: c.constellation_id,
+      regionId,
+      regionName: regions.regionName(regionId),
+      structureId: c.structure_id.toString(),
+      defenderId: c.defender_id,
+      defenderName: def?.name ?? null,
+      defenderTicker: def?.ticker ?? null,
+      defenderScore: c.defender_score,
+      attackersScore: c.attackers_score,
+      startTime: c.start_time.toISOString(),
+      endTime: c.end_time?.toISOString() ?? null,
+      outcome: c.outcome,
+      durationHours,
+      warKills: cs?.war_kills ?? 0,
+      iskDestroyed: cs?.isk_destroyed ?? 0,
+      defenderIskLost: cs?.defender_isk_lost ?? 0,
+      attackerIskLost: cs?.attacker_isk_lost ?? 0,
+      defenderShipsLost: cs?.defender_ships_lost ?? 0,
+      attackerShipsLost: cs?.attacker_ships_lost ?? 0,
+      participants: (participantsByCampaign.get(c.campaign_id) ?? []).map((p) => {
+        const a = participantNames.get(p.alliance_id);
+        return {
+          allianceId: p.alliance_id,
+          allianceName: a?.name ?? null,
+          allianceTicker: a?.ticker ?? null,
+          score: p.score,
+        };
+      }),
+    };
+  });
+}
+
 export const sovereigntyQueries: QueryResolvers = {
   sovereigntyOverview: async () => {
     const [ownedSystems, activeCampaigns, trackedStructures, alliances, war] = await Promise.all([
@@ -200,62 +289,73 @@ export const sovereigntyQueries: QueryResolvers = {
       orderBy: { start_time: 'desc' },
       take: limit ?? 100,
     });
+    return enrichCampaigns(campaigns);
+  },
 
-    const systems = await systemInfo(campaigns.map((c) => c.solar_system_id));
-    const defenders = await allianceNames(campaigns.map((c) => c.defender_id));
+  sovereigntyCampaignHistory: async (_, { limit, offset }) => {
+    const take = limit ?? 25;
+    const skip = offset ?? 0;
+    const [campaigns, totalCount] = await Promise.all([
+      prisma.sovereigntyCampaign.findMany({
+        where: { end_time: { not: null } },
+        orderBy: { end_time: 'desc' },
+        take,
+        skip,
+      }),
+      prisma.sovereigntyCampaign.count({ where: { end_time: { not: null } } }),
+    ]);
+    return { items: await enrichCampaigns(campaigns), totalCount };
+  },
 
-    const combatStats = await prisma.campaignCombatStats.findMany({
-      where: { campaign_id: { in: campaigns.map((c) => c.campaign_id) } },
+  sovereigntyOutcomeStats: async () => {
+    const grouped = await prisma.sovereigntyCampaign.groupBy({
+      by: ['outcome'],
+      where: { end_time: { not: null } },
+      _count: { _all: true },
     });
-    const combatByCampaign = new Map(combatStats.map((s) => [s.campaign_id, s]));
+    const byOutcome = new Map(grouped.map((g) => [g.outcome, g._count._all]));
+    const defenderWon = byOutcome.get('defender_won') ?? 0;
+    const attackerWon = byOutcome.get('attacker_won') ?? 0;
+    const abandoned = byOutcome.get('abandoned') ?? 0;
+    return {
+      defenderWon,
+      attackerWon,
+      abandoned,
+      totalResolved: defenderWon + attackerWon + abandoned,
+    };
+  },
 
-    // Participants (attackers + defender) with their scores, grouped per campaign.
-    const participants = await prisma.campaignParticipant.findMany({
-      where: { campaign_id: { in: campaigns.map((c) => c.campaign_id) } },
-      orderBy: { score: 'desc' },
+  topDefenders: async (_, { limit }) => {
+    // Alliances ranked by successful defenses among ended campaigns they defended.
+    const grouped = await prisma.sovereigntyCampaign.groupBy({
+      by: ['defender_id', 'outcome'],
+      where: { end_time: { not: null }, defender_id: { not: null } },
+      _count: { _all: true },
     });
-    const participantNames = await allianceNames(participants.map((p) => p.alliance_id));
-    const participantsByCampaign = new Map<number, typeof participants>();
-    for (const p of participants) {
-      const list = participantsByCampaign.get(p.campaign_id) ?? [];
-      list.push(p);
-      participantsByCampaign.set(p.campaign_id, list);
+    const totals = new Map<number, { won: number; total: number }>();
+    for (const g of grouped) {
+      if (g.defender_id == null) continue;
+      const t = totals.get(g.defender_id) ?? { won: 0, total: 0 };
+      t.total += g._count._all;
+      if (g.outcome === 'defender_won') t.won += g._count._all;
+      totals.set(g.defender_id, t);
     }
-
-    const regions = await resolveRegions(systems);
-
-    return campaigns.map((c) => {
-      const sys = systems.get(c.solar_system_id);
-      const regionId = regions.regionIdForSystem(c.solar_system_id);
-      const def = c.defender_id != null ? defenders.get(c.defender_id) : null;
-      return {
-        campaignId: c.campaign_id,
-        eventType: c.event_type,
-        solarSystemId: c.solar_system_id,
-        solarSystemName: sys?.name ?? null,
-        constellationId: c.constellation_id,
-        regionId,
-        regionName: regions.regionName(regionId),
-        structureId: c.structure_id.toString(),
-        defenderId: c.defender_id,
-        defenderName: def?.name ?? null,
-        defenderTicker: def?.ticker ?? null,
-        defenderScore: c.defender_score,
-        attackersScore: c.attackers_score,
-        startTime: c.start_time.toISOString(),
-        warKills: combatByCampaign.get(c.campaign_id)?.war_kills ?? 0,
-        iskDestroyed: combatByCampaign.get(c.campaign_id)?.isk_destroyed ?? 0,
-        participants: (participantsByCampaign.get(c.campaign_id) ?? []).map((p) => {
-          const a = participantNames.get(p.alliance_id);
-          return {
-            allianceId: p.alliance_id,
-            allianceName: a?.name ?? null,
-            allianceTicker: a?.ticker ?? null,
-            score: p.score,
-          };
-        }),
-      };
-    });
+    const names = await allianceNames([...totals.keys()]);
+    return [...totals.entries()]
+      .sort((a, b) => b[1].won - a[1].won || b[1].total - a[1].total)
+      .slice(0, limit ?? 10)
+      .map(([allianceId, t], idx) => {
+        const a = names.get(allianceId);
+        return {
+          rank: idx + 1,
+          allianceId,
+          allianceName: a?.name ?? null,
+          allianceTicker: a?.ticker ?? null,
+          defensesWon: t.won,
+          defensesTotal: t.total,
+          defenseSuccessRate: t.total > 0 ? t.won / t.total : 0,
+        };
+      });
   },
 
   allianceTerritoryRankings: async (_, { limit }) => {

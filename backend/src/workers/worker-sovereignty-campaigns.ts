@@ -18,6 +18,22 @@ import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { SovereigntyService } from '@services/sovereignty/sovereignty.service';
 
+// "Nobody really contested" threshold for outcome inference (scores are 0..1).
+const OUTCOME_EPS = 0.05;
+
+/**
+ * Infers a campaign outcome from its last-known scores when it ends. Heuristic
+ * (ESI gives no explicit resolution event): defender wins ties; if neither side
+ * made meaningful progress the window lapsed uncontested → abandoned.
+ */
+function inferOutcome(defenderScore: number | null, attackersScore: number | null): string {
+  if (defenderScore == null && attackersScore == null) return 'abandoned';
+  const d = defenderScore ?? 0;
+  const a = attackersScore ?? 0;
+  if (Math.max(d, a) < OUTCOME_EPS) return 'abandoned';
+  return d >= a ? 'defender_won' : 'attacker_won';
+}
+
 async function syncSovereigntyCampaigns() {
   const startTime = Date.now();
   logger.info('🏰 Starting sovereignty campaigns sync...');
@@ -73,20 +89,27 @@ async function syncSovereigntyCampaigns() {
       }
     }
 
-    // Mark campaigns that are no longer active as ended
+    // Mark campaigns that are no longer active as ended, inferring an outcome
+    // from each campaign's last-known scores.
     const activeIds = campaigns.map((c) => c.campaign_id);
-    const ended = await prismaWorker.sovereigntyCampaign.updateMany({
+    const departing = await prismaWorker.sovereigntyCampaign.findMany({
       where: {
         end_time: null,
         campaign_id: { notIn: activeIds.length > 0 ? activeIds : [-1] },
       },
-      data: { end_time: now },
+      select: { campaign_id: true, defender_score: true, attackers_score: true },
     });
+    for (const c of departing) {
+      await prismaWorker.sovereigntyCampaign.update({
+        where: { campaign_id: c.campaign_id },
+        data: { end_time: now, outcome: inferOutcome(c.defender_score, c.attackers_score) },
+      });
+    }
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     logger.info(
       `✅ Campaigns sync complete: ${campaigns.length} active, ${participantCount} participants, ` +
-      `${ended.count} marked ended (${duration}s)`
+      `${departing.length} marked ended (${duration}s)`
     );
   } catch (error) {
     logger.error('❌ Sovereignty campaigns sync failed', { error });

@@ -76,6 +76,19 @@ export type AllianceActivityRank = {
   systemsLost: Scalars['Int']['output'];
 };
 
+/** An alliance's defensive record across resolved campaigns it defended. */
+export type AllianceDefenseRecord = {
+  __typename?: 'AllianceDefenseRecord';
+  allianceId: Scalars['Int']['output'];
+  allianceName?: Maybe<Scalars['String']['output']>;
+  allianceTicker?: Maybe<Scalars['String']['output']>;
+  /** Won / total, 0..1. */
+  defenseSuccessRate: Scalars['Float']['output'];
+  defensesTotal: Scalars['Int']['output'];
+  defensesWon: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+};
+
 export type AllianceFilter = {
   dateFoundedFrom?: InputMaybe<Scalars['String']['input']>;
   dateFoundedTo?: InputMaybe<Scalars['String']['input']>;
@@ -858,6 +871,10 @@ export type Query = {
   solarSystems: SolarSystemsResponse;
   /** Currently active sovereignty campaigns, newest first. */
   sovereigntyActiveCampaigns: Array<SovereigntyCampaign>;
+  /** Resolved (ended) campaigns, newest-ended first, paginated. */
+  sovereigntyCampaignHistory: SovereigntyCampaignHistoryPage;
+  /** Distribution of resolved campaign outcomes. */
+  sovereigntyOutcomeStats: SovereigntyOutcomeStats;
   /** Summary counts for the current sovereignty state. */
   sovereigntyOverview: SovereigntyOverview;
   /** All currently tracked (non-destroyed) sovereignty structures, optionally filtered. */
@@ -869,6 +886,8 @@ export type Query = {
   /** Returns top pilots ranked by total kill count over the last 90 days (rolling window) */
   top90DaysPilots: Array<Top90DaysPilot>;
   topActiveSystems: Array<SystemKillsStats>;
+  /** Alliances ranked by successful defenses of ended campaigns. */
+  topDefenders: Array<AllianceDefenseRecord>;
   /** Returns top alliances ranked by total kill count over the last 7 days (rolling window, today - 6 days) */
   topLast7DaysAlliances: Array<TopLast7DaysAlliance>;
   /** Returns top attacker ship types by usage count over the last 7 days (rolling window, today - 6 days) */
@@ -1133,6 +1152,12 @@ export type QuerySovereigntyActiveCampaignsArgs = {
 };
 
 
+export type QuerySovereigntyCampaignHistoryArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
 export type QuerySovereigntyStructuresArgs = {
   allianceId?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -1162,6 +1187,11 @@ export type QueryTop90DaysPilotsArgs = {
 
 
 export type QueryTopActiveSystemsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryTopDefendersArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
@@ -1377,16 +1407,28 @@ export type SolarSystemsResponse = {
 /** An active sovereignty campaign (contested TCU / IHub / station). */
 export type SovereigntyCampaign = {
   __typename?: 'SovereigntyCampaign';
+  /** ISK lost by the attacker/third-party side. */
+  attackerIskLost: Scalars['Float']['output'];
+  attackerShipsLost: Scalars['Int']['output'];
   attackersScore?: Maybe<Scalars['Float']['output']>;
   campaignId: Scalars['Int']['output'];
   constellationId: Scalars['Int']['output'];
   defenderId?: Maybe<Scalars['Int']['output']>;
+  /** ISK lost by the defender side (victim alliance == defender). */
+  defenderIskLost: Scalars['Float']['output'];
   defenderName?: Maybe<Scalars['String']['output']>;
   defenderScore?: Maybe<Scalars['Float']['output']>;
+  defenderShipsLost: Scalars['Int']['output'];
   defenderTicker?: Maybe<Scalars['String']['output']>;
+  /** Hours from start to end; null while active. */
+  durationHours?: Maybe<Scalars['Float']['output']>;
+  /** Set once the campaign resolves and leaves ESI; null while active. */
+  endTime?: Maybe<Scalars['String']['output']>;
   eventType: Scalars['String']['output'];
   /** ISK destroyed in this campaign's war zone. */
   iskDestroyed: Scalars['Float']['output'];
+  /** defender_won / attacker_won / abandoned; null while active or unresolved. */
+  outcome?: Maybe<Scalars['String']['output']>;
   /** Alliances contesting this campaign (attackers and/or defender) with their score. */
   participants: Array<CampaignParticipant>;
   regionId?: Maybe<Scalars['Int']['output']>;
@@ -1397,6 +1439,22 @@ export type SovereigntyCampaign = {
   structureId: Scalars['String']['output'];
   /** Killmails correlated to this campaign (0 until fighting happens in its window). */
   warKills: Scalars['Int']['output'];
+};
+
+/** A page of resolved (ended) sovereignty campaigns. */
+export type SovereigntyCampaignHistoryPage = {
+  __typename?: 'SovereigntyCampaignHistoryPage';
+  items: Array<SovereigntyCampaign>;
+  totalCount: Scalars['Int']['output'];
+};
+
+/** Distribution of resolved campaign outcomes. */
+export type SovereigntyOutcomeStats = {
+  __typename?: 'SovereigntyOutcomeStats';
+  abandoned: Scalars['Int']['output'];
+  attackerWon: Scalars['Int']['output'];
+  defenderWon: Scalars['Int']['output'];
+  totalResolved: Scalars['Int']['output'];
 };
 
 /** High-level summary of the current sovereignty state. */
@@ -2269,7 +2327,15 @@ export type SolarSystemQuery = { __typename?: 'Query', solarSystem?: { __typenam
 export type SovereigntyDashboardQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type SovereigntyDashboardQuery = { __typename?: 'Query', sovereigntyOverview: { __typename?: 'SovereigntyOverview', ownedSystems: number, activeCampaigns: number, trackedStructures: number, trackedAlliances: number, warKills: number, iskDestroyed: number }, allianceTerritoryRankings: Array<{ __typename?: 'AllianceTerritoryRank', rank: number, allianceId: number, allianceName?: string | null, allianceTicker?: string | null, systemsControlled: number, ihubCount: number, campaignsAttacking: number, campaignsDefending: number }>, mostAggressiveAlliances: Array<{ __typename?: 'AllianceActivityRank', rank: number, allianceId: number, allianceName?: string | null, allianceTicker?: string | null, campaignsAttacking: number }>, mostDefensiveAlliances: Array<{ __typename?: 'AllianceActivityRank', rank: number, allianceId: number, allianceName?: string | null, allianceTicker?: string | null, campaignsDefending: number }>, activeCampaignsByRegion: Array<{ __typename?: 'RegionCampaignCount', regionId: number, regionName?: string | null, campaignCount: number }>, sovereigntyActiveCampaigns: Array<{ __typename?: 'SovereigntyCampaign', campaignId: number, eventType: string, solarSystemId: number, solarSystemName?: string | null, regionName?: string | null, defenderId?: number | null, defenderName?: string | null, defenderTicker?: string | null, defenderScore?: number | null, attackersScore?: number | null, startTime: string, warKills: number, iskDestroyed: number, participants: Array<{ __typename?: 'CampaignParticipant', allianceId: number, allianceName?: string | null, allianceTicker?: string | null, score: number }> }>, recentTerritoryChanges: Array<{ __typename?: 'TerritoryChange', id: string, solarSystemId: number, solarSystemName?: string | null, previousOwnerId?: number | null, previousOwnerName?: string | null, newOwnerId?: number | null, newOwnerName?: string | null, changeType: string, detectedAt: string }> };
+export type SovereigntyDashboardQuery = { __typename?: 'Query', sovereigntyOverview: { __typename?: 'SovereigntyOverview', ownedSystems: number, activeCampaigns: number, trackedStructures: number, trackedAlliances: number, warKills: number, iskDestroyed: number }, allianceTerritoryRankings: Array<{ __typename?: 'AllianceTerritoryRank', rank: number, allianceId: number, allianceName?: string | null, allianceTicker?: string | null, systemsControlled: number, ihubCount: number, campaignsAttacking: number, campaignsDefending: number }>, mostAggressiveAlliances: Array<{ __typename?: 'AllianceActivityRank', rank: number, allianceId: number, allianceName?: string | null, allianceTicker?: string | null, campaignsAttacking: number }>, mostDefensiveAlliances: Array<{ __typename?: 'AllianceActivityRank', rank: number, allianceId: number, allianceName?: string | null, allianceTicker?: string | null, campaignsDefending: number }>, activeCampaignsByRegion: Array<{ __typename?: 'RegionCampaignCount', regionId: number, regionName?: string | null, campaignCount: number }>, sovereigntyActiveCampaigns: Array<{ __typename?: 'SovereigntyCampaign', campaignId: number, eventType: string, solarSystemId: number, solarSystemName?: string | null, regionName?: string | null, defenderId?: number | null, defenderName?: string | null, defenderTicker?: string | null, defenderScore?: number | null, attackersScore?: number | null, startTime: string, warKills: number, iskDestroyed: number, defenderIskLost: number, attackerIskLost: number, participants: Array<{ __typename?: 'CampaignParticipant', allianceId: number, allianceName?: string | null, allianceTicker?: string | null, score: number }> }>, recentTerritoryChanges: Array<{ __typename?: 'TerritoryChange', id: string, solarSystemId: number, solarSystemName?: string | null, previousOwnerId?: number | null, previousOwnerName?: string | null, newOwnerId?: number | null, newOwnerName?: string | null, changeType: string, detectedAt: string }> };
+
+export type SovereigntyHistoryPageQueryVariables = Exact<{
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type SovereigntyHistoryPageQuery = { __typename?: 'Query', sovereigntyOutcomeStats: { __typename?: 'SovereigntyOutcomeStats', defenderWon: number, attackerWon: number, abandoned: number, totalResolved: number }, topDefenders: Array<{ __typename?: 'AllianceDefenseRecord', rank: number, allianceId: number, allianceName?: string | null, allianceTicker?: string | null, defensesWon: number, defensesTotal: number, defenseSuccessRate: number }>, sovereigntyCampaignHistory: { __typename?: 'SovereigntyCampaignHistoryPage', totalCount: number, items: Array<{ __typename?: 'SovereigntyCampaign', campaignId: number, eventType: string, solarSystemId: number, solarSystemName?: string | null, regionName?: string | null, defenderId?: number | null, defenderName?: string | null, defenderTicker?: string | null, defenderScore?: number | null, attackersScore?: number | null, outcome?: string | null, durationHours?: number | null, endTime?: string | null, warKills: number, iskDestroyed: number, defenderIskLost: number, attackerIskLost: number }> } };
 
 export type SovereigntyStructuresPageQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -6294,6 +6360,8 @@ export const SovereigntyDashboardDocument = gql`
     startTime
     warKills
     iskDestroyed
+    defenderIskLost
+    attackerIskLost
     participants {
       allianceId
       allianceName
@@ -6349,6 +6417,84 @@ export type SovereigntyDashboardQueryHookResult = ReturnType<typeof useSovereign
 export type SovereigntyDashboardLazyQueryHookResult = ReturnType<typeof useSovereigntyDashboardLazyQuery>;
 export type SovereigntyDashboardSuspenseQueryHookResult = ReturnType<typeof useSovereigntyDashboardSuspenseQuery>;
 export type SovereigntyDashboardQueryResult = Apollo.QueryResult<SovereigntyDashboardQuery, SovereigntyDashboardQueryVariables>;
+export const SovereigntyHistoryPageDocument = gql`
+    query SovereigntyHistoryPage($limit: Int, $offset: Int) {
+  sovereigntyOutcomeStats {
+    defenderWon
+    attackerWon
+    abandoned
+    totalResolved
+  }
+  topDefenders(limit: 10) {
+    rank
+    allianceId
+    allianceName
+    allianceTicker
+    defensesWon
+    defensesTotal
+    defenseSuccessRate
+  }
+  sovereigntyCampaignHistory(limit: $limit, offset: $offset) {
+    totalCount
+    items {
+      campaignId
+      eventType
+      solarSystemId
+      solarSystemName
+      regionName
+      defenderId
+      defenderName
+      defenderTicker
+      defenderScore
+      attackersScore
+      outcome
+      durationHours
+      endTime
+      warKills
+      iskDestroyed
+      defenderIskLost
+      attackerIskLost
+    }
+  }
+}
+    `;
+
+/**
+ * __useSovereigntyHistoryPageQuery__
+ *
+ * To run a query within a React component, call `useSovereigntyHistoryPageQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSovereigntyHistoryPageQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSovereigntyHistoryPageQuery({
+ *   variables: {
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useSovereigntyHistoryPageQuery(baseOptions?: Apollo.QueryHookOptions<SovereigntyHistoryPageQuery, SovereigntyHistoryPageQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SovereigntyHistoryPageQuery, SovereigntyHistoryPageQueryVariables>(SovereigntyHistoryPageDocument, options);
+      }
+export function useSovereigntyHistoryPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SovereigntyHistoryPageQuery, SovereigntyHistoryPageQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SovereigntyHistoryPageQuery, SovereigntyHistoryPageQueryVariables>(SovereigntyHistoryPageDocument, options);
+        }
+// @ts-ignore
+export function useSovereigntyHistoryPageSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SovereigntyHistoryPageQuery, SovereigntyHistoryPageQueryVariables>): Apollo.UseSuspenseQueryResult<SovereigntyHistoryPageQuery, SovereigntyHistoryPageQueryVariables>;
+export function useSovereigntyHistoryPageSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SovereigntyHistoryPageQuery, SovereigntyHistoryPageQueryVariables>): Apollo.UseSuspenseQueryResult<SovereigntyHistoryPageQuery | undefined, SovereigntyHistoryPageQueryVariables>;
+export function useSovereigntyHistoryPageSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SovereigntyHistoryPageQuery, SovereigntyHistoryPageQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SovereigntyHistoryPageQuery, SovereigntyHistoryPageQueryVariables>(SovereigntyHistoryPageDocument, options);
+        }
+export type SovereigntyHistoryPageQueryHookResult = ReturnType<typeof useSovereigntyHistoryPageQuery>;
+export type SovereigntyHistoryPageLazyQueryHookResult = ReturnType<typeof useSovereigntyHistoryPageLazyQuery>;
+export type SovereigntyHistoryPageSuspenseQueryHookResult = ReturnType<typeof useSovereigntyHistoryPageSuspenseQuery>;
+export type SovereigntyHistoryPageQueryResult = Apollo.QueryResult<SovereigntyHistoryPageQuery, SovereigntyHistoryPageQueryVariables>;
 export const SovereigntyStructuresPageDocument = gql`
     query SovereigntyStructuresPage {
   sovereigntyUpcomingTimers(hoursAhead: 24, limit: 100) {
