@@ -18,5 +18,5 @@ Companion to `2026-07-05-sovereignty-cluster-c-design.md`.
 - [x] Verify (GraphQL + browser)
 
 ## Wrap-up
-- [ ] `/code-review`
-- [ ] Commit + push
+- [x] `/code-review` (high) — fixed: shared resolveRegionsForSystems helper (dedup), parallel combatStats; readability cleanup of treemap color. Skipped: dead Suspense fallback (matches established sov-page pattern).
+- [x] Commit + push
