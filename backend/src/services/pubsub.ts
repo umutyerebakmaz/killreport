@@ -3,19 +3,12 @@ import { createPubSub } from 'graphql-yoga';
 import Redis from 'ioredis';
 
 // PubSub event types
-export type SovereigntyAlertPayload = {
-    type: 'campaign_started' | 'campaign_ended' | 'territory_change';
-    systemId: number;
-    defenderId?: number | null;
-    outcome?: string | null;
-    previousOwnerId?: number | null;
-    newOwnerId?: number | null;
-    changeType?: string | null;
-};
+import type { SovereigntyAlertData } from '@services/sovereignty/alert-builder';
 
 export type PubSubChannels = {
     'NEW_KILLMAIL': [{ killmailId: number }];
-    'SOVEREIGNTY_ALERT': [SovereigntyAlertPayload];
+    // Fully-hydrated alert built at publish time; the resolver is a passthrough.
+    'SOVEREIGNTY_ALERT': [SovereigntyAlertData];
 };
 
 // Check if Redis is available for distributed PubSub
