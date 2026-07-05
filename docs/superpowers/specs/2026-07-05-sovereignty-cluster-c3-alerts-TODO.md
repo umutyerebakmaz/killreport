@@ -28,5 +28,5 @@ watchlist table, no email/Discord.
 - [x] Verify (synthetic publish + browser)
 
 ## Wrap-up
-- [ ] `/code-review`
-- [ ] Commit + push
+- [x] `/code-review` (high) — fixed: onData (no burst-drop), publish-side alert enrichment (passthrough resolve, no per-subscriber DB fan-out, event-time timestamp), first-run baseline skip + per-run cap, existingIds scoped to feed, stable toast onDismiss, localStorage Array.isArray guard. Documented: transient-ESI false campaign_ended (pre-existing lifecycle).
+- [x] Commit + push
