@@ -36,6 +36,19 @@ type AllianceActivityRank {
   systemsLost: Int!
 }
 
+"""An alliance's defensive record across resolved campaigns it defended."""
+type AllianceDefenseRecord {
+  allianceId: Int!
+  allianceName: String
+  allianceTicker: String
+
+  """Won / total, 0..1."""
+  defenseSuccessRate: Float!
+  defensesTotal: Int!
+  defensesWon: Int!
+  rank: Int!
+}
+
 input AllianceFilter {
   dateFoundedFrom: String
   dateFoundedTo: String
@@ -703,6 +716,12 @@ type Query {
   """Currently active sovereignty campaigns, newest first."""
   sovereigntyActiveCampaigns(limit: Int): [SovereigntyCampaign!]!
 
+  """Resolved (ended) campaigns, newest-ended first, paginated."""
+  sovereigntyCampaignHistory(limit: Int, offset: Int): SovereigntyCampaignHistoryPage!
+
+  """Distribution of resolved campaign outcomes."""
+  sovereigntyOutcomeStats: SovereigntyOutcomeStats!
+
   """Summary counts for the current sovereignty state."""
   sovereigntyOverview: SovereigntyOverview!
 
@@ -723,6 +742,9 @@ type Query {
   """
   top90DaysPilots(filter: Top90DaysPilotsFilter): [Top90DaysPilot!]!
   topActiveSystems(limit: Int): [SystemKillsStats!]!
+
+  """Alliances ranked by successful defenses of ended campaigns."""
+  topDefenders(limit: Int): [AllianceDefenseRecord!]!
 
   """
   Returns top alliances ranked by total kill count over the last 7 days (rolling window, today - 6 days)
@@ -928,17 +950,35 @@ type SolarSystemsResponse {
 
 """An active sovereignty campaign (contested TCU / IHub / station)."""
 type SovereigntyCampaign {
+  """ISK lost by the attacker/third-party side."""
+  attackerIskLost: Float!
+  attackerShipsLost: Int!
   attackersScore: Float
   campaignId: Int!
   constellationId: Int!
   defenderId: Int
+
+  """ISK lost by the defender side (victim alliance == defender)."""
+  defenderIskLost: Float!
   defenderName: String
   defenderScore: Float
+  defenderShipsLost: Int!
   defenderTicker: String
+
+  """Hours from start to end; null while active."""
+  durationHours: Float
+
+  """Set once the campaign resolves and leaves ESI; null while active."""
+  endTime: String
   eventType: String!
 
   """ISK destroyed in this campaign's war zone."""
   iskDestroyed: Float!
+
+  """
+  defender_won / attacker_won / abandoned; null while active or unresolved.
+  """
+  outcome: String
 
   """
   Alliances contesting this campaign (attackers and/or defender) with their score.
@@ -955,6 +995,20 @@ type SovereigntyCampaign {
   Killmails correlated to this campaign (0 until fighting happens in its window).
   """
   warKills: Int!
+}
+
+"""A page of resolved (ended) sovereignty campaigns."""
+type SovereigntyCampaignHistoryPage {
+  items: [SovereigntyCampaign!]!
+  totalCount: Int!
+}
+
+"""Distribution of resolved campaign outcomes."""
+type SovereigntyOutcomeStats {
+  abandoned: Int!
+  attackerWon: Int!
+  defenderWon: Int!
+  totalResolved: Int!
 }
 
 """High-level summary of the current sovereignty state."""
