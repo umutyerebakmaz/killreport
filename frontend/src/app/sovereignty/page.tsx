@@ -70,6 +70,13 @@ function SovereigntyContent() {
           >
             History →
           </Link>
+          <Link
+            href="/sovereignty/hotspots"
+            prefetch={false}
+            className="text-sm text-cyan-400 hover:text-cyan-300"
+          >
+            Hot Zones →
+          </Link>
         </div>
       </div>
       <h2 className="mt-2 text-xl text-white">Null-sec territory control &amp; active wars across New Eden</h2>

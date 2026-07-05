@@ -8,14 +8,14 @@ Companion to `2026-07-05-sovereignty-cluster-c-design.md`.
 ---
 
 ## C1 — Conflict hot-zones
-- [ ] Backend: `ConflictHotspot` type + `conflictHotspots(limit)` query (`Sovereignty.graphql`)
-- [ ] Backend: resolver — aggregate active campaigns + combat stats by region, intensityScore
-- [ ] `cd backend && yarn codegen`
-- [ ] Frontend: `ConflictHotspots.graphql` op + codegen
-- [ ] Frontend: `components/Sovereignty/ConflictTreemap.tsx` (ECharts, next/dynamic ssr:false)
-- [ ] Frontend: page `app/sovereignty/hotspots/page.tsx` (treemap + ranked table)
-- [ ] Nav: 4th dropdown item "Hot Zones" (desktop + mobile) + dashboard header link
-- [ ] Verify (GraphQL + browser)
+- [x] Backend: `ConflictHotspot` type + `conflictHotspots(limit)` query (`Sovereignty.graphql`)
+- [x] Backend: resolver — aggregate active campaigns + combat stats by region, intensityScore
+- [x] `cd backend && yarn codegen`
+- [x] Frontend: `ConflictHotspots.graphql` op + codegen
+- [x] Frontend: `components/Sovereignty/ConflictTreemap.tsx` (ECharts, next/dynamic ssr:false)
+- [x] Frontend: page `app/sovereignty/hotspots/page.tsx` (treemap + ranked table)
+- [x] Nav: 4th dropdown item "Hot Zones" (desktop + mobile) + dashboard header link
+- [x] Verify (GraphQL + browser)
 
 ## Wrap-up
 - [ ] `/code-review`
