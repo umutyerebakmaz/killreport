@@ -327,9 +327,11 @@ export const sovereigntyQueries: QueryResolvers = {
 
   topDefenders: async (_, { limit }) => {
     // Alliances ranked by successful defenses among ended campaigns they defended.
+    // Only campaigns with a decided outcome count toward the record, so legacy
+    // ended rows without an inferred outcome don't dilute the success rate.
     const grouped = await prisma.sovereigntyCampaign.groupBy({
       by: ['defender_id', 'outcome'],
-      where: { end_time: { not: null }, defender_id: { not: null } },
+      where: { end_time: { not: null }, defender_id: { not: null }, outcome: { not: null } },
       _count: { _all: true },
     });
     const totals = new Map<number, { won: number; total: number }>();

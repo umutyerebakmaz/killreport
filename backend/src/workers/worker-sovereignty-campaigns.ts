@@ -65,6 +65,7 @@ async function syncSovereigntyCampaigns() {
           defender_score: campaign.defender_score ?? null,
           attackers_score: campaign.attackers_score ?? null,
           end_time: null, // still active — clear any previous end marker
+          outcome: null, // re-contested: clear any decided outcome from a prior end
         },
       });
 
@@ -90,26 +91,38 @@ async function syncSovereigntyCampaigns() {
     }
 
     // Mark campaigns that are no longer active as ended, inferring an outcome
-    // from each campaign's last-known scores.
-    const activeIds = campaigns.map((c) => c.campaign_id);
-    const departing = await prismaWorker.sovereigntyCampaign.findMany({
-      where: {
-        end_time: null,
-        campaign_id: { notIn: activeIds.length > 0 ? activeIds : [-1] },
-      },
-      select: { campaign_id: true, defender_score: true, attackers_score: true },
-    });
-    for (const c of departing) {
-      await prismaWorker.sovereigntyCampaign.update({
-        where: { campaign_id: c.campaign_id },
-        data: { end_time: now, outcome: inferOutcome(c.defender_score, c.attackers_score) },
+    // from each campaign's last-known scores. Guard: if ESI returned zero
+    // campaigns (likely a transient/empty response) skip end-marking, so a bad
+    // poll can't mass-end every active war at once.
+    let endedCount = 0;
+    if (campaigns.length === 0) {
+      logger.warn('⚠️  ESI returned 0 active campaigns — skipping end-marking this run');
+    } else {
+      const activeIds = campaigns.map((c) => c.campaign_id);
+      const departing = await prismaWorker.sovereigntyCampaign.findMany({
+        where: { end_time: null, campaign_id: { notIn: activeIds } },
+        select: { campaign_id: true, defender_score: true, attackers_score: true },
       });
+      // Per-row updates are wrapped individually so one failing row doesn't
+      // strand the campaigns after it (they'd otherwise stay end_time=null and
+      // keep showing as active wars).
+      for (const c of departing) {
+        try {
+          await prismaWorker.sovereigntyCampaign.update({
+            where: { campaign_id: c.campaign_id },
+            data: { end_time: now, outcome: inferOutcome(c.defender_score, c.attackers_score) },
+          });
+          endedCount++;
+        } catch (err) {
+          logger.error(`Failed to end campaign ${c.campaign_id}`, { err });
+        }
+      }
     }
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     logger.info(
       `✅ Campaigns sync complete: ${campaigns.length} active, ${participantCount} participants, ` +
-      `${departing.length} marked ended (${duration}s)`
+      `${endedCount} marked ended (${duration}s)`
     );
   } catch (error) {
     logger.error('❌ Sovereignty campaigns sync failed', { error });
