@@ -2,7 +2,7 @@
 
 import Loader from "@/components/Loader";
 import { useSovereigntyDashboardQuery } from "@/generated/graphql";
-import { formatTimeAgo } from "@/utils/date";
+import { formatTimeAgo, formatRelativeTime } from "@/utils/date";
 import { formatISK } from "@/utils/formatISK";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -156,7 +156,7 @@ function SovereigntyContent() {
                 <th className="text-left th-cell">Progress</th>
                 <th className="text-right th-cell">Kills</th>
                 <th className="text-right th-cell">ISK Lost</th>
-                <th className="text-right th-cell">Started</th>
+                <th className="text-right th-cell">Timer</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -196,7 +196,7 @@ function SovereigntyContent() {
                     )}
                   </td>
                   <td className="px-4 py-3 text-sm text-right text-gray-400 whitespace-nowrap">
-                    {formatTimeAgo(c.startTime)}
+                    {formatRelativeTime(c.startTime)}
                   </td>
                 </tr>
               ))}

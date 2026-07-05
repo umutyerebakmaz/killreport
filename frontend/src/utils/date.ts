@@ -145,3 +145,48 @@ export const formatTimeAgo = (
       : `${days} ${days === 1 ? "day" : "days"} ago`;
   }
 };
+
+/**
+ * Formats a date into a relative string that works in BOTH directions.
+ * Past dates read as "2 hours ago", future dates as "in 2 hours".
+ * Sovereignty campaign timers are frequently in the future (a scheduled
+ * vulnerability window), so plain formatTimeAgo would wrongly show "just now".
+ * @param dateInput - ISO date string or Date object
+ * @param short - If true, uses short format (in 5m, 2h ago). Default: false
+ * @returns Human-readable relative string (e.g., "in 3 hours", "2 days ago", "now")
+ */
+export const formatRelativeTime = (
+  dateInput: string | Date | null | undefined,
+  short: boolean = false,
+) => {
+  if (!dateInput) return "Unknown";
+
+  const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+
+  // Check for invalid date
+  if (isNaN(date.getTime())) return "Unknown";
+
+  const diffInMinutes = (date.getTime() - Date.now()) / (1000 * 60);
+  const future = diffInMinutes > 0;
+  const abs = Math.abs(diffInMinutes);
+
+  if (abs < 1) return "now";
+
+  let value: number;
+  let unit: string;
+  if (abs < 60) {
+    value = Math.floor(abs);
+    unit = short ? "m" : value === 1 ? "minute" : "minutes";
+  } else if (abs < 1440) {
+    value = Math.floor(abs / 60);
+    unit = short ? "h" : value === 1 ? "hour" : "hours";
+  } else {
+    value = Math.floor(abs / 1440);
+    unit = short ? "d" : value === 1 ? "day" : "days";
+  }
+
+  if (short) {
+    return future ? `in ${value}${unit}` : `${value}${unit} ago`;
+  }
+  return future ? `in ${value} ${unit}` : `${value} ${unit} ago`;
+};
