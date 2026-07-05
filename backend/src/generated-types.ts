@@ -62,6 +62,19 @@ export type AllianceTopShipTargetsArgs = {
   filter?: InputMaybe<TopTargetFilter>;
 };
 
+/** An alliance ranked by activity level from its latest daily territory snapshot. */
+export type AllianceActivityRank = {
+  __typename?: 'AllianceActivityRank';
+  allianceId: Scalars['Int']['output'];
+  allianceName?: Maybe<Scalars['String']['output']>;
+  allianceTicker?: Maybe<Scalars['String']['output']>;
+  campaignsAttacking: Scalars['Int']['output'];
+  campaignsDefending: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+  systemsGained: Scalars['Int']['output'];
+  systemsLost: Scalars['Int']['output'];
+};
+
 export type AllianceFilter = {
   dateFoundedFrom?: InputMaybe<Scalars['String']['input']>;
   dateFoundedTo?: InputMaybe<Scalars['String']['input']>;
@@ -109,9 +122,14 @@ export type AllianceTerritoryRank = {
   allianceId: Scalars['Int']['output'];
   allianceName?: Maybe<Scalars['String']['output']>;
   allianceTicker?: Maybe<Scalars['String']['output']>;
+  /** From the alliance's most recent daily territory snapshot (0 if no snapshot yet). */
+  campaignsAttacking: Scalars['Int']['output'];
+  campaignsDefending: Scalars['Int']['output'];
   ihubCount: Scalars['Int']['output'];
   rank: Scalars['Int']['output'];
   systemsControlled: Scalars['Int']['output'];
+  systemsGained: Scalars['Int']['output'];
+  systemsLost: Scalars['Int']['output'];
 };
 
 export type AllianceTopTarget = {
@@ -184,6 +202,15 @@ export type CacheStats = {
   memoryUsage: Scalars['String']['output'];
   responseCacheKeys: Scalars['Int']['output'];
   totalKeys: Scalars['Int']['output'];
+};
+
+/** An alliance participating in a sovereignty campaign, with its contest score. */
+export type CampaignParticipant = {
+  __typename?: 'CampaignParticipant';
+  allianceId: Scalars['Int']['output'];
+  allianceName?: Maybe<Scalars['String']['output']>;
+  allianceTicker?: Maybe<Scalars['String']['output']>;
+  score: Scalars['Float']['output'];
 };
 
 export type CategoriesResponse = {
@@ -546,6 +573,8 @@ export type Killmail = {
   finalBlow?: Maybe<Attacker>;
   fitting?: Maybe<Fitting>;
   id: Scalars['ID']['output'];
+  /** Whether this kill was correlated to an active sovereignty war campaign. */
+  isWarRelated: Scalars['Boolean']['output'];
   items: Array<KillmailItem>;
   killmailHash: Scalars['String']['output'];
   killmailTime: Scalars['String']['output'];
@@ -586,6 +615,8 @@ export type KillmailFilter = {
   startDate?: InputMaybe<Scalars['String']['input']>;
   systemId?: InputMaybe<Scalars['Int']['input']>;
   victim?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Only return killmails correlated to an active sovereignty campaign. */
+  warRelated?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type KillmailItem = {
@@ -765,6 +796,8 @@ export type Position = {
 export type Query = {
   __typename?: 'Query';
   _empty?: Maybe<Scalars['String']['output']>;
+  /** Active sovereignty campaigns grouped by region, hottest first. */
+  activeCampaignsByRegion: Array<RegionCampaignCount>;
   activeUsersCount: Scalars['Int']['output'];
   alliance?: Maybe<Alliance>;
   /** Top alliances ranked by number of systems currently controlled. */
@@ -810,6 +843,10 @@ export type Query = {
   killmailsDateCounts: Array<KillmailDateCount>;
   /** Mevcut authenticated kullanıcının bilgilerini döner */
   me?: Maybe<User>;
+  /** Alliances ranked by campaigns currently attacking (most aggressive first). */
+  mostAggressiveAlliances: Array<AllianceActivityRank>;
+  /** Alliances ranked by campaigns currently defending (most defensive first). */
+  mostDefensiveAlliances: Array<AllianceActivityRank>;
   race?: Maybe<Race>;
   races: Array<Race>;
   /** Most recently detected territory ownership changes. */
@@ -822,6 +859,10 @@ export type Query = {
   sovereigntyActiveCampaigns: Array<SovereigntyCampaign>;
   /** Summary counts for the current sovereignty state. */
   sovereigntyOverview: SovereigntyOverview;
+  /** All currently tracked (non-destroyed) sovereignty structures, optionally filtered. */
+  sovereigntyStructures: Array<SovereigntyStructureInfo>;
+  /** Structures whose vulnerability window opens within the next N hours (default 24), soonest first. */
+  sovereigntyUpcomingTimers: Array<SovereigntyStructureInfo>;
   systemKillsHistory: Array<SystemKills>;
   systemLatestKills?: Maybe<SystemKills>;
   /** Returns top pilots ranked by total kill count over the last 90 days (rolling window) */
@@ -849,6 +890,11 @@ export type Query = {
   users: Array<User>;
   /** Get current status of all workers and queues */
   workerStatus: WorkerStatus;
+};
+
+
+export type QueryActiveCampaignsByRegionArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1041,6 +1087,16 @@ export type QueryKillmailsDateCountsArgs = {
 };
 
 
+export type QueryMostAggressiveAlliancesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryMostDefensiveAlliancesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
 export type QueryRaceArgs = {
   id: Scalars['Int']['input'];
 };
@@ -1072,6 +1128,19 @@ export type QuerySolarSystemsArgs = {
 
 
 export type QuerySovereigntyActiveCampaignsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QuerySovereigntyStructuresArgs = {
+  allianceId?: InputMaybe<Scalars['Int']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  systemId?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QuerySovereigntyUpcomingTimersArgs = {
+  hoursAhead?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
@@ -1212,6 +1281,14 @@ export type Region = {
   solarSystemCount: Scalars['Int']['output'];
 };
 
+/** Count of active sovereignty campaigns in a region. */
+export type RegionCampaignCount = {
+  __typename?: 'RegionCampaignCount';
+  campaignCount: Scalars['Int']['output'];
+  regionId: Scalars['Int']['output'];
+  regionName?: Maybe<Scalars['String']['output']>;
+};
+
 export type RegionFilter = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
@@ -1309,6 +1386,8 @@ export type SovereigntyCampaign = {
   eventType: Scalars['String']['output'];
   /** ISK destroyed in this campaign's war zone. */
   iskDestroyed: Scalars['Float']['output'];
+  /** Alliances contesting this campaign (attackers and/or defender) with their score. */
+  participants: Array<CampaignParticipant>;
   regionId?: Maybe<Scalars['Int']['output']>;
   regionName?: Maybe<Scalars['String']['output']>;
   solarSystemId: Scalars['Int']['output'];
@@ -1330,6 +1409,27 @@ export type SovereigntyOverview = {
   trackedStructures: Scalars['Int']['output'];
   /** Total killmails correlated to active sovereignty campaigns. */
   warKills: Scalars['Int']['output'];
+};
+
+/** A tracked sovereignty structure (IHub or TCU) with ownership and timer info. */
+export type SovereigntyStructureInfo = {
+  __typename?: 'SovereigntyStructureInfo';
+  allianceId: Scalars['Int']['output'];
+  allianceName?: Maybe<Scalars['String']['output']>;
+  allianceTicker?: Maybe<Scalars['String']['output']>;
+  firstSeen: Scalars['String']['output'];
+  lastSeen: Scalars['String']['output'];
+  /** Vulnerability occupancy level (ADM proxy), 1.0..6.0, if reported by ESI. */
+  occupancyLevel?: Maybe<Scalars['Float']['output']>;
+  regionId?: Maybe<Scalars['Int']['output']>;
+  regionName?: Maybe<Scalars['String']['output']>;
+  solarSystemId: Scalars['Int']['output'];
+  solarSystemName?: Maybe<Scalars['String']['output']>;
+  structureId: Scalars['String']['output'];
+  structureTypeId: Scalars['Int']['output'];
+  structureTypeName: Scalars['String']['output'];
+  vulnerableEndTime?: Maybe<Scalars['String']['output']>;
+  vulnerableStartTime?: Maybe<Scalars['String']['output']>;
 };
 
 export type StandaloneWorkerStatus = {
@@ -1843,6 +1943,7 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 export type ResolversTypes = {
   ActiveUsersPayload: ResolverTypeWrapper<ActiveUsersPayload>;
   Alliance: ResolverTypeWrapper<Alliance>;
+  AllianceActivityRank: ResolverTypeWrapper<AllianceActivityRank>;
   AllianceFilter: AllianceFilter;
   AllianceMetrics: ResolverTypeWrapper<AllianceMetrics>;
   AllianceOrderBy: AllianceOrderBy;
@@ -1857,6 +1958,7 @@ export type ResolversTypes = {
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   CacheOperation: ResolverTypeWrapper<CacheOperation>;
   CacheStats: ResolverTypeWrapper<CacheStats>;
+  CampaignParticipant: ResolverTypeWrapper<CampaignParticipant>;
   CategoriesResponse: ResolverTypeWrapper<CategoriesResponse>;
   Category: ResolverTypeWrapper<Category>;
   CategoryFilter: CategoryFilter;
@@ -1909,6 +2011,7 @@ export type ResolversTypes = {
   RedisMetrics: ResolverTypeWrapper<RedisMetrics>;
   RefreshCharacterResult: ResolverTypeWrapper<RefreshCharacterResult>;
   Region: ResolverTypeWrapper<Region>;
+  RegionCampaignCount: ResolverTypeWrapper<RegionCampaignCount>;
   RegionFilter: RegionFilter;
   RegionOrderBy: RegionOrderBy;
   RegionsResponse: ResolverTypeWrapper<RegionsResponse>;
@@ -1921,6 +2024,7 @@ export type ResolversTypes = {
   SolarSystemsResponse: ResolverTypeWrapper<SolarSystemsResponse>;
   SovereigntyCampaign: ResolverTypeWrapper<SovereigntyCampaign>;
   SovereigntyOverview: ResolverTypeWrapper<SovereigntyOverview>;
+  SovereigntyStructureInfo: ResolverTypeWrapper<SovereigntyStructureInfo>;
   StandaloneWorkerStatus: ResolverTypeWrapper<StandaloneWorkerStatus>;
   StartAllianceSyncInput: StartAllianceSyncInput;
   StartAllianceSyncPayload: ResolverTypeWrapper<StartAllianceSyncPayload>;
@@ -1983,6 +2087,7 @@ export type ResolversTypes = {
 export type ResolversParentTypes = {
   ActiveUsersPayload: ActiveUsersPayload;
   Alliance: Alliance;
+  AllianceActivityRank: AllianceActivityRank;
   AllianceFilter: AllianceFilter;
   AllianceMetrics: AllianceMetrics;
   AllianceSnapshot: AllianceSnapshot;
@@ -1996,6 +2101,7 @@ export type ResolversParentTypes = {
   Boolean: Scalars['Boolean']['output'];
   CacheOperation: CacheOperation;
   CacheStats: CacheStats;
+  CampaignParticipant: CampaignParticipant;
   CategoriesResponse: CategoriesResponse;
   Category: Category;
   CategoryFilter: CategoryFilter;
@@ -2044,6 +2150,7 @@ export type ResolversParentTypes = {
   RedisMetrics: RedisMetrics;
   RefreshCharacterResult: RefreshCharacterResult;
   Region: Region;
+  RegionCampaignCount: RegionCampaignCount;
   RegionFilter: RegionFilter;
   RegionsResponse: RegionsResponse;
   SecurityStats: SecurityStats;
@@ -2054,6 +2161,7 @@ export type ResolversParentTypes = {
   SolarSystemsResponse: SolarSystemsResponse;
   SovereigntyCampaign: SovereigntyCampaign;
   SovereigntyOverview: SovereigntyOverview;
+  SovereigntyStructureInfo: SovereigntyStructureInfo;
   StandaloneWorkerStatus: StandaloneWorkerStatus;
   StartAllianceSyncInput: StartAllianceSyncInput;
   StartAllianceSyncPayload: StartAllianceSyncPayload;
@@ -2135,6 +2243,17 @@ export type AllianceResolvers<ContextType = any, ParentType extends ResolversPar
   topShipTargets?: Resolver<Array<ResolversTypes['ShipTopKill']>, ParentType, ContextType, Partial<AllianceTopShipTargetsArgs>>;
 };
 
+export type AllianceActivityRankResolvers<ContextType = any, ParentType extends ResolversParentTypes['AllianceActivityRank'] = ResolversParentTypes['AllianceActivityRank']> = {
+  allianceId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  allianceName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  allianceTicker?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  campaignsAttacking?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  campaignsDefending?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  systemsGained?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  systemsLost?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
 export type AllianceMetricsResolvers<ContextType = any, ParentType extends ResolversParentTypes['AllianceMetrics'] = ResolversParentTypes['AllianceMetrics']> = {
   corporationCountDelta1d?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   corporationCountDelta7d?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
@@ -2160,9 +2279,13 @@ export type AllianceTerritoryRankResolvers<ContextType = any, ParentType extends
   allianceId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   allianceName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   allianceTicker?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  campaignsAttacking?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  campaignsDefending?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   ihubCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   systemsControlled?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  systemsGained?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  systemsLost?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
 export type AllianceTopTargetResolvers<ContextType = any, ParentType extends ResolversParentTypes['AllianceTopTarget'] = ResolversParentTypes['AllianceTopTarget']> = {
@@ -2221,6 +2344,13 @@ export type CacheStatsResolvers<ContextType = any, ParentType extends ResolversP
   memoryUsage?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   responseCacheKeys?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   totalKeys?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type CampaignParticipantResolvers<ContextType = any, ParentType extends ResolversParentTypes['CampaignParticipant'] = ResolversParentTypes['CampaignParticipant']> = {
+  allianceId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  allianceName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  allianceTicker?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  score?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
 };
 
 export type CategoriesResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['CategoriesResponse'] = ResolversParentTypes['CategoriesResponse']> = {
@@ -2439,6 +2569,7 @@ export type KillmailResolvers<ContextType = any, ParentType extends ResolversPar
   finalBlow?: Resolver<Maybe<ResolversTypes['Attacker']>, ParentType, ContextType>;
   fitting?: Resolver<Maybe<ResolversTypes['Fitting']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  isWarRelated?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   items?: Resolver<Array<ResolversTypes['KillmailItem']>, ParentType, ContextType>;
   killmailHash?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   killmailTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2509,6 +2640,7 @@ export type PositionResolvers<ContextType = any, ParentType extends ResolversPar
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  activeCampaignsByRegion?: Resolver<Array<ResolversTypes['RegionCampaignCount']>, ParentType, ContextType, Partial<QueryActiveCampaignsByRegionArgs>>;
   activeUsersCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType, RequireFields<QueryAllianceArgs, 'id'>>;
   allianceTerritoryRankings?: Resolver<Array<ResolversTypes['AllianceTerritoryRank']>, ParentType, ContextType, Partial<QueryAllianceTerritoryRankingsArgs>>;
@@ -2548,6 +2680,8 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   killmails?: Resolver<ResolversTypes['KillmailsResponse'], ParentType, ContextType, Partial<QueryKillmailsArgs>>;
   killmailsDateCounts?: Resolver<Array<ResolversTypes['KillmailDateCount']>, ParentType, ContextType, Partial<QueryKillmailsDateCountsArgs>>;
   me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  mostAggressiveAlliances?: Resolver<Array<ResolversTypes['AllianceActivityRank']>, ParentType, ContextType, Partial<QueryMostAggressiveAlliancesArgs>>;
+  mostDefensiveAlliances?: Resolver<Array<ResolversTypes['AllianceActivityRank']>, ParentType, ContextType, Partial<QueryMostDefensiveAlliancesArgs>>;
   race?: Resolver<Maybe<ResolversTypes['Race']>, ParentType, ContextType, RequireFields<QueryRaceArgs, 'id'>>;
   races?: Resolver<Array<ResolversTypes['Race']>, ParentType, ContextType>;
   recentTerritoryChanges?: Resolver<Array<ResolversTypes['TerritoryChange']>, ParentType, ContextType, Partial<QueryRecentTerritoryChangesArgs>>;
@@ -2557,6 +2691,8 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   solarSystems?: Resolver<ResolversTypes['SolarSystemsResponse'], ParentType, ContextType, Partial<QuerySolarSystemsArgs>>;
   sovereigntyActiveCampaigns?: Resolver<Array<ResolversTypes['SovereigntyCampaign']>, ParentType, ContextType, Partial<QuerySovereigntyActiveCampaignsArgs>>;
   sovereigntyOverview?: Resolver<ResolversTypes['SovereigntyOverview'], ParentType, ContextType>;
+  sovereigntyStructures?: Resolver<Array<ResolversTypes['SovereigntyStructureInfo']>, ParentType, ContextType, Partial<QuerySovereigntyStructuresArgs>>;
+  sovereigntyUpcomingTimers?: Resolver<Array<ResolversTypes['SovereigntyStructureInfo']>, ParentType, ContextType, Partial<QuerySovereigntyUpcomingTimersArgs>>;
   systemKillsHistory?: Resolver<Array<ResolversTypes['SystemKills']>, ParentType, ContextType, RequireFields<QuerySystemKillsHistoryArgs, 'filter'>>;
   systemLatestKills?: Resolver<Maybe<ResolversTypes['SystemKills']>, ParentType, ContextType, RequireFields<QuerySystemLatestKillsArgs, 'system_id'>>;
   top90DaysPilots?: Resolver<Array<ResolversTypes['Top90DaysPilot']>, ParentType, ContextType, Partial<QueryTop90DaysPilotsArgs>>;
@@ -2619,6 +2755,12 @@ export type RegionResolvers<ContextType = any, ParentType extends ResolversParen
   solarSystemCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
+export type RegionCampaignCountResolvers<ContextType = any, ParentType extends ResolversParentTypes['RegionCampaignCount'] = ResolversParentTypes['RegionCampaignCount']> = {
+  campaignCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  regionId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  regionName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
 export type RegionsResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['RegionsResponse'] = ResolversParentTypes['RegionsResponse']> = {
   items?: Resolver<Array<ResolversTypes['Region']>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
@@ -2668,6 +2810,7 @@ export type SovereigntyCampaignResolvers<ContextType = any, ParentType extends R
   defenderTicker?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   eventType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   iskDestroyed?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  participants?: Resolver<Array<ResolversTypes['CampaignParticipant']>, ParentType, ContextType>;
   regionId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   regionName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   solarSystemId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -2684,6 +2827,24 @@ export type SovereigntyOverviewResolvers<ContextType = any, ParentType extends R
   trackedAlliances?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   trackedStructures?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   warKills?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type SovereigntyStructureInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['SovereigntyStructureInfo'] = ResolversParentTypes['SovereigntyStructureInfo']> = {
+  allianceId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  allianceName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  allianceTicker?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  firstSeen?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  lastSeen?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  occupancyLevel?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  regionId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  regionName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  solarSystemId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  solarSystemName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  structureId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  structureTypeId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  structureTypeName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  vulnerableEndTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  vulnerableStartTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
 export type StandaloneWorkerStatusResolvers<ContextType = any, ParentType extends ResolversParentTypes['StandaloneWorkerStatus'] = ResolversParentTypes['StandaloneWorkerStatus']> = {
@@ -2918,6 +3079,7 @@ export type WorkerStatusResolvers<ContextType = any, ParentType extends Resolver
 export type Resolvers<ContextType = any> = {
   ActiveUsersPayload?: ActiveUsersPayloadResolvers<ContextType>;
   Alliance?: AllianceResolvers<ContextType>;
+  AllianceActivityRank?: AllianceActivityRankResolvers<ContextType>;
   AllianceMetrics?: AllianceMetricsResolvers<ContextType>;
   AllianceSnapshot?: AllianceSnapshotResolvers<ContextType>;
   AllianceTerritoryRank?: AllianceTerritoryRankResolvers<ContextType>;
@@ -2929,6 +3091,7 @@ export type Resolvers<ContextType = any> = {
   Bloodline?: BloodlineResolvers<ContextType>;
   CacheOperation?: CacheOperationResolvers<ContextType>;
   CacheStats?: CacheStatsResolvers<ContextType>;
+  CampaignParticipant?: CampaignParticipantResolvers<ContextType>;
   CategoriesResponse?: CategoriesResponseResolvers<ContextType>;
   Category?: CategoryResolvers<ContextType>;
   Character?: CharacterResolvers<ContextType>;
@@ -2965,6 +3128,7 @@ export type Resolvers<ContextType = any> = {
   RedisMetrics?: RedisMetricsResolvers<ContextType>;
   RefreshCharacterResult?: RefreshCharacterResultResolvers<ContextType>;
   Region?: RegionResolvers<ContextType>;
+  RegionCampaignCount?: RegionCampaignCountResolvers<ContextType>;
   RegionsResponse?: RegionsResponseResolvers<ContextType>;
   SecurityStats?: SecurityStatsResolvers<ContextType>;
   ShipTopKill?: ShipTopKillResolvers<ContextType>;
@@ -2973,6 +3137,7 @@ export type Resolvers<ContextType = any> = {
   SolarSystemsResponse?: SolarSystemsResponseResolvers<ContextType>;
   SovereigntyCampaign?: SovereigntyCampaignResolvers<ContextType>;
   SovereigntyOverview?: SovereigntyOverviewResolvers<ContextType>;
+  SovereigntyStructureInfo?: SovereigntyStructureInfoResolvers<ContextType>;
   StandaloneWorkerStatus?: StandaloneWorkerStatusResolvers<ContextType>;
   StartAllianceSyncPayload?: StartAllianceSyncPayloadResolvers<ContextType>;
   StartCategorySyncPayload?: StartCategorySyncPayloadResolvers<ContextType>;
