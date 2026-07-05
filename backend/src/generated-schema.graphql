@@ -250,6 +250,20 @@ type CharactersResponse {
   pageInfo: PageInfo!
 }
 
+"""A region ranked by sovereignty conflict intensity."""
+type ConflictHotspot {
+  activeCampaigns: Int!
+
+  """
+  Composite conflict-intensity score (heuristic: activeCampaigns*3 + warKills).
+  """
+  intensityScore: Float!
+  iskDestroyed: Float!
+  regionId: Int!
+  regionName: String
+  warKills: Int!
+}
+
 type Constellation {
   id: Int!
   name: String!
@@ -666,6 +680,9 @@ type Query {
   characterTopShipTargets(characterId: Int!, filter: TopTargetFilter): [ShipTopKill!]!
   characterTopShips(characterId: Int!, filter: TopTargetFilter): [ShipTopKill!]!
   characters(filter: CharacterFilter): CharactersResponse!
+
+  """Regions ranked by sovereignty conflict intensity, hottest first."""
+  conflictHotspots(limit: Int): [ConflictHotspot!]!
   constellation(id: Int!): Constellation
   constellations(filter: ConstellationFilter): ConstellationsResponse!
   corporation(id: Int!): Corporation

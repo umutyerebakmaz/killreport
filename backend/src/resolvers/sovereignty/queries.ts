@@ -487,4 +487,42 @@ export const sovereigntyQueries: QueryResolvers = {
         campaignCount,
       }));
   },
+
+  conflictHotspots: async (_, { limit }) => {
+    const campaigns = await prisma.sovereigntyCampaign.findMany({
+      where: { end_time: null },
+      select: { campaign_id: true, solar_system_id: true },
+    });
+    const systems = await systemInfo(campaigns.map((c) => c.solar_system_id));
+    const regions = await resolveRegions(systems);
+
+    const combatStats = await prisma.campaignCombatStats.findMany({
+      where: { campaign_id: { in: campaigns.map((c) => c.campaign_id) } },
+    });
+    const combatByCampaign = new Map(combatStats.map((s) => [s.campaign_id, s]));
+
+    const agg = new Map<number, { activeCampaigns: number; warKills: number; iskDestroyed: number }>();
+    for (const c of campaigns) {
+      const regionId = regions.regionIdForSystem(c.solar_system_id);
+      if (regionId == null) continue;
+      const cur = agg.get(regionId) ?? { activeCampaigns: 0, warKills: 0, iskDestroyed: 0 };
+      cur.activeCampaigns += 1;
+      const cs = combatByCampaign.get(c.campaign_id);
+      cur.warKills += cs?.war_kills ?? 0;
+      cur.iskDestroyed += cs?.isk_destroyed ?? 0;
+      agg.set(regionId, cur);
+    }
+
+    return [...agg.entries()]
+      .map(([regionId, r]) => ({
+        regionId,
+        regionName: regions.regionName(regionId),
+        activeCampaigns: r.activeCampaigns,
+        warKills: r.warKills,
+        iskDestroyed: r.iskDestroyed,
+        intensityScore: r.activeCampaigns * 3 + r.warKills,
+      }))
+      .sort((a, b) => b.intensityScore - a.intensityScore)
+      .slice(0, limit ?? 20);
+  },
 };
