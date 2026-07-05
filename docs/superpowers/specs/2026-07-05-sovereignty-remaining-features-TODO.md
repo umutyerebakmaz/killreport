@@ -3,62 +3,72 @@
 Companion to `2026-07-05-sovereignty-remaining-features-design.md`.
 Living checklist — updated as work proceeds. `[ ]` todo · `[~]` in progress · `[x]` done.
 
-**Current status:** Design written, awaiting user review. No code written yet.
+**Current status:** Cluster A implemented AND verified end-to-end against live local data
+(browser screenshots + GraphQL). Backend + frontend typecheck clean (0 errors). Commit pending.
+
+**Data-reality notes (not bugs — graceful empty states confirmed):**
+- `campaign_participants` table is empty locally → participants expander simply doesn't appear.
+- All structure `vulnerable_start_time` values are in the past (stale local worker data) →
+  "Next 24h Timers" is empty; populates going forward with live workers.
+- `campaigns_attacking` is 0 in the latest snapshot → "Most Aggressive" empty; "Most Defensive"
+  and the rankings Defending column DO show data.
+- Verified: WAR KILL badge renders, `?warRelated=true` filters to 7 kills, both query paths
+  (plain-Prisma + materialized raw-SQL) apply the filter, filter-count badge shows 1.
 
 ---
 
 ## Cluster A — Data-ready quick wins
 
 ### Prep
-- [ ] Extract `AllianceLink` → `frontend/src/components/Sovereignty/AllianceLink.tsx`
-- [ ] Extract `ScoreBar` → `frontend/src/components/Sovereignty/ScoreBar.tsx`
-- [ ] Update `app/sovereignty/page.tsx` to import both from new location
+- [x] Extract `AllianceLink` → `frontend/src/components/Sovereignty/AllianceLink.tsx`
+- [x] Extract `ScoreBar` → `frontend/src/components/Sovereignty/ScoreBar.tsx`
+- [x] Update `app/sovereignty/page.tsx` to import both from new location
 
 ### Feature 5 — Active Wars by Region
-- [ ] Backend: `RegionCampaignCount` type + `activeCampaignsByRegion` query (`Sovereignty.graphql`)
-- [ ] Backend: resolver + shared `regionForSystems(systemIds)` helper (`queries.ts`)
-- [ ] `cd backend && yarn codegen`
-- [ ] Frontend: add to `SovereigntyDashboard` op + codegen
-- [ ] Frontend: "Hottest Regions" bar-list section on dashboard
-- [ ] Verify (GraphiQL + UI)
+- [x] Backend: `RegionCampaignCount` type + `activeCampaignsByRegion` query (`Sovereignty.graphql`)
+- [x] Backend: resolver + shared `resolveRegions()` helper (`queries.ts`)
+- [x] `cd backend && yarn codegen`
+- [x] Frontend: add to `SovereigntyDashboard` op + codegen
+- [x] Frontend: "Hottest Regions" bar-list section on dashboard
+- [x] Verify (GraphiQL + UI)
 
 ### Feature 2 — Alliance Rankings Enrichment
-- [ ] Backend: extend `AllianceTerritoryRank` (attacking/defending/gained/lost)
-- [ ] Backend: `AllianceActivityRank` + `mostAggressiveAlliances` / `mostDefensiveAlliances`
-- [ ] Backend: `latestTerritoryStats(allianceIds)` helper + merge into rankings resolver
-- [ ] `cd backend && yarn codegen`
-- [ ] Frontend: extend rankings op + 2 leaderboard sections (reuse `TopAllianceCard`) + codegen
-- [ ] Verify
+- [x] Backend: extend `AllianceTerritoryRank` (attacking/defending/gained/lost)
+- [x] Backend: `AllianceActivityRank` + `mostAggressiveAlliances` / `mostDefensiveAlliances`
+- [x] Backend: `latestTerritoryStats(allianceIds)` helper + merge into rankings resolver
+- [x] `cd backend && yarn codegen`
+- [x] Frontend: extend rankings op + 2 leaderboard sections + hottest-regions + codegen
+- [x] Verify
 
 ### Feature 3 — Campaign Participants
-- [ ] Backend: `CampaignParticipant` type + `participants` field on `SovereigntyCampaign`
-- [ ] Backend: batch-fetch participants in `sovereigntyActiveCampaigns`
-- [ ] `cd backend && yarn codegen`
-- [ ] Frontend: expandable campaign row + nested participant list + codegen
-- [ ] Verify
+- [x] Backend: `CampaignParticipant` type + `participants` field on `SovereigntyCampaign`
+- [x] Backend: batch-fetch participants in `sovereigntyActiveCampaigns`
+- [x] `cd backend && yarn codegen`
+- [x] Frontend: expandable campaign row + nested participant list + codegen
+- [x] Verify
 
 ### Feature 1 — Structure & Timer Dashboard
-- [ ] Backend: `SovereigntyStructureInfo` type + `sovereigntyStructures` + `sovereigntyUpcomingTimers`
-- [ ] Backend: `enrichStructures` (reuse `regionForSystems`) + type-name map (IHub/TCU)
-- [ ] `cd backend && yarn codegen`
-- [ ] Frontend: `SovereigntyStructures.graphql` op + codegen
-- [ ] Frontend: new route `app/sovereignty/structures/page.tsx` (Timers + All Structures)
-- [ ] Frontend: `TimerCountdown` component (setInterval + `formatRelativeTime`)
-- [ ] Frontend: convert `SOVEREIGNTY` nav to dropdown (Overview / Structures & Timers)
-- [ ] Verify
+- [x] Backend: `SovereigntyStructureInfo` type + `sovereigntyStructures` + `sovereigntyUpcomingTimers`
+- [x] Backend: `enrichStructures` (reuse `resolveRegions`) + type-name map (IHub/TCU)
+- [x] `cd backend && yarn codegen`
+- [x] Frontend: `SovereigntyStructures.graphql` op + codegen
+- [x] Frontend: new route `app/sovereignty/structures/page.tsx` (Timers + All Structures)
+- [x] Frontend: `TimerCountdown` component (setInterval + `formatRelativeTime`)
+- [x] Frontend: convert `SOVEREIGNTY` nav to dropdown (Overview / Structures & Timers), desktop + mobile
+- [x] Verify
 
 ### Feature 4 — Killmail War-Kill Surfacing (highest risk — last)
-- [ ] Investigate `hasKillmailFiltersCompatibleFilter` condition list decision
-- [ ] Backend: `isWarRelated` on `Killmail` type; `warRelated` on `KillmailFilter` input
-- [ ] Backend: wire both query paths (materialized raw-SQL + plain-Prisma) + single `killmail()`
-- [ ] `cd backend && yarn codegen`
-- [ ] Frontend: `isWarRelated` in all 4 shared ops + `Killmail.graphql` + codegen
-- [ ] Frontend: WAR KILL badge (`KillmailRow.tsx` + detail page)
-- [ ] Frontend: filter plumbing (`filterUrlHelpers`, `KillmailFilters`, `killmails/page.tsx`)
-- [ ] Verify (all 4 killmail tabs + filter + detail)
+- [x] Decision: keep `warRelated` OUT of `hasKillmailFiltersCompatibleFilter` (cheaper plain path when sole filter); handled in both paths regardless
+- [x] Backend: `isWarRelated` on `Killmail` type; `warRelated` on `KillmailFilter` input
+- [x] Backend: wire both query paths (materialized raw-SQL + plain-Prisma) + single `killmail()` + subscription + safety field resolver
+- [x] `cd backend && yarn codegen`
+- [x] Frontend: `isWarRelated` in all 4 shared ops + `Killmail.graphql` + subscription op + codegen
+- [x] Frontend: WAR KILL badge (`KillmailRow.tsx` + detail page)
+- [x] Frontend: filter plumbing (`filterUrlHelpers`, `KillmailFilters`, `killmails/page.tsx`)
+- [x] Verify (all 4 killmail tabs + filter + detail)
 
 ### Cluster A wrap-up
-- [ ] Full manual pass across all 5 features
+- [x] Full manual/runtime pass across all 5 features (browser + GraphQL)
 - [ ] `/code-review` on the diff
 - [ ] Commit + push
 

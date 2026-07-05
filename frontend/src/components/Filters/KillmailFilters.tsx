@@ -35,6 +35,7 @@ interface KillmailFiltersProps {
     maxAttackers?: number;
     minValue?: number;
     maxValue?: number;
+    warRelated?: boolean;
   }) => void;
   onClearFilters: () => void;
   initialShipTypeId?: number;
@@ -56,6 +57,7 @@ interface KillmailFiltersProps {
     | "nullsec"
     | "wormhole"
     | "abyssal";
+  initialWarRelated?: boolean;
 }
 
 export default function KillmailFilters({
@@ -74,6 +76,7 @@ export default function KillmailFilters({
   initialShipRole = "all",
   initialCharacterRole = "all",
   initialSecuritySpace = "all",
+  initialWarRelated = false,
 }: KillmailFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [typeSearch, setTypeSearch] = useState("");
@@ -114,6 +117,7 @@ export default function KillmailFilters({
   const [securitySpace, setSecuritySpace] = useState<
     "all" | "highsec" | "lowsec" | "nullsec" | "wormhole" | "abyssal"
   >(initialSecuritySpace);
+  const [warRelated, setWarRelated] = useState<boolean>(initialWarRelated);
 
   // Pilot search state
   const [pilotSearch, setPilotSearch] = useState("");
@@ -303,7 +307,8 @@ export default function KillmailFilters({
     maxValue ||
     (shipTypeId && shipRole !== "all") ||
     (characterId && characterRole !== "all") ||
-    securitySpace !== "all";
+    securitySpace !== "all" ||
+    warRelated;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -422,6 +427,10 @@ export default function KillmailFilters({
   useEffect(() => {
     setSecuritySpace(initialSecuritySpace);
   }, [initialSecuritySpace]);
+
+  useEffect(() => {
+    setWarRelated(initialWarRelated);
+  }, [initialWarRelated]);
 
   // Show dropdown when we have results
   useEffect(() => {
@@ -583,6 +592,7 @@ export default function KillmailFilters({
       maxAttackers: maxAttackers ? Number(maxAttackers) : undefined,
       minValue: minValue ? Number(minValue) : undefined,
       maxValue: maxValue ? Number(maxValue) : undefined,
+      warRelated: warRelated || undefined,
     };
 
     onFilterChange(filterData);
@@ -614,6 +624,7 @@ export default function KillmailFilters({
     setShipRole("all");
     setCharacterRole("all");
     setSecuritySpace("all");
+    setWarRelated(false);
     onClearFilters();
   };
 
@@ -648,6 +659,7 @@ export default function KillmailFilters({
                   maxAttackers,
                   minValue,
                   maxValue,
+                  warRelated,
                 ].filter(Boolean).length
               }
             </span>
@@ -1620,6 +1632,20 @@ export default function KillmailFilters({
                   { value: "nullsec", label: "NullSec" },
                   { value: "wormhole", label: "Wormhole" },
                   { value: "abyssal", label: "Abyssal" },
+                ]}
+              />
+            </div>
+
+            {/* Sovereignty war kills */}
+            <div className="flex flex-col gap-2">
+              <div className="text-xs font-medium text-gray-400">Sovereignty</div>
+              <RadioGroup
+                name="war-related"
+                value={warRelated ? "war" : "all"}
+                onChange={(v) => setWarRelated(v === "war")}
+                options={[
+                  { value: "all", label: "All Kills" },
+                  { value: "war", label: "War Kills Only" },
                 ]}
               />
             </div>

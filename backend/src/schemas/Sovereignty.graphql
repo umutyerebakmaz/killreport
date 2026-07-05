@@ -34,6 +34,18 @@ type SovereigntyCampaign {
   warKills: Int!
   "ISK destroyed in this campaign's war zone."
   iskDestroyed: Float!
+  "Alliances contesting this campaign (attackers and/or defender) with their score."
+  participants: [CampaignParticipant!]!
+}
+
+"""
+An alliance participating in a sovereignty campaign, with its contest score.
+"""
+type CampaignParticipant {
+  allianceId: Int!
+  allianceName: String
+  allianceTicker: String
+  score: Float!
 }
 
 """
@@ -46,6 +58,56 @@ type AllianceTerritoryRank {
   allianceTicker: String
   systemsControlled: Int!
   ihubCount: Int!
+  "From the alliance's most recent daily territory snapshot (0 if no snapshot yet)."
+  campaignsAttacking: Int!
+  campaignsDefending: Int!
+  systemsGained: Int!
+  systemsLost: Int!
+}
+
+"""
+An alliance ranked by activity level from its latest daily territory snapshot.
+"""
+type AllianceActivityRank {
+  rank: Int!
+  allianceId: Int!
+  allianceName: String
+  allianceTicker: String
+  campaignsAttacking: Int!
+  campaignsDefending: Int!
+  systemsGained: Int!
+  systemsLost: Int!
+}
+
+"""
+A tracked sovereignty structure (IHub or TCU) with ownership and timer info.
+"""
+type SovereigntyStructureInfo {
+  structureId: String!
+  solarSystemId: Int!
+  solarSystemName: String
+  regionId: Int
+  regionName: String
+  allianceId: Int!
+  allianceName: String
+  allianceTicker: String
+  structureTypeId: Int!
+  structureTypeName: String!
+  "Vulnerability occupancy level (ADM proxy), 1.0..6.0, if reported by ESI."
+  occupancyLevel: Float
+  vulnerableStartTime: String
+  vulnerableEndTime: String
+  firstSeen: String!
+  lastSeen: String!
+}
+
+"""
+Count of active sovereignty campaigns in a region.
+"""
+type RegionCampaignCount {
+  regionId: Int!
+  regionName: String
+  campaignCount: Int!
 }
 
 """
@@ -72,4 +134,14 @@ extend type Query {
   allianceTerritoryRankings(limit: Int): [AllianceTerritoryRank!]!
   "Most recently detected territory ownership changes."
   recentTerritoryChanges(limit: Int): [TerritoryChange!]!
+  "Alliances ranked by campaigns currently attacking (most aggressive first)."
+  mostAggressiveAlliances(limit: Int): [AllianceActivityRank!]!
+  "Alliances ranked by campaigns currently defending (most defensive first)."
+  mostDefensiveAlliances(limit: Int): [AllianceActivityRank!]!
+  "All currently tracked (non-destroyed) sovereignty structures, optionally filtered."
+  sovereigntyStructures(allianceId: Int, systemId: Int, limit: Int): [SovereigntyStructureInfo!]!
+  "Structures whose vulnerability window opens within the next N hours (default 24), soonest first."
+  sovereigntyUpcomingTimers(hoursAhead: Int, limit: Int): [SovereigntyStructureInfo!]!
+  "Active sovereignty campaigns grouped by region, hottest first."
+  activeCampaignsByRegion(limit: Int): [RegionCampaignCount!]!
 }
