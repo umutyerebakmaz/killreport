@@ -87,8 +87,10 @@ async function enrichStructures(
     last_seen: Date;
   }[]
 ) {
-  const systems = await systemInfo(rows.map((r) => r.solar_system_id));
-  const alliances = await allianceNames(rows.map((r) => r.alliance_id));
+  const [systems, alliances] = await Promise.all([
+    systemInfo(rows.map((r) => r.solar_system_id)),
+    allianceNames(rows.map((r) => r.alliance_id)),
+  ]);
   const regions = await resolveRegions(systems);
 
   return rows.map((s) => {
@@ -132,6 +134,37 @@ async function latestTerritoryStats(allianceIds: number[]) {
     where: { date: latest._max.date, alliance_id: { in: allianceIds } },
   });
   return new Map(rows.map((r) => [r.alliance_id, r]));
+}
+
+/**
+ * Ranks alliances by an activity column (campaigns_attacking / campaigns_defending)
+ * from the latest daily snapshot. Shared by the aggressive/defensive leaderboards.
+ */
+async function activityLeaderboard(
+  column: 'campaigns_attacking' | 'campaigns_defending',
+  limit: number
+) {
+  const latest = await prisma.allianceTerritoryStats.aggregate({ _max: { date: true } });
+  if (!latest._max.date) return [];
+  const rows = await prisma.allianceTerritoryStats.findMany({
+    where: { date: latest._max.date, [column]: { gt: 0 } } as any,
+    orderBy: { [column]: 'desc' } as any,
+    take: limit,
+  });
+  const names = await allianceNames(rows.map((r) => r.alliance_id));
+  return rows.map((r, idx) => {
+    const a = names.get(r.alliance_id);
+    return {
+      rank: idx + 1,
+      allianceId: r.alliance_id,
+      allianceName: a?.name ?? null,
+      allianceTicker: a?.ticker ?? null,
+      campaignsAttacking: r.campaigns_attacking,
+      campaignsDefending: r.campaigns_defending,
+      systemsGained: r.systems_gained,
+      systemsLost: r.systems_lost,
+    };
+  });
 }
 
 export const sovereigntyQueries: QueryResolvers = {
@@ -268,53 +301,9 @@ export const sovereigntyQueries: QueryResolvers = {
     });
   },
 
-  mostAggressiveAlliances: async (_, { limit }) => {
-    const latest = await prisma.allianceTerritoryStats.aggregate({ _max: { date: true } });
-    if (!latest._max.date) return [];
-    const rows = await prisma.allianceTerritoryStats.findMany({
-      where: { date: latest._max.date, campaigns_attacking: { gt: 0 } },
-      orderBy: { campaigns_attacking: 'desc' },
-      take: limit ?? 10,
-    });
-    const names = await allianceNames(rows.map((r) => r.alliance_id));
-    return rows.map((r, idx) => {
-      const a = names.get(r.alliance_id);
-      return {
-        rank: idx + 1,
-        allianceId: r.alliance_id,
-        allianceName: a?.name ?? null,
-        allianceTicker: a?.ticker ?? null,
-        campaignsAttacking: r.campaigns_attacking,
-        campaignsDefending: r.campaigns_defending,
-        systemsGained: r.systems_gained,
-        systemsLost: r.systems_lost,
-      };
-    });
-  },
+  mostAggressiveAlliances: (_, { limit }) => activityLeaderboard('campaigns_attacking', limit ?? 10),
 
-  mostDefensiveAlliances: async (_, { limit }) => {
-    const latest = await prisma.allianceTerritoryStats.aggregate({ _max: { date: true } });
-    if (!latest._max.date) return [];
-    const rows = await prisma.allianceTerritoryStats.findMany({
-      where: { date: latest._max.date, campaigns_defending: { gt: 0 } },
-      orderBy: { campaigns_defending: 'desc' },
-      take: limit ?? 10,
-    });
-    const names = await allianceNames(rows.map((r) => r.alliance_id));
-    return rows.map((r, idx) => {
-      const a = names.get(r.alliance_id);
-      return {
-        rank: idx + 1,
-        allianceId: r.alliance_id,
-        allianceName: a?.name ?? null,
-        allianceTicker: a?.ticker ?? null,
-        campaignsAttacking: r.campaigns_attacking,
-        campaignsDefending: r.campaigns_defending,
-        systemsGained: r.systems_gained,
-        systemsLost: r.systems_lost,
-      };
-    });
-  },
+  mostDefensiveAlliances: (_, { limit }) => activityLeaderboard('campaigns_defending', limit ?? 10),
 
   recentTerritoryChanges: async (_, { limit }) => {
     const changes = await prisma.territoryChange.findMany({

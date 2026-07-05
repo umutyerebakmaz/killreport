@@ -21,15 +21,31 @@ function TypeBadge({ typeName }: { typeName: string }) {
   );
 }
 
-/** Live countdown to a future timestamp, re-rendering every second. */
+/** Formats a positive millisecond delta as "1h 05m 09s" (or "5m 09s" under an hour). */
+function formatCountdown(ms: number): string {
+  const totalSec = Math.floor(ms / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return h > 0 ? `${h}h ${pad(m)}m ${pad(s)}s` : `${m}m ${pad(s)}s`;
+}
+
+/** Live second-by-second countdown to a future timestamp. */
 function TimerCountdown({ target }: { target?: string | null }) {
-  const [, tick] = useState(0);
+  const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
-    const id = setInterval(() => tick((n) => n + 1), 1000);
+    setNow(Date.now());
+    const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
   if (!target) return <span className="text-gray-600">—</span>;
-  return <span className="text-yellow-400">{formatRelativeTime(target, true)}</span>;
+  // First (pre-hydration) render falls back to coarse text; the effect then ticks.
+  if (now === null)
+    return <span className="text-yellow-400">{formatRelativeTime(target, true)}</span>;
+  const ms = new Date(target).getTime() - now;
+  if (ms <= 0) return <span className="text-orange-400">open now</span>;
+  return <span className="text-yellow-400 tabular-nums">{formatCountdown(ms)}</span>;
 }
 
 function SystemCell({
