@@ -51,17 +51,19 @@ export function ConflictTreemap({ hotspots }: { hotspots: Hotspot[] }) {
             fontSize: 12,
           },
           itemStyle: { borderColor: "#0a0a0a", borderWidth: 2, gapWidth: 2 },
-          data: hotspots.map((h) => ({
-            ...h,
-            name: h.regionName ?? `#${h.regionId}`,
-            value: h.intensityScore,
-            itemStyle: {
-              // Cyan → red as war-kill count rises.
-              color: `rgb(${Math.round(34 + (maxKills ? (h.warKills / maxKills) * 200 : 0))}, ${Math.round(
-                211 - (maxKills ? (h.warKills / maxKills) * 150 : 0),
-              )}, ${Math.round(238 - (maxKills ? (h.warKills / maxKills) * 180 : 0))})`,
-            },
-          })),
+          data: hotspots.map((h) => {
+            // Cyan (rgb 34,211,238) → red (234,61,58) as war-kill count rises.
+            const t = maxKills ? h.warKills / maxKills : 0;
+            const r = Math.round(34 + t * 200);
+            const g = Math.round(211 - t * 150);
+            const b = Math.round(238 - t * 180);
+            return {
+              ...h,
+              name: h.regionName ?? `#${h.regionId}`,
+              value: h.intensityScore,
+              itemStyle: { color: `rgb(${r}, ${g}, ${b})` },
+            };
+          }),
         },
       ],
     };
