@@ -1,0 +1,12 @@
+query SovereigntyMap($regionId: Int) {
+  sovereigntyMapPoints(regionId: $regionId) {
+    systemId
+    systemName
+    x
+    y
+    allianceId
+    allianceName
+    allianceTicker
+    regionName
+  }
+}
