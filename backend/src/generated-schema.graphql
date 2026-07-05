@@ -736,6 +736,11 @@ type Query {
   """Resolved (ended) campaigns, newest-ended first, paginated."""
   sovereigntyCampaignHistory(limit: Int, offset: Int): SovereigntyCampaignHistoryPage!
 
+  """
+  Sov-held systems with coordinates for the territory map; optional region filter.
+  """
+  sovereigntyMapPoints(regionId: Int): [SovMapPoint!]!
+
   """Distribution of resolved campaign outcomes."""
   sovereigntyOutcomeStats: SovereigntyOutcomeStats!
 
@@ -963,6 +968,21 @@ enum SolarSystemOrderBy {
 type SolarSystemsResponse {
   items: [SolarSystem!]!
   pageInfo: PageInfo!
+}
+
+"""
+A sov-held solar system plotted on the territory map (position in light-years,
+galactic x/z projected to 2D).
+"""
+type SovMapPoint {
+  allianceId: Int
+  allianceName: String
+  allianceTicker: String
+  regionName: String
+  systemId: Int!
+  systemName: String
+  x: Float!
+  y: Float!
 }
 
 """An active sovereignty campaign (contested TCU / IHub / station)."""

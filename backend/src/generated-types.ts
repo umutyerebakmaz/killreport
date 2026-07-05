@@ -886,6 +886,8 @@ export type Query = {
   sovereigntyActiveCampaigns: Array<SovereigntyCampaign>;
   /** Resolved (ended) campaigns, newest-ended first, paginated. */
   sovereigntyCampaignHistory: SovereigntyCampaignHistoryPage;
+  /** Sov-held systems with coordinates for the territory map; optional region filter. */
+  sovereigntyMapPoints: Array<SovMapPoint>;
   /** Distribution of resolved campaign outcomes. */
   sovereigntyOutcomeStats: SovereigntyOutcomeStats;
   /** Summary counts for the current sovereignty state. */
@@ -1176,6 +1178,11 @@ export type QuerySovereigntyCampaignHistoryArgs = {
 };
 
 
+export type QuerySovereigntyMapPointsArgs = {
+  regionId?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
 export type QuerySovereigntyStructuresArgs = {
   allianceId?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -1420,6 +1427,22 @@ export type SolarSystemsResponse = {
   __typename?: 'SolarSystemsResponse';
   items: Array<SolarSystem>;
   pageInfo: PageInfo;
+};
+
+/**
+ * A sov-held solar system plotted on the territory map (position in light-years,
+ * galactic x/z projected to 2D).
+ */
+export type SovMapPoint = {
+  __typename?: 'SovMapPoint';
+  allianceId?: Maybe<Scalars['Int']['output']>;
+  allianceName?: Maybe<Scalars['String']['output']>;
+  allianceTicker?: Maybe<Scalars['String']['output']>;
+  regionName?: Maybe<Scalars['String']['output']>;
+  systemId: Scalars['Int']['output'];
+  systemName?: Maybe<Scalars['String']['output']>;
+  x: Scalars['Float']['output'];
+  y: Scalars['Float']['output'];
 };
 
 /** An active sovereignty campaign (contested TCU / IHub / station). */
@@ -2101,6 +2124,7 @@ export type ResolversTypes = {
   SolarSystemFilter: SolarSystemFilter;
   SolarSystemOrderBy: SolarSystemOrderBy;
   SolarSystemsResponse: ResolverTypeWrapper<SolarSystemsResponse>;
+  SovMapPoint: ResolverTypeWrapper<SovMapPoint>;
   SovereigntyCampaign: ResolverTypeWrapper<SovereigntyCampaign>;
   SovereigntyCampaignHistoryPage: ResolverTypeWrapper<SovereigntyCampaignHistoryPage>;
   SovereigntyOutcomeStats: ResolverTypeWrapper<SovereigntyOutcomeStats>;
@@ -2242,6 +2266,7 @@ export type ResolversParentTypes = {
   SolarSystem: SolarSystem;
   SolarSystemFilter: SolarSystemFilter;
   SolarSystemsResponse: SolarSystemsResponse;
+  SovMapPoint: SovMapPoint;
   SovereigntyCampaign: SovereigntyCampaign;
   SovereigntyCampaignHistoryPage: SovereigntyCampaignHistoryPage;
   SovereigntyOutcomeStats: SovereigntyOutcomeStats;
@@ -2796,6 +2821,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   solarSystems?: Resolver<ResolversTypes['SolarSystemsResponse'], ParentType, ContextType, Partial<QuerySolarSystemsArgs>>;
   sovereigntyActiveCampaigns?: Resolver<Array<ResolversTypes['SovereigntyCampaign']>, ParentType, ContextType, Partial<QuerySovereigntyActiveCampaignsArgs>>;
   sovereigntyCampaignHistory?: Resolver<ResolversTypes['SovereigntyCampaignHistoryPage'], ParentType, ContextType, Partial<QuerySovereigntyCampaignHistoryArgs>>;
+  sovereigntyMapPoints?: Resolver<Array<ResolversTypes['SovMapPoint']>, ParentType, ContextType, Partial<QuerySovereigntyMapPointsArgs>>;
   sovereigntyOutcomeStats?: Resolver<ResolversTypes['SovereigntyOutcomeStats'], ParentType, ContextType>;
   sovereigntyOverview?: Resolver<ResolversTypes['SovereigntyOverview'], ParentType, ContextType>;
   sovereigntyStructures?: Resolver<Array<ResolversTypes['SovereigntyStructureInfo']>, ParentType, ContextType, Partial<QuerySovereigntyStructuresArgs>>;
@@ -2906,6 +2932,17 @@ export type SolarSystemResolvers<ContextType = any, ParentType extends Resolvers
 export type SolarSystemsResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['SolarSystemsResponse'] = ResolversParentTypes['SolarSystemsResponse']> = {
   items?: Resolver<Array<ResolversTypes['SolarSystem']>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+};
+
+export type SovMapPointResolvers<ContextType = any, ParentType extends ResolversParentTypes['SovMapPoint'] = ResolversParentTypes['SovMapPoint']> = {
+  allianceId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  allianceName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  allianceTicker?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  regionName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  systemId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  systemName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  x?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  y?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
 };
 
 export type SovereigntyCampaignResolvers<ContextType = any, ParentType extends ResolversParentTypes['SovereigntyCampaign'] = ResolversParentTypes['SovereigntyCampaign']> = {
@@ -3264,6 +3301,7 @@ export type Resolvers<ContextType = any> = {
   SlotGroup?: SlotGroupResolvers<ContextType>;
   SolarSystem?: SolarSystemResolvers<ContextType>;
   SolarSystemsResponse?: SolarSystemsResponseResolvers<ContextType>;
+  SovMapPoint?: SovMapPointResolvers<ContextType>;
   SovereigntyCampaign?: SovereigntyCampaignResolvers<ContextType>;
   SovereigntyCampaignHistoryPage?: SovereigntyCampaignHistoryPageResolvers<ContextType>;
   SovereigntyOutcomeStats?: SovereigntyOutcomeStatsResolvers<ContextType>;
