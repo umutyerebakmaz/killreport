@@ -224,6 +224,6 @@ extend type Query {
   sovereigntyOutcomeStats: SovereigntyOutcomeStats!
   "Alliances ranked by successful defenses of ended campaigns."
   topDefenders(limit: Int): [AllianceDefenseRecord!]!
-  "Sov-held systems with coordinates for the territory map; optional region filter."
-  sovereigntyMapPoints(regionId: Int): [SovMapPoint!]!
+  "All sov-held systems with coordinates, for the territory map (filter by region client-side)."
+  sovereigntyMapPoints: [SovMapPoint!]!
 }
