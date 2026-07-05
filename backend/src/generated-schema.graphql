@@ -22,6 +22,20 @@ type Alliance {
   topShipTargets(filter: TopTargetFilter): [ShipTopKill!]!
 }
 
+"""
+An alliance ranked by activity level from its latest daily territory snapshot.
+"""
+type AllianceActivityRank {
+  allianceId: Int!
+  allianceName: String
+  allianceTicker: String
+  campaignsAttacking: Int!
+  campaignsDefending: Int!
+  rank: Int!
+  systemsGained: Int!
+  systemsLost: Int!
+}
+
 input AllianceFilter {
   dateFoundedFrom: String
   dateFoundedTo: String
@@ -68,9 +82,17 @@ type AllianceTerritoryRank {
   allianceId: Int!
   allianceName: String
   allianceTicker: String
+
+  """
+  From the alliance's most recent daily territory snapshot (0 if no snapshot yet).
+  """
+  campaignsAttacking: Int!
+  campaignsDefending: Int!
   ihubCount: Int!
   rank: Int!
   systemsControlled: Int!
+  systemsGained: Int!
+  systemsLost: Int!
 }
 
 type AllianceTopTarget {
@@ -139,6 +161,16 @@ type CacheStats {
   memoryUsage: String!
   responseCacheKeys: Int!
   totalKeys: Int!
+}
+
+"""
+An alliance participating in a sovereignty campaign, with its contest score.
+"""
+type CampaignParticipant {
+  allianceId: Int!
+  allianceName: String
+  allianceTicker: String
+  score: Float!
 }
 
 type CategoriesResponse {
@@ -461,6 +493,11 @@ type Killmail {
   finalBlow: Attacker
   fitting: Fitting
   id: ID!
+
+  """
+  Whether this kill was correlated to an active sovereignty war campaign.
+  """
+  isWarRelated: Boolean!
   items: [KillmailItem!]!
   killmailHash: String!
   killmailTime: String!
@@ -500,6 +537,9 @@ input KillmailFilter {
   startDate: String
   systemId: Int
   victim: Boolean
+
+  """Only return killmails correlated to an active sovereignty campaign."""
+  warRelated: Boolean
 }
 
 type KillmailItem {
@@ -586,6 +626,9 @@ type Position {
 
 type Query {
   _empty: String
+
+  """Active sovereignty campaigns grouped by region, hottest first."""
+  activeCampaignsByRegion(limit: Int): [RegionCampaignCount!]!
   activeUsersCount: Int!
   alliance(id: Int!): Alliance
 
@@ -637,6 +680,16 @@ type Query {
 
   """Mevcut authenticated kullanıcının bilgilerini döner"""
   me: User
+
+  """
+  Alliances ranked by campaigns currently attacking (most aggressive first).
+  """
+  mostAggressiveAlliances(limit: Int): [AllianceActivityRank!]!
+
+  """
+  Alliances ranked by campaigns currently defending (most defensive first).
+  """
+  mostDefensiveAlliances(limit: Int): [AllianceActivityRank!]!
   race(id: Int!): Race
   races: [Race!]!
 
@@ -652,6 +705,16 @@ type Query {
 
   """Summary counts for the current sovereignty state."""
   sovereigntyOverview: SovereigntyOverview!
+
+  """
+  All currently tracked (non-destroyed) sovereignty structures, optionally filtered.
+  """
+  sovereigntyStructures(allianceId: Int, limit: Int, systemId: Int): [SovereigntyStructureInfo!]!
+
+  """
+  Structures whose vulnerability window opens within the next N hours (default 24), soonest first.
+  """
+  sovereigntyUpcomingTimers(hoursAhead: Int, limit: Int): [SovereigntyStructureInfo!]!
   systemKillsHistory(filter: SystemKillsFilter!): [SystemKills!]!
   systemLatestKills(system_id: Int!): SystemKills
 
@@ -778,6 +841,13 @@ type Region {
   solarSystemCount: Int!
 }
 
+"""Count of active sovereignty campaigns in a region."""
+type RegionCampaignCount {
+  campaignCount: Int!
+  regionId: Int!
+  regionName: String
+}
+
 input RegionFilter {
   limit: Int
   name: String
@@ -869,6 +939,11 @@ type SovereigntyCampaign {
 
   """ISK destroyed in this campaign's war zone."""
   iskDestroyed: Float!
+
+  """
+  Alliances contesting this campaign (attackers and/or defender) with their score.
+  """
+  participants: [CampaignParticipant!]!
   regionId: Int
   regionName: String
   solarSystemId: Int!
@@ -894,6 +969,31 @@ type SovereigntyOverview {
 
   """Total killmails correlated to active sovereignty campaigns."""
   warKills: Int!
+}
+
+"""
+A tracked sovereignty structure (IHub or TCU) with ownership and timer info.
+"""
+type SovereigntyStructureInfo {
+  allianceId: Int!
+  allianceName: String
+  allianceTicker: String
+  firstSeen: String!
+  lastSeen: String!
+
+  """
+  Vulnerability occupancy level (ADM proxy), 1.0..6.0, if reported by ESI.
+  """
+  occupancyLevel: Float
+  regionId: Int
+  regionName: String
+  solarSystemId: Int!
+  solarSystemName: String
+  structureId: String!
+  structureTypeId: Int!
+  structureTypeName: String!
+  vulnerableEndTime: String
+  vulnerableStartTime: String
 }
 
 type StandaloneWorkerStatus {
