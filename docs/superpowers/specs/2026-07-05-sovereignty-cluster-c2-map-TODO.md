@@ -19,5 +19,5 @@ Companion to `2026-07-05-sovereignty-cluster-c2-map-design.md`.
 - [x] Verify (GraphQL + browser)
 
 ## Wrap-up
-- [ ] `/code-review`
-- [ ] Commit + push
+- [x] `/code-review` (high) — fixed: removed dead server regionId (client-side filter kept), square-window + near-square grid for undistorted aspect, small-N true-extent bounds (no frontier clipping), bucket by allianceId, empty-points guard. Skipped: null-region dropdown gap (rare, low value).
+- [x] Commit + push

@@ -886,7 +886,7 @@ export type Query = {
   sovereigntyActiveCampaigns: Array<SovereigntyCampaign>;
   /** Resolved (ended) campaigns, newest-ended first, paginated. */
   sovereigntyCampaignHistory: SovereigntyCampaignHistoryPage;
-  /** Sov-held systems with coordinates for the territory map; optional region filter. */
+  /** All sov-held systems with coordinates, for the territory map (filter by region client-side). */
   sovereigntyMapPoints: Array<SovMapPoint>;
   /** Distribution of resolved campaign outcomes. */
   sovereigntyOutcomeStats: SovereigntyOutcomeStats;
@@ -1175,11 +1175,6 @@ export type QuerySovereigntyActiveCampaignsArgs = {
 export type QuerySovereigntyCampaignHistoryArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QuerySovereigntyMapPointsArgs = {
-  regionId?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -2821,7 +2816,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   solarSystems?: Resolver<ResolversTypes['SolarSystemsResponse'], ParentType, ContextType, Partial<QuerySolarSystemsArgs>>;
   sovereigntyActiveCampaigns?: Resolver<Array<ResolversTypes['SovereigntyCampaign']>, ParentType, ContextType, Partial<QuerySovereigntyActiveCampaignsArgs>>;
   sovereigntyCampaignHistory?: Resolver<ResolversTypes['SovereigntyCampaignHistoryPage'], ParentType, ContextType, Partial<QuerySovereigntyCampaignHistoryArgs>>;
-  sovereigntyMapPoints?: Resolver<Array<ResolversTypes['SovMapPoint']>, ParentType, ContextType, Partial<QuerySovereigntyMapPointsArgs>>;
+  sovereigntyMapPoints?: Resolver<Array<ResolversTypes['SovMapPoint']>, ParentType, ContextType>;
   sovereigntyOutcomeStats?: Resolver<ResolversTypes['SovereigntyOutcomeStats'], ParentType, ContextType>;
   sovereigntyOverview?: Resolver<ResolversTypes['SovereigntyOverview'], ParentType, ContextType>;
   sovereigntyStructures?: Resolver<Array<ResolversTypes['SovereigntyStructureInfo']>, ParentType, ContextType, Partial<QuerySovereigntyStructuresArgs>>;

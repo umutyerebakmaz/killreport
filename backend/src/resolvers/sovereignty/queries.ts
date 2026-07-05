@@ -492,7 +492,7 @@ export const sovereigntyQueries: QueryResolvers = {
       }));
   },
 
-  sovereigntyMapPoints: async (_, { regionId }) => {
+  sovereigntyMapPoints: async () => {
     const LIGHT_YEAR_M = 9.4607e15; // meters, for friendlier map coordinates
 
     const owned = await prisma.sovereigntyMapCurrent.findMany({
@@ -520,7 +520,6 @@ export const sovereigntyQueries: QueryResolvers = {
     const points = [];
     for (const s of systems) {
       const rId = regions.regionIdForSystem(s.id);
-      if (regionId != null && rId !== regionId) continue;
       const allianceId = allianceBySystem.get(s.id) ?? null;
       const a = allianceId != null ? names.get(allianceId) : null;
       points.push({

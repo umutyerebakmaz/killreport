@@ -887,7 +887,7 @@ export type Query = {
   sovereigntyActiveCampaigns: Array<SovereigntyCampaign>;
   /** Resolved (ended) campaigns, newest-ended first, paginated. */
   sovereigntyCampaignHistory: SovereigntyCampaignHistoryPage;
-  /** Sov-held systems with coordinates for the territory map; optional region filter. */
+  /** All sov-held systems with coordinates, for the territory map (filter by region client-side). */
   sovereigntyMapPoints: Array<SovMapPoint>;
   /** Distribution of resolved campaign outcomes. */
   sovereigntyOutcomeStats: SovereigntyOutcomeStats;
@@ -1176,11 +1176,6 @@ export type QuerySovereigntyActiveCampaignsArgs = {
 export type QuerySovereigntyCampaignHistoryArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QuerySovereigntyMapPointsArgs = {
-  regionId?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -2384,9 +2379,7 @@ export type SovereigntyHistoryPageQueryVariables = Exact<{
 
 export type SovereigntyHistoryPageQuery = { __typename?: 'Query', sovereigntyOutcomeStats: { __typename?: 'SovereigntyOutcomeStats', defenderWon: number, attackerWon: number, abandoned: number, totalResolved: number }, topDefenders: Array<{ __typename?: 'AllianceDefenseRecord', rank: number, allianceId: number, allianceName?: string | null, allianceTicker?: string | null, defensesWon: number, defensesTotal: number, defenseSuccessRate: number }>, sovereigntyCampaignHistory: { __typename?: 'SovereigntyCampaignHistoryPage', totalCount: number, items: Array<{ __typename?: 'SovereigntyCampaign', campaignId: number, eventType: string, solarSystemId: number, solarSystemName?: string | null, regionName?: string | null, defenderId?: number | null, defenderName?: string | null, defenderTicker?: string | null, defenderScore?: number | null, attackersScore?: number | null, outcome?: string | null, durationHours?: number | null, endTime?: string | null, warKills: number, iskDestroyed: number, defenderIskLost: number, attackerIskLost: number }> } };
 
-export type SovereigntyMapQueryVariables = Exact<{
-  regionId?: InputMaybe<Scalars['Int']['input']>;
-}>;
+export type SovereigntyMapQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type SovereigntyMapQuery = { __typename?: 'Query', sovereigntyMapPoints: Array<{ __typename?: 'SovMapPoint', systemId: number, systemName?: string | null, x: number, y: number, allianceId?: number | null, allianceName?: string | null, allianceTicker?: string | null, regionName?: string | null }> };
@@ -6597,8 +6590,8 @@ export type SovereigntyHistoryPageLazyQueryHookResult = ReturnType<typeof useSov
 export type SovereigntyHistoryPageSuspenseQueryHookResult = ReturnType<typeof useSovereigntyHistoryPageSuspenseQuery>;
 export type SovereigntyHistoryPageQueryResult = Apollo.QueryResult<SovereigntyHistoryPageQuery, SovereigntyHistoryPageQueryVariables>;
 export const SovereigntyMapDocument = gql`
-    query SovereigntyMap($regionId: Int) {
-  sovereigntyMapPoints(regionId: $regionId) {
+    query SovereigntyMap {
+  sovereigntyMapPoints {
     systemId
     systemName
     x
@@ -6623,7 +6616,6 @@ export const SovereigntyMapDocument = gql`
  * @example
  * const { data, loading, error } = useSovereigntyMapQuery({
  *   variables: {
- *      regionId: // value for 'regionId'
  *   },
  * });
  */
