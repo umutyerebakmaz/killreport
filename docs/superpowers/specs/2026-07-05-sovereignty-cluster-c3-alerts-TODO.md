@@ -10,22 +10,22 @@ watchlist table, no email/Discord.
 ---
 
 ## Backend
-- [ ] `pubsub.ts`: add `SOVEREIGNTY_ALERT` channel + payload type
-- [ ] `src/schemas/SovereigntyAlert.graphql`: `SovereigntyAlert` type + `extend type Subscription`
-- [ ] `src/resolvers/sovereignty/subscriptions.ts`: subscribe + resolve (hydrate names, build message)
-- [ ] Register `...sovereigntySubscriptions` in `resolvers/index.ts` Subscription map
-- [ ] `cd backend && yarn codegen`
-- [ ] `worker-sovereignty-campaigns.ts`: emit campaign_started (new ids) + campaign_ended (departing)
-- [ ] `worker-sovereignty-map.ts`: emit territory_change per detected change
-- [ ] `ecosystem.config.js`: add `USE_REDIS_PUBSUB: 'true'` to the two workers' PM2 env
+- [x] `pubsub.ts`: add `SOVEREIGNTY_ALERT` channel + payload type
+- [x] `src/schemas/SovereigntyAlert.graphql`: `SovereigntyAlert` type + `extend type Subscription`
+- [x] `src/resolvers/sovereignty/subscriptions.ts`: subscribe + resolve (hydrate names, build message)
+- [x] Register `...sovereigntySubscriptions` in `resolvers/index.ts` Subscription map
+- [x] `cd backend && yarn codegen`
+- [x] `worker-sovereignty-campaigns.ts`: emit campaign_started (new ids) + campaign_ended (departing)
+- [x] `worker-sovereignty-map.ts`: emit territory_change per detected change
+- [x] `ecosystem.config.js`: add `USE_REDIS_PUBSUB: 'true'` to the two workers' PM2 env
 
 ## Frontend
-- [ ] `src/graphql/SovereigntyAlertSubscription.graphql` + codegen
-- [ ] `components/Sovereignty/SovereigntyAlertsProvider.tsx` (subscription + toast + localStorage recent + fav filter)
-- [ ] `components/Sovereignty/AlertToast.tsx` (styled toast, auto-dismiss)
-- [ ] `components/Notifications/NotificationBell.tsx` (bell + unread badge + dropdown) in Header
-- [ ] Mount provider in `app/layout.tsx`
-- [ ] Verify (synthetic publish + browser)
+- [x] `src/graphql/SovereigntyAlertSubscription.graphql` + codegen
+- [x] `components/Sovereignty/SovereigntyAlertsProvider.tsx` (subscription + toast + localStorage recent + fav filter)
+- [x] `components/Sovereignty/AlertToast.tsx` (styled toast, auto-dismiss)
+- [x] `components/Notifications/NotificationBell.tsx` (bell + unread badge + dropdown) in Header
+- [x] Mount provider in `app/layout.tsx`
+- [x] Verify (synthetic publish + browser)
 
 ## Wrap-up
 - [ ] `/code-review`

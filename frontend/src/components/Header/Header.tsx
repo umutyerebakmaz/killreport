@@ -16,6 +16,7 @@ import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import React, { useState } from "react";
 import ActiveUsersCounter from "../ActiveUsersCounter";
 import AuthButton from "../AuthButton/AuthButton";
+import NotificationBell from "../Notifications/NotificationBell";
 import EveStatus from "../EveStatus/EveStatus";
 import EveTime from "../EveTime/EveTime";
 import Tooltip from "../Tooltip/Tooltip";
@@ -274,6 +275,7 @@ export default function Header() {
             <Tooltip content="Current Eve Online ingame time" position="bottom">
               <EveTime />
             </Tooltip>
+            <NotificationBell />
           </div>
           <AuthButton />
         </div>
