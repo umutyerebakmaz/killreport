@@ -71,6 +71,11 @@ async function resolveRegions(
   };
 }
 
+/** Convenience: build a region resolver directly from a list of system ids. */
+async function resolveRegionsForSystems(systemIds: number[]) {
+  return resolveRegions(await systemInfo(systemIds));
+}
+
 const STRUCTURE_TYPE_NAMES: Record<number, string> = { 32458: 'IHub', 32226: 'TCU' };
 
 /** Enriches raw SovereigntyStructure rows with system/region/alliance names. */
@@ -468,8 +473,7 @@ export const sovereigntyQueries: QueryResolvers = {
       where: { end_time: null },
       select: { solar_system_id: true },
     });
-    const systems = await systemInfo(campaigns.map((c) => c.solar_system_id));
-    const regions = await resolveRegions(systems);
+    const regions = await resolveRegionsForSystems(campaigns.map((c) => c.solar_system_id));
 
     const counts = new Map<number, number>();
     for (const c of campaigns) {
@@ -493,12 +497,13 @@ export const sovereigntyQueries: QueryResolvers = {
       where: { end_time: null },
       select: { campaign_id: true, solar_system_id: true },
     });
-    const systems = await systemInfo(campaigns.map((c) => c.solar_system_id));
-    const regions = await resolveRegions(systems);
-
-    const combatStats = await prisma.campaignCombatStats.findMany({
-      where: { campaign_id: { in: campaigns.map((c) => c.campaign_id) } },
-    });
+    // Region resolution and combat stats are independent — run them together.
+    const [regions, combatStats] = await Promise.all([
+      resolveRegionsForSystems(campaigns.map((c) => c.solar_system_id)),
+      prisma.campaignCombatStats.findMany({
+        where: { campaign_id: { in: campaigns.map((c) => c.campaign_id) } },
+      }),
+    ]);
     const combatByCampaign = new Map(combatStats.map((s) => [s.campaign_id, s]));
 
     const agg = new Map<number, { activeCampaigns: number; warKills: number; iskDestroyed: number }>();
