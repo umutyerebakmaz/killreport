@@ -35,5 +35,9 @@ multi-day historical views.
 
 ## Wrap-up
 - [x] Full runtime pass (GraphQL + browser)
-- [~] `/code-review`
-- [~] Commit + push
+- [x] `/code-review` (high, workflow-backed) — fixed: ending-loop atomicity (per-row try/catch),
+  empty-ESI end-marking guard, reappearance clears `outcome`, topDefenders excludes null-outcome,
+  outcome backfill migration. Documented/skipped with rationale: defender_id-null split (correct by
+  definition), same-system concurrent-campaign tagging (pre-existing Phase 3 model), post-deploy
+  split self-heal, heuristic score-lag, N+1 aggregate.
+- [x] Commit + push
