@@ -69,8 +69,13 @@ Living checklist — updated as work proceeds. `[ ]` todo · `[~]` in progress �
 
 ### Cluster A wrap-up
 - [x] Full manual/runtime pass across all 5 features (browser + GraphQL)
-- [ ] `/code-review` on the diff
-- [ ] Commit + push
+- [x] `/code-review` on the diff (high, workflow-backed) — 5 findings, all fixed & verified:
+  - [x] killmail materialized COUNT now includes date conditions (fixed pre-existing overcount)
+  - [x] `killmailsDateCounts` now applies `warRelated` in both branches (was full-table scan)
+  - [x] `TimerCountdown` is a real H:MM:SS second-by-second countdown
+  - [x] `enrichStructures` runs systemInfo/allianceNames concurrently (Promise.all)
+  - [x] aggressive/defensive resolvers collapsed into shared `activityLeaderboard` helper
+- [x] Commit + push (15acd8a initial, + review-fixes commit)
 
 ---
 
