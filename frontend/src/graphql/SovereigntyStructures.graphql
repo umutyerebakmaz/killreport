@@ -1,0 +1,33 @@
+query SovereigntyStructuresPage {
+  sovereigntyUpcomingTimers(hoursAhead: 24, limit: 100) {
+    structureId
+    solarSystemId
+    solarSystemName
+    regionId
+    regionName
+    allianceId
+    allianceName
+    allianceTicker
+    structureTypeId
+    structureTypeName
+    occupancyLevel
+    vulnerableStartTime
+    vulnerableEndTime
+  }
+  sovereigntyStructures(limit: 500) {
+    structureId
+    solarSystemId
+    solarSystemName
+    regionId
+    regionName
+    allianceId
+    allianceName
+    allianceTicker
+    structureTypeId
+    structureTypeName
+    occupancyLevel
+    vulnerableStartTime
+    vulnerableEndTime
+    lastSeen
+  }
+}

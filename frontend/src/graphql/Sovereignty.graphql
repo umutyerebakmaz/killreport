@@ -14,6 +14,27 @@ query SovereigntyDashboard {
     allianceTicker
     systemsControlled
     ihubCount
+    campaignsAttacking
+    campaignsDefending
+  }
+  mostAggressiveAlliances(limit: 10) {
+    rank
+    allianceId
+    allianceName
+    allianceTicker
+    campaignsAttacking
+  }
+  mostDefensiveAlliances(limit: 10) {
+    rank
+    allianceId
+    allianceName
+    allianceTicker
+    campaignsDefending
+  }
+  activeCampaignsByRegion(limit: 10) {
+    regionId
+    regionName
+    campaignCount
   }
   sovereigntyActiveCampaigns(limit: 50) {
     campaignId
@@ -29,6 +50,12 @@ query SovereigntyDashboard {
     startTime
     warKills
     iskDestroyed
+    participants {
+      allianceId
+      allianceName
+      allianceTicker
+      score
+    }
   }
   recentTerritoryChanges(limit: 25) {
     id
