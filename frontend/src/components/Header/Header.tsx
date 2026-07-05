@@ -219,6 +219,17 @@ export default function Header() {
                     </p>
                   </div>
                 </div>
+                <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
+                  <div className="flex-auto">
+                    <a href="/sovereignty/history" className="block font-semibold text-white">
+                      HISTORY
+                      <span className="absolute inset-0" />
+                    </a>
+                    <p className="mt-1 text-gray-400">
+                      Resolved campaigns, outcomes, and top defenders
+                    </p>
+                  </div>
+                </div>
               </div>
             </PopoverPanel>
           </Popover>
@@ -373,6 +384,13 @@ export default function Header() {
                       className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
                     >
                       STRUCTURES &amp; TIMERS
+                    </DisclosureButton>
+                    <DisclosureButton
+                      as="a"
+                      href="/sovereignty/history"
+                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
+                    >
+                      HISTORY
                     </DisclosureButton>
                   </DisclosurePanel>
                 </Disclosure>

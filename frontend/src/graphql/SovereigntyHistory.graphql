@@ -1,0 +1,39 @@
+query SovereigntyHistoryPage($limit: Int, $offset: Int) {
+  sovereigntyOutcomeStats {
+    defenderWon
+    attackerWon
+    abandoned
+    totalResolved
+  }
+  topDefenders(limit: 10) {
+    rank
+    allianceId
+    allianceName
+    allianceTicker
+    defensesWon
+    defensesTotal
+    defenseSuccessRate
+  }
+  sovereigntyCampaignHistory(limit: $limit, offset: $offset) {
+    totalCount
+    items {
+      campaignId
+      eventType
+      solarSystemId
+      solarSystemName
+      regionName
+      defenderId
+      defenderName
+      defenderTicker
+      defenderScore
+      attackersScore
+      outcome
+      durationHours
+      endTime
+      warKills
+      iskDestroyed
+      defenderIskLost
+      attackerIskLost
+    }
+  }
+}

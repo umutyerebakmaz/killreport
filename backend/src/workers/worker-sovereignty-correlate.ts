@@ -34,7 +34,7 @@ async function correlateSovereigntyKillmails() {
   try {
     const campaigns = await prismaWorker.sovereigntyCampaign.findMany({
       where: { end_time: null },
-      select: { campaign_id: true, solar_system_id: true, start_time: true },
+      select: { campaign_id: true, solar_system_id: true, start_time: true, defender_id: true },
     });
     logger.info(`📡 Correlating against ${campaigns.length} active campaigns`);
 
@@ -70,19 +70,42 @@ async function correlateSovereigntyKillmails() {
       campaignsWithKills++;
 
       const iskDestroyed = agg._sum.total_value ?? 0;
+
+      // Attacker-vs-defender split: a tagged kill is a defender loss when the
+      // victim's alliance is the campaign defender; everything else (attacker
+      // ships and unaffiliated victims) is an attacker/third-party loss. The
+      // attacker side is derived as (total - defender) so the two always sum to
+      // the flat totals above.
+      let defenderShipsLost = 0;
+      let defenderIskLost = 0;
+      if (campaign.defender_id != null) {
+        const defAgg = await prismaWorker.killmail.aggregate({
+          where: {
+            related_campaign_id: campaign.campaign_id,
+            victim: { alliance_id: campaign.defender_id },
+          },
+          _count: { _all: true },
+          _sum: { total_value: true },
+        });
+        defenderShipsLost = defAgg._count._all;
+        defenderIskLost = defAgg._sum.total_value ?? 0;
+      }
+      const attackerShipsLost = warKills - defenderShipsLost;
+      const attackerIskLost = iskDestroyed - defenderIskLost;
+
+      const stats = {
+        war_kills: warKills,
+        isk_destroyed: iskDestroyed,
+        ships_destroyed: warKills,
+        defender_isk_lost: defenderIskLost,
+        attacker_isk_lost: attackerIskLost,
+        defender_ships_lost: defenderShipsLost,
+        attacker_ships_lost: attackerShipsLost,
+      };
       await prismaWorker.campaignCombatStats.upsert({
         where: { campaign_id: campaign.campaign_id },
-        create: {
-          campaign_id: campaign.campaign_id,
-          war_kills: warKills,
-          isk_destroyed: iskDestroyed,
-          ships_destroyed: warKills,
-        },
-        update: {
-          war_kills: warKills,
-          isk_destroyed: iskDestroyed,
-          ships_destroyed: warKills,
-        },
+        create: { campaign_id: campaign.campaign_id, ...stats },
+        update: stats,
       });
     }
 
