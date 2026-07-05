@@ -75,8 +75,12 @@ PrismaClient type imports from `../generated/prisma/client` (not `@prisma/client
   edge case tied to the pre-existing "end on disappear" lifecycle (would need a debounce/migration).
 - **Structure-vulnerability-timer alerts** — timer-based, not a discrete worker-detected event.
 
-### Cluster D — product/business (never started)
-Premium tiers, payments, mobile app, Discord bot, public API productization. Out of dev scope.
+### Cluster D — monetization (DROPPED, not part of this project)
+The original roadmap doc (`SOVEREIGNTY_FEATURES_TR.md`) proposed premium tiers / payments / paid
+API. **This is explicitly NOT wanted for this project** — there is no monetization plan, and CCP's
+EVE third-party developer license restricts commercializing tools built on EVE IP. Do NOT propose
+premium/payment/paid features again. (A free Discord bot or free public API would be fine on their
+own merits, but not as a paid tier.)
 
 ---
 
