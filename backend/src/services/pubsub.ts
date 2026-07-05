@@ -3,8 +3,19 @@ import { createPubSub } from 'graphql-yoga';
 import Redis from 'ioredis';
 
 // PubSub event types
+export type SovereigntyAlertPayload = {
+    type: 'campaign_started' | 'campaign_ended' | 'territory_change';
+    systemId: number;
+    defenderId?: number | null;
+    outcome?: string | null;
+    previousOwnerId?: number | null;
+    newOwnerId?: number | null;
+    changeType?: string | null;
+};
+
 export type PubSubChannels = {
     'NEW_KILLMAIL': [{ killmailId: number }];
+    'SOVEREIGNTY_ALERT': [SovereigntyAlertPayload];
 };
 
 // Check if Redis is available for distributed PubSub

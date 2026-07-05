@@ -16,6 +16,7 @@
 
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
+import { pubsub } from '@services/pubsub';
 import { SovereigntyService } from '@services/sovereignty/sovereignty.service';
 
 // "Nobody really contested" threshold for outcome inference (scores are 0..1).
@@ -44,6 +45,14 @@ async function syncSovereigntyCampaigns() {
 
     const now = new Date();
     let participantCount = 0;
+
+    // Ids already in the DB — anything in the ESI feed but not here is a NEW
+    // campaign we should alert on.
+    const existingIds = new Set(
+      (await prismaWorker.sovereigntyCampaign.findMany({ select: { campaign_id: true } })).map(
+        (c) => c.campaign_id
+      )
+    );
 
     for (const campaign of campaigns) {
       // Upsert the campaign itself
@@ -88,6 +97,15 @@ async function syncSovereigntyCampaigns() {
         });
         participantCount++;
       }
+
+      // Alert on a genuinely new campaign (wasn't in the DB before this run).
+      if (!existingIds.has(campaign.campaign_id)) {
+        pubsub.publish('SOVEREIGNTY_ALERT', {
+          type: 'campaign_started',
+          systemId: campaign.solar_system_id,
+          defenderId: campaign.defender_id ?? null,
+        });
+      }
     }
 
     // Mark campaigns that are no longer active as ended, inferring an outcome
@@ -101,18 +119,31 @@ async function syncSovereigntyCampaigns() {
       const activeIds = campaigns.map((c) => c.campaign_id);
       const departing = await prismaWorker.sovereigntyCampaign.findMany({
         where: { end_time: null, campaign_id: { notIn: activeIds } },
-        select: { campaign_id: true, defender_score: true, attackers_score: true },
+        select: {
+          campaign_id: true,
+          solar_system_id: true,
+          defender_id: true,
+          defender_score: true,
+          attackers_score: true,
+        },
       });
       // Per-row updates are wrapped individually so one failing row doesn't
       // strand the campaigns after it (they'd otherwise stay end_time=null and
       // keep showing as active wars).
       for (const c of departing) {
         try {
+          const outcome = inferOutcome(c.defender_score, c.attackers_score);
           await prismaWorker.sovereigntyCampaign.update({
             where: { campaign_id: c.campaign_id },
-            data: { end_time: now, outcome: inferOutcome(c.defender_score, c.attackers_score) },
+            data: { end_time: now, outcome },
           });
           endedCount++;
+          pubsub.publish('SOVEREIGNTY_ALERT', {
+            type: 'campaign_ended',
+            systemId: c.solar_system_id,
+            defenderId: c.defender_id,
+            outcome,
+          });
         } catch (err) {
           logger.error(`Failed to end campaign ${c.campaign_id}`, { err });
         }

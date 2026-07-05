@@ -20,7 +20,11 @@
 
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
+import { pubsub } from '@services/pubsub';
 import { SovereigntyService } from '@services/sovereignty/sovereignty.service';
+
+// Cap territory-change alerts per run so a large reshuffle can't flood clients.
+const MAX_CHANGE_ALERTS = 25;
 
 const CHUNK_SIZE = 100;
 
@@ -127,6 +131,16 @@ async function syncSovereigntyMap() {
     // Persist territory changes
     if (changes.length > 0) {
       await prismaWorker.territoryChange.createMany({ data: changes });
+      // Push live alerts (capped so a big reshuffle doesn't flood clients).
+      for (const ch of changes.slice(0, MAX_CHANGE_ALERTS)) {
+        pubsub.publish('SOVEREIGNTY_ALERT', {
+          type: 'territory_change',
+          systemId: ch.solar_system_id,
+          previousOwnerId: ch.previous_owner_id,
+          newOwnerId: ch.new_owner_id,
+          changeType: ch.change_type,
+        });
+      }
     }
 
     // Upsert changed / new ownership rows

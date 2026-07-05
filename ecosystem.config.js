@@ -342,6 +342,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         LOG_LEVEL: 'info',
+        USE_REDIS_PUBSUB: 'true', // so campaign alerts reach API-server subscribers
       },
       error_file: '/var/www/killreport/logs/worker-sov-campaigns-error.log',
       out_file: '/var/www/killreport/logs/worker-sov-campaigns-out.log',
@@ -361,6 +362,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         LOG_LEVEL: 'info',
+        USE_REDIS_PUBSUB: 'true', // so territory-change alerts reach API-server subscribers
       },
       error_file: '/var/www/killreport/logs/worker-sov-map-error.log',
       out_file: '/var/www/killreport/logs/worker-sov-map-out.log',
