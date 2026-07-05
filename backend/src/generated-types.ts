@@ -295,6 +295,18 @@ export type CharactersResponse = {
   pageInfo: PageInfo;
 };
 
+/** A region ranked by sovereignty conflict intensity. */
+export type ConflictHotspot = {
+  __typename?: 'ConflictHotspot';
+  activeCampaigns: Scalars['Int']['output'];
+  /** Composite conflict-intensity score (heuristic: activeCampaigns*3 + warKills). */
+  intensityScore: Scalars['Float']['output'];
+  iskDestroyed: Scalars['Float']['output'];
+  regionId: Scalars['Int']['output'];
+  regionName?: Maybe<Scalars['String']['output']>;
+  warKills: Scalars['Int']['output'];
+};
+
 export type Constellation = {
   __typename?: 'Constellation';
   id: Scalars['Int']['output'];
@@ -833,6 +845,8 @@ export type Query = {
   characterTopShipTargets: Array<ShipTopKill>;
   characterTopShips: Array<ShipTopKill>;
   characters: CharactersResponse;
+  /** Regions ranked by sovereignty conflict intensity, hottest first. */
+  conflictHotspots: Array<ConflictHotspot>;
   constellation?: Maybe<Constellation>;
   constellations: ConstellationsResponse;
   corporation?: Maybe<Corporation>;
@@ -1008,6 +1022,11 @@ export type QueryCharacterTopShipsArgs = {
 
 export type QueryCharactersArgs = {
   filter?: InputMaybe<CharacterFilter>;
+};
+
+
+export type QueryConflictHotspotsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -2026,6 +2045,7 @@ export type ResolversTypes = {
   CharacterOrderBy: CharacterOrderBy;
   CharacterTopTarget: ResolverTypeWrapper<CharacterTopTarget>;
   CharactersResponse: ResolverTypeWrapper<CharactersResponse>;
+  ConflictHotspot: ResolverTypeWrapper<ConflictHotspot>;
   Constellation: ResolverTypeWrapper<Constellation>;
   ConstellationFilter: ConstellationFilter;
   ConstellationOrderBy: ConstellationOrderBy;
@@ -2171,6 +2191,7 @@ export type ResolversParentTypes = {
   CharacterFilter: CharacterFilter;
   CharacterTopTarget: CharacterTopTarget;
   CharactersResponse: CharactersResponse;
+  ConflictHotspot: ConflictHotspot;
   Constellation: Constellation;
   ConstellationFilter: ConstellationFilter;
   ConstellationsResponse: ConstellationsResponse;
@@ -2467,6 +2488,15 @@ export type CharactersResponseResolvers<ContextType = any, ParentType extends Re
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
 };
 
+export type ConflictHotspotResolvers<ContextType = any, ParentType extends ResolversParentTypes['ConflictHotspot'] = ResolversParentTypes['ConflictHotspot']> = {
+  activeCampaigns?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  intensityScore?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  iskDestroyed?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  regionId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  regionName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  warKills?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
 export type ConstellationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Constellation'] = ResolversParentTypes['Constellation']> = {
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2735,6 +2765,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   characterTopShipTargets?: Resolver<Array<ResolversTypes['ShipTopKill']>, ParentType, ContextType, RequireFields<QueryCharacterTopShipTargetsArgs, 'characterId'>>;
   characterTopShips?: Resolver<Array<ResolversTypes['ShipTopKill']>, ParentType, ContextType, RequireFields<QueryCharacterTopShipsArgs, 'characterId'>>;
   characters?: Resolver<ResolversTypes['CharactersResponse'], ParentType, ContextType, Partial<QueryCharactersArgs>>;
+  conflictHotspots?: Resolver<Array<ResolversTypes['ConflictHotspot']>, ParentType, ContextType, Partial<QueryConflictHotspotsArgs>>;
   constellation?: Resolver<Maybe<ResolversTypes['Constellation']>, ParentType, ContextType, RequireFields<QueryConstellationArgs, 'id'>>;
   constellations?: Resolver<ResolversTypes['ConstellationsResponse'], ParentType, ContextType, Partial<QueryConstellationsArgs>>;
   corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType, RequireFields<QueryCorporationArgs, 'id'>>;
@@ -3194,6 +3225,7 @@ export type Resolvers<ContextType = any> = {
   Character?: CharacterResolvers<ContextType>;
   CharacterTopTarget?: CharacterTopTargetResolvers<ContextType>;
   CharactersResponse?: CharactersResponseResolvers<ContextType>;
+  ConflictHotspot?: ConflictHotspotResolvers<ContextType>;
   Constellation?: ConstellationResolvers<ContextType>;
   ConstellationsResponse?: ConstellationsResponseResolvers<ContextType>;
   Corporation?: CorporationResolvers<ContextType>;

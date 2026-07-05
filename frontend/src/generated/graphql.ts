@@ -296,6 +296,18 @@ export type CharactersResponse = {
   pageInfo: PageInfo;
 };
 
+/** A region ranked by sovereignty conflict intensity. */
+export type ConflictHotspot = {
+  __typename?: 'ConflictHotspot';
+  activeCampaigns: Scalars['Int']['output'];
+  /** Composite conflict-intensity score (heuristic: activeCampaigns*3 + warKills). */
+  intensityScore: Scalars['Float']['output'];
+  iskDestroyed: Scalars['Float']['output'];
+  regionId: Scalars['Int']['output'];
+  regionName?: Maybe<Scalars['String']['output']>;
+  warKills: Scalars['Int']['output'];
+};
+
 export type Constellation = {
   __typename?: 'Constellation';
   id: Scalars['Int']['output'];
@@ -834,6 +846,8 @@ export type Query = {
   characterTopShipTargets: Array<ShipTopKill>;
   characterTopShips: Array<ShipTopKill>;
   characters: CharactersResponse;
+  /** Regions ranked by sovereignty conflict intensity, hottest first. */
+  conflictHotspots: Array<ConflictHotspot>;
   constellation?: Maybe<Constellation>;
   constellations: ConstellationsResponse;
   corporation?: Maybe<Corporation>;
@@ -1009,6 +1023,11 @@ export type QueryCharacterTopShipsArgs = {
 
 export type QueryCharactersArgs = {
   filter?: InputMaybe<CharacterFilter>;
+};
+
+
+export type QueryConflictHotspotsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -2072,6 +2091,11 @@ export type CharactersQueryVariables = Exact<{
 
 
 export type CharactersQuery = { __typename?: 'Query', characters: { __typename?: 'CharactersResponse', items: Array<{ __typename?: 'Character', id: number, name: string, securityStatus?: number | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
+export type ConflictHotspotsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ConflictHotspotsQuery = { __typename?: 'Query', conflictHotspots: Array<{ __typename?: 'ConflictHotspot', regionId: number, regionName?: string | null, activeCampaigns: number, warKills: number, iskDestroyed: number, intensityScore: number }> };
 
 export type ConstellationsQueryVariables = Exact<{
   filter?: InputMaybe<ConstellationFilter>;
@@ -3602,6 +3626,53 @@ export type CharactersQueryHookResult = ReturnType<typeof useCharactersQuery>;
 export type CharactersLazyQueryHookResult = ReturnType<typeof useCharactersLazyQuery>;
 export type CharactersSuspenseQueryHookResult = ReturnType<typeof useCharactersSuspenseQuery>;
 export type CharactersQueryResult = Apollo.QueryResult<CharactersQuery, CharactersQueryVariables>;
+export const ConflictHotspotsDocument = gql`
+    query ConflictHotspots {
+  conflictHotspots(limit: 30) {
+    regionId
+    regionName
+    activeCampaigns
+    warKills
+    iskDestroyed
+    intensityScore
+  }
+}
+    `;
+
+/**
+ * __useConflictHotspotsQuery__
+ *
+ * To run a query within a React component, call `useConflictHotspotsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useConflictHotspotsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useConflictHotspotsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useConflictHotspotsQuery(baseOptions?: Apollo.QueryHookOptions<ConflictHotspotsQuery, ConflictHotspotsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ConflictHotspotsQuery, ConflictHotspotsQueryVariables>(ConflictHotspotsDocument, options);
+      }
+export function useConflictHotspotsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ConflictHotspotsQuery, ConflictHotspotsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ConflictHotspotsQuery, ConflictHotspotsQueryVariables>(ConflictHotspotsDocument, options);
+        }
+// @ts-ignore
+export function useConflictHotspotsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ConflictHotspotsQuery, ConflictHotspotsQueryVariables>): Apollo.UseSuspenseQueryResult<ConflictHotspotsQuery, ConflictHotspotsQueryVariables>;
+export function useConflictHotspotsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ConflictHotspotsQuery, ConflictHotspotsQueryVariables>): Apollo.UseSuspenseQueryResult<ConflictHotspotsQuery | undefined, ConflictHotspotsQueryVariables>;
+export function useConflictHotspotsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ConflictHotspotsQuery, ConflictHotspotsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ConflictHotspotsQuery, ConflictHotspotsQueryVariables>(ConflictHotspotsDocument, options);
+        }
+export type ConflictHotspotsQueryHookResult = ReturnType<typeof useConflictHotspotsQuery>;
+export type ConflictHotspotsLazyQueryHookResult = ReturnType<typeof useConflictHotspotsLazyQuery>;
+export type ConflictHotspotsSuspenseQueryHookResult = ReturnType<typeof useConflictHotspotsSuspenseQuery>;
+export type ConflictHotspotsQueryResult = Apollo.QueryResult<ConflictHotspotsQuery, ConflictHotspotsQueryVariables>;
 export const ConstellationsDocument = gql`
     query Constellations($filter: ConstellationFilter) {
   constellations(filter: $filter) {
