@@ -1,0 +1,15 @@
+subscription SovereigntyAlert {
+  sovereigntyAlert {
+    type
+    message
+    solarSystemId
+    solarSystemName
+    regionName
+    allianceId
+    allianceName
+    allianceTicker
+    outcome
+    changeType
+    timestamp
+  }
+}
