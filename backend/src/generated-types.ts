@@ -1440,6 +1440,27 @@ export type SovMapPoint = {
   y: Scalars['Float']['output'];
 };
 
+/** A real-time sovereignty alert pushed over SSE when a worker detects an event. */
+export type SovereigntyAlert = {
+  __typename?: 'SovereigntyAlert';
+  /** The salient alliance for the event (defender, or new owner). */
+  allianceId?: Maybe<Scalars['Int']['output']>;
+  allianceName?: Maybe<Scalars['String']['output']>;
+  allianceTicker?: Maybe<Scalars['String']['output']>;
+  /** Set for territory_change: captured / lost / transferred / faction_change. */
+  changeType?: Maybe<Scalars['String']['output']>;
+  /** Human-readable summary, e.g. 'New IHub campaign in EH2I-P (Perrigen Falls)'. */
+  message: Scalars['String']['output'];
+  /** Set for campaign_ended: defender_won / attacker_won / abandoned. */
+  outcome?: Maybe<Scalars['String']['output']>;
+  regionName?: Maybe<Scalars['String']['output']>;
+  solarSystemId: Scalars['Int']['output'];
+  solarSystemName?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['String']['output'];
+  /** campaign_started | campaign_ended | territory_change */
+  type: Scalars['String']['output'];
+};
+
 /** An active sovereignty campaign (contested TCU / IHub / station). */
 export type SovereigntyCampaign = {
   __typename?: 'SovereigntyCampaign';
@@ -1649,6 +1670,8 @@ export type Subscription = {
    * Emits a new event whenever a killmail is saved
    */
   newKillmail: Killmail;
+  /** Live sovereignty alerts (new/ended campaigns, territory changes). */
+  sovereigntyAlert: SovereigntyAlert;
   /**
    * Subscribe to real-time worker status updates
    * Emits updates every 5 seconds
@@ -2120,6 +2143,7 @@ export type ResolversTypes = {
   SolarSystemOrderBy: SolarSystemOrderBy;
   SolarSystemsResponse: ResolverTypeWrapper<SolarSystemsResponse>;
   SovMapPoint: ResolverTypeWrapper<SovMapPoint>;
+  SovereigntyAlert: ResolverTypeWrapper<SovereigntyAlert>;
   SovereigntyCampaign: ResolverTypeWrapper<SovereigntyCampaign>;
   SovereigntyCampaignHistoryPage: ResolverTypeWrapper<SovereigntyCampaignHistoryPage>;
   SovereigntyOutcomeStats: ResolverTypeWrapper<SovereigntyOutcomeStats>;
@@ -2262,6 +2286,7 @@ export type ResolversParentTypes = {
   SolarSystemFilter: SolarSystemFilter;
   SolarSystemsResponse: SolarSystemsResponse;
   SovMapPoint: SovMapPoint;
+  SovereigntyAlert: SovereigntyAlert;
   SovereigntyCampaign: SovereigntyCampaign;
   SovereigntyCampaignHistoryPage: SovereigntyCampaignHistoryPage;
   SovereigntyOutcomeStats: SovereigntyOutcomeStats;
@@ -2940,6 +2965,20 @@ export type SovMapPointResolvers<ContextType = any, ParentType extends Resolvers
   y?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
 };
 
+export type SovereigntyAlertResolvers<ContextType = any, ParentType extends ResolversParentTypes['SovereigntyAlert'] = ResolversParentTypes['SovereigntyAlert']> = {
+  allianceId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  allianceName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  allianceTicker?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  changeType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  outcome?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  regionName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  solarSystemId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  solarSystemName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  timestamp?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  type?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
 export type SovereigntyCampaignResolvers<ContextType = any, ParentType extends ResolversParentTypes['SovereigntyCampaign'] = ResolversParentTypes['SovereigntyCampaign']> = {
   attackerIskLost?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   attackerShipsLost?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -3072,6 +3111,7 @@ export type SubscriptionResolvers<ContextType = any, ParentType extends Resolver
   _empty?: SubscriptionResolver<Maybe<ResolversTypes['String']>, "_empty", ParentType, ContextType>;
   activeUsersUpdates?: SubscriptionResolver<ResolversTypes['ActiveUsersPayload'], "activeUsersUpdates", ParentType, ContextType>;
   newKillmail?: SubscriptionResolver<ResolversTypes['Killmail'], "newKillmail", ParentType, ContextType>;
+  sovereigntyAlert?: SubscriptionResolver<ResolversTypes['SovereigntyAlert'], "sovereigntyAlert", ParentType, ContextType>;
   workerStatusUpdates?: SubscriptionResolver<ResolversTypes['WorkerStatus'], "workerStatusUpdates", ParentType, ContextType>;
 };
 
@@ -3297,6 +3337,7 @@ export type Resolvers<ContextType = any> = {
   SolarSystem?: SolarSystemResolvers<ContextType>;
   SolarSystemsResponse?: SolarSystemsResponseResolvers<ContextType>;
   SovMapPoint?: SovMapPointResolvers<ContextType>;
+  SovereigntyAlert?: SovereigntyAlertResolvers<ContextType>;
   SovereigntyCampaign?: SovereigntyCampaignResolvers<ContextType>;
   SovereigntyCampaignHistoryPage?: SovereigntyCampaignHistoryPageResolvers<ContextType>;
   SovereigntyOutcomeStats?: SovereigntyOutcomeStatsResolvers<ContextType>;

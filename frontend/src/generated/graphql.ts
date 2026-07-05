@@ -1441,6 +1441,27 @@ export type SovMapPoint = {
   y: Scalars['Float']['output'];
 };
 
+/** A real-time sovereignty alert pushed over SSE when a worker detects an event. */
+export type SovereigntyAlert = {
+  __typename?: 'SovereigntyAlert';
+  /** The salient alliance for the event (defender, or new owner). */
+  allianceId?: Maybe<Scalars['Int']['output']>;
+  allianceName?: Maybe<Scalars['String']['output']>;
+  allianceTicker?: Maybe<Scalars['String']['output']>;
+  /** Set for territory_change: captured / lost / transferred / faction_change. */
+  changeType?: Maybe<Scalars['String']['output']>;
+  /** Human-readable summary, e.g. 'New IHub campaign in EH2I-P (Perrigen Falls)'. */
+  message: Scalars['String']['output'];
+  /** Set for campaign_ended: defender_won / attacker_won / abandoned. */
+  outcome?: Maybe<Scalars['String']['output']>;
+  regionName?: Maybe<Scalars['String']['output']>;
+  solarSystemId: Scalars['Int']['output'];
+  solarSystemName?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['String']['output'];
+  /** campaign_started | campaign_ended | territory_change */
+  type: Scalars['String']['output'];
+};
+
 /** An active sovereignty campaign (contested TCU / IHub / station). */
 export type SovereigntyCampaign = {
   __typename?: 'SovereigntyCampaign';
@@ -1650,6 +1671,8 @@ export type Subscription = {
    * Emits a new event whenever a killmail is saved
    */
   newKillmail: Killmail;
+  /** Live sovereignty alerts (new/ended campaigns, territory changes). */
+  sovereigntyAlert: SovereigntyAlert;
   /**
    * Subscribe to real-time worker status updates
    * Emits updates every 5 seconds
@@ -2370,6 +2393,11 @@ export type SovereigntyDashboardQueryVariables = Exact<{ [key: string]: never; }
 
 
 export type SovereigntyDashboardQuery = { __typename?: 'Query', sovereigntyOverview: { __typename?: 'SovereigntyOverview', ownedSystems: number, activeCampaigns: number, trackedStructures: number, trackedAlliances: number, warKills: number, iskDestroyed: number }, allianceTerritoryRankings: Array<{ __typename?: 'AllianceTerritoryRank', rank: number, allianceId: number, allianceName?: string | null, allianceTicker?: string | null, systemsControlled: number, ihubCount: number, campaignsAttacking: number, campaignsDefending: number }>, mostAggressiveAlliances: Array<{ __typename?: 'AllianceActivityRank', rank: number, allianceId: number, allianceName?: string | null, allianceTicker?: string | null, campaignsAttacking: number }>, mostDefensiveAlliances: Array<{ __typename?: 'AllianceActivityRank', rank: number, allianceId: number, allianceName?: string | null, allianceTicker?: string | null, campaignsDefending: number }>, activeCampaignsByRegion: Array<{ __typename?: 'RegionCampaignCount', regionId: number, regionName?: string | null, campaignCount: number }>, sovereigntyActiveCampaigns: Array<{ __typename?: 'SovereigntyCampaign', campaignId: number, eventType: string, solarSystemId: number, solarSystemName?: string | null, regionName?: string | null, defenderId?: number | null, defenderName?: string | null, defenderTicker?: string | null, defenderScore?: number | null, attackersScore?: number | null, startTime: string, warKills: number, iskDestroyed: number, defenderIskLost: number, attackerIskLost: number, participants: Array<{ __typename?: 'CampaignParticipant', allianceId: number, allianceName?: string | null, allianceTicker?: string | null, score: number }> }>, recentTerritoryChanges: Array<{ __typename?: 'TerritoryChange', id: string, solarSystemId: number, solarSystemName?: string | null, previousOwnerId?: number | null, previousOwnerName?: string | null, newOwnerId?: number | null, newOwnerName?: string | null, changeType: string, detectedAt: string }> };
+
+export type SovereigntyAlertSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type SovereigntyAlertSubscription = { __typename?: 'Subscription', sovereigntyAlert: { __typename?: 'SovereigntyAlert', type: string, message: string, solarSystemId: number, solarSystemName?: string | null, regionName?: string | null, allianceId?: number | null, allianceName?: string | null, allianceTicker?: string | null, outcome?: string | null, changeType?: string | null, timestamp: string } };
 
 export type SovereigntyHistoryPageQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -6511,6 +6539,45 @@ export type SovereigntyDashboardQueryHookResult = ReturnType<typeof useSovereign
 export type SovereigntyDashboardLazyQueryHookResult = ReturnType<typeof useSovereigntyDashboardLazyQuery>;
 export type SovereigntyDashboardSuspenseQueryHookResult = ReturnType<typeof useSovereigntyDashboardSuspenseQuery>;
 export type SovereigntyDashboardQueryResult = Apollo.QueryResult<SovereigntyDashboardQuery, SovereigntyDashboardQueryVariables>;
+export const SovereigntyAlertDocument = gql`
+    subscription SovereigntyAlert {
+  sovereigntyAlert {
+    type
+    message
+    solarSystemId
+    solarSystemName
+    regionName
+    allianceId
+    allianceName
+    allianceTicker
+    outcome
+    changeType
+    timestamp
+  }
+}
+    `;
+
+/**
+ * __useSovereigntyAlertSubscription__
+ *
+ * To run a query within a React component, call `useSovereigntyAlertSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useSovereigntyAlertSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSovereigntyAlertSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useSovereigntyAlertSubscription(baseOptions?: Apollo.SubscriptionHookOptions<SovereigntyAlertSubscription, SovereigntyAlertSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<SovereigntyAlertSubscription, SovereigntyAlertSubscriptionVariables>(SovereigntyAlertDocument, options);
+      }
+export type SovereigntyAlertSubscriptionHookResult = ReturnType<typeof useSovereigntyAlertSubscription>;
+export type SovereigntyAlertSubscriptionResult = Apollo.SubscriptionResult<SovereigntyAlertSubscription>;
 export const SovereigntyHistoryPageDocument = gql`
     query SovereigntyHistoryPage($limit: Int, $offset: Int) {
   sovereigntyOutcomeStats {

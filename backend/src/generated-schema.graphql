@@ -985,6 +985,36 @@ type SovMapPoint {
   y: Float!
 }
 
+"""
+A real-time sovereignty alert pushed over SSE when a worker detects an event.
+"""
+type SovereigntyAlert {
+  """The salient alliance for the event (defender, or new owner)."""
+  allianceId: Int
+  allianceName: String
+  allianceTicker: String
+
+  """
+  Set for territory_change: captured / lost / transferred / faction_change.
+  """
+  changeType: String
+
+  """
+  Human-readable summary, e.g. 'New IHub campaign in EH2I-P (Perrigen Falls)'.
+  """
+  message: String!
+
+  """Set for campaign_ended: defender_won / attacker_won / abandoned."""
+  outcome: String
+  regionName: String
+  solarSystemId: Int!
+  solarSystemName: String
+  timestamp: String!
+
+  """campaign_started | campaign_ended | territory_change"""
+  type: String!
+}
+
 """An active sovereignty campaign (contested TCU / IHub / station)."""
 type SovereigntyCampaign {
   """ISK lost by the attacker/third-party side."""
@@ -1202,6 +1232,9 @@ type Subscription {
   Emits a new event whenever a killmail is saved
   """
   newKillmail: Killmail!
+
+  """Live sovereignty alerts (new/ended campaigns, territory changes)."""
+  sovereigntyAlert: SovereigntyAlert!
 
   """
   Subscribe to real-time worker status updates

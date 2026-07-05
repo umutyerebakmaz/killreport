@@ -25,7 +25,7 @@ import { leaderboardQueries } from './leaderboard';
 import { raceQueries } from './race';
 import { regionFields, regionMutations, regionQueries } from './region';
 import { solarSystemFields, solarSystemQueries } from './solar-system';
-import { sovereigntyQueries } from './sovereignty';
+import { sovereigntyQueries, sovereigntySubscriptions } from './sovereignty';
 import { systemKillsFields } from './system-kills/fields';
 import { systemKillsQueries } from './system-kills/queries';
 import { typeFields, typeMutations, typeQueries } from './type';
@@ -79,6 +79,7 @@ export const resolvers: Resolvers = {
         ...workerSubscriptions,
         ...killmailSubscriptions,
         ...analyticsSubscriptions,
+        ...sovereigntySubscriptions,
     },
     Character: characterFields,
     Alliance: allianceFields,
