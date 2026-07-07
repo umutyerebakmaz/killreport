@@ -1,0 +1,12 @@
+query SovereigntyMap {
+  sovereigntyMapPoints {
+    systemId
+    systemName
+    x
+    y
+    allianceId
+    allianceName
+    allianceTicker
+    regionName
+  }
+}

@@ -7,7 +7,7 @@
  * Usage: npx tsx src/scripts/clean-invalid-killmails.ts
  */
 
-import prisma from '../services/prisma.js';
+import prisma from '@services/prisma.js';
 
 async function cleanInvalidKillmails() {
   const startTime = Date.now();

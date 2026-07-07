@@ -14,6 +14,8 @@ type Killmail {
   totalValue: Float
   solo: Boolean!
   npc: Boolean!
+  "Whether this kill was correlated to an active sovereignty war campaign."
+  isWarRelated: Boolean!
   createdAt: String!
 }
 

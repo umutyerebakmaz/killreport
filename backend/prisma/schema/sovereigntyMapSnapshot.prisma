@@ -1,0 +1,14 @@
+model SovereigntyMapSnapshot {
+  id              Int      @id @default(autoincrement())
+  solar_system_id Int
+  alliance_id     Int?
+  corporation_id  Int?
+  faction_id      Int?
+  snapshot_date   DateTime @db.Date
+  created_at      DateTime @default(now())
+
+  @@unique([solar_system_id, snapshot_date])
+  @@index([snapshot_date])
+  @@index([alliance_id, snapshot_date])
+  @@map("sovereignty_map_snapshots")
+}
