@@ -18,6 +18,7 @@ export interface KillmailFilters {
     maxAttackers?: number;
     minValue?: number;
     maxValue?: number;
+    warRelated?: boolean;
 }
 
 export interface ParsedUrlFilters extends KillmailFilters {
@@ -84,8 +85,11 @@ export function parseKillmailFiltersFromUrl(
     const securitySpaceRoleFromUrl =
         (searchParams.get("securitySpace") as "all" | "highsec" | "lowsec" | "nullsec" | "wormhole" | "abyssal" | null) ?? "all";
 
+    const warRelatedFromUrl = searchParams.get("warRelated") === "true" ? true : undefined;
+
     // Build filters object
     const filters: KillmailFilters = {
+        warRelated: warRelatedFromUrl,
         shipTypeId: shipTypeIdFromUrl,
         shipGroupIds: shipGroupIdsFromUrl,
         characterId: characterIdFromUrl,
@@ -210,6 +214,10 @@ export function buildKillmailFiltersUrl(
 
     if (filters.securitySpace && filters.securitySpace !== "all") {
         params.set("securitySpace", filters.securitySpace);
+    }
+
+    if (filters.warRelated) {
+        params.set("warRelated", "true");
     }
 
     return params.toString();

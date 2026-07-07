@@ -118,11 +118,11 @@ yarn prisma:studio       # GUI for data inspection
 
 ```typescript
 // ✅ Correct - for workers/queue scripts
-import prismaWorker from "../services/prisma-worker";
+import prismaWorker from "@services/prisma-worker";
 await prismaWorker.character.findMany();
 
 // ✅ Correct - for resolvers (API context)
-import prisma from "../services/prisma";
+import prisma from "@services/prisma";
 await prisma.character.findMany();
 ```
 

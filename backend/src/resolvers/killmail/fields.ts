@@ -76,6 +76,12 @@ export const killmailFields: KillmailResolvers = {
         return count === 1;
     },
 
+    isWarRelated: (parent: any) => {
+        // Set by worker-sovereignty-correlate. Accept camelCase (from query
+        // resolvers) or snake_case (raw DB), default false when absent.
+        return parent.isWarRelated ?? parent.is_war_related ?? false;
+    },
+
     npc: async (parent: any, _, context) => {
         const killmailId = typeof parent.id === 'string' ? parseInt(parent.id) : parent.id;
 
