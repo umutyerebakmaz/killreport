@@ -1,4 +1,4 @@
-import prismaWorker from '../services/prisma-worker';
+import prismaWorker from '@services/prisma-worker';
 
 // Capsule (pod) type_id - special handling for value calculations
 const CAPSULE_TYPE_ID = 670;

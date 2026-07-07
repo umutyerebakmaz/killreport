@@ -10,9 +10,9 @@
  * Usage: yarn queue:alliance-corp-characters
  */
 
-import logger from '../services/logger';
-import prismaWorker from '../services/prisma-worker';
-import { getRabbitMQChannel } from '../services/rabbitmq';
+import logger from '@services/logger';
+import prismaWorker from '@services/prisma-worker';
+import { getRabbitMQChannel } from '@services/rabbitmq';
 
 const QUEUE_NAME = 'esi_character_info_queue';
 const BATCH_SIZE = 100;

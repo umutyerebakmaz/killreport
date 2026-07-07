@@ -4,9 +4,9 @@
  * Bu worker EVE Online'daki tüm ırkların bilgilerini çeker.
  */
 
-import logger from '../services/logger';
-import prismaWorker from '../services/prisma-worker';
-import { RaceService } from '../services/race/race.service';
+import logger from '@services/logger';
+import prismaWorker from '@services/prisma-worker';
+import { RaceService } from '@services/race/race.service';
 
 async function fetchAndSaveRaces() {
   try {

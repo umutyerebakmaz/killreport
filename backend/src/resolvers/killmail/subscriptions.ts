@@ -28,6 +28,7 @@ export const killmailSubscriptions: SubscriptionResolvers = {
           destroyed_value: true,
           dropped_value: true,
           attacker_count: true,
+          is_war_related: true,
         }
       });
 
@@ -47,6 +48,7 @@ export const killmailSubscriptions: SubscriptionResolvers = {
         destroyedValue: killmail.destroyed_value,
         droppedValue: killmail.dropped_value,
         attackerCount: killmail.attacker_count ?? 0,
+        isWarRelated: killmail.is_war_related,
       } as any;
     },
   },
