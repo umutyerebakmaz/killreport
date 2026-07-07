@@ -54,6 +54,11 @@ export default function KillmailRow({
             </div>
           )}
         </Tooltip>
+        {km.isWarRelated && (
+          <span className="inline-block mt-1 px-1.5 py-0.5 text-xs font-semibold text-orange-400 border bg-orange-400/10 border-orange-400/20">
+            WAR KILL
+          </span>
+        )}
       </td>
 
       {/* Ship Column */}

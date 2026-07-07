@@ -1,0 +1,73 @@
+query SovereigntyDashboard {
+  sovereigntyOverview {
+    ownedSystems
+    activeCampaigns
+    trackedStructures
+    trackedAlliances
+    warKills
+    iskDestroyed
+  }
+  allianceTerritoryRankings(limit: 25) {
+    rank
+    allianceId
+    allianceName
+    allianceTicker
+    systemsControlled
+    ihubCount
+    campaignsAttacking
+    campaignsDefending
+  }
+  mostAggressiveAlliances(limit: 10) {
+    rank
+    allianceId
+    allianceName
+    allianceTicker
+    campaignsAttacking
+  }
+  mostDefensiveAlliances(limit: 10) {
+    rank
+    allianceId
+    allianceName
+    allianceTicker
+    campaignsDefending
+  }
+  activeCampaignsByRegion(limit: 10) {
+    regionId
+    regionName
+    campaignCount
+  }
+  sovereigntyActiveCampaigns(limit: 50) {
+    campaignId
+    eventType
+    solarSystemId
+    solarSystemName
+    regionName
+    defenderId
+    defenderName
+    defenderTicker
+    defenderScore
+    attackersScore
+    startTime
+    warKills
+    iskDestroyed
+    defenderIskLost
+    attackerIskLost
+    participants {
+      allianceId
+      allianceName
+      allianceTicker
+      score
+    }
+  }
+  recentTerritoryChanges(limit: 25) {
+    id
+    solarSystemId
+    solarSystemName
+    previousOwnerId
+    previousOwnerName
+    newOwnerId
+    newOwnerName
+    changeType
+    detectedAt
+  }
+}

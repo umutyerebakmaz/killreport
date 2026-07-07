@@ -3,7 +3,7 @@
  * Fetches dogma attributes and effects for types from ESI and saves to database
  */
 
-import logger from '../services/logger';
+import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { getRabbitMQChannel } from '@services/rabbitmq';
 import { TypeService } from '@services/type';
