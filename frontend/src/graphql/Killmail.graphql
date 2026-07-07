@@ -9,6 +9,7 @@ query Killmail($id: ID!) {
     attackerCount
     solo
     npc
+    isWarRelated
     solarSystem {
       id
       name

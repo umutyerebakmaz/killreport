@@ -7,6 +7,9 @@ model Killmail {
   destroyed_value Float?         // Cached value calculated at insertion time
   dropped_value   Float?         // Cached value calculated at insertion time
   attacker_count  Int?           // Cached attacker count at insertion time
+  // Sovereignty war correlation (set by worker-sovereignty-correlate):
+  related_campaign_id Int?       // campaign_id of the active sov campaign this kill belongs to, if any
+  is_war_related      Boolean    @default(false)
   created_at      DateTime       @default(now())
   updated_at      DateTime       @updatedAt
   attackers       Attacker[]
@@ -17,5 +20,7 @@ model Killmail {
   @@index([solar_system_id])
   @@index([total_value(sort: Desc)])
   @@index([attacker_count])
+  @@index([related_campaign_id])
+  @@index([is_war_related])
   @@map("killmails")
 }

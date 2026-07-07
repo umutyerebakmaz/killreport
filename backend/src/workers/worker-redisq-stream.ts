@@ -1,18 +1,24 @@
 /**
- * zKillboard RedisQ Real-Time Stream Worker
+ * zKillboard R2Z2 Real-Time Stream Worker
  *
- * Continuously polls zkillredisq.stream for new killmails as they happen.
+ * Continuously polls zKillboard's R2Z2 API for new killmails as they happen.
  * This provides real-time killmail sync without waiting for manual character syncs.
  *
+ * NOTE: The old RedisQ service (zkillredisq.stream/listen.php) was sunset on
+ * May 31, 2026 and its hostname now resolves to 127.0.0.1 (dead). R2Z2 is the
+ * official replacement. See https://github.com/zKillboard/zKillboard/wiki/API-(R2Z2)
+ *
  * How it works:
- * 1. Poll RedisQ endpoint every ~1 second
- * 2. Receive killmail ID + hash (no full killmail data after Dec 1, 2025)
- * 3. Fetch full killmail from ESI using ID+hash
+ * 1. Fetch the current sequence from /ephemeral/sequence.json (starting point)
+ * 2. Poll /ephemeral/{sequence}.json, incrementing sequence on each hit
+ *    - 200 → killmail payload (killmail_id + hash + esi + zkb), advance sequence
+ *    - 404 → no killmail at this sequence yet, wait >= 6s and retry same sequence
+ * 3. Fetch full killmail from ESI using ID+hash (kept for identical downstream shape)
  * 4. Save to database with attacker info
  * 5. Repeat indefinitely
  *
  * Rate Limits:
- * - RedisQ: 2 requests per second per IP (CloudFlare enforced)
+ * - R2Z2: 15 requests per second per IP (aggressive polling risks HTTP 403)
  * - ESI: 150 req/sec (we use conservative 50 req/sec)
  *
  * Usage:
@@ -41,10 +47,10 @@ if (!pubsub) {
     process.exit(1);
 }
 
-const REDISQ_URL = 'https://zkillredisq.stream/listen.php';
-const QUEUE_ID = 'killreport-stream'; // Unique identifier for our service
-const TIME_TO_WAIT = 1; // 1 second timeout if no killmail (min: 1, max: 10)
-const REQUEST_DELAY = 500; // 500ms between requests (2 req/sec = CloudFlare limit)
+const R2Z2_BASE = 'https://r2z2.zkillboard.com/ephemeral';
+const SEQUENCE_URL = `${R2Z2_BASE}/sequence.json`;
+const BACKLOG_DELAY = 100; // 100ms between hits while draining backlog (~10 req/sec < 15 limit)
+const EMPTY_DELAY = 6000; // >= 6s wait on 404 (no new killmail yet), per R2Z2 docs
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 5000; // 5 seconds
 
@@ -66,13 +72,22 @@ interface RedisQPackage {
     };
 }
 
-interface RedisQResponse {
-    package: RedisQPackage | null;
+// R2Z2 /ephemeral/{sequence}.json payload
+interface R2Z2Killmail {
+    killmail_id: number;
+    hash: string;
+    esi: unknown; // full ESI killmail (unused here; we refetch via ESI for identical downstream shape)
+    zkb: RedisQPackage['zkb'];
+    uploaded_at?: string;
+    sequence_id: number;
 }
 
 // Shutdown flag and interval tracking
 let isShuttingDown = false;
 let emptyCheckInterval: NodeJS.Timeout | null = null;
+
+// R2Z2 sequence cursor (initialized on worker start from sequence.json)
+let currentSequence: number | null = null;
 
 // Statistics
 let stats = {
@@ -90,30 +105,37 @@ let stats = {
  */
 export async function redisQStreamWorker() {
     while (!isShuttingDown) {
-        logger.info('🌊 RedisQ Stream Worker Started');
-        logger.info(`📡 Endpoint: ${REDISQ_URL}`);
-        logger.info(`🆔 Queue ID: ${QUEUE_ID}`);
-        logger.info(`⏱️  Poll Rate: ${REQUEST_DELAY}ms (~${Math.floor(1000 / REQUEST_DELAY)} req/sec)`);
-        logger.info(`⏳ Timeout: ${TIME_TO_WAIT} seconds`);
+        logger.info('🌊 R2Z2 Stream Worker Started');
+        logger.info(`📡 Endpoint: ${R2Z2_BASE}/{sequence}.json`);
+        logger.info(`⏱️  Poll Rate: ${BACKLOG_DELAY}ms while draining (~${Math.floor(1000 / BACKLOG_DELAY)} req/sec, limit 15)`);
+        logger.info(`⏳ Idle wait: ${EMPTY_DELAY}ms on 404 (no new killmail)`);
         logger.info(`🔧 Enrichment: ${ENABLE_ENRICHMENT ? 'ENABLED' : 'DISABLED'}\n`);
         logger.info('━'.repeat(60));
-        logger.info('🎯 Listening for killmails...\n');
+
+        // Initialize sequence cursor from R2Z2 (only once; survives reconnect loops)
+        if (currentSequence === null) {
+            await initSequence();
+        }
+
+        logger.info(`🎯 Listening for killmails from sequence ${currentSequence}...\n`);
 
         let consecutiveErrors = 0;
 
         try {
             while (!isShuttingDown) {
                 try {
-                    const killmail = await pollRedisQ();
+                    const killmail = await pollR2Z2();
 
                     if (killmail) {
                         stats.received++;
                         await processKillmail(killmail);
                         consecutiveErrors = 0; // Reset error counter on success
+                        // Actively drain backlog with a small delay (stay under 15 req/sec)
+                        await sleep(BACKLOG_DELAY);
+                    } else {
+                        // 404: caught up to the head of the feed, wait before retrying same sequence
+                        await sleep(EMPTY_DELAY);
                     }
-
-                    // Rate limiting: wait before next request
-                    await sleep(REQUEST_DELAY);
                 } catch (error) {
                     consecutiveErrors++;
                     stats.errors++;
@@ -125,7 +147,7 @@ export async function redisQStreamWorker() {
                         await sleep(RETRY_DELAY);
                         consecutiveErrors = 0;
                     } else {
-                        await sleep(REQUEST_DELAY);
+                        await sleep(BACKLOG_DELAY);
                     }
                 }
             }
@@ -141,33 +163,74 @@ export async function redisQStreamWorker() {
     await prismaWorker.$disconnect();
 }
 
+const R2Z2_HEADERS = {
+    'User-Agent': 'Killreport Real-Time Sync - github.com/umutyerebakmaz/killreport',
+};
+
 /**
- * Poll RedisQ for next killmail
+ * Fetch the current head sequence from R2Z2 as the starting cursor.
+ * Retries a few times so a transient hiccup doesn't crash the worker on boot.
  */
-async function pollRedisQ(): Promise<RedisQPackage | null> {
-    const url = `${REDISQ_URL}?queueID=${QUEUE_ID}&ttw=${TIME_TO_WAIT}`;
+async function initSequence(): Promise<void> {
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+            const response = await fetch(SEQUENCE_URL, { headers: R2Z2_HEADERS });
+            if (!response.ok) {
+                throw new Error(`sequence.json error: ${response.status} ${response.statusText}`);
+            }
+            const data = (await response.json()) as { sequence: number };
+            currentSequence = data.sequence;
+            logger.info(`📍 Starting sequence: ${currentSequence}`);
+            return;
+        } catch (error) {
+            logger.warn(`⚠️  Failed to fetch starting sequence (attempt ${attempt}/${MAX_RETRIES}): ${error}`);
+            if (attempt < MAX_RETRIES) await sleep(RETRY_DELAY);
+        }
+    }
+    throw new Error('Failed to initialize R2Z2 sequence after retries');
+}
+
+/**
+ * Poll R2Z2 for the next killmail at the current sequence.
+ * - 200 → returns the killmail package and advances the sequence cursor
+ * - 404 → returns null (caught up; caller should wait before retrying same sequence)
+ * - 403/429 → backs off and returns null (does NOT advance)
+ */
+async function pollR2Z2(): Promise<RedisQPackage | null> {
+    if (currentSequence === null) {
+        await initSequence();
+    }
+
+    const url = `${R2Z2_BASE}/${currentSequence}.json`;
 
     try {
-        const response = await fetch(url, {
-            headers: {
-                'User-Agent': 'Killreport Real-Time Sync - github.com/umutyerebakmaz/killreport',
-            },
-            redirect: 'follow', // Follow redirects to /object.php
-        });
+        const response = await fetch(url, { headers: R2Z2_HEADERS });
 
-        if (!response.ok) {
-            if (response.status === 429) {
-                logger.warn('⚠️  Rate limited by RedisQ (429), backing off...');
-                await sleep(RETRY_DELAY);
-                return null;
-            }
-            throw new Error(`RedisQ error: ${response.status} ${response.statusText}`);
+        // No killmail at this sequence yet — we've reached the head of the feed
+        if (response.status === 404) {
+            return null;
         }
 
-        const data: RedisQResponse = await response.json();
-        return data.package;
+        if (!response.ok) {
+            if (response.status === 429 || response.status === 403) {
+                logger.warn(`⚠️  Rate limited by R2Z2 (${response.status}), backing off...`);
+                await sleep(RETRY_DELAY);
+                return null; // don't advance sequence; retry same one next loop
+            }
+            throw new Error(`R2Z2 error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = (await response.json()) as R2Z2Killmail;
+
+        // Advance the cursor only after a successful read
+        currentSequence!++;
+
+        return {
+            killID: data.killmail_id,
+            zkb: { ...data.zkb, hash: data.zkb?.hash ?? data.hash },
+        } as RedisQPackage;
     } catch (error) {
-        throw new Error(`Failed to poll RedisQ: ${error}`);
+        throw new Error(`Failed to poll R2Z2: ${error}`);
     }
 }
 
