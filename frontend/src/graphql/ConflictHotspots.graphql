@@ -1,0 +1,10 @@
+query ConflictHotspots {
+  conflictHotspots(limit: 30) {
+    regionId
+    regionName
+    activeCampaigns
+    warKills
+    iskDestroyed
+    intensityScore
+  }
+}

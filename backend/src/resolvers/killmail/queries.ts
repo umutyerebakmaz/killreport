@@ -31,6 +31,7 @@ export const killmailQueries: QueryResolvers = {
                 destroyed_value: true,
                 dropped_value: true,
                 attacker_count: true,
+                is_war_related: true,
             }
         });
 
@@ -48,6 +49,7 @@ export const killmailQueries: QueryResolvers = {
             destroyedValue: killmail.destroyed_value,
             droppedValue: killmail.dropped_value,
             attackerCount: killmail.attacker_count ?? 0,
+            isWarRelated: killmail.is_war_related,
         } as any;
 
         // Cache using centralized config (90 days - killmails never change)
@@ -138,16 +140,47 @@ export const killmailQueries: QueryResolvers = {
                 mainValueConditions.push(`total_value <= $${mainParamIdx++}`);
                 valueParams.push(args.filter.maxValue);
             }
+            // War-related is a hardcoded boolean literal (not user text), so it needs
+            // no bind param and does not disturb the $N positional counters above.
+            const warRelated = args.filter?.warRelated === true;
+            if (warRelated) {
+                countValueConditions.push(`is_war_related = true`);
+                mainValueConditions.push(`is_war_related = true`);
+            }
             const countWhereClause = countValueConditions.length > 0 ? ` AND ${countValueConditions.join(' AND ')}` : '';
             const mainWhereClause = mainValueConditions.length > 0 ? ` AND ${mainValueConditions.join(' AND ')}` : '';
 
-            // If value filters are active, count against the killmails table directly
+            // Date filters, applied to BOTH the count and the main query so totalCount
+            // matches the rows actually returned. Count params: $1=ids, value params,
+            // then date params. Main params: $1=ids, $2=limit, $3=skip, value params,
+            // then date params. countParamIdx / mainParamIdx were advanced by the value
+            // conditions above, so date conditions continue from there.
+            const countDateConditions: string[] = [];
+            const mainDateConditions: string[] = [];
+            const dateParams: Date[] = [];
+
+            if (args.filter?.startDate) {
+                countDateConditions.push(`killmail_time >= $${countParamIdx++}`);
+                mainDateConditions.push(`killmail_time >= $${mainParamIdx++}`);
+                dateParams.push(new Date(args.filter.startDate));
+            }
+            if (args.filter?.endDate) {
+                countDateConditions.push(`killmail_time <= $${countParamIdx++}`);
+                mainDateConditions.push(`killmail_time <= $${mainParamIdx++}`);
+                dateParams.push(new Date(args.filter.endDate));
+            }
+            const countDateWhereClause = countDateConditions.length > 0 ? ` AND ${countDateConditions.join(' AND ')}` : '';
+            const mainDateWhereClause = mainDateConditions.length > 0 ? ` AND ${mainDateConditions.join(' AND ')}` : '';
+
+            // Count against the killmails table directly whenever a value/war/date filter
+            // narrows the set below the raw killmailIds list; otherwise the id count is exact.
             let totalCount: number;
-            if (valueParams.length > 0) {
+            if (valueParams.length > 0 || warRelated || dateParams.length > 0) {
                 const countResult = await prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
-                    `SELECT COUNT(*) as count FROM killmails WHERE killmail_id = ANY($1::int[])${countWhereClause}`,
+                    `SELECT COUNT(*) as count FROM killmails WHERE killmail_id = ANY($1::int[])${countWhereClause}${countDateWhereClause}`,
                     killmailIds,
-                    ...valueParams
+                    ...valueParams,
+                    ...dateParams
                 );
                 totalCount = Number(countResult[0].count);
             } else {
@@ -162,21 +195,6 @@ export const killmailQueries: QueryResolvers = {
                     : orderBy === 'valueAsc' ? 'total_value ASC NULLS LAST'
                         : 'total_value DESC NULLS LAST'; // valueDesc
 
-            // Add date filters if provided
-            const dateConditions: string[] = [];
-            const dateParams: any[] = [];
-            let dateParamIdx = mainParamIdx;
-
-            if (args.filter?.startDate) {
-                dateConditions.push(`killmail_time >= $${dateParamIdx++}`);
-                dateParams.push(new Date(args.filter.startDate));
-            }
-            if (args.filter?.endDate) {
-                dateConditions.push(`killmail_time <= $${dateParamIdx++}`);
-                dateParams.push(new Date(args.filter.endDate));
-            }
-            const dateWhereClause = dateConditions.length > 0 ? ` AND ${dateConditions.join(' AND ')}` : '';
-
             const killmails = await prisma.$queryRawUnsafe<Array<{
                 killmail_id: number;
                 killmail_hash: string;
@@ -187,6 +205,7 @@ export const killmailQueries: QueryResolvers = {
                 destroyed_value: bigint | null;
                 dropped_value: bigint | null;
                 attacker_count: number | null;
+                is_war_related: boolean;
             }>>(
                 `SELECT
           killmail_id,
@@ -197,9 +216,10 @@ export const killmailQueries: QueryResolvers = {
           total_value,
           destroyed_value,
           dropped_value,
-          attacker_count
+          attacker_count,
+          is_war_related
         FROM killmails
-        WHERE killmail_id = ANY($1::int[])${mainWhereClause}${dateWhereClause}
+        WHERE killmail_id = ANY($1::int[])${mainWhereClause}${mainDateWhereClause}
         ORDER BY ${orderByClause}
         LIMIT $2
         OFFSET $3`,
@@ -224,6 +244,7 @@ export const killmailQueries: QueryResolvers = {
                 destroyedValue: km.destroyed_value ? km.destroyed_value.toString() : null,
                 droppedValue: km.dropped_value ? km.dropped_value.toString() : null,
                 attackerCount: km.attacker_count ?? 0,
+                isWarRelated: km.is_war_related,
             })) as any[];
 
             const result = {
@@ -272,6 +293,11 @@ export const killmailQueries: QueryResolvers = {
                 }
             }
 
+            // War-related filter (correlated to an active sov campaign)
+            if (args.filter?.warRelated) {
+                where.is_war_related = true;
+            }
+
             // Count total matching records
             const totalCount = await prisma.killmail.count({ where });
 
@@ -299,6 +325,7 @@ export const killmailQueries: QueryResolvers = {
                     destroyed_value: true,
                     dropped_value: true,
                     attacker_count: true,
+                    is_war_related: true,
                 }
             });
 
@@ -315,6 +342,7 @@ export const killmailQueries: QueryResolvers = {
                 destroyedValue: km.destroyed_value,
                 droppedValue: km.dropped_value,
                 attackerCount: km.attacker_count ?? 0,
+                isWarRelated: km.is_war_related,
             })) as any[];
 
             const result = {
@@ -348,6 +376,8 @@ export const killmailQueries: QueryResolvers = {
             return JSON.parse(cached);
         }
 
+        const warRelated = args.filter?.warRelated === true;
+
         // Determine filter strategy
         const hasKillmailFiltersCompatibleFilter =
             args.filter?.shipTypeId ||
@@ -371,12 +401,12 @@ export const killmailQueries: QueryResolvers = {
                 // Early exit - no results
                 result = [];
             } else {
-                // Pre-filter IDs by value if value filters are present
+                // Pre-filter IDs by value and/or war-related if those filters are present
                 let filteredIds = killmailIds;
-                if (
+                const hasValueFilter =
                     (args.filter?.minValue !== undefined && args.filter?.minValue !== null) ||
-                    (args.filter?.maxValue !== undefined && args.filter?.maxValue !== null)
-                ) {
+                    (args.filter?.maxValue !== undefined && args.filter?.maxValue !== null);
+                if (hasValueFilter || warRelated) {
                     const vConds: string[] = [];
                     const vParams: any[] = [killmailIds];
                     let vIdx = 2;
@@ -388,6 +418,9 @@ export const killmailQueries: QueryResolvers = {
                     if (args.filter?.maxValue !== undefined && args.filter?.maxValue !== null) {
                         vConds.push(`total_value <= $${vIdx}`);
                         vParams.push(args.filter.maxValue);
+                    }
+                    if (warRelated) {
+                        vConds.push(`is_war_related = true`);
                     }
                     const filtered = await prisma.$queryRawUnsafe<Array<{ killmail_id: number }>>(
                         `SELECT killmail_id FROM killmails WHERE killmail_id = ANY($1) AND ${vConds.join(' AND ')}`,
@@ -444,6 +477,10 @@ export const killmailQueries: QueryResolvers = {
                     ...where.total_value,
                     lte: args.filter.maxValue,
                 };
+            }
+
+            if (warRelated) {
+                where.is_war_related = true;
             }
 
             // Fetch only killmail_time for date grouping
