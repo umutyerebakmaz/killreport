@@ -1,0 +1,26 @@
+"""
+A real-time sovereignty alert pushed over SSE when a worker detects an event.
+"""
+type SovereigntyAlert {
+  "campaign_started | campaign_ended | territory_change"
+  type: String!
+  "Human-readable summary, e.g. 'New IHub campaign in EH2I-P (Perrigen Falls)'."
+  message: String!
+  solarSystemId: Int!
+  solarSystemName: String
+  regionName: String
+  "The salient alliance for the event (defender, or new owner)."
+  allianceId: Int
+  allianceName: String
+  allianceTicker: String
+  "Set for campaign_ended: defender_won / attacker_won / abandoned."
+  outcome: String
+  "Set for territory_change: captured / lost / transferred / faction_change."
+  changeType: String
+  timestamp: String!
+}
+
+extend type Subscription {
+  "Live sovereignty alerts (new/ended campaigns, territory changes)."
+  sovereigntyAlert: SovereigntyAlert!
+}

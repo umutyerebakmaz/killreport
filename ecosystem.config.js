@@ -329,6 +329,103 @@ module.exports = {
       time: true,
     },
 
+    // Sovereignty Campaigns (Every 5 minutes)
+    {
+      name: 'worker-sov-campaigns',
+      cwd: '/var/www/killreport/backend',
+      script: 'yarn',
+      args: 'worker:sov:campaigns',
+      instances: 1,
+      exec_mode: 'fork',
+      autorestart: false,
+      cron_restart: '*/5 * * * *',
+      env: {
+        NODE_ENV: 'production',
+        LOG_LEVEL: 'info',
+        USE_REDIS_PUBSUB: 'true', // so campaign alerts reach API-server subscribers
+      },
+      error_file: '/var/www/killreport/logs/worker-sov-campaigns-error.log',
+      out_file: '/var/www/killreport/logs/worker-sov-campaigns-out.log',
+      time: true,
+    },
+
+    // Sovereignty Map (Every 30 minutes)
+    {
+      name: 'worker-sov-map',
+      cwd: '/var/www/killreport/backend',
+      script: 'yarn',
+      args: 'worker:sov:map',
+      instances: 1,
+      exec_mode: 'fork',
+      autorestart: false,
+      cron_restart: '*/30 * * * *',
+      env: {
+        NODE_ENV: 'production',
+        LOG_LEVEL: 'info',
+        USE_REDIS_PUBSUB: 'true', // so territory-change alerts reach API-server subscribers
+      },
+      error_file: '/var/www/killreport/logs/worker-sov-map-error.log',
+      out_file: '/var/www/killreport/logs/worker-sov-map-out.log',
+      time: true,
+    },
+
+    // Sovereignty Structures (Every 30 minutes, offset by 15)
+    {
+      name: 'worker-sov-structures',
+      cwd: '/var/www/killreport/backend',
+      script: 'yarn',
+      args: 'worker:sov:structures',
+      instances: 1,
+      exec_mode: 'fork',
+      autorestart: false,
+      cron_restart: '15,45 * * * *',
+      env: {
+        NODE_ENV: 'production',
+        LOG_LEVEL: 'info',
+      },
+      error_file: '/var/www/killreport/logs/worker-sov-structures-error.log',
+      out_file: '/var/www/killreport/logs/worker-sov-structures-out.log',
+      time: true,
+    },
+
+    // Sovereignty Daily Snapshot (Daily at 01:00 UTC)
+    {
+      name: 'worker-sov-snapshot',
+      cwd: '/var/www/killreport/backend',
+      script: 'yarn',
+      args: 'worker:sov:snapshot',
+      instances: 1,
+      exec_mode: 'fork',
+      autorestart: false,
+      cron_restart: '0 1 * * *',
+      env: {
+        NODE_ENV: 'production',
+        LOG_LEVEL: 'info',
+      },
+      error_file: '/var/www/killreport/logs/worker-sov-snapshot-error.log',
+      out_file: '/var/www/killreport/logs/worker-sov-snapshot-out.log',
+      time: true,
+    },
+
+    // Sovereignty Killmail Correlation (Every 10 minutes)
+    {
+      name: 'worker-sov-correlate',
+      cwd: '/var/www/killreport/backend',
+      script: 'yarn',
+      args: 'worker:sov:correlate',
+      instances: 1,
+      exec_mode: 'fork',
+      autorestart: false,
+      cron_restart: '*/10 * * * *',
+      env: {
+        NODE_ENV: 'production',
+        LOG_LEVEL: 'info',
+      },
+      error_file: '/var/www/killreport/logs/worker-sov-correlate-error.log',
+      out_file: '/var/www/killreport/logs/worker-sov-correlate-out.log',
+      time: true,
+    },
+
     // Queue Prices - Daily at 09:00 Turkey Time (06:00 UTC)
     {
       name: 'queue-prices',
