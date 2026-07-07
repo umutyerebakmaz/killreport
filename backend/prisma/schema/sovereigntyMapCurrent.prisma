@@ -1,0 +1,11 @@
+model SovereigntyMapCurrent {
+  solar_system_id Int      @id
+  alliance_id     Int?
+  corporation_id  Int?
+  faction_id      Int?
+  last_updated    DateTime @updatedAt
+
+  @@index([alliance_id])
+  @@index([faction_id])
+  @@map("sovereignty_map_current")
+}

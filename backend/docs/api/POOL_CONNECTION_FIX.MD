@@ -187,15 +187,15 @@ When creating new workers or queue scripts:
 
 ```typescript
 // ✅ Correct - for workers
-import prismaWorker from "../services/prisma-worker";
+import prismaWorker from "@services/prisma-worker";
 await prismaWorker.character.findMany();
 
 // ❌ Wrong - for workers
-import prisma from "../services/prisma";
+import prisma from "@services/prisma";
 await prisma.character.findMany();
 
 // ✅ Correct - for resolvers (API context)
-import prisma from "../services/prisma";
+import prisma from "@services/prisma";
 await prisma.character.findMany();
 ```
 
