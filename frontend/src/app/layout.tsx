@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import ApolloWrapper from "../components/ApolloWrapper";
 import Footer from "../components/Footer/Footer";
 import Header from "../components/Header/Header";
+import { SovereigntyAlertsProvider } from "../components/Sovereignty/SovereigntyAlertsProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -21,14 +22,16 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <ApolloWrapper>
-          <Header />
+          <SovereigntyAlertsProvider>
+            <Header />
 
-          {/* Main Content */}
-          <main className="flex-1 w-full px-6 py-8 mx-auto text-gray-100 lg:px-8 xl:px-12 2xl:px-16 max-w-480">
-            {children}
-          </main>
+            {/* Main Content */}
+            <main className="flex-1 w-full px-6 py-8 mx-auto text-gray-100 lg:px-8 xl:px-12 2xl:px-16 max-w-480">
+              {children}
+            </main>
 
-          <Footer />
+            <Footer />
+          </SovereigntyAlertsProvider>
         </ApolloWrapper>
       </body>
     </html>

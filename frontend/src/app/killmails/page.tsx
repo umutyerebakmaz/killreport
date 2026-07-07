@@ -55,6 +55,7 @@ function KillmailsContent() {
     maxAttackers?: number;
     minValue?: number;
     maxValue?: number;
+    warRelated?: boolean;
   }>({
     characterId: urlFilters.characterId,
     shipTypeId: urlFilters.shipTypeId,
@@ -71,6 +72,7 @@ function KillmailsContent() {
     attacker: urlFilters.attacker,
     characterVictim: urlFilters.characterVictim,
     characterAttacker: urlFilters.characterAttacker,
+    warRelated: urlFilters.warRelated,
   });
   const [newKillmails, setNewKillmails] = useState<any[]>([]);
   const [animatingKillmails, setAnimatingKillmails] = useState<Set<string>>(
@@ -182,7 +184,8 @@ function KillmailsContent() {
         filters.minAttackers ||
         filters.maxAttackers ||
         filters.minValue ||
-        filters.maxValue
+        filters.maxValue ||
+        filters.warRelated
       ), // Skip if not on first page OR filters are active
   });
 
@@ -206,7 +209,8 @@ function KillmailsContent() {
       !filters.minAttackers &&
       !filters.maxAttackers &&
       !filters.minValue &&
-      !filters.maxValue
+      !filters.maxValue &&
+      !filters.warRelated
     ) {
       const km = subscriptionData.newKillmail;
 
@@ -268,6 +272,7 @@ function KillmailsContent() {
     maxAttackers?: number;
     minValue?: number;
     maxValue?: number;
+    warRelated?: boolean;
   }) => {
     setFilters(newFilters);
     setCurrentPage(1); // Reset to first page when filters change
@@ -299,6 +304,7 @@ function KillmailsContent() {
         maxAttackers: filters.maxAttackers,
         minValue: filters.minValue,
         maxValue: filters.maxValue,
+        warRelated: filters.warRelated,
       },
     },
   });
@@ -338,6 +344,7 @@ function KillmailsContent() {
         maxAttackers: filters.maxAttackers,
         minValue: filters.minValue,
         maxValue: filters.maxValue,
+        warRelated: filters.warRelated,
       },
     },
   });
@@ -362,6 +369,7 @@ function KillmailsContent() {
     filters.maxAttackers,
     filters.minValue,
     filters.maxValue,
+    filters.warRelated,
     router,
   ]);
 
@@ -470,6 +478,7 @@ function KillmailsContent() {
           initialShipRole={urlFilters.shipTypeRole}
           initialCharacterRole={urlFilters.characterRole}
           initialSecuritySpace={urlFilters.securitySpaceRole}
+          initialWarRelated={urlFilters.warRelated}
         />
       </div>
 

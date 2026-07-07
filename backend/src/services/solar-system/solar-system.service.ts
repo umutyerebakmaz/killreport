@@ -26,7 +26,7 @@ export class SolarSystemService {
   static async getSystemInfo(systemId: number) {
     return esiRateLimiter.execute(async () => {
       const response = await axios.get(
-        `${ESI_BASE_URL}/universe/systems/${systemId}/`
+        `${ESI_BASE_URL}/universe/systems/${systemId}`
       );
       return response.data;
     });

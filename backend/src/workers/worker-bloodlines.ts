@@ -6,9 +6,9 @@
  * Bu worker EVE Online'daki tüm bloodline'ların bilgilerini çeker.
  */
 
+import logger from '@services/logger';
+import prismaWorker from '@services/prisma-worker';
 import axios from 'axios';
-import logger from '../services/logger';
-import prismaWorker from '../services/prisma-worker';
 
 interface ESIBloodline {
   bloodline_id: number;
