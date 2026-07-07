@@ -63,6 +63,32 @@ export type AllianceTopShipTargetsArgs = {
   filter?: InputMaybe<TopTargetFilter>;
 };
 
+/** An alliance ranked by activity level from its latest daily territory snapshot. */
+export type AllianceActivityRank = {
+  __typename?: 'AllianceActivityRank';
+  allianceId: Scalars['Int']['output'];
+  allianceName?: Maybe<Scalars['String']['output']>;
+  allianceTicker?: Maybe<Scalars['String']['output']>;
+  campaignsAttacking: Scalars['Int']['output'];
+  campaignsDefending: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+  systemsGained: Scalars['Int']['output'];
+  systemsLost: Scalars['Int']['output'];
+};
+
+/** An alliance's defensive record across resolved campaigns it defended. */
+export type AllianceDefenseRecord = {
+  __typename?: 'AllianceDefenseRecord';
+  allianceId: Scalars['Int']['output'];
+  allianceName?: Maybe<Scalars['String']['output']>;
+  allianceTicker?: Maybe<Scalars['String']['output']>;
+  /** Won / total, 0..1. */
+  defenseSuccessRate: Scalars['Float']['output'];
+  defensesTotal: Scalars['Int']['output'];
+  defensesWon: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+};
+
 export type AllianceFilter = {
   dateFoundedFrom?: InputMaybe<Scalars['String']['input']>;
   dateFoundedTo?: InputMaybe<Scalars['String']['input']>;
@@ -102,6 +128,22 @@ export type AllianceSnapshot = {
   corporationCount: Scalars['Int']['output'];
   date: Scalars['String']['output'];
   memberCount: Scalars['Int']['output'];
+};
+
+/** An alliance ranked by the number of systems it currently holds sovereignty over. */
+export type AllianceTerritoryRank = {
+  __typename?: 'AllianceTerritoryRank';
+  allianceId: Scalars['Int']['output'];
+  allianceName?: Maybe<Scalars['String']['output']>;
+  allianceTicker?: Maybe<Scalars['String']['output']>;
+  /** From the alliance's most recent daily territory snapshot (0 if no snapshot yet). */
+  campaignsAttacking: Scalars['Int']['output'];
+  campaignsDefending: Scalars['Int']['output'];
+  ihubCount: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+  systemsControlled: Scalars['Int']['output'];
+  systemsGained: Scalars['Int']['output'];
+  systemsLost: Scalars['Int']['output'];
 };
 
 export type AllianceTopTarget = {
@@ -176,6 +218,15 @@ export type CacheStats = {
   totalKeys: Scalars['Int']['output'];
 };
 
+/** An alliance participating in a sovereignty campaign, with its contest score. */
+export type CampaignParticipant = {
+  __typename?: 'CampaignParticipant';
+  allianceId: Scalars['Int']['output'];
+  allianceName?: Maybe<Scalars['String']['output']>;
+  allianceTicker?: Maybe<Scalars['String']['output']>;
+  score: Scalars['Float']['output'];
+};
+
 export type CategoriesResponse = {
   __typename?: 'CategoriesResponse';
   items: Array<Category>;
@@ -243,6 +294,18 @@ export type CharactersResponse = {
   __typename?: 'CharactersResponse';
   items: Array<Character>;
   pageInfo: PageInfo;
+};
+
+/** A region ranked by sovereignty conflict intensity. */
+export type ConflictHotspot = {
+  __typename?: 'ConflictHotspot';
+  activeCampaigns: Scalars['Int']['output'];
+  /** Composite conflict-intensity score (heuristic: activeCampaigns*3 + warKills). */
+  intensityScore: Scalars['Float']['output'];
+  iskDestroyed: Scalars['Float']['output'];
+  regionId: Scalars['Int']['output'];
+  regionName?: Maybe<Scalars['String']['output']>;
+  warKills: Scalars['Int']['output'];
 };
 
 export type Constellation = {
@@ -536,6 +599,8 @@ export type Killmail = {
   finalBlow?: Maybe<Attacker>;
   fitting?: Maybe<Fitting>;
   id: Scalars['ID']['output'];
+  /** Whether this kill was correlated to an active sovereignty war campaign. */
+  isWarRelated: Scalars['Boolean']['output'];
   items: Array<KillmailItem>;
   killmailHash: Scalars['String']['output'];
   killmailTime: Scalars['String']['output'];
@@ -576,6 +641,8 @@ export type KillmailFilter = {
   startDate?: InputMaybe<Scalars['String']['input']>;
   systemId?: InputMaybe<Scalars['Int']['input']>;
   victim?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Only return killmails correlated to an active sovereignty campaign. */
+  warRelated?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type KillmailItem = {
@@ -755,8 +822,12 @@ export type Position = {
 export type Query = {
   __typename?: 'Query';
   _empty?: Maybe<Scalars['String']['output']>;
+  /** Active sovereignty campaigns grouped by region, hottest first. */
+  activeCampaignsByRegion: Array<RegionCampaignCount>;
   activeUsersCount: Scalars['Int']['output'];
   alliance?: Maybe<Alliance>;
+  /** Top alliances ranked by number of systems currently controlled. */
+  allianceTerritoryRankings: Array<AllianceTerritoryRank>;
   allianceTopAllianceTargets: Array<AllianceTopTarget>;
   allianceTopCharacters: Array<CharacterTopTarget>;
   allianceTopCorporationTargets: Array<CorporationTopTarget>;
@@ -775,6 +846,8 @@ export type Query = {
   characterTopShipTargets: Array<ShipTopKill>;
   characterTopShips: Array<ShipTopKill>;
   characters: CharactersResponse;
+  /** Regions ranked by sovereignty conflict intensity, hottest first. */
+  conflictHotspots: Array<ConflictHotspot>;
   constellation?: Maybe<Constellation>;
   constellations: ConstellationsResponse;
   corporation?: Maybe<Corporation>;
@@ -798,17 +871,39 @@ export type Query = {
   killmailsDateCounts: Array<KillmailDateCount>;
   /** Mevcut authenticated kullanıcının bilgilerini döner */
   me?: Maybe<User>;
+  /** Alliances ranked by campaigns currently attacking (most aggressive first). */
+  mostAggressiveAlliances: Array<AllianceActivityRank>;
+  /** Alliances ranked by campaigns currently defending (most defensive first). */
+  mostDefensiveAlliances: Array<AllianceActivityRank>;
   race?: Maybe<Race>;
   races: Array<Race>;
+  /** Most recently detected territory ownership changes. */
+  recentTerritoryChanges: Array<TerritoryChange>;
   region?: Maybe<Region>;
   regions: RegionsResponse;
   solarSystem?: Maybe<SolarSystem>;
   solarSystems: SolarSystemsResponse;
+  /** Currently active sovereignty campaigns, newest first. */
+  sovereigntyActiveCampaigns: Array<SovereigntyCampaign>;
+  /** Resolved (ended) campaigns, newest-ended first, paginated. */
+  sovereigntyCampaignHistory: SovereigntyCampaignHistoryPage;
+  /** All sov-held systems with coordinates, for the territory map (filter by region client-side). */
+  sovereigntyMapPoints: Array<SovMapPoint>;
+  /** Distribution of resolved campaign outcomes. */
+  sovereigntyOutcomeStats: SovereigntyOutcomeStats;
+  /** Summary counts for the current sovereignty state. */
+  sovereigntyOverview: SovereigntyOverview;
+  /** All currently tracked (non-destroyed) sovereignty structures, optionally filtered. */
+  sovereigntyStructures: Array<SovereigntyStructureInfo>;
+  /** Structures whose vulnerability window opens within the next N hours (default 24), soonest first. */
+  sovereigntyUpcomingTimers: Array<SovereigntyStructureInfo>;
   systemKillsHistory: Array<SystemKills>;
   systemLatestKills?: Maybe<SystemKills>;
   /** Returns top pilots ranked by total kill count over the last 90 days (rolling window) */
   top90DaysPilots: Array<Top90DaysPilot>;
   topActiveSystems: Array<SystemKillsStats>;
+  /** Alliances ranked by successful defenses of ended campaigns. */
+  topDefenders: Array<AllianceDefenseRecord>;
   /** Returns top alliances ranked by total kill count over the last 7 days (rolling window, today - 6 days) */
   topLast7DaysAlliances: Array<TopLast7DaysAlliance>;
   /** Returns top attacker ship types by usage count over the last 7 days (rolling window, today - 6 days) */
@@ -834,8 +929,18 @@ export type Query = {
 };
 
 
+export type QueryActiveCampaignsByRegionArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
 export type QueryAllianceArgs = {
   id: Scalars['Int']['input'];
+};
+
+
+export type QueryAllianceTerritoryRankingsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -920,6 +1025,11 @@ export type QueryCharacterTopShipsArgs = {
 
 export type QueryCharactersArgs = {
   filter?: InputMaybe<CharacterFilter>;
+};
+
+
+export type QueryConflictHotspotsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1018,8 +1128,23 @@ export type QueryKillmailsDateCountsArgs = {
 };
 
 
+export type QueryMostAggressiveAlliancesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryMostDefensiveAlliancesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
 export type QueryRaceArgs = {
   id: Scalars['Int']['input'];
+};
+
+
+export type QueryRecentTerritoryChangesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1043,6 +1168,30 @@ export type QuerySolarSystemsArgs = {
 };
 
 
+export type QuerySovereigntyActiveCampaignsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QuerySovereigntyCampaignHistoryArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QuerySovereigntyStructuresArgs = {
+  allianceId?: InputMaybe<Scalars['Int']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  systemId?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QuerySovereigntyUpcomingTimersArgs = {
+  hoursAhead?: InputMaybe<Scalars['Int']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
 export type QuerySystemKillsHistoryArgs = {
   filter: SystemKillsFilter;
 };
@@ -1059,6 +1208,11 @@ export type QueryTop90DaysPilotsArgs = {
 
 
 export type QueryTopActiveSystemsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryTopDefendersArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
@@ -1179,6 +1333,14 @@ export type Region = {
   solarSystemCount: Scalars['Int']['output'];
 };
 
+/** Count of active sovereignty campaigns in a region. */
+export type RegionCampaignCount = {
+  __typename?: 'RegionCampaignCount';
+  campaignCount: Scalars['Int']['output'];
+  regionId: Scalars['Int']['output'];
+  regionName?: Maybe<Scalars['String']['output']>;
+};
+
 export type RegionFilter = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
@@ -1261,6 +1423,130 @@ export type SolarSystemsResponse = {
   __typename?: 'SolarSystemsResponse';
   items: Array<SolarSystem>;
   pageInfo: PageInfo;
+};
+
+/**
+ * A sov-held solar system plotted on the territory map (position in light-years,
+ * galactic x/z projected to 2D).
+ */
+export type SovMapPoint = {
+  __typename?: 'SovMapPoint';
+  allianceId?: Maybe<Scalars['Int']['output']>;
+  allianceName?: Maybe<Scalars['String']['output']>;
+  allianceTicker?: Maybe<Scalars['String']['output']>;
+  regionName?: Maybe<Scalars['String']['output']>;
+  systemId: Scalars['Int']['output'];
+  systemName?: Maybe<Scalars['String']['output']>;
+  x: Scalars['Float']['output'];
+  y: Scalars['Float']['output'];
+};
+
+/** A real-time sovereignty alert pushed over SSE when a worker detects an event. */
+export type SovereigntyAlert = {
+  __typename?: 'SovereigntyAlert';
+  /** The salient alliance for the event (defender, or new owner). */
+  allianceId?: Maybe<Scalars['Int']['output']>;
+  allianceName?: Maybe<Scalars['String']['output']>;
+  allianceTicker?: Maybe<Scalars['String']['output']>;
+  /** Set for territory_change: captured / lost / transferred / faction_change. */
+  changeType?: Maybe<Scalars['String']['output']>;
+  /** Human-readable summary, e.g. 'New IHub campaign in EH2I-P (Perrigen Falls)'. */
+  message: Scalars['String']['output'];
+  /** Set for campaign_ended: defender_won / attacker_won / abandoned. */
+  outcome?: Maybe<Scalars['String']['output']>;
+  regionName?: Maybe<Scalars['String']['output']>;
+  solarSystemId: Scalars['Int']['output'];
+  solarSystemName?: Maybe<Scalars['String']['output']>;
+  timestamp: Scalars['String']['output'];
+  /** campaign_started | campaign_ended | territory_change */
+  type: Scalars['String']['output'];
+};
+
+/** An active sovereignty campaign (contested TCU / IHub / station). */
+export type SovereigntyCampaign = {
+  __typename?: 'SovereigntyCampaign';
+  /** ISK lost by the attacker/third-party side. */
+  attackerIskLost: Scalars['Float']['output'];
+  attackerShipsLost: Scalars['Int']['output'];
+  attackersScore?: Maybe<Scalars['Float']['output']>;
+  campaignId: Scalars['Int']['output'];
+  constellationId: Scalars['Int']['output'];
+  defenderId?: Maybe<Scalars['Int']['output']>;
+  /** ISK lost by the defender side (victim alliance == defender). */
+  defenderIskLost: Scalars['Float']['output'];
+  defenderName?: Maybe<Scalars['String']['output']>;
+  defenderScore?: Maybe<Scalars['Float']['output']>;
+  defenderShipsLost: Scalars['Int']['output'];
+  defenderTicker?: Maybe<Scalars['String']['output']>;
+  /** Hours from start to end; null while active. */
+  durationHours?: Maybe<Scalars['Float']['output']>;
+  /** Set once the campaign resolves and leaves ESI; null while active. */
+  endTime?: Maybe<Scalars['String']['output']>;
+  eventType: Scalars['String']['output'];
+  /** ISK destroyed in this campaign's war zone. */
+  iskDestroyed: Scalars['Float']['output'];
+  /** defender_won / attacker_won / abandoned; null while active or unresolved. */
+  outcome?: Maybe<Scalars['String']['output']>;
+  /** Alliances contesting this campaign (attackers and/or defender) with their score. */
+  participants: Array<CampaignParticipant>;
+  regionId?: Maybe<Scalars['Int']['output']>;
+  regionName?: Maybe<Scalars['String']['output']>;
+  solarSystemId: Scalars['Int']['output'];
+  solarSystemName?: Maybe<Scalars['String']['output']>;
+  startTime: Scalars['String']['output'];
+  structureId: Scalars['String']['output'];
+  /** Killmails correlated to this campaign (0 until fighting happens in its window). */
+  warKills: Scalars['Int']['output'];
+};
+
+/** A page of resolved (ended) sovereignty campaigns. */
+export type SovereigntyCampaignHistoryPage = {
+  __typename?: 'SovereigntyCampaignHistoryPage';
+  items: Array<SovereigntyCampaign>;
+  totalCount: Scalars['Int']['output'];
+};
+
+/** Distribution of resolved campaign outcomes. */
+export type SovereigntyOutcomeStats = {
+  __typename?: 'SovereigntyOutcomeStats';
+  abandoned: Scalars['Int']['output'];
+  attackerWon: Scalars['Int']['output'];
+  defenderWon: Scalars['Int']['output'];
+  totalResolved: Scalars['Int']['output'];
+};
+
+/** High-level summary of the current sovereignty state. */
+export type SovereigntyOverview = {
+  __typename?: 'SovereigntyOverview';
+  activeCampaigns: Scalars['Int']['output'];
+  /** Total ISK destroyed across all active sovereignty campaigns. */
+  iskDestroyed: Scalars['Float']['output'];
+  ownedSystems: Scalars['Int']['output'];
+  trackedAlliances: Scalars['Int']['output'];
+  trackedStructures: Scalars['Int']['output'];
+  /** Total killmails correlated to active sovereignty campaigns. */
+  warKills: Scalars['Int']['output'];
+};
+
+/** A tracked sovereignty structure (IHub or TCU) with ownership and timer info. */
+export type SovereigntyStructureInfo = {
+  __typename?: 'SovereigntyStructureInfo';
+  allianceId: Scalars['Int']['output'];
+  allianceName?: Maybe<Scalars['String']['output']>;
+  allianceTicker?: Maybe<Scalars['String']['output']>;
+  firstSeen: Scalars['String']['output'];
+  lastSeen: Scalars['String']['output'];
+  /** Vulnerability occupancy level (ADM proxy), 1.0..6.0, if reported by ESI. */
+  occupancyLevel?: Maybe<Scalars['Float']['output']>;
+  regionId?: Maybe<Scalars['Int']['output']>;
+  regionName?: Maybe<Scalars['String']['output']>;
+  solarSystemId: Scalars['Int']['output'];
+  solarSystemName?: Maybe<Scalars['String']['output']>;
+  structureId: Scalars['String']['output'];
+  structureTypeId: Scalars['Int']['output'];
+  structureTypeName: Scalars['String']['output'];
+  vulnerableEndTime?: Maybe<Scalars['String']['output']>;
+  vulnerableStartTime?: Maybe<Scalars['String']['output']>;
 };
 
 export type StandaloneWorkerStatus = {
@@ -1385,6 +1671,8 @@ export type Subscription = {
    * Emits a new event whenever a killmail is saved
    */
   newKillmail: Killmail;
+  /** Live sovereignty alerts (new/ended campaigns, territory changes). */
+  sovereigntyAlert: SovereigntyAlert;
   /**
    * Subscribe to real-time worker status updates
    * Emits updates every 5 seconds
@@ -1429,6 +1717,20 @@ export type SystemKillsStats = {
   system_id: Scalars['Int']['output'];
   system_name: Scalars['String']['output'];
   total_kills: Scalars['Int']['output'];
+};
+
+/** A logged change of sovereignty ownership for a system. */
+export type TerritoryChange = {
+  __typename?: 'TerritoryChange';
+  changeType: Scalars['String']['output'];
+  detectedAt: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  newOwnerId?: Maybe<Scalars['Int']['output']>;
+  newOwnerName?: Maybe<Scalars['String']['output']>;
+  previousOwnerId?: Maybe<Scalars['Int']['output']>;
+  previousOwnerName?: Maybe<Scalars['String']['output']>;
+  solarSystemId: Scalars['Int']['output'];
+  solarSystemName?: Maybe<Scalars['String']['output']>;
 };
 
 export type Top90DaysPilot = {
@@ -1712,7 +2014,7 @@ export type AllianceKillmailsQueryVariables = Exact<{
 }>;
 
 
-export type AllianceKillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailsResponse', items: Array<{ __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, attackers: Array<{ __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null }>, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+export type AllianceKillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailsResponse', items: Array<{ __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, isWarRelated: boolean, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, attackers: Array<{ __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null }>, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
 
 export type AllianceTopAllianceTargetsQueryVariables = Exact<{
   allianceId: Scalars['Int']['input'];
@@ -1790,7 +2092,7 @@ export type CharacterKillmailsQueryVariables = Exact<{
 }>;
 
 
-export type CharacterKillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailsResponse', items: Array<{ __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, attackers: Array<{ __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null }>, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+export type CharacterKillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailsResponse', items: Array<{ __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, isWarRelated: boolean, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, attackers: Array<{ __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null }>, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
 
 export type CharacterTopAllianceTargetsQueryVariables = Exact<{
   characterId: Scalars['Int']['input'];
@@ -1830,6 +2132,11 @@ export type CharactersQueryVariables = Exact<{
 
 
 export type CharactersQuery = { __typename?: 'Query', characters: { __typename?: 'CharactersResponse', items: Array<{ __typename?: 'Character', id: number, name: string, securityStatus?: number | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
+export type ConflictHotspotsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ConflictHotspotsQuery = { __typename?: 'Query', conflictHotspots: Array<{ __typename?: 'ConflictHotspot', regionId: number, regionName?: string | null, activeCampaigns: number, warKills: number, iskDestroyed: number, intensityScore: number }> };
 
 export type ConstellationsQueryVariables = Exact<{
   filter?: InputMaybe<ConstellationFilter>;
@@ -1873,7 +2180,7 @@ export type CorporationKillmailsQueryVariables = Exact<{
 }>;
 
 
-export type CorporationKillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailsResponse', items: Array<{ __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, attackers: Array<{ __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null }>, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+export type CorporationKillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailsResponse', items: Array<{ __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, isWarRelated: boolean, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, attackers: Array<{ __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null }>, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
 
 export type CorporationTopAllianceTargetsQueryVariables = Exact<{
   corporationId: Scalars['Int']['input'];
@@ -1927,14 +2234,14 @@ export type KillmailQueryVariables = Exact<{
 }>;
 
 
-export type KillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', id: string, killmailHash: string, killmailTime: string, destroyedValue?: number | null, droppedValue?: number | null, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType: { __typename?: 'Type', id: number, name: string, description?: string | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }>, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } } | null, attackers: Array<{ __typename?: 'Attacker', damageDone: number, finalBlow: boolean, securityStatus?: number | null, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }>, group?: { __typename?: 'ItemGroup', name: string } | null } | null, weaponType?: { __typename?: 'Type', id: number, name: string } | null }>, fitting?: { __typename?: 'Fitting', highSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null }, charge?: { __typename?: 'FittingModule', singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } } | null } | null }> }, midSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null }, charge?: { __typename?: 'FittingModule', singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null } } | null } | null }> }, lowSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null }, charge?: { __typename?: 'FittingModule', singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null } } | null } | null }> }, rigs: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } } | null }> }, subsystems: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } } | null }> }, serviceSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } } | null }> }, implants: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } } | null }> }, cargo: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, droneBay: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, fleetHangar: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, infrastructureHangar: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, fuelBay: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, oreHold: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, gasHold: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, mineralHold: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, salvageHold: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, planetaryCommoditiesHold: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, iceHold: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, infrastructureHold: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, fighterBay: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, structureFuel: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, coreRoom: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }> } | null } | null };
+export type KillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', id: string, killmailHash: string, killmailTime: string, destroyedValue?: number | null, droppedValue?: number | null, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, isWarRelated: boolean, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, shipType: { __typename?: 'Type', id: number, name: string, description?: string | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }>, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } } | null, attackers: Array<{ __typename?: 'Attacker', damageDone: number, finalBlow: boolean, securityStatus?: number | null, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType?: { __typename?: 'Type', id: number, name: string, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }>, group?: { __typename?: 'ItemGroup', name: string } | null } | null, weaponType?: { __typename?: 'Type', id: number, name: string } | null }>, fitting?: { __typename?: 'Fitting', highSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null }, charge?: { __typename?: 'FittingModule', singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } } | null } | null }> }, midSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null }, charge?: { __typename?: 'FittingModule', singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null } } | null } | null }> }, lowSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null }, charge?: { __typename?: 'FittingModule', singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string } | null } } | null } | null }> }, rigs: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } } | null }> }, subsystems: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } } | null }> }, serviceSlots: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } } | null }> }, implants: { __typename?: 'SlotGroup', totalSlots: number, slots: Array<{ __typename?: 'FittingSlot', slotIndex: number, module?: { __typename?: 'FittingModule', singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } } | null }> }, cargo: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, droneBay: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, fleetHangar: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, infrastructureHangar: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, fuelBay: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, oreHold: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, gasHold: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, mineralHold: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, salvageHold: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, planetaryCommoditiesHold: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, iceHold: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, infrastructureHold: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, fighterBay: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, structureFuel: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }>, coreRoom: Array<{ __typename?: 'FittingModule', flag: number, singleton: number, quantityDropped?: number | null, quantityDestroyed?: number | null, itemType: { __typename?: 'Type', id: number, name: string, jitaPrice?: { __typename?: 'JitaPrice', buy: number, sell: number, average: number } | null, group?: { __typename?: 'ItemGroup', name: string, category: { __typename?: 'Category', name: string } } | null } }> } | null } | null };
 
 export type KillmailsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
 }>;
 
 
-export type KillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailsResponse', items: Array<{ __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', id: number, name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, attackers: Array<{ __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null }> }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+export type KillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailsResponse', items: Array<{ __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, isWarRelated: boolean, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', id: number, name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, attackers: Array<{ __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null }> }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
 
 export type KillmailsDateCountsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
@@ -1946,7 +2253,7 @@ export type KillmailsDateCountsQuery = { __typename?: 'Query', killmailsDateCoun
 export type NewKillmailSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type NewKillmailSubscription = { __typename?: 'Subscription', newKillmail: { __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null } };
+export type NewKillmailSubscription = { __typename?: 'Subscription', newKillmail: { __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, isWarRelated: boolean, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', name: string } | null } | null }, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null } };
 
 export type RegionsQueryVariables = Exact<{
   filter?: InputMaybe<RegionFilter>;
@@ -2081,6 +2388,34 @@ export type SolarSystemQueryVariables = Exact<{
 
 
 export type SolarSystemQuery = { __typename?: 'Query', solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, star_id?: number | null, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null, latestKills?: { __typename?: 'SystemKills', ship_kills: number, pod_kills: number, npc_kills: number, timestamp: string } | null } | null };
+
+export type SovereigntyDashboardQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type SovereigntyDashboardQuery = { __typename?: 'Query', sovereigntyOverview: { __typename?: 'SovereigntyOverview', ownedSystems: number, activeCampaigns: number, trackedStructures: number, trackedAlliances: number, warKills: number, iskDestroyed: number }, allianceTerritoryRankings: Array<{ __typename?: 'AllianceTerritoryRank', rank: number, allianceId: number, allianceName?: string | null, allianceTicker?: string | null, systemsControlled: number, ihubCount: number, campaignsAttacking: number, campaignsDefending: number }>, mostAggressiveAlliances: Array<{ __typename?: 'AllianceActivityRank', rank: number, allianceId: number, allianceName?: string | null, allianceTicker?: string | null, campaignsAttacking: number }>, mostDefensiveAlliances: Array<{ __typename?: 'AllianceActivityRank', rank: number, allianceId: number, allianceName?: string | null, allianceTicker?: string | null, campaignsDefending: number }>, activeCampaignsByRegion: Array<{ __typename?: 'RegionCampaignCount', regionId: number, regionName?: string | null, campaignCount: number }>, sovereigntyActiveCampaigns: Array<{ __typename?: 'SovereigntyCampaign', campaignId: number, eventType: string, solarSystemId: number, solarSystemName?: string | null, regionName?: string | null, defenderId?: number | null, defenderName?: string | null, defenderTicker?: string | null, defenderScore?: number | null, attackersScore?: number | null, startTime: string, warKills: number, iskDestroyed: number, defenderIskLost: number, attackerIskLost: number, participants: Array<{ __typename?: 'CampaignParticipant', allianceId: number, allianceName?: string | null, allianceTicker?: string | null, score: number }> }>, recentTerritoryChanges: Array<{ __typename?: 'TerritoryChange', id: string, solarSystemId: number, solarSystemName?: string | null, previousOwnerId?: number | null, previousOwnerName?: string | null, newOwnerId?: number | null, newOwnerName?: string | null, changeType: string, detectedAt: string }> };
+
+export type SovereigntyAlertSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type SovereigntyAlertSubscription = { __typename?: 'Subscription', sovereigntyAlert: { __typename?: 'SovereigntyAlert', type: string, message: string, solarSystemId: number, solarSystemName?: string | null, regionName?: string | null, allianceId?: number | null, allianceName?: string | null, allianceTicker?: string | null, outcome?: string | null, changeType?: string | null, timestamp: string } };
+
+export type SovereigntyHistoryPageQueryVariables = Exact<{
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type SovereigntyHistoryPageQuery = { __typename?: 'Query', sovereigntyOutcomeStats: { __typename?: 'SovereigntyOutcomeStats', defenderWon: number, attackerWon: number, abandoned: number, totalResolved: number }, topDefenders: Array<{ __typename?: 'AllianceDefenseRecord', rank: number, allianceId: number, allianceName?: string | null, allianceTicker?: string | null, defensesWon: number, defensesTotal: number, defenseSuccessRate: number }>, sovereigntyCampaignHistory: { __typename?: 'SovereigntyCampaignHistoryPage', totalCount: number, items: Array<{ __typename?: 'SovereigntyCampaign', campaignId: number, eventType: string, solarSystemId: number, solarSystemName?: string | null, regionName?: string | null, defenderId?: number | null, defenderName?: string | null, defenderTicker?: string | null, defenderScore?: number | null, attackersScore?: number | null, outcome?: string | null, durationHours?: number | null, endTime?: string | null, warKills: number, iskDestroyed: number, defenderIskLost: number, attackerIskLost: number }> } };
+
+export type SovereigntyMapQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type SovereigntyMapQuery = { __typename?: 'Query', sovereigntyMapPoints: Array<{ __typename?: 'SovMapPoint', systemId: number, systemName?: string | null, x: number, y: number, allianceId?: number | null, allianceName?: string | null, allianceTicker?: string | null, regionName?: string | null }> };
+
+export type SovereigntyStructuresPageQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type SovereigntyStructuresPageQuery = { __typename?: 'Query', sovereigntyUpcomingTimers: Array<{ __typename?: 'SovereigntyStructureInfo', structureId: string, solarSystemId: number, solarSystemName?: string | null, regionId?: number | null, regionName?: string | null, allianceId: number, allianceName?: string | null, allianceTicker?: string | null, structureTypeId: number, structureTypeName: string, occupancyLevel?: number | null, vulnerableStartTime?: string | null, vulnerableEndTime?: string | null }>, sovereigntyStructures: Array<{ __typename?: 'SovereigntyStructureInfo', structureId: string, solarSystemId: number, solarSystemName?: string | null, regionId?: number | null, regionName?: string | null, allianceId: number, allianceName?: string | null, allianceTicker?: string | null, structureTypeId: number, structureTypeName: string, occupancyLevel?: number | null, vulnerableStartTime?: string | null, vulnerableEndTime?: string | null, lastSeen: string }> };
 
 export type Top90DaysPilotsQueryVariables = Exact<{
   filter?: InputMaybe<Top90DaysPilotsFilter>;
@@ -2345,6 +2680,7 @@ export const AllianceKillmailsDocument = gql`
       attackerCount
       solo
       npc
+      isWarRelated
       victim {
         character {
           id
@@ -2960,6 +3296,7 @@ export const CharacterKillmailsDocument = gql`
       attackerCount
       solo
       npc
+      isWarRelated
       victim {
         character {
           id
@@ -3340,6 +3677,53 @@ export type CharactersQueryHookResult = ReturnType<typeof useCharactersQuery>;
 export type CharactersLazyQueryHookResult = ReturnType<typeof useCharactersLazyQuery>;
 export type CharactersSuspenseQueryHookResult = ReturnType<typeof useCharactersSuspenseQuery>;
 export type CharactersQueryResult = Apollo.QueryResult<CharactersQuery, CharactersQueryVariables>;
+export const ConflictHotspotsDocument = gql`
+    query ConflictHotspots {
+  conflictHotspots(limit: 30) {
+    regionId
+    regionName
+    activeCampaigns
+    warKills
+    iskDestroyed
+    intensityScore
+  }
+}
+    `;
+
+/**
+ * __useConflictHotspotsQuery__
+ *
+ * To run a query within a React component, call `useConflictHotspotsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useConflictHotspotsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useConflictHotspotsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useConflictHotspotsQuery(baseOptions?: Apollo.QueryHookOptions<ConflictHotspotsQuery, ConflictHotspotsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ConflictHotspotsQuery, ConflictHotspotsQueryVariables>(ConflictHotspotsDocument, options);
+      }
+export function useConflictHotspotsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ConflictHotspotsQuery, ConflictHotspotsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ConflictHotspotsQuery, ConflictHotspotsQueryVariables>(ConflictHotspotsDocument, options);
+        }
+// @ts-ignore
+export function useConflictHotspotsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ConflictHotspotsQuery, ConflictHotspotsQueryVariables>): Apollo.UseSuspenseQueryResult<ConflictHotspotsQuery, ConflictHotspotsQueryVariables>;
+export function useConflictHotspotsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ConflictHotspotsQuery, ConflictHotspotsQueryVariables>): Apollo.UseSuspenseQueryResult<ConflictHotspotsQuery | undefined, ConflictHotspotsQueryVariables>;
+export function useConflictHotspotsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ConflictHotspotsQuery, ConflictHotspotsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ConflictHotspotsQuery, ConflictHotspotsQueryVariables>(ConflictHotspotsDocument, options);
+        }
+export type ConflictHotspotsQueryHookResult = ReturnType<typeof useConflictHotspotsQuery>;
+export type ConflictHotspotsLazyQueryHookResult = ReturnType<typeof useConflictHotspotsLazyQuery>;
+export type ConflictHotspotsSuspenseQueryHookResult = ReturnType<typeof useConflictHotspotsSuspenseQuery>;
+export type ConflictHotspotsQueryResult = Apollo.QueryResult<ConflictHotspotsQuery, ConflictHotspotsQueryVariables>;
 export const ConstellationsDocument = gql`
     query Constellations($filter: ConstellationFilter) {
   constellations(filter: $filter) {
@@ -3674,6 +4058,7 @@ export const CorporationKillmailsDocument = gql`
       attackerCount
       solo
       npc
+      isWarRelated
       victim {
         character {
           id
@@ -4128,6 +4513,7 @@ export const KillmailDocument = gql`
     attackerCount
     solo
     npc
+    isWarRelated
     solarSystem {
       id
       name
@@ -4809,6 +5195,7 @@ export const KillmailsDocument = gql`
       attackerCount
       solo
       npc
+      isWarRelated
       solarSystem {
         id
         name
@@ -4975,6 +5362,7 @@ export const NewKillmailDocument = gql`
     killmailTime
     totalValue
     attackerCount
+    isWarRelated
     solarSystem {
       id
       name
@@ -6041,6 +6429,352 @@ export type SolarSystemQueryHookResult = ReturnType<typeof useSolarSystemQuery>;
 export type SolarSystemLazyQueryHookResult = ReturnType<typeof useSolarSystemLazyQuery>;
 export type SolarSystemSuspenseQueryHookResult = ReturnType<typeof useSolarSystemSuspenseQuery>;
 export type SolarSystemQueryResult = Apollo.QueryResult<SolarSystemQuery, SolarSystemQueryVariables>;
+export const SovereigntyDashboardDocument = gql`
+    query SovereigntyDashboard {
+  sovereigntyOverview {
+    ownedSystems
+    activeCampaigns
+    trackedStructures
+    trackedAlliances
+    warKills
+    iskDestroyed
+  }
+  allianceTerritoryRankings(limit: 25) {
+    rank
+    allianceId
+    allianceName
+    allianceTicker
+    systemsControlled
+    ihubCount
+    campaignsAttacking
+    campaignsDefending
+  }
+  mostAggressiveAlliances(limit: 10) {
+    rank
+    allianceId
+    allianceName
+    allianceTicker
+    campaignsAttacking
+  }
+  mostDefensiveAlliances(limit: 10) {
+    rank
+    allianceId
+    allianceName
+    allianceTicker
+    campaignsDefending
+  }
+  activeCampaignsByRegion(limit: 10) {
+    regionId
+    regionName
+    campaignCount
+  }
+  sovereigntyActiveCampaigns(limit: 50) {
+    campaignId
+    eventType
+    solarSystemId
+    solarSystemName
+    regionName
+    defenderId
+    defenderName
+    defenderTicker
+    defenderScore
+    attackersScore
+    startTime
+    warKills
+    iskDestroyed
+    defenderIskLost
+    attackerIskLost
+    participants {
+      allianceId
+      allianceName
+      allianceTicker
+      score
+    }
+  }
+  recentTerritoryChanges(limit: 25) {
+    id
+    solarSystemId
+    solarSystemName
+    previousOwnerId
+    previousOwnerName
+    newOwnerId
+    newOwnerName
+    changeType
+    detectedAt
+  }
+}
+    `;
+
+/**
+ * __useSovereigntyDashboardQuery__
+ *
+ * To run a query within a React component, call `useSovereigntyDashboardQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSovereigntyDashboardQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSovereigntyDashboardQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useSovereigntyDashboardQuery(baseOptions?: Apollo.QueryHookOptions<SovereigntyDashboardQuery, SovereigntyDashboardQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SovereigntyDashboardQuery, SovereigntyDashboardQueryVariables>(SovereigntyDashboardDocument, options);
+      }
+export function useSovereigntyDashboardLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SovereigntyDashboardQuery, SovereigntyDashboardQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SovereigntyDashboardQuery, SovereigntyDashboardQueryVariables>(SovereigntyDashboardDocument, options);
+        }
+// @ts-ignore
+export function useSovereigntyDashboardSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SovereigntyDashboardQuery, SovereigntyDashboardQueryVariables>): Apollo.UseSuspenseQueryResult<SovereigntyDashboardQuery, SovereigntyDashboardQueryVariables>;
+export function useSovereigntyDashboardSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SovereigntyDashboardQuery, SovereigntyDashboardQueryVariables>): Apollo.UseSuspenseQueryResult<SovereigntyDashboardQuery | undefined, SovereigntyDashboardQueryVariables>;
+export function useSovereigntyDashboardSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SovereigntyDashboardQuery, SovereigntyDashboardQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SovereigntyDashboardQuery, SovereigntyDashboardQueryVariables>(SovereigntyDashboardDocument, options);
+        }
+export type SovereigntyDashboardQueryHookResult = ReturnType<typeof useSovereigntyDashboardQuery>;
+export type SovereigntyDashboardLazyQueryHookResult = ReturnType<typeof useSovereigntyDashboardLazyQuery>;
+export type SovereigntyDashboardSuspenseQueryHookResult = ReturnType<typeof useSovereigntyDashboardSuspenseQuery>;
+export type SovereigntyDashboardQueryResult = Apollo.QueryResult<SovereigntyDashboardQuery, SovereigntyDashboardQueryVariables>;
+export const SovereigntyAlertDocument = gql`
+    subscription SovereigntyAlert {
+  sovereigntyAlert {
+    type
+    message
+    solarSystemId
+    solarSystemName
+    regionName
+    allianceId
+    allianceName
+    allianceTicker
+    outcome
+    changeType
+    timestamp
+  }
+}
+    `;
+
+/**
+ * __useSovereigntyAlertSubscription__
+ *
+ * To run a query within a React component, call `useSovereigntyAlertSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useSovereigntyAlertSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSovereigntyAlertSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useSovereigntyAlertSubscription(baseOptions?: Apollo.SubscriptionHookOptions<SovereigntyAlertSubscription, SovereigntyAlertSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<SovereigntyAlertSubscription, SovereigntyAlertSubscriptionVariables>(SovereigntyAlertDocument, options);
+      }
+export type SovereigntyAlertSubscriptionHookResult = ReturnType<typeof useSovereigntyAlertSubscription>;
+export type SovereigntyAlertSubscriptionResult = Apollo.SubscriptionResult<SovereigntyAlertSubscription>;
+export const SovereigntyHistoryPageDocument = gql`
+    query SovereigntyHistoryPage($limit: Int, $offset: Int) {
+  sovereigntyOutcomeStats {
+    defenderWon
+    attackerWon
+    abandoned
+    totalResolved
+  }
+  topDefenders(limit: 10) {
+    rank
+    allianceId
+    allianceName
+    allianceTicker
+    defensesWon
+    defensesTotal
+    defenseSuccessRate
+  }
+  sovereigntyCampaignHistory(limit: $limit, offset: $offset) {
+    totalCount
+    items {
+      campaignId
+      eventType
+      solarSystemId
+      solarSystemName
+      regionName
+      defenderId
+      defenderName
+      defenderTicker
+      defenderScore
+      attackersScore
+      outcome
+      durationHours
+      endTime
+      warKills
+      iskDestroyed
+      defenderIskLost
+      attackerIskLost
+    }
+  }
+}
+    `;
+
+/**
+ * __useSovereigntyHistoryPageQuery__
+ *
+ * To run a query within a React component, call `useSovereigntyHistoryPageQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSovereigntyHistoryPageQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSovereigntyHistoryPageQuery({
+ *   variables: {
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useSovereigntyHistoryPageQuery(baseOptions?: Apollo.QueryHookOptions<SovereigntyHistoryPageQuery, SovereigntyHistoryPageQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SovereigntyHistoryPageQuery, SovereigntyHistoryPageQueryVariables>(SovereigntyHistoryPageDocument, options);
+      }
+export function useSovereigntyHistoryPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SovereigntyHistoryPageQuery, SovereigntyHistoryPageQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SovereigntyHistoryPageQuery, SovereigntyHistoryPageQueryVariables>(SovereigntyHistoryPageDocument, options);
+        }
+// @ts-ignore
+export function useSovereigntyHistoryPageSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SovereigntyHistoryPageQuery, SovereigntyHistoryPageQueryVariables>): Apollo.UseSuspenseQueryResult<SovereigntyHistoryPageQuery, SovereigntyHistoryPageQueryVariables>;
+export function useSovereigntyHistoryPageSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SovereigntyHistoryPageQuery, SovereigntyHistoryPageQueryVariables>): Apollo.UseSuspenseQueryResult<SovereigntyHistoryPageQuery | undefined, SovereigntyHistoryPageQueryVariables>;
+export function useSovereigntyHistoryPageSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SovereigntyHistoryPageQuery, SovereigntyHistoryPageQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SovereigntyHistoryPageQuery, SovereigntyHistoryPageQueryVariables>(SovereigntyHistoryPageDocument, options);
+        }
+export type SovereigntyHistoryPageQueryHookResult = ReturnType<typeof useSovereigntyHistoryPageQuery>;
+export type SovereigntyHistoryPageLazyQueryHookResult = ReturnType<typeof useSovereigntyHistoryPageLazyQuery>;
+export type SovereigntyHistoryPageSuspenseQueryHookResult = ReturnType<typeof useSovereigntyHistoryPageSuspenseQuery>;
+export type SovereigntyHistoryPageQueryResult = Apollo.QueryResult<SovereigntyHistoryPageQuery, SovereigntyHistoryPageQueryVariables>;
+export const SovereigntyMapDocument = gql`
+    query SovereigntyMap {
+  sovereigntyMapPoints {
+    systemId
+    systemName
+    x
+    y
+    allianceId
+    allianceName
+    allianceTicker
+    regionName
+  }
+}
+    `;
+
+/**
+ * __useSovereigntyMapQuery__
+ *
+ * To run a query within a React component, call `useSovereigntyMapQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSovereigntyMapQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSovereigntyMapQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useSovereigntyMapQuery(baseOptions?: Apollo.QueryHookOptions<SovereigntyMapQuery, SovereigntyMapQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SovereigntyMapQuery, SovereigntyMapQueryVariables>(SovereigntyMapDocument, options);
+      }
+export function useSovereigntyMapLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SovereigntyMapQuery, SovereigntyMapQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SovereigntyMapQuery, SovereigntyMapQueryVariables>(SovereigntyMapDocument, options);
+        }
+// @ts-ignore
+export function useSovereigntyMapSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SovereigntyMapQuery, SovereigntyMapQueryVariables>): Apollo.UseSuspenseQueryResult<SovereigntyMapQuery, SovereigntyMapQueryVariables>;
+export function useSovereigntyMapSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SovereigntyMapQuery, SovereigntyMapQueryVariables>): Apollo.UseSuspenseQueryResult<SovereigntyMapQuery | undefined, SovereigntyMapQueryVariables>;
+export function useSovereigntyMapSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SovereigntyMapQuery, SovereigntyMapQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SovereigntyMapQuery, SovereigntyMapQueryVariables>(SovereigntyMapDocument, options);
+        }
+export type SovereigntyMapQueryHookResult = ReturnType<typeof useSovereigntyMapQuery>;
+export type SovereigntyMapLazyQueryHookResult = ReturnType<typeof useSovereigntyMapLazyQuery>;
+export type SovereigntyMapSuspenseQueryHookResult = ReturnType<typeof useSovereigntyMapSuspenseQuery>;
+export type SovereigntyMapQueryResult = Apollo.QueryResult<SovereigntyMapQuery, SovereigntyMapQueryVariables>;
+export const SovereigntyStructuresPageDocument = gql`
+    query SovereigntyStructuresPage {
+  sovereigntyUpcomingTimers(hoursAhead: 24, limit: 100) {
+    structureId
+    solarSystemId
+    solarSystemName
+    regionId
+    regionName
+    allianceId
+    allianceName
+    allianceTicker
+    structureTypeId
+    structureTypeName
+    occupancyLevel
+    vulnerableStartTime
+    vulnerableEndTime
+  }
+  sovereigntyStructures(limit: 500) {
+    structureId
+    solarSystemId
+    solarSystemName
+    regionId
+    regionName
+    allianceId
+    allianceName
+    allianceTicker
+    structureTypeId
+    structureTypeName
+    occupancyLevel
+    vulnerableStartTime
+    vulnerableEndTime
+    lastSeen
+  }
+}
+    `;
+
+/**
+ * __useSovereigntyStructuresPageQuery__
+ *
+ * To run a query within a React component, call `useSovereigntyStructuresPageQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSovereigntyStructuresPageQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSovereigntyStructuresPageQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useSovereigntyStructuresPageQuery(baseOptions?: Apollo.QueryHookOptions<SovereigntyStructuresPageQuery, SovereigntyStructuresPageQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SovereigntyStructuresPageQuery, SovereigntyStructuresPageQueryVariables>(SovereigntyStructuresPageDocument, options);
+      }
+export function useSovereigntyStructuresPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SovereigntyStructuresPageQuery, SovereigntyStructuresPageQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SovereigntyStructuresPageQuery, SovereigntyStructuresPageQueryVariables>(SovereigntyStructuresPageDocument, options);
+        }
+// @ts-ignore
+export function useSovereigntyStructuresPageSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SovereigntyStructuresPageQuery, SovereigntyStructuresPageQueryVariables>): Apollo.UseSuspenseQueryResult<SovereigntyStructuresPageQuery, SovereigntyStructuresPageQueryVariables>;
+export function useSovereigntyStructuresPageSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SovereigntyStructuresPageQuery, SovereigntyStructuresPageQueryVariables>): Apollo.UseSuspenseQueryResult<SovereigntyStructuresPageQuery | undefined, SovereigntyStructuresPageQueryVariables>;
+export function useSovereigntyStructuresPageSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SovereigntyStructuresPageQuery, SovereigntyStructuresPageQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SovereigntyStructuresPageQuery, SovereigntyStructuresPageQueryVariables>(SovereigntyStructuresPageDocument, options);
+        }
+export type SovereigntyStructuresPageQueryHookResult = ReturnType<typeof useSovereigntyStructuresPageQuery>;
+export type SovereigntyStructuresPageLazyQueryHookResult = ReturnType<typeof useSovereigntyStructuresPageLazyQuery>;
+export type SovereigntyStructuresPageSuspenseQueryHookResult = ReturnType<typeof useSovereigntyStructuresPageSuspenseQuery>;
+export type SovereigntyStructuresPageQueryResult = Apollo.QueryResult<SovereigntyStructuresPageQuery, SovereigntyStructuresPageQueryVariables>;
 export const Top90DaysPilotsDocument = gql`
     query Top90DaysPilots($filter: Top90DaysPilotsFilter) {
   top90DaysPilots(filter: $filter) {

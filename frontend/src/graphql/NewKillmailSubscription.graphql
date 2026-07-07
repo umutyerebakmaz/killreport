@@ -4,6 +4,7 @@ subscription NewKillmail {
     killmailTime
     totalValue
     attackerCount
+    isWarRelated
     solarSystem {
       id
       name
