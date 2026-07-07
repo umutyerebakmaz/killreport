@@ -22,4 +22,6 @@ input KillmailFilter {
   maxValue: Float
   startDate: String
   endDate: String
+  "Only return killmails correlated to an active sovereignty campaign."
+  warRelated: Boolean
 }
