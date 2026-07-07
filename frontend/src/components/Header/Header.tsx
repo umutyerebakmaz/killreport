@@ -16,6 +16,7 @@ import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import React, { useState } from "react";
 import ActiveUsersCounter from "../ActiveUsersCounter";
 import AuthButton from "../AuthButton/AuthButton";
+import NotificationBell from "../Notifications/NotificationBell";
 import EveStatus from "../EveStatus/EveStatus";
 import EveTime from "../EveTime/EveTime";
 import Tooltip from "../Tooltip/Tooltip";
@@ -184,6 +185,77 @@ export default function Header() {
           <a href="/leaderboards" className="font-semibold text-white">
             LEADERBOARDS
           </a>
+          <Popover className="relative">
+            <PopoverButton className="flex items-center font-semibold text-white cursor-pointer gap-x-1">
+              SOVEREIGNTY
+              <ChevronDownIcon
+                aria-hidden="true"
+                className="flex-none text-gray-500 size-5"
+              />
+            </PopoverButton>
+            <PopoverPanel
+              transition
+              className="absolute z-10 w-screen max-w-md mt-3 overflow-hidden transition -translate-x-1/2 bg-stone-900 left-1/2 outline-1 -outline-offset-1 outline-white/10 data-closed:translate-y-1 data-closed:opacity-0 data-enter:duration-200 data-enter:ease-out data-leave:duration-150 data-leave:ease-in"
+            >
+              <div className="p-4">
+                <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
+                  <div className="flex-auto">
+                    <a href="/sovereignty" className="block font-semibold text-white">
+                      OVERVIEW
+                      <span className="absolute inset-0" />
+                    </a>
+                    <p className="mt-1 text-gray-400">
+                      Null-sec territory control, rankings, and active wars
+                    </p>
+                  </div>
+                </div>
+                <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
+                  <div className="flex-auto">
+                    <a href="/sovereignty/structures" className="block font-semibold text-white">
+                      STRUCTURES &amp; TIMERS
+                      <span className="absolute inset-0" />
+                    </a>
+                    <p className="mt-1 text-gray-400">
+                      IHub/TCU inventory and upcoming vulnerability windows
+                    </p>
+                  </div>
+                </div>
+                <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
+                  <div className="flex-auto">
+                    <a href="/sovereignty/history" className="block font-semibold text-white">
+                      HISTORY
+                      <span className="absolute inset-0" />
+                    </a>
+                    <p className="mt-1 text-gray-400">
+                      Resolved campaigns, outcomes, and top defenders
+                    </p>
+                  </div>
+                </div>
+                <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
+                  <div className="flex-auto">
+                    <a href="/sovereignty/hotspots" className="block font-semibold text-white">
+                      HOT ZONES
+                      <span className="absolute inset-0" />
+                    </a>
+                    <p className="mt-1 text-gray-400">
+                      Regions ranked by conflict intensity
+                    </p>
+                  </div>
+                </div>
+                <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
+                  <div className="flex-auto">
+                    <a href="/sovereignty/map" className="block font-semibold text-white">
+                      MAP
+                      <span className="absolute inset-0" />
+                    </a>
+                    <p className="mt-1 text-gray-400">
+                      Territory map colored by controlling alliance
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </PopoverPanel>
+          </Popover>
           <a href="/workers" className="font-semibold text-white">
             WORKERS
           </a>
@@ -203,6 +275,7 @@ export default function Header() {
             <Tooltip content="Current Eve Online ingame time" position="bottom">
               <EveTime />
             </Tooltip>
+            <NotificationBell />
           </div>
           <AuthButton />
         </div>
@@ -313,6 +386,52 @@ export default function Header() {
                 >
                   LEADERBOARDS
                 </a>
+                <Disclosure as="div" className="-mx-3">
+                  <DisclosureButton className="group flex w-full items-center justify-between py-2 pr-3.5 pl-3 text-base/7 font-semibold text-white hover:bg-white/5">
+                    SOVEREIGNTY
+                    <ChevronDownIcon
+                      aria-hidden="true"
+                      className="flex-none size-5 group-data-open:rotate-180"
+                    />
+                  </DisclosureButton>
+                  <DisclosurePanel className="mt-2 space-y-2">
+                    <DisclosureButton
+                      as="a"
+                      href="/sovereignty"
+                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
+                    >
+                      OVERVIEW
+                    </DisclosureButton>
+                    <DisclosureButton
+                      as="a"
+                      href="/sovereignty/structures"
+                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
+                    >
+                      STRUCTURES &amp; TIMERS
+                    </DisclosureButton>
+                    <DisclosureButton
+                      as="a"
+                      href="/sovereignty/history"
+                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
+                    >
+                      HISTORY
+                    </DisclosureButton>
+                    <DisclosureButton
+                      as="a"
+                      href="/sovereignty/hotspots"
+                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
+                    >
+                      HOT ZONES
+                    </DisclosureButton>
+                    <DisclosureButton
+                      as="a"
+                      href="/sovereignty/map"
+                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
+                    >
+                      MAP
+                    </DisclosureButton>
+                  </DisclosurePanel>
+                </Disclosure>
                 <a
                   href="/workers"
                   className="block px-3 py-2 -mx-3 font-semibold text-white text-base/7 hover:bg-white/5"

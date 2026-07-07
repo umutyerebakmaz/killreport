@@ -1,0 +1,18 @@
+model SovereigntyStructure {
+  structure_id                  BigInt    @id
+  solar_system_id               Int
+  structure_type_id             Int
+  alliance_id                   Int
+  vulnerability_occupancy_level Float?
+  vulnerable_start_time         DateTime?
+  vulnerable_end_time           DateTime?
+  first_seen                    DateTime  @default(now())
+  last_seen                     DateTime  @updatedAt
+  destroyed_at                  DateTime? // set when the structure no longer appears in ESI
+
+  @@index([solar_system_id])
+  @@index([alliance_id])
+  @@index([structure_type_id])
+  @@index([vulnerable_start_time])
+  @@map("sovereignty_structures")
+}
