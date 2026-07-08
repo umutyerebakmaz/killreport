@@ -13,7 +13,7 @@ import redis from '@services/redis';
  * Query cost: single index scan on (kill_date, kill_count DESC)
  * vs. the old approach: full GROUP BY scan over 15k+ attackers rows per day.
  *
- * See: backend/docs/LEADERBOARD_QUERIES.MD for architecture details.
+ * See: backend/docs/leaderboards/leaderboard-queries.md for architecture details.
  */
 /** Returns the Monday (UTC) of the week containing the given date string */
 function getWeekMonday(dateStr: string): string {

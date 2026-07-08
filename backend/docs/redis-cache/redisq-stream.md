@@ -396,9 +396,9 @@ Worker logs include:
 
 ## Related Documentation
 
-- [Character Killmail Sync](/backend/docs/CHARACTER_SYNC.MD) - Historical sync for specific characters
-- [Worker Status Monitoring](/backend/docs/workers/WORKER_STATUS_MONITORING.MD) - Monitor all workers
-- [Enrichment System](/backend/docs/workers/ENRICHMENT.MD) - Auto-populate character/corp/alliance data
+- [Character Killmail Sync](/backend/docs/character-sync.md) - Historical sync for specific characters
+- [Worker Status Monitoring](/backend/docs/workers/worker-status-monitoring.md) - Monitor all workers
+- [Enrichment System](/backend/docs/workers/enrichment.md) - Auto-populate character/corp/alliance data
 - [RedisQ Official Docs](https://github.com/zKillboard/RedisQ) - zKillboard documentation
 
 ## Future Enhancements
