@@ -20,7 +20,7 @@
     "echarts": "^6.0.0",
     "echarts-for-react": "^3.0.6",
     "graphql": "^16.11.0",
-    "graphql-sse": "^2.6.0",
+    "graphql-ws": "^6",
     "lottie-react": "^2.4.1",
     "next": "16.2.6",
     "postcss": "^8.5.6",
