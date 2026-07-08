@@ -77,7 +77,7 @@ GraphQL resolver implementation for cache queries and mutations.
 
 Created comprehensive documentation:
 
-#### `CACHE_OPTIMIZATION.md`
+#### `cache-optimization.md`
 
 Complete guide covering:
 
@@ -242,9 +242,9 @@ If issues occur, rollback in this order:
 - ✅ `backend/src/server.ts`
 - ✅ `backend/src/schemas/cache.graphql`
 - ✅ `backend/src/utils/cache-manager.ts`
-- ✅ `backend/CACHE_OPTIMIZATION.md`
+- ✅ `backend/cache-optimization.md`
 
 ## Questions or Issues?
 
 Contact: [Your Team Contact Info]
-Documentation: `backend/CACHE_OPTIMIZATION.md`
+Documentation: `backend/cache-optimization.md`
