@@ -249,4 +249,4 @@ const { data } = useKillmailsQuery({
 - Backend Cache: `backend/src/server.ts`
 - Resolver: `backend/src/resolvers/killmail.resolver.ts`
 - DataLoaders: `backend/src/services/dataloaders.ts`
-- Cache Strategy Doc: `backend/CACHE_STRATEGY.md`
+- Cache Strategy Doc: `backend/cache-strategy.md`
