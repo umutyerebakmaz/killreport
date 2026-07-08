@@ -9,21 +9,29 @@ class RateLimiter {
   private processing = false;
   private requestCount = 0;
   private windowStart = Date.now();
+  private inFlight = 0;
   private readonly maxRequestsPerSecond = 50; // Conservative limit (ESI allows 150)
-  private readonly minDelayBetweenRequests = 20; // 20ms minimum delay between requests
+  private readonly minDelayBetweenRequests = 20; // 20ms minimum delay between dispatches
+  private readonly maxConcurrent = 50; // Cap simultaneous in-flight requests
 
   /**
-   * Execute a function with rate limiting
+   * Execute a function with rate limiting.
+   * Requests are DISPATCHED at up to `maxRequestsPerSecond` and run concurrently
+   * (we do not wait for one request to finish before dispatching the next).
    */
   async execute<T>(fn: () => Promise<T>): Promise<T> {
     return new Promise((resolve, reject) => {
-      this.queue.push(async () => {
-        try {
-          const result = await fn();
-          resolve(result);
-        } catch (error) {
-          reject(error);
-        }
+      this.queue.push(() => {
+        this.inFlight++;
+        (async () => {
+          try {
+            resolve(await fn());
+          } catch (error) {
+            reject(error);
+          } finally {
+            this.inFlight--;
+          }
+        })();
       });
 
       this.processQueue();
@@ -38,32 +46,34 @@ class RateLimiter {
     this.processing = true;
 
     while (this.queue.length > 0) {
-      // Check if we need to reset the window
+      // Check if we need to reset the rate window
       const now = Date.now();
       const elapsed = now - this.windowStart;
 
       if (elapsed >= 1000) {
-        // Reset window
         this.requestCount = 0;
         this.windowStart = now;
       }
 
-      // Check if we're at the limit
+      // Respect the per-second dispatch ceiling
       if (this.requestCount >= this.maxRequestsPerSecond) {
-        // Wait until the next window
-        const waitTime = 1000 - elapsed;
-        await this.sleep(waitTime);
-        this.requestCount = 0;
-        this.windowStart = Date.now();
+        await this.sleep(1000 - elapsed);
+        continue;
       }
 
-      // Process next item
+      // Respect the max concurrent in-flight ceiling
+      if (this.inFlight >= this.maxConcurrent) {
+        await this.sleep(this.minDelayBetweenRequests);
+        continue;
+      }
+
+      // Dispatch next item WITHOUT awaiting its completion so requests overlap
       const fn = this.queue.shift();
       if (fn) {
         this.requestCount++;
-        await fn();
+        fn();
 
-        // Wait minimum delay between requests
+        // Space out dispatches (50/sec => 20ms apart)
         await this.sleep(this.minDelayBetweenRequests);
       }
     }
