@@ -9,7 +9,7 @@ import prismaWorker from '@services/prisma-worker';
 import { getRabbitMQChannel } from '@services/rabbitmq';
 
 const QUEUE_NAME = 'esi_corporation_info_queue';
-const PREFETCH_COUNT = 10; // Process 10 corporations concurrently
+const PREFETCH_COUNT = 25; // Process up to 25 corporations concurrently (ESI throughput is capped at 50/sec by esiRateLimiter)
 
 interface EntityQueueMessage {
   entityId: number;
