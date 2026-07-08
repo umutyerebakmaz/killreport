@@ -318,6 +318,6 @@ refreshAccessToken(refreshToken)
 - Queue: [`queue-user-esi-killmails.ts`](/backend/src/queues/queue-user-esi-killmails.ts)
 - Worker: [`worker-esi-user-killmails.ts`](/backend/src/workers/worker-esi-user-killmails.ts)
 - SSO Service: [`eve-sso.ts`](/backend/src/services/eve-sso.ts)
-- Docs: [`esi-user-killmail-sync.md`](/backend/docs/esi-user-killmail-sync.md)
+- Docs: [`esi-user-killmail-sync.md`](/backend/docs/esi/esi-user-killmail-sync.md)
 
 **Status**: ✅ Implemented and Ready for Testing

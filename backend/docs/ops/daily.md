@@ -237,4 +237,4 @@ query {
 
 - [Enrichment System](/backend/docs/workers/enrichment.md)
 - [Workers Documentation](/backend/docs/workers/worker-documentation.md)
-- [Character Killmail Worker](/backend/docs/character-killmail-worker.md)
+- [Character Killmail Worker](/backend/docs/workers/character-killmail-worker.md)
