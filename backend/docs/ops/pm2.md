@@ -883,11 +883,11 @@ pm2 start ecosystem.config.js --only worker-redisq
 
 ## 📚 Related Documentation
 
-- [Daily Workflows](/backend/docs/daily.md) - Daily operations
+- [Daily Workflows](/backend/docs/ops/daily.md) - Daily operations
 - [Worker Documentation](/backend/docs/workers/worker-documentation.md) - Worker details
 - [Enrichment System](/backend/docs/workers/enrichment.md) - Entity enrichment
 - [Production Deployment](/backend/docs/deployment/production-deployment.md) - Deployment guide
-- [CRON Schedule](/backend/docs/crontab.md) - Scheduled tasks
+- [CRON Schedule](/backend/docs/ops/crontab.md) - Scheduled tasks
 
 ---
 
