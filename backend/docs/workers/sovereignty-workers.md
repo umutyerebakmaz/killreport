@@ -135,8 +135,3 @@ set `USE_REDIS_PUBSUB: 'true'` so their alert publishes reach the API-server sub
 - **History / timeline sparse** → those need several days of `worker:sov:snapshot` runs to accumulate.
 - **`P1001` DB connection error** → `DATABASE_URL` is pointing at the remote prod DB; point it at
   the local `killreport` DB for local dev.
-
----
-
-*See also: `SOVEREIGNTY_FEATURES.md` (feature roadmap) and
-`docs/superpowers/specs/2026-07-05-sovereignty-*` (per-cluster design + status).*
