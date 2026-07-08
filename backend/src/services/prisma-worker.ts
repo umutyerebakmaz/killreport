@@ -1,7 +1,5 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import 'dotenv/config';
-import fs from 'fs';
-import path from 'path';
 import { Pool } from 'pg';
 import { PrismaClient } from '../generated/prisma/client';
 
@@ -13,15 +11,11 @@ if (!connectionString) {
   throw new Error('DATABASE_URL environment variable is required');
 }
 
-// Read CA certificate for DigitalOcean Managed PostgreSQL
-const caCertPath = path.join(__dirname, '../../certs/ca-certificate.crt');
-const ca = fs.existsSync(caCertPath) ? fs.readFileSync(caCertPath).toString() : undefined;
-
 // Local development (localhost) Postgres does not support SSL — disable it there.
-// Prod (DigitalOcean domain) keeps CA-verified SSL unchanged.
+// Remote Postgres keeps SSL enabled.
 const isLocalDb = /@(localhost|127\.0\.0\.1)[:/]/.test(connectionString);
 
-// Configure pg Pool with SSL options using CA certificate
+// Configure pg Pool with SSL options
 // WORKER-SPECIFIC CONFIGURATION
 // DigitalOcean allows 22 connections total:
 // - Backend API: 5 connections (reserved)
@@ -29,14 +23,7 @@ const isLocalDb = /@(localhost|127\.0\.0\.1)[:/]/.test(connectionString);
 // - Buffer: 1 connection for safety
 const pool = new Pool({
   connectionString,
-  ssl: isLocalDb
-    ? false // Local Postgres: no SSL
-    : ca
-    ? {
-      ca,
-      rejectUnauthorized: true,
-    }
-    : true, // Use SSL without CA verification (for Prisma Studio compatibility)
+  ssl: isLocalDb ? false : true, // Local: no SSL; remote: SSL enabled
   // CRITICAL: Worker pool settings - OPTIMIZED
   max: 2, // Each worker can use up to 2 connections
   min: 0, // No minimum - release all idle connections
