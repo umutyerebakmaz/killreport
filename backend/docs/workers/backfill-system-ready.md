@@ -208,7 +208,7 @@ Both can run simultaneously.
 
 ## 📚 Documentation
 
-- **Full Value Backfill:** [BACKFILL_VALUES_GUIDE.MD](/backend/docs/workers/BACKFILL_VALUES_GUIDE.MD)
+- **Full Value Backfill:** [backfill-values-guide.md](/backend/docs/workers/backfill-values-guide.md)
 
 ---
 

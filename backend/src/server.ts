@@ -1,9 +1,11 @@
 import { loadFilesSync } from '@graphql-tools/load-files';
 import { mergeTypeDefs } from '@graphql-tools/merge';
 import { makeExecutableSchema } from '@graphql-tools/schema';
+import { useServer } from 'graphql-ws/use/ws';
 import { createYoga, useLogger } from 'graphql-yoga';
 import { createServer } from 'node:http';
 import path from 'path';
+import { WebSocketServer } from 'ws';
 
 import { VerifiedCharacter } from '@app-types/context';
 import { REDIS_CONFIG } from '@config/cache';
@@ -50,7 +52,7 @@ const yoga = createYoga<ServerContext>({
   graphqlEndpoint: '/graphql',
 
   // GraphQL introspection and playground settings
-  graphiql: config.graphql.playground ? { subscriptionsProtocol: 'SSE' } : false,
+  graphiql: config.graphql.playground ? { subscriptionsProtocol: 'WS' } : false,
   maskedErrors: config.app.isProduction, // Mask errors in production
 
   // CORS configuration
@@ -106,15 +108,15 @@ const yoga = createYoga<ServerContext>({
     // Create fresh DataLoader instances per request
     const dataLoaders = createDataLoaders();
 
-    const authorization = request.headers.get('authorization');
+    const authorization = request?.headers.get('authorization');
 
     // Generate or extract session ID for tracking
     // Fallback to IP-based identifier if no session ID provided
-    let sessionId = request.headers.get('x-session-id');
+    let sessionId = request?.headers.get('x-session-id');
 
     if (!sessionId) {
       // Use IP address as fallback identifier
-      const forwarded = request.headers.get('x-forwarded-for');
+      const forwarded = request?.headers.get('x-forwarded-for');
       const ip = forwarded ? forwarded.split(',')[0].trim() : 'unknown';
       sessionId = `ip_${ip}`;
       logger.debug('⚠️  No session ID provided, using IP-based identifier:', sessionId);
@@ -164,6 +166,64 @@ const server = createServer(async (req, res) => {
   // Route: GraphQL endpoint
   return yoga(req, res);
 });
+
+/**
+ * WebSocket server for GraphQL subscriptions (graphql-ws protocol).
+ *
+ * Subscriptions used to run over SSE, but each SSE subscription holds its own
+ * long-lived HTTP/1.1 connection. Browsers cap concurrent connections at ~6 per
+ * origin, so a handful of always-on subscriptions (active users, sovereignty
+ * alerts, new killmails) starved the connection pool and left regular GraphQL
+ * queries stuck "pending". WebSockets are not subject to that per-origin HTTP
+ * connection limit, so all subscriptions now multiplex over a single socket.
+ *
+ * NOTE (deploy): the Nginx reverse proxy must forward the WebSocket upgrade for
+ * `/graphql` (`proxy_set_header Upgrade $http_upgrade; proxy_set_header Connection "upgrade";`).
+ */
+const wsServer = new WebSocketServer({ server, path: yoga.graphqlEndpoint });
+
+useServer(
+  {
+    execute: (args: any) => args.rootValue.execute(args),
+    subscribe: (args: any) => args.rootValue.subscribe(args),
+    onSubscribe: async (ctx, _id, params) => {
+      // Browsers cannot set headers on the WS handshake, so auth/session travel
+      // in connectionParams. Bridge them onto the upgrade request's headers so
+      // Yoga's existing context factory (which reads request.headers) picks them up.
+      const connectionParams = (ctx.connectionParams ?? {}) as Record<string, string>;
+      const upgradeReq = ctx.extra.request as any;
+      if (upgradeReq?.headers) {
+        if (connectionParams.authorization) {
+          upgradeReq.headers.authorization = connectionParams.authorization;
+        }
+        if (connectionParams['x-session-id']) {
+          upgradeReq.headers['x-session-id'] = connectionParams['x-session-id'];
+        }
+      }
+
+      const { schema, execute, subscribe, contextFactory, parse, validate } = yoga.getEnveloped({
+        ...ctx,
+        req: ctx.extra.request,
+        socket: ctx.extra.socket,
+        params,
+      });
+
+      const args = {
+        schema,
+        operationName: params.operationName,
+        document: parse(params.query),
+        variableValues: params.variables,
+        contextValue: await contextFactory(),
+        rootValue: { execute, subscribe },
+      };
+
+      const errors = validate(args.schema, args.document);
+      if (errors.length) return errors;
+      return args;
+    },
+  },
+  wsServer
+);
 
 /**
  * Start server
