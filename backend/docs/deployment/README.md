@@ -5,10 +5,10 @@
 ### Setup & Configuration
 
 - [Digital Ocean Setup](digitalocean-setup.md) - Initial server setup and configuration
-- [Deployment Steps](deployment-steps.md) - Step-by-step deployment guide
 - [Production Deployment](production-deployment.md) - Production environment setup
-- [Production Deploy Steps](production-deploy-steps.md) - Detailed deployment procedures
 - [Production Ready](production-ready.md) - Production readiness checklist
+- [Auth Callback Deployment](auth-callback-deployment.md) - Deploy the EVE SSO auth callback
+- [Rate Limiting Deployment](rate-limiting-deployment.md) - Deploy rate limiting + Nginx config
 
 ### Planning & Migration
 
