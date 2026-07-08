@@ -1,41 +1,9 @@
-import { ApolloClient, ApolloLink, FetchResult, HttpLink, InMemoryCache, NextLink, Observable, Operation, split } from '@apollo/client';
+import { ApolloClient, ApolloLink, HttpLink, InMemoryCache, Observable, split } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
-import { ClientOptions, createClient } from 'graphql-sse';
-
-// SSE Link for subscriptions using graphql-sse
-class SSELink extends ApolloLink {
-  private client: ReturnType<typeof createClient>;
-
-  constructor(options: ClientOptions) {
-    super();
-    this.client = createClient(options);
-  }
-
-  request(operation: Operation, forward?: NextLink): Observable<FetchResult> {
-    console.log('🔌 SSELink: Subscribing to operation:', operation.operationName);
-    return new Observable<FetchResult>((observer) => {
-      return this.client.subscribe(
-        { ...operation, query: operation.query.loc?.source.body || '' },
-        {
-          next: (data) => {
-            // console.log('📨 SSELink: Received data for', operation.operationName, data);
-            observer.next(data as FetchResult);
-          },
-          complete: () => {
-            console.log('✅ SSELink: Complete for', operation.operationName);
-            observer.complete();
-          },
-          error: (err) => {
-            console.error('❌ SSELink: Error for', operation.operationName, err);
-            observer.error(err);
-          },
-        }
-      );
-    });
-  }
-}
+import { createClient } from 'graphql-ws';
 
 // Lazy initialization - only create client on first use (client-side only)
 let apolloClient: ApolloClient<any> | null = null;
@@ -109,29 +77,33 @@ export function createApolloClient() {
     credentials: 'same-origin',
   });
 
-  // SSE Link - only available on client-side
-  const sseLink = typeof window !== 'undefined'
-    ? new SSELink({
-      url: process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql',
-      headers: () => {
-        const token = localStorage.getItem('eve_access_token');
-        const sessionId = sessionStorage.getItem('session_id') ||
-          `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-        if (!sessionStorage.getItem('session_id')) {
-          sessionStorage.setItem('session_id', sessionId);
-        }
-
-        console.log('🔑 SSELink: Getting headers, token exists:', !!token);
-        return {
-          authorization: token ? `Bearer ${token}` : '',
-          'x-session-id': sessionId,
-        };
-      },
-    })
+  // WebSocket Link for subscriptions (graphql-ws) - only available on client-side.
+  // WS avoids the browser's ~6-per-origin HTTP/1.1 connection limit that SSE hit,
+  // which previously starved regular GraphQL queries (left them stuck "pending").
+  const wsLink = typeof window !== 'undefined'
+    ? new GraphQLWsLink(
+      createClient({
+        // http(s):// -> ws(s):// (https becomes wss)
+        url: (process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql').replace(/^http/, 'ws'),
+        // Browsers can't set headers on the WS handshake, so auth/session go here.
+        connectionParams: () => {
+          const token = localStorage.getItem('eve_access_token');
+          let sessionId = sessionStorage.getItem('session_id');
+          if (!sessionId) {
+            sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            sessionStorage.setItem('session_id', sessionId);
+          }
+          return {
+            authorization: token ? `Bearer ${token}` : '',
+            'x-session-id': sessionId,
+          };
+        },
+        retryAttempts: Infinity,
+      })
+    )
     : null;
 
-  console.log('🚀 Apollo Client: SSE Link initialized:', !!sseLink, 'window:', typeof window);
+  console.log('🚀 Apollo Client: WS Link initialized:', !!wsLink, 'window:', typeof window);
 
   // Auth link - adds Authorization header and session ID to every request
   const authLink = setContext((_, { headers }) => {
@@ -217,8 +189,8 @@ export function createApolloClient() {
     }
   });
 
-  // Split link: SSE for subscriptions, HTTP for queries/mutations
-  const splitLink = typeof window !== 'undefined' && sseLink
+  // Split link: WebSocket for subscriptions, HTTP for queries/mutations
+  const splitLink = typeof window !== 'undefined' && wsLink
     ? split(
       ({ query }) => {
         const definition = getMainDefinition(query);
@@ -227,7 +199,7 @@ export function createApolloClient() {
           definition.operation === 'subscription'
         );
       },
-      sseLink,
+      wsLink,
       ApolloLink.from([errorLink, authLink, httpLink])
     )
     : ApolloLink.from([errorLink, authLink, httpLink]);

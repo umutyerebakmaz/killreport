@@ -1016,9 +1016,9 @@ Process:
 
 ### 📚 Related Documentation
 
-- [ESI_USER_KILLMAIL_SYNC.MD](/backend/docs/ESI_USER_KILLMAIL_SYNC.MD) - General usage
-- [BACKGROUND_SYNC_INCREMENTAL.MD](/backend/docs/BACKGROUND_SYNC_INCREMENTAL.MD) - Cron + Incremental details
-- [PERFORMANCE_IMPROVEMENTS.MD](/backend/docs/PERFORMANCE_IMPROVEMENTS.MD) - General backend improvements
+- [esi-user-killmail-sync.md](/backend/docs/esi/esi-user-killmail-sync.md) - General usage
+- [background-sync-incremental.md](/backend/docs/workers/background-sync-incremental.md) - Cron + Incremental details
+- [performance-improvements.md](/backend/docs/ops/performance-improvements.md) - General backend improvements
 
 ---
 

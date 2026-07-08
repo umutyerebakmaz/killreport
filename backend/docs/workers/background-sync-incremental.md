@@ -347,7 +347,7 @@ Second sync: **Incremental sync** (lastKillmailId exists)
    ⏭️  Stopping at page 1 - fetched 2 new killmails
 ```
 
-**Result:** 50 pages → 1 page = **50x faster/tmp/postgresql_en.md /root/killreport/backend/src/docs/POSTGRESQL_QUERY_CACHE_ANALYSIS.MD* 🚀
+**Result:** 50 pages → 1 page = **50x faster/tmp/postgresql_en.md /root/killreport/backend/src/docs/postgresql-query-cache-analysis.md* 🚀
 
 ## 📝 Important Notes
 
@@ -381,4 +381,4 @@ With these two features:
 3. **Rate limit friendly**: We don't exceed ESI limits
 4. **User experience**: Real-time data, no manual sync needed
 
-**Both user experience and system performance dramatically improved/tmp/postgresql_en.md /root/killreport/backend/src/docs/POSTGRESQL_QUERY_CACHE_ANALYSIS.MD* 🎉
+**Both user experience and system performance dramatically improved/tmp/postgresql_en.md /root/killreport/backend/src/docs/postgresql-query-cache-analysis.md* 🎉
