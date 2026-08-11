@@ -21,9 +21,9 @@ KillReport is a full-stack application built for EVE Online players and corporat
 - **Real-time Sync**: Automated background workers fetch killmails for characters, corporations, and alliances
 - **Secure Authentication**: EVE Online SSO integration for seamless login
 - **Rich Analytics**: Detailed statistics, filters, and visualizations
-- **High Performance**: GraphQL API with DataLoader optimization and efficient caching
+- **High Performance**: GraphQL API with DataLoader optimization and Redis caching
 - **Scalable**: Distributed job processing with RabbitMQ for horizontal scaling
-- **Modern UI**: Built with Next.js 15, React 19, and Tailwind CSS
+- **Modern UI**: Built with Next.js 16, React 19, and Tailwind CSS
 
 ---
 
@@ -34,7 +34,7 @@ KillReport is a full-stack application built for EVE Online players and corporat
 - **EVE SSO Authentication** - Secure login with EVE Online accounts
 - **Character Killmail Tracking** - Sync and view killmail history for any character
 - **Corporation/Alliance Tracking** - Organization-level killmail aggregation
-- **Real-time Updates** - Automated background synchronization via RabbitMQ
+- **Real-time Updates** - Live killmail feed via GraphQL subscriptions over WebSocket
 - **Advanced Filtering** - Filter by date, ship type, system, and more
 - **Pagination** - Efficient loading of large datasets
 - **Worker Monitoring** - Real-time status dashboard for background jobs
@@ -43,12 +43,13 @@ KillReport is a full-stack application built for EVE Online players and corporat
 
 - **Modern Stack**: Next.js 16 (App Router), React 19, TypeScript 5+
 - **GraphQL API**: Type-safe API with automatic code generation
-- **Database**: PostgreSQL with Prisma ORM and Materialized Views
-- **Background Jobs**: RabbitMQ-based distributed task queue
+- **Database**: PostgreSQL with Prisma ORM and pre-aggregated stats tables
+- **Background Jobs**: RabbitMQ-based distributed task queue, run under PM2
+- **Subscriptions**: `graphql-ws` over WebSocket, with Redis PubSub for multi-process fan-out
 - **External APIs**: Integration with zKillboard and EVE ESI
 - **Type Safety**: Full TypeScript coverage across frontend and backend
 - **DataLoader**: Optimized database queries to prevent N+1 problems
-- **Performance**: Redis caching and optimized query patterns
+- **Performance**: Redis response caching and optimized query patterns
 
 ---
 
@@ -56,8 +57,9 @@ KillReport is a full-stack application built for EVE Online players and corporat
 
 ### Prerequisites
 
-- Node.js 18+ and Yarn
+- Node.js 20+ and Yarn 4 (the repo pins `yarn@4.10.3` via `packageManager`)
 - PostgreSQL database
+- Redis (response cache, RedisQ stream cursor, subscription PubSub)
 - RabbitMQ server (for background workers)
 - EVE Online Developer Application ([Create one here](https://developers.eveonline.com/))
 
@@ -77,13 +79,14 @@ cp .env.example .env
 # Edit .env with your EVE_CLIENT_ID, EVE_CLIENT_SECRET, DATABASE_URL, etc.
 
 # Setup database
+# The Prisma schema is split across backend/prisma/schema/*.prisma
 yarn prisma:migrate
 yarn prisma:generate
 
 # Setup frontend environment
 cd ../frontend
 cp .env.example .env.local
-# Edit .env.local with NEXT_PUBLIC_GRAPHQL_URL
+# Edit .env.local with NEXT_PUBLIC_GRAPHQL_URL and NEXT_PUBLIC_BACKEND_URL
 
 # Return to root and start development servers
 cd ..
@@ -91,89 +94,100 @@ yarn dev:backend  # Terminal 1 - Starts on http://localhost:4000
 yarn dev:frontend # Terminal 2 - Starts on http://localhost:3000
 ```
 
+`yarn dev:backend` starts the GraphQL API only. Killmail ingestion, enrichment and
+sync run as **separate worker processes** — nothing appears in the database until at
+least one of them is running. To get live killmails flowing locally:
+
+```bash
+cd backend
+yarn worker:redisq   # live zKillboard feed
+yarn scan:entities   # queue missing characters/corps/alliances/types
+yarn worker:info:characters
+```
+
+See the [worker documentation](./backend/docs/workers/worker-documentation.md) for the
+full list, and [PM2 operations](./backend/docs/ops/pm2.md) for how they are run in
+production.
+
 ## Documentation
 
-### Table of Contents
+**→ [Backend documentation index](./backend/docs/README.md)** — the full catalogue:
+architecture, authentication, ESI, workers, leaderboards, caching, operations and
+deployment. Start there.
 
-#### Getting Started
+The most common entry points:
 
-- **[Authentication Setup](./AUTH_SETUP.MD)** - Complete guide to EVE SSO authentication flow
-- **[Backend README](./backend/README.MD)** - Backend architecture and API documentation
-- **[Frontend README](./frontend/README.MD)** - Frontend setup and component structure
+| Topic | Document |
+| --- | --- |
+| How the pieces fit together | [Architecture](./backend/docs/architecture.md) |
+| EVE SSO login flow | [Auth Setup](./backend/docs/authentication/auth-setup.md) |
+| Every worker and queue | [Workers Documentation](./backend/docs/workers/worker-documentation.md) |
+| Running the app in production | [Deployment Checklist](./backend/docs/deployment/deployment-checklist.md) |
+| Day-to-day operations | [Daily Workflows](./backend/docs/ops/daily.md) · [PM2](./backend/docs/ops/pm2.md) |
+| Caching behaviour | [Cache Strategy](./backend/docs/redis-cache/cache-strategy.md) |
+| Leaderboard internals | [Leaderboards](./backend/docs/leaderboards/leaderboards.md) |
 
-#### Architecture & Design
+Component READMEs: [backend](./backend/README.MD) · [frontend](./frontend/README.MD)
 
-- **[Database Schema](./backend/prisma/schema.prisma)** - Prisma data models and relations
-- **[GraphQL Schema](./backend/src/generated-schema.graphql)** - Auto-generated GraphQL schema
-
-#### Workers & Background Jobs
-
-- **[Complete Workers Documentation](./backend/src/docs/WORKERS_DOCUMENTATION.MD)** - All workers and queues
-- **[Character Killmail Worker](./backend/src/docs/CHARACTER_KILLMAIL_WORKER.MD)** - Sync killmails for any character
-- **[Killmail Enrichment](./backend/src/docs/ENRICHMENT_README.MD)** - Auto-populate missing entity data
-- **[Worker Status Monitoring](./backend/src/docs/WORKER_STATUS_MONITORING.MD)** - Real-time worker health checks
-- **[Queue Naming Standards](./backend/src/docs/QUEUE_NAMING_CHANGES.MD)** - Queue naming conventions
-
-#### Quick References
-
-- **[Character Sync Quick Reference](./backend/src/docs/CHARACTER_SYNC_QUICKREF.MD)** - Quick commands for character sync
-- **[EVE SSO Documentation](./backend/src/docs/EVE_SSO_README.MD)** - Deep dive into SSO integration
-
-#### Performance & Analysis
-
-- **[Top Charts Cost Analysis](./TOP_CHARTS_COST_ANALYSIS.md)** - Materialized views performance analysis and cost comparison
-- **[Unique Features Proposal](./UNIQUE_FEATURES_PROPOSAL.md)** - Planned features and roadmap
+Schemas: [Prisma models](./backend/prisma/schema/) · [GraphQL schema](./backend/src/generated-schema.graphql)
 
 ---
 
 ## Architecture
 
 ```text
-┌─────────────────────────────────────────────────────────────────┐
-│                         Frontend (Next.js)                       │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
-│  │   Auth Flow  │  │  Killmails   │  │  Analytics   │          │
-│  │   (EVE SSO)  │  │   (Lists)    │  │  (Graphs)    │          │
-│  └──────────────┘  └──────────────┘  └──────────────┘          │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │ GraphQL (Apollo Client)
-                           ▼
-┌─────────────────────────────────────────────────────────────────┐
+┌──────────────────────────────────────────────────────────────────┐
+│                        Frontend (Next.js)                        │
+│   ┌────────────┐   ┌────────────┐   ┌────────────┐              │
+│   │ Auth Flow  │   │ Killmails  │   │ Analytics  │              │
+│   │ (EVE SSO)  │   │  (Lists)   │   │  (Graphs)  │              │
+│   └────────────┘   └────────────┘   └────────────┘              │
+└───────────────┬──────────────────────────┬───────────────────────┘
+                │ GraphQL over HTTP        │ Subscriptions
+                │ (Apollo Client)          │ (graphql-ws / WebSocket)
+                ▼                          ▼
+┌──────────────────────────────────────────────────────────────────┐
 │                      Backend (GraphQL Yoga)                      │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
-│  │   Resolvers  │  │  DataLoaders │  │   Services   │          │
-│  │  (Modular)   │  │ (Optimized)  │  │  (ESI/zKill) │          │
-│  └──────────────┘  └──────────────┘  └──────────────┘          │
-└────┬──────────────────────────┬──────────────────────┬──────────┘
-     │                          │                      │
-     ▼                          ▼                      ▼
-┌──────────┐          ┌──────────────────┐   ┌─────────────────┐
-│PostgreSQL│          │     RabbitMQ     │   │  External APIs  │
-│ (Prisma) │          │  (Task Queue)    │   │  - zKillboard   │
-│          │          │                  │   │  - EVE ESI      │
-│  Users   │          │  ┌────────────┐  │   └─────────────────┘
-│  Chars   │          │  │  Workers   │  │
-│  Kills   │          │  │  (Sync)    │  │
-│  Corps   │          │  └────────────┘  │
-│  Alliances│         └──────────────────┘
-└──────────┘
+│   ┌────────────┐   ┌────────────┐   ┌────────────┐              │
+│   │ Resolvers  │   │ DataLoaders│   │  Services  │              │
+│   │ (Modular)  │   │(Optimized) │   │ (ESI/zKill)│              │
+│   └────────────┘   └────────────┘   └────────────┘              │
+└────┬─────────────────┬──────────────────┬───────────────┬────────┘
+     │                 │                  │               │
+     ▼                 ▼                  ▼               ▼
+┌──────────┐   ┌──────────────┐   ┌──────────────┐  ┌────────────┐
+│PostgreSQL│   │    Redis     │   │   RabbitMQ   │  │  External  │
+│ (Prisma) │   │              │   │ (Task Queue) │  │    APIs    │
+│          │   │ • Response   │   │              │  │            │
+│  Users   │   │   cache      │   │ ┌──────────┐ │  │ zKillboard │
+│  Chars   │   │ • PubSub     │◄──┼─┤ Workers  │ │  │  EVE ESI   │
+│  Kills   │   │   (subs)     │   │ │ (PM2)    ├─┼─►│            │
+│  Corps   │   │ • RedisQ     │   │ └──────────┘ │  └────────────┘
+│ Alliances│   │   cursor     │   │              │
+└──────────┘   └──────────────┘   └──────────────┘
+      ▲                                   │
+      └───────────────────────────────────┘
+                 workers write killmails
 ```
 
 ### Tech Stack
 
 **Frontend:**
 
-- Next.js 16.0.10 with App Router
-- React 19.2.0 with Server Components
-- Apollo Client 3.11 for GraphQL
-- Tailwind CSS 4.1.15 for styling
+- Next.js 16 with App Router
+- React 19 with Server Components
+- Apollo Client 3 for GraphQL
+- `graphql-ws` for subscriptions
+- Tailwind CSS 4 for styling
 - TypeScript 5+ for type safety
 
 **Backend:**
 
 - GraphQL Yoga (GraphQL Server)
 - Prisma ORM with PostgreSQL
+- Redis for response caching and subscription PubSub
 - RabbitMQ for job queues
+- PM2 for process management
 - DataLoader for query optimization
 - TypeScript with auto-generated types
 
@@ -191,27 +205,33 @@ yarn dev:frontend # Terminal 2 - Starts on http://localhost:3000
 
 ```text
 killreport/
-├── frontend/              # Next.js application
+├── frontend/                # Next.js application
 │   ├── src/
-│   │   ├── app/           # App Router pages
-│   │   ├── components/    # React components
-│   │   ├── generated/     # Auto-generated GraphQL types
-│   │   ├── hooks/         # Custom React hooks
-│   │   └── lib/           # Utilities (Apollo Client)
+│   │   ├── app/             # App Router pages
+│   │   ├── components/      # React components
+│   │   ├── graphql/         # Queries, mutations, subscriptions
+│   │   ├── generated/       # Auto-generated GraphQL types & hooks
+│   │   ├── hooks/           # Custom React hooks
+│   │   └── lib/             # Utilities (Apollo Client, WS link)
 │   └── package.json
 │
-├── backend/               # GraphQL API server
+├── backend/                 # GraphQL API server
 │   ├── src/
-│   │   ├── schema/        # GraphQL schema files
-│   │   ├── resolvers/     # GraphQL resolvers
-│   │   ├── services/      # External API integrations
-│   │   ├── workers/       # Background job workers
-│   │   └── server.ts      # GraphQL Yoga server
+│   │   ├── schemas/         # GraphQL schema files
+│   │   ├── resolvers/       # GraphQL resolvers
+│   │   ├── services/        # External API integrations
+│   │   ├── queues/          # Producers — push jobs onto RabbitMQ
+│   │   ├── workers/         # Consumers — background job workers
+│   │   ├── plugins/         # Yoga plugins (rate limiting, cache)
+│   │   ├── config/          # Env validation and cache config
+│   │   └── server.ts        # GraphQL Yoga server
 │   ├── prisma/
-│   │   └── schema.prisma  # Database schema
+│   │   └── schema/          # Database schema, split per model
+│   ├── docs/                # Backend documentation (see index)
 │   └── package.json
 │
-└── package.json           # Monorepo root
+├── ecosystem.config.js      # PM2 process definitions (API + workers)
+└── package.json             # Monorepo root
 ```
 
 ### Available Scripts
@@ -222,6 +242,7 @@ killreport/
 yarn dev              # Start frontend dev server
 yarn dev:frontend     # Start frontend on port 3000
 yarn dev:backend      # Start backend on port 4000
+yarn remove:all       # Wipe all node_modules, lockfiles and .next
 ```
 
 **Frontend:**
@@ -232,75 +253,81 @@ yarn build            # Production build
 yarn codegen          # Generate Apollo Client hooks
 ```
 
+**Backend:** the backend has ~80 scripts (queues, workers, snapshots, Prisma).
+See the [backend README](./backend/README.MD) for the catalogue.
+
 ---
 
 ## Configuration
 
 ### Backend Environment Variables
 
-Create `backend/.env`:
+Copy `backend/.env.example` to `backend/.env`. Variables are validated on boot by
+`backend/src/config/config.ts` — the server exits with a readable error if a
+required one is missing.
 
-```env
-# Database
-DATABASE_URL="postgresql://user:password@localhost:5432/killreport"
-
-# EVE Online SSO
-EVE_CLIENT_ID="your_eve_client_id"
-EVE_CLIENT_SECRET="your_eve_client_secret"
-EVE_CALLBACK_URL="http://localhost:4000/auth/callback"
-
-# Server
-PORT=4000
-FRONTEND_URL="http://localhost:3000"
-
-# RabbitMQ
-RABBITMQ_URL="amqp://localhost"
-```
+| Variable | Required | Default | Purpose |
+| --- | --- | --- | --- |
+| `DATABASE_URL` | yes | — | PostgreSQL connection string |
+| `EVE_CLIENT_ID` | yes | — | EVE SSO application ID |
+| `EVE_CLIENT_SECRET` | yes | — | EVE SSO application secret |
+| `EVE_CALLBACK_URL` | no | `http://localhost:4000/auth/callback` | Must match the EVE application |
+| `FRONTEND_URL` | no | `http://localhost:3000` | Post-login redirect target |
+| `RABBITMQ_URL` | no | `amqp://localhost` | Job queue connection |
+| `REDIS_URL` | no | — | Response cache, RedisQ cursor, PubSub |
+| `USE_REDIS_PUBSUB` | no | — | Fan subscriptions out across processes |
+| `JWT_SECRET` | no | — | Session token signing key |
+| `PORT` | no | `4000` | API port |
+| `NODE_ENV` | no | `development` | `development` \| `production` \| `test` |
+| `LOG_LEVEL` | no | `info` | `error` \| `warn` \| `info` \| `http` \| `debug` |
+| `GRAPHQL_INTROSPECTION` | no | `true` | Disable in production |
+| `GRAPHQL_PLAYGROUND` | no | `true` | Disable in production |
+| `REDISQ_ENABLE_ENRICHMENT` | no | — | Enrich entities inline in the RedisQ worker |
 
 ### Frontend Environment Variables
 
-Create `frontend/.env.local`:
+Copy `frontend/.env.example` to `frontend/.env.local`:
 
 ```env
 NEXT_PUBLIC_GRAPHQL_URL="http://localhost:4000/graphql"
+NEXT_PUBLIC_BACKEND_URL="http://localhost:4000"
 ```
+
+`NEXT_PUBLIC_BACKEND_URL` is used by the EVE SSO callback page. The WebSocket
+subscription endpoint is derived from `NEXT_PUBLIC_GRAPHQL_URL` by swapping
+`http`/`https` for `ws`/`wss`, so it needs no separate variable.
 
 ---
 
 ## Testing
 
-### GraphQL Playground
+There is no automated test suite yet — this is the largest open gap in the project
+and a good place to contribute.
 
-Visit `http://localhost:4000/graphql` to access the GraphQL Playground and test queries.
+To exercise the API by hand, visit `http://localhost:4000/graphql` for the GraphQL
+Playground (enabled while `GRAPHQL_PLAYGROUND` is `true`).
 
 ---
 
 ## Contributing
 
-Contributions are welcome! Here's how you can help:
+Contributions are welcome. See **[CONTRIBUTING.md](./.github/CONTRIBUTING.md)** for
+the workflow, coding conventions and commit message format.
 
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Make your changes** and commit: `git commit -m 'Add amazing feature'`
-4. **Push to your branch**: `git push origin feature/amazing-feature`
-5. **Open a Pull Request**
+- Found a bug? [Open a bug report](./.github/ISSUE_TEMPLATE/bug_report.md)
+- Have an idea? [Open a feature request](./.github/ISSUE_TEMPLATE/feature_request.md)
+- Spotted a documentation problem? [Open a documentation issue](./.github/ISSUE_TEMPLATE/documentation.md)
+- Security issue? Please follow the [security policy](./.github/SECURITY.md) instead of opening a public issue.
 
-### Contribution Guidelines
+Participation is governed by our [Code of Conduct](./.github/CODE_OF_CONDUCT.md).
 
-- Write clear, descriptive commit messages
-- Add documentation for new features
-- Ensure TypeScript types are properly defined
-- Test your changes thoroughly
-- Follow the existing code style
+### Areas that need help most
 
-### Areas for Contribution
-
+- **Test coverage** — there is currently none
+- **Frontend documentation** — component and data-flow conventions
 - Bug fixes and issue resolution
-- New features and enhancements
-- Documentation improvements
-- UI/UX enhancements
 - Performance optimizations
-- Test coverage
+- UI/UX enhancements
 - Internationalization
 
 ---

@@ -17,16 +17,29 @@ yarn install
 
 ### 2. Environment Setup
 
-Create a `.env` file (details below):
+Copy the template and fill it in (full reference [below](#environment-variables)):
+
+```bash
+cp .env.example .env
+```
+
+The minimum to boot:
 
 ```bash
 DATABASE_URL="postgresql://user:password@localhost:5432/killreport"
 RABBITMQ_URL="amqp://localhost:5672"
+REDIS_URL="redis://localhost:6379"
 EVE_CLIENT_ID="your_client_id"
 EVE_CLIENT_SECRET="your_client_secret"
 ```
 
+`src/config/config.ts` validates these on boot with Zod and exits with a readable
+error listing anything missing.
+
 ### 3. Database Setup
+
+The Prisma schema is split across `prisma/schema/*.prisma` (one file per model)
+rather than a single `schema.prisma`.
 
 ```bash
 yarn prisma:migrate    # Run migrations + generate Prisma client
@@ -58,39 +71,49 @@ Server runs on: **<http://localhost:4000/graphql>**
 
 ## Documentation
 
+**→ [Full documentation index](./docs/README.md)** — architecture, authentication,
+ESI, workers, leaderboards, caching, operations and deployment.
+
 ### Operations & Maintenance
 
-- [**📅 Daily Operations Guide**](./docs/DAILY.MD) - Daily character/corporation sync and maintenance tasks
+- [**📅 Daily Operations Guide**](./docs/ops/daily.md) - Daily character/corporation sync and maintenance tasks
+- [PM2 Process Management](./docs/ops/pm2.md) - How the API and workers run in production
+- [Crontab](./docs/ops/crontab.md) - Scheduled jobs
 
 ### Core Features
 
-- [EVE SSO Authentication](./docs/EVE_SSO_README.MD)
+- [Architecture Overview](./docs/architecture.md) - How the processes fit together
+- [EVE SSO Authentication](./docs/authentication/eve-sso-readme.md)
 - [GraphQL Schema](./src/generated-schema.graphql)
-- [Database Schema](./prisma/schema.prisma)
-- [**Killmail Enrichment System**](./docs/ENRICHMENT.MD) - Automatic data enrichment for killmails
-- [**Capsule Value Calculation**](./docs/CAPSULE_VALUE_CALCULATION.MD) - Fixed 10 ISK ship value for Capsules
+- [Database Schema](./prisma/schema/) - Split per model
+- [**Killmail Enrichment System**](./docs/workers/enrichment.md) - Automatic data enrichment for killmails
+- [**Capsule Value Calculation**](./docs/workers/capsule-value-calculation.md) - Fixed 10 ISK ship value for Capsules
 
 ### Workers & Background Jobs
 
-- [**Complete Workers Documentation**](./docs/WORKER_DOCUMENTATION.MD) - All workers and queue systems
-- [**RedisQ Real-Time Stream**](./docs/REDISQ_STREAM.MD) - Live killmail feed from zKillboard
-- [**Character Killmail Worker**](./docs/CHARACTER_KILLMAIL_WORKER.MD) - Sync killmails for any character
-- [Alliance Documentation](./docs/ALLIANCE.MD) - Alliance data management
-- [Alliance Corporations](./docs/ALLIANCE_CORPORATION.MD) - Alliance corporation syncing
-- [Corporation Killmail Sync](./docs/CORPORATION_KILLMAIL_SYNC.MD) - Corporation killmail synchronization
+- [**Complete Workers Documentation**](./docs/workers/worker-documentation.md) - All workers and queue systems
+- [**RedisQ Real-Time Stream**](./docs/redis-cache/redisq-stream.md) - Live killmail feed from zKillboard
+- [**Character Killmail Worker**](./docs/workers/character-killmail-worker.md) - Sync killmails for any character
+- [Worker Status Monitoring](./docs/workers/worker-status-monitoring.md) - Worker and queue health
+- [Alliance Documentation](./docs/workers/alliance.md) - Alliance data management
+- [Alliance Corporations](./docs/workers/alliance-corporation.md) - Alliance corporation syncing
+- [Corporation Killmail Sync](./docs/workers/corporation-killmail-sync.md) - Corporation killmail synchronization
 
 ### Performance & Optimization
 
-- [**Top Charts Cost Analysis**](../TOP_CHARTS_COST_ANALYSIS.md) - Materialized views performance analysis
-- [Cache Strategy](./docs/CACHE_STRATEGY.MD) - Caching implementation and optimization
-- [Performance Improvements](./docs/PERFORMANCE_IMPROVEMENTS.MD) - Database and query optimizations
+- [**Top Charts Cost Analysis**](./docs/leaderboards/top-charts-cost-analysis.md) - Leaderboard aggregation cost analysis
+- [Cache Strategy](./docs/redis-cache/cache-strategy.md) - Caching implementation and optimization
+- [Performance Improvements](./docs/ops/performance-improvements.md) - Database and query optimizations
+- [Redis Memory Planning](./docs/redis-cache/redis-memory-planning.md) - Sizing the cache
+- [Redis Setup](./redis/REDIS_SETUP.MD) - Installing and configuring Redis
 
 ### API Integration
 
-- [EVE ESI API](./src/services/eve-esi.ts)
+- [Rate Limiting](./docs/api/rate-limiting.md) - GraphQL API rate limiting
 - [zKillboard API](./src/services/zkillboard.ts)
 - [RabbitMQ Queue System](./src/services/rabbitmq.ts)
 - [Rate Limiter](./src/services/rate-limiter.ts)
+- [Dogma Services](./src/services/dogma/README.MD) - Type attribute/effect resolution
 
 ## 📋 Available Scripts
 
@@ -167,12 +190,6 @@ yarn sync:character 95465499 10   # Only 10 pages
 yarn sync:character 95465499 999  # ALL history
 ```
 
-### Testing
-
-```bash
-yarn test:enrichment  # Test killmail enrichment system
-```
-
 ### Utilities
 
 ```bash
@@ -183,11 +200,12 @@ yarn remove:all       # Clean all dependencies
 
 ### Core Technologies
 
-- **Runtime**: Node.js + TypeScript
-- **API Framework**: GraphQL Yoga 5.16.0
-- **Database**: PostgreSQL + Prisma ORM v7.1.0
+- **Runtime**: Node.js 20+ with TypeScript (run via `tsx`)
+- **API Framework**: GraphQL Yoga 5
+- **Database**: PostgreSQL + Prisma ORM 7
 - **Message Queue**: RabbitMQ (amqplib)
 - **Cache & Pub/Sub**: Redis (ioredis)
+- **Subscriptions**: `graphql-ws` over `ws`
 - **Authentication**: EVE Online SSO (OAuth2) + JWT (jose)
 - **Rate Limiting**: Custom ESI rate limiter (50 req/sec)
 
@@ -202,7 +220,9 @@ yarn remove:all       # Clean all dependencies
 - **DataLoader Pattern**: Prevents N+1 query problems
 - **Worker System**: RabbitMQ-based distributed task processing
 - **Connection Pooling**: Separate pools for API (5 conn) and Workers (2 conn)
-- **Real-time**: GraphQL subscriptions + WebSocket
+- **Real-time**: GraphQL subscriptions over WebSocket (`graphql-ws`), optionally
+  backed by Redis PubSub so events reach clients regardless of which process
+  produced them — see [WebSocket deployment](./docs/deployment/websocket-deployment.md)
 - **Code Generation**: GraphQL schema → TypeScript types (automatic)
 
 ## 🔍 GraphQL Playground
@@ -235,23 +255,25 @@ query {
 
 ## Environment Variables
 
-Create a `.env` file:
+Start from `.env.example`. Validation lives in [`src/config/config.ts`](./src/config/config.ts).
 
-```bash
-# Database
-DATABASE_URL="postgresql://user:password@localhost:5432/database"
-
-# RabbitMQ
-RABBITMQ_URL="amqp://localhost:5672"
-
-# EVE Online SSO
-EVE_CLIENT_ID="your_client_id"
-EVE_CLIENT_SECRET="your_client_secret"
-EVE_CALLBACK_URL="http://localhost:4000/auth/callback"
-
-# Frontend URL (for redirects)
-FRONTEND_URL="http://localhost:3000"
-```
+| Variable | Required | Default | Purpose |
+| --- | --- | --- | --- |
+| `DATABASE_URL` | yes | — | PostgreSQL connection string |
+| `EVE_CLIENT_ID` | yes | — | EVE SSO application ID |
+| `EVE_CLIENT_SECRET` | yes | — | EVE SSO application secret |
+| `EVE_CALLBACK_URL` | no | `http://localhost:4000/auth/callback` | Must match the EVE application |
+| `FRONTEND_URL` | no | `http://localhost:3000` | Post-login redirect target |
+| `RABBITMQ_URL` | no | `amqp://localhost` | Job queue connection |
+| `REDIS_URL` | no | — | Response cache, RedisQ cursor, PubSub |
+| `USE_REDIS_PUBSUB` | no | — | Fan subscriptions out across processes |
+| `JWT_SECRET` | no | — | Session token signing key |
+| `PORT` | no | `4000` | API port |
+| `NODE_ENV` | no | `development` | `development` \| `production` \| `test` |
+| `LOG_LEVEL` | no | `info` | `error` \| `warn` \| `info` \| `http` \| `debug` |
+| `GRAPHQL_INTROSPECTION` | no | `true` | Disable in production |
+| `GRAPHQL_PLAYGROUND` | no | `true` | Disable in production |
+| `REDISQ_ENABLE_ENRICHMENT` | no | — | Enrich entities inline in the RedisQ worker |
 
 ## Common Tasks
 

@@ -394,10 +394,10 @@ query KillmailWithDogma($id: ID!) {
 
 ## 📚 Related Documentation
 
-- **Dogma Services**: [`backend/src/services/dogma/README.MD`](/backend/src/services/dogma/README.MD)
-- **ESI Dogma Hierarchy**: [`esi-dogma-hierarchy.md`](/backend/docs/esi/esi-dogma-hierarchy.md)
-- **Worker Documentation**: [`worker-documentation.md`](/backend/docs/workers/worker-documentation.md)
-- **Database Schema**: [`backend/prisma/schema.prisma`](/backend/prisma/schema.prisma)
+- **Dogma Services**: [`backend/src/services/dogma/README.MD`](../../src/services/dogma/README.MD)
+- **ESI Dogma Hierarchy**: [`esi-dogma-hierarchy.md`](../esi/esi-dogma-hierarchy.md)
+- **Worker Documentation**: [`worker-documentation.md`](./worker-documentation.md)
+- **Database Schema**: [`backend/prisma/schema/`](../../prisma/schema/)
 
 ---
 

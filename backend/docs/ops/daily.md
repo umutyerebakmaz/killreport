@@ -235,6 +235,6 @@ query {
 
 ## 🔗 Related Documentation
 
-- [Enrichment System](/backend/docs/workers/enrichment.md)
-- [Workers Documentation](/backend/docs/workers/worker-documentation.md)
-- [Character Killmail Worker](/backend/docs/workers/character-killmail-worker.md)
+- [Enrichment System](../workers/enrichment.md)
+- [Workers Documentation](../workers/worker-documentation.md)
+- [Character Killmail Worker](../workers/character-killmail-worker.md)

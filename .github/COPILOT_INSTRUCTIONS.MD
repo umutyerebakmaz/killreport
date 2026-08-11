@@ -70,7 +70,7 @@ npm install package  # ❌ WRONG
 
 ### Data Flow Pattern
 
-```
+```text
 User Request → GraphQL → DataLoader (batching) → Prisma → PostgreSQL
                     ↓
             RabbitMQ Queue → Workers → ESI/zKillboard APIs → Database
@@ -409,7 +409,7 @@ character: char
 
 **Directory Structure**:
 
-```
+```text
 backend/src/resolvers/
 ├── index.ts              # Combines all resolvers with spread operator
 ├── user/
@@ -539,27 +539,39 @@ export const resolvers: Resolvers = {
 
 **CRITICAL for GitHub compatibility**: When creating links in markdown documentation files:
 
-**✅ CORRECT - Use absolute paths from repository root:**
+**✅ CORRECT - Use paths relative to the file containing the link:**
+
+```markdown
+<!-- from backend/docs/leaderboards/some-doc.md -->
+
+[kill-stats-realtime.ts](../../src/services/kill-stats-realtime.ts)
+[worker-redisq-stream.ts](../../src/workers/worker-redisq-stream.ts)
+[architecture.md](../architecture.md)
+```
+
+**❌ WRONG - Leading-slash paths 404 on GitHub:**
 
 ```markdown
 [kill-stats-realtime.ts](/backend/src/services/kill-stats-realtime.ts)
-[worker-redisq-stream.ts](/backend/src/workers/worker-redisq-stream.ts)
-```
-
-**❌ WRONG - Relative paths don't work reliably on GitHub:**
-
-```markdown
-[kill-stats-realtime.ts](../../src/services/kill-stats-realtime.ts)
-[worker-redisq-stream.ts](../workers/worker-redisq-stream.ts)
 ```
 
 **Why**:
 
-- Absolute paths starting with `/` resolve from repository root on GitHub
-- Relative paths (`../../`) often break when viewing on GitHub web interface
-- Absolute paths work both locally and on GitHub consistently
+- A link starting with `/` is resolved against the **site root**, so GitHub renders
+  `/backend/src/...` as `https://github.com/backend/src/...` — a 404, not a repo path.
+  Editors resolve it against the filesystem root, which is equally wrong.
+- Relative paths resolve against the containing document in every renderer: GitHub,
+  VS Code, and local previews.
 
-**Pattern**: `/backend/src/{folder}/{file}.ts` for backend files
+**Pattern**: count the directories back to the shared ancestor. From
+`backend/docs/workers/x.md` to `backend/src/workers/y.ts` that is `../../src/workers/y.ts`.
+
+**Verify before committing** — a link that renders is not proof it resolves:
+
+```bash
+# From the repo root: list every relative markdown link that has no target
+grep -rn --include='*.md' -oE '\]\([^)#][^)]*\)' . | grep -v node_modules
+```
 
 ## Documentation References
 

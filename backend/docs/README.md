@@ -3,6 +3,9 @@
 Reference and operational docs for the KillReport backend. Start with the
 [architecture overview](architecture.md), then dive into a section below.
 
+Adding a document? List it here with a one-line description, write links relative to
+the containing file, and run `yarn docs:check-links` from the repository root.
+
 ## Architecture
 
 - [Architecture](architecture.md) — independent-process architecture and how the pieces fit together
@@ -21,6 +24,7 @@ Reference and operational docs for the KillReport backend. Start with the
 ## ESI
 
 - [Dogma Hierarchy](esi/esi-dogma-hierarchy.md) — EVE ESI type dogma hierarchy
+- [Dogma Services](../src/services/dogma/README.MD) — type attribute/effect resolution code
 - [User Killmail Sync](esi/esi-user-killmail-sync.md) — ESI user killmail sync system
 - [User Killmails Queue](esi/esi-user-killmails-queue.md) — `esi_user_killmails_queue` details
 
@@ -54,6 +58,8 @@ Reference and operational docs for the KillReport backend. Start with the
 - [Top Charts Cost Analysis](leaderboards/top-charts-cost-analysis.md) — top charts cost analysis
 
 ## Redis & Caching
+
+- [Redis Setup](../redis/REDIS_SETUP.MD) — installing and configuring Redis
 
 - [Cache Strategy](redis-cache/cache-strategy.md) — GraphQL response cache strategy
 - [Cache Optimization Guide](redis-cache/cache-optimization.md) — cache performance guide
