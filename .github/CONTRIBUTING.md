@@ -69,45 +69,50 @@ Unsure where to begin contributing? You can start by looking through `good-first
 
 ### Prerequisites
 
-- Node.js 22+
+- Node.js 20.9+
 - PostgreSQL 14+
-- Redis 7+
-- RabbitMQ 3.12+
-- Yarn (recommended) or npm
+- Redis 7+ (running locally or reachable via `REDIS_URL`)
+- RabbitMQ 3.12+ (running locally or reachable via `RABBITMQ_URL`)
+- Yarn 4 — the repo pins `yarn@4.10.3` through `packageManager`
+
+There is no Docker Compose file yet; Redis and RabbitMQ need to be installed and
+started on your machine. Adding one would be a welcome contribution.
+
+### Install
+
+This is a Yarn workspaces monorepo, so install once from the repository root:
+
+```bash
+yarn install
+```
 
 ### Backend Setup
 
 ```bash
 cd backend
 
-# Install dependencies
-yarn install
-
 # Set up environment variables
 cp .env.example .env
-# Edit .env with your configuration
+# Edit .env — DATABASE_URL, EVE_CLIENT_ID and EVE_CLIENT_SECRET are required
 
-# Run database migrations
-yarn prisma migrate dev
+# Run database migrations (schema lives in prisma/schema/*.prisma)
+yarn prisma:migrate
 
-# Start Redis and RabbitMQ (using Docker)
-docker-compose up -d redis rabbitmq
-
-# Start development server
+# Start the GraphQL API
 yarn dev
 ```
+
+The API alone does not ingest data. Background workers are separate processes —
+see the [worker documentation](../backend/docs/workers/worker-documentation.md).
 
 ### Frontend Setup
 
 ```bash
 cd frontend
 
-# Install dependencies
-yarn install
-
 # Set up environment variables
-cp .env.example .env
-# Edit .env with your configuration
+cp .env.example .env.local
+# Next.js reads .env.local, not .env
 
 # Start development server
 yarn dev
@@ -115,14 +120,38 @@ yarn dev
 
 ### Running Tests
 
-```bash
-# Backend tests
-cd backend
-yarn test
+The project has no automated test suite yet, and no `yarn test` script. Verify your
+changes by running the affected part of the app and describing what you exercised in
+the pull request.
 
-# Frontend tests
-cd frontend
-yarn test
+Building out test coverage is one of the most valuable contributions available right
+now — if you want to set up the harness, open an issue first so we can agree on the
+tooling.
+
+### Type Checking and Linting
+
+```bash
+cd backend  && yarn build   # tsc --noEmit — type check only, emits nothing
+cd frontend && yarn lint    # ESLint
+cd frontend && yarn build   # Next.js production build
+```
+
+There is no `lint` script on the backend yet.
+
+### Documentation
+
+Backend documentation lives in [`backend/docs/`](../backend/docs/README.md), grouped
+by area (`workers/`, `deployment/`, `ops/`, `esi/`, `redis-cache/`, `leaderboards/`,
+`authentication/`, `api/`). If you add a document, add it to
+[`backend/docs/README.md`](../backend/docs/README.md) with a one-line description —
+an unlisted document is an invisible one.
+
+Write links **relative to the file containing them**. A leading `/` looks like a
+repo-root path but GitHub resolves it against `github.com`, so it 404s. Verify from
+the repository root before committing:
+
+```bash
+yarn docs:check-links
 ```
 
 ## Coding Guidelines
@@ -137,17 +166,22 @@ yarn test
 ### Code Style
 
 - Follow the existing code style
-- Use ESLint and Prettier for code formatting
-- Run `yarn lint` before committing
+- Run `yarn lint` in `frontend/` before committing
+- Formatting follows [`.editorconfig`](../.editorconfig); there is no Prettier config
 - Maximum line length: 100 characters (soft limit)
 - Use meaningful variable and function names
 - Write self-documenting code with clear comments when necessary
 
 ### File Naming
 
-- Use kebab-case for file names: `my-component.tsx`, `user-service.ts`
-- Use PascalCase for React components: `MyComponent.tsx`
-- Use camelCase for utility functions and services: `userService.ts`
+Match the surrounding directory rather than applying one rule everywhere:
+
+- **React components**: PascalCase, in a directory of their own —
+  `src/components/KillmailCard/KillmailCard.tsx`
+- **Backend services, workers, queues**: kebab-case —
+  `worker-redisq-stream.ts`, `character.service.ts`
+- **Frontend utilities and hooks**: camelCase — `formatISK.ts`, `useAuth.ts`
+- **Documentation**: lowercase kebab-case `.md` — `worker-documentation.md`
 
 ### React/Next.js Guidelines
 
@@ -155,8 +189,11 @@ yarn test
 - Prefer composition over inheritance
 - Keep components small and focused
 - Use TypeScript interfaces for component props
-- Follow Next.js 15 App Router conventions
+- Follow Next.js 16 App Router conventions
 - Use React Server Components where appropriate
+- Keep GraphQL operations in `frontend/src/graphql/` as `.graphql` documents and use
+  the generated hooks; never write operations inline in components
+- Never edit `frontend/src/generated/` or `backend/src/generated-*` by hand
 
 ### GraphQL Guidelines
 
@@ -168,6 +205,8 @@ yarn test
 ### Database
 
 - Use Prisma migrations for schema changes
+- The schema is split across `backend/prisma/schema/*.prisma`, one file per model —
+  add new models as new files rather than growing an existing one
 - Never edit migration files after they've been committed
 - Write clear migration names: `add_user_preferences_table`
 - Test migrations in development before committing
@@ -228,9 +267,9 @@ refactor(api): simplify GraphQL resolver structure
 Before submitting, ensure:
 
 - [ ] Code follows the project's coding guidelines
-- [ ] All tests pass
-- [ ] New tests are added for new features
-- [ ] Documentation is updated if needed
+- [ ] `yarn build` type-checks cleanly in `backend/`
+- [ ] `yarn lint` and `yarn build` pass in `frontend/` (if the frontend changed)
+- [ ] Documentation is updated if needed, and any links you added resolve
 - [ ] Commit messages follow the conventional commits format
 - [ ] No merge conflicts with main branch
 - [ ] Code has been self-reviewed

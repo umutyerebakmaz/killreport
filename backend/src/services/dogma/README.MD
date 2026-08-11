@@ -233,5 +233,5 @@ All ESI calls are wrapped with `esiRateLimiter.execute()`. This guarantees compl
 
 ## Further Reading
 
-- [ESI_DOGMA_HIERARCHY.MD](/backend/docs/ESI_DOGMA_HIERARCHY.MD) - Detailed Dogma system explanation
+- [esi-dogma-hierarchy.md](../../../docs/esi/esi-dogma-hierarchy.md) - Detailed Dogma system explanation
 - [EVE ESI Documentation](https://esi.evetech.net/ui/) - Official ESI API documentation

@@ -1,5 +1,12 @@
 # KillReport Deployment
 
+## Nginx site configs
+
+Committed here and copied to `/etc/nginx/sites-available/` during deployment:
+
+- [`killreport-backend`](killreport-backend) — API vhost, including the WebSocket upgrade headers
+- [`rabbitmq`](rabbitmq) — RabbitMQ management UI vhost
+
 ## Documentation
 
 ### Setup & Configuration
