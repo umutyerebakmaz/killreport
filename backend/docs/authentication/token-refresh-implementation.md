@@ -41,16 +41,19 @@ where: {
 
 **Flow**:
 
-```
-1. Receive message from queue
-2. Check: token expired?
-   ├─ NO  → Continue with existing token
-   └─ YES → Refresh token
-       ├─ Success → Update DB + Continue
-       └─ Fail    → Log error + Requeue message
-3. Fetch killmails from ESI
-4. Save to database
-5. Publish subscription event
+```mermaid
+flowchart TB
+    Msg["Receive message<br/>from queue"] --> Check{"Token<br/>expired?"}
+
+    Check -->|"no"| Fetch
+    Check -->|"yes"| Refresh{"Refresh<br/>the token"}
+
+    Refresh -->|"success"| Update["Update the database"] --> Fetch
+    Refresh -->|"failure"| Fail["Log the error and<br/>requeue the message"]
+
+    Fetch["Fetch killmails from ESI"]
+    --> Save["Save to the database"]
+    --> Publish["Publish subscription event"]
 ```
 
 ### 3. Message Interface Update
@@ -138,18 +141,18 @@ yarn worker:user-killmails
 
 ## 🔐 Token Lifecycle
 
-```
-1. User Login (SSO)
-   ↓
-2. Token saved to DB (access_token, refresh_token, expires_at)
-   ↓
-3. Queue Script: Filter users with valid tokens
-   ↓
-4. Worker: Check expiry
-   ├─ Valid → Use token
-   └─ Expired → Refresh
-       ├─ Success → Update DB
-       └─ Fail → Require re-login
+```mermaid
+flowchart TB
+    Login["User login via SSO"]
+    --> Save[("Token saved to the database<br/><code>access_token · refresh_token · expires_at</code>")]
+    --> Filter["Queue script keeps only<br/>users with valid tokens"]
+    --> Check{"Worker checks<br/>expiry"}
+
+    Check -->|"valid"| Use["Use the token"]
+    Check -->|"expired"| Refresh{"Refresh"}
+
+    Refresh -->|"success"| Update["Update the database"] --> Use
+    Refresh -->|"failure"| Relogin["User must sign in again"]
 ```
 
 ## 📊 Database Schema

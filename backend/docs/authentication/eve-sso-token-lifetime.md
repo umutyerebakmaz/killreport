@@ -16,24 +16,18 @@
 
 ## Token Lifecycle in KillReport
 
-```
-User Login (SSO)
-    ↓
-Access Token: 20 minutes
-Refresh Token: Unlimited
-    ↓
-Database Storage
-    ↓
-Queue Script (runs every 5-15 min)
-    ├─ Check: expires_at > now + 5min
-    └─ Filter: Only users with valid tokens
-    ↓
-Worker Processing
-    ├─ Check: Token expiring in 5 min?
-    ├─ YES → Auto-refresh with refresh_token
-    └─ NO → Use existing access_token
-    ↓
-ESI API Request (authenticated)
+```mermaid
+flowchart TB
+    Login["<b>User login via SSO</b><br/>access token: 20 minutes<br/>refresh token: unlimited"]
+    --> Store[("Stored in the database")]
+    --> Queue["<b>Queue script</b><br/><i>every 5–15 minutes</i><br/>keeps only users whose<br/><code>expires_at > now + 5min</code>"]
+    --> Worker{"<b>Worker</b><br/>token expiring<br/>within 5 minutes?"}
+
+    Worker -->|"yes"| Refresh["Refresh using<br/>the refresh token"]
+    Worker -->|"no"| Reuse["Use the existing<br/>access token"]
+
+    Refresh --> Call["Authenticated ESI request"]
+    Reuse --> Call
 ```
 
 ## Buffer Strategy

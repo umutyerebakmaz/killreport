@@ -256,25 +256,25 @@ if (killmailList.length > 0) {
 
 ### Complete Workflow
 
-```
-1. Server starts
-   ↓
-2. Cron job starts (every 10 minutes)
-   ↓
-3. Cron runs:
-   - Find active users
-   - Include last_killmail_id
-   - Add to queue (priority: 3)
-   ↓
-4. Worker processes:
-   - If lastKillmailId exists, perform incremental sync
-   - Fetch only new killmails
-   - Save to database
-   - Update last_killmail_id
-   ↓
-5. Next cron execution:
-   - Use updated last_killmail_id
-   - Much faster sync
+The loop is the point: each pass writes back `last_killmail_id`, and the next pass
+reads it, which is what makes every run after the first one cheap.
+
+```mermaid
+flowchart TB
+    Start(["Server starts"]) --> Cron["<b>Cron job</b><br/><i>every 10 minutes</i>"]
+
+    Cron --> Find["Find active users,<br/>read their <code>last_killmail_id</code>,<br/>enqueue at priority 3"]
+
+    Find --> Worker{"<code>lastKillmailId</code><br/>present?"}
+
+    Worker -->|"yes"| Incr["<b>Incremental sync</b><br/>fetch only killmails newer<br/>than that ID"]
+    Worker -->|"no"| Full["<b>Full sync</b><br/>fetch up to 50 pages"]
+
+    Incr --> Save
+    Full --> Save
+
+    Save["Save to the database,<br/>update <code>last_killmail_id</code>"]
+    Save -->|"next cron pass reuses<br/>the updated ID"| Cron
 ```
 
 ### Advantages

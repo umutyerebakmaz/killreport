@@ -560,45 +560,17 @@ type AllianceMetrics {
 
 ## 🏗️ Architecture Overview
 
-```
-┌─────────────────┐
-│  ⏰ Cron Job    │  (Daily 00:00)
-│  snapshot:      │
-│  alliances      │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────────────────────────────┐
-│  🤖 worker-alliance-snapshots.ts        │
-│  • Read all alliances                   │
-│  • Calculate member/corp count          │
-│  • Create AllianceSnapshot              │
-│  • Skip if already exists today         │
-└────────┬────────────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────────┐
-│  🗄️ PostgreSQL: alliance_snapshots     │
-│  • alliance_id, member_count,           │
-│    corporation_count, snapshot_date     │
-│  • UNIQUE (alliance_id, snapshot_date)  │
-└────────┬────────────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────────┐
-│  🔌 GraphQL Resolver: Alliance.metrics  │
-│  • Fetch latest snapshot                │
-│  • Fetch snapshot from 7d/30d ago       │
-│  • Calculate delta and growth rate      │
-└────────┬────────────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────────┐
-│  🎨 Frontend: AllianceCard              │
-│  • Display metrics.memberCountDelta30d  │
-│  • Color: Green (growth) / Red (decline)│
-│  • Tooltip: Detailed info               │
-└─────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    Cron["⏰ <b>Cron job</b><br/><code>snapshot:alliances</code><br/><i>daily at 00:00</i>"]
+
+    --> Worker["🤖 <b>worker-alliance-snapshots.ts</b><br/>reads all alliances<br/>calculates member and corp counts<br/>creates an AllianceSnapshot<br/><i>skips if one already exists today</i>"]
+
+    --> Table[("🗄️ <b>alliance_snapshots</b><br/>alliance_id · member_count<br/>corporation_count · snapshot_date<br/><i>UNIQUE (alliance_id, snapshot_date)</i>")]
+
+    --> Resolver["🔌 <b>GraphQL resolver</b><br/><code>Alliance.metrics</code><br/>reads the latest snapshot and the<br/>one from 7 / 30 days ago,<br/>then computes delta and growth rate"]
+
+    --> UI["🎨 <b>Frontend</b> — AllianceCard<br/>shows <code>metrics.memberCountDelta30d</code><br/><i>green for growth, red for decline,<br/>details in the tooltip</i>"]
 ```
 
 ### Data Flow

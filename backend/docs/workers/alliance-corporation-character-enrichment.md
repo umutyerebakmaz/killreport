@@ -19,38 +19,24 @@ Alliance and Corporation tables contain character IDs (creators, CEOs) that may 
 
 ## 🔄 System Architecture
 
-```bash
-┌─────────────────────────────────────────────────────────────────┐
-│                    ENRICHMENT WORKFLOW                          │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph step1["Step 1 — queue script (queue-alliance-corporation-characters.ts)"]
+        direction TB
+        Src["<b>Alliances</b> → creator_id<br/><b>Corporations</b> → ceo_id, creator_id"]
+        --> Filter["Filter out NPCs<br/><i>ID &lt; 1M, or 3M–4M</i>"]
+        --> Exists["Skip IDs already in the database"]
+        --> Missing["Queue the missing IDs"]
+    end
 
-Step 1: Queue Script (queue-alliance-corporation-characters.ts)
-┌──────────────┐
-│  Alliances   │ ──> Collect creator_id
-│ Corporations │ ──> Collect ceo_id, creator_id
-└──────────────┘
-       │
-       ├─> Filter NPCs (ID < 1M or 3M-4M)
-       ├─> Check existing in DB
-       └─> Queue missing IDs
-              │
-              ▼
-       ┌─────────────┐
-       │  RabbitMQ   │  esi_character_info_queue
-       │   Queue     │  (Persistent, Priority Queue)
-       └─────────────┘
-              │
-              ▼
-Step 2: Worker (worker-info-characters.ts)
-       ┌─────────────┐
-       │   Worker    │ ──> Fetch from ESI (rate limited)
-       │  (20 conc.) │ ──> Save to database
-       └─────────────┘
-              │
-              ▼
-       ┌─────────────┐
-       │  Database   │  characters table updated
-       └─────────────┘
+    Missing --> Queue["<b>RabbitMQ</b><br/><code>esi_character_info_queue</code><br/><i>persistent · priority queue</i>"]
+
+    subgraph step2["Step 2 — worker (worker-info-characters.ts)"]
+        Worker["<b>Worker</b><br/><i>20 concurrent</i><br/>fetches from ESI, rate limited"]
+    end
+
+    Queue --> Worker
+    Worker --> DB[("<b>Database</b><br/><i>characters table updated</i>")]
 ```
 
 ---

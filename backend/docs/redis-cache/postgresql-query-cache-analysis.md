@@ -8,35 +8,17 @@
 
 ## 🏗️ Current Cache Architecture (3 Layers)
 
-```text
-┌─────────────────────────────────────────────────┐
-│  1. GraphQL Response Cache (Redis)              │  ← Top layer
-│     TTL: 5 minutes - 1 hour                     │
-│     All query responses are cached              │
-└─────────────────────────────────────────────────┘
-                    ↓ (cache miss)
-┌─────────────────────────────────────────────────┐
-│  2. Entity Cache (Redis)                        │  ← Middle layer
-│     TTL: 30 minutes - 24 hours                  │
-│     Individual entities (character, corp, etc.) │
-└─────────────────────────────────────────────────┘
-                    ↓ (cache miss)
-┌─────────────────────────────────────────────────┐
-│  3. DataLoader (In-Memory Batching)             │  ← Bottom layer
-│     Request-based - New for each request        │
-│     Converts N+1 problem to batch query         │
-└─────────────────────────────────────────────────┘
-                    ↓
-┌─────────────────────────────────────────────────┐
-│  Prisma Client                                  │
-└─────────────────────────────────────────────────┘
-                    ↓
-┌─────────────────────────────────────────────────┐
-│  PostgreSQL (Connection Pool)                   │
-│     - API server: 5 connections                 │
-│     - Workers: 2 connections each               │
-│     - Built-in shared_buffers cache             │
-└─────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    L1["<b>1 · GraphQL response cache</b> — Redis<br/><i>TTL 5 minutes – 1 hour</i><br/>every query response is cached"]
+    L2["<b>2 · Entity cache</b> — Redis<br/><i>TTL 30 minutes – 24 hours</i><br/>individual characters, corps, alliances"]
+    L3["<b>3 · DataLoader</b> — in-memory batching<br/><i>per request, rebuilt each time</i><br/>collapses N+1 into one batch query"]
+    Prisma["Prisma Client"]
+    PG[("<b>PostgreSQL</b><br/>API server: 5 connections<br/>workers: 2 connections each<br/><i>plus built-in shared_buffers</i>")]
+
+    L1 -->|"cache miss"| L2
+    L2 -->|"cache miss"| L3
+    L3 --> Prisma --> PG
 ```
 
 ---
