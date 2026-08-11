@@ -24,36 +24,13 @@ RedisQ is zKillboard's public killmail streaming service. It provides a simple H
 
 ## Architecture
 
-```
-┌─────────────────┐
-│  zKillboard     │  New killmail detected
-│  RedisQ         │──────┐
-└─────────────────┘      │
-                         │
-                         ▼
-                ┌────────────────┐
-                │  RedisQ Poll   │  HTTP GET every 500ms
-                │  (Our Worker)  │
-                └────────────────┘
-                         │
-                         ▼
-              ┌──────────────────┐
-              │  Package         │  Contains:
-              │  - killID        │  - Killmail ID
-              │  - hash          │  - ESI hash
-              │  - zkb metadata  │  - Value, labels
-              └──────────────────┘
-                         │
-                         ▼
-                ┌────────────────┐
-                │  ESI API       │  Fetch full killmail
-                │  (Rate Limited)│
-                └────────────────┘
-                         │
-                         ▼
-                ┌────────────────┐
-                │  PostgreSQL    │  Save killmail + attackers
-                └────────────────┘
+```mermaid
+flowchart TB
+    ZKB["<b>zKillboard RedisQ</b><br/><i>new killmail detected</i>"]
+    --> Poll["<b>RedisQ poller</b><br/><i>our worker · HTTP GET every 500 ms</i>"]
+    --> Package["<b>Package</b><br/>killID · ESI hash<br/>zkb metadata: value, labels"]
+    --> ESI["<b>ESI API</b><br/><i>rate limited · fetches the full killmail</i>"]
+    --> DB[("<b>PostgreSQL</b><br/><i>killmail + attackers</i>")]
 ```
 
 ## How It Works

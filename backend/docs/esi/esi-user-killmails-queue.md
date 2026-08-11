@@ -32,41 +32,27 @@
 
 ### Data Flow
 
-```text
-┌─────────────────┐
-│  User Login     │
-│  (SSO)          │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐         ┌──────────────────┐
-│  Auth Resolver  │────────>│  esi_user_       │
-│  (High Priority)│         │  killmails_queue │
-└─────────────────┘         └────────┬─────────┘
-                                     │
-┌─────────────────┐                  │
-│  Cron Service   │                  │
-│  (Every 10min)  │──────────────────┤
-│  (Low Priority) │                  │
-└─────────────────┘                  │
-                                     │
-┌─────────────────┐                  │
-│  Manual Queue   │                  │
-│  Script         │──────────────────┘
-└─────────────────┘
-                                     │
-                                     ▼
-                            ┌────────────────┐
-                            │  Worker        │
-                            │  (Consumer)    │
-                            └────────┬───────┘
-                                     │
-                    ┌────────────────┼────────────────┐
-                    ▼                ▼                ▼
-            ┌───────────┐    ┌───────────┐   ┌──────────┐
-            │  ESI API  │    │ Database  │   │ GraphQL  │
-            │  (Fetch)  │    │  (Save)   │   │  Events  │
-            └───────────┘    └───────────┘   └──────────┘
+```mermaid
+flowchart TB
+    Login["User login<br/><i>via SSO</i>"]
+
+    subgraph producers["Producers"]
+        direction TB
+        Auth["<b>Auth resolver</b><br/><i>high priority</i>"]
+        Cron["<b>Cron service</b><br/><i>every 10 min · low priority</i>"]
+        Manual["<b>Manual queue script</b>"]
+    end
+
+    Login --> Auth
+    Auth --> Queue
+    Cron --> Queue
+    Manual --> Queue
+
+    Queue["<code>esi_user_killmails_queue</code>"] --> Worker["<b>Worker</b><br/><i>consumer</i>"]
+
+    Worker -->|"fetch"| ESI["ESI API"]
+    Worker -->|"save"| DB[("Database")]
+    Worker -->|"publish"| Events["GraphQL subscription events"]
 ```
 
 ---
@@ -263,33 +249,31 @@ async function esiUserKillmailWorker() {
 
 **Worker Process:**
 
-```text
-1. Message Received
-   ↓
-2. Token Check (expired?)
-   ├─ Yes → Refresh token
-   └─ No  → Continue
-   ↓
-3. Fetch Killmail List from ESI
-   • If incremental sync: use stopAtKillmailId
-   • Max 50 pages (2500 killmails)
-   • ESI returns: [{killmail_id, killmail_hash}, ...]
-   ↓
-4. Process in Batches (3 killmails each)
-   ├─ Batch 1: [km1, km2, km3]
-   │   ├─ Fetch details from ESI
-   │   ├─ Save to database (killmail, victim, attackers, items)
-   │   ├─ Publish GraphQL event
-   │   └─ 150ms delay (rate limit)
-   ├─ 500ms delay between batches
-   ├─ Batch 2: [km4, km5, km6]
-   └─ ...
-   ↓
-5. Update User Metadata
-   • last_killmail_sync_at = NOW
-   • last_killmail_id = highest_killmail_id
-   ↓
-6. ACK Message (delete from RabbitMQ)
+```mermaid
+flowchart TB
+    Msg["<b>1 · Message received</b>"] --> Token{"<b>2 · Token expired?</b>"}
+
+    Token -->|"yes"| Refresh["Refresh the token"] --> List
+    Token -->|"no"| List
+
+    List["<b>3 · Fetch the killmail list from ESI</b><br/><i>incremental sync stops at <code>stopAtKillmailId</code></i><br/><i>at most 50 pages — 2500 killmails</i><br/>returns <code>[{killmail_id, killmail_hash}, …]</code>"]
+
+    --> Batch["<b>4 · Process in batches of 3</b>"]
+
+    subgraph per["For each batch"]
+        direction TB
+        Detail["Fetch details from ESI"]
+        --> Save["Save killmail, victim,<br/>attackers and items"]
+        --> Event["Publish the GraphQL event"]
+        --> Wait["Wait 150 ms<br/><i>ESI rate limit</i>"]
+    end
+
+    Batch --> Detail
+    Wait -->|"500 ms between batches,<br/>until the list is exhausted"| Batch
+
+    Batch --> Meta["<b>5 · Update user metadata</b><br/><code>last_killmail_sync_at = NOW</code><br/><code>last_killmail_id = highest_killmail_id</code>"]
+
+    --> Ack["<b>6 · ACK</b><br/><i>the message leaves RabbitMQ</i>"]
 ```
 
 **Console Output:**
