@@ -827,4 +827,4 @@ Example:
 ✅ All leaderboard features have been implemented. There are currently no additional planned features.
 
 > **Last Updated:** March 3, 2026
-> **Related Documents:** [kill-stats-realtime.md](kill-stats-realtime.md) · [leaderboard-queries.md](/backend/docs/leaderboards/leaderboard-queries.md) · [cache-strategy.md](/backend/docs/redis-cache/cache-strategy.md) · [architecture.md](/backend/docs/architecture.md)
+> **Related Documents:** [kill-stats-realtime.md](kill-stats-realtime.md) · [leaderboard-queries.md](./leaderboard-queries.md) · [cache-strategy.md](../redis-cache/cache-strategy.md) · [architecture.md](../architecture.md)

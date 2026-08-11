@@ -298,7 +298,7 @@ LIMIT 20;
 
 ## 🔗 Related Files
 
-- [backend/src/services/redis.ts](/backend/src/services/redis.ts)
-- [backend/src/services/dataloaders.ts](/backend/src/services/dataloaders.ts)
-- [backend/src/services/prisma.ts](/backend/src/services/prisma.ts)
-- [cache-strategy.md](/backend/docs/redis-cache/cache-strategy.md)
+- [backend/src/services/redis.ts](../../src/services/redis.ts)
+- [backend/src/services/dataloaders.ts](../../src/services/dataloaders.ts)
+- [backend/src/services/prisma.ts](../../src/services/prisma.ts)
+- [cache-strategy.md](./cache-strategy.md)

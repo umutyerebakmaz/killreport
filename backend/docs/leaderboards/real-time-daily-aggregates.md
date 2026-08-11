@@ -15,7 +15,7 @@ Previously, leaderboard queries (Top Pilots, Top Corporations, Top Alliances) we
 
 #### Layer 1: Real-time Updates (PRIMARY)
 
-**File**: [`kill-stats-realtime.ts`](/backend/src/services/kill-stats-realtime.ts)
+**File**: [`kill-stats-realtime.ts`](../../src/services/kill-stats-realtime.ts)
 
 Every killmail save triggers immediate updates to daily aggregation tables:
 
@@ -39,21 +39,24 @@ await updateDailyAggregatesRealtime(tx, {
 
 **Integrated in**:
 
-- [`worker-redisq-stream.ts`](/backend/src/workers/worker-redisq-stream.ts) - Real-time zKillboard stream
-- [`worker-killmails.ts`](/backend/src/workers/worker-killmails.ts) - Character killmail sync
-- [`worker-zkillboard-sync.ts`](/backend/src/workers/worker-zkillboard-sync.ts) - Bulk zKillboard sync
-- [`worker-esi-corporation-killmails.ts`](/backend/src/workers/worker-esi-corporation-killmails.ts) - Corp killmail sync
+- [`worker-redisq-stream.ts`](../../src/workers/worker-redisq-stream.ts) - Real-time zKillboard stream
+- [`worker-killmails.ts`](../../src/workers/worker-killmails.ts) - Character killmail sync
+- [`worker-zkillboard-sync.ts`](../../src/workers/worker-zkillboard-sync.ts) - Bulk zKillboard sync
+- [`worker-esi-corporation-killmails.ts`](../../src/workers/worker-esi-corporation-killmails.ts) - Corp killmail sync
 
-#### Layer 2: Periodic Refresh (FALLBACK)
+#### Layer 2: Periodic Refresh (FALLBACK) — not implemented
 
-**File**: [`materialized-view-incremental.ts`](/backend/src/services/materialized-view-incremental.ts)
-**Worker**: [`worker-materialized-views.ts`](/backend/src/workers/worker-materialized-views.ts)
+> **Status**: designed, not built. There is no periodic-refresh service or worker
+> in `backend/src` and no PM2 process for it in `ecosystem.config.js`. Layer 1 is
+> currently the only writer to the `*_kill_stats` tables, so a failed transaction
+> or a worker restart mid-batch can leave a day's counts short until the row is
+> rebuilt by hand.
 
-Runs every 5 minutes to ensure consistency:
+The intended fallback, kept here as the design to implement:
 
-- Recalculates last 6 hours of data
-- Detects and fixes any missed updates
-- Handles edge cases (transaction failures, worker restarts, etc.)
+- Recalculate the last 6 hours of data every 5 minutes
+- Detect and fix any missed updates
+- Handle edge cases (transaction failures, worker restarts, etc.)
 - Full refresh once per day at 3 AM UTC
 
 **Strategy**:
