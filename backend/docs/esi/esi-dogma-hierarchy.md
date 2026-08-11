@@ -99,36 +99,57 @@ GET /dogma/effects/{effect_id}/
 
 ## Complete Hierarchy Visualization
 
-```text
-Type (587 - Rifter)
-│
-├─ dogma_attributes[] ─────┐
-│  ├─ attribute_id: 9      │
-│  │  value: 1000000.0     │────→ Dogma Attribute (9 - mass)
-│  │                       │      │
-│  ├─ attribute_id: 38     │      ├─ name: "mass"
-│  │  value: 35.0          │      ├─ display_name: "Mass"
-│  │                       │      ├─ unit_id: 1 (kg)
-│  └─ attribute_id: 588    │      └─ default_value: 0.0
-│     value: 3.0           │
-│                          │
-└─ dogma_effects[] ────────┼────┐
-   ├─ effect_id: 11        │    │
-   │  is_default: true     │────┼→ Dogma Effect (11 - loPower)
-   │                       │    │  │
-   ├─ effect_id: 132       │    │  ├─ name: "loPower"
-   │  is_default: false    │    │  ├─ effect_category: 0
-   │                       │    │  ├─ modifiers[]
-   └─ effect_id: 6655      │    │  │  ├─ modified_attribute_id: 6 ──┐
-      is_default: false    │    │  │  └─ modifying_attribute_id: 9 ─┼→ Attribute Reference
-                           │    │  │                                 │
-                           │    │  └─ pre_expression: 131            │
-                           │    │     post_expression: 132           │
-                           │    │                                    │
-                           └────┼────────────────────────────────────┘
-                                │
-                                └→ Effect modifies other Attributes
+The important thing to see is that a type never stores attribute or effect
+*definitions* — it stores IDs plus a per-type value, and the definitions live in
+their own tables. Effect modifiers then point back at attributes, which is what
+closes the loop:
+
+```mermaid
+erDiagram
+    TYPE ||--o{ TYPE_DOGMA_ATTRIBUTE : "dogma_attributes[]"
+    TYPE ||--o{ TYPE_DOGMA_EFFECT : "dogma_effects[]"
+
+    TYPE_DOGMA_ATTRIBUTE }o--|| DOGMA_ATTRIBUTE : "attribute_id"
+    TYPE_DOGMA_EFFECT }o--|| DOGMA_EFFECT : "effect_id"
+
+    DOGMA_EFFECT ||--o{ DOGMA_MODIFIER : "modifiers[]"
+    DOGMA_MODIFIER }o--|| DOGMA_ATTRIBUTE : "modified / modifying"
+
+    TYPE {
+        int type_id "587 — Rifter"
+        string name
+    }
+    TYPE_DOGMA_ATTRIBUTE {
+        int attribute_id "9"
+        float value "1000000.0 — per type"
+    }
+    DOGMA_ATTRIBUTE {
+        int attribute_id "9"
+        string name "mass"
+        string display_name "Mass"
+        int unit_id "1 — kg"
+        float default_value "0.0"
+    }
+    TYPE_DOGMA_EFFECT {
+        int effect_id "11"
+        bool is_default "true"
+    }
+    DOGMA_EFFECT {
+        int effect_id "11"
+        string name "loPower"
+        int effect_category "0"
+        int pre_expression "131"
+        int post_expression "132"
+    }
+    DOGMA_MODIFIER {
+        int modified_attribute_id "6"
+        int modifying_attribute_id "9"
+    }
 ```
+
+Read the cycle as: `Rifter → effect 11 (loPower) → modifier → attribute 9 (mass)`.
+An effect attached to one type reaches back and changes attributes, which is why
+enrichment has to resolve effects and attributes together rather than separately.
 
 ---
 

@@ -15,18 +15,20 @@ Automated background service that syncs killmails from Eve Online ESI API to the
 
 ## Architecture
 
-```
-┌─────────────┐      ┌──────────────┐      ┌────────────────┐
-│   Cron Job  │─────▶│   RabbitMQ   │─────▶│     Worker     │
-│             │      │    Queue     │      │   (Multiple)   │
-│queue-kill...│      │              │      │killmail-worker │
-└─────────────┘      └──────────────┘      └────────────────┘
-                             │                      │
-                             ▼                      ▼
-                     ┌──────────────────────────────┐
-                     │      PostgreSQL DB           │
-                     │  (Users + Killmails)         │
-                     └──────────────────────────────┘
+```mermaid
+flowchart LR
+    Producer["<b>Queue producer</b><br/><code>queue-zkillboard-sync.ts</code><br/><i>run by cron</i>"]
+    Queue["RabbitMQ<br/><i>durable queue</i>"]
+    Worker["<b>Worker</b><br/><code>worker-zkillboard-sync.ts</code><br/><i>5 users concurrently</i>"]
+    ESI["EVE ESI"]
+    DB[("PostgreSQL<br/><i>users · killmails</i>")]
+
+    DB -->|"users with valid tokens"| Producer
+    Producer -->|"one message per user"| Queue
+    Queue -->|"delivered, load-balanced<br/>across instances"| Worker
+    Worker -->|"fetch recent killmails"| ESI
+    Worker -->|"save, skipping duplicates"| DB
+    Worker -.->|"requeue on failure"| Queue
 ```
 
 ## How It Works

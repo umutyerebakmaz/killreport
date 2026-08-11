@@ -79,34 +79,43 @@ query MyKillmails {
 
 ### Scenario: Alliance List Query
 
-```
-Time: 00:00
-User A (anonymous) → alliances(page: 1)
-├─ Cache key: "public:alliances-page1-limit25"
-├─ Cache miss ❌
-├─ DB query executed
-├─ Result cached (TTL: 60s)
-└─ Response: 200ms
+Every request below uses the same cache key,
+`public:alliances-page1-limit25` — note that logging in does not change it.
 
-Time: 00:05
-User B (anonymous) → alliances(page: 1)
-├─ Cache key: "public:alliances-page1-limit25"
-├─ Cache hit ✅
-└─ Response: 5ms (40x faster!)
+```mermaid
+sequenceDiagram
+    participant A as User A<br/>anonymous
+    participant B as User B<br/>anonymous
+    participant C as User C<br/>logged in
+    participant D as User D<br/>anonymous
+    participant R as Redis
+    participant DB as PostgreSQL
 
-Time: 00:10
-User C (logged in) → alliances(page: 1)
-├─ Cache key: "public:alliances-page1-limit25"
-├─ Cache hit ✅
-└─ Response: 5ms
+    Note over A,DB: 00:00
+    A->>R: alliances(page: 1)
+    R--xA: miss
+    A->>DB: query
+    DB-->>A: rows
+    A->>R: cache, TTL 60s
+    Note right of R: 200 ms
 
-Time: 01:05 (after 60s TTL)
-User D (anonymous) → alliances(page: 1)
-├─ Cache key: "public:alliances-page1-limit25"
-├─ Cache expired ⏱️
-├─ DB query executed
-├─ Result cached again (TTL: 60s)
-└─ Response: 200ms
+    Note over A,DB: 00:05
+    B->>R: alliances(page: 1)
+    R-->>B: hit
+    Note right of R: 5 ms — 40x faster
+
+    Note over A,DB: 00:10
+    C->>R: alliances(page: 1)
+    R-->>C: hit
+    Note right of R: same key even<br/>though logged in
+
+    Note over A,DB: 01:05 — TTL expired
+    D->>R: alliances(page: 1)
+    R--xD: expired
+    D->>DB: query
+    DB-->>D: rows
+    D->>R: cache again, TTL 60s
+    Note right of R: 200 ms
 ```
 
 ---

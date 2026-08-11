@@ -10,22 +10,24 @@ When a new killmail is added to the database, information about **characters**, 
 
 The info fetch system uses 4 specialized workers for maximum scalability:
 
-```bash
-┌─────────────────┐
-│  Killmails      │
-│  Database       │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────────────────┐
-│  Scan Killmail Entities     │ ◄── Detects missing entities
-│  (scan-killmail-entities)   │
-└─────────┬───────────────────┘
-          │
-          ├──► esi_character_info_queue ──► Worker (10 concurrent)
-          ├──► esi_corporation_info_queue ──► Worker (5 concurrent)
-          ├──► esi_alliance_info_queue ──► Worker (3 concurrent)
-          └──► esi_type_info_queue ──► Worker (10 concurrent)
+```mermaid
+flowchart LR
+    DB[("Killmails<br/>database")]
+    Scan["<b>Scanner</b><br/><code>scan-killmail-entities.ts</code><br/><i>detects missing entities</i>"]
+
+    DB --> Scan
+
+    Scan --> QC["esi_character_info_queue"]
+    Scan --> QP["esi_corporation_info_queue"]
+    Scan --> QA["esi_alliance_info_queue"]
+    Scan --> QT["esi_type_info_queue"]
+
+    QC --> WC["Character worker<br/><i>10 concurrent</i>"]
+    QP --> WP["Corporation worker<br/><i>5 concurrent</i>"]
+    QA --> WA["Alliance worker<br/><i>3 concurrent</i>"]
+    QT --> WT["Type worker<br/><i>10 concurrent</i>"]
+
+    WC & WP & WA & WT --> DB
 ```
 
 ### How It Works

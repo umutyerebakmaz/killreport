@@ -618,63 +618,49 @@ pm2 plus
 
 ### Sunday (Weekly)
 
-```
-00:00 UTC ─────▶ queue-alliances runs
-                  └─▶ ~3,500 alliances fetched from ESI
-                       └─▶ Added to esi_alliance_info_queue
-                            └─▶ worker-alliances processes
+```mermaid
+flowchart LR
+    A["<b>00:00 UTC</b><br/><code>queue-alliances</code>"] --> A1["~3,500 alliances<br/>fetched from ESI"] --> A2["<code>esi_alliance_info_queue</code>"] --> A3["<code>worker-alliances</code>"]
 
-00:10 UTC ─────▶ queue-alliance-corporations runs
-                  └─▶ Alliance corporation lists fetched
-                       └─▶ Added to esi_alliance_corporations_queue
-                            └─▶ worker-alliance-corporations processes
-                                 └─▶ Corporation IDs added to esi_corporation_info_queue
+    B["<b>00:10 UTC</b><br/><code>queue-alliance-corporations</code>"] --> B1["Alliance corporation<br/>lists fetched"] --> B2["<code>esi_alliance_corporations_queue</code>"] --> B3["<code>worker-alliance-corporations</code>"] --> B4["Corporation IDs go to<br/><code>esi_corporation_info_queue</code>"]
 ```
 
 ### Every Day (01:00 UTC - Runs in Parallel)
 
-```
-01:00 UTC ─────▶ 3 JOBS START IN PARALLEL:
-                  ├─▶ snapshot-alliances
-                  │    └─▶ Alliance state snapshotted
-                  │
-                  ├─▶ snapshot-corporations
-                  │    └─▶ Corporation state snapshotted
-                  │
-                  └─▶ update-alliance-counts
-                       └─▶ Alliance statistics updated
+```mermaid
+flowchart LR
+    T["<b>01:00 UTC</b><br/><i>three jobs start in parallel</i>"]
+    T --> S1["<code>snapshot-alliances</code><br/><i>alliance state snapshotted</i>"]
+    T --> S2["<code>snapshot-corporations</code><br/><i>corporation state snapshotted</i>"]
+    T --> S3["<code>update-alliance-counts</code><br/><i>alliance statistics updated</i>"]
 ```
 
 ### Every Day (04:00 UTC)
 
-```
-04:00 UTC ─────▶ queue-character-corporations runs
-                  └─▶ Missing corps detected from characters
-                       └─▶ Added to esi_corporation_info_queue
-                            └─▶ worker-corporations processes
+```mermaid
+flowchart LR
+    T["<b>04:00 UTC</b><br/><code>queue-character-corporations</code>"] --> D["Missing corps detected<br/>from characters"] --> Q["<code>esi_corporation_info_queue</code>"] --> W["<code>worker-corporations</code>"]
 ```
 
 ### 1st of Month (Monthly)
 
-```
-00:00 UTC ─────▶ queue-characters runs (ONLY ON 1ST OF MONTH)
-                  └─▶ ~93k characters scanned from database
-                       └─▶ Added to esi_character_info_queue
-                            └─▶ worker-characters processes (~31 minutes)
+```mermaid
+flowchart LR
+    T["<b>00:00 UTC — 1st of the month only</b><br/><code>queue-characters</code>"] --> S["~93k characters scanned<br/>from the database"] --> Q["<code>esi_character_info_queue</code>"] --> W["<code>worker-characters</code><br/><i>~31 minutes</i>"]
 ```
 
 ### 7/24 Continuously Running Workers
 
-```
-Continuous ──────▶ worker-redisq (real-time killmail stream)
-              └─▶ worker-characters (character info queue)
-              └─▶ worker-corporations (corporation info queue)
-              └─▶ worker-alliances (alliance info queue)
-              └─▶ worker-alliance-corporations (corp discovery queue)
-              └─▶ worker-types (item/ship info queue)
-              └─▶ worker-zkillboard (zkillboard sync queue)
-              └─▶ worker-user-killmails (user ESI sync queue)
-```
+These run continuously rather than on a schedule:
+
+- `worker-redisq` — real-time killmail stream
+- `worker-characters` — character info queue
+- `worker-corporations` — corporation info queue
+- `worker-alliances` — alliance info queue
+- `worker-alliance-corporations` — corp discovery queue
+- `worker-types` — item/ship info queue
+- `worker-zkillboard` — zKillboard sync queue
+- `worker-user-killmails` — user ESI sync queue
 
 ---
 
