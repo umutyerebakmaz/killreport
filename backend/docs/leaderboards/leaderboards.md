@@ -32,15 +32,13 @@ The leaderboard system is built on two different architectural patterns:
 Global rankings on the Killmails page (`topPilots`, `topLast7DaysPilots`, etc.) read from **pre-aggregated**
 tables. These tables are updated **atomically within a transaction** whenever a killmail is saved.
 
-```text
-Killmail Saved
-       │
-       ▼
-kill-stats-realtime.ts
-       │
-       ├─► character_kill_stats  UPSERT (kill_date, character_id)
-       ├─► corporation_kill_stats UPSERT (kill_date, corporation_id)
-       └─► alliance_kill_stats   UPSERT (kill_date, alliance_id)
+```mermaid
+flowchart LR
+    Save["Killmail saved"] --> Svc["<code>kill-stats-realtime.ts</code>"]
+
+    Svc --> C["<code>character_kill_stats</code><br/><i>UPSERT (kill_date, character_id)</i>"]
+    Svc --> P["<code>corporation_kill_stats</code><br/><i>UPSERT (kill_date, corporation_id)</i>"]
+    Svc --> A["<code>alliance_kill_stats</code><br/><i>UPSERT (kill_date, alliance_id)</i>"]
 ```
 
 **Advantages:**
@@ -57,38 +55,33 @@ kill-stats-realtime.ts
 This table is equipped with GIN (Generalized Inverted Index) indexes and provides fast filtering on array columns
 such as `attacker_alliance_ids`, `attacker_corporation_ids`, and `attacker_character_ids`.
 
-```
-GraphQL Query (e.g., allianceTopAllianceTargets)
-       │
-       ▼
-alliance-stats.service.ts
-       │
-       ├─► Redis cache check → HIT  → return
-       │                     → MISS ↓
-       ▼
-killmail_filters (filtering with GIN index)
-       │
-       ▼
-Write to Redis (TTL: 2min – 1hr based on filter)
-       │
-       ▼
-Return results
+```mermaid
+flowchart TB
+    Q["GraphQL query<br/><i>e.g. allianceTopAllianceTargets</i>"]
+    --> Svc["<code>alliance-stats.service.ts</code>"]
+    --> Cache{"Redis<br/>cache check"}
+
+    Cache -->|"hit"| Return["Return results"]
+    Cache -->|"miss"| Filter["<code>killmail_filters</code><br/><i>filtered via GIN index</i>"]
+
+    Filter --> Write["Write to Redis<br/><i>TTL 2 min – 1 hr, depending on the filter</i>"]
+    --> Return
 ```
 
 ### 1.3 Frontend Data Flow
 
-```
-Next.js Page (React Client Component)
-       │
-       ├─► Apollo Client → GraphQL Query → Fastify GraphQL Server
-       │                                         │
-       │                                   Redis Cache HIT?
-       │                                    YES ──► Return JSON
-       │                                    NO  ──► PostgreSQL query
-       │                                             │
-       │                                         Result cached to Redis
-       │                                             │
-       └────────────────── Data flow to TopXxxCard components
+```mermaid
+flowchart TB
+    Page["<b>Next.js page</b><br/><i>React client component</i>"]
+    --> Apollo["Apollo Client"]
+    --> Server["<b>GraphQL Yoga server</b>"]
+    --> Cache{"Redis<br/>cache hit?"}
+
+    Cache -->|"yes"| JSON["Return JSON"]
+    Cache -->|"no"| PG[("PostgreSQL query")]
+
+    PG --> Store["Cache the result in Redis"] --> JSON
+    JSON --> Cards["<code>TopXxxCard</code> components"]
 ```
 
 ---

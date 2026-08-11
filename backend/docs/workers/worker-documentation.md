@@ -388,31 +388,17 @@ yarn sync:character 95465499 999    # ALL history
 
 **Purpose**: Complete missing entity information from killmails
 
-```
-┌─────────────────────┐
-│ yarn scan:entities  │ - Scans killmails
-└──────────┬──────────┘
-           │
-           ├──────────────────────────────────┐
-           │                                  │
-           ▼                                  ▼
-┌──────────────────────┐          ┌────────────────────────┐
-│ character_enrichment │          │ corporation_enrichment │
-│       _queue         │          │        _queue          │
-└──────────┬───────────┘          └───────────┬────────────┘
-           │                                  │
-           ▼                                  ▼
-┌──────────────────────┐          ┌────────────────────────┐
-│ worker:info:         │          │ worker:info:           │
-│    characters        │          │    corporations        │
-└──────────────────────┘          └────────────────────────┘
-           │                                  │
-           ├──────────────────────────────────┤
-           ▼                                  ▼
-┌──────────────────────────────────────────────┐
-│         PostgreSQL Database                  │
-│  (characters, corporations, alliances, types)│
-└──────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    Scan["<code>yarn scan:entities</code><br/><i>scans killmails for gaps</i>"]
+
+    Scan --> QChar["character_enrichment_queue"]
+    Scan --> QCorp["corporation_enrichment_queue"]
+
+    QChar --> WChar["<code>worker:info:characters</code>"]
+    QCorp --> WCorp["<code>worker:info:corporations</code>"]
+
+    WChar & WCorp --> DB[("PostgreSQL<br/><i>characters · corporations<br/>alliances · types</i>")]
 ```
 
 **Steps**:
@@ -429,28 +415,12 @@ yarn sync:character 95465499 999    # ALL history
 
 **Purpose**: Synchronize users' killmails
 
-```
-┌──────────────────┐
-│ yarn queue:      │ - Add users to queue
-│   character      │
-└────────┬─────────┘
-         │
-         ▼
-┌──────────────────┐
-│ killmail_sync_   │
-│     queue        │
-└────────┬─────────┘
-         │
-         ▼
-┌──────────────────┐
-│ worker:zkillboard│ - Fetch from zKillboard
-└────────┬─────────┘
-         │
-         ▼
-┌──────────────────┐
-│ PostgreSQL       │
-│  (killmails)     │
-└──────────────────┘
+```mermaid
+flowchart TB
+    Q["<code>yarn queue:character</code><br/><i>adds users to the queue</i>"]
+    --> Queue["killmail_sync_queue"]
+    --> W["<code>worker:zkillboard</code><br/><i>fetches from zKillboard</i>"]
+    --> DB[("PostgreSQL<br/><i>killmails</i>")]
 ```
 
 **Steps**:
@@ -464,41 +434,14 @@ yarn sync:character 95465499 999    # ALL history
 
 **Purpose**: Add all corporations belonging to alliances to database
 
-```
-┌─────────────────────────┐
-│ yarn queue:alliance-    │ - Add alliances from DB to queue
-│    corporations         │
-└────────────┬────────────┘
-             │
-             ▼
-┌─────────────────────────┐
-│ alliance_corporation_   │
-│        queue            │
-└────────────┬────────────┘
-             │
-             ▼
-┌─────────────────────────┐
-│ worker:alliance-        │ - Fetch alliance corp IDs from ESI
-│    corporations         │ - Add to esi_corporation_info_queue
-└────────────┬────────────┘
-             │
-             ▼
-┌─────────────────────────┐
-│ corporation_enrichment_ │
-│        queue            │
-└────────────┬────────────┘
-             │
-             ▼
-┌─────────────────────────┐
-│ worker:info:            │ - Fetch corporation info from ESI
-│    corporations         │
-└────────────┬────────────┘
-             │
-             ▼
-┌─────────────────────────┐
-│    PostgreSQL Database  │
-│     (corporations)      │
-└─────────────────────────┘
+```mermaid
+flowchart TB
+    Q1["<code>yarn queue:alliance-corporations</code><br/><i>adds alliances from the DB</i>"]
+    --> Queue1["alliance_corporation_queue"]
+    --> W1["<code>worker:alliance-corporations</code><br/><i>fetches each alliance's corp IDs from ESI</i>"]
+    --> Queue2["corporation_enrichment_queue"]
+    --> W2["<code>worker:info:corporations</code><br/><i>fetches corporation info from ESI</i>"]
+    --> DB[("PostgreSQL<br/><i>corporations</i>")]
 ```
 
 **Steps**:

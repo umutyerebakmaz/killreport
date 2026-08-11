@@ -8,31 +8,32 @@ This project uses Eve Online SSO authentication. Users can log in with their Eve
 
 ### Flow Diagram
 
-```text
-1. Frontend (localhost:3000)
-   ↓ User clicks LOGIN button
-   ↓ GraphQL mutation: login
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as User
+    participant F as Frontend<br/>:3000
+    participant B as Backend<br/>:4000
+    participant E as EVE SSO
+    participant DB as PostgreSQL
 
-2. Backend (localhost:4000/graphql)
-   ↓ Returns Eve SSO URL
+    U->>F: clicks LOGIN
+    F->>B: mutation login
+    B-->>F: EVE SSO URL
+    F->>E: redirect
 
-3. User → Eve Online SSO
-   ↓ User logs in with Eve credentials
-   ↓ Eve redirects back with code
+    U->>E: signs in with EVE credentials
+    E->>B: redirect to /auth/callback?code=...
 
-4. Backend (localhost:4000/auth/callback)
-   ↓ Exchanges code for token
-   ↓ Creates/updates user in database
-   ↓ Redirects to frontend with token
+    B->>E: exchange code for token
+    E-->>B: access + refresh token
+    B->>DB: create or update user
+    B-->>F: redirect to /auth/success with token
 
-5. Frontend (localhost:3000/auth/success)
-   ↓ Saves token to localStorage
-   ↓ Updates auth state
-   ↓ Redirects to home page
+    F->>F: save token to localStorage,<br/>update auth state
+    F-->>U: redirect home
 
-6. All subsequent requests
-   ↓ Apollo Client adds "Authorization: Bearer <token>" header
-   ↓ Backend verifies token and adds user to context
+    Note over F,B: every later request carries<br/>Authorization: Bearer <token>,<br/>which the backend verifies and<br/>attaches to the GraphQL context
 ```
 
 ## Components

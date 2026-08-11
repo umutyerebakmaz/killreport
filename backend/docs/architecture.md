@@ -4,36 +4,43 @@
 
 The backend uses an **independent process architecture** for maximum flexibility and scalability:
 
-```bash
-┌─────────────────────────────────────────────────────────────────┐
-│                     Redis PubSub (Message Bus)                   │
-│                    redis://localhost:6379                        │
-└────────┬─────────────────────────────────┬──────────────────────┘
-         │                                 │
-         ↓                                 ↓
-┌────────────────────┐          ┌─────────────────────────┐
-│  Server Process    │          │   Worker Processes       │
-│  (GraphQL API)     │          │  (Background Jobs)       │
-│                    │          │                          │
-│  • GraphQL API     │          │  • RedisQ Stream         │
-│  • Subscriptions   │          │  • User Killmails        │
-│  • Auth            │          │  • Enrichment            │
-│  • Port 4000       │          │  • Snapshots             │
-└────────────────────┘          └─────────────────────────┘
-         │                                 │
-         └─────────────┬───────────────────┘
-                       ↓
-           ┌───────────────────────┐
-           │   RabbitMQ (Queue)    │
-           │  amqp://localhost     │
-           └───────────────────────┘
-                       │
-                       ↓
-           ┌───────────────────────┐
-           │  PostgreSQL (DB)      │
-           │  localhost:5432       │
-           └───────────────────────┘
+```mermaid
+flowchart TB
+    Client["Frontend<br/><i>Next.js</i>"]
+
+    subgraph procs["Node processes — supervised by PM2"]
+        direction LR
+        Server["<b>Server process</b><br/>GraphQL API · Auth<br/>Subscriptions · :4000"]
+        Workers["<b>Worker processes</b><br/>RedisQ stream · User killmails<br/>Enrichment · Snapshots"]
+    end
+
+    subgraph infra["Infrastructure"]
+        direction LR
+        Rabbit["RabbitMQ<br/><i>job queue · :5672</i>"]
+        Redis[("Redis<br/><i>PubSub · cache · :6379</i>")]
+        Postgres[("PostgreSQL<br/><i>:5432</i>")]
+    end
+
+    External["EVE ESI · zKillboard"]
+
+    Client -->|"queries, mutations<br/>over HTTP"| Server
+    Server -.->|"subscription events<br/>over WebSocket"| Client
+
+    Server -->|"reads"| Postgres
+    Server -->|"enqueues jobs<br/>from mutations"| Rabbit
+
+    Rabbit -->|"consumed by"| Workers
+    Workers -->|"fetches killmails<br/>and entity data"| External
+    Workers -->|"writes"| Postgres
+
+    Workers -->|"publishes events"| Redis
+    Redis -.->|"delivers events"| Server
 ```
+
+The two process groups never talk to each other directly. Workers announce what they
+wrote by publishing to Redis; the server picks those events up and pushes them to
+subscribed clients. That indirection is what lets either side restart without the
+other noticing.
 
 ## Why This Architecture?
 
@@ -122,10 +129,6 @@ RABBITMQ_URL="amqp://localhost"
 REDIS_URL="redis://localhost:6379"
 USE_REDIS_PUBSUB=true
 
-# Workers (must be false for independent processes)
-ENABLE_REDISQ_WORKER=false
-ENABLE_USER_KILLMAIL_WORKER=false
-
 # EVE SSO
 EVE_CLIENT_ID=your_client_id
 EVE_CLIENT_SECRET=your_client_secret
@@ -170,18 +173,33 @@ yarn snapshot:alliances
 yarn snapshot:corporations
 
 # Sync all alliances
-yarn queue:alliances && yarn worker:alliances
+yarn queue:alliances && yarn worker:info:alliances
 ```
 
 ## GraphQL Subscriptions
 
 ### How It Works
 
-1. **Client subscribes** to GraphQL subscription
-2. **Worker processes** killmail and saves to database
-3. **Worker publishes** event to Redis PubSub
-4. **Server receives** event from Redis
-5. **Server pushes** update to all subscribed clients
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant S as Server process
+    participant R as Redis PubSub
+    participant W as Worker process
+    participant DB as PostgreSQL
+
+    C->>S: subscribe (WebSocket)
+    S->>R: SUBSCRIBE killmail channel
+    Note over C,S: connection stays open
+
+    W->>DB: save killmail
+    W->>R: PUBLISH event
+    R-->>S: event
+    S-->>C: push update
+
+    Note over S,W: neither process knows the other exists
+```
 
 ### Example Subscription
 
@@ -304,14 +322,22 @@ For production, use managed services:
 
 ### Scaling Workers
 
-```bash
-# Run multiple instances of same worker
-WORKER_ID=1 yarn worker:redisq &
-WORKER_ID=2 yarn worker:redisq &
-WORKER_ID=3 yarn worker:redisq &
+Workers that consume from RabbitMQ scale by running more instances — the broker
+load-balances deliveries across them:
 
-# RabbitMQ automatically load-balances
+```bash
+# Run multiple instances of a queue-backed worker
+yarn worker:info:characters &
+yarn worker:info:characters &
+yarn worker:info:characters &
 ```
+
+Per-instance concurrency is the `PREFETCH_COUNT` constant at the top of each worker
+file; raise it before adding instances, and keep the total within ESI's rate limit.
+
+> **Do not scale `worker:redisq` this way.** It is not a queue consumer — it walks
+> zKillboard's killmail stream sequentially using a cursor, so a second instance
+> re-reads the same sequence and processes every killmail twice. Run exactly one.
 
 ## Performance Tips
 

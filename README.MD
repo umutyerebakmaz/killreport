@@ -135,39 +135,40 @@ Schemas: [Prisma models](./backend/prisma/schema/) · [GraphQL schema](./backend
 
 ## Architecture
 
-```text
-┌──────────────────────────────────────────────────────────────────┐
-│                        Frontend (Next.js)                        │
-│   ┌────────────┐   ┌────────────┐   ┌────────────┐              │
-│   │ Auth Flow  │   │ Killmails  │   │ Analytics  │              │
-│   │ (EVE SSO)  │   │  (Lists)   │   │  (Graphs)  │              │
-│   └────────────┘   └────────────┘   └────────────┘              │
-└───────────────┬──────────────────────────┬───────────────────────┘
-                │ GraphQL over HTTP        │ Subscriptions
-                │ (Apollo Client)          │ (graphql-ws / WebSocket)
-                ▼                          ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                      Backend (GraphQL Yoga)                      │
-│   ┌────────────┐   ┌────────────┐   ┌────────────┐              │
-│   │ Resolvers  │   │ DataLoaders│   │  Services  │              │
-│   │ (Modular)  │   │(Optimized) │   │ (ESI/zKill)│              │
-│   └────────────┘   └────────────┘   └────────────┘              │
-└────┬─────────────────┬──────────────────┬───────────────┬────────┘
-     │                 │                  │               │
-     ▼                 ▼                  ▼               ▼
-┌──────────┐   ┌──────────────┐   ┌──────────────┐  ┌────────────┐
-│PostgreSQL│   │    Redis     │   │   RabbitMQ   │  │  External  │
-│ (Prisma) │   │              │   │ (Task Queue) │  │    APIs    │
-│          │   │ • Response   │   │              │  │            │
-│  Users   │   │   cache      │   │ ┌──────────┐ │  │ zKillboard │
-│  Chars   │   │ • PubSub     │◄──┼─┤ Workers  │ │  │  EVE ESI   │
-│  Kills   │   │   (subs)     │   │ │ (PM2)    ├─┼─►│            │
-│  Corps   │   │ • RedisQ     │   │ └──────────┘ │  └────────────┘
-│ Alliances│   │   cursor     │   │              │
-└──────────┘   └──────────────┘   └──────────────┘
-      ▲                                   │
-      └───────────────────────────────────┘
-                 workers write killmails
+```mermaid
+flowchart TB
+    subgraph fe["Frontend — Next.js"]
+        direction LR
+        Auth["Auth flow<br/><i>EVE SSO</i>"]
+        Kills["Killmails<br/><i>lists</i>"]
+        Stats["Analytics<br/><i>graphs</i>"]
+    end
+
+    subgraph be["Backend — GraphQL Yoga"]
+        direction LR
+        Resolvers["Resolvers<br/><i>modular</i>"]
+        Loaders["DataLoaders<br/><i>batched</i>"]
+        Services["Services<br/><i>ESI · zKillboard</i>"]
+    end
+
+    Workers["<b>Workers</b><br/><i>supervised by PM2</i>"]
+
+    PG[("<b>PostgreSQL</b><br/>via Prisma<br/><i>users · characters · killmails<br/>corporations · alliances</i>")]
+    Redis[("<b>Redis</b><br/><i>response cache · PubSub<br/>RedisQ cursor</i>")]
+    Rabbit["<b>RabbitMQ</b><br/><i>task queue</i>"]
+    External["<b>External APIs</b><br/><i>zKillboard · EVE ESI</i>"]
+
+    fe -->|"GraphQL over HTTP<br/><i>Apollo Client</i>"| be
+    be -.->|"subscriptions<br/><i>graphql-ws over WebSocket</i>"| fe
+
+    be --> PG
+    be --> Rabbit
+    Redis -.->|"subscription events"| be
+
+    Rabbit --> Workers
+    Workers -->|"fetch"| External
+    Workers -->|"write killmails"| PG
+    Workers -.->|"publish events"| Redis
 ```
 
 ### Tech Stack

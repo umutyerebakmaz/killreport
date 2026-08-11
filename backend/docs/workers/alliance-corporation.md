@@ -6,49 +6,15 @@ This workflow automatically discovers and adds all corporations belonging to all
 
 ## Workflow
 
-```terminal
-┌─────────────────────────────┐
-│ 1. Database                 │
-│    (Alliance IDs)           │
-└────────────┬────────────────┘
-             │
-             ▼
-┌─────────────────────────────┐
-│ queue-alliance-corporations │ Script (yarn queue:alliance-corporations)
-│ Queues all alliance IDs     │
-└────────────┬────────────────┘
-             │
-             ▼
-┌─────────────────────────────┐
-│ esi_alliance_corporations_queue  │ RabbitMQ Queue
-└────────────┬────────────────┘
-             │
-             ▼
-┌─────────────────────────────┐
-│ worker-alliance-corporations│ Worker (yarn worker:alliance-corporations)
-│ Fetches corp IDs from ESI   │
-│ Queues to corporation_      │
-│ enrichment_queue            │
-└────────────┬────────────────┘
-             │
-             ▼
-┌─────────────────────────────┐
-│ esi_corporation_info_queue│ RabbitMQ Queue
-└────────────┬────────────────┘
-             │
-             ▼
-┌─────────────────────────────┐
-│ worker-info-          │ Worker (yarn worker:info:corporations)
-│    corporations             │
-│ Fetches corp details from   │
-│ ESI and saves to database   │
-└────────────┬────────────────┘
-             │
-             ▼
-┌─────────────────────────────┐
-│ Database                    │
-│    (Corporations)           │
-└─────────────────────────────┘
+```mermaid
+flowchart TB
+    DB1[("<b>Database</b><br/><i>alliance IDs</i>")]
+    --> Producer["<b>queue-alliance-corporations</b><br/><code>yarn queue:alliance-corporations</code><br/><i>queues every alliance ID</i>"]
+    --> Q1["<code>esi_alliance_corporations_queue</code><br/><i>RabbitMQ</i>"]
+    --> W1["<b>worker-alliance-corporations</b><br/><code>yarn worker:alliance-corporations</code><br/><i>fetches corp IDs from ESI,<br/>queues them for enrichment</i>"]
+    --> Q2["<code>esi_corporation_info_queue</code><br/><i>RabbitMQ</i>"]
+    --> W2["<b>worker-info-corporations</b><br/><code>yarn worker:info:corporations</code><br/><i>fetches corp details from ESI</i>"]
+    --> DB2[("<b>Database</b><br/><i>corporations</i>")]
 ```
 
 ## Usage

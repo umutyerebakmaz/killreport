@@ -11,31 +11,43 @@ The sovereignty module is **read-from-DB**. The GraphQL API and the frontend nev
 they only read Postgres. **The cron workers are the only thing that pulls data.** If the workers
 don't run, the data goes stale and nothing on the sov pages updates.
 
-```
-                 ┌──────────── EVE ESI (/sovereignty/*) ────────────┐
-                 │                                                   │
-     worker:sov:campaigns   worker:sov:map   worker:sov:structures   │  (pull, on cron)
-                 │                │                │                  │
-                 ▼                ▼                ▼                  │
-        ┌───────────────────── Postgres ─────────────────────┐      │
-        │  campaigns, participants, map_current, structures,  │      │
-        │  territory_changes, snapshots, combat_stats, ...     │      │
-        └──────────────┬───────────────────────┬──────────────┘      │
-                       │                        │                     │
-     worker:sov:snapshot (daily agg)   worker:sov:correlate (killmail↔campaign)
-                       │                        ▲                     │
-                       ▼                        │                     │
-                  (DB tables)          killmails table ◀── worker:redisq (realtime feed)
-                       │
-        ┌──────────────▼───────────────┐        Live SSE alerts:
-        │  GraphQL API (Yoga, :4000)   │        campaigns/map workers publish → pubsub (Redis)
-        │  reads DB only, never ESI    │────────────────────────────▶ browser toast + bell
-        └──────────────┬───────────────┘
-                       ▼
-        ┌──────────────────────────────┐
-        │  Frontend (Next.js, :3000)   │  /sovereignty  · /structures · /history
-        │  Apollo → GraphQL + SSE      │  /hotspots · /map  + notification bell
-        └──────────────────────────────┘
+```mermaid
+flowchart TB
+    ESI["<b>EVE ESI</b><br/><code>/sovereignty/*</code>"]
+
+    subgraph pull["Pull workers — run on cron"]
+        direction LR
+        WCamp["<code>worker:sov:campaigns</code>"]
+        WMap["<code>worker:sov:map</code>"]
+        WStruct["<code>worker:sov:structures</code>"]
+    end
+
+    ESI --> WCamp & WMap & WStruct
+
+    PG[("<b>Postgres</b><br/>campaigns · participants · map_current<br/>structures · territory_changes<br/>snapshots · combat_stats")]
+
+    WCamp & WMap & WStruct --> PG
+
+    WSnap["<code>worker:sov:snapshot</code><br/><i>daily aggregation</i>"]
+    WCorr["<code>worker:sov:correlate</code><br/><i>killmail ↔ campaign</i>"]
+    Kills[("killmails table")]
+    WRedisQ["<code>worker:redisq</code><br/><i>real-time feed</i>"]
+
+    PG --> WSnap --> PG
+    PG --> WCorr
+    WRedisQ --> Kills --> WCorr
+
+    Redis["Redis PubSub"]
+    WCamp & WMap -.->|"publish alerts"| Redis
+
+    API["<b>GraphQL API</b><br/>Yoga · :4000<br/><i>reads the DB only, never ESI</i>"]
+    PG --> API
+    Redis -.-> API
+
+    FE["<b>Frontend</b><br/>Next.js · :3000<br/><code>/sovereignty · /map · /structures</code><br/><code>/history · /hotspots</code>"]
+
+    API -->|"GraphQL over HTTP"| FE
+    API -.->|"subscriptions over WebSocket<br/><i>toast + notification bell</i>"| FE
 ```
 
 ---
