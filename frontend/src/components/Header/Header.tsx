@@ -21,6 +21,11 @@ import EveStatus from "../EveStatus/EveStatus";
 import EveTime from "../EveTime/EveTime";
 import Tooltip from "../Tooltip/Tooltip";
 
+// The desktop nav needs ~1750px to lay out at full size, so it only appears at
+// xl and scales up in three steps instead of switching on at lg and overflowing.
+const NAV_ITEM = "font-semibold text-white text-sm min-[1800px]:text-base";
+const NAV_POPOVER_BUTTON = `flex items-center cursor-pointer gap-x-1 ${NAV_ITEM}`;
+
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [status, setStatus] = useState<{ players?: number } | null>(null);
@@ -50,7 +55,7 @@ export default function Header() {
         aria-label="Global"
         className="flex items-center justify-between p-6 mx-auto lg:px-8 xl:px-12 2xl:px-16 max-w-480"
       >
-        <div className="flex mr-24">
+        <div className="flex mr-8 2xl:mr-12 min-[1800px]:mr-24">
           <a href="/" className="-m-1.5 p-1.5">
             <span className="sr-only">KillReport</span>
             <span className="text-2xl font-semibold tracking-tight text-gray-200">
@@ -59,7 +64,7 @@ export default function Header() {
           </a>
         </div>
 
-        <div className="flex lg:hidden">
+        <div className="flex xl:hidden">
           <button
             type="button"
             onClick={() => setMobileMenuOpen(true)}
@@ -69,9 +74,9 @@ export default function Header() {
             <Bars3Icon aria-hidden="true" className="size-6" />
           </button>
         </div>
-        <PopoverGroup className="hidden lg:flex lg:gap-x-10">
+        <PopoverGroup className="hidden xl:flex xl:gap-x-4 2xl:gap-x-6 min-[1800px]:gap-x-8">
           <Popover className="relative">
-            <PopoverButton className="flex items-center font-semibold text-white cursor-pointer gap-x-1">
+            <PopoverButton className={NAV_POPOVER_BUTTON}>
               UNIVERSE
               <ChevronDownIcon
                 aria-hidden="true"
@@ -130,7 +135,7 @@ export default function Header() {
             </PopoverPanel>
           </Popover>
           <Popover className="relative">
-            <PopoverButton className="flex items-center font-semibold text-white cursor-pointer gap-x-1">
+            <PopoverButton className={NAV_POPOVER_BUTTON}>
               KILLMAILS
               <ChevronDownIcon
                 aria-hidden="true"
@@ -173,20 +178,20 @@ export default function Header() {
               </div>
             </PopoverPanel>
           </Popover>
-          <a href="/alliances" className="font-semibold text-white">
+          <a href="/alliances" className={NAV_ITEM}>
             ALLIANCES
           </a>
-          <a href="/corporations" className="font-semibold text-white">
+          <a href="/corporations" className={NAV_ITEM}>
             CORPORATIONS
           </a>
-          <a href="/characters" className="font-semibold text-white">
+          <a href="/characters" className={NAV_ITEM}>
             CHARACTERS
           </a>
-          <a href="/leaderboards" className="font-semibold text-white">
+          <a href="/leaderboards" className={NAV_ITEM}>
             LEADERBOARDS
           </a>
           <Popover className="relative">
-            <PopoverButton className="flex items-center font-semibold text-white cursor-pointer gap-x-1">
+            <PopoverButton className={NAV_POPOVER_BUTTON}>
               SOVEREIGNTY
               <ChevronDownIcon
                 aria-hidden="true"
@@ -256,25 +261,30 @@ export default function Header() {
               </div>
             </PopoverPanel>
           </Popover>
-          <a href="/workers" className="font-semibold text-white">
+          <a href="/workers" className={NAV_ITEM}>
             WORKERS
           </a>
         </PopoverGroup>
 
-        <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:items-center lg:gap-8">
-          <div className="flex items-center gap-6">
-            <ActiveUsersCounter />
-            <Tooltip
-              content={`Tranquility ${
-                status?.players?.toLocaleString() ?? "-"
-              } online players`}
-              position="bottom"
-            >
-              <EveStatus players={status?.players} />
-            </Tooltip>
-            <Tooltip content="Current Eve Online ingame time" position="bottom">
-              <EveTime />
-            </Tooltip>
+        <div className="hidden xl:flex xl:flex-1 xl:justify-end xl:items-center xl:gap-4 2xl:gap-6 min-[1800px]:gap-8">
+          <div className="flex items-center gap-4 min-[1800px]:gap-6">
+            {/* Status readouts are the first thing to go when width is tight. */}
+            <div className="hidden min-[1800px]:flex min-[1800px]:items-center min-[1800px]:gap-6">
+              <ActiveUsersCounter />
+              <Tooltip
+                content={`Tranquility ${
+                  status?.players?.toLocaleString() ?? "-"
+                } online players`}
+                position="bottom"
+              >
+                <EveStatus players={status?.players} />
+              </Tooltip>
+            </div>
+            <div className="hidden 2xl:block">
+              <Tooltip content="Current Eve Online ingame time" position="bottom">
+                <EveTime />
+              </Tooltip>
+            </div>
             <NotificationBell />
           </div>
           <AuthButton />
@@ -283,7 +293,7 @@ export default function Header() {
       <Dialog
         open={mobileMenuOpen}
         onClose={setMobileMenuOpen}
-        className="lg:hidden"
+        className="xl:hidden"
       >
         <div className="fixed inset-0 z-50" />
         <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full p-6 overflow-y-auto bg-stone-900 sm:max-w-sm sm:ring-1 sm:ring-gray-100/10">
