@@ -52,7 +52,7 @@ function SovereigntyContent() {
   const maxRegionCount = hotRegions.reduce((m, r) => Math.max(m, r.campaignCount), 0) || 1;
 
   return (
-    <div className="max-w-6xl px-4 py-8 mx-auto">
+    <>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-3xl font-semibold text-white">Sovereignty</h1>
         <div className="flex gap-4">
@@ -387,7 +387,7 @@ function SovereigntyContent() {
           </table>
         </div>
       </section>
-    </div>
+    </>
   );
 }
 

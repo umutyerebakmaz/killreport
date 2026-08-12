@@ -16,7 +16,7 @@ function HotspotsContent() {
   const hotspots = data?.conflictHotspots ?? [];
 
   return (
-    <div className="max-w-6xl px-4 py-8 mx-auto">
+    <>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-3xl font-semibold text-white">Conflict Hot Zones</h1>
         <Link href="/sovereignty" prefetch={false} className="text-sm text-cyan-400 hover:text-cyan-300">
@@ -93,7 +93,7 @@ function HotspotsContent() {
           </table>
         </div>
       </section>
-    </div>
+    </>
   );
 }
 
