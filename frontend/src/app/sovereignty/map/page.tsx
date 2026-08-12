@@ -3,6 +3,7 @@
 import Loader from "@/components/Loader";
 import { TerritoryMap } from "@/components/Sovereignty/TerritoryMap";
 import { useSovereigntyMapQuery } from "@/generated/graphql";
+import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { Suspense, useMemo, useState } from "react";
 
@@ -27,7 +28,7 @@ function MapContent() {
   if (error) return <div className="p-8 text-red-400">Error: {error.message}</div>;
 
   return (
-    <div className="max-w-6xl px-4 py-8 mx-auto">
+    <>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-3xl font-semibold text-white">Territory Map</h1>
         <Link href="/sovereignty" prefetch={false} className="text-sm text-cyan-400 hover:text-cyan-300">
@@ -39,19 +40,31 @@ function MapContent() {
       </h2>
 
       <div className="flex items-center gap-3 mt-4">
-        <label className="text-sm text-gray-400">Region</label>
-        <select
-          value={region}
-          onChange={(e) => setRegion(e.target.value)}
-          className="px-3 py-1.5 text-sm text-white border bg-neutral-900 border-white/10"
-        >
-          <option value="all">All regions</option>
-          {regions.map((r) => (
-            <option key={r} value={r}>
-              {r}
+        <label htmlFor="region" className="text-sm text-gray-400">
+          Region
+        </label>
+        <div className="select-option-container">
+          <select
+            id="region"
+            value={region}
+            onChange={(e) => setRegion(e.target.value)}
+            className="select"
+          >
+            <option value="all">
+              {region === "all" ? "✓" : "  "}
+              {"   "}
+              All regions
             </option>
-          ))}
-        </select>
+            {regions.map((r) => (
+              <option key={r} value={r}>
+                {region === r ? "✓" : "  "}
+                {"   "}
+                {r}
+              </option>
+            ))}
+          </select>
+          <ChevronDownIcon className="chevron-down-icon" />
+        </div>
       </div>
 
       <section className="mt-4 border border-white/10 bg-neutral-950">
@@ -61,7 +74,7 @@ function MapContent() {
         Each point is a sov-held system at its galactic position (light-years). Colored by the top
         controlling alliances; scroll to zoom, drag to pan, click a legend entry to isolate.
       </p>
-    </div>
+    </>
   );
 }
 
