@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });
 
@@ -26,6 +26,13 @@ const OTHER_COLOR = "#6b7280"; // alliances beyond the top N
 const UNCLAIMED_COLOR = "#374151"; // owned but no alliance (corp/faction)
 const TOP_N = 15;
 
+// Vertical legend down the left edge. The plot is squared off inside whatever
+// space is left, so widening the page can't stretch the galaxy horizontally.
+const LEGEND_W = 208;
+const LEGEND_GAP = 16;
+const PLOT_PAD = 16;
+const MAX_LEGEND_CHARS = 22;
+
 /**
  * 2D territory scatter: sov-held systems plotted at their galactic (x,z) in
  * light-years and colored by controlling alliance. Top-N alliances get distinct
@@ -34,8 +41,28 @@ const TOP_N = 15;
  * toggles alliances. Built on the already-installed echarts-for-react.
  */
 export function TerritoryMap({ points }: { points: MapPoint[] }) {
+  // The square plot geometry depends on the rendered size, so measure it rather
+  // than assuming a fixed page width.
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [box, setBox] = useState({ w: 0, h: 0 });
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      setBox((prev) =>
+        Math.abs(prev.w - width) < 1 && Math.abs(prev.h - height) < 1
+          ? prev
+          : { w: width, h: height },
+      );
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   const option = useMemo(() => {
-    if (points.length === 0) return {};
+    if (points.length === 0 || box.w === 0 || box.h === 0) return {};
 
     // Square data window with EQUAL span on both axes so the galaxy keeps its
     // shape (paired with the near-square grid below, x and y stay at the same
@@ -105,13 +132,30 @@ export function TerritoryMap({ points }: { points: MapPoint[] }) {
       };
     });
 
+    // Square the plot inside the space left of the legend, then centre it there.
+    const availW = Math.max(box.w - LEGEND_W - LEGEND_GAP - PLOT_PAD, 80);
+    const availH = Math.max(box.h - PLOT_PAD * 2, 80);
+    const side = Math.min(availW, availH);
+    const gridLeft = LEGEND_W + LEGEND_GAP + (availW - side) / 2;
+    const gridTop = (box.h - side) / 2;
+
     return {
       backgroundColor: "transparent",
       legend: {
         type: "scroll",
-        top: 0,
-        textStyle: { color: "#d1d5db" },
+        orient: "vertical",
+        left: 0,
+        top: PLOT_PAD,
+        bottom: PLOT_PAD,
+        width: LEGEND_W,
+        itemGap: 10,
+        textStyle: { color: "#d1d5db", fontSize: 12 },
         pageTextStyle: { color: "#d1d5db" },
+        pageIconColor: "#9ca3af",
+        pageIconInactiveColor: "#4b5563",
+        tooltip: { show: true },
+        formatter: (name: string) =>
+          name.length > MAX_LEGEND_CHARS ? `${name.slice(0, MAX_LEGEND_CHARS - 1)}…` : name,
         data: series.map((s) => s.name),
       },
       tooltip: {
@@ -121,8 +165,9 @@ export function TerritoryMap({ points }: { points: MapPoint[] }) {
           return `<strong>${name}</strong><br/>Region: ${region || "—"}<br/>Alliance: ${alliance || "—"}`;
         },
       },
-      // Near-square plot area so the equal-span window keeps x/y at one scale.
-      grid: { left: "24%", right: "24%", top: 36, bottom: 8, containLabel: false },
+      // Explicitly square so the equal-span data window keeps x and y at one
+      // px/ly scale no matter how wide the page gets.
+      grid: { left: gridLeft, top: gridTop, width: side, height: side, containLabel: false },
       xAxis: { show: false, type: "value", min: xB.min, max: xB.max },
       yAxis: { show: false, type: "value", min: yB.min, max: yB.max },
       dataZoom: [
@@ -131,7 +176,7 @@ export function TerritoryMap({ points }: { points: MapPoint[] }) {
       ],
       series,
     };
-  }, [points]);
+  }, [points, box]);
 
   if (points.length === 0) {
     return (
@@ -141,5 +186,11 @@ export function TerritoryMap({ points }: { points: MapPoint[] }) {
     );
   }
 
-  return <ReactECharts option={option} style={{ height: 620, width: "100%" }} notMerge />;
+  return (
+    <div ref={wrapRef} className="w-full h-[clamp(520px,74vh,900px)]">
+      {box.w > 0 && (
+        <ReactECharts option={option} style={{ height: "100%", width: "100%" }} notMerge />
+      )}
+    </div>
+  );
 }
