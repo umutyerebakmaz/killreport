@@ -1,176 +1,177 @@
-# Solar System Detail Page Improvements — Design
+# Solar System Detay Sayfası İyileştirmeleri — Tasarım
 
-Date: 2026-08-27
-Status: Draft — awaiting review
-Scope: `frontend/src/app/solar-systems/[id]/page.tsx` and its supporting GraphQL layer
+Tarih: 2026-08-27
+Durum: Taslak — inceleme bekliyor
+Kapsam: `frontend/src/app/solar-systems/[id]/page.tsx` ve onu besleyen GraphQL katmanı
 
-## 1. Context
+## 1. Bağlam
 
-The solar system detail page is the deepest node in the spatial hierarchy
-(Region → Constellation → Solar System). It is reachable from the killmail
-table, the sovereignty map, the systems list and every breadcrumb on the site,
-which makes it one of the most-linked pages in the app. Today it renders two
-tabs:
+Solar system detay sayfası uzamsal hiyerarşinin (Region → Constellation → Solar
+System) en derin düğümü. Killmail tablosundan, sovereignty haritasından, sistem
+listesinden ve sitedeki her breadcrumb'dan erişilebiliyor; bu da onu uygulamanın
+en çok link alan sayfalarından biri yapıyor. Bugün iki sekme render ediyor:
 
-- **Attributes** — three cards: System Information (system ID, security status,
-  star ID), Location Hierarchy (region → constellation → system links) and
-  Position in Space (raw x/y/z coordinates in exponential notation).
-- **Killmails** — a paginated `KillmailsTable` plus a four-card sidebar
+- **Attributes** — üç kart: System Information (system ID, security status, star
+  ID), Location Hierarchy (region → constellation → system linkleri) ve Position
+  in Space (ham x/y/z koordinatları, üstel gösterimle).
+- **Killmails** — sayfalanmış bir `KillmailsTable` ve dört kartlık bir sidebar
   (`TopCharacterCard`, `TopCorporationCard`, `TopAllianceCard`, `TopShipsCard`),
-  all scoped to the last 7 days for this system.
+  hepsi bu sistem için son 7 güne kapsamlanmış.
 
-The page header shows the system name, a `SecurityBadge`, links to the parent
-constellation and region, and a one-line `latestKills` summary (ship / pod / NPC
-kills with a relative timestamp).
+Sayfa başlığında sistem adı, bir `SecurityBadge`, üst constellation ve region
+linkleri, ve tek satırlık `latestKills` özeti (ship / pod / NPC kill sayıları ve
+göreli zaman) var.
 
-The whole page is a single 572-line client component.
+Sayfanın tamamı tek bir 572 satırlık client component.
 
-## 2. Problems
+## 2. Problemler
 
-**P1 — The default tab is the emptiest one.** `Attributes` is what a visitor
-lands on, and it shows almost nothing actionable: `System ID` and `Star ID` are
-raw ESI identifiers with no meaning to a player, and the x/y/z coordinates are
-printed as `-1.2345e+17` metres, which no reader can use. The Location Hierarchy
-card repeats links that already exist in the breadcrumb and the header.
+**P1 — Varsayılan sekme en boş olanı.** Ziyaretçi `Attributes` sekmesine
+düşüyor ve orada işe yarar neredeyse hiçbir şey yok: `System ID` ve `Star ID`
+oyuncuya hiçbir şey ifade etmeyen ham ESI tanımlayıcıları, x/y/z koordinatları
+ise `-1.2345e+17` metre olarak basılıyor — kimsenin okuyup kullanabileceği bir
+biçim değil. Location Hierarchy kartı da breadcrumb'da ve header'da zaten var
+olan linkleri tekrarlıyor.
 
-**P2 — Data that already exists in the backend is not shown.** Two capabilities
-are fully implemented server-side and never queried by the frontend:
+**P2 — Backend'de hazır olan veri gösterilmiyor.** İki yetenek sunucu tarafında
+tamamen implement edilmiş ve frontend tarafından hiç sorgulanmıyor:
 
-- `systemKillsHistory(filter: { system_id, hours })` returns hourly ship / pod /
-  NPC kill snapshots from the `system_kills` table
-  (`backend/src/resolvers/system-kills/queries.ts:9`). The frontend only reads
-  the single latest row via `latestKills`.
-- `sovereigntyStructures(systemId:)` returns the holding alliance, the ADM
-  proxy (`occupancyLevel`) and the vulnerability window for TCU/IHub structures
-  in a system (`backend/src/schemas/Sovereignty.graphql:214`). Nothing on the
-  system page mentions sovereignty at all, even though sovereignty is a
-  first-class feature elsewhere in the app.
+- `systemKillsHistory(filter: { system_id, hours })`, `system_kills` tablosundan
+  saatlik ship / pod / NPC kill snapshot'ları döndürüyor
+  (`backend/src/resolvers/system-kills/queries.ts:9`). Frontend bunun yalnızca
+  en son satırını `latestKills` üzerinden okuyor.
+- `sovereigntyStructures(systemId:)`, bir sistemdeki TCU/IHub yapıları için
+  sahip alliance'ı, ADM karşılığını (`occupancyLevel`) ve vulnerability
+  penceresini döndürüyor (`backend/src/schemas/Sovereignty.graphql:214`). Sistem
+  sayfası sovereignty'den hiç söz etmiyor — oysa sovereignty uygulamanın başka
+  yerlerinde birinci sınıf bir özellik.
 
-**P3 — No system-level aggregate stats.** The page can tell you what happened in
-the last 7 days and what the last killmail was, but not the totals that make a
-system page worth bookmarking: lifetime kills, ISK destroyed, activity in the
-last 24 hours, or when the system is busiest.
+**P3 — Sistem düzeyinde toplu istatistik yok.** Sayfa son 7 günde ne olduğunu ve
+son killmail'in ne olduğunu söyleyebiliyor, ama bir sistem sayfasını
+yer imine eklemeye değer kılan toplamları söyleyemiyor: toplam kill, yok edilen
+ISK, son 24 saatteki hareket, ya da sistemin en yoğun olduğu saat.
 
-**P4 — URL sync effect writes on every render.** The effect at
-`frontend/src/app/solar-systems/[id]/page.tsx:128-137` depends on `router`,
-which Next.js does not guarantee to be referentially stable, and calls
-`router.push` unconditionally — including on first mount, which pushes a
-redundant history entry before the user has interacted with anything. The same
-pattern was just reverted from the killmails page; it should not be re-created
-here.
+**P4 — URL senkronizasyon effect'i her render'da yazıyor.**
+`frontend/src/app/solar-systems/[id]/page.tsx:128-137`'daki effect, Next.js'in
+referans kararlılığını garanti etmediği `router`'a bağımlı ve `router.push`'u
+koşulsuz çağırıyor — mount anında da. Yani kullanıcı hiçbir şeye dokunmadan önce
+gereksiz bir history kaydı ekleniyor. Aynı kalıp killmails sayfasından yeni geri
+alındı; burada yeniden üretilmemeli.
 
-**P5 — Tab switching does not reset pagination.** `activeTab` and `currentPage`
-are independent state. Going to page 7 of Killmails, switching to Attributes and
-back leaves `page=7` in the URL and in state, but the tab reads as freshly
-opened.
+**P5 — Sekme değişimi sayfalamayı sıfırlamıyor.** `activeTab` ve `currentPage`
+bağımsız state'ler. Killmails'in 7. sayfasına gidip Attributes'a geçip geri
+dönünce URL'de ve state'te `page=7` kalıyor, ama sekme yeni açılmış gibi
+okunuyor.
 
-**P6 — The four-card "top entities" sidebar is copy-pasted.** The same block —
-four `Top*Card` components, each with a `Last 7 days` + `ROLLING` badge
-subtitle, each mapping a leaderboard row into card props — appears in
+**P6 — Dört kartlık "top entities" sidebar'ı kopyala-yapıştır.** Aynı blok —
+dört `Top*Card` bileşeni, her birinde `Last 7 days` + `ROLLING` rozetli
+subtitle, her birinde bir leaderboard satırını kart prop'larına çeviren mapping —
 `solar-systems/[id]/page.tsx`, `killmails/page.tsx`, `alliances/[id]/page.tsx`
-and `corporations/[id]/page.tsx`, with the mapping logic duplicated each time.
+ve `corporations/[id]/page.tsx` dosyalarında, mapping mantığı her seferinde
+tekrarlanarak duruyor.
 
-**P7 — The detail query lives in the wrong file.** The `SolarSystem($id:)` query
-is defined inside `frontend/src/graphql/SolarSystems.graphql`. Every other
-entity in the repo splits these (`Alliance.graphql` / `Alliances.graphql`,
+**P7 — Detay sorgusu yanlış dosyada.** `SolarSystem($id:)` sorgusu
+`frontend/src/graphql/SolarSystems.graphql` içinde tanımlı. Repodaki diğer tüm
+varlıklar bunları ayırmış (`Alliance.graphql` / `Alliances.graphql`,
 `Corporation.graphql` / `Corporations.graphql`, `Region.graphql` /
 `Regions.graphql`).
 
-## 3. Goals
+## 3. Hedefler
 
-1. Make the landing tab worth reading: aggregate stats, an activity chart, and
-   sovereignty state, instead of raw identifiers.
-2. Surface `systemKillsHistory` and `sovereigntyStructures`, which already
-   exist, before building anything new.
-3. Add exactly one new backend query, for the aggregate stats that cannot be
-   derived from what already ships.
-4. Fix P4–P7 as part of the work, not as a follow-up.
+1. Açılış sekmesini okumaya değer hale getirmek: ham tanımlayıcılar yerine toplu
+   istatistikler, bir aktivite grafiği ve sovereignty durumu.
+2. Yeni bir şey inşa etmeden önce, zaten var olan `systemKillsHistory` ve
+   `sovereigntyStructures`'ı yüzeye çıkarmak.
+3. Yalnızca bir tane yeni backend sorgusu eklemek — o da mevcut veriden
+   türetilemeyen toplu istatistikler için.
+4. P4–P7'yi bu işin parçası olarak düzeltmek, sonraya bırakmamak.
 
-## Non-goals
+## Hedef olmayanlar
 
-- No new ESI ingestion. Stargates / adjacent systems, planets, moons, stations
-  and NPC faction ownership are **not** in the database
-  (`backend/prisma/schema/solarSystem.prisma` has id, name, constellation_id,
-  security_status, security_class, star_id, position x/y/z and nothing else).
-  Adding them means a new worker, a new table and a full backfill — a separate
-  project.
-- No redesign of `KillmailsTable`, `Paginator` or the `Top*Card` components
-  themselves. This work reuses them.
-- No change to the sovereignty ingestion workers.
+- Yeni ESI ingest yok. Stargate / komşu sistemler, gezegenler, aylar,
+  istasyonlar ve NPC faction sahipliği veritabanında **yok**
+  (`backend/prisma/schema/solarSystem.prisma` yalnızca id, name,
+  constellation_id, security_status, security_class, star_id, position x/y/z
+  içeriyor). Bunları eklemek yeni bir worker, yeni bir tablo ve tam bir backfill
+  demek — ayrı bir proje.
+- `KillmailsTable`, `Paginator` veya `Top*Card` bileşenlerinin kendilerinde
+  yeniden tasarım yok. Bu iş onları olduğu gibi kullanıyor.
+- Sovereignty ingest worker'larında değişiklik yok.
 
-## 4. Assumptions
+## 4. Varsayımlar
 
-These decisions were made without a requirements conversation. Each one is a
-place to push back before implementation starts.
+Bu kararlar bir gereksinim görüşmesi yapılmadan alındı. Her biri, uygulamaya
+geçmeden önce itiraz edilebilecek bir nokta.
 
-- **A1** — "Improvements" means content depth first, layout second, technical
-  debt third. The plan is ordered that way and each phase ships independently.
-- **A2** — The two-tab structure stays, but `Attributes` is replaced by
-  `Overview`. Three tabs (Overview / Sovereignty / Killmails) would leave the
-  sovereignty tab empty for every high-sec and low-sec system, which is most of
-  New Eden.
-- **A3** — Raw identifiers (`System ID`, `Star ID`, exponential coordinates)
-  stay on the page but move into a collapsed "Technical details" block at the
-  bottom of Overview. They are useful to developers and API users, and removing
-  them outright is a loss for that audience.
-- **A4** — "Busiest hour" is computed over the last 7 days in UTC, because EVE
-  Online timers and the rest of the app are UTC-based.
-- **A5** — ISK-destroyed totals are read from `killmails.total_value`. Killmails
-  whose value has not been backfilled yet count as 0 rather than being excluded,
-  matching how `KillmailOrderBy.ValueDesc` already behaves elsewhere.
+- **V1** — "İyileştirme" derken önce içerik derinliği, sonra yerleşim, sonra
+  teknik borç anlaşıldı. Plan bu sırayla ilerliyor ve her faz bağımsız olarak
+  sahaya çıkabiliyor.
+- **V2** — İki sekmeli yapı kalıyor, ama `Attributes` yerine `Overview` geliyor.
+  Üç sekme (Overview / Sovereignty / Killmails) olsaydı, sovereignty sekmesi her
+  high-sec ve low-sec sistemde — yani New Eden'ın büyük çoğunluğunda — boş
+  kalırdı.
+- **V3** — Ham tanımlayıcılar (`System ID`, `Star ID`, üstel koordinatlar)
+  sayfada kalıyor ama Overview'ün altında katlanmış bir "Technical details"
+  bloğuna taşınıyor. Geliştiriciler ve API kullanıcıları için değerliler; tümden
+  silmek o kitle için kayıp olur.
+- **V4** — "En yoğun saat" son 7 gün üzerinden ve UTC olarak hesaplanıyor; EVE
+  Online timer'ları ve uygulamanın geri kalanı zaten UTC tabanlı.
+- **V5** — Yok edilen ISK toplamları `killmails.total_value`'dan okunuyor.
+  Değeri henüz backfill edilmemiş killmail'ler hariç tutulmak yerine 0 sayılıyor
+  — `KillmailOrderBy.ValueDesc`'in başka yerlerde zaten davrandığı gibi.
 
-## 5. Approaches considered
+## 5. Değerlendirilen yaklaşımlar
 
-**Option A — Frontend-only.** Consume `systemKillsHistory` and
-`sovereigntyStructures`, restructure the tabs, skip aggregate stats entirely.
-Cheapest, ships in one pass, no migration. But P3 goes unaddressed, and the
-totals are exactly what makes a system page linkable.
+**A seçeneği — Yalnızca frontend.** `systemKillsHistory` ve
+`sovereigntyStructures` tüketilir, sekmeler yeniden kurgulanır, toplu
+istatistikler tamamen atlanır. En ucuzu, tek geçişte çıkar, migration yok. Ama
+P3 çözümsüz kalıyor ve sayfayı link'lenmeye değer kılan şey tam olarak o
+toplamlar.
 
-**Option B — Frontend + one new stats query (recommended).** Everything in
-Option A, plus a single `solarSystemStats(systemId:)` query backed by a cached
-raw SQL aggregate, and one optional `systemId` argument added to
-`sovereigntyActiveCampaigns`. One new type, one new resolver, no schema
-migration.
+**B seçeneği — Frontend + tek yeni istatistik sorgusu (önerilen).** A
+seçeneğindeki her şey, artı cache'li bir raw SQL aggregate ile beslenen tek bir
+`solarSystemStats(systemId:)` sorgusu ve `sovereigntyActiveCampaigns`'a eklenen
+opsiyonel bir `systemId` argümanı. Bir yeni tip, bir yeni resolver, şema
+migration'ı yok.
 
-**Option C — Full system profile.** Option B plus a new `system_stats` rollup
-table maintained by a worker, plus ESI ingestion for stargates so the page can
-show adjacent systems and jump routes. This is the version that competes with
-zKillboard's system page, but it is a multi-week project with a backfill,
-a new worker in `ecosystem.config.js`, and its own operational risk.
+**C seçeneği — Tam sistem profili.** B seçeneğine ek olarak, bir worker
+tarafından beslenen yeni bir `system_stats` rollup tablosu ve sayfanın komşu
+sistemleri ve jump rotalarını gösterebilmesi için stargate ESI ingest'i.
+zKillboard'ın sistem sayfasıyla yarışan sürüm bu, ama backfill'i, `ecosystem.config.js`'e
+girecek yeni bir worker'ı ve kendi operasyonel riski olan çok haftalık bir iş.
 
-**Chosen: Option B.** It closes every problem listed in section 2 at a cost
-proportional to the payoff. Option C's distinguishing feature — the stargate
-graph — is a coherent second project that this design deliberately leaves
-standing on its own.
+**Seçilen: B.** Bölüm 2'deki her problemi, getirisiyle orantılı bir maliyetle
+kapatıyor. C seçeneğini ayırt eden şey — stargate grafiği — kendi başına tutarlı
+bir ikinci proje ve bu tasarım onu bilinçli olarak ayrı bırakıyor.
 
-## 6. Design
+## 6. Tasarım
 
-### 6.1 Page structure
+### 6.1 Sayfa yapısı
 
 ```
-Breadcrumb (unchanged)
+Breadcrumb (değişmiyor)
 Header
-  ├─ security-tinted icon, system name, SecurityBadge
-  ├─ constellation / region links
-  ├─ sovereignty holder chip           ← new, rendered only when sov-held
-  └─ latestKills summary (unchanged)
-Stats strip                            ← new: 4 tiles, always visible above the tabs
-Tabs: [ Overview | Killmails ]
+  ├─ security tonlu ikon, sistem adı, SecurityBadge
+  ├─ constellation / region linkleri
+  ├─ sovereignty sahibi çipi          ← yeni, yalnızca sov tutulan sistemlerde
+  └─ latestKills özeti (değişmiyor)
+İstatistik şeridi                     ← yeni: 4 kutu, sekmelerin üstünde hep görünür
+Sekmeler: [ Overview | Killmails ]
   Overview
-    ├─ SystemActivityChart             ← new, full width
-    ├─ SolarSystemSovereigntyPanel     ← new, only when the system is sov-held
-    └─ Technical details (collapsed)   ← reworked from the old Attributes cards
+    ├─ SystemActivityChart            ← yeni, tam genişlik
+    ├─ SolarSystemSovereigntyPanel    ← yeni, yalnızca sov tutulan sistemlerde
+    └─ Technical details (katlanmış)  ← eski Attributes kartlarından dönüştürüldü
   Killmails
-    └─ unchanged: table + Paginator + TopEntitySidebar
+    └─ değişmiyor: tablo + Paginator + TopEntitySidebar
 ```
 
-The stats strip sits **above** the tab bar so the headline numbers survive tab
-switching. Tiles: `Total kills`, `ISK destroyed`, `Kills (24h)`, `Busiest hour
-(UTC)`.
+İstatistik şeridi sekme çubuğunun **üstünde** duruyor, böylece başlık sayılar
+sekme değişiminde kaybolmuyor. Kutular: `Total kills`, `ISK destroyed`,
+`Kills (24h)`, `Busiest hour (UTC)`.
 
-### 6.2 Backend changes
+### 6.2 Backend değişiklikleri
 
-**New query.** `backend/src/schemas/SolarSystem.graphql`:
+**Yeni sorgu.** `backend/src/schemas/SolarSystem.graphql`:
 
 ```graphql
 """
@@ -196,141 +197,144 @@ extend type Query {
 }
 ```
 
-Resolver: `backend/src/resolvers/solar-system/queries.ts`, following the
-`topLast7DaysPilots` pattern at `backend/src/resolvers/leaderboard/queries.ts:140`
-— `prisma.$queryRaw` against `killmails`, Redis-cached under
-`solarSystemStats:{systemId}` with a 300-second TTL. Two statements: one
-lifetime aggregate, one 7-day aggregate grouped by
-`EXTRACT(HOUR FROM killmail_time)`.
+Resolver: `backend/src/resolvers/solar-system/queries.ts`,
+`backend/src/resolvers/leaderboard/queries.ts:140`'daki `topLast7DaysPilots`
+kalıbını izleyerek — `killmails` üzerinde `prisma.$queryRaw`, Redis'te
+`solarSystemStats:{systemId}` anahtarıyla 300 saniyelik TTL. İki ifade: biri
+yaşam boyu toplam, diğeri `EXTRACT(HOUR FROM killmail_time)` ile gruplanmış
+7 günlük toplam.
 
-`killmail_filters` is deliberately **not** used here: it carries no
-`total_value` column (see
+`killmail_filters` burada bilinçli olarak **kullanılmıyor**: tabloda
+`total_value` kolonu yok (bkz.
 `backend/prisma/migrations/20260215010000_add_killmail_filters_materialized_view/migration.sql`),
-so the ISK sums have to come from `killmails` directly.
+dolayısıyla ISK toplamlarının doğrudan `killmails`'ten gelmesi gerekiyor.
 
-**Index.** `killmails` today has single-column indexes on `solar_system_id`
-and `killmail_time` (`backend/prisma/schema/killmail.prisma:19-20`) but no
-composite. The lifetime aggregate is served fine by `solar_system_id` alone; the
-7-day and 24-hour aggregates filter on both columns and will need
-`@@index([solar_system_id, killmail_time])` plus a migration. Confirm with
-`EXPLAIN ANALYZE` against production-shaped data before merging — on a system
-like Jita the difference is a bitmap heap scan over hundreds of thousands of
-rows versus an index range scan.
+**İndeks.** `killmails` bugün `solar_system_id` ve `killmail_time` üzerinde tekil
+indekslere sahip (`backend/prisma/schema/killmail.prisma:19-20`), bileşik indeks
+yok. Yaşam boyu toplam tek başına `solar_system_id` ile rahat karşılanıyor;
+7 günlük ve 24 saatlik toplamlar iki kolonu birlikte filtreliyor ve
+`@@index([solar_system_id, killmail_time])` ile bir migration gerektiriyor.
+Merge'den önce üretim ölçeğindeki veriyle `EXPLAIN ANALYZE` ile doğrulanmalı —
+Jita gibi bir sistemde fark, yüz binlerce satır üzerinde bitmap heap scan ile
+index range scan arasındaki fark.
 
-**One argument added.** `sovereigntyActiveCampaigns(limit: Int)` gains an
-optional `systemId: Int`, filtering on `solarSystemId` in the existing
-resolver's where clause. No new type.
+**Eklenen tek argüman.** `sovereigntyActiveCampaigns(limit: Int)` opsiyonel bir
+`systemId: Int` kazanıyor; mevcut resolver'ın where koşulunda `solarSystemId`
+üzerinden filtreleniyor. Yeni tip yok.
 
-### 6.3 New frontend components
+### 6.3 Yeni frontend bileşenleri
 
-| File | Responsibility |
-|------|----------------|
-| `components/SystemActivityChart/SystemActivityChart.tsx` | ECharts line chart of hourly ship / pod / NPC kills, with a 24h / 7d range toggle. Mirrors `AllianceGrowthChart` exactly: `next/dynamic` import of `echarts-for-react` with `ssr: false`, range state, `useMemo` series derivation. |
-| `components/SolarSystemDetail/SystemStatsStrip.tsx` | Four presentational stat tiles. Takes a `SolarSystemStatsQuery` result plus `loading`; renders skeletons while loading. |
-| `components/SolarSystemDetail/SolarSystemSovereigntyPanel.tsx` | Holding alliance (linked), structure type, ADM (`occupancyLevel`), vulnerability window, and any active campaign in this system. Renders nothing when the system holds no sovereignty structures. |
-| `components/SolarSystemDetail/SystemTechnicalDetails.tsx` | Collapsed `<details>` block: system ID, star ID, `security_class`, exact security status, and x/y/z shown both in exponential metres and converted to AU. |
-| `components/TopEntitySidebar/TopEntitySidebar.tsx` | The four-card leaderboard sidebar, extracted once. Props: a location filter (`{ systemId }` / `{ regionId }` / `{ constellationId }` / none), and it runs the four `topLast7Days*` queries itself. |
+| Dosya | Sorumluluk |
+|-------|------------|
+| `components/SystemActivityChart/SystemActivityChart.tsx` | Saatlik ship / pod / NPC kill'lerin ECharts çizgi grafiği, 24s / 7g aralık düğmesiyle. `AllianceGrowthChart`'ı birebir izliyor: `echarts-for-react`'in `ssr: false` ile `next/dynamic` import'u, aralık state'i, `useMemo` ile seri türetimi. |
+| `components/SolarSystemDetail/SystemStatsStrip.tsx` | Dört sunum amaçlı istatistik kutusu. Bir `SolarSystemStatsQuery` sonucu ve `loading` alıyor; yüklenirken iskelet gösteriyor. |
+| `components/SolarSystemDetail/SolarSystemSovereigntyPanel.tsx` | Sahip alliance (linkli), yapı tipi, ADM (`occupancyLevel`), vulnerability penceresi ve bu sistemdeki aktif kampanya. Sistemde sovereignty yapısı yoksa hiçbir şey render etmiyor. |
+| `components/SolarSystemDetail/SystemTechnicalDetails.tsx` | Katlanmış `<details>` bloğu: system ID, star ID, `security_class`, tam security status ve x/y/z — hem üstel metre hem AU'ya çevrilmiş halde. |
+| `components/TopEntitySidebar/TopEntitySidebar.tsx` | Dört kartlık leaderboard sidebar'ı, tek seferde çıkarılmış. Prop'ları: bir konum filtresi (`{ systemId }` / `{ regionId }` / `{ constellationId }` / yok) ve dört `topLast7Days*` sorgusunu kendisi çalıştırıyor. |
 
-### 6.4 Refactors
+### 6.4 Refactor'lar
 
-- **P4** — Replace the URL-sync effect with explicit handlers. State changes and
-  the corresponding `router.replace` happen in the same callback
-  (`handleTabChange`, `goToPage`, `handlePageSizeChange`); no effect writes to
-  the URL. `replace` rather than `push`, so tab switching does not fill the back
-  button with intermediate states.
-- **P5** — `handleTabChange` resets `currentPage` to 1.
-- **P6** — All four call sites adopt `TopEntitySidebar`. This is where most of
-  the net line reduction comes from.
-- **P7** — Move the `SolarSystem($id:)` document into a new
-  `frontend/src/graphql/SolarSystem.graphql`, leaving the list query in
-  `SolarSystems.graphql`. Add `security_class` to the detail query's selection
-  set; it is already on the type and already ingested.
-- The page component shrinks to a shell: parse params, run the detail query,
-  own tab state, render header + stats strip + the active tab. Target under 200
-  lines, with `OverviewTab` and `KillmailsTab` as siblings under
-  `components/SolarSystemDetail/`.
+- **P4** — URL senkronizasyon effect'i açık handler'larla değiştiriliyor. State
+  değişimi ve karşılık gelen `router.replace` aynı callback içinde oluyor
+  (`handleTabChange`, `goToPage`, `handlePageSizeChange`); hiçbir effect URL'e
+  yazmıyor. `push` yerine `replace`, böylece sekme değiştirmek geri düğmesini ara
+  durumlarla doldurmuyor.
+- **P5** — `handleTabChange`, `currentPage`'i 1'e çekiyor.
+- **P6** — Dört çağrı yeri de `TopEntitySidebar`'a geçiyor. Net satır azalmasının
+  büyük kısmı buradan geliyor.
+- **P7** — `SolarSystem($id:)` dokümanı yeni bir
+  `frontend/src/graphql/SolarSystem.graphql` dosyasına taşınıyor, liste sorgusu
+  `SolarSystems.graphql`'de kalıyor. Detay sorgusunun seçim setine
+  `security_class` ekleniyor; tipte zaten var ve zaten ingest ediliyor.
+- Sayfa bileşeni bir kabuğa iniyor: param'ları çöz, detay sorgusunu çalıştır,
+  sekme state'ini tut, header + istatistik şeridi + aktif sekmeyi render et.
+  Hedef 200 satırın altı; `OverviewTab` ve `KillmailsTab`
+  `components/SolarSystemDetail/` altında kardeş dosyalar olarak duruyor.
 
-### 6.5 New GraphQL documents
+### 6.5 Yeni GraphQL dokümanları
 
-- `frontend/src/graphql/SolarSystem.graphql` — detail query (moved, extended).
-- `frontend/src/graphql/SolarSystemStats.graphql` — new stats query.
-- `frontend/src/graphql/SystemKillsHistory.graphql` — new, for the chart.
-- `frontend/src/graphql/SolarSystemSovereignty.graphql` — `sovereigntyStructures(systemId:)`
-  and `sovereigntyActiveCampaigns(systemId:)` in one document, so the panel
-  issues a single request.
+- `frontend/src/graphql/SolarSystem.graphql` — detay sorgusu (taşındı,
+  genişletildi).
+- `frontend/src/graphql/SolarSystemStats.graphql` — yeni istatistik sorgusu.
+- `frontend/src/graphql/SystemKillsHistory.graphql` — yeni, grafik için.
+- `frontend/src/graphql/SolarSystemSovereignty.graphql` —
+  `sovereigntyStructures(systemId:)` ve `sovereigntyActiveCampaigns(systemId:)`
+  tek dokümanda, böylece panel tek istek atıyor.
 
-Both workspaces run `yarn codegen` after every `.graphql` change; the generated
-`frontend/src/generated/graphql.ts` is committed as it is today.
+Her `.graphql` değişikliğinden sonra iki workspace de `yarn codegen` çalıştırıyor;
+üretilen `frontend/src/generated/graphql.ts` bugün olduğu gibi commit'leniyor.
 
-## 7. Data flow
+## 7. Veri akışı
 
 ```
 page.tsx
   ├─ useSolarSystemQuery({ id })                    → header, technical details
-  ├─ useSolarSystemStatsQuery({ systemId })         → stats strip
-  └─ Overview tab (mounted)
-       ├─ useSystemKillsHistoryQuery({ system_id, hours })  → activity chart
-       └─ useSolarSystemSovereigntyQuery({ systemId })      → sovereignty panel
-  └─ Killmails tab (mounted)
+  ├─ useSolarSystemStatsQuery({ systemId })         → istatistik şeridi
+  └─ Overview sekmesi (mount edilmişse)
+       ├─ useSystemKillsHistoryQuery({ system_id, hours })  → aktivite grafiği
+       └─ useSolarSystemSovereigntyQuery({ systemId })      → sovereignty paneli
+  └─ Killmails sekmesi (mount edilmişse)
        ├─ useKillmailsQuery({ systemId, page, limit })
        ├─ useKillmailsDateCountsQuery({ systemId })
-       └─ TopEntitySidebar → four topLast7Days* queries
+       └─ TopEntitySidebar → dört topLast7Days* sorgusu
 ```
 
-Per-tab queries keep their `skip: activeTab !== "..."` guards, which the page
-already does correctly. The stats strip is not skipped, because it renders above
-the tabs.
+Sekmeye bağlı sorgular `skip: activeTab !== "..."` korumalarını koruyor — sayfa
+bunu zaten doğru yapıyor. İstatistik şeridi skip edilmiyor, çünkü sekmelerin
+üstünde render ediliyor.
 
-## 8. Loading, empty and error states
+## 8. Yükleme, boş ve hata durumları
 
-- **Stats strip** — skeleton tiles while loading. A system with no killmails
-  shows zeros, not an empty state; zero kills is a real, meaningful answer.
-- **Activity chart** — reuses the existing chart loading treatment. When
-  `systemKillsHistory` returns an empty array, the chart is replaced by
-  "No kill activity recorded in this window", because an axis with no series
-  reads as broken.
-- **Sovereignty panel** — renders nothing at all when the system holds no sov
-  structures. High-sec systems must not show an empty sovereignty card.
-- **Errors** — the top-level system query keeps the existing full-page error.
-  A failure in the stats, chart or sovereignty query degrades that section only;
-  the rest of the page still renders. These are supplementary panels, and one
-  failing Redis lookup should not blank out the killmail table.
+- **İstatistik şeridi** — yüklenirken iskelet kutular. Hiç killmail'i olmayan
+  bir sistem boş durum değil sıfır gösteriyor; sıfır kill gerçek ve anlamlı bir
+  cevap.
+- **Aktivite grafiği** — mevcut grafik yükleme davranışını kullanıyor.
+  `systemKillsHistory` boş dizi döndürdüğünde grafik yerine "No kill activity
+  recorded in this window" geliyor, çünkü serisi olmayan bir eksen bozuk gibi
+  okunuyor.
+- **Sovereignty paneli** — sistemde sov yapısı yoksa hiçbir şey render etmiyor.
+  High-sec sistemlerde boş bir sovereignty kartı görünmemeli.
+- **Hatalar** — üst düzey sistem sorgusu mevcut tam sayfa hatasını koruyor.
+  İstatistik, grafik veya sovereignty sorgusundaki bir hata yalnızca o bölümü
+  düşürüyor; sayfanın geri kalanı render olmaya devam ediyor. Bunlar tamamlayıcı
+  paneller ve başarısız tek bir Redis okuması killmail tablosunu karartmamalı.
 
-## 9. Verification
+## 9. Doğrulama
 
-The repository has no test runner and no test files in either workspace. This
-design does not introduce one; that is its own decision and its own piece of
-work. Verification is therefore:
+Repoda test runner yok ve iki workspace'te de test dosyası yok. Bu tasarım bir
+tane eklemiyor; o kendi başına bir karar ve kendi başına bir iş. Dolayısıyla
+doğrulama şu:
 
-- `yarn workspace backend build` — `tsc --noEmit`, must pass.
-- `yarn workspace frontend lint` and `yarn workspace frontend build`, must pass.
-- `yarn workspace backend codegen` / `yarn workspace frontend codegen` produce a
-  clean tree with no unexpected diff.
-- Manual checks against a running stack, on four systems chosen to cover the
-  branches: a sov-held null-sec system with an active campaign, a null-sec
-  system with no campaign, Jita (high volume, no sovereignty), and a system with
-  zero recorded killmails.
-- `EXPLAIN ANALYZE` on the two stats statements against the production-shaped
-  database, confirming index use before merge.
+- `yarn workspace backend build` — `tsc --noEmit`, geçmeli.
+- `yarn workspace frontend lint` ve `yarn workspace frontend build`, geçmeli.
+- `yarn workspace backend codegen` / `yarn workspace frontend codegen` beklenmedik
+  diff üretmemeli.
+- Ayakta bir stack'e karşı, dalları kapsayacak şekilde seçilmiş dört sistemde
+  manuel kontrol: aktif kampanyası olan sov tutulan bir null-sec sistemi,
+  kampanyasız bir null-sec sistemi, Jita (yüksek hacim, sovereignty yok) ve hiç
+  killmail kaydı olmayan bir sistem.
+- Merge'den önce, üretim ölçeğindeki veritabanına karşı iki istatistik ifadesinde
+  `EXPLAIN ANALYZE` ile indeks kullanımının doğrulanması.
 
-## 10. Risks
+## 10. Riskler
 
-- **R1 — Stats query cost on high-volume systems.** Mitigated by the 300-second
-  Redis cache and the index check. If a lifetime aggregate over Jita is still
-  slow after indexing, the fallback is to drop `totalKills` / `totalIskDestroyed`
-  to a rollup table, which promotes this piece to Option C's design.
-- **R2 — `system_kills` coverage.** The chart is only as good as
-  `worker:system-kills`. If snapshots are sparse or have gaps, the chart will
-  show them. Confirm the retention window and cadence of the `system_kills`
-  table before choosing the 7-day range; if retention is shorter, the range
-  toggle ships as 24h only.
-- **R3 — `TopEntitySidebar` extraction touches four pages.** The mappings are
-  near-identical but not identical across call sites. Extraction happens in its
-  own phase, after the solar-system work is verified, so a regression there
-  cannot be confused with a regression in the new panels.
+- **R1 — Yüksek hacimli sistemlerde istatistik sorgusunun maliyeti.** 300
+  saniyelik Redis cache'i ve indeks kontrolüyle hafifletiliyor. İndeksten sonra
+  bile Jita üzerindeki yaşam boyu toplam yavaş kalırsa, çare `totalKills` /
+  `totalIskDestroyed`'ı bir rollup tablosuna taşımak olur ki bu da bu parçayı C
+  seçeneğinin tasarımına terfi ettirir.
+- **R2 — `system_kills` kapsamı.** Grafik ancak `worker:system-kills` kadar iyi.
+  Snapshot'lar seyrekse veya boşluklar varsa grafik bunu gösterecek. 7 günlük
+  aralığa karar vermeden önce `system_kills` tablosunun saklama süresi ve
+  periyodu doğrulanmalı; saklama daha kısaysa aralık düğmesi yalnızca 24 saatle
+  çıkar.
+- **R3 — `TopEntitySidebar` çıkarımı dört sayfaya dokunuyor.** Mapping'ler çağrı
+  yerleri arasında neredeyse aynı ama tam olarak aynı değil. Çıkarım kendi
+  fazında, solar system işi doğrulandıktan sonra yapılıyor; böylece oradaki bir
+  regresyon yeni panellerdeki bir regresyonla karıştırılamaz.
 
-## 11. Out of scope
+## 11. Kapsam dışı
 
-Adjacent systems and jump routes, planets / moons / stations, NPC faction
-ownership, a system-level realtime killmail subscription, and any rollup table
-for system statistics.
+Komşu sistemler ve jump rotaları, gezegenler / aylar / istasyonlar, NPC faction
+sahipliği, sistem düzeyinde realtime killmail subscription'ı ve sistem
+istatistikleri için herhangi bir rollup tablosu.
