@@ -128,6 +128,11 @@ Models are singular PascalCase (`Alliance`, `SolarSystem`); tables are plural
 snake_case via `@@map` (`alliances`, `solar_systems`). Columns stay snake_case,
 so field resolvers map them to camelCase for GraphQL.
 
+Primary keys are usually remapped too: a model's `id` field is `system_id`,
+`planet_id`, `moon_id`, `asteroid_belt_id`, `stargate_id`, `star_id` or
+`station_id` in the database. Raw SQL and `psql` must use the mapped name —
+`SELECT id FROM planets` fails with `column "id" does not exist`.
+
 ### Two Prisma clients
 
 Using the wrong one exhausts the pool — DigitalOcean PostgreSQL allows 22
@@ -334,6 +339,21 @@ details from ESI, then save. 200 killmails per page.
 `worker-zkillboard-sync.ts` defaults to `MAX_PAGES = 100` (20,000 killmails);
 the direct script defaults to 50 and takes an override:
 `yarn sync:character 95465499 10`.
+
+### Declaring a queue
+
+**Every `assertQueue` call must pass `arguments: { 'x-max-priority': 10 }`.**
+`server.ts` calls `ensureAllQueuesExist()` on startup and declares every queue
+that way, so a declaration that omits it fails with:
+
+```text
+406 PRECONDITION_FAILED - inequivalent arg 'x-max-priority' for queue '...':
+received none but current is the value '10' of type 'byte'
+```
+
+The worker then exits immediately. This bit the region, constellation and solar
+system queues and workers, which were all unable to start until it was fixed on
+2026-08-28.
 
 ### Rate limiting
 

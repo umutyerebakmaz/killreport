@@ -45,10 +45,19 @@ Bu bölüm her görevin gereksinimlerine örtük olarak dahildir.
   fabrika yok; her `queue-*` / `worker-*` çifti repodaki mevcut dosyalar gibi
   bağımsız. Bu, aynı rate limit kodunun altı dosyada tekrarlanması demek ve
   bilinçli bir tercih.
-- **ESI çağrı kuralları.** Her yeni worker şu davranışı birebir taşır: istekler
-  arası `RATE_LIMIT_DELAY = 100` ms, `x-esi-error-limit-remain < 20` ise 2 sn
-  bekle, HTTP 420'de 60 sn bekleyip mesajı requeue et (throw), HTTP 404'te
-  uyarıp mesajı ack'le ve geç.
+- **ESI çağrıları servis katmanında ve `esiRateLimiter` ile.** Repo kuralı bu
+  (`CorporationService.getCorporationInfo`). Limiter saniyede 50 istek
+  gönderiyor, 50'ye kadar eşzamanlı; worker istekler arasında **uyumuyor**,
+  bunun yerine `PREFETCH_COUNT = 25` ile eşzamanlılığı ayarlıyor. HTTP 420'de 60
+  sn bekleyip mesajı requeue eder, HTTP 404'te uyarıp ack'ler ve geçer.
+- **Her `assertQueue` çağrısı `arguments: { 'x-max-priority': 10 }` taşır.**
+  `server.ts` açılışta `ensureAllQueuesExist()` ile tüm kuyrukları böyle
+  yaratıyor; argümanı atlayan bir çağrı `406 PRECONDITION_FAILED` alıp worker'ı
+  hiç başlatmıyor.
+- **Ham SQL'de kolon adları `@map`'lidir.** Prisma'daki `id` alanı veritabanında
+  `system_id`, `planet_id`, `moon_id`, `asteroid_belt_id`, `stargate_id`,
+  `star_id`, `station_id` olarak duruyor. Doğrulama sorgularında `id` yazmak
+  `column "id" does not exist` verir.
 - **ESI base URL:** `https://esi.evetech.net/latest`.
 - **Opsiyonel alan kuralı.** `/universe/systems/{id}/` yanıtında `stargates`,
   `stations`, `security_class` ve gezegen altındaki `moons` / `asteroid_belts`
@@ -618,7 +627,25 @@ async function processSolarSystem(systemId: number): Promise<boolean> {
 Transaction'ın 30 saniyelik timeout'u bilinçli: 73 aylı bir sistem ~90 upsert
 demek ve Prisma'nın 5 saniyelik varsayılanı yetmez.
 
-- [ ] **Adım 3: Derle**
+- [ ] **Adım 3: Kuyruk bildirimine `x-max-priority` ekle**
+
+`assertQueue(QUEUE_NAME, { durable: true })` çağrısını şununla değiştir:
+
+```ts
+    await channel.assertQueue(QUEUE_NAME, {
+      durable: true,
+      // Every other queue in the repo is declared with this, and server.ts's
+      // ensureAllQueuesExist() creates them all that way. Omitting it makes
+      // assertQueue fail with 406 PRECONDITION_FAILED.
+      arguments: { 'x-max-priority': 10 },
+    });
+```
+
+Aynı düzeltme `queue-solar-systems.ts` ile `queue-/worker-constellations` ve
+`queue-/worker-regions` için de gerekiyor: altısı da argümansız bildiriyordu ve
+API sunucusu bir kez çalıştıktan sonra **hiçbiri başlayamıyordu**.
+
+- [ ] **Adım 4: Derle**
 
 ```bash
 cd backend && yarn build
@@ -733,19 +760,86 @@ already-in-the-database check lives."
 ### Görev 3: Stargate çifti
 
 **Dosyalar:**
+- Oluştur: `backend/src/services/universe/universe.service.ts`
 - Oluştur: `backend/src/queues/queue-stargates.ts`
 - Oluştur: `backend/src/workers/worker-stargates.ts`
 - Değiştir: `backend/package.json`
 
 **Arayüzler:**
 - Tüketir: Görev 2'nin yazdığı isimsiz `stargates` satırları.
-- Üretir: `stargates.destination_system_id` dolu — Adjacent sekmesinin tek kaynağı.
+- Üretir: `stargates.destination_system_id` dolu — Adjacent sekmesinin tek kaynağı. Ayrıca `UniverseService`, Görev 4–8'in tamamı onu kullanıyor.
 
-Bu çift, repodaki mevcut `queue-*` / `worker-*` dosyaları gibi **tamamen kendi
-başına**: ortak bir runner ya da yardımcı modül kullanmıyor, RabbitMQ döngüsünü
-ve rate limit davranışını kendi içinde taşıyor.
+Worker repodaki mevcut dosyalar gibi kendi başına: RabbitMQ döngüsünü ve hata
+işlemeyi kendi içinde taşıyor, ortak bir runner kullanmıyor.
 
-- [ ] **Adım 1: Kuyruk scriptini yaz**
+- [ ] **Adım 1: ESI servisini yaz**
+
+Repo kuralı: ESI çağrıları servis katmanında durur ve `esiRateLimiter` ile
+sarılır (`CorporationService.getCorporationInfo` bunun örneği). Worker yalnızca
+kuyruğu yönetir. **Bu, reddettiğin ortak worker runner'ı değil** — worker'lar
+bağımsız; paylaşılan olan şey SoC kuralının zaten servis katmanına koyduğu ESI
+çağrısı.
+
+`backend/src/services/universe/universe.service.ts`:
+
+```ts
+/**
+ * Universe Service
+ *
+ * The six by-ID celestial endpoints. None of them has a list form, so callers
+ * get their IDs from the database (see the queue-* scripts).
+ *
+ * Every call goes through esiRateLimiter, which dispatches at up to 50 req/sec
+ * with up to 50 concurrent in flight. Workers therefore do not sleep between
+ * requests; they set PREFETCH_COUNT and let the limiter be the ceiling.
+ */
+
+import axios from 'axios';
+import { esiRateLimiter } from '../rate-limiter';
+
+const ESI_BASE_URL = 'https://esi.evetech.net/latest';
+
+async function get(path: string) {
+    return esiRateLimiter.execute(async () => {
+        const response = await axios.get(`${ESI_BASE_URL}${path}`);
+        return response.data;
+    });
+}
+
+export class UniverseService {
+    /** Returns name, destination { system_id, stargate_id }, type_id, position. */
+    static async getStargate(stargateId: number) {
+        return get(`/universe/stargates/${stargateId}/`);
+    }
+
+    /** Returns name, type_id, spectral_class, temperature, radius, age, luminosity. NO star_id. */
+    static async getStar(starId: number) {
+        return get(`/universe/stars/${starId}/`);
+    }
+
+    /** Returns name, type_id, position, system_id. NO constellation or region. */
+    static async getPlanet(planetId: number) {
+        return get(`/universe/planets/${planetId}/`);
+    }
+
+    /** Returns moon_id, name, position, system_id. NO planet_id. */
+    static async getMoon(moonId: number) {
+        return get(`/universe/moons/${moonId}/`);
+    }
+
+    /** Returns name, position, system_id. NO asteroid_belt_id, NO planet_id. */
+    static async getAsteroidBelt(beltId: number) {
+        return get(`/universe/asteroid_belts/${beltId}/`);
+    }
+
+    /** Returns station_id, name, type_id, owner, race_id, services, reprocessing figures, office_rental_cost. */
+    static async getStation(stationId: number) {
+        return get(`/universe/stations/${stationId}/`);
+    }
+}
+```
+
+- [ ] **Adım 2: Kuyruk scriptini yaz**
 
 `backend/src/queues/queue-stargates.ts`:
 
@@ -754,7 +848,8 @@ ve rate limit davranışını kendi içinde taşıyor.
  * Queue Stargates Script
  *
  * Reads stargate IDs that still have no name out of the database and queues
- * them for enrichment. Row creation happens in step 2 (worker-solar-systems).
+ * them for enrichment. The rows themselves are created in step 2 by
+ * worker-solar-systems.
  *
  * Usage: yarn queue:stargates
  */
@@ -767,13 +862,12 @@ const QUEUE_NAME = 'esi_stargates_queue';
 
 async function queueStargates() {
   logger.info('Stargate queue script started');
-  logger.info('\u2501'.repeat(70));
 
   try {
     // Enrichment queue, not a root scan: the IDs come from the database with
     // WHERE name IS NULL, so a re-run queues only what is still missing. None of
     // the six celestial types has a list endpoint, so the database is the only
-    // possible source; POST /universe/names does not resolve them either.
+    // possible source; POST /universe/names cannot resolve them either.
     const rows = await prismaWorker.stargate.findMany({
       where: { name: null },
       select: { id: true },
@@ -789,7 +883,12 @@ async function queueStargates() {
     logger.info(`Found ${rows.length} stargate rows with no name`);
 
     const channel = await getRabbitMQChannel();
-    await channel.assertQueue(QUEUE_NAME, { durable: true });
+    // x-max-priority is mandatory: server.ts's ensureAllQueuesExist() declares
+    // every queue with it, and omitting it fails with 406 PRECONDITION_FAILED.
+    await channel.assertQueue(QUEUE_NAME, {
+      durable: true,
+      arguments: { 'x-max-priority': 10 },
+    });
 
     for (const row of rows) {
       channel.sendToQueue(QUEUE_NAME, Buffer.from(row.id.toString()), {
@@ -812,7 +911,7 @@ async function queueStargates() {
 queueStargates();
 ```
 
-- [ ] **Adım 2: Worker'ı yaz**
+- [ ] **Adım 3: Worker'ı yaz**
 
 `backend/src/workers/worker-stargates.ts`:
 
@@ -820,43 +919,91 @@ queueStargates();
 /**
  * Stargate Worker
  *
- * Resolves /universe/stargates/{id}/ into the stargates table. This is the only
- * place destination_system_id is written, so the Adjacent tab does not work
- * until this worker has run.
+ * Resolves /universe/stargates/{id}/ into the stargates table.
+ *
+ * This is the only place destination_system_id is written, so the Adjacent tab
+ * does not work until this worker has run.
  *
  * Usage: yarn worker:stargates
  */
 
-import axios from 'axios';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { getRabbitMQChannel } from '@services/rabbitmq';
+import { UniverseService } from '@services/universe/universe.service';
 
-const ESI_BASE_URL = 'https://esi.evetech.net/latest';
 const QUEUE_NAME = 'esi_stargates_queue';
-const RATE_LIMIT_DELAY = 100; // Wait 100ms between each request (10 requests per second)
+// ESI throughput is capped at 50/sec by esiRateLimiter, so this is concurrency,
+// not a rate limit. Matches worker-info-corporations.
+const PREFETCH_COUNT = 25;
 
-/**
- * Fetches one stargate from ESI and writes it to the database.
- *
- * The row already exists — step 2 created it — so this is an update, not an
- * upsert. `id` comes from the queue message rather than the response body.
- */
-async function processStargates(id: number): Promise<void> {
+let emptyCheckInterval: NodeJS.Timeout | null = null;
+
+async function stargatesWorker() {
+  logger.info('🚀 Stargate Worker Started');
+  logger.info(`📦 Queue: ${QUEUE_NAME}`);
+  logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
+
   try {
-    const response = await axios.get(`${ESI_BASE_URL}/universe/stargates/${id}/`);
-    const data = response.data;
+    const channel = await getRabbitMQChannel();
 
-    // Check rate limit headers
-    const errorLimitRemain = response.headers['x-esi-error-limit-remain'];
-    if (errorLimitRemain && parseInt(errorLimitRemain) < 20) {
-      logger.warn(`\u26a0\ufe0f  Error limit low (${errorLimitRemain}/100), slowing down...`);
-      await sleep(2000);
-    }
+    // x-max-priority is mandatory: server.ts's ensureAllQueuesExist() declares
+    // every queue with it, and omitting it fails with 406 PRECONDITION_FAILED.
+    await channel.assertQueue(QUEUE_NAME, {
+      durable: true,
+      arguments: { 'x-max-priority': 10 },
+    });
 
-    await prismaWorker.stargate.update({
-      where: { id },
-      data: {
+    channel.prefetch(PREFETCH_COUNT);
+
+    const queueInfo = await channel.checkQueue(QUEUE_NAME);
+    logger.info(`📊 Queue status: ${queueInfo.messageCount} messages waiting\n`);
+
+    let processed = 0;
+    let errors = 0;
+    let lastMessageTime = Date.now();
+    const startTime = Date.now();
+
+    // With PREFETCH_COUNT > 1, checkQueue() races the in-flight messages, so
+    // completion is detected by the queue going quiet instead.
+    emptyCheckInterval = setInterval(() => {
+      if (Date.now() - lastMessageTime > 5000 && processed + errors > 0) {
+        const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+        logger.info('\n' + '='.repeat(60));
+        logger.info('🎉 ALL TASKS COMPLETED!');
+        logger.info(`✅ Processed: ${processed}   ❌ Errors: ${errors}   ⏱️  ${duration}s`);
+        logger.info('='.repeat(60));
+        logger.info('\n💡 Waiting for new messages... Press CTRL+C to stop.\n');
+        processed = 0;
+        errors = 0;
+      }
+    }, 5000);
+
+    await channel.consume(
+      QUEUE_NAME,
+      async (msg) => {
+        if (!msg) return;
+        lastMessageTime = Date.now();
+
+        // The key comes from the queue message, not the response body: the star
+        // and asteroid belt endpoints do not echo their own ID.
+        const id = parseInt(msg.content.toString());
+
+        if (isNaN(id)) {
+          logger.error('❌ Invalid stargate ID:', msg.content.toString());
+          errors++;
+          channel.ack(msg);
+          return;
+        }
+
+        try {
+          const data = await UniverseService.getStargate(id);
+
+          // update, not upsert: step 2 created the row, and the queue read it
+          // from the database, so it exists. A missing row is a real error.
+          await prismaWorker.stargate.update({
+            where: { id },
+            data: {
         name: data.name ?? null,
         destination_system_id: data.destination?.system_id ?? null,
         destination_stargate_id: data.destination?.stargate_id ?? null,
@@ -864,109 +1011,42 @@ async function processStargates(id: number): Promise<void> {
         position_x: data.position?.x ?? null,
         position_y: data.position?.y ?? null,
         position_z: data.position?.z ?? null,
-      },
-    });
+            },
+          });
 
-    logger.debug(`\u2705 Saved stargate ${id} - ${data.name ?? '(unnamed)'}`);
-
-    await sleep(RATE_LIMIT_DELAY);
-  } catch (error: any) {
-    if (error.response?.status === 420) {
-      logger.warn(`\ud83d\uded1 Error limited (420)! Waiting 60 seconds...`);
-      await sleep(60000);
-    }
-    throw error;
-  }
-}
-
-function printCompletionSummary(
-  processedCount: number,
-  errorCount: number,
-  startTime: number
-) {
-  const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-  logger.info('\n' + '='.repeat(60));
-  logger.info('\ud83c\udf89 ALL TASKS COMPLETED!');
-  logger.info('='.repeat(60));
-  logger.info(`\u2705 Processed: ${processedCount}`);
-  logger.info(`\u274c Errors: ${errorCount}`);
-  logger.info(`\ud83d\udcca Total: ${processedCount + errorCount}`);
-  logger.info(`\u23f1\ufe0f  Duration: ${duration}s`);
-  logger.info('='.repeat(60));
-  logger.info('\n\ud83d\udca1 Queue is empty, waiting for new messages...');
-  logger.info('   Press CTRL+C to stop.\n');
-}
-
-async function startWorker() {
-  try {
-    const channel = await getRabbitMQChannel();
-
-    let processedCount = 0;
-    let errorCount = 0;
-    const startTime = Date.now();
-
-    logger.info('\ud83d\ude80 Stargate Worker Started');
-    logger.info('==========================');
-    logger.info(`\ud83d\udce1 Listening to queue: ${QUEUE_NAME}`);
-    logger.info(`\u23f1\ufe0f  Rate limit: ${1000 / RATE_LIMIT_DELAY} requests/second\n`);
-
-    await channel.assertQueue(QUEUE_NAME, { durable: true });
-
-    const queueInfo = await channel.checkQueue(QUEUE_NAME);
-    logger.info(`\ud83d\udcca Queue status: ${queueInfo.messageCount} messages waiting\n`);
-
-    channel.prefetch(1);
-
-    channel.consume(
-      QUEUE_NAME,
-      async (msg) => {
-        if (!msg) return;
-
-        const id = parseInt(msg.content.toString());
-
-        if (isNaN(id)) {
-          logger.error('\u274c Invalid stargate ID:', msg.content.toString());
-          channel.ack(msg);
-          errorCount++;
-          return;
-        }
-
-        try {
-          await processStargates(id);
-          processedCount++;
+          processed++;
+          logger.debug(`✅ Stargate ${id} - ${data.name ?? '(unnamed)'}`);
           channel.ack(msg);
         } catch (error: any) {
-          errorCount++;
+          errors++;
           if (error.response?.status === 404) {
             // A dead ID. Ack it: requeueing would loop forever, and the row keeps
-            // its NULL name so it still shows up in the completeness check.
-            logger.warn(`\u26a0\ufe0f  Stargate ${id} not found (404)`);
+            // its NULL name so it still shows in the completeness check.
+            logger.warn(`⚠️  Stargate ${id} not found (404)`);
             channel.ack(msg);
           } else if (error.response?.status === 420) {
-            channel.nack(msg, false, true); // requeue after the 60s wait
+            logger.warn('🛑 Error limited (420)! Waiting 60 seconds...');
+            await sleep(60000);
+            channel.nack(msg, false, true); // requeue
           } else {
-            logger.error(`\u274c Error processing stargate ${id}:`, error.message);
+            logger.error(`❌ Error processing stargate ${id}:`, error.message);
             channel.nack(msg, false, false);
           }
-        }
-
-        const currentQueue = await channel.checkQueue(QUEUE_NAME);
-        if (currentQueue.messageCount === 0) {
-          printCompletionSummary(processedCount, errorCount, startTime);
         }
       },
       { noAck: false }
     );
 
     process.on('SIGINT', async () => {
-      logger.warn('\n\n\ud83d\uded1 Shutting down worker...');
+      logger.warn('\n🛑 Shutting down worker...');
+      if (emptyCheckInterval) clearInterval(emptyCheckInterval);
       await channel.close();
       await prismaWorker.$disconnect();
-      logger.info('\u2705 Worker stopped gracefully');
+      logger.info('✅ Worker stopped gracefully');
       process.exit(0);
     });
   } catch (error) {
-    logger.error('\u274c Failed to start worker:', error);
+    logger.error('❌ Failed to start stargate worker:', error);
     process.exit(1);
   }
 }
@@ -975,27 +1055,17 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-startWorker();
+stargatesWorker();
 ```
 
-`update` kullanılıyor, `upsert` değil: satır Görev 2'de yaratılmış olmalı ve
-kuyruk zaten veritabanından okuduğu için her zaman var. Satır yoksa Prisma
-`P2025` fırlatır ve worker mesajı düşürür — bu doğru davranış, sessiz bir
-no-op'tan iyi.
-
-404 davranışı `worker-solar-systems`'ten bilinçli olarak ayrılıyor: orada 404
-`throw` edilip mesaj `nack` ile düşürülüyor; burada mesaj `ack`leniyor çünkü ölü
-bir ID'nin kuyruğa geri dönmesinin anlamı yok ve satır zaten `name IS NULL`
-kalarak tamlık kontrolünde (Görev 22) görünüyor.
-
-- [ ] **Adım 3: `package.json`'a iki script ekle**
+- [ ] **Adım 4: `package.json`'a iki script ekle**
 
 ```json
     "queue:stargates": "tsx src/queues/queue-stargates.ts",
     "worker:stargates": "tsx src/workers/worker-stargates.ts",
 ```
 
-- [ ] **Adım 4: Derle**
+- [ ] **Adım 5: Derle**
 
 ```bash
 cd backend && yarn build
@@ -1003,46 +1073,41 @@ cd backend && yarn build
 
 Beklenen: hatasız.
 
-- [ ] **Adım 5: Çalıştır**
+- [ ] **Adım 6: Çalıştır**
 
 Bir terminalde `cd backend && yarn worker:stargates`, diğerinde
-`cd backend && yarn queue:stargates`. Worker tamamlanma özetini basana kadar
-bekle.
+`cd backend && yarn queue:stargates`. Worker "ALL TASKS COMPLETED" basana kadar
+bekle — bu, kuyruk 5 saniye sessiz kalınca tetikleniyor.
 
-- [ ] **Adım 6: Veriyi backend'den doğrula**
+- [ ] **Adım 7: Doğrula**
 
-```bash
-curl -s http://localhost:4000/graphql -H 'Content-Type: application/json' \
-  -d '{"query":"{ solarSystem(id: 30000240) { stargates { name destination { system { id name securityStatus constellation { name region { name } } } } } } }"}' | jq
+```sql
+SELECT stargate_id, name, destination_system_id, destination_stargate_id, type_id
+FROM stargates WHERE solar_system_id = 30000240 ORDER BY stargate_id;
 ```
 
-Beklenen: dört stargate, her birinde `destination.system` dolu.
-Thera (31000005) için `stargates` boş dizi.
+Beklenen: dört satır, hepsinde isim, `destination_system_id` dolu. `50001395`
+için `destination_system_id = 30000239`, `destination_stargate_id = 50001029`,
+`type_id = 16`.
+
+Kuyruğun idempotent olduğunu da doğrula — `yarn queue:stargates` ikinci kez
+çalıştırıldığında `Nothing to do: every stargate row already has a name.`
+demeli.
+
+- [ ] **Adım 8: Commit**
 
 ```bash
-curl -s http://localhost:4000/graphql -H 'Content-Type: application/json' \
-  -d '{"query":"{ sovereigntyStructures(systemId: 30000142, limit: 50) { structureId } sovereigntyActiveCampaigns(systemId: 30000142) { campaignId } }"}' | jq
-```
-
-Beklenen: Jita için ikisi de boş dizi.
-
-Kullanıcıya şunu bak diye söyle: Adjacent tablosundaki sistem/constellation/region
-linklerinin doğru sayfalara gitmesi, ve sov tutulan bir sistemde header'daki
-`SOVEREIGNTY` çipinin çıkması, Jita'da çıkmaması.
-
-- [ ] **Adım 7: Commit**
-
-```bash
-git add backend/src/queues/queue-stargates.ts backend/src/workers/worker-stargates.ts backend/package.json
+git add backend/src backend/package.json
 git commit -m "feat(worker): add the stargate enrichment queue and worker
 
 Reads stargate IDs with no name out of the database and resolves them. First in
 the run order because destination_system_id is written nowhere else and the
 Adjacent tab has no other source.
 
-Unlike the root scanner, a 404 here acks the message: a dead ID has no reason to
-return to the queue, and the row stays visible in the NULL-name completeness
-check."
+Introduces UniverseService, which wraps the six by-ID celestial endpoints in
+esiRateLimiter like every other service does. Unlike the root scanner, a 404 here
+acks the message: a dead ID has no reason to return to the queue, and the row
+stays visible in the NULL-name completeness check."
 ```
 
 ---
@@ -1055,12 +1120,11 @@ check."
 - Değiştir: `backend/package.json`
 
 **Arayüzler:**
-- Tüketir: Görev 2'nin yazdığı isimsiz `stars` satırları.
+- Tüketir: Görev 2'nin yazdığı isimsiz `stars` satırları. Görev 3'ün `UniverseService`'i.
 - Üretir: `stars` tablosunda `name`, `type_id`, `spectral_class`, `temperature`, `radius`, `age`, `luminosity`. Görev 12'nin `star` alan resolver'ı bunları okuyor.
 
-Bu çift, repodaki mevcut `queue-*` / `worker-*` dosyaları gibi **tamamen kendi
-başına**: ortak bir runner ya da yardımcı modül kullanmıyor, RabbitMQ döngüsünü
-ve rate limit davranışını kendi içinde taşıyor.
+Worker repodaki mevcut dosyalar gibi kendi başına: RabbitMQ döngüsünü ve hata
+işlemeyi kendi içinde taşıyor, ortak bir runner kullanmıyor.
 
 - [ ] **Adım 1: Kuyruk scriptini yaz**
 
@@ -1071,7 +1135,8 @@ ve rate limit davranışını kendi içinde taşıyor.
  * Queue Stars Script
  *
  * Reads star IDs that still have no name out of the database and queues
- * them for enrichment. Row creation happens in step 2 (worker-solar-systems).
+ * them for enrichment. The rows themselves are created in step 2 by
+ * worker-solar-systems.
  *
  * Usage: yarn queue:stars
  */
@@ -1084,13 +1149,12 @@ const QUEUE_NAME = 'esi_stars_queue';
 
 async function queueStars() {
   logger.info('Star queue script started');
-  logger.info('\u2501'.repeat(70));
 
   try {
     // Enrichment queue, not a root scan: the IDs come from the database with
     // WHERE name IS NULL, so a re-run queues only what is still missing. None of
     // the six celestial types has a list endpoint, so the database is the only
-    // possible source; POST /universe/names does not resolve them either.
+    // possible source; POST /universe/names cannot resolve them either.
     const rows = await prismaWorker.star.findMany({
       where: { name: null },
       select: { id: true },
@@ -1106,7 +1170,12 @@ async function queueStars() {
     logger.info(`Found ${rows.length} star rows with no name`);
 
     const channel = await getRabbitMQChannel();
-    await channel.assertQueue(QUEUE_NAME, { durable: true });
+    // x-max-priority is mandatory: server.ts's ensureAllQueuesExist() declares
+    // every queue with it, and omitting it fails with 406 PRECONDITION_FAILED.
+    await channel.assertQueue(QUEUE_NAME, {
+      durable: true,
+      arguments: { 'x-max-priority': 10 },
+    });
 
     for (const row of rows) {
       channel.sendToQueue(QUEUE_NAME, Buffer.from(row.id.toString()), {
@@ -1139,43 +1208,89 @@ queueStars();
  *
  * Resolves /universe/stars/{id}/ into the stars table.
  *
- * NOTE: the response does NOT contain star_id, so the update key comes from the
- * queue message. It also contains no `position` — a star sits at the centre of
- * its system.
+ * NOTE: the response contains no star_id and no position. The update key comes
+ * from the queue message; a star sits at the centre of its system.
  *
  * Usage: yarn worker:stars
  */
 
-import axios from 'axios';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { getRabbitMQChannel } from '@services/rabbitmq';
+import { UniverseService } from '@services/universe/universe.service';
 
-const ESI_BASE_URL = 'https://esi.evetech.net/latest';
 const QUEUE_NAME = 'esi_stars_queue';
-const RATE_LIMIT_DELAY = 100; // Wait 100ms between each request (10 requests per second)
+// ESI throughput is capped at 50/sec by esiRateLimiter, so this is concurrency,
+// not a rate limit. Matches worker-info-corporations.
+const PREFETCH_COUNT = 25;
 
-/**
- * Fetches one star from ESI and writes it to the database.
- *
- * The row already exists — step 2 created it — so this is an update, not an
- * upsert. `id` comes from the queue message rather than the response body.
- */
-async function processStars(id: number): Promise<void> {
+let emptyCheckInterval: NodeJS.Timeout | null = null;
+
+async function starsWorker() {
+  logger.info('🚀 Star Worker Started');
+  logger.info(`📦 Queue: ${QUEUE_NAME}`);
+  logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
+
   try {
-    const response = await axios.get(`${ESI_BASE_URL}/universe/stars/${id}/`);
-    const data = response.data;
+    const channel = await getRabbitMQChannel();
 
-    // Check rate limit headers
-    const errorLimitRemain = response.headers['x-esi-error-limit-remain'];
-    if (errorLimitRemain && parseInt(errorLimitRemain) < 20) {
-      logger.warn(`\u26a0\ufe0f  Error limit low (${errorLimitRemain}/100), slowing down...`);
-      await sleep(2000);
-    }
+    // x-max-priority is mandatory: server.ts's ensureAllQueuesExist() declares
+    // every queue with it, and omitting it fails with 406 PRECONDITION_FAILED.
+    await channel.assertQueue(QUEUE_NAME, {
+      durable: true,
+      arguments: { 'x-max-priority': 10 },
+    });
 
-    await prismaWorker.star.update({
-      where: { id },
-      data: {
+    channel.prefetch(PREFETCH_COUNT);
+
+    const queueInfo = await channel.checkQueue(QUEUE_NAME);
+    logger.info(`📊 Queue status: ${queueInfo.messageCount} messages waiting\n`);
+
+    let processed = 0;
+    let errors = 0;
+    let lastMessageTime = Date.now();
+    const startTime = Date.now();
+
+    // With PREFETCH_COUNT > 1, checkQueue() races the in-flight messages, so
+    // completion is detected by the queue going quiet instead.
+    emptyCheckInterval = setInterval(() => {
+      if (Date.now() - lastMessageTime > 5000 && processed + errors > 0) {
+        const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+        logger.info('\n' + '='.repeat(60));
+        logger.info('🎉 ALL TASKS COMPLETED!');
+        logger.info(`✅ Processed: ${processed}   ❌ Errors: ${errors}   ⏱️  ${duration}s`);
+        logger.info('='.repeat(60));
+        logger.info('\n💡 Waiting for new messages... Press CTRL+C to stop.\n');
+        processed = 0;
+        errors = 0;
+      }
+    }, 5000);
+
+    await channel.consume(
+      QUEUE_NAME,
+      async (msg) => {
+        if (!msg) return;
+        lastMessageTime = Date.now();
+
+        // The key comes from the queue message, not the response body: the star
+        // and asteroid belt endpoints do not echo their own ID.
+        const id = parseInt(msg.content.toString());
+
+        if (isNaN(id)) {
+          logger.error('❌ Invalid star ID:', msg.content.toString());
+          errors++;
+          channel.ack(msg);
+          return;
+        }
+
+        try {
+          const data = await UniverseService.getStar(id);
+
+          // update, not upsert: step 2 created the row, and the queue read it
+          // from the database, so it exists. A missing row is a real error.
+          await prismaWorker.star.update({
+            where: { id },
+            data: {
         name: data.name ?? null,
         type_id: data.type_id ?? null,
         spectral_class: data.spectral_class ?? null,
@@ -1183,109 +1298,42 @@ async function processStars(id: number): Promise<void> {
         radius: data.radius ?? null,
         age: data.age ?? null,
         luminosity: data.luminosity ?? null,
-      },
-    });
+            },
+          });
 
-    logger.debug(`\u2705 Saved star ${id} - ${data.name ?? '(unnamed)'}`);
-
-    await sleep(RATE_LIMIT_DELAY);
-  } catch (error: any) {
-    if (error.response?.status === 420) {
-      logger.warn(`\ud83d\uded1 Error limited (420)! Waiting 60 seconds...`);
-      await sleep(60000);
-    }
-    throw error;
-  }
-}
-
-function printCompletionSummary(
-  processedCount: number,
-  errorCount: number,
-  startTime: number
-) {
-  const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-  logger.info('\n' + '='.repeat(60));
-  logger.info('\ud83c\udf89 ALL TASKS COMPLETED!');
-  logger.info('='.repeat(60));
-  logger.info(`\u2705 Processed: ${processedCount}`);
-  logger.info(`\u274c Errors: ${errorCount}`);
-  logger.info(`\ud83d\udcca Total: ${processedCount + errorCount}`);
-  logger.info(`\u23f1\ufe0f  Duration: ${duration}s`);
-  logger.info('='.repeat(60));
-  logger.info('\n\ud83d\udca1 Queue is empty, waiting for new messages...');
-  logger.info('   Press CTRL+C to stop.\n');
-}
-
-async function startWorker() {
-  try {
-    const channel = await getRabbitMQChannel();
-
-    let processedCount = 0;
-    let errorCount = 0;
-    const startTime = Date.now();
-
-    logger.info('\ud83d\ude80 Star Worker Started');
-    logger.info('==========================');
-    logger.info(`\ud83d\udce1 Listening to queue: ${QUEUE_NAME}`);
-    logger.info(`\u23f1\ufe0f  Rate limit: ${1000 / RATE_LIMIT_DELAY} requests/second\n`);
-
-    await channel.assertQueue(QUEUE_NAME, { durable: true });
-
-    const queueInfo = await channel.checkQueue(QUEUE_NAME);
-    logger.info(`\ud83d\udcca Queue status: ${queueInfo.messageCount} messages waiting\n`);
-
-    channel.prefetch(1);
-
-    channel.consume(
-      QUEUE_NAME,
-      async (msg) => {
-        if (!msg) return;
-
-        const id = parseInt(msg.content.toString());
-
-        if (isNaN(id)) {
-          logger.error('\u274c Invalid star ID:', msg.content.toString());
-          channel.ack(msg);
-          errorCount++;
-          return;
-        }
-
-        try {
-          await processStars(id);
-          processedCount++;
+          processed++;
+          logger.debug(`✅ Star ${id} - ${data.name ?? '(unnamed)'}`);
           channel.ack(msg);
         } catch (error: any) {
-          errorCount++;
+          errors++;
           if (error.response?.status === 404) {
             // A dead ID. Ack it: requeueing would loop forever, and the row keeps
-            // its NULL name so it still shows up in the completeness check.
-            logger.warn(`\u26a0\ufe0f  Star ${id} not found (404)`);
+            // its NULL name so it still shows in the completeness check.
+            logger.warn(`⚠️  Star ${id} not found (404)`);
             channel.ack(msg);
           } else if (error.response?.status === 420) {
-            channel.nack(msg, false, true); // requeue after the 60s wait
+            logger.warn('🛑 Error limited (420)! Waiting 60 seconds...');
+            await sleep(60000);
+            channel.nack(msg, false, true); // requeue
           } else {
-            logger.error(`\u274c Error processing star ${id}:`, error.message);
+            logger.error(`❌ Error processing star ${id}:`, error.message);
             channel.nack(msg, false, false);
           }
-        }
-
-        const currentQueue = await channel.checkQueue(QUEUE_NAME);
-        if (currentQueue.messageCount === 0) {
-          printCompletionSummary(processedCount, errorCount, startTime);
         }
       },
       { noAck: false }
     );
 
     process.on('SIGINT', async () => {
-      logger.warn('\n\n\ud83d\uded1 Shutting down worker...');
+      logger.warn('\n🛑 Shutting down worker...');
+      if (emptyCheckInterval) clearInterval(emptyCheckInterval);
       await channel.close();
       await prismaWorker.$disconnect();
-      logger.info('\u2705 Worker stopped gracefully');
+      logger.info('✅ Worker stopped gracefully');
       process.exit(0);
     });
   } catch (error) {
-    logger.error('\u274c Failed to start worker:', error);
+    logger.error('❌ Failed to start star worker:', error);
     process.exit(1);
   }
 }
@@ -1294,11 +1342,8 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-startWorker();
+starsWorker();
 ```
-
-Bu worker'ın upsert anahtarı kuyruk mesajından geliyor: `/universe/stars/{id}/`
-yanıtında `star_id` alanı **yok**.
 
 - [ ] **Adım 3: `package.json`'a iki script ekle**
 
@@ -1318,24 +1363,24 @@ Beklenen: hatasız.
 - [ ] **Adım 5: Çalıştır**
 
 Bir terminalde `cd backend && yarn worker:stars`, diğerinde
-`cd backend && yarn queue:stars`. Worker tamamlanma özetini basana kadar
-bekle.
+`cd backend && yarn queue:stars`. Worker "ALL TASKS COMPLETED" basana kadar
+bekle — bu, kuyruk 5 saniye sessiz kalınca tetikleniyor.
 
 - [ ] **Adım 6: Doğrula**
 
 ```sql
-SELECT id, name, type_id, spectral_class, temperature, radius
+SELECT star_id, name, type_id, spectral_class, temperature, radius
 FROM stars WHERE solar_system_id = 30000240;
 ```
 
-Beklenen: tek satır — `id = 40015362`, `name = '4-HWWF - Star'`,
+Beklenen: tek satır — `star_id = 40015362`, `name = '4-HWWF - Star'`,
 `type_id = 3800`, `spectral_class = 'M2 V'`, `temperature = 2971`,
 `radius = 296900000`.
 
 - [ ] **Adım 7: Commit**
 
 ```bash
-git add backend/src/queues/queue-stars.ts backend/src/workers/worker-stars.ts backend/package.json
+git add backend/src backend/package.json
 git commit -m "feat(worker): add the star enrichment queue and worker
 
 /universe/stars/{id}/ returns no star_id, so the update key comes from the queue
@@ -1353,12 +1398,11 @@ at the centre of its system."
 - Değiştir: `backend/package.json`
 
 **Arayüzler:**
-- Tüketir: Görev 2'nin yazdığı isimsiz `stations` satırları.
+- Tüketir: Görev 2'nin yazdığı isimsiz `stations` satırları. Görev 3'ün `UniverseService`'i.
 - Üretir: `stations` tablosunda tam alan seti. Görev 12'nin `stations` alan resolver'ı ve Görev 19'un Structures sekmesi bunları okuyor.
 
-Bu çift, repodaki mevcut `queue-*` / `worker-*` dosyaları gibi **tamamen kendi
-başına**: ortak bir runner ya da yardımcı modül kullanmıyor, RabbitMQ döngüsünü
-ve rate limit davranışını kendi içinde taşıyor.
+Worker repodaki mevcut dosyalar gibi kendi başına: RabbitMQ döngüsünü ve hata
+işlemeyi kendi içinde taşıyor, ortak bir runner kullanmıyor.
 
 - [ ] **Adım 1: Kuyruk scriptini yaz**
 
@@ -1369,7 +1413,8 @@ ve rate limit davranışını kendi içinde taşıyor.
  * Queue Stations Script
  *
  * Reads station IDs that still have no name out of the database and queues
- * them for enrichment. Row creation happens in step 2 (worker-solar-systems).
+ * them for enrichment. The rows themselves are created in step 2 by
+ * worker-solar-systems.
  *
  * Usage: yarn queue:stations
  */
@@ -1382,13 +1427,12 @@ const QUEUE_NAME = 'esi_stations_queue';
 
 async function queueStations() {
   logger.info('Station queue script started');
-  logger.info('\u2501'.repeat(70));
 
   try {
     // Enrichment queue, not a root scan: the IDs come from the database with
     // WHERE name IS NULL, so a re-run queues only what is still missing. None of
     // the six celestial types has a list endpoint, so the database is the only
-    // possible source; POST /universe/names does not resolve them either.
+    // possible source; POST /universe/names cannot resolve them either.
     const rows = await prismaWorker.station.findMany({
       where: { name: null },
       select: { id: true },
@@ -1404,7 +1448,12 @@ async function queueStations() {
     logger.info(`Found ${rows.length} station rows with no name`);
 
     const channel = await getRabbitMQChannel();
-    await channel.assertQueue(QUEUE_NAME, { durable: true });
+    // x-max-priority is mandatory: server.ts's ensureAllQueuesExist() declares
+    // every queue with it, and omitting it fails with 406 PRECONDITION_FAILED.
+    await channel.assertQueue(QUEUE_NAME, {
+      durable: true,
+      arguments: { 'x-max-priority': 10 },
+    });
 
     for (const row of rows) {
       channel.sendToQueue(QUEUE_NAME, Buffer.from(row.id.toString()), {
@@ -1435,43 +1484,91 @@ queueStations();
 /**
  * Station Worker
  *
- * Resolves /universe/stations/{id}/ into the stations table. These are NPC
- * stations only; Upwell structures never appear in the public universe
+ * Resolves /universe/stations/{id}/ into the stations table.
+ *
+ * NPC stations only; Upwell structures never appear in the public universe
  * endpoints and are out of scope.
  *
  * Usage: yarn worker:stations
  */
 
-import axios from 'axios';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { getRabbitMQChannel } from '@services/rabbitmq';
+import { UniverseService } from '@services/universe/universe.service';
 
-const ESI_BASE_URL = 'https://esi.evetech.net/latest';
 const QUEUE_NAME = 'esi_stations_queue';
-const RATE_LIMIT_DELAY = 100; // Wait 100ms between each request (10 requests per second)
+// ESI throughput is capped at 50/sec by esiRateLimiter, so this is concurrency,
+// not a rate limit. Matches worker-info-corporations.
+const PREFETCH_COUNT = 25;
 
-/**
- * Fetches one station from ESI and writes it to the database.
- *
- * The row already exists — step 2 created it — so this is an update, not an
- * upsert. `id` comes from the queue message rather than the response body.
- */
-async function processStations(id: number): Promise<void> {
+let emptyCheckInterval: NodeJS.Timeout | null = null;
+
+async function stationsWorker() {
+  logger.info('🚀 Station Worker Started');
+  logger.info(`📦 Queue: ${QUEUE_NAME}`);
+  logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
+
   try {
-    const response = await axios.get(`${ESI_BASE_URL}/universe/stations/${id}/`);
-    const data = response.data;
+    const channel = await getRabbitMQChannel();
 
-    // Check rate limit headers
-    const errorLimitRemain = response.headers['x-esi-error-limit-remain'];
-    if (errorLimitRemain && parseInt(errorLimitRemain) < 20) {
-      logger.warn(`\u26a0\ufe0f  Error limit low (${errorLimitRemain}/100), slowing down...`);
-      await sleep(2000);
-    }
+    // x-max-priority is mandatory: server.ts's ensureAllQueuesExist() declares
+    // every queue with it, and omitting it fails with 406 PRECONDITION_FAILED.
+    await channel.assertQueue(QUEUE_NAME, {
+      durable: true,
+      arguments: { 'x-max-priority': 10 },
+    });
 
-    await prismaWorker.station.update({
-      where: { id },
-      data: {
+    channel.prefetch(PREFETCH_COUNT);
+
+    const queueInfo = await channel.checkQueue(QUEUE_NAME);
+    logger.info(`📊 Queue status: ${queueInfo.messageCount} messages waiting\n`);
+
+    let processed = 0;
+    let errors = 0;
+    let lastMessageTime = Date.now();
+    const startTime = Date.now();
+
+    // With PREFETCH_COUNT > 1, checkQueue() races the in-flight messages, so
+    // completion is detected by the queue going quiet instead.
+    emptyCheckInterval = setInterval(() => {
+      if (Date.now() - lastMessageTime > 5000 && processed + errors > 0) {
+        const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+        logger.info('\n' + '='.repeat(60));
+        logger.info('🎉 ALL TASKS COMPLETED!');
+        logger.info(`✅ Processed: ${processed}   ❌ Errors: ${errors}   ⏱️  ${duration}s`);
+        logger.info('='.repeat(60));
+        logger.info('\n💡 Waiting for new messages... Press CTRL+C to stop.\n');
+        processed = 0;
+        errors = 0;
+      }
+    }, 5000);
+
+    await channel.consume(
+      QUEUE_NAME,
+      async (msg) => {
+        if (!msg) return;
+        lastMessageTime = Date.now();
+
+        // The key comes from the queue message, not the response body: the star
+        // and asteroid belt endpoints do not echo their own ID.
+        const id = parseInt(msg.content.toString());
+
+        if (isNaN(id)) {
+          logger.error('❌ Invalid station ID:', msg.content.toString());
+          errors++;
+          channel.ack(msg);
+          return;
+        }
+
+        try {
+          const data = await UniverseService.getStation(id);
+
+          // update, not upsert: step 2 created the row, and the queue read it
+          // from the database, so it exists. A missing row is a real error.
+          await prismaWorker.station.update({
+            where: { id },
+            data: {
         name: data.name ?? null,
         type_id: data.type_id ?? null,
         owner_corporation_id: data.owner ?? null,
@@ -1484,109 +1581,42 @@ async function processStations(id: number): Promise<void> {
         position_x: data.position?.x ?? null,
         position_y: data.position?.y ?? null,
         position_z: data.position?.z ?? null,
-      },
-    });
+            },
+          });
 
-    logger.debug(`\u2705 Saved station ${id} - ${data.name ?? '(unnamed)'}`);
-
-    await sleep(RATE_LIMIT_DELAY);
-  } catch (error: any) {
-    if (error.response?.status === 420) {
-      logger.warn(`\ud83d\uded1 Error limited (420)! Waiting 60 seconds...`);
-      await sleep(60000);
-    }
-    throw error;
-  }
-}
-
-function printCompletionSummary(
-  processedCount: number,
-  errorCount: number,
-  startTime: number
-) {
-  const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-  logger.info('\n' + '='.repeat(60));
-  logger.info('\ud83c\udf89 ALL TASKS COMPLETED!');
-  logger.info('='.repeat(60));
-  logger.info(`\u2705 Processed: ${processedCount}`);
-  logger.info(`\u274c Errors: ${errorCount}`);
-  logger.info(`\ud83d\udcca Total: ${processedCount + errorCount}`);
-  logger.info(`\u23f1\ufe0f  Duration: ${duration}s`);
-  logger.info('='.repeat(60));
-  logger.info('\n\ud83d\udca1 Queue is empty, waiting for new messages...');
-  logger.info('   Press CTRL+C to stop.\n');
-}
-
-async function startWorker() {
-  try {
-    const channel = await getRabbitMQChannel();
-
-    let processedCount = 0;
-    let errorCount = 0;
-    const startTime = Date.now();
-
-    logger.info('\ud83d\ude80 Station Worker Started');
-    logger.info('==========================');
-    logger.info(`\ud83d\udce1 Listening to queue: ${QUEUE_NAME}`);
-    logger.info(`\u23f1\ufe0f  Rate limit: ${1000 / RATE_LIMIT_DELAY} requests/second\n`);
-
-    await channel.assertQueue(QUEUE_NAME, { durable: true });
-
-    const queueInfo = await channel.checkQueue(QUEUE_NAME);
-    logger.info(`\ud83d\udcca Queue status: ${queueInfo.messageCount} messages waiting\n`);
-
-    channel.prefetch(1);
-
-    channel.consume(
-      QUEUE_NAME,
-      async (msg) => {
-        if (!msg) return;
-
-        const id = parseInt(msg.content.toString());
-
-        if (isNaN(id)) {
-          logger.error('\u274c Invalid station ID:', msg.content.toString());
-          channel.ack(msg);
-          errorCount++;
-          return;
-        }
-
-        try {
-          await processStations(id);
-          processedCount++;
+          processed++;
+          logger.debug(`✅ Station ${id} - ${data.name ?? '(unnamed)'}`);
           channel.ack(msg);
         } catch (error: any) {
-          errorCount++;
+          errors++;
           if (error.response?.status === 404) {
             // A dead ID. Ack it: requeueing would loop forever, and the row keeps
-            // its NULL name so it still shows up in the completeness check.
-            logger.warn(`\u26a0\ufe0f  Station ${id} not found (404)`);
+            // its NULL name so it still shows in the completeness check.
+            logger.warn(`⚠️  Station ${id} not found (404)`);
             channel.ack(msg);
           } else if (error.response?.status === 420) {
-            channel.nack(msg, false, true); // requeue after the 60s wait
+            logger.warn('🛑 Error limited (420)! Waiting 60 seconds...');
+            await sleep(60000);
+            channel.nack(msg, false, true); // requeue
           } else {
-            logger.error(`\u274c Error processing station ${id}:`, error.message);
+            logger.error(`❌ Error processing station ${id}:`, error.message);
             channel.nack(msg, false, false);
           }
-        }
-
-        const currentQueue = await channel.checkQueue(QUEUE_NAME);
-        if (currentQueue.messageCount === 0) {
-          printCompletionSummary(processedCount, errorCount, startTime);
         }
       },
       { noAck: false }
     );
 
     process.on('SIGINT', async () => {
-      logger.warn('\n\n\ud83d\uded1 Shutting down worker...');
+      logger.warn('\n🛑 Shutting down worker...');
+      if (emptyCheckInterval) clearInterval(emptyCheckInterval);
       await channel.close();
       await prismaWorker.$disconnect();
-      logger.info('\u2705 Worker stopped gracefully');
+      logger.info('✅ Worker stopped gracefully');
       process.exit(0);
     });
   } catch (error) {
-    logger.error('\u274c Failed to start worker:', error);
+    logger.error('❌ Failed to start station worker:', error);
     process.exit(1);
   }
 }
@@ -1595,11 +1625,8 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-startWorker();
+stationsWorker();
 ```
-
-Sahip alanının ESI'daki adı `owner`, kolon adı `owner_corporation_id` —
-eşleşmiyor, bilerek.
 
 - [ ] **Adım 3: `package.json`'a iki script ekle**
 
@@ -1619,16 +1646,16 @@ Beklenen: hatasız.
 - [ ] **Adım 5: Çalıştır**
 
 Bir terminalde `cd backend && yarn worker:stations`, diğerinde
-`cd backend && yarn queue:stations`. Worker tamamlanma özetini basana kadar
-bekle.
+`cd backend && yarn queue:stations`. Worker "ALL TASKS COMPLETED" basana kadar
+bekle — bu, kuyruk 5 saniye sessiz kalınca tetikleniyor.
 
 - [ ] **Adım 6: Doğrula**
 
 ```sql
-SELECT id, name, type_id, owner_corporation_id, reprocessing_efficiency,
+SELECT station_id, name, type_id, owner_corporation_id, reprocessing_efficiency,
        reprocessing_stations_take, office_rental_cost,
        array_length(services, 1) AS service_count
-FROM stations WHERE id = 60000361;
+FROM stations WHERE station_id = 60000361;
 ```
 
 Beklenen: `name = 'Jita IV - Moon 6 - Ytiri Storage'`, `type_id = 1531`,
@@ -1636,19 +1663,18 @@ Beklenen: `name = 'Jita IV - Moon 6 - Ytiri Storage'`, `type_id = 1531`,
 `reprocessing_stations_take = 0.05`, `office_rental_cost = 6510853`,
 `service_count = 12`.
 
-Thera'nın dört istasyonunun da isim aldığını doğrula — wormhole sistemlerinin
-istasyonsuz olduğu varsayımı yanlış:
+Thera'nın dört istasyonunun da isim aldığını doğrula:
 
 ```sql
 SELECT COUNT(*) FROM stations WHERE solar_system_id = 31000005 AND name IS NOT NULL;
 ```
 
-Beklenen: `4`.
+Beklenen: `4`. Wormhole sistemlerinin istasyonsuz olduğu varsayımı yanlış.
 
 - [ ] **Adım 7: Commit**
 
 ```bash
-git add backend/src/queues/queue-stations.ts backend/src/workers/worker-stations.ts backend/package.json
+git add backend/src backend/package.json
 git commit -m "feat(worker): add the station enrichment queue and worker
 
 Stores office_rental_cost and reprocessing_stations_take alongside
@@ -1669,12 +1695,11 @@ owner_corporation_id."
 - Değiştir: `backend/package.json`
 
 **Arayüzler:**
-- Tüketir: Görev 2'nin yazdığı isimsiz `planets` satırları.
+- Tüketir: Görev 2'nin yazdığı isimsiz `planets` satırları. Görev 3'ün `UniverseService`'i.
 - Üretir: `planets` tablosunda `name`, `type_id`, `position`. Görev 12'nin `planets` alan resolver'ı ve Görev 18'in Orbital Bodies sekmesi bunları okuyor.
 
-Bu çift, repodaki mevcut `queue-*` / `worker-*` dosyaları gibi **tamamen kendi
-başına**: ortak bir runner ya da yardımcı modül kullanmıyor, RabbitMQ döngüsünü
-ve rate limit davranışını kendi içinde taşıyor.
+Worker repodaki mevcut dosyalar gibi kendi başına: RabbitMQ döngüsünü ve hata
+işlemeyi kendi içinde taşıyor, ortak bir runner kullanmıyor.
 
 - [ ] **Adım 1: Kuyruk scriptini yaz**
 
@@ -1685,7 +1710,8 @@ ve rate limit davranışını kendi içinde taşıyor.
  * Queue Planets Script
  *
  * Reads planet IDs that still have no name out of the database and queues
- * them for enrichment. Row creation happens in step 2 (worker-solar-systems).
+ * them for enrichment. The rows themselves are created in step 2 by
+ * worker-solar-systems.
  *
  * Usage: yarn queue:planets
  */
@@ -1698,13 +1724,12 @@ const QUEUE_NAME = 'esi_planets_queue';
 
 async function queuePlanets() {
   logger.info('Planet queue script started');
-  logger.info('\u2501'.repeat(70));
 
   try {
     // Enrichment queue, not a root scan: the IDs come from the database with
     // WHERE name IS NULL, so a re-run queues only what is still missing. None of
     // the six celestial types has a list endpoint, so the database is the only
-    // possible source; POST /universe/names does not resolve them either.
+    // possible source; POST /universe/names cannot resolve them either.
     const rows = await prismaWorker.planet.findMany({
       where: { name: null },
       select: { id: true },
@@ -1720,7 +1745,12 @@ async function queuePlanets() {
     logger.info(`Found ${rows.length} planet rows with no name`);
 
     const channel = await getRabbitMQChannel();
-    await channel.assertQueue(QUEUE_NAME, { durable: true });
+    // x-max-priority is mandatory: server.ts's ensureAllQueuesExist() declares
+    // every queue with it, and omitting it fails with 406 PRECONDITION_FAILED.
+    await channel.assertQueue(QUEUE_NAME, {
+      durable: true,
+      arguments: { 'x-max-priority': 10 },
+    });
 
     for (const row of rows) {
       channel.sendToQueue(QUEUE_NAME, Buffer.from(row.id.toString()), {
@@ -1751,154 +1781,135 @@ queuePlanets();
 /**
  * Planet Worker
  *
- * Resolves /universe/planets/{id}/ into the planets table. type_id is what
- * distinguishes Barren / Gas / Temperate / Storm and is worth showing in the
- * Orbital Bodies list.
+ * Resolves /universe/planets/{id}/ into the planets table.
  *
- * orbit_index is NOT written here: it comes from the ordering of the planets[]
- * array in step 2 and this response has no equivalent.
+ * type_id distinguishes Barren / Gas / Temperate / Storm and is worth showing in
+ * the Orbital Bodies list.
+ *
+ * orbit_index is NOT written here: it encodes the ordering of the planets[]
+ * array from step 2 and this response has no equivalent field.
  *
  * Usage: yarn worker:planets
  */
 
-import axios from 'axios';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { getRabbitMQChannel } from '@services/rabbitmq';
+import { UniverseService } from '@services/universe/universe.service';
 
-const ESI_BASE_URL = 'https://esi.evetech.net/latest';
 const QUEUE_NAME = 'esi_planets_queue';
-const RATE_LIMIT_DELAY = 100; // Wait 100ms between each request (10 requests per second)
+// ESI throughput is capped at 50/sec by esiRateLimiter, so this is concurrency,
+// not a rate limit. Matches worker-info-corporations.
+const PREFETCH_COUNT = 25;
 
-/**
- * Fetches one planet from ESI and writes it to the database.
- *
- * The row already exists — step 2 created it — so this is an update, not an
- * upsert. `id` comes from the queue message rather than the response body.
- */
-async function processPlanets(id: number): Promise<void> {
+let emptyCheckInterval: NodeJS.Timeout | null = null;
+
+async function planetsWorker() {
+  logger.info('🚀 Planet Worker Started');
+  logger.info(`📦 Queue: ${QUEUE_NAME}`);
+  logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
+
   try {
-    const response = await axios.get(`${ESI_BASE_URL}/universe/planets/${id}/`);
-    const data = response.data;
+    const channel = await getRabbitMQChannel();
 
-    // Check rate limit headers
-    const errorLimitRemain = response.headers['x-esi-error-limit-remain'];
-    if (errorLimitRemain && parseInt(errorLimitRemain) < 20) {
-      logger.warn(`\u26a0\ufe0f  Error limit low (${errorLimitRemain}/100), slowing down...`);
-      await sleep(2000);
-    }
+    // x-max-priority is mandatory: server.ts's ensureAllQueuesExist() declares
+    // every queue with it, and omitting it fails with 406 PRECONDITION_FAILED.
+    await channel.assertQueue(QUEUE_NAME, {
+      durable: true,
+      arguments: { 'x-max-priority': 10 },
+    });
 
-    await prismaWorker.planet.update({
-      where: { id },
-      data: {
+    channel.prefetch(PREFETCH_COUNT);
+
+    const queueInfo = await channel.checkQueue(QUEUE_NAME);
+    logger.info(`📊 Queue status: ${queueInfo.messageCount} messages waiting\n`);
+
+    let processed = 0;
+    let errors = 0;
+    let lastMessageTime = Date.now();
+    const startTime = Date.now();
+
+    // With PREFETCH_COUNT > 1, checkQueue() races the in-flight messages, so
+    // completion is detected by the queue going quiet instead.
+    emptyCheckInterval = setInterval(() => {
+      if (Date.now() - lastMessageTime > 5000 && processed + errors > 0) {
+        const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+        logger.info('\n' + '='.repeat(60));
+        logger.info('🎉 ALL TASKS COMPLETED!');
+        logger.info(`✅ Processed: ${processed}   ❌ Errors: ${errors}   ⏱️  ${duration}s`);
+        logger.info('='.repeat(60));
+        logger.info('\n💡 Waiting for new messages... Press CTRL+C to stop.\n');
+        processed = 0;
+        errors = 0;
+      }
+    }, 5000);
+
+    await channel.consume(
+      QUEUE_NAME,
+      async (msg) => {
+        if (!msg) return;
+        lastMessageTime = Date.now();
+
+        // The key comes from the queue message, not the response body: the star
+        // and asteroid belt endpoints do not echo their own ID.
+        const id = parseInt(msg.content.toString());
+
+        if (isNaN(id)) {
+          logger.error('❌ Invalid planet ID:', msg.content.toString());
+          errors++;
+          channel.ack(msg);
+          return;
+        }
+
+        try {
+          const data = await UniverseService.getPlanet(id);
+
+          // update, not upsert: step 2 created the row, and the queue read it
+          // from the database, so it exists. A missing row is a real error.
+          await prismaWorker.planet.update({
+            where: { id },
+            data: {
         name: data.name ?? null,
         type_id: data.type_id ?? null,
         position_x: data.position?.x ?? null,
         position_y: data.position?.y ?? null,
         position_z: data.position?.z ?? null,
-      },
-    });
+            },
+          });
 
-    logger.debug(`\u2705 Saved planet ${id} - ${data.name ?? '(unnamed)'}`);
-
-    await sleep(RATE_LIMIT_DELAY);
-  } catch (error: any) {
-    if (error.response?.status === 420) {
-      logger.warn(`\ud83d\uded1 Error limited (420)! Waiting 60 seconds...`);
-      await sleep(60000);
-    }
-    throw error;
-  }
-}
-
-function printCompletionSummary(
-  processedCount: number,
-  errorCount: number,
-  startTime: number
-) {
-  const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-  logger.info('\n' + '='.repeat(60));
-  logger.info('\ud83c\udf89 ALL TASKS COMPLETED!');
-  logger.info('='.repeat(60));
-  logger.info(`\u2705 Processed: ${processedCount}`);
-  logger.info(`\u274c Errors: ${errorCount}`);
-  logger.info(`\ud83d\udcca Total: ${processedCount + errorCount}`);
-  logger.info(`\u23f1\ufe0f  Duration: ${duration}s`);
-  logger.info('='.repeat(60));
-  logger.info('\n\ud83d\udca1 Queue is empty, waiting for new messages...');
-  logger.info('   Press CTRL+C to stop.\n');
-}
-
-async function startWorker() {
-  try {
-    const channel = await getRabbitMQChannel();
-
-    let processedCount = 0;
-    let errorCount = 0;
-    const startTime = Date.now();
-
-    logger.info('\ud83d\ude80 Planet Worker Started');
-    logger.info('==========================');
-    logger.info(`\ud83d\udce1 Listening to queue: ${QUEUE_NAME}`);
-    logger.info(`\u23f1\ufe0f  Rate limit: ${1000 / RATE_LIMIT_DELAY} requests/second\n`);
-
-    await channel.assertQueue(QUEUE_NAME, { durable: true });
-
-    const queueInfo = await channel.checkQueue(QUEUE_NAME);
-    logger.info(`\ud83d\udcca Queue status: ${queueInfo.messageCount} messages waiting\n`);
-
-    channel.prefetch(1);
-
-    channel.consume(
-      QUEUE_NAME,
-      async (msg) => {
-        if (!msg) return;
-
-        const id = parseInt(msg.content.toString());
-
-        if (isNaN(id)) {
-          logger.error('\u274c Invalid planet ID:', msg.content.toString());
-          channel.ack(msg);
-          errorCount++;
-          return;
-        }
-
-        try {
-          await processPlanets(id);
-          processedCount++;
+          processed++;
+          logger.debug(`✅ Planet ${id} - ${data.name ?? '(unnamed)'}`);
           channel.ack(msg);
         } catch (error: any) {
-          errorCount++;
+          errors++;
           if (error.response?.status === 404) {
             // A dead ID. Ack it: requeueing would loop forever, and the row keeps
-            // its NULL name so it still shows up in the completeness check.
-            logger.warn(`\u26a0\ufe0f  Planet ${id} not found (404)`);
+            // its NULL name so it still shows in the completeness check.
+            logger.warn(`⚠️  Planet ${id} not found (404)`);
             channel.ack(msg);
           } else if (error.response?.status === 420) {
-            channel.nack(msg, false, true); // requeue after the 60s wait
+            logger.warn('🛑 Error limited (420)! Waiting 60 seconds...');
+            await sleep(60000);
+            channel.nack(msg, false, true); // requeue
           } else {
-            logger.error(`\u274c Error processing planet ${id}:`, error.message);
+            logger.error(`❌ Error processing planet ${id}:`, error.message);
             channel.nack(msg, false, false);
           }
-        }
-
-        const currentQueue = await channel.checkQueue(QUEUE_NAME);
-        if (currentQueue.messageCount === 0) {
-          printCompletionSummary(processedCount, errorCount, startTime);
         }
       },
       { noAck: false }
     );
 
     process.on('SIGINT', async () => {
-      logger.warn('\n\n\ud83d\uded1 Shutting down worker...');
+      logger.warn('\n🛑 Shutting down worker...');
+      if (emptyCheckInterval) clearInterval(emptyCheckInterval);
       await channel.close();
       await prismaWorker.$disconnect();
-      logger.info('\u2705 Worker stopped gracefully');
+      logger.info('✅ Worker stopped gracefully');
       process.exit(0);
     });
   } catch (error) {
-    logger.error('\u274c Failed to start worker:', error);
+    logger.error('❌ Failed to start planet worker:', error);
     process.exit(1);
   }
 }
@@ -1907,11 +1918,8 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-startWorker();
+planetsWorker();
 ```
-
-`orbit_index` bilerek yazılmıyor: o, Adım 2'deki `planets[]` dizisinin
-sırasından geliyor ve bu endpoint'te karşılığı yok.
 
 - [ ] **Adım 3: `package.json`'a iki script ekle**
 
@@ -1931,25 +1939,24 @@ Beklenen: hatasız.
 - [ ] **Adım 5: Çalıştır**
 
 Bir terminalde `cd backend && yarn worker:planets`, diğerinde
-`cd backend && yarn queue:planets`. Worker tamamlanma özetini basana kadar
-bekle.
+`cd backend && yarn queue:planets`. Worker "ALL TASKS COMPLETED" basana kadar
+bekle — bu, kuyruk 5 saniye sessiz kalınca tetikleniyor.
 
 - [ ] **Adım 6: Doğrula**
 
 ```sql
-SELECT orbit_index, id, name, type_id
+SELECT orbit_index, planet_id, name, type_id
 FROM planets WHERE solar_system_id = 30000240 ORDER BY orbit_index;
 ```
 
-Beklenen: yedi satır, `orbit_index` 1–7, isimler `4-HWWF I` … `4-HWWF VII`
-biçiminde ve **Roma rakamı sırası `orbit_index` ile örtüşüyor**. `40015364`
-satırı için `name = '4-HWWF II'`, `type_id = 2016`; `40015368` için
-`name = '4-HWWF IV'`, `type_id = 13`.
+Beklenen: yedi satır, `orbit_index` 1–7, isimler `4-HWWF I` … `4-HWWF VII` ve
+**Roma rakamı sırası `orbit_index` ile örtüşüyor**. `40015364` → `4-HWWF II`,
+`type_id = 2016`; `40015368` → `4-HWWF IV`, `type_id = 13`.
 
 - [ ] **Adım 7: Commit**
 
 ```bash
-git add backend/src/queues/queue-planets.ts backend/src/workers/worker-planets.ts backend/package.json
+git add backend/src backend/package.json
 git commit -m "feat(worker): add the planet enrichment queue and worker
 
 orbit_index is deliberately left alone here: it encodes the ordering of the
@@ -1966,12 +1973,11 @@ planets[] array from step 2, and this endpoint has no equivalent field."
 - Değiştir: `backend/package.json`
 
 **Arayüzler:**
-- Tüketir: Görev 2'nin yazdığı isimsiz `moons` satırları.
-- Üretir: `moons` tablosunda `name` ve `position`.
+- Tüketir: Görev 2'nin yazdığı isimsiz `moons` satırları. Görev 3'ün `UniverseService`'i.
+- Üretir: `moons` tablosunda `name` ve `position`. Altı kümenin en büyüğü.
 
-Bu çift, repodaki mevcut `queue-*` / `worker-*` dosyaları gibi **tamamen kendi
-başına**: ortak bir runner ya da yardımcı modül kullanmıyor, RabbitMQ döngüsünü
-ve rate limit davranışını kendi içinde taşıyor.
+Worker repodaki mevcut dosyalar gibi kendi başına: RabbitMQ döngüsünü ve hata
+işlemeyi kendi içinde taşıyor, ortak bir runner kullanmıyor.
 
 - [ ] **Adım 1: Kuyruk scriptini yaz**
 
@@ -1982,7 +1988,8 @@ ve rate limit davranışını kendi içinde taşıyor.
  * Queue Moons Script
  *
  * Reads moon IDs that still have no name out of the database and queues
- * them for enrichment. Row creation happens in step 2 (worker-solar-systems).
+ * them for enrichment. The rows themselves are created in step 2 by
+ * worker-solar-systems.
  *
  * Usage: yarn queue:moons
  */
@@ -1995,13 +2002,12 @@ const QUEUE_NAME = 'esi_moons_queue';
 
 async function queueMoons() {
   logger.info('Moon queue script started');
-  logger.info('\u2501'.repeat(70));
 
   try {
     // Enrichment queue, not a root scan: the IDs come from the database with
     // WHERE name IS NULL, so a re-run queues only what is still missing. None of
     // the six celestial types has a list endpoint, so the database is the only
-    // possible source; POST /universe/names does not resolve them either.
+    // possible source; POST /universe/names cannot resolve them either.
     const rows = await prismaWorker.moon.findMany({
       where: { name: null },
       select: { id: true },
@@ -2017,7 +2023,12 @@ async function queueMoons() {
     logger.info(`Found ${rows.length} moon rows with no name`);
 
     const channel = await getRabbitMQChannel();
-    await channel.assertQueue(QUEUE_NAME, { durable: true });
+    // x-max-priority is mandatory: server.ts's ensureAllQueuesExist() declares
+    // every queue with it, and omitting it fails with 406 PRECONDITION_FAILED.
+    await channel.assertQueue(QUEUE_NAME, {
+      durable: true,
+      arguments: { 'x-max-priority': 10 },
+    });
 
     for (const row of rows) {
       channel.sendToQueue(QUEUE_NAME, Buffer.from(row.id.toString()), {
@@ -2050,150 +2061,130 @@ queueMoons();
  *
  * Resolves /universe/moons/{id}/ into the moons table.
  *
- * NOTE: the response does NOT contain planet_id. The moon-to-planet link exists
- * only in the nesting of the /universe/systems/{id}/ response and is written in
- * step 2; nothing here can recover it.
+ * NOTE: the response contains no planet_id. The moon-to-planet link exists only
+ * in the nesting of the /universe/systems/{id}/ response and is written in step 2;
+ * nothing here can recover it.
  *
  * Usage: yarn worker:moons
  */
 
-import axios from 'axios';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { getRabbitMQChannel } from '@services/rabbitmq';
+import { UniverseService } from '@services/universe/universe.service';
 
-const ESI_BASE_URL = 'https://esi.evetech.net/latest';
 const QUEUE_NAME = 'esi_moons_queue';
-const RATE_LIMIT_DELAY = 100; // Wait 100ms between each request (10 requests per second)
+// ESI throughput is capped at 50/sec by esiRateLimiter, so this is concurrency,
+// not a rate limit. Matches worker-info-corporations.
+const PREFETCH_COUNT = 25;
 
-/**
- * Fetches one moon from ESI and writes it to the database.
- *
- * The row already exists — step 2 created it — so this is an update, not an
- * upsert. `id` comes from the queue message rather than the response body.
- */
-async function processMoons(id: number): Promise<void> {
-  try {
-    const response = await axios.get(`${ESI_BASE_URL}/universe/moons/${id}/`);
-    const data = response.data;
+let emptyCheckInterval: NodeJS.Timeout | null = null;
 
-    // Check rate limit headers
-    const errorLimitRemain = response.headers['x-esi-error-limit-remain'];
-    if (errorLimitRemain && parseInt(errorLimitRemain) < 20) {
-      logger.warn(`\u26a0\ufe0f  Error limit low (${errorLimitRemain}/100), slowing down...`);
-      await sleep(2000);
-    }
+async function moonsWorker() {
+  logger.info('🚀 Moon Worker Started');
+  logger.info(`📦 Queue: ${QUEUE_NAME}`);
+  logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
-    await prismaWorker.moon.update({
-      where: { id },
-      data: {
-        name: data.name ?? null,
-        position_x: data.position?.x ?? null,
-        position_y: data.position?.y ?? null,
-        position_z: data.position?.z ?? null,
-      },
-    });
-
-    logger.debug(`\u2705 Saved moon ${id} - ${data.name ?? '(unnamed)'}`);
-
-    await sleep(RATE_LIMIT_DELAY);
-  } catch (error: any) {
-    if (error.response?.status === 420) {
-      logger.warn(`\ud83d\uded1 Error limited (420)! Waiting 60 seconds...`);
-      await sleep(60000);
-    }
-    throw error;
-  }
-}
-
-function printCompletionSummary(
-  processedCount: number,
-  errorCount: number,
-  startTime: number
-) {
-  const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-  logger.info('\n' + '='.repeat(60));
-  logger.info('\ud83c\udf89 ALL TASKS COMPLETED!');
-  logger.info('='.repeat(60));
-  logger.info(`\u2705 Processed: ${processedCount}`);
-  logger.info(`\u274c Errors: ${errorCount}`);
-  logger.info(`\ud83d\udcca Total: ${processedCount + errorCount}`);
-  logger.info(`\u23f1\ufe0f  Duration: ${duration}s`);
-  logger.info('='.repeat(60));
-  logger.info('\n\ud83d\udca1 Queue is empty, waiting for new messages...');
-  logger.info('   Press CTRL+C to stop.\n');
-}
-
-async function startWorker() {
   try {
     const channel = await getRabbitMQChannel();
 
-    let processedCount = 0;
-    let errorCount = 0;
-    const startTime = Date.now();
+    // x-max-priority is mandatory: server.ts's ensureAllQueuesExist() declares
+    // every queue with it, and omitting it fails with 406 PRECONDITION_FAILED.
+    await channel.assertQueue(QUEUE_NAME, {
+      durable: true,
+      arguments: { 'x-max-priority': 10 },
+    });
 
-    logger.info('\ud83d\ude80 Moon Worker Started');
-    logger.info('==========================');
-    logger.info(`\ud83d\udce1 Listening to queue: ${QUEUE_NAME}`);
-    logger.info(`\u23f1\ufe0f  Rate limit: ${1000 / RATE_LIMIT_DELAY} requests/second\n`);
-
-    await channel.assertQueue(QUEUE_NAME, { durable: true });
+    channel.prefetch(PREFETCH_COUNT);
 
     const queueInfo = await channel.checkQueue(QUEUE_NAME);
-    logger.info(`\ud83d\udcca Queue status: ${queueInfo.messageCount} messages waiting\n`);
+    logger.info(`📊 Queue status: ${queueInfo.messageCount} messages waiting\n`);
 
-    channel.prefetch(1);
+    let processed = 0;
+    let errors = 0;
+    let lastMessageTime = Date.now();
+    const startTime = Date.now();
 
-    channel.consume(
+    // With PREFETCH_COUNT > 1, checkQueue() races the in-flight messages, so
+    // completion is detected by the queue going quiet instead.
+    emptyCheckInterval = setInterval(() => {
+      if (Date.now() - lastMessageTime > 5000 && processed + errors > 0) {
+        const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+        logger.info('\n' + '='.repeat(60));
+        logger.info('🎉 ALL TASKS COMPLETED!');
+        logger.info(`✅ Processed: ${processed}   ❌ Errors: ${errors}   ⏱️  ${duration}s`);
+        logger.info('='.repeat(60));
+        logger.info('\n💡 Waiting for new messages... Press CTRL+C to stop.\n');
+        processed = 0;
+        errors = 0;
+      }
+    }, 5000);
+
+    await channel.consume(
       QUEUE_NAME,
       async (msg) => {
         if (!msg) return;
+        lastMessageTime = Date.now();
 
+        // The key comes from the queue message, not the response body: the star
+        // and asteroid belt endpoints do not echo their own ID.
         const id = parseInt(msg.content.toString());
 
         if (isNaN(id)) {
-          logger.error('\u274c Invalid moon ID:', msg.content.toString());
+          logger.error('❌ Invalid moon ID:', msg.content.toString());
+          errors++;
           channel.ack(msg);
-          errorCount++;
           return;
         }
 
         try {
-          await processMoons(id);
-          processedCount++;
+          const data = await UniverseService.getMoon(id);
+
+          // update, not upsert: step 2 created the row, and the queue read it
+          // from the database, so it exists. A missing row is a real error.
+          await prismaWorker.moon.update({
+            where: { id },
+            data: {
+        name: data.name ?? null,
+        position_x: data.position?.x ?? null,
+        position_y: data.position?.y ?? null,
+        position_z: data.position?.z ?? null,
+            },
+          });
+
+          processed++;
+          logger.debug(`✅ Moon ${id} - ${data.name ?? '(unnamed)'}`);
           channel.ack(msg);
         } catch (error: any) {
-          errorCount++;
+          errors++;
           if (error.response?.status === 404) {
             // A dead ID. Ack it: requeueing would loop forever, and the row keeps
-            // its NULL name so it still shows up in the completeness check.
-            logger.warn(`\u26a0\ufe0f  Moon ${id} not found (404)`);
+            // its NULL name so it still shows in the completeness check.
+            logger.warn(`⚠️  Moon ${id} not found (404)`);
             channel.ack(msg);
           } else if (error.response?.status === 420) {
-            channel.nack(msg, false, true); // requeue after the 60s wait
+            logger.warn('🛑 Error limited (420)! Waiting 60 seconds...');
+            await sleep(60000);
+            channel.nack(msg, false, true); // requeue
           } else {
-            logger.error(`\u274c Error processing moon ${id}:`, error.message);
+            logger.error(`❌ Error processing moon ${id}:`, error.message);
             channel.nack(msg, false, false);
           }
-        }
-
-        const currentQueue = await channel.checkQueue(QUEUE_NAME);
-        if (currentQueue.messageCount === 0) {
-          printCompletionSummary(processedCount, errorCount, startTime);
         }
       },
       { noAck: false }
     );
 
     process.on('SIGINT', async () => {
-      logger.warn('\n\n\ud83d\uded1 Shutting down worker...');
+      logger.warn('\n🛑 Shutting down worker...');
+      if (emptyCheckInterval) clearInterval(emptyCheckInterval);
       await channel.close();
       await prismaWorker.$disconnect();
-      logger.info('\u2705 Worker stopped gracefully');
+      logger.info('✅ Worker stopped gracefully');
       process.exit(0);
     });
   } catch (error) {
-    logger.error('\u274c Failed to start worker:', error);
+    logger.error('❌ Failed to start moon worker:', error);
     process.exit(1);
   }
 }
@@ -2202,10 +2193,8 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-startWorker();
+moonsWorker();
 ```
-
-Bu kümenin altısı içinde en büyüğü; sırada sondan ikinci olmasının sebebi bu.
 
 - [ ] **Adım 3: `package.json`'a iki script ekle**
 
@@ -2225,27 +2214,26 @@ Beklenen: hatasız.
 - [ ] **Adım 5: Çalıştır**
 
 Bir terminalde `cd backend && yarn worker:moons`, diğerinde
-`cd backend && yarn queue:moons`. Worker tamamlanma özetini basana kadar
-bekle.
+`cd backend && yarn queue:moons`. Worker "ALL TASKS COMPLETED" basana kadar
+bekle — bu, kuyruk 5 saniye sessiz kalınca tetikleniyor.
 
 - [ ] **Adım 6: Doğrula**
 
 ```sql
-SELECT m.orbit_index, m.id, m.name, p.name AS planet_name
-FROM moons m JOIN planets p ON p.id = m.planet_id
+SELECT m.orbit_index, m.moon_id, m.name, p.name AS planet_name
+FROM moons m JOIN planets p ON p.planet_id = m.planet_id
 WHERE m.solar_system_id = 30000240 AND p.orbit_index = 4
 ORDER BY m.orbit_index LIMIT 3;
 ```
 
 Beklenen: `4-HWWF IV - Moon 1`, `... Moon 2`, `... Moon 3`; hepsinin
-`planet_name` değeri `4-HWWF IV`. Ay adındaki gezegen Roma rakamının
-`planet_name` ile örtüşmesi, Görev 2'nin `planet_id`'yi doğru yazdığının bağımsız
-kanıtı.
+`planet_name` değeri `4-HWWF IV`. Ay adındaki Roma rakamının `planet_name` ile
+örtüşmesi, Görev 2'nin `planet_id`'yi doğru yazdığının bağımsız kanıtı.
 
 - [ ] **Adım 7: Commit**
 
 ```bash
-git add backend/src/queues/queue-moons.ts backend/src/workers/worker-moons.ts backend/package.json
+git add backend/src backend/package.json
 git commit -m "feat(worker): add the moon enrichment queue and worker
 
 /universe/moons/{id}/ returns no planet_id. The moon-to-planet link exists only
@@ -2263,12 +2251,11 @@ in nothing but the name and position."
 - Değiştir: `backend/package.json`
 
 **Arayüzler:**
-- Tüketir: Görev 2'nin yazdığı isimsiz `asteroid_belts` satırları.
+- Tüketir: Görev 2'nin yazdığı isimsiz `asteroid_belts` satırları. Görev 3'ün `UniverseService`'i.
 - Üretir: `asteroid_belts` tablosunda `name` ve `position`. Bu, ingest hattının son parçası.
 
-Bu çift, repodaki mevcut `queue-*` / `worker-*` dosyaları gibi **tamamen kendi
-başına**: ortak bir runner ya da yardımcı modül kullanmıyor, RabbitMQ döngüsünü
-ve rate limit davranışını kendi içinde taşıyor.
+Worker repodaki mevcut dosyalar gibi kendi başına: RabbitMQ döngüsünü ve hata
+işlemeyi kendi içinde taşıyor, ortak bir runner kullanmıyor.
 
 - [ ] **Adım 1: Kuyruk scriptini yaz**
 
@@ -2279,7 +2266,8 @@ ve rate limit davranışını kendi içinde taşıyor.
  * Queue Asteroid belts Script
  *
  * Reads asteroid belt IDs that still have no name out of the database and queues
- * them for enrichment. Row creation happens in step 2 (worker-solar-systems).
+ * them for enrichment. The rows themselves are created in step 2 by
+ * worker-solar-systems.
  *
  * Usage: yarn queue:asteroid-belts
  */
@@ -2292,13 +2280,12 @@ const QUEUE_NAME = 'esi_asteroid_belts_queue';
 
 async function queueAsteroidBelts() {
   logger.info('Asteroid belt queue script started');
-  logger.info('\u2501'.repeat(70));
 
   try {
     // Enrichment queue, not a root scan: the IDs come from the database with
     // WHERE name IS NULL, so a re-run queues only what is still missing. None of
     // the six celestial types has a list endpoint, so the database is the only
-    // possible source; POST /universe/names does not resolve them either.
+    // possible source; POST /universe/names cannot resolve them either.
     const rows = await prismaWorker.asteroidBelt.findMany({
       where: { name: null },
       select: { id: true },
@@ -2314,7 +2301,12 @@ async function queueAsteroidBelts() {
     logger.info(`Found ${rows.length} asteroid belt rows with no name`);
 
     const channel = await getRabbitMQChannel();
-    await channel.assertQueue(QUEUE_NAME, { durable: true });
+    // x-max-priority is mandatory: server.ts's ensureAllQueuesExist() declares
+    // every queue with it, and omitting it fails with 406 PRECONDITION_FAILED.
+    await channel.assertQueue(QUEUE_NAME, {
+      durable: true,
+      arguments: { 'x-max-priority': 10 },
+    });
 
     for (const row of rows) {
       channel.sendToQueue(QUEUE_NAME, Buffer.from(row.id.toString()), {
@@ -2347,150 +2339,130 @@ queueAsteroidBelts();
  *
  * Resolves /universe/asteroid_belts/{id}/ into the asteroid_belts table.
  *
- * NOTE: this response contains neither asteroid_belt_id nor planet_id — it
- * returns only name, position and system_id. The update key comes from the queue
- * message and the planet link comes from step 2.
+ * NOTE: this response contains neither asteroid_belt_id nor planet_id — only
+ * name, position and system_id. The update key comes from the queue message and
+ * the planet link from step 2.
  *
  * Usage: yarn worker:asteroid-belts
  */
 
-import axios from 'axios';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { getRabbitMQChannel } from '@services/rabbitmq';
+import { UniverseService } from '@services/universe/universe.service';
 
-const ESI_BASE_URL = 'https://esi.evetech.net/latest';
 const QUEUE_NAME = 'esi_asteroid_belts_queue';
-const RATE_LIMIT_DELAY = 100; // Wait 100ms between each request (10 requests per second)
+// ESI throughput is capped at 50/sec by esiRateLimiter, so this is concurrency,
+// not a rate limit. Matches worker-info-corporations.
+const PREFETCH_COUNT = 25;
 
-/**
- * Fetches one asteroid belt from ESI and writes it to the database.
- *
- * The row already exists — step 2 created it — so this is an update, not an
- * upsert. `id` comes from the queue message rather than the response body.
- */
-async function processAsteroidBelts(id: number): Promise<void> {
-  try {
-    const response = await axios.get(`${ESI_BASE_URL}/universe/asteroid_belts/${id}/`);
-    const data = response.data;
+let emptyCheckInterval: NodeJS.Timeout | null = null;
 
-    // Check rate limit headers
-    const errorLimitRemain = response.headers['x-esi-error-limit-remain'];
-    if (errorLimitRemain && parseInt(errorLimitRemain) < 20) {
-      logger.warn(`\u26a0\ufe0f  Error limit low (${errorLimitRemain}/100), slowing down...`);
-      await sleep(2000);
-    }
+async function asteroidBeltsWorker() {
+  logger.info('🚀 Asteroid belt Worker Started');
+  logger.info(`📦 Queue: ${QUEUE_NAME}`);
+  logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
-    await prismaWorker.asteroidBelt.update({
-      where: { id },
-      data: {
-        name: data.name ?? null,
-        position_x: data.position?.x ?? null,
-        position_y: data.position?.y ?? null,
-        position_z: data.position?.z ?? null,
-      },
-    });
-
-    logger.debug(`\u2705 Saved asteroid belt ${id} - ${data.name ?? '(unnamed)'}`);
-
-    await sleep(RATE_LIMIT_DELAY);
-  } catch (error: any) {
-    if (error.response?.status === 420) {
-      logger.warn(`\ud83d\uded1 Error limited (420)! Waiting 60 seconds...`);
-      await sleep(60000);
-    }
-    throw error;
-  }
-}
-
-function printCompletionSummary(
-  processedCount: number,
-  errorCount: number,
-  startTime: number
-) {
-  const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-  logger.info('\n' + '='.repeat(60));
-  logger.info('\ud83c\udf89 ALL TASKS COMPLETED!');
-  logger.info('='.repeat(60));
-  logger.info(`\u2705 Processed: ${processedCount}`);
-  logger.info(`\u274c Errors: ${errorCount}`);
-  logger.info(`\ud83d\udcca Total: ${processedCount + errorCount}`);
-  logger.info(`\u23f1\ufe0f  Duration: ${duration}s`);
-  logger.info('='.repeat(60));
-  logger.info('\n\ud83d\udca1 Queue is empty, waiting for new messages...');
-  logger.info('   Press CTRL+C to stop.\n');
-}
-
-async function startWorker() {
   try {
     const channel = await getRabbitMQChannel();
 
-    let processedCount = 0;
-    let errorCount = 0;
-    const startTime = Date.now();
+    // x-max-priority is mandatory: server.ts's ensureAllQueuesExist() declares
+    // every queue with it, and omitting it fails with 406 PRECONDITION_FAILED.
+    await channel.assertQueue(QUEUE_NAME, {
+      durable: true,
+      arguments: { 'x-max-priority': 10 },
+    });
 
-    logger.info('\ud83d\ude80 Asteroid belt Worker Started');
-    logger.info('==========================');
-    logger.info(`\ud83d\udce1 Listening to queue: ${QUEUE_NAME}`);
-    logger.info(`\u23f1\ufe0f  Rate limit: ${1000 / RATE_LIMIT_DELAY} requests/second\n`);
-
-    await channel.assertQueue(QUEUE_NAME, { durable: true });
+    channel.prefetch(PREFETCH_COUNT);
 
     const queueInfo = await channel.checkQueue(QUEUE_NAME);
-    logger.info(`\ud83d\udcca Queue status: ${queueInfo.messageCount} messages waiting\n`);
+    logger.info(`📊 Queue status: ${queueInfo.messageCount} messages waiting\n`);
 
-    channel.prefetch(1);
+    let processed = 0;
+    let errors = 0;
+    let lastMessageTime = Date.now();
+    const startTime = Date.now();
 
-    channel.consume(
+    // With PREFETCH_COUNT > 1, checkQueue() races the in-flight messages, so
+    // completion is detected by the queue going quiet instead.
+    emptyCheckInterval = setInterval(() => {
+      if (Date.now() - lastMessageTime > 5000 && processed + errors > 0) {
+        const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+        logger.info('\n' + '='.repeat(60));
+        logger.info('🎉 ALL TASKS COMPLETED!');
+        logger.info(`✅ Processed: ${processed}   ❌ Errors: ${errors}   ⏱️  ${duration}s`);
+        logger.info('='.repeat(60));
+        logger.info('\n💡 Waiting for new messages... Press CTRL+C to stop.\n');
+        processed = 0;
+        errors = 0;
+      }
+    }, 5000);
+
+    await channel.consume(
       QUEUE_NAME,
       async (msg) => {
         if (!msg) return;
+        lastMessageTime = Date.now();
 
+        // The key comes from the queue message, not the response body: the star
+        // and asteroid belt endpoints do not echo their own ID.
         const id = parseInt(msg.content.toString());
 
         if (isNaN(id)) {
-          logger.error('\u274c Invalid asteroid belt ID:', msg.content.toString());
+          logger.error('❌ Invalid asteroid belt ID:', msg.content.toString());
+          errors++;
           channel.ack(msg);
-          errorCount++;
           return;
         }
 
         try {
-          await processAsteroidBelts(id);
-          processedCount++;
+          const data = await UniverseService.getAsteroidBelt(id);
+
+          // update, not upsert: step 2 created the row, and the queue read it
+          // from the database, so it exists. A missing row is a real error.
+          await prismaWorker.asteroidBelt.update({
+            where: { id },
+            data: {
+        name: data.name ?? null,
+        position_x: data.position?.x ?? null,
+        position_y: data.position?.y ?? null,
+        position_z: data.position?.z ?? null,
+            },
+          });
+
+          processed++;
+          logger.debug(`✅ Asteroid belt ${id} - ${data.name ?? '(unnamed)'}`);
           channel.ack(msg);
         } catch (error: any) {
-          errorCount++;
+          errors++;
           if (error.response?.status === 404) {
             // A dead ID. Ack it: requeueing would loop forever, and the row keeps
-            // its NULL name so it still shows up in the completeness check.
-            logger.warn(`\u26a0\ufe0f  Asteroid belt ${id} not found (404)`);
+            // its NULL name so it still shows in the completeness check.
+            logger.warn(`⚠️  Asteroid belt ${id} not found (404)`);
             channel.ack(msg);
           } else if (error.response?.status === 420) {
-            channel.nack(msg, false, true); // requeue after the 60s wait
+            logger.warn('🛑 Error limited (420)! Waiting 60 seconds...');
+            await sleep(60000);
+            channel.nack(msg, false, true); // requeue
           } else {
-            logger.error(`\u274c Error processing asteroid belt ${id}:`, error.message);
+            logger.error(`❌ Error processing asteroid belt ${id}:`, error.message);
             channel.nack(msg, false, false);
           }
-        }
-
-        const currentQueue = await channel.checkQueue(QUEUE_NAME);
-        if (currentQueue.messageCount === 0) {
-          printCompletionSummary(processedCount, errorCount, startTime);
         }
       },
       { noAck: false }
     );
 
     process.on('SIGINT', async () => {
-      logger.warn('\n\n\ud83d\uded1 Shutting down worker...');
+      logger.warn('\n🛑 Shutting down worker...');
+      if (emptyCheckInterval) clearInterval(emptyCheckInterval);
       await channel.close();
       await prismaWorker.$disconnect();
-      logger.info('\u2705 Worker stopped gracefully');
+      logger.info('✅ Worker stopped gracefully');
       process.exit(0);
     });
   } catch (error) {
-    logger.error('\u274c Failed to start worker:', error);
+    logger.error('❌ Failed to start asteroid belt worker:', error);
     process.exit(1);
   }
 }
@@ -2499,11 +2471,8 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-startWorker();
+asteroidBeltsWorker();
 ```
-
-ESI yolunun alt çizgili olduğuna dikkat (`asteroid_belts`), script adının ise
-tireli (`queue:asteroid-belts`).
 
 - [ ] **Adım 3: `package.json`'a iki script ekle**
 
@@ -2523,33 +2492,33 @@ Beklenen: hatasız.
 - [ ] **Adım 5: Çalıştır**
 
 Bir terminalde `cd backend && yarn worker:asteroid-belts`, diğerinde
-`cd backend && yarn queue:asteroid-belts`. Worker tamamlanma özetini basana kadar
-bekle.
+`cd backend && yarn queue:asteroid-belts`. Worker "ALL TASKS COMPLETED" basana kadar
+bekle — bu, kuyruk 5 saniye sessiz kalınca tetikleniyor.
 
 - [ ] **Adım 6: Doğrula**
 
 ```sql
-SELECT b.id, b.name, p.name AS planet_name
-FROM asteroid_belts b JOIN planets p ON p.id = b.planet_id
-WHERE b.solar_system_id = 30000240 ORDER BY b.id LIMIT 3;
+SELECT b.asteroid_belt_id, b.name, p.name AS planet_name
+FROM asteroid_belts b JOIN planets p ON p.planet_id = b.planet_id
+WHERE b.solar_system_id = 30000240 ORDER BY b.asteroid_belt_id LIMIT 3;
 ```
 
 Beklenen: `40015365` → `4-HWWF II - Asteroid Belt 1` (planet `4-HWWF II`),
 `40015367` → `4-HWWF III - Asteroid Belt 1`, `40015380` →
 `4-HWWF IV - Asteroid Belt 1`.
 
-Jita'nın hiç belt'i olmadığını da doğrula — boş küme normal:
+Jita'nın hiç belt'i olmadığını da doğrula:
 
 ```sql
 SELECT COUNT(*) FROM asteroid_belts WHERE solar_system_id = 30000142;
 ```
 
-Beklenen: `0`.
+Beklenen: `0`. Boş küme normal.
 
 - [ ] **Adım 7: Commit**
 
 ```bash
-git add backend/src/queues/queue-asteroid-belts.ts backend/src/workers/worker-asteroid-belts.ts backend/package.json
+git add backend/src backend/package.json
 git commit -m "feat(worker): add the asteroid belt enrichment queue and worker
 
 /universe/asteroid_belts/{id}/ returns neither asteroid_belt_id nor planet_id,
