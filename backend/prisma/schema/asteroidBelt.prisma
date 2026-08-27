@@ -9,7 +9,7 @@ model AsteroidBelt {
   position_y      Float?
   position_z      Float?
 
-  solar_system    SolarSystem @relation("SystemAsteroidBelts", fields: [solar_system_id], references: [id], onDelete: Cascade)
+  solar_system    SolarSystem @relation("system_asteroid_belts", fields: [solar_system_id], references: [id], onDelete: Cascade)
   planet          Planet      @relation(fields: [planet_id], references: [id], onDelete: Cascade)
 
   @@index([solar_system_id])

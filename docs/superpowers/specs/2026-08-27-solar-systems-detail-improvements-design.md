@@ -225,7 +225,7 @@ model Stargate {
   position_y              Float?
   position_z              Float?
 
-  solar_system            SolarSystem @relation("SystemStargates", fields: [solar_system_id], references: [id], onDelete: Cascade)
+  solar_system            SolarSystem @relation("system_stargates", fields: [solar_system_id], references: [id], onDelete: Cascade)
 
   @@index([solar_system_id])
   @@index([destination_system_id])
@@ -244,7 +244,7 @@ model Star {
   age             Float?
   luminosity      Float?
 
-  solar_system    SolarSystem @relation("SystemStar", fields: [solar_system_id], references: [id], onDelete: Cascade)
+  solar_system    SolarSystem @relation("system_star", fields: [solar_system_id], references: [id], onDelete: Cascade)
 
   @@map("stars")
 }
@@ -261,7 +261,7 @@ model Planet {
   position_y      Float?
   position_z      Float?
 
-  solar_system    SolarSystem    @relation("SystemPlanets", fields: [solar_system_id], references: [id], onDelete: Cascade)
+  solar_system    SolarSystem    @relation("system_planets", fields: [solar_system_id], references: [id], onDelete: Cascade)
   moons           Moon[]
   asteroid_belts  AsteroidBelt[]
 
@@ -282,7 +282,7 @@ model Moon {
   position_y      Float?
   position_z      Float?
 
-  solar_system    SolarSystem @relation("SystemMoons", fields: [solar_system_id], references: [id], onDelete: Cascade)
+  solar_system    SolarSystem @relation("system_moons", fields: [solar_system_id], references: [id], onDelete: Cascade)
   planet          Planet      @relation(fields: [planet_id], references: [id], onDelete: Cascade)
 
   @@index([solar_system_id])
@@ -301,7 +301,7 @@ model AsteroidBelt {
   position_y      Float?
   position_z      Float?
 
-  solar_system    SolarSystem @relation("SystemAsteroidBelts", fields: [solar_system_id], references: [id], onDelete: Cascade)
+  solar_system    SolarSystem @relation("system_asteroid_belts", fields: [solar_system_id], references: [id], onDelete: Cascade)
   planet          Planet      @relation(fields: [planet_id], references: [id], onDelete: Cascade)
 
   @@index([solar_system_id])
@@ -327,7 +327,7 @@ model Station {
   position_y                 Float?
   position_z                 Float?
 
-  solar_system               SolarSystem @relation("SystemStations", fields: [solar_system_id], references: [id], onDelete: Cascade)
+  solar_system               SolarSystem @relation("system_stations", fields: [solar_system_id], references: [id], onDelete: Cascade)
 
   @@index([solar_system_id])
   @@map("stations")

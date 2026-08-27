@@ -10,7 +10,7 @@ model Star {
   age             Float?
   luminosity      Float?
 
-  solar_system    SolarSystem @relation("SystemStar", fields: [solar_system_id], references: [id], onDelete: Cascade)
+  solar_system    SolarSystem @relation("system_star", fields: [solar_system_id], references: [id], onDelete: Cascade)
 
   @@map("stars")
 }

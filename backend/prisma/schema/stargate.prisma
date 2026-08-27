@@ -10,7 +10,7 @@ model Stargate {
   position_y              Float?
   position_z              Float?
 
-  solar_system            SolarSystem @relation("SystemStargates", fields: [solar_system_id], references: [id], onDelete: Cascade)
+  solar_system            SolarSystem @relation("system_stargates", fields: [solar_system_id], references: [id], onDelete: Cascade)
 
   @@index([solar_system_id])
   @@index([destination_system_id])

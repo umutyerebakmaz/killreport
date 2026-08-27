@@ -11,12 +11,12 @@ model SolarSystem {
   constellation    Constellation? @relation(fields: [constellation_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
   system_kills     SystemKills[]
-  star             Star?          @relation("SystemStar")
-  stargates        Stargate[]     @relation("SystemStargates")
-  planets          Planet[]       @relation("SystemPlanets")
-  moons            Moon[]         @relation("SystemMoons")
-  asteroid_belts   AsteroidBelt[] @relation("SystemAsteroidBelts")
-  stations         Station[]      @relation("SystemStations")
+  star             Star?          @relation("system_star")
+  stargates        Stargate[]     @relation("system_stargates")
+  planets          Planet[]       @relation("system_planets")
+  moons            Moon[]         @relation("system_moons")
+  asteroid_belts   AsteroidBelt[] @relation("system_asteroid_belts")
+  stations         Station[]      @relation("system_stations")
 
   @@index([constellation_id])
   @@map("solar_systems")
