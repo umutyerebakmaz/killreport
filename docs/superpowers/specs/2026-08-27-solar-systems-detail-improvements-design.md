@@ -293,6 +293,11 @@ scriptlerine `WHERE name IS NULL` ile doğal bir "kalan iş" sorgusu veriyor.
 
 ### 7.3 Ingest hattı
 
+Bu proje ESI'dan veri çekerken her zaman aynı üç adımı izliyor: önce ID'leri
+kuyruğa yazan bir `queue-*` scripti, sonra o kuyruğu tüketen domain worker'ı,
+sonra iş periyodikse `ecosystem.config.js`'e bir cron girdisi. Aşağıdaki hat bu
+kalıba birebir uyuyor.
+
 **Aşama 1 — topoloji (ek ESI maliyeti yok).**
 `backend/src/workers/worker-solar-systems.ts` genişletiliyor. Zaten elde olan
 `/universe/systems/{id}/` yanıtından, tek bir Prisma transaction'ı içinde:
@@ -349,6 +354,31 @@ ve diğerleri), mevcut adlandırmayla aynı.
 Küçük ve sekme açan kümeler önce; aylar ve belt'ler en sonda, çünkü Orbital
 Bodies sekmesinde katlanmış halde duruyorlar ve gezegen listesi onlarsız da
 anlamlı.
+
+**Aşama 3 — periyodik tazeleme (`ecosystem.config.js`).** Gök cisimleri sabit
+veri; değişmelerinin tek yolu CCP'nin yeni sistem, gezegen veya stargate
+eklediği bir güncelleme. Dolayısıyla bu ingest sürekli çalışan bir worker değil,
+ayda bir çalışan bir iş.
+
+`ecosystem.config.js`'e altı yeni PM2 girdisi ekleniyor, mevcut sovereignty
+girdileriyle aynı biçimde (`autorestart: false`, `exec_mode: 'fork'`,
+`cron_restart`, ayrı `error_file` / `out_file`):
+
+| PM2 adı | args | cron_restart |
+|---|---|---|
+| `queue-universe-topology` | `queue:solar-systems --force-topology` | `0 3 1 * *` |
+| `queue-stargates` | `queue:stargates` | `10 3 1 * *` |
+| `queue-stations` | `queue:stations` | `20 3 1 * *` |
+| `queue-planets` | `queue:planets` | `30 3 1 * *` |
+| `queue-moons` | `queue:moons` | `40 3 1 * *` |
+| `queue-asteroid-belts` | `queue:asteroid-belts` | `50 3 1 * *` |
+
+Worker'lar mevcut `worker-info-*` girdileri gibi sürekli ayakta duruyor ve
+kuyruk boşken bekliyor.
+
+Aylık çalışma neredeyse bedava: kuyruk scriptleri `WHERE name IS NULL` ile
+çalıştığı için, ilk backfill'den sonra kuyruğa yalnızca yeni eklenmiş cisimler
+giriyor. Normal bir ayda bu sıfır mesaj demek.
 
 ### 7.4 GraphQL yüzeyi
 
@@ -584,3 +614,24 @@ tane eklemiyor; o kendi başına bir karar ve kendi başına bir iş. Doğrulama
 Upwell yapıları, jump rotası / rota bulma, market ve endüstri verisi, sistem
 düzeyinde realtime killmail subscription'ı, sistem istatistikleri için rollup
 tablosu, ve gök cisimleri için SDE tabanlı bir ingest hattı.
+
+## 13. Dokunulan dosyalar (özet)
+
+**Backend — yeni:** `prisma/schema/stargate.prisma`, `planet.prisma`,
+`moon.prisma`, `asteroidBelt.prisma`, `station.prisma`; beş `queue-*` scripti ve
+beş `worker-*` scripti; `resolvers/solar-system/fields.ts` içine dört alan
+resolver'ı.
+
+**Backend — değişen:** `workers/worker-solar-systems.ts` (topoloji + bayrak),
+`schemas/SolarSystem.graphql`, `schemas/Sovereignty.graphql`,
+`resolvers/solar-system/queries.ts`, `resolvers/sovereignty/queries.ts`,
+`prisma/schema/solarSystem.prisma` (ters ilişkiler),
+`prisma/schema/killmail.prisma` (bileşik indeks), `package.json` (on script),
+`ecosystem.config.js` (altı cron girdisi).
+
+**Frontend — yeni:** yedi GraphQL dokümanı; `SolarSystemDetail/` altında sekiz
+bileşen; `SystemActivityChart/`; `TopEntitySidebar/`.
+
+**Frontend — değişen:** `app/solar-systems/[id]/page.tsx` (kabuğa iniyor),
+`graphql/SolarSystems.graphql`, ve `TopEntitySidebar`'ı benimseyen üç sayfa
+(`killmails`, `alliances/[id]`, `corporations/[id]`).
