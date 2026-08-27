@@ -174,7 +174,7 @@ kurulu.
 **Seçilen: A.** Mevcut ingest mimarisiyle birebir aynı kalıp, otoriter veri,
 tahmin yok. Adım 2 topolojiyi bedavaya aldığı için Adım 3'ün kuyrukları
 ESI'nın liste endpoint'lerine değil doğrudan veritabanına dayanabiliyor — ki
-aylar ve belt'ler için ESI'da zaten liste endpoint'i yok.
+zaten altı gök cismi tipinin **hiçbirinin** liste endpoint'i yok (§7.3).
 
 ## 7. Tasarım
 
@@ -488,7 +488,33 @@ mevcut kalıpla birebir aynı yapıda (`queue-solar-systems.ts` ve
 Bu altısı **zenginleştirme kuyruğu**, kök tarayıcı değil: ID'leri ESI'dan değil
 veritabanından okuyorlar — `SELECT id FROM <tablo> WHERE name IS NULL`. Bu hem
 `queue-alliance-corp-characters`'ın "DB'de zaten olanı atla" filtresinin aynısı,
-hem de zorunlu: ESI'da ay, asteroid belt ve yıldız için liste endpoint'i yok.
+hem de zorunlu. ESI'ın OpenAPI tanımı (`https://esi.evetech.net/meta/openapi.json`,
+2026-08-28'de kontrol edildi) `/universe/` altında liste + tekil çiftini yalnızca
+`systems`, `regions`, `constellations`, `types`, `categories`, `groups` ve
+`graphics` için veriyor. Bizim altı tipimizin **altısında da** yalnızca tekil
+endpoint var:
+
+| Endpoint | Liste | Tekil |
+|---|---|---|
+| `/universe/stargates/{id}` | **yok** | ✓ |
+| `/universe/stars/{id}` | **yok** | ✓ |
+| `/universe/planets/{id}` | **yok** | ✓ |
+| `/universe/moons/{id}` | **yok** | ✓ |
+| `/universe/asteroid_belts/{id}` | **yok** | ✓ |
+| `/universe/stations/{id}` | **yok** | ✓ |
+
+Yani "hangi ID'lerin ismi eksik" sorusunun ESI tarafında bir cevabı yok; tek
+kaynak Adım 2'nin yazdığı satırlar.
+
+**Toplu isim çözümü de bir çıkış yolu değil.** `POST /universe/names` bir
+çağrıda 1000 ID çözüyor ama kategori listesi `alliance`, `character`,
+`constellation`, `corporation`, `inventory_type`, `region`, `solar_system`,
+`station`, `faction` ile sınırlı. Canlı denendi: yıldız, gezegen, ay, asteroid
+belt ve stargate ID'leri HTTP 404 (`"Ensure all IDs are valid before
+resolving."`) veriyor. İstasyonlar çözülüyor, ama Structures sekmesi isim dışında
+`type_id`, `owner`, `services` ve reprocessing değerlerini de istiyor; onlar
+yalnızca tekil endpoint'te var. Dolayısıyla altı worker da ID başına bir çağrı
+yapıyor.
 Yan etkisi, yeniden çalıştırmanın doğal olarak idempotent olması — kuyruğa
 yalnızca eksikler giriyor.
 

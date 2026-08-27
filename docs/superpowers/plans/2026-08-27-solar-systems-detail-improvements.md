@@ -771,8 +771,9 @@ async function queueStargates() {
 
   try {
     // Enrichment queue, not a root scan: the IDs come from the database with
-    // WHERE name IS NULL, so a re-run queues only what is still missing. ESI has
-    // no list endpoint for moons, asteroid belts or stars anyway.
+    // WHERE name IS NULL, so a re-run queues only what is still missing. None of
+    // the six celestial types has a list endpoint, so the database is the only
+    // possible source; POST /universe/names does not resolve them either.
     const rows = await prismaWorker.stargate.findMany({
       where: { name: null },
       select: { id: true },
@@ -1087,8 +1088,9 @@ async function queueStars() {
 
   try {
     // Enrichment queue, not a root scan: the IDs come from the database with
-    // WHERE name IS NULL, so a re-run queues only what is still missing. ESI has
-    // no list endpoint for moons, asteroid belts or stars anyway.
+    // WHERE name IS NULL, so a re-run queues only what is still missing. None of
+    // the six celestial types has a list endpoint, so the database is the only
+    // possible source; POST /universe/names does not resolve them either.
     const rows = await prismaWorker.star.findMany({
       where: { name: null },
       select: { id: true },
@@ -1384,8 +1386,9 @@ async function queueStations() {
 
   try {
     // Enrichment queue, not a root scan: the IDs come from the database with
-    // WHERE name IS NULL, so a re-run queues only what is still missing. ESI has
-    // no list endpoint for moons, asteroid belts or stars anyway.
+    // WHERE name IS NULL, so a re-run queues only what is still missing. None of
+    // the six celestial types has a list endpoint, so the database is the only
+    // possible source; POST /universe/names does not resolve them either.
     const rows = await prismaWorker.station.findMany({
       where: { name: null },
       select: { id: true },
@@ -1699,8 +1702,9 @@ async function queuePlanets() {
 
   try {
     // Enrichment queue, not a root scan: the IDs come from the database with
-    // WHERE name IS NULL, so a re-run queues only what is still missing. ESI has
-    // no list endpoint for moons, asteroid belts or stars anyway.
+    // WHERE name IS NULL, so a re-run queues only what is still missing. None of
+    // the six celestial types has a list endpoint, so the database is the only
+    // possible source; POST /universe/names does not resolve them either.
     const rows = await prismaWorker.planet.findMany({
       where: { name: null },
       select: { id: true },
@@ -1995,8 +1999,9 @@ async function queueMoons() {
 
   try {
     // Enrichment queue, not a root scan: the IDs come from the database with
-    // WHERE name IS NULL, so a re-run queues only what is still missing. ESI has
-    // no list endpoint for moons, asteroid belts or stars anyway.
+    // WHERE name IS NULL, so a re-run queues only what is still missing. None of
+    // the six celestial types has a list endpoint, so the database is the only
+    // possible source; POST /universe/names does not resolve them either.
     const rows = await prismaWorker.moon.findMany({
       where: { name: null },
       select: { id: true },
@@ -2291,8 +2296,9 @@ async function queueAsteroidBelts() {
 
   try {
     // Enrichment queue, not a root scan: the IDs come from the database with
-    // WHERE name IS NULL, so a re-run queues only what is still missing. ESI has
-    // no list endpoint for moons, asteroid belts or stars anyway.
+    // WHERE name IS NULL, so a re-run queues only what is still missing. None of
+    // the six celestial types has a list endpoint, so the database is the only
+    // possible source; POST /universe/names does not resolve them either.
     const rows = await prismaWorker.asteroidBelt.findMany({
       where: { name: null },
       select: { id: true },
