@@ -1,0 +1,18 @@
+model Stargate {
+  id                      Int         @id @map("stargate_id")
+  name                    String?
+  solar_system_id         Int
+  /// Adım 2 bunu boş bırakır; yalnızca worker-stargates doldurur.
+  destination_system_id   Int?
+  destination_stargate_id Int?
+  type_id                 Int?
+  position_x              Float?
+  position_y              Float?
+  position_z              Float?
+
+  solar_system            SolarSystem @relation("SystemStargates", fields: [solar_system_id], references: [id], onDelete: Cascade)
+
+  @@index([solar_system_id])
+  @@index([destination_system_id])
+  @@map("stargates")
+}

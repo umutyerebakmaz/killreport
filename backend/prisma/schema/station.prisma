@@ -1,0 +1,23 @@
+model Station {
+  id                         Int         @id @map("station_id")
+  name                       String?
+  solar_system_id            Int
+  type_id                    Int?
+  owner_corporation_id       Int?
+  race_id                    Int?
+  reprocessing_efficiency    Float?
+  /// İstasyonun yeniden işlemeden aldığı pay (0.05 = %5).
+  reprocessing_stations_take Float?
+  /// ISK cinsinden ofis kirası.
+  office_rental_cost         Float?
+  max_dockable_ship_volume   Float?
+  services                   String[]
+  position_x                 Float?
+  position_y                 Float?
+  position_z                 Float?
+
+  solar_system               SolarSystem @relation("SystemStations", fields: [solar_system_id], references: [id], onDelete: Cascade)
+
+  @@index([solar_system_id])
+  @@map("stations")
+}

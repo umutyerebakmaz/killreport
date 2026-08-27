@@ -1,0 +1,20 @@
+model Moon {
+  id              Int         @id @map("moon_id")
+  name            String?
+  solar_system_id Int
+  /// Zorunlu: ESI'da her ay bir gezegenin altındadır ve bu bağ yalnızca
+  /// Adım 2'de yakalanabilir — /universe/moons/{id}/ planet_id döndürmüyor.
+  planet_id       Int
+  /// ESI'nın planets[].moons dizisindeki 1 tabanlı sıra.
+  orbit_index     Int?
+  position_x      Float?
+  position_y      Float?
+  position_z      Float?
+
+  solar_system    SolarSystem @relation("SystemMoons", fields: [solar_system_id], references: [id], onDelete: Cascade)
+  planet          Planet      @relation(fields: [planet_id], references: [id], onDelete: Cascade)
+
+  @@index([solar_system_id])
+  @@index([planet_id])
+  @@map("moons")
+}
