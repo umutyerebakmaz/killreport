@@ -1,5 +1,5 @@
 model Station {
-  id                         Int         @id @map("station_id")
+  id                         Int      @id @map("station_id")
   name                       String?
   solar_system_id            Int
   type_id                    Int?
@@ -16,7 +16,7 @@ model Station {
   position_y                 Float?
   position_z                 Float?
 
-  solar_system               SolarSystem @relation("system_stations", fields: [solar_system_id], references: [id], onDelete: Cascade)
+  solar_system SolarSystem @relation(fields: [solar_system_id], references: [id], onDelete: Cascade)
 
   @@index([solar_system_id])
   @@map("stations")

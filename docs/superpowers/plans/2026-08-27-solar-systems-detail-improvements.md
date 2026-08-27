@@ -181,7 +181,7 @@ model Stargate {
   position_y              Float?
   position_z              Float?
 
-  solar_system            SolarSystem @relation("system_stargates", fields: [solar_system_id], references: [id], onDelete: Cascade)
+  solar_system            SolarSystem @relation(fields: [solar_system_id], references: [id], onDelete: Cascade)
 
   @@index([solar_system_id])
   @@index([destination_system_id])
@@ -204,7 +204,7 @@ model Star {
   age             Float?
   luminosity      Float?
 
-  solar_system    SolarSystem @relation("system_star", fields: [solar_system_id], references: [id], onDelete: Cascade)
+  solar_system    SolarSystem @relation(fields: [solar_system_id], references: [id], onDelete: Cascade)
 
   @@map("stars")
 }
@@ -224,7 +224,7 @@ model Planet {
   position_y      Float?
   position_z      Float?
 
-  solar_system    SolarSystem    @relation("system_planets", fields: [solar_system_id], references: [id], onDelete: Cascade)
+  solar_system    SolarSystem    @relation(fields: [solar_system_id], references: [id], onDelete: Cascade)
   moons           Moon[]
   asteroid_belts  AsteroidBelt[]
 
@@ -249,7 +249,7 @@ model Moon {
   position_y      Float?
   position_z      Float?
 
-  solar_system    SolarSystem @relation("system_moons", fields: [solar_system_id], references: [id], onDelete: Cascade)
+  solar_system    SolarSystem @relation(fields: [solar_system_id], references: [id], onDelete: Cascade)
   planet          Planet      @relation(fields: [planet_id], references: [id], onDelete: Cascade)
 
   @@index([solar_system_id])
@@ -272,7 +272,7 @@ model AsteroidBelt {
   position_y      Float?
   position_z      Float?
 
-  solar_system    SolarSystem @relation("system_asteroid_belts", fields: [solar_system_id], references: [id], onDelete: Cascade)
+  solar_system    SolarSystem @relation(fields: [solar_system_id], references: [id], onDelete: Cascade)
   planet          Planet      @relation(fields: [planet_id], references: [id], onDelete: Cascade)
 
   @@index([solar_system_id])
@@ -302,7 +302,7 @@ model Station {
   position_y                 Float?
   position_z                 Float?
 
-  solar_system               SolarSystem @relation("system_stations", fields: [solar_system_id], references: [id], onDelete: Cascade)
+  solar_system               SolarSystem @relation(fields: [solar_system_id], references: [id], onDelete: Cascade)
 
   @@index([solar_system_id])
   @@map("stations")
@@ -315,18 +315,20 @@ model Station {
 hemen altına:
 
 ```prisma
-  star             Star?          @relation("system_star")
-  stargates        Stargate[]     @relation("system_stargates")
-  planets          Planet[]       @relation("system_planets")
-  moons            Moon[]         @relation("system_moons")
-  asteroid_belts   AsteroidBelt[] @relation("system_asteroid_belts")
-  stations         Station[]      @relation("system_stations")
+  star             Star?
+  stargates        Stargate[]
+  planets          Planet[]
+  moons            Moon[]
+  asteroid_belts   AsteroidBelt[]
+  stations         Station[]
 ```
 
-`star` alanı da ilişki adını açıkça taşımak zorunda. Adsız bırakılırsa Prisma
-7.10 `P1012` veriyor: *"The relation field `star` on model `SolarSystem` is
-missing an opposite relation field on the model `Star`"* — adlandırılmış bir
-ilişkinin iki ucu da aynı adı yazmalı, çoğul taraflarda olduğu gibi.
+Hiçbiri ilişki adı taşımıyor — repodaki diğer 40 `.prisma` dosyasında da
+adlandırılmış tek bir `@relation` yok. Prisma ilişki adını yalnızca aynı iki
+model arasında birden fazla ilişki varsa zorunlu tutuyor; burada her çift tekil.
+Bir ucu adlandırıp diğerini bırakırsan `P1012` alırsın (*"missing an opposite
+relation field"*); çözüm ikisine birden ad koymak değil, ikisinden de
+kaldırmak.
 
 - [ ] **Adım 3: `killmail.prisma`'ya bileşik indeksi ekle**
 

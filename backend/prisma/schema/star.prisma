@@ -1,7 +1,7 @@
 model Star {
-  id              Int         @id @map("star_id")
+  id              Int     @id @map("star_id")
   name            String?
-  solar_system_id Int         @unique
+  solar_system_id Int     @unique
   type_id         Int?
   spectral_class  String?
   temperature     Int?
@@ -10,7 +10,7 @@ model Star {
   age             Float?
   luminosity      Float?
 
-  solar_system    SolarSystem @relation("system_star", fields: [solar_system_id], references: [id], onDelete: Cascade)
+  solar_system SolarSystem @relation(fields: [solar_system_id], references: [id], onDelete: Cascade)
 
   @@map("stars")
 }

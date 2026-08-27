@@ -1,5 +1,5 @@
 model AsteroidBelt {
-  id              Int         @id @map("asteroid_belt_id")
+  id              Int     @id @map("asteroid_belt_id")
   name            String?
   solar_system_id Int
   /// Zorunlu; Moon.planet_id ile aynı gerekçe.
@@ -9,8 +9,8 @@ model AsteroidBelt {
   position_y      Float?
   position_z      Float?
 
-  solar_system    SolarSystem @relation("system_asteroid_belts", fields: [solar_system_id], references: [id], onDelete: Cascade)
-  planet          Planet      @relation(fields: [planet_id], references: [id], onDelete: Cascade)
+  solar_system SolarSystem @relation(fields: [solar_system_id], references: [id], onDelete: Cascade)
+  planet       Planet      @relation(fields: [planet_id], references: [id], onDelete: Cascade)
 
   @@index([solar_system_id])
   @@index([planet_id])

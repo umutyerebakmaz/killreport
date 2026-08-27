@@ -1,5 +1,5 @@
 model Moon {
-  id              Int         @id @map("moon_id")
+  id              Int     @id @map("moon_id")
   name            String?
   solar_system_id Int
   /// Zorunlu: ESI'da her ay bir gezegenin altındadır ve bu bağ yalnızca
@@ -11,8 +11,8 @@ model Moon {
   position_y      Float?
   position_z      Float?
 
-  solar_system    SolarSystem @relation("system_moons", fields: [solar_system_id], references: [id], onDelete: Cascade)
-  planet          Planet      @relation(fields: [planet_id], references: [id], onDelete: Cascade)
+  solar_system SolarSystem @relation(fields: [solar_system_id], references: [id], onDelete: Cascade)
+  planet       Planet      @relation(fields: [planet_id], references: [id], onDelete: Cascade)
 
   @@index([solar_system_id])
   @@index([planet_id])
