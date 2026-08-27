@@ -768,7 +768,7 @@ type Query {
   solarSystems(filter: SolarSystemFilter): SolarSystemsResponse!
 
   """Currently active sovereignty campaigns, newest first."""
-  sovereigntyActiveCampaigns(limit: Int): [SovereigntyCampaign!]!
+  sovereigntyActiveCampaigns(limit: Int, systemId: Int): [SovereigntyCampaign!]!
 
   """Resolved (ended) campaigns, newest-ended first, paginated."""
   sovereigntyCampaignHistory(limit: Int, offset: Int): SovereigntyCampaignHistoryPage!

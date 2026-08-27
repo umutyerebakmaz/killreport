@@ -1211,6 +1211,7 @@ export type QuerySolarSystemsArgs = {
 
 export type QuerySovereigntyActiveCampaignsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
+  systemId?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
