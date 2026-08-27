@@ -51,6 +51,23 @@ Bu bölüm her görevin gereksinimlerine örtük olarak dahildir.
   Hattın tamamı elle çalıştırılıyor (spec §7.3 Adım 4).
 - **Prisma dosya düzeni:** model başına bir dosya, `backend/prisma/schema/`
   altında, dosya adı camelCase (`asteroidBelt.prisma`).
+- **`prisma migrate dev` bu repoda ASLA çalıştırılmaz.** `killmail_filters`,
+  `character_kill_stats`, `corporation_kill_stats`, `alliance_kill_stats` ve
+  `refresh_log` tabloları veritabanında var ama `prisma/schema/` içinde **yok** —
+  elle yazılmış SQL migration'larıyla yaratılmışlar ve `$queryRaw` ile
+  okunuyorlar. Prisma beşini de şema kayması sanıp silmeyi teklif ediyor;
+  2026-08-28'de bu 72.790 satır demekti. `prisma migrate status` bunu
+  göstermiyor, yalnızca uygulanmış migration'lara bakıyor. Migration şöyle
+  üretilir:
+  1. `npx prisma migrate diff --from-config-datasource prisma.config.ts --to-schema prisma/schema --script`
+  2. Çıktıdaki o beş `DROP TABLE` satırı silinir.
+  3. Kalanı `prisma/migrations/<UTC damga>_<ad>/migration.sql` olarak yazılır.
+  4. `npx prisma migrate deploy` — bekleyen migration'ları uygular, hiçbir şey
+     düşürmez.
+  5. `npx prisma generate`.
+- **Veri kaybı yok.** Hiçbir adım veritabanını sıfırlamaz, tablo düşürmez ya da
+  Prisma'nın veri kaybı onayını kabul etmez. Her migration'dan önce ve sonra
+  satır sayıları ölçülür ve raporlanır.
 - **GraphQL tip adları tablolarla birebir:** `Stargate`, `Star`, `Planet`,
   `Moon`, `AsteroidBelt`, `Station`. `*Info` soneki kullanılmıyor.
 - **Skaler değil nesne.** İlişkili varlıklar `type: Type`,
@@ -300,7 +317,7 @@ model Station {
 hemen altına:
 
 ```prisma
-  star             Star?
+  star             Star?          @relation("SystemStar")
   stargates        Stargate[]     @relation("SystemStargates")
   planets          Planet[]       @relation("SystemPlanets")
   moons            Moon[]         @relation("SystemMoons")
@@ -308,10 +325,10 @@ hemen altına:
   stations         Station[]      @relation("SystemStations")
 ```
 
-`star` alanı ilişki adı taşımıyor çünkü `Star` tarafında `@relation("SystemStar", ...)`
-tanımlı ve tekil taraf; Prisma eşleştirmeyi ilişki adından yapıyor. Eğer
-`prisma validate` bu satır için ilişki adı isterse `star Star? @relation("SystemStar")`
-olarak yaz.
+`star` alanı da ilişki adını açıkça taşımak zorunda. Adsız bırakılırsa Prisma
+7.10 `P1012` veriyor: *"The relation field `star` on model `SolarSystem` is
+missing an opposite relation field on the model `Star`"* — adlandırılmış bir
+ilişkinin iki ucu da aynı adı yazmalı, çoğul taraflarda olduğu gibi.
 
 - [ ] **Adım 3: `killmail.prisma`'ya bileşik indeksi ekle**
 
@@ -334,16 +351,65 @@ cd backend && npx prisma validate
 Beklenen: `The schema at prisma/schema is valid 🚀`. Hata alırsan Adım 2'deki
 `star` alanı için yukarıdaki alternatif yazımı dene.
 
-- [ ] **Adım 5: Migration üret ve uygula**
+- [ ] **Adım 5: Migration'ı elle üret ve uygula**
+
+`prisma migrate dev` **kullanılmıyor** (Global Kısıtlar). Önce mevcut satır
+sayılarını kaydet:
 
 ```bash
-cd backend && npx prisma migrate dev --name add_universe_topology
+cd backend
+DB=$(grep -m1 '^DATABASE_URL' .env | cut -d= -f2- | tr -d '"' | tr -d "'")
+psql "$DB" -c "SELECT 'killmail_filters' t, COUNT(*) FROM killmail_filters
+  UNION ALL SELECT 'character_kill_stats', COUNT(*) FROM character_kill_stats
+  UNION ALL SELECT 'corporation_kill_stats', COUNT(*) FROM corporation_kill_stats
+  UNION ALL SELECT 'alliance_kill_stats', COUNT(*) FROM alliance_kill_stats
+  UNION ALL SELECT 'refresh_log', COUNT(*) FROM refresh_log
+  UNION ALL SELECT 'killmails', COUNT(*) FROM killmails;"
 ```
 
-Beklenen: `prisma/migrations/<zaman>_add_universe_topology/migration.sql`
-oluşur ve uygulanır. Üretilen SQL'i aç ve şunları doğrula: altı `CREATE TABLE`,
-`moons.planet_id` ile `asteroid_belts.planet_id` `NOT NULL`, ve
-`killmails` üzerinde `solar_system_id, killmail_time` bileşik indeksi.
+DDL'i üret ve `DROP TABLE` bloğunu at:
+
+```bash
+npx prisma migrate diff --from-config-datasource prisma.config.ts \
+  --to-schema prisma/schema --script > /tmp/topology-diff.sql
+grep -n "^DROP" /tmp/topology-diff.sql   # beş satır çıkmalı, hepsi en başta
+```
+
+`prisma/migrations/20260828000000_add_universe_topology/migration.sql` dosyasını
+oluştur: başına bunun neden elle yazıldığını anlatan bir yorum bloğu, ardından
+`/tmp/topology-diff.sql`'in **ilk `CREATE TABLE`'dan itibaren** kalan kısmı.
+Sonra hiç çalıştırılabilir `DROP` kalmadığını doğrula:
+
+```bash
+grep -n "^[^-]*DROP" prisma/migrations/20260828000000_add_universe_topology/migration.sql
+# çıktı boş olmalı
+npx prisma migrate deploy
+```
+
+Beklenen: `Applying migration 20260828000000_add_universe_topology` ve
+`All migrations have been successfully applied.`
+
+Ardından satır sayılarını tekrar ölç — **hiçbiri düşmemeli** (canlı
+`worker-redisq` çalışıyorsa artabilir). Yeni tabloları ve kısıtları da doğrula:
+
+```bash
+psql "$DB" -c "SELECT 'stargates' t, COUNT(*) FROM stargates
+  UNION ALL SELECT 'stars', COUNT(*) FROM stars
+  UNION ALL SELECT 'planets', COUNT(*) FROM planets
+  UNION ALL SELECT 'moons', COUNT(*) FROM moons
+  UNION ALL SELECT 'asteroid_belts', COUNT(*) FROM asteroid_belts
+  UNION ALL SELECT 'stations', COUNT(*) FROM stations;"
+
+psql "$DB" -tAc "SELECT table_name||'.'||column_name||' nullable='||is_nullable
+  FROM information_schema.columns
+  WHERE table_name IN ('moons','asteroid_belts') AND column_name='planet_id';"
+
+psql "$DB" -tAc "SELECT indexname FROM pg_indexes WHERE tablename='killmails'
+  AND indexdef LIKE '%solar_system_id, killmail_time%';"
+```
+
+Beklenen: altı tablo var ve boş; `planet_id` için `nullable=NO`; bileşik indeks
+adı dönüyor.
 
 - [ ] **Adım 6: Client'ı üret ve derle**
 
