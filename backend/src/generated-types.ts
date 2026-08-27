@@ -157,6 +157,16 @@ export type AlliancesResponse = {
   pageInfo: PageInfo;
 };
 
+export type AsteroidBelt = {
+  __typename?: 'AsteroidBelt';
+  id: Scalars['Int']['output'];
+  name?: Maybe<Scalars['String']['output']>;
+  orbitIndex?: Maybe<Scalars['Int']['output']>;
+  planet?: Maybe<Planet>;
+  position?: Maybe<Position>;
+  solarSystem?: Maybe<SolarSystem>;
+};
+
 export type Attacker = {
   __typename?: 'Attacker';
   alliance?: Maybe<Alliance>;
@@ -667,6 +677,17 @@ export type KillmailsResponse = {
   pageInfo: PageInfo;
 };
 
+export type Moon = {
+  __typename?: 'Moon';
+  id: Scalars['Int']['output'];
+  name?: Maybe<Scalars['String']['output']>;
+  /** ESI'nin planets[].moons dizisindeki 1 tabanlı sıra. */
+  orbitIndex?: Maybe<Scalars['Int']['output']>;
+  planet?: Maybe<Planet>;
+  position?: Maybe<Position>;
+  solarSystem?: Maybe<SolarSystem>;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
@@ -811,6 +832,21 @@ export type PageInfo = {
   totalPages: Scalars['Int']['output'];
 };
 
+export type Planet = {
+  __typename?: 'Planet';
+  asteroidBelts: Array<AsteroidBelt>;
+  id: Scalars['Int']['output'];
+  moons: Array<Moon>;
+  name?: Maybe<Scalars['String']['output']>;
+  /** ESI'nin planets[] dizisindeki 1 tabanlı sıra. */
+  orbitIndex?: Maybe<Scalars['Int']['output']>;
+  position?: Maybe<Position>;
+  solarSystem?: Maybe<SolarSystem>;
+  /** Barren, Gas, Temperate, Storm… */
+  type?: Maybe<Type>;
+  typeId?: Maybe<Scalars['Int']['output']>;
+};
+
 export type Position = {
   __typename?: 'Position';
   x: Scalars['Float']['output'];
@@ -881,6 +917,7 @@ export type Query = {
   region?: Maybe<Region>;
   regions: RegionsResponse;
   solarSystem?: Maybe<SolarSystem>;
+  solarSystemStats: SolarSystemStats;
   solarSystems: SolarSystemsResponse;
   /** Currently active sovereignty campaigns, newest first. */
   sovereigntyActiveCampaigns: Array<SovereigntyCampaign>;
@@ -1162,6 +1199,11 @@ export type QuerySolarSystemArgs = {
 };
 
 
+export type QuerySolarSystemStatsArgs = {
+  systemId: Scalars['Int']['input'];
+};
+
+
 export type QuerySolarSystemsArgs = {
   filter?: InputMaybe<SolarSystemFilter>;
 };
@@ -1384,13 +1426,29 @@ export type SlotGroup = {
 export type SolarSystem = {
   __typename?: 'SolarSystem';
   constellation?: Maybe<Constellation>;
+  counts: SolarSystemCounts;
   id: Scalars['Int']['output'];
   latestKills?: Maybe<SystemKills>;
   name: Scalars['String']['output'];
+  planets: Array<Planet>;
   position?: Maybe<Position>;
   securityStatus?: Maybe<Scalars['Float']['output']>;
   security_class?: Maybe<Scalars['String']['output']>;
+  /** Step 3 çalışmadan önce isimsiz; star_id boşsa null. */
+  star?: Maybe<Star>;
   star_id?: Maybe<Scalars['Int']['output']>;
+  stargates: Array<Stargate>;
+  stations: Array<Station>;
+};
+
+export type SolarSystemCounts = {
+  __typename?: 'SolarSystemCounts';
+  asteroidBelts: Scalars['Int']['output'];
+  moons: Scalars['Int']['output'];
+  planets: Scalars['Int']['output'];
+  sovereigntyStructures: Scalars['Int']['output'];
+  stargates: Scalars['Int']['output'];
+  stations: Scalars['Int']['output'];
 };
 
 export type SolarSystemFilter = {
@@ -1417,6 +1475,19 @@ export enum SolarSystemOrderBy {
   ShipKillsAsc = 'shipKillsAsc',
   ShipKillsDesc = 'shipKillsDesc'
 }
+
+export type SolarSystemStats = {
+  __typename?: 'SolarSystemStats';
+  /** Son 7 günde en çok kill olan UTC saati (0-23). */
+  busiestHourUtc?: Maybe<Scalars['Int']['output']>;
+  iskDestroyed7d: Scalars['Float']['output'];
+  kills7d: Scalars['Int']['output'];
+  kills24h: Scalars['Int']['output'];
+  lastKillTime?: Maybe<Scalars['String']['output']>;
+  systemId: Scalars['Int']['output'];
+  totalIskDestroyed: Scalars['Float']['output'];
+  totalKills: Scalars['Int']['output'];
+};
 
 export type SolarSystemsResponse = {
   __typename?: 'SolarSystemsResponse';
@@ -1560,6 +1631,51 @@ export type StandaloneWorkerStatus = {
   running: Scalars['Boolean']['output'];
 };
 
+export type Star = {
+  __typename?: 'Star';
+  /** Yıl. */
+  age?: Maybe<Scalars['Float']['output']>;
+  id: Scalars['Int']['output'];
+  luminosity?: Maybe<Scalars['Float']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+  /** Metre. */
+  radius?: Maybe<Scalars['Float']['output']>;
+  solarSystem?: Maybe<SolarSystem>;
+  /** Örn. "M2 V". */
+  spectralClass?: Maybe<Scalars['String']['output']>;
+  /** Kelvin. */
+  temperature?: Maybe<Scalars['Int']['output']>;
+  type?: Maybe<Type>;
+  typeId?: Maybe<Scalars['Int']['output']>;
+};
+
+/** Sistemdeki stargate. ESI'nin stargates[] dizisini yansıtır, uçları çözülmüş halde. */
+export type Stargate = {
+  __typename?: 'Stargate';
+  destination?: Maybe<StargateDestination>;
+  id: Scalars['Int']['output'];
+  name?: Maybe<Scalars['String']['output']>;
+  position?: Maybe<Position>;
+  solarSystem?: Maybe<SolarSystem>;
+  type?: Maybe<Type>;
+  typeId?: Maybe<Scalars['Int']['output']>;
+};
+
+/**
+ * ESI'nin stargate yanıtındaki destination nesnesi.
+ * Ham ID'ler step 3 çalışmadan önce null; nesneler ayrıca karşılık gelen satır
+ * veritabanında yoksa da null.
+ */
+export type StargateDestination = {
+  __typename?: 'StargateDestination';
+  destinationStargateId?: Maybe<Scalars['Int']['output']>;
+  destinationSystemId?: Maybe<Scalars['Int']['output']>;
+  /** Karşı uçtaki stargate; kendi destination'ı bu sisteme geri işaret eder. */
+  stargate?: Maybe<Stargate>;
+  /** Karşı uçtaki sistem. */
+  system?: Maybe<SolarSystem>;
+};
+
 export type StartAllianceSyncInput = {
   clientMutationId?: InputMaybe<Scalars['String']['input']>;
 };
@@ -1659,6 +1775,26 @@ export type StartTypeSyncPayload = {
   clientMutationId?: Maybe<Scalars['String']['output']>;
   message?: Maybe<Scalars['String']['output']>;
   success: Scalars['Boolean']['output'];
+};
+
+export type Station = {
+  __typename?: 'Station';
+  id: Scalars['Int']['output'];
+  maxDockableShipVolume?: Maybe<Scalars['Float']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+  /** ISK cinsinden ofis kirası. */
+  officeRentalCost?: Maybe<Scalars['Float']['output']>;
+  ownerCorporation?: Maybe<Corporation>;
+  ownerCorporationId?: Maybe<Scalars['Int']['output']>;
+  position?: Maybe<Position>;
+  raceId?: Maybe<Scalars['Int']['output']>;
+  reprocessingEfficiency?: Maybe<Scalars['Float']['output']>;
+  /** İstasyonun yeniden işlemeden aldığı pay; 0.05 = %5. */
+  reprocessingStationsTake?: Maybe<Scalars['Float']['output']>;
+  services: Array<Scalars['String']['output']>;
+  solarSystem?: Maybe<SolarSystem>;
+  type?: Maybe<Type>;
+  typeId?: Maybe<Scalars['Int']['output']>;
 };
 
 export type Subscription = {
@@ -2070,6 +2206,7 @@ export type ResolversTypes = {
   AllianceTerritoryRank: ResolverTypeWrapper<AllianceTerritoryRank>;
   AllianceTopTarget: ResolverTypeWrapper<AllianceTopTarget>;
   AlliancesResponse: ResolverTypeWrapper<AlliancesResponse>;
+  AsteroidBelt: ResolverTypeWrapper<AsteroidBelt>;
   Attacker: ResolverTypeWrapper<Attacker>;
   AuthPayload: ResolverTypeWrapper<AuthPayload>;
   AuthUrl: ResolverTypeWrapper<AuthUrl>;
@@ -2122,8 +2259,10 @@ export type ResolversTypes = {
   KillmailItem: ResolverTypeWrapper<KillmailItem>;
   KillmailOrderBy: KillmailOrderBy;
   KillmailsResponse: ResolverTypeWrapper<KillmailsResponse>;
+  Moon: ResolverTypeWrapper<Moon>;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   PageInfo: ResolverTypeWrapper<PageInfo>;
+  Planet: ResolverTypeWrapper<Planet>;
   Position: ResolverTypeWrapper<Position>;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   QueueStatus: ResolverTypeWrapper<QueueStatus>;
@@ -2139,8 +2278,10 @@ export type ResolversTypes = {
   ShipTopKill: ResolverTypeWrapper<ShipTopKill>;
   SlotGroup: ResolverTypeWrapper<SlotGroup>;
   SolarSystem: ResolverTypeWrapper<SolarSystem>;
+  SolarSystemCounts: ResolverTypeWrapper<SolarSystemCounts>;
   SolarSystemFilter: SolarSystemFilter;
   SolarSystemOrderBy: SolarSystemOrderBy;
+  SolarSystemStats: ResolverTypeWrapper<SolarSystemStats>;
   SolarSystemsResponse: ResolverTypeWrapper<SolarSystemsResponse>;
   SovMapPoint: ResolverTypeWrapper<SovMapPoint>;
   SovereigntyAlert: ResolverTypeWrapper<SovereigntyAlert>;
@@ -2150,6 +2291,9 @@ export type ResolversTypes = {
   SovereigntyOverview: ResolverTypeWrapper<SovereigntyOverview>;
   SovereigntyStructureInfo: ResolverTypeWrapper<SovereigntyStructureInfo>;
   StandaloneWorkerStatus: ResolverTypeWrapper<StandaloneWorkerStatus>;
+  Star: ResolverTypeWrapper<Star>;
+  Stargate: ResolverTypeWrapper<Stargate>;
+  StargateDestination: ResolverTypeWrapper<StargateDestination>;
   StartAllianceSyncInput: StartAllianceSyncInput;
   StartAllianceSyncPayload: ResolverTypeWrapper<StartAllianceSyncPayload>;
   StartCategorySyncInput: StartCategorySyncInput;
@@ -2168,6 +2312,7 @@ export type ResolversTypes = {
   StartTypeDogmaSyncPayload: ResolverTypeWrapper<StartTypeDogmaSyncPayload>;
   StartTypeSyncInput: StartTypeSyncInput;
   StartTypeSyncPayload: ResolverTypeWrapper<StartTypeSyncPayload>;
+  Station: ResolverTypeWrapper<Station>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Subscription: ResolverTypeWrapper<Record<PropertyKey, never>>;
   SyncMyKillmailsInput: SyncMyKillmailsInput;
@@ -2219,6 +2364,7 @@ export type ResolversParentTypes = {
   AllianceTerritoryRank: AllianceTerritoryRank;
   AllianceTopTarget: AllianceTopTarget;
   AlliancesResponse: AlliancesResponse;
+  AsteroidBelt: AsteroidBelt;
   Attacker: Attacker;
   AuthPayload: AuthPayload;
   AuthUrl: AuthUrl;
@@ -2267,8 +2413,10 @@ export type ResolversParentTypes = {
   KillmailFilter: KillmailFilter;
   KillmailItem: KillmailItem;
   KillmailsResponse: KillmailsResponse;
+  Moon: Moon;
   Mutation: Record<PropertyKey, never>;
   PageInfo: PageInfo;
+  Planet: Planet;
   Position: Position;
   Query: Record<PropertyKey, never>;
   QueueStatus: QueueStatus;
@@ -2283,7 +2431,9 @@ export type ResolversParentTypes = {
   ShipTopKill: ShipTopKill;
   SlotGroup: SlotGroup;
   SolarSystem: SolarSystem;
+  SolarSystemCounts: SolarSystemCounts;
   SolarSystemFilter: SolarSystemFilter;
+  SolarSystemStats: SolarSystemStats;
   SolarSystemsResponse: SolarSystemsResponse;
   SovMapPoint: SovMapPoint;
   SovereigntyAlert: SovereigntyAlert;
@@ -2293,6 +2443,9 @@ export type ResolversParentTypes = {
   SovereigntyOverview: SovereigntyOverview;
   SovereigntyStructureInfo: SovereigntyStructureInfo;
   StandaloneWorkerStatus: StandaloneWorkerStatus;
+  Star: Star;
+  Stargate: Stargate;
+  StargateDestination: StargateDestination;
   StartAllianceSyncInput: StartAllianceSyncInput;
   StartAllianceSyncPayload: StartAllianceSyncPayload;
   StartCategorySyncInput: StartCategorySyncInput;
@@ -2311,6 +2464,7 @@ export type ResolversParentTypes = {
   StartTypeDogmaSyncPayload: StartTypeDogmaSyncPayload;
   StartTypeSyncInput: StartTypeSyncInput;
   StartTypeSyncPayload: StartTypeSyncPayload;
+  Station: Station;
   String: Scalars['String']['output'];
   Subscription: Record<PropertyKey, never>;
   SyncMyKillmailsInput: SyncMyKillmailsInput;
@@ -2436,6 +2590,15 @@ export type AllianceTopTargetResolvers<ContextType = any, ParentType extends Res
 export type AlliancesResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['AlliancesResponse'] = ResolversParentTypes['AlliancesResponse']> = {
   items?: Resolver<Array<ResolversTypes['Alliance']>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+};
+
+export type AsteroidBeltResolvers<ContextType = any, ParentType extends ResolversParentTypes['AsteroidBelt'] = ResolversParentTypes['AsteroidBelt']> = {
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  orbitIndex?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  planet?: Resolver<Maybe<ResolversTypes['Planet']>, ParentType, ContextType>;
+  position?: Resolver<Maybe<ResolversTypes['Position']>, ParentType, ContextType>;
+  solarSystem?: Resolver<Maybe<ResolversTypes['SolarSystem']>, ParentType, ContextType>;
 };
 
 export type AttackerResolvers<ContextType = any, ParentType extends ResolversParentTypes['Attacker'] = ResolversParentTypes['Attacker']> = {
@@ -2748,6 +2911,15 @@ export type KillmailsResponseResolvers<ContextType = any, ParentType extends Res
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
 };
 
+export type MoonResolvers<ContextType = any, ParentType extends ResolversParentTypes['Moon'] = ResolversParentTypes['Moon']> = {
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  orbitIndex?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  planet?: Resolver<Maybe<ResolversTypes['Planet']>, ParentType, ContextType>;
+  position?: Resolver<Maybe<ResolversTypes['Position']>, ParentType, ContextType>;
+  solarSystem?: Resolver<Maybe<ResolversTypes['SolarSystem']>, ParentType, ContextType>;
+};
+
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   authenticateWithCode?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationAuthenticateWithCodeArgs, 'code' | 'state'>>;
@@ -2779,6 +2951,18 @@ export type PageInfoResolvers<ContextType = any, ParentType extends ResolversPar
   hasPreviousPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   totalPages?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type PlanetResolvers<ContextType = any, ParentType extends ResolversParentTypes['Planet'] = ResolversParentTypes['Planet']> = {
+  asteroidBelts?: Resolver<Array<ResolversTypes['AsteroidBelt']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  moons?: Resolver<Array<ResolversTypes['Moon']>, ParentType, ContextType>;
+  name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  orbitIndex?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  position?: Resolver<Maybe<ResolversTypes['Position']>, ParentType, ContextType>;
+  solarSystem?: Resolver<Maybe<ResolversTypes['SolarSystem']>, ParentType, ContextType>;
+  type?: Resolver<Maybe<ResolversTypes['Type']>, ParentType, ContextType>;
+  typeId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
 };
 
 export type PositionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Position'] = ResolversParentTypes['Position']> = {
@@ -2838,6 +3022,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   region?: Resolver<Maybe<ResolversTypes['Region']>, ParentType, ContextType, RequireFields<QueryRegionArgs, 'id'>>;
   regions?: Resolver<ResolversTypes['RegionsResponse'], ParentType, ContextType, Partial<QueryRegionsArgs>>;
   solarSystem?: Resolver<Maybe<ResolversTypes['SolarSystem']>, ParentType, ContextType, RequireFields<QuerySolarSystemArgs, 'id'>>;
+  solarSystemStats?: Resolver<ResolversTypes['SolarSystemStats'], ParentType, ContextType, RequireFields<QuerySolarSystemStatsArgs, 'systemId'>>;
   solarSystems?: Resolver<ResolversTypes['SolarSystemsResponse'], ParentType, ContextType, Partial<QuerySolarSystemsArgs>>;
   sovereigntyActiveCampaigns?: Resolver<Array<ResolversTypes['SovereigntyCampaign']>, ParentType, ContextType, Partial<QuerySovereigntyActiveCampaignsArgs>>;
   sovereigntyCampaignHistory?: Resolver<ResolversTypes['SovereigntyCampaignHistoryPage'], ParentType, ContextType, Partial<QuerySovereigntyCampaignHistoryArgs>>;
@@ -2940,13 +3125,38 @@ export type SlotGroupResolvers<ContextType = any, ParentType extends ResolversPa
 
 export type SolarSystemResolvers<ContextType = any, ParentType extends ResolversParentTypes['SolarSystem'] = ResolversParentTypes['SolarSystem']> = {
   constellation?: Resolver<Maybe<ResolversTypes['Constellation']>, ParentType, ContextType>;
+  counts?: Resolver<ResolversTypes['SolarSystemCounts'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   latestKills?: Resolver<Maybe<ResolversTypes['SystemKills']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  planets?: Resolver<Array<ResolversTypes['Planet']>, ParentType, ContextType>;
   position?: Resolver<Maybe<ResolversTypes['Position']>, ParentType, ContextType>;
   securityStatus?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   security_class?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  star?: Resolver<Maybe<ResolversTypes['Star']>, ParentType, ContextType>;
   star_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  stargates?: Resolver<Array<ResolversTypes['Stargate']>, ParentType, ContextType>;
+  stations?: Resolver<Array<ResolversTypes['Station']>, ParentType, ContextType>;
+};
+
+export type SolarSystemCountsResolvers<ContextType = any, ParentType extends ResolversParentTypes['SolarSystemCounts'] = ResolversParentTypes['SolarSystemCounts']> = {
+  asteroidBelts?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  moons?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  planets?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  sovereigntyStructures?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  stargates?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  stations?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type SolarSystemStatsResolvers<ContextType = any, ParentType extends ResolversParentTypes['SolarSystemStats'] = ResolversParentTypes['SolarSystemStats']> = {
+  busiestHourUtc?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  iskDestroyed7d?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  kills7d?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  kills24h?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  lastKillTime?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  systemId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  totalIskDestroyed?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  totalKills?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
 export type SolarSystemsResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['SolarSystemsResponse'] = ResolversParentTypes['SolarSystemsResponse']> = {
@@ -3052,6 +3262,36 @@ export type StandaloneWorkerStatusResolvers<ContextType = any, ParentType extend
   running?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
 };
 
+export type StarResolvers<ContextType = any, ParentType extends ResolversParentTypes['Star'] = ResolversParentTypes['Star']> = {
+  age?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  luminosity?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  radius?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  solarSystem?: Resolver<Maybe<ResolversTypes['SolarSystem']>, ParentType, ContextType>;
+  spectralClass?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  temperature?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  type?: Resolver<Maybe<ResolversTypes['Type']>, ParentType, ContextType>;
+  typeId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+};
+
+export type StargateResolvers<ContextType = any, ParentType extends ResolversParentTypes['Stargate'] = ResolversParentTypes['Stargate']> = {
+  destination?: Resolver<Maybe<ResolversTypes['StargateDestination']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  position?: Resolver<Maybe<ResolversTypes['Position']>, ParentType, ContextType>;
+  solarSystem?: Resolver<Maybe<ResolversTypes['SolarSystem']>, ParentType, ContextType>;
+  type?: Resolver<Maybe<ResolversTypes['Type']>, ParentType, ContextType>;
+  typeId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+};
+
+export type StargateDestinationResolvers<ContextType = any, ParentType extends ResolversParentTypes['StargateDestination'] = ResolversParentTypes['StargateDestination']> = {
+  destinationStargateId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  destinationSystemId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  stargate?: Resolver<Maybe<ResolversTypes['Stargate']>, ParentType, ContextType>;
+  system?: Resolver<Maybe<ResolversTypes['SolarSystem']>, ParentType, ContextType>;
+};
+
 export type StartAllianceSyncPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['StartAllianceSyncPayload'] = ResolversParentTypes['StartAllianceSyncPayload']> = {
   clientMutationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -3105,6 +3345,23 @@ export type StartTypeSyncPayloadResolvers<ContextType = any, ParentType extends 
   clientMutationId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+};
+
+export type StationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Station'] = ResolversParentTypes['Station']> = {
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  maxDockableShipVolume?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  officeRentalCost?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  ownerCorporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType>;
+  ownerCorporationId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  position?: Resolver<Maybe<ResolversTypes['Position']>, ParentType, ContextType>;
+  raceId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  reprocessingEfficiency?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  reprocessingStationsTake?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  services?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  solarSystem?: Resolver<Maybe<ResolversTypes['SolarSystem']>, ParentType, ContextType>;
+  type?: Resolver<Maybe<ResolversTypes['Type']>, ParentType, ContextType>;
+  typeId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
 };
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
@@ -3285,6 +3542,7 @@ export type Resolvers<ContextType = any> = {
   AllianceTerritoryRank?: AllianceTerritoryRankResolvers<ContextType>;
   AllianceTopTarget?: AllianceTopTargetResolvers<ContextType>;
   AlliancesResponse?: AlliancesResponseResolvers<ContextType>;
+  AsteroidBelt?: AsteroidBeltResolvers<ContextType>;
   Attacker?: AttackerResolvers<ContextType>;
   AuthPayload?: AuthPayloadResolvers<ContextType>;
   AuthUrl?: AuthUrlResolvers<ContextType>;
@@ -3320,8 +3578,10 @@ export type Resolvers<ContextType = any> = {
   KillmailDateCount?: KillmailDateCountResolvers<ContextType>;
   KillmailItem?: KillmailItemResolvers<ContextType>;
   KillmailsResponse?: KillmailsResponseResolvers<ContextType>;
+  Moon?: MoonResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;
+  Planet?: PlanetResolvers<ContextType>;
   Position?: PositionResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   QueueStatus?: QueueStatusResolvers<ContextType>;
@@ -3335,6 +3595,8 @@ export type Resolvers<ContextType = any> = {
   ShipTopKill?: ShipTopKillResolvers<ContextType>;
   SlotGroup?: SlotGroupResolvers<ContextType>;
   SolarSystem?: SolarSystemResolvers<ContextType>;
+  SolarSystemCounts?: SolarSystemCountsResolvers<ContextType>;
+  SolarSystemStats?: SolarSystemStatsResolvers<ContextType>;
   SolarSystemsResponse?: SolarSystemsResponseResolvers<ContextType>;
   SovMapPoint?: SovMapPointResolvers<ContextType>;
   SovereigntyAlert?: SovereigntyAlertResolvers<ContextType>;
@@ -3344,6 +3606,9 @@ export type Resolvers<ContextType = any> = {
   SovereigntyOverview?: SovereigntyOverviewResolvers<ContextType>;
   SovereigntyStructureInfo?: SovereigntyStructureInfoResolvers<ContextType>;
   StandaloneWorkerStatus?: StandaloneWorkerStatusResolvers<ContextType>;
+  Star?: StarResolvers<ContextType>;
+  Stargate?: StargateResolvers<ContextType>;
+  StargateDestination?: StargateDestinationResolvers<ContextType>;
   StartAllianceSyncPayload?: StartAllianceSyncPayloadResolvers<ContextType>;
   StartCategorySyncPayload?: StartCategorySyncPayloadResolvers<ContextType>;
   StartConstellationSyncPayload?: StartConstellationSyncPayloadResolvers<ContextType>;
@@ -3353,6 +3618,7 @@ export type Resolvers<ContextType = any> = {
   StartRegionSyncPayload?: StartRegionSyncPayloadResolvers<ContextType>;
   StartTypeDogmaSyncPayload?: StartTypeDogmaSyncPayloadResolvers<ContextType>;
   StartTypeSyncPayload?: StartTypeSyncPayloadResolvers<ContextType>;
+  Station?: StationResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
   SyncMyKillmailsPayload?: SyncMyKillmailsPayloadResolvers<ContextType>;
   SystemKills?: SystemKillsResolvers<ContextType>;
