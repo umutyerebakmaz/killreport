@@ -35,6 +35,16 @@ Bu bölüm her görevin gereksinimlerine örtük olarak dahildir.
   `yarn workspace frontend build`, ve veri için `psql` sorguları.
 - **Doğrulama kanıt ister.** Bir adımı tamamlandı saymadan önce komutu
   çalıştırıp çıktısını görmek zorunludur. Çıktısız "geçti" beyanı yasak.
+- **Görsel/UI doğrulaması kullanıcıya ait.** Hiçbir görev tarayıcı açmıyor,
+  ekran görüntüsü almıyor ya da sayfayı gezmiyor — bu yavaşlatıyor ve görsel
+  yargı kullanıcının. Frontend görevleri `yarn lint` + `yarn build` ile
+  doğrulanıyor; veri doğruluğu gerektiğinde backend'e doğrudan GraphQL sorgusu
+  atılarak kontrol ediliyor. Görev bitince kullanıcıya neye bakması gerektiği
+  tek satırda söyleniyor.
+- **Her worker kendi başına.** Ortak runner, paylaşılan yardımcı modül ya da
+  fabrika yok; her `queue-*` / `worker-*` çifti repodaki mevcut dosyalar gibi
+  bağımsız. Bu, aynı rate limit kodunun altı dosyada tekrarlanması demek ve
+  bilinçli bir tercih.
 - **ESI çağrı kuralları.** Her yeni worker şu davranışı birebir taşır: istekler
   arası `RATE_LIMIT_DELAY = 100` ms, `x-esi-error-limit-remain < 20` ise 2 sn
   bekle, HTTP 420'de 60 sn bekleyip mesajı requeue et (throw), HTTP 404'te
@@ -92,9 +102,8 @@ Bu bölüm her görevin gereksinimlerine örtük olarak dahildir.
 | `prisma/schema/moon.prisma` | `Moon` modeli |
 | `prisma/schema/asteroidBelt.prisma` | `AsteroidBelt` modeli |
 | `prisma/schema/station.prisma` | `Station` modeli |
-| `src/workers/lib/celestial-worker.ts` | Altı gök cismi worker'ının paylaştığı RabbitMQ tüketme + rate limit + özet döngüsü |
-| `src/queues/queue-{stargates,stars,stations,planets,moons,asteroid-belts}.ts` | Altı zenginleştirme kuyruğu (`WHERE name IS NULL`) |
-| `src/workers/worker-{stargates,stars,stations,planets,moons,asteroid-belts}.ts` | Altı worker; her biri yalnızca endpoint + upsert eşlemesi tanımlar |
+| `src/queues/queue-{stargates,stars,stations,planets,moons,asteroid-belts}.ts` | Altı zenginleştirme kuyruğu (`WHERE name IS NULL`), her biri kendi başına |
+| `src/workers/worker-{stargates,stars,stations,planets,moons,asteroid-belts}.ts` | Altı worker, her biri kendi başına: RabbitMQ döngüsü ve rate limit davranışı dosyanın içinde |
 | `src/schemas/SolarSystemTopology.graphql` | `Stargate`, `StargateDestination`, `Star`, `Planet`, `Moon`, `AsteroidBelt`, `Station`, `SolarSystemCounts`, `SolarSystemStats` tipleri ve `SolarSystem` uzantısı |
 | `src/resolvers/solar-system/topology-fields.ts` | `stargates`, `planets`, `stations`, `star`, `counts` alan resolver'ları ve alt tiplerin resolver'ları |
 
@@ -127,26 +136,6 @@ dokuz bileşen; `src/components/SystemActivityChart/SystemActivityChart.tsx`;
 `src/app/solar-systems/[id]/page.tsx` (kabuğa iniyor),
 `src/graphql/SolarSystems.graphql` (detay sorgusu çıkarılıyor), ve
 `TopEntitySidebar`'ı benimseyen üç sayfa.
-
----
-
-## Spec'ten Sapan Tek Karar
-
-Spec §7.3 altı worker'ın "repodaki mevcut kalıpla birebir aynı yapıda"
-yazılmasını söylüyor — yani her biri kendi RabbitMQ döngüsünü, sayaçlarını ve
-rate limit mantığını taşıyan ~170 satırlık bağımsız dosyalar. Bu plan bunun
-yerine ortak döngüyü `src/workers/lib/celestial-worker.ts`'e çıkarıyor; her
-worker ~40 satıra iniyor ve yalnızca kendi endpoint'ini ve upsert eşlemesini
-tanımlıyor. Davranış (rate limit, 420/404 işleme, tamamlanma özeti) birebir
-korunuyor.
-
-**Gerekçe:** altı kopya × 170 satır = ~1000 satır tekrar, ve bir rate limit
-düzeltmesi altı yerde birden yapılmak zorunda kalır. Mevcut worker'lar bu ortak
-kodu paylaşmıyor çünkü hiçbir zaman altısı birden aynı anda yazılmadı.
-
-**Bunu istemiyorsanız:** Görev 3'teki `celestial-worker.ts` atlanır ve Görev
-4–9'daki her worker `worker-solar-systems.ts` kopyalanarak yazılır. Plandaki
-diğer hiçbir şey değişmez.
 
 ---
 
@@ -741,225 +730,22 @@ already-in-the-database check lives."
 
 ---
 
-### Görev 3: Ortak zenginleştirme altyapısı + stargate çifti
+### Görev 3: Stargate çifti
 
 **Dosyalar:**
-- Oluştur: `backend/src/queues/lib/queue-missing-names.ts`
-- Oluştur: `backend/src/workers/lib/celestial-worker.ts`
 - Oluştur: `backend/src/queues/queue-stargates.ts`
 - Oluştur: `backend/src/workers/worker-stargates.ts`
 - Değiştir: `backend/package.json`
 
 **Arayüzler:**
-- Tüketir: Görev 2'nin yazdığı isimsiz satırlar.
-- Üretir:
-  - `queueIdsMissingNames(queueName: string, ids: number[], label: string): Promise<void>`
-  - `startCelestialWorker(config: CelestialWorkerConfig): Promise<void>` ve
-    `interface CelestialWorkerConfig { label: string; queueName: string; endpoint: string; save: (id: number, data: any) => Promise<void> }`
-  - Görev 4–9 bu iki fonksiyonu doğrudan kullanıyor.
-  - `stargates.destination_system_id` dolu — Adjacent sekmesinin tek kaynağı.
+- Tüketir: Görev 2'nin yazdığı isimsiz `stargates` satırları.
+- Üretir: `stargates.destination_system_id` dolu — Adjacent sekmesinin tek kaynağı.
 
-- [ ] **Adım 1: Kuyruk yardımcısını yaz**
+Bu çift, repodaki mevcut `queue-*` / `worker-*` dosyaları gibi **tamamen kendi
+başına**: ortak bir runner ya da yardımcı modül kullanmıyor, RabbitMQ döngüsünü
+ve rate limit davranışını kendi içinde taşıyor.
 
-`backend/src/queues/lib/queue-missing-names.ts`:
-
-```ts
-import logger from '@services/logger';
-import { getRabbitMQChannel } from '@services/rabbitmq';
-
-/**
- * Pushes a list of celestial IDs onto a durable queue.
- *
- * These are enrichment queues, not root scanners: the caller reads the IDs out
- * of the database with `WHERE name IS NULL`, so a re-run naturally queues only
- * what is still missing. ESI has no list endpoint for moons, asteroid belts or
- * stars, so the database is the only possible source anyway.
- */
-export async function queueIdsMissingNames(
-  queueName: string,
-  ids: number[],
-  label: string
-): Promise<void> {
-  logger.info(`${label} queue script started`);
-  logger.info('━'.repeat(70));
-
-  if (ids.length === 0) {
-    logger.info(`Nothing to do: every ${label.toLowerCase()} row already has a name.`);
-    return;
-  }
-
-  logger.info(`Found ${ids.length} ${label.toLowerCase()} rows with no name`);
-
-  const channel = await getRabbitMQChannel();
-  await channel.assertQueue(queueName, { durable: true });
-
-  for (const id of ids) {
-    channel.sendToQueue(queueName, Buffer.from(id.toString()), { persistent: true });
-  }
-
-  logger.info(`Queued ${ids.length} messages to ${queueName}`);
-  await channel.close();
-}
-```
-
-- [ ] **Adım 2: Ortak worker döngüsünü yaz**
-
-`backend/src/workers/lib/celestial-worker.ts`:
-
-```ts
-import axios from 'axios';
-import logger from '@services/logger';
-import prismaWorker from '@services/prisma-worker';
-import { getRabbitMQChannel } from '@services/rabbitmq';
-
-const ESI_BASE_URL = 'https://esi.evetech.net/latest';
-const RATE_LIMIT_DELAY = 100; // 10 requests per second
-
-export interface CelestialWorkerConfig {
-  /** Shown in log banners, e.g. "Stargate". */
-  label: string;
-  /** RabbitMQ queue to consume, e.g. "esi_stargates_queue". */
-  queueName: string;
-  /** ESI path segment, e.g. "stargates" for /universe/stargates/{id}/. */
-  endpoint: string;
-  /**
-   * Persists one ESI response.
-   *
-   * `id` comes from the queue message and NOT from the response body:
-   * /universe/asteroid_belts/{id}/ and /universe/stars/{id}/ do not echo their
-   * own ID.
-   */
-  save: (id: number, data: any) => Promise<void>;
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function printCompletionSummary(
-  label: string,
-  processedCount: number,
-  errorCount: number,
-  startTime: number
-) {
-  const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-  logger.info('\n' + '='.repeat(60));
-  logger.info(`🎉 ALL ${label.toUpperCase()} TASKS COMPLETED!`);
-  logger.info('='.repeat(60));
-  logger.info(`✅ Processed: ${processedCount}`);
-  logger.info(`❌ Errors: ${errorCount}`);
-  logger.info(`📊 Total: ${processedCount + errorCount}`);
-  logger.info(`⏱️  Duration: ${duration}s`);
-  logger.info('='.repeat(60));
-  logger.info('\n💡 Queue is empty, waiting for new messages...');
-  logger.info('   Press CTRL+C to stop.\n');
-}
-
-/**
- * Shared consume loop for the six celestial enrichment workers.
- *
- * Rate-limit behaviour is copied verbatim from worker-solar-systems.ts:
- * RATE_LIMIT_DELAY between requests, back off when x-esi-error-limit-remain
- * drops below 20, wait 60s and requeue on 420, warn and skip on 404.
- */
-export async function startCelestialWorker(config: CelestialWorkerConfig): Promise<void> {
-  const { label, queueName, endpoint, save } = config;
-
-  try {
-    const channel = await getRabbitMQChannel();
-
-    let processedCount = 0;
-    let errorCount = 0;
-    const startTime = Date.now();
-
-    logger.info(`🚀 ${label} Worker Started`);
-    logger.info('==========================');
-    logger.info(`📡 Listening to queue: ${queueName}`);
-    logger.info(`⏱️  Rate limit: ${1000 / RATE_LIMIT_DELAY} requests/second\n`);
-
-    await channel.assertQueue(queueName, { durable: true });
-
-    const queueInfo = await channel.checkQueue(queueName);
-    logger.info(`📊 Queue status: ${queueInfo.messageCount} messages waiting\n`);
-
-    channel.prefetch(1);
-
-    channel.consume(
-      queueName,
-      async (msg) => {
-        if (!msg) return;
-
-        const id = parseInt(msg.content.toString());
-
-        if (isNaN(id)) {
-          logger.error(`❌ Invalid ${label} ID:`, msg.content.toString());
-          channel.ack(msg);
-          errorCount++;
-          return;
-        }
-
-        try {
-          const response = await axios.get(`${ESI_BASE_URL}/universe/${endpoint}/${id}/`);
-
-          const errorLimitRemain = response.headers['x-esi-error-limit-remain'];
-          if (errorLimitRemain && parseInt(errorLimitRemain) < 20) {
-            logger.warn(`⚠️  Error limit low (${errorLimitRemain}/100), slowing down...`);
-            await sleep(2000);
-          }
-
-          await save(id, response.data);
-          logger.debug(`✅ Saved ${label.toLowerCase()} ${id} - ${response.data.name ?? '(unnamed)'}`);
-
-          await sleep(RATE_LIMIT_DELAY);
-          processedCount++;
-          channel.ack(msg);
-        } catch (error: any) {
-          if (error.response?.status === 404) {
-            // A dead ID. Acking keeps it out of the queue; the row simply keeps
-            // its NULL name and shows up in the completeness check.
-            logger.warn(`⚠️  ${label} ${id} not found (404)`);
-            errorCount++;
-            channel.ack(msg);
-          } else if (error.response?.status === 420) {
-            logger.warn(`🛑 Error limited (420)! Waiting 60 seconds...`);
-            await sleep(60000);
-            errorCount++;
-            channel.nack(msg, false, true); // requeue
-          } else {
-            logger.error(`❌ Error processing ${label.toLowerCase()} ${id}:`, error.message);
-            errorCount++;
-            channel.nack(msg, false, false);
-          }
-        }
-
-        const currentQueue = await channel.checkQueue(queueName);
-        if (currentQueue.messageCount === 0) {
-          printCompletionSummary(label, processedCount, errorCount, startTime);
-        }
-      },
-      { noAck: false }
-    );
-
-    process.on('SIGINT', async () => {
-      logger.warn('\n\n🛑 Shutting down worker...');
-      await channel.close();
-      await prismaWorker.$disconnect();
-      logger.info('✅ Worker stopped gracefully');
-      process.exit(0);
-    });
-  } catch (error) {
-    logger.error(`❌ Failed to start ${label} worker:`, error);
-    process.exit(1);
-  }
-}
-```
-
-404 davranışı `worker-solar-systems`'ten bilinçli olarak ayrılıyor: orada 404
-`throw` edilip mesaj `nack` ile düşürülüyor; burada mesaj `ack`leniyor çünkü ölü
-bir ID'nin kuyruğa geri dönmesinin anlamı yok ve satır zaten `name IS NULL`
-kalarak tamlık kontrolünde (Görev 22) görünüyor.
-
-- [ ] **Adım 3: Stargate kuyruk scriptini yaz**
+- [ ] **Adım 1: Kuyruk scriptini yaz**
 
 `backend/src/queues/queue-stargates.ts`:
 
@@ -973,25 +759,59 @@ kalarak tamlık kontrolünde (Görev 22) görünüyor.
  * Usage: yarn queue:stargates
  */
 
+import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { queueIdsMissingNames } from './lib/queue-missing-names';
+import { getRabbitMQChannel } from '@services/rabbitmq';
 
-async function main() {
-  const rows = await prismaWorker.stargate.findMany({
-    where: { name: null },
-    select: { id: true },
-    orderBy: { id: 'asc' },
-  });
+const QUEUE_NAME = 'esi_stargates_queue';
 
-  await queueIdsMissingNames('esi_stargates_queue', rows.map((r) => r.id), 'Stargate');
-  await prismaWorker.$disconnect();
-  process.exit(0);
+async function queueStargates() {
+  logger.info('Stargate queue script started');
+  logger.info('\u2501'.repeat(70));
+
+  try {
+    // Enrichment queue, not a root scan: the IDs come from the database with
+    // WHERE name IS NULL, so a re-run queues only what is still missing. ESI has
+    // no list endpoint for moons, asteroid belts or stars anyway.
+    const rows = await prismaWorker.stargate.findMany({
+      where: { name: null },
+      select: { id: true },
+      orderBy: { id: 'asc' },
+    });
+
+    if (rows.length === 0) {
+      logger.info('Nothing to do: every stargate row already has a name.');
+      await prismaWorker.$disconnect();
+      process.exit(0);
+    }
+
+    logger.info(`Found ${rows.length} stargate rows with no name`);
+
+    const channel = await getRabbitMQChannel();
+    await channel.assertQueue(QUEUE_NAME, { durable: true });
+
+    for (const row of rows) {
+      channel.sendToQueue(QUEUE_NAME, Buffer.from(row.id.toString()), {
+        persistent: true,
+      });
+    }
+
+    logger.info(`Queued ${rows.length} messages to ${QUEUE_NAME}`);
+    logger.info('Now run the worker to process them: yarn worker:stargates');
+
+    await channel.close();
+    await prismaWorker.$disconnect();
+    process.exit(0);
+  } catch (error) {
+    logger.error('Failed to queue stargates', { error });
+    process.exit(1);
+  }
 }
 
-main();
+queueStargates();
 ```
 
-- [ ] **Adım 4: Stargate worker'ını yaz**
+- [ ] **Adım 2: Worker'ı yaz**
 
 `backend/src/workers/worker-stargates.ts`:
 
@@ -1006,14 +826,33 @@ main();
  * Usage: yarn worker:stargates
  */
 
+import axios from 'axios';
+import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { startCelestialWorker } from './lib/celestial-worker';
+import { getRabbitMQChannel } from '@services/rabbitmq';
 
-startCelestialWorker({
-  label: 'Stargate',
-  queueName: 'esi_stargates_queue',
-  endpoint: 'stargates',
-  save: async (id, data) => {
+const ESI_BASE_URL = 'https://esi.evetech.net/latest';
+const QUEUE_NAME = 'esi_stargates_queue';
+const RATE_LIMIT_DELAY = 100; // Wait 100ms between each request (10 requests per second)
+
+/**
+ * Fetches one stargate from ESI and writes it to the database.
+ *
+ * The row already exists — step 2 created it — so this is an update, not an
+ * upsert. `id` comes from the queue message rather than the response body.
+ */
+async function processStargates(id: number): Promise<void> {
+  try {
+    const response = await axios.get(`${ESI_BASE_URL}/universe/stargates/${id}/`);
+    const data = response.data;
+
+    // Check rate limit headers
+    const errorLimitRemain = response.headers['x-esi-error-limit-remain'];
+    if (errorLimitRemain && parseInt(errorLimitRemain) < 20) {
+      logger.warn(`\u26a0\ufe0f  Error limit low (${errorLimitRemain}/100), slowing down...`);
+      await sleep(2000);
+    }
+
     await prismaWorker.stargate.update({
       where: { id },
       data: {
@@ -1026,8 +865,116 @@ startCelestialWorker({
         position_z: data.position?.z ?? null,
       },
     });
-  },
-});
+
+    logger.debug(`\u2705 Saved stargate ${id} - ${data.name ?? '(unnamed)'}`);
+
+    await sleep(RATE_LIMIT_DELAY);
+  } catch (error: any) {
+    if (error.response?.status === 420) {
+      logger.warn(`\ud83d\uded1 Error limited (420)! Waiting 60 seconds...`);
+      await sleep(60000);
+    }
+    throw error;
+  }
+}
+
+function printCompletionSummary(
+  processedCount: number,
+  errorCount: number,
+  startTime: number
+) {
+  const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+  logger.info('\n' + '='.repeat(60));
+  logger.info('\ud83c\udf89 ALL TASKS COMPLETED!');
+  logger.info('='.repeat(60));
+  logger.info(`\u2705 Processed: ${processedCount}`);
+  logger.info(`\u274c Errors: ${errorCount}`);
+  logger.info(`\ud83d\udcca Total: ${processedCount + errorCount}`);
+  logger.info(`\u23f1\ufe0f  Duration: ${duration}s`);
+  logger.info('='.repeat(60));
+  logger.info('\n\ud83d\udca1 Queue is empty, waiting for new messages...');
+  logger.info('   Press CTRL+C to stop.\n');
+}
+
+async function startWorker() {
+  try {
+    const channel = await getRabbitMQChannel();
+
+    let processedCount = 0;
+    let errorCount = 0;
+    const startTime = Date.now();
+
+    logger.info('\ud83d\ude80 Stargate Worker Started');
+    logger.info('==========================');
+    logger.info(`\ud83d\udce1 Listening to queue: ${QUEUE_NAME}`);
+    logger.info(`\u23f1\ufe0f  Rate limit: ${1000 / RATE_LIMIT_DELAY} requests/second\n`);
+
+    await channel.assertQueue(QUEUE_NAME, { durable: true });
+
+    const queueInfo = await channel.checkQueue(QUEUE_NAME);
+    logger.info(`\ud83d\udcca Queue status: ${queueInfo.messageCount} messages waiting\n`);
+
+    channel.prefetch(1);
+
+    channel.consume(
+      QUEUE_NAME,
+      async (msg) => {
+        if (!msg) return;
+
+        const id = parseInt(msg.content.toString());
+
+        if (isNaN(id)) {
+          logger.error('\u274c Invalid stargate ID:', msg.content.toString());
+          channel.ack(msg);
+          errorCount++;
+          return;
+        }
+
+        try {
+          await processStargates(id);
+          processedCount++;
+          channel.ack(msg);
+        } catch (error: any) {
+          errorCount++;
+          if (error.response?.status === 404) {
+            // A dead ID. Ack it: requeueing would loop forever, and the row keeps
+            // its NULL name so it still shows up in the completeness check.
+            logger.warn(`\u26a0\ufe0f  Stargate ${id} not found (404)`);
+            channel.ack(msg);
+          } else if (error.response?.status === 420) {
+            channel.nack(msg, false, true); // requeue after the 60s wait
+          } else {
+            logger.error(`\u274c Error processing stargate ${id}:`, error.message);
+            channel.nack(msg, false, false);
+          }
+        }
+
+        const currentQueue = await channel.checkQueue(QUEUE_NAME);
+        if (currentQueue.messageCount === 0) {
+          printCompletionSummary(processedCount, errorCount, startTime);
+        }
+      },
+      { noAck: false }
+    );
+
+    process.on('SIGINT', async () => {
+      logger.warn('\n\n\ud83d\uded1 Shutting down worker...');
+      await channel.close();
+      await prismaWorker.$disconnect();
+      logger.info('\u2705 Worker stopped gracefully');
+      process.exit(0);
+    });
+  } catch (error) {
+    logger.error('\u274c Failed to start worker:', error);
+    process.exit(1);
+  }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+startWorker();
 ```
 
 `update` kullanılıyor, `upsert` değil: satır Görev 2'de yaratılmış olmalı ve
@@ -1035,21 +982,19 @@ kuyruk zaten veritabanından okuduğu için her zaman var. Satır yoksa Prisma
 `P2025` fırlatır ve worker mesajı düşürür — bu doğru davranış, sessiz bir
 no-op'tan iyi.
 
-- [ ] **Adım 5: `package.json`'a iki script ekle**
+404 davranışı `worker-solar-systems`'ten bilinçli olarak ayrılıyor: orada 404
+`throw` edilip mesaj `nack` ile düşürülüyor; burada mesaj `ack`leniyor çünkü ölü
+bir ID'nin kuyruğa geri dönmesinin anlamı yok ve satır zaten `name IS NULL`
+kalarak tamlık kontrolünde (Görev 22) görünüyor.
 
-`backend/package.json` içindeki `"queue:solar-systems"` satırının hemen altına:
+- [ ] **Adım 3: `package.json`'a iki script ekle**
 
 ```json
     "queue:stargates": "tsx src/queues/queue-stargates.ts",
-```
-
-ve `"worker:solar-systems"` satırının hemen altına:
-
-```json
     "worker:stargates": "tsx src/workers/worker-stargates.ts",
 ```
 
-- [ ] **Adım 6: Derle**
+- [ ] **Adım 4: Derle**
 
 ```bash
 cd backend && yarn build
@@ -1057,56 +1002,42 @@ cd backend && yarn build
 
 Beklenen: hatasız.
 
-- [ ] **Adım 7: 4-HWWF'nin stargate'leriyle doğrula**
+- [ ] **Adım 5: Çalıştır**
 
-Görev 2 Adım 4'teki üç sistem işlenmiş olmalı. Worker'ı başlat:
+Bir terminalde `cd backend && yarn worker:stargates`, diğerinde
+`cd backend && yarn queue:stargates`. Worker tamamlanma özetini basana kadar
+bekle.
 
-```bash
-cd backend && yarn worker:stargates
-```
-
-Başka bir terminalde:
+- [ ] **Adım 6: Veriyi backend'den doğrula**
 
 ```bash
-cd backend && yarn queue:stargates
+curl -s http://localhost:4000/graphql -H 'Content-Type: application/json' \
+  -d '{"query":"{ solarSystem(id: 30000240) { stargates { name destination { system { id name securityStatus constellation { name region { name } } } } } } }"}' | jq
 ```
 
-Beklenen: kuyruk scripti "Found 11 stargate rows with no name" civarı bir sayı
-yazar (4 + 7 + 0), worker onları işler ve tamamlanma özetini basar.
-
-```sql
-SELECT id, name, destination_system_id, destination_stargate_id, type_id
-FROM stargates WHERE solar_system_id = 30000240 ORDER BY id;
-```
-
-Beklenen: dört satır, hepsinde isim (`Stargate (...)` biçiminde),
-`destination_system_id` dolu. `50001395` satırı için
-`destination_system_id = 30000239`, `destination_stargate_id = 50001029`,
-`type_id = 16`.
-
-- [ ] **Adım 8: Kuyruğun idempotent olduğunu doğrula**
+Beklenen: dört stargate, her birinde `destination.system` dolu.
+Thera (31000005) için `stargates` boş dizi.
 
 ```bash
-cd backend && yarn queue:stargates
+curl -s http://localhost:4000/graphql -H 'Content-Type: application/json' \
+  -d '{"query":"{ sovereigntyStructures(systemId: 30000142, limit: 50) { structureId } sovereigntyActiveCampaigns(systemId: 30000142) { campaignId } }"}' | jq
 ```
 
-Beklenen: `Nothing to do: every stargate row already has a name.` — hiç mesaj
-üretilmemeli. Bu, zenginleştirme kuyruklarının tekrar çalıştırılabilirliğinin
-kanıtı.
+Beklenen: Jita için ikisi de boş dizi.
 
-- [ ] **Adım 9: Commit**
+Kullanıcıya şunu bak diye söyle: Adjacent tablosundaki sistem/constellation/region
+linklerinin doğru sayfalara gitmesi, ve sov tutulan bir sistemde header'daki
+`SOVEREIGNTY` çipinin çıkması, Jita'da çıkmaması.
+
+- [ ] **Adım 7: Commit**
 
 ```bash
-git add backend/src/queues backend/src/workers backend/package.json
+git add backend/src/queues/queue-stargates.ts backend/src/workers/worker-stargates.ts backend/package.json
 git commit -m "feat(worker): add the stargate enrichment queue and worker
 
-Introduce the two pieces the remaining five celestial pairs will reuse:
-queueIdsMissingNames(), which turns a 'WHERE name IS NULL' result into queue
-messages, and startCelestialWorker(), which carries the consume loop and the
-rate-limit behaviour copied from worker-solar-systems.
-
-The stargate worker is first in the run order because destination_system_id is
-written nowhere else and the Adjacent tab has no other source.
+Reads stargate IDs with no name out of the database and resolves them. First in
+the run order because destination_system_id is written nowhere else and the
+Adjacent tab has no other source.
 
 Unlike the root scanner, a 404 here acks the message: a dead ID has no reason to
 return to the queue, and the row stays visible in the NULL-name completeness
@@ -1118,15 +1049,17 @@ check."
 ### Görev 4: Star çifti
 
 **Dosyalar:**
-- Oluştur: `backend/src/queues/queue-stars.ts`, `backend/src/workers/worker-stars.ts`
+- Oluştur: `backend/src/queues/queue-stars.ts`
+- Oluştur: `backend/src/workers/worker-stars.ts`
 - Değiştir: `backend/package.json`
 
 **Arayüzler:**
-- Tüketir: Görev 3'ün `queueIdsMissingNames` ve `startCelestialWorker`
-  fonksiyonları; Görev 2'nin yazdığı isimsiz `stars` satırları.
-- Üretir: `stars` tablosunda `name`, `type_id`, `spectral_class`,
-  `temperature`, `radius`, `age`, `luminosity`. Görev 12'nin `star` alan
-  resolver'ı bunları okuyor.
+- Tüketir: Görev 2'nin yazdığı isimsiz `stars` satırları.
+- Üretir: `stars` tablosunda `name`, `type_id`, `spectral_class`, `temperature`, `radius`, `age`, `luminosity`. Görev 12'nin `star` alan resolver'ı bunları okuyor.
+
+Bu çift, repodaki mevcut `queue-*` / `worker-*` dosyaları gibi **tamamen kendi
+başına**: ortak bir runner ya da yardımcı modül kullanmıyor, RabbitMQ döngüsünü
+ve rate limit davranışını kendi içinde taşıyor.
 
 - [ ] **Adım 1: Kuyruk scriptini yaz**
 
@@ -1136,25 +1069,62 @@ check."
 /**
  * Queue Stars Script
  *
+ * Reads star IDs that still have no name out of the database and queues
+ * them for enrichment. Row creation happens in step 2 (worker-solar-systems).
+ *
  * Usage: yarn queue:stars
  */
 
+import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { queueIdsMissingNames } from './lib/queue-missing-names';
+import { getRabbitMQChannel } from '@services/rabbitmq';
 
-async function main() {
-  const rows = await prismaWorker.star.findMany({
-    where: { name: null },
-    select: { id: true },
-    orderBy: { id: 'asc' },
-  });
+const QUEUE_NAME = 'esi_stars_queue';
 
-  await queueIdsMissingNames('esi_stars_queue', rows.map((r) => r.id), 'Star');
-  await prismaWorker.$disconnect();
-  process.exit(0);
+async function queueStars() {
+  logger.info('Star queue script started');
+  logger.info('\u2501'.repeat(70));
+
+  try {
+    // Enrichment queue, not a root scan: the IDs come from the database with
+    // WHERE name IS NULL, so a re-run queues only what is still missing. ESI has
+    // no list endpoint for moons, asteroid belts or stars anyway.
+    const rows = await prismaWorker.star.findMany({
+      where: { name: null },
+      select: { id: true },
+      orderBy: { id: 'asc' },
+    });
+
+    if (rows.length === 0) {
+      logger.info('Nothing to do: every star row already has a name.');
+      await prismaWorker.$disconnect();
+      process.exit(0);
+    }
+
+    logger.info(`Found ${rows.length} star rows with no name`);
+
+    const channel = await getRabbitMQChannel();
+    await channel.assertQueue(QUEUE_NAME, { durable: true });
+
+    for (const row of rows) {
+      channel.sendToQueue(QUEUE_NAME, Buffer.from(row.id.toString()), {
+        persistent: true,
+      });
+    }
+
+    logger.info(`Queued ${rows.length} messages to ${QUEUE_NAME}`);
+    logger.info('Now run the worker to process them: yarn worker:stars');
+
+    await channel.close();
+    await prismaWorker.$disconnect();
+    process.exit(0);
+  } catch (error) {
+    logger.error('Failed to queue stars', { error });
+    process.exit(1);
+  }
 }
 
-main();
+queueStars();
 ```
 
 - [ ] **Adım 2: Worker'ı yaz**
@@ -1167,21 +1137,40 @@ main();
  *
  * Resolves /universe/stars/{id}/ into the stars table.
  *
- * NOTE: the response does NOT contain star_id, so the upsert key comes from the
+ * NOTE: the response does NOT contain star_id, so the update key comes from the
  * queue message. It also contains no `position` — a star sits at the centre of
  * its system.
  *
  * Usage: yarn worker:stars
  */
 
+import axios from 'axios';
+import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { startCelestialWorker } from './lib/celestial-worker';
+import { getRabbitMQChannel } from '@services/rabbitmq';
 
-startCelestialWorker({
-  label: 'Star',
-  queueName: 'esi_stars_queue',
-  endpoint: 'stars',
-  save: async (id, data) => {
+const ESI_BASE_URL = 'https://esi.evetech.net/latest';
+const QUEUE_NAME = 'esi_stars_queue';
+const RATE_LIMIT_DELAY = 100; // Wait 100ms between each request (10 requests per second)
+
+/**
+ * Fetches one star from ESI and writes it to the database.
+ *
+ * The row already exists — step 2 created it — so this is an update, not an
+ * upsert. `id` comes from the queue message rather than the response body.
+ */
+async function processStars(id: number): Promise<void> {
+  try {
+    const response = await axios.get(`${ESI_BASE_URL}/universe/stars/${id}/`);
+    const data = response.data;
+
+    // Check rate limit headers
+    const errorLimitRemain = response.headers['x-esi-error-limit-remain'];
+    if (errorLimitRemain && parseInt(errorLimitRemain) < 20) {
+      logger.warn(`\u26a0\ufe0f  Error limit low (${errorLimitRemain}/100), slowing down...`);
+      await sleep(2000);
+    }
+
     await prismaWorker.star.update({
       where: { id },
       data: {
@@ -1194,9 +1183,120 @@ startCelestialWorker({
         luminosity: data.luminosity ?? null,
       },
     });
-  },
-});
+
+    logger.debug(`\u2705 Saved star ${id} - ${data.name ?? '(unnamed)'}`);
+
+    await sleep(RATE_LIMIT_DELAY);
+  } catch (error: any) {
+    if (error.response?.status === 420) {
+      logger.warn(`\ud83d\uded1 Error limited (420)! Waiting 60 seconds...`);
+      await sleep(60000);
+    }
+    throw error;
+  }
+}
+
+function printCompletionSummary(
+  processedCount: number,
+  errorCount: number,
+  startTime: number
+) {
+  const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+  logger.info('\n' + '='.repeat(60));
+  logger.info('\ud83c\udf89 ALL TASKS COMPLETED!');
+  logger.info('='.repeat(60));
+  logger.info(`\u2705 Processed: ${processedCount}`);
+  logger.info(`\u274c Errors: ${errorCount}`);
+  logger.info(`\ud83d\udcca Total: ${processedCount + errorCount}`);
+  logger.info(`\u23f1\ufe0f  Duration: ${duration}s`);
+  logger.info('='.repeat(60));
+  logger.info('\n\ud83d\udca1 Queue is empty, waiting for new messages...');
+  logger.info('   Press CTRL+C to stop.\n');
+}
+
+async function startWorker() {
+  try {
+    const channel = await getRabbitMQChannel();
+
+    let processedCount = 0;
+    let errorCount = 0;
+    const startTime = Date.now();
+
+    logger.info('\ud83d\ude80 Star Worker Started');
+    logger.info('==========================');
+    logger.info(`\ud83d\udce1 Listening to queue: ${QUEUE_NAME}`);
+    logger.info(`\u23f1\ufe0f  Rate limit: ${1000 / RATE_LIMIT_DELAY} requests/second\n`);
+
+    await channel.assertQueue(QUEUE_NAME, { durable: true });
+
+    const queueInfo = await channel.checkQueue(QUEUE_NAME);
+    logger.info(`\ud83d\udcca Queue status: ${queueInfo.messageCount} messages waiting\n`);
+
+    channel.prefetch(1);
+
+    channel.consume(
+      QUEUE_NAME,
+      async (msg) => {
+        if (!msg) return;
+
+        const id = parseInt(msg.content.toString());
+
+        if (isNaN(id)) {
+          logger.error('\u274c Invalid star ID:', msg.content.toString());
+          channel.ack(msg);
+          errorCount++;
+          return;
+        }
+
+        try {
+          await processStars(id);
+          processedCount++;
+          channel.ack(msg);
+        } catch (error: any) {
+          errorCount++;
+          if (error.response?.status === 404) {
+            // A dead ID. Ack it: requeueing would loop forever, and the row keeps
+            // its NULL name so it still shows up in the completeness check.
+            logger.warn(`\u26a0\ufe0f  Star ${id} not found (404)`);
+            channel.ack(msg);
+          } else if (error.response?.status === 420) {
+            channel.nack(msg, false, true); // requeue after the 60s wait
+          } else {
+            logger.error(`\u274c Error processing star ${id}:`, error.message);
+            channel.nack(msg, false, false);
+          }
+        }
+
+        const currentQueue = await channel.checkQueue(QUEUE_NAME);
+        if (currentQueue.messageCount === 0) {
+          printCompletionSummary(processedCount, errorCount, startTime);
+        }
+      },
+      { noAck: false }
+    );
+
+    process.on('SIGINT', async () => {
+      logger.warn('\n\n\ud83d\uded1 Shutting down worker...');
+      await channel.close();
+      await prismaWorker.$disconnect();
+      logger.info('\u2705 Worker stopped gracefully');
+      process.exit(0);
+    });
+  } catch (error) {
+    logger.error('\u274c Failed to start worker:', error);
+    process.exit(1);
+  }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+startWorker();
 ```
+
+Bu worker'ın upsert anahtarı kuyruk mesajından geliyor: `/universe/stars/{id}/`
+yanıtında `star_id` alanı **yok**.
 
 - [ ] **Adım 3: `package.json`'a iki script ekle**
 
@@ -1205,15 +1305,21 @@ startCelestialWorker({
     "worker:stars": "tsx src/workers/worker-stars.ts",
 ```
 
-- [ ] **Adım 4: Derle ve çalıştır**
+- [ ] **Adım 4: Derle**
 
 ```bash
 cd backend && yarn build
 ```
 
-Bir terminalde `yarn worker:stars`, diğerinde `yarn queue:stars`.
+Beklenen: hatasız.
 
-- [ ] **Adım 5: Doğrula**
+- [ ] **Adım 5: Çalıştır**
+
+Bir terminalde `cd backend && yarn worker:stars`, diğerinde
+`cd backend && yarn queue:stars`. Worker tamamlanma özetini basana kadar
+bekle.
+
+- [ ] **Adım 6: Doğrula**
 
 ```sql
 SELECT id, name, type_id, spectral_class, temperature, radius
@@ -1224,7 +1330,7 @@ Beklenen: tek satır — `id = 40015362`, `name = '4-HWWF - Star'`,
 `type_id = 3800`, `spectral_class = 'M2 V'`, `temperature = 2971`,
 `radius = 296900000`.
 
-- [ ] **Adım 6: Commit**
+- [ ] **Adım 7: Commit**
 
 ```bash
 git add backend/src/queues/queue-stars.ts backend/src/workers/worker-stars.ts backend/package.json
@@ -1240,13 +1346,17 @@ at the centre of its system."
 ### Görev 5: Station çifti
 
 **Dosyalar:**
-- Oluştur: `backend/src/queues/queue-stations.ts`, `backend/src/workers/worker-stations.ts`
+- Oluştur: `backend/src/queues/queue-stations.ts`
+- Oluştur: `backend/src/workers/worker-stations.ts`
 - Değiştir: `backend/package.json`
 
 **Arayüzler:**
-- Tüketir: Görev 3'ün iki fonksiyonu; Görev 2'nin isimsiz `stations` satırları.
-- Üretir: `stations` tablosunda tam alan seti. Görev 12'nin `stations` alan
-  resolver'ı ve Görev 19'un Structures sekmesi bunları okuyor.
+- Tüketir: Görev 2'nin yazdığı isimsiz `stations` satırları.
+- Üretir: `stations` tablosunda tam alan seti. Görev 12'nin `stations` alan resolver'ı ve Görev 19'un Structures sekmesi bunları okuyor.
+
+Bu çift, repodaki mevcut `queue-*` / `worker-*` dosyaları gibi **tamamen kendi
+başına**: ortak bir runner ya da yardımcı modül kullanmıyor, RabbitMQ döngüsünü
+ve rate limit davranışını kendi içinde taşıyor.
 
 - [ ] **Adım 1: Kuyruk scriptini yaz**
 
@@ -1256,25 +1366,62 @@ at the centre of its system."
 /**
  * Queue Stations Script
  *
+ * Reads station IDs that still have no name out of the database and queues
+ * them for enrichment. Row creation happens in step 2 (worker-solar-systems).
+ *
  * Usage: yarn queue:stations
  */
 
+import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { queueIdsMissingNames } from './lib/queue-missing-names';
+import { getRabbitMQChannel } from '@services/rabbitmq';
 
-async function main() {
-  const rows = await prismaWorker.station.findMany({
-    where: { name: null },
-    select: { id: true },
-    orderBy: { id: 'asc' },
-  });
+const QUEUE_NAME = 'esi_stations_queue';
 
-  await queueIdsMissingNames('esi_stations_queue', rows.map((r) => r.id), 'Station');
-  await prismaWorker.$disconnect();
-  process.exit(0);
+async function queueStations() {
+  logger.info('Station queue script started');
+  logger.info('\u2501'.repeat(70));
+
+  try {
+    // Enrichment queue, not a root scan: the IDs come from the database with
+    // WHERE name IS NULL, so a re-run queues only what is still missing. ESI has
+    // no list endpoint for moons, asteroid belts or stars anyway.
+    const rows = await prismaWorker.station.findMany({
+      where: { name: null },
+      select: { id: true },
+      orderBy: { id: 'asc' },
+    });
+
+    if (rows.length === 0) {
+      logger.info('Nothing to do: every station row already has a name.');
+      await prismaWorker.$disconnect();
+      process.exit(0);
+    }
+
+    logger.info(`Found ${rows.length} station rows with no name`);
+
+    const channel = await getRabbitMQChannel();
+    await channel.assertQueue(QUEUE_NAME, { durable: true });
+
+    for (const row of rows) {
+      channel.sendToQueue(QUEUE_NAME, Buffer.from(row.id.toString()), {
+        persistent: true,
+      });
+    }
+
+    logger.info(`Queued ${rows.length} messages to ${QUEUE_NAME}`);
+    logger.info('Now run the worker to process them: yarn worker:stations');
+
+    await channel.close();
+    await prismaWorker.$disconnect();
+    process.exit(0);
+  } catch (error) {
+    logger.error('Failed to queue stations', { error });
+    process.exit(1);
+  }
 }
 
-main();
+queueStations();
 ```
 
 - [ ] **Adım 2: Worker'ı yaz**
@@ -1292,14 +1439,33 @@ main();
  * Usage: yarn worker:stations
  */
 
+import axios from 'axios';
+import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { startCelestialWorker } from './lib/celestial-worker';
+import { getRabbitMQChannel } from '@services/rabbitmq';
 
-startCelestialWorker({
-  label: 'Station',
-  queueName: 'esi_stations_queue',
-  endpoint: 'stations',
-  save: async (id, data) => {
+const ESI_BASE_URL = 'https://esi.evetech.net/latest';
+const QUEUE_NAME = 'esi_stations_queue';
+const RATE_LIMIT_DELAY = 100; // Wait 100ms between each request (10 requests per second)
+
+/**
+ * Fetches one station from ESI and writes it to the database.
+ *
+ * The row already exists — step 2 created it — so this is an update, not an
+ * upsert. `id` comes from the queue message rather than the response body.
+ */
+async function processStations(id: number): Promise<void> {
+  try {
+    const response = await axios.get(`${ESI_BASE_URL}/universe/stations/${id}/`);
+    const data = response.data;
+
+    // Check rate limit headers
+    const errorLimitRemain = response.headers['x-esi-error-limit-remain'];
+    if (errorLimitRemain && parseInt(errorLimitRemain) < 20) {
+      logger.warn(`\u26a0\ufe0f  Error limit low (${errorLimitRemain}/100), slowing down...`);
+      await sleep(2000);
+    }
+
     await prismaWorker.station.update({
       where: { id },
       data: {
@@ -1317,8 +1483,116 @@ startCelestialWorker({
         position_z: data.position?.z ?? null,
       },
     });
-  },
-});
+
+    logger.debug(`\u2705 Saved station ${id} - ${data.name ?? '(unnamed)'}`);
+
+    await sleep(RATE_LIMIT_DELAY);
+  } catch (error: any) {
+    if (error.response?.status === 420) {
+      logger.warn(`\ud83d\uded1 Error limited (420)! Waiting 60 seconds...`);
+      await sleep(60000);
+    }
+    throw error;
+  }
+}
+
+function printCompletionSummary(
+  processedCount: number,
+  errorCount: number,
+  startTime: number
+) {
+  const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+  logger.info('\n' + '='.repeat(60));
+  logger.info('\ud83c\udf89 ALL TASKS COMPLETED!');
+  logger.info('='.repeat(60));
+  logger.info(`\u2705 Processed: ${processedCount}`);
+  logger.info(`\u274c Errors: ${errorCount}`);
+  logger.info(`\ud83d\udcca Total: ${processedCount + errorCount}`);
+  logger.info(`\u23f1\ufe0f  Duration: ${duration}s`);
+  logger.info('='.repeat(60));
+  logger.info('\n\ud83d\udca1 Queue is empty, waiting for new messages...');
+  logger.info('   Press CTRL+C to stop.\n');
+}
+
+async function startWorker() {
+  try {
+    const channel = await getRabbitMQChannel();
+
+    let processedCount = 0;
+    let errorCount = 0;
+    const startTime = Date.now();
+
+    logger.info('\ud83d\ude80 Station Worker Started');
+    logger.info('==========================');
+    logger.info(`\ud83d\udce1 Listening to queue: ${QUEUE_NAME}`);
+    logger.info(`\u23f1\ufe0f  Rate limit: ${1000 / RATE_LIMIT_DELAY} requests/second\n`);
+
+    await channel.assertQueue(QUEUE_NAME, { durable: true });
+
+    const queueInfo = await channel.checkQueue(QUEUE_NAME);
+    logger.info(`\ud83d\udcca Queue status: ${queueInfo.messageCount} messages waiting\n`);
+
+    channel.prefetch(1);
+
+    channel.consume(
+      QUEUE_NAME,
+      async (msg) => {
+        if (!msg) return;
+
+        const id = parseInt(msg.content.toString());
+
+        if (isNaN(id)) {
+          logger.error('\u274c Invalid station ID:', msg.content.toString());
+          channel.ack(msg);
+          errorCount++;
+          return;
+        }
+
+        try {
+          await processStations(id);
+          processedCount++;
+          channel.ack(msg);
+        } catch (error: any) {
+          errorCount++;
+          if (error.response?.status === 404) {
+            // A dead ID. Ack it: requeueing would loop forever, and the row keeps
+            // its NULL name so it still shows up in the completeness check.
+            logger.warn(`\u26a0\ufe0f  Station ${id} not found (404)`);
+            channel.ack(msg);
+          } else if (error.response?.status === 420) {
+            channel.nack(msg, false, true); // requeue after the 60s wait
+          } else {
+            logger.error(`\u274c Error processing station ${id}:`, error.message);
+            channel.nack(msg, false, false);
+          }
+        }
+
+        const currentQueue = await channel.checkQueue(QUEUE_NAME);
+        if (currentQueue.messageCount === 0) {
+          printCompletionSummary(processedCount, errorCount, startTime);
+        }
+      },
+      { noAck: false }
+    );
+
+    process.on('SIGINT', async () => {
+      logger.warn('\n\n\ud83d\uded1 Shutting down worker...');
+      await channel.close();
+      await prismaWorker.$disconnect();
+      logger.info('\u2705 Worker stopped gracefully');
+      process.exit(0);
+    });
+  } catch (error) {
+    logger.error('\u274c Failed to start worker:', error);
+    process.exit(1);
+  }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+startWorker();
 ```
 
 Sahip alanının ESI'daki adı `owner`, kolon adı `owner_corporation_id` —
@@ -1331,19 +1605,26 @@ eşleşmiyor, bilerek.
     "worker:stations": "tsx src/workers/worker-stations.ts",
 ```
 
-- [ ] **Adım 4: Derle ve çalıştır**
+- [ ] **Adım 4: Derle**
 
 ```bash
 cd backend && yarn build
 ```
 
-Bir terminalde `yarn worker:stations`, diğerinde `yarn queue:stations`.
+Beklenen: hatasız.
 
-- [ ] **Adım 5: Doğrula**
+- [ ] **Adım 5: Çalıştır**
+
+Bir terminalde `cd backend && yarn worker:stations`, diğerinde
+`cd backend && yarn queue:stations`. Worker tamamlanma özetini basana kadar
+bekle.
+
+- [ ] **Adım 6: Doğrula**
 
 ```sql
 SELECT id, name, type_id, owner_corporation_id, reprocessing_efficiency,
-       reprocessing_stations_take, office_rental_cost, array_length(services, 1) AS service_count
+       reprocessing_stations_take, office_rental_cost,
+       array_length(services, 1) AS service_count
 FROM stations WHERE id = 60000361;
 ```
 
@@ -1361,17 +1642,17 @@ SELECT COUNT(*) FROM stations WHERE solar_system_id = 31000005 AND name IS NOT N
 
 Beklenen: `4`.
 
-- [ ] **Adım 6: Commit**
+- [ ] **Adım 7: Commit**
 
 ```bash
 git add backend/src/queues/queue-stations.ts backend/src/workers/worker-stations.ts backend/package.json
 git commit -m "feat(worker): add the station enrichment queue and worker
 
 Stores office_rental_cost and reprocessing_stations_take alongside
-reprocessing_efficiency: the take is what makes the efficiency figure
-comparable between stations.
+reprocessing_efficiency: the take is what makes the efficiency figure comparable
+between stations.
 
-ESI names the owning corporation field \`owner\`; the column is
+ESI names the owning corporation field `owner`; the column is
 owner_corporation_id."
 ```
 
@@ -1380,15 +1661,17 @@ owner_corporation_id."
 ### Görev 6: Planet çifti
 
 **Dosyalar:**
-- Oluştur: `backend/src/queues/queue-planets.ts`, `backend/src/workers/worker-planets.ts`
+- Oluştur: `backend/src/queues/queue-planets.ts`
+- Oluştur: `backend/src/workers/worker-planets.ts`
 - Değiştir: `backend/package.json`
 
 **Arayüzler:**
-- Tüketir: Görev 3'ün iki fonksiyonu; Görev 2'nin isimsiz `planets` satırları
-  (`orbit_index` zaten dolu).
-- Üretir: `planets` tablosunda `name`, `type_id`, `position`. Görev 12'nin
-  `planets` alan resolver'ı ve Görev 18'in Orbital Bodies sekmesi bunları
-  okuyor.
+- Tüketir: Görev 2'nin yazdığı isimsiz `planets` satırları.
+- Üretir: `planets` tablosunda `name`, `type_id`, `position`. Görev 12'nin `planets` alan resolver'ı ve Görev 18'in Orbital Bodies sekmesi bunları okuyor.
+
+Bu çift, repodaki mevcut `queue-*` / `worker-*` dosyaları gibi **tamamen kendi
+başına**: ortak bir runner ya da yardımcı modül kullanmıyor, RabbitMQ döngüsünü
+ve rate limit davranışını kendi içinde taşıyor.
 
 - [ ] **Adım 1: Kuyruk scriptini yaz**
 
@@ -1398,25 +1681,62 @@ owner_corporation_id."
 /**
  * Queue Planets Script
  *
+ * Reads planet IDs that still have no name out of the database and queues
+ * them for enrichment. Row creation happens in step 2 (worker-solar-systems).
+ *
  * Usage: yarn queue:planets
  */
 
+import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { queueIdsMissingNames } from './lib/queue-missing-names';
+import { getRabbitMQChannel } from '@services/rabbitmq';
 
-async function main() {
-  const rows = await prismaWorker.planet.findMany({
-    where: { name: null },
-    select: { id: true },
-    orderBy: { id: 'asc' },
-  });
+const QUEUE_NAME = 'esi_planets_queue';
 
-  await queueIdsMissingNames('esi_planets_queue', rows.map((r) => r.id), 'Planet');
-  await prismaWorker.$disconnect();
-  process.exit(0);
+async function queuePlanets() {
+  logger.info('Planet queue script started');
+  logger.info('\u2501'.repeat(70));
+
+  try {
+    // Enrichment queue, not a root scan: the IDs come from the database with
+    // WHERE name IS NULL, so a re-run queues only what is still missing. ESI has
+    // no list endpoint for moons, asteroid belts or stars anyway.
+    const rows = await prismaWorker.planet.findMany({
+      where: { name: null },
+      select: { id: true },
+      orderBy: { id: 'asc' },
+    });
+
+    if (rows.length === 0) {
+      logger.info('Nothing to do: every planet row already has a name.');
+      await prismaWorker.$disconnect();
+      process.exit(0);
+    }
+
+    logger.info(`Found ${rows.length} planet rows with no name`);
+
+    const channel = await getRabbitMQChannel();
+    await channel.assertQueue(QUEUE_NAME, { durable: true });
+
+    for (const row of rows) {
+      channel.sendToQueue(QUEUE_NAME, Buffer.from(row.id.toString()), {
+        persistent: true,
+      });
+    }
+
+    logger.info(`Queued ${rows.length} messages to ${QUEUE_NAME}`);
+    logger.info('Now run the worker to process them: yarn worker:planets');
+
+    await channel.close();
+    await prismaWorker.$disconnect();
+    process.exit(0);
+  } catch (error) {
+    logger.error('Failed to queue planets', { error });
+    process.exit(1);
+  }
 }
 
-main();
+queuePlanets();
 ```
 
 - [ ] **Adım 2: Worker'ı yaz**
@@ -1437,14 +1757,33 @@ main();
  * Usage: yarn worker:planets
  */
 
+import axios from 'axios';
+import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { startCelestialWorker } from './lib/celestial-worker';
+import { getRabbitMQChannel } from '@services/rabbitmq';
 
-startCelestialWorker({
-  label: 'Planet',
-  queueName: 'esi_planets_queue',
-  endpoint: 'planets',
-  save: async (id, data) => {
+const ESI_BASE_URL = 'https://esi.evetech.net/latest';
+const QUEUE_NAME = 'esi_planets_queue';
+const RATE_LIMIT_DELAY = 100; // Wait 100ms between each request (10 requests per second)
+
+/**
+ * Fetches one planet from ESI and writes it to the database.
+ *
+ * The row already exists — step 2 created it — so this is an update, not an
+ * upsert. `id` comes from the queue message rather than the response body.
+ */
+async function processPlanets(id: number): Promise<void> {
+  try {
+    const response = await axios.get(`${ESI_BASE_URL}/universe/planets/${id}/`);
+    const data = response.data;
+
+    // Check rate limit headers
+    const errorLimitRemain = response.headers['x-esi-error-limit-remain'];
+    if (errorLimitRemain && parseInt(errorLimitRemain) < 20) {
+      logger.warn(`\u26a0\ufe0f  Error limit low (${errorLimitRemain}/100), slowing down...`);
+      await sleep(2000);
+    }
+
     await prismaWorker.planet.update({
       where: { id },
       data: {
@@ -1455,9 +1794,120 @@ startCelestialWorker({
         position_z: data.position?.z ?? null,
       },
     });
-  },
-});
+
+    logger.debug(`\u2705 Saved planet ${id} - ${data.name ?? '(unnamed)'}`);
+
+    await sleep(RATE_LIMIT_DELAY);
+  } catch (error: any) {
+    if (error.response?.status === 420) {
+      logger.warn(`\ud83d\uded1 Error limited (420)! Waiting 60 seconds...`);
+      await sleep(60000);
+    }
+    throw error;
+  }
+}
+
+function printCompletionSummary(
+  processedCount: number,
+  errorCount: number,
+  startTime: number
+) {
+  const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+  logger.info('\n' + '='.repeat(60));
+  logger.info('\ud83c\udf89 ALL TASKS COMPLETED!');
+  logger.info('='.repeat(60));
+  logger.info(`\u2705 Processed: ${processedCount}`);
+  logger.info(`\u274c Errors: ${errorCount}`);
+  logger.info(`\ud83d\udcca Total: ${processedCount + errorCount}`);
+  logger.info(`\u23f1\ufe0f  Duration: ${duration}s`);
+  logger.info('='.repeat(60));
+  logger.info('\n\ud83d\udca1 Queue is empty, waiting for new messages...');
+  logger.info('   Press CTRL+C to stop.\n');
+}
+
+async function startWorker() {
+  try {
+    const channel = await getRabbitMQChannel();
+
+    let processedCount = 0;
+    let errorCount = 0;
+    const startTime = Date.now();
+
+    logger.info('\ud83d\ude80 Planet Worker Started');
+    logger.info('==========================');
+    logger.info(`\ud83d\udce1 Listening to queue: ${QUEUE_NAME}`);
+    logger.info(`\u23f1\ufe0f  Rate limit: ${1000 / RATE_LIMIT_DELAY} requests/second\n`);
+
+    await channel.assertQueue(QUEUE_NAME, { durable: true });
+
+    const queueInfo = await channel.checkQueue(QUEUE_NAME);
+    logger.info(`\ud83d\udcca Queue status: ${queueInfo.messageCount} messages waiting\n`);
+
+    channel.prefetch(1);
+
+    channel.consume(
+      QUEUE_NAME,
+      async (msg) => {
+        if (!msg) return;
+
+        const id = parseInt(msg.content.toString());
+
+        if (isNaN(id)) {
+          logger.error('\u274c Invalid planet ID:', msg.content.toString());
+          channel.ack(msg);
+          errorCount++;
+          return;
+        }
+
+        try {
+          await processPlanets(id);
+          processedCount++;
+          channel.ack(msg);
+        } catch (error: any) {
+          errorCount++;
+          if (error.response?.status === 404) {
+            // A dead ID. Ack it: requeueing would loop forever, and the row keeps
+            // its NULL name so it still shows up in the completeness check.
+            logger.warn(`\u26a0\ufe0f  Planet ${id} not found (404)`);
+            channel.ack(msg);
+          } else if (error.response?.status === 420) {
+            channel.nack(msg, false, true); // requeue after the 60s wait
+          } else {
+            logger.error(`\u274c Error processing planet ${id}:`, error.message);
+            channel.nack(msg, false, false);
+          }
+        }
+
+        const currentQueue = await channel.checkQueue(QUEUE_NAME);
+        if (currentQueue.messageCount === 0) {
+          printCompletionSummary(processedCount, errorCount, startTime);
+        }
+      },
+      { noAck: false }
+    );
+
+    process.on('SIGINT', async () => {
+      logger.warn('\n\n\ud83d\uded1 Shutting down worker...');
+      await channel.close();
+      await prismaWorker.$disconnect();
+      logger.info('\u2705 Worker stopped gracefully');
+      process.exit(0);
+    });
+  } catch (error) {
+    logger.error('\u274c Failed to start worker:', error);
+    process.exit(1);
+  }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+startWorker();
 ```
+
+`orbit_index` bilerek yazılmıyor: o, Adım 2'deki `planets[]` dizisinin
+sırasından geliyor ve bu endpoint'te karşılığı yok.
 
 - [ ] **Adım 3: `package.json`'a iki script ekle**
 
@@ -1466,15 +1916,21 @@ startCelestialWorker({
     "worker:planets": "tsx src/workers/worker-planets.ts",
 ```
 
-- [ ] **Adım 4: Derle ve çalıştır**
+- [ ] **Adım 4: Derle**
 
 ```bash
 cd backend && yarn build
 ```
 
-Bir terminalde `yarn worker:planets`, diğerinde `yarn queue:planets`.
+Beklenen: hatasız.
 
-- [ ] **Adım 5: Doğrula**
+- [ ] **Adım 5: Çalıştır**
+
+Bir terminalde `cd backend && yarn worker:planets`, diğerinde
+`cd backend && yarn queue:planets`. Worker tamamlanma özetini basana kadar
+bekle.
+
+- [ ] **Adım 6: Doğrula**
 
 ```sql
 SELECT orbit_index, id, name, type_id
@@ -1486,7 +1942,7 @@ biçiminde ve **Roma rakamı sırası `orbit_index` ile örtüşüyor**. `400153
 satırı için `name = '4-HWWF II'`, `type_id = 2016`; `40015368` için
 `name = '4-HWWF IV'`, `type_id = 13`.
 
-- [ ] **Adım 6: Commit**
+- [ ] **Adım 7: Commit**
 
 ```bash
 git add backend/src/queues/queue-planets.ts backend/src/workers/worker-planets.ts backend/package.json
@@ -1501,13 +1957,17 @@ planets[] array from step 2, and this endpoint has no equivalent field."
 ### Görev 7: Moon çifti
 
 **Dosyalar:**
-- Oluştur: `backend/src/queues/queue-moons.ts`, `backend/src/workers/worker-moons.ts`
+- Oluştur: `backend/src/queues/queue-moons.ts`
+- Oluştur: `backend/src/workers/worker-moons.ts`
 - Değiştir: `backend/package.json`
 
 **Arayüzler:**
-- Tüketir: Görev 3'ün iki fonksiyonu; Görev 2'nin isimsiz `moons` satırları
-  (`planet_id` ve `orbit_index` zaten dolu).
+- Tüketir: Görev 2'nin yazdığı isimsiz `moons` satırları.
 - Üretir: `moons` tablosunda `name` ve `position`.
+
+Bu çift, repodaki mevcut `queue-*` / `worker-*` dosyaları gibi **tamamen kendi
+başına**: ortak bir runner ya da yardımcı modül kullanmıyor, RabbitMQ döngüsünü
+ve rate limit davranışını kendi içinde taşıyor.
 
 - [ ] **Adım 1: Kuyruk scriptini yaz**
 
@@ -1517,27 +1977,62 @@ planets[] array from step 2, and this endpoint has no equivalent field."
 /**
  * Queue Moons Script
  *
- * The largest of the six sets, which is why it runs second to last.
+ * Reads moon IDs that still have no name out of the database and queues
+ * them for enrichment. Row creation happens in step 2 (worker-solar-systems).
  *
  * Usage: yarn queue:moons
  */
 
+import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { queueIdsMissingNames } from './lib/queue-missing-names';
+import { getRabbitMQChannel } from '@services/rabbitmq';
 
-async function main() {
-  const rows = await prismaWorker.moon.findMany({
-    where: { name: null },
-    select: { id: true },
-    orderBy: { id: 'asc' },
-  });
+const QUEUE_NAME = 'esi_moons_queue';
 
-  await queueIdsMissingNames('esi_moons_queue', rows.map((r) => r.id), 'Moon');
-  await prismaWorker.$disconnect();
-  process.exit(0);
+async function queueMoons() {
+  logger.info('Moon queue script started');
+  logger.info('\u2501'.repeat(70));
+
+  try {
+    // Enrichment queue, not a root scan: the IDs come from the database with
+    // WHERE name IS NULL, so a re-run queues only what is still missing. ESI has
+    // no list endpoint for moons, asteroid belts or stars anyway.
+    const rows = await prismaWorker.moon.findMany({
+      where: { name: null },
+      select: { id: true },
+      orderBy: { id: 'asc' },
+    });
+
+    if (rows.length === 0) {
+      logger.info('Nothing to do: every moon row already has a name.');
+      await prismaWorker.$disconnect();
+      process.exit(0);
+    }
+
+    logger.info(`Found ${rows.length} moon rows with no name`);
+
+    const channel = await getRabbitMQChannel();
+    await channel.assertQueue(QUEUE_NAME, { durable: true });
+
+    for (const row of rows) {
+      channel.sendToQueue(QUEUE_NAME, Buffer.from(row.id.toString()), {
+        persistent: true,
+      });
+    }
+
+    logger.info(`Queued ${rows.length} messages to ${QUEUE_NAME}`);
+    logger.info('Now run the worker to process them: yarn worker:moons');
+
+    await channel.close();
+    await prismaWorker.$disconnect();
+    process.exit(0);
+  } catch (error) {
+    logger.error('Failed to queue moons', { error });
+    process.exit(1);
+  }
 }
 
-main();
+queueMoons();
 ```
 
 - [ ] **Adım 2: Worker'ı yaz**
@@ -1557,14 +2052,33 @@ main();
  * Usage: yarn worker:moons
  */
 
+import axios from 'axios';
+import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { startCelestialWorker } from './lib/celestial-worker';
+import { getRabbitMQChannel } from '@services/rabbitmq';
 
-startCelestialWorker({
-  label: 'Moon',
-  queueName: 'esi_moons_queue',
-  endpoint: 'moons',
-  save: async (id, data) => {
+const ESI_BASE_URL = 'https://esi.evetech.net/latest';
+const QUEUE_NAME = 'esi_moons_queue';
+const RATE_LIMIT_DELAY = 100; // Wait 100ms between each request (10 requests per second)
+
+/**
+ * Fetches one moon from ESI and writes it to the database.
+ *
+ * The row already exists — step 2 created it — so this is an update, not an
+ * upsert. `id` comes from the queue message rather than the response body.
+ */
+async function processMoons(id: number): Promise<void> {
+  try {
+    const response = await axios.get(`${ESI_BASE_URL}/universe/moons/${id}/`);
+    const data = response.data;
+
+    // Check rate limit headers
+    const errorLimitRemain = response.headers['x-esi-error-limit-remain'];
+    if (errorLimitRemain && parseInt(errorLimitRemain) < 20) {
+      logger.warn(`\u26a0\ufe0f  Error limit low (${errorLimitRemain}/100), slowing down...`);
+      await sleep(2000);
+    }
+
     await prismaWorker.moon.update({
       where: { id },
       data: {
@@ -1574,9 +2088,119 @@ startCelestialWorker({
         position_z: data.position?.z ?? null,
       },
     });
-  },
-});
+
+    logger.debug(`\u2705 Saved moon ${id} - ${data.name ?? '(unnamed)'}`);
+
+    await sleep(RATE_LIMIT_DELAY);
+  } catch (error: any) {
+    if (error.response?.status === 420) {
+      logger.warn(`\ud83d\uded1 Error limited (420)! Waiting 60 seconds...`);
+      await sleep(60000);
+    }
+    throw error;
+  }
+}
+
+function printCompletionSummary(
+  processedCount: number,
+  errorCount: number,
+  startTime: number
+) {
+  const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+  logger.info('\n' + '='.repeat(60));
+  logger.info('\ud83c\udf89 ALL TASKS COMPLETED!');
+  logger.info('='.repeat(60));
+  logger.info(`\u2705 Processed: ${processedCount}`);
+  logger.info(`\u274c Errors: ${errorCount}`);
+  logger.info(`\ud83d\udcca Total: ${processedCount + errorCount}`);
+  logger.info(`\u23f1\ufe0f  Duration: ${duration}s`);
+  logger.info('='.repeat(60));
+  logger.info('\n\ud83d\udca1 Queue is empty, waiting for new messages...');
+  logger.info('   Press CTRL+C to stop.\n');
+}
+
+async function startWorker() {
+  try {
+    const channel = await getRabbitMQChannel();
+
+    let processedCount = 0;
+    let errorCount = 0;
+    const startTime = Date.now();
+
+    logger.info('\ud83d\ude80 Moon Worker Started');
+    logger.info('==========================');
+    logger.info(`\ud83d\udce1 Listening to queue: ${QUEUE_NAME}`);
+    logger.info(`\u23f1\ufe0f  Rate limit: ${1000 / RATE_LIMIT_DELAY} requests/second\n`);
+
+    await channel.assertQueue(QUEUE_NAME, { durable: true });
+
+    const queueInfo = await channel.checkQueue(QUEUE_NAME);
+    logger.info(`\ud83d\udcca Queue status: ${queueInfo.messageCount} messages waiting\n`);
+
+    channel.prefetch(1);
+
+    channel.consume(
+      QUEUE_NAME,
+      async (msg) => {
+        if (!msg) return;
+
+        const id = parseInt(msg.content.toString());
+
+        if (isNaN(id)) {
+          logger.error('\u274c Invalid moon ID:', msg.content.toString());
+          channel.ack(msg);
+          errorCount++;
+          return;
+        }
+
+        try {
+          await processMoons(id);
+          processedCount++;
+          channel.ack(msg);
+        } catch (error: any) {
+          errorCount++;
+          if (error.response?.status === 404) {
+            // A dead ID. Ack it: requeueing would loop forever, and the row keeps
+            // its NULL name so it still shows up in the completeness check.
+            logger.warn(`\u26a0\ufe0f  Moon ${id} not found (404)`);
+            channel.ack(msg);
+          } else if (error.response?.status === 420) {
+            channel.nack(msg, false, true); // requeue after the 60s wait
+          } else {
+            logger.error(`\u274c Error processing moon ${id}:`, error.message);
+            channel.nack(msg, false, false);
+          }
+        }
+
+        const currentQueue = await channel.checkQueue(QUEUE_NAME);
+        if (currentQueue.messageCount === 0) {
+          printCompletionSummary(processedCount, errorCount, startTime);
+        }
+      },
+      { noAck: false }
+    );
+
+    process.on('SIGINT', async () => {
+      logger.warn('\n\n\ud83d\uded1 Shutting down worker...');
+      await channel.close();
+      await prismaWorker.$disconnect();
+      logger.info('\u2705 Worker stopped gracefully');
+      process.exit(0);
+    });
+  } catch (error) {
+    logger.error('\u274c Failed to start worker:', error);
+    process.exit(1);
+  }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+startWorker();
 ```
+
+Bu kümenin altısı içinde en büyüğü; sırada sondan ikinci olmasının sebebi bu.
 
 - [ ] **Adım 3: `package.json`'a iki script ekle**
 
@@ -1585,15 +2209,21 @@ startCelestialWorker({
     "worker:moons": "tsx src/workers/worker-moons.ts",
 ```
 
-- [ ] **Adım 4: Derle ve çalıştır**
+- [ ] **Adım 4: Derle**
 
 ```bash
 cd backend && yarn build
 ```
 
-Bir terminalde `yarn worker:moons`, diğerinde `yarn queue:moons`.
+Beklenen: hatasız.
 
-- [ ] **Adım 5: Doğrula**
+- [ ] **Adım 5: Çalıştır**
+
+Bir terminalde `cd backend && yarn worker:moons`, diğerinde
+`cd backend && yarn queue:moons`. Worker tamamlanma özetini basana kadar
+bekle.
+
+- [ ] **Adım 6: Doğrula**
 
 ```sql
 SELECT m.orbit_index, m.id, m.name, p.name AS planet_name
@@ -1607,15 +2237,15 @@ Beklenen: `4-HWWF IV - Moon 1`, `... Moon 2`, `... Moon 3`; hepsinin
 `planet_name` ile örtüşmesi, Görev 2'nin `planet_id`'yi doğru yazdığının bağımsız
 kanıtı.
 
-- [ ] **Adım 6: Commit**
+- [ ] **Adım 7: Commit**
 
 ```bash
 git add backend/src/queues/queue-moons.ts backend/src/workers/worker-moons.ts backend/package.json
 git commit -m "feat(worker): add the moon enrichment queue and worker
 
 /universe/moons/{id}/ returns no planet_id. The moon-to-planet link exists only
-in the nesting of the system response and is written in step 2; this worker
-fills in nothing but the name and position."
+in the nesting of the system response and is written in step 2; this worker fills
+in nothing but the name and position."
 ```
 
 ---
@@ -1623,15 +2253,17 @@ fills in nothing but the name and position."
 ### Görev 8: Asteroid belt çifti
 
 **Dosyalar:**
-- Oluştur: `backend/src/queues/queue-asteroid-belts.ts`,
-  `backend/src/workers/worker-asteroid-belts.ts`
+- Oluştur: `backend/src/queues/queue-asteroid-belts.ts`
+- Oluştur: `backend/src/workers/worker-asteroid-belts.ts`
 - Değiştir: `backend/package.json`
 
 **Arayüzler:**
-- Tüketir: Görev 3'ün iki fonksiyonu; Görev 2'nin isimsiz `asteroid_belts`
-  satırları (`planet_id` ve `orbit_index` zaten dolu).
-- Üretir: `asteroid_belts` tablosunda `name` ve `position`. Bu, ingest hattının
-  son parçası.
+- Tüketir: Görev 2'nin yazdığı isimsiz `asteroid_belts` satırları.
+- Üretir: `asteroid_belts` tablosunda `name` ve `position`. Bu, ingest hattının son parçası.
+
+Bu çift, repodaki mevcut `queue-*` / `worker-*` dosyaları gibi **tamamen kendi
+başına**: ortak bir runner ya da yardımcı modül kullanmıyor, RabbitMQ döngüsünü
+ve rate limit davranışını kendi içinde taşıyor.
 
 - [ ] **Adım 1: Kuyruk scriptini yaz**
 
@@ -1639,30 +2271,64 @@ fills in nothing but the name and position."
 
 ```ts
 /**
- * Queue Asteroid Belts Script
+ * Queue Asteroid belts Script
  *
- * Last in the run order: belts sit collapsed under a planet in the Orbital
- * Bodies tab, so the tab is meaningful before this finishes.
+ * Reads asteroid belt IDs that still have no name out of the database and queues
+ * them for enrichment. Row creation happens in step 2 (worker-solar-systems).
  *
  * Usage: yarn queue:asteroid-belts
  */
 
+import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { queueIdsMissingNames } from './lib/queue-missing-names';
+import { getRabbitMQChannel } from '@services/rabbitmq';
 
-async function main() {
-  const rows = await prismaWorker.asteroidBelt.findMany({
-    where: { name: null },
-    select: { id: true },
-    orderBy: { id: 'asc' },
-  });
+const QUEUE_NAME = 'esi_asteroid_belts_queue';
 
-  await queueIdsMissingNames('esi_asteroid_belts_queue', rows.map((r) => r.id), 'Asteroid belt');
-  await prismaWorker.$disconnect();
-  process.exit(0);
+async function queueAsteroidBelts() {
+  logger.info('Asteroid belt queue script started');
+  logger.info('\u2501'.repeat(70));
+
+  try {
+    // Enrichment queue, not a root scan: the IDs come from the database with
+    // WHERE name IS NULL, so a re-run queues only what is still missing. ESI has
+    // no list endpoint for moons, asteroid belts or stars anyway.
+    const rows = await prismaWorker.asteroidBelt.findMany({
+      where: { name: null },
+      select: { id: true },
+      orderBy: { id: 'asc' },
+    });
+
+    if (rows.length === 0) {
+      logger.info('Nothing to do: every asteroid belt row already has a name.');
+      await prismaWorker.$disconnect();
+      process.exit(0);
+    }
+
+    logger.info(`Found ${rows.length} asteroid belt rows with no name`);
+
+    const channel = await getRabbitMQChannel();
+    await channel.assertQueue(QUEUE_NAME, { durable: true });
+
+    for (const row of rows) {
+      channel.sendToQueue(QUEUE_NAME, Buffer.from(row.id.toString()), {
+        persistent: true,
+      });
+    }
+
+    logger.info(`Queued ${rows.length} messages to ${QUEUE_NAME}`);
+    logger.info('Now run the worker to process them: yarn worker:asteroid-belts');
+
+    await channel.close();
+    await prismaWorker.$disconnect();
+    process.exit(0);
+  } catch (error) {
+    logger.error('Failed to queue asteroid belts', { error });
+    process.exit(1);
+  }
 }
 
-main();
+queueAsteroidBelts();
 ```
 
 - [ ] **Adım 2: Worker'ı yaz**
@@ -1671,25 +2337,44 @@ main();
 
 ```ts
 /**
- * Asteroid Belt Worker
+ * Asteroid belt Worker
  *
  * Resolves /universe/asteroid_belts/{id}/ into the asteroid_belts table.
  *
  * NOTE: this response contains neither asteroid_belt_id nor planet_id — it
- * returns only name, position and system_id. The update key comes from the
- * queue message and the planet link comes from step 2.
+ * returns only name, position and system_id. The update key comes from the queue
+ * message and the planet link comes from step 2.
  *
  * Usage: yarn worker:asteroid-belts
  */
 
+import axios from 'axios';
+import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { startCelestialWorker } from './lib/celestial-worker';
+import { getRabbitMQChannel } from '@services/rabbitmq';
 
-startCelestialWorker({
-  label: 'Asteroid belt',
-  queueName: 'esi_asteroid_belts_queue',
-  endpoint: 'asteroid_belts',
-  save: async (id, data) => {
+const ESI_BASE_URL = 'https://esi.evetech.net/latest';
+const QUEUE_NAME = 'esi_asteroid_belts_queue';
+const RATE_LIMIT_DELAY = 100; // Wait 100ms between each request (10 requests per second)
+
+/**
+ * Fetches one asteroid belt from ESI and writes it to the database.
+ *
+ * The row already exists — step 2 created it — so this is an update, not an
+ * upsert. `id` comes from the queue message rather than the response body.
+ */
+async function processAsteroidBelts(id: number): Promise<void> {
+  try {
+    const response = await axios.get(`${ESI_BASE_URL}/universe/asteroid_belts/${id}/`);
+    const data = response.data;
+
+    // Check rate limit headers
+    const errorLimitRemain = response.headers['x-esi-error-limit-remain'];
+    if (errorLimitRemain && parseInt(errorLimitRemain) < 20) {
+      logger.warn(`\u26a0\ufe0f  Error limit low (${errorLimitRemain}/100), slowing down...`);
+      await sleep(2000);
+    }
+
     await prismaWorker.asteroidBelt.update({
       where: { id },
       data: {
@@ -1699,8 +2384,116 @@ startCelestialWorker({
         position_z: data.position?.z ?? null,
       },
     });
-  },
-});
+
+    logger.debug(`\u2705 Saved asteroid belt ${id} - ${data.name ?? '(unnamed)'}`);
+
+    await sleep(RATE_LIMIT_DELAY);
+  } catch (error: any) {
+    if (error.response?.status === 420) {
+      logger.warn(`\ud83d\uded1 Error limited (420)! Waiting 60 seconds...`);
+      await sleep(60000);
+    }
+    throw error;
+  }
+}
+
+function printCompletionSummary(
+  processedCount: number,
+  errorCount: number,
+  startTime: number
+) {
+  const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+  logger.info('\n' + '='.repeat(60));
+  logger.info('\ud83c\udf89 ALL TASKS COMPLETED!');
+  logger.info('='.repeat(60));
+  logger.info(`\u2705 Processed: ${processedCount}`);
+  logger.info(`\u274c Errors: ${errorCount}`);
+  logger.info(`\ud83d\udcca Total: ${processedCount + errorCount}`);
+  logger.info(`\u23f1\ufe0f  Duration: ${duration}s`);
+  logger.info('='.repeat(60));
+  logger.info('\n\ud83d\udca1 Queue is empty, waiting for new messages...');
+  logger.info('   Press CTRL+C to stop.\n');
+}
+
+async function startWorker() {
+  try {
+    const channel = await getRabbitMQChannel();
+
+    let processedCount = 0;
+    let errorCount = 0;
+    const startTime = Date.now();
+
+    logger.info('\ud83d\ude80 Asteroid belt Worker Started');
+    logger.info('==========================');
+    logger.info(`\ud83d\udce1 Listening to queue: ${QUEUE_NAME}`);
+    logger.info(`\u23f1\ufe0f  Rate limit: ${1000 / RATE_LIMIT_DELAY} requests/second\n`);
+
+    await channel.assertQueue(QUEUE_NAME, { durable: true });
+
+    const queueInfo = await channel.checkQueue(QUEUE_NAME);
+    logger.info(`\ud83d\udcca Queue status: ${queueInfo.messageCount} messages waiting\n`);
+
+    channel.prefetch(1);
+
+    channel.consume(
+      QUEUE_NAME,
+      async (msg) => {
+        if (!msg) return;
+
+        const id = parseInt(msg.content.toString());
+
+        if (isNaN(id)) {
+          logger.error('\u274c Invalid asteroid belt ID:', msg.content.toString());
+          channel.ack(msg);
+          errorCount++;
+          return;
+        }
+
+        try {
+          await processAsteroidBelts(id);
+          processedCount++;
+          channel.ack(msg);
+        } catch (error: any) {
+          errorCount++;
+          if (error.response?.status === 404) {
+            // A dead ID. Ack it: requeueing would loop forever, and the row keeps
+            // its NULL name so it still shows up in the completeness check.
+            logger.warn(`\u26a0\ufe0f  Asteroid belt ${id} not found (404)`);
+            channel.ack(msg);
+          } else if (error.response?.status === 420) {
+            channel.nack(msg, false, true); // requeue after the 60s wait
+          } else {
+            logger.error(`\u274c Error processing asteroid belt ${id}:`, error.message);
+            channel.nack(msg, false, false);
+          }
+        }
+
+        const currentQueue = await channel.checkQueue(QUEUE_NAME);
+        if (currentQueue.messageCount === 0) {
+          printCompletionSummary(processedCount, errorCount, startTime);
+        }
+      },
+      { noAck: false }
+    );
+
+    process.on('SIGINT', async () => {
+      logger.warn('\n\n\ud83d\uded1 Shutting down worker...');
+      await channel.close();
+      await prismaWorker.$disconnect();
+      logger.info('\u2705 Worker stopped gracefully');
+      process.exit(0);
+    });
+  } catch (error) {
+    logger.error('\u274c Failed to start worker:', error);
+    process.exit(1);
+  }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+startWorker();
 ```
 
 ESI yolunun alt çizgili olduğuna dikkat (`asteroid_belts`), script adının ise
@@ -1713,15 +2506,21 @@ tireli (`queue:asteroid-belts`).
     "worker:asteroid-belts": "tsx src/workers/worker-asteroid-belts.ts",
 ```
 
-- [ ] **Adım 4: Derle ve çalıştır**
+- [ ] **Adım 4: Derle**
 
 ```bash
 cd backend && yarn build
 ```
 
-Bir terminalde `yarn worker:asteroid-belts`, diğerinde `yarn queue:asteroid-belts`.
+Beklenen: hatasız.
 
-- [ ] **Adım 5: Doğrula**
+- [ ] **Adım 5: Çalıştır**
+
+Bir terminalde `cd backend && yarn worker:asteroid-belts`, diğerinde
+`cd backend && yarn queue:asteroid-belts`. Worker tamamlanma özetini basana kadar
+bekle.
+
+- [ ] **Adım 6: Doğrula**
 
 ```sql
 SELECT b.id, b.name, p.name AS planet_name
@@ -1741,7 +2540,7 @@ SELECT COUNT(*) FROM asteroid_belts WHERE solar_system_id = 30000142;
 
 Beklenen: `0`.
 
-- [ ] **Adım 6: Commit**
+- [ ] **Adım 7: Commit**
 
 ```bash
 git add backend/src/queues/queue-asteroid-belts.ts backend/src/workers/worker-asteroid-belts.ts backend/package.json
@@ -3335,18 +4134,14 @@ Beklenen: ikisi de hatasız. Kullanılmayan import uyarısı alırsan (`Killmail
 `Paginator`, `Top*Card` gibi) o import'ları **silme** — Görev 21'e kadar
 duracaklar; gerekiyorsa geçici olarak yer tutucu bloklarda referans ver.
 
-- [ ] **Adım 7: Tarayıcıda doğrula**
+- [ ] **Adım 7: Kullanıcıya devret**
 
-`yarn dev` ile aç: `http://localhost:3000/solar-systems/30000240`
-
-Kontrol listesi:
-- Altı sekme görünüyor, ilki `Overview` ve seçili.
-- `Adjacent (4)`, `Orbital Bodies (7)`, `Structures (0)` sayaçları doğru.
-- Sayfa yüklendiğinde tarayıcının **geri** düğmesi bir önceki sayfaya
-  dönüyor — araya `?tab=overview` kaydı **girmiyor** (P5).
-- Sekmeler arasında gezinip geri düğmesine bastığında sekme geçmişi birikmiyor
-  (`replace` kullanıldığı için).
-- Pencereyi 375px genişliğe daralt: sekme çubuğu yatay kayıyor, satır kırmıyor.
+Tarayıcı kontrolü yapılmıyor. Kullanıcıya şunu bak diye söyle:
+`/solar-systems/30000240` — altı sekme, ilki `Overview` ve seçili;
+`Adjacent (4)`, `Orbital Bodies (7)`, `Structures (0)` sayaçları; sayfayı açar
+açmaz geri düğmesinin bir önceki sayfaya dönmesi (P5); sekmeler arasında
+gezindikten sonra geri geçmişinin birikmemesi; 375px genişlikte sekme çubuğunun
+satır kırmak yerine yatay kayması (R5).
 
 - [ ] **Adım 8: Commit**
 
@@ -3809,20 +4604,21 @@ cd frontend && yarn lint && yarn build
 
 Beklenen: ikisi de hatasız.
 
-- [ ] **Adım 8: Tarayıcıda doğrula**
+- [ ] **Adım 8: Veriyi backend'den doğrula, görseli kullanıcıya bırak**
 
-`http://localhost:3000/solar-systems/30000240`
+```bash
+curl -s http://localhost:4000/graphql -H 'Content-Type: application/json' \
+  -d '{"query":"{ solarSystemStats(systemId: 30000240) { totalKills kills24h busiestHourUtc } solarSystem(id: 30000240) { star { name spectralClass temperature } security_class } }"}' | jq
+```
 
-- İstatistik şeridi dört kutu, sekme çubuğunun üstünde, **her sekmede** görünür.
-- Yıldız kartı `4-HWWF - Star`, `M2 V`, `2.971 K` gösteriyor.
-- Grafikte 24h / 7d düğmeleri çalışıyor.
-- Technical details katlanmış; açınca `H3`, sistem ID'si ve hem metre hem AU
-  koordinatları var.
+Beklenen: `star.name` = `"4-HWWF - Star"`, `spectralClass` = `"M2 V"`,
+`temperature` = 2971. Thera (31000005) için aynı sorguda `security_class` `null`
+dönmeli ve `errors` olmamalı.
 
-Sonra `http://localhost:3000/solar-systems/31000005` (Thera):
-- `Security class` satırı `—` gösteriyor, hata vermiyor.
-- Hiç killmail yoksa şerit sıfır gösteriyor, boş durum metni değil.
-- Grafik "No kill activity recorded in this window" diyor.
+Kullanıcıya şunu bak diye söyle: istatistik şeridinin sekme çubuğunun üstünde ve
+her sekmede görünmesi; yıldız kartı; grafiğin 24h/7d düğmeleri; Technical
+details'in katlanmış gelmesi ve açılınca koordinatları hem metre hem AU
+göstermesi.
 
 - [ ] **Adım 9: Commit**
 
@@ -4015,14 +4811,23 @@ ve yer tutucuyu değiştir:
 cd frontend && yarn lint && yarn build
 ```
 
-- [ ] **Adım 4: Üç sistemde doğrula**
+- [ ] **Adım 4: Veriyi backend'den doğrula**
 
-- `30000240` (4-HWWF): yedi gezegen, `orbitIndex` 1–7 sırayla. IV. gezegen
-  açıldığında 11 ay + 1 belt; VII. gezegende 23 ay + 6 belt.
-- `30000142` (Jita): sekiz gezegen; her gezegenin belt bölümü "No asteroid belts
-  around this planet." diyor — Jita'da hiç belt yok ve bu normal.
-- `31000005` (Thera): 14 gezegen, hiçbirinde ay ya da belt yok; satırlar
-  katlanamıyor ve `0 moons · 0 belts` yazıyor.
+```bash
+curl -s http://localhost:4000/graphql -H 'Content-Type: application/json' \
+  -d '{"query":"{ solarSystem(id: 30000240) { planets { orbitIndex name type { name } moons { name } asteroidBelts { name } } } }"}' \
+  | jq '.data.solarSystem.planets | map({orbitIndex, name, moons: (.moons|length), belts: (.asteroidBelts|length)})'
+```
+
+Beklenen: yedi gezegen, `orbitIndex` 1–7; ay sayıları sırasıyla
+0, 0, 0, 11, 21, 18, 23; belt sayıları 0, 1, 1, 1, 0, 4, 6.
+
+Jita'da (30000142) hiç belt olmadığını ve Thera'da (31000005) hiç ay/belt
+olmadığını da aynı sorguyla doğrula.
+
+Kullanıcıya şunu bak diye söyle: gezegen satırlarının katlanması, aysız
+gezegenlerin (Thera) katlanamaz görünmesi, ve isimsiz kayıtların italik gri
+`Moon 40015369` biçiminde çıkması.
 
 - [ ] **Adım 5: Commit**
 
@@ -4187,14 +4992,22 @@ import StructuresTab from "@/components/SolarSystemDetail/StructuresTab";
 cd frontend && yarn lint && yarn build
 ```
 
-- [ ] **Adım 4: Üç sistemde doğrula**
+- [ ] **Adım 4: Veriyi backend'den doğrula**
 
-- `30000142` (Jita): 18 istasyon; `Jita IV - Moon 6 - Ytiri Storage` satırında
-  reprocessing `50%`, station take `5%`, office rent `6.51M`, 12 servis çipi.
-- `31000005` (Thera): **dört istasyon** — sekme dolu. Wormhole sistemlerinin
-  istasyonsuz olduğu varsayımı yanlış ve bu sistem onu gösteriyor.
-- `30000240` (4-HWWF): "This system has no NPC stations." — `stations` anahtarı
-  ESI yanıtında hiç yok ve bu normal bir durum, hata değil.
+```bash
+curl -s http://localhost:4000/graphql -H 'Content-Type: application/json' \
+  -d '{"query":"{ solarSystem(id: 30000142) { stations { name type { name } ownerCorporation { name } reprocessingEfficiency reprocessingStationsTake officeRentalCost services } } }"}' \
+  | jq '.data.solarSystem.stations | length, .[0]'
+```
+
+Beklenen: 18 istasyon; `Jita IV - Moon 6 - Ytiri Storage` satırında
+`reprocessingEfficiency` 0.5, `reprocessingStationsTake` 0.05,
+`officeRentalCost` 6510853, 12 servis.
+
+Thera (31000005) **dört** istasyon döndürmeli; 4-HWWF (30000240) boş dizi.
+
+Kullanıcıya şunu bak diye söyle: tablonun dar ekranda kendi içinde yatay
+kayması, ve 4-HWWF'de "This system has no NPC stations." metni.
 
 - [ ] **Adım 5: Commit**
 
@@ -4904,14 +5717,17 @@ gösteriyorsa `cards` prop'unu kullan, bileşeni değiştirme.
 cd frontend && yarn lint && yarn build
 ```
 
-- [ ] **Adım 7: Dört sayfayı da doğrula**
+- [ ] **Adım 7: Kullanıcıya devret**
 
-- `/solar-systems/30000142?tab=killmails`: tablo, sayfalama ve dört kart eskisi
-  gibi.
-- 7. sayfaya git, `Overview` sekmesine geç, `Killmails`'e dön: **1. sayfadasın**
-  ve URL'de `page=7` yok (P6).
-- `/killmails`, `/alliances/<id>`, `/corporations/<id>`: sidebar'lar
-  değişiklikten önceki halleriyle aynı görünüyor.
+Bu görev dört sayfaya dokunuyor ve üçü bu işin kapsamı dışında, yani regresyon
+riski onlarda. Kod tarafında yapılabilecek doğrulama `yarn lint` + `yarn build`
+ile bitti. Kullanıcıya tek tek şunlara bakmasını söyle:
+
+- `/solar-systems/<id>?tab=killmails` — tablo, sayfalama ve dört kart eskisi gibi
+- Killmails'in 7. sayfasına git, `Overview`'a geç, `Killmails`'e dön: **1.
+  sayfada** olmalısın ve URL'de `page=7` kalmamalı (P6)
+- `/killmails`, `/alliances/<id>`, `/corporations/<id>` — sidebar'lar
+  değişiklikten önceki halleriyle aynı görünmeli
 
 - [ ] **Adım 8: Commit**
 
@@ -5141,12 +5957,9 @@ Görev 9–14; §7.5 → Görev 16–21; §7.6 (P5/P6/P7/P8) → Görev 16 ve 21
 15 Adım 1; §7.7 → Görev 15; §9 → her sekme görevindeki boş/hata durumu adımları;
 §10 → Görev 22.
 
-**Spec'te olup planda bilinçli olarak farklı olan iki şey:**
-
-1. Altı worker ortak bir `celestial-worker.ts` kullanıyor (yukarıdaki "Spec'ten
-   Sapan Tek Karar" bölümü).
-2. Spec §7.4 `Star`'ın `solarSystem` alanına sahip olduğunu söylemiyordu ama
-   diğer beş tipte olduğu için tutarlılık adına eklendi.
+**Spec'te olup planda bilinçli olarak farklı olan tek şey:** Spec §7.4 `Star`'ın
+`solarSystem` alanına sahip olduğunu söylemiyordu ama diğer beş tipte olduğu için
+tutarlılık adına eklendi.
 
 **Spec'te olup planın açıkça dışında bıraktığı:** yok.
 
