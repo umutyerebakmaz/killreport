@@ -1,0 +1,25 @@
+query SolarSystemStations($id: Int!) {
+  solarSystem(id: $id) {
+    id
+    stations {
+      id
+      name
+      typeId
+      type {
+        id
+        name
+      }
+      ownerCorporationId
+      ownerCorporation {
+        id
+        name
+        ticker
+      }
+      services
+      reprocessingEfficiency
+      reprocessingStationsTake
+      officeRentalCost
+      maxDockableShipVolume
+    }
+  }
+}

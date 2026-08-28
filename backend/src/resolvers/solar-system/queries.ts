@@ -1,11 +1,15 @@
 import { PageInfo, QueryResolvers } from '@generated-types';
 import prisma from '@services/prisma';
+import { SolarSystemStatsService } from '@services/solar-system';
 
 /**
  * SolarSystem Query Resolvers
  * Handles fetching solar system data and listing systems with filters
  */
 export const solarSystemQueries: QueryResolvers = {
+  // Orchestration only; the query and its cache live in the service layer.
+  solarSystemStats: async (_, { systemId }) => SolarSystemStatsService.getStats(systemId),
+
   solarSystem: async (_, { id }) => {
     const system = await prisma.solarSystem.findUnique({
       where: { id: Number(id) },

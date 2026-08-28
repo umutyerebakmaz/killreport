@@ -10,6 +10,7 @@ import { WebSocketServer } from 'ws';
 import { VerifiedCharacter } from '@app-types/context';
 import { REDIS_CONFIG } from '@config/cache';
 import { config } from '@config/config';
+import { createDepthLimitPlugin } from '@plugins/depth-limit.plugin';
 import { createDisableIntrospectionPlugin } from '@plugins/disable-introspection.plugin';
 import { createRateLimitPlugin } from '@plugins/rate-limit.plugin';
 import { createResponseCachePlugin } from '@plugins/response-cache.plugin';
@@ -75,6 +76,9 @@ const yoga = createYoga<ServerContext>({
     },
 
   plugins: [
+    // The topology schema is recursive (Stargate -> destination -> stargate,
+    // Planet -> moons -> planet). The deepest query the app issues is 7 levels.
+    createDepthLimitPlugin(12),
     // Rate limiting (must be first to prevent abuse)
     createRateLimitPlugin({
       max: config.app.isProduction ? 100 : 1000, // 100 req/min in prod, 1000 in dev

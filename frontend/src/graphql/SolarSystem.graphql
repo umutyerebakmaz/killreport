@@ -1,0 +1,47 @@
+query SolarSystem($id: Int!) {
+  solarSystem(id: $id) {
+    id
+    name
+    securityStatus
+    security_class
+    star_id
+    position {
+      x
+      y
+      z
+    }
+    constellation {
+      id
+      name
+      region {
+        id
+        name
+      }
+    }
+    latestKills {
+      ship_kills
+      pod_kills
+      npc_kills
+      timestamp
+    }
+    star {
+      id
+      name
+      spectralClass
+      temperature
+      radius
+      type {
+        id
+        name
+      }
+    }
+    counts {
+      stargates
+      planets
+      moons
+      asteroidBelts
+      stations
+      sovereigntyStructures
+    }
+  }
+}

@@ -24,7 +24,17 @@ import {
 import { leaderboardQueries } from './leaderboard';
 import { raceQueries } from './race';
 import { regionFields, regionMutations, regionQueries } from './region';
-import { solarSystemFields, solarSystemQueries } from './solar-system';
+import {
+    asteroidBeltFields,
+    moonFields,
+    planetFields,
+    solarSystemFields,
+    solarSystemQueries,
+    stargateDestinationFields,
+    stargateFields,
+    starFields,
+    stationFields,
+} from './solar-system';
 import { sovereigntyQueries, sovereigntySubscriptions } from './sovereignty';
 import { systemKillsFields } from './system-kills/fields';
 import { systemKillsQueries } from './system-kills/queries';
@@ -91,6 +101,13 @@ export const resolvers: Resolvers = {
     Constellation: constellationFields,
     Region: regionFields,
     SolarSystem: solarSystemFields,
+    Stargate: stargateFields,
+    StargateDestination: stargateDestinationFields,
+    Star: starFields,
+    Planet: planetFields,
+    Moon: moonFields,
+    AsteroidBelt: asteroidBeltFields,
+    Station: stationFields,
     SystemKills: systemKillsFields,
     Killmail: killmailFields,
     Victim: victimFields,
