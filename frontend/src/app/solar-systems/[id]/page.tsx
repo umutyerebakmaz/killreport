@@ -6,6 +6,7 @@ import SecurityBadge from "@/components/SecurityStatus/SecurityStatus";
 import KillmailsTab from "@/components/SolarSystemDetail/KillmailsTab";
 import OrbitalBodiesTab from "@/components/SolarSystemDetail/OrbitalBodiesTab";
 import OverviewTab from "@/components/SolarSystemDetail/OverviewTab";
+import StructuresTab from "@/components/SolarSystemDetail/StructuresTab";
 import SystemStatsStrip from "@/components/SolarSystemDetail/SystemStatsStrip";
 import {
   isSolarSystemTab,
@@ -291,7 +292,7 @@ export default function SolarSystemDetailPage({
           {activeTab === "orbital-bodies" && (
             <OrbitalBodiesTab systemId={systemId} />
           )}
-          {activeTab === "structures" && <div>Structures</div>}
+          {activeTab === "structures" && <StructuresTab systemId={systemId} />}
           {activeTab === "sovereignty" && <div>Sovereignty</div>}
           {activeTab === "killmails" && (
             <KillmailsTab
