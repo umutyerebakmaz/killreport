@@ -1,11 +1,13 @@
 "use client";
 
+import AdjacentSystemsTab from "@/components/SolarSystemDetail/AdjacentSystemsTab";
 import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
 import { Loader } from "@/components/Loader/Loader";
 import SecurityBadge from "@/components/SecurityStatus/SecurityStatus";
 import KillmailsTab from "@/components/SolarSystemDetail/KillmailsTab";
 import OrbitalBodiesTab from "@/components/SolarSystemDetail/OrbitalBodiesTab";
 import OverviewTab from "@/components/SolarSystemDetail/OverviewTab";
+import SovereigntyTab from "@/components/SolarSystemDetail/SovereigntyTab";
 import StructuresTab from "@/components/SolarSystemDetail/StructuresTab";
 import SystemStatsStrip from "@/components/SolarSystemDetail/SystemStatsStrip";
 import {
@@ -288,12 +290,14 @@ export default function SolarSystemDetailPage({
               star={system.star}
             />
           )}
-          {activeTab === "adjacent" && <div>Adjacent</div>}
+          {activeTab === "adjacent" && (
+            <AdjacentSystemsTab systemId={systemId} />
+          )}
           {activeTab === "orbital-bodies" && (
             <OrbitalBodiesTab systemId={systemId} />
           )}
           {activeTab === "structures" && <StructuresTab systemId={systemId} />}
-          {activeTab === "sovereignty" && <div>Sovereignty</div>}
+          {activeTab === "sovereignty" && <SovereigntyTab systemId={systemId} />}
           {activeTab === "killmails" && (
             <KillmailsTab
               systemId={systemId}
