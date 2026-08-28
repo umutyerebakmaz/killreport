@@ -1,0 +1,27 @@
+query SolarSystemSovereignty($systemId: Int!) {
+  sovereigntyStructures(systemId: $systemId, limit: 50) {
+    structureId
+    solarSystemId
+    allianceId
+    allianceName
+    allianceTicker
+    structureTypeId
+    structureTypeName
+    occupancyLevel
+    vulnerableStartTime
+    vulnerableEndTime
+    lastSeen
+  }
+  sovereigntyActiveCampaigns(systemId: $systemId, limit: 25) {
+    campaignId
+    eventType
+    solarSystemId
+    solarSystemName
+    defenderId
+    defenderName
+    defenderTicker
+    defenderScore
+    attackersScore
+    startTime
+  }
+}

@@ -1,0 +1,12 @@
+query SolarSystemStats($systemId: Int!) {
+  solarSystemStats(systemId: $systemId) {
+    systemId
+    totalKills
+    totalIskDestroyed
+    kills24h
+    kills7d
+    iskDestroyed7d
+    lastKillTime
+    busiestHourUtc
+  }
+}

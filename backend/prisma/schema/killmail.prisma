@@ -18,6 +18,7 @@ model Killmail {
 
   @@index([killmail_time])
   @@index([solar_system_id])
+  @@index([solar_system_id, killmail_time])
   @@index([total_value(sort: Desc)])
   @@index([attacker_count])
   @@index([related_campaign_id])
