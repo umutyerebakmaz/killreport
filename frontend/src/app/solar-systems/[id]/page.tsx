@@ -4,6 +4,8 @@ import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
 import { Loader } from "@/components/Loader/Loader";
 import SecurityBadge from "@/components/SecurityStatus/SecurityStatus";
 import KillmailsTab from "@/components/SolarSystemDetail/KillmailsTab";
+import OverviewTab from "@/components/SolarSystemDetail/OverviewTab";
+import SystemStatsStrip from "@/components/SolarSystemDetail/SystemStatsStrip";
 import {
   isSolarSystemTab,
   SOLAR_SYSTEM_TABS,
@@ -242,6 +244,9 @@ export default function SolarSystemDetailPage({
           )}
         </div>
 
+        {/* Above the tab bar on purpose: it summarises the system, not a tab. */}
+        <SystemStatsStrip systemId={systemId} />
+
         {/* Tabs — overflow-x-auto because six tabs overflow a narrow screen */}
         <div className="mt-8 mb-6 border-b border-white/10">
           <nav className="flex gap-4 overflow-x-auto" aria-label="Tabs">
@@ -271,7 +276,16 @@ export default function SolarSystemDetailPage({
 
         {/* Tab content */}
         <div>
-          {activeTab === "overview" && <div>Overview</div>}
+          {activeTab === "overview" && (
+            <OverviewTab
+              systemId={systemId}
+              starId={system.star_id}
+              securityClass={system.security_class}
+              securityStatus={system.securityStatus}
+              position={system.position}
+              star={system.star}
+            />
+          )}
           {activeTab === "adjacent" && <div>Adjacent</div>}
           {activeTab === "orbital-bodies" && <div>Orbital Bodies</div>}
           {activeTab === "structures" && <div>Structures</div>}
