@@ -158,6 +158,16 @@ export type AlliancesResponse = {
   pageInfo: PageInfo;
 };
 
+export type AsteroidBelt = {
+  __typename?: 'AsteroidBelt';
+  id: Scalars['Int']['output'];
+  name?: Maybe<Scalars['String']['output']>;
+  orbitIndex?: Maybe<Scalars['Int']['output']>;
+  planet?: Maybe<Planet>;
+  position?: Maybe<Position>;
+  solarSystem?: Maybe<SolarSystem>;
+};
+
 export type Attacker = {
   __typename?: 'Attacker';
   alliance?: Maybe<Alliance>;
@@ -668,6 +678,17 @@ export type KillmailsResponse = {
   pageInfo: PageInfo;
 };
 
+export type Moon = {
+  __typename?: 'Moon';
+  id: Scalars['Int']['output'];
+  name?: Maybe<Scalars['String']['output']>;
+  /** ESI'nin planets[].moons dizisindeki 1 tabanlı sıra. */
+  orbitIndex?: Maybe<Scalars['Int']['output']>;
+  planet?: Maybe<Planet>;
+  position?: Maybe<Position>;
+  solarSystem?: Maybe<SolarSystem>;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
@@ -812,6 +833,21 @@ export type PageInfo = {
   totalPages: Scalars['Int']['output'];
 };
 
+export type Planet = {
+  __typename?: 'Planet';
+  asteroidBelts: Array<AsteroidBelt>;
+  id: Scalars['Int']['output'];
+  moons: Array<Moon>;
+  name?: Maybe<Scalars['String']['output']>;
+  /** ESI'nin planets[] dizisindeki 1 tabanlı sıra. */
+  orbitIndex?: Maybe<Scalars['Int']['output']>;
+  position?: Maybe<Position>;
+  solarSystem?: Maybe<SolarSystem>;
+  /** Barren, Gas, Temperate, Storm… */
+  type?: Maybe<Type>;
+  typeId?: Maybe<Scalars['Int']['output']>;
+};
+
 export type Position = {
   __typename?: 'Position';
   x: Scalars['Float']['output'];
@@ -882,6 +918,7 @@ export type Query = {
   region?: Maybe<Region>;
   regions: RegionsResponse;
   solarSystem?: Maybe<SolarSystem>;
+  solarSystemStats: SolarSystemStats;
   solarSystems: SolarSystemsResponse;
   /** Currently active sovereignty campaigns, newest first. */
   sovereigntyActiveCampaigns: Array<SovereigntyCampaign>;
@@ -1163,6 +1200,11 @@ export type QuerySolarSystemArgs = {
 };
 
 
+export type QuerySolarSystemStatsArgs = {
+  systemId: Scalars['Int']['input'];
+};
+
+
 export type QuerySolarSystemsArgs = {
   filter?: InputMaybe<SolarSystemFilter>;
 };
@@ -1170,6 +1212,7 @@ export type QuerySolarSystemsArgs = {
 
 export type QuerySovereigntyActiveCampaignsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
+  systemId?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1385,13 +1428,29 @@ export type SlotGroup = {
 export type SolarSystem = {
   __typename?: 'SolarSystem';
   constellation?: Maybe<Constellation>;
+  counts: SolarSystemCounts;
   id: Scalars['Int']['output'];
   latestKills?: Maybe<SystemKills>;
   name: Scalars['String']['output'];
+  planets: Array<Planet>;
   position?: Maybe<Position>;
   securityStatus?: Maybe<Scalars['Float']['output']>;
   security_class?: Maybe<Scalars['String']['output']>;
+  /** Step 3 çalışmadan önce isimsiz; star_id boşsa null. */
+  star?: Maybe<Star>;
   star_id?: Maybe<Scalars['Int']['output']>;
+  stargates: Array<Stargate>;
+  stations: Array<Station>;
+};
+
+export type SolarSystemCounts = {
+  __typename?: 'SolarSystemCounts';
+  asteroidBelts: Scalars['Int']['output'];
+  moons: Scalars['Int']['output'];
+  planets: Scalars['Int']['output'];
+  sovereigntyStructures: Scalars['Int']['output'];
+  stargates: Scalars['Int']['output'];
+  stations: Scalars['Int']['output'];
 };
 
 export type SolarSystemFilter = {
@@ -1418,6 +1477,19 @@ export enum SolarSystemOrderBy {
   ShipKillsAsc = 'shipKillsAsc',
   ShipKillsDesc = 'shipKillsDesc'
 }
+
+export type SolarSystemStats = {
+  __typename?: 'SolarSystemStats';
+  /** Son 7 günde en çok kill olan UTC saati (0-23). */
+  busiestHourUtc?: Maybe<Scalars['Int']['output']>;
+  iskDestroyed7d: Scalars['Float']['output'];
+  kills7d: Scalars['Int']['output'];
+  kills24h: Scalars['Int']['output'];
+  lastKillTime?: Maybe<Scalars['String']['output']>;
+  systemId: Scalars['Int']['output'];
+  totalIskDestroyed: Scalars['Float']['output'];
+  totalKills: Scalars['Int']['output'];
+};
 
 export type SolarSystemsResponse = {
   __typename?: 'SolarSystemsResponse';
@@ -1561,6 +1633,51 @@ export type StandaloneWorkerStatus = {
   running: Scalars['Boolean']['output'];
 };
 
+export type Star = {
+  __typename?: 'Star';
+  /** Yıl. */
+  age?: Maybe<Scalars['Float']['output']>;
+  id: Scalars['Int']['output'];
+  luminosity?: Maybe<Scalars['Float']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+  /** Metre. */
+  radius?: Maybe<Scalars['Float']['output']>;
+  solarSystem?: Maybe<SolarSystem>;
+  /** Örn. "M2 V". */
+  spectralClass?: Maybe<Scalars['String']['output']>;
+  /** Kelvin. */
+  temperature?: Maybe<Scalars['Int']['output']>;
+  type?: Maybe<Type>;
+  typeId?: Maybe<Scalars['Int']['output']>;
+};
+
+/** Sistemdeki stargate. ESI'nin stargates[] dizisini yansıtır, uçları çözülmüş halde. */
+export type Stargate = {
+  __typename?: 'Stargate';
+  destination?: Maybe<StargateDestination>;
+  id: Scalars['Int']['output'];
+  name?: Maybe<Scalars['String']['output']>;
+  position?: Maybe<Position>;
+  solarSystem?: Maybe<SolarSystem>;
+  type?: Maybe<Type>;
+  typeId?: Maybe<Scalars['Int']['output']>;
+};
+
+/**
+ * ESI'nin stargate yanıtındaki destination nesnesi.
+ * Ham ID'ler step 3 çalışmadan önce null; nesneler ayrıca karşılık gelen satır
+ * veritabanında yoksa da null.
+ */
+export type StargateDestination = {
+  __typename?: 'StargateDestination';
+  destinationStargateId?: Maybe<Scalars['Int']['output']>;
+  destinationSystemId?: Maybe<Scalars['Int']['output']>;
+  /** Karşı uçtaki stargate; kendi destination'ı bu sisteme geri işaret eder. */
+  stargate?: Maybe<Stargate>;
+  /** Karşı uçtaki sistem. */
+  system?: Maybe<SolarSystem>;
+};
+
 export type StartAllianceSyncInput = {
   clientMutationId?: InputMaybe<Scalars['String']['input']>;
 };
@@ -1660,6 +1777,26 @@ export type StartTypeSyncPayload = {
   clientMutationId?: Maybe<Scalars['String']['output']>;
   message?: Maybe<Scalars['String']['output']>;
   success: Scalars['Boolean']['output'];
+};
+
+export type Station = {
+  __typename?: 'Station';
+  id: Scalars['Int']['output'];
+  maxDockableShipVolume?: Maybe<Scalars['Float']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+  /** ISK cinsinden ofis kirası. */
+  officeRentalCost?: Maybe<Scalars['Float']['output']>;
+  ownerCorporation?: Maybe<Corporation>;
+  ownerCorporationId?: Maybe<Scalars['Int']['output']>;
+  position?: Maybe<Position>;
+  raceId?: Maybe<Scalars['Int']['output']>;
+  reprocessingEfficiency?: Maybe<Scalars['Float']['output']>;
+  /** İstasyonun yeniden işlemeden aldığı pay; 0.05 = %5. */
+  reprocessingStationsTake?: Maybe<Scalars['Float']['output']>;
+  services: Array<Scalars['String']['output']>;
+  solarSystem?: Maybe<SolarSystem>;
+  type?: Maybe<Type>;
+  typeId?: Maybe<Scalars['Int']['output']>;
 };
 
 export type Subscription = {
@@ -2375,19 +2512,54 @@ export type SearchTypesQueryVariables = Exact<{
 
 export type SearchTypesQuery = { __typename?: 'Query', types: { __typename?: 'TypesResponse', items: Array<{ __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', id: number, name: string } | null }> } };
 
+export type SolarSystemQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type SolarSystemQuery = { __typename?: 'Query', solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, security_class?: string | null, star_id?: number | null, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null, latestKills?: { __typename?: 'SystemKills', ship_kills: number, pod_kills: number, npc_kills: number, timestamp: string } | null, star?: { __typename?: 'Star', id: number, name?: string | null, spectralClass?: string | null, temperature?: number | null, radius?: number | null, type?: { __typename?: 'Type', id: number, name: string } | null } | null, counts: { __typename?: 'SolarSystemCounts', stargates: number, planets: number, moons: number, asteroidBelts: number, stations: number, sovereigntyStructures: number } } | null };
+
+export type SolarSystemAdjacentQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type SolarSystemAdjacentQuery = { __typename?: 'Query', solarSystem?: { __typename?: 'SolarSystem', id: number, stargates: Array<{ __typename?: 'Stargate', id: number, name?: string | null, destination?: { __typename?: 'StargateDestination', destinationSystemId?: number | null, system?: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null, latestKills?: { __typename?: 'SystemKills', ship_kills: number, pod_kills: number, npc_kills: number } | null } | null } | null }> } | null };
+
+export type SolarSystemOrbitalBodiesQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type SolarSystemOrbitalBodiesQuery = { __typename?: 'Query', solarSystem?: { __typename?: 'SolarSystem', id: number, planets: Array<{ __typename?: 'Planet', id: number, name?: string | null, orbitIndex?: number | null, typeId?: number | null, type?: { __typename?: 'Type', id: number, name: string } | null, moons: Array<{ __typename?: 'Moon', id: number, name?: string | null, orbitIndex?: number | null }>, asteroidBelts: Array<{ __typename?: 'AsteroidBelt', id: number, name?: string | null, orbitIndex?: number | null }> }> } | null };
+
+export type SolarSystemSovereigntyQueryVariables = Exact<{
+  systemId: Scalars['Int']['input'];
+}>;
+
+
+export type SolarSystemSovereigntyQuery = { __typename?: 'Query', sovereigntyStructures: Array<{ __typename?: 'SovereigntyStructureInfo', structureId: string, solarSystemId: number, allianceId: number, allianceName?: string | null, allianceTicker?: string | null, structureTypeId: number, structureTypeName: string, occupancyLevel?: number | null, vulnerableStartTime?: string | null, vulnerableEndTime?: string | null, lastSeen: string }>, sovereigntyActiveCampaigns: Array<{ __typename?: 'SovereigntyCampaign', campaignId: number, eventType: string, solarSystemId: number, solarSystemName?: string | null, defenderId?: number | null, defenderName?: string | null, defenderTicker?: string | null, defenderScore?: number | null, attackersScore?: number | null, startTime: string }> };
+
+export type SolarSystemStationsQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type SolarSystemStationsQuery = { __typename?: 'Query', solarSystem?: { __typename?: 'SolarSystem', id: number, stations: Array<{ __typename?: 'Station', id: number, name?: string | null, typeId?: number | null, ownerCorporationId?: number | null, services: Array<string>, reprocessingEfficiency?: number | null, reprocessingStationsTake?: number | null, officeRentalCost?: number | null, maxDockableShipVolume?: number | null, type?: { __typename?: 'Type', id: number, name: string } | null, ownerCorporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null }> } | null };
+
+export type SolarSystemStatsQueryVariables = Exact<{
+  systemId: Scalars['Int']['input'];
+}>;
+
+
+export type SolarSystemStatsQuery = { __typename?: 'Query', solarSystemStats: { __typename?: 'SolarSystemStats', systemId: number, totalKills: number, totalIskDestroyed: number, kills24h: number, kills7d: number, iskDestroyed7d: number, lastKillTime?: string | null, busiestHourUtc?: number | null } };
+
 export type SolarSystemsQueryVariables = Exact<{
   filter?: InputMaybe<SolarSystemFilter>;
 }>;
 
 
 export type SolarSystemsQuery = { __typename?: 'Query', solarSystems: { __typename?: 'SolarSystemsResponse', items: Array<{ __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null, latestKills?: { __typename?: 'SystemKills', ship_kills: number, pod_kills: number, npc_kills: number, timestamp: string } | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
-
-export type SolarSystemQueryVariables = Exact<{
-  id: Scalars['Int']['input'];
-}>;
-
-
-export type SolarSystemQuery = { __typename?: 'Query', solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, star_id?: number | null, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null, latestKills?: { __typename?: 'SystemKills', ship_kills: number, pod_kills: number, npc_kills: number, timestamp: string } | null } | null };
 
 export type SovereigntyDashboardQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2416,6 +2588,13 @@ export type SovereigntyStructuresPageQueryVariables = Exact<{ [key: string]: nev
 
 
 export type SovereigntyStructuresPageQuery = { __typename?: 'Query', sovereigntyUpcomingTimers: Array<{ __typename?: 'SovereigntyStructureInfo', structureId: string, solarSystemId: number, solarSystemName?: string | null, regionId?: number | null, regionName?: string | null, allianceId: number, allianceName?: string | null, allianceTicker?: string | null, structureTypeId: number, structureTypeName: string, occupancyLevel?: number | null, vulnerableStartTime?: string | null, vulnerableEndTime?: string | null }>, sovereigntyStructures: Array<{ __typename?: 'SovereigntyStructureInfo', structureId: string, solarSystemId: number, solarSystemName?: string | null, regionId?: number | null, regionName?: string | null, allianceId: number, allianceName?: string | null, allianceTicker?: string | null, structureTypeId: number, structureTypeName: string, occupancyLevel?: number | null, vulnerableStartTime?: string | null, vulnerableEndTime?: string | null, lastSeen: string }> };
+
+export type SystemKillsHistoryQueryVariables = Exact<{
+  filter: SystemKillsFilter;
+}>;
+
+
+export type SystemKillsHistoryQuery = { __typename?: 'Query', systemKillsHistory: Array<{ __typename?: 'SystemKills', id: number, ship_kills: number, pod_kills: number, npc_kills: number, timestamp: string }> };
 
 export type Top90DaysPilotsQueryVariables = Exact<{
   filter?: InputMaybe<Top90DaysPilotsFilter>;
@@ -6296,6 +6475,400 @@ export type SearchTypesQueryHookResult = ReturnType<typeof useSearchTypesQuery>;
 export type SearchTypesLazyQueryHookResult = ReturnType<typeof useSearchTypesLazyQuery>;
 export type SearchTypesSuspenseQueryHookResult = ReturnType<typeof useSearchTypesSuspenseQuery>;
 export type SearchTypesQueryResult = Apollo.QueryResult<SearchTypesQuery, SearchTypesQueryVariables>;
+export const SolarSystemDocument = gql`
+    query SolarSystem($id: Int!) {
+  solarSystem(id: $id) {
+    id
+    name
+    securityStatus
+    security_class
+    star_id
+    position {
+      x
+      y
+      z
+    }
+    constellation {
+      id
+      name
+      region {
+        id
+        name
+      }
+    }
+    latestKills {
+      ship_kills
+      pod_kills
+      npc_kills
+      timestamp
+    }
+    star {
+      id
+      name
+      spectralClass
+      temperature
+      radius
+      type {
+        id
+        name
+      }
+    }
+    counts {
+      stargates
+      planets
+      moons
+      asteroidBelts
+      stations
+      sovereigntyStructures
+    }
+  }
+}
+    `;
+
+/**
+ * __useSolarSystemQuery__
+ *
+ * To run a query within a React component, call `useSolarSystemQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSolarSystemQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSolarSystemQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useSolarSystemQuery(baseOptions: Apollo.QueryHookOptions<SolarSystemQuery, SolarSystemQueryVariables> & ({ variables: SolarSystemQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SolarSystemQuery, SolarSystemQueryVariables>(SolarSystemDocument, options);
+      }
+export function useSolarSystemLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SolarSystemQuery, SolarSystemQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SolarSystemQuery, SolarSystemQueryVariables>(SolarSystemDocument, options);
+        }
+// @ts-ignore
+export function useSolarSystemSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SolarSystemQuery, SolarSystemQueryVariables>): Apollo.UseSuspenseQueryResult<SolarSystemQuery, SolarSystemQueryVariables>;
+export function useSolarSystemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SolarSystemQuery, SolarSystemQueryVariables>): Apollo.UseSuspenseQueryResult<SolarSystemQuery | undefined, SolarSystemQueryVariables>;
+export function useSolarSystemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SolarSystemQuery, SolarSystemQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SolarSystemQuery, SolarSystemQueryVariables>(SolarSystemDocument, options);
+        }
+export type SolarSystemQueryHookResult = ReturnType<typeof useSolarSystemQuery>;
+export type SolarSystemLazyQueryHookResult = ReturnType<typeof useSolarSystemLazyQuery>;
+export type SolarSystemSuspenseQueryHookResult = ReturnType<typeof useSolarSystemSuspenseQuery>;
+export type SolarSystemQueryResult = Apollo.QueryResult<SolarSystemQuery, SolarSystemQueryVariables>;
+export const SolarSystemAdjacentDocument = gql`
+    query SolarSystemAdjacent($id: Int!) {
+  solarSystem(id: $id) {
+    id
+    stargates {
+      id
+      name
+      destination {
+        destinationSystemId
+        system {
+          id
+          name
+          securityStatus
+          constellation {
+            id
+            name
+            region {
+              id
+              name
+            }
+          }
+          latestKills {
+            ship_kills
+            pod_kills
+            npc_kills
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useSolarSystemAdjacentQuery__
+ *
+ * To run a query within a React component, call `useSolarSystemAdjacentQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSolarSystemAdjacentQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSolarSystemAdjacentQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useSolarSystemAdjacentQuery(baseOptions: Apollo.QueryHookOptions<SolarSystemAdjacentQuery, SolarSystemAdjacentQueryVariables> & ({ variables: SolarSystemAdjacentQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SolarSystemAdjacentQuery, SolarSystemAdjacentQueryVariables>(SolarSystemAdjacentDocument, options);
+      }
+export function useSolarSystemAdjacentLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SolarSystemAdjacentQuery, SolarSystemAdjacentQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SolarSystemAdjacentQuery, SolarSystemAdjacentQueryVariables>(SolarSystemAdjacentDocument, options);
+        }
+// @ts-ignore
+export function useSolarSystemAdjacentSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SolarSystemAdjacentQuery, SolarSystemAdjacentQueryVariables>): Apollo.UseSuspenseQueryResult<SolarSystemAdjacentQuery, SolarSystemAdjacentQueryVariables>;
+export function useSolarSystemAdjacentSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SolarSystemAdjacentQuery, SolarSystemAdjacentQueryVariables>): Apollo.UseSuspenseQueryResult<SolarSystemAdjacentQuery | undefined, SolarSystemAdjacentQueryVariables>;
+export function useSolarSystemAdjacentSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SolarSystemAdjacentQuery, SolarSystemAdjacentQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SolarSystemAdjacentQuery, SolarSystemAdjacentQueryVariables>(SolarSystemAdjacentDocument, options);
+        }
+export type SolarSystemAdjacentQueryHookResult = ReturnType<typeof useSolarSystemAdjacentQuery>;
+export type SolarSystemAdjacentLazyQueryHookResult = ReturnType<typeof useSolarSystemAdjacentLazyQuery>;
+export type SolarSystemAdjacentSuspenseQueryHookResult = ReturnType<typeof useSolarSystemAdjacentSuspenseQuery>;
+export type SolarSystemAdjacentQueryResult = Apollo.QueryResult<SolarSystemAdjacentQuery, SolarSystemAdjacentQueryVariables>;
+export const SolarSystemOrbitalBodiesDocument = gql`
+    query SolarSystemOrbitalBodies($id: Int!) {
+  solarSystem(id: $id) {
+    id
+    planets {
+      id
+      name
+      orbitIndex
+      typeId
+      type {
+        id
+        name
+      }
+      moons {
+        id
+        name
+        orbitIndex
+      }
+      asteroidBelts {
+        id
+        name
+        orbitIndex
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useSolarSystemOrbitalBodiesQuery__
+ *
+ * To run a query within a React component, call `useSolarSystemOrbitalBodiesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSolarSystemOrbitalBodiesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSolarSystemOrbitalBodiesQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useSolarSystemOrbitalBodiesQuery(baseOptions: Apollo.QueryHookOptions<SolarSystemOrbitalBodiesQuery, SolarSystemOrbitalBodiesQueryVariables> & ({ variables: SolarSystemOrbitalBodiesQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SolarSystemOrbitalBodiesQuery, SolarSystemOrbitalBodiesQueryVariables>(SolarSystemOrbitalBodiesDocument, options);
+      }
+export function useSolarSystemOrbitalBodiesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SolarSystemOrbitalBodiesQuery, SolarSystemOrbitalBodiesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SolarSystemOrbitalBodiesQuery, SolarSystemOrbitalBodiesQueryVariables>(SolarSystemOrbitalBodiesDocument, options);
+        }
+// @ts-ignore
+export function useSolarSystemOrbitalBodiesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SolarSystemOrbitalBodiesQuery, SolarSystemOrbitalBodiesQueryVariables>): Apollo.UseSuspenseQueryResult<SolarSystemOrbitalBodiesQuery, SolarSystemOrbitalBodiesQueryVariables>;
+export function useSolarSystemOrbitalBodiesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SolarSystemOrbitalBodiesQuery, SolarSystemOrbitalBodiesQueryVariables>): Apollo.UseSuspenseQueryResult<SolarSystemOrbitalBodiesQuery | undefined, SolarSystemOrbitalBodiesQueryVariables>;
+export function useSolarSystemOrbitalBodiesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SolarSystemOrbitalBodiesQuery, SolarSystemOrbitalBodiesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SolarSystemOrbitalBodiesQuery, SolarSystemOrbitalBodiesQueryVariables>(SolarSystemOrbitalBodiesDocument, options);
+        }
+export type SolarSystemOrbitalBodiesQueryHookResult = ReturnType<typeof useSolarSystemOrbitalBodiesQuery>;
+export type SolarSystemOrbitalBodiesLazyQueryHookResult = ReturnType<typeof useSolarSystemOrbitalBodiesLazyQuery>;
+export type SolarSystemOrbitalBodiesSuspenseQueryHookResult = ReturnType<typeof useSolarSystemOrbitalBodiesSuspenseQuery>;
+export type SolarSystemOrbitalBodiesQueryResult = Apollo.QueryResult<SolarSystemOrbitalBodiesQuery, SolarSystemOrbitalBodiesQueryVariables>;
+export const SolarSystemSovereigntyDocument = gql`
+    query SolarSystemSovereignty($systemId: Int!) {
+  sovereigntyStructures(systemId: $systemId, limit: 50) {
+    structureId
+    solarSystemId
+    allianceId
+    allianceName
+    allianceTicker
+    structureTypeId
+    structureTypeName
+    occupancyLevel
+    vulnerableStartTime
+    vulnerableEndTime
+    lastSeen
+  }
+  sovereigntyActiveCampaigns(systemId: $systemId, limit: 25) {
+    campaignId
+    eventType
+    solarSystemId
+    solarSystemName
+    defenderId
+    defenderName
+    defenderTicker
+    defenderScore
+    attackersScore
+    startTime
+  }
+}
+    `;
+
+/**
+ * __useSolarSystemSovereigntyQuery__
+ *
+ * To run a query within a React component, call `useSolarSystemSovereigntyQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSolarSystemSovereigntyQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSolarSystemSovereigntyQuery({
+ *   variables: {
+ *      systemId: // value for 'systemId'
+ *   },
+ * });
+ */
+export function useSolarSystemSovereigntyQuery(baseOptions: Apollo.QueryHookOptions<SolarSystemSovereigntyQuery, SolarSystemSovereigntyQueryVariables> & ({ variables: SolarSystemSovereigntyQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SolarSystemSovereigntyQuery, SolarSystemSovereigntyQueryVariables>(SolarSystemSovereigntyDocument, options);
+      }
+export function useSolarSystemSovereigntyLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SolarSystemSovereigntyQuery, SolarSystemSovereigntyQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SolarSystemSovereigntyQuery, SolarSystemSovereigntyQueryVariables>(SolarSystemSovereigntyDocument, options);
+        }
+// @ts-ignore
+export function useSolarSystemSovereigntySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SolarSystemSovereigntyQuery, SolarSystemSovereigntyQueryVariables>): Apollo.UseSuspenseQueryResult<SolarSystemSovereigntyQuery, SolarSystemSovereigntyQueryVariables>;
+export function useSolarSystemSovereigntySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SolarSystemSovereigntyQuery, SolarSystemSovereigntyQueryVariables>): Apollo.UseSuspenseQueryResult<SolarSystemSovereigntyQuery | undefined, SolarSystemSovereigntyQueryVariables>;
+export function useSolarSystemSovereigntySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SolarSystemSovereigntyQuery, SolarSystemSovereigntyQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SolarSystemSovereigntyQuery, SolarSystemSovereigntyQueryVariables>(SolarSystemSovereigntyDocument, options);
+        }
+export type SolarSystemSovereigntyQueryHookResult = ReturnType<typeof useSolarSystemSovereigntyQuery>;
+export type SolarSystemSovereigntyLazyQueryHookResult = ReturnType<typeof useSolarSystemSovereigntyLazyQuery>;
+export type SolarSystemSovereigntySuspenseQueryHookResult = ReturnType<typeof useSolarSystemSovereigntySuspenseQuery>;
+export type SolarSystemSovereigntyQueryResult = Apollo.QueryResult<SolarSystemSovereigntyQuery, SolarSystemSovereigntyQueryVariables>;
+export const SolarSystemStationsDocument = gql`
+    query SolarSystemStations($id: Int!) {
+  solarSystem(id: $id) {
+    id
+    stations {
+      id
+      name
+      typeId
+      type {
+        id
+        name
+      }
+      ownerCorporationId
+      ownerCorporation {
+        id
+        name
+        ticker
+      }
+      services
+      reprocessingEfficiency
+      reprocessingStationsTake
+      officeRentalCost
+      maxDockableShipVolume
+    }
+  }
+}
+    `;
+
+/**
+ * __useSolarSystemStationsQuery__
+ *
+ * To run a query within a React component, call `useSolarSystemStationsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSolarSystemStationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSolarSystemStationsQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useSolarSystemStationsQuery(baseOptions: Apollo.QueryHookOptions<SolarSystemStationsQuery, SolarSystemStationsQueryVariables> & ({ variables: SolarSystemStationsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SolarSystemStationsQuery, SolarSystemStationsQueryVariables>(SolarSystemStationsDocument, options);
+      }
+export function useSolarSystemStationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SolarSystemStationsQuery, SolarSystemStationsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SolarSystemStationsQuery, SolarSystemStationsQueryVariables>(SolarSystemStationsDocument, options);
+        }
+// @ts-ignore
+export function useSolarSystemStationsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SolarSystemStationsQuery, SolarSystemStationsQueryVariables>): Apollo.UseSuspenseQueryResult<SolarSystemStationsQuery, SolarSystemStationsQueryVariables>;
+export function useSolarSystemStationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SolarSystemStationsQuery, SolarSystemStationsQueryVariables>): Apollo.UseSuspenseQueryResult<SolarSystemStationsQuery | undefined, SolarSystemStationsQueryVariables>;
+export function useSolarSystemStationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SolarSystemStationsQuery, SolarSystemStationsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SolarSystemStationsQuery, SolarSystemStationsQueryVariables>(SolarSystemStationsDocument, options);
+        }
+export type SolarSystemStationsQueryHookResult = ReturnType<typeof useSolarSystemStationsQuery>;
+export type SolarSystemStationsLazyQueryHookResult = ReturnType<typeof useSolarSystemStationsLazyQuery>;
+export type SolarSystemStationsSuspenseQueryHookResult = ReturnType<typeof useSolarSystemStationsSuspenseQuery>;
+export type SolarSystemStationsQueryResult = Apollo.QueryResult<SolarSystemStationsQuery, SolarSystemStationsQueryVariables>;
+export const SolarSystemStatsDocument = gql`
+    query SolarSystemStats($systemId: Int!) {
+  solarSystemStats(systemId: $systemId) {
+    systemId
+    totalKills
+    totalIskDestroyed
+    kills24h
+    kills7d
+    iskDestroyed7d
+    lastKillTime
+    busiestHourUtc
+  }
+}
+    `;
+
+/**
+ * __useSolarSystemStatsQuery__
+ *
+ * To run a query within a React component, call `useSolarSystemStatsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSolarSystemStatsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSolarSystemStatsQuery({
+ *   variables: {
+ *      systemId: // value for 'systemId'
+ *   },
+ * });
+ */
+export function useSolarSystemStatsQuery(baseOptions: Apollo.QueryHookOptions<SolarSystemStatsQuery, SolarSystemStatsQueryVariables> & ({ variables: SolarSystemStatsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SolarSystemStatsQuery, SolarSystemStatsQueryVariables>(SolarSystemStatsDocument, options);
+      }
+export function useSolarSystemStatsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SolarSystemStatsQuery, SolarSystemStatsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SolarSystemStatsQuery, SolarSystemStatsQueryVariables>(SolarSystemStatsDocument, options);
+        }
+// @ts-ignore
+export function useSolarSystemStatsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SolarSystemStatsQuery, SolarSystemStatsQueryVariables>): Apollo.UseSuspenseQueryResult<SolarSystemStatsQuery, SolarSystemStatsQueryVariables>;
+export function useSolarSystemStatsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SolarSystemStatsQuery, SolarSystemStatsQueryVariables>): Apollo.UseSuspenseQueryResult<SolarSystemStatsQuery | undefined, SolarSystemStatsQueryVariables>;
+export function useSolarSystemStatsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SolarSystemStatsQuery, SolarSystemStatsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SolarSystemStatsQuery, SolarSystemStatsQueryVariables>(SolarSystemStatsDocument, options);
+        }
+export type SolarSystemStatsQueryHookResult = ReturnType<typeof useSolarSystemStatsQuery>;
+export type SolarSystemStatsLazyQueryHookResult = ReturnType<typeof useSolarSystemStatsLazyQuery>;
+export type SolarSystemStatsSuspenseQueryHookResult = ReturnType<typeof useSolarSystemStatsSuspenseQuery>;
+export type SolarSystemStatsQueryResult = Apollo.QueryResult<SolarSystemStatsQuery, SolarSystemStatsQueryVariables>;
 export const SolarSystemsDocument = gql`
     query SolarSystems($filter: SolarSystemFilter) {
   solarSystems(filter: $filter) {
@@ -6364,71 +6937,6 @@ export type SolarSystemsQueryHookResult = ReturnType<typeof useSolarSystemsQuery
 export type SolarSystemsLazyQueryHookResult = ReturnType<typeof useSolarSystemsLazyQuery>;
 export type SolarSystemsSuspenseQueryHookResult = ReturnType<typeof useSolarSystemsSuspenseQuery>;
 export type SolarSystemsQueryResult = Apollo.QueryResult<SolarSystemsQuery, SolarSystemsQueryVariables>;
-export const SolarSystemDocument = gql`
-    query SolarSystem($id: Int!) {
-  solarSystem(id: $id) {
-    id
-    name
-    securityStatus
-    star_id
-    position {
-      x
-      y
-      z
-    }
-    constellation {
-      id
-      name
-      region {
-        id
-        name
-      }
-    }
-    latestKills {
-      ship_kills
-      pod_kills
-      npc_kills
-      timestamp
-    }
-  }
-}
-    `;
-
-/**
- * __useSolarSystemQuery__
- *
- * To run a query within a React component, call `useSolarSystemQuery` and pass it any options that fit your needs.
- * When your component renders, `useSolarSystemQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useSolarSystemQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useSolarSystemQuery(baseOptions: Apollo.QueryHookOptions<SolarSystemQuery, SolarSystemQueryVariables> & ({ variables: SolarSystemQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<SolarSystemQuery, SolarSystemQueryVariables>(SolarSystemDocument, options);
-      }
-export function useSolarSystemLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SolarSystemQuery, SolarSystemQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<SolarSystemQuery, SolarSystemQueryVariables>(SolarSystemDocument, options);
-        }
-// @ts-ignore
-export function useSolarSystemSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SolarSystemQuery, SolarSystemQueryVariables>): Apollo.UseSuspenseQueryResult<SolarSystemQuery, SolarSystemQueryVariables>;
-export function useSolarSystemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SolarSystemQuery, SolarSystemQueryVariables>): Apollo.UseSuspenseQueryResult<SolarSystemQuery | undefined, SolarSystemQueryVariables>;
-export function useSolarSystemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SolarSystemQuery, SolarSystemQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<SolarSystemQuery, SolarSystemQueryVariables>(SolarSystemDocument, options);
-        }
-export type SolarSystemQueryHookResult = ReturnType<typeof useSolarSystemQuery>;
-export type SolarSystemLazyQueryHookResult = ReturnType<typeof useSolarSystemLazyQuery>;
-export type SolarSystemSuspenseQueryHookResult = ReturnType<typeof useSolarSystemSuspenseQuery>;
-export type SolarSystemQueryResult = Apollo.QueryResult<SolarSystemQuery, SolarSystemQueryVariables>;
 export const SovereigntyDashboardDocument = gql`
     query SovereigntyDashboard {
   sovereigntyOverview {
@@ -6775,6 +7283,53 @@ export type SovereigntyStructuresPageQueryHookResult = ReturnType<typeof useSove
 export type SovereigntyStructuresPageLazyQueryHookResult = ReturnType<typeof useSovereigntyStructuresPageLazyQuery>;
 export type SovereigntyStructuresPageSuspenseQueryHookResult = ReturnType<typeof useSovereigntyStructuresPageSuspenseQuery>;
 export type SovereigntyStructuresPageQueryResult = Apollo.QueryResult<SovereigntyStructuresPageQuery, SovereigntyStructuresPageQueryVariables>;
+export const SystemKillsHistoryDocument = gql`
+    query SystemKillsHistory($filter: SystemKillsFilter!) {
+  systemKillsHistory(filter: $filter) {
+    id
+    ship_kills
+    pod_kills
+    npc_kills
+    timestamp
+  }
+}
+    `;
+
+/**
+ * __useSystemKillsHistoryQuery__
+ *
+ * To run a query within a React component, call `useSystemKillsHistoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSystemKillsHistoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSystemKillsHistoryQuery({
+ *   variables: {
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useSystemKillsHistoryQuery(baseOptions: Apollo.QueryHookOptions<SystemKillsHistoryQuery, SystemKillsHistoryQueryVariables> & ({ variables: SystemKillsHistoryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SystemKillsHistoryQuery, SystemKillsHistoryQueryVariables>(SystemKillsHistoryDocument, options);
+      }
+export function useSystemKillsHistoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SystemKillsHistoryQuery, SystemKillsHistoryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SystemKillsHistoryQuery, SystemKillsHistoryQueryVariables>(SystemKillsHistoryDocument, options);
+        }
+// @ts-ignore
+export function useSystemKillsHistorySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SystemKillsHistoryQuery, SystemKillsHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<SystemKillsHistoryQuery, SystemKillsHistoryQueryVariables>;
+export function useSystemKillsHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SystemKillsHistoryQuery, SystemKillsHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<SystemKillsHistoryQuery | undefined, SystemKillsHistoryQueryVariables>;
+export function useSystemKillsHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SystemKillsHistoryQuery, SystemKillsHistoryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SystemKillsHistoryQuery, SystemKillsHistoryQueryVariables>(SystemKillsHistoryDocument, options);
+        }
+export type SystemKillsHistoryQueryHookResult = ReturnType<typeof useSystemKillsHistoryQuery>;
+export type SystemKillsHistoryLazyQueryHookResult = ReturnType<typeof useSystemKillsHistoryLazyQuery>;
+export type SystemKillsHistorySuspenseQueryHookResult = ReturnType<typeof useSystemKillsHistorySuspenseQuery>;
+export type SystemKillsHistoryQueryResult = Apollo.QueryResult<SystemKillsHistoryQuery, SystemKillsHistoryQueryVariables>;
 export const Top90DaysPilotsDocument = gql`
     query Top90DaysPilots($filter: Top90DaysPilotsFilter) {
   top90DaysPilots(filter: $filter) {

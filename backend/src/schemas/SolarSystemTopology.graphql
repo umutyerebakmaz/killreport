@@ -1,0 +1,133 @@
+# Universe topology for the solar system detail page.
+#
+# `Position` is NOT redefined here — it already exists in Position.graphql and
+# SolarSystem.position uses it.
+
+"Sistemdeki stargate. ESI'nin stargates[] dizisini yansıtır, uçları çözülmüş halde."
+type Stargate {
+  id: Int!
+  name: String
+  typeId: Int
+  type: Type
+  destination: StargateDestination
+  position: Position
+  solarSystem: SolarSystem
+}
+
+"""
+ESI'nin stargate yanıtındaki destination nesnesi.
+Ham ID'ler step 3 çalışmadan önce null; nesneler ayrıca karşılık gelen satır
+veritabanında yoksa da null.
+"""
+type StargateDestination {
+  destinationSystemId: Int
+  destinationStargateId: Int
+  "Karşı uçtaki sistem."
+  system: SolarSystem
+  "Karşı uçtaki stargate; kendi destination'ı bu sisteme geri işaret eder."
+  stargate: Stargate
+}
+
+type Star {
+  id: Int!
+  name: String
+  typeId: Int
+  type: Type
+  "Örn. \"M2 V\"."
+  spectralClass: String
+  "Kelvin."
+  temperature: Int
+  "Metre."
+  radius: Float
+  "Yıl."
+  age: Float
+  luminosity: Float
+  solarSystem: SolarSystem
+  # ESI yıldız yanıtında position yok — yıldız sistem merkezinde.
+}
+
+type Planet {
+  id: Int!
+  name: String
+  typeId: Int
+  "Barren, Gas, Temperate, Storm…"
+  type: Type
+  "ESI'nin planets[] dizisindeki 1 tabanlı sıra."
+  orbitIndex: Int
+  position: Position
+  moons: [Moon!]!
+  asteroidBelts: [AsteroidBelt!]!
+  solarSystem: SolarSystem
+}
+
+type Moon {
+  id: Int!
+  name: String
+  "ESI'nin planets[].moons dizisindeki 1 tabanlı sıra."
+  orbitIndex: Int
+  position: Position
+  planet: Planet
+  solarSystem: SolarSystem
+}
+
+type AsteroidBelt {
+  id: Int!
+  name: String
+  orbitIndex: Int
+  position: Position
+  planet: Planet
+  solarSystem: SolarSystem
+}
+
+type Station {
+  id: Int!
+  name: String
+  typeId: Int
+  type: Type
+  ownerCorporationId: Int
+  ownerCorporation: Corporation
+  raceId: Int
+  services: [String!]!
+  reprocessingEfficiency: Float
+  "İstasyonun yeniden işlemeden aldığı pay; 0.05 = %5."
+  reprocessingStationsTake: Float
+  "ISK cinsinden ofis kirası."
+  officeRentalCost: Float
+  maxDockableShipVolume: Float
+  position: Position
+  solarSystem: SolarSystem
+}
+
+type SolarSystemCounts {
+  stargates: Int!
+  planets: Int!
+  moons: Int!
+  asteroidBelts: Int!
+  stations: Int!
+  sovereigntyStructures: Int!
+}
+
+type SolarSystemStats {
+  systemId: Int!
+  totalKills: Int!
+  totalIskDestroyed: Float!
+  kills24h: Int!
+  kills7d: Int!
+  iskDestroyed7d: Float!
+  lastKillTime: String
+  "Son 7 günde en çok kill olan UTC saati (0-23)."
+  busiestHourUtc: Int
+}
+
+extend type SolarSystem {
+  stargates: [Stargate!]!
+  planets: [Planet!]!
+  stations: [Station!]!
+  "Step 3 çalışmadan önce isimsiz; star_id boşsa null."
+  star: Star
+  counts: SolarSystemCounts!
+}
+
+extend type Query {
+  solarSystemStats(systemId: Int!): SolarSystemStats!
+}

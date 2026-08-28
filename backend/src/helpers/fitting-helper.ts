@@ -256,7 +256,7 @@ export function organizeFitting(
   // Implants (Pod/Capsule) - EVE SDE only has flag 89 for all implants
   // In killmails, implants appear with flag 89 and are differentiated by slot attribute
   const implants: FittingModule[] = [];
-  const implantItems = flagGroups.get(InventoryFlag.Implant) || [];
+  const implantItems = flagGroups.get(InventoryFlag.Implant0) || [];
   implantItems.forEach((item) => {
     implants.push(convertToFittingModule([item]));
   });

@@ -397,6 +397,14 @@ export interface DataLoaderContext {
         finalBlow: DataLoader<number, any>;
         items: DataLoader<number, any[]>;
         marketPrice: DataLoader<number, any>;
+        stargatesBySystem: DataLoader<number, any[]>;
+        stargate: DataLoader<number, any>;
+        starBySystem: DataLoader<number, any>;
+        planetsBySystem: DataLoader<number, any[]>;
+        stationsBySystem: DataLoader<number, any[]>;
+        moonsByPlanet: DataLoader<number, any[]>;
+        asteroidBeltsByPlanet: DataLoader<number, any[]>;
+        planet: DataLoader<number, any>;
     };
 }
 
@@ -431,6 +439,14 @@ export const createDataLoaders = (): DataLoaderContext => ({
         finalBlow: createFinalBlowLoader(),
         items: createItemsLoader(),
         marketPrice: createMarketPriceLoader(),
+        stargatesBySystem: createStargatesBySystemLoader(),
+        stargate: createStargateLoader(),
+        starBySystem: createStarBySystemLoader(),
+        planetsBySystem: createPlanetsBySystemLoader(),
+        stationsBySystem: createStationsBySystemLoader(),
+        moonsByPlanet: createMoonsByPlanetLoader(),
+        asteroidBeltsByPlanet: createAsteroidBeltsByPlanetLoader(),
+        planet: createPlanetLoader(),
     },
 });
 
@@ -944,4 +960,162 @@ export const createConstellationSecurityStatsLoader = () => {
             });
         }
     );
+};
+
+/**
+ * Stargates by Solar System DataLoader
+ */
+export const createStargatesBySystemLoader = () => {
+    return new DataLoader<number, any[]>(async (systemIds) => {
+        console.log(`🔄 DataLoader: Batching ${systemIds.length} stargates-by-system queries`);
+
+        const rows = await prisma.stargate.findMany({
+            where: { solar_system_id: { in: [...systemIds] } },
+            orderBy: { id: 'asc' },
+        });
+
+        const grouped = new Map<number, any[]>();
+        for (const row of rows) {
+            const list = grouped.get(row.solar_system_id) ?? [];
+            list.push(row);
+            grouped.set(row.solar_system_id, list);
+        }
+        return systemIds.map(id => grouped.get(id) ?? []);
+    });
+};
+
+/**
+ * Single Stargate DataLoader - used by StargateDestination.stargate
+ */
+export const createStargateLoader = () => {
+    return new DataLoader<number, any>(async (stargateIds) => {
+        console.log(`🔄 DataLoader: Batching ${stargateIds.length} stargate queries`);
+
+        const rows = await prisma.stargate.findMany({
+            where: { id: { in: [...stargateIds] } },
+        });
+
+        const map = new Map(rows.map(r => [r.id, r]));
+        return stargateIds.map(id => map.get(id) || null);
+    });
+};
+
+/**
+ * Star by Solar System DataLoader
+ */
+export const createStarBySystemLoader = () => {
+    return new DataLoader<number, any>(async (systemIds) => {
+        console.log(`🔄 DataLoader: Batching ${systemIds.length} star-by-system queries`);
+
+        const rows = await prisma.star.findMany({
+            where: { solar_system_id: { in: [...systemIds] } },
+        });
+
+        const map = new Map(rows.map(r => [r.solar_system_id, r]));
+        return systemIds.map(id => map.get(id) || null);
+    });
+};
+
+/**
+ * Planets by Solar System DataLoader
+ */
+export const createPlanetsBySystemLoader = () => {
+    return new DataLoader<number, any[]>(async (systemIds) => {
+        console.log(`🔄 DataLoader: Batching ${systemIds.length} planets-by-system queries`);
+
+        const rows = await prisma.planet.findMany({
+            where: { solar_system_id: { in: [...systemIds] } },
+            orderBy: [{ orbit_index: 'asc' }, { id: 'asc' }],
+        });
+
+        const grouped = new Map<number, any[]>();
+        for (const row of rows) {
+            const list = grouped.get(row.solar_system_id) ?? [];
+            list.push(row);
+            grouped.set(row.solar_system_id, list);
+        }
+        return systemIds.map(id => grouped.get(id) ?? []);
+    });
+};
+
+/**
+ * Stations by Solar System DataLoader
+ */
+export const createStationsBySystemLoader = () => {
+    return new DataLoader<number, any[]>(async (systemIds) => {
+        console.log(`🔄 DataLoader: Batching ${systemIds.length} stations-by-system queries`);
+
+        const rows = await prisma.station.findMany({
+            where: { solar_system_id: { in: [...systemIds] } },
+            orderBy: { id: 'asc' },
+        });
+
+        const grouped = new Map<number, any[]>();
+        for (const row of rows) {
+            const list = grouped.get(row.solar_system_id) ?? [];
+            list.push(row);
+            grouped.set(row.solar_system_id, list);
+        }
+        return systemIds.map(id => grouped.get(id) ?? []);
+    });
+};
+
+/**
+ * Moons by Planet DataLoader
+ */
+export const createMoonsByPlanetLoader = () => {
+    return new DataLoader<number, any[]>(async (planetIds) => {
+        console.log(`🔄 DataLoader: Batching ${planetIds.length} moons-by-planet queries`);
+
+        const rows = await prisma.moon.findMany({
+            where: { planet_id: { in: [...planetIds] } },
+            orderBy: [{ orbit_index: 'asc' }, { id: 'asc' }],
+        });
+
+        const grouped = new Map<number, any[]>();
+        for (const row of rows) {
+            const list = grouped.get(row.planet_id) ?? [];
+            list.push(row);
+            grouped.set(row.planet_id, list);
+        }
+        return planetIds.map(id => grouped.get(id) ?? []);
+    });
+};
+
+/**
+ * Asteroid Belts by Planet DataLoader
+ */
+export const createAsteroidBeltsByPlanetLoader = () => {
+    return new DataLoader<number, any[]>(async (planetIds) => {
+        console.log(`🔄 DataLoader: Batching ${planetIds.length} belts-by-planet queries`);
+
+        const rows = await prisma.asteroidBelt.findMany({
+            where: { planet_id: { in: [...planetIds] } },
+            orderBy: [{ orbit_index: 'asc' }, { id: 'asc' }],
+        });
+
+        const grouped = new Map<number, any[]>();
+        for (const row of rows) {
+            const list = grouped.get(row.planet_id) ?? [];
+            list.push(row);
+            grouped.set(row.planet_id, list);
+        }
+        return planetIds.map(id => grouped.get(id) ?? []);
+    });
+};
+
+/**
+ * Single Planet DataLoader - used by Moon.planet and AsteroidBelt.planet
+ */
+export const createPlanetLoader = () => {
+    return new DataLoader<number, any>(async (planetIds) => {
+        console.log(`🔄 DataLoader: Batching ${planetIds.length} planet queries`);
+
+        const rows = await prisma.planet.findMany({
+            where: { id: { in: [...planetIds] } },
+        });
+
+        const map = new Map(rows.map(r => [r.id, r]));
+        return planetIds.map(id => map.get(id) || null);
+    });
 };

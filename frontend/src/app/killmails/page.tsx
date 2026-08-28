@@ -6,19 +6,13 @@ import KillmailCarousel from "@/components/KillmailCarousel/KillmailCarousel";
 import KillmailsTable from "@/components/KillmailsTable";
 import Loader from "@/components/Loader";
 import Paginator from "@/components/Paginator/Paginator";
-import TopAllianceCard from "@/components/TopAllianceCard/TopAllianceCard";
-import TopCharacterCard from "@/components/TopCharacterCard/TopCharacterCard";
-import TopCorporationCard from "@/components/TopCorporationCard/TopCorporationCard";
-import TopShipsCard from "@/components/TopShipsCard/TopShipsCard";
+import TopEntitySidebar, {
+  TopEntityCardSpec,
+} from "@/components/TopEntitySidebar/TopEntitySidebar";
 import {
   useKillmailsDateCountsQuery,
   useKillmailsQuery,
   useNewKillmailSubscription,
-  useTopLast7DaysAlliancesQuery,
-  useTopLast7DaysAttackerShipsQuery,
-  useTopLast7DaysCorporationsQuery,
-  useTopLast7DaysPilotsQuery,
-  useTopLast7DaysShipsQuery,
 } from "@/generated/graphql";
 import {
   buildKillmailFiltersUrl,
@@ -27,6 +21,34 @@ import {
 import { CAPSULE_GROUPS, STRUCTURE_GROUPS } from "@/utils/shipGroups";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+
+const SIDEBAR_CARDS: TopEntityCardSpec[] = [
+  {
+    kind: "characters",
+    title: "Most Active Pilots",
+    emptyText: "No pilot data available",
+  },
+  {
+    kind: "corporations",
+    title: "Most Active Corporations",
+    emptyText: "No corporation data available",
+  },
+  {
+    kind: "alliances",
+    title: "Most Active Alliances",
+    emptyText: "No alliance data available",
+  },
+  {
+    kind: "attackerShips",
+    title: "Most Used Ships",
+    emptyText: "No ship data available",
+  },
+  {
+    kind: "ships",
+    title: "Most Killed Ships",
+    emptyText: "No ship data available",
+  },
+];
 
 function KillmailsContent() {
   const router = useRouter();
@@ -83,36 +105,6 @@ function KillmailsContent() {
   >(new Map());
   const [realtimeTotalCountIncrement, setRealtimeTotalCountIncrement] =
     useState(0);
-
-  // Fetch last 7 days top characters for sidebar (rolling data)
-  const { data: weeklyPilotsData, loading: weeklyPilotsLoading } =
-    useTopLast7DaysPilotsQuery({
-      variables: { filter: { limit: 10 } },
-    });
-
-  // Fetch last 7 days top corporations for sidebar (rolling data)
-  const { data: weeklyCorporationsData, loading: weeklyCorporationsLoading } =
-    useTopLast7DaysCorporationsQuery({
-      variables: { filter: { limit: 10 } },
-    });
-
-  // Fetch last 7 days top alliances for sidebar (rolling data)
-  const { data: weeklyAlliancesData, loading: weeklyAlliancesLoading } =
-    useTopLast7DaysAlliancesQuery({
-      variables: { filter: { limit: 10 } },
-    });
-
-  // Fetch last 7 days top ships for sidebar (rolling data)
-  const { data: weeklyShipsData, loading: weeklyShipsLoading } =
-    useTopLast7DaysShipsQuery({
-      variables: { filter: { limit: 10 } },
-    });
-
-  // Fetch last 7 days top attacker ships for sidebar (rolling data)
-  const { data: weeklyAttackerShipsData, loading: weeklyAttackerShipsLoading } =
-    useTopLast7DaysAttackerShipsQuery({
-      variables: { filter: { limit: 10 } },
-    });
 
   // Calculate date 7 days ago for carousels
   const sevenDaysAgo = useMemo(() => {
@@ -532,131 +524,8 @@ function KillmailsContent() {
         </div>
 
         {/* Right side - Sidebar */}
-        <div className="space-y-6 lg:col-span-1 lg:-mt-11">
-          <TopCharacterCard
-            title="Most Active Pilots"
-            subtitle={
-              <>
-                Last 7 days{" "}
-                <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
-                  ROLLING
-                </span>
-              </>
-            }
-            characters={
-              weeklyPilotsData?.topLast7DaysPilots?.map((pilot) => ({
-                id: pilot.character?.id || 0,
-                name: pilot.character?.name || "Unknown",
-                killCount: pilot.killCount,
-                securityStatus: pilot.character?.securityStatus,
-                corporation: pilot.character?.corporation
-                  ? {
-                      id: pilot.character.corporation.id,
-                      name: pilot.character.corporation.name,
-                    }
-                  : null,
-                alliance: pilot.character?.alliance
-                  ? {
-                      id: pilot.character.alliance.id,
-                      name: pilot.character.alliance.name,
-                    }
-                  : null,
-              })) || []
-            }
-            loading={weeklyPilotsLoading}
-            emptyText="No pilot data available"
-            variant="list"
-          />
-          <TopCorporationCard
-            title="Most Active Corporations"
-            subtitle={
-              <>
-                Last 7 days{" "}
-                <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
-                  ROLLING
-                </span>
-              </>
-            }
-            corporations={
-              weeklyCorporationsData?.topLast7DaysCorporations?.map((corp) => ({
-                id: corp.corporation?.id || 0,
-                name: corp.corporation?.name || "Unknown",
-                ticker: corp.corporation?.ticker,
-                killCount: corp.killCount,
-              })) || []
-            }
-            loading={weeklyCorporationsLoading}
-            emptyText="No corporation data available"
-            variant="list"
-          />
-          <TopAllianceCard
-            title="Most Active Alliances"
-            subtitle={
-              <>
-                Last 7 days{" "}
-                <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
-                  ROLLING
-                </span>
-              </>
-            }
-            alliances={
-              weeklyAlliancesData?.topLast7DaysAlliances?.map((alliance) => ({
-                id: alliance.alliance?.id || 0,
-                name: alliance.alliance?.name || "Unknown",
-                ticker: alliance.alliance?.ticker,
-                killCount: alliance.killCount,
-              })) || []
-            }
-            loading={weeklyAlliancesLoading}
-            emptyText="No alliance data available"
-            variant="list"
-          />
-          <TopShipsCard
-            title="Most Used Ships"
-            subtitle={
-              <>
-                Last 7 days{" "}
-                <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
-                  ROLLING
-                </span>
-              </>
-            }
-            ships={
-              weeklyAttackerShipsData?.topLast7DaysAttackerShips?.map(
-                (ship) => ({
-                  id: ship.shipType?.id || 0,
-                  name: ship.shipType?.name || "Unknown",
-                  killCount: ship.killCount,
-                  dogmaAttributes: ship.shipType?.dogmaAttributes,
-                }),
-              ) || []
-            }
-            loading={weeklyAttackerShipsLoading}
-            emptyText="No ship data available"
-            variant="list"
-          />
-          <TopShipsCard
-            title="Most Killed Ships"
-            subtitle={
-              <>
-                Last 7 days{" "}
-                <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
-                  ROLLING
-                </span>
-              </>
-            }
-            ships={
-              weeklyShipsData?.topLast7DaysShips?.map((ship) => ({
-                id: ship.shipType?.id || 0,
-                name: ship.shipType?.name || "Unknown",
-                killCount: ship.killCount,
-                dogmaAttributes: ship.shipType?.dogmaAttributes,
-              })) || []
-            }
-            loading={weeklyShipsLoading}
-            emptyText="No ship data available"
-            variant="list"
-          />
+        <div className="lg:col-span-1 lg:-mt-11">
+          <TopEntitySidebar cards={SIDEBAR_CARDS} variant="list" />
         </div>
       </div>
     </div>

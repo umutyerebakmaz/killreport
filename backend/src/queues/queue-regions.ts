@@ -23,6 +23,10 @@ async function queueRegions() {
         // Ensure queue exists
         await channel.assertQueue(QUEUE_NAME, {
             durable: true,
+            // Every other queue in the repo is declared with this, and server.ts's
+            // ensureAllQueuesExist() creates them all that way. Omitting it makes
+            // assertQueue fail with 406 PRECONDITION_FAILED.
+            arguments: { 'x-max-priority': 10 },
         });
 
         // Add to queue in batches

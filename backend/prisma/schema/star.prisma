@@ -1,0 +1,16 @@
+model Star {
+  id              Int     @id @map("star_id")
+  name            String?
+  solar_system_id Int     @unique
+  type_id         Int?
+  spectral_class  String?
+  temperature     Int?
+  radius          Float?
+  /// Yıl cinsinden; 4.8e9 gibi değerler Int sınırını aştığı için Float.
+  age             Float?
+  luminosity      Float?
+
+  solar_system SolarSystem @relation(fields: [solar_system_id], references: [id], onDelete: Cascade)
+
+  @@map("stars")
+}

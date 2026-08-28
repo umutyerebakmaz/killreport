@@ -1,0 +1,30 @@
+query SolarSystemAdjacent($id: Int!) {
+  solarSystem(id: $id) {
+    id
+    stargates {
+      id
+      name
+      destination {
+        destinationSystemId
+        system {
+          id
+          name
+          securityStatus
+          constellation {
+            id
+            name
+            region {
+              id
+              name
+            }
+          }
+          latestKills {
+            ship_kills
+            pod_kills
+            npc_kills
+          }
+        }
+      }
+    }
+  }
+}

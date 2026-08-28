@@ -1,0 +1,25 @@
+query SolarSystemOrbitalBodies($id: Int!) {
+  solarSystem(id: $id) {
+    id
+    planets {
+      id
+      name
+      orbitIndex
+      typeId
+      type {
+        id
+        name
+      }
+      moons {
+        id
+        name
+        orbitIndex
+      }
+      asteroidBelts {
+        id
+        name
+        orbitIndex
+      }
+    }
+  }
+}

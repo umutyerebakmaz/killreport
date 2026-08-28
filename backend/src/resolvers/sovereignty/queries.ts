@@ -288,9 +288,13 @@ export const sovereigntyQueries: QueryResolvers = {
     };
   },
 
-  sovereigntyActiveCampaigns: async (_, { limit }) => {
+  sovereigntyActiveCampaigns: async (_, { limit, systemId }) => {
     const campaigns = await prisma.sovereigntyCampaign.findMany({
-      where: { end_time: null },
+      where: {
+        end_time: null,
+        // The (solar_system_id, start_time) index already covers this.
+        ...(systemId ? { solar_system_id: systemId } : {}),
+      },
       orderBy: { start_time: 'desc' },
       take: limit ?? 100,
     });

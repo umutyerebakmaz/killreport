@@ -28,31 +28,3 @@ query SolarSystems($filter: SolarSystemFilter) {
     }
   }
 }
-
-query SolarSystem($id: Int!) {
-  solarSystem(id: $id) {
-    id
-    name
-    securityStatus
-    star_id
-    position {
-      x
-      y
-      z
-    }
-    constellation {
-      id
-      name
-      region {
-        id
-        name
-      }
-    }
-    latestKills {
-      ship_kills
-      pod_kills
-      npc_kills
-      timestamp
-    }
-  }
-}
