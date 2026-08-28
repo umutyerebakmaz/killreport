@@ -35,6 +35,12 @@ Bu bölüm her görevin gereksinimlerine örtük olarak dahildir.
   `yarn workspace frontend build`, ve veri için `psql` sorguları.
 - **Doğrulama kanıt ister.** Bir adımı tamamlandı saymadan önce komutu
   çalıştırıp çıktısını görmek zorunludur. Çıktısız "geçti" beyanı yasak.
+- **`yarn lint` bu repoda zaten kırmızı.** 2026-08-28 referansı: **357 sorun
+  (255 hata, 102 uyarı)** — 81 `no-explicit-any`, 72 `ban-ts-comment`, 65
+  `no-img-element`, 47 `set-state-in-effect`. Hiçbiri bu işten kaynaklanmıyor.
+  Ölçüt "lint temiz geçmeli" değil, **"sayı artmamalı"**. Bir frontend
+  görevinden sonra `yarn lint 2>&1 | grep '^✖'` çıktısı 357'yi geçiyorsa fark
+  senin eklediğindir.
 - **Görsel/UI doğrulaması kullanıcıya ait.** Hiçbir görev tarayıcı açmıyor,
   ekran görüntüsü almıyor ya da sayfayı gezmiyor — bu yavaşlatıyor ve görsel
   yargı kullanıcının. Frontend görevleri `yarn lint` + `yarn build` ile
