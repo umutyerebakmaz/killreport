@@ -4,6 +4,7 @@ import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
 import { Loader } from "@/components/Loader/Loader";
 import SecurityBadge from "@/components/SecurityStatus/SecurityStatus";
 import KillmailsTab from "@/components/SolarSystemDetail/KillmailsTab";
+import OrbitalBodiesTab from "@/components/SolarSystemDetail/OrbitalBodiesTab";
 import OverviewTab from "@/components/SolarSystemDetail/OverviewTab";
 import SystemStatsStrip from "@/components/SolarSystemDetail/SystemStatsStrip";
 import {
@@ -287,7 +288,9 @@ export default function SolarSystemDetailPage({
             />
           )}
           {activeTab === "adjacent" && <div>Adjacent</div>}
-          {activeTab === "orbital-bodies" && <div>Orbital Bodies</div>}
+          {activeTab === "orbital-bodies" && (
+            <OrbitalBodiesTab systemId={systemId} />
+          )}
           {activeTab === "structures" && <div>Structures</div>}
           {activeTab === "sovereignty" && <div>Sovereignty</div>}
           {activeTab === "killmails" && (
