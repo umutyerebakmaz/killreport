@@ -2,18 +2,13 @@
 
 import KillmailsTable from "@/components/KillmailsTable";
 import Paginator from "@/components/Paginator/Paginator";
-import TopAllianceCard from "@/components/TopAllianceCard/TopAllianceCard";
-import TopCharacterCard from "@/components/TopCharacterCard/TopCharacterCard";
-import TopCorporationCard from "@/components/TopCorporationCard/TopCorporationCard";
-import TopShipsCard from "@/components/TopShipsCard/TopShipsCard";
+import TopEntitySidebar, {
+  TopEntityCardSpec,
+} from "@/components/TopEntitySidebar/TopEntitySidebar";
 import {
   KillmailOrderBy,
   useKillmailsDateCountsQuery,
   useKillmailsQuery,
-  useTopLast7DaysAlliancesQuery,
-  useTopLast7DaysCorporationsQuery,
-  useTopLast7DaysPilotsQuery,
-  useTopLast7DaysShipsQuery,
 } from "@/generated/graphql";
 import { useMemo } from "react";
 
@@ -25,14 +20,28 @@ interface KillmailsTabProps {
   onPageSizeChange: (size: number) => void;
 }
 
-const ROLLING_SUBTITLE = (
-  <>
-    Last 7 days{" "}
-    <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
-      ROLLING
-    </span>
-  </>
-);
+const SIDEBAR_CARDS: TopEntityCardSpec[] = [
+  {
+    kind: "characters",
+    title: "Top Characters",
+    emptyText: "No character activity in the last 7 days",
+  },
+  {
+    kind: "corporations",
+    title: "Top Corporations",
+    emptyText: "No corporation activity in the last 7 days",
+  },
+  {
+    kind: "alliances",
+    title: "Top Alliances",
+    emptyText: "No alliance activity in the last 7 days",
+  },
+  {
+    kind: "ships",
+    title: "Top Ships",
+    emptyText: "No ship activity in the last 7 days",
+  },
+];
 
 export default function KillmailsTab({
   systemId,
@@ -56,16 +65,6 @@ export default function KillmailsTab({
   const { data: dateCountsData } = useKillmailsDateCountsQuery({
     variables: { filter: { systemId } },
   });
-
-  const topFilter = { variables: { filter: { limit: 10, systemId } } };
-  const { data: weeklyPilotsData, loading: weeklyPilotsLoading } =
-    useTopLast7DaysPilotsQuery(topFilter);
-  const { data: weeklyCorporationsData, loading: weeklyCorporationsLoading } =
-    useTopLast7DaysCorporationsQuery(topFilter);
-  const { data: weeklyAlliancesData, loading: weeklyAlliancesLoading } =
-    useTopLast7DaysAlliancesQuery(topFilter);
-  const { data: weeklyShipsData, loading: weeklyShipsLoading } =
-    useTopLast7DaysShipsQuery(topFilter);
 
   const killmails = useMemo(
     () => killmailsData?.killmails.items || [],
@@ -125,79 +124,8 @@ export default function KillmailsTab({
         )}
       </div>
 
-      <div className="space-y-6 lg:col-span-1 lg:mt-9">
-        <TopCharacterCard
-          title="Top Characters"
-          subtitle={ROLLING_SUBTITLE}
-          characters={
-            weeklyPilotsData?.topLast7DaysPilots?.map((pilot) => ({
-              id: pilot.character?.id || 0,
-              name: pilot.character?.name || "Unknown",
-              killCount: pilot.killCount,
-              securityStatus: pilot.character?.securityStatus,
-              corporation: pilot.character?.corporation
-                ? {
-                    id: pilot.character.corporation.id,
-                    name: pilot.character.corporation.name,
-                  }
-                : null,
-              alliance: pilot.character?.alliance
-                ? {
-                    id: pilot.character.alliance.id,
-                    name: pilot.character.alliance.name,
-                  }
-                : null,
-            })) || []
-          }
-          loading={weeklyPilotsLoading}
-          emptyText="No character activity in the last 7 days"
-          variant="detail"
-        />
-        <TopCorporationCard
-          title="Top Corporations"
-          subtitle={ROLLING_SUBTITLE}
-          corporations={
-            weeklyCorporationsData?.topLast7DaysCorporations?.map((corp) => ({
-              id: corp.corporation?.id || 0,
-              name: corp.corporation?.name || "Unknown",
-              ticker: corp.corporation?.ticker,
-              killCount: corp.killCount,
-            })) || []
-          }
-          loading={weeklyCorporationsLoading}
-          emptyText="No corporation activity in the last 7 days"
-          variant="detail"
-        />
-        <TopAllianceCard
-          title="Top Alliances"
-          subtitle={ROLLING_SUBTITLE}
-          alliances={
-            weeklyAlliancesData?.topLast7DaysAlliances?.map((alliance) => ({
-              id: alliance.alliance?.id || 0,
-              name: alliance.alliance?.name || "Unknown",
-              ticker: alliance.alliance?.ticker,
-              killCount: alliance.killCount,
-            })) || []
-          }
-          loading={weeklyAlliancesLoading}
-          emptyText="No alliance activity in the last 7 days"
-          variant="detail"
-        />
-        <TopShipsCard
-          title="Top Ships"
-          subtitle={ROLLING_SUBTITLE}
-          ships={
-            weeklyShipsData?.topLast7DaysShips?.map((ship) => ({
-              id: ship.shipType?.id || 0,
-              name: ship.shipType?.name || "Unknown",
-              killCount: ship.killCount,
-              dogmaAttributes: ship.shipType?.dogmaAttributes,
-            })) || []
-          }
-          loading={weeklyShipsLoading}
-          emptyText="No ship activity in the last 7 days"
-          variant="detail"
-        />
+      <div className="lg:col-span-1 lg:mt-9">
+        <TopEntitySidebar filter={{ systemId }} cards={SIDEBAR_CARDS} />
       </div>
     </div>
   );
