@@ -1,0 +1,18 @@
+model AsteroidBelt {
+  id              Int     @id @map("asteroid_belt_id")
+  name            String?
+  solar_system_id Int
+  /// Zorunlu; Moon.planet_id ile aynı gerekçe.
+  planet_id       Int
+  orbit_index     Int?
+  position_x      Float?
+  position_y      Float?
+  position_z      Float?
+
+  solar_system SolarSystem @relation(fields: [solar_system_id], references: [id], onDelete: Cascade)
+  planet       Planet      @relation(fields: [planet_id], references: [id], onDelete: Cascade)
+
+  @@index([solar_system_id])
+  @@index([planet_id])
+  @@map("asteroid_belts")
+}
