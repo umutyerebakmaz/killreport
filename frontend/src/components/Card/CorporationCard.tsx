@@ -1,4 +1,5 @@
 import Tooltip from "@/components/Tooltip/Tooltip";
+import Card from "@/components/ui/Card";
 import { CorporationsQuery } from "@/generated/graphql";
 import { BuildingOffice2Icon } from "@heroicons/react/24/outline";
 import Image from "next/image";
@@ -50,7 +51,7 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
     : "Unknown";
 
   return (
-    <div className="corporation-card">
+    <Card padded={false}>
       <div className="px-4 py-5 sm:p-6">
         <div className="flex flex-col items-center gap-4">
           <div className="relative w-32 h-32">
@@ -123,6 +124,6 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
           </div>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

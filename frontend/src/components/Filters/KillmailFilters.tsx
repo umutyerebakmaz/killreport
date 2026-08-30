@@ -14,6 +14,9 @@ import {
   useSearchTypeQuery,
   useSearchTypesQuery,
 } from "@/generated/graphql";
+import FilterBar from "@/components/ui/FilterBar";
+import FilterDialog from "@/components/ui/FilterDialog";
+import FilterField from "@/components/ui/FilterField";
 import { useDebounce } from "@/hooks/useDebounce";
 import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useEffect, useRef, useState } from "react";
@@ -293,22 +296,6 @@ export default function KillmailFilters({
     },
     skip: debouncedRegionSearch.length < 3,
   });
-
-  const hasActiveFilters =
-    shipTypeId ||
-    shipGroupIds.length > 0 ||
-    characterId ||
-    systemId ||
-    constellationId ||
-    regionId ||
-    minAttackers ||
-    maxAttackers ||
-    minValue ||
-    maxValue ||
-    (shipTypeId && shipRole !== "all") ||
-    (characterId && characterRole !== "all") ||
-    securitySpace !== "all" ||
-    warRelated;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -596,6 +583,7 @@ export default function KillmailFilters({
     };
 
     onFilterChange(filterData);
+    setIsOpen(false);
   };
 
   const handleClearAll = () => {
@@ -628,76 +616,47 @@ export default function KillmailFilters({
     onClearFilters();
   };
 
-  function pluralizeGroupName(name: string): import("react").ReactNode {
-    throw new Error("Function not implemented.");
-  }
+  const activeFilterCount = [
+    shipTypeId,
+    shipGroupIds.length > 0,
+    characterId,
+    systemId,
+    constellationId,
+    regionId,
+    securitySpace !== "all",
+    minAttackers,
+    maxAttackers,
+    minValue,
+    maxValue,
+    warRelated,
+  ].filter(Boolean).length;
 
   return (
-    <form onSubmit={handleSubmit} className="mb-8">
-      {/* Top Bar: Filters, Clear */}
-      <div className="flex items-center justify-end gap-3">
-        {/* Advanced Filters Toggle */}
-        <button
-          type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          className={`button ${hasActiveFilters ? "active-filter-button" : ""}`}
-        >
-          <MagnifyingGlassIcon className="w-5 h-5" />
-          Filters
-          {hasActiveFilters && (
-            <span className="badge">
-              {
-                [
-                  shipTypeId,
-                  shipGroupIds.length > 0,
-                  characterId,
-                  systemId,
-                  constellationId,
-                  regionId,
-                  securitySpace !== "all",
-                  minAttackers,
-                  maxAttackers,
-                  minValue,
-                  maxValue,
-                  warRelated,
-                ].filter(Boolean).length
-              }
-            </span>
-          )}
-        </button>
+    <form onSubmit={handleSubmit} id="killmail-filters" className="mb-6">
+      <FilterBar
+        onOpenFilters={() => setIsOpen(true)}
+        activeFilterCount={activeFilterCount}
+        onClear={handleClearAll}
+      />
 
-        {/* Clear All Button */}
-        {hasActiveFilters && (
+      <FilterDialog
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        footer={
           <button
-            type="button"
-            onClick={handleClearAll}
-            className="clear-filter-button"
+            type="submit"
+            form="killmail-filters"
+            className="apply-filter-button"
           >
-            <XMarkIcon className="w-5 h-5" />
-            Clear
+            Apply Filters
           </button>
-        )}
-      </div>
-
-      {/* Advanced Filters Panel */}
-      <div
-        className={`transition-all duration-300 ease-in-out overflow-hidden ${isOpen ? "max-h-500 opacity-100 mt-4" : "max-h-0 opacity-0 mt-0"} p-6 space-y-4 border bg-neutral-900 border-white/5`}
+        }
       >
-        <h3 className="text-sm font-medium text-gray-300">Advanced Filters</h3>
-
-        <div className="flex gap-6">
-          {/* LEFT: Inputs */}
-          <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-2">
-            {/* Pilot Search */}
-            <div>
-              <label
-                htmlFor="filter-pilot"
-                className="block mb-2 text-xs font-medium text-gray-400"
-              >
-                Pilot
-              </label>
-              <div ref={pilotDropdownRef}>
-                <div className="relative">
+        <div className="space-y-4">
+          {/* Pilot Search */}
+          <FilterField label="Pilot" htmlFor="filter-pilot">
+            <div ref={pilotDropdownRef}>
+              <div className="relative">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
                   </div>
@@ -796,18 +755,55 @@ export default function KillmailFilters({
                     )}
                 </div>
               </div>
-            </div>
 
-            {/* Ship Search */}
-            <div>
-              <label
-                htmlFor="filter-ship"
-                className="block mb-2 text-xs font-medium text-gray-400"
-              >
-                Ship
-              </label>
-              <div ref={shipDropdownRef}>
-                <div className="relative">
+            {/* Character chip + its own RadioGroup */}
+            {characterId && (
+              <div className="flex flex-col gap-2 mt-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-gray-700/50">
+                    <img
+                      src={`https://images.evetech.net/characters/${characterId}/portrait?size=64`}
+                      alt={characterName}
+                      className="object-cover size-8"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          "/images/default-avatar.png";
+                      }}
+                    />
+                    <span className="font-semibold truncate">
+                      {characterName}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCharacterId(undefined);
+                      setCharacterName("");
+                      setCharacterRole("all");
+                    }}
+                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                  >
+                    <XMarkIcon className="w-4 h-4" />
+                  </button>
+                </div>
+                <RadioGroup
+                  name="character-role"
+                  value={characterRole}
+                  onChange={setCharacterRole}
+                  options={[
+                    { value: "all", label: "All" },
+                    { value: "victim", label: "Victim" },
+                    { value: "attacker", label: "Attacker" },
+                  ]}
+                />
+              </div>
+            )}
+          </FilterField>
+
+          {/* Ship Search */}
+          <FilterField label="Ship" htmlFor="filter-ship">
+            <div ref={shipDropdownRef}>
+              <div className="relative">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
                   </div>
@@ -890,18 +886,58 @@ export default function KillmailFilters({
                     )}
                 </div>
               </div>
-            </div>
 
-            {/* Ship Group Search */}
-            <div>
-              <label
-                htmlFor="filter-ship-group"
-                className="block mb-2 text-xs font-medium text-gray-400"
-              >
-                Ship Group (e.g., Assault Frigate)
-              </label>
-              <div ref={groupDropdownRef}>
-                <div className="relative">
+            {/* Ship chip + its own RadioGroup */}
+            {shipTypeId && (
+              <div className="flex flex-col gap-2 mt-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-gray-700/50">
+                    <img
+                      src={`https://images.evetech.net/types/${shipTypeId}/icon?size=64`}
+                      alt={shipTypeName}
+                      className="object-cover size-8"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          "/images/default-ship.png";
+                      }}
+                    />
+                    <span className="font-semibold truncate">
+                      {shipTypeName}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShipTypeId(undefined);
+                      setShipTypeName("");
+                      setShipRole("all");
+                    }}
+                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                  >
+                    <XMarkIcon className="w-4 h-4" />
+                  </button>
+                </div>
+                <RadioGroup
+                  name="ship-type-role"
+                  value={shipRole}
+                  onChange={setShipRole}
+                  options={[
+                    { value: "all", label: "All" },
+                    { value: "victim", label: "Victim" },
+                    { value: "attacker", label: "Attacker" },
+                  ]}
+                />
+              </div>
+            )}
+          </FilterField>
+
+          {/* Ship Group Search */}
+          <FilterField
+            label="Ship Group (e.g., Assault Frigate)"
+            htmlFor="filter-ship-group"
+          >
+            <div ref={groupDropdownRef}>
+              <div className="relative">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
                   </div>
@@ -980,18 +1016,49 @@ export default function KillmailFilters({
                     )}
                 </div>
               </div>
-            </div>
 
-            {/* Solar System Search */}
-            <div>
-              <label
-                htmlFor="filter-solar-system"
-                className="block mb-2 text-xs font-medium text-gray-400"
-              >
-                Solar System
-              </label>
-              <div ref={solarSystemDropdownRef}>
-                <div className="relative">
+            {/* Ship Groups chips */}
+            {shipGroupIds.length > 0 && (
+              <div className="flex flex-col gap-2 mt-3">
+                <div className="text-xs font-medium text-gray-400">
+                  Ship Groups
+                </div>
+                {shipGroupIds.map((groupId) => (
+                  <div key={groupId} className="flex items-center gap-2">
+                    <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-blue-900/30">
+                      <span className="font-semibold truncate">
+                        {shipGroupNames.get(groupId) || `Group ${groupId}`}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleGroupRemove(groupId)}
+                      className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                    >
+                      <XMarkIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+                {!shipTypeId && (
+                  <RadioGroup
+                    name="ship-group-role"
+                    value={shipRole}
+                    onChange={setShipRole}
+                    options={[
+                      { value: "all", label: "All" },
+                      { value: "victim", label: "Victim" },
+                      { value: "attacker", label: "Attacker" },
+                    ]}
+                  />
+                )}
+              </div>
+            )}
+          </FilterField>
+
+          {/* Solar System Search */}
+          <FilterField label="Solar System" htmlFor="filter-solar-system">
+            <div ref={solarSystemDropdownRef}>
+              <div className="relative">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
                   </div>
@@ -1097,18 +1164,47 @@ export default function KillmailFilters({
                     )}
                 </div>
               </div>
-            </div>
 
-            {/* Region Search */}
-            <div>
-              <label
-                htmlFor="filter-region"
-                className="block mb-2 text-xs font-medium text-gray-400"
-              >
-                Region
-              </label>
-              <div ref={regionDropdownRef}>
-                <div className="relative">
+            {/* Solar System chip */}
+            {systemId && (
+              <div className="flex flex-col gap-2 mt-3">
+                <div className="text-xs font-medium text-gray-400">
+                  Solar System
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
+                    <span className="font-semibold truncate">
+                      {solarSystemName || `System ${systemId}`}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      console.log(
+                        "🔍 System chip remove clicked, current state:",
+                        {
+                          systemId,
+                          solarSystemName,
+                          constellationId,
+                          constellationName,
+                        },
+                      );
+                      setSystemId(undefined);
+                      setSolarSystemName("");
+                    }}
+                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                  >
+                    <XMarkIcon className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </FilterField>
+
+          {/* Region Search */}
+          <FilterField label="Region" htmlFor="filter-region">
+            <div ref={regionDropdownRef}>
+              <div className="relative">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
                   </div>
@@ -1200,18 +1296,36 @@ export default function KillmailFilters({
                     )}
                 </div>
               </div>
-            </div>
 
-            {/* Constellation Search */}
-            <div>
-              <label
-                htmlFor="filter-constellation"
-                className="block mb-2 text-xs font-medium text-gray-400"
-              >
-                Constellation
-              </label>
-              <div ref={constellationDropdownRef}>
-                <div className="relative">
+            {/* Region chip */}
+            {regionId && (
+              <div className="flex flex-col gap-2 mt-3">
+                <div className="text-xs font-medium text-gray-400">Region</div>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
+                    <span className="font-semibold truncate">
+                      {regionName || `Region ${regionId}`}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRegionId(undefined);
+                      setRegionName("");
+                    }}
+                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                  >
+                    <XMarkIcon className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </FilterField>
+
+          {/* Constellation Search */}
+          <FilterField label="Constellation" htmlFor="filter-constellation">
+            <div ref={constellationDropdownRef}>
+              <div className="relative">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
                   </div>
@@ -1314,276 +1428,10 @@ export default function KillmailFilters({
                     )}
                 </div>
               </div>
-            </div>
-
-            {/* Min Attackers */}
-            <div>
-              <label
-                htmlFor="filter-min-attackers"
-                className="block mb-2 text-xs font-medium text-gray-400"
-              >
-                Min Attackers
-              </label>
-              <input
-                type="number"
-                id="filter-min-attackers"
-                placeholder="Min attackers..."
-                value={minAttackers}
-                onChange={(e) => setMinAttackers(e.target.value)}
-                className="input"
-                min="1"
-              />
-            </div>
-
-            {/* Max Attackers */}
-            <div>
-              <label
-                htmlFor="filter-max-attackers"
-                className="block mb-2 text-xs font-medium text-gray-400"
-              >
-                Max Attackers
-              </label>
-              <input
-                type="number"
-                id="filter-max-attackers"
-                placeholder="Max attackers..."
-                value={maxAttackers}
-                onChange={(e) => setMaxAttackers(e.target.value)}
-                className="input"
-                min="1"
-              />
-            </div>
-
-            {/* Min Value */}
-            <div>
-              <label
-                htmlFor="filter-min-value"
-                className="block mb-2 text-xs font-medium text-gray-400"
-              >
-                Min Value (ISK)
-              </label>
-              <input
-                type="number"
-                id="filter-min-value"
-                placeholder="Min ISK value..."
-                value={minValue}
-                onChange={(e) => setMinValue(e.target.value)}
-                className="input"
-                min="0"
-                step="1000000"
-              />
-            </div>
-
-            {/* Max Value */}
-            <div>
-              <label
-                htmlFor="filter-max-value"
-                className="block mb-2 text-xs font-medium text-gray-400"
-              >
-                Max Value (ISK)
-              </label>
-              <input
-                type="number"
-                id="filter-max-value"
-                placeholder="Max ISK value..."
-                value={maxValue}
-                onChange={(e) => setMaxValue(e.target.value)}
-                className="input"
-                min="0"
-                step="1000000"
-              />
-            </div>
-          </div>
-
-          {/* RIGHT: Chips + Role & Security Space */}
-          <div className="flex flex-col gap-4 min-w-48">
-            <p className="text-xs font-medium text-gray-400">Selected</p>
-
-            {/* Character chip + its own RadioGroup */}
-            {characterId && (
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-gray-700/50">
-                    <img
-                      src={`https://images.evetech.net/characters/${characterId}/portrait?size=64`}
-                      alt={characterName}
-                      className="object-cover size-8"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          "/images/default-avatar.png";
-                      }}
-                    />
-                    <span className="font-semibold truncate">
-                      {characterName}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCharacterId(undefined);
-                      setCharacterName("");
-                      setCharacterRole("all");
-                    }}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
-                  >
-                    <XMarkIcon className="w-4 h-4" />
-                  </button>
-                </div>
-                <RadioGroup
-                  name="character-role"
-                  value={characterRole}
-                  onChange={setCharacterRole}
-                  options={[
-                    { value: "all", label: "All" },
-                    { value: "victim", label: "Victim" },
-                    { value: "attacker", label: "Attacker" },
-                  ]}
-                />
-              </div>
-            )}
-
-            {/* Ship chip + its own RadioGroup */}
-            {shipTypeId && (
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-gray-700/50">
-                    <img
-                      src={`https://images.evetech.net/types/${shipTypeId}/icon?size=64`}
-                      alt={shipTypeName}
-                      className="object-cover size-8"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          "/images/default-ship.png";
-                      }}
-                    />
-                    <span className="font-semibold truncate">
-                      {shipTypeName}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShipTypeId(undefined);
-                      setShipTypeName("");
-                      setShipRole("all");
-                    }}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
-                  >
-                    <XMarkIcon className="w-4 h-4" />
-                  </button>
-                </div>
-                <RadioGroup
-                  name="ship-type-role"
-                  value={shipRole}
-                  onChange={setShipRole}
-                  options={[
-                    { value: "all", label: "All" },
-                    { value: "victim", label: "Victim" },
-                    { value: "attacker", label: "Attacker" },
-                  ]}
-                />
-              </div>
-            )}
-
-            {/* Ship Groups chips */}
-            {shipGroupIds.length > 0 && (
-              <div className="flex flex-col gap-2">
-                <div className="text-xs font-medium text-gray-400">
-                  Ship Groups
-                </div>
-                {shipGroupIds.map((groupId) => (
-                  <div key={groupId} className="flex items-center gap-2">
-                    <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-blue-900/30">
-                      <span className="font-semibold truncate">
-                        {shipGroupNames.get(groupId) || `Group ${groupId}`}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleGroupRemove(groupId)}
-                      className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
-                    >
-                      <XMarkIcon className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-                {!shipTypeId && (
-                  <RadioGroup
-                    name="ship-group-role"
-                    value={shipRole}
-                    onChange={setShipRole}
-                    options={[
-                      { value: "all", label: "All" },
-                      { value: "victim", label: "Victim" },
-                      { value: "attacker", label: "Attacker" },
-                    ]}
-                  />
-                )}
-              </div>
-            )}
-
-            {/* Solar System chip */}
-            {systemId && (
-              <div className="flex flex-col gap-2">
-                <div className="text-xs font-medium text-gray-400">
-                  Solar System
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
-                    <span className="font-semibold truncate">
-                      {solarSystemName || `System ${systemId}`}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      console.log(
-                        "🔍 System chip remove clicked, current state:",
-                        {
-                          systemId,
-                          solarSystemName,
-                          constellationId,
-                          constellationName,
-                        },
-                      );
-                      setSystemId(undefined);
-                      setSolarSystemName("");
-                    }}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
-                  >
-                    <XMarkIcon className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Region chip */}
-            {regionId && (
-              <div className="flex flex-col gap-2">
-                <div className="text-xs font-medium text-gray-400">Region</div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
-                    <span className="font-semibold truncate">
-                      {regionName || `Region ${regionId}`}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setRegionId(undefined);
-                      setRegionName("");
-                    }}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
-                  >
-                    <XMarkIcon className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            )}
 
             {/* Constellation chip */}
             {constellationId && (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 mt-3">
                 <div className="text-xs font-medium text-gray-400">
                   Constellation
                 </div>
@@ -1615,49 +1463,93 @@ export default function KillmailFilters({
                 </div>
               </div>
             )}
+          </FilterField>
 
-            {/* Security Space - Always visible */}
-            <div className="flex flex-col gap-2">
-              <div className="text-xs font-medium text-gray-400">
-                Security Space
-              </div>
-              <RadioGroup
-                name="security-space"
-                value={securitySpace}
-                onChange={setSecuritySpace}
-                options={[
-                  { value: "all", label: "All" },
-                  { value: "highsec", label: "HighSec" },
-                  { value: "lowsec", label: "LowSec" },
-                  { value: "nullsec", label: "NullSec" },
-                  { value: "wormhole", label: "Wormhole" },
-                  { value: "abyssal", label: "Abyssal" },
-                ]}
-              />
-            </div>
+          {/* Min Attackers */}
+          <FilterField label="Min Attackers" htmlFor="filter-min-attackers">
+            <input
+              type="number"
+              id="filter-min-attackers"
+              placeholder="Min attackers..."
+              value={minAttackers}
+              onChange={(e) => setMinAttackers(e.target.value)}
+              className="input"
+              min="1"
+            />
+          </FilterField>
 
-            {/* Sovereignty war kills */}
-            <div className="flex flex-col gap-2">
-              <div className="text-xs font-medium text-gray-400">Sovereignty</div>
-              <RadioGroup
-                name="war-related"
-                value={warRelated ? "war" : "all"}
-                onChange={(v) => setWarRelated(v === "war")}
-                options={[
-                  { value: "all", label: "All Kills" },
-                  { value: "war", label: "War Kills Only" },
-                ]}
-              />
-            </div>
-          </div>
+          {/* Max Attackers */}
+          <FilterField label="Max Attackers" htmlFor="filter-max-attackers">
+            <input
+              type="number"
+              id="filter-max-attackers"
+              placeholder="Max attackers..."
+              value={maxAttackers}
+              onChange={(e) => setMaxAttackers(e.target.value)}
+              className="input"
+              min="1"
+            />
+          </FilterField>
+
+          {/* Min Value */}
+          <FilterField label="Min Value (ISK)" htmlFor="filter-min-value">
+            <input
+              type="number"
+              id="filter-min-value"
+              placeholder="Min ISK value..."
+              value={minValue}
+              onChange={(e) => setMinValue(e.target.value)}
+              className="input"
+              min="0"
+              step="1000000"
+            />
+          </FilterField>
+
+          {/* Max Value */}
+          <FilterField label="Max Value (ISK)" htmlFor="filter-max-value">
+            <input
+              type="number"
+              id="filter-max-value"
+              placeholder="Max ISK value..."
+              value={maxValue}
+              onChange={(e) => setMaxValue(e.target.value)}
+              className="input"
+              min="0"
+              step="1000000"
+            />
+          </FilterField>
+
+          {/* Security Space - Always visible */}
+          <FilterField label="Security Space">
+            <RadioGroup
+              name="security-space"
+              value={securitySpace}
+              onChange={setSecuritySpace}
+              options={[
+                { value: "all", label: "All" },
+                { value: "highsec", label: "HighSec" },
+                { value: "lowsec", label: "LowSec" },
+                { value: "nullsec", label: "NullSec" },
+                { value: "wormhole", label: "Wormhole" },
+                { value: "abyssal", label: "Abyssal" },
+              ]}
+            />
+          </FilterField>
+
+          {/* Sovereignty war kills */}
+          <FilterField label="Sovereignty">
+            <RadioGroup
+              name="war-related"
+              value={warRelated ? "war" : "all"}
+              onChange={(v) => setWarRelated(v === "war")}
+              options={[
+                { value: "all", label: "All Kills" },
+                { value: "war", label: "War Kills Only" },
+              ]}
+            />
+          </FilterField>
         </div>
-
-        <div className="flex justify-end pt-4 border-t border-white/5">
-          <button type="submit" className="apply-filter-button">
-            Apply Filters
-          </button>
-        </div>
-      </div>
+      </FilterDialog>
     </form>
   );
 }

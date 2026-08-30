@@ -1,4 +1,5 @@
 import Tooltip from "@/components/Tooltip/Tooltip";
+import Card from "@/components/ui/Card";
 import { CharactersQuery } from "@/generated/graphql";
 import { getSecurityStatusColor } from "@/utils/securityStatus";
 import { ShieldCheckIcon, UserIcon } from "@heroicons/react/24/outline";
@@ -20,7 +21,7 @@ export default function CharacterCard({ character }: CharacterCardProps) {
   const securityColor = getSecurityStatusColor(character.securityStatus);
 
   return (
-    <div className="character-card">
+    <Card padded={false}>
       <div className="px-4 py-5 sm:p-6">
         <div className="flex flex-col items-center gap-4">
           <div className="relative w-24 h-24">
@@ -100,6 +101,6 @@ export default function CharacterCard({ character }: CharacterCardProps) {
           </div>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }
