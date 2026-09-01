@@ -364,7 +364,7 @@ yarn dev:backend   # başka bir terminalde
 
 ```bash
 curl -s http://localhost:4000/graphql -H 'Content-Type: application/json' \
-  -d '{"query":"{ workerStatus { queueName messageCount consumerCount } }"}' \
+  -d '{"query":"{ workerStatus { queues { name messageCount consumerCount } } }"}' \
   | grep -o 'esi_topology_dlq'
 ```
 
@@ -1005,7 +1005,7 @@ Ardından dört kuyruğun dolduğu kontrol edilir:
 
 ```bash
 curl -s http://localhost:4000/graphql -H 'Content-Type: application/json' \
-  -d '{"query":"{ workerStatus { queueName messageCount } }"}'
+  -d '{"query":"{ workerStatus { queues { name messageCount } } }"}'
 ```
 
 Beklenen: `esi_stars_queue` 1, `esi_planets_queue` 8 (Jita'nın gezegen sayısı),
@@ -1961,7 +1961,7 @@ bir düz integer mesaj `solar_system_id` taşımıyor ve `parseTopologyMessage` 
 
 ```bash
 curl -s http://localhost:4000/graphql -H 'Content-Type: application/json' \
-  -d '{"query":"{ workerStatus { queueName messageCount } }"}'
+  -d '{"query":"{ workerStatus { queues { name messageCount } } }"}'
 ```
 
 Beklenen: `esi_stars_queue`, `esi_planets_queue`, `esi_moons_queue`,
@@ -2067,7 +2067,7 @@ Onarım script'leri → Görev 8; Veri bütünlüğü (Yeni 1, 2, 3) → Görev 
 ve Görev 6, 7; Kuyruk kaydı → Görev 1; Geçiş planı → Görev 2, 3, 10 Adım 1;
 Doğrulama → Görev 4 Adım 2, Görev 10.
 
-**Spec'ten sapılan dört nokta, gerekçeleriyle:**
+**Spec'ten ve dokümantasyondan sapılan beş nokta, gerekçeleriyle:**
 
 1. **`getAllQueueStats()` içindeki ikinci kuyruk listesi.** Spec yalnızca
    `ALL_QUEUES`'dan söz ediyor; `workerStatus`'un okuduğu liste ayrı kodlanmış.
@@ -2078,7 +2078,13 @@ Doğrulama → Görev 4 Adım 2, Görev 10.
 3. **`Stargate` ↔ `SolarSystem` ilişki adları.** İkinci FK, iki model arasında iki
    ilişki yaratıyor; Prisma ikisinin de adlandırılmasını şart koşuyor. Spec'in DDL'i
    doğru ama Prisma şema tarafını göstermiyordu. Görev 3 Adım 4-5.
-4. **`moons` ve `asteroid_belts` tablolarında `type_id` yok.** Spec cross-pipeline
+4. **`workerStatus` sorgusunun şekli.** CLAUDE.md `workerStatus { queueName
+   messageCount consumerCount }` yazıyor; gerçek şemada alanlar `WorkerStatus.queues`
+   altındaki `QueueStatus` tipinde ve ad alanı `name`
+   (`backend/src/schemas/Worker.graphql`). Doğru şekil
+   `workerStatus { queues { name messageCount consumerCount } }`. Görev 1
+   uygulanırken tespit edildi, planın tamamında düzeltildi.
+5. **`moons` ve `asteroid_belts` tablolarında `type_id` yok.** Spec cross-pipeline
    alanları sayarken bu ikisini de `type_id` taşıyanlar arasında gösteriyor;
    `prisma/schema/moon.prisma` ve `asteroidBelt.prisma` böyle bir kolon
    tanımlamıyor. `doctor:topology` sorgusundan çıkarıldı, yoksa script hata verirdi
