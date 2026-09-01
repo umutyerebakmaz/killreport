@@ -150,7 +150,9 @@ yarn worker:stargates
 ```
 
 Static universe data is scheduled by neither PM2 nor the crontab. It is run by
-hand, once, and left alone.
+hand, once, and left alone. The full operational procedure - including how to
+reset, how far you can parallelise, measured timings and what to do when it goes
+wrong - is in [`../ops/universe-topology-run.md`](../ops/universe-topology-run.md).
 
 ## Repair tools
 
