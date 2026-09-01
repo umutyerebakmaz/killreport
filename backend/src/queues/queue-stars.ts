@@ -1,9 +1,9 @@
 /**
  * Queue Stars Script
  *
- * Reads star IDs that still have no name out of the database and queues
- * them for enrichment. The rows themselves are created in step 2 by
- * worker-solar-systems.
+ * Repair tool, not part of the normal flow. The chain creates star rows:
+ * worker-solar-systems publishes the star ID and worker-stars writes the row.
+ * A star row with no name means its ESI enrichment failed at some point.
  *
  * Usage: yarn queue:stars
  */
@@ -11,20 +11,27 @@
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { getRabbitMQChannel } from '@services/rabbitmq';
+import {
+  TOPOLOGY_QUEUES,
+  assertTopologyQueue,
+  envelope,
+  publishTopology,
+} from './topology-messages';
 
-const QUEUE_NAME = 'esi_stars_queue';
+const QUEUE_NAME = TOPOLOGY_QUEUES.stars;
+const SOURCE = 'queue-stars';
 
 async function queueStars() {
-  logger.info('Star queue script started');
+  logger.info('Star repair queue script started');
 
   try {
-    // Enrichment queue, not a root scan: the IDs come from the database with
-    // WHERE name IS NULL, so a re-run queues only what is still missing. None of
-    // the six celestial types has a list endpoint, so the database is the only
-    // possible source; POST /universe/names cannot resolve them either.
+    // The IDs come from the database with WHERE name IS NULL, so a re-run queues
+    // only what is still missing. None of the six celestial types has a list
+    // endpoint, so the database is the only possible source; POST
+    // /universe/names cannot resolve them either.
     const rows = await prismaWorker.star.findMany({
       where: { name: null },
-      select: { id: true },
+      select: { id: true, solar_system_id: true },
       orderBy: { id: 'asc' },
     });
 
@@ -37,16 +44,13 @@ async function queueStars() {
     logger.info(`Found ${rows.length} star rows with no name`);
 
     const channel = await getRabbitMQChannel();
-    // x-max-priority is mandatory: server.ts's ensureAllQueuesExist() declares
-    // every queue with it, and omitting it fails with 406 PRECONDITION_FAILED.
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      arguments: { 'x-max-priority': 10 },
-    });
+    await assertTopologyQueue(channel, QUEUE_NAME);
 
     for (const row of rows) {
-      channel.sendToQueue(QUEUE_NAME, Buffer.from(row.id.toString()), {
-        persistent: true,
+      publishTopology(channel, QUEUE_NAME, {
+        ...envelope(SOURCE),
+        starId: row.id,
+        solarSystemId: row.solar_system_id,
       });
     }
 
