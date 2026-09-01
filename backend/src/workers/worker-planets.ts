@@ -1,13 +1,21 @@
 /**
  * Planet Worker
  *
- * Resolves /universe/planets/{id}/ into the planets table.
+ * The middle node of the celestial chain. It is the only writer of the planets
+ * table.
  *
- * type_id distinguishes Barren / Gas / Temperate / Storm and is worth showing in
- * the Orbital Bodies list.
+ * Order matters and is not arbitrary:
+ *   1. upsert the row from the message alone (id, solar_system_id, orbit_index
+ *      are all authoritative there),
+ *   2. publish the moon and asteroid belt messages,
+ *   3. enrich from /universe/planets/{id}/.
  *
- * orbit_index is NOT written here: it encodes the ordering of the planets[]
- * array from step 2 and this response has no equivalent field.
+ * A failed ESI call therefore costs a name, not the row and not the chain. The
+ * repair script finds what is missing with WHERE name IS NULL.
+ *
+ * Moons and belts chain through here rather than being fanned out by the system
+ * worker because their planet_id is NOT NULL with a foreign key to planets, and
+ * RabbitMQ guarantees no ordering across queues.
  *
  * Usage: yarn worker:planets
  */
@@ -16,8 +24,18 @@ import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { getRabbitMQChannel } from '@services/rabbitmq';
 import { UniverseService } from '@services/universe/universe.service';
+import {
+  TOPOLOGY_QUEUES,
+  assertTopologyQueue,
+  envelope,
+  handleWorkerError,
+  parseTopologyMessage,
+  publishTopology,
+  type PlanetMessage,
+} from '../queues/topology-messages';
 
 const QUEUE_NAME = 'esi_planets_queue';
+const SOURCE = 'worker-planets';
 // ESI throughput is capped at 50/sec by esiRateLimiter, so this is concurrency,
 // not a rate limit. Matches worker-info-corporations.
 const PREFETCH_COUNT = 25;
@@ -32,12 +50,9 @@ async function planetsWorker() {
   try {
     const channel = await getRabbitMQChannel();
 
-    // x-max-priority is mandatory: server.ts's ensureAllQueuesExist() declares
-    // every queue with it, and omitting it fails with 406 PRECONDITION_FAILED.
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      arguments: { 'x-max-priority': 10 },
-    });
+    await assertTopologyQueue(channel, QUEUE_NAME);
+    await assertTopologyQueue(channel, TOPOLOGY_QUEUES.moons);
+    await assertTopologyQueue(channel, TOPOLOGY_QUEUES.asteroidBelts);
 
     channel.prefetch(PREFETCH_COUNT);
 
@@ -70,24 +85,58 @@ async function planetsWorker() {
         if (!msg) return;
         lastMessageTime = Date.now();
 
-        // The key comes from the queue message, not the response body: the star
-        // and asteroid belt endpoints do not echo their own ID.
-        const id = parseInt(msg.content.toString());
+        const payload = parseTopologyMessage<PlanetMessage>(msg);
 
-        if (isNaN(id)) {
-          logger.error('❌ Invalid planet ID:', msg.content.toString());
+        if (!payload || typeof payload.planetId !== 'number') {
+          logger.error('❌ Invalid planet message:', msg.content.toString());
           errors++;
           channel.ack(msg);
           return;
         }
 
-        try {
-          const data = await UniverseService.getPlanet(id);
+        const { planetId, solarSystemId, orbitIndex, moonIds, asteroidBeltIds } = payload;
 
-          // update, not upsert: step 2 created the row, and the queue read it
-          // from the database, so it exists. A missing row is a real error.
+        try {
+          // 1. Write the row from the message. Everything here is authoritative:
+          //    orbit_index encodes the ordering of the planets[] array and has no
+          //    equivalent field in the by-ID response.
+          await prismaWorker.planet.upsert({
+            where: { id: planetId },
+            update: { solar_system_id: solarSystemId, orbit_index: orbitIndex },
+            create: {
+              id: planetId,
+              solar_system_id: solarSystemId,
+              orbit_index: orbitIndex,
+            },
+          });
+
+          // 2. Publish the children. The planet row now exists, so their
+          //    (planet_id, solar_system_id) foreign key can be satisfied.
+          for (let m = 0; m < (moonIds ?? []).length; m++) {
+            publishTopology(channel, TOPOLOGY_QUEUES.moons, {
+              ...envelope(SOURCE),
+              moonId: moonIds[m],
+              solarSystemId,
+              planetId,
+              orbitIndex: m + 1,
+            });
+          }
+
+          for (let b = 0; b < (asteroidBeltIds ?? []).length; b++) {
+            publishTopology(channel, TOPOLOGY_QUEUES.asteroidBelts, {
+              ...envelope(SOURCE),
+              beltId: asteroidBeltIds[b],
+              solarSystemId,
+              planetId,
+              orbitIndex: b + 1,
+            });
+          }
+
+          // 3. Enrich. Anything that fails from here on costs a name only.
+          const data = await UniverseService.getPlanet(planetId);
+
           await prismaWorker.planet.update({
-            where: { id },
+            where: { id: planetId },
             data: {
               name: data.name ?? null,
               type_id: data.type_id ?? null,
@@ -98,22 +147,20 @@ async function planetsWorker() {
           });
 
           processed++;
-          logger.debug(`✅ Planet ${id} - ${data.name ?? '(unnamed)'}`);
+          logger.debug(
+            `✅ Planet ${planetId} - ${data.name ?? '(unnamed)'} ` +
+              `(${moonIds?.length ?? 0} moons, ${asteroidBeltIds?.length ?? 0} belts queued)`
+          );
           channel.ack(msg);
         } catch (error: any) {
           errors++;
           if (error.response?.status === 404) {
-            // A dead ID. Ack it: requeueing would loop forever, and the row keeps
-            // its NULL name so it still shows in the completeness check.
-            logger.warn(`⚠️  Planet ${id} not found (404)`);
+            // A dead ID at the ESI step. The row and the chain already exist, so
+            // ack: the row keeps its NULL name and shows up in the repair scan.
+            logger.warn(`⚠️  Planet ${planetId} not found (404)`);
             channel.ack(msg);
-          } else if (error.response?.status === 420) {
-            logger.warn('🛑 Error limited (420)! Waiting 60 seconds...');
-            await sleep(60000);
-            channel.nack(msg, false, true); // requeue
           } else {
-            logger.error(`❌ Error processing planet ${id}:`, error.message);
-            channel.nack(msg, false, false);
+            await handleWorkerError(channel, msg, payload, QUEUE_NAME, error, logger);
           }
         }
       },
@@ -132,10 +179,6 @@ async function planetsWorker() {
     logger.error('❌ Failed to start planet worker:', error);
     process.exit(1);
   }
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 planetsWorker();
