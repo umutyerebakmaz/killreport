@@ -109,8 +109,15 @@ yarn worker:moons
 yarn worker:stargates
 ```
 
-Each worker prints `🎉 ALL TASKS COMPLETED` when its queue has been quiet for five
-seconds, then waits for more messages. That is your cue to press Ctrl+C.
+Each worker ends by itself. When its queue has been quiet for five seconds *and*
+nothing is still in flight, it prints `🎉 ALL TASKS COMPLETED` with the processed
+and error counts, then exits — status 1 if the run had errors, 0 otherwise. Both
+conditions matter: with a prefetch above 1 the queue empties while messages are
+still being processed, and exiting on the queue alone would requeue them with
+their rows unwritten.
+
+Started against a queue that is already empty it prints `Nothing to do` and exits
+the same way, so re-running a finished step costs seconds instead of a Ctrl+C.
 
 ### Going faster
 
@@ -118,11 +125,23 @@ Running the same worker in two terminals doubles throughput — both consume the
 same queue, and every write is an `upsert` keyed on the primary key, so there is
 nothing to collide over.
 
-**Do not go past two.** `esiRateLimiter` caps each *process* at 50 req/sec, and
-ESI's ceiling is 150. Two workers is 100 req/sec with margin; three sits on the
-limit and starts earning HTTP 420s.
+**Do not go past two.** `esiRateLimiter` caps each *process* at `ESI_MAX_RPS`
+requests per second — 50 by default — and ESI's ceiling is 150. Two workers is
+100 req/sec with margin; three sits on the limit and starts earning HTTP 420s.
 
 That applies across workers too: two workers of any kind at once, not two of each.
+
+The other way to go faster is to give one worker more of the budget rather than
+adding a second process. Only when nothing else is running:
+
+```bash
+ESI_MAX_RPS=120 yarn worker:moons
+```
+
+`ESI_PREFETCH` (default 100) is the other half: how many messages a worker holds
+unacked at once. That is concurrency, not a rate — the dispatch ceiling still
+applies — but set too low it starves the limiter and becomes the real ceiling.
+The effective value is never below half the configured rate.
 
 ### Rough timings
 
