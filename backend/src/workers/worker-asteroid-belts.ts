@@ -1,11 +1,14 @@
 /**
- * Asteroid belt Worker
+ * Asteroid Belt Worker
  *
- * Resolves /universe/asteroid_belts/{id}/ into the asteroid_belts table.
+ * Sole writer of the asteroid_belts table.
  *
- * NOTE: this response contains neither asteroid_belt_id nor planet_id — only
- * name, position and system_id. The update key comes from the queue message and
- * the planet link from step 2.
+ * The response contains neither asteroid_belt_id nor planet_id; both travel in
+ * the queue message, put there by worker-planets, which read the belt-to-planet
+ * link out of the /universe/systems/{id}/ nesting. Nothing else can recover it.
+ *
+ * Single write: nothing depends on a belt row, and a second write would be pure
+ * cost. A lost message is covered by the DLQ and by re-running the root scan.
  *
  * Usage: yarn worker:asteroid-belts
  */
@@ -14,6 +17,12 @@ import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { getRabbitMQChannel } from '@services/rabbitmq';
 import { UniverseService } from '@services/universe/universe.service';
+import {
+  assertTopologyQueue,
+  handleWorkerError,
+  parseTopologyMessage,
+  type AsteroidBeltMessage,
+} from '../queues/topology-messages';
 
 const QUEUE_NAME = 'esi_asteroid_belts_queue';
 // ESI throughput is capped at 50/sec by esiRateLimiter, so this is concurrency,
@@ -23,19 +32,14 @@ const PREFETCH_COUNT = 25;
 let emptyCheckInterval: NodeJS.Timeout | null = null;
 
 async function asteroidBeltsWorker() {
-  logger.info('🚀 Asteroid belt Worker Started');
+  logger.info('🚀 Asteroid Belt Worker Started');
   logger.info(`📦 Queue: ${QUEUE_NAME}`);
   logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
   try {
     const channel = await getRabbitMQChannel();
 
-    // x-max-priority is mandatory: server.ts's ensureAllQueuesExist() declares
-    // every queue with it, and omitting it fails with 406 PRECONDITION_FAILED.
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      arguments: { 'x-max-priority': 10 },
-    });
+    await assertTopologyQueue(channel, QUEUE_NAME);
 
     channel.prefetch(PREFETCH_COUNT);
 
@@ -68,49 +72,71 @@ async function asteroidBeltsWorker() {
         if (!msg) return;
         lastMessageTime = Date.now();
 
-        // The key comes from the queue message, not the response body: the star
-        // and asteroid belt endpoints do not echo their own ID.
-        const id = parseInt(msg.content.toString());
+        const payload = parseTopologyMessage<AsteroidBeltMessage>(msg);
 
-        if (isNaN(id)) {
-          logger.error('❌ Invalid asteroid belt ID:', msg.content.toString());
+        if (!payload || typeof payload.beltId !== 'number') {
+          logger.error('❌ Invalid asteroid belt message:', msg.content.toString());
           errors++;
           channel.ack(msg);
           return;
         }
 
-        try {
-          const data = await UniverseService.getAsteroidBelt(id);
+        const { beltId, solarSystemId, planetId, orbitIndex } = payload;
 
-          // update, not upsert: step 2 created the row, and the queue read it
-          // from the database, so it exists. A missing row is a real error.
-          await prismaWorker.asteroidBelt.update({
-            where: { id },
-            data: {
-              name: data.name ?? null,
-              position_x: data.position?.x ?? null,
-              position_y: data.position?.y ?? null,
-              position_z: data.position?.z ?? null,
-            },
+        try {
+          const data = await UniverseService.getAsteroidBelt(beltId);
+
+          // upsert, not update: this worker creates the row now. The planet row
+          // is guaranteed to exist because this message was published by
+          // worker-planets after it wrote that row.
+          const row = {
+            solar_system_id: solarSystemId,
+            planet_id: planetId,
+            orbit_index: orbitIndex,
+            name: data.name ?? null,
+            position_x: data.position?.x ?? null,
+            position_y: data.position?.y ?? null,
+            position_z: data.position?.z ?? null,
+          };
+
+          await prismaWorker.asteroidBelt.upsert({
+            where: { id: beltId },
+            update: row,
+            create: { id: beltId, ...row },
           });
 
           processed++;
-          logger.debug(`✅ Asteroid belt ${id} - ${data.name ?? '(unnamed)'}`);
+          logger.debug(`✅ Asteroid belt ${beltId} - ${data.name ?? '(unnamed)'}`);
           channel.ack(msg);
         } catch (error: any) {
           errors++;
           if (error.response?.status === 404) {
-            // A dead ID. Ack it: requeueing would loop forever, and the row keeps
-            // its NULL name so it still shows in the completeness check.
-            logger.warn(`⚠️  Asteroid belt ${id} not found (404)`);
-            channel.ack(msg);
-          } else if (error.response?.status === 420) {
-            logger.warn('🛑 Error limited (420)! Waiting 60 seconds...');
-            await sleep(60000);
-            channel.nack(msg, false, true); // requeue
+            // A dead ID at ESI. The topology facts are still authoritative, so
+            // write the row without a name rather than losing the belt entirely.
+            logger.warn(
+              `⚠️  Asteroid belt ${beltId} not found (404), writing row without a name`
+            );
+            try {
+              await prismaWorker.asteroidBelt.upsert({
+                where: { id: beltId },
+                update: {
+                  solar_system_id: solarSystemId,
+                  planet_id: planetId,
+                  orbit_index: orbitIndex,
+                },
+                create: {
+                  id: beltId,
+                  solar_system_id: solarSystemId,
+                  planet_id: planetId,
+                  orbit_index: orbitIndex,
+                },
+              });
+              channel.ack(msg);
+            } catch (writeError: any) {
+              await handleWorkerError(channel, msg, payload, QUEUE_NAME, writeError, logger);
+            }
           } else {
-            logger.error(`❌ Error processing asteroid belt ${id}:`, error.message);
-            channel.nack(msg, false, false);
+            await handleWorkerError(channel, msg, payload, QUEUE_NAME, error, logger);
           }
         }
       },
@@ -129,10 +155,6 @@ async function asteroidBeltsWorker() {
     logger.error('❌ Failed to start asteroid belt worker:', error);
     process.exit(1);
   }
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 asteroidBeltsWorker();

@@ -1,11 +1,15 @@
 /**
  * Moon Worker
  *
- * Resolves /universe/moons/{id}/ into the moons table.
+ * Sole writer of the moons table.
  *
- * NOTE: the response contains no planet_id. The moon-to-planet link exists only
- * in the nesting of the /universe/systems/{id}/ response and is written in step 2;
- * nothing here can recover it.
+ * The response contains no planet_id; the moon-to-planet link travels in the
+ * queue message, put there by worker-planets, which read it out of the
+ * /universe/systems/{id}/ nesting. Nothing else can recover it.
+ *
+ * Single write: nothing depends on a moon row, and a second write would be pure
+ * cost on the largest table in the topology. A lost message is covered by the
+ * DLQ and by re-running the root scan.
  *
  * Usage: yarn worker:moons
  */
@@ -14,6 +18,12 @@ import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { getRabbitMQChannel } from '@services/rabbitmq';
 import { UniverseService } from '@services/universe/universe.service';
+import {
+  assertTopologyQueue,
+  handleWorkerError,
+  parseTopologyMessage,
+  type MoonMessage,
+} from '../queues/topology-messages';
 
 const QUEUE_NAME = 'esi_moons_queue';
 // ESI throughput is capped at 50/sec by esiRateLimiter, so this is concurrency,
@@ -30,12 +40,7 @@ async function moonsWorker() {
   try {
     const channel = await getRabbitMQChannel();
 
-    // x-max-priority is mandatory: server.ts's ensureAllQueuesExist() declares
-    // every queue with it, and omitting it fails with 406 PRECONDITION_FAILED.
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      arguments: { 'x-max-priority': 10 },
-    });
+    await assertTopologyQueue(channel, QUEUE_NAME);
 
     channel.prefetch(PREFETCH_COUNT);
 
@@ -68,49 +73,69 @@ async function moonsWorker() {
         if (!msg) return;
         lastMessageTime = Date.now();
 
-        // The key comes from the queue message, not the response body: the star
-        // and asteroid belt endpoints do not echo their own ID.
-        const id = parseInt(msg.content.toString());
+        const payload = parseTopologyMessage<MoonMessage>(msg);
 
-        if (isNaN(id)) {
-          logger.error('❌ Invalid moon ID:', msg.content.toString());
+        if (!payload || typeof payload.moonId !== 'number') {
+          logger.error('❌ Invalid moon message:', msg.content.toString());
           errors++;
           channel.ack(msg);
           return;
         }
 
-        try {
-          const data = await UniverseService.getMoon(id);
+        const { moonId, solarSystemId, planetId, orbitIndex } = payload;
 
-          // update, not upsert: step 2 created the row, and the queue read it
-          // from the database, so it exists. A missing row is a real error.
-          await prismaWorker.moon.update({
-            where: { id },
-            data: {
-              name: data.name ?? null,
-              position_x: data.position?.x ?? null,
-              position_y: data.position?.y ?? null,
-              position_z: data.position?.z ?? null,
-            },
+        try {
+          const data = await UniverseService.getMoon(moonId);
+
+          // upsert, not update: this worker creates the row now. The planet row
+          // is guaranteed to exist because this message was published by
+          // worker-planets after it wrote that row.
+          const row = {
+            solar_system_id: solarSystemId,
+            planet_id: planetId,
+            orbit_index: orbitIndex,
+            name: data.name ?? null,
+            position_x: data.position?.x ?? null,
+            position_y: data.position?.y ?? null,
+            position_z: data.position?.z ?? null,
+          };
+
+          await prismaWorker.moon.upsert({
+            where: { id: moonId },
+            update: row,
+            create: { id: moonId, ...row },
           });
 
           processed++;
-          logger.debug(`✅ Moon ${id} - ${data.name ?? '(unnamed)'}`);
+          logger.debug(`✅ Moon ${moonId} - ${data.name ?? '(unnamed)'}`);
           channel.ack(msg);
         } catch (error: any) {
           errors++;
           if (error.response?.status === 404) {
-            // A dead ID. Ack it: requeueing would loop forever, and the row keeps
-            // its NULL name so it still shows in the completeness check.
-            logger.warn(`⚠️  Moon ${id} not found (404)`);
-            channel.ack(msg);
-          } else if (error.response?.status === 420) {
-            logger.warn('🛑 Error limited (420)! Waiting 60 seconds...');
-            await sleep(60000);
-            channel.nack(msg, false, true); // requeue
+            // A dead ID at ESI. The topology facts are still authoritative, so
+            // write the row without a name rather than losing the moon entirely.
+            logger.warn(`⚠️  Moon ${moonId} not found (404), writing row without a name`);
+            try {
+              await prismaWorker.moon.upsert({
+                where: { id: moonId },
+                update: {
+                  solar_system_id: solarSystemId,
+                  planet_id: planetId,
+                  orbit_index: orbitIndex,
+                },
+                create: {
+                  id: moonId,
+                  solar_system_id: solarSystemId,
+                  planet_id: planetId,
+                  orbit_index: orbitIndex,
+                },
+              });
+              channel.ack(msg);
+            } catch (writeError: any) {
+              await handleWorkerError(channel, msg, payload, QUEUE_NAME, writeError, logger);
+            }
           } else {
-            logger.error(`❌ Error processing moon ${id}:`, error.message);
-            channel.nack(msg, false, false);
+            await handleWorkerError(channel, msg, payload, QUEUE_NAME, error, logger);
           }
         }
       },
@@ -129,10 +154,6 @@ async function moonsWorker() {
     logger.error('❌ Failed to start moon worker:', error);
     process.exit(1);
   }
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 moonsWorker();
