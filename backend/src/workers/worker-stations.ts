@@ -1,10 +1,12 @@
 /**
  * Station Worker
  *
- * Resolves /universe/stations/{id}/ into the stations table.
+ * Sole writer of the stations table.
  *
- * NPC stations only; Upwell structures never appear in the public universe
- * endpoints and are out of scope.
+ * owner_corporation_id, race_id and type_id point at tables other pipelines
+ * fill, so they deliberately carry no foreign key - one would lock this ingest to
+ * the corporation, race and type pipelines. yarn doctor:topology reports orphaned
+ * references instead.
  *
  * Usage: yarn worker:stations
  */
@@ -13,6 +15,12 @@ import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { getRabbitMQChannel } from '@services/rabbitmq';
 import { UniverseService } from '@services/universe/universe.service';
+import {
+  assertTopologyQueue,
+  handleWorkerError,
+  parseTopologyMessage,
+  type StationMessage,
+} from '../queues/topology-messages';
 
 const QUEUE_NAME = 'esi_stations_queue';
 // ESI throughput is capped at 50/sec by esiRateLimiter, so this is concurrency,
@@ -29,12 +37,7 @@ async function stationsWorker() {
   try {
     const channel = await getRabbitMQChannel();
 
-    // x-max-priority is mandatory: server.ts's ensureAllQueuesExist() declares
-    // every queue with it, and omitting it fails with 406 PRECONDITION_FAILED.
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      arguments: { 'x-max-priority': 10 },
-    });
+    await assertTopologyQueue(channel, QUEUE_NAME);
 
     channel.prefetch(PREFETCH_COUNT);
 
@@ -67,57 +70,66 @@ async function stationsWorker() {
         if (!msg) return;
         lastMessageTime = Date.now();
 
-        // The key comes from the queue message, not the response body: the star
-        // and asteroid belt endpoints do not echo their own ID.
-        const id = parseInt(msg.content.toString());
+        const payload = parseTopologyMessage<StationMessage>(msg);
 
-        if (isNaN(id)) {
-          logger.error('❌ Invalid station ID:', msg.content.toString());
+        if (!payload || typeof payload.stationId !== 'number') {
+          logger.error('❌ Invalid station message:', msg.content.toString());
           errors++;
           channel.ack(msg);
           return;
         }
 
-        try {
-          const data = await UniverseService.getStation(id);
+        const { stationId, solarSystemId } = payload;
 
-          // update, not upsert: step 2 created the row, and the queue read it
-          // from the database, so it exists. A missing row is a real error.
-          await prismaWorker.station.update({
-            where: { id },
-            data: {
-              name: data.name ?? null,
-              type_id: data.type_id ?? null,
-              owner_corporation_id: data.owner ?? null,
-              race_id: data.race_id ?? null,
-              services: data.services ?? [],
-              reprocessing_efficiency: data.reprocessing_efficiency ?? null,
-              reprocessing_stations_take: data.reprocessing_stations_take ?? null,
-              office_rental_cost: data.office_rental_cost ?? null,
-              max_dockable_ship_volume: data.max_dockable_ship_volume ?? null,
-              position_x: data.position?.x ?? null,
-              position_y: data.position?.y ?? null,
-              position_z: data.position?.z ?? null,
-            },
+        try {
+          const data = await UniverseService.getStation(stationId);
+
+          const row = {
+            solar_system_id: solarSystemId,
+            name: data.name ?? null,
+            type_id: data.type_id ?? null,
+            owner_corporation_id: data.owner ?? null,
+            race_id: data.race_id ?? null,
+            services: data.services ?? [],
+            reprocessing_efficiency: data.reprocessing_efficiency ?? null,
+            reprocessing_stations_take: data.reprocessing_stations_take ?? null,
+            office_rental_cost: data.office_rental_cost ?? null,
+            max_dockable_ship_volume: data.max_dockable_ship_volume ?? null,
+            position_x: data.position?.x ?? null,
+            position_y: data.position?.y ?? null,
+            position_z: data.position?.z ?? null,
+          };
+
+          await prismaWorker.station.upsert({
+            where: { id: stationId },
+            update: row,
+            create: { id: stationId, ...row },
           });
 
           processed++;
-          logger.debug(`✅ Station ${id} - ${data.name ?? '(unnamed)'}`);
+          logger.debug(`✅ Station ${stationId} - ${data.name ?? '(unnamed)'}`);
           channel.ack(msg);
         } catch (error: any) {
           errors++;
           if (error.response?.status === 404) {
-            // A dead ID. Ack it: requeueing would loop forever, and the row keeps
-            // its NULL name so it still shows in the completeness check.
-            logger.warn(`⚠️  Station ${id} not found (404)`);
-            channel.ack(msg);
-          } else if (error.response?.status === 420) {
-            logger.warn('🛑 Error limited (420)! Waiting 60 seconds...');
-            await sleep(60000);
-            channel.nack(msg, false, true); // requeue
+            // A dead ID at ESI. The topology fact - this system has this station
+            // - is still authoritative, so write the row without a name.
+            // services has no default and is String[], so it must be given here.
+            logger.warn(
+              `⚠️  Station ${stationId} not found (404), writing row without a name`
+            );
+            try {
+              await prismaWorker.station.upsert({
+                where: { id: stationId },
+                update: { solar_system_id: solarSystemId },
+                create: { id: stationId, solar_system_id: solarSystemId, services: [] },
+              });
+              channel.ack(msg);
+            } catch (writeError: any) {
+              await handleWorkerError(channel, msg, payload, QUEUE_NAME, writeError, logger);
+            }
           } else {
-            logger.error(`❌ Error processing station ${id}:`, error.message);
-            channel.nack(msg, false, false);
+            await handleWorkerError(channel, msg, payload, QUEUE_NAME, error, logger);
           }
         }
       },
@@ -136,10 +148,6 @@ async function stationsWorker() {
     logger.error('❌ Failed to start station worker:', error);
     process.exit(1);
   }
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 stationsWorker();

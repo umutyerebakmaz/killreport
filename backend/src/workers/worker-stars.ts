@@ -1,10 +1,16 @@
 /**
  * Star Worker
  *
- * Resolves /universe/stars/{id}/ into the stars table.
+ * Sole writer of the stars table.
  *
- * NOTE: the response contains no star_id and no position. The update key comes
- * from the queue message; a star sits at the centre of its system.
+ * /universe/stars/{id}/ does not echo the star's own id and does not return the
+ * system it belongs to, so both travel in the queue message, published by
+ * worker-solar-systems out of the system response's star_id.
+ *
+ * stars.solar_system_id is UNIQUE - one star per system. A second star for the
+ * same system raises P2002, which is not retryable and ends up in the DLQ after
+ * five attempts. That is deliberate: ESI reporting two stars for one system is a
+ * real data fault and should be visible, not silently absorbed.
  *
  * Usage: yarn worker:stars
  */
@@ -13,6 +19,12 @@ import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { getRabbitMQChannel } from '@services/rabbitmq';
 import { UniverseService } from '@services/universe/universe.service';
+import {
+  assertTopologyQueue,
+  handleWorkerError,
+  parseTopologyMessage,
+  type StarMessage,
+} from '../queues/topology-messages';
 
 const QUEUE_NAME = 'esi_stars_queue';
 // ESI throughput is capped at 50/sec by esiRateLimiter, so this is concurrency,
@@ -29,12 +41,7 @@ async function starsWorker() {
   try {
     const channel = await getRabbitMQChannel();
 
-    // x-max-priority is mandatory: server.ts's ensureAllQueuesExist() declares
-    // every queue with it, and omitting it fails with 406 PRECONDITION_FAILED.
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      arguments: { 'x-max-priority': 10 },
-    });
+    await assertTopologyQueue(channel, QUEUE_NAME);
 
     channel.prefetch(PREFETCH_COUNT);
 
@@ -67,52 +74,58 @@ async function starsWorker() {
         if (!msg) return;
         lastMessageTime = Date.now();
 
-        // The key comes from the queue message, not the response body: the star
-        // and asteroid belt endpoints do not echo their own ID.
-        const id = parseInt(msg.content.toString());
+        const payload = parseTopologyMessage<StarMessage>(msg);
 
-        if (isNaN(id)) {
-          logger.error('❌ Invalid star ID:', msg.content.toString());
+        if (!payload || typeof payload.starId !== 'number') {
+          logger.error('❌ Invalid star message:', msg.content.toString());
           errors++;
           channel.ack(msg);
           return;
         }
 
-        try {
-          const data = await UniverseService.getStar(id);
+        const { starId, solarSystemId } = payload;
 
-          // update, not upsert: step 2 created the row, and the queue read it
-          // from the database, so it exists. A missing row is a real error.
-          await prismaWorker.star.update({
-            where: { id },
-            data: {
-              name: data.name ?? null,
-              type_id: data.type_id ?? null,
-              spectral_class: data.spectral_class ?? null,
-              temperature: data.temperature ?? null,
-              radius: data.radius ?? null,
-              age: data.age ?? null,
-              luminosity: data.luminosity ?? null,
-            },
+        try {
+          const data = await UniverseService.getStar(starId);
+
+          const row = {
+            solar_system_id: solarSystemId,
+            name: data.name ?? null,
+            type_id: data.type_id ?? null,
+            spectral_class: data.spectral_class ?? null,
+            temperature: data.temperature ?? null,
+            radius: data.radius ?? null,
+            age: data.age ?? null,
+            luminosity: data.luminosity ?? null,
+          };
+
+          await prismaWorker.star.upsert({
+            where: { id: starId },
+            update: row,
+            create: { id: starId, ...row },
           });
 
           processed++;
-          logger.debug(`✅ Star ${id} - ${data.name ?? '(unnamed)'}`);
+          logger.debug(`✅ Star ${starId} - ${data.name ?? '(unnamed)'}`);
           channel.ack(msg);
         } catch (error: any) {
           errors++;
           if (error.response?.status === 404) {
-            // A dead ID. Ack it: requeueing would loop forever, and the row keeps
-            // its NULL name so it still shows in the completeness check.
-            logger.warn(`⚠️  Star ${id} not found (404)`);
-            channel.ack(msg);
-          } else if (error.response?.status === 420) {
-            logger.warn('🛑 Error limited (420)! Waiting 60 seconds...');
-            await sleep(60000);
-            channel.nack(msg, false, true); // requeue
+            // A dead ID at ESI. The topology fact - this system has this star -
+            // is still authoritative, so write the row without a name.
+            logger.warn(`⚠️  Star ${starId} not found (404), writing row without a name`);
+            try {
+              await prismaWorker.star.upsert({
+                where: { id: starId },
+                update: { solar_system_id: solarSystemId },
+                create: { id: starId, solar_system_id: solarSystemId },
+              });
+              channel.ack(msg);
+            } catch (writeError: any) {
+              await handleWorkerError(channel, msg, payload, QUEUE_NAME, writeError, logger);
+            }
           } else {
-            logger.error(`❌ Error processing star ${id}:`, error.message);
-            channel.nack(msg, false, false);
+            await handleWorkerError(channel, msg, payload, QUEUE_NAME, error, logger);
           }
         }
       },
@@ -131,10 +144,6 @@ async function starsWorker() {
     logger.error('❌ Failed to start star worker:', error);
     process.exit(1);
   }
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 starsWorker();
