@@ -188,8 +188,9 @@ the ingest is finished only when **all seven queues are empty at once**.
 
 ### Expected totals
 
-From the 2026-09-01 full run. Two independent ingests produced these exact
-numbers, so a materially different count means something went wrong:
+From the 2026-09-01 full run, re-verified against the live database on
+2026-09-02 — every count below was still exact. Two independent ingests produced
+these numbers, so a materially different count means something went wrong:
 
 | Table | Rows |
 |---|---|
@@ -218,7 +219,7 @@ It reports orphaned cross-pipeline references, the `name IS NULL` count per tabl
 with the repair command for each, and the depth of the dead letter queue.
 
 A clean report has every count at zero, except `stations.owner_corporation_id`,
-which is currently around 2,535: those are station owners the **corporation**
+which was 2,535 on 2026-09-02: those are station owners the **corporation**
 pipeline has not fetched. That is a separate job, not a topology fault.
 
 ---
