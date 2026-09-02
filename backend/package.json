@@ -19,6 +19,7 @@
     "prisma:studio": "prisma studio",
     "db:backup": "bash scripts/backup-db.sh",
     "db:restore": "bash scripts/restore-db.sh",
+    "rabbitmq:purge": "rabbitmqctl list_queues -q --no-table-headers name | xargs -n1 rabbitmqctl purge_queue",
     "rabbitmq:reset": "bash scripts/reset-rabbitmq.sh",
     "queue:alliances": "tsx src/queues/queue-alliances.ts",
     "queue:alliance-corporations": "tsx src/queues/queue-alliance-corporations.ts",
