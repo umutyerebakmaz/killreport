@@ -148,8 +148,8 @@ connections:
 Run the two servers from the repo root:
 
 ```bash
-yarn dev:backend     # GraphQL Yoga on :4000
-yarn dev:frontend    # Next.js on :3000
+yarn dev:backend     # GraphQL Yoga on :4000 by default
+yarn dev:frontend    # Next.js on :3000 by default
 yarn install         # installs both workspaces
 ```
 
@@ -173,6 +173,37 @@ cd backend && yarn prisma:studio            # data browser on :5555
 # worker queue depths, through the API:
 #   query { workerStatus { queueName messageCount consumerCount } }
 ```
+
+### Running a second checkout alongside this one
+
+Both ports are configurable, and every kill script derives its target from the
+same place the server itself does — so a second checkout can never kill the
+first one's processes.
+
+- **Backend:** `PORT` in `backend/.env`, read by `src/config/config.ts`.
+  `yarn kill` greps that same line. With no `PORT` it kills nothing rather than
+  falling back to 4000, which would be another project's port.
+- **Frontend:** `PORT` in the real environment — the `next` CLI resolves
+  `-p` flag > `PORT` > 3000, so `yarn kill` uses `${PORT:-3000}`. Reading it
+  from `.env.local` would be wrong: Next loads env files only after the CLI has
+  already resolved the port.
+
+Never kill by process name. `pkill -f 'next.*dev'` and `pkill node` reach every
+project on the machine, not just this one.
+
+Redis needs the same treatment. Keys carry no project prefix, and the
+response-cache `invalidate` runs a `KEYS` pattern scan across the whole database
+(`backend/src/plugins/response-cache.plugin.ts`), so it can delete another
+application's keys. Give each checkout its own logical database:
+
+```bash
+REDIS_URL="redis://localhost:6379/1"
+```
+
+Two caveats: Redis pub/sub is global and ignores the database index, so
+`NEW_KILLMAIL` and `SOVEREIGNTY_ALERT` stay shared — real isolation there needs
+a second Redis instance. And logical databases do not exist in Redis Cluster,
+so keep this to a local `.env`.
 
 ---
 
@@ -568,6 +599,26 @@ titles and bodies, comments, and repository files such as this one.
 
 **No Claude attribution in commits or PRs.** No `Co-Authored-By: Claude`, no
 "Generated with Claude Code" footer. This overrides the harness default.
+
+**Check whether one `package.json` line does the job before adding a file under
+`scripts/`.** Files there are welcome when the work needs one — `backup-db.sh`
+and `reset-rabbitmq.sh` earn their place. The failure mode is reaching for a
+file when a single line would do, usually because of invented defensive branches
+(quote stripping, whitespace tolerance, extra fallbacks) for inputs the real
+data never produces; that padding is what makes a one-liner look like it needs
+a file. Yarn Berry runs scripts through its own portable shell, which handles
+`{ ...; }`, `${VAR:-default}`, `$(...)` and `&&` / `||` / `;`. Functions, arrays
+and `trap` are where a script file genuinely becomes necessary.
+
+**Uniformity beats the local optimum.** One queue and one worker per domain,
+each worker owning a single table. A design that departs from the established
+pattern is wrong however well it fits the case at hand. Present constraints as
+items the design must solve, cited with `file:line` — never as objections to the
+user's proposal. Own past design decisions instead of defending them.
+
+**The user often raises these as questions rather than directions** — "do we
+really need this?", "you know better". Weigh the merits and say plainly when
+they are right, rather than deferring automatically or defending the original.
 
 **Stop for review after a design spec, before writing the implementation plan** —
 even when both were asked for in one message. The plan's tasks rest on the spec's
