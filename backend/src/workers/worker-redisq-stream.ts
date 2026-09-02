@@ -70,13 +70,19 @@ interface RedisQPackage {
     labels: string[];
     href: string; // ESI endpoint URL
   };
+  /**
+   * The full ESI killmail, as shipped inside the R2Z2 payload. Present in
+   * normal operation; absent only if the payload shape changes, in which case
+   * processKillmail falls back to fetching it from ESI.
+   */
+  esi?: KillmailDetail;
 }
 
 // R2Z2 /ephemeral/{sequence}.json payload
 interface R2Z2Killmail {
   killmail_id: number;
   hash: string;
-  esi: unknown; // full ESI killmail (unused here; we refetch via ESI for identical downstream shape)
+  esi: unknown; // validated in pollR2Z2 before being passed on
   zkb: RedisQPackage['zkb'];
   uploaded_at?: string;
   sequence_id: number;
@@ -207,6 +213,24 @@ async function initSequence(): Promise<void> {
 }
 
 /**
+ * R2Z2 ships the complete ESI killmail alongside the zkb block, so the worker does
+ * not have to fetch it again. Guard the shape anyway: if the feed ever changes,
+ * processKillmail falls back to ESI rather than saving a half-formed killmail.
+ */
+function isUsableEsiKillmail(esi: unknown): esi is KillmailDetail {
+  if (!esi || typeof esi !== 'object') return false;
+  const k = esi as Partial<KillmailDetail>;
+  return (
+    typeof k.killmail_id === 'number' &&
+    typeof k.killmail_time === 'string' &&
+    typeof k.solar_system_id === 'number' &&
+    !!k.victim &&
+    typeof k.victim.ship_type_id === 'number' &&
+    Array.isArray(k.attackers)
+  );
+}
+
+/**
  * Poll R2Z2 for the next killmail at the current sequence.
  * - 200 → returns the killmail package and advances the sequence cursor
  * - 404 → returns null (caught up; caller should wait before retrying same sequence)
@@ -246,6 +270,7 @@ async function pollR2Z2(): Promise<RedisQPackage | null> {
     return {
       killID: data.killmail_id,
       zkb: { ...data.zkb, hash: data.zkb?.hash ?? data.hash },
+      esi: isUsableEsiKillmail(data.esi) ? data.esi : undefined,
     } as RedisQPackage;
   } catch (error) {
     throw new Error(`Failed to poll R2Z2: ${error}`);
@@ -259,9 +284,20 @@ async function processKillmail(pkg: RedisQPackage): Promise<void> {
   const { killID, zkb } = pkg;
 
   try {
-    // Fetch full killmail from ESI
-    logger.info(`📥 Fetching: ${killID} (${formatISK(zkb.totalValue)} ISK)`);
-    const killmail = await KillmailService.getKillmailDetail(killID, zkb.hash);
+    // R2Z2 already carries the ESI killmail; only fall back to a fetch if the
+    // payload did not carry a usable one.
+    let killmail: KillmailDetail;
+    if (pkg.esi) {
+      logger.info(
+        `📥 From payload: ${killID} (${formatISK(zkb.totalValue)} ISK)`,
+      );
+      killmail = pkg.esi;
+    } else {
+      logger.info(
+        `📥 Fetching from ESI: ${killID} (${formatISK(zkb.totalValue)} ISK)`,
+      );
+      killmail = await KillmailService.getKillmailDetail(killID, zkb.hash);
+    }
 
     // Debug: Log items count
     const itemCount = killmail.victim.items?.length || 0;
