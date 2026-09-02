@@ -12,7 +12,8 @@ import {
   PopoverPanel,
 } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
-import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Bars3Icon, XMarkIcon, HomeIcon } from "@heroicons/react/24/outline";
+import Link from "next/link";
 import React, { useState } from "react";
 import ActiveUsersCounter from "../ActiveUsersCounter";
 import AuthButton from "../AuthButton/AuthButton";
@@ -56,12 +57,13 @@ export default function Header() {
         className="flex items-center justify-between p-6 mx-auto lg:px-8 xl:px-12 2xl:px-16 max-w-480"
       >
         <div className="flex mr-8 2xl:mr-12 min-[1800px]:mr-24">
-          <a href="/" className="-m-1.5 p-1.5">
+          <Link
+            href="/"
+            className="-m-1.5 p-1.5 text-gray-200 transition-colors hover:text-white"
+          >
             <span className="sr-only">KillReport</span>
-            <span className="text-2xl font-semibold tracking-tight text-gray-200">
-              KILLREPORT
-            </span>
-          </a>
+            <HomeIcon aria-hidden="true" className="size-7" />
+          </Link>
         </div>
 
         <div className="flex xl:hidden">
@@ -298,12 +300,14 @@ export default function Header() {
         <div className="fixed inset-0 z-50" />
         <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full p-6 overflow-y-auto bg-stone-900 sm:max-w-sm sm:ring-1 sm:ring-gray-100/10">
           <div className="flex items-center justify-between">
-            <a href="#" className="-m-1.5 p-1.5">
-              <span className="sr-only">KILLREPORT</span>
-              <span className="text-2xl font-semibold tracking-tight text-gray-200">
-                KILLREPORT
-              </span>
-            </a>
+            <Link
+              href="/"
+              onClick={() => setMobileMenuOpen(false)}
+              className="-m-1.5 p-1.5 text-gray-200 transition-colors hover:text-white"
+            >
+              <span className="sr-only">KillReport</span>
+              <HomeIcon aria-hidden="true" className="size-7" />
+            </Link>
             <button
               onClick={() => setMobileMenuOpen(false)}
               className="-m-2.5 rounded-md p-2.5 text-gray-400"

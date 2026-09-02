@@ -76,6 +76,7 @@
     "worker:planets": "tsx src/workers/worker-planets.ts",
     "worker:moons": "tsx src/workers/worker-moons.ts",
     "worker:asteroid-belts": "tsx src/workers/worker-asteroid-belts.ts",
+    "doctor:topology": "tsx src/workers/doctor-topology.ts",
     "worker:user-killmails": "tsx src/workers/worker-esi-user-killmails.ts",
     "worker:corporation-killmails": "tsx src/workers/worker-esi-corporation-killmails.ts",
     "worker:zkillboard": "tsx src/workers/worker-zkillboard-sync.ts",

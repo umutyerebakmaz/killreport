@@ -6,6 +6,10 @@
 @import "./inputs.css";
 @import "./tables.css";
 
+@theme {
+  --font-sans: "Shentox", "Mona Sans", sans-serif;
+}
+
 html,
 body {
   height: 100%;
@@ -16,12 +20,6 @@ body {
   font-weight: 400;
 }
 
-.alliance-card,
-.corporation-card,
-.character-card,
-.region-card,
-.constellation-card,
-.system-card,
 .fit-and-victim,
 .items-card {
   @apply border bg-neutral-900 border-neutral-800;

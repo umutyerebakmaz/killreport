@@ -1,9 +1,9 @@
 /**
  * Queue Stations Script
  *
- * Reads station IDs that still have no name out of the database and queues
- * them for enrichment. The rows themselves are created in step 2 by
- * worker-solar-systems.
+ * Repair tool, not part of the normal flow. The chain creates station rows:
+ * worker-solar-systems publishes the station ID and worker-stations writes the
+ * row. A station row with no name means its ESI enrichment failed at some point.
  *
  * Usage: yarn queue:stations
  */
@@ -11,20 +11,27 @@
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { getRabbitMQChannel } from '@services/rabbitmq';
+import {
+  TOPOLOGY_QUEUES,
+  assertTopologyQueue,
+  envelope,
+  publishTopology,
+} from './topology-messages';
 
-const QUEUE_NAME = 'esi_stations_queue';
+const QUEUE_NAME = TOPOLOGY_QUEUES.stations;
+const SOURCE = 'queue-stations';
 
 async function queueStations() {
-  logger.info('Station queue script started');
+  logger.info('Station repair queue script started');
 
   try {
-    // Enrichment queue, not a root scan: the IDs come from the database with
-    // WHERE name IS NULL, so a re-run queues only what is still missing. None of
-    // the six celestial types has a list endpoint, so the database is the only
-    // possible source; POST /universe/names cannot resolve them either.
+    // The IDs come from the database with WHERE name IS NULL, so a re-run queues
+    // only what is still missing. None of the six celestial types has a list
+    // endpoint, so the database is the only possible source; POST
+    // /universe/names cannot resolve them either.
     const rows = await prismaWorker.station.findMany({
       where: { name: null },
-      select: { id: true },
+      select: { id: true, solar_system_id: true },
       orderBy: { id: 'asc' },
     });
 
@@ -37,16 +44,13 @@ async function queueStations() {
     logger.info(`Found ${rows.length} station rows with no name`);
 
     const channel = await getRabbitMQChannel();
-    // x-max-priority is mandatory: server.ts's ensureAllQueuesExist() declares
-    // every queue with it, and omitting it fails with 406 PRECONDITION_FAILED.
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      arguments: { 'x-max-priority': 10 },
-    });
+    await assertTopologyQueue(channel, QUEUE_NAME);
 
     for (const row of rows) {
-      channel.sendToQueue(QUEUE_NAME, Buffer.from(row.id.toString()), {
-        persistent: true,
+      publishTopology(channel, QUEUE_NAME, {
+        ...envelope(SOURCE),
+        stationId: row.id,
+        solarSystemId: row.solar_system_id,
       });
     }
 

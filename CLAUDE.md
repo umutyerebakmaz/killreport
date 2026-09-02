@@ -362,14 +362,24 @@ ESI allows 150 req/sec; this project uses 50 as a safety margin.
 up to 50/sec with a 20 ms minimum gap and up to 50 concurrent in flight. Wrap ESI
 calls in it. zKillboard needs 10 seconds between calls to the same endpoint.
 
+The ceiling is per **process**, and `ESI_MAX_RPS` moves it — the budget is shared
+by however many workers run at once, so two at the default 50 is 100 req/sec.
+Raise it only for a single worker that has the run to itself, never to squeeze
+more out of several at once. `ESI_PREFETCH` is the matching knob for how many
+messages a worker holds unacked. Both default to the numbers above.
+
 Concurrency is `channel.prefetch(N)`. Two families of worker exist today:
 
 - Most workers set a `PREFETCH_COUNT` constant (3–50) and rely on
   `esiRateLimiter` for the real ceiling.
-- The universe hierarchy workers — `worker-regions`, `worker-constellations`,
-  `worker-solar-systems` — use `prefetch(1)` with a manual 100 ms sleep, which is
-  10 req/sec serial. Slower, but simple and safe for workers whose write path is
-  a large transaction.
+- `worker-regions` and `worker-constellations` use `prefetch(1)` with a manual
+  100 ms sleep, which is 10 req/sec serial. Slower, but simple and safe for
+  workers whose write path is a large transaction.
+
+**Correction:** `worker-solar-systems` belonged in that second group until the
+topology chain reduced it to a single table and four publishes. The transaction
+that justified `prefetch(1)` is gone, so it now sets `PREFETCH_COUNT` like the
+first group.
 
 Every worker copies the same error handling: back off when
 `x-esi-error-limit-remain` drops below 20, wait 60 s and requeue on HTTP 420, warn

@@ -28,6 +28,15 @@ const ALL_QUEUES = [
   'esi_constellations_queue',
   'esi_solar_systems_queue',
 
+  // ESI Universe Topology Chain (celestial queues + dead letter queue)
+  'esi_stars_queue',
+  'esi_planets_queue',
+  'esi_moons_queue',
+  'esi_asteroid_belts_queue',
+  'esi_stargates_queue',
+  'esi_stations_queue',
+  'esi_topology_dlq',
+
   // zKillboard Workers
   'zkillboard_character_queue',
 
@@ -237,6 +246,15 @@ export async function getAllQueueStats(): Promise<Array<{
     'esi_regions_queue',
     'esi_constellations_queue',
     'esi_solar_systems_queue',
+
+    // ESI Universe Topology Chain (celestial queues + dead letter queue)
+    'esi_stars_queue',
+    'esi_planets_queue',
+    'esi_moons_queue',
+    'esi_asteroid_belts_queue',
+    'esi_stargates_queue',
+    'esi_stations_queue',
+    'esi_topology_dlq',
 
     // zKillboard Workers
     'zkillboard_character_queue',
