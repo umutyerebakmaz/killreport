@@ -7,7 +7,9 @@
  * Strategy:
  * - Called after each killmail is saved (within or after the transaction)
  * - Single INSERT with aggregated attacker arrays
- * - Uses ON CONFLICT DO NOTHING for idempotency
+ * - On conflict, updates only the derived columns, and only where they are
+ *   still NULL, so a row written before its solar system existed can heal
+ *   itself. Attacker arrays are never rewritten.
  * - Location, victim ship group and cached value are derived from joins, not from
  *   the caller. The callers never had them; expecting them there is what left
  *   region_id and constellation_id NULL on every row for five months.
@@ -132,9 +134,10 @@ export async function insertKillmailFilter(
         security_class       = EXCLUDED.security_class,
         victim_ship_group_id = EXCLUDED.victim_ship_group_id,
         total_value          = EXCLUDED.total_value
-      WHERE killmail_filters.region_id       IS NULL
-         OR killmail_filters.security_status IS NULL
-         OR killmail_filters.total_value     IS NULL
+      WHERE killmail_filters.region_id             IS NULL
+         OR killmail_filters.security_status       IS NULL
+         OR killmail_filters.total_value           IS NULL
+         OR killmail_filters.victim_ship_group_id  IS NULL
     `;
 
     logger.debug(
