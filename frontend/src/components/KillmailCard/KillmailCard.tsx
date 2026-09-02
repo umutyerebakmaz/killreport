@@ -83,17 +83,7 @@ export default function KillmailCard({
           </div>
           {rank !== undefined && (
             <div className="flex items-center justify-center">
-              <span
-                className={`text-lg font-black tabular-nums ${
-                  rank === 1
-                    ? "text-yellow-400"
-                    : rank === 2
-                      ? "text-gray-300"
-                      : rank === 3
-                        ? "text-amber-600"
-                        : "text-gray-500"
-                }`}
-              >
+              <span className="text-lg font-black tabular-nums text-gray-500">
                 #{rank}
               </span>
             </div>

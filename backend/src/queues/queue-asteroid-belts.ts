@@ -1,9 +1,13 @@
 /**
- * Queue Asteroid belts Script
+ * Queue Asteroid Belts Script
  *
- * Reads asteroid belt IDs that still have no name out of the database and queues
- * them for enrichment. The rows themselves are created in step 2 by
- * worker-solar-systems.
+ * Repair tool, not part of the normal flow. The chain creates belt rows:
+ * worker-planets publishes them and worker-asteroid-belts writes them. A belt row
+ * with no name means its ESI enrichment failed at some point.
+ *
+ * planet_id and orbit_index come out of the database rather than ESI, because
+ * /universe/asteroid_belts/{id}/ returns neither and the chain already recorded
+ * both when the row was created.
  *
  * Usage: yarn queue:asteroid-belts
  */
@@ -11,20 +15,27 @@
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { getRabbitMQChannel } from '@services/rabbitmq';
+import {
+  TOPOLOGY_QUEUES,
+  assertTopologyQueue,
+  envelope,
+  publishTopology,
+} from './topology-messages';
 
-const QUEUE_NAME = 'esi_asteroid_belts_queue';
+const QUEUE_NAME = TOPOLOGY_QUEUES.asteroidBelts;
+const SOURCE = 'queue-asteroid-belts';
 
 async function queueAsteroidBelts() {
-  logger.info('Asteroid belt queue script started');
+  logger.info('Asteroid belt repair queue script started');
 
   try {
-    // Enrichment queue, not a root scan: the IDs come from the database with
-    // WHERE name IS NULL, so a re-run queues only what is still missing. None of
-    // the six celestial types has a list endpoint, so the database is the only
-    // possible source; POST /universe/names cannot resolve them either.
+    // The IDs come from the database with WHERE name IS NULL, so a re-run queues
+    // only what is still missing. None of the six celestial types has a list
+    // endpoint, so the database is the only possible source; POST
+    // /universe/names cannot resolve them either.
     const rows = await prismaWorker.asteroidBelt.findMany({
       where: { name: null },
-      select: { id: true },
+      select: { id: true, solar_system_id: true, planet_id: true, orbit_index: true },
       orderBy: { id: 'asc' },
     });
 
@@ -37,16 +48,17 @@ async function queueAsteroidBelts() {
     logger.info(`Found ${rows.length} asteroid belt rows with no name`);
 
     const channel = await getRabbitMQChannel();
-    // x-max-priority is mandatory: server.ts's ensureAllQueuesExist() declares
-    // every queue with it, and omitting it fails with 406 PRECONDITION_FAILED.
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      arguments: { 'x-max-priority': 10 },
-    });
+    await assertTopologyQueue(channel, QUEUE_NAME);
 
     for (const row of rows) {
-      channel.sendToQueue(QUEUE_NAME, Buffer.from(row.id.toString()), {
-        persistent: true,
+      publishTopology(channel, QUEUE_NAME, {
+        ...envelope(SOURCE),
+        beltId: row.id,
+        solarSystemId: row.solar_system_id,
+        planetId: row.planet_id,
+        // orbit_index is nullable in the schema but always written by the chain;
+        // 0 marks a row that predates it and is worth spotting in the logs.
+        orbitIndex: row.orbit_index ?? 0,
       });
     }
 

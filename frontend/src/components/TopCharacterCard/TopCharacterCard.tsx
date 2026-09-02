@@ -1,6 +1,7 @@
 "use client";
 
 import { Loader } from "@/components/Loader/Loader";
+import RankNumber from "@/components/ui/RankNumber";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import { getSecurityStatusColor } from "@/utils/securityStatus";
 import Link from "next/link";
@@ -57,7 +58,7 @@ export default function TopCharacterCard({
   }
 
   return (
-    <div className="top-character-card">
+    <div>
       <div className="py-4 border-b border-white/10">
         <h3 className="text-lg font-semibold text-white">{title}</h3>
         {subtitle && (
@@ -86,19 +87,7 @@ export default function TopCharacterCard({
               >
                 <div className="flex items-center gap-3">
                   {/* Rank */}
-                  <div className="flex items-center justify-center w-12 shrink-0">
-                    {index === 0 ? (
-                      <span className="text-3xl">🥇</span>
-                    ) : index === 1 ? (
-                      <span className="text-3xl">🥈</span>
-                    ) : index === 2 ? (
-                      <span className="text-3xl">🥉</span>
-                    ) : (
-                      <span className="text-xl font-black text-gray-600 tabular-nums">
-                        #{index + 1}
-                      </span>
-                    )}
-                  </div>
+                  <RankNumber rank={index + 1} />
 
                   {/* Portrait */}
                   <div className="relative shrink-0">

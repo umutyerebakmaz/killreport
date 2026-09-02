@@ -1,6 +1,7 @@
 "use client";
 
 import Tooltip from "@/components/Tooltip/Tooltip";
+import Card from "@/components/ui/Card";
 import { RegionsQuery } from "@/generated/graphql";
 import { GlobeAltIcon, MapIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
@@ -16,7 +17,7 @@ export default function RegionCard({ region }: RegionCardProps) {
   const constellationCount = region.constellationCount ?? 0;
 
   return (
-    <div className="region-card">
+    <Card padded={false}>
       <div className="px-4 py-5 sm:p-6">
         <div className="flex flex-col items-center gap-4">
           {/* Region Icon */}
@@ -54,6 +55,6 @@ export default function RegionCard({ region }: RegionCardProps) {
           )}
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

@@ -18,6 +18,8 @@ model Station {
 
   solar_system SolarSystem @relation(fields: [solar_system_id], references: [id], onDelete: Cascade)
 
-  @@index([solar_system_id])
+  /// stationsBySystem: WHERE solar_system_id IN (...) ORDER BY id. Sayım da aynı
+  /// indeksten karşılanır.
+  @@index([solar_system_id, id])
   @@map("stations")
 }

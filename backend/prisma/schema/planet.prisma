@@ -13,6 +13,11 @@ model Planet {
   moons          Moon[]
   asteroid_belts AsteroidBelt[]
 
-  @@index([solar_system_id])
+  /// Bileşik FK'nin hedefi: moons ve asteroid_belts (planet_id, solar_system_id)
+  /// ikilisiyle buraya bağlanır. Aynı zamanda indeks olarak da hizmet eder.
+  @@unique([id, solar_system_id])
+  /// planetsBySystem: WHERE solar_system_id IN (...) ORDER BY orbit_index, id.
+  /// counts sayımı da bu indeksin soldan önekiyle karşılanır.
+  @@index([solar_system_id, orbit_index, id])
   @@map("planets")
 }

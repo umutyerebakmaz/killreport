@@ -10,9 +10,11 @@ model AsteroidBelt {
   position_z      Float?
 
   solar_system SolarSystem @relation(fields: [solar_system_id], references: [id], onDelete: Cascade)
-  planet       Planet      @relation(fields: [planet_id], references: [id], onDelete: Cascade)
+  /// Moon.planet ile aynı gerekçe: kuşağın sistemi, gezegeninin sistemiyle
+  /// aynı olmak zorunda.
+  planet       Planet      @relation(fields: [planet_id, solar_system_id], references: [id, solar_system_id], onDelete: Cascade)
 
   @@index([solar_system_id])
-  @@index([planet_id])
+  @@index([planet_id, orbit_index, id])
   @@map("asteroid_belts")
 }

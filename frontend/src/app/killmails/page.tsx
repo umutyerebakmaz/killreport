@@ -9,6 +9,7 @@ import Paginator from "@/components/Paginator/Paginator";
 import TopEntitySidebar, {
   TopEntityCardSpec,
 } from "@/components/TopEntitySidebar/TopEntitySidebar";
+import PageHeader from "@/components/ui/PageHeader";
 import {
   useKillmailsDateCountsQuery,
   useKillmailsQuery,
@@ -435,25 +436,20 @@ function KillmailsContent() {
         onDismiss={handleDismissToast}
       /> */}
 
-      {/* Most Valuable Carousels - Last 7 Days */}
-      <div className="mt-8 space-y-6">
-        <KillmailCarousel
-          title="Most Valuable Ships"
-          subtitle="Last 7 Days - Highest value ship kills"
-          killmails={shipsData || []}
-          loading={shipsLoading}
-        />
-
-        <KillmailCarousel
-          title="Most Valuable Structures"
-          subtitle="Last 7 Days - Citadels, Engineering Complexes, and Refineries"
-          killmails={(structuresData?.killmails.items as any) || []}
-          loading={structuresLoading}
+      <div className="mt-8">
+        <PageHeader
+          title="Killmails"
+          description="Browse all killmails from New Eden. Click on a killmail to see detailed information."
+          meta={
+            totalCount > 0
+              ? `${totalCount.toLocaleString()} killmails`
+              : undefined
+          }
         />
       </div>
 
       {/* Filters */}
-      <div className="mt-6">
+      <div className="mt-8">
         <KillmailFilters
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}
@@ -474,25 +470,25 @@ function KillmailsContent() {
         />
       </div>
 
-      <div className="sm:flex sm:items-center sm:justify-between">
-        <div className="sm:flex-auto">
-          <h1 className="flex items-center gap-3 text-3xl font-semibold text-white">
-            Killmails
-          </h1>
-          <p className="mt-2 text-gray-400">
-            Browse all killmails from New Eden. Click on a killmail to see
-            detailed information.
-          </p>
-          {totalCount > 0 && (
-            <p className="mt-1 text-sm text-gray-400">
-              {totalCount.toLocaleString()} killmails
-            </p>
-          )}
-        </div>
+      {/* Most Valuable Carousels - Last 7 Days */}
+      <div className="mt-8 space-y-6">
+        <KillmailCarousel
+          title="Most Valuable Ships"
+          subtitle="Last 7 Days - Highest value ship kills"
+          killmails={shipsData || []}
+          loading={shipsLoading}
+        />
+
+        <KillmailCarousel
+          title="Most Valuable Structures"
+          subtitle="Last 7 Days - Citadels, Engineering Complexes, and Refineries"
+          killmails={(structuresData?.killmails.items as any) || []}
+          loading={structuresLoading}
+        />
       </div>
 
       {/* 2-column grid layout */}
-      <div className="grid grid-cols-1 gap-6 mt-6 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-6 mt-8 lg:grid-cols-4">
         {/* Left side - Killmails Table (takes 3 columns) */}
         <div className="lg:col-span-3">
           <KillmailsTable
