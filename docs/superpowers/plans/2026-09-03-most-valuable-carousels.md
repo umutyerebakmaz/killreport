@@ -539,14 +539,14 @@ Ve dosyaya, `pollR2Z2`'nin hemen üstüne bir doğrulayıcı eklenir:
  * processKillmail falls back to ESI rather than saving a half-formed killmail.
  */
 function isUsableEsiKillmail(esi: unknown): esi is KillmailDetail {
-  if (!esi || typeof esi !== "object") return false;
+  if (!esi || typeof esi !== 'object') return false;
   const k = esi as Partial<KillmailDetail>;
   return (
-    typeof k.killmail_id === "number" &&
-    typeof k.killmail_time === "string" &&
-    typeof k.solar_system_id === "number" &&
+    typeof k.killmail_id === 'number' &&
+    typeof k.killmail_time === 'string' &&
+    typeof k.solar_system_id === 'number' &&
     !!k.victim &&
-    typeof k.victim.ship_type_id === "number" &&
+    typeof k.victim.ship_type_id === 'number' &&
     Array.isArray(k.attackers)
   );
 }
@@ -851,16 +851,16 @@ enum'u olarak var — `Ships = 'SHIPS'` biçiminde.
 `backend/src/services/killmail/most-valuable.service.ts`:
 
 ```ts
-import { CACHE_TTL } from "@config/cache";
+import { CACHE_TTL } from '@config/cache';
 import {
   CAPITAL_GROUP_IDS,
   NON_SHIP_GROUP_IDS,
   STRUCTURE_GROUP_IDS,
-} from "@config/ship-groups";
-import { Prisma } from "@generated/prisma/client";
-import { MostValuableScope } from "@generated-types";
-import prisma from "@services/prisma";
-import redis from "@services/redis";
+} from '@config/ship-groups';
+import { Prisma } from '@generated/prisma/client';
+import { MostValuableScope } from '@generated-types';
+import prisma from '@services/prisma';
+import redis from '@services/redis';
 
 const MAX_LIMIT = 50;
 const DEFAULT_LIMIT = 20;
@@ -942,7 +942,7 @@ export async function getMostValuableKillmails(
 `backend/src/services/killmail/index.ts` dosyasına ekle:
 
 ```ts
-export { getMostValuableKillmails } from "./most-valuable.service";
+export { getMostValuableKillmails } from './most-valuable.service';
 ```
 
 - [ ] **Step 6: Resolver'ı ekle**
@@ -950,7 +950,7 @@ export { getMostValuableKillmails } from "./most-valuable.service";
 `backend/src/resolvers/killmail/queries.ts` — import satırlarına:
 
 ```ts
-import { getMostValuableKillmails } from "@services/killmail";
+import { getMostValuableKillmails } from '@services/killmail';
 ```
 
 ve `killmailQueries` nesnesinin içine, `killmails` resolver'ından sonra:
@@ -1185,19 +1185,19 @@ card that never shows it."
 `frontend/src/components/MostValuableCarousel/MostValuableCarousel.tsx`:
 
 ```tsx
-"use client";
+'use client';
 
 import KillmailCard, {
   KillmailCardData,
-} from "@/components/KillmailCard/KillmailCard";
-import Card from "@/components/ui/Card";
-import SectionTitle from "@/components/ui/SectionTitle";
+} from '@/components/KillmailCard/KillmailCard';
+import Card from '@/components/ui/Card';
+import SectionTitle from '@/components/ui/SectionTitle';
 import {
   MostValuableScope,
   useMostValuableKillmailsQuery,
-} from "@/generated/graphql";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
-import { useCallback, useEffect, useRef, useState } from "react";
+} from '@/generated/graphql';
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const WINDOW_DAYS = 7;
 const CARD_COUNT = 20;
@@ -1214,23 +1214,23 @@ interface Tab {
 const TABS: Tab[] = [
   {
     scope: MostValuableScope.Ships,
-    label: "Ships",
-    emptyText: "No ship losses in the last 7 days",
+    label: 'Ships',
+    emptyText: 'No ship losses in the last 7 days',
   },
   {
     scope: MostValuableScope.Structures,
-    label: "Structures",
-    emptyText: "No structure losses in the last 7 days",
+    label: 'Structures',
+    emptyText: 'No structure losses in the last 7 days',
   },
   {
     scope: MostValuableScope.Capitals,
-    label: "Capitals",
-    emptyText: "No capital losses in the last 7 days",
+    label: 'Capitals',
+    emptyText: 'No capital losses in the last 7 days',
   },
   {
     scope: MostValuableScope.Solo,
-    label: "Solo",
-    emptyText: "No solo kills in the last 7 days",
+    label: 'Solo',
+    emptyText: 'No solo kills in the last 7 days',
   },
 ];
 
@@ -1280,13 +1280,13 @@ export default function MostValuableCarousel() {
     scrollRef.current?.scrollTo({ left: 0 });
   }, [activeScope]);
 
-  const scroll = (direction: "left" | "right") => {
+  const scroll = (direction: 'left' | 'right') => {
     const el = scrollRef.current;
     if (!el) return;
     // Move by whole cards so they never come to rest half out of view.
     const cardsPerView = Math.max(1, Math.floor(el.clientWidth / CARD_PITCH));
-    const delta = cardsPerView * CARD_PITCH * (direction === "right" ? 1 : -1);
-    el.scrollTo({ left: el.scrollLeft + delta, behavior: "smooth" });
+    const delta = cardsPerView * CARD_PITCH * (direction === 'right' ? 1 : -1);
+    el.scrollTo({ left: el.scrollLeft + delta, behavior: 'smooth' });
   };
 
   const activeTab = TABS.find((t) => t.scope === activeScope)!;
@@ -1298,24 +1298,24 @@ export default function MostValuableCarousel() {
         actions={
           <div className="flex gap-2">
             <button
-              onClick={() => scroll("left")}
+              onClick={() => scroll('left')}
               disabled={!canScrollLeft}
               className={`p-2 transition-all ${
                 canScrollLeft
-                  ? "bg-white/10 hover:bg-white/20 text-white"
-                  : "bg-white/5 text-gray-600 cursor-not-allowed"
+                  ? 'bg-white/10 hover:bg-white/20 text-white'
+                  : 'bg-white/5 text-gray-600 cursor-not-allowed'
               }`}
               aria-label="Scroll left"
             >
               <ChevronLeftIcon className="w-5 h-5" />
             </button>
             <button
-              onClick={() => scroll("right")}
+              onClick={() => scroll('right')}
               disabled={!canScrollRight}
               className={`p-2 transition-all ${
                 canScrollRight
-                  ? "bg-white/10 hover:bg-white/20 text-white"
-                  : "bg-white/5 text-gray-600 cursor-not-allowed"
+                  ? 'bg-white/10 hover:bg-white/20 text-white'
+                  : 'bg-white/5 text-gray-600 cursor-not-allowed'
               }`}
               aria-label="Scroll right"
             >
@@ -1340,8 +1340,8 @@ export default function MostValuableCarousel() {
             onClick={() => setActiveScope(tab.scope)}
             className={`px-4 py-2 text-sm font-medium transition-colors ${
               tab.scope === activeScope
-                ? "bg-white/10 text-white"
-                : "text-gray-400 hover:text-white hover:bg-white/5"
+                ? 'bg-white/10 text-white'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
             }`}
           >
             {tab.label}
@@ -1369,7 +1369,7 @@ export default function MostValuableCarousel() {
           ref={scrollRef}
           onScroll={measure}
           className="flex gap-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {killmails.map((killmail, index) => (
             <div key={killmail.id} className="flex-none w-80 snap-start">
@@ -1465,13 +1465,13 @@ tamamı şununla değişir:
 Şu satır silinir:
 
 ```tsx
-import KillmailCarousel from "@/components/KillmailCarousel/KillmailCarousel";
+import KillmailCarousel from '@/components/KillmailCarousel/KillmailCarousel';
 ```
 
 Yerine:
 
 ```tsx
-import MostValuableCarousel from "@/components/MostValuableCarousel/MostValuableCarousel";
+import MostValuableCarousel from '@/components/MostValuableCarousel/MostValuableCarousel';
 ```
 
 `STRUCTURE_GROUPS` / `CAPSULE_GROUPS` importunun başka kullanımı kalmadığını doğrula ve
@@ -1484,7 +1484,7 @@ grep -n "STRUCTURE_GROUPS\|CAPSULE_GROUPS" frontend/src/app/killmails/page.tsx
 Çıktı boşsa şu satırı sil:
 
 ```tsx
-import { CAPSULE_GROUPS, STRUCTURE_GROUPS } from "@/utils/shipGroups";
+import { CAPSULE_GROUPS, STRUCTURE_GROUPS } from '@/utils/shipGroups';
 ```
 
 `KillmailOrderBy` ve `useKillmailsQuery` importları **kalır** — sayfanın tablosu
