@@ -1,31 +1,31 @@
-"use client";
+'use client';
 
-import Loader from "@/components/Loader";
-import Tooltip from "@/components/Tooltip/Tooltip";
+import Loader from '@/components/Loader';
+import Tooltip from '@/components/Tooltip/Tooltip';
 import {
   useTop90DaysPilotsQuery,
   useTopMonthlyPilotsQuery,
   useTopPilotsQuery,
   useTopWeeklyPilotsQuery,
-} from "@/generated/graphql";
-import { getSecurityStatusColor } from "@/utils/securityStatus";
+} from '@/generated/graphql';
+import { getSecurityStatusColor } from '@/utils/securityStatus';
 import {
   CalendarDaysIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ClockIcon,
   TrophyIcon,
-} from "@heroicons/react/24/outline";
-import Link from "next/link";
-import { Suspense, useState } from "react";
+} from '@heroicons/react/24/outline';
+import Link from 'next/link';
+import { Suspense, useState } from 'react';
 
 function toDateString(d: Date): string {
-  return d.toISOString().split("T")[0];
+  return d.toISOString().split('T')[0];
 }
 
 /** Returns the Monday (UTC) of the week containing dateStr */
 function getWeekMonday(dateStr: string): string {
-  const d = new Date(dateStr + "T00:00:00Z");
+  const d = new Date(dateStr + 'T00:00:00Z');
   const day = d.getUTCDay();
   const diff = day === 0 ? -6 : 1 - day;
   d.setUTCDate(d.getUTCDate() + diff);
@@ -33,7 +33,7 @@ function getWeekMonday(dateStr: string): string {
 }
 
 function getWeekSunday(monStr: string): string {
-  const d = new Date(monStr + "T00:00:00Z");
+  const d = new Date(monStr + 'T00:00:00Z');
   d.setUTCDate(d.getUTCDate() + 6);
   return toDateString(d);
 }
@@ -102,7 +102,7 @@ function PilotList({
                       ? `https://images.evetech.net/characters/${char.id}/portrait?size=128`
                       : `https://images.evetech.net/characters/0/portrait?size=128`
                   }
-                  alt={char?.name ?? "Unknown"}
+                  alt={char?.name ?? 'Unknown'}
                   width={64}
                   height={64}
                   className="shadow-md"
@@ -221,21 +221,21 @@ function DailyLeaderboard() {
   });
 
   function prevDay() {
-    const d = new Date(selectedDate + "T00:00:00Z");
+    const d = new Date(selectedDate + 'T00:00:00Z');
     d.setUTCDate(d.getUTCDate() - 1);
     setSelectedDate(toDateString(d));
   }
 
   function nextDay() {
     if (isToday) return;
-    const d = new Date(selectedDate + "T00:00:00Z");
+    const d = new Date(selectedDate + 'T00:00:00Z');
     d.setUTCDate(d.getUTCDate() + 1);
     setSelectedDate(toDateString(d));
   }
 
-  const displayDate = new Date(selectedDate + "T00:00:00Z").toLocaleDateString(
-    "en-US",
-    { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" },
+  const displayDate = new Date(selectedDate + 'T00:00:00Z').toLocaleDateString(
+    'en-US',
+    { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' },
   );
 
   const pilots = (data?.topPilots ?? []) as PilotEntry[];
@@ -277,8 +277,8 @@ function DailyLeaderboard() {
           disabled={isToday}
           className={`p-1.5 border border-white/10 shrink-0 ${
             isToday
-              ? "text-gray-700 cursor-not-allowed"
-              : "text-gray-400 hover:text-white hover:border-white/30 cursor-pointer"
+              ? 'text-gray-700 cursor-not-allowed'
+              : 'text-gray-400 hover:text-white hover:border-white/30 cursor-pointer'
           }`}
           aria-label="Next day"
         >
@@ -306,24 +306,24 @@ function WeeklyLeaderboard() {
   });
 
   function prevWeek() {
-    const d = new Date(weekStart + "T00:00:00Z");
+    const d = new Date(weekStart + 'T00:00:00Z');
     d.setUTCDate(d.getUTCDate() - 7);
     setWeekStart(toDateString(d));
   }
 
   function nextWeek() {
     if (isCurrentWeek) return;
-    const d = new Date(weekStart + "T00:00:00Z");
+    const d = new Date(weekStart + 'T00:00:00Z');
     d.setUTCDate(d.getUTCDate() + 7);
     setWeekStart(toDateString(d));
   }
 
   const fmtOpts: Intl.DateTimeFormatOptions = {
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC",
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
   };
-  const weekLabel = `${new Date(weekStart + "T00:00:00Z").toLocaleDateString("en-US", fmtOpts)} – ${new Date(getWeekSunday(weekStart) + "T00:00:00Z").toLocaleDateString("en-US", fmtOpts)}`;
+  const weekLabel = `${new Date(weekStart + 'T00:00:00Z').toLocaleDateString('en-US', fmtOpts)} – ${new Date(getWeekSunday(weekStart) + 'T00:00:00Z').toLocaleDateString('en-US', fmtOpts)}`;
 
   const pilots = (data?.topWeeklyPilots ?? []) as PilotEntry[];
 
@@ -357,8 +357,8 @@ function WeeklyLeaderboard() {
           disabled={isCurrentWeek}
           className={`p-1.5 border border-white/10 shrink-0 ${
             isCurrentWeek
-              ? "text-gray-700 cursor-not-allowed"
-              : "text-gray-400 hover:text-white hover:border-white/30 cursor-pointer"
+              ? 'text-gray-700 cursor-not-allowed'
+              : 'text-gray-400 hover:text-white hover:border-white/30 cursor-pointer'
           }`}
           aria-label="Next week"
         >
@@ -383,15 +383,15 @@ function Last90DaysLeaderboard() {
   const today = toDateString(new Date());
   const from = toDateString(
     new Date(
-      new Date(today + "T00:00:00Z").getTime() - 89 * 24 * 60 * 60 * 1000,
+      new Date(today + 'T00:00:00Z').getTime() - 89 * 24 * 60 * 60 * 1000,
     ),
   );
   const fmtOpts: Intl.DateTimeFormatOptions = {
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC",
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
   };
-  const rangeLabel = `${new Date(from + "T00:00:00Z").toLocaleDateString("en-US", fmtOpts)} – ${new Date(today + "T00:00:00Z").toLocaleDateString("en-US", fmtOpts)}`;
+  const rangeLabel = `${new Date(from + 'T00:00:00Z').toLocaleDateString('en-US', fmtOpts)} – ${new Date(today + 'T00:00:00Z').toLocaleDateString('en-US', fmtOpts)}`;
 
   const pilots = (data?.top90DaysPilots ?? []) as PilotEntry[];
 
@@ -422,7 +422,7 @@ function Last90DaysLeaderboard() {
 
 function MonthlyLeaderboard() {
   const today = new Date();
-  const defaultMonth = `${today.getUTCFullYear()}-${String(today.getUTCMonth() + 1).padStart(2, "0")}`;
+  const defaultMonth = `${today.getUTCFullYear()}-${String(today.getUTCMonth() + 1).padStart(2, '0')}`;
   const [month, setMonth] = useState<string>(defaultMonth);
   const isCurrentMonth = month === defaultMonth;
 
@@ -431,28 +431,28 @@ function MonthlyLeaderboard() {
   });
 
   function prevMonth() {
-    const [y, m] = month.split("-").map(Number);
+    const [y, m] = month.split('-').map(Number);
     const d = new Date(Date.UTC(y, m - 2, 1)); // m-2 because months are 0-indexed
     setMonth(
-      `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`,
+      `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`,
     );
   }
 
   function nextMonth() {
     if (isCurrentMonth) return;
-    const [y, m] = month.split("-").map(Number);
+    const [y, m] = month.split('-').map(Number);
     const d = new Date(Date.UTC(y, m, 1));
     setMonth(
-      `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`,
+      `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`,
     );
   }
 
-  const monthLabel = new Date(month + "-01T00:00:00Z").toLocaleDateString(
-    "en-US",
+  const monthLabel = new Date(month + '-01T00:00:00Z').toLocaleDateString(
+    'en-US',
     {
-      month: "long",
-      year: "numeric",
-      timeZone: "UTC",
+      month: 'long',
+      year: 'numeric',
+      timeZone: 'UTC',
     },
   );
 
@@ -488,8 +488,8 @@ function MonthlyLeaderboard() {
           disabled={isCurrentMonth}
           className={`p-1.5 border border-white/10 shrink-0 ${
             isCurrentMonth
-              ? "text-gray-700 cursor-not-allowed"
-              : "text-gray-400 hover:text-white hover:border-white/30 cursor-pointer"
+              ? 'text-gray-700 cursor-not-allowed'
+              : 'text-gray-400 hover:text-white hover:border-white/30 cursor-pointer'
           }`}
           aria-label="Next month"
         >

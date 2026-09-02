@@ -1,22 +1,22 @@
-"use client";
+'use client';
 
-import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
-import Loader from "@/components/Loader";
-import SecurityStatsBar from "@/components/SecurityStatus/SecurityStatsBar";
-import { useRegionQuery } from "@/generated/graphql";
-import { GlobeAltIcon, MapIcon, MapPinIcon } from "@heroicons/react/24/outline";
-import Link from "next/link";
-import { use, useState } from "react";
+import Breadcrumb from '@/components/Breadcrumb/Breadcrumb';
+import Loader from '@/components/Loader';
+import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
+import { useRegionQuery } from '@/generated/graphql';
+import { GlobeAltIcon, MapIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
+import { use, useState } from 'react';
 
 interface RegionDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-type TabType = "overview" | "constellations";
+type TabType = 'overview' | 'constellations';
 
 export default function RegionDetailPage({ params }: RegionDetailPageProps) {
   const { id } = use(params);
-  const [activeTab, setActiveTab] = useState<TabType>("overview");
+  const [activeTab, setActiveTab] = useState<TabType>('overview');
 
   const { data, loading, error } = useRegionQuery({
     variables: { id: parseInt(id) },
@@ -45,9 +45,9 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
   }
 
   const tabs = [
-    { id: "overview" as TabType, label: "Overview" },
+    { id: 'overview' as TabType, label: 'Overview' },
     {
-      id: "constellations" as TabType,
+      id: 'constellations' as TabType,
       label: `Constellations (${region.constellationCount})`,
     },
   ];
@@ -55,7 +55,7 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
   return (
     <div>
       <Breadcrumb
-        items={[{ label: "Regions", href: "/regions" }, { label: region.name }]}
+        items={[{ label: 'Regions', href: '/regions' }, { label: region.name }]}
       />
 
       <div className="region-detail-card">
@@ -113,10 +113,10 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
                   <span
                     className={`font-medium ${
                       region.securityStats.avgSecurity >= 0.5
-                        ? "text-green-400"
+                        ? 'text-green-400'
                         : region.securityStats.avgSecurity > 0
-                          ? "text-yellow-400"
-                          : "text-red-400"
+                          ? 'text-yellow-400'
+                          : 'text-red-400'
                     }`}
                   >
                     {region.securityStats.avgSecurity.toFixed(2)}
@@ -136,8 +136,8 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-4 py-3 text-sm font-semibold transition-colors border-b-2 cursor-pointer ${
                   activeTab === tab.id
-                    ? "border-cyan-500 text-cyan-500"
-                    : "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600"
+                    ? 'border-cyan-500 text-cyan-500'
+                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
                 }`}
               >
                 {tab.label}
@@ -148,7 +148,7 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
 
         {/* Tab Content */}
         <div className="mt-6">
-          {activeTab === "overview" && (
+          {activeTab === 'overview' && (
             <div className="grid gap-6 md:grid-cols-2">
               {/* Region Info */}
               <div className="p-6 border bg-white/5 border-white/10">
@@ -222,7 +222,7 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
             </div>
           )}
 
-          {activeTab === "constellations" && (
+          {activeTab === 'constellations' && (
             <div className="overflow-hidden border border-white/10">
               <table className="table">
                 <thead className="bg-neutral-800">
@@ -280,10 +280,10 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
                             <span
                               className={`${
                                 constellation.securityStats.avgSecurity >= 0.5
-                                  ? "text-green-400"
+                                  ? 'text-green-400'
                                   : constellation.securityStats.avgSecurity > 0
-                                    ? "text-yellow-400"
-                                    : "text-red-400"
+                                    ? 'text-yellow-400'
+                                    : 'text-red-400'
                               }`}
                             >
                               {constellation.securityStats.avgSecurity.toFixed(

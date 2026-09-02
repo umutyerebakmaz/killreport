@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
 import KillmailCard, {
   KillmailCardData,
-} from "@/components/KillmailCard/KillmailCard";
-import { Loader } from "@/components/Loader/Loader";
-import Card from "@/components/ui/Card";
-import SectionTitle from "@/components/ui/SectionTitle";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
-import { ReactNode, useRef, useState } from "react";
+} from '@/components/KillmailCard/KillmailCard';
+import { Loader } from '@/components/Loader/Loader';
+import Card from '@/components/ui/Card';
+import SectionTitle from '@/components/ui/SectionTitle';
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { ReactNode, useRef, useState } from 'react';
 
 export interface KillmailCarouselProps {
   title: string;
@@ -23,7 +23,7 @@ export default function KillmailCarousel({
   subtitle,
   killmails,
   loading = false,
-  emptyText = "No killmails found",
+  emptyText = 'No killmails found',
   showRank = true,
 }: KillmailCarouselProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -38,17 +38,17 @@ export default function KillmailCarousel({
     setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
   };
 
-  const scroll = (direction: "left" | "right") => {
+  const scroll = (direction: 'left' | 'right') => {
     if (!scrollContainerRef.current) return;
 
     const scrollAmount = 400; // Width of approximately one card
     const newScrollLeft =
       scrollContainerRef.current.scrollLeft +
-      (direction === "right" ? scrollAmount : -scrollAmount);
+      (direction === 'right' ? scrollAmount : -scrollAmount);
 
     scrollContainerRef.current.scrollTo({
       left: newScrollLeft,
-      behavior: "smooth",
+      behavior: 'smooth',
     });
 
     setTimeout(updateScrollButtons, 300);
@@ -73,24 +73,24 @@ export default function KillmailCarousel({
           killmails.length > 0 ? (
             <div className="flex gap-2">
               <button
-                onClick={() => scroll("left")}
+                onClick={() => scroll('left')}
                 disabled={!canScrollLeft}
                 className={`p-2 transition-all ${
                   canScrollLeft
-                    ? "bg-white/10 hover:bg-white/20 text-white"
-                    : "bg-white/5 text-gray-600 cursor-not-allowed"
+                    ? 'bg-white/10 hover:bg-white/20 text-white'
+                    : 'bg-white/5 text-gray-600 cursor-not-allowed'
                 }`}
                 aria-label="Scroll left"
               >
                 <ChevronLeftIcon className="w-5 h-5" />
               </button>
               <button
-                onClick={() => scroll("right")}
+                onClick={() => scroll('right')}
                 disabled={!canScrollRight}
                 className={`p-2 transition-all ${
                   canScrollRight
-                    ? "bg-white/10 hover:bg-white/20 text-white"
-                    : "bg-white/5 text-gray-600 cursor-not-allowed"
+                    ? 'bg-white/10 hover:bg-white/20 text-white'
+                    : 'bg-white/5 text-gray-600 cursor-not-allowed'
                 }`}
                 aria-label="Scroll right"
               >
@@ -114,8 +114,8 @@ export default function KillmailCarousel({
           onScroll={updateScrollButtons}
           className="flex gap-4 overflow-x-auto scroll-smooth hide-scrollbar"
           style={{
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
           }}
         >
           {killmails.map((killmail, index) => (

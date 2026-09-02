@@ -1,10 +1,20 @@
-"use client";
+'use client';
 
-import { SovereigntyAlertSubscription, useSovereigntyAlertSubscription } from "@/generated/graphql";
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { AlertToastStack, type ToastAlert } from "./AlertToast";
+import {
+  SovereigntyAlertSubscription,
+  useSovereigntyAlertSubscription,
+} from '@/generated/graphql';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import { AlertToastStack, type ToastAlert } from './AlertToast';
 
-export type SovAlert = SovereigntyAlertSubscription["sovereigntyAlert"];
+export type SovAlert = SovereigntyAlertSubscription['sovereigntyAlert'];
 
 interface AlertsContextValue {
   recent: SovAlert[];
@@ -17,12 +27,15 @@ const AlertsContext = createContext<AlertsContextValue | null>(null);
 
 export function useSovereigntyAlerts(): AlertsContextValue {
   const ctx = useContext(AlertsContext);
-  if (!ctx) throw new Error("useSovereigntyAlerts must be used within SovereigntyAlertsProvider");
+  if (!ctx)
+    throw new Error(
+      'useSovereigntyAlerts must be used within SovereigntyAlertsProvider',
+    );
   return ctx;
 }
 
-const RECENT_KEY = "sov_alerts_recent";
-const UNREAD_KEY = "sov_alerts_unread";
+const RECENT_KEY = 'sov_alerts_recent';
+const UNREAD_KEY = 'sov_alerts_unread';
 const CAP = 30;
 
 /**
@@ -30,7 +43,11 @@ const CAP = 30;
  * list + unread count in localStorage (survives navigation/reload), shows a toast
  * per new alert, and exposes state to the header NotificationBell via context.
  */
-export function SovereigntyAlertsProvider({ children }: { children: React.ReactNode }) {
+export function SovereigntyAlertsProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [recent, setRecent] = useState<SovAlert[]>([]);
   const [unread, setUnread] = useState(0);
   const [toasts, setToasts] = useState<ToastAlert[]>([]);
@@ -78,14 +95,16 @@ export function SovereigntyAlertsProvider({ children }: { children: React.ReactN
         return n;
       });
       const id = `t${toastSeq.current++}`;
-      setToasts((t) => [{ id, type: alert.type, message: alert.message }, ...t].slice(0, 5));
+      setToasts((t) =>
+        [{ id, type: alert.type, message: alert.message }, ...t].slice(0, 5),
+      );
     },
   });
 
   const markAllRead = useCallback(() => {
     setUnread(0);
     try {
-      localStorage.setItem(UNREAD_KEY, "0");
+      localStorage.setItem(UNREAD_KEY, '0');
     } catch {
       /* ignore */
     }
@@ -95,7 +114,7 @@ export function SovereigntyAlertsProvider({ children }: { children: React.ReactN
     setUnread(0);
     try {
       localStorage.removeItem(RECENT_KEY);
-      localStorage.setItem(UNREAD_KEY, "0");
+      localStorage.setItem(UNREAD_KEY, '0');
     } catch {
       /* ignore */
     }

@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import SecurityStatus from "@/components/SecurityStatus/SecurityStatus";
-import ShipTierBadge from "@/components/ShipTierBadge/ShipTierBadge";
-import Tooltip from "@/components/Tooltip/Tooltip";
-import { formatKillmailDate, formatKillmailDateTime } from "@/utils/date";
-import { formatISK } from "@/utils/formatISK";
-import { getShipTier } from "@/utils/shipTier";
-import Link from "next/link";
+import SecurityStatus from '@/components/SecurityStatus/SecurityStatus';
+import ShipTierBadge from '@/components/ShipTierBadge/ShipTierBadge';
+import Tooltip from '@/components/Tooltip/Tooltip';
+import { formatKillmailDate, formatKillmailDateTime } from '@/utils/date';
+import { formatISK } from '@/utils/formatISK';
+import { getShipTier } from '@/utils/shipTier';
+import Link from 'next/link';
 
 export interface KillmailCardData {
   id: string;
@@ -99,13 +99,13 @@ export default function KillmailCard({
               )}
               <img
                 src={`https://images.evetech.net/types/${km.victim.shipType.id}/render?size=128`}
-                alt={km.victim.shipType.name || "Ship"}
+                alt={km.victim.shipType.name || 'Ship'}
                 className="size-32"
                 loading="lazy"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   if (
-                    target.src.includes("/render?") &&
+                    target.src.includes('/render?') &&
                     km.victim?.shipType?.id
                   ) {
                     target.src = `https://images.evetech.net/types/${km.victim.shipType.id}/icon?size=128`;
@@ -116,7 +116,7 @@ export default function KillmailCard({
           )}
           <div className="flex-1 min-w-0">
             <div className="font-semibold text-orange-400 truncate">
-              {km.victim?.shipType?.name || "Unknown Ship"}
+              {km.victim?.shipType?.name || 'Unknown Ship'}
             </div>
             {km.victim?.shipType?.group && (
               <div className="text-sm text-gray-500 truncate">
@@ -141,7 +141,7 @@ export default function KillmailCard({
                 />
               )}
             <span className="font-medium text-orange-400 truncate">
-              {km.solarSystem?.name || "Unknown"}
+              {km.solarSystem?.name || 'Unknown'}
             </span>
           </div>
           {km.solarSystem?.constellation && (
@@ -168,7 +168,7 @@ export default function KillmailCard({
               alt={
                 km.victim.alliance?.name ||
                 km.victim.corporation?.name ||
-                "Logo"
+                'Logo'
               }
               className="shadow-md size-12 shrink-0"
               loading="lazy"

@@ -72,7 +72,7 @@ async function allianceCorporationWorker() {
           logger.info('\n' + '━'.repeat(60));
           logger.info('✅ Queue completed!');
           logger.info(
-            `📊 Final: ${totalProcessed} alliances processed, ${totalCorporationsQueued} corporations queued, ${totalErrors} errors`
+            `📊 Final: ${totalProcessed} alliances processed, ${totalCorporationsQueued} corporations queued, ${totalErrors} errors`,
           );
           logger.info('━'.repeat(60) + '\n');
           logger.info('⏳ Waiting for new messages...\n');
@@ -98,7 +98,9 @@ async function allianceCorporationWorker() {
           if (msg) lastMessageTime = Date.now();
           if (!msg) return;
 
-          const message: EntityQueueMessage = JSON.parse(msg.content.toString());
+          const message: EntityQueueMessage = JSON.parse(
+            msg.content.toString(),
+          );
           const allianceId = message.entityId;
 
           try {
@@ -112,11 +114,12 @@ async function allianceCorporationWorker() {
             const allianceTicker = alliance?.ticker || '???';
 
             // Fetch corporation IDs from ESI
-            const corporationIds = await AllianceService.getAllianceCorporations(allianceId);
+            const corporationIds =
+              await AllianceService.getAllianceCorporations(allianceId);
 
             if (corporationIds.length === 0) {
               logger.info(
-                `  ⚠️  [${totalProcessed + 1}][${allianceId}] ${allianceName} [${allianceTicker}] - No corporations`
+                `  ⚠️  [${totalProcessed + 1}][${allianceId}] ${allianceName} [${allianceTicker}] - No corporations`,
               );
               channel.ack(msg);
               totalProcessed++;
@@ -138,7 +141,7 @@ async function allianceCorporationWorker() {
                 {
                   persistent: true,
                   priority: 3, // Lower priority than direct enrichment requests
-                }
+                },
               );
 
               queuedCount++;
@@ -148,7 +151,7 @@ async function allianceCorporationWorker() {
             totalProcessed++;
 
             logger.debug(
-              `  ✅ [${totalProcessed}][${allianceId}] ${allianceName} [${allianceTicker}] - Queued ${queuedCount} corps`
+              `  ✅ [${totalProcessed}][${allianceId}] ${allianceName} [${allianceTicker}] - Queued ${queuedCount} corps`,
             );
 
             channel.ack(msg);
@@ -157,22 +160,22 @@ async function allianceCorporationWorker() {
             totalProcessed++;
 
             logger.error(
-              `  ❌ [${totalProcessed}][${allianceId}] Error: ${error instanceof Error ? error.message : error}`
+              `  ❌ [${totalProcessed}][${allianceId}] Error: ${error instanceof Error ? error.message : error}`,
             );
 
             // Nack and requeue for retry
             channel.nack(msg, false, true);
           }
         },
-        { noAck: false }
+        { noAck: false },
       );
 
       // Wait indefinitely (until error or shutdown)
-      await new Promise(() => { });
+      await new Promise(() => {});
     } catch (error) {
       if (isShuttingDown) break;
       logger.error('💥 Worker connection lost, reconnecting in 5s...', error);
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
     }
   }
 

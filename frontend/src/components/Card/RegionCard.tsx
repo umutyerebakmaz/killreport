@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import Tooltip from "@/components/Tooltip/Tooltip";
-import Card from "@/components/ui/Card";
-import { RegionsQuery } from "@/generated/graphql";
-import { GlobeAltIcon, MapIcon } from "@heroicons/react/24/outline";
-import Link from "next/link";
+import Tooltip from '@/components/Tooltip/Tooltip';
+import Card from '@/components/ui/Card';
+import { RegionsQuery } from '@/generated/graphql';
+import { GlobeAltIcon, MapIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
 
 // useRegionsQuery'nin döndüğü Region type'ını extract et
-type Region = RegionsQuery["regions"]["items"][number];
+type Region = RegionsQuery['regions']['items'][number];
 
 type RegionCardProps = {
   region: Region;

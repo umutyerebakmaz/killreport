@@ -4,5 +4,5 @@ import { isNPCCorporation } from './isNPCCorporation';
 
 export function hasNpcAttacker(attackers?: Attacker[] | null): boolean {
   if (!attackers || attackers.length === 0) return false;
-  return attackers.every(att => isNPCCorporation(att.corporation?.id));
+  return attackers.every((att) => isNPCCorporation(att.corporation?.id));
 }

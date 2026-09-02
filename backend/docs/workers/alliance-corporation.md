@@ -149,10 +149,10 @@ yarn worker:info:corporations
 
 ### Queues
 
-| Queue Name                     | Purpose                                |
-| ------------------------------ | -------------------------------------- |
-| `esi_alliance_corporations_queue`   | Holds alliance IDs                     |
-| `esi_corporation_info_queue` | Holds corporation IDs (for enrichment) |
+| Queue Name                        | Purpose                                |
+| --------------------------------- | -------------------------------------- |
+| `esi_alliance_corporations_queue` | Holds alliance IDs                     |
+| `esi_corporation_info_queue`      | Holds corporation IDs (for enrichment) |
 
 ### Message Format
 

@@ -137,7 +137,9 @@ export class CacheManager {
 
     // This would need to be implemented with actual queries
     // For now, just log the intent
-    logger.info('Cache warmup would populate most-accessed killmails, characters, corps, alliances');
+    logger.info(
+      'Cache warmup would populate most-accessed killmails, characters, corps, alliances',
+    );
   }
 
   /**
@@ -160,7 +162,9 @@ export class CacheManager {
     try {
       const info = await redis.info('memory');
       const lines = info.split('\r\n');
-      const usedMemory = lines.find(line => line.startsWith('used_memory_human:'));
+      const usedMemory = lines.find((line) =>
+        line.startsWith('used_memory_human:'),
+      );
       return usedMemory ? usedMemory.split(':')[1] : 'unknown';
     } catch (error) {
       logger.error('Error getting memory usage:', error);
@@ -181,35 +185,56 @@ export class CacheManager {
     uptimeInSeconds: number;
   }> {
     try {
-      const [memoryInfo, serverInfo, clientsInfo, statsInfo] = await Promise.all([
-        redis.info('memory'),
-        redis.info('server'),
-        redis.info('clients'),
-        redis.info('stats'),
-      ]);
+      const [memoryInfo, serverInfo, clientsInfo, statsInfo] =
+        await Promise.all([
+          redis.info('memory'),
+          redis.info('server'),
+          redis.info('clients'),
+          redis.info('stats'),
+        ]);
 
       // Parse memory usage
       const memoryLines = memoryInfo.split('\r\n');
-      const usedMemoryLine = memoryLines.find(line => line.startsWith('used_memory_human:'));
-      const memoryUsage = usedMemoryLine ? usedMemoryLine.split(':')[1] : 'unknown';
+      const usedMemoryLine = memoryLines.find((line) =>
+        line.startsWith('used_memory_human:'),
+      );
+      const memoryUsage = usedMemoryLine
+        ? usedMemoryLine.split(':')[1]
+        : 'unknown';
 
       // Parse uptime
       const serverLines = serverInfo.split('\r\n');
-      const uptimeLine = serverLines.find(line => line.startsWith('uptime_in_seconds:'));
-      const uptimeInSeconds = uptimeLine ? parseInt(uptimeLine.split(':')[1]) : 0;
+      const uptimeLine = serverLines.find((line) =>
+        line.startsWith('uptime_in_seconds:'),
+      );
+      const uptimeInSeconds = uptimeLine
+        ? parseInt(uptimeLine.split(':')[1])
+        : 0;
 
       // Parse connected clients
       const clientsLines = clientsInfo.split('\r\n');
-      const connectedClientsLine = clientsLines.find(line => line.startsWith('connected_clients:'));
-      const connectedClients = connectedClientsLine ? parseInt(connectedClientsLine.split(':')[1]) : 0;
+      const connectedClientsLine = clientsLines.find((line) =>
+        line.startsWith('connected_clients:'),
+      );
+      const connectedClients = connectedClientsLine
+        ? parseInt(connectedClientsLine.split(':')[1])
+        : 0;
 
       // Parse stats
       const statsLines = statsInfo.split('\r\n');
-      const totalCommandsLine = statsLines.find(line => line.startsWith('total_commands_processed:'));
-      const totalCommandsProcessed = totalCommandsLine ? parseInt(totalCommandsLine.split(':')[1]) : 0;
+      const totalCommandsLine = statsLines.find((line) =>
+        line.startsWith('total_commands_processed:'),
+      );
+      const totalCommandsProcessed = totalCommandsLine
+        ? parseInt(totalCommandsLine.split(':')[1])
+        : 0;
 
-      const commandsPerSecLine = statsLines.find(line => line.startsWith('instantaneous_ops_per_sec:'));
-      const commandsPerSecond = commandsPerSecLine ? parseInt(commandsPerSecLine.split(':')[1]) : 0;
+      const commandsPerSecLine = statsLines.find((line) =>
+        line.startsWith('instantaneous_ops_per_sec:'),
+      );
+      const commandsPerSecond = commandsPerSecLine
+        ? parseInt(commandsPerSecLine.split(':')[1])
+        : 0;
 
       // Count total keys
       const totalKeys = await redis.dbsize();

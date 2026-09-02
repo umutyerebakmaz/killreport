@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import dynamic from "next/dynamic";
-import { useEffect, useMemo, useRef, useState } from "react";
+import dynamic from 'next/dynamic';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });
+const ReactECharts = dynamic(() => import('echarts-for-react'), { ssr: false });
 
 export interface MapPoint {
   systemId: number;
@@ -18,12 +18,24 @@ export interface MapPoint {
 
 // Distinct, dark-background-friendly qualitative palette for the top alliances.
 const PALETTE = [
-  "#22d3ee", "#f97316", "#a855f7", "#22c55e", "#eab308",
-  "#ef4444", "#3b82f6", "#ec4899", "#14b8a6", "#f59e0b",
-  "#8b5cf6", "#84cc16", "#06b6d4", "#fb7185", "#10b981",
+  '#22d3ee',
+  '#f97316',
+  '#a855f7',
+  '#22c55e',
+  '#eab308',
+  '#ef4444',
+  '#3b82f6',
+  '#ec4899',
+  '#14b8a6',
+  '#f59e0b',
+  '#8b5cf6',
+  '#84cc16',
+  '#06b6d4',
+  '#fb7185',
+  '#10b981',
 ];
-const OTHER_COLOR = "#6b7280"; // alliances beyond the top N
-const UNCLAIMED_COLOR = "#374151"; // owned but no alliance (corp/faction)
+const OTHER_COLOR = '#6b7280'; // alliances beyond the top N
+const UNCLAIMED_COLOR = '#374151'; // owned but no alliance (corp/faction)
 const TOP_N = 15;
 
 // Vertical legend down the left edge. The plot is squared off inside whatever
@@ -88,7 +100,10 @@ export function TerritoryMap({ points }: { points: MapPoint[] }) {
     const counts = new Map<number, { name: string; count: number }>();
     for (const p of points) {
       if (p.allianceId == null) continue;
-      const cur = counts.get(p.allianceId) ?? { name: p.allianceName ?? `#${p.allianceId}`, count: 0 };
+      const cur = counts.get(p.allianceId) ?? {
+        name: p.allianceName ?? `#${p.allianceId}`,
+        count: 0,
+      };
       cur.count += 1;
       counts.set(p.allianceId, cur);
     }
@@ -96,38 +111,57 @@ export function TerritoryMap({ points }: { points: MapPoint[] }) {
       .sort((a, b) => b[1].count - a[1].count)
       .slice(0, TOP_N);
     const colorByAlliance = new Map<number, string>();
-    top.forEach(([id], i) => colorByAlliance.set(id, PALETTE[i % PALETTE.length]));
+    top.forEach(([id], i) =>
+      colorByAlliance.set(id, PALETTE[i % PALETTE.length]),
+    );
 
     // Bucket points into series keyed by a STABLE key (alliance id, not display
     // name — so two alliances that share a name never merge), plus Other and
     // Unclaimed.
-    const buckets = new Map<string, { name: string; color: string; data: (number | string)[][] }>();
-    const bucketFor = (p: MapPoint): { key: string; name: string; color: string } => {
-      if (p.allianceId == null) return { key: "unclaimed", name: "Unclaimed", color: UNCLAIMED_COLOR };
+    const buckets = new Map<
+      string,
+      { name: string; color: string; data: (number | string)[][] }
+    >();
+    const bucketFor = (
+      p: MapPoint,
+    ): { key: string; name: string; color: string } => {
+      if (p.allianceId == null)
+        return { key: 'unclaimed', name: 'Unclaimed', color: UNCLAIMED_COLOR };
       const color = colorByAlliance.get(p.allianceId);
-      if (color) return { key: `a:${p.allianceId}`, name: counts.get(p.allianceId)!.name, color };
-      return { key: "other", name: "Other", color: OTHER_COLOR };
+      if (color)
+        return {
+          key: `a:${p.allianceId}`,
+          name: counts.get(p.allianceId)!.name,
+          color,
+        };
+      return { key: 'other', name: 'Other', color: OTHER_COLOR };
     };
     for (const p of points) {
       const { key, name, color } = bucketFor(p);
       const b = buckets.get(key) ?? { name, color, data: [] };
-      b.data.push([p.x, p.y, p.systemName ?? String(p.systemId), p.regionName ?? "", p.allianceName ?? "—"]);
+      b.data.push([
+        p.x,
+        p.y,
+        p.systemName ?? String(p.systemId),
+        p.regionName ?? '',
+        p.allianceName ?? '—',
+      ]);
       buckets.set(key, b);
     }
 
     // Draw Unclaimed/Other underneath the colored alliance layers.
-    const rank = (k: string) => (k === "unclaimed" ? 0 : k === "other" ? 1 : 2);
+    const rank = (k: string) => (k === 'unclaimed' ? 0 : k === 'other' ? 1 : 2);
     const orderedKeys = [...buckets.keys()].sort((a, b) => rank(a) - rank(b));
 
     const series = orderedKeys.map((key) => {
       const b = buckets.get(key)!;
       return {
         name: b.name,
-        type: "scatter",
+        type: 'scatter',
         large: true,
         largeThreshold: 500,
-        symbolSize: key === "unclaimed" ? 2.5 : 4,
-        itemStyle: { color: b.color, opacity: key === "unclaimed" ? 0.5 : 0.9 },
+        symbolSize: key === 'unclaimed' ? 2.5 : 4,
+        itemStyle: { color: b.color, opacity: key === 'unclaimed' ? 0.5 : 0.9 },
         data: b.data,
       };
     });
@@ -140,39 +174,47 @@ export function TerritoryMap({ points }: { points: MapPoint[] }) {
     const gridTop = (box.h - side) / 2;
 
     return {
-      backgroundColor: "transparent",
+      backgroundColor: 'transparent',
       legend: {
-        type: "scroll",
-        orient: "vertical",
+        type: 'scroll',
+        orient: 'vertical',
         left: 0,
         top: PLOT_PAD,
         bottom: PLOT_PAD,
         width: LEGEND_W,
         itemGap: 10,
-        textStyle: { color: "#d1d5db", fontSize: 12 },
-        pageTextStyle: { color: "#d1d5db" },
-        pageIconColor: "#9ca3af",
-        pageIconInactiveColor: "#4b5563",
+        textStyle: { color: '#d1d5db', fontSize: 12 },
+        pageTextStyle: { color: '#d1d5db' },
+        pageIconColor: '#9ca3af',
+        pageIconInactiveColor: '#4b5563',
         tooltip: { show: true },
         formatter: (name: string) =>
-          name.length > MAX_LEGEND_CHARS ? `${name.slice(0, MAX_LEGEND_CHARS - 1)}…` : name,
+          name.length > MAX_LEGEND_CHARS
+            ? `${name.slice(0, MAX_LEGEND_CHARS - 1)}…`
+            : name,
         data: series.map((s) => s.name),
       },
       tooltip: {
-        trigger: "item",
+        trigger: 'item',
         formatter: (p: { data: (number | string)[]; seriesName: string }) => {
           const [, , name, region, alliance] = p.data;
-          return `<strong>${name}</strong><br/>Region: ${region || "—"}<br/>Alliance: ${alliance || "—"}`;
+          return `<strong>${name}</strong><br/>Region: ${region || '—'}<br/>Alliance: ${alliance || '—'}`;
         },
       },
       // Explicitly square so the equal-span data window keeps x and y at one
       // px/ly scale no matter how wide the page gets.
-      grid: { left: gridLeft, top: gridTop, width: side, height: side, containLabel: false },
-      xAxis: { show: false, type: "value", min: xB.min, max: xB.max },
-      yAxis: { show: false, type: "value", min: yB.min, max: yB.max },
+      grid: {
+        left: gridLeft,
+        top: gridTop,
+        width: side,
+        height: side,
+        containLabel: false,
+      },
+      xAxis: { show: false, type: 'value', min: xB.min, max: xB.max },
+      yAxis: { show: false, type: 'value', min: yB.min, max: yB.max },
       dataZoom: [
-        { type: "inside", xAxisIndex: 0, filterMode: "none" },
-        { type: "inside", yAxisIndex: 0, filterMode: "none" },
+        { type: 'inside', xAxisIndex: 0, filterMode: 'none' },
+        { type: 'inside', yAxisIndex: 0, filterMode: 'none' },
       ],
       series,
     };
@@ -189,7 +231,11 @@ export function TerritoryMap({ points }: { points: MapPoint[] }) {
   return (
     <div ref={wrapRef} className="w-full h-[clamp(520px,74vh,900px)]">
       {box.w > 0 && (
-        <ReactECharts option={option} style={{ height: "100%", width: "100%" }} notMerge />
+        <ReactECharts
+          option={option}
+          style={{ height: '100%', width: '100%' }}
+          notMerge
+        />
       )}
     </div>
   );

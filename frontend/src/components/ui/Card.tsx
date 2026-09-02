@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode } from 'react';
 
 export interface CardProps {
   children: ReactNode;
@@ -23,13 +23,13 @@ export interface CardProps {
  */
 export default function Card({
   children,
-  className = "",
+  className = '',
   padded = true,
 }: CardProps) {
   return (
     <div
       className={`border bg-neutral-900 border-white/10 ${
-        padded ? "p-6" : ""
+        padded ? 'p-6' : ''
       } ${className}`}
     >
       {children}

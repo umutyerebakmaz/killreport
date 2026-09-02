@@ -1,4 +1,11 @@
-import { ApolloClient, ApolloLink, HttpLink, InMemoryCache, Observable, split } from '@apollo/client';
+import {
+  ApolloClient,
+  ApolloLink,
+  HttpLink,
+  InMemoryCache,
+  Observable,
+  split,
+} from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
@@ -37,7 +44,7 @@ async function refreshAccessToken(): Promise<string | null> {
                     `,
           variables: { refreshToken },
         }),
-      }
+      },
     );
 
     const result = await response.json();
@@ -80,41 +87,52 @@ export function createApolloClient() {
   // WebSocket Link for subscriptions (graphql-ws) - only available on client-side.
   // WS avoids the browser's ~6-per-origin HTTP/1.1 connection limit that SSE hit,
   // which previously starved regular GraphQL queries (left them stuck "pending").
-  const wsLink = typeof window !== 'undefined'
-    ? new GraphQLWsLink(
-      createClient({
-        // http(s):// -> ws(s):// (https becomes wss)
-        url: (process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql').replace(/^http/, 'ws'),
-        // Browsers can't set headers on the WS handshake, so auth/session go here.
-        connectionParams: () => {
-          const token = localStorage.getItem('eve_access_token');
-          let sessionId = sessionStorage.getItem('session_id');
-          if (!sessionId) {
-            sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            sessionStorage.setItem('session_id', sessionId);
-          }
-          return {
-            authorization: token ? `Bearer ${token}` : '',
-            'x-session-id': sessionId,
-          };
-        },
-        retryAttempts: Infinity,
-      })
-    )
-    : null;
+  const wsLink =
+    typeof window !== 'undefined'
+      ? new GraphQLWsLink(
+          createClient({
+            // http(s):// -> ws(s):// (https becomes wss)
+            url: (
+              process.env.NEXT_PUBLIC_GRAPHQL_URL ||
+              'http://localhost:4000/graphql'
+            ).replace(/^http/, 'ws'),
+            // Browsers can't set headers on the WS handshake, so auth/session go here.
+            connectionParams: () => {
+              const token = localStorage.getItem('eve_access_token');
+              let sessionId = sessionStorage.getItem('session_id');
+              if (!sessionId) {
+                sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                sessionStorage.setItem('session_id', sessionId);
+              }
+              return {
+                authorization: token ? `Bearer ${token}` : '',
+                'x-session-id': sessionId,
+              };
+            },
+            retryAttempts: Infinity,
+          }),
+        )
+      : null;
 
-  console.log('🚀 Apollo Client: WS Link initialized:', !!wsLink, 'window:', typeof window);
+  console.log(
+    '🚀 Apollo Client: WS Link initialized:',
+    !!wsLink,
+    'window:',
+    typeof window,
+  );
 
   // Auth link - adds Authorization header and session ID to every request
   const authLink = setContext((_, { headers }) => {
-    const token = typeof window !== 'undefined'
-      ? localStorage.getItem('eve_access_token')
-      : null;
+    const token =
+      typeof window !== 'undefined'
+        ? localStorage.getItem('eve_access_token')
+        : null;
 
     // Generate or get session ID
-    let sessionId = typeof window !== 'undefined'
-      ? sessionStorage.getItem('session_id')
-      : null;
+    let sessionId =
+      typeof window !== 'undefined'
+        ? sessionStorage.getItem('session_id')
+        : null;
 
     if (!sessionId && typeof window !== 'undefined') {
       sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -131,78 +149,84 @@ export function createApolloClient() {
   });
 
   // Error link - handles authentication errors and token refresh
-  const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
-    if (graphQLErrors) {
-      for (const err of graphQLErrors) {
-        // Check for authentication errors
-        if (err.extensions?.code === 'UNAUTHENTICATED' ||
-          err.message.includes('Not authenticated') ||
-          err.message.includes('Unauthorized')) {
+  const errorLink = onError(
+    ({ graphQLErrors, networkError, operation, forward }) => {
+      if (graphQLErrors) {
+        for (const err of graphQLErrors) {
+          // Check for authentication errors
+          if (
+            err.extensions?.code === 'UNAUTHENTICATED' ||
+            err.message.includes('Not authenticated') ||
+            err.message.includes('Unauthorized')
+          ) {
+            console.log(
+              '🔒 Authentication error detected, attempting token refresh...',
+            );
 
-          console.log('🔒 Authentication error detected, attempting token refresh...');
+            // Try to refresh the token
+            return new Observable((observer) => {
+              refreshAccessToken()
+                .then((newToken) => {
+                  if (!newToken) {
+                    // Refresh failed, logout user
+                    console.log('❌ Token refresh failed, logging out...');
+                    localStorage.removeItem('eve_access_token');
+                    localStorage.removeItem('eve_refresh_token');
+                    localStorage.removeItem('eve_token_expiry');
+                    localStorage.removeItem('eve_user');
+                    window.dispatchEvent(new Event('auth-change'));
+                    observer.error(err);
+                    return;
+                  }
 
-          // Try to refresh the token
-          return new Observable((observer) => {
-            refreshAccessToken()
-              .then((newToken) => {
-                if (!newToken) {
-                  // Refresh failed, logout user
-                  console.log('❌ Token refresh failed, logging out...');
-                  localStorage.removeItem('eve_access_token');
-                  localStorage.removeItem('eve_refresh_token');
-                  localStorage.removeItem('eve_token_expiry');
-                  localStorage.removeItem('eve_user');
-                  window.dispatchEvent(new Event('auth-change'));
-                  observer.error(err);
-                  return;
-                }
+                  // Retry the operation with new token
+                  const oldHeaders = operation.getContext().headers;
+                  operation.setContext({
+                    headers: {
+                      ...oldHeaders,
+                      authorization: `Bearer ${newToken}`,
+                    },
+                  });
 
-                // Retry the operation with new token
-                const oldHeaders = operation.getContext().headers;
-                operation.setContext({
-                  headers: {
-                    ...oldHeaders,
-                    authorization: `Bearer ${newToken}`,
-                  },
+                  const subscriber = {
+                    next: observer.next.bind(observer),
+                    error: observer.error.bind(observer),
+                    complete: observer.complete.bind(observer),
+                  };
+
+                  // Retry the request
+                  forward(operation).subscribe(subscriber);
+                })
+                .catch((error) => {
+                  console.error('Error during token refresh:', error);
+                  observer.error(error);
                 });
-
-                const subscriber = {
-                  next: observer.next.bind(observer),
-                  error: observer.error.bind(observer),
-                  complete: observer.complete.bind(observer),
-                };
-
-                // Retry the request
-                forward(operation).subscribe(subscriber);
-              })
-              .catch((error) => {
-                console.error('Error during token refresh:', error);
-                observer.error(error);
-              });
-          });
+            });
+          }
         }
       }
-    }
 
-    if (networkError) {
-      console.error('🌐 Network error:', networkError);
-    }
-  });
+      if (networkError) {
+        console.error('🌐 Network error:', networkError);
+      }
+    },
+  );
 
   // Split link: WebSocket for subscriptions, HTTP for queries/mutations
-  const splitLink = typeof window !== 'undefined' && wsLink
-    ? split(
-      ({ query }) => {
-        const definition = getMainDefinition(query);
-        return (
-          definition.kind === 'OperationDefinition' &&
-          definition.operation === 'subscription'
-        );
-      },
-      wsLink,
-      ApolloLink.from([errorLink, authLink, httpLink])
-    )
-    : ApolloLink.from([errorLink, authLink, httpLink]);
+  const splitLink =
+    typeof window !== 'undefined' && wsLink
+      ? split(
+          ({ query }) => {
+            const definition = getMainDefinition(query);
+            return (
+              definition.kind === 'OperationDefinition' &&
+              definition.operation === 'subscription'
+            );
+          },
+          wsLink,
+          ApolloLink.from([errorLink, authLink, httpLink]),
+        )
+      : ApolloLink.from([errorLink, authLink, httpLink]);
 
   apolloClient = new ApolloClient({
     link: splitLink,
@@ -221,4 +245,3 @@ export function createApolloClient() {
 
   return apolloClient;
 }
-

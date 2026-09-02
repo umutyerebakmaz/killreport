@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useAuth } from "@/hooks/useAuth";
-import { gql, useMutation } from "@apollo/client";
-import Loader from "@/components/Loader";
+import { useAuth } from '@/hooks/useAuth';
+import { gql, useMutation } from '@apollo/client';
+import Loader from '@/components/Loader';
 
 const LOGIN_MUTATION = gql`
   mutation Login {
@@ -26,8 +26,8 @@ export default function AuthButton() {
         window.location.href = data.login.url;
       }
     } catch (error) {
-      console.error("Login error:", error);
-      alert("Login failed. Please try again.");
+      console.error('Login error:', error);
+      alert('Login failed. Please try again.');
     }
   };
 
@@ -61,7 +61,7 @@ export default function AuthButton() {
       disabled={loginLoading}
       className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-white transition-colors cursor-pointer bg-cyan-600/80 hover:bg-cyan-600 disabled:opacity-50"
     >
-      {loginLoading ? <Loader size="sm" /> : "LOGIN"}
+      {loginLoading ? <Loader size="sm" /> : 'LOGIN'}
     </button>
   );
 }

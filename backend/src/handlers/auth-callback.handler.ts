@@ -13,7 +13,7 @@ import prisma from '@services/prisma';
  */
 export async function handleAuthCallback(
   req: IncomingMessage,
-  res: ServerResponse
+  res: ServerResponse,
 ): Promise<void> {
   const url = new URL(req.url!, `http://${req.headers.host}`);
   const code = url.searchParams.get('code');
@@ -21,9 +21,11 @@ export async function handleAuthCallback(
 
   if (!code || !state) {
     res.writeHead(400, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({
-      error: 'Missing code or state parameter'
-    }));
+    res.end(
+      JSON.stringify({
+        error: 'Missing code or state parameter',
+      }),
+    );
     return;
   }
 
@@ -35,7 +37,9 @@ export async function handleAuthCallback(
     // Verify token and get character info
     logger.debug('Verifying token...');
     const character = await verifyToken(tokenData.access_token);
-    logger.info(`✅ User authenticated: ${character.characterName} (${character.characterId})`);
+    logger.info(
+      `✅ User authenticated: ${character.characterName} (${character.characterId})`,
+    );
 
     // Calculate token expiry time
     const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
@@ -73,17 +77,20 @@ export async function handleAuthCallback(
     const redirectUrl = `${config.eveSso.frontendUrl}/auth/success?${params.toString()}`;
 
     // Redirect to frontend
-    res.writeHead(302, { 'Location': redirectUrl });
+    res.writeHead(302, { Location: redirectUrl });
     res.end();
   } catch (error) {
     logger.error('Auth callback error:', error);
 
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
 
     res.writeHead(500, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({
-      error: 'Authentication failed',
-      message: errorMessage,
-    }));
+    res.end(
+      JSON.stringify({
+        error: 'Authentication failed',
+        message: errorMessage,
+      }),
+    );
   }
 }

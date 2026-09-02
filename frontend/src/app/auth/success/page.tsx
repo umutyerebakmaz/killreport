@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import Loader from "@/components/Loader";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import Loader from '@/components/Loader';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 
 function AuthSuccessContent() {
   const router = useRouter();
@@ -11,27 +11,27 @@ function AuthSuccessContent() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = searchParams.get("token");
-    const refreshToken = searchParams.get("refresh_token");
-    const expiresIn = searchParams.get("expires_in");
-    const characterName = searchParams.get("character_name");
-    const characterId = searchParams.get("character_id");
+    const token = searchParams.get('token');
+    const refreshToken = searchParams.get('refresh_token');
+    const expiresIn = searchParams.get('expires_in');
+    const characterName = searchParams.get('character_name');
+    const characterId = searchParams.get('character_id');
 
     if (!token) {
-      setError("No token received from authentication");
+      setError('No token received from authentication');
       setIsLoading(false);
       return;
     }
 
     try {
       // Token'ları localStorage'a kaydet
-      localStorage.setItem("eve_access_token", token);
+      localStorage.setItem('eve_access_token', token);
       if (refreshToken) {
-        localStorage.setItem("eve_refresh_token", refreshToken);
+        localStorage.setItem('eve_refresh_token', refreshToken);
       }
       if (expiresIn) {
         const expiryTime = Date.now() + parseInt(expiresIn) * 1000;
-        localStorage.setItem("eve_token_expiry", expiryTime.toString());
+        localStorage.setItem('eve_token_expiry', expiryTime.toString());
       }
 
       // Kullanıcı bilgilerini kaydet
@@ -40,20 +40,20 @@ function AuthSuccessContent() {
           characterId,
           characterName,
         };
-        localStorage.setItem("eve_user", JSON.stringify(userData));
+        localStorage.setItem('eve_user', JSON.stringify(userData));
       }
 
       // Dispatch custom event for auth state update
-      window.dispatchEvent(new Event("auth-change"));
+      window.dispatchEvent(new Event('auth-change'));
 
       // Ana sayfaya yönlendir
       setTimeout(() => {
         setIsLoading(false);
-        router.push("/killmails");
+        router.push('/killmails');
       }, 1500);
     } catch (err) {
-      console.error("Error saving auth data:", err);
-      setError("Failed to save authentication data");
+      console.error('Error saving auth data:', err);
+      setError('Failed to save authentication data');
       setIsLoading(false);
     }
   }, [searchParams, router]);
@@ -96,7 +96,7 @@ function AuthSuccessContent() {
                 {error}
               </p>
               <button
-                onClick={() => router.push("/killmails")}
+                onClick={() => router.push('/killmails')}
                 className="relative inline-flex items-center justify-center px-8 py-3 font-semibold text-white transition-all duration-300 shadow-lg group bg-linear-to-r from-amber-500 to-amber-600 rounded-xl hover:from-amber-600 hover:to-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-gray-800 hover:shadow-amber-500/50 hover:scale-105"
               >
                 <svg
@@ -161,7 +161,7 @@ function AuthSuccessContent() {
                 Welcome back,
               </p>
               <p className="mb-2 text-2xl font-bold text-transparent bg-clip-text bg-linear-to-r from-amber-400 via-amber-500 to-amber-600">
-                {searchParams.get("character_name")}
+                {searchParams.get('character_name')}
               </p>
               <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
                 <svg
@@ -175,7 +175,7 @@ function AuthSuccessContent() {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span>ID: {searchParams.get("character_id")}</span>
+                <span>ID: {searchParams.get('character_id')}</span>
               </div>
             </div>
 
@@ -187,21 +187,21 @@ function AuthSuccessContent() {
                 <div className="flex items-center justify-center space-x-2">
                   <div
                     className="w-2.5 h-2.5 bg-linear-to-r from-amber-400 to-amber-500 rounded-full animate-bounce shadow-lg shadow-amber-500/50"
-                    style={{ animationDelay: "0ms" }}
+                    style={{ animationDelay: '0ms' }}
                   ></div>
                   <div
                     className="w-2.5 h-2.5 bg-linear-to-r from-amber-400 to-amber-500 rounded-full animate-bounce shadow-lg shadow-amber-500/50"
-                    style={{ animationDelay: "150ms" }}
+                    style={{ animationDelay: '150ms' }}
                   ></div>
                   <div
                     className="w-2.5 h-2.5 bg-linear-to-r from-amber-400 to-amber-500 rounded-full animate-bounce shadow-lg shadow-amber-500/50"
-                    style={{ animationDelay: "300ms" }}
+                    style={{ animationDelay: '300ms' }}
                   ></div>
                 </div>
               </div>
             ) : (
               <button
-                onClick={() => router.push("/killmails")}
+                onClick={() => router.push('/killmails')}
                 className="relative inline-flex items-center justify-center px-8 py-3 font-semibold text-white transition-all duration-300 shadow-lg cursor-pointer group bg-linear-to-r from-amber-500 to-amber-600 rounded-xl hover:from-amber-600 hover:to-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-gray-800 hover:shadow-amber-500/50 hover:scale-105"
               >
                 Continue to Killmails

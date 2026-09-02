@@ -4,8 +4,8 @@ import {
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-} from "@heroicons/react/20/solid";
-import Tooltip from "../Tooltip/Tooltip";
+} from '@heroicons/react/20/solid';
+import Tooltip from '../Tooltip/Tooltip';
 
 interface PaginatorProps {
   hasNextPage: boolean;
@@ -107,8 +107,8 @@ export default function Paginator({
           >
             {pageSizeOptions.map((size) => (
               <option key={size} value={size}>
-                {size === pageSize ? "✓" : "\u00A0\u00A0"}
-                {"   "}
+                {size === pageSize ? '✓' : '\u00A0\u00A0'}
+                {'   '}
                 {size} per page
               </option>
             ))}

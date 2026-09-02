@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { formatTimeAgo } from "@/utils/date";
-import { formatISK } from "@/utils/formatISK";
-import { XMarkIcon } from "@heroicons/react/24/outline";
-import { useEffect, useState } from "react";
+import { formatTimeAgo } from '@/utils/date';
+import { formatISK } from '@/utils/formatISK';
+import { XMarkIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState } from 'react';
 
 interface KillmailToast {
   id: string;
@@ -59,7 +59,7 @@ function KillmailToastItem({
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const target = e.target as HTMLImageElement;
-    if (target.src.includes("/render?") && toast.victimShipTypeId) {
+    if (target.src.includes('/render?') && toast.victimShipTypeId) {
       target.src = `https://images.evetech.net/types/${toast.victimShipTypeId}/icon?size=64`;
     }
   };
@@ -70,8 +70,8 @@ function KillmailToastItem({
         transform transition-all duration-300 ease-out
         ${
           isVisible && !isLeaving
-            ? "translate-x-0 opacity-100"
-            : "translate-x-full opacity-0"
+            ? 'translate-x-0 opacity-100'
+            : 'translate-x-full opacity-0'
         }
       `}
       style={{
@@ -84,7 +84,7 @@ function KillmailToastItem({
           {shipImageUrl ? (
             <img
               src={shipImageUrl}
-              alt={toast.victimShipName || "Ship"}
+              alt={toast.victimShipName || 'Ship'}
               className="object-cover bg-gray-800 border border-gray-700 w-14 h-14"
               onError={handleImageError}
             />
@@ -102,15 +102,15 @@ function KillmailToastItem({
           {/* Victim */}
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-red-400 truncate">
-              {toast.victimName || "Unknown Pilot"}
+              {toast.victimName || 'Unknown Pilot'}
             </span>
           </div>
 
           {/* Ship */}
           <div className="text-xs text-gray-400 truncate">
-            lost a{" "}
+            lost a{' '}
             <span className="font-medium text-gray-200">
-              {toast.victimShipName || "Unknown Ship"}
+              {toast.victimShipName || 'Unknown Ship'}
             </span>
           </div>
 

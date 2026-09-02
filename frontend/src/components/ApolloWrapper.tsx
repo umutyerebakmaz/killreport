@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { ApolloProvider } from "@apollo/client";
-import { useMemo } from "react";
-import { createApolloClient } from "../lib/apolloClient";
+import { ApolloProvider } from '@apollo/client';
+import { useMemo } from 'react';
+import { createApolloClient } from '../lib/apolloClient';
 
 export default function ApolloWrapper({
   children,

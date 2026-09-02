@@ -8,14 +8,16 @@ import { SolarSystemStatsService } from '@services/solar-system';
  */
 export const solarSystemQueries: QueryResolvers = {
   // Orchestration only; the query and its cache live in the service layer.
-  solarSystemStats: async (_, { systemId }) => SolarSystemStatsService.getStats(systemId),
+  solarSystemStats: async (_, { systemId }) =>
+    SolarSystemStatsService.getStats(systemId),
 
   solarSystem: async (_, { id }) => {
     const system = await prisma.solarSystem.findUnique({
       where: { id: Number(id) },
     });
     return system as any;
-  }, solarSystems: async (_, { filter }) => {
+  },
+  solarSystems: async (_, { filter }) => {
     const take = filter?.limit ?? 25;
     const currentPage = filter?.page ?? 1;
     const skip = (currentPage - 1) * take;
@@ -31,13 +33,16 @@ export const solarSystemQueries: QueryResolvers = {
       }
       if (filter.region_id) {
         where.constellation = {
-          region_id: filter.region_id
+          region_id: filter.region_id,
         };
       }
       if (filter.constellation_id) {
         where.constellation_id = filter.constellation_id;
       }
-      if (filter.securityStatusMin !== undefined || filter.securityStatusMax !== undefined) {
+      if (
+        filter.securityStatusMin !== undefined ||
+        filter.securityStatusMax !== undefined
+      ) {
         where.security_status = {};
         if (filter.securityStatusMin !== undefined) {
           where.security_status.gte = filter.securityStatusMin;
@@ -147,9 +152,10 @@ export const solarSystemQueries: QueryResolvers = {
         paramIndex++;
       }
 
-      const whereClause = whereConditions.length > 0
-        ? `WHERE ${whereConditions.join(' AND ')}`
-        : '';
+      const whereClause =
+        whereConditions.length > 0
+          ? `WHERE ${whereConditions.join(' AND ')}`
+          : '';
 
       // Raw query to get solar systems with latest kills, ordered by kill stats
       const query = `

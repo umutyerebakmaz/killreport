@@ -19,34 +19,52 @@ import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 
 interface KillmailFilterData {
-    killmail_id: bigint;
-    killmail_time: Date;
-    solar_system_id: number | null;
-    constellation_id?: number | null;
-    region_id?: number | null;
-    attacker_count: number;
-    victim_ship_type_id: number | null;
-    victim_character_id: number | null;
-    victim_corporation_id: number | null;
-    victim_alliance_id: number | null;
-    attacker_ship_type_ids: (number | null)[];
-    attacker_character_ids: (number | null)[];
-    attacker_corporation_ids: (number | null)[];
-    attacker_alliance_ids: (number | null)[];
+  killmail_id: bigint;
+  killmail_time: Date;
+  solar_system_id: number | null;
+  constellation_id?: number | null;
+  region_id?: number | null;
+  attacker_count: number;
+  victim_ship_type_id: number | null;
+  victim_character_id: number | null;
+  victim_corporation_id: number | null;
+  victim_alliance_id: number | null;
+  attacker_ship_type_ids: (number | null)[];
+  attacker_character_ids: (number | null)[];
+  attacker_corporation_ids: (number | null)[];
+  attacker_alliance_ids: (number | null)[];
 }
 
 /**
  * Insert into killmail_filters for fast top-targets lookups
  */
-export async function insertKillmailFilter(data: KillmailFilterData): Promise<void> {
-    try {
-        // Remove nulls and get unique IDs for arrays
-        const shipIds = [...new Set(data.attacker_ship_type_ids.filter((id): id is number => id !== null))];
-        const charIds = [...new Set(data.attacker_character_ids.filter((id): id is number => id !== null))];
-        const corpIds = [...new Set(data.attacker_corporation_ids.filter((id): id is number => id !== null))];
-        const allianceIds = [...new Set(data.attacker_alliance_ids.filter((id): id is number => id !== null))];
+export async function insertKillmailFilter(
+  data: KillmailFilterData,
+): Promise<void> {
+  try {
+    // Remove nulls and get unique IDs for arrays
+    const shipIds = [
+      ...new Set(
+        data.attacker_ship_type_ids.filter((id): id is number => id !== null),
+      ),
+    ];
+    const charIds = [
+      ...new Set(
+        data.attacker_character_ids.filter((id): id is number => id !== null),
+      ),
+    ];
+    const corpIds = [
+      ...new Set(
+        data.attacker_corporation_ids.filter((id): id is number => id !== null),
+      ),
+    ];
+    const allianceIds = [
+      ...new Set(
+        data.attacker_alliance_ids.filter((id): id is number => id !== null),
+      ),
+    ];
 
-        await prismaWorker.$executeRaw`
+    await prismaWorker.$executeRaw`
       WITH data_row AS (
         SELECT
           ${data.killmail_id}::bigint as killmail_id,
@@ -104,9 +122,14 @@ export async function insertKillmailFilter(data: KillmailFilterData): Promise<vo
       ON CONFLICT (killmail_id) DO NOTHING
     `;
 
-        logger.debug(`✅ Inserted killmail_filters for killmail ${data.killmail_id}`);
-    } catch (error) {
-        // Log error but don't fail
-        logger.error(`❌ Error inserting killmail_filters for ${data.killmail_id}:`, error);
-    }
+    logger.debug(
+      `✅ Inserted killmail_filters for killmail ${data.killmail_id}`,
+    );
+  } catch (error) {
+    // Log error but don't fail
+    logger.error(
+      `❌ Error inserting killmail_filters for ${data.killmail_id}:`,
+      error,
+    );
+  }
 }

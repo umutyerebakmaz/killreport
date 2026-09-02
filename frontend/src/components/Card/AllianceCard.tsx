@@ -1,16 +1,16 @@
-import Tooltip from "@/components/Tooltip/Tooltip";
-import Card from "@/components/ui/Card";
-import { AlliancesQuery } from "@/generated/graphql";
-import { UsersIcon } from "@heroicons/react/24/outline";
-import Image from "next/image";
-import Link from "next/link";
-import { useState } from "react";
-import MemberDeltaBadge from "../MemberDeltaBadge/MemberDeltaBadge";
-import TotalCorporationBadge from "../TotalCorporationMember/TotalCorporationBadge";
-import TotalMemberBadge from "../TotalMemberBadge/TotalMemberBadge";
+import Tooltip from '@/components/Tooltip/Tooltip';
+import Card from '@/components/ui/Card';
+import { AlliancesQuery } from '@/generated/graphql';
+import { UsersIcon } from '@heroicons/react/24/outline';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useState } from 'react';
+import MemberDeltaBadge from '../MemberDeltaBadge/MemberDeltaBadge';
+import TotalCorporationBadge from '../TotalCorporationMember/TotalCorporationBadge';
+import TotalMemberBadge from '../TotalMemberBadge/TotalMemberBadge';
 
 // useAlliancesQuery'nin döndüğü Alliance type'ını extract et
-type Alliance = AlliancesQuery["alliances"]["items"][number];
+type Alliance = AlliancesQuery['alliances']['items'][number];
 
 type AllianceCardProps = {
   alliance: Alliance;
@@ -24,12 +24,12 @@ export default function AllianceCard({ alliance }: AllianceCardProps) {
   const memberGrowthRate7d = alliance.metrics?.memberCountGrowthRate7d ?? null;
   // Date founded'ı formatla
   const foundedDate = alliance.date_founded
-    ? new Date(alliance.date_founded).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
+    ? new Date(alliance.date_founded).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
       })
-    : "Unknown";
+    : 'Unknown';
 
   return (
     <Card padded={false}>
@@ -49,7 +49,7 @@ export default function AllianceCard({ alliance }: AllianceCardProps) {
               width={128}
               height={128}
               className={`transition-opacity duration-300 ${
-                imageLoaded ? "opacity-100" : "opacity-0"
+                imageLoaded ? 'opacity-100' : 'opacity-0'
               }`}
               onLoad={() => setImageLoaded(true)}
               unoptimized

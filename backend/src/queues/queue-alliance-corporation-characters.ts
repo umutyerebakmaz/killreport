@@ -75,7 +75,9 @@ async function queueAllianceCorporationCharacters() {
       }
     }
 
-    logger.info(`Collected ${characterIds.size} unique character IDs (including NPCs)`);
+    logger.info(
+      `Collected ${characterIds.size} unique character IDs (including NPCs)`,
+    );
     logger.info('━'.repeat(70));
 
     // Filter out characters that already exist in database
@@ -87,8 +89,10 @@ async function queueAllianceCorporationCharacters() {
       select: { id: true },
     });
 
-    const existingIds = new Set(existingCharacters.map(c => c.id));
-    const missingCharacterIds = characterIdArray.filter(id => !existingIds.has(id));
+    const existingIds = new Set(existingCharacters.map((c) => c.id));
+    const missingCharacterIds = characterIdArray.filter(
+      (id) => !existingIds.has(id),
+    );
 
     logger.info(`${existingIds.size} characters already exist`);
     logger.info(`${missingCharacterIds.length} characters need enrichment`);
@@ -129,21 +133,19 @@ async function queueAllianceCorporationCharacters() {
           source: 'alliance_corporation_characters',
         };
 
-        channel.sendToQueue(
-          QUEUE_NAME,
-          Buffer.from(JSON.stringify(message)),
-          {
-            persistent: true,
-            priority: 5,
-          }
-        );
+        channel.sendToQueue(QUEUE_NAME, Buffer.from(JSON.stringify(message)), {
+          persistent: true,
+          priority: 5,
+        });
 
         queuedCount++;
       }
 
       const batchNum = Math.floor(i / BATCH_SIZE) + 1;
       const totalBatches = Math.ceil(missingCharacterIds.length / BATCH_SIZE);
-      logger.info(`Batch ${batchNum}/${totalBatches}: ${batch.length} characters queued`);
+      logger.info(
+        `Batch ${batchNum}/${totalBatches}: ${batch.length} characters queued`,
+      );
     }
 
     // Check queue status

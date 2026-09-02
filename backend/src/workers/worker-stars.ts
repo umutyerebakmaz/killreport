@@ -31,7 +31,10 @@ const QUEUE_NAME = 'esi_stars_queue';
 // Concurrency, not a rate limit - esiRateLimiter owns the dispatch ceiling.
 // Its job is to keep that ceiling fed, so it has to be at least a fraction of
 // the target rate. Override per run with ESI_PREFETCH.
-const PREFETCH_COUNT = Math.max(config.esi.prefetch, Math.ceil(config.esi.maxRequestsPerSecond / 2));
+const PREFETCH_COUNT = Math.max(
+  config.esi.prefetch,
+  Math.ceil(config.esi.maxRequestsPerSecond / 2),
+);
 /** Queue quiet for this long, with nothing in flight, means the run is done. */
 const IDLE_EXIT_MS = 5000;
 
@@ -41,7 +44,9 @@ async function starsWorker() {
   logger.info('🚀 Star Worker Started');
   logger.info(`📦 Queue: ${QUEUE_NAME}`);
   logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent`);
-  logger.info(`🚦 ESI ceiling: ${config.esi.maxRequestsPerSecond} req/sec (ESI_MAX_RPS)\n`);
+  logger.info(
+    `🚦 ESI ceiling: ${config.esi.maxRequestsPerSecond} req/sec (ESI_MAX_RPS)\n`,
+  );
 
   try {
     const channel = await getRabbitMQChannel();
@@ -51,7 +56,9 @@ async function starsWorker() {
     channel.prefetch(PREFETCH_COUNT);
 
     const queueInfo = await channel.checkQueue(QUEUE_NAME);
-    logger.info(`📊 Queue status: ${queueInfo.messageCount} messages waiting\n`);
+    logger.info(
+      `📊 Queue status: ${queueInfo.messageCount} messages waiting\n`,
+    );
 
     let processed = 0;
     let errors = 0;
@@ -86,7 +93,9 @@ async function starsWorker() {
         const duration = ((Date.now() - startTime) / 1000).toFixed(2);
         logger.info('\n' + '='.repeat(60));
         logger.info('🎉 ALL TASKS COMPLETED!');
-        logger.info(`✅ Processed: ${processed}   ❌ Errors: ${errors}   ⏱️  ${duration}s`);
+        logger.info(
+          `✅ Processed: ${processed}   ❌ Errors: ${errors}   ⏱️  ${duration}s`,
+        );
         logger.info('='.repeat(60));
       }
 
@@ -101,7 +110,6 @@ async function starsWorker() {
         inFlight++;
 
         try {
-
           const payload = parseTopologyMessage<StarMessage>(msg);
 
           if (!payload || typeof payload.starId !== 'number') {
@@ -134,9 +142,13 @@ async function starsWorker() {
             });
 
             processed++;
-            logger.info(`  ✅ [${processed}] Star ${starId} - ${data.name ?? '(unnamed)'}`);
+            logger.info(
+              `  ✅ [${processed}] Star ${starId} - ${data.name ?? '(unnamed)'}`,
+            );
             if (processed % 100 === 0) {
-              logger.info(`📊 Progress: ${processed} processed, ${errors} errors`);
+              logger.info(
+                `📊 Progress: ${processed} processed, ${errors} errors`,
+              );
             }
             channel.ack(msg);
           } catch (error: any) {
@@ -144,7 +156,9 @@ async function starsWorker() {
             if (error.response?.status === 404) {
               // A dead ID at ESI. The topology fact - this system has this star -
               // is still authoritative, so write the row without a name.
-              logger.warn(`⚠️  Star ${starId} not found (404), writing row without a name`);
+              logger.warn(
+                `⚠️  Star ${starId} not found (404), writing row without a name`,
+              );
               try {
                 await prismaWorker.star.upsert({
                   where: { id: starId },
@@ -153,17 +167,31 @@ async function starsWorker() {
                 });
                 channel.ack(msg);
               } catch (writeError: any) {
-                await handleWorkerError(channel, msg, payload, QUEUE_NAME, writeError, logger);
+                await handleWorkerError(
+                  channel,
+                  msg,
+                  payload,
+                  QUEUE_NAME,
+                  writeError,
+                  logger,
+                );
               }
             } else {
-              await handleWorkerError(channel, msg, payload, QUEUE_NAME, error, logger);
+              await handleWorkerError(
+                channel,
+                msg,
+                payload,
+                QUEUE_NAME,
+                error,
+                logger,
+              );
             }
           }
         } finally {
           inFlight--;
         }
       },
-      { noAck: false }
+      { noAck: false },
     );
 
     // SIGTERM too, not just SIGINT: timeout(1) and PM2 both send SIGTERM,

@@ -102,21 +102,21 @@ X-RateLimit-Reset: 1737393600000
 ### Handling Rate Limits in Frontend
 
 ```typescript
-const response = await fetch("https://api.killreport.com/graphql", {
-  method: "POST",
+const response = await fetch('https://api.killreport.com/graphql', {
+  method: 'POST',
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,
   },
   body: JSON.stringify({ query, variables }),
 });
 
 // Check rate limit headers
-const remaining = response.headers.get("X-RateLimit-Remaining");
-const reset = response.headers.get("X-RateLimit-Reset");
+const remaining = response.headers.get('X-RateLimit-Remaining');
+const reset = response.headers.get('X-RateLimit-Reset');
 
 if (response.status === 429) {
-  const retryAfter = response.headers.get("Retry-After");
+  const retryAfter = response.headers.get('Retry-After');
   console.warn(`Rate limited. Retry after ${retryAfter} seconds`);
 
   // Wait and retry
@@ -128,12 +128,12 @@ if (response.status === 429) {
 ### Apollo Client Integration
 
 ```typescript
-import { ApolloLink } from "@apollo/client";
+import { ApolloLink } from '@apollo/client';
 
 const rateLimitLink = new ApolloLink((operation, forward) => {
   return forward(operation).map((response) => {
     const context = operation.getContext();
-    const remaining = context.response?.headers?.get("X-RateLimit-Remaining");
+    const remaining = context.response?.headers?.get('X-RateLimit-Remaining');
 
     if (remaining && parseInt(remaining) < 10) {
       console.warn(`⚠️ Low rate limit: ${remaining} requests remaining`);
@@ -201,7 +201,7 @@ Rate limit error (failing open): Connection timeout
 try {
   // Rate limit check
 } catch (error) {
-  logger.error("Rate limit error (failing open):", error);
+  logger.error('Rate limit error (failing open):', error);
   // Request continues without rate limiting
 }
 ```

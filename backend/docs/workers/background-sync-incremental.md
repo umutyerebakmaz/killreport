@@ -88,12 +88,12 @@ export const userKillmailCron = new UserKillmailCron();
 **Integration:** `/backend/src/server.ts`
 
 ```typescript
-import { userKillmailCron } from "./services/user-killmail-cron";
+import { userKillmailCron } from './services/user-killmail-cron';
 
 server.listen(port, () => {
   // ...
   userKillmailCron.start().catch((error) => {
-    console.error("❌ Failed to start user killmail cron:", error);
+    console.error('❌ Failed to start user killmail cron:', error);
   });
 });
 ```
@@ -119,12 +119,12 @@ ESI API returns killmails in **reverse chronological order** (newest → oldest)
 
 ### Performance Improvement
 
-| Scenario                               | Before   | After    | Improvement        |
-| -------------------------------------- | -------- | -------- | ------------------ |
-| **Initial sync**                       | 50 pages | 50 pages | Same               |
-| **15 minutes later (1-2 killmails)**   | 50 pages | 1 page   | **50x faster**     |
-| **Daily (5-10 killmails)**             | 50 pages | 1 page   | **50x faster**     |
-| **Weekly (50+ killmails)**             | 50 pages | 2-3 pages| **~20x faster**    |
+| Scenario                             | Before   | After     | Improvement     |
+| ------------------------------------ | -------- | --------- | --------------- |
+| **Initial sync**                     | 50 pages | 50 pages  | Same            |
+| **15 minutes later (1-2 killmails)** | 50 pages | 1 page    | **50x faster**  |
+| **Daily (5-10 killmails)**           | 50 pages | 1 page    | **50x faster**  |
+| **Weekly (50+ killmails)**           | 50 pages | 2-3 pages | **~20x faster** |
 
 ### How It Works
 
@@ -168,7 +168,7 @@ const message: UserKillmailMessage = {
 ```typescript
 await syncUserKillmailsFromESI(
   message,
-  message.lastKillmailId // Pass last known ID
+  message.lastKillmailId, // Pass last known ID
 );
 ```
 
@@ -239,7 +239,7 @@ static async getCharacterKillmails(
 // Worker saves highest killmail ID
 if (killmailList.length > 0) {
   const latestKillmailId = Math.max(
-    ...killmailList.map((km) => km.killmail_id)
+    ...killmailList.map((km) => km.killmail_id),
   );
 
   await prisma.user.update({
@@ -279,15 +279,15 @@ flowchart TB
 
 ### Advantages
 
-| Feature                    | Benefit                                  |
-| -------------------------- | ---------------------------------------- |
-| **Automatic sync**         | Up-to-date data without user action      |
-| **10-minute interval**     | Frequent enough but doesn't spam API     |
-| **15-minute buffer**       | Prevents unnecessary re-sync             |
-| **Incremental sync**       | 50x fewer API calls                      |
-| **Rate limit friendly**    | Doesn't exceed ESI limits                |
-| **Background priority**    | Manual syncs have priority               |
-| **Concurrent-safe**        | No collision risk                        |
+| Feature                 | Benefit                              |
+| ----------------------- | ------------------------------------ |
+| **Automatic sync**      | Up-to-date data without user action  |
+| **10-minute interval**  | Frequent enough but doesn't spam API |
+| **15-minute buffer**    | Prevents unnecessary re-sync         |
+| **Incremental sync**    | 50x fewer API calls                  |
+| **Rate limit friendly** | Doesn't exceed ESI limits            |
+| **Background priority** | Manual syncs have priority           |
+| **Concurrent-safe**     | No collision risk                    |
 
 ## 🧪 Testing
 
@@ -347,7 +347,7 @@ Second sync: **Incremental sync** (lastKillmailId exists)
    ⏭️  Stopping at page 1 - fetched 2 new killmails
 ```
 
-**Result:** 50 pages → 1 page = **50x faster/tmp/postgresql_en.md /root/killreport/backend/src/docs/postgresql-query-cache-analysis.md* 🚀
+**Result:** 50 pages → 1 page = *_50x faster/tmp/postgresql_en.md /root/killreport/backend/src/docs/postgresql-query-cache-analysis.md_ 🚀
 
 ## 📝 Important Notes
 
@@ -381,4 +381,4 @@ With these two features:
 3. **Rate limit friendly**: We don't exceed ESI limits
 4. **User experience**: Real-time data, no manual sync needed
 
-**Both user experience and system performance dramatically improved/tmp/postgresql_en.md /root/killreport/backend/src/docs/postgresql-query-cache-analysis.md* 🎉
+*_Both user experience and system performance dramatically improved/tmp/postgresql_en.md /root/killreport/backend/src/docs/postgresql-query-cache-analysis.md_ 🎉

@@ -1,56 +1,56 @@
-"use client";
+'use client';
 
-import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
-import KillmailFilters from "@/components/Filters/KillmailFilters";
-import KillmailCarousel from "@/components/KillmailCarousel/KillmailCarousel";
-import KillmailsTable from "@/components/KillmailsTable";
-import Loader from "@/components/Loader";
-import Paginator from "@/components/Paginator/Paginator";
+import Breadcrumb from '@/components/Breadcrumb/Breadcrumb';
+import KillmailFilters from '@/components/Filters/KillmailFilters';
+import KillmailCarousel from '@/components/KillmailCarousel/KillmailCarousel';
+import KillmailsTable from '@/components/KillmailsTable';
+import Loader from '@/components/Loader';
+import Paginator from '@/components/Paginator/Paginator';
 import TopEntitySidebar, {
   TopEntityCardSpec,
-} from "@/components/TopEntitySidebar/TopEntitySidebar";
-import PageHeader from "@/components/ui/PageHeader";
-import type { Killmail } from "@/components/KillmailsTable/types";
+} from '@/components/TopEntitySidebar/TopEntitySidebar';
+import PageHeader from '@/components/ui/PageHeader';
+import type { Killmail } from '@/components/KillmailsTable/types';
 import {
   KillmailOrderBy,
   useKillmailsDateCountsQuery,
   useKillmailsQuery,
   useNewKillmailSubscription,
-} from "@/generated/graphql";
+} from '@/generated/graphql';
 import {
   buildKillmailFiltersUrl,
   parseKillmailFiltersFromUrl,
   type KillmailFilters as KillmailFilterValues,
-} from "@/utils/filterUrlHelpers";
-import { CAPSULE_GROUPS, STRUCTURE_GROUPS } from "@/utils/shipGroups";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+} from '@/utils/filterUrlHelpers';
+import { CAPSULE_GROUPS, STRUCTURE_GROUPS } from '@/utils/shipGroups';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 
 const SIDEBAR_CARDS: TopEntityCardSpec[] = [
   {
-    kind: "characters",
-    title: "Most Active Pilots",
-    emptyText: "No pilot data available",
+    kind: 'characters',
+    title: 'Most Active Pilots',
+    emptyText: 'No pilot data available',
   },
   {
-    kind: "corporations",
-    title: "Most Active Corporations",
-    emptyText: "No corporation data available",
+    kind: 'corporations',
+    title: 'Most Active Corporations',
+    emptyText: 'No corporation data available',
   },
   {
-    kind: "alliances",
-    title: "Most Active Alliances",
-    emptyText: "No alliance data available",
+    kind: 'alliances',
+    title: 'Most Active Alliances',
+    emptyText: 'No alliance data available',
   },
   {
-    kind: "attackerShips",
-    title: "Most Used Ships",
-    emptyText: "No ship data available",
+    kind: 'attackerShips',
+    title: 'Most Used Ships',
+    emptyText: 'No ship data available',
   },
   {
-    kind: "ships",
-    title: "Most Killed Ships",
-    emptyText: "No ship data available",
+    kind: 'ships',
+    title: 'Most Killed Ships',
+    emptyText: 'No ship data available',
   },
 ];
 
@@ -186,7 +186,9 @@ function KillmailsContent() {
       );
 
       // Update date count for the killmail's date
-      const killmailDate = new Date(km.killmailTime).toISOString().split("T")[0];
+      const killmailDate = new Date(km.killmailTime)
+        .toISOString()
+        .split('T')[0];
       setRealtimeDateCounts((prev) => {
         const next = new Map(prev);
         next.set(killmailDate, (next.get(killmailDate) || 0) + 1);
@@ -258,13 +260,13 @@ function KillmailsContent() {
   // Debug logging - replaces deprecated onCompleted callback
   useEffect(() => {
     if (data) {
-      console.log("🔍 GraphQL Query Variables:", {
+      console.log('🔍 GraphQL Query Variables:', {
         shipTypeId: filters.shipTypeId,
         shipGroupIds: filters.shipGroupIds,
         victim: filters.victim,
         attacker: filters.attacker,
       });
-      console.log("🔍 GraphQL Response:", {
+      console.log('🔍 GraphQL Response:', {
         itemsCount: data?.killmails?.items?.length,
         totalCount: data?.killmails?.pageInfo?.totalCount,
       });
@@ -355,7 +357,7 @@ function KillmailsContent() {
   if (error) {
     return (
       <div>
-        <Breadcrumb items={[{ label: "Killmails" }]} />
+        <Breadcrumb items={[{ label: 'Killmails' }]} />
         <div className="p-8 text-red-500">Error: {error.message}</div>
       </div>
     );
@@ -363,7 +365,7 @@ function KillmailsContent() {
 
   return (
     <div>
-      <Breadcrumb items={[{ label: "Killmails" }]} />
+      <Breadcrumb items={[{ label: 'Killmails' }]} />
 
       {/* New Killmail Toast Stack */}
       {/* <KillmailToastContainer

@@ -54,14 +54,14 @@ flowchart TB
 
 ## 2. The workers — who pulls what, and when
 
-| yarn script | Pulls from | Cron (prod) | Writes / does |
-|---|---|---|---|
-| `worker:sov:campaigns` | ESI `/sovereignty/campaigns` | every **5 min** | campaigns + participants; sets `outcome` when a campaign ends; **publishes campaign_started / campaign_ended alerts** |
-| `worker:sov:map` | ESI `/sovereignty/map` | every **30 min** | system ownership (`map_current`) + `territory_changes`; **publishes territory_change alerts** |
-| `worker:sov:structures` | ESI `/sovereignty/structures` | every **30 min** (offset 15) | IHub/TCU inventory + vulnerability windows; marks destroyed |
-| `worker:sov:snapshot` | Postgres (aggregates) | **daily 01:00 UTC** | daily map snapshot + per-alliance territory stats |
-| `worker:sov:correlate` | Postgres (killmails × campaigns) | every **10 min** | tags war kills (`is_war_related`) + rolls up combat stats incl. attacker/defender ISK split |
-| `worker:redisq` | RedisQ / R2Z2 stream | **continuous** | ingests killmails in real time (feeds correlate + war-kill stats) |
+| yarn script             | Pulls from                       | Cron (prod)                  | Writes / does                                                                                                         |
+| ----------------------- | -------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `worker:sov:campaigns`  | ESI `/sovereignty/campaigns`     | every **5 min**              | campaigns + participants; sets `outcome` when a campaign ends; **publishes campaign_started / campaign_ended alerts** |
+| `worker:sov:map`        | ESI `/sovereignty/map`           | every **30 min**             | system ownership (`map_current`) + `territory_changes`; **publishes territory_change alerts**                         |
+| `worker:sov:structures` | ESI `/sovereignty/structures`    | every **30 min** (offset 15) | IHub/TCU inventory + vulnerability windows; marks destroyed                                                           |
+| `worker:sov:snapshot`   | Postgres (aggregates)            | **daily 01:00 UTC**          | daily map snapshot + per-alliance territory stats                                                                     |
+| `worker:sov:correlate`  | Postgres (killmails × campaigns) | every **10 min**             | tags war kills (`is_war_related`) + rolls up combat stats incl. attacker/defender ISK split                           |
+| `worker:redisq`         | RedisQ / R2Z2 stream             | **continuous**               | ingests killmails in real time (feeds correlate + war-kill stats)                                                     |
 
 Each `worker:sov:*` is a **one-shot process**: it runs once, does its job, exits. In production
 PM2's `cron_restart` re-launches it on schedule. `worker:redisq` runs continuously.
@@ -78,6 +78,7 @@ both killmails (from `redisq`) and campaigns; `snapshot` aggregates what the oth
 - `backend/.env` `DATABASE_URL` pointing at the **local** DB for local dev.
 
 Quick check they're up:
+
 ```bash
 pg_isready -h localhost -p 5432 && redis-cli ping
 ```
@@ -87,6 +88,7 @@ pg_isready -h localhost -p 5432 && redis-cli ping
 ## 4. How to run locally
 
 ### 4a. Start the app (two terminals or backgrounded)
+
 ```bash
 # from repo root
 yarn dev:backend     # GraphQL API on http://localhost:4000/graphql
@@ -94,6 +96,7 @@ yarn dev:frontend    # site on http://localhost:3000
 ```
 
 ### 4b. Pull fresh sovereignty data (run once each; repeat when you want fresh data)
+
 ```bash
 cd backend
 yarn worker:sov:campaigns    # fresh campaigns (+ fires new-campaign alerts if the site is open)
@@ -102,18 +105,22 @@ yarn worker:sov:structures   # structures + live vulnerability timers
 yarn worker:sov:correlate    # link killmails ↔ campaigns, war-kill + ISK-split stats
 yarn worker:sov:snapshot     # (optional) daily aggregates — needed for multi-day history
 ```
+
 After running these, refresh the sov pages: the map/rankings/hotspots update, structure timers
 become forward-looking, and combat stats populate.
 
 ### 4c. (Optional) real-time killmails
+
 ```bash
 cd backend
 yarn worker:redisq           # continuous; leave it running to ingest live kills
 ```
 
 ### 4d. Keep it fresh automatically (local scheduler)
+
 The workers don't self-schedule. To mimic production locally, either run them under PM2 with the
 repo's `ecosystem.config.js`, or add a plain crontab, e.g.:
+
 ```cron
 */5  * * * *  cd /root/killreport/backend && yarn worker:sov:campaigns
 */30 * * * *  cd /root/killreport/backend && yarn worker:sov:map
@@ -130,6 +137,7 @@ repo's `ecosystem.config.js`, or add a plain crontab, e.g.:
 pm2 start ecosystem.config.js      # runs API + workers on their cron schedules
 pm2 logs worker-sov-campaigns      # tail a worker
 ```
+
 The sov worker PM2 entries use `autorestart: false` + `cron_restart` (one-shot on schedule) and
 set `USE_REDIS_PUBSUB: 'true'` so their alert publishes reach the API-server subscribers.
 

@@ -21,7 +21,7 @@ export const createDisableIntrospectionPlugin = (): Plugin => {
             });
           }
           return false;
-        }
+        },
       );
 
       if (isIntrospectionQuery) {

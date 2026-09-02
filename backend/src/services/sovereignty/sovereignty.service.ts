@@ -9,7 +9,8 @@ interface SovereigntyCampaign {
   constellation_id: number;
   defender_id: number;
   defender_score: number;
-  event_type: 'tcu_defense' | 'ihub_defense' | 'station_defense' | 'station_freeport';
+  event_type:
+    'tcu_defense' | 'ihub_defense' | 'station_defense' | 'station_freeport';
   participants: Array<{
     alliance_id: number;
     score: number;
@@ -52,9 +53,9 @@ export class SovereigntyService {
   }
 
   /**
- * Fetches sovereignty map showing which alliances/factions control which systems
- * @returns Array of sovereignty map entries
- */
+   * Fetches sovereignty map showing which alliances/factions control which systems
+   * @returns Array of sovereignty map entries
+   */
   static async getSovereigntyMap(): Promise<SovereigntyMap[]> {
     return esiRateLimiter.execute(async () => {
       const response = await axios.get(`${ESI_BASE_URL}/sovereignty/map`);
@@ -62,14 +63,15 @@ export class SovereigntyService {
     });
   }
 
-
   /**
    * Fetches all sovereignty structures (TCUs, IHubs, etc.)
-       * @returns Array of sovereignty structures
-       */
+   * @returns Array of sovereignty structures
+   */
   static async getSovereigntyStructures(): Promise<SovereigntyStructure[]> {
     return esiRateLimiter.execute(async () => {
-      const response = await axios.get(`${ESI_BASE_URL}/sovereignty/structures`);
+      const response = await axios.get(
+        `${ESI_BASE_URL}/sovereignty/structures`,
+      );
       return response.data;
     });
   }

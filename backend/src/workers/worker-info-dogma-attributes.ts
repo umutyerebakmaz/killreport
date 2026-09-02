@@ -12,193 +12,208 @@ const QUEUE_NAME = 'esi_dogma_attribute_info_queue';
 const PREFETCH_COUNT = 50; // Process 50 attributes concurrently (max ESI rate limit)
 
 interface EntityQueueMessage {
-    entityId: number;
-    queuedAt: string;
-    source: string;
+  entityId: number;
+  queuedAt: string;
+  source: string;
 }
 
 let isShuttingDown = false;
 let emptyCheckInterval: NodeJS.Timeout | null = null;
 
 async function dogmaAttributeInfoWorker() {
-    logger.info('🔷 Dogma Attribute Info Worker Started');
-    logger.info(`📦 Queue: ${QUEUE_NAME}`);
-    logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
+  logger.info('🔷 Dogma Attribute Info Worker Started');
+  logger.info(`📦 Queue: ${QUEUE_NAME}`);
+  logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
-    while (!isShuttingDown) {
-        try {
-            const channel = await getRabbitMQChannel();
+  while (!isShuttingDown) {
+    try {
+      const channel = await getRabbitMQChannel();
 
-            await channel.assertQueue(QUEUE_NAME, {
-                durable: true,
-                arguments: { 'x-max-priority': 10 },
+      await channel.assertQueue(QUEUE_NAME, {
+        durable: true,
+        arguments: { 'x-max-priority': 10 },
+      });
+
+      channel.prefetch(PREFETCH_COUNT);
+
+      // Handle channel errors
+      channel.on('error', (err) => {
+        logger.error('❌ Channel error:', err.message);
+        if (emptyCheckInterval) {
+          clearInterval(emptyCheckInterval);
+          emptyCheckInterval = null;
+        }
+      });
+
+      channel.on('close', () => {
+        logger.warn('⚠️  Channel closed');
+        if (emptyCheckInterval) {
+          clearInterval(emptyCheckInterval);
+          emptyCheckInterval = null;
+        }
+      });
+
+      logger.info('✅ Connected to RabbitMQ');
+      logger.info('⏳ Waiting for dogma attributes...\n');
+
+      let totalProcessed = 0;
+      let totalAdded = 0;
+      let totalSkipped = 0;
+      let totalErrors = 0;
+      let lastMessageTime = Date.now();
+
+      // Clear any existing interval
+      if (emptyCheckInterval) {
+        clearInterval(emptyCheckInterval);
+      }
+
+      // Check if queue is empty every 5 seconds
+      emptyCheckInterval = setInterval(async () => {
+        const timeSinceLastMessage = Date.now() - lastMessageTime;
+        if (timeSinceLastMessage > 5000 && totalProcessed > 0) {
+          logger.info('\n' + '━'.repeat(60));
+          logger.info('✅ Queue completed!');
+          logger.info(
+            `📊 Final: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`,
+          );
+          logger.info('━'.repeat(60) + '\n');
+          logger.info('⏳ Waiting for new messages...\n');
+        }
+      }, 5000);
+
+      channel.consume(
+        QUEUE_NAME,
+        async (msg) => {
+          if (msg) lastMessageTime = Date.now();
+          if (!msg) return;
+
+          const message: EntityQueueMessage = JSON.parse(
+            msg.content.toString(),
+          );
+          const attributeId = message.entityId;
+
+          try {
+            // Check if already exists
+            const existing = await prismaWorker.dogmaAttribute.findUnique({
+              where: { id: attributeId },
             });
 
-            channel.prefetch(PREFETCH_COUNT);
-
-            // Handle channel errors
-            channel.on('error', (err) => {
-                logger.error('❌ Channel error:', err.message);
-                if (emptyCheckInterval) {
-                    clearInterval(emptyCheckInterval);
-                    emptyCheckInterval = null;
-                }
-            });
-
-            channel.on('close', () => {
-                logger.warn('⚠️  Channel closed');
-                if (emptyCheckInterval) {
-                    clearInterval(emptyCheckInterval);
-                    emptyCheckInterval = null;
-                }
-            });
-
-            logger.info('✅ Connected to RabbitMQ');
-            logger.info('⏳ Waiting for dogma attributes...\n');
-
-            let totalProcessed = 0;
-            let totalAdded = 0;
-            let totalSkipped = 0;
-            let totalErrors = 0;
-            let lastMessageTime = Date.now();
-
-            // Clear any existing interval
-            if (emptyCheckInterval) {
-                clearInterval(emptyCheckInterval);
+            // Dogma attributes are static data, but we'll fetch to ensure completeness
+            if (existing) {
+              // Attribute already exists, skip (dogma attributes are static data)
+              channel.ack(msg);
+              totalSkipped++;
+              totalProcessed++;
+              logger.info(
+                `  - [${totalProcessed}] Attribute ${attributeId} (exists)`,
+              );
+              return;
             }
 
-            // Check if queue is empty every 5 seconds
-            emptyCheckInterval = setInterval(async () => {
-                const timeSinceLastMessage = Date.now() - lastMessageTime;
-                if (timeSinceLastMessage > 5000 && totalProcessed > 0) {
-                    logger.info('\n' + '━'.repeat(60));
-                    logger.info('✅ Queue completed!');
-                    logger.info(`📊 Final: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
-                    logger.info('━'.repeat(60) + '\n');
-                    logger.info('⏳ Waiting for new messages...\n');
-                }
-            }, 5000);
+            // Fetch from ESI
+            const attributeInfo =
+              await DogmaAttributeService.getAttributeInfo(attributeId);
 
-            channel.consume(
-                QUEUE_NAME,
-                async (msg) => {
-                    if (msg) lastMessageTime = Date.now();
-                    if (!msg) return;
+            // Save to database (upsert to prevent race condition)
+            const result = await prismaWorker.dogmaAttribute.upsert({
+              where: { id: attributeId },
+              create: {
+                id: attributeId,
+                name: attributeInfo.name,
+                display_name: attributeInfo.display_name || null,
+                description: attributeInfo.description || null,
+                unit_id: attributeInfo.unit_id || null,
+                icon_id: attributeInfo.icon_id || null,
+                default_value: attributeInfo.default_value || null,
+                published: attributeInfo.published ?? true,
+                stackable: attributeInfo.stackable ?? false,
+                high_is_good: attributeInfo.high_is_good ?? false,
+              },
+              update: {}, // Dogma attributes are static data, no updates needed
+            });
 
-                    const message: EntityQueueMessage = JSON.parse(msg.content.toString());
-                    const attributeId = message.entityId;
-
-                    try {
-
-                        // Check if already exists
-                        const existing = await prismaWorker.dogmaAttribute.findUnique({
-                            where: { id: attributeId },
-                        });
-
-                        // Dogma attributes are static data, but we'll fetch to ensure completeness
-                        if (existing) {
-                            // Attribute already exists, skip (dogma attributes are static data)
-                            channel.ack(msg);
-                            totalSkipped++;
-                            totalProcessed++;
-                            logger.info(`  - [${totalProcessed}] Attribute ${attributeId} (exists)`);
-                            return;
-                        }
-
-                        // Fetch from ESI
-                        const attributeInfo = await DogmaAttributeService.getAttributeInfo(attributeId);
-
-                        // Save to database (upsert to prevent race condition)
-                        const result = await prismaWorker.dogmaAttribute.upsert({
-                            where: { id: attributeId },
-                            create: {
-                                id: attributeId,
-                                name: attributeInfo.name,
-                                display_name: attributeInfo.display_name || null,
-                                description: attributeInfo.description || null,
-                                unit_id: attributeInfo.unit_id || null,
-                                icon_id: attributeInfo.icon_id || null,
-                                default_value: attributeInfo.default_value || null,
-                                published: attributeInfo.published ?? true,
-                                stackable: attributeInfo.stackable ?? false,
-                                high_is_good: attributeInfo.high_is_good ?? false,
-                            },
-                            update: {}, // Dogma attributes are static data, no updates needed
-                        });
-
-                        totalAdded++;
-                        channel.ack(msg);
-                        totalProcessed++;
-                        logger.info(`  ✓ [${totalProcessed}] ${attributeInfo.name} (${attributeInfo.display_name || 'N/A'})`);
-
-                        if (totalProcessed % 100 === 0) {
-                            logger.info(`📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
-                        }
-                    } catch (error: any) {
-                        totalErrors++;
-                        totalProcessed++;
-
-                        if (error.message?.includes('404')) {
-                            logger.warn(`  ! [${totalProcessed}] Attribute ${message.entityId} (404)`);
-                            channel.ack(msg);
-                        } else {
-                            logger.error(`  × [${totalProcessed}] Attribute ${message.entityId}: ${error.message}`);
-                            channel.nack(msg, false, true);
-                        }
-
-                        if (totalProcessed % 100 === 0) {
-                            logger.info(`📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
-                        }
-                    }
-                },
-                { noAck: false }
+            totalAdded++;
+            channel.ack(msg);
+            totalProcessed++;
+            logger.info(
+              `  ✓ [${totalProcessed}] ${attributeInfo.name} (${attributeInfo.display_name || 'N/A'})`,
             );
 
-            // Wait indefinitely unless connection fails
-            await new Promise((resolve, reject) => {
-                channel.on('error', reject);
-                channel.on('close', reject);
-            });
+            if (totalProcessed % 100 === 0) {
+              logger.info(
+                `📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`,
+              );
+            }
+          } catch (error: any) {
+            totalErrors++;
+            totalProcessed++;
 
-        } catch (error: any) {
-            if (isShuttingDown) {
-                logger.info('Worker stopped during shutdown');
-                break;
+            if (error.message?.includes('404')) {
+              logger.warn(
+                `  ! [${totalProcessed}] Attribute ${message.entityId} (404)`,
+              );
+              channel.ack(msg);
+            } else {
+              logger.error(
+                `  × [${totalProcessed}] Attribute ${message.entityId}: ${error.message}`,
+              );
+              channel.nack(msg, false, true);
             }
 
-            logger.error('💥 Worker error:', error.message);
-
-            if (emptyCheckInterval) {
-                clearInterval(emptyCheckInterval);
-                emptyCheckInterval = null;
+            if (totalProcessed % 100 === 0) {
+              logger.info(
+                `📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`,
+              );
             }
+          }
+        },
+        { noAck: false },
+      );
 
-            // Wait before reconnecting
-            logger.info('🔄 Reconnecting in 5 seconds...');
-            await new Promise(resolve => setTimeout(resolve, 5000));
-        }
+      // Wait indefinitely unless connection fails
+      await new Promise((resolve, reject) => {
+        channel.on('error', reject);
+        channel.on('close', reject);
+      });
+    } catch (error: any) {
+      if (isShuttingDown) {
+        logger.info('Worker stopped during shutdown');
+        break;
+      }
+
+      logger.error('💥 Worker error:', error.message);
+
+      if (emptyCheckInterval) {
+        clearInterval(emptyCheckInterval);
+        emptyCheckInterval = null;
+      }
+
+      // Wait before reconnecting
+      logger.info('🔄 Reconnecting in 5 seconds...');
+      await new Promise((resolve) => setTimeout(resolve, 5000));
     }
+  }
 
-    logger.info('Worker stopped');
-    await prismaWorker.$disconnect();
+  logger.info('Worker stopped');
+  await prismaWorker.$disconnect();
 }
 
 function setupShutdownHandlers() {
-    const shutdown = async () => {
-        logger.warn('\n\n⚠️  Shutting down...');
-        isShuttingDown = true;
+  const shutdown = async () => {
+    logger.warn('\n\n⚠️  Shutting down...');
+    isShuttingDown = true;
 
-        if (emptyCheckInterval) {
-            clearInterval(emptyCheckInterval);
-            emptyCheckInterval = null;
-        }
+    if (emptyCheckInterval) {
+      clearInterval(emptyCheckInterval);
+      emptyCheckInterval = null;
+    }
 
-        await prismaWorker.$disconnect();
-        process.exit(0);
-    };
+    await prismaWorker.$disconnect();
+    process.exit(0);
+  };
 
-    process.on('SIGINT', shutdown);
-    process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
 }
 
 setupShutdownHandlers();

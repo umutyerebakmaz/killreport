@@ -38,10 +38,15 @@ export const authMutations: MutationResolvers = {
       // Fetch character info from ESI to get corporation_id
       let corporationId: number | null = null;
       try {
-        const characterInfo = await CharacterService.getCharacterInfo(character.characterId);
+        const characterInfo = await CharacterService.getCharacterInfo(
+          character.characterId,
+        );
         corporationId = characterInfo.corporation_id;
       } catch (error) {
-        console.warn('⚠️  Failed to fetch corporation_id for character:', error);
+        console.warn(
+          '⚠️  Failed to fetch corporation_id for character:',
+          error,
+        );
       }
 
       // Find or create user in database
@@ -72,7 +77,8 @@ export const authMutations: MutationResolvers = {
         const channel = await getRabbitMQChannel();
 
         // 1. Queue CHARACTER killmails
-        const shouldQueueChar = !user.last_killmail_sync_at ||
+        const shouldQueueChar =
+          !user.last_killmail_sync_at ||
           user.last_killmail_sync_at < fifteenMinutesAgo;
 
         if (shouldQueueChar) {
@@ -101,20 +107,27 @@ export const authMutations: MutationResolvers = {
             {
               persistent: true,
               priority: 8, // High priority for new logins
-            }
+            },
           );
 
-          console.log(`✅ Queued character killmail sync for ${user.character_name}`);
+          console.log(
+            `✅ Queued character killmail sync for ${user.character_name}`,
+          );
         } else {
           const timeSinceSync = user.last_killmail_sync_at
-            ? Math.floor((Date.now() - user.last_killmail_sync_at.getTime()) / 1000 / 60)
+            ? Math.floor(
+                (Date.now() - user.last_killmail_sync_at.getTime()) / 1000 / 60,
+              )
             : 'unknown';
-          console.log(`⏭️  Skipped character queue for ${user.character_name} (synced ${timeSinceSync} minutes ago)`);
+          console.log(
+            `⏭️  Skipped character queue for ${user.character_name} (synced ${timeSinceSync} minutes ago)`,
+          );
         }
 
         // 2. Queue CORPORATION killmails (if user has corporation_id)
         if (corporationId) {
-          const shouldQueueCorp = !user.last_corp_killmail_sync_at ||
+          const shouldQueueCorp =
+            !user.last_corp_killmail_sync_at ||
             user.last_corp_killmail_sync_at < fifteenMinutesAgo;
 
           if (shouldQueueCorp) {
@@ -157,16 +170,21 @@ export const authMutations: MutationResolvers = {
               {
                 persistent: true,
                 priority: 7, // Slightly lower priority than character
-              }
+              },
             );
 
-            console.log(`✅ Queued corporation killmail sync for ${corporationName}`);
+            console.log(
+              `✅ Queued corporation killmail sync for ${corporationName}`,
+            );
             console.log(`   ⚠️  Note: Requires Director/CEO role to succeed`);
           }
         }
       } catch (queueError) {
         // Log error but don't fail the login
-        console.error('⚠️  Failed to queue user for killmail sync:', queueError);
+        console.error(
+          '⚠️  Failed to queue user for killmail sync:',
+          queueError,
+        );
       }
 
       return {

@@ -22,7 +22,7 @@ async function fetchAndSaveBloodlines() {
     logger.info('🚀 Starting bloodline sync...');
 
     const response = await axios.get<ESIBloodline[]>(
-      'https://esi.evetech.net/latest/universe/bloodlines/'
+      'https://esi.evetech.net/latest/universe/bloodlines/',
     );
 
     const bloodlines = response.data;
@@ -46,7 +46,10 @@ async function fetchAndSaveBloodlines() {
         });
         logger.debug(`  ✓ Saved: ${bloodline.name}`);
       } catch (error: any) {
-        logger.error(`  ❌ Error saving bloodline ${bloodline.bloodline_id}:`, error.message);
+        logger.error(
+          `  ❌ Error saving bloodline ${bloodline.bloodline_id}:`,
+          error.message,
+        );
       }
     }
 

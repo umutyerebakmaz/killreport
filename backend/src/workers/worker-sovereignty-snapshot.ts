@@ -50,8 +50,12 @@ function emptyRow(): StatRow {
 async function snapshotSovereignty() {
   const startTime = Date.now();
   const now = new Date();
-  const snapshotDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-  logger.info(`📸 Starting sovereignty daily snapshot for ${snapshotDate.toISOString().slice(0, 10)}...`);
+  const snapshotDate = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  );
+  logger.info(
+    `📸 Starting sovereignty daily snapshot for ${snapshotDate.toISOString().slice(0, 10)}...`,
+  );
 
   try {
     // 1. Snapshot the current map
@@ -92,19 +96,22 @@ async function snapshotSovereignty() {
       _count: { _all: true },
     });
     for (const g of systemsByAlliance) {
-      if (g.alliance_id != null) rowFor(g.alliance_id).systems_controlled = g._count._all;
+      if (g.alliance_id != null)
+        rowFor(g.alliance_id).systems_controlled = g._count._all;
     }
 
     // structure counts (IHub / TCU), only live structures
-    const structuresByAlliance = await prismaWorker.sovereigntyStructure.groupBy({
-      by: ['alliance_id', 'structure_type_id'],
-      where: { destroyed_at: null },
-      _count: { _all: true },
-    });
+    const structuresByAlliance =
+      await prismaWorker.sovereigntyStructure.groupBy({
+        by: ['alliance_id', 'structure_type_id'],
+        where: { destroyed_at: null },
+        _count: { _all: true },
+      });
     for (const g of structuresByAlliance) {
       const row = rowFor(g.alliance_id);
       if (g.structure_type_id === IHUB_TYPE_ID) row.ihub_count = g._count._all;
-      else if (g.structure_type_id === TCU_TYPE_ID) row.tcu_count = g._count._all;
+      else if (g.structure_type_id === TCU_TYPE_ID)
+        row.tcu_count = g._count._all;
     }
 
     // campaigns defending (active campaigns where alliance is the defender)
@@ -114,43 +121,58 @@ async function snapshotSovereignty() {
       _count: { _all: true },
     });
     for (const g of defending) {
-      if (g.defender_id != null) rowFor(g.defender_id).campaigns_defending = g._count._all;
+      if (g.defender_id != null)
+        rowFor(g.defender_id).campaigns_defending = g._count._all;
     }
 
     // campaigns attacking (active campaigns, participants other than the defender)
     const activeCampaigns = await prismaWorker.sovereigntyCampaign.findMany({
       where: { end_time: null },
-      select: { defender_id: true, participants: { select: { alliance_id: true } } },
+      select: {
+        defender_id: true,
+        participants: { select: { alliance_id: true } },
+      },
     });
     for (const campaign of activeCampaigns) {
       for (const p of campaign.participants) {
-        if (p.alliance_id !== campaign.defender_id) rowFor(p.alliance_id).campaigns_attacking += 1;
+        if (p.alliance_id !== campaign.defender_id)
+          rowFor(p.alliance_id).campaigns_attacking += 1;
       }
     }
 
     // systems gained / lost today (from territory_changes)
     const gained = await prismaWorker.territoryChange.groupBy({
       by: ['new_owner_id'],
-      where: { detected_at: { gte: snapshotDate }, new_owner_id: { not: null } },
+      where: {
+        detected_at: { gte: snapshotDate },
+        new_owner_id: { not: null },
+      },
       _count: { _all: true },
     });
     for (const g of gained) {
-      if (g.new_owner_id != null) rowFor(g.new_owner_id).systems_gained = g._count._all;
+      if (g.new_owner_id != null)
+        rowFor(g.new_owner_id).systems_gained = g._count._all;
     }
     const lost = await prismaWorker.territoryChange.groupBy({
       by: ['previous_owner_id'],
-      where: { detected_at: { gte: snapshotDate }, previous_owner_id: { not: null } },
+      where: {
+        detected_at: { gte: snapshotDate },
+        previous_owner_id: { not: null },
+      },
       _count: { _all: true },
     });
     for (const g of lost) {
-      if (g.previous_owner_id != null) rowFor(g.previous_owner_id).systems_lost = g._count._all;
+      if (g.previous_owner_id != null)
+        rowFor(g.previous_owner_id).systems_lost = g._count._all;
     }
 
     // 3. Upsert per-alliance stats
     let statsUpserted = 0;
     for (const [allianceId, row] of stats) {
       await prismaWorker.allianceTerritoryStats.upsert({
-        where: { alliance_id_date: { alliance_id: allianceId, date: snapshotDate } },
+        where: {
+          alliance_id_date: { alliance_id: allianceId, date: snapshotDate },
+        },
         create: { alliance_id: allianceId, date: snapshotDate, ...row },
         update: { ...row },
       });
@@ -160,7 +182,7 @@ async function snapshotSovereignty() {
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     logger.info(
       `✅ Snapshot complete: ${snapshotInserted} map rows snapshotted, ` +
-      `${statsUpserted} alliance stat rows written (${duration}s)`
+        `${statsUpserted} alliance stat rows written (${duration}s)`,
     );
   } catch (error) {
     logger.error('❌ Sovereignty snapshot failed', { error });

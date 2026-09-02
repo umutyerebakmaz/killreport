@@ -1,14 +1,14 @@
-import Tooltip from "@/components/Tooltip/Tooltip";
-import Card from "@/components/ui/Card";
-import { CharactersQuery } from "@/generated/graphql";
-import { getSecurityStatusColor } from "@/utils/securityStatus";
-import { ShieldCheckIcon, UserIcon } from "@heroicons/react/24/outline";
-import Image from "next/image";
-import Link from "next/link";
-import { useState } from "react";
+import Tooltip from '@/components/Tooltip/Tooltip';
+import Card from '@/components/ui/Card';
+import { CharactersQuery } from '@/generated/graphql';
+import { getSecurityStatusColor } from '@/utils/securityStatus';
+import { ShieldCheckIcon, UserIcon } from '@heroicons/react/24/outline';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useState } from 'react';
 
 // useCharactersQuery'nin döndüğü Character type'ını extract et
-type Character = CharactersQuery["characters"]["items"][number];
+type Character = CharactersQuery['characters']['items'][number];
 
 type CharacterCardProps = {
   character: Character;
@@ -17,7 +17,7 @@ type CharacterCardProps = {
 export default function CharacterCard({ character }: CharacterCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  const securityStatus = character.securityStatus?.toFixed(1) ?? "N/A";
+  const securityStatus = character.securityStatus?.toFixed(1) ?? 'N/A';
   const securityColor = getSecurityStatusColor(character.securityStatus);
 
   return (
@@ -38,7 +38,7 @@ export default function CharacterCard({ character }: CharacterCardProps) {
               width={96}
               height={96}
               className={`transition-opacity duration-300 ${
-                imageLoaded ? "opacity-100" : "opacity-0"
+                imageLoaded ? 'opacity-100' : 'opacity-0'
               }`}
               onLoad={() => setImageLoaded(true)}
               unoptimized

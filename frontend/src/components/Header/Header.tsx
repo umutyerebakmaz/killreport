@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Dialog,
@@ -10,21 +10,21 @@ import {
   PopoverButton,
   PopoverGroup,
   PopoverPanel,
-} from "@headlessui/react";
-import { ChevronDownIcon } from "@heroicons/react/20/solid";
-import { Bars3Icon, XMarkIcon, HomeIcon } from "@heroicons/react/24/outline";
-import Link from "next/link";
-import React, { useState } from "react";
-import ActiveUsersCounter from "../ActiveUsersCounter";
-import AuthButton from "../AuthButton/AuthButton";
-import NotificationBell from "../Notifications/NotificationBell";
-import EveStatus from "../EveStatus/EveStatus";
-import EveTime from "../EveTime/EveTime";
-import Tooltip from "../Tooltip/Tooltip";
+} from '@headlessui/react';
+import { ChevronDownIcon } from '@heroicons/react/20/solid';
+import { Bars3Icon, XMarkIcon, HomeIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
+import React, { useState } from 'react';
+import ActiveUsersCounter from '../ActiveUsersCounter';
+import AuthButton from '../AuthButton/AuthButton';
+import NotificationBell from '../Notifications/NotificationBell';
+import EveStatus from '../EveStatus/EveStatus';
+import EveTime from '../EveTime/EveTime';
+import Tooltip from '../Tooltip/Tooltip';
 
 // The desktop nav needs ~1750px to lay out at full size, so it only appears at
 // xl and scales up in three steps instead of switching on at lg and overflowing.
-const NAV_ITEM = "font-semibold text-white text-sm min-[1800px]:text-base";
+const NAV_ITEM = 'font-semibold text-white text-sm min-[1800px]:text-base';
 const NAV_POPOVER_BUTTON = `flex items-center cursor-pointer gap-x-1 ${NAV_ITEM}`;
 
 export default function Header() {
@@ -35,9 +35,9 @@ export default function Header() {
 
   // Sunucu durumu verisini çek
   React.useEffect(() => {
-    fetch("https://esi.evetech.net/latest/status/?datasource=tranquility")
+    fetch('https://esi.evetech.net/latest/status/?datasource=tranquility')
       .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch server status");
+        if (!res.ok) throw new Error('Failed to fetch server status');
         return res.json();
       })
       .then((data) => {
@@ -207,7 +207,10 @@ export default function Header() {
               <div className="p-4">
                 <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
                   <div className="flex-auto">
-                    <a href="/sovereignty" className="block font-semibold text-white">
+                    <a
+                      href="/sovereignty"
+                      className="block font-semibold text-white"
+                    >
                       OVERVIEW
                       <span className="absolute inset-0" />
                     </a>
@@ -218,7 +221,10 @@ export default function Header() {
                 </div>
                 <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
                   <div className="flex-auto">
-                    <a href="/sovereignty/structures" className="block font-semibold text-white">
+                    <a
+                      href="/sovereignty/structures"
+                      className="block font-semibold text-white"
+                    >
                       STRUCTURES &amp; TIMERS
                       <span className="absolute inset-0" />
                     </a>
@@ -229,7 +235,10 @@ export default function Header() {
                 </div>
                 <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
                   <div className="flex-auto">
-                    <a href="/sovereignty/history" className="block font-semibold text-white">
+                    <a
+                      href="/sovereignty/history"
+                      className="block font-semibold text-white"
+                    >
                       HISTORY
                       <span className="absolute inset-0" />
                     </a>
@@ -240,7 +249,10 @@ export default function Header() {
                 </div>
                 <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
                   <div className="flex-auto">
-                    <a href="/sovereignty/hotspots" className="block font-semibold text-white">
+                    <a
+                      href="/sovereignty/hotspots"
+                      className="block font-semibold text-white"
+                    >
                       HOT ZONES
                       <span className="absolute inset-0" />
                     </a>
@@ -251,7 +263,10 @@ export default function Header() {
                 </div>
                 <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
                   <div className="flex-auto">
-                    <a href="/sovereignty/map" className="block font-semibold text-white">
+                    <a
+                      href="/sovereignty/map"
+                      className="block font-semibold text-white"
+                    >
                       MAP
                       <span className="absolute inset-0" />
                     </a>
@@ -275,7 +290,7 @@ export default function Header() {
               <ActiveUsersCounter />
               <Tooltip
                 content={`Tranquility ${
-                  status?.players?.toLocaleString() ?? "-"
+                  status?.players?.toLocaleString() ?? '-'
                 } online players`}
                 position="bottom"
               >
@@ -283,7 +298,10 @@ export default function Header() {
               </Tooltip>
             </div>
             <div className="hidden 2xl:block">
-              <Tooltip content="Current Eve Online ingame time" position="bottom">
+              <Tooltip
+                content="Current Eve Online ingame time"
+                position="bottom"
+              >
                 <EveTime />
               </Tooltip>
             </div>
