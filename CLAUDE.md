@@ -27,7 +27,7 @@ past an error. If the only way forward appears to involve losing data, stop and
 ask.
 
 **Never run `prisma migrate dev`** — including through `yarn prisma:migrate`,
-which is an alias for it. See *Database migrations*.
+which is an alias for it. See _Database migrations_.
 
 **Yarn only, never npm.** Yarn workspaces are configured in the root
 `package.json`; npm writes a conflicting `package-lock.json` and breaks workspace
@@ -53,15 +53,15 @@ on their own merits, never as a paid tier.
 Mandatory, and the codebase does not always obey it — follow it in new code
 anyway.
 
-| Layer | Path | Responsibility |
-|---|---|---|
-| Services | `backend/src/services/` | Business logic, database queries, external API calls, caching |
-| Resolvers | `backend/src/resolvers/` | GraphQL orchestration only — delegate to services |
-| Schema | `backend/src/schemas/` | GraphQL type definitions, modular, `extend type Query` |
-| Workers | `backend/src/workers/` | Queue processing, isolated from API logic |
-| Queues | `backend/src/queues/` | Job publishers |
-| Components | `frontend/src/components/` | Reusable presentational UI, no business logic |
-| Utilities | `utils/`, `helpers/` | Pure functions, no side effects |
+| Layer      | Path                       | Responsibility                                                |
+| ---------- | -------------------------- | ------------------------------------------------------------- |
+| Services   | `backend/src/services/`    | Business logic, database queries, external API calls, caching |
+| Resolvers  | `backend/src/resolvers/`   | GraphQL orchestration only — delegate to services             |
+| Schema     | `backend/src/schemas/`     | GraphQL type definitions, modular, `extend type Query`        |
+| Workers    | `backend/src/workers/`     | Queue processing, isolated from API logic                     |
+| Queues     | `backend/src/queues/`      | Job publishers                                                |
+| Components | `frontend/src/components/` | Reusable presentational UI, no business logic                 |
+| Utilities  | `utils/`, `helpers/`       | Pure functions, no side effects                               |
 
 - ✅ Resolver calls a service; the service queries the database.
 - ✅ Services own Redis caching; resolvers do not know a cache exists.
@@ -277,12 +277,12 @@ return data;
 Key format is `{domain}:{action}:{param}:{param}` and **every** filter parameter
 must appear, or one query poisons another's cache.
 
-| Data | TTL |
-|---|---|
-| Real-time (today, current week/month) | 300 s |
-| Historical (past dates, never changes) | 3600 s |
-| Rarely changing (alliance/corp info) | 7200 s |
-| Static (type info, system info) | 86400 s |
+| Data                                   | TTL     |
+| -------------------------------------- | ------- |
+| Real-time (today, current week/month)  | 300 s   |
+| Historical (past dates, never changes) | 3600 s  |
+| Rarely changing (alliance/corp info)   | 7200 s  |
+| Static (type info, system info)        | 86400 s |
 
 `::BIGINT` columns come back from `$queryRaw` as JavaScript `BigInt`, and
 `JSON.stringify` throws on those — convert with `Number()` before caching.
@@ -341,15 +341,15 @@ is the database.
 
 Established ESI queues and their consumers:
 
-| Queue | Worker script |
-|---|---|
-| `esi_alliance_info_queue` | `worker:info:alliances` |
-| `esi_character_info_queue` | `worker:info:characters` |
-| `esi_corporation_info_queue` | `worker:info:corporations` |
-| `esi_type_info_queue` | `worker:info:types` |
+| Queue                             | Worker script                  |
+| --------------------------------- | ------------------------------ |
+| `esi_alliance_info_queue`         | `worker:info:alliances`        |
+| `esi_character_info_queue`        | `worker:info:characters`       |
+| `esi_corporation_info_queue`      | `worker:info:corporations`     |
+| `esi_type_info_queue`             | `worker:info:types`            |
 | `esi_alliance_corporations_queue` | `worker:alliance-corporations` |
-| `esi_solar_systems_queue` | `worker:solar-systems` |
-| `zkillboard_character_queue` | `worker:zkillboard` |
+| `esi_solar_systems_queue`         | `worker:solar-systems`         |
+| `zkillboard_character_queue`      | `worker:zkillboard`            |
 
 ### Entity enrichment
 
@@ -361,6 +361,7 @@ by ID range — the real predicate, in
 `id < 1_000_000 || (id >= 3_000_000 && id < 4_000_000)`.
 
 **Correction:** the old guide gave this filter as "character_id < 3000000 or
+
 > 100000000", which is not what the code does.
 
 ### zKillboard sync
@@ -521,26 +522,26 @@ truth. Required: `EVE_CLIENT_ID`, `EVE_CLIENT_SECRET`, `DATABASE_URL`,
 
 ## File map
 
-| What | Where |
-|---|---|
-| Resolvers | `backend/src/resolvers/{domain}/{queries,mutations,fields}.ts` |
-| Services | `backend/src/services/` |
-| GraphQL schema | `backend/src/schemas/*.graphql` |
-| Env config | `backend/src/config.ts` |
-| Prisma client (API) | `backend/src/services/prisma.ts` |
-| Prisma client (workers) | `backend/src/services/prisma-worker.ts` |
-| DataLoaders | `backend/src/services/dataloaders.ts` |
-| ESI rate limiter | `backend/src/services/rate-limiter.ts` |
-| Live leaderboard updates | `backend/src/services/kill-stats-realtime.ts` |
-| Workers | `backend/src/workers/` |
-| Queue publishers | `backend/src/queues/` |
-| Prisma models | `backend/prisma/schema/*.prisma` (one model per file) |
-| Frontend documents | `frontend/src/graphql/*.graphql` |
-| Generated frontend types | `frontend/src/generated/graphql.ts` |
-| Apollo Client | `frontend/src/lib/apolloClient.ts` |
-| Components | `frontend/src/components/` |
-| Routes | `frontend/src/app/` |
-| PM2 process definitions | `ecosystem.config.js` |
+| What                     | Where                                                          |
+| ------------------------ | -------------------------------------------------------------- |
+| Resolvers                | `backend/src/resolvers/{domain}/{queries,mutations,fields}.ts` |
+| Services                 | `backend/src/services/`                                        |
+| GraphQL schema           | `backend/src/schemas/*.graphql`                                |
+| Env config               | `backend/src/config.ts`                                        |
+| Prisma client (API)      | `backend/src/services/prisma.ts`                               |
+| Prisma client (workers)  | `backend/src/services/prisma-worker.ts`                        |
+| DataLoaders              | `backend/src/services/dataloaders.ts`                          |
+| ESI rate limiter         | `backend/src/services/rate-limiter.ts`                         |
+| Live leaderboard updates | `backend/src/services/kill-stats-realtime.ts`                  |
+| Workers                  | `backend/src/workers/`                                         |
+| Queue publishers         | `backend/src/queues/`                                          |
+| Prisma models            | `backend/prisma/schema/*.prisma` (one model per file)          |
+| Frontend documents       | `frontend/src/graphql/*.graphql`                               |
+| Generated frontend types | `frontend/src/generated/graphql.ts`                            |
+| Apollo Client            | `frontend/src/lib/apolloClient.ts`                             |
+| Components               | `frontend/src/components/`                                     |
+| Routes                   | `frontend/src/app/`                                            |
+| PM2 process definitions  | `ecosystem.config.js`                                          |
 
 **Correction:** the old guide also listed `yarn test:enrichment` and
 `test-killmails.sh` under debugging. Neither exists.
@@ -557,16 +558,16 @@ Design specs and implementation plans live under `docs/superpowers/`.
 had all been moved into `backend/docs/` and renamed to kebab-case. The documents
 themselves are alive:
 
-| Old reference | Current location |
-|---|---|
-| `backend/EVE_SSO_README.md` | `backend/docs/authentication/eve-sso-readme.md` |
-| `backend/ENRICHMENT_README.md` | `backend/docs/workers/enrichment.md` |
-| `backend/CHARACTER_KILLMAIL_WORKER.md` | `backend/docs/workers/character-killmail-worker.md` |
-| `backend/MODULAR_ARCHITECTURE.md` | `backend/docs/architecture.md` |
-| `backend/docs/LEADERBOARD_QUERIES.MD` | `backend/docs/leaderboards/leaderboard-queries.md` |
-| `backend/docs/CACHE_OPTIMIZATION_SUMMARY.MD` | `backend/docs/redis-cache/cache-optimization-summary.md` |
-| `backend/docs/CAPSULE_VALUE_CALCULATION.MD` | `backend/docs/workers/capsule-value-calculation.md` |
-| `backend/POOL_CONNECTION_FIX.md` | no longer its own file; the connection-limit reasoning is in `backend/docs/deployment/cost-comparison.md` and repeated above |
+| Old reference                                | Current location                                                                                                             |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `backend/EVE_SSO_README.md`                  | `backend/docs/authentication/eve-sso-readme.md`                                                                              |
+| `backend/ENRICHMENT_README.md`               | `backend/docs/workers/enrichment.md`                                                                                         |
+| `backend/CHARACTER_KILLMAIL_WORKER.md`       | `backend/docs/workers/character-killmail-worker.md`                                                                          |
+| `backend/MODULAR_ARCHITECTURE.md`            | `backend/docs/architecture.md`                                                                                               |
+| `backend/docs/LEADERBOARD_QUERIES.MD`        | `backend/docs/leaderboards/leaderboard-queries.md`                                                                           |
+| `backend/docs/CACHE_OPTIMIZATION_SUMMARY.MD` | `backend/docs/redis-cache/cache-optimization-summary.md`                                                                     |
+| `backend/docs/CAPSULE_VALUE_CALCULATION.MD`  | `backend/docs/workers/capsule-value-calculation.md`                                                                          |
+| `backend/POOL_CONNECTION_FIX.md`             | no longer its own file; the connection-limit reasoning is in `backend/docs/deployment/cost-comparison.md` and repeated above |
 
 Directories worth knowing: `backend/docs/ops/` (PM2, crontab, daily operations,
 performance), `workers/`, `leaderboards/`, `redis-cache/`, `esi/`,
