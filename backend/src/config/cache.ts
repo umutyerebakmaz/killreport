@@ -38,6 +38,7 @@ export const PUBLIC_CACHE_QUERIES = [
   'Corporations',
   'Characters',
   'Killmails',
+  'MostValuableKillmails',
   'KillmailsDateCounts',
   'Types',
   'Categories',
@@ -79,6 +80,7 @@ export const TTL_PER_SCHEMA_COORDINATE: Record<string, number> = {
   'Query.killmailDetail': CACHE_TTL.KILLMAIL_DETAIL,
   'Query.killmails': CACHE_TTL.KILLMAIL_LIST,
   'Query.killmailsDateCounts': CACHE_TTL.KILLMAIL_LIST, // Same as killmails list
+  'Query.mostValuableKillmails': CACHE_TTL.KILLMAIL_LIST,
 
   // Static game data queries
   'Query.type': CACHE_TTL.STATIC_GAME_DATA,

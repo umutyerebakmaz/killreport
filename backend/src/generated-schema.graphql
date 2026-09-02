@@ -610,6 +610,23 @@ type Moon {
   solarSystem: SolarSystem
 }
 
+"""Which losses a Most Valuable shelf ranks. Always the victim's hull."""
+enum MostValuableScope {
+  """
+  Carriers, dreadnoughts, supercarriers, titans, FAXes, capital industrials.
+  """
+  CAPITALS
+
+  """Everything except structures and pods. Capitals are included."""
+  SHIPS
+
+  """Kills with a single attacker, excluding structures and pods."""
+  SOLO
+
+  """Citadels, engineering complexes, refineries and starbases."""
+  STRUCTURES
+}
+
 type Mutation {
   _empty: String
 
@@ -756,6 +773,19 @@ type Query {
   Alliances ranked by campaigns currently defending (most defensive first).
   """
   mostDefensiveAlliances(limit: Int): [AllianceActivityRank!]!
+
+  """
+  Top killmails by ISK value in a trailing window, most valuable first.
+  Scope is matched against the victim's hull, never an attacker's.
+  """
+  mostValuableKillmails(
+    """Length of the trailing window in days."""
+    days: Int = 7
+
+    """Capped at 50."""
+    limit: Int = 20
+    scope: MostValuableScope!
+  ): [Killmail!]!
   race(id: Int!): Race
   races: [Race!]!
 
