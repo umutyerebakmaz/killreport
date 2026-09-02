@@ -176,6 +176,14 @@ async function backfillValuesWorker() {
           },
         });
 
+        // killmail_filters carries a denormalized copy for scope-and-value queries.
+        // This worker is its second writer; without this the copy goes stale.
+        await prismaWorker.$executeRaw`
+          UPDATE killmail_filters
+          SET total_value = ${values.totalValue}
+          WHERE killmail_id = ${killmailId}
+        `;
+
         // Verify the update
         if (updated.total_value !== values.totalValue) {
           logger.error(
