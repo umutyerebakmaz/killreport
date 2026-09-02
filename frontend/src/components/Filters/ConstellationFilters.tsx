@@ -1,10 +1,10 @@
 "use client";
 
 import { useRegionsQuery } from "@/generated/graphql";
+import FilterBar from "@/components/ui/FilterBar";
 import {
   ChevronDownIcon,
   MagnifyingGlassIcon,
-  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { useState } from "react";
 
@@ -40,7 +40,9 @@ export default function ConstellationFilters({
   });
 
   const regions = regionsData?.regions.items || [];
-  const hasActiveFilters = !!search || !!selectedRegionId;
+  const activeFilterCount = [search, selectedRegionId].filter(
+    Boolean,
+  ).length;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,77 +60,70 @@ export default function ConstellationFilters({
 
   return (
     <form onSubmit={handleSubmit} className="mb-6">
-      {/* Search Bar, Region Filter, and OrderBy */}
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+      <FilterBar
+        search={
+          <div className="relative flex-1">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search constellations..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="search-input"
+            />
           </div>
-          <input
-            type="text"
-            placeholder="Search constellations..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="search-input"
-          />
-        </div>
+        }
+        controls={
+          <>
+            {/* Region Filter Dropdown */}
+            <div className="select-option-container">
+              <select
+                value={selectedRegionId}
+                onChange={(e) => setSelectedRegionId(e.target.value)}
+                className="select min-w-[180px]"
+              >
+                <option value="">All Regions</option>
+                {regions.map((region) => (
+                  <option key={region.id} value={region.id}>
+                    {region.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDownIcon className="chevron-down-icon" />
+            </div>
 
-        {/* Region Filter Dropdown */}
-        <div className="select-option-container">
-          <select
-            value={selectedRegionId}
-            onChange={(e) => setSelectedRegionId(e.target.value)}
-            className="select min-w-[180px]"
-          >
-            <option value="">All Regions</option>
-            {regions.map((region) => (
-              <option key={region.id} value={region.id}>
-                {region.name}
+            <button type="submit" className="button">
+              <MagnifyingGlassIcon className="w-5 h-5" />
+              Search
+            </button>
+          </>
+        }
+        orderBy={
+          <div className="select-option-container">
+            <select
+              value={orderBy}
+              onChange={(e) => onOrderByChange(e.target.value)}
+              className="select"
+            >
+              <option value="nameAsc">
+                {orderBy === "nameAsc" ? "✓" : "\u00A0\u00A0"}
+                {"   "}
+                Name A-Z
               </option>
-            ))}
-          </select>
-          <ChevronDownIcon className="chevron-down-icon" />
-        </div>
-
-        {/* Search Button */}
-        <button type="submit" className="button">
-          <MagnifyingGlassIcon className="w-5 h-5" />
-          Search
-        </button>
-
-        {/* Clear All Button */}
-        {hasActiveFilters && (
-          <button
-            type="button"
-            onClick={handleClearAll}
-            className="clear-filter-button"
-          >
-            <XMarkIcon className="w-5 h-5" />
-            Clear
-          </button>
-        )}
-
-        {/* OrderBy Dropdown */}
-        <div className="select-option-container">
-          <select
-            value={orderBy}
-            onChange={(e) => onOrderByChange(e.target.value)}
-            className="select"
-          >
-            <option value="nameAsc">
-              {orderBy === "nameAsc" ? "✓" : "\u00A0\u00A0"}
-              {"   "}
-              Name A-Z
-            </option>
-            <option value="nameDesc">
-              {orderBy === "nameDesc" ? "✓" : "\u00A0\u00A0"}
-              {"   "}
-              Name Z-A
-            </option>
-          </select>
-          <ChevronDownIcon className="chevron-down-icon" />
-        </div>
-      </div>
+              <option value="nameDesc">
+                {orderBy === "nameDesc" ? "✓" : "\u00A0\u00A0"}
+                {"   "}
+                Name Z-A
+              </option>
+            </select>
+            <ChevronDownIcon className="chevron-down-icon" />
+          </div>
+        }
+        activeFilterCount={activeFilterCount}
+        onClear={handleClearAll}
+      />
     </form>
   );
 }

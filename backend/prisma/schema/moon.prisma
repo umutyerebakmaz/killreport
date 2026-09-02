@@ -12,9 +12,13 @@ model Moon {
   position_z      Float?
 
   solar_system SolarSystem @relation(fields: [solar_system_id], references: [id], onDelete: Cascade)
-  planet       Planet      @relation(fields: [planet_id], references: [id], onDelete: Cascade)
+  /// Bileşik: bir ayın sistemi, gezegeninin sistemiyle aynı olmak zorunda.
+  /// Tekil planet_id FK'si bunu zorlamıyordu.
+  planet       Planet      @relation(fields: [planet_id, solar_system_id], references: [id, solar_system_id], onDelete: Cascade)
 
+  /// counts sayımı; aşağıdaki bileşiğin soldan öneki değil, korunur.
   @@index([solar_system_id])
-  @@index([planet_id])
+  /// moonsByPlanet: WHERE planet_id IN (...) ORDER BY orbit_index, id.
+  @@index([planet_id, orbit_index, id])
   @@map("moons")
 }

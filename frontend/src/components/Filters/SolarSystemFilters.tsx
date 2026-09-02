@@ -9,6 +9,9 @@ import {
   useSearchRegionsQuery,
   useSearchSolarSystemsQuery,
 } from "@/generated/graphql";
+import FilterBar from "@/components/ui/FilterBar";
+import FilterDialog from "@/components/ui/FilterDialog";
+import FilterField from "@/components/ui/FilterField";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
   ChevronDownIcon,
@@ -162,11 +165,12 @@ export default function SolarSystemFilters({
     }
   }, [initialConstellationData]);
 
-  const hasActiveFilters =
-    !!selectedSystemName ||
-    !!selectedRegionId ||
-    !!selectedConstellationId ||
-    securityFilter !== "all";
+  const activeFilterCount = [
+    selectedSystemName,
+    selectedRegionId,
+    selectedConstellationId,
+    securityFilter !== "all",
+  ].filter(Boolean).length;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -256,6 +260,7 @@ export default function SolarSystemFilters({
         : undefined,
       ...securityParams,
     });
+    setIsOpen(false);
   };
 
   const handleClearAll = () => {
@@ -293,65 +298,32 @@ export default function SolarSystemFilters({
   const constellations = allConstellationsData?.constellations?.items || [];
 
   return (
-    <form onSubmit={handleSubmit} className="mb-8">
-      {/* Top Bar: Filters, Clear */}
-      <div className="flex items-center justify-end gap-3">
-        {/* Advanced Filters Toggle */}
-        <button
-          type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          className={`button ${hasActiveFilters ? "active-filter-button" : ""}`}
-        >
-          <MagnifyingGlassIcon className="w-5 h-5" />
-          Filters
-          {hasActiveFilters && (
-            <span className="badge">
-              {
-                [
-                  selectedSystemName,
-                  selectedRegionId,
-                  selectedConstellationId,
-                  securityFilter !== "all",
-                ].filter(Boolean).length
-              }
-            </span>
-          )}
-        </button>
+    <form onSubmit={handleSubmit} id="solar-system-filters" className="mb-6">
+      <FilterBar
+        onOpenFilters={() => setIsOpen(true)}
+        activeFilterCount={activeFilterCount}
+        onClear={handleClearAll}
+      />
 
-        {/* Clear All Button */}
-        {hasActiveFilters && (
+      <FilterDialog
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        title="Solar System Filters"
+        footer={
           <button
-            type="button"
-            onClick={handleClearAll}
-            className="clear-filter-button"
+            type="submit"
+            form="solar-system-filters"
+            className="apply-filter-button"
           >
-            <XMarkIcon className="w-5 h-5" />
-            Clear
+            Apply Filters
           </button>
-        )}
-      </div>
-
-      {/* Advanced Filters Panel */}
-      <div
-        className={`transition-all duration-300 ease-in-out overflow-hidden ${isOpen ? "max-h-500 opacity-100 mt-4" : "max-h-0 opacity-0 mt-0"} p-6 space-y-4 border bg-neutral-900 border-white/5`}
+        }
       >
-        <h3 className="text-sm font-medium text-gray-300">
-          Solar System Filters
-        </h3>
-
-        <div className="flex gap-6">
-          {/* LEFT: Inputs */}
-          <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-2">
-            {/* Solar System Search */}
-            <div>
-              <label
-                htmlFor="filter-solar-system"
-                className="block mb-2 text-xs font-medium text-gray-400"
-              >
-                Solar System
-              </label>
-              <div ref={solarSystemDropdownRef}>
-                <div className="relative">
+        <div className="space-y-4">
+          {/* Solar System Search */}
+          <FilterField label="Solar System" htmlFor="filter-solar-system">
+            <div ref={solarSystemDropdownRef}>
+              <div className="relative">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
                   </div>
@@ -454,127 +426,10 @@ export default function SolarSystemFilters({
                     )}
                 </div>
               </div>
-            </div>
-
-            {/* Region Filter */}
-            <div>
-              <label
-                htmlFor="filter-region"
-                className="block mb-2 text-xs font-medium text-gray-400"
-              >
-                Region
-              </label>
-              <div className="select-option-container">
-                <select
-                  id="filter-region"
-                  value={selectedRegionId}
-                  onChange={(e) => handleRegionChange(e.target.value)}
-                  className="w-full select"
-                >
-                  <option value="">All Regions</option>
-                  {regions.map((region) => (
-                    <option key={region.id} value={region.id}>
-                      {region.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDownIcon className="chevron-down-icon" />
-              </div>
-            </div>
-
-            {/* Constellation Filter */}
-            <div>
-              <label
-                htmlFor="filter-constellation"
-                className="block mb-2 text-xs font-medium text-gray-400"
-              >
-                Constellation
-              </label>
-              <div className="select-option-container">
-                <select
-                  id="filter-constellation"
-                  value={selectedConstellationId}
-                  onChange={(e) => handleConstellationChange(e.target.value)}
-                  className="w-full select"
-                  disabled={!selectedRegionId}
-                >
-                  <option value="">All Constellations</option>
-                  {constellations.map((constellation) => (
-                    <option key={constellation.id} value={constellation.id}>
-                      {constellation.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDownIcon className="chevron-down-icon" />
-              </div>
-            </div>
-
-            {/* Security Filter */}
-            <div>
-              <label
-                htmlFor="filter-security"
-                className="block mb-2 text-xs font-medium text-gray-400"
-              >
-                Security Status
-              </label>
-              <div className="select-option-container">
-                <select
-                  id="filter-security"
-                  value={securityFilter}
-                  onChange={(e) => setSecurityFilter(e.target.value)}
-                  className="w-full select"
-                >
-                  <option value="all">All Security</option>
-                  <option value="highsec">High Sec (≥0.5)</option>
-                  <option value="lowsec">Low Sec (0.1-0.4)</option>
-                  <option value="nullsec">Null Sec (≤0.0)</option>
-                </select>
-                <ChevronDownIcon className="chevron-down-icon" />
-              </div>
-            </div>
-
-            {/* Sort By */}
-            <div>
-              <label
-                htmlFor="filter-sort"
-                className="block mb-2 text-xs font-medium text-gray-400"
-              >
-                Sort By
-              </label>
-              <div className="select-option-container">
-                <select
-                  id="filter-sort"
-                  value={orderBy}
-                  onChange={(e) => onOrderByChange(e.target.value)}
-                  className="w-full select"
-                >
-                  <option value="nameAsc">Name A-Z</option>
-                  <option value="nameDesc">Name Z-A</option>
-                  <option value="securityStatusDesc">
-                    Security (Highest First)
-                  </option>
-                  <option value="securityStatusAsc">
-                    Security (Lowest First)
-                  </option>
-                  <option value="shipKillsDesc">Ship Kills (Most First)</option>
-                  <option value="shipKillsAsc">Ship Kills (Least First)</option>
-                  <option value="podKillsDesc">Pod Kills (Most First)</option>
-                  <option value="podKillsAsc">Pod Kills (Least First)</option>
-                  <option value="npcKillsDesc">NPC Kills (Most First)</option>
-                  <option value="npcKillsAsc">NPC Kills (Least First)</option>
-                </select>
-                <ChevronDownIcon className="chevron-down-icon" />
-              </div>
-            </div>
-          </div>
-
-          {/* RIGHT: Selected chips */}
-          <div className="flex flex-col gap-4 min-w-48">
-            <p className="text-xs font-medium text-gray-400">Selected</p>
 
             {/* Solar System chip */}
             {selectedSystemName && (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 mt-3">
                 <div className="text-xs font-medium text-gray-400">
                   Solar System
                 </div>
@@ -594,10 +449,30 @@ export default function SolarSystemFilters({
                 </div>
               </div>
             )}
+          </FilterField>
+
+          {/* Region Filter */}
+          <FilterField label="Region" htmlFor="filter-region">
+              <div className="select-option-container">
+                <select
+                  id="filter-region"
+                  value={selectedRegionId}
+                  onChange={(e) => handleRegionChange(e.target.value)}
+                  className="w-full select"
+                >
+                  <option value="">All Regions</option>
+                  {regions.map((region) => (
+                    <option key={region.id} value={region.id}>
+                      {region.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDownIcon className="chevron-down-icon" />
+              </div>
 
             {/* Region chip */}
             {selectedRegionId && (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 mt-3">
                 <div className="text-xs font-medium text-gray-400">Region</div>
                 <div className="flex items-center gap-2">
                   <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
@@ -621,10 +496,31 @@ export default function SolarSystemFilters({
                 </div>
               </div>
             )}
+          </FilterField>
+
+          {/* Constellation Filter */}
+          <FilterField label="Constellation" htmlFor="filter-constellation">
+              <div className="select-option-container">
+                <select
+                  id="filter-constellation"
+                  value={selectedConstellationId}
+                  onChange={(e) => handleConstellationChange(e.target.value)}
+                  className="w-full select"
+                  disabled={!selectedRegionId}
+                >
+                  <option value="">All Constellations</option>
+                  {constellations.map((constellation) => (
+                    <option key={constellation.id} value={constellation.id}>
+                      {constellation.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDownIcon className="chevron-down-icon" />
+              </div>
 
             {/* Constellation chip */}
             {selectedConstellationId && (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 mt-3">
                 <div className="text-xs font-medium text-gray-400">
                   Constellation
                 </div>
@@ -648,17 +544,55 @@ export default function SolarSystemFilters({
                 </div>
               </div>
             )}
-          </div>
-        </div>
+          </FilterField>
 
-        {/* Apply Filters Button */}
+          {/* Security Filter */}
+          <FilterField label="Security Status" htmlFor="filter-security">
+            <div className="select-option-container">
+              <select
+                id="filter-security"
+                value={securityFilter}
+                onChange={(e) => setSecurityFilter(e.target.value)}
+                className="w-full select"
+              >
+                <option value="all">All Security</option>
+                <option value="highsec">High Sec (≥0.5)</option>
+                <option value="lowsec">Low Sec (0.1-0.4)</option>
+                <option value="nullsec">Null Sec (≤0.0)</option>
+              </select>
+              <ChevronDownIcon className="chevron-down-icon" />
+            </div>
+          </FilterField>
 
-        <div className="flex justify-end pt-4 border-t border-white/5">
-          <button type="submit" className="apply-filter-button">
-            Apply Filters
-          </button>
+          {/* Sort By */}
+          <FilterField label="Sort By" htmlFor="filter-sort">
+            <div className="select-option-container">
+              <select
+                id="filter-sort"
+                value={orderBy}
+                onChange={(e) => onOrderByChange(e.target.value)}
+                className="w-full select"
+              >
+                <option value="nameAsc">Name A-Z</option>
+                <option value="nameDesc">Name Z-A</option>
+                <option value="securityStatusDesc">
+                  Security (Highest First)
+                </option>
+                <option value="securityStatusAsc">
+                  Security (Lowest First)
+                </option>
+                <option value="shipKillsDesc">Ship Kills (Most First)</option>
+                <option value="shipKillsAsc">Ship Kills (Least First)</option>
+                <option value="podKillsDesc">Pod Kills (Most First)</option>
+                <option value="podKillsAsc">Pod Kills (Least First)</option>
+                <option value="npcKillsDesc">NPC Kills (Most First)</option>
+                <option value="npcKillsAsc">NPC Kills (Least First)</option>
+              </select>
+              <ChevronDownIcon className="chevron-down-icon" />
+            </div>
+          </FilterField>
         </div>
-      </div>
+      </FilterDialog>
     </form>
   );
 }

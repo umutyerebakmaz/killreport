@@ -23,6 +23,16 @@ const envSchema = z.object({
   PORT: z.string().default('4000').transform(Number),
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'http', 'debug']).default('info'),
 
+  // ESI
+  // ESI's own ceiling is 150 req/sec. 50 is the project's safety margin and the
+  // right default when several workers run at once; raise it for a single
+  // process that has the budget to itself.
+  ESI_MAX_RPS: z.string().default('50').transform(Number),
+  // Messages a topology worker holds unacked at once. Concurrency only - the
+  // dispatch ceiling above still applies. Temporarily 100 for the manual
+  // universe run; 25 was the long-standing value.
+  ESI_PREFETCH: z.string().default('100').transform(Number),
+
   // GraphQL
   GRAPHQL_INTROSPECTION: z.string().default('true').transform(val => val === 'true'),
   GRAPHQL_PLAYGROUND: z.string().default('true').transform(val => val === 'true'),
@@ -77,6 +87,10 @@ export const config = {
     isDevelopment: env.NODE_ENV === 'development',
     isProduction: env.NODE_ENV === 'production',
     isTest: env.NODE_ENV === 'test',
+  },
+  esi: {
+    maxRequestsPerSecond: env.ESI_MAX_RPS,
+    prefetch: env.ESI_PREFETCH,
   },
   graphql: {
     introspection: env.GRAPHQL_INTROSPECTION,

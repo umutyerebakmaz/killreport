@@ -1,8 +1,14 @@
 /**
  * ESI Rate Limiter
- * Ensures we never exceed ESI's rate limits
- * ESI Limit: 150 requests per second (we use 50 for safety margin)
+ * Ensures we never exceed ESI's rate limits.
+ * ESI's limit is 150 requests per second. The ceiling here is per PROCESS and
+ * comes from ESI_MAX_RPS (default 50, the project's safety margin). Every
+ * worker runs in its own process with its own instance, so the budget is shared
+ * by however many are running at once: two at 50 is 100 req/sec, and a single
+ * worker with the run to itself can be given the whole 150.
  */
+
+import { config } from '@config/config';
 
 class RateLimiter {
   private queue: Array<() => void> = [];
@@ -10,9 +16,14 @@ class RateLimiter {
   private requestCount = 0;
   private windowStart = Date.now();
   private inFlight = 0;
-  private readonly maxRequestsPerSecond = 50; // Conservative limit (ESI allows 150)
-  private readonly minDelayBetweenRequests = 20; // 20ms minimum delay between dispatches
-  private readonly maxConcurrent = 50; // Cap simultaneous in-flight requests
+  private readonly maxRequestsPerSecond = config.esi.maxRequestsPerSecond;
+  // Dispatch spacing that produces the configured rate: 50/sec => 20ms apart.
+  private readonly minDelayBetweenRequests = Math.max(
+    1,
+    Math.floor(1000 / config.esi.maxRequestsPerSecond)
+  );
+  // In-flight cap has to scale with the rate, or it becomes the real ceiling.
+  private readonly maxConcurrent = Math.max(50, config.esi.maxRequestsPerSecond);
 
   /**
    * Execute a function with rate limiting.
@@ -73,7 +84,7 @@ class RateLimiter {
         this.requestCount++;
         fn();
 
-        // Space out dispatches (50/sec => 20ms apart)
+        // Space out dispatches at the configured rate.
         await this.sleep(this.minDelayBetweenRequests);
       }
     }
