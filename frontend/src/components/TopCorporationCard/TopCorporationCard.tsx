@@ -1,6 +1,7 @@
 "use client";
 
 import { Loader } from "@/components/Loader/Loader";
+import RankNumber from "@/components/ui/RankNumber";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import Link from "next/link";
 import { ReactNode } from "react";
@@ -48,7 +49,7 @@ export default function TopCorporationCard({
   }
 
   return (
-    <div className="top-corporation-card">
+    <div>
       <div className="py-4 border-b border-white/10">
         <h3 className="text-lg font-semibold text-white">{title}</h3>
         {subtitle && (
@@ -76,21 +77,7 @@ export default function TopCorporationCard({
               >
                 <div className="flex items-center gap-3">
                   {/* Rank */}
-                  <div className="flex items-center justify-center w-8 shrink-0">
-                    <span
-                      className={`text-xl font-black tabular-nums ${
-                        index === 0
-                          ? "text-yellow-400"
-                          : index === 1
-                            ? "text-gray-300"
-                            : index === 2
-                              ? "text-amber-600"
-                              : "text-gray-600"
-                      }`}
-                    >
-                      #{index + 1}
-                    </span>
-                  </div>
+                  <RankNumber rank={index + 1} />
 
                   {/* Logo */}
                   <div className="relative shrink-0">

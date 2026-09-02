@@ -1,12 +1,13 @@
 "use client";
 
 import { useSearchCorporationsQuery } from "@/generated/graphql";
+import FilterBar from "@/components/ui/FilterBar";
+import FilterDialog from "@/components/ui/FilterDialog";
+import FilterField from "@/components/ui/FilterField";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
   ChevronDownIcon,
-  FunnelIcon,
   MagnifyingGlassIcon,
-  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -55,8 +56,12 @@ export default function CorporationFilters({
       skip: debouncedSearch.length < 3, // Only search after 3 characters
     });
 
-  const hasActiveFilters =
-    search || name || ticker || dateFoundedFrom || dateFoundedTo;
+  const activeFilterCount = [name, ticker, dateFoundedFrom, dateFoundedTo].filter(
+    Boolean,
+  ).length;
+  const hasActiveFilters = Boolean(
+    search || name || ticker || dateFoundedFrom || dateFoundedTo,
+  );
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -99,6 +104,7 @@ export default function CorporationFilters({
       dateFoundedFrom: dateFoundedFrom || undefined,
       dateFoundedTo: dateFoundedTo || undefined,
     });
+    setIsOpen(false);
   };
 
   const handleClearAll = () => {
@@ -111,10 +117,10 @@ export default function CorporationFilters({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mb-6">
-      {/* Search Bar */}
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1" ref={dropdownRef}>
+    <form onSubmit={handleSubmit} id="corporation-filters" className="mb-6">
+      <FilterBar
+        search={
+          <div className="relative flex-1" ref={dropdownRef}>
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
             <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
           </div>
@@ -209,162 +215,112 @@ export default function CorporationFilters({
                 </div>
               </div>
             )}
-        </div>
-
-        {/* Search Button */}
-        <button type="submit" className="button">
-          <MagnifyingGlassIcon className="w-5 h-5" />
-          Search
-        </button>
-
-        {/* Advanced Filters Toggle */}
-        <button
-          type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          className={`button ${hasActiveFilters ? "active-filter-button" : ""}`}
-        >
-          <FunnelIcon className="w-5 h-5" />
-          Filters
-          {hasActiveFilters && (
-            <span className="badge">
-              {
-                [name, ticker, dateFoundedFrom, dateFoundedTo].filter(Boolean)
-                  .length
-              }
-            </span>
-          )}
-        </button>
-
-        {/* Clear All Button */}
-        {hasActiveFilters && (
-          <button
-            type="button"
-            onClick={handleClearAll}
-            className="clear-filter-button"
-          >
-            <XMarkIcon className="w-5 h-5" />
-            Clear
+          </div>
+        }
+        controls={
+          <button type="submit" className="button">
+            <MagnifyingGlassIcon className="w-5 h-5" />
+            Search
           </button>
-        )}
+        }
+        orderBy={
+          <div className="select-option-container">
+            <select
+              value={orderBy}
+              onChange={(e) => onOrderByChange(e.target.value)}
+              className="select"
+            >
+              <option value="memberCountDesc">
+                {orderBy === "memberCountDesc" ? "✓" : "\u00A0\u00A0"}
+                {"   "}
+                Most Members
+              </option>
+              <option value="memberCountAsc">
+                {orderBy === "memberCountAsc" ? "✓" : "\u00A0\u00A0"}
+                {"   "}
+                Least Members
+              </option>
+              <option value="nameAsc">
+                {orderBy === "nameAsc" ? "✓" : "\u00A0\u00A0"}
+                {"   "}
+                Name (A to Z)
+              </option>
+              <option value="nameDesc">
+                {orderBy === "nameDesc" ? "✓" : "\u00A0\u00A0"}
+                {"   "}
+                Name (Z to A)
+              </option>
+            </select>
+            <ChevronDownIcon className="chevron-down-icon" />
+          </div>
+        }
+        onOpenFilters={() => setIsOpen(true)}
+        activeFilterCount={activeFilterCount}
+        hasActiveFilters={hasActiveFilters}
+        onClear={handleClearAll}
+      />
 
-        {/* OrderBy Dropdown */}
-        <div className="select-option-container">
-          <select
-            value={orderBy}
-            onChange={(e) => onOrderByChange(e.target.value)}
-            className="select"
+      <FilterDialog
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        footer={
+          <button
+            type="submit"
+            form="corporation-filters"
+            className="apply-filter-button"
           >
-            <option value="memberCountDesc">
-              {orderBy === "memberCountDesc" ? "✓" : "\u00A0\u00A0"}
-              {"   "}
-              Most Members
-            </option>
-            <option value="memberCountAsc">
-              {orderBy === "memberCountAsc" ? "✓" : "\u00A0\u00A0"}
-              {"   "}
-              Least Members
-            </option>
-            <option value="nameAsc">
-              {orderBy === "nameAsc" ? "✓" : "\u00A0\u00A0"}
-              {"   "}
-              Name (A to Z)
-            </option>
-            <option value="nameDesc">
-              {orderBy === "nameDesc" ? "✓" : "\u00A0\u00A0"}
-              {"   "}
-              Name (Z to A)
-            </option>
-          </select>
-          <ChevronDownIcon className="chevron-down-icon" />
+            Apply Filters
+          </button>
+        }
+      >
+        <div className="space-y-4">
+          {/* Name Filter */}
+          <FilterField label="Corporation Name" htmlFor="filter-name">
+            <input
+              type="text"
+              id="filter-name"
+              placeholder="Corporation name..."
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="input"
+            />
+          </FilterField>
+
+          {/* Ticker Filter */}
+          <FilterField label="Corporation Ticker" htmlFor="filter-ticker">
+            <input
+              type="text"
+              id="filter-ticker"
+              placeholder="Ticker..."
+              value={ticker}
+              onChange={(e) => setTicker(e.target.value)}
+              className="input"
+            />
+          </FilterField>
+
+          {/* Date Founded From Filter */}
+          <FilterField label="Founded From" htmlFor="filter-date-from">
+            <input
+              type="date"
+              id="filter-date-from"
+              value={dateFoundedFrom}
+              onChange={(e) => setDateFoundedFrom(e.target.value)}
+              className="input scheme-dark"
+            />
+          </FilterField>
+
+          {/* Date Founded To Filter */}
+          <FilterField label="Founded To" htmlFor="filter-date-to">
+            <input
+              type="date"
+              id="filter-date-to"
+              value={dateFoundedTo}
+              onChange={(e) => setDateFoundedTo(e.target.value)}
+              className="input scheme-dark"
+            />
+          </FilterField>
         </div>
-      </div>
-
-      {/* Advanced Filters Panel */}
-      {isOpen && (
-        <div className="p-6 mt-4 space-y-4 border bg-gray-900/30 border-gray-700/50">
-          <h3 className="text-sm font-medium text-gray-300">
-            Advanced Filters
-          </h3>
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {/* Name Filter */}
-            <div>
-              <label
-                htmlFor="filter-name"
-                className="block mb-2 text-xs font-medium text-gray-400"
-              >
-                Corporation Name
-              </label>
-              <input
-                type="text"
-                id="filter-name"
-                placeholder="Corporation name..."
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="input"
-              />
-            </div>
-
-            {/* Ticker Filter */}
-            <div>
-              <label
-                htmlFor="filter-ticker"
-                className="block mb-2 text-xs font-medium text-gray-400"
-              >
-                Corporation Ticker
-              </label>
-              <input
-                type="text"
-                id="filter-ticker"
-                placeholder="Ticker..."
-                value={ticker}
-                onChange={(e) => setTicker(e.target.value)}
-                className="input"
-              />
-            </div>
-
-            {/* Date Founded From Filter */}
-            <div>
-              <label
-                htmlFor="filter-date-from"
-                className="block mb-2 text-xs font-medium text-gray-400"
-              >
-                Founded From
-              </label>
-              <input
-                type="date"
-                id="filter-date-from"
-                value={dateFoundedFrom}
-                onChange={(e) => setDateFoundedFrom(e.target.value)}
-                className="input scheme-dark"
-              />
-            </div>
-
-            {/* Date Founded To Filter */}
-            <div>
-              <label
-                htmlFor="filter-date-to"
-                className="block mb-2 text-xs font-medium text-gray-400"
-              >
-                Founded To
-              </label>
-              <input
-                type="date"
-                id="filter-date-to"
-                value={dateFoundedTo}
-                onChange={(e) => setDateFoundedTo(e.target.value)}
-                className="input scheme-dark"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end pt-4 border-t border-gray-700/50">
-            <button type="submit" className="apply-filter-button">
-              Apply Filters
-            </button>
-          </div>
-        </div>
-      )}
+      </FilterDialog>
     </form>
   );
 }
