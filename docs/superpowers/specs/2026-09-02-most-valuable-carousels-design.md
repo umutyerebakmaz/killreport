@@ -63,7 +63,7 @@ kaydedilirken çalışan `insertKillmailFilter()`'a taşındı
 iki alanı join'den değil **çağırandan** bekliyor —
 
 ```ts
-// killmail-filters-realtime.ts:53-54
+// killmail-filters-realtime.ts:73-74
 ${data.constellation_id || null}::int as constellation_id,
 ${data.region_id || null}::int as region_id,
 ```
@@ -71,18 +71,18 @@ ${data.region_id || null}::int as region_id,
 — ve `KillmailFilterData` arayüzünde ikisi de opsiyonel (`:25-26`). Dört çağıranın
 **hiçbiri** bunları göndermiyor:
 
-- `backend/src/workers/worker-redisq-stream.ts:698`
-- `backend/src/workers/worker-killmails.ts:248`
-- `backend/src/workers/worker-zkillboard-sync.ts:275`
-- `backend/src/workers/worker-esi-corporation-killmails.ts:319`
+- `backend/src/workers/worker-redisq-stream.ts:755`
+- `backend/src/workers/worker-killmails.ts:269`
+- `backend/src/workers/worker-zkillboard-sync.ts:296`
+- `backend/src/workers/worker-esi-corporation-killmails.ts:366`
 
 Sonuç her zaman NULL. Aynı SQL `security_status`'ü doğru yapıyor, çünkü onu
-`LEFT JOIN solar_systems`'ten alıyor (`:100`) — join zaten orada, bir adım ötesine
+`LEFT JOIN solar_systems`'ten alıyor (`:118`) — join zaten orada, bir adım ötesine
 uzatılmamış.
 
 **Etkisi.** Ana killmail listesinin region ve constellation filtreleri
 `filtersMaterialized` üzerinden bu kolonları sorguluyor
-(`backend/src/resolvers/killmail/filters-materialized.ts:113-125`), dolayısıyla son beş
+(`backend/src/resolvers/killmail/filters-materialized.ts:144-156`), dolayısıyla son beş
 ayın verisinde sessizce boş dönüyorlar. Ölçüm — The Forge (10000002), son 7 gün:
 
 | kaynak                                           | sonuç   |
@@ -127,13 +127,13 @@ Yani realtime insert yolu, region/constellation dışında doğru çalışıyor.
 | **`total_value`** (sıralama ölçütü)              | **yok**                   |
 | **victim gemisinin `group_id`** (kapsam yordamı) | **yok**                   |
 
-`queries.ts:121`'deki _"total_value not in killmail_filters"_ notu bunun kaydı.
-Grup filtresi için `filters-materialized.ts:52-60` her istekte ayrıca bir
+`queries.ts:128`'deki _"total_value not in killmail_filters"_ notu bunun kaydı.
+Grup filtresi için `filters-materialized.ts:60-70` her istekte ayrıca bir
 `prisma.type.findMany` çalıştırıp grup ID'lerini type ID'lerine açıyor.
 
 ### 2.5 Mevcut carousel'ların kusurları
 
-**Ships şeridi client-side filtreliyor.** `page.tsx:118-140` değere göre 50 killmail
+**Ships şeridi client-side filtreliyor.** `page.tsx:118-142` değere göre 50 killmail
 çekip structure ve capsule'leri JavaScript'te eleyip `.slice(0, 20)` yapıyor. Bugün
 zararsız — son 7 günün en değerli 50 killmail'inde yalnızca 1 structure ve 4 capsule var,
 geriye 45 aday kalıyor. Ama gizli bir arıza: büyük savaş haftasında top-50'nin büyük
@@ -142,7 +142,7 @@ filter in JavaScript" yasağına da giriyor.
 
 **Structures şeridi saldıran tarafı da sayıyor.** `filtersMaterialized`, `victim` /
 `attacker` bayrağı verilmediğinde `shipGroupIds`'i **victim OR attacker** olarak uyguluyor
-(`filters-materialized.ts:66-79`); carousel bayrak göndermiyor. Mail'de saldıran olarak
+(`filters-materialized.ts:89-100`); carousel bayrak göndermiyor. Mail'de saldıran olarak
 bir Keepstar bulunan bir Titan kaybı "Most Valuable Structures" şeridine girebiliyor.
 
 **Tarih filtresi ID listesine inmiyor.** `filtersMaterialized` `startDate`/`endDate`'i hiç
@@ -150,29 +150,29 @@ kullanmıyor (`:22-37`); tarih ancak ikinci sorguda `killmails` üzerinde uygula
 Structures şeridi bugün tüm zamanların structure killmail ID'lerinin tamamını çekip
 `ANY($1::int[])`'e basıyor, sonra 7 güne indiriyor.
 
-**İki şerit de ağır dokümanı kullanıyor.** `frontend/src/graphql/Killmails.graphql:52-67`
+**İki şerit de ağır dokümanı kullanıyor.** `frontend/src/graphql/Killmails.graphql:65-79`
 her killmail'in tüm `attackers` dizisini çekiyor; kart bunu kullanmıyor. Structure
 kill'lerinde killmail başına binlerce attacker demek.
 
 **`KillmailCarousel` kaydırma kusurları.** `canScrollRight` `true` başlatılıyor ve mount'ta
-hiç hesaplanmıyor (`KillmailCarousel.tsx:32`), dolayısıyla içerik taşmasa bile sağ ok
+hiç hesaplanmıyor (`KillmailCarousel.tsx:31`), dolayısıyla içerik taşmasa bile sağ ok
 aktif görünüyor. Kaydırma miktarı 400 px (`:44`), kart adımı ise `w-80` + `gap-4` = 336 px
-(`:117`); her tıklamada kartlar kayık kalıyor.
+(`:122`); her tıklamada kartlar kayık kalıyor.
 
 ### 2.6 Değer filtresi neden doğru çalışıyor
 
 `minValue`/`maxValue` hiçbir zaman `killmail_filters`'a sorulmuyor; değer yordamı her
 koşulda `killmails` tablosunda değerlendiriliyor. İki yol var
-(`queries.ts:83-96` seçiyor):
+(`queries.ts:84-96` seçiyor):
 
 - **Yol A — yalnızca değer filtresi.** Varlık filtresi yoksa `else` dalına düşülüyor
-  (`queries.ts:266`), `killmail_filters`'a hiç dokunulmuyor: düz Prisma
+  (`queries.ts:305`), `killmail_filters`'a hiç dokunulmuyor: düz Prisma
   `findMany` + `where.total_value` + sayfalama + sıralama tek sorguda
-  (`:269-329`).
+  (`:313-374`).
 - **Yol B — değer + varlık filtresi birlikte.** `filtersMaterialized` yalnızca "hangi
   killmail'ler" sorusunu cevaplıyor; değer yordamı ikinci sorguda `killmails`'e
-  uygulanıyor (`:130-146`) ve `totalCount` da `killmails` üzerinden yeniden sayılıyor
-  (`:177-186`).
+  uygulanıyor (`:137-153`) ve `totalCount` da `killmails` üzerinden yeniden sayılıyor
+  (`:204-213`).
 
 Doğruluk sorunu yok. Yol B'nin maliyeti, sayfalamadan önce eşleşen ID'lerin tamamının
 belleğe alınması. Bugün en kötü ihtimalle ~44 bin integer; ölçek büyüdükçe sorun olur.
@@ -217,13 +217,13 @@ victim:    ['alliance_id','character_id','corporation_id','damage_taken',
 
 Bu, `services/killmail/killmail.service.ts:14-44`'teki `KillmailDetail` arayüzünün
 birebir karşılığı. `pollR2Z2` `data.esi`'yi döndürmüyor (`:220-223`; tipi `esi: unknown`,
-`:64`) ve `processKillmail` ESI'ya yeniden gidiyor (`:247`). Kod bunu bilinçli yapıyor —
+`:64`) ve `processKillmail` ESI'ya yeniden gidiyor (`:264`). Kod bunu bilinçli yapıyor —
 yorumu _"kept for identical downstream shape"_ (`:16`) — ve bu savunulabilir bir tercih.
 Kazanç mütevazı: ESI bütçesi 50 req/sn, gerçekleşen hız saatte ~950 mail, yani istek
 bütçede görünmüyor. Tek somut etkisi killmail başına işlem süresi.
 
 **Değerler kayıt anında bir kez hesaplanıyor.** `calculateKillmailValues`
-`market_prices.sell`'e bakıyor (`helpers/calculate-killmail-values.ts:105`); fiyatlar tip
+`market_prices.sell`'e bakıyor (`helpers/calculate-killmail-values.ts:106`); fiyatlar tip
 başına `esi_type_price_queue` üzerinden geliyor (`worker-prices.ts:14`). Fiyatı henüz
 çekilmemiş bir tip 0 üretiyor ve değer bir daha güncellenmiyor.
 
@@ -238,11 +238,22 @@ Tower Small (type 20060) — 18 sıfır değerli kayıp, oysa güncel `sell` fiy
 126.700.000 ISK. Payload'daki `zkb.totalValue` bu boşluğu taşımıyor ama kullanılmıyor.
 Bu, İş 2'nin sıralama ölçütünü doğrudan etkiler; kapsam dışı bırakılma gerekçesi §7'de.
 
-**`victims.faction_id` hep null.** `worker-redisq-stream.ts:632` koşulsuz `faction_id:
-null` yazıyor; kolon var, `KillmailDetail.victim.faction_id` var (`:22`), ESI gönderiyor.
-45.035 victim satırının 0'ı dolu.
+**`faction_id` hiçbir yerde yazılmıyor.** `saveKillmail` hem victim (`:682`) hem
+attacker (`:700`) için koşulsuz `faction_id: null` yazıyor. Her iki kolon da modelde
+tanımlı (`prisma/schema/victim.prisma:6`, `prisma/schema/attacker.prisma:13`),
+`KillmailDetail` her ikisini de taşıyor (`killmail.service.ts:22` ve `:49`), ve ESI
+gönderiyor.
 
-**Döngü hızı yeterli.** Worker seri çalışıyor (`:126-133`), ölçülen hız saatte ~950 mail.
+| tablo       | `faction_id` dolu | toplam  |
+| ----------- | ----------------- | ------- |
+| `victims`   | 0                 | 45.035  |
+| `attackers` | 0                 | 300.642 |
+
+Attacker tarafı daha ağır basıyor: 4.850 attacker satırı NPC görünümlü (karakteri yok,
+korporasyon id'si 2.000.000'un altında) — ESI'nın faction gönderdiği satırlar tam olarak
+bunlar.
+
+**Döngü hızı yeterli.** Worker seri çalışıyor (`:133-140`), ölçülen hız saatte ~950 mail.
 2026-09-02 ölçümü: 17:00'de 21,8 saat olan ortalama gecikme dört saatte 10,7 dakikaya
 inmiş. 08-31 ve 09-01'de hiç satır yok — gecikme darboğaz değil, worker'ın kapalı kaldığı
 sürenin birikmesi; açılınca kendiliğinden kapanıyor. PM2 altında sürekli çalışırken böyle
@@ -255,7 +266,7 @@ API sürecinde yaşar, worker süreçlerine hiç uğramaz. `src/workers/` altın
 Redis'i import etmiyor. Killmail çekiminde önbellek zaten işe yaramaz — her killmail ID +
 hash ömründe bir kez çekilir, ikinci istek yoktur. Tekrar eden şey entity'lerdir ve orada
 `enrichMissingEntities` doğru olanı yapıyor: önce `findMany` ile veritabanında hangi
-ID'lerin bulunduğuna bakıp yalnızca eksikleri çekiyor (`:337-380`). Önbellek görevini
+ID'lerin bulunduğuna bakıp yalnızca eksikleri çekiyor (`:354-397`). Önbellek görevini
 veritabanı görüyor.
 
 ---
@@ -276,7 +287,7 @@ Tasarım görüşmesinde netleşenler:
 8. **Carousel bağımsız bir bileşendir.** Veri çekmesiyle birlikte kendi dizininde durur;
    `page.tsx` yalnızca onu yerleştirir.
 9. **`worker-redisq-stream`'e yalnızca iki düzeltme girer** (§6): `data.esi`'nin
-   kullanılması ve `victims.faction_id`. Bunlar, İş 1 için zaten aynı dosyaya
+   kullanılması ve `faction_id`. Bunlar, İş 1 için zaten aynı dosyaya
    dokunulacağı için birlikte yapılır.
 10. **Değer meselesine (§2.8) bu işte dokunulmaz.** Gerekçe §7.
 
@@ -306,7 +317,7 @@ Alınan kolonlar: `ss.constellation_id`, `c.region_id`, `ss.security_status`,
 `ss.security_class`, `t.group_id`, `k.total_value`.
 
 `insertKillmailFilter` transaction commit ettikten sonra çağrıldığı için
-(`worker-redisq-stream.ts:698`, transaction `:695`'te kapanıyor) `killmails` satırı ve
+(`worker-redisq-stream.ts:755`, transaction `:702`'de kapanıyor) `killmails` satırı ve
 `total_value` o anda görünürdür.
 
 ### 4.2 İki yeni kolon
@@ -384,7 +395,7 @@ Migration'da tek bir `DROP` veya `DELETE` yoktur; yalnızca `ADD COLUMN`, `UPDAT
 
 ### 4.5 Backfill worker senkronu
 
-`backend/src/workers/worker-backfill-values.ts:154-160` killmail'in değerini
+`backend/src/workers/worker-backfill-values.ts:170-176` killmail'in değerini
 güncelledikten sonra `killmail_filters.total_value`'yu da güncellemek zorundadır.
 `prismaWorker.$executeRaw` ile tek satırlık bir `UPDATE`, aynı `killmail_id` üzerinde.
 Bu, `total_value` denormalizasyonunun bedeli ve kalıcı bir yükümlülüktür.
@@ -452,7 +463,7 @@ Servisin döndürdüğü satırlar GraphQL `Killmail` tipine şu biçimde eşlen
 
 Bu yeterlidir: `solarSystem` alan çözücüsü yalnızca `parent.solarSystemId`'ye,
 `victim` ve `finalBlow` yalnızca `parent.id`'ye bakar
-(`backend/src/resolvers/killmail/fields.ts:38-46`) ve gerisini DataLoader'lar halleder.
+(`backend/src/resolvers/killmail/fields.ts:40-48`) ve gerisini DataLoader'lar halleder.
 `killmails` tablosuna join gerekmez.
 
 `limit` `Math.min(limit ?? 20, 50)` ile sınırlanır. Cache anahtarı
@@ -507,12 +518,12 @@ Yerleşim: tek `Card` gövdesi, başlık "Most Valuable · Last 7 Days", altınd
 
 `frontend/src/app/killmails/page.tsx`'te silinecekler:
 
-- `structuresData` ve `allShipsData` `useKillmailsQuery` çağrıları (`:104-124`)
-- client-side filtreleme `useMemo`'su (`:127-140`)
+- `structuresData` ve `allShipsData` `useKillmailsQuery` çağrıları (`:104-128`)
+- client-side filtreleme `useMemo`'su (`:130-142`)
 - `sevenDaysAgo` / `today` hesapları, artık backend'in işi (`:96-102`)
 - `STRUCTURE_GROUPS` / `CAPSULE_GROUPS` importu (`:25`) — sayfanın başka yerinde
   kullanılmıyorsa
-- İki `KillmailCarousel` kullanımı ve sarmalayan `div` (`:408-425`) tek satırlık
+- İki `KillmailCarousel` kullanımı ve sarmalayan `div` (`:410-427`) tek satırlık
   `<MostValuableCarousel />` ile değişir
 - `KillmailCarousel` importu
 
@@ -535,10 +546,10 @@ birlikte yapılır. Başka hiçbir şeye dokunulmaz.
 Güvenlik ağı: `data.esi` beklenmedik biçimde eksikse (`victim` veya `attackers` yoksa)
 eski yola, yani ESI'dan çekmeye düşülür. Böylece R2Z2 payload'ı değişirse ingest durmaz.
 
-### 6.2 `victims.faction_id`'yi yaz
+### 6.2 `faction_id`'yi yaz
 
-`saveKillmail`'deki koşulsuz `faction_id: null` (`:632`),
-`victim.faction_id ?? null` ile değiştirilir.
+`saveKillmail`'deki iki koşulsuz `faction_id: null` — victim (`:682`) ve attacker
+(`:700`) — kaynaktaki değerle değiştirilir.
 
 ### 6.3 Kapsam dışı bırakılanlar
 
@@ -556,7 +567,7 @@ Bilerek dışarıda bırakılanlar:
    ID'lerinin tamamını döndürüp sayfalamayı ikinci sorguya bırakıyor. `total_value` ve
    `victim_ship_group_id` tabloya girdikten sonra `LIMIT`/`OFFSET`/`ORDER BY`/tarih tek
    sorguda yapılabilir hale gelir — ama bu ana killmail listesinin kalbidir
-   (`queries.ts:83-260`, elle sayılan `$N` parametreleriyle) ve kendi spec'ini hak eder.
+   (`queries.ts:84-304`, elle sayılan `$N` parametreleriyle) ve kendi spec'ini hak eder.
    İş 1 onu engellemez, kolonları hazırlayarak kolaylaştırır.
 2. **`filtersMaterialized`'ın "victim OR attacker" davranışı.** Ana listenin
    `shipGroupIds` filtresi için doğru olabilir; carousel bu yoldan çıktığı için burada
@@ -579,7 +590,7 @@ Bilerek dışarıda bırakılanlar:
    (killmail, entity'lerinden önce kaydedilir) ve kendi spec'ini hak ediyor.
 8. **`zkb`'nin `npc` / `solo` / `points` / `labels` alanlarının saklanması.** `killmails`
    tablosuna kolon eklemeyi gerektirir. En somut kazanç `npc`'nin sorgu anında tüm
-   attacker satırlarını yüklemesini (`resolvers/killmail/fields.ts:85-104`) ortadan
+   attacker satırlarını yüklemesini (`resolvers/killmail/fields.ts:92-112`) ortadan
    kaldırmak olurdu; bugün bir sorun bildirilmedi, ayrı ele alınır.
 
 ---
@@ -628,7 +639,8 @@ yarn workspace frontend build
 killmail'lerin victim gemi grubu beklenen kümede olmalı, `SOLO` için `attackerCount = 1`.
 
 **İş 3:** worker bir süre çalıştırılır ve yeni yazılan killmail'lerde kontrol edilir —
-`victims.faction_id` artık ESI'nın gönderdiği durumlarda dolu olmalı, ve yeni satırlarda
+`victims.faction_id` ve `attackers.faction_id` artık ESI'nın gönderdiği durumlarda dolu
+olmalı, ve yeni satırlarda
 `killmail_filters.region_id` / `constellation_id` / `victim_ship_group_id` NULL
 olmamalı. Log'da killmail başına yalnızca enrichment kaynaklı ESI istekleri görünmeli;
 killmail detayı için ESI'ya gidilmemeli.

@@ -261,7 +261,7 @@ Adds columns, fills columns, creates indexes. Drops nothing."
 
 **Files:**
 
-- Modify: `backend/src/services/killmail-filters-realtime.ts:20-113`
+- Modify: `backend/src/services/killmail-filters-realtime.ts:21-127`
 
 **Interfaces:**
 
@@ -421,7 +421,7 @@ Attacker arrays are never rewritten."
 
 **Files:**
 
-- Modify: `backend/src/workers/worker-backfill-values.ts:153-160`
+- Modify: `backend/src/workers/worker-backfill-values.ts:170-176`
 
 **Interfaces:**
 
@@ -483,8 +483,8 @@ the rows the backfill exists to correct."
 
 **Files:**
 
-- Modify: `backend/src/workers/worker-redisq-stream.ts:57-77` (arayüzler),
-  `:196-232` (`pollR2Z2`), `:236-250` (`processKillmail`)
+- Modify: `backend/src/workers/worker-redisq-stream.ts:57-80` (arayüzler),
+  `:215-250` (`pollR2Z2`), `:255-270` (`processKillmail`)
 
 **Interfaces:**
 
@@ -634,72 +634,107 @@ ingestion."
 
 ---
 
-### Task 5: `victims.faction_id`'yi yaz
+### Task 5: `faction_id`'yi yaz — victim ve attacker
 
 **Files:**
 
-- Modify: `backend/src/workers/worker-redisq-stream.ts:632`
+- Modify: `backend/src/workers/worker-redisq-stream.ts:682` (victim), `:700` (attacker)
 
 **Interfaces:**
 
 - Consumes: —
 - Produces: —
 
-- [ ] **Step 1: Değişikliği yap**
+- [ ] **Step 1: Victim tarafını düzelt**
 
-`saveKillmail` içindeki victim `create` bloğunda:
+`saveKillmail` içindeki `tx.victim.create` bloğunda, `position_z` satırından sonra gelen:
 
 ```ts
-                    faction_id: null,
+          faction_id: null,
 ```
 
 şununla değişir:
 
 ```ts
-                    faction_id: victim.faction_id ?? null,
+          faction_id: victim.faction_id ?? null,
 ```
 
-- [ ] **Step 2: Derle**
+- [ ] **Step 2: Attacker tarafını düzelt**
+
+`tx.attacker.createMany` içindeki `data: attackers.map(...)` bloğunda, `security_status`
+satırından sonra gelen:
+
+```ts
+            faction_id: null,
+```
+
+şununla değişir:
+
+```ts
+            faction_id: attacker.faction_id ?? null,
+```
+
+Bu satır victim'inkiyle aynı görünüyor ama farklı bir blokta ve farklı bir değişkenden
+okuyor — ikisini de değiştir, birini atlama.
+
+- [ ] **Step 3: Derle**
 
 ```bash
 yarn workspace backend build
 ```
 
-Beklenen: hata yok. `KillmailDetail.victim.faction_id` zaten `faction_id?: number`
-olarak tanımlı (`services/killmail/killmail.service.ts:22`).
+Beklenen: hata yok. `KillmailDetail` her ikisini de `faction_id?: number` olarak tanımlı
+tutuyor — victim için `killmail.service.ts:22`, attacker için `:49`.
 
-- [ ] **Step 3: Doğrula**
+- [ ] **Step 4: Doğrula**
 
-Değişiklikten sonra worker'ı çalıştır ve faction'lı bir kayıp gelene kadar bekle.
-Kalıcı ölçüt, sayının artık sıfırda çakılı kalmaması:
+Önce mevcut durumu kaydet — ikisi de bugün 0:
 
 ```bash
 psql "$DB" -c "
-SELECT count(*) FILTER (WHERE faction_id IS NOT NULL) AS dolu, count(*) AS toplam
-FROM victims WHERE killmail_id IN (
-  SELECT killmail_id FROM killmails ORDER BY created_at DESC LIMIT 500);"
+SELECT (SELECT count(*) FROM victims   WHERE faction_id IS NOT NULL) AS victim_dolu,
+       (SELECT count(*) FROM attackers WHERE faction_id IS NOT NULL) AS attacker_dolu;"
 ```
 
-Faction'lı kayıp seyrek olduğu için son 500 kayıtta 0 çıkması tek başına hata anlamına
-gelmez. Kesin doğrulama: R2Z2'den faction'lı bir payload yakalayıp elle karşılaştır —
+Sonra worker'ı bir süre çalıştır:
 
 ```bash
-curl -s -A 'Killreport Real-Time Sync - github.com/umutyerebakmaz/killreport' \
-  "https://r2z2.zkillboard.com/ephemeral/$(curl -s -A 'k' https://r2z2.zkillboard.com/ephemeral/sequence.json | python3 -c 'import sys,json;print(json.load(sys.stdin)["sequence"]-1)').json" \
-  | python3 -c "import sys,json;print(json.load(sys.stdin)['esi']['victim'].get('faction_id'))"
+cd backend && timeout 300 yarn worker:redisq
 ```
 
-Çıktı `None` değilse o killmail'in `victims.faction_id`'si de dolu olmalı.
+ve aynı sorguyu tekrarla. **`attacker_dolu` sıfırdan çıkmış olmalı** — NPC saldırganlar
+sık, 300.642 attacker satırının 4.850'i NPC görünümlü. `victim_dolu` hâlâ 0 olabilir;
+faction'lı _kayıp_ seyrektir ve bu tek başına hata anlamına gelmez.
 
-- [ ] **Step 4: Commit**
+Kesin doğrulama, R2Z2'den bir payload alıp elle karşılaştırmaktır:
+
+```bash
+SEQ=$(curl -s -A 'Killreport Real-Time Sync - github.com/umutyerebakmaz/killreport' \
+  https://r2z2.zkillboard.com/ephemeral/sequence.json \
+  | python3 -c 'import sys,json;print(json.load(sys.stdin)["sequence"]-1)')
+curl -s -A 'Killreport Real-Time Sync - github.com/umutyerebakmaz/killreport' \
+  "https://r2z2.zkillboard.com/ephemeral/$SEQ.json" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)['esi']
+print('killmail_id:', d['killmail_id'])
+print('victim faction:', d['victim'].get('faction_id'))
+print('attacker factions:', [a.get('faction_id') for a in d['attackers']])"
+```
+
+Çıktıda `None` olmayan bir değer varsa, o killmail veritabanına düştüğünde ilgili satırın
+`faction_id`'si de aynı değeri taşımalı.
+
+- [ ] **Step 5: Commit**
 
 ```bash
 git add backend/src/workers/worker-redisq-stream.ts
-git commit -m "fix(workers): store the victim faction id ESI sends
+git commit -m "fix(workers): store the faction ids ESI sends
 
-The column exists, KillmailDetail carries the field and ESI populates it for
-faction and NPC victims, but saveKillmail wrote an unconditional null. All
-45,035 victim rows are empty as a result."
+Both columns exist, KillmailDetail carries both fields and ESI populates them
+for faction and NPC participants, but saveKillmail wrote an unconditional null
+on each. All 45,035 victim rows and all 300,642 attacker rows are empty as a
+result, and 4,850 of those attackers look like NPCs, which is exactly the set
+ESI would have carried a faction for."
 ```
 
 ---
