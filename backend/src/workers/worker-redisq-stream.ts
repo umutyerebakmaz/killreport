@@ -13,7 +13,8 @@
  * 2. Poll /ephemeral/{sequence}.json, incrementing sequence on each hit
  *    - 200 → killmail payload (killmail_id + hash + esi + zkb), advance sequence
  *    - 404 → no killmail at this sequence yet, wait >= 6s and retry same sequence
- * 3. Fetch full killmail from ESI using ID+hash (kept for identical downstream shape)
+ * 3. Use the ESI killmail already embedded in the payload; fall back to fetching
+ *    it from ESI by ID+hash only if that embedded copy is missing or malformed
  * 4. Save to database with attacker info
  * 5. Repeat indefinitely
  *
@@ -226,7 +227,15 @@ function isUsableEsiKillmail(esi: unknown): esi is KillmailDetail {
     typeof k.solar_system_id === 'number' &&
     !!k.victim &&
     typeof k.victim.ship_type_id === 'number' &&
-    Array.isArray(k.attackers)
+    typeof k.victim.corporation_id === 'number' &&
+    typeof k.victim.damage_taken === 'number' &&
+    Array.isArray(k.attackers) &&
+    k.attackers.length > 0 &&
+    k.attackers.every(
+      (a) =>
+        typeof a?.damage_done === 'number' &&
+        typeof a?.final_blow === 'boolean',
+    )
   );
 }
 
