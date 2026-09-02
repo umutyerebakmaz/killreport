@@ -10,7 +10,9 @@ import TopEntitySidebar, {
   TopEntityCardSpec,
 } from "@/components/TopEntitySidebar/TopEntitySidebar";
 import PageHeader from "@/components/ui/PageHeader";
+import type { Killmail } from "@/components/KillmailsTable/types";
 import {
+  KillmailOrderBy,
   useKillmailsDateCountsQuery,
   useKillmailsQuery,
   useNewKillmailSubscription,
@@ -18,6 +20,7 @@ import {
 import {
   buildKillmailFiltersUrl,
   parseKillmailFiltersFromUrl,
+  type KillmailFilters as KillmailFilterValues,
 } from "@/utils/filterUrlHelpers";
 import { CAPSULE_GROUPS, STRUCTURE_GROUPS } from "@/utils/shipGroups";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -62,24 +65,7 @@ function KillmailsContent() {
 
   const [currentPage, setCurrentPage] = useState(urlFilters.page);
   const [pageSize, setPageSize] = useState(25);
-  const [filters, setFilters] = useState<{
-    shipTypeId?: number;
-    shipGroupIds?: number[];
-    characterId?: number;
-    victim?: boolean;
-    attacker?: boolean;
-    characterVictim?: boolean;
-    characterAttacker?: boolean;
-    regionId?: number;
-    constellationId?: number;
-    systemId?: number;
-    securitySpace?: string;
-    minAttackers?: number;
-    maxAttackers?: number;
-    minValue?: number;
-    maxValue?: number;
-    warRelated?: boolean;
-  }>({
+  const [filters, setFilters] = useState<KillmailFilterValues>({
     characterId: urlFilters.characterId,
     shipTypeId: urlFilters.shipTypeId,
     shipGroupIds: urlFilters.shipGroupIds,
@@ -97,7 +83,7 @@ function KillmailsContent() {
     characterAttacker: urlFilters.characterAttacker,
     warRelated: urlFilters.warRelated,
   });
-  const [newKillmails, setNewKillmails] = useState<any[]>([]);
+  const [newKillmails, setNewKillmails] = useState<Killmail[]>([]);
   const [animatingKillmails, setAnimatingKillmails] = useState<Set<string>>(
     new Set(),
   );
@@ -121,7 +107,7 @@ function KillmailsContent() {
       variables: {
         filter: {
           shipGroupIds: STRUCTURE_GROUPS,
-          orderBy: "valueDesc" as any,
+          orderBy: KillmailOrderBy.ValueDesc,
           limit: 20,
           startDate: sevenDaysAgo,
           endDate: today,
@@ -133,7 +119,7 @@ function KillmailsContent() {
   const { data: allShipsData, loading: shipsLoading } = useKillmailsQuery({
     variables: {
       filter: {
-        orderBy: "valueDesc" as any,
+        orderBy: KillmailOrderBy.ValueDesc,
         limit: 50, // Get more to have enough after filtering
         startDate: sevenDaysAgo,
         endDate: today,
@@ -152,17 +138,13 @@ function KillmailsContent() {
         if (!shipGroupId) return false;
         return !excludedGroupIds.includes(shipGroupId);
       })
-      .slice(0, 20) as any[]; // Take only top 20 after filtering
+      .slice(0, 20); // Take only top 20 after filtering
   }, [allShipsData]);
 
-  // Subscribe to new killmails only when on first page and no filters are active
-  const {
-    data: subscriptionData,
-    loading: subscriptionLoading,
-    error: subscriptionError,
-  } = useNewKillmailSubscription({
-    skip:
-      currentPage !== 1 ||
+  // A live killmail may not match an active filter, so the feed only runs on
+  // the unfiltered first page.
+  const hasActiveFilters = useMemo(
+    () =>
       !!(
         filters.shipTypeId ||
         filters.shipGroupIds?.length ||
@@ -174,65 +156,47 @@ function KillmailsContent() {
         filters.regionId ||
         filters.constellationId ||
         filters.systemId ||
+        filters.securitySpace ||
         filters.minAttackers ||
         filters.maxAttackers ||
         filters.minValue ||
         filters.maxValue ||
         filters.warRelated
-      ), // Skip if not on first page OR filters are active
-  });
+      ),
+    [filters],
+  );
 
-  // Debug subscription (removed for production performance)
+  const resetRealtimeState = useCallback(() => {
+    setNewKillmails([]);
+    setRealtimeDateCounts(new Map());
+    setRealtimeTotalCountIncrement(0);
+  }, []);
 
-  // Add new killmail to the list when received (only if no filters are active)
-  useEffect(() => {
-    if (
-      subscriptionData?.newKillmail &&
-      currentPage === 1 &&
-      !filters.shipTypeId &&
-      !filters.shipGroupIds?.length &&
-      !filters.characterId &&
-      !filters.victim &&
-      !filters.attacker &&
-      !filters.characterVictim &&
-      !filters.characterAttacker &&
-      !filters.regionId &&
-      !filters.constellationId &&
-      !filters.systemId &&
-      !filters.minAttackers &&
-      !filters.maxAttackers &&
-      !filters.minValue &&
-      !filters.maxValue &&
-      !filters.warRelated
-    ) {
-      const km = subscriptionData.newKillmail;
+  // Apollo pushes each new killmail through onData, so the list is updated from
+  // the subscription callback rather than from an effect watching its result.
+  useNewKillmailSubscription({
+    skip: currentPage !== 1 || hasActiveFilters,
+    ignoreResults: true,
+    onData: ({ data }) => {
+      const km = data.data?.newKillmail;
+      if (!km) return;
 
-      setNewKillmails((prev) => {
-        // Check if killmail already exists
-        const exists = prev.some((k) => k.id === km.id);
-        if (exists) return prev;
-
-        // Add new killmail to the top of the list
-        return [km, ...prev];
-      });
+      setNewKillmails((prev) =>
+        prev.some((k) => k.id === km.id) ? prev : [km, ...prev],
+      );
 
       // Update date count for the killmail's date
-      const killmailDate = new Date(km.killmailTime)
-        .toISOString()
-        .split("T")[0];
+      const killmailDate = new Date(km.killmailTime).toISOString().split("T")[0];
       setRealtimeDateCounts((prev) => {
         const next = new Map(prev);
         next.set(killmailDate, (next.get(killmailDate) || 0) + 1);
         return next;
       });
 
-      // Increment total count
       setRealtimeTotalCountIncrement((prev) => prev + 1);
 
-      // Add to animating set
+      // Highlight the row, then drop it from the animating set again
       setAnimatingKillmails((prev) => new Set(prev).add(km.id));
-
-      // Remove from animating set after animation completes
       setTimeout(() => {
         setAnimatingKillmails((prev) => {
           const next = new Set(prev);
@@ -240,39 +204,28 @@ function KillmailsContent() {
           return next;
         });
       }, 3000);
-    }
-  }, [subscriptionData, currentPage, filters]);
+    },
+  });
 
-  // Reset new killmails when filters change
-  useEffect(() => {
-    setNewKillmails([]);
-    setRealtimeDateCounts(new Map());
-    setRealtimeTotalCountIncrement(0);
-  }, [currentPage, filters]);
+  // Leaving the page the feed belongs to invalidates the buffered kills.
+  const goToPage = useCallback(
+    (page: number) => {
+      if (page === currentPage) return;
+      resetRealtimeState();
+      setCurrentPage(page);
+    },
+    [currentPage, resetRealtimeState],
+  );
 
-  const handleFilterChange = (newFilters: {
-    shipTypeId?: number;
-    shipGroupIds?: number[];
-    characterId?: number;
-    victim?: boolean;
-    attacker?: boolean;
-    characterVictim?: boolean;
-    characterAttacker?: boolean;
-    regionId?: number;
-    constellationId?: number;
-    systemId?: number;
-    minAttackers?: number;
-    maxAttackers?: number;
-    minValue?: number;
-    maxValue?: number;
-    warRelated?: boolean;
-  }) => {
+  const handleFilterChange = (newFilters: KillmailFilterValues) => {
     setFilters(newFilters);
+    resetRealtimeState();
     setCurrentPage(1); // Reset to first page when filters change
   };
 
   const handleClearFilters = () => {
     setFilters({});
+    resetRealtimeState();
     setCurrentPage(1);
   };
 
@@ -281,7 +234,7 @@ function KillmailsContent() {
       filter: {
         page: currentPage,
         limit: pageSize,
-        orderBy: "timeDesc" as any,
+        orderBy: KillmailOrderBy.TimeDesc,
         shipTypeId: filters.shipTypeId,
         shipGroupIds: filters.shipGroupIds,
         characterId: filters.characterId,
@@ -346,25 +299,7 @@ function KillmailsContent() {
   useEffect(() => {
     const urlParams = buildKillmailFiltersUrl(currentPage, filters);
     router.push(`/killmails?${urlParams}`, { scroll: false });
-  }, [
-    currentPage,
-    filters.characterId,
-    filters.shipTypeId,
-    filters.shipGroupIds,
-    filters.victim,
-    filters.attacker,
-    filters.characterVictim,
-    filters.characterAttacker,
-    filters.systemId,
-    filters.constellationId,
-    filters.securitySpace,
-    filters.minAttackers,
-    filters.maxAttackers,
-    filters.minValue,
-    filters.maxValue,
-    filters.warRelated,
-    router,
-  ]);
+  }, [currentPage, filters, router]);
 
   // Memoize killmails array to prevent unnecessary recalculations
   const killmails = useMemo(
@@ -403,17 +338,17 @@ function KillmailsContent() {
   }, [pageInfo?.totalCount, realtimeTotalCountIncrement]);
 
   const handleNext = useCallback(
-    () => pageInfo?.hasNextPage && setCurrentPage((prev) => prev + 1),
-    [pageInfo?.hasNextPage],
+    () => pageInfo?.hasNextPage && goToPage(currentPage + 1),
+    [pageInfo?.hasNextPage, goToPage, currentPage],
   );
   const handlePrev = useCallback(
-    () => pageInfo?.hasPreviousPage && setCurrentPage((prev) => prev - 1),
-    [pageInfo?.hasPreviousPage],
+    () => pageInfo?.hasPreviousPage && goToPage(currentPage - 1),
+    [pageInfo?.hasPreviousPage, goToPage, currentPage],
   );
-  const handleFirst = useCallback(() => setCurrentPage(1), []);
+  const handleFirst = useCallback(() => goToPage(1), [goToPage]);
   const handleLast = useCallback(
-    () => totalPages > 0 && setCurrentPage(totalPages),
-    [totalPages],
+    () => totalPages > 0 && goToPage(totalPages),
+    [totalPages, goToPage],
   );
 
   // Handle error state
@@ -475,14 +410,14 @@ function KillmailsContent() {
         <KillmailCarousel
           title="Most Valuable Ships"
           subtitle="Last 7 Days - Highest value ship kills"
-          killmails={shipsData || []}
+          killmails={shipsData}
           loading={shipsLoading}
         />
 
         <KillmailCarousel
           title="Most Valuable Structures"
           subtitle="Last 7 Days - Citadels, Engineering Complexes, and Refineries"
-          killmails={(structuresData?.killmails.items as any) || []}
+          killmails={structuresData?.killmails.items ?? []}
           loading={structuresLoading}
         />
       </div>
@@ -513,7 +448,7 @@ function KillmailsContent() {
               pageSize={pageSize}
               onPageSizeChange={(size) => {
                 setPageSize(size);
-                setCurrentPage(1);
+                goToPage(1);
               }}
             />
           </div>
