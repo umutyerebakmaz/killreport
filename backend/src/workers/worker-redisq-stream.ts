@@ -715,7 +715,7 @@ async function saveKillmail(
           position_x: victim.position?.x || null,
           position_y: victim.position?.y || null,
           position_z: victim.position?.z || null,
-          faction_id: null,
+          faction_id: victim.faction_id ?? null,
         },
       });
 
@@ -733,7 +733,7 @@ async function saveKillmail(
             damage_done: attacker.damage_done,
             final_blow: attacker.final_blow,
             security_status: attacker.security_status ?? null,
-            faction_id: null,
+            faction_id: attacker.faction_id ?? null,
           })),
         });
       }
