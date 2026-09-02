@@ -4,7 +4,8 @@ import type {
     AllianceKillmailsQuery,
     CharacterKillmailsQuery,
     CorporationKillmailsQuery,
-    KillmailsQuery
+    KillmailsQuery,
+    NewKillmailSubscription
 } from '@/generated/graphql';
 
 // Extract the Killmail type from the GraphQL query result
@@ -12,7 +13,11 @@ export type Killmail =
     NonNullable<KillmailsQuery['killmails']['items'][number]> |
     NonNullable<CharacterKillmailsQuery['killmails']['items'][number]> |
     NonNullable<CorporationKillmailsQuery['killmails']['items'][number]> |
-    NonNullable<AllianceKillmailsQuery['killmails']['items'][number]>;
+    NonNullable<AllianceKillmailsQuery['killmails']['items'][number]> |
+    // The live feed deliberately does not select `attackers` - a fleet fight
+    // carries hundreds of them and the only reader (getKillmailRowStyles entity
+    // highlighting) is never active on the page the subscription runs on.
+    (NewKillmailSubscription['newKillmail'] & { attackers?: undefined });
 
 export interface KillmailsTableProps {
     /** Killmails array - component will group by date automatically */

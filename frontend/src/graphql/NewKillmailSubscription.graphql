@@ -4,6 +4,8 @@ subscription NewKillmail {
     killmailTime
     totalValue
     attackerCount
+    solo
+    npc
     isWarRelated
     solarSystem {
       id
@@ -13,6 +15,7 @@ subscription NewKillmail {
         id
         name
         region {
+          id
           name
         }
       }
