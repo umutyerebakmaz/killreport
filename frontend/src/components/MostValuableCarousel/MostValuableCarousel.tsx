@@ -18,6 +18,13 @@ const CARD_COUNT = 20;
 /** Card width (w-80 = 320px) plus the flex gap (gap-4 = 16px). */
 const CARD_PITCH = 336;
 
+/**
+ * One panel element whose content swaps, so every tab points at the same id.
+ * A per-scope id would leave the three inactive tabs' `aria-controls` naming an
+ * element that is not in the DOM.
+ */
+const PANEL_ID = 'most-valuable-panel';
+
 interface Tab {
   scope: MostValuableScope;
   label: string;
@@ -104,7 +111,6 @@ export default function MostValuableCarousel() {
   const activeTab = TABS.find((t) => t.scope === activeScope)!;
 
   const tabId = (scope: MostValuableScope) => `most-valuable-tab-${scope}`;
-  const panelId = (scope: MostValuableScope) => `most-valuable-panel-${scope}`;
 
   return (
     <Card>
@@ -153,7 +159,7 @@ export default function MostValuableCarousel() {
             id={tabId(tab.scope)}
             role="tab"
             aria-selected={tab.scope === activeScope}
-            aria-controls={panelId(tab.scope)}
+            aria-controls={PANEL_ID}
             onClick={() => setActiveScope(tab.scope)}
             className={`px-4 py-2 text-sm font-medium transition-colors ${
               tab.scope === activeScope
@@ -166,11 +172,7 @@ export default function MostValuableCarousel() {
         ))}
       </div>
 
-      <div
-        role="tabpanel"
-        id={panelId(activeScope)}
-        aria-labelledby={tabId(activeScope)}
-      >
+      <div role="tabpanel" id={PANEL_ID} aria-labelledby={tabId(activeScope)}>
         {loading ? (
           // Skeletons rather than a centred spinner: the shelf keeps its height, so
           // switching tabs does not make the page jump.
