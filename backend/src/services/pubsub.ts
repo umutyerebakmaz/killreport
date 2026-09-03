@@ -2,6 +2,8 @@ import { createRedisEventTarget } from '@graphql-yoga/redis-event-target';
 import { createPubSub } from 'graphql-yoga';
 import Redis from 'ioredis';
 
+import { config } from '@config/config';
+
 // PubSub event types
 import type { SovereigntyAlertData } from '@services/sovereignty/alert-builder';
 
@@ -11,9 +13,9 @@ export type PubSubChannels = {
     'SOVEREIGNTY_ALERT': [SovereigntyAlertData];
 };
 
-// Check if Redis is available for distributed PubSub
-const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
-const USE_REDIS = process.env.USE_REDIS_PUBSUB === 'true';
+// Read through config so .env is loaded before these are evaluated; see cache.ts.
+const REDIS_URL = config.redis.url;
+const USE_REDIS = config.redis.usePubSub;
 
 // Create PubSub instance
 export const pubsub = USE_REDIS
