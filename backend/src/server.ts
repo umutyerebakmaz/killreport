@@ -258,7 +258,7 @@ useServer(
  * Start server
  */
 const port = config.app.port;
-const USE_REDIS = process.env.USE_REDIS_PUBSUB === 'true';
+const USE_REDIS = config.redis.usePubSub;
 
 server.listen(port, () => {
   logger.info('='.repeat(80));

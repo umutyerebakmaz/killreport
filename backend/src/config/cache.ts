@@ -1,3 +1,5 @@
+import { config } from '@config/config';
+
 /**
  * Cache Configuration Constants
  */
@@ -122,10 +124,15 @@ export const TTL_PER_SCHEMA_COORDINATE: Record<string, number> = {
 export const MAX_CACHE_TTL_SECONDS = 31536000; // 365 days
 
 /**
- * Redis connection configuration
+ * Redis connection configuration.
+ *
+ * The URL comes from config, not from process.env directly: this module runs
+ * when it is first imported, and server.ts imports it before the module that
+ * loads .env. Read here, REDIS_URL was still empty and the client silently
+ * fell back to database 0.
  */
 export const REDIS_CONFIG = {
-  url: process.env.REDIS_URL || 'redis://localhost:6379',
+  url: config.redis.url,
   maxRetriesPerRequest: 3,
   lazyConnect: true,
   enableReadyCheck: true,
