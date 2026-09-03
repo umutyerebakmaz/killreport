@@ -63,8 +63,7 @@ export default function MostValuableCarousel() {
     variables: { scope: activeScope, days: WINDOW_DAYS, limit: CARD_COUNT },
   });
 
-  const killmails = (data?.mostValuableKillmails ??
-    []) as unknown as KillmailCardData[];
+  const killmails: KillmailCardData[] = data?.mostValuableKillmails ?? [];
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -103,6 +102,9 @@ export default function MostValuableCarousel() {
   };
 
   const activeTab = TABS.find((t) => t.scope === activeScope)!;
+
+  const tabId = (scope: MostValuableScope) => `most-valuable-tab-${scope}`;
+  const panelId = (scope: MostValuableScope) => `most-valuable-panel-${scope}`;
 
   return (
     <Card>
@@ -148,8 +150,10 @@ export default function MostValuableCarousel() {
         {TABS.map((tab) => (
           <button
             key={tab.scope}
+            id={tabId(tab.scope)}
             role="tab"
             aria-selected={tab.scope === activeScope}
+            aria-controls={panelId(tab.scope)}
             onClick={() => setActiveScope(tab.scope)}
             className={`px-4 py-2 text-sm font-medium transition-colors ${
               tab.scope === activeScope
@@ -162,35 +166,41 @@ export default function MostValuableCarousel() {
         ))}
       </div>
 
-      {loading ? (
-        // Skeletons rather than a centred spinner: the shelf keeps its height, so
-        // switching tabs does not make the page jump.
-        <div className="flex gap-4 overflow-hidden">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div
-              key={i}
-              className="flex-none w-80 h-[420px] bg-white/5 animate-pulse"
-            />
-          ))}
-        </div>
-      ) : killmails.length === 0 ? (
-        <div className="flex items-center justify-center h-[420px] text-gray-500">
-          <p className="text-sm font-medium">{activeTab.emptyText}</p>
-        </div>
-      ) : (
-        <div
-          ref={scrollRef}
-          onScroll={measure}
-          className="flex gap-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
-          {killmails.map((killmail, index) => (
-            <div key={killmail.id} className="flex-none w-80 snap-start">
-              <KillmailCard killmail={killmail} rank={index + 1} />
-            </div>
-          ))}
-        </div>
-      )}
+      <div
+        role="tabpanel"
+        id={panelId(activeScope)}
+        aria-labelledby={tabId(activeScope)}
+      >
+        {loading ? (
+          // Skeletons rather than a centred spinner: the shelf keeps its height, so
+          // switching tabs does not make the page jump.
+          <div className="flex gap-4 overflow-hidden">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex-none w-80 h-[420px] bg-white/5 animate-pulse"
+              />
+            ))}
+          </div>
+        ) : killmails.length === 0 ? (
+          <div className="flex items-center justify-center h-[420px] text-gray-500">
+            <p className="text-sm font-medium">{activeTab.emptyText}</p>
+          </div>
+        ) : (
+          <div
+            ref={scrollRef}
+            onScroll={measure}
+            className="flex gap-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {killmails.map((killmail, index) => (
+              <div key={killmail.id} className="flex-none w-80 snap-start">
+                <KillmailCard killmail={killmail} rank={index + 1} />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </Card>
   );
 }
