@@ -72,6 +72,34 @@ anyway.
 **Correction:** the old guide said schemas live in `src/schema/` and queue
 scripts in `src/scripts/`. They are `src/schemas/` and `src/queues/`.
 
+### The service layer, in practice
+
+The table above is the target, not a description of the code. As of 2026-09-03
+`backend/src/services/` holds two different things, and only one of them is what
+the table means by a service:
+
+- **ESI clients** — `AllianceService`, `CharacterService`, `TypeService`,
+  `CategoryService`, `killmail/killmail.service.ts` and the rest. A class of
+  `static` methods wrapping `fetch` behind `esiRateLimiter`. Almost every caller
+  is a worker or a queue script, which is correct: resolvers must never call ESI.
+- **Read services the resolvers call** — there are four:
+  `alliance/alliance-stats.service.ts`, `character/character-stats.service.ts`,
+  `corporation/corporation-stats.service.ts` (all three exporting plain
+  `async function`s) and `solar-system/solar-system-stats.service.ts` (a class of
+  `static` methods). Each one is `redis.get` → `$queryRaw` → `redis.setex`, with
+  every filter parameter in the cache key.
+
+Everything else reads the database straight from the resolver — every query in
+`resolvers/killmail/queries.ts` among them. That is the debt, and it is why a new
+service can look out of place next to its neighbours. It isn't: **a new read path
+gets a service in the second style, whatever the file beside it does.** Prefer the
+plain-function form; the `static`-method class is the odd one out and exists only
+because `solar-system-stats` was written that way first.
+
+Do not refactor the existing resolvers into services as a side effect of an
+unrelated change. It is real work with its own review, and mixing it into a
+feature diff hides both.
+
 ---
 
 ## Database migrations
@@ -595,8 +623,10 @@ grep -rn --include='*.md' -oE '\]\([^)#][^)]*\)' . | grep -v node_modules
 `docs/superpowers/plans/` are read and reviewed by the user directly. Code, file
 paths and GraphQL/SQL snippets stay as they are.
 
-**Everything pushed to GitHub is written in English** — commit messages, PR
-titles and bodies, comments, and repository files such as this one.
+**Everything pushed to GitHub is written in English** — branch names, commit
+messages, PR titles and bodies, comments, and repository files such as this one.
+Branch names included even when the branch was created from a Turkish request,
+and even before it is pushed: rename it at the start, not at review time.
 
 **No Claude attribution in commits or PRs.** No `Co-Authored-By: Claude`, no
 "Generated with Claude Code" footer. This overrides the harness default.
