@@ -23,18 +23,22 @@ async function queueCharacterCorporations() {
       .map((c) => c.corporation_id)
       .filter((id): id is number => id !== null && id !== undefined);
 
-    logger.info(`Found ${corporationIdsFromCharacters.length} unique corporations from characters`);
+    logger.info(
+      `Found ${corporationIdsFromCharacters.length} unique corporations from characters`,
+    );
 
     // Get existing corporation IDs from database
     const existingCorporations = await prismaWorker.corporation.findMany({
       select: { id: true },
     });
 
-    const existingCorporationIds = new Set(existingCorporations.map((c) => c.id));
+    const existingCorporationIds = new Set(
+      existingCorporations.map((c) => c.id),
+    );
 
     // Find missing corporations
     const missingCorporationIds = corporationIdsFromCharacters.filter(
-      (id) => !existingCorporationIds.has(id)
+      (id) => !existingCorporationIds.has(id),
     );
 
     logger.info(`Found ${missingCorporationIds.length} missing corporations`);
@@ -73,12 +77,14 @@ async function queueCharacterCorporations() {
 
       logger.info(
         `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
-          missingCorporationIds.length / BATCH_SIZE
-        )} (${batch.length} corporations)`
+          missingCorporationIds.length / BATCH_SIZE,
+        )} (${batch.length} corporations)`,
       );
     }
 
-    logger.info(`✅ All ${queuedCount} missing corporations queued successfully!`);
+    logger.info(
+      `✅ All ${queuedCount} missing corporations queued successfully!`,
+    );
     logger.info('Now run the worker: yarn worker:info:corporations');
 
     await channel.close();

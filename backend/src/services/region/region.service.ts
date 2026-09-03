@@ -26,7 +26,7 @@ export class RegionService {
   static async getRegionInfo(regionId: number) {
     return esiRateLimiter.execute(async () => {
       const response = await axios.get(
-        `${ESI_BASE_URL}/universe/regions/${regionId}/`
+        `${ESI_BASE_URL}/universe/regions/${regionId}/`,
       );
       return response.data;
     });

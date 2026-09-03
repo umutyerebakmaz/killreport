@@ -40,7 +40,10 @@ const SOURCE = 'worker-planets';
 // Concurrency, not a rate limit - esiRateLimiter owns the dispatch ceiling.
 // Its job is to keep that ceiling fed, so it has to be at least a fraction of
 // the target rate. Override per run with ESI_PREFETCH.
-const PREFETCH_COUNT = Math.max(config.esi.prefetch, Math.ceil(config.esi.maxRequestsPerSecond / 2));
+const PREFETCH_COUNT = Math.max(
+  config.esi.prefetch,
+  Math.ceil(config.esi.maxRequestsPerSecond / 2),
+);
 /** Queue quiet for this long, with nothing in flight, means the run is done. */
 const IDLE_EXIT_MS = 5000;
 
@@ -50,7 +53,9 @@ async function planetsWorker() {
   logger.info('🚀 Planet Worker Started');
   logger.info(`📦 Queue: ${QUEUE_NAME}`);
   logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent`);
-  logger.info(`🚦 ESI ceiling: ${config.esi.maxRequestsPerSecond} req/sec (ESI_MAX_RPS)\n`);
+  logger.info(
+    `🚦 ESI ceiling: ${config.esi.maxRequestsPerSecond} req/sec (ESI_MAX_RPS)\n`,
+  );
 
   try {
     const channel = await getRabbitMQChannel();
@@ -62,7 +67,9 @@ async function planetsWorker() {
     channel.prefetch(PREFETCH_COUNT);
 
     const queueInfo = await channel.checkQueue(QUEUE_NAME);
-    logger.info(`📊 Queue status: ${queueInfo.messageCount} messages waiting\n`);
+    logger.info(
+      `📊 Queue status: ${queueInfo.messageCount} messages waiting\n`,
+    );
 
     let processed = 0;
     let errors = 0;
@@ -97,9 +104,13 @@ async function planetsWorker() {
         const duration = ((Date.now() - startTime) / 1000).toFixed(2);
         logger.info('\n' + '='.repeat(60));
         logger.info('🎉 ALL TASKS COMPLETED!');
-        logger.info(`✅ Processed: ${processed}   ❌ Errors: ${errors}   ⏱️  ${duration}s`);
+        logger.info(
+          `✅ Processed: ${processed}   ❌ Errors: ${errors}   ⏱️  ${duration}s`,
+        );
         logger.info('='.repeat(60));
-        logger.info('\n💡 Moons and asteroid belts are queued now - run their workers next.\n');
+        logger.info(
+          '\n💡 Moons and asteroid belts are queued now - run their workers next.\n',
+        );
       }
 
       void shutdown(errors > 0 ? 1 : 0);
@@ -113,7 +124,6 @@ async function planetsWorker() {
         inFlight++;
 
         try {
-
           const payload = parseTopologyMessage<PlanetMessage>(msg);
 
           if (!payload || typeof payload.planetId !== 'number') {
@@ -123,7 +133,13 @@ async function planetsWorker() {
             return;
           }
 
-          const { planetId, solarSystemId, orbitIndex, moonIds, asteroidBeltIds } = payload;
+          const {
+            planetId,
+            solarSystemId,
+            orbitIndex,
+            moonIds,
+            asteroidBeltIds,
+          } = payload;
 
           try {
             // 1. Write the row from the message. Everything here is authoritative:
@@ -131,7 +147,10 @@ async function planetsWorker() {
             //    equivalent field in the by-ID response.
             await prismaWorker.planet.upsert({
               where: { id: planetId },
-              update: { solar_system_id: solarSystemId, orbit_index: orbitIndex },
+              update: {
+                solar_system_id: solarSystemId,
+                orbit_index: orbitIndex,
+              },
               create: {
                 id: planetId,
                 solar_system_id: solarSystemId,
@@ -178,10 +197,12 @@ async function planetsWorker() {
             processed++;
             logger.info(
               `  ✅ [${processed}] Planet ${planetId} - ${data.name ?? '(unnamed)'} ` +
-                `(${moonIds?.length ?? 0} moons, ${asteroidBeltIds?.length ?? 0} belts queued)`
+                `(${moonIds?.length ?? 0} moons, ${asteroidBeltIds?.length ?? 0} belts queued)`,
             );
             if (processed % 100 === 0) {
-              logger.info(`📊 Progress: ${processed} processed, ${errors} errors`);
+              logger.info(
+                `📊 Progress: ${processed} processed, ${errors} errors`,
+              );
             }
             channel.ack(msg);
           } catch (error: any) {
@@ -192,14 +213,21 @@ async function planetsWorker() {
               logger.warn(`⚠️  Planet ${planetId} not found (404)`);
               channel.ack(msg);
             } else {
-              await handleWorkerError(channel, msg, payload, QUEUE_NAME, error, logger);
+              await handleWorkerError(
+                channel,
+                msg,
+                payload,
+                QUEUE_NAME,
+                error,
+                logger,
+              );
             }
           }
         } finally {
           inFlight--;
         }
       },
-      { noAck: false }
+      { noAck: false },
     );
 
     // SIGTERM too, not just SIGINT: timeout(1) and PM2 both send SIGTERM,

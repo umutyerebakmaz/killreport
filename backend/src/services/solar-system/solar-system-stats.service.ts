@@ -2,28 +2,28 @@ import prisma from '@services/prisma';
 import redis from '@services/redis';
 
 export interface SolarSystemStats {
-    systemId: number;
-    totalKills: number;
-    totalIskDestroyed: number;
-    kills24h: number;
-    kills7d: number;
-    iskDestroyed7d: number;
-    lastKillTime: string | null;
-    busiestHourUtc: number | null;
+  systemId: number;
+  totalKills: number;
+  totalIskDestroyed: number;
+  kills24h: number;
+  kills7d: number;
+  iskDestroyed7d: number;
+  lastKillTime: string | null;
+  busiestHourUtc: number | null;
 }
 
 interface TotalsRow {
-    total_kills: bigint;
-    total_isk: number;
-    kills_24h: bigint;
-    kills_7d: bigint;
-    isk_7d: number;
-    last_kill_time: Date | null;
+  total_kills: bigint;
+  total_isk: number;
+  kills_24h: bigint;
+  kills_7d: bigint;
+  isk_7d: number;
+  last_kill_time: Date | null;
 }
 
 interface HourRow {
-    hour: number;
-    kill_count: bigint;
+  hour: number;
+  kill_count: bigint;
 }
 
 const CACHE_TTL_SECONDS = 300;
@@ -40,12 +40,12 @@ const CACHE_TTL_SECONDS = 300;
  * index.
  */
 export class SolarSystemStatsService {
-    static async getStats(systemId: number): Promise<SolarSystemStats> {
-        const cacheKey = `solarSystem:stats:${systemId}`;
-        const cached = await redis.get(cacheKey);
-        if (cached) return JSON.parse(cached);
+  static async getStats(systemId: number): Promise<SolarSystemStats> {
+    const cacheKey = `solarSystem:stats:${systemId}`;
+    const cached = await redis.get(cacheKey);
+    if (cached) return JSON.parse(cached);
 
-        const [totals] = await prisma.$queryRaw<TotalsRow[]>`
+    const [totals] = await prisma.$queryRaw<TotalsRow[]>`
             SELECT
                 COUNT(*)::BIGINT AS total_kills,
                 COALESCE(SUM(total_value), 0)::DOUBLE PRECISION AS total_isk,
@@ -57,9 +57,9 @@ export class SolarSystemStatsService {
             WHERE solar_system_id = ${systemId}
         `;
 
-        // Ties break on the lower hour so the cached answer is stable between
-        // refreshes.
-        const busiest = await prisma.$queryRaw<HourRow[]>`
+    // Ties break on the lower hour so the cached answer is stable between
+    // refreshes.
+    const busiest = await prisma.$queryRaw<HourRow[]>`
             SELECT EXTRACT(HOUR FROM killmail_time AT TIME ZONE 'UTC')::INT AS hour,
                    COUNT(*)::BIGINT AS kill_count
             FROM killmails
@@ -70,20 +70,20 @@ export class SolarSystemStatsService {
             LIMIT 1
         `;
 
-        // ::BIGINT arrives as a JavaScript BigInt, and JSON.stringify throws on
-        // those, so every count is converted before it reaches the cache.
-        const result: SolarSystemStats = {
-            systemId,
-            totalKills: Number(totals?.total_kills ?? 0),
-            totalIskDestroyed: totals?.total_isk ?? 0,
-            kills24h: Number(totals?.kills_24h ?? 0),
-            kills7d: Number(totals?.kills_7d ?? 0),
-            iskDestroyed7d: totals?.isk_7d ?? 0,
-            lastKillTime: totals?.last_kill_time?.toISOString() ?? null,
-            busiestHourUtc: busiest.length > 0 ? busiest[0].hour : null,
-        };
+    // ::BIGINT arrives as a JavaScript BigInt, and JSON.stringify throws on
+    // those, so every count is converted before it reaches the cache.
+    const result: SolarSystemStats = {
+      systemId,
+      totalKills: Number(totals?.total_kills ?? 0),
+      totalIskDestroyed: totals?.total_isk ?? 0,
+      kills24h: Number(totals?.kills_24h ?? 0),
+      kills7d: Number(totals?.kills_7d ?? 0),
+      iskDestroyed7d: totals?.isk_7d ?? 0,
+      lastKillTime: totals?.last_kill_time?.toISOString() ?? null,
+      busiestHourUtc: busiest.length > 0 ? busiest[0].hour : null,
+    };
 
-        await redis.setex(cacheKey, CACHE_TTL_SECONDS, JSON.stringify(result));
-        return result;
-    }
+    await redis.setex(cacheKey, CACHE_TTL_SECONDS, JSON.stringify(result));
+    return result;
+  }
 }

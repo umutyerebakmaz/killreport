@@ -10,15 +10,15 @@
  */
 export const CHARGE_GROUP_IDS = new Set([
   // Ammunition
-  83,   // Projectile Ammo
-  85,   // Hybrid Charges
-  86,   // Frequency Crystals
+  83, // Projectile Ammo
+  85, // Hybrid Charges
+  86, // Frequency Crystals
 
   // Module Charges
-  87,   // Capacitor Booster Charges
-  88,   // Mining Crystals
-  89,   // Shield Booster Charges
-  90,   // Armor Repair Charges (Nanite Paste)
+  87, // Capacitor Booster Charges
+  88, // Mining Crystals
+  89, // Shield Booster Charges
+  90, // Armor Repair Charges (Nanite Paste)
 
   // Scripts
   1771, // Burst Projector Scripts
@@ -38,10 +38,10 @@ export const CHARGE_GROUP_IDS = new Set([
   1787, // Remote ECM Burst Scripts
 
   // Advanced Charges
-  479,  // Scanner Probe (Core Scanner Probe, Combat Scanner Probe, etc.)
-  492,  // Survey Probe
+  479, // Scanner Probe (Core Scanner Probe, Combat Scanner Probe, etc.)
+  492, // Survey Probe
   1796, // Structure Scanner Probe (deprecated ID)
-  863,  // Survey Probe (old)
+  863, // Survey Probe (old)
 
   // Structure/Upwell Charges
   4217, // Structure Anti-Capital Missiles
@@ -71,10 +71,14 @@ export function isModule(groupId: number | null | undefined): boolean {
  * Given a list of items in the same slot (same flag),
  * separates them into modules and charges
  */
-export function separateModulesAndCharges<T extends {
-  item_type_id: number;
-  itemType?: { group_id?: number | null } | null;
-}>(items: T[]): {
+export function separateModulesAndCharges<
+  T extends {
+    item_type_id: number;
+    itemType?: { group_id?: number | null } | null;
+  },
+>(
+  items: T[],
+): {
   modules: T[];
   charges: T[];
 } {
@@ -110,12 +114,12 @@ export function hasCharge(item: { charge?: any }): boolean {
  * as overlays on their parent modules, not as separate slot entries.
  */
 export function filterModulesOnly<T extends { flag: number; charge?: any }>(
-  items: T[]
+  items: T[],
 ): T[] {
   // Group items by their flag (slot position)
   const itemsByFlag = new Map<number, T[]>();
 
-  items.forEach(item => {
+  items.forEach((item) => {
     const existing = itemsByFlag.get(item.flag) || [];
     existing.push(item);
     itemsByFlag.set(item.flag, existing);
@@ -130,7 +134,7 @@ export function filterModulesOnly<T extends { flag: number; charge?: any }>(
       result.push(flagItems[0]);
     } else {
       // Multiple items in same slot - find the module (has charge field)
-      const moduleItem = flagItems.find(item => hasCharge(item));
+      const moduleItem = flagItems.find((item) => hasCharge(item));
       if (moduleItem) {
         // Found module with charge - use it
         result.push(moduleItem);

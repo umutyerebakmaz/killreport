@@ -55,12 +55,13 @@ async function updateAllianceCounts() {
     }
 
     const endTime = new Date();
-    const duration = ((endTime.getTime() - startTime.getTime()) / 1000).toFixed(2);
+    const duration = ((endTime.getTime() - startTime.getTime()) / 1000).toFixed(
+      2,
+    );
 
     console.log(`✅ Update completed!`);
     console.log(`   • Total updated: ${processed}`);
     console.log(`   • Duration: ${duration} seconds`);
-
   } catch (error) {
     console.error('❌ Update error:', error);
     throw error;

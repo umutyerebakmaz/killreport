@@ -127,7 +127,7 @@ class UserKillmailCron {
 
     // 3. Add each user to queue
     for (const user of users) {
-      channel.sendToQueue("esi_user_killmails_queue", message, {
+      channel.sendToQueue('esi_user_killmails_queue', message, {
         priority: 3, // 🔵 Low priority (background)
       });
     }
@@ -226,16 +226,16 @@ async function esiUserKillmailWorker() {
   const channel = await getRabbitMQChannel();
 
   // 2. Assert queue (create if not exists)
-  await channel.assertQueue("esi_user_killmails_queue", {
+  await channel.assertQueue('esi_user_killmails_queue', {
     durable: true,
-    arguments: { "x-max-priority": 10 },
+    arguments: { 'x-max-priority': 10 },
   });
 
   // 3. Set prefetch (how many messages to process simultaneously)
   channel.prefetch(1); // One user at a time
 
   // 4. Consume messages
-  channel.consume("esi_user_killmails_queue", async (msg) => {
+  channel.consume('esi_user_killmails_queue', async (msg) => {
     const message = JSON.parse(msg.content.toString());
 
     // 5. Fetch user's killmails
@@ -376,7 +376,7 @@ flowchart TB
 
 ```typescript
 // backend/src/server.ts
-import { userKillmailCron } from "./services/user-killmail-cron";
+import { userKillmailCron } from './services/user-killmail-cron';
 
 server.listen(port, () => {
   // ...
@@ -403,7 +403,7 @@ server.listen(port, () => {
 ```typescript
 // auth.resolver.ts - authenticateWithCode mutation
 if (shouldQueueChar) {
-  channel.sendToQueue("esi_user_killmails_queue", charMessage, {
+  channel.sendToQueue('esi_user_killmails_queue', charMessage, {
     priority: 8, // 🔥 High priority
   });
 }
@@ -802,7 +802,7 @@ pm2 restart worker-user-killmails
 
 ```typescript
 // Scope check (backend/.env)
-EVE_CLIENT_SCOPES = "esi-killmails.read_killmails.v1 ...";
+EVE_CLIENT_SCOPES = 'esi-killmails.read_killmails.v1 ...';
 ```
 
 ---

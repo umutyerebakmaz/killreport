@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import dynamic from "next/dynamic";
-import { useMemo, useState } from "react";
+import dynamic from 'next/dynamic';
+import { useMemo, useState } from 'react';
 
-const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });
+const ReactECharts = dynamic(() => import('echarts-for-react'), { ssr: false });
 
 interface Snapshot {
   date: string;
@@ -15,25 +15,25 @@ interface CorporationGrowthChartProps {
   loading?: boolean;
 }
 
-type RangeType = "90d" | "30d" | "7d" | "monthly";
+type RangeType = '90d' | '30d' | '7d' | 'monthly';
 
 const RANGE_LABELS: Record<RangeType, string> = {
-  "90d": "90 Days",
-  "30d": "1 Month",
-  "7d": "1 Week",
-  monthly: "Monthly",
+  '90d': '90 Days',
+  '30d': '1 Month',
+  '7d': '1 Week',
+  monthly: 'Monthly',
 };
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
-  return d.toLocaleDateString("en-US", { day: "numeric", month: "short" });
+  return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
 }
 
 export default function CorporationGrowthChart({
   snapshots,
   loading = false,
 }: CorporationGrowthChartProps) {
-  const [range, setRange] = useState<RangeType>("90d");
+  const [range, setRange] = useState<RangeType>('90d');
 
   const chartData = useMemo(() => {
     if (!snapshots || snapshots.length === 0) return { dates: [], members: [] };
@@ -42,11 +42,11 @@ export default function CorporationGrowthChart({
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
     );
 
-    if (range === "monthly") {
+    if (range === 'monthly') {
       const monthMap = new Map<string, Snapshot>();
       for (const snap of sorted) {
         const d = new Date(snap.date);
-        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
         monthMap.set(key, snap);
       }
 
@@ -56,11 +56,11 @@ export default function CorporationGrowthChart({
 
       return {
         dates: entries.map(([key]) => {
-          const [year, month] = key.split("-");
+          const [year, month] = key.split('-');
           const d = new Date(parseInt(year), parseInt(month) - 1, 1);
-          return d.toLocaleDateString("en-US", {
-            month: "short",
-            year: "numeric",
+          return d.toLocaleDateString('en-US', {
+            month: 'short',
+            year: 'numeric',
           });
         }),
         members: entries.map(([, snap]) => snap.memberCount),
@@ -68,9 +68,9 @@ export default function CorporationGrowthChart({
     }
 
     const daysMap: Record<RangeType, number> = {
-      "90d": 90,
-      "30d": 30,
-      "7d": 7,
+      '90d': 90,
+      '30d': 30,
+      '7d': 7,
       monthly: 90,
     };
 
@@ -86,7 +86,7 @@ export default function CorporationGrowthChart({
 
   const option = useMemo(
     () => ({
-      backgroundColor: "transparent",
+      backgroundColor: 'transparent',
       grid: {
         top: 20,
         right: 20,
@@ -95,58 +95,58 @@ export default function CorporationGrowthChart({
         containLabel: true,
       },
       tooltip: {
-        trigger: "axis",
-        backgroundColor: "#1e293b",
-        borderColor: "#334155",
-        textStyle: { color: "#e2e8f0" },
-        axisPointer: { type: "cross", lineStyle: { color: "#475569" } },
+        trigger: 'axis',
+        backgroundColor: '#1e293b',
+        borderColor: '#334155',
+        textStyle: { color: '#e2e8f0' },
+        axisPointer: { type: 'cross', lineStyle: { color: '#475569' } },
       },
       legend: { show: false },
       xAxis: {
-        type: "category",
+        type: 'category',
         data: chartData.dates,
-        axisLine: { lineStyle: { color: "#334155" } },
+        axisLine: { lineStyle: { color: '#334155' } },
         axisLabel: {
-          color: "#64748b",
+          color: '#64748b',
           fontSize: 11,
           rotate: chartData.dates.length > 20 ? 30 : 0,
         },
         splitLine: { show: false },
       },
       yAxis: {
-        type: "value",
-        name: "Members",
-        nameTextStyle: { color: "#64748b", fontSize: 11 },
+        type: 'value',
+        name: 'Members',
+        nameTextStyle: { color: '#64748b', fontSize: 11 },
         axisLine: { show: false },
         axisTick: { show: false },
         axisLabel: {
-          color: "#64748b",
+          color: '#64748b',
           fontSize: 11,
           formatter: (v: number) =>
             v >= 1000 ? `${(v / 1000).toFixed(1)}k` : `${v}`,
         },
-        splitLine: { lineStyle: { color: "#1e293b" } },
+        splitLine: { lineStyle: { color: '#1e293b' } },
       },
       series: [
         {
-          name: "Members",
-          type: "line",
+          name: 'Members',
+          type: 'line',
           data: chartData.members,
           smooth: true,
-          symbol: "circle",
+          symbol: 'circle',
           symbolSize: chartData.dates.length > 30 ? 4 : 6,
-          lineStyle: { color: "#06b6d4", width: 2 },
-          itemStyle: { color: "#06b6d4" },
+          lineStyle: { color: '#06b6d4', width: 2 },
+          itemStyle: { color: '#06b6d4' },
           areaStyle: {
             color: {
-              type: "linear",
+              type: 'linear',
               x: 0,
               y: 0,
               x2: 0,
               y2: 1,
               colorStops: [
-                { offset: 0, color: "rgba(6,182,212,0.25)" },
-                { offset: 1, color: "rgba(6,182,212,0.02)" },
+                { offset: 0, color: 'rgba(6,182,212,0.25)' },
+                { offset: 1, color: 'rgba(6,182,212,0.02)' },
               ],
             },
           },
@@ -181,10 +181,10 @@ export default function CorporationGrowthChart({
             <button
               key={r}
               onClick={() => setRange(r)}
-              className={`px-3 py-1 text-xs font-semibold transition-colors cursor-pointer ${
+              className={`px-3 py-1 text-xs font-semibold transition-colors ${
                 range === r
-                  ? "bg-cyan-600/80 text-white"
-                  : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-gray-200"
+                  ? 'bg-cyan-600/80 text-white'
+                  : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-gray-200'
               }`}
             >
               {RANGE_LABELS[r]}
@@ -202,7 +202,7 @@ export default function CorporationGrowthChart({
       <ReactECharts
         option={option}
         style={{ height: 320 }}
-        opts={{ renderer: "canvas" }}
+        opts={{ renderer: 'canvas' }}
         notMerge
       />
     </div>

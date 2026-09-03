@@ -24,10 +24,10 @@ Copy `.env.example` to `.env.local`. Only `NEXT_PUBLIC_*` variables reach the
 browser, and everything in that file is bundled into client-side JavaScript, so it
 must never contain secrets.
 
-| Variable | Default | Purpose |
-| --- | --- | --- |
+| Variable                  | Default                         | Purpose                                                                                             |
+| ------------------------- | ------------------------------- | --------------------------------------------------------------------------------------------------- |
 | `NEXT_PUBLIC_GRAPHQL_URL` | `http://localhost:4000/graphql` | Queries and mutations. The subscription WebSocket URL is derived from this by swapping `http`→`ws`. |
-| `NEXT_PUBLIC_BACKEND_URL` | `http://localhost:4000` | Backend origin, used by the EVE SSO callback page. |
+| `NEXT_PUBLIC_BACKEND_URL` | `http://localhost:4000`         | Backend origin, used by the EVE SSO callback page.                                                  |
 
 ## Scripts
 
@@ -59,16 +59,16 @@ src/
 
 ### Routes
 
-| Route | Purpose |
-| --- | --- |
-| `/killmails`, `/killmails/[id]` | Killmail list and detail |
-| `/characters/[id]`, `/corporations/[id]`, `/alliances/[id]` | Entity profiles and stats |
-| `/regions/[id]`, `/constellations/[id]`, `/solar-systems/[id]` | Universe browsing |
-| `/leaderboards` | Top pilots, corporations, alliances and ships |
-| `/sovereignty`, `/sovereignty/map`, `/sovereignty/history`, `/sovereignty/hotspots`, `/sovereignty/structures` | Sovereignty tracking |
-| `/workers` | Live background worker and queue status |
-| `/auth/callback`, `/auth/success` | EVE SSO login flow |
-| `/legal`, `/privacy`, `/terms`, `/changelog` | Static pages |
+| Route                                                                                                          | Purpose                                       |
+| -------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `/killmails`, `/killmails/[id]`                                                                                | Killmail list and detail                      |
+| `/characters/[id]`, `/corporations/[id]`, `/alliances/[id]`                                                    | Entity profiles and stats                     |
+| `/regions/[id]`, `/constellations/[id]`, `/solar-systems/[id]`                                                 | Universe browsing                             |
+| `/leaderboards`                                                                                                | Top pilots, corporations, alliances and ships |
+| `/sovereignty`, `/sovereignty/map`, `/sovereignty/history`, `/sovereignty/hotspots`, `/sovereignty/structures` | Sovereignty tracking                          |
+| `/workers`                                                                                                     | Live background worker and queue status       |
+| `/auth/callback`, `/auth/success`                                                                              | EVE SSO login flow                            |
+| `/legal`, `/privacy`, `/terms`, `/changelog`                                                                   | Static pages                                  |
 
 ## GraphQL Workflow
 
@@ -86,7 +86,9 @@ yarn codegen
 ```tsx
 import { useKillmailsQuery } from '@/generated/graphql';
 
-const { data, loading, error } = useKillmailsQuery({ variables: { limit: 20 } });
+const { data, loading, error } = useKillmailsQuery({
+  variables: { limit: 20 },
+});
 ```
 
 Codegen reads the schema from `../backend/src/generated-schema.graphql`. If a new

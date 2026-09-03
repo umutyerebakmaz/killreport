@@ -296,7 +296,7 @@ const cacheKey = `domain:action:${param1}:${param2}:${limit}`;
 const cached = await redis.get(cacheKey);
 if (cached) return JSON.parse(cached);
 
-const data = await /* ...query... */;
+const data = await; /* ...query... */
 
 await redis.setex(cacheKey, isToday ? 300 : 3600, JSON.stringify(data));
 return data;

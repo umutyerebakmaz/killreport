@@ -23,7 +23,8 @@ export const TOPOLOGY_QUEUES = {
   dlq: 'esi_topology_dlq',
 } as const;
 
-export type TopologyQueueName = (typeof TOPOLOGY_QUEUES)[keyof typeof TOPOLOGY_QUEUES];
+export type TopologyQueueName =
+  (typeof TOPOLOGY_QUEUES)[keyof typeof TOPOLOGY_QUEUES];
 
 /** A message is dead-lettered rather than retried once attempts exceeds this. */
 export const MAX_ATTEMPTS = 5;
@@ -91,7 +92,7 @@ export function envelope(source: string): Envelope {
  */
 export async function assertTopologyQueue(
   channel: amqp.Channel,
-  queueName: string
+  queueName: string,
 ): Promise<void> {
   await channel.assertQueue(queueName, {
     durable: true,
@@ -102,7 +103,7 @@ export async function assertTopologyQueue(
 export function publishTopology(
   channel: amqp.Channel,
   queueName: string,
-  payload: TopologyMessage
+  payload: TopologyMessage,
 ): void {
   channel.sendToQueue(queueName, Buffer.from(JSON.stringify(payload)), {
     persistent: true,
@@ -111,7 +112,7 @@ export function publishTopology(
 
 /** Returns null for malformed content; the caller acks and counts an error. */
 export function parseTopologyMessage<T extends Envelope>(
-  msg: amqp.ConsumeMessage
+  msg: amqp.ConsumeMessage,
 ): T | null {
   try {
     const parsed = JSON.parse(msg.content.toString());
@@ -147,7 +148,7 @@ export async function handleWorkerError(
   payload: TopologyMessage,
   queueName: string,
   error: any,
-  logger: { warn: (m: string) => void; error: (m: string, e?: any) => void }
+  logger: { warn: (m: string) => void; error: (m: string, e?: any) => void },
 ): Promise<void> {
   // 420: ESI error limited. Keep the existing behaviour - wait a minute, requeue
   // untouched, do not burn an attempt.
@@ -163,7 +164,7 @@ export async function handleWorkerError(
   if (attempts > MAX_ATTEMPTS) {
     logger.error(
       `☠️  ${queueName}: giving up after ${MAX_ATTEMPTS} attempts, dead-lettering`,
-      error?.message
+      error?.message,
     );
     // The DLQ is written by an explicit publish, NOT x-dead-letter-exchange.
     // Changing a queue's arguments would collide with the x-max-priority: 10
@@ -181,12 +182,12 @@ export async function handleWorkerError(
 
   if (isForeignKeyViolation(error)) {
     logger.warn(
-      `↩️  ${queueName}: parent row not written yet (P2003), retry ${attempts}/${MAX_ATTEMPTS}`
+      `↩️  ${queueName}: parent row not written yet (P2003), retry ${attempts}/${MAX_ATTEMPTS}`,
     );
   } else {
     logger.error(
       `❌ ${queueName}: retry ${attempts}/${MAX_ATTEMPTS} - ${error?.message}`,
-      error?.message
+      error?.message,
     );
   }
 

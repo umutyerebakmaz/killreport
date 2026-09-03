@@ -18,19 +18,29 @@ async function queueMissingGroups() {
       distinct: ['group_id'],
     });
 
-    const uniqueGroupIds = typesWithGroups.map((t: { group_id: number }) => t.group_id);
-    logger.info(`Found ${uniqueGroupIds.length} unique group IDs in types table`);
+    const uniqueGroupIds = typesWithGroups.map(
+      (t: { group_id: number }) => t.group_id,
+    );
+    logger.info(
+      `Found ${uniqueGroupIds.length} unique group IDs in types table`,
+    );
 
     // Get existing item groups
     const existingGroups = await prismaWorker.itemGroup.findMany({
       select: { id: true },
     });
 
-    const existingGroupIds = new Set(existingGroups.map((g: { id: number }) => g.id));
-    logger.info(`Found ${existingGroupIds.size} existing item groups in database`);
+    const existingGroupIds = new Set(
+      existingGroups.map((g: { id: number }) => g.id),
+    );
+    logger.info(
+      `Found ${existingGroupIds.size} existing item groups in database`,
+    );
 
     // Find missing group IDs
-    const missingGroupIds = uniqueGroupIds.filter((id: number) => !existingGroupIds.has(id));
+    const missingGroupIds = uniqueGroupIds.filter(
+      (id: number) => !existingGroupIds.has(id),
+    );
 
     logger.info(`Missing Groups: ${missingGroupIds.length}`);
 
@@ -39,7 +49,10 @@ async function queueMissingGroups() {
       process.exit(0);
     }
 
-    logger.debug('Missing group IDs: ' + missingGroupIds.sort((a: number, b: number) => a - b).join(', '));
+    logger.debug(
+      'Missing group IDs: ' +
+        missingGroupIds.sort((a: number, b: number) => a - b).join(', '),
+    );
 
     // Queue missing groups
     const channel = await getRabbitMQChannel();
@@ -67,8 +80,12 @@ async function queueMissingGroups() {
 
     logger.info(`Queued ${queuedCount} missing item groups`);
     logger.info('Next Steps:');
-    logger.info('  1. Start the item group worker: yarn worker:info:item-groups');
-    logger.info('  2. Worker will fetch missing groups from ESI and save to database');
+    logger.info(
+      '  1. Start the item group worker: yarn worker:info:item-groups',
+    );
+    logger.info(
+      '  2. Worker will fetch missing groups from ESI and save to database',
+    );
 
     await channel.close();
     process.exit(0);

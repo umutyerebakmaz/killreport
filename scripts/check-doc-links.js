@@ -42,7 +42,9 @@ for (const file of walk(REPO)) {
       checked++;
 
       if (link.startsWith('/')) {
-        problems.push(`${rel}:${i + 1}  ${link}\n    leading slash — GitHub resolves this against github.com, not the repo root`);
+        problems.push(
+          `${rel}:${i + 1}  ${link}\n    leading slash — GitHub resolves this against github.com, not the repo root`,
+        );
         continue;
       }
       if (!fs.existsSync(path.resolve(path.dirname(file), target))) {
@@ -53,7 +55,9 @@ for (const file of walk(REPO)) {
 }
 
 if (problems.length) {
-  console.error(`\n${problems.length} broken link(s) out of ${checked} checked:\n`);
+  console.error(
+    `\n${problems.length} broken link(s) out of ${checked} checked:\n`,
+  );
   problems.forEach((p) => console.error('  ' + p + '\n'));
   process.exit(1);
 }

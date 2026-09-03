@@ -20,7 +20,7 @@ export class CharacterService {
   static async getCharacterInfo(characterId: number) {
     return esiRateLimiter.execute(async () => {
       const response = await axios.get(
-        `${ESI_BASE_URL}/characters/${characterId}/`
+        `${ESI_BASE_URL}/characters/${characterId}/`,
       );
       return response.data;
     });
@@ -38,7 +38,7 @@ export class CharacterService {
     characterId: number,
     token: string,
     maxPages: number = 50, // Fetch up to 50 pages (2500 killmails max, 50 per page)
-    stopAtKillmailId?: number // For incremental sync - stop when we hit this ID
+    stopAtKillmailId?: number, // For incremental sync - stop when we hit this ID
   ): Promise<EsiKillmail[]> {
     const allKillmails: EsiKillmail[] = [];
 
@@ -47,10 +47,10 @@ export class CharacterService {
         // Add delay BEFORE each page fetch to prevent rate limiting
         // Especially important when multiple users are being processed
         if (page > 1) {
-          await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay between pages
+          await new Promise((resolve) => setTimeout(resolve, 2000)); // 2 second delay between pages
         } else {
           // Even first page needs a small delay to prevent rapid successive calls
-          await new Promise(resolve => setTimeout(resolve, 500)); // 500ms delay for first page
+          await new Promise((resolve) => setTimeout(resolve, 500)); // 500ms delay for first page
         }
 
         const killmails = await esiRateLimiter.execute(async () => {
@@ -71,7 +71,7 @@ export class CharacterService {
             // Other errors should be thrown
             const error = await response.text();
             throw new Error(
-              `Failed to fetch character killmails: ${response.status} - ${error}`
+              `Failed to fetch character killmails: ${response.status} - ${error}`,
             );
           }
 
@@ -80,7 +80,9 @@ export class CharacterService {
 
         // If null returned (404), no more pages
         if (killmails === null) {
-          console.log(`     ✓ No more pages available (page ${page} returned 404)`);
+          console.log(
+            `     ✓ No more pages available (page ${page} returned 404)`,
+          );
           break;
         }
 
@@ -94,7 +96,9 @@ export class CharacterService {
 
         // Incremental sync optimization: check if we hit the stop point
         if (stopAtKillmailId) {
-          const stopIndex = killmails.findIndex((km: EsiKillmail) => km.killmail_id === stopAtKillmailId);
+          const stopIndex = killmails.findIndex(
+            (km: EsiKillmail) => km.killmail_id === stopAtKillmailId,
+          );
 
           if (stopIndex !== -1) {
             // Found the stop point - only add killmails before it
@@ -102,8 +106,12 @@ export class CharacterService {
             if (newKillmails.length > 0) {
               allKillmails.push(...newKillmails);
             }
-            console.log(`     ✅ Incremental sync: Found last synced killmail (ID: ${stopAtKillmailId})`);
-            console.log(`     ⏭️  Stopping at page ${page} - fetched ${newKillmails.length} new killmails from this page`);
+            console.log(
+              `     ✅ Incremental sync: Found last synced killmail (ID: ${stopAtKillmailId})`,
+            );
+            console.log(
+              `     ⏭️  Stopping at page ${page} - fetched ${newKillmails.length} new killmails from this page`,
+            );
             console.log(`     📊 Total new killmails: ${allKillmails.length}`);
             break;
           }
@@ -114,7 +122,9 @@ export class CharacterService {
         // ESI returns exactly 50 killmails per page when there are more pages available
         // If less than 50 returned, this is the last page
         if (killmails.length < 50) {
-          console.log(`     ✓ Last page detected (${killmails.length} < 50 killmails)`);
+          console.log(
+            `     ✓ Last page detected (${killmails.length} < 50 killmails)`,
+          );
           break;
         }
 
@@ -123,9 +133,15 @@ export class CharacterService {
         console.error(`     ❌ Error fetching page ${page}:`, error.message);
 
         // If rate limited, wait and retry once
-        if (error.message.includes('420') || error.message.includes('429') || error.message.includes('Rate limit')) {
-          console.log(`     ⏳ Rate limited, waiting 5 seconds before retry...`);
-          await new Promise(resolve => setTimeout(resolve, 5000));
+        if (
+          error.message.includes('420') ||
+          error.message.includes('429') ||
+          error.message.includes('Rate limit')
+        ) {
+          console.log(
+            `     ⏳ Rate limited, waiting 5 seconds before retry...`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, 5000));
 
           // Retry the same page
           try {
@@ -137,13 +153,17 @@ export class CharacterService {
               if (!response.ok) {
                 if (response.status === 404) return null;
                 const error = await response.text();
-                throw new Error(`Failed to fetch character killmails: ${response.status} - ${error}`);
+                throw new Error(
+                  `Failed to fetch character killmails: ${response.status} - ${error}`,
+                );
               }
               return response.json();
             });
 
             if (retryKillmails) {
-              console.log(`     ✅ Retry successful: ${retryKillmails.length} killmails`);
+              console.log(
+                `     ✅ Retry successful: ${retryKillmails.length} killmails`,
+              );
               allKillmails.push(...retryKillmails);
               if (retryKillmails.length < 50) break;
             } else {

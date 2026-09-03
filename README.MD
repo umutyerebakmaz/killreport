@@ -117,15 +117,15 @@ deployment. Start there.
 
 The most common entry points:
 
-| Topic | Document |
-| --- | --- |
-| How the pieces fit together | [Architecture](./backend/docs/architecture.md) |
-| EVE SSO login flow | [Auth Setup](./backend/docs/authentication/auth-setup.md) |
-| Every worker and queue | [Workers Documentation](./backend/docs/workers/worker-documentation.md) |
-| Running the app in production | [Deployment Checklist](./backend/docs/deployment/deployment-checklist.md) |
-| Day-to-day operations | [Daily Workflows](./backend/docs/ops/daily.md) · [PM2](./backend/docs/ops/pm2.md) |
-| Caching behaviour | [Cache Strategy](./backend/docs/redis-cache/cache-strategy.md) |
-| Leaderboard internals | [Leaderboards](./backend/docs/leaderboards/leaderboards.md) |
+| Topic                         | Document                                                                          |
+| ----------------------------- | --------------------------------------------------------------------------------- |
+| How the pieces fit together   | [Architecture](./backend/docs/architecture.md)                                    |
+| EVE SSO login flow            | [Auth Setup](./backend/docs/authentication/auth-setup.md)                         |
+| Every worker and queue        | [Workers Documentation](./backend/docs/workers/worker-documentation.md)           |
+| Running the app in production | [Deployment Checklist](./backend/docs/deployment/deployment-checklist.md)         |
+| Day-to-day operations         | [Daily Workflows](./backend/docs/ops/daily.md) · [PM2](./backend/docs/ops/pm2.md) |
+| Caching behaviour             | [Cache Strategy](./backend/docs/redis-cache/cache-strategy.md)                    |
+| Leaderboard internals         | [Leaderboards](./backend/docs/leaderboards/leaderboards.md)                       |
 
 Component READMEs: [backend](./backend/README.MD) · [frontend](./frontend/README.MD)
 
@@ -267,23 +267,23 @@ Copy `backend/.env.example` to `backend/.env`. Variables are validated on boot b
 `backend/src/config/config.ts` — the server exits with a readable error if a
 required one is missing.
 
-| Variable | Required | Default | Purpose |
-| --- | --- | --- | --- |
-| `DATABASE_URL` | yes | — | PostgreSQL connection string |
-| `EVE_CLIENT_ID` | yes | — | EVE SSO application ID |
-| `EVE_CLIENT_SECRET` | yes | — | EVE SSO application secret |
-| `EVE_CALLBACK_URL` | no | `http://localhost:4000/auth/callback` | Must match the EVE application |
-| `FRONTEND_URL` | no | `http://localhost:3000` | Post-login redirect target |
-| `RABBITMQ_URL` | no | `amqp://localhost` | Job queue connection |
-| `REDIS_URL` | no | — | Response cache, RedisQ cursor, PubSub |
-| `USE_REDIS_PUBSUB` | no | — | Fan subscriptions out across processes |
-| `JWT_SECRET` | no | — | Session token signing key |
-| `PORT` | no | `4000` | API port |
-| `NODE_ENV` | no | `development` | `development` \| `production` \| `test` |
-| `LOG_LEVEL` | no | `info` | `error` \| `warn` \| `info` \| `http` \| `debug` |
-| `GRAPHQL_INTROSPECTION` | no | `true` | Disable in production |
-| `GRAPHQL_PLAYGROUND` | no | `true` | Disable in production |
-| `REDISQ_ENABLE_ENRICHMENT` | no | — | Enrich entities inline in the RedisQ worker |
+| Variable                   | Required | Default                               | Purpose                                          |
+| -------------------------- | -------- | ------------------------------------- | ------------------------------------------------ |
+| `DATABASE_URL`             | yes      | —                                     | PostgreSQL connection string                     |
+| `EVE_CLIENT_ID`            | yes      | —                                     | EVE SSO application ID                           |
+| `EVE_CLIENT_SECRET`        | yes      | —                                     | EVE SSO application secret                       |
+| `EVE_CALLBACK_URL`         | no       | `http://localhost:4000/auth/callback` | Must match the EVE application                   |
+| `FRONTEND_URL`             | no       | `http://localhost:3000`               | Post-login redirect target                       |
+| `RABBITMQ_URL`             | no       | `amqp://localhost`                    | Job queue connection                             |
+| `REDIS_URL`                | no       | —                                     | Response cache, RedisQ cursor, PubSub            |
+| `USE_REDIS_PUBSUB`         | no       | —                                     | Fan subscriptions out across processes           |
+| `JWT_SECRET`               | no       | —                                     | Session token signing key                        |
+| `PORT`                     | no       | `4000`                                | API port                                         |
+| `NODE_ENV`                 | no       | `development`                         | `development` \| `production` \| `test`          |
+| `LOG_LEVEL`                | no       | `info`                                | `error` \| `warn` \| `info` \| `http` \| `debug` |
+| `GRAPHQL_INTROSPECTION`    | no       | `true`                                | Disable in production                            |
+| `GRAPHQL_PLAYGROUND`       | no       | `true`                                | Disable in production                            |
+| `REDISQ_ENABLE_ENRICHMENT` | no       | —                                     | Enrich entities inline in the RedisQ worker      |
 
 ### Frontend Environment Variables
 

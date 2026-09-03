@@ -9,4 +9,3 @@
 export { corporationFields } from './fields';
 export { corporationQueries } from './queries';
 export { corporationStatsQueries } from './stats-queries';
-

@@ -4,8 +4,8 @@ import {
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-} from "@heroicons/react/20/solid";
-import Tooltip from "../Tooltip/Tooltip";
+} from '@heroicons/react/20/solid';
+import Tooltip from '../Tooltip/Tooltip';
 
 interface PaginatorProps {
   hasNextPage: boolean;
@@ -43,7 +43,7 @@ export default function Paginator({
         {/* First Page */}
         <Tooltip content="First Page">
           <button
-            className="p-2 text-gray-400 transition-colors cursor-pointer hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed focus:outline-none"
+            className="p-2 text-gray-400 transition-colors hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed focus:outline-none"
             onClick={onFirst}
             disabled={!hasPrevPage || loading}
             style={{ margin: 0 }}
@@ -67,7 +67,7 @@ export default function Paginator({
         {/* Next Page */}
         <Tooltip content="Next Page">
           <button
-            className="p-2 text-gray-400 transition-colors cursor-pointer hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:text-gray-600 focus:outline-none"
+            className="p-2 text-gray-400 transition-colors hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:text-gray-600 focus:outline-none"
             onClick={onNext}
             disabled={!hasNextPage || loading}
             style={{ margin: 0 }}
@@ -79,7 +79,7 @@ export default function Paginator({
         {/* Last Page */}
         <Tooltip content="Last Page">
           <button
-            className="p-2 text-gray-400 transition-colors cursor-pointer hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="p-2 text-gray-400 transition-colors hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed"
             onClick={onLast}
             disabled={!hasNextPage || loading}
             style={{ margin: 0 }}
@@ -107,8 +107,8 @@ export default function Paginator({
           >
             {pageSizeOptions.map((size) => (
               <option key={size} value={size}>
-                {size === pageSize ? "✓" : "\u00A0\u00A0"}
-                {"   "}
+                {size === pageSize ? '✓' : '\u00A0\u00A0'}
+                {'   '}
                 {size} per page
               </option>
             ))}

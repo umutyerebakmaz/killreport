@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { Loader } from "@/components/Loader/Loader";
-import RankNumber from "@/components/ui/RankNumber";
-import ShipTierBadge from "@/components/ShipTierBadge/ShipTierBadge";
-import Tooltip from "@/components/Tooltip/Tooltip";
-import { getShipTier } from "@/utils/shipTier";
-import { ReactNode } from "react";
+import { Loader } from '@/components/Loader/Loader';
+import RankNumber from '@/components/ui/RankNumber';
+import ShipTierBadge from '@/components/ShipTierBadge/ShipTierBadge';
+import Tooltip from '@/components/Tooltip/Tooltip';
+import { getShipTier } from '@/utils/shipTier';
+import { ReactNode } from 'react';
 
 export interface TopShip {
   id: number;
@@ -20,7 +20,7 @@ export interface TopShipsCardProps {
   ships: TopShip[];
   loading?: boolean;
   emptyText?: string;
-  variant?: "detail" | "list";
+  variant?: 'detail' | 'list';
 }
 
 export default function TopShipsCard({
@@ -28,8 +28,8 @@ export default function TopShipsCard({
   subtitle,
   ships,
   loading = false,
-  emptyText = "No ships yet",
-  variant = "detail",
+  emptyText = 'No ships yet',
+  variant = 'detail',
 }: TopShipsCardProps) {
   if (loading) {
     return (
@@ -73,9 +73,9 @@ export default function TopShipsCard({
               <div
                 key={ship.id}
                 className={`p-3 transition-colors duration-100 ${
-                  variant === "list"
-                    ? "bg-neutral-900 hover:bg-neutral-800"
-                    : "bg-neutral-800 hover:bg-neutral-700"
+                  variant === 'list'
+                    ? 'bg-neutral-900 hover:bg-neutral-800'
+                    : 'bg-neutral-800 hover:bg-neutral-700'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -98,7 +98,7 @@ export default function TopShipsCard({
                       onError={(e) => {
                         // Fallback to icon if render fails (e.g., for some faction ships)
                         const target = e.target as HTMLImageElement;
-                        if (target.src.includes("/render?")) {
+                        if (target.src.includes('/render?')) {
                           target.src = `https://images.evetech.net/types/${ship.id}/icon?size=128`;
                         }
                       }}

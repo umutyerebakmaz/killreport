@@ -45,14 +45,10 @@ async function queueKillmailSync() {
         queuedAt: new Date().toISOString(),
       };
 
-      channel.sendToQueue(
-        QUEUE_NAME,
-        Buffer.from(JSON.stringify(message)),
-        {
-          persistent: true, // Survive RabbitMQ restarts
-          priority: 5, // Default priority
-        }
-      );
+      channel.sendToQueue(QUEUE_NAME, Buffer.from(JSON.stringify(message)), {
+        persistent: true, // Survive RabbitMQ restarts
+        priority: 5, // Default priority
+      });
     }
 
     logger.info(`All ${users.length} users queued successfully!`);

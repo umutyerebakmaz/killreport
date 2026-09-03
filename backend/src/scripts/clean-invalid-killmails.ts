@@ -26,9 +26,11 @@ async function cleanInvalidKillmails() {
     console.log('📦 STEP 2: Fetching killmail IDs...');
     const allKillmails = await prisma.killmail.findMany({
       select: { killmail_id: true },
-      orderBy: { killmail_id: 'asc' }
+      orderBy: { killmail_id: 'asc' },
     });
-    console.log(`✅ Loaded ${allKillmails.length.toLocaleString()} killmail IDs into memory\n`);
+    console.log(
+      `✅ Loaded ${allKillmails.length.toLocaleString()} killmail IDs into memory\n`,
+    );
 
     // STEP 3: Check each killmail for attackers
     console.log('🔍 STEP 3: Checking killmails for attackers...');
@@ -46,26 +48,38 @@ async function cleanInvalidKillmails() {
       if (checkedCount % 100 === 0) {
         const percentage = ((checkedCount / totalToCheck) * 100).toFixed(1);
         const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-        const rate = (checkedCount / (Date.now() - startTime) * 1000).toFixed(1);
-        const eta = (((totalToCheck - checkedCount) / parseFloat(rate)) / 60).toFixed(1);
+        const rate = ((checkedCount / (Date.now() - startTime)) * 1000).toFixed(
+          1,
+        );
+        const eta = (
+          (totalToCheck - checkedCount) /
+          parseFloat(rate) /
+          60
+        ).toFixed(1);
 
-        console.log(`📈 Progress: ${checkedCount.toLocaleString()}/${totalToCheck.toLocaleString()} (${percentage}%) | Valid: ${validCount} | Invalid: ${invalidKillmails.length} | Time: ${elapsed}s | ETA: ${eta}min`);
+        console.log(
+          `📈 Progress: ${checkedCount.toLocaleString()}/${totalToCheck.toLocaleString()} (${percentage}%) | Valid: ${validCount} | Invalid: ${invalidKillmails.length} | Time: ${elapsed}s | ETA: ${eta}min`,
+        );
       }
 
       const attackerCount = await prisma.attacker.count({
-        where: { killmail_id: km.killmail_id }
+        where: { killmail_id: km.killmail_id },
       });
 
       if (attackerCount === 0) {
         invalidKillmails.push(km.killmail_id);
-        console.log(`  ❌ INVALID: Killmail ${km.killmail_id} has NO attackers`);
+        console.log(
+          `  ❌ INVALID: Killmail ${km.killmail_id} has NO attackers`,
+        );
       } else {
         validCount++;
       }
     }
 
     console.log('\n─────────────────────────────────────────────────────');
-    console.log(`✅ Scan complete: Checked ${checkedCount.toLocaleString()} killmails`);
+    console.log(
+      `✅ Scan complete: Checked ${checkedCount.toLocaleString()} killmails`,
+    );
     console.log(`   ✓ Valid: ${validCount.toLocaleString()}`);
     console.log(`   ✗ Invalid: ${invalidKillmails.length.toLocaleString()}\n`);
 
@@ -79,7 +93,9 @@ async function cleanInvalidKillmails() {
     // STEP 4: Show invalid killmails summary
     console.log('⚠️  STEP 4: Invalid killmails found');
     console.log('─────────────────────────────────────────────────────');
-    console.log(`📝 Invalid killmail IDs: ${invalidKillmails.slice(0, 10).join(', ')}${invalidKillmails.length > 10 ? ` ...and ${invalidKillmails.length - 10} more` : ''}\n`);
+    console.log(
+      `📝 Invalid killmail IDs: ${invalidKillmails.slice(0, 10).join(', ')}${invalidKillmails.length > 10 ? ` ...and ${invalidKillmails.length - 10} more` : ''}\n`,
+    );
 
     // STEP 5: Delete invalid killmails
     console.log('🗑️  STEP 5: Deleting invalid killmails...');
@@ -89,13 +105,15 @@ async function cleanInvalidKillmails() {
     const deleteResult = await prisma.killmail.deleteMany({
       where: {
         killmail_id: {
-          in: invalidKillmails
-        }
-      }
+          in: invalidKillmails,
+        },
+      },
     });
     const deleteTime = ((Date.now() - deleteStartTime) / 1000).toFixed(1);
 
-    console.log(`✅ Deleted ${deleteResult.count.toLocaleString()} killmails in ${deleteTime}s`);
+    console.log(
+      `✅ Deleted ${deleteResult.count.toLocaleString()} killmails in ${deleteTime}s`,
+    );
     console.log('   (Cascade deleted: victims, attackers, items, etc.)\n');
 
     // STEP 6: Final summary
@@ -104,12 +122,15 @@ async function cleanInvalidKillmails() {
     console.log('🎉 CLEANUP COMPLETE');
     console.log('═══════════════════════════════════════════════════════');
     console.log(`📊 Statistics:`);
-    console.log(`   • Total killmails checked: ${totalToCheck.toLocaleString()}`);
+    console.log(
+      `   • Total killmails checked: ${totalToCheck.toLocaleString()}`,
+    );
     console.log(`   • Valid killmails: ${validCount.toLocaleString()}`);
-    console.log(`   • Invalid killmails deleted: ${deleteResult.count.toLocaleString()}`);
+    console.log(
+      `   • Invalid killmails deleted: ${deleteResult.count.toLocaleString()}`,
+    );
     console.log(`   • Total time: ${totalTime}s`);
     console.log('═══════════════════════════════════════════════════════\n');
-
   } catch (error) {
     console.error('\n💥 ERROR DURING CLEANUP');
     console.error('═══════════════════════════════════════════════════════');

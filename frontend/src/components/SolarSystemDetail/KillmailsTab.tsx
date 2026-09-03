@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import KillmailsTable from "@/components/KillmailsTable";
-import Paginator from "@/components/Paginator/Paginator";
+import KillmailsTable from '@/components/KillmailsTable';
+import Paginator from '@/components/Paginator/Paginator';
 import TopEntitySidebar, {
   TopEntityCardSpec,
-} from "@/components/TopEntitySidebar/TopEntitySidebar";
+} from '@/components/TopEntitySidebar/TopEntitySidebar';
 import {
   KillmailOrderBy,
   useKillmailsDateCountsQuery,
   useKillmailsQuery,
-} from "@/generated/graphql";
-import { useMemo } from "react";
+} from '@/generated/graphql';
+import { useMemo } from 'react';
 
 interface KillmailsTabProps {
   systemId: number;
@@ -22,24 +22,24 @@ interface KillmailsTabProps {
 
 const SIDEBAR_CARDS: TopEntityCardSpec[] = [
   {
-    kind: "characters",
-    title: "Top Characters",
-    emptyText: "No character activity in the last 7 days",
+    kind: 'characters',
+    title: 'Top Characters',
+    emptyText: 'No character activity in the last 7 days',
   },
   {
-    kind: "corporations",
-    title: "Top Corporations",
-    emptyText: "No corporation activity in the last 7 days",
+    kind: 'corporations',
+    title: 'Top Corporations',
+    emptyText: 'No corporation activity in the last 7 days',
   },
   {
-    kind: "alliances",
-    title: "Top Alliances",
-    emptyText: "No alliance activity in the last 7 days",
+    kind: 'alliances',
+    title: 'Top Alliances',
+    emptyText: 'No alliance activity in the last 7 days',
   },
   {
-    kind: "ships",
-    title: "Top Ships",
-    emptyText: "No ship activity in the last 7 days",
+    kind: 'ships',
+    title: 'Top Ships',
+    emptyText: 'No ship activity in the last 7 days',
   },
 ];
 

@@ -31,15 +31,15 @@ worker-solar-systems
 
 ## Ownership
 
-| Worker | Writes | Publishes to |
-|---|---|---|
-| [`worker-solar-systems`](../../src/workers/worker-solar-systems.ts) | `solar_systems` | stars, stargates, stations, planets |
-| [`worker-stars`](../../src/workers/worker-stars.ts) | `stars` | — |
-| [`worker-stargates`](../../src/workers/worker-stargates.ts) | `stargates` | — |
-| [`worker-stations`](../../src/workers/worker-stations.ts) | `stations` | — |
-| [`worker-planets`](../../src/workers/worker-planets.ts) | `planets` | moons, asteroid_belts |
-| [`worker-moons`](../../src/workers/worker-moons.ts) | `moons` | — |
-| [`worker-asteroid-belts`](../../src/workers/worker-asteroid-belts.ts) | `asteroid_belts` | — |
+| Worker                                                                | Writes           | Publishes to                        |
+| --------------------------------------------------------------------- | ---------------- | ----------------------------------- |
+| [`worker-solar-systems`](../../src/workers/worker-solar-systems.ts)   | `solar_systems`  | stars, stargates, stations, planets |
+| [`worker-stars`](../../src/workers/worker-stars.ts)                   | `stars`          | —                                   |
+| [`worker-stargates`](../../src/workers/worker-stargates.ts)           | `stargates`      | —                                   |
+| [`worker-stations`](../../src/workers/worker-stations.ts)             | `stations`       | —                                   |
+| [`worker-planets`](../../src/workers/worker-planets.ts)               | `planets`        | moons, asteroid_belts               |
+| [`worker-moons`](../../src/workers/worker-moons.ts)                   | `moons`          | —                                   |
+| [`worker-asteroid-belts`](../../src/workers/worker-asteroid-belts.ts) | `asteroid_belts` | —                                   |
 
 Because every row has exactly one writer, one worker overwriting another step's
 column is structurally impossible.
@@ -89,13 +89,13 @@ write would be pure cost on `moons`, the largest table in the topology.
 
 ## Errors and retries
 
-| Case | Behaviour |
-|---|---|
-| **404** | The ID is dead at ESI. Write the row from the message (`name: null`) and ack - the topology fact is still authoritative. |
-| **420 / error limit** | Wait 60 s, `nack(requeue)`. No attempt is burned. |
-| **Foreign key violation** (Prisma `P2003`) | Retryable: the parent row has not arrived yet. Increment `attempts` and republish. |
-| **Other** (5xx, timeout, unexpected) | Increment `attempts` and republish. |
-| **`attempts` > 5** | Publish to `esi_topology_dlq` and ack. Never silently discarded. |
+| Case                                       | Behaviour                                                                                                                |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| **404**                                    | The ID is dead at ESI. Write the row from the message (`name: null`) and ack - the topology fact is still authoritative. |
+| **420 / error limit**                      | Wait 60 s, `nack(requeue)`. No attempt is burned.                                                                        |
+| **Foreign key violation** (Prisma `P2003`) | Retryable: the parent row has not arrived yet. Increment `attempts` and republish.                                       |
+| **Other** (5xx, timeout, unexpected)       | Increment `attempts` and republish.                                                                                      |
+| **`attempts` > 5**                         | Publish to `esi_topology_dlq` and ack. Never silently discarded.                                                         |
 
 The shared implementation is `handleWorkerError()` in `topology-messages.ts`. It
 replaces the `channel.nack(msg, false, false)` every worker used to copy, which
@@ -124,7 +124,15 @@ All seven queues - the six celestial ones plus `esi_topology_dlq` - are listed i
 Check depths with:
 
 ```graphql
-{ workerStatus { queues { name messageCount consumerCount } } }
+{
+  workerStatus {
+    queues {
+      name
+      messageCount
+      consumerCount
+    }
+  }
+}
 ```
 
 ## What "done" means

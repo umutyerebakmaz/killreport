@@ -27,7 +27,10 @@ const QUEUE_NAME = 'esi_stations_queue';
 // Concurrency, not a rate limit - esiRateLimiter owns the dispatch ceiling.
 // Its job is to keep that ceiling fed, so it has to be at least a fraction of
 // the target rate. Override per run with ESI_PREFETCH.
-const PREFETCH_COUNT = Math.max(config.esi.prefetch, Math.ceil(config.esi.maxRequestsPerSecond / 2));
+const PREFETCH_COUNT = Math.max(
+  config.esi.prefetch,
+  Math.ceil(config.esi.maxRequestsPerSecond / 2),
+);
 /** Queue quiet for this long, with nothing in flight, means the run is done. */
 const IDLE_EXIT_MS = 5000;
 
@@ -37,7 +40,9 @@ async function stationsWorker() {
   logger.info('🚀 Station Worker Started');
   logger.info(`📦 Queue: ${QUEUE_NAME}`);
   logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent`);
-  logger.info(`🚦 ESI ceiling: ${config.esi.maxRequestsPerSecond} req/sec (ESI_MAX_RPS)\n`);
+  logger.info(
+    `🚦 ESI ceiling: ${config.esi.maxRequestsPerSecond} req/sec (ESI_MAX_RPS)\n`,
+  );
 
   try {
     const channel = await getRabbitMQChannel();
@@ -47,7 +52,9 @@ async function stationsWorker() {
     channel.prefetch(PREFETCH_COUNT);
 
     const queueInfo = await channel.checkQueue(QUEUE_NAME);
-    logger.info(`📊 Queue status: ${queueInfo.messageCount} messages waiting\n`);
+    logger.info(
+      `📊 Queue status: ${queueInfo.messageCount} messages waiting\n`,
+    );
 
     let processed = 0;
     let errors = 0;
@@ -82,7 +89,9 @@ async function stationsWorker() {
         const duration = ((Date.now() - startTime) / 1000).toFixed(2);
         logger.info('\n' + '='.repeat(60));
         logger.info('🎉 ALL TASKS COMPLETED!');
-        logger.info(`✅ Processed: ${processed}   ❌ Errors: ${errors}   ⏱️  ${duration}s`);
+        logger.info(
+          `✅ Processed: ${processed}   ❌ Errors: ${errors}   ⏱️  ${duration}s`,
+        );
         logger.info('='.repeat(60));
       }
 
@@ -97,7 +106,6 @@ async function stationsWorker() {
         inFlight++;
 
         try {
-
           const payload = parseTopologyMessage<StationMessage>(msg);
 
           if (!payload || typeof payload.stationId !== 'number') {
@@ -120,7 +128,8 @@ async function stationsWorker() {
               race_id: data.race_id ?? null,
               services: data.services ?? [],
               reprocessing_efficiency: data.reprocessing_efficiency ?? null,
-              reprocessing_stations_take: data.reprocessing_stations_take ?? null,
+              reprocessing_stations_take:
+                data.reprocessing_stations_take ?? null,
               office_rental_cost: data.office_rental_cost ?? null,
               max_dockable_ship_volume: data.max_dockable_ship_volume ?? null,
               position_x: data.position?.x ?? null,
@@ -135,9 +144,13 @@ async function stationsWorker() {
             });
 
             processed++;
-            logger.info(`  ✅ [${processed}] Station ${stationId} - ${data.name ?? '(unnamed)'}`);
+            logger.info(
+              `  ✅ [${processed}] Station ${stationId} - ${data.name ?? '(unnamed)'}`,
+            );
             if (processed % 100 === 0) {
-              logger.info(`📊 Progress: ${processed} processed, ${errors} errors`);
+              logger.info(
+                `📊 Progress: ${processed} processed, ${errors} errors`,
+              );
             }
             channel.ack(msg);
           } catch (error: any) {
@@ -147,27 +160,45 @@ async function stationsWorker() {
               // - is still authoritative, so write the row without a name.
               // services has no default and is String[], so it must be given here.
               logger.warn(
-                `⚠️  Station ${stationId} not found (404), writing row without a name`
+                `⚠️  Station ${stationId} not found (404), writing row without a name`,
               );
               try {
                 await prismaWorker.station.upsert({
                   where: { id: stationId },
                   update: { solar_system_id: solarSystemId },
-                  create: { id: stationId, solar_system_id: solarSystemId, services: [] },
+                  create: {
+                    id: stationId,
+                    solar_system_id: solarSystemId,
+                    services: [],
+                  },
                 });
                 channel.ack(msg);
               } catch (writeError: any) {
-                await handleWorkerError(channel, msg, payload, QUEUE_NAME, writeError, logger);
+                await handleWorkerError(
+                  channel,
+                  msg,
+                  payload,
+                  QUEUE_NAME,
+                  writeError,
+                  logger,
+                );
               }
             } else {
-              await handleWorkerError(channel, msg, payload, QUEUE_NAME, error, logger);
+              await handleWorkerError(
+                channel,
+                msg,
+                payload,
+                QUEUE_NAME,
+                error,
+                logger,
+              );
             }
           }
         } finally {
           inFlight--;
         }
       },
-      { noAck: false }
+      { noAck: false },
     );
 
     // SIGTERM too, not just SIGINT: timeout(1) and PM2 both send SIGTERM,

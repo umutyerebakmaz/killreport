@@ -44,11 +44,13 @@ async function queueDogmaAttributes() {
       }
 
       logger.debug(
-        `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(attributeIds.length / BATCH_SIZE)}`
+        `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(attributeIds.length / BATCH_SIZE)}`,
       );
     }
 
-    logger.info(`All ${attributeIds.length} dogma attributes queued successfully!`);
+    logger.info(
+      `All ${attributeIds.length} dogma attributes queued successfully!`,
+    );
     logger.info('Run worker with: yarn worker:info:dogma-attributes');
 
     await channel.close();

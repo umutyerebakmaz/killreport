@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import TopAllianceCard from "@/components/TopAllianceCard/TopAllianceCard";
-import TopCharacterCard from "@/components/TopCharacterCard/TopCharacterCard";
-import TopCorporationCard from "@/components/TopCorporationCard/TopCorporationCard";
-import TopShipsCard from "@/components/TopShipsCard/TopShipsCard";
+import TopAllianceCard from '@/components/TopAllianceCard/TopAllianceCard';
+import TopCharacterCard from '@/components/TopCharacterCard/TopCharacterCard';
+import TopCorporationCard from '@/components/TopCorporationCard/TopCorporationCard';
+import TopShipsCard from '@/components/TopShipsCard/TopShipsCard';
 import {
   useTopLast7DaysAlliancesQuery,
   useTopLast7DaysAttackerShipsQuery,
   useTopLast7DaysCorporationsQuery,
   useTopLast7DaysPilotsQuery,
   useTopLast7DaysShipsQuery,
-} from "@/generated/graphql";
+} from '@/generated/graphql';
 
 /**
  * The scope the cards are computed over. These are exactly the fields the
@@ -26,11 +26,7 @@ export interface TopEntityFilter {
 }
 
 export type TopEntityCardKind =
-  | "characters"
-  | "corporations"
-  | "alliances"
-  | "attackerShips"
-  | "ships";
+  'characters' | 'corporations' | 'alliances' | 'attackerShips' | 'ships';
 
 export interface TopEntityCardSpec {
   kind: TopEntityCardKind;
@@ -42,12 +38,12 @@ interface TopEntitySidebarProps {
   filter?: TopEntityFilter;
   /** Cards to render, in order. Each one is a separate query. */
   cards: TopEntityCardSpec[];
-  variant?: "detail" | "list";
+  variant?: 'detail' | 'list';
 }
 
 const ROLLING_SUBTITLE = (
   <>
-    Last 7 days{" "}
+    Last 7 days{' '}
     <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
       ROLLING
     </span>
@@ -57,7 +53,7 @@ const ROLLING_SUBTITLE = (
 export default function TopEntitySidebar({
   filter,
   cards,
-  variant = "detail",
+  variant = 'detail',
 }: TopEntitySidebarProps) {
   const { limit = 10, ...scope } = filter ?? {};
   const variables = { filter: { limit, ...scope } };
@@ -68,30 +64,30 @@ export default function TopEntitySidebar({
 
   const { data: pilots, loading: pilotsLoading } = useTopLast7DaysPilotsQuery({
     variables,
-    skip: !has("characters"),
+    skip: !has('characters'),
   });
   const { data: corporations, loading: corporationsLoading } =
     useTopLast7DaysCorporationsQuery({
       variables,
-      skip: !has("corporations"),
+      skip: !has('corporations'),
     });
   const { data: alliances, loading: alliancesLoading } =
-    useTopLast7DaysAlliancesQuery({ variables, skip: !has("alliances") });
+    useTopLast7DaysAlliancesQuery({ variables, skip: !has('alliances') });
   const { data: attackerShips, loading: attackerShipsLoading } =
     useTopLast7DaysAttackerShipsQuery({
       variables,
-      skip: !has("attackerShips"),
+      skip: !has('attackerShips'),
     });
   const { data: ships, loading: shipsLoading } = useTopLast7DaysShipsQuery({
     variables,
-    skip: !has("ships"),
+    skip: !has('ships'),
   });
 
   return (
     <div className="space-y-6">
       {cards.map((card) => {
         switch (card.kind) {
-          case "characters":
+          case 'characters':
             return (
               <TopCharacterCard
                 key={card.kind}
@@ -100,7 +96,7 @@ export default function TopEntitySidebar({
                 characters={
                   pilots?.topLast7DaysPilots?.map((pilot) => ({
                     id: pilot.character?.id || 0,
-                    name: pilot.character?.name || "Unknown",
+                    name: pilot.character?.name || 'Unknown',
                     killCount: pilot.killCount,
                     securityStatus: pilot.character?.securityStatus,
                     corporation: pilot.character?.corporation
@@ -123,7 +119,7 @@ export default function TopEntitySidebar({
               />
             );
 
-          case "corporations":
+          case 'corporations':
             return (
               <TopCorporationCard
                 key={card.kind}
@@ -132,7 +128,7 @@ export default function TopEntitySidebar({
                 corporations={
                   corporations?.topLast7DaysCorporations?.map((corp) => ({
                     id: corp.corporation?.id || 0,
-                    name: corp.corporation?.name || "Unknown",
+                    name: corp.corporation?.name || 'Unknown',
                     ticker: corp.corporation?.ticker,
                     killCount: corp.killCount,
                   })) || []
@@ -143,7 +139,7 @@ export default function TopEntitySidebar({
               />
             );
 
-          case "alliances":
+          case 'alliances':
             return (
               <TopAllianceCard
                 key={card.kind}
@@ -152,7 +148,7 @@ export default function TopEntitySidebar({
                 alliances={
                   alliances?.topLast7DaysAlliances?.map((alliance) => ({
                     id: alliance.alliance?.id || 0,
-                    name: alliance.alliance?.name || "Unknown",
+                    name: alliance.alliance?.name || 'Unknown',
                     ticker: alliance.alliance?.ticker,
                     killCount: alliance.killCount,
                   })) || []
@@ -164,7 +160,7 @@ export default function TopEntitySidebar({
             );
 
           // Ships flown by the attackers, as opposed to the ships that died.
-          case "attackerShips":
+          case 'attackerShips':
             return (
               <TopShipsCard
                 key={card.kind}
@@ -173,7 +169,7 @@ export default function TopEntitySidebar({
                 ships={
                   attackerShips?.topLast7DaysAttackerShips?.map((ship) => ({
                     id: ship.shipType?.id || 0,
-                    name: ship.shipType?.name || "Unknown",
+                    name: ship.shipType?.name || 'Unknown',
                     killCount: ship.killCount,
                     dogmaAttributes: ship.shipType?.dogmaAttributes,
                   })) || []
@@ -184,7 +180,7 @@ export default function TopEntitySidebar({
               />
             );
 
-          case "ships":
+          case 'ships':
             return (
               <TopShipsCard
                 key={card.kind}
@@ -193,7 +189,7 @@ export default function TopEntitySidebar({
                 ships={
                   ships?.topLast7DaysShips?.map((ship) => ({
                     id: ship.shipType?.id || 0,
-                    name: ship.shipType?.name || "Unknown",
+                    name: ship.shipType?.name || 'Unknown',
                     killCount: ship.killCount,
                     dogmaAttributes: ship.shipType?.dogmaAttributes,
                   })) || []

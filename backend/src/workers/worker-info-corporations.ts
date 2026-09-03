@@ -56,7 +56,9 @@ async function corporationInfoWorker() {
         if (timeSinceLastMessage > 5000 && totalProcessed > 0) {
           logger.info('\n' + '━'.repeat(60));
           logger.info('✅ Queue completed!');
-          logger.info(`📊 Final: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)`);
+          logger.info(
+            `📊 Final: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)`,
+          );
           logger.info('━'.repeat(60) + '\n');
           logger.info('⏳ Waiting for new messages...\n');
         }
@@ -85,18 +87,20 @@ async function corporationInfoWorker() {
           if (msg) lastMessageTime = Date.now();
           if (!msg) return;
 
-          const message: EntityQueueMessage = JSON.parse(msg.content.toString());
+          const message: EntityQueueMessage = JSON.parse(
+            msg.content.toString(),
+          );
           const corporationId = message.entityId;
 
           try {
-
             // Check if already exists
             const existing = await prismaWorker.corporation.findUnique({
               where: { id: corporationId },
             });
 
             // Fetch from ESI (her zaman güncel bilgiyi al)
-            const corpInfo = await CorporationService.getCorporationInfo(corporationId);
+            const corpInfo =
+              await CorporationService.getCorporationInfo(corporationId);
 
             // Save to database (upsert to prevent race condition)
             await prismaWorker.corporation.upsert({
@@ -108,7 +112,9 @@ async function corporationInfoWorker() {
                 member_count: corpInfo.member_count,
                 ceo_id: corpInfo.ceo_id,
                 creator_id: corpInfo.creator_id,
-                date_founded: corpInfo.date_founded ? new Date(corpInfo.date_founded) : null,
+                date_founded: corpInfo.date_founded
+                  ? new Date(corpInfo.date_founded)
+                  : null,
                 description: corpInfo.description,
                 alliance_id: corpInfo.alliance_id, // ESI'den gelen değer direkt
                 faction_id: corpInfo.faction_id,
@@ -133,15 +139,18 @@ async function corporationInfoWorker() {
 
             if (existing) {
               totalUpdated++;
-              logger.info(`  ✅ [${totalProcessed + 1}][${corporationId}] ${corpInfo.name} [${corpInfo.ticker}] \x1b[36m(updated)\x1b[0m`);
+              logger.info(
+                `  ✅ [${totalProcessed + 1}][${corporationId}] ${corpInfo.name} [${corpInfo.ticker}] \x1b[36m(updated)\x1b[0m`,
+              );
             } else {
               totalCreated++;
-              logger.info(`  ✅ [${totalProcessed + 1}][${corporationId}] ${corpInfo.name} [${corpInfo.ticker}] \x1b[32m(created)\x1b[0m`);
+              logger.info(
+                `  ✅ [${totalProcessed + 1}][${corporationId}] ${corpInfo.name} [${corpInfo.ticker}] \x1b[32m(created)\x1b[0m`,
+              );
             }
 
             channel.ack(msg);
             totalProcessed++;
-
           } catch (error: any) {
             totalErrors++;
             totalProcessed++;
@@ -150,24 +159,34 @@ async function corporationInfoWorker() {
 
             // 404: Corporation doesn't exist (NPC corp or deleted) - skip it
             if (errorMsg.includes('404')) {
-              logger.warn(`  ! [${totalProcessed}] Corporation ${message.entityId} (404 - not found)`);
+              logger.warn(
+                `  ! [${totalProcessed}] Corporation ${message.entityId} (404 - not found)`,
+              );
               channel.ack(msg);
             }
             // 5xx: Server errors (504 Gateway Timeout, 502 Bad Gateway, 503 Service Unavailable)
             // These are temporary ESI issues - retry after delay
-            else if (errorMsg.includes('504') || errorMsg.includes('502') || errorMsg.includes('503')) {
-              logger.warn(`  ⏳ [${totalProcessed}] Corporation ${message.entityId}: ${errorMsg} - retrying in 5s...`);
-              await new Promise(resolve => setTimeout(resolve, 5000));
+            else if (
+              errorMsg.includes('504') ||
+              errorMsg.includes('502') ||
+              errorMsg.includes('503')
+            ) {
+              logger.warn(
+                `  ⏳ [${totalProcessed}] Corporation ${message.entityId}: ${errorMsg} - retrying in 5s...`,
+              );
+              await new Promise((resolve) => setTimeout(resolve, 5000));
               channel.nack(msg, false, true); // Requeue
             }
             // Other errors: log and requeue (might be transient)
             else {
-              logger.error(`  × [${totalProcessed}] Corporation ${message.entityId}: ${errorMsg}`);
+              logger.error(
+                `  × [${totalProcessed}] Corporation ${message.entityId}: ${errorMsg}`,
+              );
               channel.nack(msg, false, true);
             }
           }
         },
-        { noAck: false }
+        { noAck: false },
       );
 
       // Wait indefinitely unless connection fails
@@ -175,7 +194,6 @@ async function corporationInfoWorker() {
         channel.on('error', reject);
         channel.on('close', reject);
       });
-
     } catch (error: any) {
       if (isShuttingDown) {
         logger.info('Worker stopped during shutdown');
@@ -191,7 +209,7 @@ async function corporationInfoWorker() {
 
       // Wait before reconnecting
       logger.info('🔄 Reconnecting in 5 seconds...');
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
     }
   }
 

@@ -257,23 +257,23 @@ query {
 
 Start from `.env.example`. Validation lives in [`src/config/config.ts`](./src/config/config.ts).
 
-| Variable | Required | Default | Purpose |
-| --- | --- | --- | --- |
-| `DATABASE_URL` | yes | — | PostgreSQL connection string |
-| `EVE_CLIENT_ID` | yes | — | EVE SSO application ID |
-| `EVE_CLIENT_SECRET` | yes | — | EVE SSO application secret |
-| `EVE_CALLBACK_URL` | no | `http://localhost:4000/auth/callback` | Must match the EVE application |
-| `FRONTEND_URL` | no | `http://localhost:3000` | Post-login redirect target |
-| `RABBITMQ_URL` | no | `amqp://localhost` | Job queue connection |
-| `REDIS_URL` | no | — | Response cache, RedisQ cursor, PubSub |
-| `USE_REDIS_PUBSUB` | no | — | Fan subscriptions out across processes |
-| `JWT_SECRET` | no | — | Session token signing key |
-| `PORT` | no | `4000` | API port |
-| `NODE_ENV` | no | `development` | `development` \| `production` \| `test` |
-| `LOG_LEVEL` | no | `info` | `error` \| `warn` \| `info` \| `http` \| `debug` |
-| `GRAPHQL_INTROSPECTION` | no | `true` | Disable in production |
-| `GRAPHQL_PLAYGROUND` | no | `true` | Disable in production |
-| `REDISQ_ENABLE_ENRICHMENT` | no | — | Enrich entities inline in the RedisQ worker |
+| Variable                   | Required | Default                               | Purpose                                          |
+| -------------------------- | -------- | ------------------------------------- | ------------------------------------------------ |
+| `DATABASE_URL`             | yes      | —                                     | PostgreSQL connection string                     |
+| `EVE_CLIENT_ID`            | yes      | —                                     | EVE SSO application ID                           |
+| `EVE_CLIENT_SECRET`        | yes      | —                                     | EVE SSO application secret                       |
+| `EVE_CALLBACK_URL`         | no       | `http://localhost:4000/auth/callback` | Must match the EVE application                   |
+| `FRONTEND_URL`             | no       | `http://localhost:3000`               | Post-login redirect target                       |
+| `RABBITMQ_URL`             | no       | `amqp://localhost`                    | Job queue connection                             |
+| `REDIS_URL`                | no       | —                                     | Response cache, RedisQ cursor, PubSub            |
+| `USE_REDIS_PUBSUB`         | no       | —                                     | Fan subscriptions out across processes           |
+| `JWT_SECRET`               | no       | —                                     | Session token signing key                        |
+| `PORT`                     | no       | `4000`                                | API port                                         |
+| `NODE_ENV`                 | no       | `development`                         | `development` \| `production` \| `test`          |
+| `LOG_LEVEL`                | no       | `info`                                | `error` \| `warn` \| `info` \| `http` \| `debug` |
+| `GRAPHQL_INTROSPECTION`    | no       | `true`                                | Disable in production                            |
+| `GRAPHQL_PLAYGROUND`       | no       | `true`                                | Disable in production                            |
+| `REDISQ_ENABLE_ENRICHMENT` | no       | —                                     | Enrich entities inline in the RedisQ worker      |
 
 ## Common Tasks
 
