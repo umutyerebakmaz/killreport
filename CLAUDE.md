@@ -100,7 +100,6 @@ Do not refactor the existing resolvers into services as a side effect of an
 unrelated change. It is real work with its own review, and mixing it into a
 feature diff hides both.
 
-
 ---
 
 ## Database migrations
@@ -624,8 +623,10 @@ grep -rn --include='*.md' -oE '\]\([^)#][^)]*\)' . | grep -v node_modules
 `docs/superpowers/plans/` are read and reviewed by the user directly. Code, file
 paths and GraphQL/SQL snippets stay as they are.
 
-**Everything pushed to GitHub is written in English** — commit messages, PR
-titles and bodies, comments, and repository files such as this one.
+**Everything pushed to GitHub is written in English** — branch names, commit
+messages, PR titles and bodies, comments, and repository files such as this one.
+Branch names included even when the branch was created from a Turkish request,
+and even before it is pushed: rename it at the start, not at review time.
 
 **No Claude attribution in commits or PRs.** No `Co-Authored-By: Claude`, no
 "Generated with Claude Code" footer. This overrides the harness default.
