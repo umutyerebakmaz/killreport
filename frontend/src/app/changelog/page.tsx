@@ -1,6 +1,5 @@
 'use client';
 
-import Breadcrumb from '@/components/Breadcrumb/Breadcrumb';
 import Loader from '@/components/Loader';
 import {
   ClockIcon,
@@ -180,7 +179,6 @@ export default function ChangelogPage() {
   if (error) {
     return (
       <div className="container mx-auto">
-        <Breadcrumb items={[{ label: 'Changelog', href: '/changelog' }]} />
         <div className="p-6 mt-8 border bg-neutral-900 border-neutral-700">
           <h2 className="mb-2 text-xl font-bold text-red-400">
             Failed to load changelog
@@ -193,10 +191,8 @@ export default function ChangelogPage() {
 
   return (
     <div className="container mx-auto">
-      <Breadcrumb items={[{ label: 'Changelog', href: '/changelog' }]} />
-
       {/* Header */}
-      <div className="mt-8 mb-12">
+      <div className="mb-12">
         <div className="flex items-center gap-3 mb-4">
           <RocketLaunchIcon className="w-10 h-10 text-blue-400" />
           <h1 className="text-4xl font-bold text-white">Changelog</h1>

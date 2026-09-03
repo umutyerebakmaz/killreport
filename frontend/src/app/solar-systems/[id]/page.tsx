@@ -1,7 +1,6 @@
 'use client';
 
 import AdjacentSystemsTab from '@/components/SolarSystemDetail/AdjacentSystemsTab';
-import Breadcrumb from '@/components/Breadcrumb/Breadcrumb';
 import { Loader } from '@/components/Loader/Loader';
 import SecurityBadge from '@/components/SecurityStatus/SecurityStatus';
 import KillmailsTab from '@/components/SolarSystemDetail/KillmailsTab';
@@ -147,25 +146,6 @@ export default function SolarSystemDetailPage({
 
   return (
     <div>
-      <Breadcrumb
-        items={[
-          { label: 'Regions', href: '/regions' },
-          system.constellation?.region
-            ? {
-                label: system.constellation.region.name,
-                href: `/regions/${system.constellation.region.id}`,
-              }
-            : { label: 'Unknown Region' },
-          system.constellation
-            ? {
-                label: system.constellation.name,
-                href: `/constellations/${system.constellation.id}`,
-              }
-            : { label: 'Unknown Constellation' },
-          { label: system.name },
-        ]}
-      />
-
       <div className="system-detail-card">
         {/* Header */}
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">

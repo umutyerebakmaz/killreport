@@ -1,6 +1,5 @@
 'use client';
 
-import Breadcrumb from '@/components/Breadcrumb/Breadcrumb';
 import SolarSystemCard from '@/components/Cards/SolarSystemCard';
 import SolarSystemFilters from '@/components/Filters/SolarSystemFilters';
 import { Loader } from '@/components/Loader/Loader';
@@ -136,8 +135,6 @@ function SolarSystemsContent() {
 
   return (
     <div>
-      <Breadcrumb items={[{ label: 'Solar Systems' }]} />
-
       <div className="sm:flex sm:items-center sm:justify-between">
         <div className="sm:flex-auto">
           <h1 className="flex items-center gap-3 text-3xl font-semibold text-white">
