@@ -1,6 +1,5 @@
 'use client';
 
-import Breadcrumb from '@/components/Breadcrumb/Breadcrumb';
 import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
 import SecurityBadge from '@/components/SecurityStatus/SecurityStatus';
 import { useConstellationQuery } from '@/generated/graphql';
@@ -63,19 +62,6 @@ export default function ConstellationDetailPage({
 
   return (
     <div>
-      <Breadcrumb
-        items={[
-          { label: 'Regions', href: '/regions' },
-          constellation.region
-            ? {
-                label: constellation.region.name,
-                href: `/regions/${constellation.region.id}`,
-              }
-            : { label: 'Unknown Region' },
-          { label: constellation.name },
-        ]}
-      />
-
       <div className="constellation-detail-card">
         {/* Header */}
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">

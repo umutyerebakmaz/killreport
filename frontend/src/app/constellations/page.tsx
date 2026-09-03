@@ -1,7 +1,6 @@
 'use client';
 
 import AvgSecurity from '@/components/AvgSecurity/AvgSecurity';
-import Breadcrumb from '@/components/Breadcrumb/Breadcrumb';
 import ConstellationFilters from '@/components/Filters/ConstellationFilters';
 import { Loader } from '@/components/Loader/Loader';
 import Paginator from '@/components/Paginator/Paginator';
@@ -86,8 +85,6 @@ function ConstellationsContent() {
 
   return (
     <div>
-      <Breadcrumb items={[{ label: 'Constellations' }]} />
-
       <div className="sm:flex sm:items-center sm:justify-between">
         <div className="sm:flex-auto">
           <h1 className="flex items-center gap-3 text-3xl font-semibold text-white">
