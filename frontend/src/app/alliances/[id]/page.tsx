@@ -589,15 +589,9 @@ export default function AllianceDetailPage({
           {activeTab === 'members' && (
             <div className="alliance-corporations-tab">
               <div className="sm:flex-auto">
-                <h1 className="flex items-center gap-3 text-3xl font-semibold text-white">
-                  Member Corporations
-                </h1>
-                <p className="mt-2 text-gray-400">
-                  Browse all corporations in this alliance. Click on a
-                  corporation to see detailed information and member statistics.
-                </p>
+                <h2 className="sr-only">Member Corporations</h2>
                 {corporationsPageInfo?.totalCount !== undefined && (
-                  <p className="mt-1 text-sm text-gray-400">
+                  <p className="text-sm text-gray-400">
                     Total: {corporationsPageInfo.totalCount.toLocaleString()}{' '}
                     corporations
                   </p>

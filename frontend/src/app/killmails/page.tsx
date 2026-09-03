@@ -322,7 +322,6 @@ function KillmailsContent() {
 
       <PageHeader
         title="Killmails"
-        description="Browse all killmails from New Eden. Click on a killmail to see detailed information."
         meta={
           totalCount > 0
             ? `${totalCount.toLocaleString()} killmails`

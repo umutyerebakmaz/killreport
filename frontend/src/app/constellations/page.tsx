@@ -85,19 +85,9 @@ function ConstellationsContent() {
 
   return (
     <div>
-      <div className="sm:flex sm:items-center sm:justify-between">
-        <div className="sm:flex-auto">
-          <h1 className="flex items-center gap-3 text-3xl font-semibold text-white">
-            Constellations
-          </h1>
-          <p className="mt-2 text-gray-400">
-            Browse all constellations in New Eden. Each constellation contains
-            multiple solar systems.
-          </p>
-        </div>
-      </div>
+      <h1 className="sr-only">Constellations</h1>
 
-      <div className="mt-6">
+      <div>
         <ConstellationFilters
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}
