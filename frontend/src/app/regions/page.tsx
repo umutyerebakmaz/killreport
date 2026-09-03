@@ -1,7 +1,6 @@
 'use client';
 
 import AvgSecurity from '@/components/AvgSecurity/AvgSecurity';
-import Breadcrumb from '@/components/Breadcrumb/Breadcrumb';
 import { Loader } from '@/components/Loader/Loader';
 import Paginator from '@/components/Paginator/Paginator';
 import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
@@ -74,8 +73,6 @@ function RegionsContent() {
 
   return (
     <div>
-      <Breadcrumb items={[{ label: 'Regions' }]} />
-
       <div className="sm:flex sm:items-center sm:justify-between">
         <div className="sm:flex-auto">
           <h1 className="flex items-center gap-3 text-3xl font-semibold text-white">

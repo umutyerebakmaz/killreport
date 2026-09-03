@@ -1,6 +1,5 @@
 'use client';
 
-import Breadcrumb from '@/components/Breadcrumb/Breadcrumb';
 import Loader from '@/components/Loader';
 import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
 import { useRegionQuery } from '@/generated/graphql';
@@ -54,10 +53,6 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
 
   return (
     <div>
-      <Breadcrumb
-        items={[{ label: 'Regions', href: '/regions' }, { label: region.name }]}
-      />
-
       <div className="region-detail-card">
         {/* Header */}
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
