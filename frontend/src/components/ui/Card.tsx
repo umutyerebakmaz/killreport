@@ -27,12 +27,6 @@ export default function Card({
   padded = true,
 }: CardProps) {
   return (
-    <div
-      className={`border bg-neutral-900 border-white/10 ${
-        padded ? 'p-6' : ''
-      } ${className}`}
-    >
-      {children}
-    </div>
+    <div className={`${padded ? 'p-6' : ''} ${className}`}>{children}</div>
   );
 }
