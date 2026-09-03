@@ -58,8 +58,8 @@ function SovereigntyContent() {
 
   return (
     <>
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-3xl font-semibold text-white">Sovereignty</h1>
+      <h1 className="sr-only">Sovereignty</h1>
+      <div className="flex flex-wrap items-baseline justify-end gap-2">
         <div className="flex gap-4">
           <Link
             href="/sovereignty/structures"
@@ -91,10 +91,6 @@ function SovereigntyContent() {
           </Link>
         </div>
       </div>
-      <h2 className="mt-2 text-xl text-white">
-        Null-sec territory control &amp; active wars across New Eden
-      </h2>
-
       {/* Overview */}
       {overview && (
         <div className="grid grid-cols-2 gap-4 mt-6 md:grid-cols-3 lg:grid-cols-6">

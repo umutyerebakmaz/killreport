@@ -19,10 +19,8 @@ function HotspotsContent() {
 
   return (
     <>
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-3xl font-semibold text-white">
-          Conflict Hot Zones
-        </h1>
+      <h1 className="sr-only">Conflict Hot Zones</h1>
+      <div className="flex flex-wrap items-baseline justify-end gap-2">
         <Link
           href="/sovereignty"
           prefetch={false}
@@ -31,10 +29,6 @@ function HotspotsContent() {
           ← Sovereignty Overview
         </Link>
       </div>
-      <h2 className="mt-2 text-xl text-white">
-        Null-sec regions ranked by sovereignty conflict intensity
-      </h2>
-
       {/* Treemap */}
       <section className="mt-6">
         <ConflictTreemap hotspots={hotspots} />
