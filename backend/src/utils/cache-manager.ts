@@ -86,7 +86,9 @@ export class CacheManager {
       this.clearPattern('killmail:detail:*'),
       this.clearPattern('killmails:list:*'), // Clear killmails list cache
       this.clearPattern('killmails:dateCounts:*'), // Clear date counts cache
+      this.clearPattern('killmails:mostvaluable:*'), // Clear most-valuable carousel cache
       this.clearPattern('response-cache:*:Killmail*'),
+      this.clearPattern('response-cache:*:MostValuableKillmails*'),
     ]);
     logger.info('Cleared all killmail caches');
   }

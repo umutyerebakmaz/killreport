@@ -12,6 +12,8 @@ import redis from '@services/redis';
 const MAX_LIMIT = 50;
 const DEFAULT_LIMIT = 20;
 const DEFAULT_DAYS = 7;
+const MIN_DAYS = 1;
+const MAX_DAYS = 90;
 
 /**
  * One indexed query against killmail_filters, which carries the victim's ship
@@ -48,7 +50,7 @@ export async function getMostValuableKillmails(
   limit?: number | null,
 ) {
   const cappedLimit = Math.min(limit ?? DEFAULT_LIMIT, MAX_LIMIT);
-  const window = days ?? DEFAULT_DAYS;
+  const window = Math.min(Math.max(days ?? DEFAULT_DAYS, MIN_DAYS), MAX_DAYS);
 
   const cacheKey = `killmails:mostvaluable:${scope}:${window}:${cappedLimit}`;
   const cached = await redis.get(cacheKey);
@@ -60,6 +62,9 @@ export async function getMostValuableKillmails(
       SELECT killmail_id, killmail_time, solar_system_id, total_value, attacker_count
       FROM killmail_filters
       WHERE killmail_time >= ${since}
+        -- Zero-valued rows (missing market_prices coverage at ingest time)
+        -- sort to the bottom rather than being excluded here; nothing clears
+        -- them, so the gap is permanent for those killmails.
         AND total_value IS NOT NULL
         AND ${SCOPE_PREDICATE[scope]}
       ORDER BY total_value DESC
