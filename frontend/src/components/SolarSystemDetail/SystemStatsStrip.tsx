@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useSolarSystemStatsQuery } from "@/generated/graphql";
-import { formatISK } from "@/utils/formatISK";
+import { useSolarSystemStatsQuery } from '@/generated/graphql';
+import { formatISK } from '@/utils/formatISK';
 
 interface SystemStatsStripProps {
   systemId: number;
@@ -54,13 +54,16 @@ export default function SystemStatsStrip({ systemId }: SystemStatsStripProps) {
         value={(stats?.totalKills ?? 0).toLocaleString()}
       />
       <Box label="ISK Destroyed" value={formatISK(stats?.totalIskDestroyed)} />
-      <Box label="Kills (24h)" value={(stats?.kills24h ?? 0).toLocaleString()} />
+      <Box
+        label="Kills (24h)"
+        value={(stats?.kills24h ?? 0).toLocaleString()}
+      />
       <Box
         label="Busiest Hour"
         value={
           busiest === null || busiest === undefined
-            ? "—"
-            : `${String(busiest).padStart(2, "0")}:00 UTC`
+            ? '—'
+            : `${String(busiest).padStart(2, '0')}:00 UTC`
         }
       />
     </div>

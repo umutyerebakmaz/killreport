@@ -74,13 +74,13 @@ export const typeMutations: MutationResolvers = {
 
       // If specific type IDs provided, use them; otherwise get all types from DB
       if (input.typeIds && input.typeIds.length > 0) {
-        typeIds = input.typeIds.map(id => Number(id));
+        typeIds = input.typeIds.map((id) => Number(id));
         logger.info(`✓ Using ${typeIds.length} specified type IDs`);
       } else {
         const types = await prisma.type.findMany({
           select: { id: true },
         });
-        typeIds = types.map(t => t.id);
+        typeIds = types.map((t) => t.id);
         logger.info(`✓ Found ${typeIds.length} types in database`);
       }
 

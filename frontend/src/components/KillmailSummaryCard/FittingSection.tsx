@@ -1,4 +1,4 @@
-import FittingItem from "./FittingItem";
+import FittingItem from './FittingItem';
 
 interface FittingSectionProps {
   title: string;

@@ -8,7 +8,7 @@ const THE_FORGE_REGION_ID = 10000002; // Jita's region
 
 export interface MarketPrice {
   type_id: number;
-  buy: number;  // Highest buy order (instant sell price)
+  buy: number; // Highest buy order (instant sell price)
   sell: number; // Lowest sell order (instant buy price)
   average: number;
   volume: number;
@@ -32,7 +32,6 @@ export interface ESIMarketOrder {
  * Market service for ESI API interactions
  */
 export class MarketService {
-
   /**
    * Fetches Jita price from ESI market orders
    * @param typeId - Type ID
@@ -45,8 +44,12 @@ export class MarketService {
         const response = await axios.get<ESIMarketOrder[]>(url);
 
         const orders = response.data;
-        const buyOrders = orders.filter(o => o.is_buy_order).map(o => o.price);
-        const sellOrders = orders.filter(o => !o.is_buy_order).map(o => o.price);
+        const buyOrders = orders
+          .filter((o) => o.is_buy_order)
+          .map((o) => o.price);
+        const sellOrders = orders
+          .filter((o) => !o.is_buy_order)
+          .map((o) => o.price);
 
         const highestBuy = buyOrders.length > 0 ? Math.max(...buyOrders) : 0;
         const lowestSell = sellOrders.length > 0 ? Math.min(...sellOrders) : 0;

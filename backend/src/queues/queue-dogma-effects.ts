@@ -44,7 +44,7 @@ async function queueDogmaEffects() {
       }
 
       logger.debug(
-        `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(effectIds.length / BATCH_SIZE)}`
+        `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(effectIds.length / BATCH_SIZE)}`,
       );
     }
 

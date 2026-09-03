@@ -150,7 +150,7 @@ window.dispatchEvent(new Event("auth-change"));
 ```typescript
 // Apollo Client automatically adds header:
 headers: {
-  authorization: `Bearer ${localStorage.getItem("eve_access_token")}`;
+  authorization: `Bearer ${localStorage.getItem('eve_access_token')}`;
 }
 
 // Backend verifies and adds user to context:
@@ -160,7 +160,7 @@ return { user: character };
 // Use in resolvers:
 me: async (_, __, context) => {
   if (!context.user) {
-    throw new Error("Not authenticated");
+    throw new Error('Not authenticated');
   }
   // Access user data: context.user.characterId
 };
@@ -197,8 +197,8 @@ me: async (_, __, context) => {
 
 ```javascript
 // In browser console:
-localStorage.getItem("eve_access_token");
-localStorage.getItem("eve_user");
+localStorage.getItem('eve_access_token');
+localStorage.getItem('eve_user');
 ```
 
 ### Clear Auth State

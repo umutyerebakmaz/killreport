@@ -15,8 +15,12 @@ import prisma from '@services/prisma';
 
 type NameRow = { id: number; name: string; ticker: string };
 
-async function allianceNames(ids: (number | null | undefined)[]): Promise<Map<number, NameRow>> {
-  const unique = [...new Set(ids.filter((x): x is number => typeof x === 'number'))];
+async function allianceNames(
+  ids: (number | null | undefined)[],
+): Promise<Map<number, NameRow>> {
+  const unique = [
+    ...new Set(ids.filter((x): x is number => typeof x === 'number')),
+  ];
   if (unique.length === 0) return new Map();
   const rows = await prisma.alliance.findMany({
     where: { id: { in: unique } },
@@ -26,7 +30,7 @@ async function allianceNames(ids: (number | null | undefined)[]): Promise<Map<nu
 }
 
 async function systemInfo(
-  ids: number[]
+  ids: number[],
 ): Promise<Map<number, { name: string; constellation_id: number | null }>> {
   const unique = [...new Set(ids)];
   if (unique.length === 0) return new Map();
@@ -34,7 +38,12 @@ async function systemInfo(
     where: { id: { in: unique } },
     select: { id: true, name: true, constellation_id: true },
   });
-  return new Map(rows.map((r) => [r.id, { name: r.name, constellation_id: r.constellation_id }]));
+  return new Map(
+    rows.map((r) => [
+      r.id,
+      { name: r.name, constellation_id: r.constellation_id },
+    ]),
+  );
 }
 
 /**
@@ -43,31 +52,46 @@ async function systemInfo(
  * lookups. Reused by campaigns, structures and by-region aggregation.
  */
 async function resolveRegions(
-  systems: Map<number, { name: string; constellation_id: number | null }>
+  systems: Map<number, { name: string; constellation_id: number | null }>,
 ) {
-  const constellationIds = [...new Set(
-    [...systems.values()].map((s) => s.constellation_id).filter((x): x is number => x != null)
-  )];
+  const constellationIds = [
+    ...new Set(
+      [...systems.values()]
+        .map((s) => s.constellation_id)
+        .filter((x): x is number => x != null),
+    ),
+  ];
   const constellations = constellationIds.length
     ? await prisma.constellation.findMany({
-      where: { id: { in: constellationIds } },
-      select: { id: true, region_id: true },
-    })
+        where: { id: { in: constellationIds } },
+        select: { id: true, region_id: true },
+      })
     : [];
   const constToRegion = new Map(constellations.map((c) => [c.id, c.region_id]));
-  const regionIds = [...new Set(constellations.map((c) => c.region_id).filter((x): x is number => x != null))];
+  const regionIds = [
+    ...new Set(
+      constellations
+        .map((c) => c.region_id)
+        .filter((x): x is number => x != null),
+    ),
+  ];
   const regions = regionIds.length
-    ? await prisma.region.findMany({ where: { id: { in: regionIds } }, select: { id: true, name: true } })
+    ? await prisma.region.findMany({
+        where: { id: { in: regionIds } },
+        select: { id: true, name: true },
+      })
     : [];
   const regionNames = new Map(regions.map((r) => [r.id, r.name]));
 
   return {
     regionIdForSystem: (systemId: number): number | null => {
       const sys = systems.get(systemId);
-      return sys?.constellation_id != null ? constToRegion.get(sys.constellation_id) ?? null : null;
+      return sys?.constellation_id != null
+        ? (constToRegion.get(sys.constellation_id) ?? null)
+        : null;
     },
     regionName: (regionId: number | null): string | null =>
-      regionId != null ? regionNames.get(regionId) ?? null : null,
+      regionId != null ? (regionNames.get(regionId) ?? null) : null,
   };
 }
 
@@ -76,7 +100,10 @@ async function resolveRegionsForSystems(systemIds: number[]) {
   return resolveRegions(await systemInfo(systemIds));
 }
 
-const STRUCTURE_TYPE_NAMES: Record<number, string> = { 32458: 'IHub', 32226: 'TCU' };
+const STRUCTURE_TYPE_NAMES: Record<number, string> = {
+  32458: 'IHub',
+  32226: 'TCU',
+};
 
 /** Enriches raw SovereigntyStructure rows with system/region/alliance names. */
 async function enrichStructures(
@@ -90,7 +117,7 @@ async function enrichStructures(
     vulnerable_end_time: Date | null;
     first_seen: Date;
     last_seen: Date;
-  }[]
+  }[],
 ) {
   const [systems, alliances] = await Promise.all([
     systemInfo(rows.map((r) => r.solar_system_id)),
@@ -112,7 +139,9 @@ async function enrichStructures(
       allianceName: a?.name ?? null,
       allianceTicker: a?.ticker ?? null,
       structureTypeId: s.structure_type_id,
-      structureTypeName: STRUCTURE_TYPE_NAMES[s.structure_type_id] ?? `Type ${s.structure_type_id}`,
+      structureTypeName:
+        STRUCTURE_TYPE_NAMES[s.structure_type_id] ??
+        `Type ${s.structure_type_id}`,
       occupancyLevel: s.vulnerability_occupancy_level,
       vulnerableStartTime: s.vulnerable_start_time?.toISOString() ?? null,
       vulnerableEndTime: s.vulnerable_end_time?.toISOString() ?? null,
@@ -127,13 +156,19 @@ async function enrichStructures(
  * alliances. Returns an empty map if the snapshot worker hasn't produced any rows.
  */
 async function latestTerritoryStats(allianceIds: number[]) {
-  if (allianceIds.length === 0) return new Map<number, {
-    campaigns_attacking: number;
-    campaigns_defending: number;
-    systems_gained: number;
-    systems_lost: number;
-  }>();
-  const latest = await prisma.allianceTerritoryStats.aggregate({ _max: { date: true } });
+  if (allianceIds.length === 0)
+    return new Map<
+      number,
+      {
+        campaigns_attacking: number;
+        campaigns_defending: number;
+        systems_gained: number;
+        systems_lost: number;
+      }
+    >();
+  const latest = await prisma.allianceTerritoryStats.aggregate({
+    _max: { date: true },
+  });
   if (!latest._max.date) return new Map();
   const rows = await prisma.allianceTerritoryStats.findMany({
     where: { date: latest._max.date, alliance_id: { in: allianceIds } },
@@ -147,9 +182,11 @@ async function latestTerritoryStats(allianceIds: number[]) {
  */
 async function activityLeaderboard(
   column: 'campaigns_attacking' | 'campaigns_defending',
-  limit: number
+  limit: number,
 ) {
-  const latest = await prisma.allianceTerritoryStats.aggregate({ _max: { date: true } });
+  const latest = await prisma.allianceTerritoryStats.aggregate({
+    _max: { date: true },
+  });
   if (!latest._max.date) return [];
   const rows = await prisma.allianceTerritoryStats.findMany({
     where: { date: latest._max.date, [column]: { gt: 0 } } as any,
@@ -198,7 +235,9 @@ async function enrichCampaigns(campaigns: CampaignRow[]) {
   const [systems, defenders, combatStats, participants] = await Promise.all([
     systemInfo(campaigns.map((c) => c.solar_system_id)),
     allianceNames(campaigns.map((c) => c.defender_id)),
-    prisma.campaignCombatStats.findMany({ where: { campaign_id: { in: ids } } }),
+    prisma.campaignCombatStats.findMany({
+      where: { campaign_id: { in: ids } },
+    }),
     prisma.campaignParticipant.findMany({
       where: { campaign_id: { in: ids } },
       orderBy: { score: 'desc' },
@@ -206,7 +245,9 @@ async function enrichCampaigns(campaigns: CampaignRow[]) {
   ]);
 
   const combatByCampaign = new Map(combatStats.map((s) => [s.campaign_id, s]));
-  const participantNames = await allianceNames(participants.map((p) => p.alliance_id));
+  const participantNames = await allianceNames(
+    participants.map((p) => p.alliance_id),
+  );
   const participantsByCampaign = new Map<number, typeof participants>();
   for (const p of participants) {
     const list = participantsByCampaign.get(p.campaign_id) ?? [];
@@ -222,7 +263,9 @@ async function enrichCampaigns(campaigns: CampaignRow[]) {
     const def = c.defender_id != null ? defenders.get(c.defender_id) : null;
     const cs = combatByCampaign.get(c.campaign_id);
     const durationHours = c.end_time
-      ? Math.round(((c.end_time.getTime() - c.start_time.getTime()) / 3_600_000) * 10) / 10
+      ? Math.round(
+          ((c.end_time.getTime() - c.start_time.getTime()) / 3_600_000) * 10,
+        ) / 10
       : null;
     return {
       campaignId: c.campaign_id,
@@ -248,36 +291,39 @@ async function enrichCampaigns(campaigns: CampaignRow[]) {
       attackerIskLost: cs?.attacker_isk_lost ?? 0,
       defenderShipsLost: cs?.defender_ships_lost ?? 0,
       attackerShipsLost: cs?.attacker_ships_lost ?? 0,
-      participants: (participantsByCampaign.get(c.campaign_id) ?? []).map((p) => {
-        const a = participantNames.get(p.alliance_id);
-        return {
-          allianceId: p.alliance_id,
-          allianceName: a?.name ?? null,
-          allianceTicker: a?.ticker ?? null,
-          score: p.score,
-        };
-      }),
+      participants: (participantsByCampaign.get(c.campaign_id) ?? []).map(
+        (p) => {
+          const a = participantNames.get(p.alliance_id);
+          return {
+            allianceId: p.alliance_id,
+            allianceName: a?.name ?? null,
+            allianceTicker: a?.ticker ?? null,
+            score: p.score,
+          };
+        },
+      ),
     };
   });
 }
 
 export const sovereigntyQueries: QueryResolvers = {
   sovereigntyOverview: async () => {
-    const [ownedSystems, activeCampaigns, trackedStructures, alliances, war] = await Promise.all([
-      prisma.sovereigntyMapCurrent.count(),
-      prisma.sovereigntyCampaign.count({ where: { end_time: null } }),
-      prisma.sovereigntyStructure.count({ where: { destroyed_at: null } }),
-      prisma.sovereigntyMapCurrent.findMany({
-        where: { alliance_id: { not: null } },
-        distinct: ['alliance_id'],
-        select: { alliance_id: true },
-      }),
-      prisma.killmail.aggregate({
-        where: { is_war_related: true },
-        _count: { _all: true },
-        _sum: { total_value: true },
-      }),
-    ]);
+    const [ownedSystems, activeCampaigns, trackedStructures, alliances, war] =
+      await Promise.all([
+        prisma.sovereigntyMapCurrent.count(),
+        prisma.sovereigntyCampaign.count({ where: { end_time: null } }),
+        prisma.sovereigntyStructure.count({ where: { destroyed_at: null } }),
+        prisma.sovereigntyMapCurrent.findMany({
+          where: { alliance_id: { not: null } },
+          distinct: ['alliance_id'],
+          select: { alliance_id: true },
+        }),
+        prisma.killmail.aggregate({
+          where: { is_war_related: true },
+          _count: { _all: true },
+          _sum: { total_value: true },
+        }),
+      ]);
     return {
       ownedSystems,
       activeCampaigns,
@@ -340,7 +386,11 @@ export const sovereigntyQueries: QueryResolvers = {
     // ended rows without an inferred outcome don't dilute the success rate.
     const grouped = await prisma.sovereigntyCampaign.groupBy({
       by: ['defender_id', 'outcome'],
-      where: { end_time: { not: null }, defender_id: { not: null }, outcome: { not: null } },
+      where: {
+        end_time: { not: null },
+        defender_id: { not: null },
+        outcome: { not: null },
+      },
       _count: { _all: true },
     });
     const totals = new Map<number, { won: number; total: number }>();
@@ -379,17 +429,25 @@ export const sovereigntyQueries: QueryResolvers = {
       take,
     });
 
-    const allianceIds = grouped.map((g) => g.alliance_id).filter((x): x is number => x != null);
+    const allianceIds = grouped
+      .map((g) => g.alliance_id)
+      .filter((x): x is number => x != null);
     const names = await allianceNames(allianceIds);
 
     const ihubs = allianceIds.length
       ? await prisma.sovereigntyStructure.groupBy({
-        by: ['alliance_id'],
-        where: { destroyed_at: null, structure_type_id: 32458, alliance_id: { in: allianceIds } },
-        _count: { _all: true },
-      })
+          by: ['alliance_id'],
+          where: {
+            destroyed_at: null,
+            structure_type_id: 32458,
+            alliance_id: { in: allianceIds },
+          },
+          _count: { _all: true },
+        })
       : [];
-    const ihubCounts = new Map(ihubs.map((i) => [i.alliance_id, i._count._all]));
+    const ihubCounts = new Map(
+      ihubs.map((i) => [i.alliance_id, i._count._all]),
+    );
 
     // Activity fields from the latest daily snapshot (default 0 if no row yet).
     const stats = await latestTerritoryStats(allianceIds);
@@ -403,7 +461,8 @@ export const sovereigntyQueries: QueryResolvers = {
         allianceName: a?.name ?? null,
         allianceTicker: a?.ticker ?? null,
         systemsControlled: g._count._all,
-        ihubCount: (g.alliance_id != null ? ihubCounts.get(g.alliance_id) : 0) ?? 0,
+        ihubCount:
+          (g.alliance_id != null ? ihubCounts.get(g.alliance_id) : 0) ?? 0,
         campaignsAttacking: s?.campaigns_attacking ?? 0,
         campaignsDefending: s?.campaigns_defending ?? 0,
         systemsGained: s?.systems_gained ?? 0,
@@ -412,9 +471,11 @@ export const sovereigntyQueries: QueryResolvers = {
     });
   },
 
-  mostAggressiveAlliances: (_, { limit }) => activityLeaderboard('campaigns_attacking', limit ?? 10),
+  mostAggressiveAlliances: (_, { limit }) =>
+    activityLeaderboard('campaigns_attacking', limit ?? 10),
 
-  mostDefensiveAlliances: (_, { limit }) => activityLeaderboard('campaigns_defending', limit ?? 10),
+  mostDefensiveAlliances: (_, { limit }) =>
+    activityLeaderboard('campaigns_defending', limit ?? 10),
 
   recentTerritoryChanges: async (_, { limit }) => {
     const changes = await prisma.territoryChange.findMany({
@@ -429,7 +490,8 @@ export const sovereigntyQueries: QueryResolvers = {
     ]);
 
     return changes.map((c) => {
-      const prev = c.previous_owner_id != null ? names.get(c.previous_owner_id) : null;
+      const prev =
+        c.previous_owner_id != null ? names.get(c.previous_owner_id) : null;
       const next = c.new_owner_id != null ? names.get(c.new_owner_id) : null;
       return {
         id: c.id.toString(),
@@ -460,7 +522,9 @@ export const sovereigntyQueries: QueryResolvers = {
 
   sovereigntyUpcomingTimers: async (_, { hoursAhead, limit }) => {
     const now = new Date();
-    const horizon = new Date(now.getTime() + (hoursAhead ?? 24) * 60 * 60 * 1000);
+    const horizon = new Date(
+      now.getTime() + (hoursAhead ?? 24) * 60 * 60 * 1000,
+    );
     const rows = await prisma.sovereigntyStructure.findMany({
       where: {
         destroyed_at: null,
@@ -477,7 +541,9 @@ export const sovereigntyQueries: QueryResolvers = {
       where: { end_time: null },
       select: { solar_system_id: true },
     });
-    const regions = await resolveRegionsForSystems(campaigns.map((c) => c.solar_system_id));
+    const regions = await resolveRegionsForSystems(
+      campaigns.map((c) => c.solar_system_id),
+    );
 
     const counts = new Map<number, number>();
     for (const c of campaigns) {
@@ -502,7 +568,9 @@ export const sovereigntyQueries: QueryResolvers = {
     const owned = await prisma.sovereigntyMapCurrent.findMany({
       select: { solar_system_id: true, alliance_id: true },
     });
-    const allianceBySystem = new Map(owned.map((o) => [o.solar_system_id, o.alliance_id]));
+    const allianceBySystem = new Map(
+      owned.map((o) => [o.solar_system_id, o.alliance_id]),
+    );
 
     const systems = await prisma.solarSystem.findMany({
       where: {
@@ -510,11 +578,20 @@ export const sovereigntyQueries: QueryResolvers = {
         position_x: { not: null },
         position_z: { not: null },
       },
-      select: { id: true, name: true, position_x: true, position_z: true, constellation_id: true },
+      select: {
+        id: true,
+        name: true,
+        position_x: true,
+        position_z: true,
+        constellation_id: true,
+      },
     });
 
     const systemInfoMap = new Map(
-      systems.map((s) => [s.id, { name: s.name, constellation_id: s.constellation_id }])
+      systems.map((s) => [
+        s.id,
+        { name: s.name, constellation_id: s.constellation_id },
+      ]),
     );
     const [regions, names] = await Promise.all([
       resolveRegions(systemInfoMap),
@@ -552,13 +629,22 @@ export const sovereigntyQueries: QueryResolvers = {
         where: { campaign_id: { in: campaigns.map((c) => c.campaign_id) } },
       }),
     ]);
-    const combatByCampaign = new Map(combatStats.map((s) => [s.campaign_id, s]));
+    const combatByCampaign = new Map(
+      combatStats.map((s) => [s.campaign_id, s]),
+    );
 
-    const agg = new Map<number, { activeCampaigns: number; warKills: number; iskDestroyed: number }>();
+    const agg = new Map<
+      number,
+      { activeCampaigns: number; warKills: number; iskDestroyed: number }
+    >();
     for (const c of campaigns) {
       const regionId = regions.regionIdForSystem(c.solar_system_id);
       if (regionId == null) continue;
-      const cur = agg.get(regionId) ?? { activeCampaigns: 0, warKills: 0, iskDestroyed: 0 };
+      const cur = agg.get(regionId) ?? {
+        activeCampaigns: 0,
+        warKills: 0,
+        iskDestroyed: 0,
+      };
       cur.activeCampaigns += 1;
       const cs = combatByCampaign.get(c.campaign_id);
       cur.warKills += cs?.war_kills ?? 0;

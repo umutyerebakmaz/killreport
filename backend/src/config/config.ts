@@ -27,7 +27,9 @@ const envSchema = z.object({
   FRONTEND_URL: z.string().default('http://localhost:3000'),
 
   // Application
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  NODE_ENV: z
+    .enum(['development', 'production', 'test'])
+    .default('development'),
   PORT: z.string().default('4000').transform(Number),
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'http', 'debug']).default('info'),
 
@@ -42,8 +44,14 @@ const envSchema = z.object({
   ESI_PREFETCH: z.string().default('100').transform(Number),
 
   // GraphQL
-  GRAPHQL_INTROSPECTION: z.string().default('true').transform(val => val === 'true'),
-  GRAPHQL_PLAYGROUND: z.string().default('true').transform(val => val === 'true'),
+  GRAPHQL_INTROSPECTION: z
+    .string()
+    .default('true')
+    .transform((val) => val === 'true'),
+  GRAPHQL_PLAYGROUND: z
+    .string()
+    .default('true')
+    .transform((val) => val === 'true'),
 });
 
 // Parse and validate environment variables

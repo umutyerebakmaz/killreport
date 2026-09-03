@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 interface SecurityStats {
   highSec: number;
@@ -38,7 +38,7 @@ export default function SecurityStatsBar({
     (stats.wormhole || 0) > 0 ? `WH: ${stats.wormhole}` : null,
   ]
     .filter(Boolean)
-    .join(" | ");
+    .join(' | ');
 
   if (compact) {
     return (

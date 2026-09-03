@@ -1,7 +1,7 @@
-import type { Fitting } from "@/generated/graphql";
-import ImplantSlot from "./ImplantSlot";
-import ServiceSlot from "./ServiceSlot";
-import Slot from "./Slot";
+import type { Fitting } from '@/generated/graphql';
+import ImplantSlot from './ImplantSlot';
+import ServiceSlot from './ServiceSlot';
+import Slot from './Slot';
 
 interface FitScreenProps {
   shipType?: {
@@ -41,7 +41,7 @@ export default function FitScreen({ shipType, fitting }: FitScreenProps) {
                 className="hull-image"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  if (target.src.includes("/render?")) {
+                  if (target.src.includes('/render?')) {
                     target.src = `https://images.evetech.net/types/${shipType.id}/icon?size=512`;
                   }
                 }}

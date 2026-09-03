@@ -20,7 +20,7 @@ export const analyticsSubscriptions: SubscriptionResolvers = {
         };
 
         // Wait 3 seconds before next update
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        await new Promise((resolve) => setTimeout(resolve, 3000));
       }
     },
   },

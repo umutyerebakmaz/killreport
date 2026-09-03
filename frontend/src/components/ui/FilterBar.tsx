@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { FunnelIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { ReactNode } from "react";
+import { FunnelIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ReactNode } from 'react';
 
 export interface FilterBarProps {
   /**
@@ -63,13 +63,11 @@ export default function FilterBar({
         <button
           type="button"
           onClick={onOpenFilters}
-          className={`button ${hasBadge ? "active-filter-button" : ""}`}
+          className={`button ${hasBadge ? 'active-filter-button' : ''}`}
         >
           <FunnelIcon className="w-5 h-5" />
           Filters
-          {hasBadge && (
-            <span className="badge">{activeFilterCount}</span>
-          )}
+          {hasBadge && <span className="badge">{activeFilterCount}</span>}
         </button>
       )}
 

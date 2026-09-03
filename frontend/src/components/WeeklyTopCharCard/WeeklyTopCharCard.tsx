@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { Loader } from "@/components/Loader/Loader";
-import RankNumber from "@/components/ui/RankNumber";
-import Tooltip from "@/components/Tooltip/Tooltip";
-import { useTopWeeklyPilotsQuery } from "@/generated/graphql";
-import { getSecurityStatusColor } from "@/utils/securityStatus";
-import { CalendarDaysIcon } from "@heroicons/react/24/outline";
-import Link from "next/link";
+import { Loader } from '@/components/Loader/Loader';
+import RankNumber from '@/components/ui/RankNumber';
+import Tooltip from '@/components/Tooltip/Tooltip';
+import { useTopWeeklyPilotsQuery } from '@/generated/graphql';
+import { getSecurityStatusColor } from '@/utils/securityStatus';
+import { CalendarDaysIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
 
 export default function WeeklyTopCharCard() {
   const { data, loading } = useTopWeeklyPilotsQuery({
@@ -52,7 +52,7 @@ export default function WeeklyTopCharCard() {
                           ? `https://images.evetech.net/characters/${char.id}/portrait?size=64`
                           : `https://images.evetech.net/characters/0/portrait?size=64`
                       }
-                      alt={char?.name ?? "Unknown"}
+                      alt={char?.name ?? 'Unknown'}
                       width={40}
                       height={40}
                       className="shadow-md"

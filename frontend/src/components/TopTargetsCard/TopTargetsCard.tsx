@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { Loader } from "@/components/Loader/Loader";
-import RankNumber from "@/components/ui/RankNumber";
-import Tooltip from "@/components/Tooltip/Tooltip";
-import Link from "next/link";
-import { ReactNode } from "react";
+import { Loader } from '@/components/Loader/Loader';
+import RankNumber from '@/components/ui/RankNumber';
+import Tooltip from '@/components/Tooltip/Tooltip';
+import Link from 'next/link';
+import { ReactNode } from 'react';
 
 export interface TopTarget {
   id: number;
@@ -18,9 +18,9 @@ export interface TopTargetsCardProps {
   targets: TopTarget[];
   loading?: boolean;
   emptyText?: string;
-  targetType: "alliance" | "corporation" | "character";
+  targetType: 'alliance' | 'corporation' | 'character';
   linkPrefix: string; // e.g., "/alliances", "/corporations", "/characters"
-  variant?: "detail" | "list";
+  variant?: 'detail' | 'list';
 }
 
 export default function TopTargetsCard({
@@ -28,22 +28,22 @@ export default function TopTargetsCard({
   subtitle,
   targets,
   loading = false,
-  emptyText = "No targets yet",
+  emptyText = 'No targets yet',
   targetType,
   linkPrefix,
-  variant = "detail",
+  variant = 'detail',
 }: TopTargetsCardProps) {
   // Get image URL based on target type
   const getImageUrl = (id: number, type: typeof targetType): string => {
     switch (type) {
-      case "alliance":
+      case 'alliance':
         return `https://images.evetech.net/alliances/${id}/logo?size=128`;
-      case "corporation":
+      case 'corporation':
         return `https://images.evetech.net/corporations/${id}/logo?size=128`;
-      case "character":
+      case 'character':
         return `https://images.evetech.net/characters/${id}/portrait?size=128`;
       default:
-        return "";
+        return '';
     }
   };
 
@@ -86,9 +86,9 @@ export default function TopTargetsCard({
             <div
               key={target.id}
               className={`p-3 duration-100 transition-color ${
-                variant === "list"
-                  ? "bg-neutral-900 hover:bg-neutral-800"
-                  : "bg-neutral-800 hover:bg-neutral-700"
+                variant === 'list'
+                  ? 'bg-neutral-900 hover:bg-neutral-800'
+                  : 'bg-neutral-800 hover:bg-neutral-700'
               }`}
             >
               <div className="flex items-center gap-3">

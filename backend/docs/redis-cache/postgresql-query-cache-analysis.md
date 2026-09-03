@@ -160,7 +160,7 @@ const prisma = new PrismaClient({
       url: process.env.DATABASE_URL,
     },
   },
-  log: ["warn", "error"],
+  log: ['warn', 'error'],
 });
 
 // Prisma automatically manages connection pool
@@ -220,12 +220,12 @@ Cache Hit Rate: 70-85%
 // backend/src/resolvers/cache.resolver.ts
 export const cacheQueries: QueryResolvers = {
   cacheStats: async () => {
-    const info = await redis.info("stats");
-    const keyspace = await redis.info("keyspace");
+    const info = await redis.info('stats');
+    const keyspace = await redis.info('keyspace');
 
     return {
       hitRate: calculateHitRate(info),
-      memoryUsage: await redis.info("memory"),
+      memoryUsage: await redis.info('memory'),
       totalKeys: parseKeyspace(keyspace),
     };
   },

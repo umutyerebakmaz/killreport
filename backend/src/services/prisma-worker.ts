@@ -32,15 +32,21 @@ const pool = new Pool({
   allowExitOnIdle: true, // Allow pool to completely drain
 });
 
-console.log(`✅ [Worker] PostgreSQL pool configured: max=2 connections, min=0, idleTimeout=10s, pid=${process.pid}`);
+console.log(
+  `✅ [Worker] PostgreSQL pool configured: max=2 connections, min=0, idleTimeout=10s, pid=${process.pid}`,
+);
 
 // Monitor pool connections
 pool.on('connect', () => {
-  console.log(`🔌 [Worker] Pool connection opened - Total: ${pool.totalCount}, Idle: ${pool.idleCount}, Waiting: ${pool.waitingCount}`);
+  console.log(
+    `🔌 [Worker] Pool connection opened - Total: ${pool.totalCount}, Idle: ${pool.idleCount}, Waiting: ${pool.waitingCount}`,
+  );
 });
 
 pool.on('remove', () => {
-  console.log(`❌ [Worker] Pool connection closed - Total: ${pool.totalCount}, Idle: ${pool.idleCount}, Waiting: ${pool.waitingCount}`);
+  console.log(
+    `❌ [Worker] Pool connection closed - Total: ${pool.totalCount}, Idle: ${pool.idleCount}, Waiting: ${pool.waitingCount}`,
+  );
 });
 
 pool.on('error', (err) => {

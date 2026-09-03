@@ -31,7 +31,10 @@ const MAX_ALERTS = 25;
  * (ESI gives no explicit resolution event): defender wins ties; if neither side
  * made meaningful progress the window lapsed uncontested → abandoned.
  */
-function inferOutcome(defenderScore: number | null, attackersScore: number | null): string {
+function inferOutcome(
+  defenderScore: number | null,
+  attackersScore: number | null,
+): string {
   if (defenderScore == null && attackersScore == null) return 'abandoned';
   const d = defenderScore ?? 0;
   const a = attackersScore ?? 0;
@@ -60,12 +63,12 @@ async function syncSovereigntyCampaigns() {
     const existingIds = new Set(
       esiIds.length > 0
         ? (
-          await prismaWorker.sovereigntyCampaign.findMany({
-            where: { campaign_id: { in: esiIds } },
-            select: { campaign_id: true },
-          })
-        ).map((c) => c.campaign_id)
-        : []
+            await prismaWorker.sovereigntyCampaign.findMany({
+              where: { campaign_id: { in: esiIds } },
+              select: { campaign_id: true },
+            })
+          ).map((c) => c.campaign_id)
+        : [],
     );
 
     for (const campaign of campaigns) {
@@ -114,7 +117,11 @@ async function syncSovereigntyCampaigns() {
 
       // Alert on a genuinely new campaign (in the feed but not previously stored),
       // skipping the first-run baseline and capping per run.
-      if (!isBaseline && !existingIds.has(campaign.campaign_id) && startedAlerts < MAX_ALERTS) {
+      if (
+        !isBaseline &&
+        !existingIds.has(campaign.campaign_id) &&
+        startedAlerts < MAX_ALERTS
+      ) {
         startedAlerts++;
         const alert = await buildSovereigntyAlert(prismaWorker, {
           type: 'campaign_started',
@@ -131,7 +138,9 @@ async function syncSovereigntyCampaigns() {
     // poll can't mass-end every active war at once.
     let endedCount = 0;
     if (campaigns.length === 0) {
-      logger.warn('⚠️  ESI returned 0 active campaigns — skipping end-marking this run');
+      logger.warn(
+        '⚠️  ESI returned 0 active campaigns — skipping end-marking this run',
+      );
     } else {
       const activeIds = campaigns.map((c) => c.campaign_id);
       const departing = await prismaWorker.sovereigntyCampaign.findMany({
@@ -171,7 +180,7 @@ async function syncSovereigntyCampaigns() {
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     logger.info(
       `✅ Campaigns sync complete: ${campaigns.length} active, ${participantCount} participants, ` +
-      `${endedCount} marked ended (${duration}s)`
+        `${endedCount} marked ended (${duration}s)`,
     );
   } catch (error) {
     logger.error('❌ Sovereignty campaigns sync failed', { error });

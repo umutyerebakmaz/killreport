@@ -3,7 +3,7 @@
  * Handles font tags with size and color attributes, links, and special characters
  */
 export function parseEveHtml(eveHtml: string | null | undefined): string {
-  if (!eveHtml) return "";
+  if (!eveHtml) return '';
 
   // Remove u' prefix and trailing ' if present (Python string format)
   let html = eveHtml.trim();
@@ -17,13 +17,13 @@ export function parseEveHtml(eveHtml: string | null | undefined): string {
   });
 
   // Handle loc tags (EVE's link container) first
-  html = html.replace(/<loc>/gi, "");
-  html = html.replace(/<\/loc>/gi, "");
+  html = html.replace(/<loc>/gi, '');
+  html = html.replace(/<\/loc>/gi, '');
 
   // Make sure links open in new tab and have proper styling (before processing font tags)
   html = html.replace(
     /<a\s+href="([^"]+)">/gi,
-    '<a href="$1" target="_blank" rel="noopener noreferrer" class="eve-link">'
+    '<a href="$1" target="_blank" rel="noopener noreferrer" class="eve-link">',
   );
 
   // Convert EVE color tags to inline styles
@@ -38,7 +38,7 @@ export function parseEveHtml(eveHtml: string | null | undefined): string {
       const b = parseInt(color.substring(6, 8), 16);
 
       return `<span style="color: rgba(${r}, ${g}, ${b}, ${alpha});">${content}</span>`;
-    }
+    },
   );
 
   // Convert EVE font tags to inline styles
@@ -58,11 +58,11 @@ export function parseEveHtml(eveHtml: string | null | undefined): string {
       const fontSize = Math.round(parseInt(size) * 0.85);
 
       return `<span style="font-size: ${fontSize}px; color: rgba(${r}, ${g}, ${b}, ${alpha});">${content}</span>`;
-    }
+    },
   );
 
   // Convert <br> to actual line breaks
-  html = html.replace(/<br\s*\/?>/gi, "<br>");
+  html = html.replace(/<br\s*\/?>/gi, '<br>');
 
   // Escape any remaining potential XSS vectors
   // But keep our processed HTML tags
@@ -97,7 +97,7 @@ export function sanitizeEveHtml(eveHtml: string | null | undefined): string {
     } else {
       // Remove disallowed attributes
       const attrs = Array.from(el.attributes);
-      attrs.forEach(attr => {
+      attrs.forEach((attr) => {
         if (!allowedAttributes.includes(attr.name.toLowerCase())) {
           el.removeAttribute(attr.name);
         }

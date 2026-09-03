@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { Loader } from "@/components/Loader/Loader";
-import { useSolarSystemStationsQuery } from "@/generated/graphql";
-import { formatISK } from "@/utils/formatISK";
-import Link from "next/link";
+import { Loader } from '@/components/Loader/Loader';
+import { useSolarSystemStationsQuery } from '@/generated/graphql';
+import { formatISK } from '@/utils/formatISK';
+import Link from 'next/link';
 
 interface StructuresTabProps {
   systemId: number;
@@ -64,7 +64,7 @@ export default function StructuresTab({ systemId }: StructuresTabProps) {
                 )}
               </td>
               <td className="px-4 py-3 text-gray-400">
-                {station.type?.name ?? "—"}
+                {station.type?.name ?? '—'}
               </td>
               <td className="px-4 py-3">
                 {station.ownerCorporation ? (
@@ -88,17 +88,17 @@ export default function StructuresTab({ systemId }: StructuresTabProps) {
               <td className="px-4 py-3 text-right text-gray-300">
                 {station.reprocessingEfficiency != null
                   ? `${(station.reprocessingEfficiency * 100).toFixed(0)}%`
-                  : "—"}
+                  : '—'}
               </td>
               <td className="px-4 py-3 text-right text-gray-300">
                 {station.reprocessingStationsTake != null
                   ? `${(station.reprocessingStationsTake * 100).toFixed(0)}%`
-                  : "—"}
+                  : '—'}
               </td>
               <td className="px-4 py-3 text-right text-gray-300">
                 {station.officeRentalCost != null
                   ? formatISK(station.officeRentalCost)
-                  : "—"}
+                  : '—'}
               </td>
               <td className="px-4 py-3">
                 <div className="flex flex-wrap gap-1">

@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import CharactersTable from "@/components/CharactersTable/CharactersTable";
-import CorporationGrowthChart from "@/components/CorporationGrowthChart/CorporationGrowthChart";
-import KillmailsTable from "@/components/KillmailsTable";
-import { Loader } from "@/components/Loader/Loader";
-import MemberDeltaBadge from "@/components/MemberDeltaBadge/MemberDeltaBadge";
-import Paginator from "@/components/Paginator/Paginator";
-import Tooltip from "@/components/Tooltip/Tooltip";
-import TopCharacterCard from "@/components/TopCharacterCard/TopCharacterCard";
-import TopShipsCard from "@/components/TopShipsCard";
-import TopTargetsCard from "@/components/TopTargetsCard";
-import TotalMemberBadge from "@/components/TotalMemberBadge/TotalMemberBadge";
+import CharactersTable from '@/components/CharactersTable/CharactersTable';
+import CorporationGrowthChart from '@/components/CorporationGrowthChart/CorporationGrowthChart';
+import KillmailsTable from '@/components/KillmailsTable';
+import { Loader } from '@/components/Loader/Loader';
+import MemberDeltaBadge from '@/components/MemberDeltaBadge/MemberDeltaBadge';
+import Paginator from '@/components/Paginator/Paginator';
+import Tooltip from '@/components/Tooltip/Tooltip';
+import TopCharacterCard from '@/components/TopCharacterCard/TopCharacterCard';
+import TopShipsCard from '@/components/TopShipsCard';
+import TopTargetsCard from '@/components/TopTargetsCard';
+import TotalMemberBadge from '@/components/TotalMemberBadge/TotalMemberBadge';
 import {
   useCorporationCharactersQuery,
   useCorporationGrowthQuery,
@@ -22,16 +22,16 @@ import {
   useCorporationTopShipTargetsQuery,
   useCorporationTopShipsQuery,
   useKillmailsDateCountsQuery,
-} from "@/generated/graphql";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { use, useCallback, useEffect, useMemo, useState } from "react";
+} from '@/generated/graphql';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { use, useCallback, useEffect, useMemo, useState } from 'react';
 
 interface CorporationDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-type TabType = "attributes" | "killmails" | "members" | "growth";
+type TabType = 'attributes' | 'killmails' | 'members' | 'growth';
 
 export default function CorporationDetailPage({
   params,
@@ -40,9 +40,9 @@ export default function CorporationDetailPage({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const pageFromUrl = Number(searchParams.get("page")) || 1;
-  const pageSizeFromUrl = Number(searchParams.get("pageSize")) || 25;
-  const tabFromUrl = (searchParams.get("tab") as TabType) || "attributes";
+  const pageFromUrl = Number(searchParams.get('page')) || 1;
+  const pageSizeFromUrl = Number(searchParams.get('pageSize')) || 25;
+  const tabFromUrl = (searchParams.get('tab') as TabType) || 'attributes';
 
   const [activeTab, setActiveTab] = useState<TabType>(tabFromUrl);
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
@@ -63,7 +63,7 @@ export default function CorporationDetailPage({
     useCorporationTopAllianceTargetsQuery({
       variables: {
         corporationId: parseInt(id),
-        filter: "LAST_7_DAYS" as any,
+        filter: 'LAST_7_DAYS' as any,
       },
     });
 
@@ -71,7 +71,7 @@ export default function CorporationDetailPage({
     useCorporationTopCorporationTargetsQuery({
       variables: {
         corporationId: parseInt(id),
-        filter: "LAST_7_DAYS" as any,
+        filter: 'LAST_7_DAYS' as any,
       },
     });
 
@@ -79,7 +79,7 @@ export default function CorporationDetailPage({
     useCorporationTopShipTargetsQuery({
       variables: {
         corporationId: parseInt(id),
-        filter: "LAST_7_DAYS" as any,
+        filter: 'LAST_7_DAYS' as any,
       },
     });
 
@@ -87,7 +87,7 @@ export default function CorporationDetailPage({
     useCorporationTopShipsQuery({
       variables: {
         corporationId: parseInt(id),
-        filter: "LAST_7_DAYS" as any,
+        filter: 'LAST_7_DAYS' as any,
       },
     });
 
@@ -95,7 +95,7 @@ export default function CorporationDetailPage({
     useCorporationTopCharactersQuery({
       variables: {
         corporationId: parseInt(id),
-        filter: "LAST_7_DAYS" as any,
+        filter: 'LAST_7_DAYS' as any,
       },
     });
 
@@ -109,7 +109,7 @@ export default function CorporationDetailPage({
           limit: pageSize,
         },
       },
-      skip: activeTab !== "killmails", // Only fetch when killmails tab is active
+      skip: activeTab !== 'killmails', // Only fetch when killmails tab is active
     });
 
   const { data: charactersData, loading: charactersLoading } =
@@ -121,7 +121,7 @@ export default function CorporationDetailPage({
           limit: charactersPageSize,
         },
       },
-      skip: activeTab !== "members",
+      skip: activeTab !== 'members',
     });
 
   // Fetch date counts for correct totals per date
@@ -131,14 +131,14 @@ export default function CorporationDetailPage({
         corporationId: parseInt(id),
       },
     },
-    skip: activeTab !== "killmails",
+    skip: activeTab !== 'killmails',
   });
 
   // Fetch growth snapshots only when growth tab is active
   const { data: growthData, loading: growthLoading } =
     useCorporationGrowthQuery({
       variables: { id: parseInt(id), days: 90 },
-      skip: activeTab !== "growth",
+      skip: activeTab !== 'growth',
     });
 
   // Memoize killmails array
@@ -171,14 +171,14 @@ export default function CorporationDetailPage({
   // URL sync for pagination and tab
   useEffect(() => {
     const params = new URLSearchParams();
-    params.set("tab", activeTab);
-    if (activeTab === "killmails") {
-      params.set("page", currentPage.toString());
-      params.set("pageSize", pageSize.toString());
+    params.set('tab', activeTab);
+    if (activeTab === 'killmails') {
+      params.set('page', currentPage.toString());
+      params.set('pageSize', pageSize.toString());
     }
-    if (activeTab === "members") {
-      params.set("page", charactersPage.toString());
-      params.set("pageSize", charactersPageSize.toString());
+    if (activeTab === 'members') {
+      params.set('page', charactersPage.toString());
+      params.set('pageSize', charactersPageSize.toString());
     }
     router.push(`/corporations/${id}?${params.toString()}`, { scroll: false });
   }, [
@@ -246,10 +246,10 @@ export default function CorporationDetailPage({
   }
 
   const tabs = [
-    { id: "attributes" as TabType, label: "Attributes" },
-    { id: "killmails" as TabType, label: "Killmails" },
-    { id: "members" as TabType, label: "Members" },
-    { id: "growth" as TabType, label: "Growth" },
+    { id: 'attributes' as TabType, label: 'Attributes' },
+    { id: 'killmails' as TabType, label: 'Killmails' },
+    { id: 'members' as TabType, label: 'Members' },
+    { id: 'growth' as TabType, label: 'Growth' },
   ];
 
   // Delta verilerini al (haftalık değişim)
@@ -314,12 +314,12 @@ export default function CorporationDetailPage({
 
   // Date founded'ı formatla (DD.MM.YYYY)
   const foundedDate = corporation.date_founded
-    ? new Date(corporation.date_founded).toLocaleDateString("tr-TR", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
+    ? new Date(corporation.date_founded).toLocaleDateString('tr-TR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
       })
-    : "Unknown";
+    : 'Unknown';
 
   return (
     <main>
@@ -381,10 +381,10 @@ export default function CorporationDetailPage({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-3 text-sm font-semibold transition-colors border-b-2 cursor-pointer ${
+                className={`px-4 py-3 text-sm font-semibold transition-colors border-b-2 ${
                   activeTab === tab.id
-                    ? "border-cyan-500 text-cyan-500"
-                    : "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600"
+                    ? 'border-cyan-500 text-cyan-500'
+                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
                 }`}
               >
                 {tab.label}
@@ -394,7 +394,7 @@ export default function CorporationDetailPage({
         </div>
         {/* Tab Content */}
         <div className="mt-6">
-          {activeTab === "attributes" && (
+          {activeTab === 'attributes' && (
             <div className="p-6 bg-white/5 border-white/10">
               <h2 className="mb-4 text-2xl font-bold">Attributes</h2>
               <div className="grid grid-cols-2 gap-4">
@@ -420,7 +420,7 @@ export default function CorporationDetailPage({
                         {corporation.ceo.name}
                       </Link>
                     ) : (
-                      "N/A"
+                      'N/A'
                     )}
                   </span>
                 </div>
@@ -436,14 +436,14 @@ export default function CorporationDetailPage({
                         {corporation.creator.name}
                       </Link>
                     ) : (
-                      "N/A"
+                      'N/A'
                     )}
                   </span>
                 </div>
                 <div>
                   <span className="text-gray-400">Member Count</span>
                   <span className="ml-2 font-semibold">
-                    {corporation.member_count?.toLocaleString() || "N/A"}
+                    {corporation.member_count?.toLocaleString() || 'N/A'}
                   </span>
                 </div>
                 <div>
@@ -451,7 +451,7 @@ export default function CorporationDetailPage({
                   <span className="ml-2 font-semibold">
                     {corporation.tax_rate
                       ? `${(corporation.tax_rate * 100).toFixed(1)}%`
-                      : "N/A"}
+                      : 'N/A'}
                   </span>
                 </div>
                 <div>
@@ -467,7 +467,7 @@ export default function CorporationDetailPage({
                         prefetch={false}
                         className="text-cyan-400 hover:text-cyan-300"
                       >
-                        [{corporation.alliance.ticker}]{" "}
+                        [{corporation.alliance.ticker}]{' '}
                         {corporation.alliance.name}
                       </Link>
                     ) : (
@@ -492,7 +492,7 @@ export default function CorporationDetailPage({
             </div>
           )}
 
-          {activeTab === "killmails" && (
+          {activeTab === 'killmails' && (
             <div className="killmails-tab">
               <div className="mb-6">
                 <h2 className="text-2xl font-bold">Killmails</h2>
@@ -542,7 +542,7 @@ export default function CorporationDetailPage({
                     title="Most Active Pilots"
                     subtitle={
                       <>
-                        Last 7 days{" "}
+                        Last 7 days{' '}
                         <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
                           ROLLING
                         </span>
@@ -557,7 +557,7 @@ export default function CorporationDetailPage({
                     title="Most Used Ships"
                     subtitle={
                       <>
-                        Last 7 days{" "}
+                        Last 7 days{' '}
                         <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
                           ROLLING
                         </span>
@@ -572,7 +572,7 @@ export default function CorporationDetailPage({
                     title="Most Killed Ships"
                     subtitle={
                       <>
-                        Last 7 days{" "}
+                        Last 7 days{' '}
                         <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
                           ROLLING
                         </span>
@@ -587,7 +587,7 @@ export default function CorporationDetailPage({
                     title="Most Killed Alliances"
                     subtitle={
                       <>
-                        Last 7 days{" "}
+                        Last 7 days{' '}
                         <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
                           ROLLING
                         </span>
@@ -604,7 +604,7 @@ export default function CorporationDetailPage({
                     title="Most Killed Corporations"
                     subtitle={
                       <>
-                        Last 7 days{" "}
+                        Last 7 days{' '}
                         <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
                           ROLLING
                         </span>
@@ -621,7 +621,7 @@ export default function CorporationDetailPage({
             </div>
           )}
 
-          {activeTab === "members" && (
+          {activeTab === 'members' && (
             <div className="p-6 bg-white/5 border-white/10">
               <h2 className="mb-4 text-2xl font-bold">Members</h2>
               <CharactersTable characters={characters} loading={false} />
@@ -648,7 +648,7 @@ export default function CorporationDetailPage({
             </div>
           )}
 
-          {activeTab === "growth" && (
+          {activeTab === 'growth' && (
             <div className="detail-tab-content">
               <CorporationGrowthChart
                 snapshots={growthData?.corporation?.snapshots ?? []}

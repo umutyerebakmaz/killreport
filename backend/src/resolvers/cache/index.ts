@@ -8,4 +8,3 @@
 
 export { cacheMutations } from './mutations';
 export { cacheQueries } from './queries';
-

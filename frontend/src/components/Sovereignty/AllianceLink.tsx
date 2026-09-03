@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from 'next/link';
 
 /**
  * Renders a link to an alliance page with an optional ticker, falling back to
@@ -24,7 +24,9 @@ export function AllianceLink({
       >
         {name ?? `#${id}`}
       </Link>
-      {ticker && <span className="ml-2 text-sm text-yellow-400">[{ticker}]</span>}
+      {ticker && (
+        <span className="ml-2 text-sm text-yellow-400">[{ticker}]</span>
+      )}
     </span>
   );
 }

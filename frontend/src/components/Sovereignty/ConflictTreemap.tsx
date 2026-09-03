@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { formatISK } from "@/utils/formatISK";
-import dynamic from "next/dynamic";
-import { useMemo } from "react";
+import { formatISK } from '@/utils/formatISK';
+import dynamic from 'next/dynamic';
+import { useMemo } from 'react';
 
-const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });
+const ReactECharts = dynamic(() => import('echarts-for-react'), { ssr: false });
 
 export interface Hotspot {
   regionId: number;
@@ -24,33 +24,33 @@ export function ConflictTreemap({ hotspots }: { hotspots: Hotspot[] }) {
   const option = useMemo(() => {
     const maxKills = hotspots.reduce((m, h) => Math.max(m, h.warKills), 0);
     return {
-      backgroundColor: "transparent",
+      backgroundColor: 'transparent',
       tooltip: {
         formatter: (info: { data?: Hotspot & { value?: number } }) => {
           const d = info.data;
-          if (!d) return "";
+          if (!d) return '';
           return [
             `<strong>${d.regionName ?? `#${d.regionId}`}</strong>`,
             `Active campaigns: ${d.activeCampaigns}`,
             `War kills: ${d.warKills}`,
             `ISK destroyed: ${formatISK(d.iskDestroyed)}`,
             `Intensity: ${d.intensityScore}`,
-          ].join("<br/>");
+          ].join('<br/>');
         },
       },
       series: [
         {
-          type: "treemap",
+          type: 'treemap',
           roam: false,
           nodeClick: false,
           breadcrumb: { show: false },
           label: {
             show: true,
-            formatter: "{b}",
-            color: "#fff",
+            formatter: '{b}',
+            color: '#fff',
             fontSize: 12,
           },
-          itemStyle: { borderColor: "#0a0a0a", borderWidth: 2, gapWidth: 2 },
+          itemStyle: { borderColor: '#0a0a0a', borderWidth: 2, gapWidth: 2 },
           data: hotspots.map((h) => {
             // Cyan (rgb 34,211,238) → red (234,61,58) as war-kill count rises.
             const t = maxKills ? h.warKills / maxKills : 0;
@@ -77,5 +77,7 @@ export function ConflictTreemap({ hotspots }: { hotspots: Hotspot[] }) {
     );
   }
 
-  return <ReactECharts option={option} style={{ height: 420, width: "100%" }} />;
+  return (
+    <ReactECharts option={option} style={{ height: 420, width: '100%' }} />
+  );
 }

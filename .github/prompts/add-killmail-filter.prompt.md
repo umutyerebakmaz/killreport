@@ -1,7 +1,7 @@
 ---
-description: "Add a new ID-based filter to KillmailFilters (e.g. regionId, constellationId, systemId). Follows the established full-stack pattern across GraphQL queries, URL helpers, and the React filter component."
-agent: "agent"
-argument-hint: "Filter name to add, e.g. regionId"
+description: 'Add a new ID-based filter to KillmailFilters (e.g. regionId, constellationId, systemId). Follows the established full-stack pattern across GraphQL queries, URL helpers, and the React filter component.'
+agent: 'agent'
+argument-hint: 'Filter name to add, e.g. regionId'
 ---
 
 Add a new ID-based location filter to the KillmailFilters system, following the exact same pattern as `constellationId` and `systemId`.
@@ -25,6 +25,7 @@ The filter name is **regionId**. The corresponding entity is `Region` (backend t
 Create two new `.graphql` files in `frontend/src/graphql/`:
 
 **`SearchRegions.graphql`** — search by text (mirrors `SearchConstellations.graphql`):
+
 ```graphql
 query SearchRegions($search: String!, $limit: Int = 40) {
   regions(filter: { search: $search, limit: $limit }) {
@@ -46,6 +47,7 @@ query SearchRegions($search: String!, $limit: Int = 40) {
 ```
 
 **`SearchRegion.graphql`** — fetch by ID (mirrors `SearchConstellation.graphql`):
+
 ```graphql
 query SearchRegion($id: Int!) {
   region(id: $id) {
@@ -56,6 +58,7 @@ query SearchRegion($id: Int!) {
 ```
 
 After creating the files, run codegen to regenerate the typed hooks:
+
 ```bash
 cd frontend && npm run codegen
 ```
@@ -65,17 +68,20 @@ cd frontend && npm run codegen
 The `KillmailFilters` interface already has `regionId?: number`. Two functions need updating:
 
 **`parseKillmailFiltersFromUrl`** — add parse for `regionId` alongside `constellationIdFromUrl` and `systemIdFromUrl`:
+
 ```ts
-const regionIdFromUrl = searchParams.get("regionId")
-    ? Number(searchParams.get("regionId"))
-    : undefined;
+const regionIdFromUrl = searchParams.get('regionId')
+  ? Number(searchParams.get('regionId'))
+  : undefined;
 ```
+
 Then include it in the returned `filters` object: `regionId: regionIdFromUrl`.
 
 **`buildKillmailFiltersUrl`** — add serialize for `regionId` alongside the `constellationId` block:
+
 ```ts
 if (filters.regionId) {
-    params.set("regionId", filters.regionId.toString());
+  params.set('regionId', filters.regionId.toString());
 }
 ```
 
@@ -89,9 +95,11 @@ Follow every step that `constellationId` does, verbatim, substituting `constella
 4. **Import hooks** — import `useSearchRegionQuery` and `useSearchRegionsQuery` from the generated hooks (same import location as Constellation hooks).
 5. **State** — add region search state block next to the constellation block:
    ```ts
-   const [regionSearch, setRegionSearch] = useState("");
-   const [regionId, setRegionId] = useState<number | undefined>(initialRegionId);
-   const [regionName, setRegionName] = useState("");
+   const [regionSearch, setRegionSearch] = useState('');
+   const [regionId, setRegionId] = useState<number | undefined>(
+     initialRegionId,
+   );
+   const [regionName, setRegionName] = useState('');
    const [showRegionDropdown, setShowRegionDropdown] = useState(false);
    const regionDropdownRef = useRef<HTMLDivElement>(null);
    ```
@@ -120,6 +128,7 @@ Follow every step that `constellationId` does, verbatim, substituting `constella
 ### Layer 4 — Backend (verify only)
 
 These are already implemented — confirm they exist, do not modify:
+
 - `backend/src/schemas/KillmailFilter.graphql`: `regionId: Int` ✅
 - `backend/src/resolvers/killmail/filters-materialized.ts`: `region_id = $N` condition ✅
 - `backend/src/resolvers/killmail/queries.ts`: `args.filter?.regionId` in `hasKillmailFiltersCompatibleFilter` ✅
@@ -127,6 +136,7 @@ These are already implemented — confirm they exist, do not modify:
 ### Validation
 
 After all changes:
+
 1. Run `cd frontend && npm run codegen` (if not done yet).
 2. Run `cd frontend && npm run build` and confirm no TypeScript errors.
 3. Manually verify: navigate to a killmails page, open filters, type a region name, select it, and confirm the URL gets `?regionId=<id>` and the filter is applied.

@@ -1,32 +1,28 @@
-"use client";
+'use client';
 
-import AdjacentSystemsTab from "@/components/SolarSystemDetail/AdjacentSystemsTab";
-import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
-import { Loader } from "@/components/Loader/Loader";
-import SecurityBadge from "@/components/SecurityStatus/SecurityStatus";
-import KillmailsTab from "@/components/SolarSystemDetail/KillmailsTab";
-import OrbitalBodiesTab from "@/components/SolarSystemDetail/OrbitalBodiesTab";
-import OverviewTab from "@/components/SolarSystemDetail/OverviewTab";
-import SovereigntyTab from "@/components/SolarSystemDetail/SovereigntyTab";
-import StructuresTab from "@/components/SolarSystemDetail/StructuresTab";
-import SystemStatsStrip from "@/components/SolarSystemDetail/SystemStatsStrip";
+import AdjacentSystemsTab from '@/components/SolarSystemDetail/AdjacentSystemsTab';
+import Breadcrumb from '@/components/Breadcrumb/Breadcrumb';
+import { Loader } from '@/components/Loader/Loader';
+import SecurityBadge from '@/components/SecurityStatus/SecurityStatus';
+import KillmailsTab from '@/components/SolarSystemDetail/KillmailsTab';
+import OrbitalBodiesTab from '@/components/SolarSystemDetail/OrbitalBodiesTab';
+import OverviewTab from '@/components/SolarSystemDetail/OverviewTab';
+import SovereigntyTab from '@/components/SolarSystemDetail/SovereigntyTab';
+import StructuresTab from '@/components/SolarSystemDetail/StructuresTab';
+import SystemStatsStrip from '@/components/SolarSystemDetail/SystemStatsStrip';
 import {
   isSolarSystemTab,
   SOLAR_SYSTEM_TABS,
   SolarSystemTab,
   TAB_LABELS,
-} from "@/components/SolarSystemDetail/tabs";
-import { useSolarSystemQuery } from "@/generated/graphql";
-import { formatTimeAgo } from "@/utils/date";
-import { getSecurityColor } from "@/utils/security";
-import {
-  GlobeAltIcon,
-  MapIcon,
-  MapPinIcon,
-} from "@heroicons/react/24/outline";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { use, useCallback, useState } from "react";
+} from '@/components/SolarSystemDetail/tabs';
+import { useSolarSystemQuery } from '@/generated/graphql';
+import { formatTimeAgo } from '@/utils/date';
+import { getSecurityColor } from '@/utils/security';
+import { GlobeAltIcon, MapIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { use, useCallback, useState } from 'react';
 
 interface SolarSystemDetailPageProps {
   params: Promise<{ id: string }>;
@@ -40,17 +36,17 @@ export default function SolarSystemDetailPage({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const tabParam = searchParams.get("tab");
+  const tabParam = searchParams.get('tab');
   const tabFromUrl: SolarSystemTab = isSolarSystemTab(tabParam)
     ? tabParam
-    : "overview";
+    : 'overview';
 
   const [activeTab, setActiveTab] = useState<SolarSystemTab>(tabFromUrl);
   const [currentPage, setCurrentPage] = useState(
-    Number(searchParams.get("page")) || 1,
+    Number(searchParams.get('page')) || 1,
   );
   const [pageSize, setPageSize] = useState(
-    Number(searchParams.get("pageSize")) || 25,
+    Number(searchParams.get('pageSize')) || 25,
   );
 
   const { data, loading, error } = useSolarSystemQuery({
@@ -64,10 +60,10 @@ export default function SolarSystemDetailPage({
   const syncUrl = useCallback(
     (tab: SolarSystemTab, page: number, size: number) => {
       const next = new URLSearchParams();
-      next.set("tab", tab);
-      if (tab === "killmails") {
-        next.set("page", page.toString());
-        next.set("pageSize", size.toString());
+      next.set('tab', tab);
+      if (tab === 'killmails') {
+        next.set('page', page.toString());
+        next.set('pageSize', size.toString());
       }
       // replace, not push: switching tabs must not fill the back button with
       // intermediate states.
@@ -136,13 +132,13 @@ export default function SolarSystemDetailPage({
   // are filled in by a later worker.
   const tabCount = (tab: SolarSystemTab): number | null => {
     switch (tab) {
-      case "adjacent":
+      case 'adjacent':
         return counts.stargates;
-      case "orbital-bodies":
+      case 'orbital-bodies':
         return counts.planets;
-      case "structures":
+      case 'structures':
         return counts.stations;
-      case "sovereignty":
+      case 'sovereignty':
         return counts.sovereigntyStructures;
       default:
         return null;
@@ -153,19 +149,19 @@ export default function SolarSystemDetailPage({
     <div>
       <Breadcrumb
         items={[
-          { label: "Regions", href: "/regions" },
+          { label: 'Regions', href: '/regions' },
           system.constellation?.region
             ? {
                 label: system.constellation.region.name,
                 href: `/regions/${system.constellation.region.id}`,
               }
-            : { label: "Unknown Region" },
+            : { label: 'Unknown Region' },
           system.constellation
             ? {
                 label: system.constellation.name,
                 href: `/constellations/${system.constellation.id}`,
               }
-            : { label: "Unknown Constellation" },
+            : { label: 'Unknown Constellation' },
           { label: system.name },
         ]}
       />
@@ -177,12 +173,12 @@ export default function SolarSystemDetailPage({
             <div
               className={`flex items-center justify-center w-24 h-24 shadow-md shrink-0 ${
                 system.securityStatus != null && system.securityStatus >= 0.5
-                  ? "bg-green-500/20 border border-green-500/50"
+                  ? 'bg-green-500/20 border border-green-500/50'
                   : system.securityStatus != null && system.securityStatus > 0
-                    ? "bg-yellow-500/20 border border-yellow-500/50"
+                    ? 'bg-yellow-500/20 border border-yellow-500/50'
                     : system.securityStatus != null
-                      ? "bg-red-500/20 border border-red-500/50"
-                      : "bg-purple-500/20 border border-purple-500/50"
+                      ? 'bg-red-500/20 border border-red-500/50'
+                      : 'bg-purple-500/20 border border-purple-500/50'
               }`}
             >
               <MapPinIcon className={`w-12 h-12 ${securityColor}`} />
@@ -237,8 +233,8 @@ export default function SolarSystemDetailPage({
           {system.latestKills ? (
             <div className="flex flex-col items-end space-y-2 text-xs text-gray-400">
               <span>
-                {system.latestKills.ship_kills.toLocaleString()} ships,{" "}
-                {system.latestKills.pod_kills.toLocaleString()} pods,{" "}
+                {system.latestKills.ship_kills.toLocaleString()} ships,{' '}
+                {system.latestKills.pod_kills.toLocaleString()} pods,{' '}
                 {system.latestKills.npc_kills.toLocaleString()} NPC killed
               </span>
               <span>{formatTimeAgo(system.latestKills.timestamp)}</span>
@@ -260,10 +256,10 @@ export default function SolarSystemDetailPage({
                 <button
                   key={tab}
                   onClick={() => handleTabChange(tab)}
-                  className={`px-4 py-3 text-sm font-semibold whitespace-nowrap transition-colors border-b-2 cursor-pointer ${
+                  className={`px-4 py-3 text-sm font-semibold whitespace-nowrap transition-colors border-b-2 ${
                     activeTab === tab
-                      ? "border-cyan-500 text-cyan-500"
-                      : "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600"
+                      ? 'border-cyan-500 text-cyan-500'
+                      : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
                   }`}
                 >
                   {TAB_LABELS[tab]}
@@ -280,7 +276,7 @@ export default function SolarSystemDetailPage({
 
         {/* Tab content */}
         <div>
-          {activeTab === "overview" && (
+          {activeTab === 'overview' && (
             <OverviewTab
               systemId={systemId}
               starId={system.star_id}
@@ -290,15 +286,17 @@ export default function SolarSystemDetailPage({
               star={system.star}
             />
           )}
-          {activeTab === "adjacent" && (
+          {activeTab === 'adjacent' && (
             <AdjacentSystemsTab systemId={systemId} />
           )}
-          {activeTab === "orbital-bodies" && (
+          {activeTab === 'orbital-bodies' && (
             <OrbitalBodiesTab systemId={systemId} />
           )}
-          {activeTab === "structures" && <StructuresTab systemId={systemId} />}
-          {activeTab === "sovereignty" && <SovereigntyTab systemId={systemId} />}
-          {activeTab === "killmails" && (
+          {activeTab === 'structures' && <StructuresTab systemId={systemId} />}
+          {activeTab === 'sovereignty' && (
+            <SovereigntyTab systemId={systemId} />
+          )}
+          {activeTab === 'killmails' && (
             <KillmailsTab
               systemId={systemId}
               currentPage={currentPage}

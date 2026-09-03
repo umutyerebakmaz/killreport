@@ -49,7 +49,9 @@ export const dogmaEffectMutations: MutationResolvers = {
         clientMutationId: input.clientMutationId,
       };
     } catch (error: any) {
-      logger.error('Failed to start dogma effect sync', { error: error.message });
+      logger.error('Failed to start dogma effect sync', {
+        error: error.message,
+      });
       return {
         success: false,
         message: `Failed to start sync: ${error.message}`,

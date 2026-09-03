@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { ChevronRightIcon, HomeIcon } from "@heroicons/react/24/outline";
-import Link from "next/link";
+import { ChevronRightIcon, HomeIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
 
 export interface BreadcrumbItem {
   label: string;

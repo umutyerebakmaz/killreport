@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
 import SystemActivityChart, {
   ActivityRange,
-} from "@/components/SystemActivityChart/SystemActivityChart";
-import { useSystemKillsHistoryQuery } from "@/generated/graphql";
-import { useState } from "react";
-import StarCard, { StarSummary } from "./StarCard";
-import SystemTechnicalDetails from "./SystemTechnicalDetails";
+} from '@/components/SystemActivityChart/SystemActivityChart';
+import { useSystemKillsHistoryQuery } from '@/generated/graphql';
+import { useState } from 'react';
+import StarCard, { StarSummary } from './StarCard';
+import SystemTechnicalDetails from './SystemTechnicalDetails';
 
 interface OverviewTabProps {
   systemId: number;
@@ -25,11 +25,11 @@ export default function OverviewTab({
   position,
   star,
 }: OverviewTabProps) {
-  const [range, setRange] = useState<ActivityRange>("24h");
+  const [range, setRange] = useState<ActivityRange>('24h');
 
   const { data, loading, error } = useSystemKillsHistoryQuery({
     variables: {
-      filter: { system_id: systemId, hours: range === "24h" ? 24 : 168 },
+      filter: { system_id: systemId, hours: range === '24h' ? 24 : 168 },
     },
   });
 

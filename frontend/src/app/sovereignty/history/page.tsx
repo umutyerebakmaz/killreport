@@ -1,39 +1,39 @@
-"use client";
+'use client';
 
-import Loader from "@/components/Loader";
-import { AllianceLink } from "@/components/Sovereignty/AllianceLink";
-import { ScoreBar } from "@/components/Sovereignty/ScoreBar";
-import { useSovereigntyHistoryPageQuery } from "@/generated/graphql";
-import { formatISK } from "@/utils/formatISK";
-import Link from "next/link";
-import { Suspense, useState } from "react";
+import Loader from '@/components/Loader';
+import { AllianceLink } from '@/components/Sovereignty/AllianceLink';
+import { ScoreBar } from '@/components/Sovereignty/ScoreBar';
+import { useSovereigntyHistoryPageQuery } from '@/generated/graphql';
+import { formatISK } from '@/utils/formatISK';
+import Link from 'next/link';
+import { Suspense, useState } from 'react';
 
 const PAGE_SIZE = 25;
 
 const EVENT_LABELS: Record<string, string> = {
-  tcu_defense: "TCU Defense",
-  ihub_defense: "IHub Defense",
-  station_defense: "Station Defense",
-  station_freeport: "Station Freeport",
+  tcu_defense: 'TCU Defense',
+  ihub_defense: 'IHub Defense',
+  station_defense: 'Station Defense',
+  station_freeport: 'Station Freeport',
 };
 
 const OUTCOME_LABELS: Record<string, string> = {
-  defender_won: "Defender won",
-  attacker_won: "Attacker won",
-  abandoned: "Abandoned",
+  defender_won: 'Defender won',
+  attacker_won: 'Attacker won',
+  abandoned: 'Abandoned',
 };
 
 const OUTCOME_STYLES: Record<string, string> = {
-  defender_won: "text-cyan-400",
-  attacker_won: "text-red-400",
-  abandoned: "text-gray-400",
+  defender_won: 'text-cyan-400',
+  attacker_won: 'text-red-400',
+  abandoned: 'text-gray-400',
 };
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="p-4 border border-white/10 bg-neutral-900">
       <div className="text-2xl font-semibold text-white">
-        {typeof value === "number" ? value.toLocaleString() : value}
+        {typeof value === 'number' ? value.toLocaleString() : value}
       </div>
       <div className="mt-1 text-sm text-gray-400">{label}</div>
     </div>
@@ -67,7 +67,8 @@ function HistoryContent() {
   });
 
   if (loading) return <Loader fullHeight size="lg" text="Loading history..." />;
-  if (error) return <div className="p-8 text-red-400">Error: {error.message}</div>;
+  if (error)
+    return <div className="p-8 text-red-400">Error: {error.message}</div>;
 
   const stats = data?.sovereigntyOutcomeStats;
   const defenders = data?.topDefenders ?? [];
@@ -80,11 +81,17 @@ function HistoryContent() {
     <>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-3xl font-semibold text-white">Campaign History</h1>
-        <Link href="/sovereignty" prefetch={false} className="text-sm text-cyan-400 hover:text-cyan-300">
+        <Link
+          href="/sovereignty"
+          prefetch={false}
+          className="text-sm text-cyan-400 hover:text-cyan-300"
+        >
           ← Sovereignty Overview
         </Link>
       </div>
-      <h2 className="mt-2 text-xl text-white">Resolved sovereignty campaigns and their outcomes</h2>
+      <h2 className="mt-2 text-xl text-white">
+        Resolved sovereignty campaigns and their outcomes
+      </h2>
 
       {/* Outcome distribution */}
       {stats && (
@@ -123,15 +130,26 @@ function HistoryContent() {
             </thead>
             <tbody className="divide-y divide-white/5">
               {defenders.map((d) => (
-                <tr key={d.allianceId} className="transition-colors bg-neutral-950 hover:bg-neutral-900">
-                  <td className="px-4 py-3 text-gray-400 whitespace-nowrap">{d.rank}</td>
+                <tr
+                  key={d.allianceId}
+                  className="transition-colors bg-neutral-950 hover:bg-neutral-900"
+                >
+                  <td className="px-4 py-3 text-gray-400 whitespace-nowrap">
+                    {d.rank}
+                  </td>
                   <td className="px-4 py-3 whitespace-nowrap">
-                    <AllianceLink id={d.allianceId} name={d.allianceName} ticker={d.allianceTicker} />
+                    <AllianceLink
+                      id={d.allianceId}
+                      name={d.allianceName}
+                      ticker={d.allianceTicker}
+                    />
                   </td>
                   <td className="px-4 py-3 font-semibold text-right text-cyan-400 whitespace-nowrap">
                     {d.defensesWon}
                   </td>
-                  <td className="px-4 py-3 text-right text-gray-300 whitespace-nowrap">{d.defensesTotal}</td>
+                  <td className="px-4 py-3 text-right text-gray-300 whitespace-nowrap">
+                    {d.defensesTotal}
+                  </td>
                   <td className="px-4 py-3 text-right text-gray-300 whitespace-nowrap">
                     {Math.round(d.defenseSuccessRate * 100)}%
                   </td>
@@ -139,7 +157,10 @@ function HistoryContent() {
               ))}
               {defenders.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                  <td
+                    colSpan={5}
+                    className="px-4 py-8 text-center text-gray-500"
+                  >
                     No resolved defenses yet.
                   </td>
                 </tr>
@@ -170,7 +191,10 @@ function HistoryContent() {
             </thead>
             <tbody className="divide-y divide-white/5">
               {campaigns.map((c) => (
-                <tr key={c.campaignId} className="transition-colors bg-neutral-950 hover:bg-neutral-900">
+                <tr
+                  key={c.campaignId}
+                  className="transition-colors bg-neutral-950 hover:bg-neutral-900"
+                >
                   <td className="px-4 py-3 whitespace-nowrap">
                     <Link
                       href={`/solar-systems/${c.solarSystemId}`}
@@ -180,25 +204,38 @@ function HistoryContent() {
                       {c.solarSystemName ?? c.solarSystemId}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-gray-300 whitespace-nowrap">{c.regionName ?? "—"}</td>
+                  <td className="px-4 py-3 text-gray-300 whitespace-nowrap">
+                    {c.regionName ?? '—'}
+                  </td>
                   <td className="px-4 py-3 text-gray-300 whitespace-nowrap">
                     {EVENT_LABELS[c.eventType] ?? c.eventType}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
-                    <AllianceLink id={c.defenderId} name={c.defenderName} ticker={c.defenderTicker} />
+                    <AllianceLink
+                      id={c.defenderId}
+                      name={c.defenderName}
+                      ticker={c.defenderTicker}
+                    />
                   </td>
-                  <td className={`px-4 py-3 font-semibold whitespace-nowrap ${OUTCOME_STYLES[c.outcome ?? ""] ?? "text-gray-300"}`}>
-                    {OUTCOME_LABELS[c.outcome ?? ""] ?? "—"}
+                  <td
+                    className={`px-4 py-3 font-semibold whitespace-nowrap ${OUTCOME_STYLES[c.outcome ?? ''] ?? 'text-gray-300'}`}
+                  >
+                    {OUTCOME_LABELS[c.outcome ?? ''] ?? '—'}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
-                    <ScoreBar defender={c.defenderScore} attackers={c.attackersScore} />
+                    <ScoreBar
+                      defender={c.defenderScore}
+                      attackers={c.attackersScore}
+                    />
                   </td>
                   <td className="px-4 py-3 text-right text-gray-300 whitespace-nowrap">
-                    {c.durationHours != null ? `${c.durationHours}h` : "—"}
+                    {c.durationHours != null ? `${c.durationHours}h` : '—'}
                   </td>
                   <td className="px-4 py-3 text-right whitespace-nowrap">
                     {c.iskDestroyed > 0 ? (
-                      <span className="text-red-400">{formatISK(c.iskDestroyed)}</span>
+                      <span className="text-red-400">
+                        {formatISK(c.iskDestroyed)}
+                      </span>
                     ) : (
                       <span className="text-gray-600">—</span>
                     )}
@@ -207,8 +244,12 @@ function HistoryContent() {
               ))}
               {campaigns.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
-                    No resolved campaigns yet. They appear here once campaigns end.
+                  <td
+                    colSpan={8}
+                    className="px-4 py-8 text-center text-gray-500"
+                  >
+                    No resolved campaigns yet. They appear here once campaigns
+                    end.
                   </td>
                 </tr>
               )}
@@ -246,7 +287,9 @@ function HistoryContent() {
 
 export default function SovereigntyHistoryPage() {
   return (
-    <Suspense fallback={<Loader fullHeight size="lg" text="Loading history..." />}>
+    <Suspense
+      fallback={<Loader fullHeight size="lg" text="Loading history..." />}
+    >
       <HistoryContent />
     </Suspense>
   );
