@@ -1,2 +1,2 @@
 export * from './killmail.service';
-export { getMostValuableKillmails } from './most-valuable.service';
+export * as MostValuableService from './most-valuable.service';

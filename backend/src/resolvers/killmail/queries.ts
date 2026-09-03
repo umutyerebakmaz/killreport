@@ -2,7 +2,7 @@ import { CACHE_TTL } from '@config/cache';
 import { QueryResolvers } from '@generated-types';
 import prisma from '@services/prisma';
 import redis from '@services/redis';
-import { getMostValuableKillmails } from '@services/killmail';
+import * as MostValuableService from '@services/killmail/most-valuable.service';
 import { filtersMaterialized } from './filters-materialized';
 
 /**
@@ -418,7 +418,11 @@ export const killmailQueries: QueryResolvers = {
   },
 
   mostValuableKillmails: async (_, { scope, days, limit }) => {
-    return getMostValuableKillmails(scope, days, limit) as any;
+    return MostValuableService.getMostValuableKillmails(
+      scope,
+      days,
+      limit,
+    ) as any;
   },
 
   killmailsDateCounts: async (_, args, context) => {
