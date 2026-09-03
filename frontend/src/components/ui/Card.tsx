@@ -9,29 +9,19 @@ export interface CardProps {
    * overridden.
    */
   className?: string;
-  /**
-   * Applies the standard inner padding. Turn it off when the card's content
-   * manages its own padding — a table or a divided list, for example.
-   */
-  padded?: boolean;
 }
 
 /**
  * The shared card surface: flat border, dark ground, no radius. Replaces the
  * .alliance-card / .corporation-card / .character-card / .region-card family
  * in globals.css, which all declared exactly the same rule.
+ *
+ * The card holds no padding of its own — every caller lays out its own
+ * insides, so a `padded` prop only ever got switched off.
  */
-export default function Card({
-  children,
-  className = '',
-  padded = true,
-}: CardProps) {
+export default function Card({ children, className = '' }: CardProps) {
   return (
-    <div
-      className={`border bg-neutral-900 border-white/10 ${
-        padded ? 'p-6' : ''
-      } ${className}`}
-    >
+    <div className={`border bg-neutral-900 border-white/10 ${className}`}>
       {children}
     </div>
   );

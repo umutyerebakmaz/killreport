@@ -32,7 +32,7 @@ export default function AllianceCard({ alliance }: AllianceCardProps) {
     : 'Unknown';
 
   return (
-    <Card padded={false}>
+    <Card>
       <div className="px-4 py-5 sm:p-6">
         <div className="flex flex-col items-center gap-4">
           <div className="relative w-32 h-32">
