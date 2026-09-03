@@ -91,7 +91,7 @@ export default function SystemActivityChart({
             <button
               key={r}
               onClick={() => onRangeChange(r)}
-              className={`px-3 py-1 text-xs font-semibold border cursor-pointer transition-colors ${
+              className={`px-3 py-1 text-xs font-semibold border transition-colors ${
                 range === r
                   ? 'border-cyan-500 text-cyan-500'
                   : 'border-white/10 text-gray-400 hover:text-gray-200'

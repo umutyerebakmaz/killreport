@@ -252,7 +252,7 @@ function DailyLeaderboard() {
       <div className="flex items-center gap-2 min-h-9.5">
         <button
           onClick={prevDay}
-          className="p-1.5 text-gray-400 border cursor-pointer border-white/10 hover:text-white hover:border-white/30 shrink-0"
+          className="p-1.5 text-gray-400 border border-white/10 hover:text-white hover:border-white/30 shrink-0"
           aria-label="Previous day"
         >
           <ChevronLeftIcon className="w-4 h-4" />
@@ -278,7 +278,7 @@ function DailyLeaderboard() {
           className={`p-1.5 border border-white/10 shrink-0 ${
             isToday
               ? 'text-gray-700 cursor-not-allowed'
-              : 'text-gray-400 hover:text-white hover:border-white/30 cursor-pointer'
+              : 'text-gray-400 hover:text-white hover:border-white/30'
           }`}
           aria-label="Next day"
         >
@@ -339,7 +339,7 @@ function WeeklyLeaderboard() {
       <div className="flex items-center gap-2 min-h-9.5">
         <button
           onClick={prevWeek}
-          className="p-1.5 text-gray-400 border cursor-pointer border-white/10 hover:text-white hover:border-white/30 shrink-0"
+          className="p-1.5 text-gray-400 border border-white/10 hover:text-white hover:border-white/30 shrink-0"
           aria-label="Previous week"
         >
           <ChevronLeftIcon className="w-4 h-4" />
@@ -358,7 +358,7 @@ function WeeklyLeaderboard() {
           className={`p-1.5 border border-white/10 shrink-0 ${
             isCurrentWeek
               ? 'text-gray-700 cursor-not-allowed'
-              : 'text-gray-400 hover:text-white hover:border-white/30 cursor-pointer'
+              : 'text-gray-400 hover:text-white hover:border-white/30'
           }`}
           aria-label="Next week"
         >
@@ -470,7 +470,7 @@ function MonthlyLeaderboard() {
       <div className="flex items-center gap-2 min-h-9.5">
         <button
           onClick={prevMonth}
-          className="p-1.5 text-gray-400 border cursor-pointer border-white/10 hover:text-white hover:border-white/30 shrink-0"
+          className="p-1.5 text-gray-400 border border-white/10 hover:text-white hover:border-white/30 shrink-0"
           aria-label="Previous month"
         >
           <ChevronLeftIcon className="w-4 h-4" />
@@ -489,7 +489,7 @@ function MonthlyLeaderboard() {
           className={`p-1.5 border border-white/10 shrink-0 ${
             isCurrentMonth
               ? 'text-gray-700 cursor-not-allowed'
-              : 'text-gray-400 hover:text-white hover:border-white/30 cursor-pointer'
+              : 'text-gray-400 hover:text-white hover:border-white/30'
           }`}
           aria-label="Next month"
         >

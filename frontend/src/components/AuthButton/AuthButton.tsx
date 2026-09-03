@@ -47,7 +47,7 @@ export default function AuthButton() {
         </span>
         <button
           onClick={logout}
-          className="px-3 py-2 text-sm font-semibold text-white transition-colors cursor-pointer bg-red-600/80 hover:bg-red-600"
+          className="px-3 py-2 text-sm font-semibold text-white transition-colors bg-red-600/80 hover:bg-red-600"
         >
           LOGOUT
         </button>
@@ -59,7 +59,7 @@ export default function AuthButton() {
     <button
       onClick={handleLogin}
       disabled={loginLoading}
-      className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-white transition-colors cursor-pointer bg-cyan-600/80 hover:bg-cyan-600 disabled:opacity-50"
+      className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-white transition-colors bg-cyan-600/80 hover:bg-cyan-600 disabled:opacity-50"
     >
       {loginLoading ? <Loader size="sm" /> : 'LOGIN'}
     </button>

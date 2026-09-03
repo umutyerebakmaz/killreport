@@ -25,7 +25,7 @@ import Tooltip from '../Tooltip/Tooltip';
 // The desktop nav needs ~1750px to lay out at full size, so it only appears at
 // xl and scales up in three steps instead of switching on at lg and overflowing.
 const NAV_ITEM = 'font-semibold text-white text-sm min-[1800px]:text-base';
-const NAV_POPOVER_BUTTON = `flex items-center cursor-pointer gap-x-1 ${NAV_ITEM}`;
+const NAV_POPOVER_BUTTON = `flex items-center gap-x-1 ${NAV_ITEM}`;
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

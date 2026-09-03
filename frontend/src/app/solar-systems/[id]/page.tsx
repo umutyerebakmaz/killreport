@@ -256,7 +256,7 @@ export default function SolarSystemDetailPage({
                 <button
                   key={tab}
                   onClick={() => handleTabChange(tab)}
-                  className={`px-4 py-3 text-sm font-semibold whitespace-nowrap transition-colors border-b-2 cursor-pointer ${
+                  className={`px-4 py-3 text-sm font-semibold whitespace-nowrap transition-colors border-b-2 ${
                     activeTab === tab
                       ? 'border-cyan-500 text-cyan-500'
                       : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'

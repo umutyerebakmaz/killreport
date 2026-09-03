@@ -381,7 +381,7 @@ export default function CorporationDetailPage({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-3 text-sm font-semibold transition-colors border-b-2 cursor-pointer ${
+                className={`px-4 py-3 text-sm font-semibold transition-colors border-b-2 ${
                   activeTab === tab.id
                     ? 'border-cyan-500 text-cyan-500'
                     : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'

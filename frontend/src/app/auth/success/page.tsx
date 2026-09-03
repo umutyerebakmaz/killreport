@@ -202,7 +202,7 @@ function AuthSuccessContent() {
             ) : (
               <button
                 onClick={() => router.push('/killmails')}
-                className="relative inline-flex items-center justify-center px-8 py-3 font-semibold text-white transition-all duration-300 shadow-lg cursor-pointer group bg-linear-to-r from-amber-500 to-amber-600 rounded-xl hover:from-amber-600 hover:to-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-gray-800 hover:shadow-amber-500/50 hover:scale-105"
+                className="relative inline-flex items-center justify-center px-8 py-3 font-semibold text-white transition-all duration-300 shadow-lg group bg-linear-to-r from-amber-500 to-amber-600 rounded-xl hover:from-amber-600 hover:to-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-gray-800 hover:shadow-amber-500/50 hover:scale-105"
               >
                 Continue to Killmails
                 <svg

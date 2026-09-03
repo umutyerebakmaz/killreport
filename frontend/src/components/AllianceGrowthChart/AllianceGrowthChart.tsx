@@ -224,7 +224,7 @@ export default function AllianceGrowthChart({
             <button
               key={r}
               onClick={() => setRange(r)}
-              className={`px-3 py-1 text-xs font-semibold transition-colors cursor-pointer ${
+              className={`px-3 py-1 text-xs font-semibold transition-colors ${
                 range === r
                   ? 'bg-cyan-600/80 text-white'
                   : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-gray-200'
