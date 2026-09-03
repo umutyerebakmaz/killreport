@@ -79,8 +79,8 @@ function HistoryContent() {
 
   return (
     <>
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-3xl font-semibold text-white">Campaign History</h1>
+      <h1 className="sr-only">Campaign History</h1>
+      <div className="flex flex-wrap items-baseline justify-end gap-2">
         <Link
           href="/sovereignty"
           prefetch={false}
@@ -89,10 +89,6 @@ function HistoryContent() {
           ← Sovereignty Overview
         </Link>
       </div>
-      <h2 className="mt-2 text-xl text-white">
-        Resolved sovereignty campaigns and their outcomes
-      </h2>
-
       {/* Outcome distribution */}
       {stats && (
         <section className="mt-6">

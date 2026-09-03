@@ -92,10 +92,8 @@ function StructuresContent() {
 
   return (
     <>
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-3xl font-semibold text-white">
-          Structures &amp; Timers
-        </h1>
+      <h1 className="sr-only">Structures &amp; Timers</h1>
+      <div className="flex flex-wrap items-baseline justify-end gap-2">
         <Link
           href="/sovereignty"
           prefetch={false}
@@ -104,10 +102,6 @@ function StructuresContent() {
           ← Sovereignty Overview
         </Link>
       </div>
-      <h2 className="mt-2 text-xl text-white">
-        Sovereignty structures and upcoming vulnerability windows
-      </h2>
-
       {/* Next 24h timers */}
       <section className="mt-8">
         <h3 className="text-xl font-semibold text-white">

@@ -450,14 +450,7 @@ export default function AllianceDetailPage({
 
           {activeTab === 'killmails' && (
             <div className="killmails-tab">
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold">Killmails</h2>
-                {pageInfo?.totalCount !== undefined && (
-                  <p className="mt-1 text-sm text-gray-400">
-                    Total: {pageInfo.totalCount.toLocaleString()} killmails
-                  </p>
-                )}
-              </div>
+              <h2 className="sr-only">Killmails</h2>
 
               {/* 2-column grid layout */}
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
@@ -468,6 +461,7 @@ export default function AllianceDetailPage({
                     loading={killmailsLoading}
                     allianceId={parseInt(id)}
                     dateCountsMap={dateCountsMap}
+                    totalCount={pageInfo?.totalCount}
                   />
 
                   {killmails.length > 0 && (
@@ -589,15 +583,9 @@ export default function AllianceDetailPage({
           {activeTab === 'members' && (
             <div className="alliance-corporations-tab">
               <div className="sm:flex-auto">
-                <h1 className="flex items-center gap-3 text-3xl font-semibold text-white">
-                  Member Corporations
-                </h1>
-                <p className="mt-2 text-gray-400">
-                  Browse all corporations in this alliance. Click on a
-                  corporation to see detailed information and member statistics.
-                </p>
+                <h2 className="sr-only">Member Corporations</h2>
                 {corporationsPageInfo?.totalCount !== undefined && (
-                  <p className="mt-1 text-sm text-gray-400">
+                  <p className="text-sm text-gray-400">
                     Total: {corporationsPageInfo.totalCount.toLocaleString()}{' '}
                     corporations
                   </p>

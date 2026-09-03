@@ -509,7 +509,8 @@ function MonthlyLeaderboard() {
 function LeaderboardsContent() {
   return (
     <div className="flex flex-col gap-6">
-      {/* Page Header */}
+      <h1 className="sr-only">Leaderboards</h1>
+
       {/* Notice */}
       <p className="text-xs text-gray-500">
         Updated every 5 minutes. Ranked by kill count only.

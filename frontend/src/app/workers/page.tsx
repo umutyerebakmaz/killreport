@@ -136,16 +136,8 @@ export default function WorkersPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="mb-2 text-4xl font-bold text-white">
-            Worker Status Monitor
-          </h1>
-          <p className="text-gray-400">
-            Real-time monitoring via SSE (Server-Sent Events)
-          </p>
-        </div>
-
+      <h1 className="sr-only">Worker Status Monitor</h1>
+      <div className="flex items-center justify-end mb-8">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 px-3 py-2 bg-gray-800 border border-gray-700">
             <div
