@@ -85,19 +85,13 @@ export default function KillmailsTab({
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
       <div className="lg:col-span-3">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold">Killmails</h2>
-          {pageInfo?.totalCount !== undefined && (
-            <p className="mt-1 text-sm text-gray-400">
-              Total: {pageInfo.totalCount.toLocaleString()} killmails
-            </p>
-          )}
-        </div>
+        <h2 className="sr-only">Killmails</h2>
 
         <KillmailsTable
           killmails={killmails}
           loading={killmailsLoading}
           dateCountsMap={dateCountsMap}
+          totalCount={pageInfo?.totalCount}
           variant="detail"
         />
 

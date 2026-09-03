@@ -135,18 +135,9 @@ function SolarSystemsContent() {
 
   return (
     <div>
-      <div className="sm:flex sm:items-center sm:justify-between">
-        <div className="sm:flex-auto">
-          <h1 className="flex items-center gap-3 text-3xl font-semibold text-white">
-            Solar Systems
-          </h1>
-          <p className="mt-2 text-gray-400">
-            Explore all solar systems in New Eden. Filter by security status to
-            find specific areas.
-          </p>
-        </div>
-      </div>
-      <div className="mt-6">
+      <h1 className="sr-only">Solar Systems</h1>
+
+      <div>
         <SolarSystemFilters
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}

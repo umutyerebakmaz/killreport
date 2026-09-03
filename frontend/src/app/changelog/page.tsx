@@ -4,7 +4,6 @@ import Loader from '@/components/Loader';
 import {
   ClockIcon,
   CodeBracketIcon,
-  RocketLaunchIcon,
   UserIcon,
 } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
@@ -191,16 +190,7 @@ export default function ChangelogPage() {
 
   return (
     <div className="container mx-auto">
-      {/* Header */}
-      <div className="mb-12">
-        <div className="flex items-center gap-3 mb-4">
-          <RocketLaunchIcon className="w-10 h-10 text-blue-400" />
-          <h1 className="text-4xl font-bold text-white">Changelog</h1>
-        </div>
-        <p className="text-lg text-gray-400">
-          Track the latest updates, features, and improvements to KillReport
-        </p>
-      </div>
+      <h1 className="sr-only">Changelog</h1>
 
       {/* Recent Commits */}
       <section className="mb-16">

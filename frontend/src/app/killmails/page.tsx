@@ -8,7 +8,6 @@ import Paginator from '@/components/Paginator/Paginator';
 import TopEntitySidebar, {
   TopEntityCardSpec,
 } from '@/components/TopEntitySidebar/TopEntitySidebar';
-import PageHeader from '@/components/ui/PageHeader';
 import type { Killmail } from '@/components/KillmailsTable/types';
 import {
   KillmailOrderBy,
@@ -320,18 +319,10 @@ function KillmailsContent() {
         onDismiss={handleDismissToast}
       /> */}
 
-      <PageHeader
-        title="Killmails"
-        description="Browse all killmails from New Eden. Click on a killmail to see detailed information."
-        meta={
-          totalCount > 0
-            ? `${totalCount.toLocaleString()} killmails`
-            : undefined
-        }
-      />
+      <h1 className="sr-only">Killmails</h1>
 
       {/* Filters */}
-      <div className="mt-8">
+      <div>
         <KillmailFilters
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}
@@ -365,6 +356,7 @@ function KillmailsContent() {
             animatingKillmails={animatingKillmails}
             loading={loading}
             dateCountsMap={dateCountsMap}
+            totalCount={totalCount}
             variant="list"
           />
 
