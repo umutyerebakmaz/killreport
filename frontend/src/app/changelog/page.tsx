@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
-import Loader from "@/components/Loader";
+import Breadcrumb from '@/components/Breadcrumb/Breadcrumb';
+import Loader from '@/components/Loader';
 import {
   ClockIcon,
   CodeBracketIcon,
   RocketLaunchIcon,
   UserIcon,
-} from "@heroicons/react/24/outline";
-import { useEffect, useState } from "react";
+} from '@heroicons/react/24/outline';
+import { useEffect, useState } from 'react';
 
 interface Commit {
   sha: string;
@@ -40,23 +40,23 @@ interface ChangelogData {
 
 const getCommitType = (message: string) => {
   const lowerMsg = message.toLowerCase();
-  if (lowerMsg.startsWith("feat:") || lowerMsg.includes("feature"))
-    return { type: "feature", color: "text-green-400", bg: "bg-green-500/10" };
-  if (lowerMsg.startsWith("fix:") || lowerMsg.includes("fix"))
-    return { type: "fix", color: "text-red-400", bg: "bg-red-500/10" };
-  if (lowerMsg.startsWith("docs:") || lowerMsg.includes("documentation"))
-    return { type: "docs", color: "text-blue-400", bg: "bg-blue-500/10" };
+  if (lowerMsg.startsWith('feat:') || lowerMsg.includes('feature'))
+    return { type: 'feature', color: 'text-green-400', bg: 'bg-green-500/10' };
+  if (lowerMsg.startsWith('fix:') || lowerMsg.includes('fix'))
+    return { type: 'fix', color: 'text-red-400', bg: 'bg-red-500/10' };
+  if (lowerMsg.startsWith('docs:') || lowerMsg.includes('documentation'))
+    return { type: 'docs', color: 'text-blue-400', bg: 'bg-blue-500/10' };
   if (
-    lowerMsg.startsWith("refactor:") ||
-    lowerMsg.startsWith("perf:") ||
-    lowerMsg.includes("optimize")
+    lowerMsg.startsWith('refactor:') ||
+    lowerMsg.startsWith('perf:') ||
+    lowerMsg.includes('optimize')
   )
     return {
-      type: "refactor",
-      color: "text-purple-400",
-      bg: "bg-purple-500/10",
+      type: 'refactor',
+      color: 'text-purple-400',
+      bg: 'bg-purple-500/10',
     };
-  return { type: "chore", color: "text-gray-400", bg: "bg-gray-500/10" };
+  return { type: 'chore', color: 'text-gray-400', bg: 'bg-gray-500/10' };
 };
 
 const formatDate = (dateString: string) => {
@@ -67,14 +67,14 @@ const formatDate = (dateString: string) => {
   if (diffInHours < 24) {
     return `${Math.floor(diffInHours)} hours ago`;
   } else if (diffInHours < 48) {
-    return "Yesterday";
+    return 'Yesterday';
   } else if (diffInHours < 168) {
     return `${Math.floor(diffInHours / 24)} days ago`;
   } else {
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     });
   }
 };
@@ -92,14 +92,14 @@ const getDateGroup = (dateString: string) => {
   );
 
   if (commitDate.getTime() === today.getTime()) {
-    return "Today";
+    return 'Today';
   } else if (commitDate.getTime() === yesterday.getTime()) {
-    return "Yesterday";
+    return 'Yesterday';
   } else {
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     });
   }
 };
@@ -119,10 +119,10 @@ const groupCommitsByDate = (commits: Commit[]) => {
   const sortedGroups: { [key: string]: Commit[] } = {};
   const sortedKeys = Object.keys(groups).sort((a, b) => {
     // Today and Yesterday should be at the top
-    if (a === "Today") return -1;
-    if (b === "Today") return 1;
-    if (a === "Yesterday") return -1;
-    if (b === "Yesterday") return 1;
+    if (a === 'Today') return -1;
+    if (b === 'Today') return 1;
+    if (a === 'Yesterday') return -1;
+    if (b === 'Yesterday') return 1;
     // Other dates compared chronologically
     return new Date(b).getTime() - new Date(a).getTime();
   });
@@ -144,15 +144,15 @@ export default function ChangelogPage() {
       try {
         const [releasesRes, commitsRes] = await Promise.all([
           fetch(
-            "https://api.github.com/repos/umutyerebakmaz/killreport/releases",
+            'https://api.github.com/repos/umutyerebakmaz/killreport/releases',
           ),
           fetch(
-            "https://api.github.com/repos/umutyerebakmaz/killreport/commits?per_page=30",
+            'https://api.github.com/repos/umutyerebakmaz/killreport/commits?per_page=30',
           ),
         ]);
 
         if (!releasesRes.ok || !commitsRes.ok) {
-          throw new Error("Failed to fetch changelog data");
+          throw new Error('Failed to fetch changelog data');
         }
 
         const releases = await releasesRes.json();
@@ -160,7 +160,7 @@ export default function ChangelogPage() {
 
         setData({ releases, commits });
       } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
+        setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setLoading(false);
       }
@@ -180,7 +180,7 @@ export default function ChangelogPage() {
   if (error) {
     return (
       <div className="container mx-auto">
-        <Breadcrumb items={[{ label: "Changelog", href: "/changelog" }]} />
+        <Breadcrumb items={[{ label: 'Changelog', href: '/changelog' }]} />
         <div className="p-6 mt-8 border bg-neutral-900 border-neutral-700">
           <h2 className="mb-2 text-xl font-bold text-red-400">
             Failed to load changelog
@@ -193,7 +193,7 @@ export default function ChangelogPage() {
 
   return (
     <div className="container mx-auto">
-      <Breadcrumb items={[{ label: "Changelog", href: "/changelog" }]} />
+      <Breadcrumb items={[{ label: 'Changelog', href: '/changelog' }]} />
 
       {/* Header */}
       <div className="mt-8 mb-12">
@@ -233,7 +233,7 @@ export default function ChangelogPage() {
                   <div className="overflow-hidden border divide-y rounded-lg border-white/10 bg-neutral-900 divide-white/5">
                     {commits.map((commit) => {
                       const commitInfo = getCommitType(commit.commit.message);
-                      const firstLine = commit.commit.message.split("\n")[0];
+                      const firstLine = commit.commit.message.split('\n')[0];
 
                       return (
                         <div
@@ -274,9 +274,9 @@ export default function ChangelogPage() {
                                   <ClockIcon className="w-3 h-3" />
                                   {new Date(
                                     commit.commit.author.date,
-                                  ).toLocaleTimeString("en-US", {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
+                                  ).toLocaleTimeString('en-US', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
                                   })}
                                 </span>
                               </div>
@@ -337,7 +337,7 @@ export default function ChangelogPage() {
 
       {/* Footer Note */}
       <p className="mt-12 text-sm text-center text-gray-400">
-        Data is fetched from{" "}
+        Data is fetched from{' '}
         <a
           href="https://github.com/umutyerebakmaz/killreport"
           target="_blank"
@@ -345,7 +345,7 @@ export default function ChangelogPage() {
           className="text-blue-400 hover:text-blue-300"
         >
           GitHub repository
-        </a>{" "}
+        </a>{' '}
         in real-time
       </p>
     </div>

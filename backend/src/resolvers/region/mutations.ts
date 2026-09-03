@@ -12,7 +12,9 @@ export const regionMutations: MutationResolvers = {
       console.log('🚀 Starting region sync via GraphQL...');
 
       // Get all region IDs from ESI
-      const response = await axios.get('https://esi.evetech.net/latest/universe/regions/');
+      const response = await axios.get(
+        'https://esi.evetech.net/latest/universe/regions/',
+      );
       const regionIds: number[] = response.data;
 
       console.log(`✓ Found ${regionIds.length} regions`);

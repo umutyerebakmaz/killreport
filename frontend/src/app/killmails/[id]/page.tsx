@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import AttackersCard from "@/components/AttackersCard";
-import FitScreen from "@/components/FitScreen/FitScreen";
-import KillmailSummaryCard from "@/components/KillmailSummaryCard/KillmailSummaryCard";
-import { Loader } from "@/components/Loader/Loader";
-import Tooltip from "@/components/Tooltip/Tooltip";
-import { useKillmailQuery } from "@/generated/graphql";
-import { formatISK } from "@/utils/formatISK";
+import AttackersCard from '@/components/AttackersCard';
+import FitScreen from '@/components/FitScreen/FitScreen';
+import KillmailSummaryCard from '@/components/KillmailSummaryCard/KillmailSummaryCard';
+import { Loader } from '@/components/Loader/Loader';
+import Tooltip from '@/components/Tooltip/Tooltip';
+import { useKillmailQuery } from '@/generated/graphql';
+import { formatISK } from '@/utils/formatISK';
 import {
   ArrowTopRightOnSquareIcon,
   CheckIcon,
-} from "@heroicons/react/24/outline";
-import { use, useState } from "react";
+} from '@heroicons/react/24/outline';
+import { use, useState } from 'react';
 
 export default function KillmailDetailPage({
   params,
@@ -31,7 +31,7 @@ export default function KillmailDetailPage({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error("Failed to copy to clipboard:", err);
+      console.error('Failed to copy to clipboard:', err);
     }
   };
 
@@ -43,7 +43,7 @@ export default function KillmailDetailPage({
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-xl text-red-400">
-          Error: {error?.message || "Killmail not found"}
+          Error: {error?.message || 'Killmail not found'}
         </div>
       </div>
     );
@@ -55,7 +55,7 @@ export default function KillmailDetailPage({
   const fitting = km.fitting;
 
   // Check if victim is a structure
-  const isStructure = victim?.shipType?.group?.category?.name === "Structure";
+  const isStructure = victim?.shipType?.group?.category?.name === 'Structure';
 
   // Backend'den gelen değerleri kullan
   const totalValue = km.totalValue || 0;
@@ -72,8 +72,8 @@ export default function KillmailDetailPage({
           <div
             className={
               isStructure
-                ? "flex flex-col gap-6 px-6 pt-6 pb-24 fit-and-victim"
-                : "flex flex-col gap-6 p-6 fit-and-victim"
+                ? 'flex flex-col gap-6 px-6 pt-6 pb-24 fit-and-victim'
+                : 'flex flex-col gap-6 p-6 fit-and-victim'
             }
           >
             <div className="victim-card">
@@ -148,7 +148,7 @@ export default function KillmailDetailPage({
                             <a href={`/characters/${victim.character?.id}`}>
                               <img
                                 src={`https://images.evetech.net/characters/${victim.character?.id}/portrait?size=128`}
-                                alt={victim.character?.name || "Character"}
+                                alt={victim.character?.name || 'Character'}
                                 width={96}
                                 height={96}
                                 className="shadow-md shrink-0"
@@ -158,7 +158,7 @@ export default function KillmailDetailPage({
                           </Tooltip>
                         ) : victim?.shipType?.id ? (
                           <Tooltip
-                            content={victim.shipType.name || "Structure"}
+                            content={victim.shipType.name || 'Structure'}
                             position="top"
                           >
                             <div
@@ -167,7 +167,7 @@ export default function KillmailDetailPage({
                             >
                               <img
                                 src={`https://images.evetech.net/types/${victim.shipType.id}/render?size=128`}
-                                alt={victim.shipType.name || "Structure"}
+                                alt={victim.shipType.name || 'Structure'}
                                 width={96}
                                 height={96}
                                 className="shadow-md shrink-0"
@@ -183,7 +183,7 @@ export default function KillmailDetailPage({
                             <a href={`/corporations/${victim.corporation?.id}`}>
                               <img
                                 src={`https://images.evetech.net/corporations/${victim.corporation?.id}/logo?size=64`}
-                                alt={victim.corporation?.name || "Corporation"}
+                                alt={victim.corporation?.name || 'Corporation'}
                                 width={48}
                                 height={48}
                                 className="shadow-sm"
@@ -196,7 +196,7 @@ export default function KillmailDetailPage({
                             <a href={`/alliances/${victim.alliance?.id}`}>
                               <img
                                 src={`https://images.evetech.net/alliances/${victim.alliance?.id}/logo?size=64`}
-                                alt={victim.alliance?.name || "Alliance"}
+                                alt={victim.alliance?.name || 'Alliance'}
                                 width={48}
                                 height={48}
                                 className="shadow-sm"
@@ -210,7 +210,7 @@ export default function KillmailDetailPage({
                           {victim?.character?.id && (
                             <a
                               href={`/characters/${victim.character?.id}`}
-                              title={victim.character?.name || "Character"}
+                              title={victim.character?.name || 'Character'}
                               className="block w-full text-gray-400 truncate transition-colors hover:text-blue-400"
                             >
                               {victim.character?.name}
@@ -222,7 +222,7 @@ export default function KillmailDetailPage({
                               <a
                                 href={`/corporations/${victim.corporation?.id}`}
                                 title={
-                                  victim.corporation?.name || "Corporation"
+                                  victim.corporation?.name || 'Corporation'
                                 }
                                 className="block w-full text-gray-400 truncate transition-colors hover:text-blue-400"
                               >
@@ -235,7 +235,7 @@ export default function KillmailDetailPage({
                             <Tooltip content="Show alliance info">
                               <a
                                 href={`/alliances/${victim.alliance?.id}`}
-                                title={victim.alliance?.name || "Alliance"}
+                                title={victim.alliance?.name || 'Alliance'}
                                 className="block w-full text-gray-400 truncate transition-colors hover:text-blue-400"
                               >
                                 {victim.alliance?.name}
@@ -254,7 +254,7 @@ export default function KillmailDetailPage({
                         </span>
                         {victim?.shipType?.group && (
                           <span className="text-gray-500">
-                            {" "}
+                            {' '}
                             ({victim.shipType.group.name})
                           </span>
                         )}
@@ -271,19 +271,19 @@ export default function KillmailDetailPage({
                             <span
                               className={
                                 km.solarSystem.securityStatus >= 0.5
-                                  ? "text-green-400"
+                                  ? 'text-green-400'
                                   : km.solarSystem.securityStatus > 0
-                                    ? "text-yellow-400"
-                                    : "text-red-400"
+                                    ? 'text-yellow-400'
+                                    : 'text-red-400'
                               }
                             >
-                              {" "}
+                              {' '}
                               ({km.solarSystem.securityStatus.toFixed(1)})
                             </span>
                           )}
                         {km.solarSystem?.constellation?.region && (
                           <span className="text-gray-500">
-                            {" "}
+                            {' '}
                             / {km.solarSystem.constellation.region.name}
                           </span>
                         )}
@@ -292,12 +292,12 @@ export default function KillmailDetailPage({
                     <div className="flex justify-between">
                       <span className="text-gray-400">Time</span>
                       <span className="text-gray-400">
-                        {new Date(km.killmailTime).toLocaleString("en-US", {
-                          year: "numeric",
-                          month: "2-digit",
-                          day: "2-digit",
-                          hour: "2-digit",
-                          minute: "2-digit",
+                        {new Date(km.killmailTime).toLocaleString('en-US', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
                         })}
                       </span>
                     </div>

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 export default function PrivacyPage() {
   return (
@@ -166,10 +166,10 @@ export default function PrivacyPage() {
             </div>
 
             <p className="text-sm text-gray-400 pt-4">
-              For a detailed technical explanation of our data pipeline, see our{" "}
+              For a detailed technical explanation of our data pipeline, see our{' '}
               <a href="/legal" className="text-cyan-400 hover:underline">
                 Legal Information
-              </a>{" "}
+              </a>{' '}
               page.
             </p>
           </div>
@@ -224,7 +224,7 @@ export default function PrivacyPage() {
 
             <div className="bg-neutral-800 border border-neutral-700 p-4 rounded">
               <p className="text-sm text-gray-300 mb-2">
-                <span className="font-semibold text-cyan-400">Important:</span>{" "}
+                <span className="font-semibold text-cyan-400">Important:</span>{' '}
                 We do NOT use traditional cookies. All data is stored in your
                 browser's storage, which you can clear at any time through your
                 browser settings.
@@ -247,7 +247,7 @@ export default function PrivacyPage() {
           </p>
           <ul className="ml-4 space-y-3 text-gray-300 list-disc list-inside">
             <li>
-              <span className="font-semibold">✗ No Third-Party Selling:</span>{" "}
+              <span className="font-semibold">✗ No Third-Party Selling:</span>{' '}
               We will never sell or distribute your personal data to third
               parties
             </li>
@@ -259,11 +259,11 @@ export default function PrivacyPage() {
             <li>
               <span className="font-semibold">
                 ✗ No Behavioral Advertising:
-              </span>{" "}
+              </span>{' '}
               We do not use your data for targeted advertisements
             </li>
             <li>
-              <span className="font-semibold">✗ No Unwarranted Sharing:</span>{" "}
+              <span className="font-semibold">✗ No Unwarranted Sharing:</span>{' '}
               Your information is not shared without explicit permission
             </li>
             <li>
@@ -280,13 +280,13 @@ export default function PrivacyPage() {
           </h2>
           <div className="bg-neutral-800 border border-neutral-700 p-4 rounded space-y-3">
             <p className="text-gray-300">
-              <span className="font-semibold text-orange-400">Important:</span>{" "}
+              <span className="font-semibold text-orange-400">Important:</span>{' '}
               All EVE Online related data is owned by CCP Games. For detailed
               information about data ownership, licensing, and GDPR requests,
-              please see our{" "}
+              please see our{' '}
               <a href="/legal" className="text-cyan-400 hover:underline">
                 Legal Information
-              </a>{" "}
+              </a>{' '}
               page.
             </p>
           </div>
@@ -306,9 +306,9 @@ export default function PrivacyPage() {
           <p className="mt-4 text-gray-300">
             <span className="font-semibold text-orange-400">
               Report Security Issues:
-            </span>{" "}
+            </span>{' '}
             If you discover a security vulnerability, please report it
-            responsibly through our{" "}
+            responsibly through our{' '}
             <a
               href="https://discord.gg/hGugfm4n"
               target="_blank"
@@ -316,8 +316,8 @@ export default function PrivacyPage() {
               className="text-cyan-400 hover:underline"
             >
               Discord
-            </a>{" "}
-            or{" "}
+            </a>{' '}
+            or{' '}
             <a
               href="https://github.com/umutyerebakmaz/killreport"
               target="_blank"
@@ -352,7 +352,7 @@ export default function PrivacyPage() {
               your data via our API
             </li>
             <li>
-              <span className="font-semibold">GDPR/Privacy Rights:</span>{" "}
+              <span className="font-semibold">GDPR/Privacy Rights:</span>{' '}
               Contact us on Discord or GitHub to discuss your specific regional
               rights
             </li>

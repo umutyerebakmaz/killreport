@@ -1,8 +1,8 @@
-import { formatISK } from "@/utils/formatISK";
-import { isBlueprint } from "@/utils/itemImageUrl";
-import { getShipTier } from "@/utils/shipTier";
-import ShipTierBadge from "../ShipTierBadge/ShipTierBadge";
-import FittingSection from "./FittingSection";
+import { formatISK } from '@/utils/formatISK';
+import { isBlueprint } from '@/utils/itemImageUrl';
+import { getShipTier } from '@/utils/shipTier';
+import ShipTierBadge from '../ShipTierBadge/ShipTierBadge';
+import FittingSection from './FittingSection';
 
 // Special handling for Capsule ship price
 const getShipPrice = (shipType: any) => {
@@ -62,7 +62,7 @@ export default function KillmailSummaryCard({
                 decoding="async"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  if (target.src.includes("/render?")) {
+                  if (target.src.includes('/render?')) {
                     target.src = `https://images.evetech.net/types/${victim.shipType.id}/icon?size=128`;
                   }
                 }}

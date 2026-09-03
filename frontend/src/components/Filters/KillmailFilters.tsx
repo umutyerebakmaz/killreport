@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import RadioGroup from "@/components/RadioGroup/RadioGroup";
+import RadioGroup from '@/components/RadioGroup/RadioGroup';
 import {
   useSearchCharacterQuery,
   useSearchCharactersQuery,
@@ -13,13 +13,13 @@ import {
   useSearchSolarSystemsQuery,
   useSearchTypeQuery,
   useSearchTypesQuery,
-} from "@/generated/graphql";
-import FilterBar from "@/components/ui/FilterBar";
-import FilterDialog from "@/components/ui/FilterDialog";
-import FilterField from "@/components/ui/FilterField";
-import { useDebounce } from "@/hooks/useDebounce";
-import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useEffect, useRef, useState } from "react";
+} from '@/generated/graphql';
+import FilterBar from '@/components/ui/FilterBar';
+import FilterDialog from '@/components/ui/FilterDialog';
+import FilterField from '@/components/ui/FilterField';
+import { useDebounce } from '@/hooks/useDebounce';
+import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useEffect, useRef, useState } from 'react';
 
 interface KillmailFiltersProps {
   onFilterChange: (filters: {
@@ -51,15 +51,10 @@ interface KillmailFiltersProps {
   initialMaxAttackers?: number;
   initialMinValue?: number;
   initialMaxValue?: number;
-  initialShipRole?: "all" | "victim" | "attacker";
-  initialCharacterRole?: "all" | "victim" | "attacker";
+  initialShipRole?: 'all' | 'victim' | 'attacker';
+  initialCharacterRole?: 'all' | 'victim' | 'attacker';
   initialSecuritySpace?:
-    | "all"
-    | "highsec"
-    | "lowsec"
-    | "nullsec"
-    | "wormhole"
-    | "abyssal";
+    'all' | 'highsec' | 'lowsec' | 'nullsec' | 'wormhole' | 'abyssal';
   initialWarRelated?: boolean;
 }
 
@@ -76,20 +71,20 @@ export default function KillmailFilters({
   initialMaxAttackers,
   initialMinValue,
   initialMaxValue,
-  initialShipRole = "all",
-  initialCharacterRole = "all",
-  initialSecuritySpace = "all",
+  initialShipRole = 'all',
+  initialCharacterRole = 'all',
+  initialSecuritySpace = 'all',
   initialWarRelated = false,
 }: KillmailFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [typeSearch, setTypeSearch] = useState("");
+  const [typeSearch, setTypeSearch] = useState('');
   const [shipTypeId, setShipTypeId] = useState<number | undefined>(
     initialShipTypeId,
   );
-  const [shipTypeName, setShipTypeName] = useState("");
+  const [shipTypeName, setShipTypeName] = useState('');
 
   // Ship group search state
-  const [groupSearch, setGroupSearch] = useState("");
+  const [groupSearch, setGroupSearch] = useState('');
   const [shipGroupIds, setShipGroupIds] = useState<number[]>(
     initialShipGroupIds || [],
   );
@@ -100,58 +95,58 @@ export default function KillmailFilters({
   const groupDropdownRef = useRef<HTMLDivElement>(null);
 
   const [minAttackers, setMinAttackers] = useState(
-    initialMinAttackers ? String(initialMinAttackers) : "",
+    initialMinAttackers ? String(initialMinAttackers) : '',
   );
   const [maxAttackers, setMaxAttackers] = useState(
-    initialMaxAttackers ? String(initialMaxAttackers) : "",
+    initialMaxAttackers ? String(initialMaxAttackers) : '',
   );
   const [minValue, setMinValue] = useState(
-    initialMinValue ? String(initialMinValue) : "",
+    initialMinValue ? String(initialMinValue) : '',
   );
   const [maxValue, setMaxValue] = useState(
-    initialMaxValue ? String(initialMaxValue) : "",
+    initialMaxValue ? String(initialMaxValue) : '',
   );
-  const [shipRole, setShipRole] = useState<"all" | "victim" | "attacker">(
+  const [shipRole, setShipRole] = useState<'all' | 'victim' | 'attacker'>(
     initialShipRole,
   );
   const [characterRole, setCharacterRole] = useState<
-    "all" | "victim" | "attacker"
+    'all' | 'victim' | 'attacker'
   >(initialCharacterRole);
   const [securitySpace, setSecuritySpace] = useState<
-    "all" | "highsec" | "lowsec" | "nullsec" | "wormhole" | "abyssal"
+    'all' | 'highsec' | 'lowsec' | 'nullsec' | 'wormhole' | 'abyssal'
   >(initialSecuritySpace);
   const [warRelated, setWarRelated] = useState<boolean>(initialWarRelated);
 
   // Pilot search state
-  const [pilotSearch, setPilotSearch] = useState("");
+  const [pilotSearch, setPilotSearch] = useState('');
   const [characterId, setCharacterId] = useState<number | undefined>(
     initialCharacterId,
   );
-  const [characterName, setCharacterName] = useState("");
+  const [characterName, setCharacterName] = useState('');
   const [showPilotDropdown, setShowPilotDropdown] = useState(false);
   const pilotDropdownRef = useRef<HTMLDivElement>(null);
 
   // Solar system search state
-  const [solarSystemSearch, setSolarSystemSearch] = useState("");
+  const [solarSystemSearch, setSolarSystemSearch] = useState('');
   const [systemId, setSystemId] = useState<number | undefined>(initialSystemId);
-  const [solarSystemName, setSolarSystemName] = useState("");
+  const [solarSystemName, setSolarSystemName] = useState('');
   const [showSolarSystemDropdown, setShowSolarSystemDropdown] = useState(false);
   const solarSystemDropdownRef = useRef<HTMLDivElement>(null);
 
   // Constellation search state
-  const [constellationSearch, setConstellationSearch] = useState("");
+  const [constellationSearch, setConstellationSearch] = useState('');
   const [constellationId, setConstellationId] = useState<number | undefined>(
     initialConstellationId,
   );
-  const [constellationName, setConstellationName] = useState("");
+  const [constellationName, setConstellationName] = useState('');
   const [showConstellationDropdown, setShowConstellationDropdown] =
     useState(false);
   const constellationDropdownRef = useRef<HTMLDivElement>(null);
 
   // Region search state
-  const [regionSearch, setRegionSearch] = useState("");
+  const [regionSearch, setRegionSearch] = useState('');
   const [regionId, setRegionId] = useState<number | undefined>(initialRegionId);
-  const [regionName, setRegionName] = useState("");
+  const [regionName, setRegionName] = useState('');
   const [showRegionDropdown, setShowRegionDropdown] = useState(false);
   const regionDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -217,7 +212,7 @@ export default function KillmailFilters({
 
   // Debug: Log region query data
   useEffect(() => {
-    console.log("🔍 Region Query Debug:", {
+    console.log('🔍 Region Query Debug:', {
       initialRegionId,
       initialRegionData,
       regionName: initialRegionData?.region?.name,
@@ -338,8 +333,8 @@ export default function KillmailFilters({
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   // Sync state when initial props change (e.g., when URL changes)
@@ -347,7 +342,7 @@ export default function KillmailFilters({
     setShipTypeId(initialShipTypeId);
     // Clear name when shipTypeId is undefined
     if (!initialShipTypeId) {
-      setShipTypeName("");
+      setShipTypeName('');
     }
   }, [initialShipTypeId]);
 
@@ -359,7 +354,7 @@ export default function KillmailFilters({
     setCharacterId(initialCharacterId);
     // Clear name when characterId is undefined
     if (!initialCharacterId) {
-      setCharacterName("");
+      setCharacterName('');
     }
   }, [initialCharacterId]);
 
@@ -367,7 +362,7 @@ export default function KillmailFilters({
     setSystemId(initialSystemId);
     // Clear name when systemId is undefined
     if (!initialSystemId) {
-      setSolarSystemName("");
+      setSolarSystemName('');
     }
   }, [initialSystemId]);
 
@@ -375,7 +370,7 @@ export default function KillmailFilters({
     setConstellationId(initialConstellationId);
     // Clear name when constellationId is undefined
     if (!initialConstellationId) {
-      setConstellationName("");
+      setConstellationName('');
     }
   }, [initialConstellationId]);
 
@@ -383,24 +378,24 @@ export default function KillmailFilters({
     setRegionId(initialRegionId);
     // Clear name when regionId is undefined
     if (!initialRegionId) {
-      setRegionName("");
+      setRegionName('');
     }
   }, [initialRegionId]);
 
   useEffect(() => {
-    setMinAttackers(initialMinAttackers ? String(initialMinAttackers) : "");
+    setMinAttackers(initialMinAttackers ? String(initialMinAttackers) : '');
   }, [initialMinAttackers]);
 
   useEffect(() => {
-    setMaxAttackers(initialMaxAttackers ? String(initialMaxAttackers) : "");
+    setMaxAttackers(initialMaxAttackers ? String(initialMaxAttackers) : '');
   }, [initialMaxAttackers]);
 
   useEffect(() => {
-    setMinValue(initialMinValue ? String(initialMinValue) : "");
+    setMinValue(initialMinValue ? String(initialMinValue) : '');
   }, [initialMinValue]);
 
   useEffect(() => {
-    setMaxValue(initialMaxValue ? String(initialMaxValue) : "");
+    setMaxValue(initialMaxValue ? String(initialMaxValue) : '');
   }, [initialMaxValue]);
 
   useEffect(() => {
@@ -484,7 +479,7 @@ export default function KillmailFilters({
     // Store both ID and name
     setShipTypeId(typeId);
     setShipTypeName(typeName);
-    setTypeSearch(""); // Clear arama inputunu
+    setTypeSearch(''); // Clear arama inputunu
     setShowDropdown(false);
     // Filter will be applied when user clicks "Apply Filters" button
   };
@@ -495,7 +490,7 @@ export default function KillmailFilters({
       setShipGroupIds([...shipGroupIds, groupId]);
       setShipGroupNames(new Map(shipGroupNames).set(groupId, groupName));
     }
-    setGroupSearch("");
+    setGroupSearch('');
     setShowGroupDropdown(false);
   };
 
@@ -509,28 +504,28 @@ export default function KillmailFilters({
   const handlePilotSelect = (id: number, name: string) => {
     setCharacterId(id);
     setCharacterName(name);
-    setPilotSearch("");
+    setPilotSearch('');
     setShowPilotDropdown(false);
   };
 
   const handleSolarSystemSelect = (id: number, name: string) => {
     setSystemId(id);
     setSolarSystemName(name);
-    setSolarSystemSearch("");
+    setSolarSystemSearch('');
     setShowSolarSystemDropdown(false);
   };
 
   const handleConstellationSelect = (id: number, name: string) => {
     setConstellationId(id);
     setConstellationName(name);
-    setConstellationSearch("");
+    setConstellationSearch('');
     setShowConstellationDropdown(false);
   };
 
   const handleRegionSelect = (id: number, name: string) => {
     setRegionId(id);
     setRegionName(name);
-    setRegionSearch("");
+    setRegionSearch('');
     setShowRegionDropdown(false);
   };
 
@@ -546,35 +541,35 @@ export default function KillmailFilters({
       regionId,
       victim:
         shipTypeId || shipGroupIds.length > 0
-          ? shipRole === "victim"
+          ? shipRole === 'victim'
             ? true
-            : shipRole === "attacker"
+            : shipRole === 'attacker'
               ? false
               : undefined
           : undefined,
       attacker:
         shipTypeId || shipGroupIds.length > 0
-          ? shipRole === "attacker"
+          ? shipRole === 'attacker'
             ? true
-            : shipRole === "victim"
+            : shipRole === 'victim'
               ? false
               : undefined
           : undefined,
       characterVictim: characterId
-        ? characterRole === "victim"
+        ? characterRole === 'victim'
           ? true
-          : characterRole === "attacker"
+          : characterRole === 'attacker'
             ? false
             : undefined
         : undefined,
       characterAttacker: characterId
-        ? characterRole === "attacker"
+        ? characterRole === 'attacker'
           ? true
-          : characterRole === "victim"
+          : characterRole === 'victim'
             ? false
             : undefined
         : undefined,
-      securitySpace: securitySpace !== "all" ? securitySpace : undefined,
+      securitySpace: securitySpace !== 'all' ? securitySpace : undefined,
       minAttackers: minAttackers ? Number(minAttackers) : undefined,
       maxAttackers: maxAttackers ? Number(maxAttackers) : undefined,
       minValue: minValue ? Number(minValue) : undefined,
@@ -587,31 +582,31 @@ export default function KillmailFilters({
   };
 
   const handleClearAll = () => {
-    setTypeSearch("");
+    setTypeSearch('');
     setShipTypeId(undefined);
-    setShipTypeName("");
-    setGroupSearch("");
+    setShipTypeName('');
+    setGroupSearch('');
     setShipGroupIds([]);
     setShipGroupNames(new Map());
-    setPilotSearch("");
+    setPilotSearch('');
     setCharacterId(undefined);
-    setCharacterName("");
-    setSolarSystemSearch("");
+    setCharacterName('');
+    setSolarSystemSearch('');
     setSystemId(undefined);
-    setSolarSystemName("");
-    setConstellationSearch("");
+    setSolarSystemName('');
+    setConstellationSearch('');
     setConstellationId(undefined);
-    setConstellationName("");
-    setRegionSearch("");
+    setConstellationName('');
+    setRegionSearch('');
     setRegionId(undefined);
-    setRegionName("");
-    setMinAttackers("");
-    setMaxAttackers("");
-    setMinValue("");
-    setMaxValue("");
-    setShipRole("all");
-    setCharacterRole("all");
-    setSecuritySpace("all");
+    setRegionName('');
+    setMinAttackers('');
+    setMaxAttackers('');
+    setMinValue('');
+    setMaxValue('');
+    setShipRole('all');
+    setCharacterRole('all');
+    setSecuritySpace('all');
     setWarRelated(false);
     onClearFilters();
   };
@@ -623,7 +618,7 @@ export default function KillmailFilters({
     systemId,
     constellationId,
     regionId,
-    securitySpace !== "all",
+    securitySpace !== 'all',
     minAttackers,
     maxAttackers,
     minValue,
@@ -657,104 +652,100 @@ export default function KillmailFilters({
           <FilterField label="Pilot" htmlFor="filter-pilot">
             <div ref={pilotDropdownRef}>
               <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  id="filter-pilot"
+                  placeholder="Search pilot (min 3 letters)..."
+                  value={pilotSearch}
+                  onChange={(e) => {
+                    setPilotSearch(e.target.value);
+                    if (e.target.value.length >= 3) setShowPilotDropdown(true);
+                    else setShowPilotDropdown(false);
+                  }}
+                  onFocus={() => {
+                    if (
+                      pilotSearch.length >= 3 &&
+                      pilotData?.characters?.items &&
+                      pilotData.characters.items.length > 0
+                    )
+                      setShowPilotDropdown(true);
+                  }}
+                  className="search-input"
+                />
+                {pilotLoading && pilotSearch.length >= 3 && (
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <div className="w-5 h-5 border-2 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
                   </div>
-                  <input
-                    type="text"
-                    id="filter-pilot"
-                    placeholder="Search pilot (min 3 letters)..."
-                    value={pilotSearch}
-                    onChange={(e) => {
-                      setPilotSearch(e.target.value);
-                      if (e.target.value.length >= 3)
-                        setShowPilotDropdown(true);
-                      else setShowPilotDropdown(false);
-                    }}
-                    onFocus={() => {
-                      if (
-                        pilotSearch.length >= 3 &&
-                        pilotData?.characters?.items &&
-                        pilotData.characters.items.length > 0
-                      )
-                        setShowPilotDropdown(true);
-                    }}
-                    className="search-input"
-                  />
-                  {pilotLoading && pilotSearch.length >= 3 && (
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                      <div className="w-5 h-5 border-2 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
+                )}
+
+                {/* Pilot Dropdown */}
+                {showPilotDropdown &&
+                  pilotData?.characters?.items &&
+                  pilotData.characters.items.length > 0 && (
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto md:grid-cols-2 character-dropdown-scroll max-h-96">
+                        {pilotData.characters.items.map((character) => {
+                          const avatarUrl = `https://images.evetech.net/characters/${character.id}/portrait?size=128`;
+                          return (
+                            <button
+                              key={character.id}
+                              type="button"
+                              onClick={() =>
+                                handlePilotSelect(character.id, character.name)
+                              }
+                              className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
+                            >
+                              <div className="flex items-center justify-center flex-none size-16 bg-gray-700/50 group-hover:bg-gray-700">
+                                <img
+                                  src={avatarUrl}
+                                  alt={character.name}
+                                  className="object-cover size-16"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).src =
+                                      '/images/default-avatar.png';
+                                  }}
+                                />
+                              </div>
+                              <div className="flex-auto min-w-0 text-left">
+                                <div className="font-semibold text-white truncate">
+                                  {character.name}
+                                </div>
+                                <div className="text-sm text-gray-400">
+                                  {character.corporation?.name && (
+                                    <div className="text-gray-400 truncate">
+                                      {character.corporation.name}
+                                    </div>
+                                  )}
+                                  {character.alliance?.name && (
+                                    <div className="text-gray-400 truncate">
+                                      {character.alliance.name}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
 
-                  {/* Pilot Dropdown */}
-                  {showPilotDropdown &&
-                    pilotData?.characters?.items &&
-                    pilotData.characters.items.length > 0 && (
-                      <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
-                        <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto md:grid-cols-2 character-dropdown-scroll max-h-96">
-                          {pilotData.characters.items.map((character) => {
-                            const avatarUrl = `https://images.evetech.net/characters/${character.id}/portrait?size=128`;
-                            return (
-                              <button
-                                key={character.id}
-                                type="button"
-                                onClick={() =>
-                                  handlePilotSelect(
-                                    character.id,
-                                    character.name,
-                                  )
-                                }
-                                className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
-                              >
-                                <div className="flex items-center justify-center flex-none size-16 bg-gray-700/50 group-hover:bg-gray-700">
-                                  <img
-                                    src={avatarUrl}
-                                    alt={character.name}
-                                    className="object-cover size-16"
-                                    onError={(e) => {
-                                      (e.target as HTMLImageElement).src =
-                                        "/images/default-avatar.png";
-                                    }}
-                                  />
-                                </div>
-                                <div className="flex-auto min-w-0 text-left">
-                                  <div className="font-semibold text-white truncate">
-                                    {character.name}
-                                  </div>
-                                  <div className="text-sm text-gray-400">
-                                    {character.corporation?.name && (
-                                      <div className="text-gray-400 truncate">
-                                        {character.corporation.name}
-                                      </div>
-                                    )}
-                                    {character.alliance?.name && (
-                                      <div className="text-gray-400 truncate">
-                                        {character.alliance.name}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
+                {/* No Results */}
+                {showPilotDropdown &&
+                  debouncedPilotSearch.length >= 3 &&
+                  !pilotLoading &&
+                  pilotData?.characters?.items?.length === 0 && (
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                      <div className="p-4 text-sm text-gray-400">
+                        No pilots found for "{debouncedPilotSearch}"
                       </div>
-                    )}
-
-                  {/* No Results */}
-                  {showPilotDropdown &&
-                    debouncedPilotSearch.length >= 3 &&
-                    !pilotLoading &&
-                    pilotData?.characters?.items?.length === 0 && (
-                      <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
-                        <div className="p-4 text-sm text-gray-400">
-                          No pilots found for "{debouncedPilotSearch}"
-                        </div>
-                      </div>
-                    )}
-                </div>
+                    </div>
+                  )}
               </div>
+            </div>
 
             {/* Character chip + its own RadioGroup */}
             {characterId && (
@@ -767,7 +758,7 @@ export default function KillmailFilters({
                       className="object-cover size-8"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src =
-                          "/images/default-avatar.png";
+                          '/images/default-avatar.png';
                       }}
                     />
                     <span className="font-semibold truncate">
@@ -778,8 +769,8 @@ export default function KillmailFilters({
                     type="button"
                     onClick={() => {
                       setCharacterId(undefined);
-                      setCharacterName("");
-                      setCharacterRole("all");
+                      setCharacterName('');
+                      setCharacterRole('all');
                     }}
                     className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
                   >
@@ -791,9 +782,9 @@ export default function KillmailFilters({
                   value={characterRole}
                   onChange={setCharacterRole}
                   options={[
-                    { value: "all", label: "All" },
-                    { value: "victim", label: "Victim" },
-                    { value: "attacker", label: "Attacker" },
+                    { value: 'all', label: 'All' },
+                    { value: 'victim', label: 'Victim' },
+                    { value: 'attacker', label: 'Attacker' },
                   ]}
                 />
               </div>
@@ -804,88 +795,86 @@ export default function KillmailFilters({
           <FilterField label="Ship" htmlFor="filter-ship">
             <div ref={shipDropdownRef}>
               <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  id="filter-ship"
+                  placeholder="Search ship (min 3 letters)..."
+                  value={typeSearch}
+                  onChange={(e) => {
+                    setTypeSearch(e.target.value);
+                    if (e.target.value.length >= 3) setShowDropdown(true);
+                    else setShowDropdown(false);
+                  }}
+                  onFocus={() => {
+                    if (
+                      typeSearch.length >= 3 &&
+                      typeData?.types?.items &&
+                      typeData.types.items.length > 0
+                    )
+                      setShowDropdown(true);
+                  }}
+                  className="search-input"
+                />
+                {typeLoading && typeSearch.length >= 3 && (
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <div className="w-5 h-5 border-2 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
                   </div>
-                  <input
-                    type="text"
-                    id="filter-ship"
-                    placeholder="Search ship (min 3 letters)..."
-                    value={typeSearch}
-                    onChange={(e) => {
-                      setTypeSearch(e.target.value);
-                      if (e.target.value.length >= 3) setShowDropdown(true);
-                      else setShowDropdown(false);
-                    }}
-                    onFocus={() => {
-                      if (
-                        typeSearch.length >= 3 &&
-                        typeData?.types?.items &&
-                        typeData.types.items.length > 0
-                      )
-                        setShowDropdown(true);
-                    }}
-                    className="search-input"
-                  />
-                  {typeLoading && typeSearch.length >= 3 && (
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                      <div className="w-5 h-5 border-2 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
+                )}
+
+                {/* Ship Dropdown */}
+                {showDropdown &&
+                  typeData?.types?.items &&
+                  typeData.types.items.length > 0 && (
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto md:grid-cols-2 character-dropdown-scroll max-h-96">
+                        {typeData.types.items.map((type) => (
+                          <button
+                            key={type.id}
+                            type="button"
+                            onClick={() => handleShipSelect(type.id, type.name)}
+                            className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
+                          >
+                            <div className="flex items-center justify-center flex-none size-16 bg-gray-700/50 group-hover:bg-gray-700">
+                              <img
+                                src={`https://images.evetech.net/types/${type.id}/icon?size=64`}
+                                alt={type.name}
+                                className="object-cover size-16"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src =
+                                    '/images/default-ship.png';
+                                }}
+                              />
+                            </div>
+                            <div className="flex-auto min-w-0 text-left">
+                              <div className="font-semibold text-white truncate">
+                                {type.name}
+                              </div>
+                              <div className="text-sm text-gray-400 truncate">
+                                {type.group?.name || 'Unknown Group'}
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
 
-                  {/* Ship Dropdown */}
-                  {showDropdown &&
-                    typeData?.types?.items &&
-                    typeData.types.items.length > 0 && (
-                      <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
-                        <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto md:grid-cols-2 character-dropdown-scroll max-h-96">
-                          {typeData.types.items.map((type) => (
-                            <button
-                              key={type.id}
-                              type="button"
-                              onClick={() =>
-                                handleShipSelect(type.id, type.name)
-                              }
-                              className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
-                            >
-                              <div className="flex items-center justify-center flex-none size-16 bg-gray-700/50 group-hover:bg-gray-700">
-                                <img
-                                  src={`https://images.evetech.net/types/${type.id}/icon?size=64`}
-                                  alt={type.name}
-                                  className="object-cover size-16"
-                                  onError={(e) => {
-                                    (e.target as HTMLImageElement).src =
-                                      "/images/default-ship.png";
-                                  }}
-                                />
-                              </div>
-                              <div className="flex-auto min-w-0 text-left">
-                                <div className="font-semibold text-white truncate">
-                                  {type.name}
-                                </div>
-                                <div className="text-sm text-gray-400 truncate">
-                                  {type.group?.name || "Unknown Group"}
-                                </div>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
+                {/* No Results */}
+                {showDropdown &&
+                  debouncedSearch.length >= 3 &&
+                  !typeLoading &&
+                  typeData?.types?.items?.length === 0 && (
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                      <div className="p-4 text-sm text-gray-400">
+                        No ships found for "{debouncedSearch}"
                       </div>
-                    )}
-
-                  {/* No Results */}
-                  {showDropdown &&
-                    debouncedSearch.length >= 3 &&
-                    !typeLoading &&
-                    typeData?.types?.items?.length === 0 && (
-                      <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
-                        <div className="p-4 text-sm text-gray-400">
-                          No ships found for "{debouncedSearch}"
-                        </div>
-                      </div>
-                    )}
-                </div>
+                    </div>
+                  )}
               </div>
+            </div>
 
             {/* Ship chip + its own RadioGroup */}
             {shipTypeId && (
@@ -898,7 +887,7 @@ export default function KillmailFilters({
                       className="object-cover size-8"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src =
-                          "/images/default-ship.png";
+                          '/images/default-ship.png';
                       }}
                     />
                     <span className="font-semibold truncate">
@@ -909,8 +898,8 @@ export default function KillmailFilters({
                     type="button"
                     onClick={() => {
                       setShipTypeId(undefined);
-                      setShipTypeName("");
-                      setShipRole("all");
+                      setShipTypeName('');
+                      setShipRole('all');
                     }}
                     className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
                   >
@@ -922,9 +911,9 @@ export default function KillmailFilters({
                   value={shipRole}
                   onChange={setShipRole}
                   options={[
-                    { value: "all", label: "All" },
-                    { value: "victim", label: "Victim" },
-                    { value: "attacker", label: "Attacker" },
+                    { value: 'all', label: 'All' },
+                    { value: 'victim', label: 'Victim' },
+                    { value: 'attacker', label: 'Attacker' },
                   ]}
                 />
               </div>
@@ -938,84 +927,83 @@ export default function KillmailFilters({
           >
             <div ref={groupDropdownRef}>
               <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  id="filter-ship-group"
+                  placeholder="Search ship group (min 2 letters)..."
+                  value={groupSearch}
+                  onChange={(e) => {
+                    setGroupSearch(e.target.value);
+                    if (e.target.value.length >= 2) setShowGroupDropdown(true);
+                    else setShowGroupDropdown(false);
+                  }}
+                  onFocus={() => {
+                    if (
+                      groupSearch.length >= 2 &&
+                      groupData?.itemGroups?.items &&
+                      groupData.itemGroups.items.length > 0
+                    )
+                      setShowGroupDropdown(true);
+                  }}
+                  className="search-input"
+                />
+                {groupLoading && groupSearch.length >= 2 && (
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <div className="w-5 h-5 border-2 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
                   </div>
-                  <input
-                    type="text"
-                    id="filter-ship-group"
-                    placeholder="Search ship group (min 2 letters)..."
-                    value={groupSearch}
-                    onChange={(e) => {
-                      setGroupSearch(e.target.value);
-                      if (e.target.value.length >= 2)
-                        setShowGroupDropdown(true);
-                      else setShowGroupDropdown(false);
-                    }}
-                    onFocus={() => {
-                      if (
-                        groupSearch.length >= 2 &&
-                        groupData?.itemGroups?.items &&
-                        groupData.itemGroups.items.length > 0
-                      )
-                        setShowGroupDropdown(true);
-                    }}
-                    className="search-input"
-                  />
-                  {groupLoading && groupSearch.length >= 2 && (
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                      <div className="w-5 h-5 border-2 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
+                )}
+
+                {/* Ship Group Dropdown */}
+                {showGroupDropdown &&
+                  groupData?.itemGroups?.items &&
+                  groupData.itemGroups.items.length > 0 && (
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto character-dropdown-scroll max-h-96">
+                        {groupData.itemGroups.items.map((group) => (
+                          <button
+                            key={group.id}
+                            type="button"
+                            onClick={() =>
+                              handleGroupSelect(group.id, group.name)
+                            }
+                            disabled={shipGroupIds.includes(group.id)}
+                            className={`relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5 ${shipGroupIds.includes(group.id) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            <div className="flex-auto min-w-0 text-left">
+                              <div className="font-semibold text-white truncate">
+                                {group.name}
+                              </div>
+                              <div className="text-sm text-gray-400 truncate">
+                                {group.category?.name || 'Unknown Category'}
+                              </div>
+                            </div>
+                            {shipGroupIds.includes(group.id) && (
+                              <div className="text-xs text-green-500">
+                                ✓ Selected
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
 
-                  {/* Ship Group Dropdown */}
-                  {showGroupDropdown &&
-                    groupData?.itemGroups?.items &&
-                    groupData.itemGroups.items.length > 0 && (
-                      <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
-                        <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto character-dropdown-scroll max-h-96">
-                          {groupData.itemGroups.items.map((group) => (
-                            <button
-                              key={group.id}
-                              type="button"
-                              onClick={() =>
-                                handleGroupSelect(group.id, group.name)
-                              }
-                              disabled={shipGroupIds.includes(group.id)}
-                              className={`relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5 ${shipGroupIds.includes(group.id) ? "opacity-50 cursor-not-allowed" : ""}`}
-                            >
-                              <div className="flex-auto min-w-0 text-left">
-                                <div className="font-semibold text-white truncate">
-                                  {group.name}
-                                </div>
-                                <div className="text-sm text-gray-400 truncate">
-                                  {group.category?.name || "Unknown Category"}
-                                </div>
-                              </div>
-                              {shipGroupIds.includes(group.id) && (
-                                <div className="text-xs text-green-500">
-                                  ✓ Selected
-                                </div>
-                              )}
-                            </button>
-                          ))}
-                        </div>
+                {/* No Results */}
+                {showGroupDropdown &&
+                  debouncedGroupSearch.length >= 2 &&
+                  !groupLoading &&
+                  groupData?.itemGroups?.items?.length === 0 && (
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                      <div className="p-4 text-sm text-gray-400">
+                        No ship groups found for "{debouncedGroupSearch}"
                       </div>
-                    )}
-
-                  {/* No Results */}
-                  {showGroupDropdown &&
-                    debouncedGroupSearch.length >= 2 &&
-                    !groupLoading &&
-                    groupData?.itemGroups?.items?.length === 0 && (
-                      <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
-                        <div className="p-4 text-sm text-gray-400">
-                          No ship groups found for "{debouncedGroupSearch}"
-                        </div>
-                      </div>
-                    )}
-                </div>
+                    </div>
+                  )}
               </div>
+            </div>
 
             {/* Ship Groups chips */}
             {shipGroupIds.length > 0 && (
@@ -1045,9 +1033,9 @@ export default function KillmailFilters({
                     value={shipRole}
                     onChange={setShipRole}
                     options={[
-                      { value: "all", label: "All" },
-                      { value: "victim", label: "Victim" },
-                      { value: "attacker", label: "Attacker" },
+                      { value: 'all', label: 'All' },
+                      { value: 'victim', label: 'Victim' },
+                      { value: 'attacker', label: 'Attacker' },
                     ]}
                   />
                 )}
@@ -1059,111 +1047,108 @@ export default function KillmailFilters({
           <FilterField label="Solar System" htmlFor="filter-solar-system">
             <div ref={solarSystemDropdownRef}>
               <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  id="filter-solar-system"
+                  placeholder="Search solar system (min 3 letters)..."
+                  value={solarSystemSearch}
+                  onChange={(e) => {
+                    setSolarSystemSearch(e.target.value);
+                    if (e.target.value.length >= 3)
+                      setShowSolarSystemDropdown(true);
+                    else setShowSolarSystemDropdown(false);
+                  }}
+                  onFocus={() => {
+                    if (
+                      solarSystemSearch.length >= 3 &&
+                      solarSystemData?.solarSystems?.items &&
+                      solarSystemData.solarSystems.items.length > 0
+                    )
+                      setShowSolarSystemDropdown(true);
+                  }}
+                  className="search-input"
+                />
+                {solarSystemLoading && solarSystemSearch.length >= 3 && (
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <div className="w-5 h-5 border-2 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
                   </div>
-                  <input
-                    type="text"
-                    id="filter-solar-system"
-                    placeholder="Search solar system (min 3 letters)..."
-                    value={solarSystemSearch}
-                    onChange={(e) => {
-                      setSolarSystemSearch(e.target.value);
-                      if (e.target.value.length >= 3)
-                        setShowSolarSystemDropdown(true);
-                      else setShowSolarSystemDropdown(false);
-                    }}
-                    onFocus={() => {
-                      if (
-                        solarSystemSearch.length >= 3 &&
-                        solarSystemData?.solarSystems?.items &&
-                        solarSystemData.solarSystems.items.length > 0
-                      )
-                        setShowSolarSystemDropdown(true);
-                    }}
-                    className="search-input"
-                  />
-                  {solarSystemLoading && solarSystemSearch.length >= 3 && (
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                      <div className="w-5 h-5 border-2 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
+                )}
+
+                {/* Solar System Dropdown */}
+                {showSolarSystemDropdown &&
+                  solarSystemData?.solarSystems?.items &&
+                  solarSystemData.solarSystems.items.length > 0 && (
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto character-dropdown-scroll max-h-96">
+                        {solarSystemData.solarSystems.items.map((system) => {
+                          const securityClass =
+                            system.security_class || 'Unknown';
+                          const securityColor =
+                            securityClass === 'A' ||
+                            securityClass === 'B' ||
+                            securityClass === 'C'
+                              ? 'text-green-400'
+                              : securityClass === 'D' ||
+                                  securityClass === 'E' ||
+                                  securityClass === 'F'
+                                ? 'text-yellow-400'
+                                : securityClass === 'G'
+                                  ? 'text-orange-400'
+                                  : 'text-red-400';
+
+                          return (
+                            <button
+                              key={system.id}
+                              type="button"
+                              onClick={() =>
+                                handleSolarSystemSelect(system.id, system.name)
+                              }
+                              className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
+                            >
+                              <div className="flex-auto min-w-0 text-left">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold text-white truncate">
+                                    {system.name}
+                                  </span>
+                                  <span
+                                    className={`text-xs font-semibold ${securityColor}`}
+                                  >
+                                    {system.securityStatus?.toFixed(1)}
+                                  </span>
+                                </div>
+                                <div className="text-sm text-gray-400">
+                                  {system.constellation?.region?.name && (
+                                    <div className="text-gray-400 truncate">
+                                      {system.constellation.region.name} ›{' '}
+                                      {system.constellation?.name}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
 
-                  {/* Solar System Dropdown */}
-                  {showSolarSystemDropdown &&
-                    solarSystemData?.solarSystems?.items &&
-                    solarSystemData.solarSystems.items.length > 0 && (
-                      <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
-                        <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto character-dropdown-scroll max-h-96">
-                          {solarSystemData.solarSystems.items.map((system) => {
-                            const securityClass =
-                              system.security_class || "Unknown";
-                            const securityColor =
-                              securityClass === "A" ||
-                              securityClass === "B" ||
-                              securityClass === "C"
-                                ? "text-green-400"
-                                : securityClass === "D" ||
-                                    securityClass === "E" ||
-                                    securityClass === "F"
-                                  ? "text-yellow-400"
-                                  : securityClass === "G"
-                                    ? "text-orange-400"
-                                    : "text-red-400";
-
-                            return (
-                              <button
-                                key={system.id}
-                                type="button"
-                                onClick={() =>
-                                  handleSolarSystemSelect(
-                                    system.id,
-                                    system.name,
-                                  )
-                                }
-                                className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
-                              >
-                                <div className="flex-auto min-w-0 text-left">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-semibold text-white truncate">
-                                      {system.name}
-                                    </span>
-                                    <span
-                                      className={`text-xs font-semibold ${securityColor}`}
-                                    >
-                                      {system.securityStatus?.toFixed(1)}
-                                    </span>
-                                  </div>
-                                  <div className="text-sm text-gray-400">
-                                    {system.constellation?.region?.name && (
-                                      <div className="text-gray-400 truncate">
-                                        {system.constellation.region.name} ›{" "}
-                                        {system.constellation?.name}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
+                {/* No Results */}
+                {showSolarSystemDropdown &&
+                  debouncedSolarSystemSearch.length >= 3 &&
+                  !solarSystemLoading &&
+                  solarSystemData?.solarSystems?.items?.length === 0 && (
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                      <div className="p-4 text-sm text-gray-400">
+                        No solar systems found for "{debouncedSolarSystemSearch}
+                        "
                       </div>
-                    )}
-
-                  {/* No Results */}
-                  {showSolarSystemDropdown &&
-                    debouncedSolarSystemSearch.length >= 3 &&
-                    !solarSystemLoading &&
-                    solarSystemData?.solarSystems?.items?.length === 0 && (
-                      <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
-                        <div className="p-4 text-sm text-gray-400">
-                          No solar systems found for "
-                          {debouncedSolarSystemSearch}"
-                        </div>
-                      </div>
-                    )}
-                </div>
+                    </div>
+                  )}
               </div>
+            </div>
 
             {/* Solar System chip */}
             {systemId && (
@@ -1181,7 +1166,7 @@ export default function KillmailFilters({
                     type="button"
                     onClick={() => {
                       console.log(
-                        "🔍 System chip remove clicked, current state:",
+                        '🔍 System chip remove clicked, current state:',
                         {
                           systemId,
                           solarSystemName,
@@ -1190,7 +1175,7 @@ export default function KillmailFilters({
                         },
                       );
                       setSystemId(undefined);
-                      setSolarSystemName("");
+                      setSolarSystemName('');
                     }}
                     className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
                   >
@@ -1205,97 +1190,95 @@ export default function KillmailFilters({
           <FilterField label="Region" htmlFor="filter-region">
             <div ref={regionDropdownRef}>
               <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  id="filter-region"
+                  placeholder="Search region (min 3 letters)..."
+                  value={regionSearch}
+                  onChange={(e) => {
+                    setRegionSearch(e.target.value);
+                    if (e.target.value.length >= 3) setShowRegionDropdown(true);
+                    else setShowRegionDropdown(false);
+                  }}
+                  onFocus={() => {
+                    if (
+                      regionSearch.length >= 3 &&
+                      regionsData?.regions?.items &&
+                      regionsData.regions.items.length > 0
+                    )
+                      setShowRegionDropdown(true);
+                  }}
+                  className="search-input"
+                />
+                {regionLoading && regionSearch.length >= 3 && (
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <div className="w-5 h-5 border-2 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
                   </div>
-                  <input
-                    type="text"
-                    id="filter-region"
-                    placeholder="Search region (min 3 letters)..."
-                    value={regionSearch}
-                    onChange={(e) => {
-                      setRegionSearch(e.target.value);
-                      if (e.target.value.length >= 3)
-                        setShowRegionDropdown(true);
-                      else setShowRegionDropdown(false);
-                    }}
-                    onFocus={() => {
-                      if (
-                        regionSearch.length >= 3 &&
-                        regionsData?.regions?.items &&
-                        regionsData.regions.items.length > 0
-                      )
-                        setShowRegionDropdown(true);
-                    }}
-                    className="search-input"
-                  />
-                  {regionLoading && regionSearch.length >= 3 && (
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                      <div className="w-5 h-5 border-2 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
+                )}
+
+                {/* Region Dropdown */}
+                {showRegionDropdown &&
+                  regionsData?.regions?.items &&
+                  regionsData.regions.items.length > 0 && (
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto character-dropdown-scroll max-h-96">
+                        {regionsData.regions.items.map((region: any) => {
+                          const avgSec = region.securityStats?.avgSecurity ?? 0;
+                          const securityColor =
+                            avgSec >= 0.5
+                              ? 'text-green-400'
+                              : avgSec > 0
+                                ? 'text-yellow-400'
+                                : 'text-red-400';
+
+                          return (
+                            <button
+                              key={region.id}
+                              type="button"
+                              onClick={() =>
+                                handleRegionSelect(region.id, region.name)
+                              }
+                              className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
+                            >
+                              <div className="flex-auto min-w-0 text-left">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold text-white truncate">
+                                    {region.name}
+                                  </span>
+                                  <span
+                                    className={`text-xs font-semibold ${securityColor}`}
+                                  >
+                                    {avgSec.toFixed(1)}
+                                  </span>
+                                </div>
+                                <div className="text-sm text-gray-400">
+                                  {region.constellationCount} constellations ·{' '}
+                                  {region.solarSystemCount} systems
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
 
-                  {/* Region Dropdown */}
-                  {showRegionDropdown &&
-                    regionsData?.regions?.items &&
-                    regionsData.regions.items.length > 0 && (
-                      <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
-                        <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto character-dropdown-scroll max-h-96">
-                          {regionsData.regions.items.map((region: any) => {
-                            const avgSec =
-                              region.securityStats?.avgSecurity ?? 0;
-                            const securityColor =
-                              avgSec >= 0.5
-                                ? "text-green-400"
-                                : avgSec > 0
-                                  ? "text-yellow-400"
-                                  : "text-red-400";
-
-                            return (
-                              <button
-                                key={region.id}
-                                type="button"
-                                onClick={() =>
-                                  handleRegionSelect(region.id, region.name)
-                                }
-                                className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
-                              >
-                                <div className="flex-auto min-w-0 text-left">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-semibold text-white truncate">
-                                      {region.name}
-                                    </span>
-                                    <span
-                                      className={`text-xs font-semibold ${securityColor}`}
-                                    >
-                                      {avgSec.toFixed(1)}
-                                    </span>
-                                  </div>
-                                  <div className="text-sm text-gray-400">
-                                    {region.constellationCount} constellations ·{" "}
-                                    {region.solarSystemCount} systems
-                                  </div>
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
+                {/* No Results */}
+                {showRegionDropdown &&
+                  debouncedRegionSearch.length >= 3 &&
+                  !regionLoading &&
+                  regionsData?.regions?.items?.length === 0 && (
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                      <div className="p-4 text-sm text-gray-400">
+                        No regions found for "{debouncedRegionSearch}"
                       </div>
-                    )}
-
-                  {/* No Results */}
-                  {showRegionDropdown &&
-                    debouncedRegionSearch.length >= 3 &&
-                    !regionLoading &&
-                    regionsData?.regions?.items?.length === 0 && (
-                      <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
-                        <div className="p-4 text-sm text-gray-400">
-                          No regions found for "{debouncedRegionSearch}"
-                        </div>
-                      </div>
-                    )}
-                </div>
+                    </div>
+                  )}
               </div>
+            </div>
 
             {/* Region chip */}
             {regionId && (
@@ -1311,7 +1294,7 @@ export default function KillmailFilters({
                     type="button"
                     onClick={() => {
                       setRegionId(undefined);
-                      setRegionName("");
+                      setRegionName('');
                     }}
                     className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
                   >
@@ -1326,108 +1309,107 @@ export default function KillmailFilters({
           <FilterField label="Constellation" htmlFor="filter-constellation">
             <div ref={constellationDropdownRef}>
               <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  id="filter-constellation"
+                  placeholder="Search constellation (min 3 letters)..."
+                  value={constellationSearch}
+                  onChange={(e) => {
+                    setConstellationSearch(e.target.value);
+                    if (e.target.value.length >= 3)
+                      setShowConstellationDropdown(true);
+                    else setShowConstellationDropdown(false);
+                  }}
+                  onFocus={() => {
+                    if (
+                      constellationSearch.length >= 3 &&
+                      constellationData?.constellations?.items &&
+                      constellationData.constellations.items.length > 0
+                    )
+                      setShowConstellationDropdown(true);
+                  }}
+                  className="search-input"
+                />
+                {constellationLoading && constellationSearch.length >= 3 && (
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <div className="w-5 h-5 border-2 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
                   </div>
-                  <input
-                    type="text"
-                    id="filter-constellation"
-                    placeholder="Search constellation (min 3 letters)..."
-                    value={constellationSearch}
-                    onChange={(e) => {
-                      setConstellationSearch(e.target.value);
-                      if (e.target.value.length >= 3)
-                        setShowConstellationDropdown(true);
-                      else setShowConstellationDropdown(false);
-                    }}
-                    onFocus={() => {
-                      if (
-                        constellationSearch.length >= 3 &&
-                        constellationData?.constellations?.items &&
-                        constellationData.constellations.items.length > 0
-                      )
-                        setShowConstellationDropdown(true);
-                    }}
-                    className="search-input"
-                  />
-                  {constellationLoading && constellationSearch.length >= 3 && (
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                      <div className="w-5 h-5 border-2 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
+                )}
+
+                {/* Constellation Dropdown */}
+                {showConstellationDropdown &&
+                  constellationData?.constellations?.items &&
+                  constellationData.constellations.items.length > 0 && (
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto character-dropdown-scroll max-h-96">
+                        {constellationData.constellations.items.map(
+                          (constellation: any) => {
+                            const avgSec =
+                              constellation.securityStats?.avgSecurity ?? 0;
+                            const securityColor =
+                              avgSec >= 0.5
+                                ? 'text-green-400'
+                                : avgSec > 0
+                                  ? 'text-yellow-400'
+                                  : 'text-red-400';
+
+                            return (
+                              <button
+                                key={constellation.id}
+                                type="button"
+                                onClick={() =>
+                                  handleConstellationSelect(
+                                    constellation.id,
+                                    constellation.name,
+                                  )
+                                }
+                                className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
+                              >
+                                <div className="flex-auto min-w-0 text-left">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-semibold text-white truncate">
+                                      {constellation.name}
+                                    </span>
+                                    <span
+                                      className={`text-xs font-semibold ${securityColor}`}
+                                    >
+                                      {avgSec.toFixed(1)}
+                                    </span>
+                                  </div>
+                                  <div className="text-sm text-gray-400">
+                                    {constellation.region?.name && (
+                                      <div className="text-gray-400 truncate">
+                                        {constellation.region.name} ·{' '}
+                                        {constellation.solarSystemCount} systems
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </button>
+                            );
+                          },
+                        )}
+                      </div>
                     </div>
                   )}
 
-                  {/* Constellation Dropdown */}
-                  {showConstellationDropdown &&
-                    constellationData?.constellations?.items &&
-                    constellationData.constellations.items.length > 0 && (
-                      <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
-                        <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto character-dropdown-scroll max-h-96">
-                          {constellationData.constellations.items.map(
-                            (constellation: any) => {
-                              const avgSec =
-                                constellation.securityStats?.avgSecurity ?? 0;
-                              const securityColor =
-                                avgSec >= 0.5
-                                  ? "text-green-400"
-                                  : avgSec > 0
-                                    ? "text-yellow-400"
-                                    : "text-red-400";
-
-                              return (
-                                <button
-                                  key={constellation.id}
-                                  type="button"
-                                  onClick={() =>
-                                    handleConstellationSelect(
-                                      constellation.id,
-                                      constellation.name,
-                                    )
-                                  }
-                                  className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
-                                >
-                                  <div className="flex-auto min-w-0 text-left">
-                                    <div className="flex items-center gap-2">
-                                      <span className="font-semibold text-white truncate">
-                                        {constellation.name}
-                                      </span>
-                                      <span
-                                        className={`text-xs font-semibold ${securityColor}`}
-                                      >
-                                        {avgSec.toFixed(1)}
-                                      </span>
-                                    </div>
-                                    <div className="text-sm text-gray-400">
-                                      {constellation.region?.name && (
-                                        <div className="text-gray-400 truncate">
-                                          {constellation.region.name} ·{" "}
-                                          {constellation.solarSystemCount}{" "}
-                                          systems
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                </button>
-                              );
-                            },
-                          )}
-                        </div>
+                {/* No Results */}
+                {showConstellationDropdown &&
+                  debouncedConstellationSearch.length >= 3 &&
+                  !constellationLoading &&
+                  constellationData?.constellations?.items?.length === 0 && (
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                      <div className="p-4 text-sm text-gray-400">
+                        No constellations found for "
+                        {debouncedConstellationSearch}"
                       </div>
-                    )}
-
-                  {/* No Results */}
-                  {showConstellationDropdown &&
-                    debouncedConstellationSearch.length >= 3 &&
-                    !constellationLoading &&
-                    constellationData?.constellations?.items?.length === 0 && (
-                      <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
-                        <div className="p-4 text-sm text-gray-400">
-                          No constellations found for "
-                          {debouncedConstellationSearch}"
-                        </div>
-                      </div>
-                    )}
-                </div>
+                    </div>
+                  )}
               </div>
+            </div>
 
             {/* Constellation chip */}
             {constellationId && (
@@ -1445,7 +1427,7 @@ export default function KillmailFilters({
                     type="button"
                     onClick={() => {
                       console.log(
-                        "🔍 Constellation chip remove clicked, current state:",
+                        '🔍 Constellation chip remove clicked, current state:',
                         {
                           constellationId,
                           constellationName,
@@ -1454,7 +1436,7 @@ export default function KillmailFilters({
                         },
                       );
                       setConstellationId(undefined);
-                      setConstellationName("");
+                      setConstellationName('');
                     }}
                     className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
                   >
@@ -1526,12 +1508,12 @@ export default function KillmailFilters({
               value={securitySpace}
               onChange={setSecuritySpace}
               options={[
-                { value: "all", label: "All" },
-                { value: "highsec", label: "HighSec" },
-                { value: "lowsec", label: "LowSec" },
-                { value: "nullsec", label: "NullSec" },
-                { value: "wormhole", label: "Wormhole" },
-                { value: "abyssal", label: "Abyssal" },
+                { value: 'all', label: 'All' },
+                { value: 'highsec', label: 'HighSec' },
+                { value: 'lowsec', label: 'LowSec' },
+                { value: 'nullsec', label: 'NullSec' },
+                { value: 'wormhole', label: 'Wormhole' },
+                { value: 'abyssal', label: 'Abyssal' },
               ]}
             />
           </FilterField>
@@ -1540,11 +1522,11 @@ export default function KillmailFilters({
           <FilterField label="Sovereignty">
             <RadioGroup
               name="war-related"
-              value={warRelated ? "war" : "all"}
-              onChange={(v) => setWarRelated(v === "war")}
+              value={warRelated ? 'war' : 'all'}
+              onChange={(v) => setWarRelated(v === 'war')}
               options={[
-                { value: "all", label: "All Kills" },
-                { value: "war", label: "War Kills Only" },
+                { value: 'all', label: 'All Kills' },
+                { value: 'war', label: 'War Kills Only' },
               ]}
             />
           </FilterField>

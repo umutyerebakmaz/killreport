@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode } from 'react';
 
 export interface FilterFieldProps {
   /** Label shown above the control. */

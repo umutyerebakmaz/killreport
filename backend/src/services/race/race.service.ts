@@ -19,7 +19,7 @@ export class RaceService {
   static async getRaces(): Promise<ESIRace[]> {
     return esiRateLimiter.execute(async () => {
       const response = await axios.get<ESIRace[]>(
-        `${ESI_BASE_URL}/universe/races`
+        `${ESI_BASE_URL}/universe/races`,
       );
       return response.data;
     });

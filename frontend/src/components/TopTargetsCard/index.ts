@@ -1,3 +1,2 @@
-export { default } from "./TopTargetsCard";
-export type { TopTarget, TopTargetsCardProps } from "./TopTargetsCard";
-
+export { default } from './TopTargetsCard';
+export type { TopTarget, TopTargetsCardProps } from './TopTargetsCard';

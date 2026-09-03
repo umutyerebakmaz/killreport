@@ -1,13 +1,13 @@
-@import url("https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wght@0,200..900;1,200..900&display=swap");
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wght@0,200..900;1,200..900&display=swap');
+@import 'tailwindcss';
 
-@import "./fonts.css";
-@import "./buttons.css";
-@import "./inputs.css";
-@import "./tables.css";
+@import './fonts.css';
+@import './buttons.css';
+@import './inputs.css';
+@import './tables.css';
 
 @theme {
-  --font-sans: "Shentox", "Mona Sans", sans-serif;
+  --font-sans: 'Shentox', 'Mona Sans', sans-serif;
 }
 
 html,
@@ -16,7 +16,7 @@ body {
 }
 
 body {
-  font-family: "Shentox", "Mona Sans", sans-serif;
+  font-family: 'Shentox', 'Mona Sans', sans-serif;
   font-weight: 400;
 }
 

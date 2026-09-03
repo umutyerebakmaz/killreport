@@ -80,8 +80,8 @@ const effects = await DogmaEffectService.getBatchEffectInfo([11, 12, 13]);
 ### Example 1: Getting Dogma Information for a Type
 
 ```typescript
-import { TypeService } from "./services/type/type.service";
-import { DogmaAttributeService, DogmaEffectService } from "./services/dogma";
+import { TypeService } from './services/type/type.service';
+import { DogmaAttributeService, DogmaEffectService } from './services/dogma';
 
 // 1. Get type information (example: Retribution - 11393)
 const typeInfo = await TypeService.getTypeInfo(11393);
@@ -101,7 +101,7 @@ if (typeInfo.dogma_effects) {
   for (const effect of typeInfo.dogma_effects) {
     const effectInfo = await DogmaEffectService.getEffectInfo(effect.effect_id);
     console.log(
-      `${effectInfo.name}: ${effect.is_default ? "Default" : "Optional"}`,
+      `${effectInfo.name}: ${effect.is_default ? 'Default' : 'Optional'}`,
     );
   }
 }

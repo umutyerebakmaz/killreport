@@ -25,14 +25,16 @@ async function constellationExists(constellationId: number): Promise<boolean> {
 async function processConstellation(constellationId: number): Promise<boolean> {
   try {
     // Fetch constellation information from ESI
-    const response = await axios.get(`${ESI_BASE_URL}/universe/constellations/${constellationId}/`);
+    const response = await axios.get(
+      `${ESI_BASE_URL}/universe/constellations/${constellationId}/`,
+    );
     const data = response.data;
 
     // Check rate limit headers
     const errorLimitRemain = response.headers['x-esi-error-limit-remain'];
     if (errorLimitRemain && parseInt(errorLimitRemain) < 20) {
       logger.warn(
-        `⚠️  Error limit low (${errorLimitRemain}/100), slowing down...`
+        `⚠️  Error limit low (${errorLimitRemain}/100), slowing down...`,
       );
       await sleep(2000); // Wait 2 seconds
     }
@@ -70,18 +72,21 @@ async function processConstellation(constellationId: number): Promise<boolean> {
       await sleep(60000);
       throw error; // Requeue the message
     } else {
-      logger.error(`❌ Error processing constellation ${constellationId}:`, error.message);
+      logger.error(
+        `❌ Error processing constellation ${constellationId}:`,
+        error.message,
+      );
     }
     throw error;
   }
-}/**
+} /**
  * Prints completion summary when queue is empty
  */
 function printCompletionSummary(
   processedCount: number,
   skippedCount: number,
   errorCount: number,
-  startTime: number
+  startTime: number,
 ) {
   const duration = ((Date.now() - startTime) / 1000).toFixed(2);
   logger.info('\n' + '='.repeat(60));
@@ -125,7 +130,9 @@ async function startWorker() {
 
     // Check initial queue status
     const queueInfo = await channel.checkQueue(QUEUE_NAME);
-    logger.info(`📊 Queue status: ${queueInfo.messageCount} messages waiting\n`);
+    logger.info(
+      `📊 Queue status: ${queueInfo.messageCount} messages waiting\n`,
+    );
 
     // Process only 1 message at a time
     channel.prefetch(1);
@@ -152,14 +159,19 @@ async function startWorker() {
             // Skip if already exists - no ESI call needed
             skippedCount++;
             logger.debug(
-              `⏭️  Constellation ${constellationId} already exists, skipping... (Processed: ${processedCount}, Skipped: ${skippedCount})`
+              `⏭️  Constellation ${constellationId} already exists, skipping... (Processed: ${processedCount}, Skipped: ${skippedCount})`,
             );
             channel.ack(msg);
 
             // Check if queue is empty
             const currentQueue = await channel.checkQueue(QUEUE_NAME);
             if (currentQueue.messageCount === 0) {
-              printCompletionSummary(processedCount, skippedCount, errorCount, startTime);
+              printCompletionSummary(
+                processedCount,
+                skippedCount,
+                errorCount,
+                startTime,
+              );
             }
             return;
           }
@@ -172,14 +184,19 @@ async function startWorker() {
           // Check if queue is empty
           const currentQueue = await channel.checkQueue(QUEUE_NAME);
           if (currentQueue.messageCount === 0) {
-            printCompletionSummary(processedCount, skippedCount, errorCount, startTime);
+            printCompletionSummary(
+              processedCount,
+              skippedCount,
+              errorCount,
+              startTime,
+            );
           }
         } catch (error) {
           errorCount++;
           channel.nack(msg, false, false);
         }
       },
-      { noAck: false }
+      { noAck: false },
     );
 
     // Graceful shutdown

@@ -40,14 +40,17 @@ async function snapshotSystemKills() {
   try {
     // Fetch kill data from ESI
     logger.info('📡 Fetching system kills from ESI...');
-    const killData: SystemKillData[] = await SolarSystemService.getSystemKills();
+    const killData: SystemKillData[] =
+      await SolarSystemService.getSystemKills();
 
     if (!killData || killData.length === 0) {
       logger.warn('⚠️  No kill data returned from ESI');
       return;
     }
 
-    logger.info(`✓ Received kill data for ${killData.length} systems with activity`);
+    logger.info(
+      `✓ Received kill data for ${killData.length} systems with activity`,
+    );
 
     // Calculate statistics
     const totalShipKills = killData.reduce((sum, s) => sum + s.ship_kills, 0);
@@ -85,10 +88,14 @@ async function snapshotSystemKills() {
 
       inserted += result.count;
 
-      if ((i + BATCH_SIZE) % 5000 === 0 || i + BATCH_SIZE >= snapshotRecords.length) {
+      if (
+        (i + BATCH_SIZE) % 5000 === 0 ||
+        i + BATCH_SIZE >= snapshotRecords.length
+      ) {
         logger.info(
-          `  ⏳ Progress: ${Math.min(i + BATCH_SIZE, snapshotRecords.length)}/${snapshotRecords.length
-          } snapshots processed`
+          `  ⏳ Progress: ${Math.min(i + BATCH_SIZE, snapshotRecords.length)}/${
+            snapshotRecords.length
+          } snapshots processed`,
         );
       }
     }

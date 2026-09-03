@@ -26,7 +26,7 @@ export class AllianceService {
   static async getAllianceInfo(allianceId: number) {
     return esiRateLimiter.execute(async () => {
       const response = await axios.get(
-        `${ESI_BASE_URL}/alliances/${allianceId}`
+        `${ESI_BASE_URL}/alliances/${allianceId}`,
       );
       return response.data;
     });
@@ -40,7 +40,7 @@ export class AllianceService {
   static async getAllianceCorporations(allianceId: number): Promise<number[]> {
     return esiRateLimiter.execute(async () => {
       const response = await axios.get(
-        `${ESI_BASE_URL}/alliances/${allianceId}/corporations`
+        `${ESI_BASE_URL}/alliances/${allianceId}/corporations`,
       );
       return response.data;
     });
@@ -58,7 +58,7 @@ export class AllianceService {
   }> {
     return esiRateLimiter.execute(async () => {
       const response = await axios.get(
-        `${ESI_BASE_URL}/alliances/${allianceId}/icons`
+        `${ESI_BASE_URL}/alliances/${allianceId}/icons`,
       );
       return response.data;
     });

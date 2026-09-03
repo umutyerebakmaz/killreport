@@ -14,7 +14,9 @@ export class TypeService {
   static async getTypeIds(): Promise<number[]> {
     return esiRateLimiter.execute(async () => {
       // First get all group IDs
-      const groupsResponse = await axios.get(`${ESI_BASE_URL}/latest/universe/groups/`);
+      const groupsResponse = await axios.get(
+        `${ESI_BASE_URL}/latest/universe/groups/`,
+      );
       const groupIds: number[] = groupsResponse.data;
 
       console.log(`📊 Found ${groupIds.length} item groups, fetching types...`);
@@ -25,7 +27,9 @@ export class TypeService {
       // Fetch types from each group
       for (const groupId of groupIds) {
         try {
-          const groupResponse = await axios.get(`${ESI_BASE_URL}/latest/universe/groups/${groupId}/`);
+          const groupResponse = await axios.get(
+            `${ESI_BASE_URL}/latest/universe/groups/${groupId}/`,
+          );
           const groupData = groupResponse.data;
 
           if (groupData.types && Array.isArray(groupData.types)) {
@@ -34,7 +38,9 @@ export class TypeService {
 
           processedGroups++;
           if (processedGroups % 100 === 0) {
-            console.log(`  ✓ Processed ${processedGroups}/${groupIds.length} groups (${allTypeIds.length} types so far)`);
+            console.log(
+              `  ✓ Processed ${processedGroups}/${groupIds.length} groups (${allTypeIds.length} types so far)`,
+            );
           }
         } catch (error) {
           console.error(`  ✗ Failed to fetch group ${groupId}:`, error);
@@ -54,7 +60,7 @@ export class TypeService {
   static async getTypeInfo(typeId: number) {
     return esiRateLimiter.execute(async () => {
       const response = await axios.get(
-        `${ESI_BASE_URL}/universe/types/${typeId}/`
+        `${ESI_BASE_URL}/universe/types/${typeId}/`,
       );
       return response.data;
     });

@@ -27,7 +27,7 @@ export class DogmaEffectService {
   static async getEffectInfo(effectId: number) {
     return esiRateLimiter.execute(async () => {
       const response = await axios.get(
-        `${ESI_BASE_URL}/dogma/effects/${effectId}/`
+        `${ESI_BASE_URL}/dogma/effects/${effectId}/`,
       );
       return response.data;
     });

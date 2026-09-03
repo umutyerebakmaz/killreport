@@ -689,6 +689,18 @@ export type Moon = {
   solarSystem?: Maybe<SolarSystem>;
 };
 
+/** Which losses a Most Valuable shelf ranks. Always the victim's hull. */
+export enum MostValuableScope {
+  /** Carriers, dreadnoughts, supercarriers, titans, FAXes, capital industrials. */
+  Capitals = 'CAPITALS',
+  /** Everything except structures and pods. Capitals are included. */
+  Ships = 'SHIPS',
+  /** Kills with a single attacker, excluding structures and pods. */
+  Solo = 'SOLO',
+  /** Citadels, engineering complexes, refineries and starbases. */
+  Structures = 'STRUCTURES'
+}
+
 export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
@@ -911,6 +923,11 @@ export type Query = {
   mostAggressiveAlliances: Array<AllianceActivityRank>;
   /** Alliances ranked by campaigns currently defending (most defensive first). */
   mostDefensiveAlliances: Array<AllianceActivityRank>;
+  /**
+   * Top killmails by ISK value in a trailing window, most valuable first.
+   * Scope is matched against the victim's hull, never an attacker's.
+   */
+  mostValuableKillmails: Array<Killmail>;
   race?: Maybe<Race>;
   races: Array<Race>;
   /** Most recently detected territory ownership changes. */
@@ -1172,6 +1189,13 @@ export type QueryMostAggressiveAlliancesArgs = {
 
 export type QueryMostDefensiveAlliancesArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryMostValuableKillmailsArgs = {
+  days?: InputMaybe<Scalars['Int']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  scope: MostValuableScope;
 };
 
 
@@ -2386,6 +2410,15 @@ export type KillmailsDateCountsQueryVariables = Exact<{
 
 
 export type KillmailsDateCountsQuery = { __typename?: 'Query', killmailsDateCounts: Array<{ __typename?: 'KillmailDateCount', date: string, count: number }> };
+
+export type MostValuableKillmailsQueryVariables = Exact<{
+  scope: MostValuableScope;
+  days?: InputMaybe<Scalars['Int']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type MostValuableKillmailsQuery = { __typename?: 'Query', mostValuableKillmails: Array<{ __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null }> };
 
 export type NewKillmailSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -5534,6 +5567,106 @@ export type KillmailsDateCountsQueryHookResult = ReturnType<typeof useKillmailsD
 export type KillmailsDateCountsLazyQueryHookResult = ReturnType<typeof useKillmailsDateCountsLazyQuery>;
 export type KillmailsDateCountsSuspenseQueryHookResult = ReturnType<typeof useKillmailsDateCountsSuspenseQuery>;
 export type KillmailsDateCountsQueryResult = Apollo.QueryResult<KillmailsDateCountsQuery, KillmailsDateCountsQueryVariables>;
+export const MostValuableKillmailsDocument = gql`
+    query MostValuableKillmails($scope: MostValuableScope!, $days: Int, $limit: Int) {
+  mostValuableKillmails(scope: $scope, days: $days, limit: $limit) {
+    id
+    killmailTime
+    totalValue
+    victim {
+      character {
+        id
+        name
+      }
+      corporation {
+        id
+        name
+      }
+      alliance {
+        id
+        name
+      }
+      shipType {
+        id
+        name
+        group {
+          name
+        }
+        dogmaAttributes(ids: [422, 1692]) {
+          attribute_id
+          value
+        }
+      }
+      damageTaken
+    }
+    solarSystem {
+      id
+      name
+      securityStatus
+      constellation {
+        id
+        name
+        region {
+          id
+          name
+        }
+      }
+    }
+    finalBlow {
+      character {
+        id
+        name
+      }
+      corporation {
+        id
+        name
+      }
+      alliance {
+        id
+        name
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useMostValuableKillmailsQuery__
+ *
+ * To run a query within a React component, call `useMostValuableKillmailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMostValuableKillmailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMostValuableKillmailsQuery({
+ *   variables: {
+ *      scope: // value for 'scope'
+ *      days: // value for 'days'
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useMostValuableKillmailsQuery(baseOptions: Apollo.QueryHookOptions<MostValuableKillmailsQuery, MostValuableKillmailsQueryVariables> & ({ variables: MostValuableKillmailsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MostValuableKillmailsQuery, MostValuableKillmailsQueryVariables>(MostValuableKillmailsDocument, options);
+      }
+export function useMostValuableKillmailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MostValuableKillmailsQuery, MostValuableKillmailsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MostValuableKillmailsQuery, MostValuableKillmailsQueryVariables>(MostValuableKillmailsDocument, options);
+        }
+// @ts-ignore
+export function useMostValuableKillmailsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MostValuableKillmailsQuery, MostValuableKillmailsQueryVariables>): Apollo.UseSuspenseQueryResult<MostValuableKillmailsQuery, MostValuableKillmailsQueryVariables>;
+export function useMostValuableKillmailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MostValuableKillmailsQuery, MostValuableKillmailsQueryVariables>): Apollo.UseSuspenseQueryResult<MostValuableKillmailsQuery | undefined, MostValuableKillmailsQueryVariables>;
+export function useMostValuableKillmailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MostValuableKillmailsQuery, MostValuableKillmailsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MostValuableKillmailsQuery, MostValuableKillmailsQueryVariables>(MostValuableKillmailsDocument, options);
+        }
+export type MostValuableKillmailsQueryHookResult = ReturnType<typeof useMostValuableKillmailsQuery>;
+export type MostValuableKillmailsLazyQueryHookResult = ReturnType<typeof useMostValuableKillmailsLazyQuery>;
+export type MostValuableKillmailsSuspenseQueryHookResult = ReturnType<typeof useMostValuableKillmailsSuspenseQuery>;
+export type MostValuableKillmailsQueryResult = Apollo.QueryResult<MostValuableKillmailsQuery, MostValuableKillmailsQueryVariables>;
 export const NewKillmailDocument = gql`
     subscription NewKillmail {
   newKillmail {

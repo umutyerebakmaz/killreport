@@ -48,7 +48,7 @@ async function typeDogmaWorker() {
         logger.info('\n' + '━'.repeat(60));
         logger.info('✅ Queue completed!');
         logger.info(
-          `📊 Final: ${totalProcessed} processed (${totalAdded} synced, ${totalSkipped} skipped, ${totalErrors} errors)`
+          `📊 Final: ${totalProcessed} processed (${totalAdded} synced, ${totalSkipped} skipped, ${totalErrors} errors)`,
         );
         logger.info('━'.repeat(60) + '\n');
         logger.info('⏳ Waiting for new messages...\n');
@@ -64,7 +64,9 @@ async function typeDogmaWorker() {
         let typeId: number | undefined;
 
         try {
-          const message: EntityQueueMessage = JSON.parse(msg.content.toString());
+          const message: EntityQueueMessage = JSON.parse(
+            msg.content.toString(),
+          );
           typeId = message.entityId;
           // Check if type exists and get name
           const typeInfo = await prismaWorker.type.findUnique({
@@ -83,9 +85,11 @@ async function typeDogmaWorker() {
           const typeName = typeInfo.name;
 
           // Check if dogma data already exists for this type
-          const existingDogma = await prismaWorker.typeDogmaAttribute.findFirst({
-            where: { type_id: typeId },
-          });
+          const existingDogma = await prismaWorker.typeDogmaAttribute.findFirst(
+            {
+              where: { type_id: typeId },
+            },
+          );
 
           if (existingDogma) {
             // Already synced, skip
@@ -93,7 +97,9 @@ async function typeDogmaWorker() {
             totalSkipped++;
             totalProcessed++;
             if (totalProcessed % 100 === 0) {
-              logger.info(`  📊 Progress: ${totalProcessed} processed (${totalAdded} synced, ${totalSkipped} skipped)`);
+              logger.info(
+                `  📊 Progress: ${totalProcessed} processed (${totalAdded} synced, ${totalSkipped} skipped)`,
+              );
             }
             return;
           }
@@ -111,111 +117,125 @@ async function typeDogmaWorker() {
             totalSkipped++;
             totalProcessed++;
             if (totalProcessed % 100 === 0) {
-              logger.info(`  📊 Progress: ${totalProcessed} processed (${totalAdded} synced, ${totalSkipped} skipped)`);
+              logger.info(
+                `  📊 Progress: ${totalProcessed} processed (${totalAdded} synced, ${totalSkipped} skipped)`,
+              );
             }
             return;
           }
 
           // Use transaction for atomicity - both succeed or both fail
-          const { insertedAttributeCount, insertedEffectCount } = await prismaWorker.$transaction(async (tx: any) => {
-            // Delete existing data first
-            await tx.typeDogmaAttribute.deleteMany({
-              where: { type_id: typeId },
-            });
-            await tx.typeDogmaEffect.deleteMany({
-              where: { type_id: typeId },
-            });
-
-            // Insert new attributes
-            let insertedAttributeCount = 0;
-            if (dogmaAttributes.length > 0) {
-              // Filter only attributes that exist in dogma_attributes table
-              const existingAttributes = await tx.dogmaAttribute.findMany({
-                where: {
-                  id: { in: dogmaAttributes.map((a: any) => a.attribute_id) },
-                },
-                select: { id: true },
+          const { insertedAttributeCount, insertedEffectCount } =
+            await prismaWorker.$transaction(async (tx: any) => {
+              // Delete existing data first
+              await tx.typeDogmaAttribute.deleteMany({
+                where: { type_id: typeId },
               });
-              const validAttributeIds = new Set(existingAttributes.map((a: any) => a.id));
-
-              const validAttributes = dogmaAttributes.filter((attr: any) =>
-                validAttributeIds.has(attr.attribute_id)
-              );
-
-              // Log missing attributes
-              const missingAttributes = dogmaAttributes.filter((attr: any) =>
-                !validAttributeIds.has(attr.attribute_id)
-              );
-              if (missingAttributes.length > 0) {
-                logger.warn(`⚠️  [${typeId}] ${typeName}: ${missingAttributes.length} missing attributes: ${missingAttributes.map((a: any) => a.attribute_id).join(', ')}`);
-              }
-
-              if (validAttributes.length > 0) {
-                await tx.typeDogmaAttribute.createMany({
-                  data: validAttributes.map((attr: any) => ({
-                    type_id: typeId,
-                    attribute_id: attr.attribute_id,
-                    value: attr.value,
-                  })),
-                  skipDuplicates: true,
-                });
-                insertedAttributeCount = validAttributes.length;
-              }
-            }
-
-            // Insert new effects
-            let insertedEffectCount = 0;
-            if (dogmaEffects.length > 0) {
-              // Filter only effects that exist in dogma_effects table
-              const existingEffects = await tx.dogmaEffect.findMany({
-                where: {
-                  id: { in: dogmaEffects.map((e: any) => e.effect_id) },
-                },
-                select: { id: true },
+              await tx.typeDogmaEffect.deleteMany({
+                where: { type_id: typeId },
               });
-              const validEffectIds = new Set(existingEffects.map((e: any) => e.id));
 
-              const validEffects = dogmaEffects.filter((eff: any) =>
-                validEffectIds.has(eff.effect_id)
-              );
-
-              // Log missing effects
-              const missingEffects = dogmaEffects.filter((eff: any) =>
-                !validEffectIds.has(eff.effect_id)
-              );
-              if (missingEffects.length > 0) {
-                logger.warn(`⚠️  [${typeId}] ${typeName}: ${missingEffects.length} missing effects: ${missingEffects.map((e: any) => e.effect_id).join(', ')}`);
-              }
-
-              if (validEffects.length > 0) {
-                await tx.typeDogmaEffect.createMany({
-                  data: validEffects.map((eff: any) => ({
-                    type_id: typeId,
-                    effect_id: eff.effect_id,
-                    is_default: eff.is_default,
-                  })),
-                  skipDuplicates: true,
+              // Insert new attributes
+              let insertedAttributeCount = 0;
+              if (dogmaAttributes.length > 0) {
+                // Filter only attributes that exist in dogma_attributes table
+                const existingAttributes = await tx.dogmaAttribute.findMany({
+                  where: {
+                    id: { in: dogmaAttributes.map((a: any) => a.attribute_id) },
+                  },
+                  select: { id: true },
                 });
-                insertedEffectCount = validEffects.length;
+                const validAttributeIds = new Set(
+                  existingAttributes.map((a: any) => a.id),
+                );
+
+                const validAttributes = dogmaAttributes.filter((attr: any) =>
+                  validAttributeIds.has(attr.attribute_id),
+                );
+
+                // Log missing attributes
+                const missingAttributes = dogmaAttributes.filter(
+                  (attr: any) => !validAttributeIds.has(attr.attribute_id),
+                );
+                if (missingAttributes.length > 0) {
+                  logger.warn(
+                    `⚠️  [${typeId}] ${typeName}: ${missingAttributes.length} missing attributes: ${missingAttributes.map((a: any) => a.attribute_id).join(', ')}`,
+                  );
+                }
+
+                if (validAttributes.length > 0) {
+                  await tx.typeDogmaAttribute.createMany({
+                    data: validAttributes.map((attr: any) => ({
+                      type_id: typeId,
+                      attribute_id: attr.attribute_id,
+                      value: attr.value,
+                    })),
+                    skipDuplicates: true,
+                  });
+                  insertedAttributeCount = validAttributes.length;
+                }
               }
-            }
-            return { insertedAttributeCount, insertedEffectCount };
-          });
+
+              // Insert new effects
+              let insertedEffectCount = 0;
+              if (dogmaEffects.length > 0) {
+                // Filter only effects that exist in dogma_effects table
+                const existingEffects = await tx.dogmaEffect.findMany({
+                  where: {
+                    id: { in: dogmaEffects.map((e: any) => e.effect_id) },
+                  },
+                  select: { id: true },
+                });
+                const validEffectIds = new Set(
+                  existingEffects.map((e: any) => e.id),
+                );
+
+                const validEffects = dogmaEffects.filter((eff: any) =>
+                  validEffectIds.has(eff.effect_id),
+                );
+
+                // Log missing effects
+                const missingEffects = dogmaEffects.filter(
+                  (eff: any) => !validEffectIds.has(eff.effect_id),
+                );
+                if (missingEffects.length > 0) {
+                  logger.warn(
+                    `⚠️  [${typeId}] ${typeName}: ${missingEffects.length} missing effects: ${missingEffects.map((e: any) => e.effect_id).join(', ')}`,
+                  );
+                }
+
+                if (validEffects.length > 0) {
+                  await tx.typeDogmaEffect.createMany({
+                    data: validEffects.map((eff: any) => ({
+                      type_id: typeId,
+                      effect_id: eff.effect_id,
+                      is_default: eff.is_default,
+                    })),
+                    skipDuplicates: true,
+                  });
+                  insertedEffectCount = validEffects.length;
+                }
+              }
+              return { insertedAttributeCount, insertedEffectCount };
+            });
 
           channel.ack(msg);
           totalAdded++;
           totalProcessed++;
           logger.info(
-            `✓ [${totalProcessed}] [${typeId}] ${typeName}: ${insertedAttributeCount}/${dogmaAttributes.length} attrs, ${insertedEffectCount}/${dogmaEffects.length} effects`
+            `✓ [${totalProcessed}] [${typeId}] ${typeName}: ${insertedAttributeCount}/${dogmaAttributes.length} attrs, ${insertedEffectCount}/${dogmaEffects.length} effects`,
           );
         } catch (error: any) {
-          logger.error(`❌ Error processing type ${typeId || 'unknown'}:`, error.message || error);
+          logger.error(
+            `❌ Error processing type ${typeId || 'unknown'}:`,
+            error.message || error,
+          );
           channel.nack(msg, false, false); // Don't requeue
           totalErrors++;
           totalProcessed++;
         }
       },
-      { noAck: false }
+      { noAck: false },
     );
 
     // Graceful shutdown

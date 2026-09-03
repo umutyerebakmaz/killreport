@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { Loader } from "@/components/Loader/Loader";
-import { useSolarSystemSovereigntyQuery } from "@/generated/graphql";
-import { formatKillmailDateTime } from "@/utils/date";
-import Link from "next/link";
+import { Loader } from '@/components/Loader/Loader';
+import { useSolarSystemSovereigntyQuery } from '@/generated/graphql';
+import { formatKillmailDateTime } from '@/utils/date';
+import Link from 'next/link';
 
 interface SovereigntyTabProps {
   systemId: number;
@@ -81,17 +81,17 @@ export default function SovereigntyTab({ systemId }: SovereigntyTabProps) {
                   <td className="px-4 py-3 text-right text-gray-300">
                     {structure.occupancyLevel != null
                       ? structure.occupancyLevel.toFixed(1)
-                      : "—"}
+                      : '—'}
                   </td>
                   <td className="px-4 py-3 text-gray-400">
                     {structure.vulnerableStartTime
                       ? formatKillmailDateTime(structure.vulnerableStartTime)
-                      : "—"}
+                      : '—'}
                   </td>
                   <td className="px-4 py-3 text-gray-400">
                     {structure.vulnerableEndTime
                       ? formatKillmailDateTime(structure.vulnerableEndTime)
-                      : "—"}
+                      : '—'}
                   </td>
                 </tr>
               ))}
@@ -113,7 +113,7 @@ export default function SovereigntyTab({ systemId }: SovereigntyTabProps) {
               >
                 <span className="text-gray-200">{campaign.eventType}</span>
                 <span className="text-sm text-gray-400">
-                  Defender:{" "}
+                  Defender:{' '}
                   {campaign.defenderId ? (
                     <Link
                       href={`/alliances/${campaign.defenderId}`}
@@ -123,16 +123,17 @@ export default function SovereigntyTab({ systemId }: SovereigntyTabProps) {
                       {campaign.defenderName ?? campaign.defenderId}
                     </Link>
                   ) : (
-                    "—"
+                    '—'
                   )}
                 </span>
                 <span className="text-sm text-gray-400">
-                  {campaign.defenderScore ?? 0} vs {campaign.attackersScore ?? 0}
+                  {campaign.defenderScore ?? 0} vs{' '}
+                  {campaign.attackersScore ?? 0}
                 </span>
                 <span className="text-sm text-gray-500">
                   {campaign.startTime
                     ? formatKillmailDateTime(campaign.startTime)
-                    : "—"}
+                    : '—'}
                 </span>
               </li>
             ))}

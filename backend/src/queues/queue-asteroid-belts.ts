@@ -35,7 +35,12 @@ async function queueAsteroidBelts() {
     // /universe/names cannot resolve them either.
     const rows = await prismaWorker.asteroidBelt.findMany({
       where: { name: null },
-      select: { id: true, solar_system_id: true, planet_id: true, orbit_index: true },
+      select: {
+        id: true,
+        solar_system_id: true,
+        planet_id: true,
+        orbit_index: true,
+      },
       orderBy: { id: 'asc' },
     });
 
@@ -63,7 +68,9 @@ async function queueAsteroidBelts() {
     }
 
     logger.info(`Queued ${rows.length} messages to ${QUEUE_NAME}`);
-    logger.info('Now run the worker to process them: yarn worker:asteroid-belts');
+    logger.info(
+      'Now run the worker to process them: yarn worker:asteroid-belts',
+    );
 
     await channel.close();
     await prismaWorker.$disconnect();

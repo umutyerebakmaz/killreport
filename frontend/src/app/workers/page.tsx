@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import Loader from "@/components/Loader";
-import { useWorkerStatusSubscriptionSubscription } from "@/generated/graphql";
-import { useState } from "react";
+import Loader from '@/components/Loader';
+import { useWorkerStatusSubscriptionSubscription } from '@/generated/graphql';
+import { useState } from 'react';
 
 interface QueueInfo {
   name: string;
@@ -17,11 +17,11 @@ interface QueueInfo {
 // Format queue name for display
 function formatQueueName(name: string): string {
   return name
-    .replace(/_queue$/, "") // Remove _queue suffix
-    .replace(/^(esi|zkillboard|redisq)_/, "") // Remove prefix
-    .split("_")
+    .replace(/_queue$/, '') // Remove _queue suffix
+    .replace(/^(esi|zkillboard|redisq)_/, '') // Remove prefix
+    .split('_')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+    .join(' ');
 }
 
 // Format uptime in seconds to human readable format
@@ -57,12 +57,12 @@ export default function WorkersPage() {
     onData: () => {
       if (!isConnected) {
         setIsConnected(true);
-        console.log("✅ SSE connected - receiving real-time updates");
+        console.log('✅ SSE connected - receiving real-time updates');
       }
     },
     onError: (err: any) => {
       setIsConnected(false);
-      console.error("❌ SSE error:", err);
+      console.error('❌ SSE error:', err);
     },
   });
 
@@ -100,38 +100,38 @@ export default function WorkersPage() {
   // Group queues by type
   const esiInfoQueues = queues.filter(
     (q: QueueInfo) =>
-      (q.name.includes("_info_queue") || q.name.includes("_price_queue")) &&
-      q.name.startsWith("esi_"),
+      (q.name.includes('_info_queue') || q.name.includes('_price_queue')) &&
+      q.name.startsWith('esi_'),
   );
 
   const esiSyncQueues = queues.filter(
     (q: QueueInfo) =>
-      q.name.includes("_alliance_corporations_") && q.name.startsWith("esi_"),
+      q.name.includes('_alliance_corporations_') && q.name.startsWith('esi_'),
   );
 
   const esiUniverseQueues = queues.filter(
     (q: QueueInfo) =>
-      (q.name.includes("_regions_") ||
-        q.name.includes("_constellations_") ||
-        q.name.includes("_solar_systems_")) &&
-      q.name.startsWith("esi_"),
+      (q.name.includes('_regions_') ||
+        q.name.includes('_constellations_') ||
+        q.name.includes('_solar_systems_')) &&
+      q.name.startsWith('esi_'),
   );
 
   const zkillQueues = queues.filter(
     (q: QueueInfo) =>
-      q.name.startsWith("zkillboard_") || q.name.startsWith("redisq_"),
+      q.name.startsWith('zkillboard_') || q.name.startsWith('redisq_'),
   );
 
   const backfillQueues = queues.filter((q: QueueInfo) =>
-    q.name.includes("backfill_"),
+    q.name.includes('backfill_'),
   );
 
   const otherQueues = queues.filter(
     (q: QueueInfo) =>
-      !q.name.startsWith("esi_") &&
-      !q.name.startsWith("zkillboard_") &&
-      !q.name.startsWith("redisq_") &&
-      !q.name.includes("backfill_"),
+      !q.name.startsWith('esi_') &&
+      !q.name.startsWith('zkillboard_') &&
+      !q.name.startsWith('redisq_') &&
+      !q.name.includes('backfill_'),
   );
 
   return (
@@ -150,11 +150,11 @@ export default function WorkersPage() {
           <div className="flex items-center gap-2 px-3 py-2 bg-gray-800 border border-gray-700">
             <div
               className={`w-3 h-3 rounded-full ${
-                isConnected ? "bg-green-500 animate-pulse" : "bg-yellow-500"
+                isConnected ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'
               }`}
             ></div>
             <span className="text-sm text-gray-300">
-              {isConnected ? "Live" : "Connecting..."}
+              {isConnected ? 'Live' : 'Connecting...'}
             </span>
           </div>
         </div>
@@ -165,24 +165,24 @@ export default function WorkersPage() {
           <div>
             <h2 className="text-lg font-semibold text-white">System Health</h2>
             <p className="text-sm text-gray-400">
-              Last updated:{" "}
+              Last updated:{' '}
               {workerStatus?.timestamp
                 ? new Date(workerStatus.timestamp).toLocaleString()
-                : "N/A"}
+                : 'N/A'}
             </p>
           </div>
           <div className="flex items-center gap-3">
             <div
               className={`w-4 h-4 rounded-full ${
-                workerStatus?.healthy ? "bg-green-500" : "bg-red-500"
+                workerStatus?.healthy ? 'bg-green-500' : 'bg-red-500'
               } animate-pulse`}
             ></div>
             <span
               className={`text-lg font-semibold ${
-                workerStatus?.healthy ? "text-green-500" : "text-red-500"
+                workerStatus?.healthy ? 'text-green-500' : 'text-red-500'
               }`}
             >
-              {workerStatus?.healthy ? "Healthy" : "Unhealthy"}
+              {workerStatus?.healthy ? 'Healthy' : 'Unhealthy'}
             </span>
           </div>
         </div>
@@ -217,7 +217,7 @@ export default function WorkersPage() {
                 ? workerStatus.databaseSizeMB >= 1024
                   ? `${(workerStatus.databaseSizeMB / 1024).toFixed(2)} GB`
                   : `${workerStatus.databaseSizeMB.toFixed(2)} MB`
-                : "0.00 MB"
+                : '0.00 MB'
             }
             color="cyan"
           />
@@ -232,8 +232,8 @@ export default function WorkersPage() {
               <div
                 className={`w-4 h-4 rounded-full ${
                   workerStatus.redis.connected
-                    ? "bg-green-500 animate-pulse"
-                    : "bg-red-500"
+                    ? 'bg-green-500 animate-pulse'
+                    : 'bg-red-500'
                 }`}
               ></div>
               <h2 className="text-lg font-semibold text-white">
@@ -242,10 +242,10 @@ export default function WorkersPage() {
             </div>
             <span
               className={`text-sm font-semibold ${
-                workerStatus.redis.connected ? "text-green-400" : "text-red-400"
+                workerStatus.redis.connected ? 'text-green-400' : 'text-red-400'
               }`}
             >
-              {workerStatus.redis.connected ? "Connected" : "Disconnected"}
+              {workerStatus.redis.connected ? 'Connected' : 'Disconnected'}
             </span>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
@@ -337,22 +337,22 @@ export default function WorkersPage() {
 
 function StatCard({ label, value, color }: any) {
   const colorClasses: any = {
-    blue: "border-blue-500/30 bg-blue-500/10 text-blue-400",
-    green: "border-green-500/30 bg-green-500/10 text-green-400",
-    yellow: "border-yellow-500/30 bg-yellow-500/10 text-yellow-400",
-    purple: "border-purple-500/30 bg-purple-500/10 text-purple-400",
-    cyan: "border-cyan-500/30 bg-cyan-500/10 text-cyan-400",
-    orange: "border-orange-500/30 bg-orange-500/10 text-orange-400",
-    pink: "border-pink-500/30 bg-pink-500/10 text-pink-400",
-    indigo: "border-indigo-500/30 bg-indigo-500/10 text-indigo-400",
-    teal: "border-teal-500/30 bg-teal-500/10 text-teal-400",
+    blue: 'border-blue-500/30 bg-blue-500/10 text-blue-400',
+    green: 'border-green-500/30 bg-green-500/10 text-green-400',
+    yellow: 'border-yellow-500/30 bg-yellow-500/10 text-yellow-400',
+    purple: 'border-purple-500/30 bg-purple-500/10 text-purple-400',
+    cyan: 'border-cyan-500/30 bg-cyan-500/10 text-cyan-400',
+    orange: 'border-orange-500/30 bg-orange-500/10 text-orange-400',
+    pink: 'border-pink-500/30 bg-pink-500/10 text-pink-400',
+    indigo: 'border-indigo-500/30 bg-indigo-500/10 text-indigo-400',
+    teal: 'border-teal-500/30 bg-teal-500/10 text-teal-400',
   };
 
   return (
     <div className={`p-4 border  ${colorClasses[color]}`}>
       <div className="text-sm font-medium text-gray-400">{label}</div>
       <div className="mt-1 text-3xl font-bold">
-        {typeof value === "string" ? value : value.toLocaleString()}
+        {typeof value === 'string' ? value : value.toLocaleString()}
       </div>
     </div>
   );
@@ -395,15 +395,15 @@ function StandaloneWorkerSection({ workers }: any) {
                   <div className="flex items-center gap-2">
                     <div
                       className={`w-3 h-3 rounded-full ${
-                        worker.running ? "bg-green-500" : "bg-gray-500"
+                        worker.running ? 'bg-green-500' : 'bg-gray-500'
                       }`}
                     ></div>
                     <span
                       className={`text-xs md:text-sm font-medium ${
-                        worker.running ? "text-green-400" : "text-gray-500"
+                        worker.running ? 'text-green-400' : 'text-gray-500'
                       }`}
                     >
-                      {worker.running ? "Running" : "Stopped"}
+                      {worker.running ? 'Running' : 'Stopped'}
                     </span>
                   </div>
                 </td>
@@ -476,15 +476,15 @@ function QueueSection({ title, subtitle, queues }: any) {
                   <div className="flex items-center gap-2">
                     <div
                       className={`w-3 h-3 rounded-full ${
-                        queue.active ? "bg-green-500" : "bg-gray-500"
+                        queue.active ? 'bg-green-500' : 'bg-gray-500'
                       }`}
                     ></div>
                     <span
                       className={`text-xs md:text-sm font-medium ${
-                        queue.active ? "text-green-400" : "text-gray-500"
+                        queue.active ? 'text-green-400' : 'text-gray-500'
                       }`}
                     >
-                      {queue.active ? "Active" : "Inactive"}
+                      {queue.active ? 'Active' : 'Inactive'}
                     </span>
                   </div>
                 </td>
@@ -492,15 +492,15 @@ function QueueSection({ title, subtitle, queues }: any) {
                   <div className="flex items-center gap-2">
                     <div
                       className={`w-3 h-3 rounded-full ${
-                        queue.workerRunning ? "bg-blue-500" : "bg-gray-600"
+                        queue.workerRunning ? 'bg-blue-500' : 'bg-gray-600'
                       }`}
                     ></div>
                     <span
                       className={`text-xs md:text-sm font-medium ${
-                        queue.workerRunning ? "text-blue-400" : "text-gray-500"
+                        queue.workerRunning ? 'text-blue-400' : 'text-gray-500'
                       }`}
                     >
-                      {queue.workerRunning ? "Running" : "Stopped"}
+                      {queue.workerRunning ? 'Running' : 'Stopped'}
                     </span>
                   </div>
                   {queue.workerName && (
@@ -521,8 +521,8 @@ function QueueSection({ title, subtitle, queues }: any) {
                   <span
                     className={`inline-flex items-center px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-semibold ${
                       queue.messageCount > 0
-                        ? "bg-yellow-500/20 text-yellow-400"
-                        : "bg-gray-800 text-gray-400"
+                        ? 'bg-yellow-500/20 text-yellow-400'
+                        : 'bg-gray-800 text-gray-400'
                     }`}
                   >
                     {queue.messageCount.toLocaleString()}
@@ -532,8 +532,8 @@ function QueueSection({ title, subtitle, queues }: any) {
                   <span
                     className={`inline-flex items-center px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-semibold ${
                       queue.consumerCount > 0
-                        ? "bg-green-500/20 text-green-400"
-                        : "bg-gray-800 text-gray-400"
+                        ? 'bg-green-500/20 text-green-400'
+                        : 'bg-gray-800 text-gray-400'
                     }`}
                   >
                     {queue.consumerCount}

@@ -46,7 +46,9 @@ async function queueCorporationESIKillmails() {
     logger.info('Force mode: Ignoring last sync time');
   }
   if (fullSync) {
-    logger.info('Full sync mode: Disabled incremental sync (will fetch all killmails)');
+    logger.info(
+      'Full sync mode: Disabled incremental sync (will fetch all killmails)',
+    );
   }
 
   try {
@@ -69,11 +71,11 @@ async function queueCorporationESIKillmails() {
         ...(forceSync
           ? {}
           : {
-            OR: [
-              { last_corp_killmail_sync_at: null }, // Never synced
-              { last_corp_killmail_sync_at: { lt: fifteenMinutesAgo } }, // Synced > 15 min ago
-            ],
-          }),
+              OR: [
+                { last_corp_killmail_sync_at: null }, // Never synced
+                { last_corp_killmail_sync_at: { lt: fifteenMinutesAgo } }, // Synced > 15 min ago
+              ],
+            }),
       },
       select: {
         id: true,
@@ -92,10 +94,14 @@ async function queueCorporationESIKillmails() {
       logger.warn('No active users found for sync');
       if (!forceSync) {
         logger.info('All users were synced recently (within 15 minutes).');
-        logger.info('  Use --force to sync anyway: yarn queue:corporation-killmails --force');
+        logger.info(
+          '  Use --force to sync anyway: yarn queue:corporation-killmails --force',
+        );
       } else {
         logger.info('Users need to:');
-        logger.info('  1. Login via SSO with esi-killmails.read_corporation_killmails.v1 scope');
+        logger.info(
+          '  1. Login via SSO with esi-killmails.read_corporation_killmails.v1 scope',
+        );
         logger.info('  2. Have Director or CEO role in their corporation');
       }
       return;
@@ -115,13 +121,15 @@ async function queueCorporationESIKillmails() {
     });
 
     // Fetch corporation names
-    const corpIds = [...new Set(users.map(u => u.corporation_id).filter(Boolean))] as number[];
+    const corpIds = [
+      ...new Set(users.map((u) => u.corporation_id).filter(Boolean)),
+    ] as number[];
     const corporations = await prismaWorker.corporation.findMany({
       where: { id: { in: corpIds } },
       select: { id: true, name: true },
     });
 
-    const corpMap = new Map(corporations.map(c => [c.id, c.name]));
+    const corpMap = new Map(corporations.map((c) => [c.id, c.name]));
 
     // Queue each user
     for (const user of users) {
@@ -129,7 +137,9 @@ async function queueCorporationESIKillmails() {
         ? ` (last sync: ${user.last_corp_killmail_sync_at.toLocaleString('tr-TR')})`
         : ' (never synced)';
 
-      const corporationName = corpMap.get(user.corporation_id!) || `Corporation ${user.corporation_id}`;
+      const corporationName =
+        corpMap.get(user.corporation_id!) ||
+        `Corporation ${user.corporation_id}`;
 
       const message: CorporationKillmailMessage = {
         userId: user.id,
@@ -142,17 +152,15 @@ async function queueCorporationESIKillmails() {
         expiresAt: user.expires_at.toISOString(),
         queuedAt: new Date().toISOString(),
         // If --full flag is used, don't include lastKillmailId (forces full sync)
-        lastKillmailId: fullSync ? undefined : user.last_corp_killmail_id ?? undefined,
+        lastKillmailId: fullSync
+          ? undefined
+          : (user.last_corp_killmail_id ?? undefined),
       };
 
-      channel.sendToQueue(
-        QUEUE_NAME,
-        Buffer.from(JSON.stringify(message)),
-        {
-          persistent: true,
-          priority: 5, // Medium priority,
-        }
-      );
+      channel.sendToQueue(QUEUE_NAME, Buffer.from(JSON.stringify(message)), {
+        persistent: true,
+        priority: 5, // Medium priority,
+      });
 
       const syncMode = fullSync
         ? ' [FULL SYNC]'
@@ -160,15 +168,19 @@ async function queueCorporationESIKillmails() {
           ? ' [INCREMENTAL]'
           : ' [FIRST SYNC]';
       logger.debug(
-        `Queued: ${user.character_name} @ ${corporationName} (Corp ID: ${user.corporation_id})${lastSyncInfo}${syncMode}`
+        `Queued: ${user.character_name} @ ${corporationName} (Corp ID: ${user.corporation_id})${lastSyncInfo}${syncMode}`,
       );
     }
 
     logger.info(`Successfully queued ${users.length} user(s)!`);
     logger.info('Now run the worker to process them:');
     logger.info('  yarn worker:corporation-killmails');
-    logger.warn('Note: Users must have Director/CEO role and the required scope');
-    logger.warn('  If you see 403 errors, users need to re-login with correct permissions');
+    logger.warn(
+      'Note: Users must have Director/CEO role and the required scope',
+    );
+    logger.warn(
+      '  If you see 403 errors, users need to re-login with correct permissions',
+    );
 
     await channel.close();
     await prismaWorker.$disconnect();

@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { Loader } from "@/components/Loader/Loader";
-import SecurityBadge from "@/components/SecurityStatus/SecurityStatus";
-import { useSolarSystemAdjacentQuery } from "@/generated/graphql";
-import Link from "next/link";
+import { Loader } from '@/components/Loader/Loader';
+import SecurityBadge from '@/components/SecurityStatus/SecurityStatus';
+import { useSolarSystemAdjacentQuery } from '@/generated/graphql';
+import Link from 'next/link';
 
 interface AdjacentSystemsTabProps {
   systemId: number;
@@ -46,8 +46,8 @@ export default function AdjacentSystemsTab({
   if (neighbours.length === 0) {
     return (
       <div className="p-6 text-gray-400 border bg-white/5 border-white/10">
-        This system has {stargates.length} stargates, but their destinations have
-        not been resolved yet. Run <code>yarn queue:stargates</code> and{" "}
+        This system has {stargates.length} stargates, but their destinations
+        have not been resolved yet. Run <code>yarn queue:stargates</code> and{' '}
         <code>yarn worker:stargates</code>.
       </div>
     );

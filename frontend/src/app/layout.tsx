@@ -1,13 +1,13 @@
-import type { Metadata } from "next";
-import ApolloWrapper from "../components/ApolloWrapper";
-import Footer from "../components/Footer/Footer";
-import Header from "../components/Header/Header";
-import { SovereigntyAlertsProvider } from "../components/Sovereignty/SovereigntyAlertsProvider";
-import "./globals.css";
+import type { Metadata } from 'next';
+import ApolloWrapper from '../components/ApolloWrapper';
+import Footer from '../components/Footer/Footer';
+import Header from '../components/Header/Header';
+import { SovereigntyAlertsProvider } from '../components/Sovereignty/SovereigntyAlertsProvider';
+import './globals.css';
 
 export const metadata: Metadata = {
-  title: "KillReport",
-  description: "EVE Online Killmail Tracker",
+  title: 'KillReport',
+  description: 'EVE Online Killmail Tracker',
 };
 
 export default function RootLayout({

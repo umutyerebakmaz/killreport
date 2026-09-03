@@ -1,3 +1,2 @@
-export { default } from "./TopShipsCard";
-export type { TopShip, TopShipsCardProps } from "./TopShipsCard";
-
+export { default } from './TopShipsCard';
+export type { TopShip, TopShipsCardProps } from './TopShipsCard';

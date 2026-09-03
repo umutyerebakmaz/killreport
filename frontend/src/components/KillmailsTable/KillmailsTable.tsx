@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import Loader from "@/components/Loader";
-import { useMemo } from "react";
-import KillmailRow from "./KillmailRow";
-import { Killmail, KillmailsTableProps } from "./types";
+import Loader from '@/components/Loader';
+import { useMemo } from 'react';
+import KillmailRow from './KillmailRow';
+import { Killmail, KillmailsTableProps } from './types';
 
 export default function KillmailsTable({
   killmails,
@@ -13,14 +13,14 @@ export default function KillmailsTable({
   corporationId,
   allianceId,
   dateCountsMap,
-  variant = "list",
+  variant = 'list',
 }: KillmailsTableProps) {
   // Group killmails by date inside component
   const groupedKillmails = useMemo(() => {
     return killmails.reduce(
       (groups, km) => {
         const dateObj = new Date(km.killmailTime);
-        const date = dateObj.toISOString().split("T")[0]; // YYYY-MM-DD format
+        const date = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD format
         if (!groups[date]) {
           groups[date] = [];
         }
@@ -50,12 +50,12 @@ export default function KillmailsTable({
             <span className="text-gray-200">{date}</span>
             <span className="text-sm font-normal text-gray-400">
               (
-              {dateCountsMap?.get(date) ?? (dateKillmails as Killmail[]).length}{" "}
+              {dateCountsMap?.get(date) ?? (dateKillmails as Killmail[]).length}{' '}
               killmail
               {(dateCountsMap?.get(date) ??
                 (dateKillmails as Killmail[]).length) !== 1
-                ? "s"
-                : ""}
+                ? 's'
+                : ''}
               )
             </span>
           </h2>

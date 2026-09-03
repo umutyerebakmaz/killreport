@@ -1,9 +1,9 @@
-import { KillmailQuery } from "@/generated/graphql";
-import Link from "next/link";
-import Tooltip from "../Tooltip/Tooltip";
+import { KillmailQuery } from '@/generated/graphql';
+import Link from 'next/link';
+import Tooltip from '../Tooltip/Tooltip';
 
 interface FeaturedAttackerCardProps {
-  attacker: NonNullable<KillmailQuery["killmail"]>["attackers"][0];
+  attacker: NonNullable<KillmailQuery['killmail']>['attackers'][0];
   label: string;
   labelColor: string;
   totalDamage: number;
@@ -17,7 +17,7 @@ export default function FeaturedAttackerCard({
   const damagePercentage =
     totalDamage > 0
       ? ((attacker.damageDone / totalDamage) * 100).toFixed(1)
-      : "0.0";
+      : '0.0';
   return (
     <div className="p-4 inset-ring inset-ring-white/10">
       {/* Label */}
@@ -29,7 +29,7 @@ export default function FeaturedAttackerCard({
           <Tooltip content={`Character: ${attacker.character?.name}`}>
             <img
               src={`https://images.evetech.net/characters/${attacker.character?.id}/portrait?size=256`}
-              alt={attacker.character?.name || "Character"}
+              alt={attacker.character?.name || 'Character'}
               width={256}
               height={256}
               className="w-full shadow-lg"
@@ -43,7 +43,7 @@ export default function FeaturedAttackerCard({
               <Tooltip content={`Corporation: ${attacker.corporation?.name}`}>
                 <img
                   src={`https://images.evetech.net/corporations/${attacker.corporation?.id}/logo?size=64`}
-                  alt={attacker.corporation?.name || "Corporation"}
+                  alt={attacker.corporation?.name || 'Corporation'}
                   width={32}
                   height={32}
                   className="shadow-md bg-black/50 ring-2 ring-black/50"
@@ -57,7 +57,7 @@ export default function FeaturedAttackerCard({
               <Tooltip content={`Alliance: ${attacker.alliance?.name}`}>
                 <img
                   src={`https://images.evetech.net/alliances/${attacker.alliance?.id}/logo?size=64`}
-                  alt={attacker.alliance?.name || "Alliance"}
+                  alt={attacker.alliance?.name || 'Alliance'}
                   width={32}
                   height={32}
                   className="shadow-md bg-black/50 ring-2 ring-black/50"
@@ -86,7 +86,7 @@ export default function FeaturedAttackerCard({
           <Tooltip content={attacker.shipType?.name}>
             <img
               src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=64`}
-              alt={attacker.shipType?.name || "Ship"}
+              alt={attacker.shipType?.name || 'Ship'}
               width={48}
               height={48}
               className="shadow-lg"
@@ -102,7 +102,7 @@ export default function FeaturedAttackerCard({
           <Tooltip content={attacker.weaponType?.name}>
             <img
               src={`https://images.evetech.net/types/${attacker.weaponType?.id}/icon?size=64`}
-              alt={attacker.weaponType?.name || "Weapon"}
+              alt={attacker.weaponType?.name || 'Weapon'}
               width={48}
               height={48}
               className="shadow-lg"

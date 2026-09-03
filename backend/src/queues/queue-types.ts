@@ -44,7 +44,7 @@ async function queueTypes() {
       }
 
       logger.debug(
-        `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(typeIds.length / BATCH_SIZE)}`
+        `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(typeIds.length / BATCH_SIZE)}`,
       );
     }
 

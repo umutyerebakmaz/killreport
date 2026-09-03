@@ -17,7 +17,9 @@ async function fixNullAttackerCounts() {
     },
   });
 
-  console.log(`Found ${killmailsWithNullCount.length} killmails with null attacker_count`);
+  console.log(
+    `Found ${killmailsWithNullCount.length} killmails with null attacker_count`,
+  );
 
   if (killmailsWithNullCount.length === 0) {
     console.log('✅ No killmails need fixing!');

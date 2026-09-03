@@ -10,4 +10,3 @@ export { characterFields } from './fields';
 export { characterMutations } from './mutations';
 export { characterQueries } from './queries';
 export { characterStatsQueries } from './stats-queries';
-

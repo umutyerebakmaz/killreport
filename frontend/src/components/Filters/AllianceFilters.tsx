@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useSearchAlliancesQuery } from "@/generated/graphql";
-import FilterBar from "@/components/ui/FilterBar";
-import FilterDialog from "@/components/ui/FilterDialog";
-import FilterField from "@/components/ui/FilterField";
-import { useDebounce } from "@/hooks/useDebounce";
+import { useSearchAlliancesQuery } from '@/generated/graphql';
+import FilterBar from '@/components/ui/FilterBar';
+import FilterDialog from '@/components/ui/FilterDialog';
+import FilterField from '@/components/ui/FilterField';
+import { useDebounce } from '@/hooks/useDebounce';
 import {
   ChevronDownIcon,
   MagnifyingGlassIcon,
-} from "@heroicons/react/24/outline";
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+} from '@heroicons/react/24/outline';
+import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 
 interface AllianceFiltersProps {
   onFilterChange: (filters: {
@@ -28,16 +28,16 @@ interface AllianceFiltersProps {
 export default function AllianceFilters({
   onFilterChange,
   onClearFilters,
-  orderBy = "memberCountDesc",
+  orderBy = 'memberCountDesc',
   onOrderByChange,
 }: AllianceFiltersProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const [name, setName] = useState("");
-  const [ticker, setTicker] = useState("");
-  const [dateFoundedFrom, setDateFoundedFrom] = useState("");
-  const [dateFoundedTo, setDateFoundedTo] = useState("");
+  const [search, setSearch] = useState('');
+  const [name, setName] = useState('');
+  const [ticker, setTicker] = useState('');
+  const [dateFoundedFrom, setDateFoundedFrom] = useState('');
+  const [dateFoundedTo, setDateFoundedTo] = useState('');
 
   // Alliance search dropdown state
   const [showDropdown, setShowDropdown] = useState(false);
@@ -55,9 +55,12 @@ export default function AllianceFilters({
     skip: debouncedSearch.length < 3, // Only search after 3 characters
   });
 
-  const activeFilterCount = [name, ticker, dateFoundedFrom, dateFoundedTo].filter(
-    Boolean,
-  ).length;
+  const activeFilterCount = [
+    name,
+    ticker,
+    dateFoundedFrom,
+    dateFoundedTo,
+  ].filter(Boolean).length;
   const hasActiveFilters = Boolean(
     search || name || ticker || dateFoundedFrom || dateFoundedTo,
   );
@@ -73,8 +76,8 @@ export default function AllianceFilters({
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   // Show dropdown when we have results
@@ -90,7 +93,7 @@ export default function AllianceFilters({
 
   const handleAllianceSelect = (allianceId: number) => {
     router.push(`/alliances/${allianceId}`);
-    setSearch("");
+    setSearch('');
     setShowDropdown(false);
   };
 
@@ -107,11 +110,11 @@ export default function AllianceFilters({
   };
 
   const handleClearAll = () => {
-    setSearch("");
-    setName("");
-    setTicker("");
-    setDateFoundedFrom("");
-    setDateFoundedTo("");
+    setSearch('');
+    setName('');
+    setTicker('');
+    setDateFoundedFrom('');
+    setDateFoundedTo('');
     onClearFilters();
   };
 
@@ -176,7 +179,7 @@ export default function AllianceFilters({
                               className="object-cover size-16"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
-                                target.src = "/images/default-alliance.png";
+                                target.src = '/images/default-alliance.png';
                               }}
                             />
                           </div>
@@ -186,7 +189,7 @@ export default function AllianceFilters({
                             </div>
                             <div className="text-sm text-gray-400">
                               <div className="text-gray-400 truncate">
-                                [{alliance.ticker}] • {alliance.memberCount}{" "}
+                                [{alliance.ticker}] • {alliance.memberCount}{' '}
                                 members
                               </div>
                               <div className="text-gray-400 truncate">
@@ -228,23 +231,23 @@ export default function AllianceFilters({
               className="select"
             >
               <option value="memberCountDesc">
-                {orderBy === "memberCountDesc" ? "✓" : "\u00A0\u00A0"}
-                {"   "}
+                {orderBy === 'memberCountDesc' ? '✓' : '\u00A0\u00A0'}
+                {'   '}
                 Most Members
               </option>
               <option value="memberCountAsc">
-                {orderBy === "memberCountAsc" ? "✓" : "\u00A0\u00A0"}
-                {"   "}
+                {orderBy === 'memberCountAsc' ? '✓' : '\u00A0\u00A0'}
+                {'   '}
                 Least Members
               </option>
               <option value="nameAsc">
-                {orderBy === "nameAsc" ? "✓" : "\u00A0\u00A0"}
-                {"   "}
+                {orderBy === 'nameAsc' ? '✓' : '\u00A0\u00A0'}
+                {'   '}
                 Name A-Z
               </option>
               <option value="nameDesc">
-                {orderBy === "nameDesc" ? "✓" : "\u00A0\u00A0"}
-                {"   "}
+                {orderBy === 'nameDesc' ? '✓' : '\u00A0\u00A0'}
+                {'   '}
                 Name Z-A
               </option>
             </select>

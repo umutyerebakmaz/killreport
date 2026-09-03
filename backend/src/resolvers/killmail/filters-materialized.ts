@@ -1,4 +1,4 @@
-import { KillmailFilter } from "@generated-types";
+import { KillmailFilter } from '@generated-types';
 import prisma from '@services/prisma';
 
 /**
@@ -14,7 +14,9 @@ import prisma from '@services/prisma';
  *
  * Returns: Array of killmail IDs matching the filters
  */
-export async function filtersMaterialized(filter: KillmailFilter): Promise<number[]> {
+export async function filtersMaterialized(
+  filter: KillmailFilter,
+): Promise<number[]> {
   const conditions: string[] = ['1=1'];
   const params: any[] = [];
   let paramIndex = 1;
@@ -34,10 +36,16 @@ export async function filtersMaterialized(filter: KillmailFilter): Promise<numbe
     corporationId,
     allianceId,
     minAttackers,
-    maxAttackers
+    maxAttackers,
   } = filter;
 
-  console.log('🔍 Filter input:', { shipTypeId, shipGroupIds, securitySpace, victim, attacker });
+  console.log('🔍 Filter input:', {
+    shipTypeId,
+    shipGroupIds,
+    securitySpace,
+    victim,
+    attacker,
+  });
 
   // Collect all ship type IDs (from direct shipTypeId or from shipGroupIds)
   let allShipTypeIds: number[] = [];
@@ -48,19 +56,33 @@ export async function filtersMaterialized(filter: KillmailFilter): Promise<numbe
   }
 
   // Add ship types from groups if shipGroupIds provided
-  if (shipGroupIds !== undefined && shipGroupIds !== null && shipGroupIds.length > 0) {
+  if (
+    shipGroupIds !== undefined &&
+    shipGroupIds !== null &&
+    shipGroupIds.length > 0
+  ) {
     console.log('🔍 Fetching types for groups:', shipGroupIds);
     const typesInGroups = await prisma.type.findMany({
       where: {
-        group_id: { in: shipGroupIds }
+        group_id: { in: shipGroupIds },
       },
-      select: { id: true }
+      select: { id: true },
     });
-    console.log('🔍 Found types:', typesInGroups.length, 'IDs:', typesInGroups.map(t => t.id).slice(0, 10));
-    allShipTypeIds = allShipTypeIds.concat(typesInGroups.map(t => t.id));
+    console.log(
+      '🔍 Found types:',
+      typesInGroups.length,
+      'IDs:',
+      typesInGroups.map((t) => t.id).slice(0, 10),
+    );
+    allShipTypeIds = allShipTypeIds.concat(typesInGroups.map((t) => t.id));
   }
 
-  console.log('🔍 All ship type IDs to filter:', allShipTypeIds.length, 'IDs:', allShipTypeIds.slice(0, 10));
+  console.log(
+    '🔍 All ship type IDs to filter:',
+    allShipTypeIds.length,
+    'IDs:',
+    allShipTypeIds.slice(0, 10),
+  );
 
   // Ship type filter: respects victim / attacker checkboxes
   if (allShipTypeIds.length > 0) {
@@ -74,7 +96,9 @@ export async function filtersMaterialized(filter: KillmailFilter): Promise<numbe
       conditions.push(`attacker_ship_type_ids && $${paramIndex}::int[]`);
     } else {
       // Both checked or neither checked → victim OR attacker (default)
-      conditions.push(`(victim_ship_type_id = ANY($${paramIndex}::int[]) OR attacker_ship_type_ids && $${paramIndex}::int[])`);
+      conditions.push(
+        `(victim_ship_type_id = ANY($${paramIndex}::int[]) OR attacker_ship_type_ids && $${paramIndex}::int[])`,
+      );
     }
     paramIndex++;
   }
@@ -91,7 +115,9 @@ export async function filtersMaterialized(filter: KillmailFilter): Promise<numbe
       conditions.push(`$${paramIndex} = ANY(attacker_character_ids)`);
     } else {
       // Both or neither → victim OR attacker (default)
-      conditions.push(`(victim_character_id = $${paramIndex} OR $${paramIndex} = ANY(attacker_character_ids))`);
+      conditions.push(
+        `(victim_character_id = $${paramIndex} OR $${paramIndex} = ANY(attacker_character_ids))`,
+      );
     }
     paramIndex++;
   }
@@ -99,14 +125,18 @@ export async function filtersMaterialized(filter: KillmailFilter): Promise<numbe
   // Corporation filter (victim OR attacker)
   if (corporationId !== undefined && corporationId !== null) {
     params.push(corporationId);
-    conditions.push(`(victim_corporation_id = $${paramIndex} OR $${paramIndex} = ANY(attacker_corporation_ids))`);
+    conditions.push(
+      `(victim_corporation_id = $${paramIndex} OR $${paramIndex} = ANY(attacker_corporation_ids))`,
+    );
     paramIndex++;
   }
 
   // Alliance filter (victim OR attacker)
   if (allianceId !== undefined && allianceId !== null) {
     params.push(allianceId);
-    conditions.push(`(victim_alliance_id = $${paramIndex} OR $${paramIndex} = ANY(attacker_alliance_ids))`);
+    conditions.push(
+      `(victim_alliance_id = $${paramIndex} OR $${paramIndex} = ANY(attacker_alliance_ids))`,
+    );
     paramIndex++;
   }
 
@@ -130,22 +160,36 @@ export async function filtersMaterialized(filter: KillmailFilter): Promise<numbe
   }
 
   // Security space filter: highsec, lowsec, nullsec, wormhole, abyssal
-  if (securitySpace !== undefined && securitySpace !== null && securitySpace !== "all") {
-    if (securitySpace === "highsec") {
+  if (
+    securitySpace !== undefined &&
+    securitySpace !== null &&
+    securitySpace !== 'all'
+  ) {
+    if (securitySpace === 'highsec') {
       // K-space highsec only (exclude wormhole/abyssal with similar security status)
-      conditions.push(`(security_status >= 0.5 AND solar_system_id < 31000000)`);
-    } else if (securitySpace === "lowsec") {
+      conditions.push(
+        `(security_status >= 0.5 AND solar_system_id < 31000000)`,
+      );
+    } else if (securitySpace === 'lowsec') {
       // K-space lowsec only (exclude wormhole/abyssal)
-      conditions.push(`(security_status > 0.0 AND security_status < 0.5 AND solar_system_id < 31000000)`);
-    } else if (securitySpace === "nullsec") {
+      conditions.push(
+        `(security_status > 0.0 AND security_status < 0.5 AND solar_system_id < 31000000)`,
+      );
+    } else if (securitySpace === 'nullsec') {
       // K-space nullsec only (security <= 0.0 but exclude wormhole/abyssal which also have -0.99)
-      conditions.push(`(security_status <= 0.0 AND solar_system_id < 31000000)`);
-    } else if (securitySpace === "wormhole") {
+      conditions.push(
+        `(security_status <= 0.0 AND solar_system_id < 31000000)`,
+      );
+    } else if (securitySpace === 'wormhole') {
       // Wormhole systems: 31M range (Thera, J-codes etc.) excluding Pochven
-      conditions.push(`(solar_system_id >= 31000000 AND solar_system_id < 32000000 AND region_id != 10000070)`);
-    } else if (securitySpace === "abyssal") {
+      conditions.push(
+        `(solar_system_id >= 31000000 AND solar_system_id < 32000000 AND region_id != 10000070)`,
+      );
+    } else if (securitySpace === 'abyssal') {
       // Abyssal Deadspace systems: AD001-AD200 (32000001-32000200)
-      conditions.push(`(solar_system_id >= 32000001 AND solar_system_id <= 32000200)`);
+      conditions.push(
+        `(solar_system_id >= 32000001 AND solar_system_id <= 32000200)`,
+      );
     }
   }
 
@@ -173,10 +217,15 @@ export async function filtersMaterialized(filter: KillmailFilter): Promise<numbe
   console.log(`🔍 killmail_filters Query:`, { query, params });
 
   try {
-    const result = await prisma.$queryRawUnsafe<Array<{ killmail_id: number }>>(query, ...params);
-    const killmailIds = result.map(r => r.killmail_id);
+    const result = await prisma.$queryRawUnsafe<Array<{ killmail_id: number }>>(
+      query,
+      ...params,
+    );
+    const killmailIds = result.map((r) => r.killmail_id);
 
-    console.log(`✅ killmail_filters returned ${killmailIds.length} killmail IDs`);
+    console.log(
+      `✅ killmail_filters returned ${killmailIds.length} killmail IDs`,
+    );
 
     return killmailIds;
   } catch (error) {

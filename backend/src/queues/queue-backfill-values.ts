@@ -31,13 +31,15 @@ function getWhereClause(capsulesOnly: boolean) {
 
 async function queueBackfillValues() {
   const args = process.argv.slice(2);
-  const limitArg = args.find(arg => arg.startsWith('--limit='));
+  const limitArg = args.find((arg) => arg.startsWith('--limit='));
   const limit = limitArg ? parseInt(limitArg.split('=')[1]) : undefined;
 
   const capsulesOnly = args.includes('--capsules-only');
 
-  const killmailIdArg = args.find(arg => arg.startsWith('--id='));
-  const killmailId = killmailIdArg ? parseInt(killmailIdArg.split('=')[1]) : undefined;
+  const killmailIdArg = args.find((arg) => arg.startsWith('--id='));
+  const killmailId = killmailIdArg
+    ? parseInt(killmailIdArg.split('=')[1])
+    : undefined;
 
   const scriptTitle = killmailId
     ? '🎯 Backfill Single Killmail Value'
@@ -49,7 +51,9 @@ async function queueBackfillValues() {
   if (killmailId) {
     logger.info(`🎯 Killmail ID: ${killmailId}`);
   } else if (capsulesOnly) {
-    logger.info(`🛸 Filter: Capsule (pod) killmails only (type_id: ${CAPSULE_TYPE_ID})`);
+    logger.info(
+      `🛸 Filter: Capsule (pod) killmails only (type_id: ${CAPSULE_TYPE_ID})`,
+    );
   }
 
   try {
@@ -59,7 +63,7 @@ async function queueBackfillValues() {
 
     // Count total killmails matching the criteria
     const totalCount = await prismaWorker.killmail.count({
-      where: whereClause
+      where: whereClause,
     });
 
     if (totalCount === 0) {
@@ -75,13 +79,21 @@ async function queueBackfillValues() {
 
     const toProcess = limit ? Math.min(limit, totalCount) : totalCount;
 
-    const targetDesc = killmailId ? 'killmail' : capsulesOnly ? 'Capsule killmails' : 'killmails';
+    const targetDesc = killmailId
+      ? 'killmail'
+      : capsulesOnly
+        ? 'Capsule killmails'
+        : 'killmails';
     if (killmailId) {
       logger.info(`✅ Found killmail ${killmailId}`);
     } else {
-      logger.info(`📊 Found ${totalCount.toLocaleString()} ${targetDesc} matching criteria`);
+      logger.info(
+        `📊 Found ${totalCount.toLocaleString()} ${targetDesc} matching criteria`,
+      );
       if (limit) {
-        logger.info(`🎯 Processing limit: ${toProcess.toLocaleString()} killmails`);
+        logger.info(
+          `🎯 Processing limit: ${toProcess.toLocaleString()} killmails`,
+        );
       }
     }
     logger.info(`📦 Queue: ${QUEUE_NAME}`);
@@ -93,7 +105,7 @@ async function queueBackfillValues() {
     // Ensure queue exists with priority support
     await channel.assertQueue(QUEUE_NAME, {
       durable: true,
-      arguments: { 'x-max-priority': 10 }
+      arguments: { 'x-max-priority': 10 },
     });
 
     logger.info('⏳ Fetching killmail IDs...');
@@ -110,7 +122,7 @@ async function queueBackfillValues() {
         select: { killmail_id: true },
         orderBy: { killmail_time: 'desc' }, // Process newest first
         skip: batchNumber * BATCH_SIZE,
-        take
+        take,
       });
 
       if (killmails.length === 0) break;
@@ -123,11 +135,9 @@ async function queueBackfillValues() {
           source: 'queue-backfill-values',
         };
 
-        channel.sendToQueue(
-          QUEUE_NAME,
-          Buffer.from(JSON.stringify(message)),
-          { persistent: true }
-        );
+        channel.sendToQueue(QUEUE_NAME, Buffer.from(JSON.stringify(message)), {
+          persistent: true,
+        });
 
         queuedCount++;
       }
@@ -136,13 +146,15 @@ async function queueBackfillValues() {
       const progress = ((queuedCount / toProcess) * 100).toFixed(1);
       logger.info(
         `  📤 Queued batch ${batchNumber} ` +
-        `(${queuedCount.toLocaleString()}/${toProcess.toLocaleString()} - ${progress}%)`
+          `(${queuedCount.toLocaleString()}/${toProcess.toLocaleString()} - ${progress}%)`,
       );
     }
 
     logger.info('');
     logger.info('━'.repeat(60));
-    logger.info(`✅ Successfully queued ${queuedCount.toLocaleString()} ${targetDesc}`);
+    logger.info(
+      `✅ Successfully queued ${queuedCount.toLocaleString()} ${targetDesc}`,
+    );
     if (capsulesOnly) {
       logger.info(`🛸 Ship type: Capsule (type_id ${CAPSULE_TYPE_ID})`);
     }
@@ -150,16 +162,19 @@ async function queueBackfillValues() {
     logger.info('🚀 Start the worker with:');
     logger.info('   yarn worker:backfill-values');
     logger.info('');
-    logger.info('💡 Multiple workers can run in parallel for faster processing');
+    logger.info(
+      '💡 Multiple workers can run in parallel for faster processing',
+    );
     if (capsulesOnly) {
-      logger.info('   Each Capsule will get 10 ISK ship value + implants value');
+      logger.info(
+        '   Each Capsule will get 10 ISK ship value + implants value',
+      );
     }
     logger.info('━'.repeat(60));
 
     await channel.close();
     await prismaWorker.$disconnect();
     process.exit(0);
-
   } catch (error) {
     logger.error('Failed to queue backfill values', { error });
     await prismaWorker.$disconnect();

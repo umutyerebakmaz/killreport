@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import Link from "next/link";
+import Link from 'next/link';
 
 export default function LegalPage() {
   return (
@@ -86,8 +86,8 @@ export default function LegalPage() {
                 <p className="text-sm">
                   We subscribe to zKillboard&apos;s Redis queue, which provides
                   us real-time killmail events. However, we only receive minimal
-                  identifiers: the{" "}
-                  <span className="text-cyan-400">killmailID</span> and{" "}
+                  identifiers: the{' '}
+                  <span className="text-cyan-400">killmailID</span> and{' '}
                   <span className="text-cyan-400">killmailHash</span>. This is
                   raw, unannotated data—just numbers with no context.
                 </p>
@@ -130,7 +130,7 @@ export default function LegalPage() {
               </div>
             </div>
             <p className="pt-4 mt-4 text-sm border-t border-neutral-700">
-              <span className="font-semibold text-cyan-400">Key Point:</span>{" "}
+              <span className="font-semibold text-cyan-400">Key Point:</span>{' '}
               Killreport is an analysis and presentation layer. We don&apos;t
               create killmail data—CCP Games does through EVE Online&apos;s
               combat system. zKillboard notifies us of events, and CCP ESI
@@ -202,7 +202,7 @@ export default function LegalPage() {
 
         <div className="pt-8 mt-12 border-t border-neutral-700">
           <p className="text-sm text-gray-400">
-            All EVE related materials are property of{" "}
+            All EVE related materials are property of{' '}
             <a
               href="https://www.ccpgames.com"
               target="_blank"

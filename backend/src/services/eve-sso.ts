@@ -34,7 +34,7 @@ export async function exchangeCodeForToken(code: string): Promise<{
   refresh_token?: string;
 }> {
   const credentials = Buffer.from(
-    `${config.eveSso.clientId}:${config.eveSso.clientSecret}`
+    `${config.eveSso.clientId}:${config.eveSso.clientSecret}`,
   ).toString('base64');
 
   const response = await fetch(config.eveSso.tokenUrl, {
@@ -89,7 +89,7 @@ export async function refreshAccessToken(refreshToken: string): Promise<{
   refresh_token?: string;
 }> {
   const credentials = Buffer.from(
-    `${config.eveSso.clientId}:${config.eveSso.clientSecret}`
+    `${config.eveSso.clientId}:${config.eveSso.clientSecret}`,
   ).toString('base64');
 
   const response = await fetch(config.eveSso.tokenUrl, {

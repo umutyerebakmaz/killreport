@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import EveHtmlRenderer from "@/components/EveHtmlRenderer";
-import KillmailsTable from "@/components/KillmailsTable";
-import { Loader } from "@/components/Loader/Loader";
-import Paginator from "@/components/Paginator/Paginator";
-import Tooltip from "@/components/Tooltip/Tooltip";
-import TopShipsCard from "@/components/TopShipsCard";
-import TopTargetsCard from "@/components/TopTargetsCard";
+import EveHtmlRenderer from '@/components/EveHtmlRenderer';
+import KillmailsTable from '@/components/KillmailsTable';
+import { Loader } from '@/components/Loader/Loader';
+import Paginator from '@/components/Paginator/Paginator';
+import Tooltip from '@/components/Tooltip/Tooltip';
+import TopShipsCard from '@/components/TopShipsCard';
+import TopTargetsCard from '@/components/TopTargetsCard';
 import {
   useCharacterKillmailsQuery,
   useCharacterQuery,
@@ -15,18 +15,18 @@ import {
   useCharacterTopShipsQuery,
   useCharacterTopShipTargetsQuery,
   useKillmailsDateCountsQuery,
-} from "@/generated/graphql";
-import { calculateAge, humanReadableDate } from "@/utils/date";
-import { getSecurityStatusColor } from "@/utils/securityStatus";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { use, useCallback, useEffect, useMemo, useState } from "react";
+} from '@/generated/graphql';
+import { calculateAge, humanReadableDate } from '@/utils/date';
+import { getSecurityStatusColor } from '@/utils/securityStatus';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { use, useCallback, useEffect, useMemo, useState } from 'react';
 
 interface CharacterDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-type TabType = "bio" | "killmails" | "statistics";
+type TabType = 'bio' | 'killmails' | 'statistics';
 
 export default function CharacterDetailPage({
   params,
@@ -35,9 +35,9 @@ export default function CharacterDetailPage({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const pageFromUrl = Number(searchParams.get("page")) || 1;
-  const pageSizeFromUrl = Number(searchParams.get("pageSize")) || 25;
-  const tabFromUrl = (searchParams.get("tab") as TabType) || "killmails";
+  const pageFromUrl = Number(searchParams.get('page')) || 1;
+  const pageSizeFromUrl = Number(searchParams.get('pageSize')) || 25;
+  const tabFromUrl = (searchParams.get('tab') as TabType) || 'killmails';
 
   const [activeTab, setActiveTab] = useState<TabType>(tabFromUrl);
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
@@ -54,7 +54,7 @@ export default function CharacterDetailPage({
     useCharacterTopAllianceTargetsQuery({
       variables: {
         characterId: parseInt(id),
-        filter: "LAST_7_DAYS" as any,
+        filter: 'LAST_7_DAYS' as any,
       },
     });
 
@@ -62,7 +62,7 @@ export default function CharacterDetailPage({
     useCharacterTopCorporationTargetsQuery({
       variables: {
         characterId: parseInt(id),
-        filter: "LAST_7_DAYS" as any,
+        filter: 'LAST_7_DAYS' as any,
       },
     });
 
@@ -70,7 +70,7 @@ export default function CharacterDetailPage({
     useCharacterTopShipTargetsQuery({
       variables: {
         characterId: parseInt(id),
-        filter: "LAST_7_DAYS" as any,
+        filter: 'LAST_7_DAYS' as any,
       },
     });
 
@@ -78,7 +78,7 @@ export default function CharacterDetailPage({
     useCharacterTopShipsQuery({
       variables: {
         characterId: parseInt(id),
-        filter: "LAST_7_DAYS" as any,
+        filter: 'LAST_7_DAYS' as any,
       },
     });
 
@@ -92,7 +92,7 @@ export default function CharacterDetailPage({
           limit: pageSize,
         },
       },
-      skip: activeTab !== "killmails", // Only fetch when killmails tab is active
+      skip: activeTab !== 'killmails', // Only fetch when killmails tab is active
     });
 
   // Fetch date counts for correct totals per date
@@ -102,7 +102,7 @@ export default function CharacterDetailPage({
         characterId: parseInt(id),
       },
     },
-    skip: activeTab !== "killmails",
+    skip: activeTab !== 'killmails',
   });
 
   // Memoize killmails array
@@ -126,10 +126,10 @@ export default function CharacterDetailPage({
   // URL sync for pagination and tab
   useEffect(() => {
     const params = new URLSearchParams();
-    params.set("tab", activeTab);
-    if (activeTab === "killmails") {
-      params.set("page", currentPage.toString());
-      params.set("pageSize", pageSize.toString());
+    params.set('tab', activeTab);
+    if (activeTab === 'killmails') {
+      params.set('page', currentPage.toString());
+      params.set('pageSize', pageSize.toString());
     }
     router.push(`/characters/${id}?${params.toString()}`, { scroll: false });
   }, [currentPage, pageSize, activeTab, id, router]);
@@ -205,9 +205,9 @@ export default function CharacterDetailPage({
     })) || [];
 
   const tabs = [
-    { id: "bio" as TabType, label: "Bio" },
-    { id: "killmails" as TabType, label: "Killmails" },
-    { id: "statistics" as TabType, label: "Statistics" },
+    { id: 'bio' as TabType, label: 'Bio' },
+    { id: 'killmails' as TabType, label: 'Killmails' },
+    { id: 'statistics' as TabType, label: 'Statistics' },
   ];
 
   const age = calculateAge(character.birthday);
@@ -233,12 +233,12 @@ export default function CharacterDetailPage({
             {character.corporation?.id && (
               <Tooltip
                 content={`Corporation: ${
-                  character.corporation?.name || "Unknown"
+                  character.corporation?.name || 'Unknown'
                 }`}
               >
                 <img
                   src={`https://images.evetech.net/corporations/${character.corporation?.id}/logo?size=64`}
-                  alt={character.corporation?.name || "Corporation"}
+                  alt={character.corporation?.name || 'Corporation'}
                   width={64}
                   height={64}
                   className="shadow-md"
@@ -250,11 +250,11 @@ export default function CharacterDetailPage({
             {/* Alliance Logo */}
             {character.alliance?.id && (
               <Tooltip
-                content={`Alliance: ${character.alliance?.name || "Unknown"}`}
+                content={`Alliance: ${character.alliance?.name || 'Unknown'}`}
               >
                 <img
                   src={`https://images.evetech.net/alliances/${character.alliance?.id}/logo?size=64`}
-                  alt={character.alliance?.name || "Alliance"}
+                  alt={character.alliance?.name || 'Alliance'}
                   width={64}
                   height={64}
                   className="shadow-md"
@@ -336,10 +336,10 @@ export default function CharacterDetailPage({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-3 text-sm font-semibold transition-colors border-b-2 cursor-pointer ${
+                className={`px-4 py-3 text-sm font-semibold transition-colors border-b-2 ${
                   activeTab === tab.id
-                    ? "border-cyan-500 text-cyan-500"
-                    : "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600"
+                    ? 'border-cyan-500 text-cyan-500'
+                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
                 }`}
               >
                 {tab.label}
@@ -350,7 +350,7 @@ export default function CharacterDetailPage({
 
         {/* Tab Content */}
         <div className="mt-6">
-          {activeTab === "bio" && (
+          {activeTab === 'bio' && (
             <div className="p-6 bg-white/5 border-white/10">
               <div className="grid grid-cols-2 gap-4">
                 {character.description && (
@@ -368,7 +368,7 @@ export default function CharacterDetailPage({
             </div>
           )}
 
-          {activeTab === "killmails" && (
+          {activeTab === 'killmails' && (
             <div className="killmails-tab">
               <div className="mb-6">
                 {pageInfo?.totalCount !== undefined && (
@@ -417,7 +417,7 @@ export default function CharacterDetailPage({
                     title="Most Killed Alliances"
                     subtitle={
                       <>
-                        Last 7 days{" "}
+                        Last 7 days{' '}
                         <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
                           ROLLING
                         </span>
@@ -434,7 +434,7 @@ export default function CharacterDetailPage({
                     title="Most Killed Corporations"
                     subtitle={
                       <>
-                        Last 7 days{" "}
+                        Last 7 days{' '}
                         <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
                           ROLLING
                         </span>
@@ -451,7 +451,7 @@ export default function CharacterDetailPage({
                     title="Most Killed Ships"
                     subtitle={
                       <>
-                        Last 7 days{" "}
+                        Last 7 days{' '}
                         <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
                           ROLLING
                         </span>
@@ -466,7 +466,7 @@ export default function CharacterDetailPage({
                     title="Most Used Ships"
                     subtitle={
                       <>
-                        Last 7 days{" "}
+                        Last 7 days{' '}
                         <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
                           ROLLING
                         </span>
@@ -481,7 +481,7 @@ export default function CharacterDetailPage({
             </div>
           )}
 
-          {activeTab === "statistics" && (
+          {activeTab === 'statistics' && (
             <div className="p-6 bg-white/5 border-white/10">
               <h2 className="mb-4 text-2xl font-bold">Statistics</h2>
               <p className="text-gray-400">Statistics coming soon...</p>

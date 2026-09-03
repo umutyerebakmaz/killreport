@@ -50,11 +50,13 @@ async function queueTypeDogma() {
       }
 
       logger.debug(
-        `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(typeIds.length / BATCH_SIZE)}`
+        `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(typeIds.length / BATCH_SIZE)}`,
       );
     }
 
-    logger.info(`All ${typeIds.length} types queued successfully for dogma sync!`);
+    logger.info(
+      `All ${typeIds.length} types queued successfully for dogma sync!`,
+    );
     logger.info('Run worker with: yarn worker:type-dogma');
 
     await channel.close();

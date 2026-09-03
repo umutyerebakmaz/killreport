@@ -1,27 +1,27 @@
-"use client";
+'use client';
 
-import AvgSecurity from "@/components/AvgSecurity/AvgSecurity";
-import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
-import { Loader } from "@/components/Loader/Loader";
-import Paginator from "@/components/Paginator/Paginator";
-import SecurityStatsBar from "@/components/SecurityStatus/SecurityStatsBar";
-import Tooltip from "@/components/Tooltip/Tooltip";
-import { useRegionsQuery } from "@/generated/graphql";
+import AvgSecurity from '@/components/AvgSecurity/AvgSecurity';
+import Breadcrumb from '@/components/Breadcrumb/Breadcrumb';
+import { Loader } from '@/components/Loader/Loader';
+import Paginator from '@/components/Paginator/Paginator';
+import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
+import Tooltip from '@/components/Tooltip/Tooltip';
+import { useRegionsQuery } from '@/generated/graphql';
 import {
   ChevronDownIcon,
   MagnifyingGlassIcon,
-} from "@heroicons/react/24/outline";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+} from '@heroicons/react/24/outline';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 
 function RegionsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const pageFromUrl = Number(searchParams.get("page")) || 1;
-  const orderByFromUrl = searchParams.get("orderBy") || "nameAsc";
-  const searchFromUrl = searchParams.get("search") || "";
+  const pageFromUrl = Number(searchParams.get('page')) || 1;
+  const orderByFromUrl = searchParams.get('orderBy') || 'nameAsc';
+  const searchFromUrl = searchParams.get('search') || '';
 
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(25);
@@ -52,9 +52,9 @@ function RegionsContent() {
   // URL sync
   useEffect(() => {
     const params = new URLSearchParams();
-    params.set("page", currentPage.toString());
-    params.set("orderBy", orderBy);
-    if (debouncedSearch) params.set("search", debouncedSearch);
+    params.set('page', currentPage.toString());
+    params.set('orderBy', orderBy);
+    if (debouncedSearch) params.set('search', debouncedSearch);
     router.push(`/regions?${params.toString()}`, { scroll: false });
   }, [currentPage, orderBy, debouncedSearch]);
 
@@ -74,7 +74,7 @@ function RegionsContent() {
 
   return (
     <div>
-      <Breadcrumb items={[{ label: "Regions" }]} />
+      <Breadcrumb items={[{ label: 'Regions' }]} />
 
       <div className="sm:flex sm:items-center sm:justify-between">
         <div className="sm:flex-auto">

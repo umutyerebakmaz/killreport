@@ -1,8 +1,8 @@
-import { ReactNode, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import "./tooltip.css";
+import { ReactNode, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import './tooltip.css';
 
-type TooltipPosition = "top" | "bottom" | "left" | "right";
+type TooltipPosition = 'top' | 'bottom' | 'left' | 'right';
 
 interface TooltipProps {
   content: ReactNode;
@@ -15,7 +15,7 @@ interface TooltipProps {
 export default function Tooltip({
   content,
   children,
-  position = "top",
+  position = 'top',
   wrapText = false,
   className,
 }: TooltipProps) {
@@ -40,22 +40,22 @@ export default function Tooltip({
       let left = 0;
 
       switch (position) {
-        case "top":
+        case 'top':
           top = triggerRect.top - tooltipRect.height - 8;
           left =
             triggerRect.left + triggerRect.width / 2 - tooltipRect.width / 2;
           break;
-        case "bottom":
+        case 'bottom':
           top = triggerRect.bottom + 8;
           left =
             triggerRect.left + triggerRect.width / 2 - tooltipRect.width / 2;
           break;
-        case "left":
+        case 'left':
           top =
             triggerRect.top + triggerRect.height / 2 - tooltipRect.height / 2;
           left = triggerRect.left - tooltipRect.width - 8;
           break;
-        case "right":
+        case 'right':
           top =
             triggerRect.top + triggerRect.height / 2 - tooltipRect.height / 2;
           left = triggerRect.right + 8;
@@ -70,7 +70,7 @@ export default function Tooltip({
     <>
       <div
         ref={triggerRef}
-        className={`tooltip-trigger${className ? ` ${className}` : ""}`}
+        className={`tooltip-trigger${className ? ` ${className}` : ''}`}
         onMouseEnter={handleEnter}
         onMouseLeave={handleLeave}
       >
@@ -80,7 +80,7 @@ export default function Tooltip({
         createPortal(
           <div
             ref={tooltipRef}
-            className={`tooltip ${wrapText ? "tooltip-wrap" : ""}`}
+            className={`tooltip ${wrapText ? 'tooltip-wrap' : ''}`}
             style={{
               top: `${tooltipPos.top}px`,
               left: `${tooltipPos.left}px`,

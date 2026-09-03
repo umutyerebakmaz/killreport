@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import AllianceGrowthChart from "@/components/AllianceGrowthChart/AllianceGrowthChart";
-import CorporationTable from "@/components/CorporationsTable/CorporationsTable";
-import KillmailsTable from "@/components/KillmailsTable";
-import { Loader } from "@/components/Loader/Loader";
-import MemberDeltaBadge from "@/components/MemberDeltaBadge/MemberDeltaBadge";
-import Paginator from "@/components/Paginator/Paginator";
-import TopCharacterCard from "@/components/TopCharacterCard/TopCharacterCard";
-import TopShipsCard from "@/components/TopShipsCard";
-import TopTargetsCard from "@/components/TopTargetsCard";
-import TotalCorporationBadge from "@/components/TotalCorporationMember/TotalCorporationBadge";
-import TotalMemberBadge from "@/components/TotalMemberBadge/TotalMemberBadge";
+import AllianceGrowthChart from '@/components/AllianceGrowthChart/AllianceGrowthChart';
+import CorporationTable from '@/components/CorporationsTable/CorporationsTable';
+import KillmailsTable from '@/components/KillmailsTable';
+import { Loader } from '@/components/Loader/Loader';
+import MemberDeltaBadge from '@/components/MemberDeltaBadge/MemberDeltaBadge';
+import Paginator from '@/components/Paginator/Paginator';
+import TopCharacterCard from '@/components/TopCharacterCard/TopCharacterCard';
+import TopShipsCard from '@/components/TopShipsCard';
+import TopTargetsCard from '@/components/TopTargetsCard';
+import TotalCorporationBadge from '@/components/TotalCorporationMember/TotalCorporationBadge';
+import TotalMemberBadge from '@/components/TotalMemberBadge/TotalMemberBadge';
 import {
   CorporationOrderBy,
   useAllianceCorporationsQuery,
@@ -23,21 +23,17 @@ import {
   useAllianceTopShipsQuery,
   useAllianceTopShipTargetsQuery,
   useKillmailsDateCountsQuery,
-} from "@/generated/graphql";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { use, useCallback, useEffect, useMemo, useState } from "react";
+} from '@/generated/graphql';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { use, useCallback, useEffect, useMemo, useState } from 'react';
 
 interface AllianceDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
 type TabType =
-  | "attributes"
-  | "growth"
-  | "killmails"
-  | "war-history"
-  | "members";
+  'attributes' | 'growth' | 'killmails' | 'war-history' | 'members';
 
 export default function AllianceDetailPage({
   params,
@@ -46,9 +42,9 @@ export default function AllianceDetailPage({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const pageFromUrl = Number(searchParams.get("page")) || 1;
-  const pageSizeFromUrl = Number(searchParams.get("pageSize")) || 25;
-  const tabFromUrl = (searchParams.get("tab") as TabType) || "attributes";
+  const pageFromUrl = Number(searchParams.get('page')) || 1;
+  const pageSizeFromUrl = Number(searchParams.get('pageSize')) || 25;
+  const tabFromUrl = (searchParams.get('tab') as TabType) || 'attributes';
 
   const [activeTab, setActiveTab] = useState<TabType>(tabFromUrl);
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
@@ -69,7 +65,7 @@ export default function AllianceDetailPage({
     useAllianceTopAllianceTargetsQuery({
       variables: {
         allianceId: parseInt(id),
-        filter: "LAST_7_DAYS" as any,
+        filter: 'LAST_7_DAYS' as any,
       },
     });
 
@@ -77,7 +73,7 @@ export default function AllianceDetailPage({
     useAllianceTopCorporationTargetsQuery({
       variables: {
         allianceId: parseInt(id),
-        filter: "LAST_7_DAYS" as any,
+        filter: 'LAST_7_DAYS' as any,
       },
     });
 
@@ -85,14 +81,14 @@ export default function AllianceDetailPage({
     useAllianceTopShipTargetsQuery({
       variables: {
         allianceId: parseInt(id),
-        filter: "LAST_7_DAYS" as any,
+        filter: 'LAST_7_DAYS' as any,
       },
     });
 
   const { data: shipsData, loading: shipsLoading } = useAllianceTopShipsQuery({
     variables: {
       allianceId: parseInt(id),
-      filter: "LAST_7_DAYS" as any,
+      filter: 'LAST_7_DAYS' as any,
     },
   });
 
@@ -100,7 +96,7 @@ export default function AllianceDetailPage({
     useAllianceTopCharactersQuery({
       variables: {
         allianceId: parseInt(id),
-        filter: "LAST_7_DAYS" as any,
+        filter: 'LAST_7_DAYS' as any,
       },
     });
 
@@ -115,7 +111,7 @@ export default function AllianceDetailPage({
           orderBy: CorporationOrderBy.MemberCountDesc,
         },
       },
-      skip: activeTab !== "members",
+      skip: activeTab !== 'members',
     });
 
   // Fetch killmails when killmails tab is active
@@ -128,7 +124,7 @@ export default function AllianceDetailPage({
           limit: pageSize,
         },
       },
-      skip: activeTab !== "killmails",
+      skip: activeTab !== 'killmails',
     });
 
   // Fetch date counts for correct totals per date
@@ -138,13 +134,13 @@ export default function AllianceDetailPage({
         allianceId: parseInt(id),
       },
     },
-    skip: activeTab !== "killmails",
+    skip: activeTab !== 'killmails',
   });
 
   // Fetch growth snapshots only when growth tab is active
   const { data: growthData, loading: growthLoading } = useAllianceGrowthQuery({
     variables: { id: parseInt(id), days: 90 },
-    skip: activeTab !== "growth",
+    skip: activeTab !== 'growth',
   });
 
   // Memoize killmails array
@@ -177,13 +173,13 @@ export default function AllianceDetailPage({
   // URL sync for pagination and tab
   useEffect(() => {
     const params = new URLSearchParams();
-    params.set("tab", activeTab);
-    if (activeTab === "killmails") {
-      params.set("page", currentPage.toString());
-      params.set("pageSize", pageSize.toString());
-    } else if (activeTab === "members") {
-      params.set("page", corporationsPage.toString());
-      params.set("pageSize", corporationsPageSize.toString());
+    params.set('tab', activeTab);
+    if (activeTab === 'killmails') {
+      params.set('page', currentPage.toString());
+      params.set('pageSize', pageSize.toString());
+    } else if (activeTab === 'members') {
+      params.set('page', corporationsPage.toString());
+      params.set('pageSize', corporationsPageSize.toString());
     }
     router.push(`/alliances/${id}?${params.toString()}`, { scroll: false });
   }, [
@@ -253,11 +249,11 @@ export default function AllianceDetailPage({
   }
 
   const tabs = [
-    { id: "attributes" as TabType, label: "Attributes" },
-    { id: "killmails" as TabType, label: "Killmails" },
-    { id: "war-history" as TabType, label: "War History" },
-    { id: "members" as TabType, label: "Members" },
-    { id: "growth" as TabType, label: "Growth" },
+    { id: 'attributes' as TabType, label: 'Attributes' },
+    { id: 'killmails' as TabType, label: 'Killmails' },
+    { id: 'war-history' as TabType, label: 'War History' },
+    { id: 'members' as TabType, label: 'Members' },
+    { id: 'growth' as TabType, label: 'Growth' },
   ];
 
   // Delta verilerini al (haftalık değişim)
@@ -363,10 +359,10 @@ export default function AllianceDetailPage({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-3 text-sm font-semibold transition-colors border-b-2 cursor-pointer ${
+                className={`px-4 py-3 text-sm font-semibold transition-colors border-b-2 ${
                   activeTab === tab.id
-                    ? "border-cyan-500 text-cyan-500"
-                    : "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600"
+                    ? 'border-cyan-500 text-cyan-500'
+                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
                 }`}
               >
                 {tab.label}
@@ -377,7 +373,7 @@ export default function AllianceDetailPage({
 
         {/* Tab Content */}
         <div className="mt-6">
-          {activeTab === "attributes" && (
+          {activeTab === 'attributes' && (
             <div className="detail-tab-content">
               <h2 className="mb-4 text-2xl font-bold">Attributes</h2>
               <div className="grid grid-cols-2 gap-4">
@@ -393,7 +389,7 @@ export default function AllianceDetailPage({
                         {alliance.executor.name}
                       </Link>
                     ) : (
-                      "N/A"
+                      'N/A'
                     )}
                   </span>
                 </div>
@@ -413,7 +409,7 @@ export default function AllianceDetailPage({
                         {alliance.createdByCorporation.name}
                       </Link>
                     ) : (
-                      "N/A"
+                      'N/A'
                     )}
                   </span>
                 </div>
@@ -429,7 +425,7 @@ export default function AllianceDetailPage({
                         {alliance.createdBy.name}
                       </Link>
                     ) : (
-                      "N/A"
+                      'N/A'
                     )}
                   </span>
                 </div>
@@ -443,7 +439,7 @@ export default function AllianceDetailPage({
             </div>
           )}
 
-          {activeTab === "growth" && (
+          {activeTab === 'growth' && (
             <div className="detail-tab-content">
               <AllianceGrowthChart
                 snapshots={growthData?.alliance?.snapshots ?? []}
@@ -452,7 +448,7 @@ export default function AllianceDetailPage({
             </div>
           )}
 
-          {activeTab === "killmails" && (
+          {activeTab === 'killmails' && (
             <div className="killmails-tab">
               <div className="mb-6">
                 <h2 className="text-2xl font-bold">Killmails</h2>
@@ -502,7 +498,7 @@ export default function AllianceDetailPage({
                     title="Most Active Pilots"
                     subtitle={
                       <>
-                        Last 7 days{" "}
+                        Last 7 days{' '}
                         <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
                           ROLLING
                         </span>
@@ -517,7 +513,7 @@ export default function AllianceDetailPage({
                     title="Most Used Ships"
                     subtitle={
                       <>
-                        Last 7 days{" "}
+                        Last 7 days{' '}
                         <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
                           ROLLING
                         </span>
@@ -532,7 +528,7 @@ export default function AllianceDetailPage({
                     title="Most Killed Alliances"
                     subtitle={
                       <>
-                        Last 7 days{" "}
+                        Last 7 days{' '}
                         <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
                           ROLLING
                         </span>
@@ -549,7 +545,7 @@ export default function AllianceDetailPage({
                     title="Most Killed Corporations"
                     subtitle={
                       <>
-                        Last 7 days{" "}
+                        Last 7 days{' '}
                         <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
                           ROLLING
                         </span>
@@ -566,7 +562,7 @@ export default function AllianceDetailPage({
                     title="Most Killed Ships"
                     subtitle={
                       <>
-                        Last 7 days{" "}
+                        Last 7 days{' '}
                         <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
                           ROLLING
                         </span>
@@ -581,7 +577,7 @@ export default function AllianceDetailPage({
             </div>
           )}
 
-          {activeTab === "war-history" && (
+          {activeTab === 'war-history' && (
             <div className="detail-tab-content">
               <h2 className="mb-4 text-2xl font-bold">War History</h2>
               <p className="text-gray-300">
@@ -590,7 +586,7 @@ export default function AllianceDetailPage({
             </div>
           )}
 
-          {activeTab === "members" && (
+          {activeTab === 'members' && (
             <div className="alliance-corporations-tab">
               <div className="sm:flex-auto">
                 <h1 className="flex items-center gap-3 text-3xl font-semibold text-white">
@@ -602,7 +598,7 @@ export default function AllianceDetailPage({
                 </p>
                 {corporationsPageInfo?.totalCount !== undefined && (
                   <p className="mt-1 text-sm text-gray-400">
-                    Total: {corporationsPageInfo.totalCount.toLocaleString()}{" "}
+                    Total: {corporationsPageInfo.totalCount.toLocaleString()}{' '}
                     corporations
                   </p>
                 )}

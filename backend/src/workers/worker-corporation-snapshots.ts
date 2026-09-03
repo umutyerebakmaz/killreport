@@ -33,21 +33,32 @@ async function takeCorporationSnapshots() {
       select: { corporation_id: true },
     });
 
-    const existingCorporationIds = new Set(existingSnapshots.map((s) => s.corporation_id));
-    logger.info(`✓ Found ${existingCorporationIds.size} existing snapshots for today`);
+    const existingCorporationIds = new Set(
+      existingSnapshots.map((s) => s.corporation_id),
+    );
+    logger.info(
+      `✓ Found ${existingCorporationIds.size} existing snapshots for today`,
+    );
 
     // Filter corporations that need snapshots
-    const corporationsToSnapshot = corporations.filter((c) => !existingCorporationIds.has(c.id));
+    const corporationsToSnapshot = corporations.filter(
+      (c) => !existingCorporationIds.has(c.id),
+    );
 
     if (corporationsToSnapshot.length === 0) {
       logger.info('✅ All corporations already have snapshots for today!');
-      const duration = ((new Date().getTime() - startTime.getTime()) / 1000).toFixed(2);
+      const duration = (
+        (new Date().getTime() - startTime.getTime()) /
+        1000
+      ).toFixed(2);
       logger.info(`   • Duration: ${duration} seconds`);
       logger.info(`   • Date: ${today.toISOString().split('T')[0]}`);
       return;
     }
 
-    logger.info(`📝 Creating ${corporationsToSnapshot.length} new snapshots...`);
+    logger.info(
+      `📝 Creating ${corporationsToSnapshot.length} new snapshots...`,
+    );
 
     // Prepare snapshot data
     const snapshotsData = corporationsToSnapshot.map((corp) => ({
@@ -71,11 +82,15 @@ async function takeCorporationSnapshots() {
       created += batch.length;
 
       const progress = Math.round((created / snapshotsData.length) * 100);
-      logger.info(`  ⏳ Progress: ${created}/${snapshotsData.length} (${progress}%)`);
+      logger.info(
+        `  ⏳ Progress: ${created}/${snapshotsData.length} (${progress}%)`,
+      );
     }
 
     const endTime = new Date();
-    const duration = ((endTime.getTime() - startTime.getTime()) / 1000).toFixed(2);
+    const duration = ((endTime.getTime() - startTime.getTime()) / 1000).toFixed(
+      2,
+    );
 
     logger.info(`✅ Snapshot creation completed!`);
     logger.info(`   • Total corporations: ${corporations.length}`);
@@ -83,7 +98,6 @@ async function takeCorporationSnapshots() {
     logger.info(`   • Already existing: ${existingCorporationIds.size}`);
     logger.info(`   • Duration: ${duration} seconds`);
     logger.info(`   • Date: ${today.toISOString().split('T')[0]}`);
-
   } catch (error) {
     logger.error('❌ Snapshot creation error:', error);
     throw error;

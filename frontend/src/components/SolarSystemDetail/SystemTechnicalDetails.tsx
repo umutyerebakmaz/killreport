@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 const METRES_PER_AU = 149_597_870_700;
 
@@ -28,17 +28,17 @@ export default function SystemTechnicalDetails({
 }: SystemTechnicalDetailsProps) {
   return (
     <details className="p-6 border bg-white/5 border-white/10">
-      <summary className="text-sm font-semibold tracking-wide text-gray-300 uppercase cursor-pointer">
+      <summary className="text-sm font-semibold tracking-wide text-gray-300 uppercase">
         Technical details
       </summary>
       <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 mt-4 text-sm">
         <Row label="System ID" value={String(systemId)} />
-        <Row label="Star ID" value={starId != null ? String(starId) : "—"} />
+        <Row label="Star ID" value={starId != null ? String(starId) : '—'} />
         {/* Wormhole systems have no security class; the dash is a real case. */}
-        <Row label="Security class" value={securityClass ?? "—"} />
+        <Row label="Security class" value={securityClass ?? '—'} />
         <Row
           label="Security status"
-          value={securityStatus != null ? securityStatus.toFixed(10) : "—"}
+          value={securityStatus != null ? securityStatus.toFixed(10) : '—'}
         />
         {position && (
           <>

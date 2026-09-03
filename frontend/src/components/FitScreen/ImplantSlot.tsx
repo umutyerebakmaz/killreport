@@ -1,5 +1,5 @@
-import { getItemImageUrl } from "@/utils/itemImageUrl";
-import Tooltip from "../Tooltip/Tooltip";
+import { getItemImageUrl } from '@/utils/itemImageUrl';
+import Tooltip from '../Tooltip/Tooltip';
 
 interface ImplantSlotProps {
   slots: any[];

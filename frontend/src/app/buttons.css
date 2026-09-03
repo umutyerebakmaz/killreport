@@ -1,5 +1,5 @@
 .button {
-  @apply inline-flex items-center gap-x-1.5 px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 border cursor-pointer bg-gray-900/70 border-gray-700/70 shadow-sm hover:bg-gray-800/80 hover:border-white/5 focus:outline-none focus:ring-2 focus:ring-white/5 focus:border-white/5;
+  @apply inline-flex items-center gap-x-1.5 px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 border bg-gray-900/70 border-gray-700/70 shadow-sm hover:bg-gray-800/80 hover:border-white/5 focus:outline-none focus:ring-2 focus:ring-white/5 focus:border-white/5;
 }
 
 .active-filter-button {
@@ -18,9 +18,23 @@
 }
 
 .apply-filter-button {
-  @apply inline-flex justify-center items-center gap-x-1.5 bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors cursor-pointer;
+  @apply inline-flex justify-center items-center gap-x-1.5 bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors;
 }
 
 .clear-filter-button {
-  @apply inline-flex items-center gap-x-1.5 bg-red-600/20 border border-red-500/30 px-3 py-2.5 text-sm font-medium text-red-400 hover:bg-red-600/30 transition-colors cursor-pointer;
+  @apply inline-flex items-center gap-x-1.5 bg-red-600/20 border border-red-500/30 px-3 py-2.5 text-sm font-medium text-red-400 hover:bg-red-600/30 transition-colors;
+}
+
+/*
+ * Browsers give <button> the arrow cursor, so the pointer has to be asked for.
+ * It was being asked for one element at a time and 24 of the 85 buttons in the
+ * app had been missed, so it is set once here instead. Disabled buttons keep
+ * the arrow, and a `cursor-not-allowed` utility still wins over this rule.
+ */
+@layer base {
+  button:not(:disabled),
+  [role='button']:not(:disabled),
+  summary {
+    cursor: pointer;
+  }
 }

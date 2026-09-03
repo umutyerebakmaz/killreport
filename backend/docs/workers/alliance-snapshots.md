@@ -228,7 +228,7 @@ const snapshot7d = await prisma.allianceSnapshot.findFirst({
     alliance_id: allianceId,
     snapshot_date: { lte: date7dAgo },
   },
-  orderBy: { snapshot_date: "desc" },
+  orderBy: { snapshot_date: 'desc' },
 });
 
 // Calculate delta (difference)
@@ -255,7 +255,7 @@ await prisma.allianceSnapshot.create({
     alliance_id: 99003214,
     member_count: 30523,
     corporation_count: 150,
-    snapshot_date: new Date("2025-11-08"),
+    snapshot_date: new Date('2025-11-08'),
   },
 });
 
@@ -265,12 +265,12 @@ const existing = await prisma.allianceSnapshot.findUnique({
   where: {
     alliance_id_snapshot_date: {
       alliance_id: 99003214,
-      snapshot_date: new Date("2025-11-08"),
+      snapshot_date: new Date('2025-11-08'),
     },
   },
 });
 if (existing) {
-  console.log("Snapshot already exists, skipping...");
+  console.log('Snapshot already exists, skipping...');
 }
 ```
 
@@ -346,13 +346,13 @@ const memberGrowthRate30d = alliance.metrics?.memberCountGrowthRate30d ?? null;
 
 // Color coding: Green for growth, Red for decline
 const deltaColor =
-  memberDelta30d && memberDelta30d >= 0 ? "text-green-400" : "text-red-400";
+  memberDelta30d && memberDelta30d >= 0 ? 'text-green-400' : 'text-red-400';
 
 // Display with icon
 <div className={deltaColor}>
   <ArrowTrendingUpIcon className="w-5 h-5" />
   <span>
-    {memberDelta30d >= 0 ? "+" : ""}
+    {memberDelta30d >= 0 ? '+' : ''}
     {memberDelta30d}
   </span>
   {memberGrowthRate30d && (
@@ -424,8 +424,8 @@ CREATE UNIQUE INDEX idx_alliance_snapshots_unique ON alliance_snapshots(alliance
 const snapshots = await prisma.allianceSnapshot.findMany({
   where: {
     snapshot_date: {
-      gte: new Date("2025-10-01"),
-      lte: new Date("2025-11-08"),
+      gte: new Date('2025-10-01'),
+      lte: new Date('2025-11-08'),
     },
   },
 });
@@ -518,7 +518,7 @@ const current = await prisma.corporation.aggregate({
   where: { alliance_id: 99003214 },
   _sum: { member_count: true },
 });
-console.log("Current:", current._sum.member_count);
+console.log('Current:', current._sum.member_count);
 
 // Check 7-day snapshot
 const snapshot = await prisma.allianceSnapshot.findFirst({
@@ -526,9 +526,9 @@ const snapshot = await prisma.allianceSnapshot.findFirst({
     alliance_id: 99003214,
     snapshot_date: { lte: date7dAgo },
   },
-  orderBy: { snapshot_date: "desc" },
+  orderBy: { snapshot_date: 'desc' },
 });
-console.log("7 days ago:", snapshot?.member_count);
+console.log('7 days ago:', snapshot?.member_count);
 ```
 
 ## 🚀 Future Improvements

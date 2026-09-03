@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useActiveUsersUpdatesSubscription } from "@/generated/graphql";
-import { UsersIcon } from "@heroicons/react/24/solid";
-import { useEffect, useState } from "react";
-import Tooltip from "./Tooltip/Tooltip";
+import { useActiveUsersUpdatesSubscription } from '@/generated/graphql';
+import { UsersIcon } from '@heroicons/react/24/solid';
+import { useEffect, useState } from 'react';
+import Tooltip from './Tooltip/Tooltip';
 
 export default function ActiveUsersCounter() {
   const [count, setCount] = useState<number>(0);
@@ -22,7 +22,7 @@ export default function ActiveUsersCounter() {
   }, [data]);
 
   if (error) {
-    console.error("Active users subscription error:", error);
+    console.error('Active users subscription error:', error);
     return null;
   }
 

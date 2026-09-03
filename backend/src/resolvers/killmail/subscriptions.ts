@@ -13,7 +13,10 @@ export const killmailSubscriptions: SubscriptionResolvers = {
       return pubsub.subscribe('NEW_KILLMAIL');
     },
     resolve: async (payload: { killmailId: number }) => {
-      console.log('📨 Resolving NEW_KILLMAIL for killmail_id:', payload.killmailId);
+      console.log(
+        '📨 Resolving NEW_KILLMAIL for killmail_id:',
+        payload.killmailId,
+      );
 
       // Fetch only killmail data - field resolvers will handle relations
       const killmail = await prisma.killmail.findUnique({
@@ -29,7 +32,7 @@ export const killmailSubscriptions: SubscriptionResolvers = {
           dropped_value: true,
           attacker_count: true,
           is_war_related: true,
-        }
+        },
       });
 
       if (!killmail) {

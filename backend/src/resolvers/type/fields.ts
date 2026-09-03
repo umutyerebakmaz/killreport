@@ -46,9 +46,9 @@ export const typeFields: TypeResolvers = {
       const attributes = await prisma.typeDogmaAttribute.findMany({
         where: {
           type_id: prismaType.id,
-          attribute_id: { in: args.ids }
+          attribute_id: { in: args.ids },
         },
-        include: { attribute: true }
+        include: { attribute: true },
       });
 
       return attributes.map((attr) => ({
@@ -73,7 +73,9 @@ export const typeFields: TypeResolvers = {
     }
 
     // ids yoksa DataLoader kullan (N+1 prevention)
-    const attributes = await context.loaders.typeDogmaAttributes.load(prismaType.id);
+    const attributes = await context.loaders.typeDogmaAttributes.load(
+      prismaType.id,
+    );
 
     return attributes.map((attr: any) => ({
       type_id: attr.type_id,
@@ -104,9 +106,9 @@ export const typeFields: TypeResolvers = {
       const effects = await prisma.typeDogmaEffect.findMany({
         where: {
           type_id: prismaType.id,
-          effect_id: { in: args.ids }
+          effect_id: { in: args.ids },
         },
-        include: { effect: true }
+        include: { effect: true },
       });
 
       return effects.map((eff) => ({

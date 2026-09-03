@@ -68,7 +68,9 @@ async function itemGroupInfoWorker() {
         if (timeSinceLastMessage > 5000 && totalProcessed > 0) {
           logger.info('\n' + '━'.repeat(60));
           logger.info('✅ Queue completed!');
-          logger.info(`📊 Final: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)`);
+          logger.info(
+            `📊 Final: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)`,
+          );
           logger.info('━'.repeat(60) + '\n');
           logger.info('⏳ Waiting for new messages...\n');
         }
@@ -91,7 +93,8 @@ async function itemGroupInfoWorker() {
             });
 
             // Fetch from ESI (her zaman güncel bilgiyi al)
-            const itemGroupInfo = await ItemGroupService.getItemGroupInfo(itemGroupId);
+            const itemGroupInfo =
+              await ItemGroupService.getItemGroupInfo(itemGroupId);
 
             // Save to database (upsert to prevent race condition)
             await prismaWorker.itemGroup.upsert({
@@ -113,12 +116,12 @@ async function itemGroupInfoWorker() {
             if (existing) {
               totalUpdated++;
               logger.info(
-                `  ✅ [${totalProcessed + 1}] ${itemGroupInfo.name} ID:${itemGroupId} (updated)`
+                `  ✅ [${totalProcessed + 1}] ${itemGroupInfo.name} ID:${itemGroupId} (updated)`,
               );
             } else {
               totalCreated++;
               logger.info(
-                `  ✅ [${totalProcessed + 1}] ${itemGroupInfo.name} ID:${itemGroupId} (created)`
+                `  ✅ [${totalProcessed + 1}] ${itemGroupInfo.name} ID:${itemGroupId} (created)`,
               );
             }
 
@@ -127,7 +130,9 @@ async function itemGroupInfoWorker() {
 
             // Progress her 100 mesajda bir
             if (totalProcessed % 100 === 0) {
-              logger.info(`\n📊 Progress: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)\n`);
+              logger.info(
+                `\n📊 Progress: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)\n`,
+              );
             }
           } catch (error: any) {
             totalErrors++;
@@ -135,7 +140,9 @@ async function itemGroupInfoWorker() {
 
             // ESI 404 hatası alınırsa (item group bulunamadı), mesajı sil
             if (error.response?.status === 404) {
-              logger.warn('  ⚠️  Item group not found in ESI, removing from queue');
+              logger.warn(
+                '  ⚠️  Item group not found in ESI, removing from queue',
+              );
               channel.ack(msg);
             } else {
               // Diğer hatalar için requeue et
@@ -143,7 +150,7 @@ async function itemGroupInfoWorker() {
             }
           }
         },
-        { noAck: false }
+        { noAck: false },
       );
 
       // Wait indefinitely unless connection fails
@@ -151,7 +158,6 @@ async function itemGroupInfoWorker() {
         channel.on('error', reject);
         channel.on('close', reject);
       });
-
     } catch (error: any) {
       if (isShuttingDown) {
         logger.info('Worker stopped during shutdown');
@@ -167,7 +173,7 @@ async function itemGroupInfoWorker() {
 
       // Wait before reconnecting
       logger.info('🔄 Reconnecting in 5 seconds...');
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
     }
   }
 

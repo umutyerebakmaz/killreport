@@ -688,6 +688,18 @@ export type Moon = {
   solarSystem?: Maybe<SolarSystem>;
 };
 
+/** Which losses a Most Valuable shelf ranks. Always the victim's hull. */
+export enum MostValuableScope {
+  /** Carriers, dreadnoughts, supercarriers, titans, FAXes, capital industrials. */
+  Capitals = 'CAPITALS',
+  /** Everything except structures and pods. Capitals are included. */
+  Ships = 'SHIPS',
+  /** Kills with a single attacker, excluding structures and pods. */
+  Solo = 'SOLO',
+  /** Citadels, engineering complexes, refineries and starbases. */
+  Structures = 'STRUCTURES'
+}
+
 export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
@@ -910,6 +922,11 @@ export type Query = {
   mostAggressiveAlliances: Array<AllianceActivityRank>;
   /** Alliances ranked by campaigns currently defending (most defensive first). */
   mostDefensiveAlliances: Array<AllianceActivityRank>;
+  /**
+   * Top killmails by ISK value in a trailing window, most valuable first.
+   * Scope is matched against the victim's hull, never an attacker's.
+   */
+  mostValuableKillmails: Array<Killmail>;
   race?: Maybe<Race>;
   races: Array<Race>;
   /** Most recently detected territory ownership changes. */
@@ -1171,6 +1188,13 @@ export type QueryMostAggressiveAlliancesArgs = {
 
 export type QueryMostDefensiveAlliancesArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryMostValuableKillmailsArgs = {
+  days?: InputMaybe<Scalars['Int']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  scope: MostValuableScope;
 };
 
 
@@ -2261,6 +2285,7 @@ export type ResolversTypes = {
   KillmailOrderBy: KillmailOrderBy;
   KillmailsResponse: ResolverTypeWrapper<KillmailsResponse>;
   Moon: ResolverTypeWrapper<Moon>;
+  MostValuableScope: MostValuableScope;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   PageInfo: ResolverTypeWrapper<PageInfo>;
   Planet: ResolverTypeWrapper<Planet>;
@@ -3017,6 +3042,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   mostAggressiveAlliances?: Resolver<Array<ResolversTypes['AllianceActivityRank']>, ParentType, ContextType, Partial<QueryMostAggressiveAlliancesArgs>>;
   mostDefensiveAlliances?: Resolver<Array<ResolversTypes['AllianceActivityRank']>, ParentType, ContextType, Partial<QueryMostDefensiveAlliancesArgs>>;
+  mostValuableKillmails?: Resolver<Array<ResolversTypes['Killmail']>, ParentType, ContextType, RequireFields<QueryMostValuableKillmailsArgs, 'days' | 'limit' | 'scope'>>;
   race?: Resolver<Maybe<ResolversTypes['Race']>, ParentType, ContextType, RequireFields<QueryRaceArgs, 'id'>>;
   races?: Resolver<Array<ResolversTypes['Race']>, ParentType, ContextType>;
   recentTerritoryChanges?: Resolver<Array<ResolversTypes['TerritoryChange']>, ParentType, ContextType, Partial<QueryRecentTerritoryChangesArgs>>;

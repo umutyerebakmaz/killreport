@@ -35,7 +35,9 @@ async function queueAllianceCorporations() {
 
     if (alliances.length === 0) {
       logger.warn('No alliances found in database');
-      logger.info('Run yarn queue:alliances and yarn worker:info:alliances first');
+      logger.info(
+        'Run yarn queue:alliances and yarn worker:info:alliances first',
+      );
       process.exit(0);
     }
 
@@ -67,14 +69,10 @@ async function queueAllianceCorporations() {
           source: 'esi_alliance_corporations_queue',
         };
 
-        channel.sendToQueue(
-          QUEUE_NAME,
-          Buffer.from(JSON.stringify(message)),
-          {
-            persistent: true,
-            priority: 5,
-          }
-        );
+        channel.sendToQueue(QUEUE_NAME, Buffer.from(JSON.stringify(message)), {
+          persistent: true,
+          priority: 5,
+        });
 
         queuedCount++;
       }
@@ -82,7 +80,7 @@ async function queueAllianceCorporations() {
       const batchNum = Math.floor(i / BATCH_SIZE) + 1;
       const totalBatches = Math.ceil(alliances.length / BATCH_SIZE);
       logger.debug(
-        `Batch ${batchNum}/${totalBatches}: ${batch.length} alliances queued`
+        `Batch ${batchNum}/${totalBatches}: ${batch.length} alliances queued`,
       );
     }
 

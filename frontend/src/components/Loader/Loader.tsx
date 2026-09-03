@@ -1,9 +1,9 @@
-import Lottie from "lottie-react";
-import React, { useEffect, useState } from "react";
+import Lottie from 'lottie-react';
+import React, { useEffect, useState } from 'react';
 
 interface LoaderProps {
   /** Size of the spinner (default: md) */
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   /** Optional text message to display */
   text?: string;
   /** Whether to center in full height container (default: false) */
@@ -13,17 +13,17 @@ interface LoaderProps {
 }
 
 const sizeClasses = {
-  sm: "w-4 h-4 border-2",
-  md: "w-6 h-6 border-2",
-  lg: "w-8 h-8 border-4",
-  xl: "w-12 h-12 border-4",
+  sm: 'w-4 h-4 border-2',
+  md: 'w-6 h-6 border-2',
+  lg: 'w-8 h-8 border-4',
+  xl: 'w-12 h-12 border-4',
 };
 
 const textSizeClasses = {
-  sm: "text-sm",
-  md: "text-base",
-  lg: "text-lg",
-  xl: "text-xl",
+  sm: 'text-sm',
+  md: 'text-base',
+  lg: 'text-lg',
+  xl: 'text-xl',
 };
 
 const lottieSize = {
@@ -34,24 +34,24 @@ const lottieSize = {
 };
 
 export const Loader: React.FC<LoaderProps> = ({
-  size = "md",
+  size = 'md',
   text,
   fullHeight = false,
-  className = "",
+  className = '',
 }) => {
   const [animationData, setAnimationData] = useState<any>(null);
   const [lottieError, setLottieError] = useState(false);
 
   useEffect(() => {
-    fetch("/animations/loader.json")
+    fetch('/animations/loader.json')
       .then((response) => response.json())
       .then((data) => setAnimationData(data))
       .catch(() => setLottieError(true));
   }, []);
 
   const containerClasses = fullHeight
-    ? "flex items-center justify-center min-h-screen"
-    : "flex items-center justify-center";
+    ? 'flex items-center justify-center min-h-screen'
+    : 'flex items-center justify-center';
 
   return (
     <div className={`${containerClasses} ${className}`}>

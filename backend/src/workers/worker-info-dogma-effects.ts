@@ -74,7 +74,7 @@ async function dogmaEffectInfoWorker() {
           logger.info('\n' + '━'.repeat(60));
           logger.info('✅ Queue completed!');
           logger.info(
-            `📊 Final: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`
+            `📊 Final: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`,
           );
           logger.info('━'.repeat(60) + '\n');
           logger.info('⏳ Waiting for new messages...\n');
@@ -87,7 +87,9 @@ async function dogmaEffectInfoWorker() {
           if (msg) lastMessageTime = Date.now();
           if (!msg) return;
 
-          const message: EntityQueueMessage = JSON.parse(msg.content.toString());
+          const message: EntityQueueMessage = JSON.parse(
+            msg.content.toString(),
+          );
           const effectId = message.entityId;
 
           try {
@@ -102,7 +104,9 @@ async function dogmaEffectInfoWorker() {
               channel.ack(msg);
               totalSkipped++;
               totalProcessed++;
-              logger.info(`  - [${totalProcessed}] Effect ${effectId} (exists)`);
+              logger.info(
+                `  - [${totalProcessed}] Effect ${effectId} (exists)`,
+              );
               return;
             }
 
@@ -133,12 +137,12 @@ async function dogmaEffectInfoWorker() {
             channel.ack(msg);
             totalProcessed++;
             logger.info(
-              `  ✓ [${totalProcessed}] ${effectInfo.name} (${effectInfo.display_name || 'N/A'})`
+              `  ✓ [${totalProcessed}] ${effectInfo.name} (${effectInfo.display_name || 'N/A'})`,
             );
 
             if (totalProcessed % 100 === 0) {
               logger.info(
-                `📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`
+                `📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`,
               );
             }
           } catch (error: any) {
@@ -146,23 +150,25 @@ async function dogmaEffectInfoWorker() {
             totalProcessed++;
 
             if (error.message?.includes('404')) {
-              logger.warn(`  ! [${totalProcessed}] Effect ${message.entityId} (404)`);
+              logger.warn(
+                `  ! [${totalProcessed}] Effect ${message.entityId} (404)`,
+              );
               channel.ack(msg);
             } else {
               logger.error(
-                `  × [${totalProcessed}] Effect ${message.entityId}: ${error.message}`
+                `  × [${totalProcessed}] Effect ${message.entityId}: ${error.message}`,
               );
               channel.nack(msg, false, true);
             }
 
             if (totalProcessed % 100 === 0) {
               logger.info(
-                `📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`
+                `📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`,
               );
             }
           }
         },
-        { noAck: false }
+        { noAck: false },
       );
 
       // Wait indefinitely unless connection fails
@@ -170,7 +176,6 @@ async function dogmaEffectInfoWorker() {
         channel.on('error', reject);
         channel.on('close', reject);
       });
-
     } catch (error: any) {
       if (isShuttingDown) {
         logger.info('Worker stopped during shutdown');
@@ -186,7 +191,7 @@ async function dogmaEffectInfoWorker() {
 
       // Wait before reconnecting
       logger.info('🔄 Reconnecting in 5 seconds...');
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
     }
   }
 

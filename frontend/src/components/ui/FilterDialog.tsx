@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
-import { XMarkIcon } from "@heroicons/react/24/outline";
-import { ReactNode } from "react";
+import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
+import { XMarkIcon } from '@heroicons/react/24/outline';
+import { ReactNode } from 'react';
 
 export interface FilterDialogProps {
   open: boolean;
@@ -25,7 +25,7 @@ export interface FilterDialogProps {
 export default function FilterDialog({
   open,
   onClose,
-  title = "Advanced Filters",
+  title = 'Advanced Filters',
   children,
   footer,
 }: FilterDialogProps) {
@@ -42,7 +42,7 @@ export default function FilterDialog({
             <button
               type="button"
               onClick={onClose}
-              className="p-1 text-gray-400 transition-colors cursor-pointer hover:text-white"
+              className="p-1 text-gray-400 transition-colors hover:text-white"
             >
               <span className="sr-only">Close filters</span>
               <XMarkIcon aria-hidden="true" className="size-6" />

@@ -48,11 +48,17 @@ function ownerOf(x: {
 }
 
 function isOwned(o: Owner): boolean {
-  return o.alliance_id !== null || o.corporation_id !== null || o.faction_id !== null;
+  return (
+    o.alliance_id !== null || o.corporation_id !== null || o.faction_id !== null
+  );
 }
 
 function sameOwner(a: Owner, b: Owner): boolean {
-  return a.alliance_id === b.alliance_id && a.corporation_id === b.corporation_id && a.faction_id === b.faction_id;
+  return (
+    a.alliance_id === b.alliance_id &&
+    a.corporation_id === b.corporation_id &&
+    a.faction_id === b.faction_id
+  );
 }
 
 function changeType(prev: Owner | null, next: Owner | null): string {
@@ -75,7 +81,7 @@ async function syncSovereigntyMap() {
     // Load current ownership state
     const existingRows = await prismaWorker.sovereigntyMapCurrent.findMany();
     const existing = new Map<number, Owner>(
-      existingRows.map((r) => [r.solar_system_id, ownerOf(r)])
+      existingRows.map((r) => [r.solar_system_id, ownerOf(r)]),
     );
     const isInitialPopulation = existing.size === 0;
 
@@ -154,8 +160,8 @@ async function syncSovereigntyMap() {
             where: { solar_system_id },
             create: { solar_system_id, ...owner },
             update: owner,
-          })
-        )
+          }),
+        ),
       );
     }
 
@@ -169,9 +175,9 @@ async function syncSovereigntyMap() {
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     logger.info(
       `✅ Map sync complete: ${fetchedOwned.size} owned systems, ` +
-      `${toUpsert.length} updated, ${toDelete.length} lost, ` +
-      `${changes.length} territory changes logged` +
-      `${isInitialPopulation ? ' (initial baseline — changes not logged)' : ''} (${duration}s)`
+        `${toUpsert.length} updated, ${toDelete.length} lost, ` +
+        `${changes.length} territory changes logged` +
+        `${isInitialPopulation ? ' (initial baseline — changes not logged)' : ''} (${duration}s)`,
     );
   } catch (error) {
     logger.error('❌ Sovereignty map sync failed', { error });

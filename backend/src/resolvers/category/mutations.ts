@@ -39,7 +39,9 @@ export const categoryMutations: MutationResolvers = {
         publishedCount++;
       }
 
-      console.log(`✅ All ${categoryIds.length} categories queued successfully!`);
+      console.log(
+        `✅ All ${categoryIds.length} categories queued successfully!`,
+      );
       return {
         success: true,
         message: `${categoryIds.length} categories queued successfully`,

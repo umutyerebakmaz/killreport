@@ -1,15 +1,15 @@
-import Tooltip from "@/components/Tooltip/Tooltip";
-import Card from "@/components/ui/Card";
-import { CorporationsQuery } from "@/generated/graphql";
-import { BuildingOffice2Icon } from "@heroicons/react/24/outline";
-import Image from "next/image";
-import Link from "next/link";
-import { useState } from "react";
-import MemberDeltaBadge from "../MemberDeltaBadge/MemberDeltaBadge";
-import TotalMemberBadge from "../TotalMemberBadge/TotalMemberBadge";
+import Tooltip from '@/components/Tooltip/Tooltip';
+import Card from '@/components/ui/Card';
+import { CorporationsQuery } from '@/generated/graphql';
+import { BuildingOffice2Icon } from '@heroicons/react/24/outline';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useState } from 'react';
+import MemberDeltaBadge from '../MemberDeltaBadge/MemberDeltaBadge';
+import TotalMemberBadge from '../TotalMemberBadge/TotalMemberBadge';
 
 // useCorporationsQuery'nin döndüğü Corporation type'ını extract et
-type Corporation = CorporationsQuery["corporations"]["items"][number];
+type Corporation = CorporationsQuery['corporations']['items'][number];
 
 type CorporationCardProps = {
   corporation: Corporation;
@@ -25,33 +25,33 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
 
   // Delta rengi belirle
   const deltaColor =
-    memberDelta7d && memberDelta7d >= 0 ? "text-green-400" : "text-red-400";
+    memberDelta7d && memberDelta7d >= 0 ? 'text-green-400' : 'text-red-400';
 
   // Tooltip içeriği
   const tooltipContent =
     memberDelta7d !== null
       ? `Member Change (7 Days): ${
-          memberDelta7d >= 0 ? "+" : ""
+          memberDelta7d >= 0 ? '+' : ''
         }${memberDelta7d}${
           memberGrowthRate7d !== null
             ? ` (${
-                memberGrowthRate7d >= 0 ? "+" : ""
+                memberGrowthRate7d >= 0 ? '+' : ''
               }${memberGrowthRate7d.toFixed(1)}%)`
-            : ""
+            : ''
         }`
-      : "No data available";
+      : 'No data available';
 
   // Date founded'ı formatla
   const foundedDate = corporation.date_founded
-    ? new Date(corporation.date_founded).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
+    ? new Date(corporation.date_founded).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
       })
-    : "Unknown";
+    : 'Unknown';
 
   return (
-    <Card padded={false}>
+    <Card>
       <div className="px-4 py-5 sm:p-6">
         <div className="flex flex-col items-center gap-4">
           <div className="relative w-32 h-32">
@@ -68,7 +68,7 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
               width={128}
               height={128}
               className={`transition-opacity duration-300 ${
-                imageLoaded ? "opacity-100" : "opacity-0"
+                imageLoaded ? 'opacity-100' : 'opacity-0'
               }`}
               onLoad={() => setImageLoaded(true)}
               unoptimized

@@ -1,19 +1,19 @@
-"use client";
+'use client';
 
-import CorporationCard from "@/components/Card/CorporationCard";
-import CorporationFilters from "@/components/Filters/CorporationFilters";
-import Loader from "@/components/Loader";
-import Paginator from "@/components/Paginator/Paginator";
-import { useCorporationsQuery } from "@/generated/graphql";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import CorporationCard from '@/components/Card/CorporationCard';
+import CorporationFilters from '@/components/Filters/CorporationFilters';
+import Loader from '@/components/Loader';
+import Paginator from '@/components/Paginator/Paginator';
+import { useCorporationsQuery } from '@/generated/graphql';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 
 function CorporationsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const pageFromUrl = Number(searchParams.get("page")) || 1;
-  const orderByFromUrl = searchParams.get("orderBy") || "memberCountDesc";
+  const pageFromUrl = Number(searchParams.get('page')) || 1;
+  const orderByFromUrl = searchParams.get('orderBy') || 'memberCountDesc';
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(25);
   const [orderBy, setOrderBy] = useState<string>(orderByFromUrl);
@@ -38,8 +38,8 @@ function CorporationsContent() {
 
   // URL'deki parametreler değiştiğinde state'i güncelle
   useEffect(() => {
-    const urlPage = Number(searchParams.get("page")) || 1;
-    const urlOrderBy = searchParams.get("orderBy") || "memberCountDesc";
+    const urlPage = Number(searchParams.get('page')) || 1;
+    const urlOrderBy = searchParams.get('orderBy') || 'memberCountDesc';
     if (urlPage !== currentPage) {
       setCurrentPage(urlPage);
     }
@@ -50,12 +50,12 @@ function CorporationsContent() {
 
   // currentPage veya orderBy değiştiğinde URL'i güncelle
   useEffect(() => {
-    const urlPage = Number(searchParams.get("page")) || 1;
-    const urlOrderBy = searchParams.get("orderBy") || "memberCountDesc";
+    const urlPage = Number(searchParams.get('page')) || 1;
+    const urlOrderBy = searchParams.get('orderBy') || 'memberCountDesc';
     if (currentPage !== urlPage || orderBy !== urlOrderBy) {
       const params = new URLSearchParams();
-      params.set("page", currentPage.toString());
-      params.set("orderBy", orderBy);
+      params.set('page', currentPage.toString());
+      params.set('orderBy', orderBy);
       router.push(`/corporations?${params.toString()}`, { scroll: false });
     }
   }, [currentPage, orderBy]);

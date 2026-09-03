@@ -33,8 +33,12 @@ async function takeAllianceSnapshots() {
       select: { alliance_id: true },
     });
 
-    const existingAllianceIds = new Set(existingSnapshots.map((s) => s.alliance_id));
-    logger.info(`✓ Found ${existingAllianceIds.size} existing snapshots for today`);
+    const existingAllianceIds = new Set(
+      existingSnapshots.map((s) => s.alliance_id),
+    );
+    logger.info(
+      `✓ Found ${existingAllianceIds.size} existing snapshots for today`,
+    );
 
     // Filter alliances that need snapshots
     const allianceIds = alliances
@@ -43,7 +47,10 @@ async function takeAllianceSnapshots() {
 
     if (allianceIds.length === 0) {
       logger.info('✅ All alliances already have snapshots for today!');
-      const duration = ((new Date().getTime() - startTime.getTime()) / 1000).toFixed(2);
+      const duration = (
+        (new Date().getTime() - startTime.getTime()) /
+        1000
+      ).toFixed(2);
       logger.info(`   • Duration: ${duration} seconds`);
       logger.info(`   • Date: ${today.toISOString().split('T')[0]}`);
       return;
@@ -60,10 +67,15 @@ async function takeAllianceSnapshots() {
       },
     });
 
-    logger.info(`✓ Found ${corporations.length} corporations across ${allianceIds.length} alliances`);
+    logger.info(
+      `✓ Found ${corporations.length} corporations across ${allianceIds.length} alliances`,
+    );
 
     // Group corporations by alliance_id and calculate stats in JavaScript
-    const allianceStats = new Map<number, { corporationCount: number; memberCount: number }>();
+    const allianceStats = new Map<
+      number,
+      { corporationCount: number; memberCount: number }
+    >();
 
     // Initialize all alliances with 0 values (for alliances with no corporations)
     allianceIds.forEach((id) => {
@@ -82,14 +94,18 @@ async function takeAllianceSnapshots() {
     });
 
     // Prepare snapshot data
-    const snapshotsData = Array.from(allianceStats.entries()).map(([allianceId, stats]) => ({
-      alliance_id: allianceId,
-      member_count: stats.memberCount,
-      corporation_count: stats.corporationCount,
-      snapshot_date: today,
-    }));
+    const snapshotsData = Array.from(allianceStats.entries()).map(
+      ([allianceId, stats]) => ({
+        alliance_id: allianceId,
+        member_count: stats.memberCount,
+        corporation_count: stats.corporationCount,
+        snapshot_date: today,
+      }),
+    );
 
-    logger.info(`📊 Stats calculated, creating ${snapshotsData.length} snapshots...`);
+    logger.info(
+      `📊 Stats calculated, creating ${snapshotsData.length} snapshots...`,
+    );
 
     // Batch create snapshots in chunks of 500
     const BATCH_SIZE = 500;
@@ -106,7 +122,9 @@ async function takeAllianceSnapshots() {
       created += batch.length;
 
       const progress = Math.round((created / snapshotsData.length) * 100);
-      logger.info(`  ⏳ Progress: ${created}/${snapshotsData.length} (${progress}%)`);
+      logger.info(
+        `  ⏳ Progress: ${created}/${snapshotsData.length} (${progress}%)`,
+      );
     }
 
     // Also update alliance table with current counts (batch update in chunks)
@@ -121,7 +139,7 @@ async function takeAllianceSnapshots() {
             member_count: stats.memberCount,
             corporation_count: stats.corporationCount,
           },
-        })
+        }),
       );
 
       // Process updates in batches of 100 to avoid overwhelming the connection pool
@@ -137,7 +155,9 @@ async function takeAllianceSnapshots() {
     }
 
     const endTime = new Date();
-    const duration = ((endTime.getTime() - startTime.getTime()) / 1000).toFixed(2);
+    const duration = ((endTime.getTime() - startTime.getTime()) / 1000).toFixed(
+      2,
+    );
 
     logger.info(`✅ Snapshot creation completed!`);
     logger.info(`   • Total alliances: ${alliances.length}`);

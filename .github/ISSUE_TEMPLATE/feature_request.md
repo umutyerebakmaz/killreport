@@ -1,9 +1,9 @@
 ---
 name: ✨ Feature Request
 about: Suggest an idea for KillReport
-title: "[Feature]: "
-labels: ["enhancement", "needs-triage"]
-assignees: ""
+title: '[Feature]: '
+labels: ['enhancement', 'needs-triage']
+assignees: ''
 ---
 
 ## 🚀 Feature Description

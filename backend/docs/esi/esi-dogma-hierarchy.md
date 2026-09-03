@@ -100,7 +100,7 @@ GET /dogma/effects/{effect_id}/
 ## Complete Hierarchy Visualization
 
 The important thing to see is that a type never stores attribute or effect
-*definitions* — it stores IDs plus a per-type value, and the definitions live in
+_definitions_ — it stores IDs plus a per-type value, and the definitions live in
 their own tables. Effect modifiers then point back at attributes, which is what
 closes the loop:
 
