@@ -8,6 +8,14 @@ import { createClient } from 'graphql-ws';
 // Lazy initialization - only create client on first use (client-side only)
 let apolloClient: ApolloClient<any> | null = null;
 
+// Session id helper. The id reaches the server as x-session-id and keys the
+// active-user count, so it must be unguessable; Math.random() is not
+// (CodeQL js/insecure-randomness). Callers run behind a typeof window guard,
+// so the Web Crypto global is always present here.
+function newSessionId(): string {
+  return `session_${crypto.randomUUID()}`;
+}
+
 // Token refresh helper
 async function refreshAccessToken(): Promise<string | null> {
   try {
@@ -90,7 +98,7 @@ export function createApolloClient() {
           const token = localStorage.getItem('eve_access_token');
           let sessionId = sessionStorage.getItem('session_id');
           if (!sessionId) {
-            sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            sessionId = newSessionId();
             sessionStorage.setItem('session_id', sessionId);
           }
           return {
@@ -117,7 +125,7 @@ export function createApolloClient() {
       : null;
 
     if (!sessionId && typeof window !== 'undefined') {
-      sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      sessionId = newSessionId();
       sessionStorage.setItem('session_id', sessionId);
     }
 
