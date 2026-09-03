@@ -34,6 +34,8 @@ export interface KillmailsTableProps {
   allianceId?: number;
   /** Map of date -> total count for that date (to show correct totals) */
   dateCountsMap?: Map<string, number>;
+  /** Total across every page, shown right-aligned in the first date header */
+  totalCount?: number;
   /** Display variant */
   variant?: 'detail' | 'list';
 }

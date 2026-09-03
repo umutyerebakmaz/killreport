@@ -494,14 +494,7 @@ export default function CorporationDetailPage({
 
           {activeTab === 'killmails' && (
             <div className="killmails-tab">
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold">Killmails</h2>
-                {pageInfo?.totalCount !== undefined && (
-                  <p className="mt-1 text-sm text-gray-400">
-                    Total: {pageInfo.totalCount.toLocaleString()} killmails
-                  </p>
-                )}
-              </div>
+              <h2 className="sr-only">Killmails</h2>
 
               {/* 2-column grid layout */}
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
@@ -512,6 +505,7 @@ export default function CorporationDetailPage({
                     loading={killmailsLoading}
                     corporationId={parseInt(id)}
                     dateCountsMap={dateCountsMap}
+                    totalCount={pageInfo?.totalCount}
                   />
 
                   {killmails.length > 0 && (
