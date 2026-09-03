@@ -95,7 +95,7 @@ export default function KillmailCard({
 
       {shipTier && (
         <div className="absolute z-10 top-3 left-3 drop-shadow-lg">
-          <ShipTierBadge tier={shipTier} />
+          <ShipTierBadge tier={shipTier} className="size-10" />
         </div>
       )}
       {rank !== undefined && (

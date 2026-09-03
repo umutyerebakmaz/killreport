@@ -3,7 +3,6 @@
 import KillmailCard, {
   KillmailCardData,
 } from '@/components/KillmailCard/KillmailCard';
-import Card from '@/components/ui/Card';
 import SectionTitle from '@/components/ui/SectionTitle';
 import {
   MostValuableScope,
@@ -113,63 +112,66 @@ export default function MostValuableCarousel() {
   const tabId = (scope: MostValuableScope) => `most-valuable-tab-${scope}`;
 
   return (
-    <Card>
-      <SectionTitle
-        subtitle="Last 7 days, by ISK destroyed"
-        actions={
-          <div className="flex gap-2">
-            <button
-              onClick={() => scroll('left')}
-              disabled={!canScrollLeft}
-              className={`p-2 transition-all ${
-                canScrollLeft
-                  ? 'bg-white/10 hover:bg-white/20 text-white'
-                  : 'bg-white/5 text-gray-600 cursor-not-allowed'
-              }`}
-              aria-label="Scroll left"
-            >
-              <ChevronLeftIcon className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => scroll('right')}
-              disabled={!canScrollRight}
-              className={`p-2 transition-all ${
-                canScrollRight
-                  ? 'bg-white/10 hover:bg-white/20 text-white'
-                  : 'bg-white/5 text-gray-600 cursor-not-allowed'
-              }`}
-              aria-label="Scroll right"
-            >
-              <ChevronRightIcon className="w-5 h-5" />
-            </button>
-          </div>
-        }
-      >
+    <>
+      <SectionTitle subtitle="Last 7 days, by ISK destroyed">
         Most Valuable
       </SectionTitle>
 
-      <div
-        role="tablist"
-        aria-label="Most valuable scope"
-        className="flex gap-1 pb-3 mb-4 border-b border-white/5"
-      >
-        {TABS.map((tab) => (
+      {/*
+       * The scroll buttons sit next to the tablist rather than inside it: a
+       * tablist that holds anything but tabs stops announcing them correctly.
+       */}
+      <div className="flex items-center justify-between gap-4 pb-3 mb-4 border-b border-white/5">
+        <div
+          role="tablist"
+          aria-label="Most valuable scope"
+          className="flex gap-1"
+        >
+          {TABS.map((tab) => (
+            <button
+              key={tab.scope}
+              id={tabId(tab.scope)}
+              role="tab"
+              aria-selected={tab.scope === activeScope}
+              aria-controls={PANEL_ID}
+              onClick={() => setActiveScope(tab.scope)}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
+                tab.scope === activeScope
+                  ? 'bg-white/10 text-white'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex gap-2">
           <button
-            key={tab.scope}
-            id={tabId(tab.scope)}
-            role="tab"
-            aria-selected={tab.scope === activeScope}
-            aria-controls={PANEL_ID}
-            onClick={() => setActiveScope(tab.scope)}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
-              tab.scope === activeScope
-                ? 'bg-white/10 text-white'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
+            onClick={() => scroll('left')}
+            disabled={!canScrollLeft}
+            className={`p-2 transition-all ${
+              canScrollLeft
+                ? 'bg-white/10 hover:bg-white/20 text-white'
+                : 'bg-white/5 text-gray-600 cursor-not-allowed'
             }`}
+            aria-label="Scroll left"
           >
-            {tab.label}
+            <ChevronLeftIcon className="w-5 h-5" />
           </button>
-        ))}
+          <button
+            onClick={() => scroll('right')}
+            disabled={!canScrollRight}
+            className={`p-2 transition-all ${
+              canScrollRight
+                ? 'bg-white/10 hover:bg-white/20 text-white'
+                : 'bg-white/5 text-gray-600 cursor-not-allowed'
+            }`}
+            aria-label="Scroll right"
+          >
+            <ChevronRightIcon className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       <div role="tabpanel" id={PANEL_ID} aria-labelledby={tabId(activeScope)}>
@@ -203,6 +205,6 @@ export default function MostValuableCarousel() {
           </div>
         )}
       </div>
-    </Card>
+    </>
   );
 }
