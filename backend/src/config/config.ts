@@ -12,6 +12,14 @@ const envSchema = z.object({
   // RabbitMQ
   RABBITMQ_URL: z.string().default('amqp://localhost'),
 
+  // Redis. A trailing /<n> selects a logical database, which is how a second
+  // checkout keeps its keys apart from this one.
+  REDIS_URL: z.string().default('redis://localhost:6379'),
+  USE_REDIS_PUBSUB: z
+    .string()
+    .default('false')
+    .transform((val) => val === 'true'),
+
   // EVE SSO
   EVE_CLIENT_ID: z.string().min(1, 'EVE_CLIENT_ID is required'),
   EVE_CLIENT_SECRET: z.string().min(1, 'EVE_CLIENT_SECRET is required'),
@@ -62,6 +70,10 @@ export const config = {
   },
   rabbitmq: {
     url: process.env.RABBITMQ_URL || 'amqp://localhost:5672',
+  },
+  redis: {
+    url: env.REDIS_URL,
+    usePubSub: env.USE_REDIS_PUBSUB,
   },
   eveSso: {
     clientId: env.EVE_CLIENT_ID,
