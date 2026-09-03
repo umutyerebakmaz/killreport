@@ -113,17 +113,10 @@ function AlliancesContent() {
 
   return (
     <div>
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          <h1 className="text-3xl font-semibold text-white">Alliances</h1>
-          <h2 className="mt-2 text-xl text-white">
-            A list of all EVE Online alliances including their logo and name.
-          </h2>
-        </div>
-      </div>
+      <h1 className="sr-only">Alliances</h1>
 
       {/* Filters */}
-      <div className="mt-6">
+      <div>
         <AllianceFilters
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}

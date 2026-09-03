@@ -34,8 +34,8 @@ function MapContent() {
 
   return (
     <>
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-3xl font-semibold text-white">Territory Map</h1>
+      <h1 className="sr-only">Territory Map</h1>
+      <div className="flex flex-wrap items-baseline justify-end gap-2">
         <Link
           href="/sovereignty"
           prefetch={false}
@@ -44,11 +44,6 @@ function MapContent() {
           ← Sovereignty Overview
         </Link>
       </div>
-      <h2 className="mt-2 text-xl text-white">
-        Null-sec sovereignty by controlling alliance (
-        {filtered.length.toLocaleString()} systems)
-      </h2>
-
       <div className="flex items-center gap-3 mt-4">
         <label htmlFor="region" className="text-sm text-gray-400">
           Region

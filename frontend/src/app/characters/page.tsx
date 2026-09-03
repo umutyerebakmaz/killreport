@@ -121,18 +121,10 @@ function CharactersContent() {
 
   return (
     <div>
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          <h1 className="text-3xl font-semibold text-white">Characters</h1>
-          <h2 className="mt-2 text-xl text-white">
-            A list of all EVE Online characters including their security status
-            and corporation.
-          </h2>
-        </div>
-      </div>
+      <h1 className="sr-only">Characters</h1>
 
       {/* Filters */}
-      <div className="mt-6">
+      <div>
         <CharacterFilters
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}

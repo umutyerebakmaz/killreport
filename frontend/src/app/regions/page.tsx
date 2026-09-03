@@ -73,20 +73,10 @@ function RegionsContent() {
 
   return (
     <div>
-      <div className="sm:flex sm:items-center sm:justify-between">
-        <div className="sm:flex-auto">
-          <h1 className="flex items-center gap-3 text-3xl font-semibold text-white">
-            Regions
-          </h1>
-          <p className="mt-2 text-gray-400">
-            Explore all regions in New Eden. Click on a region to see its
-            constellations and solar systems.
-          </p>
-        </div>
-      </div>
+      <h1 className="sr-only">Regions</h1>
 
       {/* Filters */}
-      <div className="flex items-center gap-3 mt-6">
+      <div className="flex items-center gap-3">
         <div className="relative flex-1">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
             <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
