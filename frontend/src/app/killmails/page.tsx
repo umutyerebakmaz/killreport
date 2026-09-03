@@ -1,6 +1,5 @@
 'use client';
 
-import Breadcrumb from '@/components/Breadcrumb/Breadcrumb';
 import KillmailFilters from '@/components/Filters/KillmailFilters';
 import KillmailsTable from '@/components/KillmailsTable';
 import Loader from '@/components/Loader';
@@ -308,7 +307,6 @@ function KillmailsContent() {
   if (error) {
     return (
       <div>
-        <Breadcrumb items={[{ label: 'Killmails' }]} />
         <div className="p-8 text-red-500">Error: {error.message}</div>
       </div>
     );
@@ -316,25 +314,21 @@ function KillmailsContent() {
 
   return (
     <div>
-      <Breadcrumb items={[{ label: 'Killmails' }]} />
-
       {/* New Killmail Toast Stack */}
       {/* <KillmailToastContainer
         toasts={killmailToasts}
         onDismiss={handleDismissToast}
       /> */}
 
-      <div className="mt-8">
-        <PageHeader
-          title="Killmails"
-          description="Browse all killmails from New Eden. Click on a killmail to see detailed information."
-          meta={
-            totalCount > 0
-              ? `${totalCount.toLocaleString()} killmails`
-              : undefined
-          }
-        />
-      </div>
+      <PageHeader
+        title="Killmails"
+        description="Browse all killmails from New Eden. Click on a killmail to see detailed information."
+        meta={
+          totalCount > 0
+            ? `${totalCount.toLocaleString()} killmails`
+            : undefined
+        }
+      />
 
       {/* Filters */}
       <div className="mt-8">
