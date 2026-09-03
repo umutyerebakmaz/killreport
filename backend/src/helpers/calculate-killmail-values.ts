@@ -1,7 +1,8 @@
+import { CAPSULE_GROUP_IDS } from '@config/ship-groups';
 import prismaWorker from '@services/prisma-worker';
 
-// Capsule (pod) type_id - special handling for value calculations
-const CAPSULE_TYPE_ID = 670;
+// Pods are priced at a flat 10 ISK: they carry no market price of their own, and
+// what a pod kill is worth lives in its implants, which the item loop covers.
 const CAPSULE_VALUE = 10;
 const BPC_VALUE = 0.01; // Blueprint Copy fixed value
 
@@ -87,6 +88,7 @@ export async function calculateKillmailValues(killmailData: {
   // Create maps for quick lookup
   const priceMap = new Map(marketPrices.map((p) => [p.type_id, p.sell || 0]));
 
+  const typeGroupMap = new Map(typeInfo.map((t) => [t.id, t.group_id]));
   const categoryMap = new Map(categories.map((c) => [c.id, c]));
   const groupMap = new Map(groups.map((g) => [g.id, g]));
 
@@ -99,9 +101,11 @@ export async function calculateKillmailValues(killmailData: {
   );
 
   // Calculate ship value (always destroyed)
-  // Special case: Capsule (pod) has fixed value of 10 ISK
+  // Group, not type id: group 29 holds the Genolution variant as well as the
+  // plain Capsule, and matching on 670 alone left the variant's kills at 0.
+  const victimGroupId = typeGroupMap.get(killmailData.victim.ship_type_id);
   const shipPrice =
-    killmailData.victim.ship_type_id === CAPSULE_TYPE_ID
+    victimGroupId !== undefined && CAPSULE_GROUP_IDS.includes(victimGroupId)
       ? CAPSULE_VALUE
       : priceMap.get(killmailData.victim.ship_type_id) || 0;
 
@@ -222,6 +226,7 @@ export async function calculateKillmailValuesBatch(
   // Create maps for quick lookup
   const priceMap = new Map(marketPrices.map((p) => [p.type_id, p.sell || 0]));
 
+  const typeGroupMap = new Map(typeInfo.map((t) => [t.id, t.group_id]));
   const categoryMap = new Map(categories.map((c) => [c.id, c]));
   const groupMap = new Map(groups.map((g) => [g.id, g]));
 
@@ -236,9 +241,10 @@ export async function calculateKillmailValuesBatch(
   // Calculate values for each killmail
   return killmailsData.map((km) => {
     const items = km.items || [];
-    // Special case: Capsule (pod) has fixed value of 10 ISK
+    // Group, not type id — see the single-killmail path above.
+    const victimGroupId = typeGroupMap.get(km.victim.ship_type_id);
     const shipPrice =
-      km.victim.ship_type_id === CAPSULE_TYPE_ID
+      victimGroupId !== undefined && CAPSULE_GROUP_IDS.includes(victimGroupId)
         ? CAPSULE_VALUE
         : priceMap.get(km.victim.ship_type_id) || 0;
 
