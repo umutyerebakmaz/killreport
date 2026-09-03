@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { Loader } from "@/components/Loader/Loader";
-import RankNumber from "@/components/ui/RankNumber";
-import Tooltip from "@/components/Tooltip/Tooltip";
-import { getSecurityStatusColor } from "@/utils/securityStatus";
-import Link from "next/link";
-import { ReactNode } from "react";
+import { Loader } from '@/components/Loader/Loader';
+import RankNumber from '@/components/ui/RankNumber';
+import Tooltip from '@/components/Tooltip/Tooltip';
+import { getSecurityStatusColor } from '@/utils/securityStatus';
+import Link from 'next/link';
+import { ReactNode } from 'react';
 
 export interface TopCharacter {
   id: number;
@@ -28,7 +28,7 @@ export interface TopCharacterCardProps {
   characters: TopCharacter[];
   loading?: boolean;
   emptyText?: string;
-  variant?: "detail" | "list";
+  variant?: 'detail' | 'list';
 }
 
 export default function TopCharacterCard({
@@ -36,8 +36,8 @@ export default function TopCharacterCard({
   subtitle,
   characters,
   loading = false,
-  emptyText = "No characters",
-  variant = "detail",
+  emptyText = 'No characters',
+  variant = 'detail',
 }: TopCharacterCardProps) {
   if (loading) {
     return (
@@ -80,9 +80,9 @@ export default function TopCharacterCard({
               <div
                 key={character.id}
                 className={`p-3 transition-colors duration-100 ${
-                  variant === "list"
-                    ? "bg-neutral-900 hover:bg-neutral-800"
-                    : "bg-neutral-800 hover:bg-neutral-700"
+                  variant === 'list'
+                    ? 'bg-neutral-900 hover:bg-neutral-800'
+                    : 'bg-neutral-800 hover:bg-neutral-700'
                 }`}
               >
                 <div className="flex items-center gap-3">

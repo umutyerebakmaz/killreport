@@ -41,13 +41,17 @@ async function queueSolarSystems() {
 
       logger.debug(
         `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
-          solarSystemIds.length / BATCH_SIZE
-        )} (${batch.length} solar systems)`
+          solarSystemIds.length / BATCH_SIZE,
+        )} (${batch.length} solar systems)`,
       );
     }
 
-    logger.info(`All ${solarSystemIds.length} solar systems queued successfully!`);
-    logger.info('Now run the worker to process them: yarn worker:solar-systems');
+    logger.info(
+      `All ${solarSystemIds.length} solar systems queued successfully!`,
+    );
+    logger.info(
+      'Now run the worker to process them: yarn worker:solar-systems',
+    );
 
     await channel.close();
     process.exit(0);

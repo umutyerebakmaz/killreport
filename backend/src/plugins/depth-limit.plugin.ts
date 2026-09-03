@@ -65,7 +65,7 @@ export const createDepthLimitPlugin = (maxDepth: number): Plugin => {
           setResult([
             new GraphQLError(
               `Query "${name}" exceeds the maximum operation depth of ${maxDepth} (got ${depth}).`,
-              { extensions: { code: 'QUERY_TOO_DEEP', maxDepth, depth } }
+              { extensions: { code: 'QUERY_TOO_DEEP', maxDepth, depth } },
             ),
           ]);
           return;

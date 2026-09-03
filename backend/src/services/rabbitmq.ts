@@ -50,7 +50,9 @@ export async function getRabbitMQChannel(): Promise<amqp.Channel> {
   }
 
   try {
-    const conn = await amqp.connect(config.rabbitmq.url) as unknown as amqp.Connection;
+    const conn = (await amqp.connect(
+      config.rabbitmq.url,
+    )) as unknown as amqp.Connection;
     connection = conn;
 
     // Handle connection errors
@@ -66,7 +68,7 @@ export async function getRabbitMQChannel(): Promise<amqp.Channel> {
       connection = null;
     });
 
-    const ch = await (conn as any).createChannel() as amqp.Channel;
+    const ch = (await (conn as any).createChannel()) as amqp.Channel;
     channel = ch;
     // Each worker/queue script asserts its own queue - no need for global queue
     console.log('Connected to RabbitMQ and channel is ready');
@@ -86,7 +88,9 @@ async function getMonitoringChannel(): Promise<amqp.Channel | null> {
 
     // If we have a connection but no channel, create channel
     if (monitoringConnection && !monitoringChannel) {
-      const ch = await (monitoringConnection as any).createChannel() as amqp.Channel;
+      const ch = (await (
+        monitoringConnection as any
+      ).createChannel()) as amqp.Channel;
       monitoringChannel = ch;
       return ch;
     }
@@ -99,7 +103,9 @@ async function getMonitoringChannel(): Promise<amqp.Channel | null> {
 
     // Create new connection if needed
     lastConnectionAttempt = now;
-    const conn = await amqp.connect(config.rabbitmq.url) as unknown as amqp.Connection;
+    const conn = (await amqp.connect(
+      config.rabbitmq.url,
+    )) as unknown as amqp.Connection;
     monitoringConnection = conn;
 
     conn.on('error', () => {
@@ -112,7 +118,7 @@ async function getMonitoringChannel(): Promise<amqp.Channel | null> {
       monitoringChannel = null;
     });
 
-    const ch = await (conn as any).createChannel() as amqp.Channel;
+    const ch = (await (conn as any).createChannel()) as amqp.Channel;
     monitoringChannel = ch;
 
     return ch;
@@ -199,7 +205,11 @@ export async function getQueueStats(queueName: string): Promise<{
     }
 
     // Connection errors - return zeros silently and reset connection
-    if (error.code === 'ECONNRESET' || error.code === 'ECONNREFUSED' || error.syscall === 'read') {
+    if (
+      error.code === 'ECONNRESET' ||
+      error.code === 'ECONNREFUSED' ||
+      error.syscall === 'read'
+    ) {
       monitoringConnection = null;
       monitoringChannel = null;
       return {
@@ -216,19 +226,21 @@ export async function getQueueStats(queueName: string): Promise<{
       exists: false,
     };
   }
-}/**
+} /**
  * Get all queue statistics
  */
 // Track RabbitMQ connection state
 let lastConnectionError: Date | null = null;
 let connectionErrorLogged = false;
 
-export async function getAllQueueStats(): Promise<Array<{
-  name: string;
-  messageCount: number;
-  consumerCount: number;
-  active: boolean;
-}>> {
+export async function getAllQueueStats(): Promise<
+  Array<{
+    name: string;
+    messageCount: number;
+    consumerCount: number;
+    active: boolean;
+  }>
+> {
   const queues = [
     // ESI Info Workers (entity enrichment)
     'esi_alliance_info_queue',
@@ -275,7 +287,8 @@ export async function getAllQueueStats(): Promise<Array<{
   // Check each queue sequentially to avoid connection issues
   for (const queueName of queues) {
     try {
-      const { messageCount, consumerCount, exists } = await getQueueStats(queueName);
+      const { messageCount, consumerCount, exists } =
+        await getQueueStats(queueName);
       results.push({
         name: queueName,
         messageCount,
@@ -304,8 +317,13 @@ export async function getAllQueueStats(): Promise<Array<{
   // Log connection error only once every 60 seconds
   if (hasConnectionError) {
     const now = new Date();
-    if (!lastConnectionError || (now.getTime() - lastConnectionError.getTime()) > 60000) {
-      console.warn('⚠️  RabbitMQ connection failed - worker monitoring unavailable (will retry silently)');
+    if (
+      !lastConnectionError ||
+      now.getTime() - lastConnectionError.getTime() > 60000
+    ) {
+      console.warn(
+        '⚠️  RabbitMQ connection failed - worker monitoring unavailable (will retry silently)',
+      );
       lastConnectionError = now;
       connectionErrorLogged = true;
     }

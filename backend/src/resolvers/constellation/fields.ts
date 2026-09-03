@@ -9,7 +9,11 @@ export const constellationFields: ConstellationResolvers = {
   position: (parent) => {
     // parent is from Prisma, has position_x, position_y, position_z
     const prismaParent = parent as any;
-    if (prismaParent.position_x === null || prismaParent.position_y === null || prismaParent.position_z === null) {
+    if (
+      prismaParent.position_x === null ||
+      prismaParent.position_y === null ||
+      prismaParent.position_z === null
+    ) {
       return null;
     }
     return {
@@ -30,11 +34,20 @@ export const constellationFields: ConstellationResolvers = {
   solarSystemCount: async (parent, _, context) => {
     if (!parent.id) return 0;
     // Use DataLoader to batch queries - prevents N+1
-    const systems = await context.loaders.solarSystemsByConstellation.load(parent.id);
+    const systems = await context.loaders.solarSystemsByConstellation.load(
+      parent.id,
+    );
     return systems.length;
   },
   securityStats: async (parent, _, context) => {
-    if (!parent.id) return { highSec: 0, lowSec: 0, nullSec: 0, wormhole: 0, avgSecurity: null };
+    if (!parent.id)
+      return {
+        highSec: 0,
+        lowSec: 0,
+        nullSec: 0,
+        wormhole: 0,
+        avgSecurity: null,
+      };
     // Use optimized DataLoader to batch security stats queries
     return context.loaders.constellationSecurityStats.load(parent.id);
   },

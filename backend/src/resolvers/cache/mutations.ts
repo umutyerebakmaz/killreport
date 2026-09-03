@@ -52,7 +52,10 @@ export const cacheMutations: MutationResolvers = {
         deletedKeys: null,
       };
     } catch (error) {
-      logger.error(`Error clearing corporation cache for ${corporationId}:`, error);
+      logger.error(
+        `Error clearing corporation cache for ${corporationId}:`,
+        error,
+      );
       return {
         success: false,
         message: `Failed to clear cache: ${error}`,

@@ -36,15 +36,12 @@ export class QueueService {
 
   async assertQueue(
     queueName: string,
-    options: QueueOptions = {}
+    options: QueueOptions = {},
   ): Promise<void> {
-    const {
-      durable = true,
-      maxPriority = 10,
-    } = options;
+    const { durable = true, maxPriority = 10 } = options;
 
     const channel = await this.getChannel();
-    
+
     await channel.assertQueue(queueName, {
       durable,
       arguments: {
@@ -58,16 +55,13 @@ export class QueueService {
   async sendToQueue<T>(
     queueName: string,
     data: T,
-    options: QueueOptions = {}
+    options: QueueOptions = {},
   ): Promise<boolean> {
-    const {
-      priority = 5,
-      persistent = true,
-    } = options;
+    const { priority = 5, persistent = true } = options;
 
     try {
       const channel = await this.getChannel();
-      
+
       await this.assertQueue(queueName);
 
       const message: QueueMessage<T> = {
@@ -81,7 +75,7 @@ export class QueueService {
         {
           persistent,
           priority,
-        }
+        },
       );
 
       logger.debug(`Message sent to queue: ${queueName}`, { priority });
@@ -116,8 +110,10 @@ export class QueueService {
     try {
       const channel = await this.getChannel();
       const result = await channel.purgeQueue(queueName);
-      
-      logger.info(`Purged ${result.messageCount} messages from queue: ${queueName}`);
+
+      logger.info(
+        `Purged ${result.messageCount} messages from queue: ${queueName}`,
+      );
       return result.messageCount;
     } catch (error) {
       logger.error(`Failed to purge queue ${queueName}:`, error);
@@ -129,7 +125,7 @@ export class QueueService {
     try {
       const channel = await this.getChannel();
       await channel.deleteQueue(queueName);
-      
+
       logger.info(`Deleted queue: ${queueName}`);
     } catch (error) {
       logger.error(`Failed to delete queue ${queueName}:`, error);

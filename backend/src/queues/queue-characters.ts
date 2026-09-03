@@ -19,14 +19,18 @@ async function queueCharacters() {
 
     if (args.length > 0) {
       // Queue specific character IDs from arguments
-      characterIds = args.map((arg) => parseInt(arg, 10)).filter((id) => !isNaN(id));
+      characterIds = args
+        .map((arg) => parseInt(arg, 10))
+        .filter((id) => !isNaN(id));
 
       if (characterIds.length === 0) {
         logger.error('Invalid character IDs provided');
         process.exit(1);
       }
 
-      logger.info(`Queueing ${characterIds.length} specific character(s): ${characterIds.join(', ')}`);
+      logger.info(
+        `Queueing ${characterIds.length} specific character(s): ${characterIds.join(', ')}`,
+      );
     } else {
       // Queue all characters from database
       logger.info('Fetching all character IDs from database...');
@@ -68,8 +72,8 @@ async function queueCharacters() {
       if (characterIds.length > 100) {
         logger.debug(
           `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
-            characterIds.length / BATCH_SIZE
-          )} (${batch.length} characters)`
+            characterIds.length / BATCH_SIZE,
+          )} (${batch.length} characters)`,
         );
       }
     }

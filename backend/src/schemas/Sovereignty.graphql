@@ -211,15 +211,25 @@ extend type Query {
   "Alliances ranked by campaigns currently defending (most defensive first)."
   mostDefensiveAlliances(limit: Int): [AllianceActivityRank!]!
   "All currently tracked (non-destroyed) sovereignty structures, optionally filtered."
-  sovereigntyStructures(allianceId: Int, systemId: Int, limit: Int): [SovereigntyStructureInfo!]!
+  sovereigntyStructures(
+    allianceId: Int
+    systemId: Int
+    limit: Int
+  ): [SovereigntyStructureInfo!]!
   "Structures whose vulnerability window opens within the next N hours (default 24), soonest first."
-  sovereigntyUpcomingTimers(hoursAhead: Int, limit: Int): [SovereigntyStructureInfo!]!
+  sovereigntyUpcomingTimers(
+    hoursAhead: Int
+    limit: Int
+  ): [SovereigntyStructureInfo!]!
   "Active sovereignty campaigns grouped by region, hottest first."
   activeCampaignsByRegion(limit: Int): [RegionCampaignCount!]!
   "Regions ranked by sovereignty conflict intensity, hottest first."
   conflictHotspots(limit: Int): [ConflictHotspot!]!
   "Resolved (ended) campaigns, newest-ended first, paginated."
-  sovereigntyCampaignHistory(limit: Int, offset: Int): SovereigntyCampaignHistoryPage!
+  sovereigntyCampaignHistory(
+    limit: Int
+    offset: Int
+  ): SovereigntyCampaignHistoryPage!
   "Distribution of resolved campaign outcomes."
   sovereigntyOutcomeStats: SovereigntyOutcomeStats!
   "Alliances ranked by successful defenses of ended campaigns."

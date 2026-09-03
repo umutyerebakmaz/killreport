@@ -1,9 +1,9 @@
-import { formatISK } from "@/utils/formatISK";
+import { formatISK } from '@/utils/formatISK';
 import {
   getItemImageUrl,
   getItemName,
   isBlueprint,
-} from "@/utils/itemImageUrl";
+} from '@/utils/itemImageUrl';
 
 interface FittingItemProps {
   item: {
@@ -58,10 +58,10 @@ export default function FittingItem({
   const isDestroyed = item.quantityDestroyed > 0;
   const isDropped = item.quantityDropped > 0;
   const bgColor = isDestroyed
-    ? "hover:bg-red-700/50 bg-red-700/40"
+    ? 'hover:bg-red-700/50 bg-red-700/40'
     : isDropped
-      ? "hover:bg-green-700/50 bg-green-700/40"
-      : "";
+      ? 'hover:bg-green-700/50 bg-green-700/40'
+      : '';
 
   return (
     <div

@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 export default function EveTime() {
-  const [eveTime, setEveTime] = useState<string>("");
+  const [eveTime, setEveTime] = useState<string>('');
 
   useEffect(() => {
     function updateTime() {

@@ -48,7 +48,7 @@ export class UserKillmailCron {
     // Then run every N minutes
     this.intervalId = setInterval(
       () => this.syncUsers(),
-      SYNC_INTERVAL_MINUTES * 60 * 1000
+      SYNC_INTERVAL_MINUTES * 60 * 1000,
     );
 
     console.log('✅ User killmail cron started\n');
@@ -80,7 +80,9 @@ export class UserKillmailCron {
     try {
       const startTime = Date.now();
       console.log(`\n${'─'.repeat(70)}`);
-      console.log(`🕐 [${new Date().toLocaleString('en-EN')}] Running background sync...`);
+      console.log(
+        `🕐 [${new Date().toLocaleString('en-EN')}] Running background sync...`,
+      );
       console.log('─'.repeat(70));
 
       // Get all users with valid tokens (not expired, with 5 minute buffer)
@@ -148,14 +150,10 @@ export class UserKillmailCron {
           lastKillmailId: user.last_killmail_id ?? undefined, // For incremental sync
         };
 
-        channel.sendToQueue(
-          QUEUE_NAME,
-          Buffer.from(JSON.stringify(message)),
-          {
-            persistent: true,
-            priority: 3, // Lower priority for background sync
-          }
-        );
+        channel.sendToQueue(QUEUE_NAME, Buffer.from(JSON.stringify(message)), {
+          persistent: true,
+          priority: 3, // Lower priority for background sync
+        });
 
         console.log(`   ⏳ ${user.character_name}${lastSyncInfo}`);
         queuedCount++;

@@ -4,7 +4,7 @@
  * @returns Formatted ISK string (e.g., "1.50M ISK", "2.30B ISK")
  */
 export function formatISK(amount: number | null | undefined): string {
-  if (!amount) return "0";
+  if (!amount) return '0';
 
   const absAmount = Math.abs(amount);
 

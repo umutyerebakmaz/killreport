@@ -1,9 +1,9 @@
 ---
 name: 📚 Documentation
 about: Report missing, incorrect, or unclear documentation
-title: "[Docs]: "
-labels: ["documentation"]
-assignees: ""
+title: '[Docs]: '
+labels: ['documentation']
+assignees: ''
 ---
 
 ## 📍 Location

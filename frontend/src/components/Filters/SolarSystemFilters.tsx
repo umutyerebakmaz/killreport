@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   useConstellationsQuery,
@@ -8,17 +8,17 @@ import {
   useSearchRegionQuery,
   useSearchRegionsQuery,
   useSearchSolarSystemsQuery,
-} from "@/generated/graphql";
-import FilterBar from "@/components/ui/FilterBar";
-import FilterDialog from "@/components/ui/FilterDialog";
-import FilterField from "@/components/ui/FilterField";
-import { useDebounce } from "@/hooks/useDebounce";
+} from '@/generated/graphql';
+import FilterBar from '@/components/ui/FilterBar';
+import FilterDialog from '@/components/ui/FilterDialog';
+import FilterField from '@/components/ui/FilterField';
+import { useDebounce } from '@/hooks/useDebounce';
 import {
   ChevronDownIcon,
   MagnifyingGlassIcon,
   XMarkIcon,
-} from "@heroicons/react/24/outline";
-import { useEffect, useRef, useState } from "react";
+} from '@heroicons/react/24/outline';
+import { useEffect, useRef, useState } from 'react';
 
 interface SolarSystemFiltersProps {
   onFilterChange: (filters: {
@@ -40,36 +40,36 @@ interface SolarSystemFiltersProps {
 export default function SolarSystemFilters({
   onFilterChange,
   onClearFilters,
-  orderBy = "nameAsc",
+  orderBy = 'nameAsc',
   onOrderByChange,
-  initialSearch = "",
-  initialRegionId = "",
-  initialConstellationId = "",
-  initialSecurity = "all",
+  initialSearch = '',
+  initialRegionId = '',
+  initialConstellationId = '',
+  initialSecurity = 'all',
 }: SolarSystemFiltersProps) {
   // Panel open/close state
   const [isOpen, setIsOpen] = useState(false);
 
   // Solar System search dropdown state
-  const [solarSystemSearch, setSolarSystemSearch] = useState("");
+  const [solarSystemSearch, setSolarSystemSearch] = useState('');
   const [selectedSystemName, setSelectedSystemName] = useState(initialSearch);
   const [showSolarSystemDropdown, setShowSolarSystemDropdown] = useState(false);
   const solarSystemDropdownRef = useRef<HTMLDivElement>(null);
 
   // Region search state
-  const [regionSearch, setRegionSearch] = useState("");
+  const [regionSearch, setRegionSearch] = useState('');
   const [selectedRegionId, setSelectedRegionId] = useState(initialRegionId);
-  const [selectedRegionName, setSelectedRegionName] = useState("");
+  const [selectedRegionName, setSelectedRegionName] = useState('');
   const [showRegionDropdown, setShowRegionDropdown] = useState(false);
   const regionDropdownRef = useRef<HTMLDivElement>(null);
 
   // Constellation search state
-  const [constellationSearch, setConstellationSearch] = useState("");
+  const [constellationSearch, setConstellationSearch] = useState('');
   const [selectedConstellationId, setSelectedConstellationId] = useState(
     initialConstellationId,
   );
   const [selectedConstellationName, setSelectedConstellationName] =
-    useState("");
+    useState('');
   const [showConstellationDropdown, setShowConstellationDropdown] =
     useState(false);
   const constellationDropdownRef = useRef<HTMLDivElement>(null);
@@ -115,7 +115,7 @@ export default function SolarSystemFilters({
     variables: {
       filter: {
         limit: 1000,
-        orderBy: "nameAsc" as any,
+        orderBy: 'nameAsc' as any,
       },
     },
   });
@@ -126,7 +126,7 @@ export default function SolarSystemFilters({
       filter: {
         region_id: selectedRegionId ? parseInt(selectedRegionId) : undefined,
         limit: 1000,
-        orderBy: "nameAsc" as any,
+        orderBy: 'nameAsc' as any,
       },
     },
     skip: !selectedRegionId,
@@ -169,7 +169,7 @@ export default function SolarSystemFilters({
     selectedSystemName,
     selectedRegionId,
     selectedConstellationId,
-    securityFilter !== "all",
+    securityFilter !== 'all',
   ].filter(Boolean).length;
 
   // Close dropdown when clicking outside
@@ -195,8 +195,8 @@ export default function SolarSystemFilters({
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   // Show dropdown when we have results
@@ -232,11 +232,11 @@ export default function SolarSystemFilters({
 
   const getSecurityFilter = () => {
     switch (securityFilter) {
-      case "highsec":
+      case 'highsec':
         return { securityStatusMin: 0.5 };
-      case "lowsec":
+      case 'lowsec':
         return { securityStatusMin: 0.1, securityStatusMax: 0.4 };
-      case "nullsec":
+      case 'nullsec':
         return { securityStatusMax: 0.0 };
       default:
         return {};
@@ -245,7 +245,7 @@ export default function SolarSystemFilters({
 
   const handleSolarSystemSelect = (name: string) => {
     setSelectedSystemName(name);
-    setSolarSystemSearch("");
+    setSolarSystemSearch('');
     setShowSolarSystemDropdown(false);
   };
 
@@ -264,11 +264,11 @@ export default function SolarSystemFilters({
   };
 
   const handleClearAll = () => {
-    setSolarSystemSearch("");
-    setSelectedSystemName("");
-    setSelectedRegionId("");
-    setSelectedConstellationId("");
-    setSecurityFilter("all");
+    setSolarSystemSearch('');
+    setSelectedSystemName('');
+    setSelectedRegionId('');
+    setSelectedConstellationId('');
+    setSecurityFilter('all');
     onClearFilters();
   };
 
@@ -276,11 +276,11 @@ export default function SolarSystemFilters({
     setSelectedRegionId(regionId);
     // Set region name
     const region = regions.find((r) => r.id === parseInt(regionId));
-    setSelectedRegionName(region?.name || "");
+    setSelectedRegionName(region?.name || '');
     // Clear constellation when region changes
     if (selectedConstellationId) {
-      setSelectedConstellationId("");
-      setSelectedConstellationName("");
+      setSelectedConstellationId('');
+      setSelectedConstellationName('');
     }
   };
 
@@ -290,7 +290,7 @@ export default function SolarSystemFilters({
     const constellation = constellations.find(
       (c) => c.id === parseInt(constellationId),
     );
-    setSelectedConstellationName(constellation?.name || "");
+    setSelectedConstellationName(constellation?.name || '');
   };
 
   // Extract regions and constellations for dropdowns
@@ -324,108 +324,108 @@ export default function SolarSystemFilters({
           <FilterField label="Solar System" htmlFor="filter-solar-system">
             <div ref={solarSystemDropdownRef}>
               <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  id="filter-solar-system"
+                  placeholder="Search solar system (min 3 letters)..."
+                  value={solarSystemSearch}
+                  onChange={(e) => {
+                    setSolarSystemSearch(e.target.value);
+                    if (e.target.value.length >= 3)
+                      setShowSolarSystemDropdown(true);
+                    else setShowSolarSystemDropdown(false);
+                  }}
+                  onFocus={() => {
+                    if (
+                      solarSystemSearch.length >= 3 &&
+                      solarSystemData?.solarSystems?.items &&
+                      solarSystemData.solarSystems.items.length > 0
+                    )
+                      setShowSolarSystemDropdown(true);
+                  }}
+                  className="search-input"
+                />
+                {solarSystemLoading && solarSystemSearch.length >= 3 && (
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <div className="w-5 h-5 border-2 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
                   </div>
-                  <input
-                    type="text"
-                    id="filter-solar-system"
-                    placeholder="Search solar system (min 3 letters)..."
-                    value={solarSystemSearch}
-                    onChange={(e) => {
-                      setSolarSystemSearch(e.target.value);
-                      if (e.target.value.length >= 3)
-                        setShowSolarSystemDropdown(true);
-                      else setShowSolarSystemDropdown(false);
-                    }}
-                    onFocus={() => {
-                      if (
-                        solarSystemSearch.length >= 3 &&
-                        solarSystemData?.solarSystems?.items &&
-                        solarSystemData.solarSystems.items.length > 0
-                      )
-                        setShowSolarSystemDropdown(true);
-                    }}
-                    className="search-input"
-                  />
-                  {solarSystemLoading && solarSystemSearch.length >= 3 && (
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                      <div className="w-5 h-5 border-2 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
+                )}
+
+                {/* Solar System Dropdown */}
+                {showSolarSystemDropdown &&
+                  solarSystemData?.solarSystems?.items &&
+                  solarSystemData.solarSystems.items.length > 0 && (
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto character-dropdown-scroll max-h-96">
+                        {solarSystemData.solarSystems.items.map((system) => {
+                          const securityClass =
+                            system.security_class || 'Unknown';
+                          const securityColor =
+                            securityClass === 'A' ||
+                            securityClass === 'B' ||
+                            securityClass === 'C'
+                              ? 'text-green-400'
+                              : securityClass === 'D' ||
+                                  securityClass === 'E' ||
+                                  securityClass === 'F'
+                                ? 'text-yellow-400'
+                                : securityClass === 'G'
+                                  ? 'text-orange-400'
+                                  : 'text-red-400';
+
+                          return (
+                            <button
+                              key={system.id}
+                              type="button"
+                              onClick={() =>
+                                handleSolarSystemSelect(system.name)
+                              }
+                              className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
+                            >
+                              <div className="flex-auto min-w-0 text-left">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold text-white truncate">
+                                    {system.name}
+                                  </span>
+                                  <span
+                                    className={`text-xs font-semibold ${securityColor}`}
+                                  >
+                                    {system.securityStatus?.toFixed(1)}
+                                  </span>
+                                </div>
+                                <div className="text-sm text-gray-400">
+                                  {system.constellation?.region?.name && (
+                                    <div className="text-gray-400 truncate">
+                                      {system.constellation.region.name} ›{' '}
+                                      {system.constellation?.name}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
 
-                  {/* Solar System Dropdown */}
-                  {showSolarSystemDropdown &&
-                    solarSystemData?.solarSystems?.items &&
-                    solarSystemData.solarSystems.items.length > 0 && (
-                      <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
-                        <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto character-dropdown-scroll max-h-96">
-                          {solarSystemData.solarSystems.items.map((system) => {
-                            const securityClass =
-                              system.security_class || "Unknown";
-                            const securityColor =
-                              securityClass === "A" ||
-                              securityClass === "B" ||
-                              securityClass === "C"
-                                ? "text-green-400"
-                                : securityClass === "D" ||
-                                    securityClass === "E" ||
-                                    securityClass === "F"
-                                  ? "text-yellow-400"
-                                  : securityClass === "G"
-                                    ? "text-orange-400"
-                                    : "text-red-400";
-
-                            return (
-                              <button
-                                key={system.id}
-                                type="button"
-                                onClick={() =>
-                                  handleSolarSystemSelect(system.name)
-                                }
-                                className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
-                              >
-                                <div className="flex-auto min-w-0 text-left">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-semibold text-white truncate">
-                                      {system.name}
-                                    </span>
-                                    <span
-                                      className={`text-xs font-semibold ${securityColor}`}
-                                    >
-                                      {system.securityStatus?.toFixed(1)}
-                                    </span>
-                                  </div>
-                                  <div className="text-sm text-gray-400">
-                                    {system.constellation?.region?.name && (
-                                      <div className="text-gray-400 truncate">
-                                        {system.constellation.region.name} ›{" "}
-                                        {system.constellation?.name}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
+                {/* No Results */}
+                {showSolarSystemDropdown &&
+                  debouncedSolarSystemSearch.length >= 3 &&
+                  !solarSystemLoading &&
+                  solarSystemData?.solarSystems?.items?.length === 0 && (
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                      <div className="p-4 text-sm text-gray-400">
+                        No solar systems found for "{debouncedSolarSystemSearch}
+                        "
                       </div>
-                    )}
-
-                  {/* No Results */}
-                  {showSolarSystemDropdown &&
-                    debouncedSolarSystemSearch.length >= 3 &&
-                    !solarSystemLoading &&
-                    solarSystemData?.solarSystems?.items?.length === 0 && (
-                      <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
-                        <div className="p-4 text-sm text-gray-400">
-                          No solar systems found for "
-                          {debouncedSolarSystemSearch}"
-                        </div>
-                      </div>
-                    )}
-                </div>
+                    </div>
+                  )}
               </div>
+            </div>
 
             {/* Solar System chip */}
             {selectedSystemName && (
@@ -441,7 +441,7 @@ export default function SolarSystemFilters({
                   </div>
                   <button
                     type="button"
-                    onClick={() => setSelectedSystemName("")}
+                    onClick={() => setSelectedSystemName('')}
                     className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
                   >
                     <XMarkIcon className="w-4 h-4" />
@@ -453,22 +453,22 @@ export default function SolarSystemFilters({
 
           {/* Region Filter */}
           <FilterField label="Region" htmlFor="filter-region">
-              <div className="select-option-container">
-                <select
-                  id="filter-region"
-                  value={selectedRegionId}
-                  onChange={(e) => handleRegionChange(e.target.value)}
-                  className="w-full select"
-                >
-                  <option value="">All Regions</option>
-                  {regions.map((region) => (
-                    <option key={region.id} value={region.id}>
-                      {region.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDownIcon className="chevron-down-icon" />
-              </div>
+            <div className="select-option-container">
+              <select
+                id="filter-region"
+                value={selectedRegionId}
+                onChange={(e) => handleRegionChange(e.target.value)}
+                className="w-full select"
+              >
+                <option value="">All Regions</option>
+                {regions.map((region) => (
+                  <option key={region.id} value={region.id}>
+                    {region.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDownIcon className="chevron-down-icon" />
+            </div>
 
             {/* Region chip */}
             {selectedRegionId && (
@@ -483,11 +483,11 @@ export default function SolarSystemFilters({
                   <button
                     type="button"
                     onClick={() => {
-                      setSelectedRegionId("");
-                      setSelectedRegionName("");
+                      setSelectedRegionId('');
+                      setSelectedRegionName('');
                       // Clear constellation when region is cleared
-                      setSelectedConstellationId("");
-                      setSelectedConstellationName("");
+                      setSelectedConstellationId('');
+                      setSelectedConstellationName('');
                     }}
                     className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
                   >
@@ -500,23 +500,23 @@ export default function SolarSystemFilters({
 
           {/* Constellation Filter */}
           <FilterField label="Constellation" htmlFor="filter-constellation">
-              <div className="select-option-container">
-                <select
-                  id="filter-constellation"
-                  value={selectedConstellationId}
-                  onChange={(e) => handleConstellationChange(e.target.value)}
-                  className="w-full select"
-                  disabled={!selectedRegionId}
-                >
-                  <option value="">All Constellations</option>
-                  {constellations.map((constellation) => (
-                    <option key={constellation.id} value={constellation.id}>
-                      {constellation.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDownIcon className="chevron-down-icon" />
-              </div>
+            <div className="select-option-container">
+              <select
+                id="filter-constellation"
+                value={selectedConstellationId}
+                onChange={(e) => handleConstellationChange(e.target.value)}
+                className="w-full select"
+                disabled={!selectedRegionId}
+              >
+                <option value="">All Constellations</option>
+                {constellations.map((constellation) => (
+                  <option key={constellation.id} value={constellation.id}>
+                    {constellation.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDownIcon className="chevron-down-icon" />
+            </div>
 
             {/* Constellation chip */}
             {selectedConstellationId && (
@@ -534,8 +534,8 @@ export default function SolarSystemFilters({
                   <button
                     type="button"
                     onClick={() => {
-                      setSelectedConstellationId("");
-                      setSelectedConstellationName("");
+                      setSelectedConstellationId('');
+                      setSelectedConstellationName('');
                     }}
                     className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
                   >

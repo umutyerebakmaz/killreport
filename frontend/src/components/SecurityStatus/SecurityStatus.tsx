@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import Tooltip from "@/components/Tooltip/Tooltip";
+import Tooltip from '@/components/Tooltip/Tooltip';
 import {
   formatSecurityStatus,
   getSecurityColor,
   getSecurityLabel,
-} from "@/utils/security";
+} from '@/utils/security';
 
 interface SecurityStatusProps {
   securityStatus: number | null | undefined;

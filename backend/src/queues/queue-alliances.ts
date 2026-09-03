@@ -45,8 +45,8 @@ async function queueAlliances() {
 
       logger.debug(
         `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
-          allianceIds.length / BATCH_SIZE
-        )} (${batch.length} alliances)`
+          allianceIds.length / BATCH_SIZE,
+        )} (${batch.length} alliances)`,
       );
     }
 

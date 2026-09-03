@@ -4,13 +4,13 @@
  * @returns Formatted date string or "Unknown"
  */
 export const humanReadableDate = (dateString: string | null | undefined) => {
-  if (!dateString) return "Unknown";
+  if (!dateString) return 'Unknown';
   const date = new Date(dateString);
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
   return `${year}.${month}.${day} ${hours}:${minutes}`;
 };
 
@@ -20,7 +20,7 @@ export const humanReadableDate = (dateString: string | null | undefined) => {
  * @returns Age string like "2 years, 4 months and 17 days" or "Unknown"
  */
 export const calculateAge = (dateString: string | null | undefined) => {
-  if (!dateString) return "Unknown";
+  if (!dateString) return 'Unknown';
   const birthDate = new Date(dateString);
   const now = new Date();
 
@@ -40,14 +40,14 @@ export const calculateAge = (dateString: string | null | undefined) => {
   }
 
   const parts = [];
-  if (years > 0) parts.push(`${years} year${years !== 1 ? "s" : ""}`);
-  if (months > 0) parts.push(`${months} month${months !== 1 ? "s" : ""}`);
-  if (days > 0) parts.push(`${days} day${days !== 1 ? "s" : ""}`);
+  if (years > 0) parts.push(`${years} year${years !== 1 ? 's' : ''}`);
+  if (months > 0) parts.push(`${months} month${months !== 1 ? 's' : ''}`);
+  if (days > 0) parts.push(`${days} day${days !== 1 ? 's' : ''}`);
 
-  if (parts.length === 0) return "Today";
+  if (parts.length === 0) return 'Today';
   if (parts.length === 1) return parts[0];
-  if (parts.length === 2) return parts.join(" and ");
-  return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
+  if (parts.length === 2) return parts.join(' and ');
+  return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
 };
 
 /**
@@ -56,11 +56,11 @@ export const calculateAge = (dateString: string | null | undefined) => {
  * @returns Time string in UTC
  */
 export const formatKillmailTime = (dateString: string) => {
-  return new Date(dateString).toLocaleTimeString("en-US", {
-    timeZone: "UTC",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
+  return new Date(dateString).toLocaleTimeString('en-US', {
+    timeZone: 'UTC',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
     hour12: false,
   });
 };
@@ -72,13 +72,13 @@ export const formatKillmailTime = (dateString: string) => {
  */
 export const formatKillmailDate = (dateString: string) => {
   const date = new Date(dateString);
-  const month = date.toLocaleDateString("en-US", {
-    timeZone: "UTC",
-    month: "long",
+  const month = date.toLocaleDateString('en-US', {
+    timeZone: 'UTC',
+    month: 'long',
   });
-  const day = date.toLocaleDateString("en-US", {
-    timeZone: "UTC",
-    day: "numeric",
+  const day = date.toLocaleDateString('en-US', {
+    timeZone: 'UTC',
+    day: 'numeric',
   });
   return `${month}, ${day}`;
 };
@@ -90,17 +90,17 @@ export const formatKillmailDate = (dateString: string) => {
  */
 export const formatKillmailDateTime = (dateString: string) => {
   const date = new Date(dateString);
-  const dateStr = date.toLocaleDateString("en-US", {
-    timeZone: "UTC",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+  const dateStr = date.toLocaleDateString('en-US', {
+    timeZone: 'UTC',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
   });
-  const timeStr = date.toLocaleTimeString("en-US", {
-    timeZone: "UTC",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
+  const timeStr = date.toLocaleTimeString('en-US', {
+    timeZone: 'UTC',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
     hour12: false,
   });
   return `${dateStr} ${timeStr} UTC`;
@@ -116,33 +116,33 @@ export const formatTimeAgo = (
   dateInput: string | Date | null | undefined,
   short: boolean = false,
 ) => {
-  if (!dateInput) return "Unknown";
+  if (!dateInput) return 'Unknown';
 
-  const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
 
   // Check for invalid date
-  if (isNaN(date.getTime())) return "Unknown";
+  if (isNaN(date.getTime())) return 'Unknown';
 
   const now = new Date();
   const diffInMinutes = (now.getTime() - date.getTime()) / (1000 * 60);
 
   if (diffInMinutes < 1) {
-    return "just now";
+    return 'just now';
   } else if (diffInMinutes < 60) {
     const mins = Math.floor(diffInMinutes);
     return short
       ? `${mins}m ago`
-      : `${mins} ${mins === 1 ? "minute" : "minutes"} ago`;
+      : `${mins} ${mins === 1 ? 'minute' : 'minutes'} ago`;
   } else if (diffInMinutes < 1440) {
     const hours = Math.floor(diffInMinutes / 60);
     return short
       ? `${hours}h ago`
-      : `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
+      : `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
   } else {
     const days = Math.floor(diffInMinutes / 1440);
     return short
       ? `${days}d ago`
-      : `${days} ${days === 1 ? "day" : "days"} ago`;
+      : `${days} ${days === 1 ? 'day' : 'days'} ago`;
   }
 };
 
@@ -159,30 +159,30 @@ export const formatRelativeTime = (
   dateInput: string | Date | null | undefined,
   short: boolean = false,
 ) => {
-  if (!dateInput) return "Unknown";
+  if (!dateInput) return 'Unknown';
 
-  const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
 
   // Check for invalid date
-  if (isNaN(date.getTime())) return "Unknown";
+  if (isNaN(date.getTime())) return 'Unknown';
 
   const diffInMinutes = (date.getTime() - Date.now()) / (1000 * 60);
   const future = diffInMinutes > 0;
   const abs = Math.abs(diffInMinutes);
 
-  if (abs < 1) return "now";
+  if (abs < 1) return 'now';
 
   let value: number;
   let unit: string;
   if (abs < 60) {
     value = Math.floor(abs);
-    unit = short ? "m" : value === 1 ? "minute" : "minutes";
+    unit = short ? 'm' : value === 1 ? 'minute' : 'minutes';
   } else if (abs < 1440) {
     value = Math.floor(abs / 60);
-    unit = short ? "h" : value === 1 ? "hour" : "hours";
+    unit = short ? 'h' : value === 1 ? 'hour' : 'hours';
   } else {
     value = Math.floor(abs / 1440);
-    unit = short ? "d" : value === 1 ? "day" : "days";
+    unit = short ? 'd' : value === 1 ? 'day' : 'days';
   }
 
   if (short) {

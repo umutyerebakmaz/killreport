@@ -20,10 +20,13 @@ class RateLimiter {
   // Dispatch spacing that produces the configured rate: 50/sec => 20ms apart.
   private readonly minDelayBetweenRequests = Math.max(
     1,
-    Math.floor(1000 / config.esi.maxRequestsPerSecond)
+    Math.floor(1000 / config.esi.maxRequestsPerSecond),
   );
   // In-flight cap has to scale with the rate, or it becomes the real ceiling.
-  private readonly maxConcurrent = Math.max(50, config.esi.maxRequestsPerSecond);
+  private readonly maxConcurrent = Math.max(
+    50,
+    config.esi.maxRequestsPerSecond,
+  );
 
   /**
    * Execute a function with rate limiting.
@@ -93,7 +96,7 @@ class RateLimiter {
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**

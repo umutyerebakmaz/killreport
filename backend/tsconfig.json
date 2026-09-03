@@ -14,42 +14,19 @@
     "verbatimModuleSyntax": false,
     "baseUrl": ".",
     "paths": {
-      "@services/*": [
-        "src/services/*"
-      ],
-      "@resolvers/*": [
-        "src/resolvers/*"
-      ],
-      "@app-types/*": [
-        "src/app-types/*"
-      ],
-      "@utils/*": [
-        "src/utils/*"
-      ],
-      "@config/*": [
-        "src/config/*"
-      ],
-      "@generated-types": [
-        "src/generated-types.ts"
-      ],
-      "@generated/*": [
-        "src/generated/*"
-      ],
-      "@helpers/*": [
-        "src/helpers/*"
-      ],
-      "@plugins/*": [
-        "src/plugins/*"
-      ]
+      "@services/*": ["src/services/*"],
+      "@resolvers/*": ["src/resolvers/*"],
+      "@app-types/*": ["src/app-types/*"],
+      "@utils/*": ["src/utils/*"],
+      "@config/*": ["src/config/*"],
+      "@generated-types": ["src/generated-types.ts"],
+      "@generated/*": ["src/generated/*"],
+      "@helpers/*": ["src/helpers/*"],
+      "@plugins/*": ["src/plugins/*"]
     }
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ],
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"],
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node"

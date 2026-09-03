@@ -167,13 +167,13 @@ Edit constants in respective files:
 **`src/workers/queue-zkillboard-sync.ts`:**
 
 ```typescript
-const QUEUE_NAME = "zkillboard_character_queue";
+const QUEUE_NAME = 'zkillboard_character_queue';
 ```
 
 **`src/workers/worker-zkillboard-sync.ts`:**
 
 ```typescript
-const QUEUE_NAME = "zkillboard_character_queue";
+const QUEUE_NAME = 'zkillboard_character_queue';
 const PREFETCH_COUNT = 1; // Concurrent users per worker
 const MAX_PAGES = 100; // Max pages to fetch from zKillboard
 ```
@@ -337,7 +337,7 @@ spec:
       containers:
         - name: worker
           image: killreport-backend:latest
-          command: ["node", "dist/killmail-worker.js"]
+          command: ['node', 'dist/killmail-worker.js']
 ```
 
 ⚠️ **Important**: Only run ONE instance of the worker to avoid duplicate processing!

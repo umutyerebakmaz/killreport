@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useSearchCharactersQuery } from "@/generated/graphql";
-import FilterBar from "@/components/ui/FilterBar";
-import FilterDialog from "@/components/ui/FilterDialog";
-import FilterField from "@/components/ui/FilterField";
-import { useDebounce } from "@/hooks/useDebounce";
+import { useSearchCharactersQuery } from '@/generated/graphql';
+import FilterBar from '@/components/ui/FilterBar';
+import FilterDialog from '@/components/ui/FilterDialog';
+import FilterField from '@/components/ui/FilterField';
+import { useDebounce } from '@/hooks/useDebounce';
 import {
   ChevronDownIcon,
   MagnifyingGlassIcon,
-} from "@heroicons/react/24/outline";
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+} from '@heroicons/react/24/outline';
+import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 
 interface CharacterFiltersProps {
   onFilterChange: (filters: {
@@ -27,15 +27,15 @@ interface CharacterFiltersProps {
 export default function CharacterFilters({
   onFilterChange,
   onClearFilters,
-  orderBy = "nameAsc",
+  orderBy = 'nameAsc',
   onOrderByChange,
 }: CharacterFiltersProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const [name, setName] = useState("");
-  const [corporationId, setCorporationId] = useState("");
-  const [allianceId, setAllianceId] = useState("");
+  const [search, setSearch] = useState('');
+  const [name, setName] = useState('');
+  const [corporationId, setCorporationId] = useState('');
+  const [allianceId, setAllianceId] = useState('');
 
   // Character search dropdown state
   const [showDropdown, setShowDropdown] = useState(false);
@@ -58,7 +58,9 @@ export default function CharacterFilters({
   const activeFilterCount = [name, corporationId, allianceId].filter(
     Boolean,
   ).length;
-  const hasActiveFilters = Boolean(search || name || corporationId || allianceId);
+  const hasActiveFilters = Boolean(
+    search || name || corporationId || allianceId,
+  );
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -71,8 +73,8 @@ export default function CharacterFilters({
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   // Show dropdown when we have results
@@ -88,7 +90,7 @@ export default function CharacterFilters({
 
   const handleCharacterSelect = (characterId: number) => {
     router.push(`/characters/${characterId}`);
-    setSearch("");
+    setSearch('');
     setShowDropdown(false);
   };
 
@@ -104,10 +106,10 @@ export default function CharacterFilters({
   };
 
   const handleClearAll = () => {
-    setSearch("");
-    setName("");
-    setCorporationId("");
-    setAllianceId("");
+    setSearch('');
+    setName('');
+    setCorporationId('');
+    setAllianceId('');
     onClearFilters();
   };
 
@@ -172,7 +174,7 @@ export default function CharacterFilters({
                               className="object-cover size-16"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
-                                target.src = "/images/default-avatar.png";
+                                target.src = '/images/default-avatar.png';
                               }}
                             />
                           </div>
@@ -227,23 +229,23 @@ export default function CharacterFilters({
               className="select"
             >
               <option value="nameAsc">
-                {orderBy === "nameAsc" ? "✓" : "\u00A0\u00A0"}
-                {"   "}
+                {orderBy === 'nameAsc' ? '✓' : '\u00A0\u00A0'}
+                {'   '}
                 Name A-Z
               </option>
               <option value="nameDesc">
-                {orderBy === "nameDesc" ? "✓" : "\u00A0\u00A0"}
-                {"   "}
+                {orderBy === 'nameDesc' ? '✓' : '\u00A0\u00A0'}
+                {'   '}
                 Name Z-A
               </option>
               <option value="securityStatusDesc">
-                {orderBy === "securityStatusDesc" ? "✓" : "\u00A0\u00A0"}
-                {"   "}
+                {orderBy === 'securityStatusDesc' ? '✓' : '\u00A0\u00A0'}
+                {'   '}
                 Highest Security
               </option>
               <option value="securityStatusAsc">
-                {orderBy === "securityStatusAsc" ? "✓" : "\u00A0\u00A0"}
-                {"   "}
+                {orderBy === 'securityStatusAsc' ? '✓' : '\u00A0\u00A0'}
+                {'   '}
                 Lowest Security
               </option>
             </select>

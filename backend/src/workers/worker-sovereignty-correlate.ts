@@ -34,7 +34,12 @@ async function correlateSovereigntyKillmails() {
   try {
     const campaigns = await prismaWorker.sovereigntyCampaign.findMany({
       where: { end_time: null },
-      select: { campaign_id: true, solar_system_id: true, start_time: true, defender_id: true },
+      select: {
+        campaign_id: true,
+        solar_system_id: true,
+        start_time: true,
+        defender_id: true,
+      },
     });
     logger.info(`📡 Correlating against ${campaigns.length} active campaigns`);
 
@@ -42,7 +47,9 @@ async function correlateSovereigntyKillmails() {
     let campaignsWithKills = 0;
 
     for (const campaign of campaigns) {
-      const windowStart = new Date(campaign.start_time.getTime() - PRE_GRACE_HOURS * 60 * 60 * 1000);
+      const windowStart = new Date(
+        campaign.start_time.getTime() - PRE_GRACE_HOURS * 60 * 60 * 1000,
+      );
 
       // Tag untagged killmails in this campaign's system + time window
       const tagged = await prismaWorker.killmail.updateMany({
@@ -112,7 +119,7 @@ async function correlateSovereigntyKillmails() {
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     logger.info(
       `✅ Correlation complete: ${totalTagged} new killmails tagged, ` +
-      `${campaignsWithKills}/${campaigns.length} campaigns have war kills (${duration}s)`
+        `${campaignsWithKills}/${campaigns.length} campaigns have war kills (${duration}s)`,
     );
   } catch (error) {
     logger.error('❌ Sovereignty correlation failed', { error });

@@ -30,15 +30,21 @@ const pool = new Pool({
   allowExitOnIdle: false, // Keep pool alive for API server
 });
 
-console.log(`✅ [API] PostgreSQL pool configured: max=5 connections, min=1, idleTimeout=30s, pid=${process.pid}`);
+console.log(
+  `✅ [API] PostgreSQL pool configured: max=5 connections, min=1, idleTimeout=30s, pid=${process.pid}`,
+);
 
 // Monitor pool connections
 pool.on('connect', () => {
-  console.log(`🔌 Pool connection opened - Total: ${pool.totalCount}, Idle: ${pool.idleCount}, Waiting: ${pool.waitingCount}`);
+  console.log(
+    `🔌 Pool connection opened - Total: ${pool.totalCount}, Idle: ${pool.idleCount}, Waiting: ${pool.waitingCount}`,
+  );
 });
 
 pool.on('remove', () => {
-  console.log(`❌ Pool connection closed - Total: ${pool.totalCount}, Idle: ${pool.idleCount}, Waiting: ${pool.waitingCount}`);
+  console.log(
+    `❌ Pool connection closed - Total: ${pool.totalCount}, Idle: ${pool.idleCount}, Waiting: ${pool.waitingCount}`,
+  );
 });
 
 pool.on('error', (err) => {

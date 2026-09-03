@@ -32,7 +32,7 @@
 ```typescript
 // Implemented in resolver:
 // 1. 5-minute wait per character
-await redis.setex(`refresh:character:${characterId}`, 300, "1");
+await redis.setex(`refresh:character:${characterId}`, 300, '1');
 
 // 2. Cache invalidation
 await redis.del(`character:detail:${characterId}`);
@@ -142,16 +142,16 @@ setInterval(() => {
   ```typescript
   // 1. Daily limit per user
   const dailyLimit = await redis.get(`daily:refresh:${userId}`);
-  if (parseInt(dailyLimit || "0") >= 10) {
-    return { success: false, message: "Daily limit reached" };
+  if (parseInt(dailyLimit || '0') >= 10) {
+    return { success: false, message: 'Daily limit reached' };
   }
 
   // 2. Global rate limit monitoring
-  const globalRate = await redis.incr("global:refresh:count");
-  await redis.expire("global:refresh:count", 60);
+  const globalRate = await redis.incr('global:refresh:count');
+  await redis.expire('global:refresh:count', 60);
   if (globalRate > 50) {
     // 50/minute
-    return { success: false, message: "System busy, try again later" };
+    return { success: false, message: 'System busy, try again later' };
   }
   ```
 
@@ -161,7 +161,7 @@ setInterval(() => {
 
 ```typescript
 // Per character: 5 minutes
-await redis.setex(`refresh:character:${characterId}`, 300, "1");
+await redis.setex(`refresh:character:${characterId}`, 300, '1');
 ```
 
 ### 2. User-Based Daily Limit (TODO)
@@ -173,7 +173,7 @@ const count = await redis.incr(dailyKey);
 await redis.expire(dailyKey, 86400);
 
 if (count > 10) {
-  return { success: false, message: "Daily limit (10) exceeded" };
+  return { success: false, message: 'Daily limit (10) exceeded' };
 }
 ```
 
@@ -181,12 +181,12 @@ if (count > 10) {
 
 ```typescript
 // System-wide per-minute monitoring
-const globalCount = await redis.incr("global:refresh:minute");
-await redis.expire("global:refresh:minute", 60);
+const globalCount = await redis.incr('global:refresh:minute');
+await redis.expire('global:refresh:minute', 60);
 
 if (globalCount > 100) {
   // 100 refresh/minute
-  logger.warn("High refresh rate detected", { globalCount });
+  logger.warn('High refresh rate detected', { globalCount });
 }
 ```
 
@@ -195,12 +195,12 @@ if (globalCount > 100) {
 ```typescript
 // Only logged-in users can refresh
 if (!context.user) {
-  throw new Error("Authentication required");
+  throw new Error('Authentication required');
 }
 
 // Users can only refresh their own character
 if (context.user.characterId !== characterId) {
-  throw new Error("Unauthorized");
+  throw new Error('Unauthorized');
 }
 ```
 
@@ -216,7 +216,7 @@ function CharacterProfile({ characterId }) {
 
   const handleRefresh = async () => {
     if (!canRefresh) {
-      toast.error("Please wait 5 minutes between refreshes");
+      toast.error('Please wait 5 minutes between refreshes');
       return;
     }
 
@@ -226,13 +226,13 @@ function CharacterProfile({ characterId }) {
 
     if (result.data.refreshCharacter.success) {
       setLastRefresh(new Date());
-      toast.success("Character refresh queued!");
+      toast.success('Character refresh queued!');
     }
   };
 
   return (
     <button onClick={handleRefresh} disabled={!canRefresh}>
-      {canRefresh ? "Refresh" : `Wait ${getRemainingTime()}...`}
+      {canRefresh ? 'Refresh' : `Wait ${getRemainingTime()}...`}
     </button>
   );
 }
@@ -242,16 +242,16 @@ function CharacterProfile({ characterId }) {
 
 ```typescript
 // Add monitoring
-logger.info("Character refresh requested", {
+logger.info('Character refresh requested', {
   characterId,
   userId: context.user?.id,
-  source: "graphql-mutation",
+  source: 'graphql-mutation',
   timestamp: new Date().toISOString(),
 });
 
 // Collect metrics
-await redis.hincrby("metrics:refresh", "total", 1);
-await redis.hincrby("metrics:refresh", `user:${userId}`, 1);
+await redis.hincrby('metrics:refresh', 'total', 1);
+await redis.hincrby('metrics:refresh', `user:${userId}`, 1);
 ```
 
 ## 📊 Monitoring and Alerting

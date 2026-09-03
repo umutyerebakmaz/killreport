@@ -5,7 +5,12 @@
 import { useResponseCache } from '@envelop/response-cache';
 import logger from '@services/logger';
 import { redisCache } from '@services/redis-cache';
-import { CACHE_TTL, MAX_CACHE_TTL_SECONDS, PUBLIC_CACHE_QUERIES, TTL_PER_SCHEMA_COORDINATE } from '@config/cache';
+import {
+  CACHE_TTL,
+  MAX_CACHE_TTL_SECONDS,
+  PUBLIC_CACHE_QUERIES,
+  TTL_PER_SCHEMA_COORDINATE,
+} from '@config/cache';
 
 /**
  * Extract operation name from request
@@ -34,7 +39,8 @@ export function createResponseCachePlugin() {
 
       // User-specific queries: Per-user cache
       const req = request as any;
-      const auth = req?.request?.headers?.get('authorization') ||
+      const auth =
+        req?.request?.headers?.get('authorization') ||
         req?.request?.headers?.get('Authorization');
 
       if (typeof auth === 'string' && auth.startsWith('Bearer ')) {
@@ -92,14 +98,20 @@ export function createResponseCachePlugin() {
           const ttlInSeconds = Math.ceil(ttlValue / 1000);
 
           // Sanity check
-          if (isNaN(ttlInSeconds) || ttlInSeconds <= 0 || ttlInSeconds > MAX_CACHE_TTL_SECONDS) {
+          if (
+            isNaN(ttlInSeconds) ||
+            ttlInSeconds <= 0 ||
+            ttlInSeconds > MAX_CACHE_TTL_SECONDS
+          ) {
             logger.warn(`Invalid TTL: ${ttlInSeconds}s, using default 60s`);
             await redisCache.setex(key, 60, JSON.stringify(value));
             return;
           }
 
           await redisCache.setex(key, ttlInSeconds, JSON.stringify(value));
-          logger.debug(`Cache SET: ${key.substring(0, 50)}... (TTL: ${ttlInSeconds}s)`);
+          logger.debug(
+            `Cache SET: ${key.substring(0, 50)}... (TTL: ${ttlInSeconds}s)`,
+          );
         } catch (error) {
           logger.error('Cache set error:', error);
         }
@@ -112,7 +124,9 @@ export function createResponseCachePlugin() {
             const keys = await redisCache.keys(pattern);
             if (keys.length > 0) {
               await redisCache.del(...keys);
-              logger.info(`Cache invalidated: ${entity.typename}:${entity.id} (${keys.length} keys)`);
+              logger.info(
+                `Cache invalidated: ${entity.typename}:${entity.id} (${keys.length} keys)`,
+              );
             }
           }
         } catch (error) {

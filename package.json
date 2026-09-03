@@ -10,7 +10,18 @@
     "dev": "yarn workspace frontend dev",
     "dev:frontend": "yarn workspace frontend dev",
     "dev:backend": "yarn workspace backend dev",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "docs:check-links": "node scripts/check-doc-links.js",
-    "remove:all": "rm -rf node_modules yarn.lock package-lock.json pnpm-lock.yaml backend/node_modules backend/yarn.lock backend/package-lock.json backend/pnpm-lock.yaml frontend/node_modules frontend/yarn.lock frontend/package-lock.json frontend/pnpm-lock.yaml frontend/.next"
+    "remove:all": "rm -rf node_modules yarn.lock package-lock.json pnpm-lock.yaml backend/node_modules backend/yarn.lock backend/package-lock.json backend/pnpm-lock.yaml frontend/node_modules frontend/yarn.lock frontend/package-lock.json frontend/pnpm-lock.yaml frontend/.next",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^17.4.1",
+    "prettier": "^3.9.6"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs,json,md,graphql,yml,yaml,css}": "prettier --write"
   }
 }

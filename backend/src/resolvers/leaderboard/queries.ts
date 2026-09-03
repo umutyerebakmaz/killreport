@@ -49,11 +49,11 @@ export const leaderboardQueries: QueryResolvers = {
 
     if (rows.length === 0) return [];
 
-    const characterIds = rows.map(r => r.character_id);
+    const characterIds = rows.map((r) => r.character_id);
     const characters = await prisma.character.findMany({
       where: { id: { in: characterIds } },
     });
-    const charMap = new Map(characters.map(c => [c.id, c]));
+    const charMap = new Map(characters.map((c) => [c.id, c]));
 
     const currentWeekStart = getWeekMonday(today);
     const isCurrentWeek = weekStart === currentWeekStart;
@@ -65,16 +65,20 @@ export const leaderboardQueries: QueryResolvers = {
         killCount: Number(row.kill_count),
         character: char
           ? {
-            ...char,
-            securityStatus: char.security_status ?? null,
-            birthday: char.birthday.toISOString(),
-            updatedAt: char.updated_at?.toISOString() ?? null,
-          }
+              ...char,
+              securityStatus: char.security_status ?? null,
+              birthday: char.birthday.toISOString(),
+              updatedAt: char.updated_at?.toISOString() ?? null,
+            }
           : null,
       };
     });
 
-    await redis.setex(cacheKey, isCurrentWeek ? 300 : 3600, JSON.stringify(result));
+    await redis.setex(
+      cacheKey,
+      isCurrentWeek ? 300 : 3600,
+      JSON.stringify(result),
+    );
     return result;
   },
 
@@ -106,12 +110,12 @@ export const leaderboardQueries: QueryResolvers = {
     }
 
     // Load full character rows in a single query
-    const characterIds = rows.map(r => r.character_id);
+    const characterIds = rows.map((r) => r.character_id);
     const characters = await prisma.character.findMany({
       where: { id: { in: characterIds } },
     });
 
-    const charMap = new Map(characters.map(c => [c.id, c]));
+    const charMap = new Map(characters.map((c) => [c.id, c]));
 
     const result = rows.map((row, idx) => {
       const char = charMap.get(row.character_id);
@@ -120,11 +124,11 @@ export const leaderboardQueries: QueryResolvers = {
         killCount: row.kill_count,
         character: char
           ? {
-            ...char,
-            securityStatus: char.security_status ?? null,
-            birthday: char.birthday.toISOString(),
-            updatedAt: char.updated_at?.toISOString() ?? null,
-          }
+              ...char,
+              securityStatus: char.security_status ?? null,
+              birthday: char.birthday.toISOString(),
+              updatedAt: char.updated_at?.toISOString() ?? null,
+            }
           : null,
       };
     });
@@ -182,11 +186,11 @@ export const leaderboardQueries: QueryResolvers = {
 
     if (rows.length === 0) return [];
 
-    const characterIds = rows.map(r => r.character_id);
+    const characterIds = rows.map((r) => r.character_id);
     const characters = await prisma.character.findMany({
       where: { id: { in: characterIds } },
     });
-    const charMap = new Map(characters.map(c => [c.id, c]));
+    const charMap = new Map(characters.map((c) => [c.id, c]));
 
     const result = rows.map((row, idx) => {
       const char = charMap.get(row.character_id);
@@ -195,11 +199,11 @@ export const leaderboardQueries: QueryResolvers = {
         killCount: Number(row.kill_count),
         character: char
           ? {
-            ...char,
-            securityStatus: char.security_status ?? null,
-            birthday: char.birthday.toISOString(),
-            updatedAt: char.updated_at?.toISOString() ?? null,
-          }
+              ...char,
+              securityStatus: char.security_status ?? null,
+              birthday: char.birthday.toISOString(),
+              updatedAt: char.updated_at?.toISOString() ?? null,
+            }
           : null,
       };
     });
@@ -229,11 +233,11 @@ export const leaderboardQueries: QueryResolvers = {
 
     if (rows.length === 0) return [];
 
-    const characterIds = rows.map(r => r.character_id);
+    const characterIds = rows.map((r) => r.character_id);
     const characters = await prisma.character.findMany({
       where: { id: { in: characterIds } },
     });
-    const charMap = new Map(characters.map(c => [c.id, c]));
+    const charMap = new Map(characters.map((c) => [c.id, c]));
 
     const result = rows.map((row, idx) => {
       const char = charMap.get(row.character_id);
@@ -242,11 +246,11 @@ export const leaderboardQueries: QueryResolvers = {
         killCount: Number(row.kill_count),
         character: char
           ? {
-            ...char,
-            securityStatus: char.security_status ?? null,
-            birthday: char.birthday.toISOString(),
-            updatedAt: char.updated_at?.toISOString() ?? null,
-          }
+              ...char,
+              securityStatus: char.security_status ?? null,
+              birthday: char.birthday.toISOString(),
+              updatedAt: char.updated_at?.toISOString() ?? null,
+            }
           : null,
       };
     });
@@ -265,9 +269,10 @@ export const leaderboardQueries: QueryResolvers = {
     // Derive first day of the month and first day of the next month
     const [year, month] = targetMonth.split('-').map(Number);
     const monthStart = `${year}-${String(month).padStart(2, '0')}-01`;
-    const nextMonthStart = month === 12
-      ? `${year + 1}-01-01`
-      : `${year}-${String(month + 1).padStart(2, '0')}-01`;
+    const nextMonthStart =
+      month === 12
+        ? `${year + 1}-01-01`
+        : `${year}-${String(month + 1).padStart(2, '0')}-01`;
 
     const cacheKey = `leaderboard:topMonthlyPilots:${targetMonth}:${limit}`;
     const cached = await redis.get(cacheKey);
@@ -286,11 +291,11 @@ export const leaderboardQueries: QueryResolvers = {
 
     if (rows.length === 0) return [];
 
-    const characterIds = rows.map(r => r.character_id);
+    const characterIds = rows.map((r) => r.character_id);
     const characters = await prisma.character.findMany({
       where: { id: { in: characterIds } },
     });
-    const charMap = new Map(characters.map(c => [c.id, c]));
+    const charMap = new Map(characters.map((c) => [c.id, c]));
 
     const isCurrentMonth = targetMonth === defaultMonth;
 
@@ -301,16 +306,20 @@ export const leaderboardQueries: QueryResolvers = {
         killCount: Number(row.kill_count),
         character: char
           ? {
-            ...char,
-            securityStatus: char.security_status ?? null,
-            birthday: char.birthday.toISOString(),
-            updatedAt: char.updated_at?.toISOString() ?? null,
-          }
+              ...char,
+              securityStatus: char.security_status ?? null,
+              birthday: char.birthday.toISOString(),
+              updatedAt: char.updated_at?.toISOString() ?? null,
+            }
           : null,
       };
     });
 
-    await redis.setex(cacheKey, isCurrentMonth ? 300 : 3600, JSON.stringify(result));
+    await redis.setex(
+      cacheKey,
+      isCurrentMonth ? 300 : 3600,
+      JSON.stringify(result),
+    );
     return result;
   },
 
@@ -359,11 +368,11 @@ export const leaderboardQueries: QueryResolvers = {
 
     if (rows.length === 0) return [];
 
-    const corporationIds = rows.map(r => r.corporation_id);
+    const corporationIds = rows.map((r) => r.corporation_id);
     const corporations = await prisma.corporation.findMany({
       where: { id: { in: corporationIds } },
     });
-    const corpMap = new Map(corporations.map(c => [c.id, c]));
+    const corpMap = new Map(corporations.map((c) => [c.id, c]));
 
     const result = rows.map((row, idx) => {
       const corp = corpMap.get(row.corporation_id);
@@ -372,10 +381,10 @@ export const leaderboardQueries: QueryResolvers = {
         killCount: Number(row.kill_count),
         corporation: corp
           ? {
-            ...corp,
-            shares: corp.shares ? Number(corp.shares) : null,
-            updatedAt: corp.updated_at?.toISOString() ?? null,
-          }
+              ...corp,
+              shares: corp.shares ? Number(corp.shares) : null,
+              updatedAt: corp.updated_at?.toISOString() ?? null,
+            }
           : null,
       };
     });
@@ -430,11 +439,11 @@ export const leaderboardQueries: QueryResolvers = {
 
     if (rows.length === 0) return [];
 
-    const allianceIds = rows.map(r => r.alliance_id);
+    const allianceIds = rows.map((r) => r.alliance_id);
     const alliances = await prisma.alliance.findMany({
       where: { id: { in: allianceIds } },
     });
-    const allianceMap = new Map(alliances.map(a => [a.id, a]));
+    const allianceMap = new Map(alliances.map((a) => [a.id, a]));
 
     const result = rows.map((row, idx) => {
       const alliance = allianceMap.get(row.alliance_id);
@@ -443,9 +452,9 @@ export const leaderboardQueries: QueryResolvers = {
         killCount: Number(row.kill_count),
         alliance: alliance
           ? {
-            ...alliance,
-            updatedAt: alliance.updated_at?.toISOString() ?? null,
-          }
+              ...alliance,
+              updatedAt: alliance.updated_at?.toISOString() ?? null,
+            }
           : null,
       };
     });
@@ -483,11 +492,11 @@ export const leaderboardQueries: QueryResolvers = {
 
     if (rows.length === 0) return [];
 
-    const shipTypeIds = rows.map(r => r.victim_ship_type_id);
+    const shipTypeIds = rows.map((r) => r.victim_ship_type_id);
     const shipTypes = await prisma.type.findMany({
       where: { id: { in: shipTypeIds } },
     });
-    const shipTypeMap = new Map(shipTypes.map(s => [s.id, s]));
+    const shipTypeMap = new Map(shipTypes.map((s) => [s.id, s]));
 
     const result = rows.map((row, idx) => {
       const shipType = shipTypeMap.get(row.victim_ship_type_id);
@@ -526,11 +535,11 @@ export const leaderboardQueries: QueryResolvers = {
 
     if (rows.length === 0) return [];
 
-    const shipTypeIds = rows.map(r => r.ship_type_id);
+    const shipTypeIds = rows.map((r) => r.ship_type_id);
     const shipTypes = await prisma.type.findMany({
       where: { id: { in: shipTypeIds } },
     });
-    const shipTypeMap = new Map(shipTypes.map(s => [s.id, s]));
+    const shipTypeMap = new Map(shipTypes.map((s) => [s.id, s]));
 
     const result = rows.map((row, idx) => {
       const shipType = shipTypeMap.get(row.ship_type_id);

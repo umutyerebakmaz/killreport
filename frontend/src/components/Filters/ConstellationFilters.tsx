@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useRegionsQuery } from "@/generated/graphql";
-import FilterBar from "@/components/ui/FilterBar";
+import { useRegionsQuery } from '@/generated/graphql';
+import FilterBar from '@/components/ui/FilterBar';
 import {
   ChevronDownIcon,
   MagnifyingGlassIcon,
-} from "@heroicons/react/24/outline";
-import { useState } from "react";
+} from '@heroicons/react/24/outline';
+import { useState } from 'react';
 
 interface ConstellationFiltersProps {
   onFilterChange: (filters: { search?: string; region_id?: number }) => void;
@@ -20,10 +20,10 @@ interface ConstellationFiltersProps {
 export default function ConstellationFilters({
   onFilterChange,
   onClearFilters,
-  orderBy = "nameAsc",
+  orderBy = 'nameAsc',
   onOrderByChange,
-  initialSearch = "",
-  initialRegionId = "",
+  initialSearch = '',
+  initialRegionId = '',
 }: ConstellationFiltersProps) {
   const [search, setSearch] = useState(initialSearch);
   const [selectedRegionId, setSelectedRegionId] = useState(initialRegionId);
@@ -34,15 +34,13 @@ export default function ConstellationFilters({
       filter: {
         page: 1,
         limit: 500,
-        orderBy: "nameAsc" as any,
+        orderBy: 'nameAsc' as any,
       },
     },
   });
 
   const regions = regionsData?.regions.items || [];
-  const activeFilterCount = [search, selectedRegionId].filter(
-    Boolean,
-  ).length;
+  const activeFilterCount = [search, selectedRegionId].filter(Boolean).length;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,8 +51,8 @@ export default function ConstellationFilters({
   };
 
   const handleClearAll = () => {
-    setSearch("");
-    setSelectedRegionId("");
+    setSearch('');
+    setSelectedRegionId('');
     onClearFilters();
   };
 
@@ -108,13 +106,13 @@ export default function ConstellationFilters({
               className="select"
             >
               <option value="nameAsc">
-                {orderBy === "nameAsc" ? "✓" : "\u00A0\u00A0"}
-                {"   "}
+                {orderBy === 'nameAsc' ? '✓' : '\u00A0\u00A0'}
+                {'   '}
                 Name A-Z
               </option>
               <option value="nameDesc">
-                {orderBy === "nameDesc" ? "✓" : "\u00A0\u00A0"}
-                {"   "}
+                {orderBy === 'nameDesc' ? '✓' : '\u00A0\u00A0'}
+                {'   '}
                 Name Z-A
               </option>
             </select>

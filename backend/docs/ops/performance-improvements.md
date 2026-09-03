@@ -116,7 +116,7 @@ const client = new ApolloClient({
       Query: {
         fields: {
           killmails: {
-            keyArgs: ["filter"], // New cache when filter changes
+            keyArgs: ['filter'], // New cache when filter changes
             merge(existing, incoming) {
               // Merge logic for pagination
               return incoming;
@@ -193,7 +193,7 @@ import { useResponseTime } from '@graphql-yoga/plugin-response-time'
 // Prisma query logging
 // backend/src/services/prisma.ts
 const prisma = new PrismaClient({
-  log: ["query", "info", "warn", "error"],
+  log: ['query', 'info', 'warn', 'error'],
 });
 ```
 
@@ -227,8 +227,8 @@ Apollo Client already does automatic caching, but for manual control:
 ```typescript
 // Refetch policy
 const { data } = useKillmailsQuery({
-  fetchPolicy: "cache-first", // Check cache first
-  nextFetchPolicy: "cache-first", // For subsequent requests too
+  fetchPolicy: 'cache-first', // Check cache first
+  nextFetchPolicy: 'cache-first', // For subsequent requests too
 });
 ```
 
@@ -237,7 +237,7 @@ const { data } = useKillmailsQuery({
 1. **Cache Invalidation**: Clear cache when new killmail is added
 
    ```typescript
-   await redisCache.del("public:*Killmails*");
+   await redisCache.del('public:*Killmails*');
    ```
 
 2. **Memory Limits**: Redis has 256MB limit (DigitalOcean), cache large queries carefully

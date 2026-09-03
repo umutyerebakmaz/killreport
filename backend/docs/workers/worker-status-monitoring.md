@@ -186,13 +186,13 @@ function WorkerMonitor() {
 
 ## Queue Names
 
-| Queue Name                        | Purpose                     | Worker Command                      |
+| Queue Name | Purpose | Worker Command |
 | --------------------------------- | --------------------------- | ----------------------------------- | --- | ------------------------- | -------------------------- | --------------------------- |
-| `zkillboard_character_queue`      | zKillboard killmail sync    | `yarn worker:zkillboard`            |
-| `esi_alliance_info_queue`         | Alliance enrichment         | `yarn worker:info:alliances`        |
-| `esi_alliance_corporations_queue` | Alliance corp sync          | `yarn worker:alliance-corporations` |
-| `esi_regions_queue`               | Universe region sync        | `yarn worker:regions`               |
-| `esi_constellations_queue`        | Universe constellation sync | `yarn worker:constellations`        |     | `esi_solar_systems_queue` | Universe solar system sync | `yarn worker:solar-systems` |
+| `zkillboard_character_queue` | zKillboard killmail sync | `yarn worker:zkillboard` |
+| `esi_alliance_info_queue` | Alliance enrichment | `yarn worker:info:alliances` |
+| `esi_alliance_corporations_queue` | Alliance corp sync | `yarn worker:alliance-corporations` |
+| `esi_regions_queue` | Universe region sync | `yarn worker:regions` |
+| `esi_constellations_queue` | Universe constellation sync | `yarn worker:constellations` | | `esi_solar_systems_queue` | Universe solar system sync | `yarn worker:solar-systems` |
 
 ## Monitoring Dashboard Ideas
 

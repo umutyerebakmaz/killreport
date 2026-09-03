@@ -1,11 +1,11 @@
-import { AllianceCorporationsQuery } from "@/generated/graphql";
-import Link from "next/link";
-import Loader from "../Loader";
-import TotalMemberBadge from "../TotalMemberBadge/TotalMemberBadge";
+import { AllianceCorporationsQuery } from '@/generated/graphql';
+import Link from 'next/link';
+import Loader from '../Loader';
+import TotalMemberBadge from '../TotalMemberBadge/TotalMemberBadge';
 
 // Extract the Killmail type from the GraphQL query result
 export type Corporation = NonNullable<
-  AllianceCorporationsQuery["corporations"]["items"][number]
+  AllianceCorporationsQuery['corporations']['items'][number]
 >;
 
 interface CorporationsTableProps {

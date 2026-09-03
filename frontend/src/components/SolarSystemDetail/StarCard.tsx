@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 export interface StarSummary {
   id: number;
@@ -31,7 +31,9 @@ export default function StarCard({ star, starId }: StarCardProps) {
   if (!star?.name) {
     return (
       <div className="p-6 border bg-white/5 border-white/10">
-        <div className="text-xs tracking-wide text-gray-400 uppercase">Star</div>
+        <div className="text-xs tracking-wide text-gray-400 uppercase">
+          Star
+        </div>
         <div className="mt-2 italic text-gray-500">
           Star {star?.id ?? starId}
         </div>
@@ -42,7 +44,9 @@ export default function StarCard({ star, starId }: StarCardProps) {
   return (
     <div className="p-6 border bg-white/5 border-white/10">
       <div className="text-xs tracking-wide text-gray-400 uppercase">Star</div>
-      <div className="mt-2 text-lg font-semibold text-gray-100">{star.name}</div>
+      <div className="mt-2 text-lg font-semibold text-gray-100">
+        {star.name}
+      </div>
       <dl className="grid grid-cols-2 gap-x-4 gap-y-2 mt-4 text-sm">
         {star.type?.name && <Row label="Type" value={star.type.name} />}
         {star.spectralClass && (

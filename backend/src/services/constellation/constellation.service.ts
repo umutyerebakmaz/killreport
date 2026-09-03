@@ -13,7 +13,9 @@ export class ConstellationService {
    */
   static async getAllConstellationIds(): Promise<number[]> {
     return esiRateLimiter.execute(async () => {
-      const response = await axios.get(`${ESI_BASE_URL}/universe/constellations/`);
+      const response = await axios.get(
+        `${ESI_BASE_URL}/universe/constellations/`,
+      );
       return response.data;
     });
   }
@@ -26,7 +28,7 @@ export class ConstellationService {
   static async getConstellationInfo(constellationId: number) {
     return esiRateLimiter.execute(async () => {
       const response = await axios.get(
-        `${ESI_BASE_URL}/universe/constellations/${constellationId}/`
+        `${ESI_BASE_URL}/universe/constellations/${constellationId}/`,
       );
       return response.data;
     });

@@ -179,7 +179,7 @@ yarn worker:info:characters
 **File:** `/backend/src/workers/queue-alliance-corporation-characters.ts`
 
 ```typescript
-const QUEUE_NAME = "esi_character_info_queue";
+const QUEUE_NAME = 'esi_character_info_queue';
 const BATCH_SIZE = 100; // Queue messages in batches of 100
 
 interface EntityQueueMessage {
@@ -194,7 +194,7 @@ interface EntityQueueMessage {
 **File:** `/backend/src/workers/worker-info-characters.ts`
 
 ```typescript
-const QUEUE_NAME = "esi_character_info_queue";
+const QUEUE_NAME = 'esi_character_info_queue';
 const PREFETCH_COUNT = 20; // Process 20 characters concurrently
 ```
 
@@ -316,7 +316,7 @@ Output includes:
 **Automatic Retry Logic:**
 
 ```typescript
-if (error.message?.includes("404")) {
+if (error.message?.includes('404')) {
   channel.ack(msg); // Skip deleted characters
 } else {
   channel.nack(msg, false, true); // Requeue for retry
@@ -608,8 +608,8 @@ yarn queue:alliance-corp-characters
 
 ```typescript
 // Add to worker-info-characters.ts
-console.log("Debug: Processing character", characterId);
-console.log("Debug: ESI Response:", charInfo);
+console.log('Debug: Processing character', characterId);
+console.log('Debug: ESI Response:', charInfo);
 ```
 
 ### Check RabbitMQ Queue

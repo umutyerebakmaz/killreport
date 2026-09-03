@@ -9,4 +9,3 @@
 export { categoryFields } from './fields';
 export { categoryMutations } from './mutations';
 export { categoryQueries } from './queries';
-

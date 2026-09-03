@@ -20,7 +20,9 @@ export const attackerFields: AttackerResolvers = {
 
   corporation: async (parent: any, _, context) => {
     if (!parent.corporation_id) return null;
-    const corporation = await context.loaders.corporation.load(parent.corporation_id);
+    const corporation = await context.loaders.corporation.load(
+      parent.corporation_id,
+    );
     if (!corporation) return null;
     return {
       ...corporation,

@@ -2,13 +2,13 @@ import logger from '../src/services/logger';
 import prismaWorker from '../src/services/prisma-worker';
 
 async function populate() {
-    const start = Date.now();
+  const start = Date.now();
 
-    logger.info('🗑️  Truncating alliance_top_alliance_targets...');
-    await prismaWorker.$executeRaw`TRUNCATE TABLE alliance_top_alliance_targets CASCADE`;
+  logger.info('🗑️  Truncating alliance_top_alliance_targets...');
+  await prismaWorker.$executeRaw`TRUNCATE TABLE alliance_top_alliance_targets CASCADE`;
 
-    logger.info('📊 Populating alliance_top_alliance_targets...');
-    await prismaWorker.$executeRaw`
+  logger.info('📊 Populating alliance_top_alliance_targets...');
+  await prismaWorker.$executeRaw`
     INSERT INTO alliance_top_alliance_targets
       (alliance_id, target_alliance_id, kill_count, alliance_name, alliance_ticker, first_seen_at, last_seen_at)
     SELECT
@@ -29,12 +29,19 @@ async function populate() {
     GROUP BY a.alliance_id, v.alliance_id, al.name, al.ticker
   `;
 
-    const duration = Date.now() - start;
-    const count = await prismaWorker.$queryRaw<Array<{ count: bigint }>>`SELECT COUNT(*) as count FROM alliance_top_alliance_targets`;
-    logger.info(`✅ alliance_top_alliance_targets: ${Number(count[0].count).toLocaleString()} records in ${(duration / 1000).toFixed(2)}s`);
+  const duration = Date.now() - start;
+  const count = await prismaWorker.$queryRaw<
+    Array<{ count: bigint }>
+  >`SELECT COUNT(*) as count FROM alliance_top_alliance_targets`;
+  logger.info(
+    `✅ alliance_top_alliance_targets: ${Number(count[0].count).toLocaleString()} records in ${(duration / 1000).toFixed(2)}s`,
+  );
 }
 
 populate()
-    .then(() => process.exit(0))
-    .catch((err) => { logger.error(err); process.exit(1); })
-    .finally(() => prismaWorker.$disconnect());
+  .then(() => process.exit(0))
+  .catch((err) => {
+    logger.error(err);
+    process.exit(1);
+  })
+  .finally(() => prismaWorker.$disconnect());

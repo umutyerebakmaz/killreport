@@ -35,7 +35,12 @@ async function queueMoons() {
     // /universe/names cannot resolve them either.
     const rows = await prismaWorker.moon.findMany({
       where: { name: null },
-      select: { id: true, solar_system_id: true, planet_id: true, orbit_index: true },
+      select: {
+        id: true,
+        solar_system_id: true,
+        planet_id: true,
+        orbit_index: true,
+      },
       orderBy: { id: 'asc' },
     });
 

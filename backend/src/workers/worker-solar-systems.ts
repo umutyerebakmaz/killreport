@@ -34,7 +34,10 @@ const SOURCE = 'worker-solar-systems';
 // Concurrency, not a rate limit - esiRateLimiter owns the dispatch ceiling.
 // Its job is to keep that ceiling fed, so it has to be at least a fraction of
 // the target rate. Override per run with ESI_PREFETCH.
-const PREFETCH_COUNT = Math.max(config.esi.prefetch, Math.ceil(config.esi.maxRequestsPerSecond / 2));
+const PREFETCH_COUNT = Math.max(
+  config.esi.prefetch,
+  Math.ceil(config.esi.maxRequestsPerSecond / 2),
+);
 /** Queue quiet for this long, with nothing in flight, means the run is done. */
 const IDLE_EXIT_MS = 5000;
 
@@ -49,7 +52,7 @@ let emptyCheckInterval: NodeJS.Timeout | null = null;
 async function processSolarSystem(
   channel: amqp.Channel,
   systemId: number,
-  seq: number
+  seq: number,
 ): Promise<void> {
   const data = await SolarSystemService.getSystemInfo(systemId);
 
@@ -117,11 +120,14 @@ async function processSolarSystem(
   }
 
   const moonCount = planets.reduce((n, p) => n + (p.moons?.length ?? 0), 0);
-  const beltCount = planets.reduce((n, p) => n + (p.asteroid_belts?.length ?? 0), 0);
+  const beltCount = planets.reduce(
+    (n, p) => n + (p.asteroid_belts?.length ?? 0),
+    0,
+  );
   logger.info(
     `  ✅ [${seq}] Solar system ${systemId} - ${data.name} ` +
       `(${stargateIds.length} gates, ${stationIds.length} stations, ` +
-      `${planets.length} planets -> ${moonCount} moons, ${beltCount} belts queued)`
+      `${planets.length} planets -> ${moonCount} moons, ${beltCount} belts queued)`,
   );
 }
 
@@ -129,7 +135,9 @@ async function startWorker() {
   logger.info('🚀 Solar System Worker Started');
   logger.info(`📦 Queue: ${QUEUE_NAME}`);
   logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent`);
-  logger.info(`🚦 ESI ceiling: ${config.esi.maxRequestsPerSecond} req/sec (ESI_MAX_RPS)\n`);
+  logger.info(
+    `🚦 ESI ceiling: ${config.esi.maxRequestsPerSecond} req/sec (ESI_MAX_RPS)\n`,
+  );
 
   try {
     const channel = await getRabbitMQChannel();
@@ -145,7 +153,9 @@ async function startWorker() {
     channel.prefetch(PREFETCH_COUNT);
 
     const queueInfo = await channel.checkQueue(QUEUE_NAME);
-    logger.info(`📊 Queue status: ${queueInfo.messageCount} messages waiting\n`);
+    logger.info(
+      `📊 Queue status: ${queueInfo.messageCount} messages waiting\n`,
+    );
 
     let processed = 0;
     let errors = 0;
@@ -180,9 +190,13 @@ async function startWorker() {
         const duration = ((Date.now() - startTime) / 1000).toFixed(2);
         logger.info('\n' + '='.repeat(60));
         logger.info('🎉 ALL TASKS COMPLETED!');
-        logger.info(`✅ Processed: ${processed}   ❌ Errors: ${errors}   ⏱️  ${duration}s`);
+        logger.info(
+          `✅ Processed: ${processed}   ❌ Errors: ${errors}   ⏱️  ${duration}s`,
+        );
         logger.info('='.repeat(60));
-        logger.info('\n💡 The system queue is empty, but the chain is not done ');
+        logger.info(
+          '\n💡 The system queue is empty, but the chain is not done ',
+        );
         logger.info('   until stars, stargates, stations, planets, moons and ');
         logger.info('   asteroid belts are all empty too.\n');
       }
@@ -198,7 +212,6 @@ async function startWorker() {
         inFlight++;
 
         try {
-
           const systemId = parseInt(msg.content.toString());
 
           if (isNaN(systemId)) {
@@ -212,7 +225,9 @@ async function startWorker() {
             await processSolarSystem(channel, systemId, processed + 1);
             processed++;
             if (processed % 100 === 0) {
-              logger.info(`📊 Progress: ${processed} processed, ${errors} errors`);
+              logger.info(
+                `📊 Progress: ${processed} processed, ${errors} errors`,
+              );
             }
             channel.ack(msg);
           } catch (error: any) {
@@ -229,7 +244,10 @@ async function startWorker() {
             } else {
               // The root scan is re-runnable and its message is a bare integer
               // with no attempts counter, so requeue rather than dead-letter.
-              logger.error(`❌ Error processing solar system ${systemId}:`, error.message);
+              logger.error(
+                `❌ Error processing solar system ${systemId}:`,
+                error.message,
+              );
               channel.nack(msg, false, true);
             }
           }
@@ -237,7 +255,7 @@ async function startWorker() {
           inFlight--;
         }
       },
-      { noAck: false }
+      { noAck: false },
     );
 
     // SIGTERM too, not just SIGINT: timeout(1) and PM2 both send SIGTERM,

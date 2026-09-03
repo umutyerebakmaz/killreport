@@ -59,21 +59,33 @@ const yoga = createYoga<ServerContext>({
   // CORS configuration
   cors: config.app.isProduction
     ? {
-      origin: [
-        'https://killreport.com',
-        'https://www.killreport.com',
-        'https://api.killreport.com'
-      ],
-      credentials: true,
-      methods: ['GET', 'POST', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Accept', 'x-session-id'],
-    }
+        origin: [
+          'https://killreport.com',
+          'https://www.killreport.com',
+          'https://api.killreport.com',
+        ],
+        credentials: true,
+        methods: ['GET', 'POST', 'OPTIONS'],
+        allowedHeaders: [
+          'Content-Type',
+          'Authorization',
+          'Cache-Control',
+          'Accept',
+          'x-session-id',
+        ],
+      }
     : {
-      origin: '*', // Development: allow all origins
-      credentials: true,
-      methods: ['GET', 'POST', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Accept', 'x-session-id'],
-    },
+        origin: '*', // Development: allow all origins
+        credentials: true,
+        methods: ['GET', 'POST', 'OPTIONS'],
+        allowedHeaders: [
+          'Content-Type',
+          'Authorization',
+          'Cache-Control',
+          'Accept',
+          'x-session-id',
+        ],
+      },
 
   plugins: [
     // The topology schema is recursive (Stargate -> destination -> stargate,
@@ -85,14 +97,17 @@ const yoga = createYoga<ServerContext>({
       windowMs: 60_000, // 1 minute window
     }),
     // Disable introspection when config is set to false
-    ...(config.graphql.introspection ? [] : [createDisableIntrospectionPlugin()]),
+    ...(config.graphql.introspection
+      ? []
+      : [createDisableIntrospectionPlugin()]),
     useLogger({
       logFn: (eventName, { args }) => {
         // Track execution timing
         if (eventName === 'execute-start') {
           (args.contextValue as any).startTime = Date.now();
         } else if (eventName === 'execute-end') {
-          const duration = Date.now() - ((args.contextValue as any).startTime || 0);
+          const duration =
+            Date.now() - ((args.contextValue as any).startTime || 0);
           const operationName = args.operationName || 'anonymous';
 
           // Log based on duration thresholds
@@ -104,7 +119,7 @@ const yoga = createYoga<ServerContext>({
             logger.debug(`✅ [${operationName}] - ${duration}ms`);
           }
         }
-      }
+      },
     }),
     createResponseCachePlugin(), // Cache responses
   ],
@@ -123,7 +138,10 @@ const yoga = createYoga<ServerContext>({
       const forwarded = request?.headers.get('x-forwarded-for');
       const ip = forwarded ? forwarded.split(',')[0].trim() : 'unknown';
       sessionId = `ip_${ip}`;
-      logger.debug('⚠️  No session ID provided, using IP-based identifier:', sessionId);
+      logger.debug(
+        '⚠️  No session ID provided, using IP-based identifier:',
+        sessionId,
+      );
     }
 
     // Verify Bearer token if present
@@ -133,7 +151,10 @@ const yoga = createYoga<ServerContext>({
 
       try {
         const character = await verifyToken(token);
-        logger.debug('✅ Token verified for character:', character.characterName);
+        logger.debug(
+          '✅ Token verified for character:',
+          character.characterName,
+        );
 
         // Track user as active (with user ID)
         await trackActiveUser(character.characterId.toString(), sessionId);
@@ -157,7 +178,7 @@ const yoga = createYoga<ServerContext>({
       ...dataLoaders,
     };
   },
-});/**
+}); /**
  * Create HTTP server with routing
  * NOTE: CORS is handled by Nginx reverse proxy, not here!
  */
@@ -194,7 +215,10 @@ useServer(
       // Browsers cannot set headers on the WS handshake, so auth/session travel
       // in connectionParams. Bridge them onto the upgrade request's headers so
       // Yoga's existing context factory (which reads request.headers) picks them up.
-      const connectionParams = (ctx.connectionParams ?? {}) as Record<string, string>;
+      const connectionParams = (ctx.connectionParams ?? {}) as Record<
+        string,
+        string
+      >;
       const upgradeReq = ctx.extra.request as any;
       if (upgradeReq?.headers) {
         if (connectionParams.authorization) {
@@ -205,12 +229,13 @@ useServer(
         }
       }
 
-      const { schema, execute, subscribe, contextFactory, parse, validate } = yoga.getEnveloped({
-        ...ctx,
-        req: ctx.extra.request,
-        socket: ctx.extra.socket,
-        params,
-      });
+      const { schema, execute, subscribe, contextFactory, parse, validate } =
+        yoga.getEnveloped({
+          ...ctx,
+          req: ctx.extra.request,
+          socket: ctx.extra.socket,
+          params,
+        });
 
       const args = {
         schema,
@@ -226,7 +251,7 @@ useServer(
       return args;
     },
   },
-  wsServer
+  wsServer,
 );
 
 /**
@@ -243,9 +268,13 @@ server.listen(port, () => {
   logger.info(`🔐 Auth Callback:      http://localhost:${port}/auth/callback`);
   logger.info(`❤️  Health Check:       http://localhost:${port}/health`);
   logger.info('─'.repeat(80));
-  logger.info(`📡 Subscriptions:      ${USE_REDIS ? `Redis PubSub (${REDIS_CONFIG.url})` : 'In-memory (single instance)'}`);
+  logger.info(
+    `📡 Subscriptions:      ${USE_REDIS ? `Redis PubSub (${REDIS_CONFIG.url})` : 'In-memory (single instance)'}`,
+  );
   logger.info(`💾 Response Cache:     Enabled (Redis storage)`);
-  logger.info(`🛡️  Rate Limiting:      ${config.app.isProduction ? '100' : '1000'} requests/minute`);
+  logger.info(
+    `🛡️  Rate Limiting:      ${config.app.isProduction ? '100' : '1000'} requests/minute`,
+  );
   logger.info(`⏱️  Response Time:      Enabled (warn: 1s, error: 5s)`);
   logger.info('─'.repeat(80));
   logger.info('Available Workers:');

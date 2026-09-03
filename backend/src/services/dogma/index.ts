@@ -14,4 +14,3 @@
 
 export { DogmaAttributeService } from './dogma-attribute.service';
 export { DogmaEffectService } from './dogma-effect.service';
-

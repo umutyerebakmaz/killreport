@@ -1,5 +1,5 @@
 #!/bin/sh
-# Pre-commit hook to prevent .env files from being committed
+# Pre-commit hook: keep .env files out of commits, and format what is staged.
 
 # Check if any .env files are being staged
 if git diff --cached --name-only | grep -E "\.env$|\.env\.local$|\.env\.production$|\.env\.development$"; then
@@ -20,5 +20,5 @@ if git diff --cached --name-only | grep -E "\.env$|\.env\.local$|\.env\.producti
   exit 1
 fi
 
-# Success
-exit 0
+# Format whatever is staged, so style never depends on the author's editor.
+npx lint-staged

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useEffect, useRef } from "react";
-import { sanitizeEveHtml } from "@/utils/eveHtmlParser";
+import { useEffect, useRef } from 'react';
+import { sanitizeEveHtml } from '@/utils/eveHtmlParser';
 
 interface EveHtmlRendererProps {
   html: string | null | undefined;
@@ -13,7 +13,7 @@ interface EveHtmlRendererProps {
  */
 export default function EveHtmlRenderer({
   html,
-  className = "",
+  className = '',
 }: EveHtmlRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -31,8 +31,8 @@ export default function EveHtmlRenderer({
       ref={containerRef}
       className={`eve-description whitespace-pre-wrap ${className}`}
       style={{
-        wordBreak: "break-word",
-        overflowWrap: "break-word",
+        wordBreak: 'break-word',
+        overflowWrap: 'break-word',
       }}
     />
   );

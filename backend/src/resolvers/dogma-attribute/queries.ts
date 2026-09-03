@@ -7,77 +7,77 @@ import redis from '@services/redis';
  * Handles fetching dogma attribute data and listing attributes with filters
  */
 export const dogmaAttributeQueries: QueryResolvers = {
-    dogmaAttribute: async (_, { id }) => {
-        const cacheKey = `dogma-attribute:detail:${id}`;
+  dogmaAttribute: async (_, { id }) => {
+    const cacheKey = `dogma-attribute:detail:${id}`;
 
-        // Check cache first
-        const cached = await redis.get(cacheKey);
-        if (cached) {
-            return JSON.parse(cached);
-        }
+    // Check cache first
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
 
-        const dogmaAttribute = await prisma.dogmaAttribute.findUnique({
-            where: { id: Number(id) },
-        });
-        if (!dogmaAttribute) return null;
+    const dogmaAttribute = await prisma.dogmaAttribute.findUnique({
+      where: { id: Number(id) },
+    });
+    if (!dogmaAttribute) return null;
 
-        const result = {
-            ...dogmaAttribute,
-            created_at: dogmaAttribute.created_at.toISOString(),
-            updated_at: dogmaAttribute.updated_at.toISOString(),
-        } as any;
+    const result = {
+      ...dogmaAttribute,
+      created_at: dogmaAttribute.created_at.toISOString(),
+      updated_at: dogmaAttribute.updated_at.toISOString(),
+    } as any;
 
-        // Cache for 24 hours (dogma data rarely changes)
-        await redis.setex(cacheKey, 86400, JSON.stringify(result));
-        return result;
-    },
+    // Cache for 24 hours (dogma data rarely changes)
+    await redis.setex(cacheKey, 86400, JSON.stringify(result));
+    return result;
+  },
 
-    dogmaAttributes: async (_, { filter }) => {
-        const take = filter?.limit ?? 25;
-        const currentPage = filter?.page ?? 1;
-        const skip = (currentPage - 1) * take;
+  dogmaAttributes: async (_, { filter }) => {
+    const take = filter?.limit ?? 25;
+    const currentPage = filter?.page ?? 1;
+    const skip = (currentPage - 1) * take;
 
-        // Build where conditions
-        const where: any = {};
-        if (filter) {
-            if (filter.search) {
-                where.OR = [
-                    { name: { contains: filter.search, mode: 'insensitive' } },
-                    { display_name: { contains: filter.search, mode: 'insensitive' } },
-                ];
-            }
-            if (filter.published !== undefined && filter.published !== null) {
-                where.published = filter.published;
-            }
-        }
+    // Build where conditions
+    const where: any = {};
+    if (filter) {
+      if (filter.search) {
+        where.OR = [
+          { name: { contains: filter.search, mode: 'insensitive' } },
+          { display_name: { contains: filter.search, mode: 'insensitive' } },
+        ];
+      }
+      if (filter.published !== undefined && filter.published !== null) {
+        where.published = filter.published;
+      }
+    }
 
-        // Total record count (filtered)
-        const totalCount = await prisma.dogmaAttribute.count({ where });
-        const totalPages = Math.ceil(totalCount / take);
+    // Total record count (filtered)
+    const totalCount = await prisma.dogmaAttribute.count({ where });
+    const totalPages = Math.ceil(totalCount / take);
 
-        // Fetch data - alphabetic sorting by name
-        const dogmaAttributes = await prisma.dogmaAttribute.findMany({
-            where,
-            skip,
-            take,
-            orderBy: { name: 'asc' },
-        });
+    // Fetch data - alphabetic sorting by name
+    const dogmaAttributes = await prisma.dogmaAttribute.findMany({
+      where,
+      skip,
+      take,
+      orderBy: { name: 'asc' },
+    });
 
-        const pageInfo: PageInfo = {
-            currentPage,
-            totalPages,
-            totalCount,
-            hasNextPage: currentPage < totalPages,
-            hasPreviousPage: currentPage > 1,
-        };
+    const pageInfo: PageInfo = {
+      currentPage,
+      totalPages,
+      totalCount,
+      hasNextPage: currentPage < totalPages,
+      hasPreviousPage: currentPage > 1,
+    };
 
-        return {
-            items: dogmaAttributes.map((attr: any) => ({
-                ...attr,
-                created_at: attr.created_at.toISOString(),
-                updated_at: attr.updated_at.toISOString(),
-            })),
-            pageInfo,
-        };
-    },
+    return {
+      items: dogmaAttributes.map((attr: any) => ({
+        ...attr,
+        created_at: attr.created_at.toISOString(),
+        updated_at: attr.updated_at.toISOString(),
+      })),
+      pageInfo,
+    };
+  },
 };

@@ -42,7 +42,9 @@ async function queueUserESIKillmails() {
     logger.info('Force mode: Ignoring last sync time');
   }
   if (fullSync) {
-    logger.info('Full sync mode: Disabled incremental sync (will fetch all killmails)');
+    logger.info(
+      'Full sync mode: Disabled incremental sync (will fetch all killmails)',
+    );
   }
 
   try {
@@ -59,12 +61,14 @@ async function queueUserESIKillmails() {
           not: null, // Must have refresh token for auto-renewal
         },
         // Only queue users who haven't been synced recently (unless force mode)
-        ...(forceSync ? {} : {
-          OR: [
-            { last_killmail_sync_at: null }, // Never synced
-            { last_killmail_sync_at: { lt: fifteenMinutesAgo } }, // Synced > 15 min ago
-          ],
-        }),
+        ...(forceSync
+          ? {}
+          : {
+              OR: [
+                { last_killmail_sync_at: null }, // Never synced
+                { last_killmail_sync_at: { lt: fifteenMinutesAgo } }, // Synced > 15 min ago
+              ],
+            }),
       },
       select: {
         id: true,
@@ -82,7 +86,9 @@ async function queueUserESIKillmails() {
       logger.warn('No active users found for sync');
       if (!forceSync) {
         logger.info('All users were synced recently (within 15 minutes).');
-        logger.info('  Use --force to sync anyway: yarn queue:user-killmails --force');
+        logger.info(
+          '  Use --force to sync anyway: yarn queue:user-killmails --force',
+        );
       } else {
         logger.info('Users need to login via SSO first.');
       }
@@ -117,20 +123,24 @@ async function queueUserESIKillmails() {
         expiresAt: user.expires_at.toISOString(),
         queuedAt: new Date().toISOString(),
         // If --full flag is used, don't include lastKillmailId (forces full sync)
-        lastKillmailId: fullSync ? undefined : (user.last_killmail_id ?? undefined),
+        lastKillmailId: fullSync
+          ? undefined
+          : (user.last_killmail_id ?? undefined),
       };
 
-      channel.sendToQueue(
-        QUEUE_NAME,
-        Buffer.from(JSON.stringify(message)),
-        {
-          persistent: true,
-          priority: 5, // Medium priority,
-        }
-      );
+      channel.sendToQueue(QUEUE_NAME, Buffer.from(JSON.stringify(message)), {
+        persistent: true,
+        priority: 5, // Medium priority,
+      });
 
-      const syncMode = fullSync ? ' [FULL SYNC]' : (user.last_killmail_id ? ' [INCREMENTAL]' : ' [FIRST SYNC]');
-      logger.debug(`Queued: ${user.character_name} (ID: ${user.character_id})${lastSyncInfo}${syncMode}`);
+      const syncMode = fullSync
+        ? ' [FULL SYNC]'
+        : user.last_killmail_id
+          ? ' [INCREMENTAL]'
+          : ' [FIRST SYNC]';
+      logger.debug(
+        `Queued: ${user.character_name} (ID: ${user.character_id})${lastSyncInfo}${syncMode}`,
+      );
     }
 
     logger.info(`Successfully queued ${users.length} user(s)!`);

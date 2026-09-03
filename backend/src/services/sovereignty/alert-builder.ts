@@ -20,14 +20,19 @@ export type SovereigntyAlertData = {
 
 export type SovereigntyAlertEvent =
   | { type: 'campaign_started'; systemId: number; defenderId?: number | null }
-  | { type: 'campaign_ended'; systemId: number; defenderId?: number | null; outcome?: string | null }
   | {
-    type: 'territory_change';
-    systemId: number;
-    previousOwnerId?: number | null;
-    newOwnerId?: number | null;
-    changeType?: string | null;
-  };
+      type: 'campaign_ended';
+      systemId: number;
+      defenderId?: number | null;
+      outcome?: string | null;
+    }
+  | {
+      type: 'territory_change';
+      systemId: number;
+      previousOwnerId?: number | null;
+      newOwnerId?: number | null;
+      changeType?: string | null;
+    };
 
 /**
  * Enriches a raw sov event with system/region/alliance names and a human-readable
@@ -36,12 +41,12 @@ export type SovereigntyAlertEvent =
  */
 export async function buildSovereigntyAlert(
   client: PrismaClient,
-  event: SovereigntyAlertEvent
+  event: SovereigntyAlertEvent,
 ): Promise<SovereigntyAlertData> {
   const allianceId =
     event.type === 'territory_change'
-      ? event.newOwnerId ?? event.previousOwnerId ?? null
-      : event.defenderId ?? null;
+      ? (event.newOwnerId ?? event.previousOwnerId ?? null)
+      : (event.defenderId ?? null);
 
   const [system, alliance] = await Promise.all([
     client.solarSystem.findUnique({
@@ -49,7 +54,10 @@ export async function buildSovereigntyAlert(
       select: { name: true, constellation_id: true },
     }),
     allianceId != null
-      ? client.alliance.findUnique({ where: { id: allianceId }, select: { name: true, ticker: true } })
+      ? client.alliance.findUnique({
+          where: { id: allianceId },
+          select: { name: true, ticker: true },
+        })
       : Promise.resolve(null),
   ]);
 

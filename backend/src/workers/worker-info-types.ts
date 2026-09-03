@@ -73,7 +73,9 @@ async function typeInfoWorker() {
         if (timeSinceLastMessage > 5000 && totalProcessed > 0) {
           logger.info('\n' + '━'.repeat(60));
           logger.info('✅ Queue completed!');
-          logger.info(`📊 Final: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
+          logger.info(
+            `📊 Final: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`,
+          );
           logger.info('━'.repeat(60) + '\n');
           logger.info('⏳ Waiting for new messages...\n');
         }
@@ -85,11 +87,12 @@ async function typeInfoWorker() {
           if (msg) lastMessageTime = Date.now();
           if (!msg) return;
 
-          const message: EntityQueueMessage = JSON.parse(msg.content.toString());
+          const message: EntityQueueMessage = JSON.parse(
+            msg.content.toString(),
+          );
           const typeId = message.entityId;
 
           try {
-
             // Check if already exists
             const existing = await prismaWorker.type.findUnique({
               where: { id: typeId },
@@ -131,26 +134,34 @@ async function typeInfoWorker() {
             logger.info(`  ✓ [${totalProcessed}] ${typeInfo.name}`);
 
             if (totalProcessed % 100 === 0) {
-              logger.info(`📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
+              logger.info(
+                `📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`,
+              );
             }
           } catch (error: any) {
             totalErrors++;
             totalProcessed++;
 
             if (error.message?.includes('404')) {
-              logger.warn(`  ! [${totalProcessed}] Type ${message.entityId} (404)`);
+              logger.warn(
+                `  ! [${totalProcessed}] Type ${message.entityId} (404)`,
+              );
               channel.ack(msg);
             } else {
-              logger.error(`  × [${totalProcessed}] Type ${message.entityId}: ${error.message}`);
+              logger.error(
+                `  × [${totalProcessed}] Type ${message.entityId}: ${error.message}`,
+              );
               channel.nack(msg, false, true);
             }
 
             if (totalProcessed % 100 === 0) {
-              logger.info(`📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`);
+              logger.info(
+                `📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`,
+              );
             }
           }
         },
-        { noAck: false }
+        { noAck: false },
       );
 
       // Wait indefinitely unless connection fails
@@ -158,7 +169,6 @@ async function typeInfoWorker() {
         channel.on('error', reject);
         channel.on('close', reject);
       });
-
     } catch (error: any) {
       if (isShuttingDown) {
         logger.info('Worker stopped during shutdown');
@@ -174,7 +184,7 @@ async function typeInfoWorker() {
 
       // Wait before reconnecting
       logger.info('🔄 Reconnecting in 5 seconds...');
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
     }
   }
 

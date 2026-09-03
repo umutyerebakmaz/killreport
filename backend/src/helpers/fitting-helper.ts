@@ -1,5 +1,11 @@
 import { InventoryFlag } from '../constants/inventory-flags';
-import { Fitting, FittingModule, FittingSlot, RawKillmailItem, SlotCounts } from './type';
+import {
+  Fitting,
+  FittingModule,
+  FittingSlot,
+  RawKillmailItem,
+  SlotCounts,
+} from './type';
 
 /**
  * Fitting Helper Service
@@ -11,7 +17,9 @@ import { Fitting, FittingModule, FittingSlot, RawKillmailItem, SlotCounts } from
  * Groups items by their flag number
  * Used to detect modules and their charges (same flag = module + charge)
  */
-function groupItemsByFlag(items: RawKillmailItem[]): Map<number, RawKillmailItem[]> {
+function groupItemsByFlag(
+  items: RawKillmailItem[],
+): Map<number, RawKillmailItem[]> {
   const flagGroups = new Map<number, RawKillmailItem[]>();
 
   for (const item of items) {
@@ -40,8 +48,8 @@ function separateModuleAndCharge(items: RawKillmailItem[]): {
   }
 
   // Separate by singleton value first
-  const singletonOnes = items.filter(i => i.singleton === 1);
-  const singletonZeros = items.filter(i => i.singleton === 0);
+  const singletonOnes = items.filter((i) => i.singleton === 1);
+  const singletonZeros = items.filter((i) => i.singleton === 0);
 
   let module: RawKillmailItem;
   let charge: RawKillmailItem | null = null;
@@ -53,7 +61,9 @@ function separateModuleAndCharge(items: RawKillmailItem[]): {
   } else if (singletonOnes.length === 2) {
     // Both singleton=1: higher type_id is the module (weapon/launcher)
     // lower type_id is the charge (ammo/missile)
-    const sorted = [...singletonOnes].sort((a, b) => b.item_type_id - a.item_type_id);
+    const sorted = [...singletonOnes].sort(
+      (a, b) => b.item_type_id - a.item_type_id,
+    );
     module = sorted[0];
     charge = sorted[1];
   } else {
@@ -74,9 +84,7 @@ function separateModuleAndCharge(items: RawKillmailItem[]): {
 /**
  * Converts raw item to FittingModule with charge detection
  */
-function convertToFittingModule(
-  items: RawKillmailItem[]
-): FittingModule {
+function convertToFittingModule(items: RawKillmailItem[]): FittingModule {
   const { module, charge } = separateModuleAndCharge(items);
 
   return {
@@ -87,13 +95,13 @@ function convertToFittingModule(
     singleton: module.singleton,
     charge: charge
       ? {
-        itemTypeId: charge.item_type_id,
-        flag: charge.flag,
-        quantityDropped: charge.quantity_dropped,
-        quantityDestroyed: charge.quantity_destroyed,
-        singleton: charge.singleton,
-        charge: null, // Charges don't have nested charges
-      }
+          itemTypeId: charge.item_type_id,
+          flag: charge.flag,
+          quantityDropped: charge.quantity_dropped,
+          quantityDestroyed: charge.quantity_destroyed,
+          singleton: charge.singleton,
+          charge: null, // Charges don't have nested charges
+        }
       : null,
   };
 }
@@ -120,7 +128,7 @@ function fillSlots(
   slots: FittingSlot[],
   minFlag: number,
   maxFlag: number,
-  flagGroups: Map<number, RawKillmailItem[]>
+  flagGroups: Map<number, RawKillmailItem[]>,
 ): void {
   for (let flag = minFlag; flag <= maxFlag; flag++) {
     const items = flagGroups.get(flag);
@@ -137,7 +145,7 @@ function fillSlots(
 function extractModules(
   minFlag: number,
   maxFlag: number,
-  flagGroups: Map<number, RawKillmailItem[]>
+  flagGroups: Map<number, RawKillmailItem[]>,
 ): FittingModule[] {
   const modules: FittingModule[] = [];
 
@@ -151,8 +159,6 @@ function extractModules(
   return modules;
 }
 
-
-
 /**
  * Main function: Organizes killmail items into fitting structure
  * @param items - Raw killmail items
@@ -160,7 +166,7 @@ function extractModules(
  */
 export function organizeFitting(
   items: RawKillmailItem[],
-  slotCounts?: SlotCounts
+  slotCounts?: SlotCounts,
 ): Fitting {
   const flagGroups = groupItemsByFlag(items);
 
@@ -173,15 +179,15 @@ export function organizeFitting(
   // Create slot arrays with actual ship slot counts
   const highSlots = createSlotArray(
     InventoryFlag.HiSlot0,
-    InventoryFlag.HiSlot0 + hiSlotCount - 1
+    InventoryFlag.HiSlot0 + hiSlotCount - 1,
   );
   const midSlots = createSlotArray(
     InventoryFlag.MedSlot0,
-    InventoryFlag.MedSlot0 + medSlotCount - 1
+    InventoryFlag.MedSlot0 + medSlotCount - 1,
   );
   const lowSlots = createSlotArray(
     InventoryFlag.LoSlot0,
-    InventoryFlag.LoSlot0 + lowSlotCount - 1
+    InventoryFlag.LoSlot0 + lowSlotCount - 1,
   );
 
   // Fill slots with modules
@@ -189,19 +195,19 @@ export function organizeFitting(
     highSlots,
     InventoryFlag.HiSlot0,
     InventoryFlag.HiSlot0 + hiSlotCount - 1,
-    flagGroups
+    flagGroups,
   );
   fillSlots(
     midSlots,
     InventoryFlag.MedSlot0,
     InventoryFlag.MedSlot0 + medSlotCount - 1,
-    flagGroups
+    flagGroups,
   );
   fillSlots(
     lowSlots,
     InventoryFlag.LoSlot0,
     InventoryFlag.LoSlot0 + lowSlotCount - 1,
-    flagGroups
+    flagGroups,
   );
 
   // Extract rigs as slots (like high/mid/low)
@@ -216,13 +222,17 @@ export function organizeFitting(
     rigSlots,
     InventoryFlag.RigSlot0,
     InventoryFlag.RigSlot0 + rigSlotCount - 1,
-    flagGroups
+    flagGroups,
   );
 
   // Subsystems - only for T3 Cruisers/Destroyers (check if any subsystem flags exist)
   const subsystemSlots: FittingSlot[] = [];
   let hasSubsystems = false;
-  for (let flag = InventoryFlag.SubSystem0; flag <= InventoryFlag.SubSystem7; flag++) {
+  for (
+    let flag = InventoryFlag.SubSystem0;
+    flag <= InventoryFlag.SubSystem7;
+    flag++
+  ) {
     if (flagGroups.has(flag)) {
       hasSubsystems = true;
       break;
@@ -232,7 +242,11 @@ export function organizeFitting(
   if (hasSubsystems) {
     // Determine actual subsystem count from items (max 4 for T3 Cruisers, 8 for potential future ships)
     let maxSubsystemFlag = InventoryFlag.SubSystem3;
-    for (let flag = InventoryFlag.SubSystem4; flag <= InventoryFlag.SubSystem7; flag++) {
+    for (
+      let flag = InventoryFlag.SubSystem4;
+      flag <= InventoryFlag.SubSystem7;
+      flag++
+    ) {
       if (flagGroups.has(flag)) {
         maxSubsystemFlag = flag;
       }
@@ -249,7 +263,7 @@ export function organizeFitting(
       subsystemSlots,
       InventoryFlag.SubSystem0,
       maxSubsystemFlag,
-      flagGroups
+      flagGroups,
     );
   }
 
@@ -271,7 +285,9 @@ export function organizeFitting(
 
   // Fleet Hangar
   const fleetHangarItems = flagGroups.get(InventoryFlag.FleetHangar) || [];
-  const fleetHangar = fleetHangarItems.map((item) => convertToFittingModule([item]));
+  const fleetHangar = fleetHangarItems.map((item) =>
+    convertToFittingModule([item]),
+  );
 
   // Specialized Cargo Holds (extracted separately for UI)
   const fuelBayItems = flagGroups.get(InventoryFlag.SpecializedFuelBay) || [];
@@ -286,20 +302,32 @@ export function organizeFitting(
   const gasHoldItems = flagGroups.get(InventoryFlag.SpecializedGasHold) || [];
   const gasHold = gasHoldItems.map((item) => convertToFittingModule([item]));
 
-  const mineralHoldItems = flagGroups.get(InventoryFlag.SpecializedMineralHold) || [];
-  const mineralHold = mineralHoldItems.map((item) => convertToFittingModule([item]));
+  const mineralHoldItems =
+    flagGroups.get(InventoryFlag.SpecializedMineralHold) || [];
+  const mineralHold = mineralHoldItems.map((item) =>
+    convertToFittingModule([item]),
+  );
 
-  const salvageHoldItems = flagGroups.get(InventoryFlag.SpecializedSalvageHold) || [];
-  const salvageHold = salvageHoldItems.map((item) => convertToFittingModule([item]));
+  const salvageHoldItems =
+    flagGroups.get(InventoryFlag.SpecializedSalvageHold) || [];
+  const salvageHold = salvageHoldItems.map((item) =>
+    convertToFittingModule([item]),
+  );
 
-  const planetaryCommoditiesHoldItems = flagGroups.get(InventoryFlag.SpecializedPlanetaryCommoditiesHold) || [];
-  const planetaryCommoditiesHold = planetaryCommoditiesHoldItems.map((item) => convertToFittingModule([item]));
+  const planetaryCommoditiesHoldItems =
+    flagGroups.get(InventoryFlag.SpecializedPlanetaryCommoditiesHold) || [];
+  const planetaryCommoditiesHold = planetaryCommoditiesHoldItems.map((item) =>
+    convertToFittingModule([item]),
+  );
 
   const iceHoldItems = flagGroups.get(InventoryFlag.SpecializedIceHold) || [];
   const iceHold = iceHoldItems.map((item) => convertToFittingModule([item]));
 
-  const infrastructureHoldItems = flagGroups.get(InventoryFlag.InfrastructureHold) || [];
-  const infrastructureHold = infrastructureHoldItems.map((item) => convertToFittingModule([item]));
+  const infrastructureHoldItems =
+    flagGroups.get(InventoryFlag.InfrastructureHold) || [];
+  const infrastructureHold = infrastructureHoldItems.map((item) =>
+    convertToFittingModule([item]),
+  );
 
   // Other Special Holds (Combined into infrastructureHangar for backward compatibility)
   const otherSpecialHoldItems: RawKillmailItem[] = [];
@@ -329,7 +357,9 @@ export function organizeFitting(
     }
   });
 
-  const infrastructureHangar = otherSpecialHoldItems.map((item) => convertToFittingModule([item]));
+  const infrastructureHangar = otherSpecialHoldItems.map((item) =>
+    convertToFittingModule([item]),
+  );
 
   // Fighter Bay (includes all fighter tube flags)
   const fighterBayItems: RawKillmailItem[] = [];
@@ -343,12 +373,18 @@ export function organizeFitting(
       fighterBayItems.push(...items);
     }
   }
-  const fighterBay = fighterBayItems.map((item) => convertToFittingModule([item]));
+  const fighterBay = fighterBayItems.map((item) =>
+    convertToFittingModule([item]),
+  );
 
   // Service Slots (Upwell Structures) - only for structures (check if any service slot flags exist)
   const serviceSlots: FittingSlot[] = [];
   let hasServiceSlots = false;
-  for (let flag = InventoryFlag.ServiceSlot0; flag <= InventoryFlag.ServiceSlot7; flag++) {
+  for (
+    let flag = InventoryFlag.ServiceSlot0;
+    flag <= InventoryFlag.ServiceSlot7;
+    flag++
+  ) {
     if (flagGroups.has(flag)) {
       hasServiceSlots = true;
       break;
@@ -368,13 +404,15 @@ export function organizeFitting(
       serviceSlots,
       InventoryFlag.ServiceSlot0,
       InventoryFlag.ServiceSlot0 + serviceSlotCount - 1,
-      flagGroups
+      flagGroups,
     );
   }
 
   // Structure Fuel Bay (Upwell Structures)
   const structureFuelItems = flagGroups.get(InventoryFlag.StructureFuel) || [];
-  const structureFuel = structureFuelItems.map((item) => convertToFittingModule([item]));
+  const structureFuel = structureFuelItems.map((item) =>
+    convertToFittingModule([item]),
+  );
 
   // Structure Deed Bay (Upwell Structures - used as core room equivalent)
   const coreRoomItems = flagGroups.get(InventoryFlag.StructureDeedBay) || [];

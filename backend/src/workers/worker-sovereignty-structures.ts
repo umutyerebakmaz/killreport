@@ -42,19 +42,29 @@ async function syncSovereigntyStructures() {
               solar_system_id: s.solar_system_id,
               structure_type_id: s.structure_type_id,
               alliance_id: s.alliance_id,
-              vulnerability_occupancy_level: s.vulnerability_occupancy_level ?? null,
-              vulnerable_start_time: s.vulnerable_start_time ? new Date(s.vulnerable_start_time) : null,
-              vulnerable_end_time: s.vulnerable_end_time ? new Date(s.vulnerable_end_time) : null,
+              vulnerability_occupancy_level:
+                s.vulnerability_occupancy_level ?? null,
+              vulnerable_start_time: s.vulnerable_start_time
+                ? new Date(s.vulnerable_start_time)
+                : null,
+              vulnerable_end_time: s.vulnerable_end_time
+                ? new Date(s.vulnerable_end_time)
+                : null,
             },
             update: {
               alliance_id: s.alliance_id,
-              vulnerability_occupancy_level: s.vulnerability_occupancy_level ?? null,
-              vulnerable_start_time: s.vulnerable_start_time ? new Date(s.vulnerable_start_time) : null,
-              vulnerable_end_time: s.vulnerable_end_time ? new Date(s.vulnerable_end_time) : null,
+              vulnerability_occupancy_level:
+                s.vulnerability_occupancy_level ?? null,
+              vulnerable_start_time: s.vulnerable_start_time
+                ? new Date(s.vulnerable_start_time)
+                : null,
+              vulnerable_end_time: s.vulnerable_end_time
+                ? new Date(s.vulnerable_end_time)
+                : null,
               destroyed_at: null, // seen again — clear any previous destroyed marker
             },
-          })
-        )
+          }),
+        ),
       );
       upserted += chunk.length;
     }
@@ -64,14 +74,16 @@ async function syncSovereigntyStructures() {
     const destroyed = await prismaWorker.sovereigntyStructure.updateMany({
       where: {
         destroyed_at: null,
-        structure_id: { notIn: activeIds.length > 0 ? activeIds : [BigInt(-1)] },
+        structure_id: {
+          notIn: activeIds.length > 0 ? activeIds : [BigInt(-1)],
+        },
       },
       data: { destroyed_at: now },
     });
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     logger.info(
-      `✅ Structures sync complete: ${upserted} upserted, ${destroyed.count} marked destroyed (${duration}s)`
+      `✅ Structures sync complete: ${upserted} upserted, ${destroyed.count} marked destroyed (${duration}s)`,
     );
   } catch (error) {
     logger.error('❌ Sovereignty structures sync failed', { error });

@@ -161,14 +161,14 @@ mutation {
 Programmatic cache management in code:
 
 ```typescript
-import CacheManager from "../utils/cache-manager";
+import CacheManager from '../utils/cache-manager';
 
 // Clear specific entity
 await CacheManager.clearKillmail(123456);
 await CacheManager.clearCharacter(95465499);
 
 // Clear by pattern
-await CacheManager.clearPattern("killmail:detail:*");
+await CacheManager.clearPattern('killmail:detail:*');
 
 // Get statistics
 const stats = await CacheManager.getStats();

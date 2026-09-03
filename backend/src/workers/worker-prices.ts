@@ -50,7 +50,7 @@ async function priceWorker() {
         logger.info('\n' + '━'.repeat(60));
         logger.info('✅ Queue completed!');
         logger.info(
-          `📊 Final: ${totalProcessed} processed (${totalSaved} saved, ${totalErrors} errors)`
+          `📊 Final: ${totalProcessed} processed (${totalSaved} saved, ${totalErrors} errors)`,
         );
         logger.info('━'.repeat(60) + '\n');
         logger.info('⏳ Waiting for new messages...\n');
@@ -80,13 +80,19 @@ async function priceWorker() {
             await MarketService.savePrice(price);
 
             if (existing) {
-              logger.info(`  ✅ [${totalProcessed + 1}] [${typeId}] Buy=${price.buy.toFixed(2)} Sell=${price.sell.toFixed(2)} (updated)`);
+              logger.info(
+                `  ✅ [${totalProcessed + 1}] [${typeId}] Buy=${price.buy.toFixed(2)} Sell=${price.sell.toFixed(2)} (updated)`,
+              );
             } else {
-              logger.info(`  ✅ [${totalProcessed + 1}] [${typeId}] Buy=${price.buy.toFixed(2)} Sell=${price.sell.toFixed(2)} (created)`);
+              logger.info(
+                `  ✅ [${totalProcessed + 1}] [${typeId}] Buy=${price.buy.toFixed(2)} Sell=${price.sell.toFixed(2)} (created)`,
+              );
             }
             totalSaved++;
           } else {
-            logger.info(`  - [${totalProcessed + 1}] [${typeId}] (no market orders)`);
+            logger.info(
+              `  - [${totalProcessed + 1}] [${typeId}] (no market orders)`,
+            );
           }
 
           channel.ack(msg);
@@ -94,11 +100,14 @@ async function priceWorker() {
         } catch (error) {
           totalErrors++;
           totalProcessed++;
-          logger.error(`  ❌ [${totalProcessed}] Type ${typeId} failed:`, error);
+          logger.error(
+            `  ❌ [${totalProcessed}] Type ${typeId} failed:`,
+            error,
+          );
           channel.ack(msg); // Ack anyway to avoid reprocessing
         }
       },
-      { noAck: false }
+      { noAck: false },
     );
 
     // Handle graceful shutdown

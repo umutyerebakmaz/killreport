@@ -72,14 +72,16 @@ async function doctorTopology() {
 
   // Rows the chain created but ESI enrichment never named. Each maps to a repair
   // script: yarn queue:<domain>.
-  const [stars, planets, moons, belts, stargates, stations] = await Promise.all([
-    prismaWorker.star.count({ where: { name: null } }),
-    prismaWorker.planet.count({ where: { name: null } }),
-    prismaWorker.moon.count({ where: { name: null } }),
-    prismaWorker.asteroidBelt.count({ where: { name: null } }),
-    prismaWorker.stargate.count({ where: { name: null } }),
-    prismaWorker.station.count({ where: { name: null } }),
-  ]);
+  const [stars, planets, moons, belts, stargates, stations] = await Promise.all(
+    [
+      prismaWorker.star.count({ where: { name: null } }),
+      prismaWorker.planet.count({ where: { name: null } }),
+      prismaWorker.moon.count({ where: { name: null } }),
+      prismaWorker.asteroidBelt.count({ where: { name: null } }),
+      prismaWorker.stargate.count({ where: { name: null } }),
+      prismaWorker.station.count({ where: { name: null } }),
+    ],
+  );
 
   logger.info('\nRows with no name (run yarn queue:<domain> to repair):');
   logger.info(`  stars: ${stars}           -> yarn queue:stars`);
@@ -93,11 +95,11 @@ async function doctorTopology() {
   const dlq = await getQueueStats(TOPOLOGY_QUEUES.dlq);
   logger.info(
     `\nDead letter queue (${TOPOLOGY_QUEUES.dlq}): ` +
-      `${dlq.exists ? `${dlq.messageCount} messages` : 'not declared yet'}`
+      `${dlq.exists ? `${dlq.messageCount} messages` : 'not declared yet'}`,
   );
   if (dlq.messageCount > 0) {
     logger.warn(
-      '⚠️  Messages gave up after 5 attempts. Inspect them before re-running the scan.'
+      '⚠️  Messages gave up after 5 attempts. Inspect them before re-running the scan.',
     );
   }
 

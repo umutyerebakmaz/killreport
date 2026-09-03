@@ -9,4 +9,3 @@
 export { constellationFields } from './fields';
 export { constellationMutations } from './mutations';
 export { constellationQueries } from './queries';
-

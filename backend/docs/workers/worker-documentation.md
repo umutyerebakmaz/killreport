@@ -600,11 +600,11 @@ yarn worker:info:corporations
  * [Description]
  */
 
-import { config } from "@config/config";
-import prisma from "@services/prisma";
-import { getRabbitMQChannel } from "@services/rabbitmq";
+import { config } from '@config/config';
+import prisma from '@services/prisma';
+import { getRabbitMQChannel } from '@services/rabbitmq';
 
-const QUEUE_NAME = "your_queue_name";
+const QUEUE_NAME = 'your_queue_name';
 const PREFETCH_COUNT = 5; // Concurrency
 
 interface EntityQueueMessage {
@@ -614,7 +614,7 @@ interface EntityQueueMessage {
 }
 
 async function yourWorker() {
-  console.log("🚀 Your Worker Started");
+  console.log('🚀 Your Worker Started');
   console.log(`📦 Queue: ${QUEUE_NAME}`);
   console.log(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
@@ -623,13 +623,13 @@ async function yourWorker() {
 
     await channel.assertQueue(QUEUE_NAME, {
       durable: true,
-      arguments: { "x-max-priority": 10 },
+      arguments: { 'x-max-priority': 10 },
     });
 
     channel.prefetch(PREFETCH_COUNT);
 
-    console.log("✅ Connected to RabbitMQ");
-    console.log("⏳ Waiting for messages...\n");
+    console.log('✅ Connected to RabbitMQ');
+    console.log('⏳ Waiting for messages...\n');
 
     let totalProcessed = 0;
     let totalErrors = 0;
@@ -657,7 +657,7 @@ async function yourWorker() {
       { noAck: false },
     );
   } catch (error) {
-    console.error("💥 Worker failed to start:", error);
+    console.error('💥 Worker failed to start:', error);
     process.exit(1);
   }
 }

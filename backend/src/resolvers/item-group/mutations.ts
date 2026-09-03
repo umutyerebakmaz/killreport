@@ -39,7 +39,9 @@ export const itemGroupMutations: MutationResolvers = {
         publishedCount++;
       }
 
-      console.log(`✅ All ${itemGroupIds.length} item groups queued successfully!`);
+      console.log(
+        `✅ All ${itemGroupIds.length} item groups queued successfully!`,
+      );
       return {
         success: true,
         message: `${itemGroupIds.length} item groups queued successfully`,

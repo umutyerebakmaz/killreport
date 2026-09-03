@@ -64,7 +64,7 @@ export const systemKillsQueries = {
     });
 
     // Get system names and latest data
-    const systemIds = topSystems.map(s => s.system_id);
+    const systemIds = topSystems.map((s) => s.system_id);
     const systems = await prisma.solarSystem.findMany({
       where: {
         id: { in: systemIds },
@@ -85,15 +85,18 @@ export const systemKillsQueries = {
       distinct: ['system_id'],
     });
 
-    const systemMap = new Map(systems.map(s => [s.id, s.name]));
-    const latestKillsMap = new Map(latestKills.map(k => [k.system_id, k]));
+    const systemMap = new Map(systems.map((s) => [s.id, s.name]));
+    const latestKillsMap = new Map(latestKills.map((k) => [k.system_id, k]));
 
-    return topSystems.map(s => {
+    return topSystems.map((s) => {
       const latest = latestKillsMap.get(s.system_id);
       return {
         system_id: s.system_id,
         system_name: systemMap.get(s.system_id) || 'Unknown',
-        total_kills: (s._sum.ship_kills || 0) + (s._sum.pod_kills || 0) + (s._sum.npc_kills || 0),
+        total_kills:
+          (s._sum.ship_kills || 0) +
+          (s._sum.pod_kills || 0) +
+          (s._sum.npc_kills || 0),
         latest_ship_kills: latest?.ship_kills || 0,
         latest_pod_kills: latest?.pod_kills || 0,
         latest_npc_kills: latest?.npc_kills || 0,

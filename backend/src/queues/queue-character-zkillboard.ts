@@ -12,8 +12,12 @@ async function queueCharacter() {
   const characterName = process.argv[3];
 
   if (!characterId || !characterName) {
-    logger.error('Usage: yarn queue:character:zkillboard <characterId> <characterName>');
-    logger.error('  Example: yarn queue:character:zkillboard 95465499 "Foo Bar"');
+    logger.error(
+      'Usage: yarn queue:character:zkillboard <characterId> <characterName>',
+    );
+    logger.error(
+      '  Example: yarn queue:character:zkillboard 95465499 "Foo Bar"',
+    );
     process.exit(1);
   }
 
@@ -30,14 +34,10 @@ async function queueCharacter() {
       queuedAt: new Date().toISOString(),
     };
 
-    channel.sendToQueue(
-      QUEUE_NAME,
-      Buffer.from(JSON.stringify(message)),
-      {
-        persistent: true, // Survive RabbitMQ restarts
-        priority: 5, // Default priority
-      }
-    );
+    channel.sendToQueue(QUEUE_NAME, Buffer.from(JSON.stringify(message)), {
+      persistent: true, // Survive RabbitMQ restarts
+      priority: 5, // Default priority
+    });
 
     logger.info('Character queued successfully!');
     logger.info('Now run the worker to process: yarn worker:zkillboard');

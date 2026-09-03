@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 export default function TermsPage() {
   return (
@@ -52,7 +52,7 @@ export default function TermsPage() {
           </p>
           <ul className="ml-2 space-y-3 text-gray-300 list-disc list-inside">
             <li>
-              <span className="font-semibold">Service Disruption:</span>{" "}
+              <span className="font-semibold">Service Disruption:</span>{' '}
               Attempts to compromise service availability or functionality
               through DDoS attacks, exploitation, or other malicious means
             </li>
@@ -62,12 +62,12 @@ export default function TermsPage() {
               bypassing rate limits
             </li>
             <li>
-              <span className="font-semibold">Malicious Scraping:</span>{" "}
+              <span className="font-semibold">Malicious Scraping:</span>{' '}
               Unauthorized extraction of data through non-API means or
               circumventing our APIs
             </li>
             <li>
-              <span className="font-semibold">Spam & Advertising:</span>{" "}
+              <span className="font-semibold">Spam & Advertising:</span>{' '}
               Unsolicited commercial content, spam, or promotional material on
               our platform
             </li>
@@ -154,7 +154,7 @@ export default function TermsPage() {
             <p>
               <span className="font-semibold text-orange-400">
                 AS-IS Service:
-              </span>{" "}
+              </span>{' '}
               Killreport is provided as-is for informational and analytical
               purposes. We make no guarantees regarding:
             </p>
@@ -174,7 +174,7 @@ export default function TermsPage() {
             <p className="pt-4">
               <span className="font-semibold text-orange-400">
                 Limitation of Liability:
-              </span>{" "}
+              </span>{' '}
               You use this service at your own risk. To the maximum extent
               permitted by law, Killreport and its operators shall not be liable
               for any indirect, incidental, special, consequential, or punitive
@@ -185,7 +185,7 @@ export default function TermsPage() {
             <p>
               <span className="font-semibold text-orange-400">
                 No Financial Advice:
-              </span>{" "}
+              </span>{' '}
               Killreport provides data for informational purposes only. We do
               not provide financial, investment, or strategic advice. Any
               decisions you make based on Killreport data are your own

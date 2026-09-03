@@ -1,16 +1,16 @@
-import { KillmailQuery } from "@/generated/graphql";
-import { getShipTier } from "@/utils/shipTier";
-import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
-import Link from "next/link";
-import ShipTierBadge from "../ShipTierBadge/ShipTierBadge";
-import Tooltip from "../Tooltip/Tooltip";
+import { KillmailQuery } from '@/generated/graphql';
+import { getShipTier } from '@/utils/shipTier';
+import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
+import ShipTierBadge from '../ShipTierBadge/ShipTierBadge';
+import Tooltip from '../Tooltip/Tooltip';
 
 interface AttackerProps {
-  attacker: NonNullable<KillmailQuery["killmail"]>["attackers"][0];
+  attacker: NonNullable<KillmailQuery['killmail']>['attackers'][0];
   totalDamage: number;
   isFinalBlow?: boolean;
   isTopDamage?: boolean;
-  killmail: NonNullable<KillmailQuery["killmail"]>;
+  killmail: NonNullable<KillmailQuery['killmail']>;
 }
 
 export default function AttackerRow({
@@ -23,7 +23,7 @@ export default function AttackerRow({
   const damagePercentage =
     totalDamage > 0
       ? ((attacker.damageDone / totalDamage) * 100).toFixed(1)
-      : "0.0";
+      : '0.0';
 
   // Use backend-computed fields
   const isSolo = killmail.solo;
@@ -37,7 +37,7 @@ export default function AttackerRow({
           <div className="relative shrink-0">
             <img
               src={`https://images.evetech.net/characters/${attacker.character?.id}/portrait?size=128`}
-              alt={attacker.character?.name || "Character"}
+              alt={attacker.character?.name || 'Character'}
               width={96}
               height={96}
               className="shadow-md"
@@ -50,8 +50,8 @@ export default function AttackerRow({
                   <span
                     className={
                       attacker.securityStatus >= 0
-                        ? "text-green-500"
-                        : "text-red-500"
+                        ? 'text-green-500'
+                        : 'text-red-500'
                     }
                   >
                     {attacker.securityStatus.toFixed(1)}
@@ -63,7 +63,7 @@ export default function AttackerRow({
           <div className="relative shrink-0">
             <img
               src={`https://images.evetech.net/corporations/${attacker.corporation?.id}/logo?size=128`}
-              alt={attacker.corporation?.name || "Corporation"}
+              alt={attacker.corporation?.name || 'Corporation'}
               width={96}
               height={96}
               className="shadow-md"
@@ -80,7 +80,7 @@ export default function AttackerRow({
         )}
 
         <div className="flex flex-col pr-4 shrink-0">
-          <Tooltip content={attacker.shipType?.name || "Unknown Ship"}>
+          <Tooltip content={attacker.shipType?.name || 'Unknown Ship'}>
             <div className="relative">
               {attacker.shipType?.id &&
                 getShipTier(attacker.shipType?.dogmaAttributes) && (
@@ -94,7 +94,7 @@ export default function AttackerRow({
               {attacker.shipType?.id ? (
                 <img
                   src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=64`}
-                  alt={attacker.shipType?.name || "Ship"}
+                  alt={attacker.shipType?.name || 'Ship'}
                   width={48}
                   height={48}
                   className="shadow-md"
@@ -107,11 +107,11 @@ export default function AttackerRow({
               )}
             </div>
           </Tooltip>
-          <Tooltip content={attacker.weaponType?.name || "Unknown Weapon"}>
+          <Tooltip content={attacker.weaponType?.name || 'Unknown Weapon'}>
             {attacker.weaponType?.id ? (
               <img
                 src={`https://images.evetech.net/types/${attacker.weaponType?.id}/icon?size=64`}
-                alt={attacker.weaponType?.name || "Weapon"}
+                alt={attacker.weaponType?.name || 'Weapon'}
                 width={48}
                 height={48}
                 className="bg-white/5"
@@ -120,7 +120,7 @@ export default function AttackerRow({
             ) : attacker.shipType?.id ? (
               <img
                 src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=64`}
-                alt={attacker.shipType?.name || "Ship"}
+                alt={attacker.shipType?.name || 'Ship'}
                 width={48}
                 height={48}
                 className="bg-white/5"
@@ -175,7 +175,7 @@ export default function AttackerRow({
                     className="font-medium text-gray-400 hover:text-blue-400"
                     prefetch={false}
                   >
-                    {attacker.character?.name || "Unknown"}
+                    {attacker.character?.name || 'Unknown'}
                   </Link>
                 </Tooltip>
                 {attacker.corporation?.id && (
@@ -185,7 +185,7 @@ export default function AttackerRow({
                       className="text-sm text-gray-400 hover:text-blue-400"
                       prefetch={false}
                     >
-                      {attacker.corporation?.name || "Unknown"}
+                      {attacker.corporation?.name || 'Unknown'}
                     </Link>
                   </Tooltip>
                 )}
@@ -205,7 +205,7 @@ export default function AttackerRow({
                       className="text-sm text-gray-400 hover:text-blue-400"
                       prefetch={false}
                     >
-                      {attacker.corporation?.name || "Unknown"}
+                      {attacker.corporation?.name || 'Unknown'}
                     </Link>
                   </Tooltip>
                 )}
@@ -219,7 +219,7 @@ export default function AttackerRow({
                   className="text-sm text-gray-400 hover:text-blue-400"
                   prefetch={false}
                 >
-                  {attacker.alliance?.name || "Unknown"}
+                  {attacker.alliance?.name || 'Unknown'}
                 </Link>
               </Tooltip>
             )}
@@ -240,12 +240,12 @@ export default function AttackerRow({
               {attacker.corporation?.id && (
                 <Tooltip
                   content={`Corporation: ${
-                    attacker.corporation?.name || "Unknown"
+                    attacker.corporation?.name || 'Unknown'
                   }`}
                 >
                   <img
                     src={`https://images.evetech.net/corporations/${attacker.corporation?.id}/logo?size=64`}
-                    alt={attacker.corporation?.name || "Corporation"}
+                    alt={attacker.corporation?.name || 'Corporation'}
                     width={32}
                     height={32}
                     className="shadow-md bg-black/50 ring-1 ring-black/50"
@@ -257,11 +257,11 @@ export default function AttackerRow({
               {/* Alliance Logo */}
               {attacker.alliance?.id && (
                 <Tooltip
-                  content={`Alliance: ${attacker.alliance?.name || "Unknown"}`}
+                  content={`Alliance: ${attacker.alliance?.name || 'Unknown'}`}
                 >
                   <img
                     src={`https://images.evetech.net/alliances/${attacker.alliance?.id}/logo?size=64`}
-                    alt={attacker.alliance?.name || "Alliance"}
+                    alt={attacker.alliance?.name || 'Alliance'}
                     width={32}
                     height={32}
                     className="shadow-md bg-black/50 ring-1 ring-black/50"

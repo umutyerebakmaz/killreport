@@ -44,7 +44,7 @@ async function queueItemGroups() {
       }
 
       logger.debug(
-        `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(itemGroupIds.length / BATCH_SIZE)}`
+        `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(itemGroupIds.length / BATCH_SIZE)}`,
       );
     }
 

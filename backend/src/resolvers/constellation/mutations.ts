@@ -13,7 +13,9 @@ export const constellationMutations: MutationResolvers = {
       logger.info('🚀 Starting constellation sync via GraphQL...');
 
       // Get all constellation IDs from ESI
-      const response = await axios.get('https://esi.evetech.net/latest/universe/constellations/');
+      const response = await axios.get(
+        'https://esi.evetech.net/latest/universe/constellations/',
+      );
       const constellationIds: number[] = response.data;
 
       logger.info(`✓ Found ${constellationIds.length} constellations`);
@@ -35,7 +37,9 @@ export const constellationMutations: MutationResolvers = {
         publishedCount++;
       }
 
-      logger.info(`✅ All ${constellationIds.length} constellations queued successfully!`);
+      logger.info(
+        `✅ All ${constellationIds.length} constellations queued successfully!`,
+      );
       return {
         success: true,
         message: `${constellationIds.length} constellations queued successfully`,

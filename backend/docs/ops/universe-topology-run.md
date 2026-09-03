@@ -24,7 +24,15 @@ Check that nothing is already consuming — every `consumerCount` should be 0, o
 you will have two workers racing on the same queue:
 
 ```graphql
-{ workerStatus { queues { name messageCount consumerCount } } }
+{
+  workerStatus {
+    queues {
+      name
+      messageCount
+      consumerCount
+    }
+  }
+}
 ```
 
 From a shell:
@@ -109,7 +117,7 @@ yarn worker:moons
 yarn worker:stargates
 ```
 
-Each worker ends by itself. When its queue has been quiet for five seconds *and*
+Each worker ends by itself. When its queue has been quiet for five seconds _and_
 nothing is still in flight, it prints `🎉 ALL TASKS COMPLETED` with the processed
 and error counts, then exits — status 1 if the run had errors, 0 otherwise. Both
 conditions matter: with a prefetch above 1 the queue empties while messages are
@@ -125,7 +133,7 @@ Running the same worker in two terminals doubles throughput — both consume the
 same queue, and every write is an `upsert` keyed on the primary key, so there is
 nothing to collide over.
 
-**Do not go past two.** `esiRateLimiter` caps each *process* at `ESI_MAX_RPS`
+**Do not go past two.** `esiRateLimiter` caps each _process_ at `ESI_MAX_RPS`
 requests per second — 50 by default — and ESI's ceiling is 150. Two workers is
 100 req/sec with margin; three sits on the limit and starts earning HTTP 420s.
 
@@ -147,13 +155,13 @@ The effective value is never below half the configured rate.
 
 Measured on a full run (2026-09-01), one worker unless noted:
 
-| Step | Calls | Time |
-|---|---|---|
-| `worker-solar-systems` | 8,490 | 3 min |
-| `worker-planets` (×2) | 68,407 | 14 min |
-| `worker-stars` + `worker-stations` | 13,299 | 3 min |
-| `worker-stargates` + `worker-asteroid-belts` | 54,906 | 11 min |
-| `worker-moons` (×2) | 344,457 | ~60 min |
+| Step                                         | Calls   | Time    |
+| -------------------------------------------- | ------- | ------- |
+| `worker-solar-systems`                       | 8,490   | 3 min   |
+| `worker-planets` (×2)                        | 68,407  | 14 min  |
+| `worker-stars` + `worker-stations`           | 13,299  | 3 min   |
+| `worker-stargates` + `worker-asteroid-belts` | 54,906  | 11 min  |
+| `worker-moons` (×2)                          | 344,457 | ~60 min |
 
 The whole universe is about 490,000 ESI calls.
 
@@ -192,15 +200,15 @@ From the 2026-09-01 full run, re-verified against the live database on
 2026-09-02 — every count below was still exact. Two independent ingests produced
 these numbers, so a materially different count means something went wrong:
 
-| Table | Rows |
-|---|---|
-| `solar_systems` | 8,490 |
-| `stars` | 8,089 |
-| `planets` | 68,407 |
-| `stargates` | 13,978 (all destinations resolved) |
-| `stations` | 5,210 |
-| `asteroid_belts` | 40,928 |
-| `moons` | 344,457 |
+| Table            | Rows                               |
+| ---------------- | ---------------------------------- |
+| `solar_systems`  | 8,490                              |
+| `stars`          | 8,089                              |
+| `planets`        | 68,407                             |
+| `stargates`      | 13,978 (all destinations resolved) |
+| `stations`       | 5,210                              |
+| `asteroid_belts` | 40,928                             |
+| `moons`          | 344,457                            |
 
 Sovereign nullsec regions legitimately have **zero** stations — Fade and Deklein
 are both 0 while The Forge has 350. NPC stations do not exist in conquerable

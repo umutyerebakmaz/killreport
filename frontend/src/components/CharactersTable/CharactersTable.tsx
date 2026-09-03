@@ -1,10 +1,10 @@
-import { CorporationCharactersQuery } from "@/generated/graphql";
-import Link from "next/link";
-import Loader from "../Loader";
+import { CorporationCharactersQuery } from '@/generated/graphql';
+import Link from 'next/link';
+import Loader from '../Loader';
 
 // Extract the Character type from the GraphQL query result
 export type Character = NonNullable<
-  CorporationCharactersQuery["characters"]["items"][number]
+  CorporationCharactersQuery['characters']['items'][number]
 >;
 
 interface CharactersTableProps {
