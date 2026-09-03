@@ -21,6 +21,10 @@
     "lint-staged": "^17.4.1",
     "prettier": "^3.9.6"
   },
+  "resolutions": {
+    "deepmerge-ts": "^8.0.2",
+    "mysql2": "^3.24.3"
+  },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs,cjs,json,md,graphql,yml,yaml,css}": "prettier --write"
   }
