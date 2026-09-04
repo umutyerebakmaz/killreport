@@ -51,10 +51,10 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 ### Your First Code Contribution
 
-Unsure where to begin contributing? You can start by looking through `good-first-issue` and `help-wanted` issues:
-
-- **good-first-issue** - issues which should only require a few lines of code
-- **help-wanted** - issues which should be a bit more involved than beginner issues
+Unsure where to begin? Issues are labelled by type and by area. `feat`, `fix`,
+`test` and `docs` say what kind of work an issue is; `backend`, `frontend`, `db`,
+`graphql`, `workers`, `cache`, `esi` and `ops` say where it lives. An issue still
+carrying `needs-triage` has not been reviewed yet, so ask before starting on it.
 
 ### Pull Requests
 
@@ -69,7 +69,7 @@ Unsure where to begin contributing? You can start by looking through `good-first
 
 ### Prerequisites
 
-- Node.js 20.9+
+- Node.js 22 — the version CI runs
 - PostgreSQL 14+
 - Redis 7+ (running locally or reachable via `REDIS_URL`)
 - RabbitMQ 3.12+ (running locally or reachable via `RABBITMQ_URL`)
@@ -95,12 +95,20 @@ cd backend
 cp .env.example .env
 # Edit .env — DATABASE_URL, EVE_CLIENT_ID and EVE_CLIENT_SECRET are required
 
-# Run database migrations (schema lives in prisma/schema/*.prisma)
-yarn prisma:migrate
+# Apply database migrations (schema lives in prisma/schema/*.prisma)
+npx prisma migrate deploy
 
 # Start the GraphQL API
 yarn dev
 ```
+
+> **Never run `prisma migrate dev`, and never `yarn prisma:migrate`, which is an
+> alias for it.** Five tables — `killmail_filters`, the three `*_kill_stats`
+> tables and `refresh_log` — are created by hand-written SQL and are deliberately
+> absent from `prisma/schema/`. Prisma reads them as drift and offers to drop
+> them, which at last count was 72,790 rows. `migrate deploy` applies pending
+> migrations and never drops anything. Creating a migration has its own procedure,
+> written out in [`CLAUDE.md`](../CLAUDE.md#database-migrations).
 
 The API alone does not ingest data. Background workers are separate processes —
 see the [worker documentation](../backend/docs/workers/worker-documentation.md).
@@ -120,23 +128,38 @@ yarn dev
 
 ### Running Tests
 
-The project has no automated test suite yet, and no `yarn test` script. Verify your
-changes by running the affected part of the app and describing what you exercised in
-the pull request.
+Both workspaces run [Vitest](https://vitest.dev/); the frontend adds React Testing
+Library on top of jsdom. Test files sit next to the code they cover as `*.spec.ts`
+or `*.spec.tsx`.
 
-Building out test coverage is one of the most valuable contributions available right
-now — if you want to set up the harness, open an issue first so we can agree on the
-tooling.
+```bash
+yarn test              # both workspaces
+yarn test:backend
+yarn test:frontend
+
+cd backend  && yarn test:watch      # watch mode
+cd frontend && yarn test:coverage   # V8 coverage report
+```
+
+A pull request that changes behaviour is expected to change or add a test. If the
+change genuinely cannot be tested, say why in the pull request rather than leaving
+it unmentioned.
 
 ### Type Checking and Linting
 
 ```bash
-cd backend  && yarn build   # tsc --noEmit — type check only, emits nothing
+yarn typecheck              # tsc --noEmit in both workspaces
+yarn format:check           # Prettier, the same check CI runs
 cd frontend && yarn lint    # ESLint
 cd frontend && yarn build   # Next.js production build
 ```
 
-There is no `lint` script on the backend yet.
+There is no `lint` script on the backend yet; `yarn typecheck` is the gate there.
+
+The frontend carries a backlog of pre-existing ESLint errors, so CI lints the whole
+workspace for the report only and lints **the files your pull request touched** as a
+blocking check. New code is held to a clean bill even while the backlog is worked
+down.
 
 ### Documentation
 
@@ -167,7 +190,8 @@ yarn docs:check-links
 
 - Follow the existing code style
 - Run `yarn lint` in `frontend/` before committing
-- Formatting follows [`.editorconfig`](../.editorconfig); there is no Prettier config
+- Formatting is Prettier's, configured in [`.prettierrc`](../.prettierrc); the
+  pre-commit hook formats staged files, so style never depends on your editor
 - Maximum line length: 100 characters (soft limit)
 - Use meaningful variable and function names
 - Write self-documenting code with clear comments when necessary
