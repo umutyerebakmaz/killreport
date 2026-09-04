@@ -109,6 +109,25 @@ See the [worker documentation](./backend/docs/workers/worker-documentation.md) f
 full list, and [PM2 operations](./backend/docs/ops/pm2.md) for how they are run in
 production.
 
+## Testing
+
+Unit and component tests run on [Vitest](https://vitest.dev/) in both workspaces. The
+frontend adds [React Testing Library](https://testing-library.com/) on top of jsdom.
+Test files live next to the code they cover as `*.spec.ts` / `*.spec.tsx`.
+
+```bash
+yarn test            # backend + frontend
+yarn test:backend
+yarn test:frontend
+yarn typecheck       # tsc --noEmit in both workspaces
+
+cd backend && yarn test:watch      # watch mode
+cd frontend && yarn test:coverage  # V8 coverage report
+```
+
+`.github/workflows/ci.yml` runs typecheck and tests for both workspaces on every push
+to `main` and on pull requests.
+
 ## Documentation
 
 **→ [Backend documentation index](./backend/docs/README.md)** — the full catalogue:

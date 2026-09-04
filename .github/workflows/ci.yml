@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    env:
+      # Only needed so `prisma generate` can load prisma.config.ts; no database is contacted.
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/killreport
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+      - run: yarn install --immutable
+      - run: yarn workspace backend typecheck
+      - run: yarn workspace backend test
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/killreport
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+      - run: yarn install --immutable
+      # The frontend currently has pre-existing lint errors; keep the report visible
+      # without blocking the build until they are cleaned up.
+      - run: yarn workspace frontend lint
+        continue-on-error: true
+      - run: yarn workspace frontend typecheck
+      - run: yarn workspace frontend test
