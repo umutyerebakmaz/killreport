@@ -114,6 +114,47 @@ describe('calculateKillmailValues', () => {
     });
   });
 
+  it('treats a null sell price as worthless', async () => {
+    prismaMock.marketPrice.findMany.mockResolvedValue([
+      { type_id: RIFTER, sell: null },
+      { type_id: AMMO, sell: 10 },
+    ]);
+
+    const result = await calculateKillmailValues({
+      victim: { ship_type_id: RIFTER },
+      items: [{ item_type_id: AMMO, quantity_destroyed: 2 }],
+    });
+
+    expect(result.totalValue).toBe(20);
+  });
+
+  it('prices a type whose group has no category as a non-blueprint', async () => {
+    prismaMock.itemGroup.findMany.mockResolvedValue([]);
+    prismaMock.category.findMany.mockResolvedValue([]);
+
+    const result = await calculateKillmailValues({
+      victim: { ship_type_id: RIFTER },
+      items: [{ item_type_id: BPC, quantity_destroyed: 1, singleton: 2 }],
+    });
+
+    expect(result.totalValue).toBe(1500000);
+  });
+
+  it('prices a type whose category has no name as a non-blueprint', async () => {
+    prismaMock.category.findMany.mockResolvedValue([
+      { id: 6, name: 'Ship' },
+      { id: 8, name: 'Charge' },
+      { id: 9, name: null },
+    ]);
+
+    const result = await calculateKillmailValues({
+      victim: { ship_type_id: RIFTER },
+      items: [{ item_type_id: BPC, quantity_destroyed: 1, singleton: 2 }],
+    });
+
+    expect(result.totalValue).toBe(1500000);
+  });
+
   it('queries prices once with the unique set of type ids', async () => {
     await calculateKillmailValues({
       victim: { ship_type_id: RIFTER },
@@ -169,5 +210,86 @@ describe('calculateKillmailValuesBatch', () => {
     const single = await calculateKillmailValues(input);
 
     expect(batch).toEqual(single);
+  });
+
+  // The batch path re-implements the pricing rules rather than looping the
+  // single-killmail function, so each rule is worth asserting on both.
+  it('values a capsule by group here too, not by its market price', async () => {
+    const [result] = await calculateKillmailValuesBatch([
+      { victim: { ship_type_id: CAPSULE } },
+    ]);
+
+    expect(result.totalValue).toBe(10);
+    expect(result.destroyedValue).toBe(10);
+  });
+
+  it('values a blueprint copy at 0.01 ISK and an original at market price', async () => {
+    const [copy, original] = await calculateKillmailValuesBatch([
+      {
+        victim: { ship_type_id: RIFTER },
+        items: [{ item_type_id: BPC, quantity_destroyed: 1, singleton: 2 }],
+      },
+      {
+        victim: { ship_type_id: RIFTER },
+        items: [{ item_type_id: BPC, quantity_destroyed: 1, singleton: 1 }],
+      },
+    ]);
+
+    expect(copy.totalValue).toBe(500000.01);
+    expect(original.totalValue).toBe(1500000);
+  });
+
+  it('treats an unpriced type as worthless rather than failing', async () => {
+    const [result] = await calculateKillmailValuesBatch([
+      {
+        victim: { ship_type_id: 4444 },
+        items: [{ item_type_id: 5555, quantity_destroyed: 10 }],
+      },
+    ]);
+
+    expect(result.totalValue).toBe(0);
+  });
+
+  it('counts an item with neither quantity as zero on both sides', async () => {
+    const [result] = await calculateKillmailValuesBatch([
+      { victim: { ship_type_id: RIFTER }, items: [{ item_type_id: AMMO }] },
+    ]);
+
+    expect(result.destroyedValue).toBe(500000);
+    expect(result.droppedValue).toBe(0);
+  });
+
+  it('prices a type whose group has no category as a non-blueprint', async () => {
+    prismaMock.itemGroup.findMany.mockResolvedValue([]);
+    prismaMock.category.findMany.mockResolvedValue([]);
+
+    const [result] = await calculateKillmailValuesBatch([
+      {
+        victim: { ship_type_id: RIFTER },
+        items: [{ item_type_id: BPC, quantity_destroyed: 1, singleton: 2 }],
+      },
+    ]);
+
+    expect(result.totalValue).toBe(1500000);
+  });
+
+  it('treats a null sell price as worthless here too', async () => {
+    prismaMock.marketPrice.findMany.mockResolvedValue([
+      { type_id: RIFTER, sell: null },
+      { type_id: AMMO, sell: 10 },
+    ]);
+
+    const [result] = await calculateKillmailValuesBatch([
+      {
+        victim: { ship_type_id: RIFTER },
+        items: [{ item_type_id: AMMO, quantity_destroyed: 2 }],
+      },
+    ]);
+
+    expect(result.totalValue).toBe(20);
+  });
+
+  it('returns an empty list for an empty batch', async () => {
+    await expect(calculateKillmailValuesBatch([])).resolves.toEqual([]);
   });
 });
