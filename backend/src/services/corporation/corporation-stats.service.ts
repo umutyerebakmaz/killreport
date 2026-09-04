@@ -237,7 +237,7 @@ export async function getTopShips(
   corporationId: number,
   filter?: string | null,
 ): Promise<Array<{ killCount: number; shipType: any }>> {
-  const cacheKey = `corp_stats:${corporationId}:top_ships:${filter}`;
+  const cacheKey = getCacheKey(corporationId, 'top_ships', filter);
 
   // Try cache first
   const cached = await redis.get(cacheKey);
