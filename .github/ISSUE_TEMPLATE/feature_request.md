@@ -2,7 +2,7 @@
 name: ✨ Feature Request
 about: Suggest an idea for KillReport
 title: '[Feature]: '
-labels: ['enhancement', 'needs-triage']
+labels: ['feat', 'needs-triage']
 assignees: ''
 ---
 
