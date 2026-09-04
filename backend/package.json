@@ -5,6 +5,10 @@
   "scripts": {
     "build": "tsc --noEmit",
     "start": "NODE_ENV=production tsx src/server.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
     "deploy": "yarn prisma:generate && yarn prisma:migrate:deploy",
     "postinstall": "prisma generate",
     "codegen": "graphql-codegen",
@@ -135,11 +139,14 @@
     "@types/pg": "^8.15.5",
     "@types/winston": "^2.4.4",
     "@types/ws": "^8.18.1",
+    "@vitest/coverage-v8": "^5.0.0",
     "graphql-codegen-schema-ast": "^0.18.2",
     "nodemon": "3.1.14",
     "prisma": "^7.1.0",
     "ts-node": "10.9.2",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "^8.2.2",
+    "vitest": "^5.0.0"
   }
 }
