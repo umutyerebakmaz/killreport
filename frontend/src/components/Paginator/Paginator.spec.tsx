@@ -1,10 +1,12 @@
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
 
-import Paginator from "./Paginator";
+import Paginator from './Paginator';
 
-function renderPaginator(overrides: Partial<React.ComponentProps<typeof Paginator>> = {}) {
+function renderPaginator(
+  overrides: Partial<React.ComponentProps<typeof Paginator>> = {},
+) {
   const props = {
     hasNextPage: true,
     hasPrevPage: true,
@@ -15,18 +17,18 @@ function renderPaginator(overrides: Partial<React.ComponentProps<typeof Paginato
     ...overrides,
   };
   render(<Paginator {...props} />);
-  const [first, prev, next, last] = screen.getAllByRole("button");
+  const [first, prev, next, last] = screen.getAllByRole('button');
   return { props, first, prev, next, last };
 }
 
-describe("Paginator", () => {
-  it("renders four navigation buttons", () => {
+describe('Paginator', () => {
+  it('renders four navigation buttons', () => {
     renderPaginator();
 
-    expect(screen.getAllByRole("button")).toHaveLength(4);
+    expect(screen.getAllByRole('button')).toHaveLength(4);
   });
 
-  it("calls the matching handler for each button", async () => {
+  it('calls the matching handler for each button', async () => {
     const user = userEvent.setup();
     const { props, first, prev, next, last } = renderPaginator();
 
@@ -41,7 +43,7 @@ describe("Paginator", () => {
     expect(props.onLast).toHaveBeenCalledTimes(1);
   });
 
-  it("disables backwards navigation on the first page", () => {
+  it('disables backwards navigation on the first page', () => {
     const { first, prev, next, last } = renderPaginator({ hasPrevPage: false });
 
     expect(first).toBeDisabled();
@@ -50,7 +52,7 @@ describe("Paginator", () => {
     expect(last).toBeEnabled();
   });
 
-  it("disables forwards navigation on the last page", () => {
+  it('disables forwards navigation on the last page', () => {
     const { first, prev, next, last } = renderPaginator({ hasNextPage: false });
 
     expect(first).toBeEnabled();
@@ -59,38 +61,38 @@ describe("Paginator", () => {
     expect(last).toBeDisabled();
   });
 
-  it("disables everything while loading", () => {
+  it('disables everything while loading', () => {
     renderPaginator({ loading: true });
 
-    for (const button of screen.getAllByRole("button")) {
+    for (const button of screen.getAllByRole('button')) {
       expect(button).toBeDisabled();
     }
   });
 
-  it("shows the page number with and without a total", () => {
+  it('shows the page number with and without a total', () => {
     renderPaginator({ currentPage: 3, totalPages: 10 });
-    expect(screen.getByText("Page 3 of 10")).toBeInTheDocument();
+    expect(screen.getByText('Page 3 of 10')).toBeInTheDocument();
   });
 
-  it("shows only the current page when the total is unknown", () => {
+  it('shows only the current page when the total is unknown', () => {
     renderPaginator({ currentPage: 7 });
-    expect(screen.getByText("Page 7")).toBeInTheDocument();
+    expect(screen.getByText('Page 7')).toBeInTheDocument();
   });
 
-  it("renders the page size selector only when a handler is given", () => {
+  it('renders the page size selector only when a handler is given', () => {
     renderPaginator();
-    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
 
-  it("reports page size changes as numbers", async () => {
+  it('reports page size changes as numbers', async () => {
     const user = userEvent.setup();
     const onPageSizeChange = vi.fn();
     renderPaginator({ pageSize: 25, onPageSizeChange });
 
-    const select = screen.getByRole("combobox");
-    expect(select).toHaveValue("25");
+    const select = screen.getByRole('combobox');
+    expect(select).toHaveValue('25');
 
-    await user.selectOptions(select, "100");
+    await user.selectOptions(select, '100');
 
     expect(onPageSizeChange).toHaveBeenCalledWith(100);
   });
