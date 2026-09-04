@@ -16,6 +16,10 @@ permissions:
 
 env:
   NODE_VERSION: 22
+  # backend's postinstall runs `prisma generate`, which loads prisma.config.ts and
+  # needs this set. No database is contacted. It lives at workflow level so a job
+  # added later cannot forget it, which is exactly how the Format job first failed.
+  DATABASE_URL: postgresql://ci:ci@localhost:5432/killreport
 
 jobs:
   format:
@@ -37,9 +41,6 @@ jobs:
     name: Backend
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      # Only needed so `prisma generate` can load prisma.config.ts; no database is contacted.
-      DATABASE_URL: postgresql://ci:ci@localhost:5432/killreport
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -54,8 +55,6 @@ jobs:
     name: Frontend
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      DATABASE_URL: postgresql://ci:ci@localhost:5432/killreport
     steps:
       - uses: actions/checkout@v4
         with:
