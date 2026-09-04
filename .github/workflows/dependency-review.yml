@@ -1,0 +1,21 @@
+name: Dependency review
+
+# Reads the dependency change a pull request makes and fails when it pulls in a
+# package with a known vulnerability. Renovate keeps existing dependencies
+# current; this covers the other direction, a new one arriving already broken.
+on: pull_request
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    name: Review
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: on-failure

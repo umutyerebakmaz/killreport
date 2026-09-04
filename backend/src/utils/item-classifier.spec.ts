@@ -47,7 +47,11 @@ describe('separateModulesAndCharges', () => {
     const ammo = { item_type_id: 2, itemType: { group_id: 83 } };
     const unknown = { item_type_id: 3, itemType: null };
 
-    const { modules, charges } = separateModulesAndCharges([weapon, ammo, unknown]);
+    const { modules, charges } = separateModulesAndCharges([
+      weapon,
+      ammo,
+      unknown,
+    ]);
 
     expect(modules).toEqual([weapon, unknown]);
     expect(charges).toEqual([ammo]);
