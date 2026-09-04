@@ -14,7 +14,10 @@ import { ReactNode, useRef } from 'react';
 // xl and scales up in three steps instead of switching on at lg and overflowing.
 export const NAV_ITEM =
   'font-semibold text-white text-sm min-[1800px]:text-base';
-const NAV_POPOVER_BUTTON = `group flex items-center gap-x-1 ${NAV_ITEM}`;
+// The ring is kept for keyboard focus and taken away for pointer focus: the
+// browser draws its own on a plain `:focus`, and the menu hands focus back to
+// the button every time it closes, so a pointer left one sitting on the nav.
+const NAV_POPOVER_BUTTON = `group flex items-center gap-x-1 focus:outline-none focus-visible:outline-1 focus-visible:outline-white/40 ${NAV_ITEM}`;
 
 // Matches the drawer's chevron, which turns over the same 200ms. `data-open`
 // is on the button, so the icon reads it through the button's `group`.
@@ -71,7 +74,12 @@ export function NavPopover({
             buttonRef.current?.click();
           }}
           onMouseLeave={() => {
-            if (open) close();
+            if (!open) return;
+            close();
+            // `close()` is Headless UI's `refocusableClose`, which always puts
+            // focus back on the button. That is right after Escape and wrong
+            // after the pointer simply moved away, so the focus goes with it.
+            buttonRef.current?.blur();
           }}
         >
           <PopoverButton ref={buttonRef} className={NAV_POPOVER_BUTTON}>

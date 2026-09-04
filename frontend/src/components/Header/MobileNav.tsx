@@ -14,13 +14,18 @@ const MOBILE_NAV_LINK =
 const MOBILE_NAV_SUB_LINK =
   'block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5';
 const MOBILE_NAV_DISCLOSURE_BUTTON =
-  'group flex w-full items-center justify-between py-2 pr-3.5 pl-3 text-base/7 font-semibold text-white hover:bg-white/5';
+  'group flex w-full items-center justify-between py-2 pr-3.5 pl-3 text-base/7 font-semibold text-white hover:bg-white/5 focus:outline-none focus-visible:outline-1 focus-visible:outline-white/40';
 
-// Sliding the rows rather than animating height: a height transition needs a
-// grid-rows trick to get away from a hardcoded max-height, and the drawer does
-// not earn that.
+// A real height transition: the row goes from 0fr to 1fr, so the group opens
+// downwards at the speed the links appear. Sliding the rows into a box that
+// had already taken its full height was what read as a flicker and a jump in
+// size — the links moved while the space below them did not.
+//
+// `grid-template-rows` is the one way to animate to a height nobody has
+// measured. The inner div owns the clipping, and the spacing sits inside it
+// so it collapses along with everything else.
 const MOBILE_NAV_DISCLOSURE_PANEL =
-  'mt-2 space-y-2 origin-top transition duration-200 ease-out data-closed:-translate-y-2 data-closed:opacity-0';
+  'grid transition-[grid-template-rows] duration-300 ease-out grid-rows-[1fr] data-closed:grid-rows-[0fr]';
 
 const CHEVRON =
   'flex-none size-5 transition-transform duration-200 group-data-open:rotate-180';
@@ -61,7 +66,9 @@ export function MobileNavDisclosure({
         <ChevronDownIcon aria-hidden="true" className={CHEVRON} />
       </DisclosureButton>
       <DisclosurePanel transition className={MOBILE_NAV_DISCLOSURE_PANEL}>
-        {children}
+        <div className="overflow-hidden">
+          <div className="mt-2 space-y-2">{children}</div>
+        </div>
       </DisclosurePanel>
     </Disclosure>
   );
