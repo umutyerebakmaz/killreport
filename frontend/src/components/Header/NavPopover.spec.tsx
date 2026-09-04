@@ -1,8 +1,24 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { NavPopover, NavPopoverLink } from './NavPopover';
+
+/**
+ * jsdom implements no `matchMedia` at all, so hover-to-open is inert in the
+ * tests that do not ask for it — which is what keeps the click cases below
+ * honest, since a real pointer would have opened the panel before the click.
+ */
+function stubPointer({ canHover }: { canHover: boolean }) {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn((query: string) => ({ matches: canHover, media: query })),
+  );
+}
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 function renderNavPopover() {
   render(
@@ -55,6 +71,28 @@ describe('NavPopover', () => {
     await waitFor(() =>
       expect(screen.queryByRole('link', { name: /regions/i })).toBeNull(),
     );
+  });
+
+  it('opens the panel on hover alone when the pointer can hover', async () => {
+    stubPointer({ canHover: true });
+    const user = userEvent.setup();
+    const { button } = renderNavPopover();
+
+    await user.hover(button);
+
+    expect(screen.getByRole('link', { name: /regions/i })).toBeInTheDocument();
+  });
+
+  it('ignores hover on a device that cannot hover', async () => {
+    // A tap fires mouseenter before click. Opening on it would let the click
+    // that follows close the panel again, leaving the menu unusable.
+    stubPointer({ canHover: false });
+    const user = userEvent.setup();
+    const { button } = renderNavPopover();
+
+    await user.hover(button);
+
+    expect(screen.queryByRole('link', { name: /regions/i })).toBeNull();
   });
 
   it('leaves the panel open while the pointer is still inside it', async () => {

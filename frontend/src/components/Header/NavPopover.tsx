@@ -8,7 +8,7 @@ import {
 } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import Link from 'next/link';
-import { ReactNode } from 'react';
+import { ReactNode, useRef } from 'react';
 
 // The desktop nav needs ~1750px to lay out at full size, so it only appears at
 // xl and scales up in three steps instead of switching on at lg and overflowing.
@@ -30,12 +30,17 @@ const NAV_POPOVER_SURFACE =
   'overflow-hidden bg-stone-900 outline-1 -outline-offset-1 outline-white/10 p-4';
 
 /**
- * A nav dropdown that opens without a transition, aligns to the start of its
+ * A menu that opens on hover without a transition, aligns to the start of its
  * button rather than centring on it, and closes both when a link inside it is
  * chosen and when the pointer leaves.
  *
- * `close` is only reachable through the render prop, so the pointer handler
- * lives on a wrapper inside `Popover` rather than on `Popover` itself.
+ * `open` and `close` are only reachable through the render prop, so the
+ * pointer handlers live on a wrapper inside `Popover` rather than on `Popover`
+ * itself. There is no matching `open()`: the state machine has one but does
+ * not expose it, so hover opens the menu by clicking the button.
+ *
+ * The notification bell deliberately does not do any of this — its button
+ * marks alerts read, which a pointer sweeping past it must not trigger.
  */
 export function NavPopover({
   label,
@@ -44,16 +49,27 @@ export function NavPopover({
   label: string;
   children: ReactNode;
 }) {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
   return (
     <Popover>
       {({ open, close }) => (
         <div
           className="relative"
+          // A tap on a touchscreen fires mouseenter before click, so opening
+          // on hover there would hand the click that follows nothing to do
+          // but close the menu again. The nav is xl-only, which still leaves
+          // landscape tablets and touch laptops.
+          onMouseEnter={() => {
+            if (open) return;
+            if (!window.matchMedia?.('(hover: hover)').matches) return;
+            buttonRef.current?.click();
+          }}
           onMouseLeave={() => {
             if (open) close();
           }}
         >
-          <PopoverButton className={NAV_POPOVER_BUTTON}>
+          <PopoverButton ref={buttonRef} className={NAV_POPOVER_BUTTON}>
             {label}
             <ChevronDownIcon
               aria-hidden="true"
