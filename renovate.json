@@ -1,4 +1,149 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"]
+  "extends": ["config:recommended", ":semanticCommits"],
+  "timezone": "Europe/Istanbul",
+  "schedule": ["before 7am on monday"],
+  "prConcurrentLimit": 6,
+  "labels": ["dependencies", "chore"],
+  "rangeStrategy": "bump",
+  "postUpdateOptions": ["yarnDedupeHighest"],
+  "osvVulnerabilityAlerts": true,
+  "automergeStrategy": "squash",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 7am on the first day of the month"]
+  },
+  "vulnerabilityAlerts": {
+    "labels": ["dependencies", "fix"],
+    "automerge": true
+  },
+  "packageRules": [
+    {
+      "description": "Supply chain: npm packages are picked up three days after release; security fixes skip this wait",
+      "matchDatasources": ["npm"],
+      "minimumReleaseAge": "3 days"
+    },
+    {
+      "description": "graphql 17 breaks Yoga and codegen; stay on 16.x and do not open a major PR",
+      "matchPackageNames": ["graphql"],
+      "allowedVersions": "<17"
+    },
+    {
+      "description": "Patch updates merge on their own when CI is green",
+      "matchUpdateTypes": ["patch", "pin", "digest"],
+      "automerge": true
+    },
+    {
+      "description": "Dev dependencies also merge on minor (lint, tests, types)",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor"],
+      "automerge": true
+    },
+    {
+      "description": "Prisma client, CLI and the pg adapter move together; they drive schema generation",
+      "groupName": "prisma",
+      "matchPackageNames": ["prisma"],
+      "matchPackagePrefixes": ["@prisma/"],
+      "addLabels": ["backend", "db"],
+      "automerge": false
+    },
+    {
+      "description": "GraphQL server, client and codegen tooling in one PR (the graphql 16 pin holds)",
+      "groupName": "graphql tooling",
+      "matchPackageNames": [
+        "graphql-yoga",
+        "graphql-ws",
+        "graphql-codegen-schema-ast",
+        "dataloader",
+        "@apollo/client"
+      ],
+      "matchPackagePrefixes": [
+        "@graphql-yoga/",
+        "@graphql-tools/",
+        "@graphql-codegen/",
+        "@envelop/"
+      ],
+      "addLabels": ["graphql"],
+      "automerge": false
+    },
+    {
+      "description": "Next.js and React move as one; next and eslint-config-next share a version line",
+      "groupName": "next and react",
+      "matchPackageNames": [
+        "next",
+        "eslint-config-next",
+        "react",
+        "react-dom",
+        "@types/react",
+        "@types/react-dom"
+      ],
+      "addLabels": ["frontend"],
+      "automerge": false
+    },
+    {
+      "description": "Tailwind and PostCSS ship together",
+      "groupName": "css toolchain",
+      "matchPackageNames": ["tailwindcss", "@tailwindcss/postcss", "postcss"],
+      "addLabels": ["frontend"]
+    },
+    {
+      "description": "Backend runtime: database, queue, cache and HTTP clients",
+      "groupName": "backend runtime",
+      "matchPackageNames": [
+        "pg",
+        "ioredis",
+        "amqplib",
+        "ws",
+        "winston",
+        "jose",
+        "zod",
+        "axios",
+        "dotenv"
+      ],
+      "addLabels": ["backend"],
+      "automerge": false
+    },
+    {
+      "description": "Lint and formatting tools in one PR",
+      "groupName": "lint and format",
+      "matchPackageNames": [
+        "eslint",
+        "typescript-eslint",
+        "prettier",
+        "husky",
+        "lint-staged"
+      ],
+      "matchPackagePrefixes": [
+        "@eslint/",
+        "@typescript-eslint/",
+        "eslint-config-",
+        "eslint-plugin-"
+      ]
+    },
+    {
+      "description": "Test tooling in one PR",
+      "groupName": "test tooling",
+      "matchPackageNames": ["vitest", "vite", "jsdom"],
+      "matchPackagePrefixes": ["@vitest/", "@testing-library/", "@vitejs/"],
+      "addLabels": ["test"]
+    },
+    {
+      "description": "Charts and animation libraries",
+      "groupName": "charts and animation",
+      "matchPackageNames": ["echarts", "echarts-for-react", "lottie-react"],
+      "addLabels": ["frontend"]
+    },
+    {
+      "description": "GitHub Actions versions in one PR, merged on their own",
+      "matchManagers": ["github-actions"],
+      "groupName": "github actions",
+      "addLabels": ["ops"],
+      "automerge": true
+    },
+    {
+      "description": "The Yarn version in packageManager is reviewed by hand",
+      "matchPackageNames": ["yarn"],
+      "automerge": false
+    }
+  ]
 }
