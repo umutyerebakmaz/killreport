@@ -140,26 +140,6 @@ function fillSlots(
 }
 
 /**
- * Extracts modules for a flag range (used for rigs, subsystems, etc.)
- */
-function extractModules(
-  minFlag: number,
-  maxFlag: number,
-  flagGroups: Map<number, RawKillmailItem[]>,
-): FittingModule[] {
-  const modules: FittingModule[] = [];
-
-  for (let flag = minFlag; flag <= maxFlag; flag++) {
-    const items = flagGroups.get(flag);
-    if (items && items.length > 0) {
-      modules.push(convertToFittingModule(items));
-    }
-  }
-
-  return modules;
-}
-
-/**
  * Main function: Organizes killmail items into fitting structure
  * @param items - Raw killmail items
  * @param slotCounts - Optional slot counts from dogma attributes. If not provided, uses max (8 for modules, 3 for rigs)
