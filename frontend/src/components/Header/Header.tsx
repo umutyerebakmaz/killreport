@@ -6,10 +6,7 @@ import {
   Disclosure,
   DisclosureButton,
   DisclosurePanel,
-  Popover,
-  PopoverButton,
   PopoverGroup,
-  PopoverPanel,
 } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import { Bars3Icon, XMarkIcon, HomeIcon } from '@heroicons/react/24/outline';
@@ -21,11 +18,7 @@ import NotificationBell from '../Notifications/NotificationBell';
 import EveStatus from '../EveStatus/EveStatus';
 import EveTime from '../EveTime/EveTime';
 import Tooltip from '../Tooltip/Tooltip';
-
-// The desktop nav needs ~1750px to lay out at full size, so it only appears at
-// xl and scales up in three steps instead of switching on at lg and overflowing.
-const NAV_ITEM = 'font-semibold text-white text-sm min-[1800px]:text-base';
-const NAV_POPOVER_BUTTON = `flex items-center gap-x-1 ${NAV_ITEM}`;
+import { NAV_ITEM, NavPopover, NavPopoverLink } from './NavPopover';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -77,109 +70,35 @@ export default function Header() {
           </button>
         </div>
         <PopoverGroup className="hidden xl:flex xl:gap-x-4 2xl:gap-x-6 min-[1800px]:gap-x-8">
-          <Popover className="relative">
-            <PopoverButton className={NAV_POPOVER_BUTTON}>
-              UNIVERSE
-              <ChevronDownIcon
-                aria-hidden="true"
-                className="flex-none text-gray-500 size-5"
-              />
-            </PopoverButton>
-            <PopoverPanel
-              transition
-              className="absolute z-10 w-screen max-w-md mt-3 overflow-hidden transition -translate-x-1/2 bg-stone-900 left-1/2 outline-1 -outline-offset-1 outline-white/10 data-closed:translate-y-1 data-closed:opacity-0 data-enter:duration-200 data-enter:ease-out data-leave:duration-150 data-leave:ease-in"
-            >
-              <div className="p-4">
-                <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
-                  <div className="flex-auto">
-                    <a
-                      href="/regions"
-                      className="block font-semibold text-white"
-                    >
-                      REGIONS
-                      <span className="absolute inset-0" />
-                    </a>
-                    <p className="mt-1 text-gray-400">
-                      64 Regions across New Eden - High, Low, Null, and Wormhole
-                      space
-                    </p>
-                  </div>
-                </div>
-                <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
-                  <div className="flex-auto">
-                    <a
-                      href="/constellations"
-                      className="block font-semibold text-white"
-                    >
-                      CONSTELLATIONS
-                      <span className="absolute inset-0" />
-                    </a>
-                    <p className="mt-1 text-gray-400">
-                      1,090+ Constellations connecting solar systems
-                    </p>
-                  </div>
-                </div>
-                <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
-                  <div className="flex-auto">
-                    <a
-                      href="/solar-systems"
-                      className="block font-semibold text-white"
-                    >
-                      SOLAR SYSTEMS
-                      <span className="absolute inset-0" />
-                    </a>
-                    <p className="mt-1 text-gray-400">
-                      8,000+ Solar Systems with security ratings and statistics
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </PopoverPanel>
-          </Popover>
-          <Popover className="relative">
-            <PopoverButton className={NAV_POPOVER_BUTTON}>
-              KILLMAILS
-              <ChevronDownIcon
-                aria-hidden="true"
-                className="flex-none text-gray-500 size-5"
-              />
-            </PopoverButton>
-            <PopoverPanel
-              transition
-              className="absolute z-10 w-screen max-w-md mt-3 overflow-hidden transition -translate-x-1/2 bg-stone-900 left-1/2 outline-1 -outline-offset-1 outline-white/10 data-closed:translate-y-1 data-closed:opacity-0 data-enter:duration-200 data-enter:ease-out data-leave:duration-150 data-leave:ease-in"
-            >
-              <div className="p-4">
-                <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
-                  <div className="flex-auto">
-                    <a
-                      href="/killmails?page=1&regionId=10000070"
-                      className="block font-semibold text-white"
-                    >
-                      POCHVEN
-                      <span className="absolute inset-0" />
-                    </a>
-                    <p className="mt-1 text-gray-400">
-                      Explore Pochven triglavian space killmails and statistics
-                    </p>
-                  </div>
-                </div>
-                <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
-                  <div className="flex-auto">
-                    <a
-                      href="/killmails?page=1&securitySpace=wormhole"
-                      className="block font-semibold text-white"
-                    >
-                      WORMHOLES
-                      <span className="absolute inset-0" />
-                    </a>
-                    <p className="mt-1 text-gray-400">
-                      Explore wormhole space killmails and statistics
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </PopoverPanel>
-          </Popover>
+          <NavPopover label="UNIVERSE">
+            <NavPopoverLink
+              href="/regions"
+              label="REGIONS"
+              description="64 Regions across New Eden - High, Low, Null, and Wormhole space"
+            />
+            <NavPopoverLink
+              href="/constellations"
+              label="CONSTELLATIONS"
+              description="1,090+ Constellations connecting solar systems"
+            />
+            <NavPopoverLink
+              href="/solar-systems"
+              label="SOLAR SYSTEMS"
+              description="8,000+ Solar Systems with security ratings and statistics"
+            />
+          </NavPopover>
+          <NavPopover label="KILLMAILS">
+            <NavPopoverLink
+              href="/killmails?page=1&regionId=10000070"
+              label="POCHVEN"
+              description="Explore Pochven triglavian space killmails and statistics"
+            />
+            <NavPopoverLink
+              href="/killmails?page=1&securitySpace=wormhole"
+              label="WORMHOLES"
+              description="Explore wormhole space killmails and statistics"
+            />
+          </NavPopover>
           <a href="/alliances" className={NAV_ITEM}>
             ALLIANCES
           </a>
@@ -192,92 +111,33 @@ export default function Header() {
           <a href="/leaderboards" className={NAV_ITEM}>
             LEADERBOARDS
           </a>
-          <Popover className="relative">
-            <PopoverButton className={NAV_POPOVER_BUTTON}>
-              SOVEREIGNTY
-              <ChevronDownIcon
-                aria-hidden="true"
-                className="flex-none text-gray-500 size-5"
-              />
-            </PopoverButton>
-            <PopoverPanel
-              transition
-              className="absolute z-10 w-screen max-w-md mt-3 overflow-hidden transition -translate-x-1/2 bg-stone-900 left-1/2 outline-1 -outline-offset-1 outline-white/10 data-closed:translate-y-1 data-closed:opacity-0 data-enter:duration-200 data-enter:ease-out data-leave:duration-150 data-leave:ease-in"
-            >
-              <div className="p-4">
-                <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
-                  <div className="flex-auto">
-                    <a
-                      href="/sovereignty"
-                      className="block font-semibold text-white"
-                    >
-                      OVERVIEW
-                      <span className="absolute inset-0" />
-                    </a>
-                    <p className="mt-1 text-gray-400">
-                      Null-sec territory control, rankings, and active wars
-                    </p>
-                  </div>
-                </div>
-                <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
-                  <div className="flex-auto">
-                    <a
-                      href="/sovereignty/structures"
-                      className="block font-semibold text-white"
-                    >
-                      STRUCTURES &amp; TIMERS
-                      <span className="absolute inset-0" />
-                    </a>
-                    <p className="mt-1 text-gray-400">
-                      IHub/TCU inventory and upcoming vulnerability windows
-                    </p>
-                  </div>
-                </div>
-                <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
-                  <div className="flex-auto">
-                    <a
-                      href="/sovereignty/history"
-                      className="block font-semibold text-white"
-                    >
-                      HISTORY
-                      <span className="absolute inset-0" />
-                    </a>
-                    <p className="mt-1 text-gray-400">
-                      Resolved campaigns, outcomes, and top defenders
-                    </p>
-                  </div>
-                </div>
-                <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
-                  <div className="flex-auto">
-                    <a
-                      href="/sovereignty/hotspots"
-                      className="block font-semibold text-white"
-                    >
-                      HOT ZONES
-                      <span className="absolute inset-0" />
-                    </a>
-                    <p className="mt-1 text-gray-400">
-                      Regions ranked by conflict intensity
-                    </p>
-                  </div>
-                </div>
-                <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
-                  <div className="flex-auto">
-                    <a
-                      href="/sovereignty/map"
-                      className="block font-semibold text-white"
-                    >
-                      MAP
-                      <span className="absolute inset-0" />
-                    </a>
-                    <p className="mt-1 text-gray-400">
-                      Territory map colored by controlling alliance
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </PopoverPanel>
-          </Popover>
+          <NavPopover label="SOVEREIGNTY">
+            <NavPopoverLink
+              href="/sovereignty"
+              label="OVERVIEW"
+              description="Null-sec territory control, rankings, and active wars"
+            />
+            <NavPopoverLink
+              href="/sovereignty/structures"
+              label="STRUCTURES &amp; TIMERS"
+              description="IHub/TCU inventory and upcoming vulnerability windows"
+            />
+            <NavPopoverLink
+              href="/sovereignty/history"
+              label="HISTORY"
+              description="Resolved campaigns, outcomes, and top defenders"
+            />
+            <NavPopoverLink
+              href="/sovereignty/hotspots"
+              label="HOT ZONES"
+              description="Regions ranked by conflict intensity"
+            />
+            <NavPopoverLink
+              href="/sovereignty/map"
+              label="MAP"
+              description="Territory map colored by controlling alliance"
+            />
+          </NavPopover>
           <a href="/workers" className={NAV_ITEM}>
             WORKERS
           </a>
