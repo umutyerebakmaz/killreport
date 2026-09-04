@@ -5,10 +5,14 @@
   "schedule": ["before 7am on monday"],
   "prConcurrentLimit": 6,
   "labels": ["dependencies", "chore"],
+  "reviewersFromCodeOwners": true,
   "rangeStrategy": "bump",
   "postUpdateOptions": ["yarnDedupeHighest"],
   "osvVulnerabilityAlerts": true,
   "automergeStrategy": "squash",
+  "platformAutomerge": true,
+  "rebaseWhen": "conflicted",
+  "dependencyDashboard": true,
   "lockFileMaintenance": {
     "enabled": true,
     "schedule": ["before 7am on the first day of the month"]
@@ -22,6 +26,11 @@
       "description": "Supply chain: npm packages are picked up three days after release; security fixes skip this wait",
       "matchDatasources": ["npm"],
       "minimumReleaseAge": "3 days"
+    },
+    {
+      "description": "Major upgrades wait for a tick on the dependency dashboard, so nobody meets one unannounced",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
     },
     {
       "description": "graphql 17 breaks Yoga and codegen; stay on 16.x and do not open a major PR",
