@@ -1,0 +1,34 @@
+# Renovate owns dependency updates for this repository (see ../renovate.json).
+# Dependabot version updates are therefore switched off here, so the two bots
+# stop opening competing pull requests for the same package.
+#
+# Dependabot ALERTS stay on: they are the detection layer GitHub surfaces in the
+# Security tab, and Renovate reads them through osvVulnerabilityAlerts.
+#
+# Dependabot security updates are a repository setting, not a file setting. If
+# they are enabled, any pull request Dependabot opens picks up the labels and
+# commit prefix below so it matches the repository's conventions.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    # 0 disables Dependabot version updates; Renovate handles them.
+    open-pull-requests-limit: 0
+    labels:
+      - dependencies
+      - fix
+    commit-message:
+      prefix: fix(deps)
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+    labels:
+      - dependencies
+      - ops
+    commit-message:
+      prefix: chore(deps)
