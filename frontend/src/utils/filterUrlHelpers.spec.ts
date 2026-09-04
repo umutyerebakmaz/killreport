@@ -1,26 +1,28 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from 'vitest';
 
 import {
   buildKillmailFiltersUrl,
   parseKillmailFiltersFromUrl,
-} from "./filterUrlHelpers";
+} from './filterUrlHelpers';
 
-describe("parseKillmailFiltersFromUrl", () => {
+describe('parseKillmailFiltersFromUrl', () => {
   it("defaults to page 1 and role 'all' with no params", () => {
     const parsed = parseKillmailFiltersFromUrl(new URLSearchParams());
 
     expect(parsed.page).toBe(1);
-    expect(parsed.shipTypeRole).toBe("all");
-    expect(parsed.characterRole).toBe("all");
-    expect(parsed.securitySpaceRole).toBe("all");
+    expect(parsed.shipTypeRole).toBe('all');
+    expect(parsed.characterRole).toBe('all');
+    expect(parsed.securitySpaceRole).toBe('all');
     expect(parsed.shipTypeId).toBeUndefined();
     expect(parsed.victim).toBeUndefined();
     expect(parsed.attacker).toBeUndefined();
   });
 
-  it("parses numeric filters", () => {
+  it('parses numeric filters', () => {
     const parsed = parseKillmailFiltersFromUrl(
-      new URLSearchParams("page=3&shipTypeId=587&minValue=1000&maxAttackers=5&systemId=30000142"),
+      new URLSearchParams(
+        'page=3&shipTypeId=587&minValue=1000&maxAttackers=5&systemId=30000142',
+      ),
     );
 
     expect(parsed.page).toBe(3);
@@ -30,32 +32,40 @@ describe("parseKillmailFiltersFromUrl", () => {
     expect(parsed.systemId).toBe(30000142);
   });
 
-  it("parses comma separated ship group ids", () => {
-    const parsed = parseKillmailFiltersFromUrl(new URLSearchParams("shipGroupIds=25,26,27"));
+  it('parses comma separated ship group ids', () => {
+    const parsed = parseKillmailFiltersFromUrl(
+      new URLSearchParams('shipGroupIds=25,26,27'),
+    );
 
     expect(parsed.shipGroupIds).toEqual([25, 26, 27]);
   });
 
-  it("derives victim/attacker flags from shipTypeRole", () => {
-    const victim = parseKillmailFiltersFromUrl(new URLSearchParams("shipTypeId=587&shipTypeRole=victim"));
+  it('derives victim/attacker flags from shipTypeRole', () => {
+    const victim = parseKillmailFiltersFromUrl(
+      new URLSearchParams('shipTypeId=587&shipTypeRole=victim'),
+    );
     expect(victim.victim).toBe(true);
     expect(victim.attacker).toBe(false);
 
-    const attacker = parseKillmailFiltersFromUrl(new URLSearchParams("shipTypeId=587&shipTypeRole=attacker"));
+    const attacker = parseKillmailFiltersFromUrl(
+      new URLSearchParams('shipTypeId=587&shipTypeRole=attacker'),
+    );
     expect(attacker.victim).toBe(false);
     expect(attacker.attacker).toBe(true);
   });
 
-  it("ignores shipTypeRole when no ship filter is set", () => {
-    const parsed = parseKillmailFiltersFromUrl(new URLSearchParams("shipTypeRole=victim"));
+  it('ignores shipTypeRole when no ship filter is set', () => {
+    const parsed = parseKillmailFiltersFromUrl(
+      new URLSearchParams('shipTypeRole=victim'),
+    );
 
     expect(parsed.victim).toBeUndefined();
     expect(parsed.attacker).toBeUndefined();
   });
 
-  it("derives character flags from characterRole", () => {
+  it('derives character flags from characterRole', () => {
     const parsed = parseKillmailFiltersFromUrl(
-      new URLSearchParams("characterId=123&characterRole=attacker"),
+      new URLSearchParams('characterId=123&characterRole=attacker'),
     );
 
     expect(parsed.characterAttacker).toBe(true);
@@ -63,46 +73,70 @@ describe("parseKillmailFiltersFromUrl", () => {
   });
 
   it("only sets securitySpace when it is not 'all'", () => {
-    expect(parseKillmailFiltersFromUrl(new URLSearchParams("securitySpace=nullsec")).securitySpace).toBe("nullsec");
-    expect(parseKillmailFiltersFromUrl(new URLSearchParams("securitySpace=all")).securitySpace).toBeUndefined();
+    expect(
+      parseKillmailFiltersFromUrl(new URLSearchParams('securitySpace=nullsec'))
+        .securitySpace,
+    ).toBe('nullsec');
+    expect(
+      parseKillmailFiltersFromUrl(new URLSearchParams('securitySpace=all'))
+        .securitySpace,
+    ).toBeUndefined();
   });
 
   it("parses warRelated only when it is 'true'", () => {
-    expect(parseKillmailFiltersFromUrl(new URLSearchParams("warRelated=true")).warRelated).toBe(true);
-    expect(parseKillmailFiltersFromUrl(new URLSearchParams("warRelated=false")).warRelated).toBeUndefined();
+    expect(
+      parseKillmailFiltersFromUrl(new URLSearchParams('warRelated=true'))
+        .warRelated,
+    ).toBe(true);
+    expect(
+      parseKillmailFiltersFromUrl(new URLSearchParams('warRelated=false'))
+        .warRelated,
+    ).toBeUndefined();
   });
 });
 
-describe("buildKillmailFiltersUrl", () => {
-  it("always includes the page", () => {
-    expect(buildKillmailFiltersUrl(2, {})).toBe("page=2");
+describe('buildKillmailFiltersUrl', () => {
+  it('always includes the page', () => {
+    expect(buildKillmailFiltersUrl(2, {})).toBe('page=2');
   });
 
-  it("serialises ship filters with their role", () => {
-    const url = buildKillmailFiltersUrl(1, { shipTypeId: 587, victim: true, attacker: false });
+  it('serialises ship filters with their role', () => {
+    const url = buildKillmailFiltersUrl(1, {
+      shipTypeId: 587,
+      victim: true,
+      attacker: false,
+    });
     const params = new URLSearchParams(url);
 
-    expect(params.get("shipTypeId")).toBe("587");
-    expect(params.get("shipTypeRole")).toBe("victim");
+    expect(params.get('shipTypeId')).toBe('587');
+    expect(params.get('shipTypeRole')).toBe('victim');
   });
 
-  it("sets shipTypeRole from ship groups only when no ship type is selected", () => {
+  it('sets shipTypeRole from ship groups only when no ship type is selected', () => {
     const groupsOnly = new URLSearchParams(
-      buildKillmailFiltersUrl(1, { shipGroupIds: [25, 26], attacker: true, victim: false }),
+      buildKillmailFiltersUrl(1, {
+        shipGroupIds: [25, 26],
+        attacker: true,
+        victim: false,
+      }),
     );
-    expect(groupsOnly.get("shipGroupIds")).toBe("25,26");
-    expect(groupsOnly.get("shipTypeRole")).toBe("attacker");
+    expect(groupsOnly.get('shipGroupIds')).toBe('25,26');
+    expect(groupsOnly.get('shipTypeRole')).toBe('attacker');
   });
 
-  it("omits filters that are unset or falsy", () => {
+  it('omits filters that are unset or falsy', () => {
     const params = new URLSearchParams(
-      buildKillmailFiltersUrl(1, { minValue: 0, warRelated: false, securitySpace: "all" }),
+      buildKillmailFiltersUrl(1, {
+        minValue: 0,
+        warRelated: false,
+        securitySpace: 'all',
+      }),
     );
 
-    expect([...params.keys()]).toEqual(["page"]);
+    expect([...params.keys()]).toEqual(['page']);
   });
 
-  it("round-trips through the parser", () => {
+  it('round-trips through the parser', () => {
     const filters = {
       shipTypeId: 587,
       victim: true,
@@ -111,12 +145,14 @@ describe("buildKillmailFiltersUrl", () => {
       characterAttacker: true,
       characterVictim: false,
       regionId: 10000002,
-      securitySpace: "lowsec",
+      securitySpace: 'lowsec',
       minAttackers: 2,
       warRelated: true,
     };
 
-    const parsed = parseKillmailFiltersFromUrl(new URLSearchParams(buildKillmailFiltersUrl(4, filters)));
+    const parsed = parseKillmailFiltersFromUrl(
+      new URLSearchParams(buildKillmailFiltersUrl(4, filters)),
+    );
 
     expect(parsed.page).toBe(4);
     expect(parsed).toMatchObject(filters);
