@@ -1,0 +1,64 @@
+query MostValuableKillmails(
+  $scope: MostValuableScope!
+  $days: Int
+  $limit: Int
+) {
+  mostValuableKillmails(scope: $scope, days: $days, limit: $limit) {
+    id
+    killmailTime
+    totalValue
+    victim {
+      character {
+        id
+        name
+      }
+      corporation {
+        id
+        name
+      }
+      alliance {
+        id
+        name
+      }
+      shipType {
+        id
+        name
+        group {
+          name
+        }
+        dogmaAttributes(ids: [422, 1692]) {
+          attribute_id
+          value
+        }
+      }
+      damageTaken
+    }
+    solarSystem {
+      id
+      name
+      securityStatus
+      constellation {
+        id
+        name
+        region {
+          id
+          name
+        }
+      }
+    }
+    finalBlow {
+      character {
+        id
+        name
+      }
+      corporation {
+        id
+        name
+      }
+      alliance {
+        id
+        name
+      }
+    }
+  }
+}

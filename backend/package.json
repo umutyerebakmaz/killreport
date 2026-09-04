@@ -15,7 +15,7 @@
     "codegen:watch": "graphql-codegen --watch",
     "dev": "yarn kill && NODE_ENV=development nodemon --watch 'src/**/*.ts' --ignore 'src/**/*.spec.ts' --exec tsx src/server.ts",
     "fetch:killmail": "tsx src/workers/fetch-single-killmail.ts",
-    "kill": "P=$(grep -m1 '^PORT=' .env 2>/dev/null | cut -d= -f2); [ -n \"$P\" ] || { echo 'PORT is not set in backend/.env - nothing killed'; exit 0; }; lsof -ti:$P | xargs kill -9 || true",
+    "kill": "P=$(grep -m1 '^PORT=' .env 2>/dev/null | cut -d= -f2); [ -n \"$P\" ] || { echo 'PORT is not set in backend/.env - nothing killed'; exit 0; }; fuser -ks -n tcp $P || true",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:migrate:deploy": "prisma migrate deploy",

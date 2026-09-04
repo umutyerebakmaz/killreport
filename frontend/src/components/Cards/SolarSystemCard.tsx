@@ -1,7 +1,7 @@
-import SecurityBadge from "@/components/SecurityStatus/SecurityStatus";
-import Tooltip from "@/components/Tooltip/Tooltip";
-import { formatTimeAgo } from "@/utils/date";
-import Link from "next/link";
+import SecurityBadge from '@/components/SecurityStatus/SecurityStatus';
+import Tooltip from '@/components/Tooltip/Tooltip';
+import { formatTimeAgo } from '@/utils/date';
+import Link from 'next/link';
 
 interface SolarSystemCardProps {
   system: {
@@ -37,8 +37,8 @@ export default function SolarSystemCard({ system }: SolarSystemCardProps) {
     if (kills.pod_kills > 0) parts.push(`${kills.pod_kills} pods`);
     if (kills.npc_kills > 0) parts.push(`${kills.npc_kills} NPC`);
 
-    if (parts.length === 0) return "No activity";
-    return `${parts.join(", ")} killed`;
+    if (parts.length === 0) return 'No activity';
+    return `${parts.join(', ')} killed`;
   };
 
   return (

@@ -27,7 +27,7 @@ export class DogmaAttributeService {
   static async getAttributeInfo(attributeId: number) {
     return esiRateLimiter.execute(async () => {
       const response = await axios.get(
-        `${ESI_BASE_URL}/dogma/attributes/${attributeId}/`
+        `${ESI_BASE_URL}/dogma/attributes/${attributeId}/`,
       );
       return response.data;
     });

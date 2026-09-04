@@ -1,19 +1,19 @@
-"use client";
+'use client';
 
-import AllianceCard from "@/components/Card/AllianceCard";
-import AllianceFilters from "@/components/Filters/AllianceFilters";
-import Loader from "@/components/Loader";
-import Paginator from "@/components/Paginator/Paginator";
-import { useAlliancesQuery } from "@/generated/graphql";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import AllianceCard from '@/components/Card/AllianceCard';
+import AllianceFilters from '@/components/Filters/AllianceFilters';
+import Loader from '@/components/Loader';
+import Paginator from '@/components/Paginator/Paginator';
+import { useAlliancesQuery } from '@/generated/graphql';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 
 function AlliancesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const pageFromUrl = Number(searchParams.get("page")) || 1;
-  const orderByFromUrl = searchParams.get("orderBy") || "memberCountDesc";
+  const pageFromUrl = Number(searchParams.get('page')) || 1;
+  const orderByFromUrl = searchParams.get('orderBy') || 'memberCountDesc';
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(25);
   const [orderBy, setOrderBy] = useState<string>(orderByFromUrl);
@@ -38,8 +38,8 @@ function AlliancesContent() {
 
   // URL'deki parametreler değiştiğinde state'i güncelle
   useEffect(() => {
-    const urlPage = Number(searchParams.get("page")) || 1;
-    const urlOrderBy = searchParams.get("orderBy") || "memberCountDesc";
+    const urlPage = Number(searchParams.get('page')) || 1;
+    const urlOrderBy = searchParams.get('orderBy') || 'memberCountDesc';
     if (urlPage !== currentPage) {
       setCurrentPage(urlPage);
     }
@@ -50,12 +50,12 @@ function AlliancesContent() {
 
   // currentPage veya orderBy değiştiğinde URL'i güncelle
   useEffect(() => {
-    const urlPage = Number(searchParams.get("page")) || 1;
-    const urlOrderBy = searchParams.get("orderBy") || "memberCountDesc";
+    const urlPage = Number(searchParams.get('page')) || 1;
+    const urlOrderBy = searchParams.get('orderBy') || 'memberCountDesc';
     if (currentPage !== urlPage || orderBy !== urlOrderBy) {
       const params = new URLSearchParams();
-      params.set("page", currentPage.toString());
-      params.set("orderBy", orderBy);
+      params.set('page', currentPage.toString());
+      params.set('orderBy', orderBy);
       router.push(`/alliances?${params.toString()}`, { scroll: false });
     }
   }, [currentPage, orderBy]);
@@ -113,17 +113,10 @@ function AlliancesContent() {
 
   return (
     <div>
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          <h1 className="text-3xl font-semibold text-white">Alliances</h1>
-          <h2 className="mt-2 text-xl text-white">
-            A list of all EVE Online alliances including their logo and name.
-          </h2>
-        </div>
-      </div>
+      <h1 className="sr-only">Alliances</h1>
 
       {/* Filters */}
-      <div className="mt-6">
+      <div>
         <AllianceFilters
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}

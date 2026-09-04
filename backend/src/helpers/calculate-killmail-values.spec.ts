@@ -9,9 +9,13 @@ const prismaMock = vi.hoisted(() => ({
 
 vi.mock('@services/prisma-worker', () => ({ default: prismaMock }));
 
-import { calculateKillmailValues, calculateKillmailValuesBatch } from './calculate-killmail-values';
+import {
+  calculateKillmailValues,
+  calculateKillmailValuesBatch,
+} from './calculate-killmail-values';
 
 const CAPSULE = 670;
+const CAPSULE_GROUP = 29;
 const RIFTER = 587;
 const AMMO = 178;
 const BPC = 999;
@@ -23,11 +27,13 @@ function seedDatabase() {
     { type_id: BPC, sell: 1000000 },
   ]);
   prismaMock.type.findMany.mockResolvedValue([
+    { id: CAPSULE, group_id: CAPSULE_GROUP },
     { id: RIFTER, group_id: 25 },
     { id: AMMO, group_id: 83 },
     { id: BPC, group_id: 700 },
   ]);
   prismaMock.itemGroup.findMany.mockResolvedValue([
+    { id: CAPSULE_GROUP, category_id: 6 },
     { id: 25, category_id: 6 },
     { id: 83, category_id: 8 },
     { id: 700, category_id: 9 },
@@ -45,15 +51,23 @@ beforeEach(() => {
 
 describe('calculateKillmailValues', () => {
   it('uses the ship sell price as destroyed value when there are no items', async () => {
-    const result = await calculateKillmailValues({ victim: { ship_type_id: RIFTER } });
+    const result = await calculateKillmailValues({
+      victim: { ship_type_id: RIFTER },
+    });
 
-    expect(result).toEqual({ totalValue: 500000, destroyedValue: 500000, droppedValue: 0 });
+    expect(result).toEqual({
+      totalValue: 500000,
+      destroyedValue: 500000,
+      droppedValue: 0,
+    });
   });
 
   it('splits item value between destroyed and dropped', async () => {
     const result = await calculateKillmailValues({
       victim: { ship_type_id: RIFTER },
-      items: [{ item_type_id: AMMO, quantity_destroyed: 100, quantity_dropped: 50 }],
+      items: [
+        { item_type_id: AMMO, quantity_destroyed: 100, quantity_dropped: 50 },
+      ],
     });
 
     expect(result.destroyedValue).toBe(500000 + 100 * 10);
@@ -61,10 +75,14 @@ describe('calculateKillmailValues', () => {
     expect(result.totalValue).toBe(500000 + 150 * 10);
   });
 
-  it('values a capsule at a fixed 10 ISK regardless of market price', async () => {
-    prismaMock.marketPrice.findMany.mockResolvedValue([{ type_id: CAPSULE, sell: 123456 }]);
+  it('values a capsule at a fixed 10 ISK by group, regardless of market price', async () => {
+    prismaMock.marketPrice.findMany.mockResolvedValue([
+      { type_id: CAPSULE, sell: 123456 },
+    ]);
 
-    const result = await calculateKillmailValues({ victim: { ship_type_id: CAPSULE } });
+    const result = await calculateKillmailValues({
+      victim: { ship_type_id: CAPSULE },
+    });
 
     expect(result.totalValue).toBe(10);
   });
@@ -89,7 +107,11 @@ describe('calculateKillmailValues', () => {
       items: [{ item_type_id: 434343, quantity_destroyed: 5 }],
     });
 
-    expect(result).toEqual({ totalValue: 0, destroyedValue: 0, droppedValue: 0 });
+    expect(result).toEqual({
+      totalValue: 0,
+      destroyedValue: 0,
+      droppedValue: 0,
+    });
   });
 
   it('queries prices once with the unique set of type ids', async () => {
@@ -112,7 +134,10 @@ describe('calculateKillmailValuesBatch', () => {
     const results = await calculateKillmailValuesBatch([
       { victim: { ship_type_id: RIFTER } },
       { victim: { ship_type_id: CAPSULE } },
-      { victim: { ship_type_id: RIFTER }, items: [{ item_type_id: AMMO, quantity_dropped: 2 }] },
+      {
+        victim: { ship_type_id: RIFTER },
+        items: [{ item_type_id: AMMO, quantity_dropped: 2 }],
+      },
     ]);
 
     expect(results).toHaveLength(3);
@@ -135,7 +160,9 @@ describe('calculateKillmailValuesBatch', () => {
   it('matches the single-killmail calculation', async () => {
     const input = {
       victim: { ship_type_id: RIFTER },
-      items: [{ item_type_id: AMMO, quantity_destroyed: 3, quantity_dropped: 7 }],
+      items: [
+        { item_type_id: AMMO, quantity_destroyed: 3, quantity_dropped: 7 },
+      ],
     };
 
     const [batch] = await calculateKillmailValuesBatch([input]);

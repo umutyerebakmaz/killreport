@@ -1,25 +1,24 @@
-"use client";
+'use client';
 
-import AvgSecurity from "@/components/AvgSecurity/AvgSecurity";
-import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
-import ConstellationFilters from "@/components/Filters/ConstellationFilters";
-import { Loader } from "@/components/Loader/Loader";
-import Paginator from "@/components/Paginator/Paginator";
-import SecurityStatsBar from "@/components/SecurityStatus/SecurityStatsBar";
-import Tooltip from "@/components/Tooltip/Tooltip";
-import { useConstellationsQuery } from "@/generated/graphql";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import AvgSecurity from '@/components/AvgSecurity/AvgSecurity';
+import ConstellationFilters from '@/components/Filters/ConstellationFilters';
+import { Loader } from '@/components/Loader/Loader';
+import Paginator from '@/components/Paginator/Paginator';
+import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
+import Tooltip from '@/components/Tooltip/Tooltip';
+import { useConstellationsQuery } from '@/generated/graphql';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 
 function ConstellationsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const pageFromUrl = Number(searchParams.get("page")) || 1;
-  const orderByFromUrl = searchParams.get("orderBy") || "nameAsc";
-  const searchFromUrl = searchParams.get("search") || "";
-  const regionIdFromUrl = searchParams.get("regionId") || "";
+  const pageFromUrl = Number(searchParams.get('page')) || 1;
+  const orderByFromUrl = searchParams.get('orderBy') || 'nameAsc';
+  const searchFromUrl = searchParams.get('search') || '';
+  const regionIdFromUrl = searchParams.get('regionId') || '';
 
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(25);
@@ -43,10 +42,10 @@ function ConstellationsContent() {
   // URL sync
   useEffect(() => {
     const params = new URLSearchParams();
-    params.set("page", currentPage.toString());
-    params.set("orderBy", orderBy);
-    if (searchTerm) params.set("search", searchTerm);
-    if (selectedRegionId) params.set("regionId", selectedRegionId);
+    params.set('page', currentPage.toString());
+    params.set('orderBy', orderBy);
+    if (searchTerm) params.set('search', searchTerm);
+    if (selectedRegionId) params.set('regionId', selectedRegionId);
     router.push(`/constellations?${params.toString()}`, { scroll: false });
   }, [currentPage, orderBy, searchTerm, selectedRegionId]);
 
@@ -54,14 +53,14 @@ function ConstellationsContent() {
     search?: string;
     region_id?: number;
   }) => {
-    setSearchTerm(filters.search || "");
-    setSelectedRegionId(filters.region_id ? filters.region_id.toString() : "");
+    setSearchTerm(filters.search || '');
+    setSelectedRegionId(filters.region_id ? filters.region_id.toString() : '');
     setCurrentPage(1);
   };
 
   const handleClearFilters = () => {
-    setSearchTerm("");
-    setSelectedRegionId("");
+    setSearchTerm('');
+    setSelectedRegionId('');
     setCurrentPage(1);
   };
 
@@ -86,21 +85,9 @@ function ConstellationsContent() {
 
   return (
     <div>
-      <Breadcrumb items={[{ label: "Constellations" }]} />
+      <h1 className="sr-only">Constellations</h1>
 
-      <div className="sm:flex sm:items-center sm:justify-between">
-        <div className="sm:flex-auto">
-          <h1 className="flex items-center gap-3 text-3xl font-semibold text-white">
-            Constellations
-          </h1>
-          <p className="mt-2 text-gray-400">
-            Browse all constellations in New Eden. Each constellation contains
-            multiple solar systems.
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-6">
+      <div>
         <ConstellationFilters
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}

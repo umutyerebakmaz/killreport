@@ -67,19 +67,22 @@ async function fetchKillmailFromZKill() {
     console.log(`      - Unique corporations: ${uniqueCorps.size}`);
     console.log(`      - NPC corporations: ${npcCorpCount}`);
     console.log('');
-    console.log(`   Items dropped/destroyed: ${killmail.victim.items?.length || 0}`);
+    console.log(
+      `   Items dropped/destroyed: ${killmail.victim.items?.length || 0}`,
+    );
     console.log('━'.repeat(70));
 
     // Show first few attackers
     console.log('\n📝 Sample Attackers:');
     killmail.attackers.slice(0, 5).forEach((attacker: any, idx: number) => {
-      console.log(`   ${idx + 1}. Char: ${attacker.character_id || 'NPC'}, Corp: ${attacker.corporation_id}, Ship: ${attacker.ship_type_id || 'None'}`);
+      console.log(
+        `   ${idx + 1}. Char: ${attacker.character_id || 'NPC'}, Corp: ${attacker.corporation_id}, Ship: ${attacker.ship_type_id || 'None'}`,
+      );
     });
 
     if (killmail.attackers.length > 5) {
       console.log(`   ... and ${killmail.attackers.length - 5} more`);
     }
-
   } catch (error) {
     console.error('💥 Error:', error);
   }

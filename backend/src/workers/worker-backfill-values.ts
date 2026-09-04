@@ -48,7 +48,7 @@ async function backfillValuesWorker() {
 
     await channel.assertQueue(QUEUE_NAME, {
       durable: true,
-      arguments: { 'x-max-priority': 10 }
+      arguments: { 'x-max-priority': 10 },
     });
 
     channel.prefetch(PREFETCH_COUNT);
@@ -70,7 +70,9 @@ async function backfillValuesWorker() {
         logger.info(`   - Skipped: ${totalSkipped.toLocaleString()}`);
         logger.info(`   ✗ Errors: ${totalErrors.toLocaleString()}`);
         logger.info(`⏱️  Rate: ${rate.toFixed(2)} killmails/sec`);
-        logger.info(`🕐 Time: ${Math.floor(elapsedSeconds / 60)}m ${Math.floor(elapsedSeconds % 60)}s`);
+        logger.info(
+          `🕐 Time: ${Math.floor(elapsedSeconds / 60)}m ${Math.floor(elapsedSeconds % 60)}s`,
+        );
         logger.info('━'.repeat(60) + '\n');
         logger.info('⏳ Waiting for new messages...\n');
       }
@@ -85,7 +87,9 @@ async function backfillValuesWorker() {
 
       // Validate killmailId
       if (!killmailId || typeof killmailId !== 'number') {
-        logger.warn(`⚠️  Invalid killmailId in message: ${JSON.stringify(message)}`);
+        logger.warn(
+          `⚠️  Invalid killmailId in message: ${JSON.stringify(message)}`,
+        );
         totalErrors++;
         totalProcessed++;
         channel.ack(msg); // Remove invalid message
@@ -103,14 +107,16 @@ async function backfillValuesWorker() {
                 item_type_id: true,
                 quantity_destroyed: true,
                 quantity_dropped: true,
-                singleton: true
-              }
-            }
-          }
+                singleton: true,
+              },
+            },
+          },
         });
 
         if (!killmail) {
-          logger.warn(`⚠️  [${totalProcessed + 1}] Killmail ${killmailId} not found`);
+          logger.warn(
+            `⚠️  [${totalProcessed + 1}] Killmail ${killmailId} not found`,
+          );
           totalSkipped++;
           totalProcessed++;
           channel.ack(msg);
@@ -118,7 +124,9 @@ async function backfillValuesWorker() {
         }
 
         if (!killmail.victim) {
-          logger.warn(`⚠️  [${totalProcessed + 1}] Killmail ${killmailId} has no victim`);
+          logger.warn(
+            `⚠️  [${totalProcessed + 1}] Killmail ${killmailId} has no victim`,
+          );
           totalSkipped++;
           totalProcessed++;
           channel.ack(msg);
@@ -128,22 +136,30 @@ async function backfillValuesWorker() {
         // Calculate values using the shared helper function (includes BPO/BPC handling)
         const values = await calculateKillmailValues({
           victim: killmail.victim,
-          items: killmail.items.map(item => ({
+          items: killmail.items.map((item) => ({
             item_type_id: item.item_type_id,
             quantity_destroyed: item.quantity_destroyed ?? undefined,
             quantity_dropped: item.quantity_dropped ?? undefined,
-            singleton: item.singleton
-          }))
+            singleton: item.singleton,
+          })),
         });
 
         // Log calculated values for debugging
         if (totalProcessed % 10 === 0) {
-          logger.info(`💰 [${totalProcessed + 1}] KM ${killmailId}: Total=${values.totalValue.toFixed(2)}, Destroyed=${values.destroyedValue.toFixed(2)}, Dropped=${values.droppedValue.toFixed(2)}`);
+          logger.info(
+            `💰 [${totalProcessed + 1}] KM ${killmailId}: Total=${values.totalValue.toFixed(2)}, Destroyed=${values.destroyedValue.toFixed(2)}, Dropped=${values.droppedValue.toFixed(2)}`,
+          );
         }
 
         // Skip update if all values are zero (no market data)
-        if (values.totalValue === 0 && values.destroyedValue === 0 && values.droppedValue === 0) {
-          logger.warn(`⚠️  [${totalProcessed + 1}] Killmail ${killmailId} has zero values - skipping update`);
+        if (
+          values.totalValue === 0 &&
+          values.destroyedValue === 0 &&
+          values.droppedValue === 0
+        ) {
+          logger.warn(
+            `⚠️  [${totalProcessed + 1}] Killmail ${killmailId} has zero values - skipping update`,
+          );
           totalSkipped++;
           totalProcessed++;
           channel.ack(msg);
@@ -156,13 +172,23 @@ async function backfillValuesWorker() {
           data: {
             total_value: values.totalValue,
             destroyed_value: values.destroyedValue,
-            dropped_value: values.droppedValue
-          }
+            dropped_value: values.droppedValue,
+          },
         });
+
+        // killmail_filters carries a denormalized copy for scope-and-value queries.
+        // This worker is its second writer; without this the copy goes stale.
+        await prismaWorker.$executeRaw`
+          UPDATE killmail_filters
+          SET total_value = ${values.totalValue}
+          WHERE killmail_id = ${killmailId}
+        `;
 
         // Verify the update
         if (updated.total_value !== values.totalValue) {
-          logger.error(`❌ [${totalProcessed + 1}] Killmail ${killmailId} update FAILED! Expected ${values.totalValue}, got ${updated.total_value}`);
+          logger.error(
+            `❌ [${totalProcessed + 1}] Killmail ${killmailId} update FAILED! Expected ${values.totalValue}, got ${updated.total_value}`,
+          );
           totalErrors++;
         } else {
           totalUpdated++;
@@ -176,14 +202,16 @@ async function backfillValuesWorker() {
           const rate = totalProcessed / ((Date.now() - startTime) / 1000);
           logger.info(
             `📊 [${totalProcessed}] Rate: ${rate.toFixed(2)}/sec | ` +
-            `Updated: ${totalUpdated} | Skipped: ${totalSkipped} | Errors: ${totalErrors}`
+              `Updated: ${totalUpdated} | Skipped: ${totalSkipped} | Errors: ${totalErrors}`,
           );
         }
-
       } catch (error: any) {
         totalErrors++;
         totalProcessed++;
-        logger.error(`❌ [${totalProcessed}] Killmail ${killmailId} failed:`, error.message);
+        logger.error(
+          `❌ [${totalProcessed}] Killmail ${killmailId} failed:`,
+          error.message,
+        );
         channel.ack(msg); // Ack to avoid reprocessing
       }
     });
@@ -196,7 +224,6 @@ async function backfillValuesWorker() {
       await prismaWorker.$disconnect();
       process.exit(0);
     });
-
   } catch (error) {
     logger.error('Worker failed to start', { error });
     await prismaWorker.$disconnect();

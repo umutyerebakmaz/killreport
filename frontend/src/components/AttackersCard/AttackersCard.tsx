@@ -1,16 +1,16 @@
-import AttackerRow from "@/components/AttackersCard/AttackerRow";
-import { KillmailQuery } from "@/generated/graphql";
+import AttackerRow from '@/components/AttackersCard/AttackerRow';
+import { KillmailQuery } from '@/generated/graphql';
 import {
   ChevronDownIcon,
   ChevronRightIcon,
   ChevronUpIcon,
-} from "@heroicons/react/24/outline";
-import Link from "next/link";
-import { useState } from "react";
+} from '@heroicons/react/24/outline';
+import Link from 'next/link';
+import { useState } from 'react';
 
 interface AttackersCardProps {
-  attackers: NonNullable<KillmailQuery["killmail"]>["attackers"];
-  killmail: NonNullable<KillmailQuery["killmail"]>;
+  attackers: NonNullable<KillmailQuery['killmail']>['attackers'];
+  killmail: NonNullable<KillmailQuery['killmail']>;
 }
 
 export default function AttackersCard({

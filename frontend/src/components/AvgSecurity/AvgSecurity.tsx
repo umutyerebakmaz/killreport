@@ -7,10 +7,10 @@ export default function AvgSecurity({
     <span
       className={`${
         avgSecurity >= 0.5
-          ? "text-green-400"
+          ? 'text-green-400'
           : avgSecurity > 0
-          ? "text-yellow-400"
-          : "text-red-400"
+            ? 'text-yellow-400'
+            : 'text-red-400'
       }`}
     >
       {avgSecurity.toFixed(2)}

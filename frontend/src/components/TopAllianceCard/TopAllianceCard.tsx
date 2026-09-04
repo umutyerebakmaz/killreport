@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { Loader } from "@/components/Loader/Loader";
-import RankNumber from "@/components/ui/RankNumber";
-import Tooltip from "@/components/Tooltip/Tooltip";
-import Link from "next/link";
-import { ReactNode } from "react";
+import { Loader } from '@/components/Loader/Loader';
+import RankNumber from '@/components/ui/RankNumber';
+import Tooltip from '@/components/Tooltip/Tooltip';
+import Link from 'next/link';
+import { ReactNode } from 'react';
 
 export interface TopAlliance {
   id: number;
@@ -19,7 +19,7 @@ export interface TopAllianceCardProps {
   alliances: TopAlliance[];
   loading?: boolean;
   emptyText?: string;
-  variant?: "detail" | "list";
+  variant?: 'detail' | 'list';
 }
 
 export default function TopAllianceCard({
@@ -27,8 +27,8 @@ export default function TopAllianceCard({
   subtitle,
   alliances,
   loading = false,
-  emptyText = "No alliances",
-  variant = "detail",
+  emptyText = 'No alliances',
+  variant = 'detail',
 }: TopAllianceCardProps) {
   if (loading) {
     return (
@@ -70,9 +70,9 @@ export default function TopAllianceCard({
               <div
                 key={alliance.id}
                 className={`p-3 transition-colors duration-100 ${
-                  variant === "list"
-                    ? "bg-neutral-900 hover:bg-neutral-800"
-                    : "bg-neutral-800 hover:bg-neutral-700"
+                  variant === 'list'
+                    ? 'bg-neutral-900 hover:bg-neutral-800'
+                    : 'bg-neutral-800 hover:bg-neutral-700'
                 }`}
               >
                 <div className="flex items-center gap-3">

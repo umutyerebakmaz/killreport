@@ -7,11 +7,11 @@
     "build": "yarn kill && next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "kill": "lsof -ti:${PORT:-3000} | xargs kill -9 || true",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
+    "kill": "fuser -ks -n tcp ${PORT:-3000} || true",
     "codegen": "graphql-codegen",
     "codegen:watch": "graphql-codegen --watch",
     "remove:all": "rm -rf .next node_modules yarn.lock"

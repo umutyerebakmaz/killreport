@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { Loader } from "@/components/Loader/Loader";
-import { useSolarSystemOrbitalBodiesQuery } from "@/generated/graphql";
+import { Loader } from '@/components/Loader/Loader';
+import { useSolarSystemOrbitalBodiesQuery } from '@/generated/graphql';
 
 interface OrbitalBodiesTabProps {
   systemId: number;
@@ -61,17 +61,20 @@ export default function OrbitalBodiesTab({ systemId }: OrbitalBodiesTabProps) {
         const hasSatellites = moons.length > 0 || belts.length > 0;
 
         return (
-          <details key={planet.id} className="border bg-white/5 border-white/10">
+          <details
+            key={planet.id}
+            className="border bg-white/5 border-white/10"
+          >
             <summary
               className={`flex items-center justify-between gap-4 px-6 py-4 ${
                 // A planet with nothing under it must not look like a broken
                 // toggle.
-                hasSatellites ? "cursor-pointer" : "cursor-default list-none"
+                hasSatellites ? 'cursor-pointer' : 'cursor-default list-none'
               }`}
             >
               <span className="flex items-center gap-3">
                 <span className="w-8 text-xs text-gray-500">
-                  {planet.orbitIndex ?? "—"}
+                  {planet.orbitIndex ?? '—'}
                 </span>
                 <BodyLabel name={planet.name} id={planet.id} kind="Planet" />
                 {planet.type?.name && (
@@ -98,9 +101,13 @@ export default function OrbitalBodiesTab({ systemId }: OrbitalBodiesTabProps) {
                       {moons.map((moon) => (
                         <li key={moon.id} className="flex gap-3">
                           <span className="w-6 text-xs text-gray-600">
-                            {moon.orbitIndex ?? "—"}
+                            {moon.orbitIndex ?? '—'}
                           </span>
-                          <BodyLabel name={moon.name} id={moon.id} kind="Moon" />
+                          <BodyLabel
+                            name={moon.name}
+                            id={moon.id}
+                            kind="Moon"
+                          />
                         </li>
                       ))}
                     </ul>
@@ -120,7 +127,7 @@ export default function OrbitalBodiesTab({ systemId }: OrbitalBodiesTabProps) {
                       {belts.map((belt) => (
                         <li key={belt.id} className="flex gap-3">
                           <span className="w-6 text-xs text-gray-600">
-                            {belt.orbitIndex ?? "—"}
+                            {belt.orbitIndex ?? '—'}
                           </span>
                           <BodyLabel
                             name={belt.name}

@@ -31,7 +31,7 @@ async function testRedisPubSub() {
       eventTarget: createRedisEventTarget({
         publishClient,
         subscribeClient,
-      })
+      }),
     });
     console.log('✅ PubSub created successfully');
 
@@ -51,14 +51,14 @@ async function testRedisPubSub() {
     })();
 
     // Wait for subscription to be ready
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Publish a test message
     console.log('📤 Publishing test message...');
     await pubsub.publish('TEST_CHANNEL', { test: 'Hello Redis PubSub!' });
 
     // Wait for message
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     if (messageReceived) {
       console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -81,6 +81,5 @@ async function testRedisPubSub() {
     process.exit(1);
   }
 }
-
 
 testRedisPubSub();

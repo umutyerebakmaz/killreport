@@ -9,7 +9,7 @@ async function checkSystemKills() {
     // Check latest records
     const latest = await prisma.systemKills.findMany({
       take: 5,
-      orderBy: { timestamp: 'desc' }
+      orderBy: { timestamp: 'desc' },
     });
     console.log('\nLatest 5 records:');
     console.log(JSON.stringify(latest, null, 2));
@@ -36,7 +36,6 @@ async function checkSystemKills() {
     const systems: any = await prisma.$queryRawUnsafe(testQuery);
     console.log('\nTop 10 systems by ship_kills:');
     console.log(JSON.stringify(systems, null, 2));
-
   } catch (error) {
     console.error('Error:', error);
   } finally {

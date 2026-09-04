@@ -8,4 +8,3 @@
 
 export { bloodlineFields } from './fields';
 export { bloodlineQueries } from './queries';
-

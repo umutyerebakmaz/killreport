@@ -43,7 +43,7 @@ export const corporationQueries: QueryResolvers = {
     // Build where clause for filters
     const where: any = {
       // Filter out NPC corporations (player corporations have ID >= 2000000)
-      id: { gte: 2000000 }
+      id: { gte: 2000000 },
     };
 
     if (filter?.search) {

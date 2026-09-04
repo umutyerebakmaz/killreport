@@ -1,5 +1,5 @@
-import { getItemImageUrl } from "@/utils/itemImageUrl";
-import Tooltip from "../Tooltip/Tooltip";
+import { getItemImageUrl } from '@/utils/itemImageUrl';
+import Tooltip from '../Tooltip/Tooltip';
 
 interface SlotProps {
   slots: any[];
@@ -7,7 +7,7 @@ interface SlotProps {
   angleGap?: number;
   translateX?: number;
   translateY?: number;
-  slotType?: "high" | "mid" | "low" | "rig" | "sub" | "implant";
+  slotType?: 'high' | 'mid' | 'low' | 'rig' | 'sub' | 'implant';
 }
 
 export default function Slot({
@@ -16,7 +16,7 @@ export default function Slot({
   angleGap = 11.5,
   translateX = -32,
   translateY = -294,
-  slotType = "high",
+  slotType = 'high',
 }: SlotProps) {
   const slotIcon = `/icons/slot-${slotType}.png`;
   const slotTypeName =

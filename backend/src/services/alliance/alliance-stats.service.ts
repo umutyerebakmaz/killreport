@@ -14,20 +14,28 @@ import redis from '@services/redis';
  * Uses killmail_filters table with GIN indexes for fast queries.
  */
 function timeFilter(filter: string | null | undefined): Prisma.Sql {
-    switch (filter) {
-        case 'LAST_90_DAYS': return Prisma.sql`AND kf.killmail_time >= NOW() - INTERVAL '90 days'`;
-        case 'LAST_7_DAYS': return Prisma.sql`AND kf.killmail_time >= NOW() - INTERVAL '7 days'`;
-        case 'TODAY': return Prisma.sql`AND DATE(kf.killmail_time) = CURRENT_DATE`;
-        default: return Prisma.sql``; // ALL_TIME – no constraint
-    }
+  switch (filter) {
+    case 'LAST_90_DAYS':
+      return Prisma.sql`AND kf.killmail_time >= NOW() - INTERVAL '90 days'`;
+    case 'LAST_7_DAYS':
+      return Prisma.sql`AND kf.killmail_time >= NOW() - INTERVAL '7 days'`;
+    case 'TODAY':
+      return Prisma.sql`AND DATE(kf.killmail_time) = CURRENT_DATE`;
+    default:
+      return Prisma.sql``; // ALL_TIME – no constraint
+  }
 }
 
 /**
  * Generate cache key for alliance stats
  */
-function getCacheKey(allianceId: number, statType: string, filter?: string | null): string {
-    const timeKey = filter || 'ALL_TIME';
-    return `alliance_stats:${allianceId}:${statType}:${timeKey}`;
+function getCacheKey(
+  allianceId: number,
+  statType: string,
+  filter?: string | null,
+): string {
+  const timeKey = filter || 'ALL_TIME';
+  return `alliance_stats:${allianceId}:${statType}:${timeKey}`;
 }
 
 /**
@@ -38,12 +46,16 @@ function getCacheKey(allianceId: number, statType: string, filter?: string | nul
  * - Today: 2 minutes (most dynamic)
  */
 function calculateTTL(filter?: string | null): number {
-    switch (filter) {
-        case 'TODAY': return 120;         // 2 minutes
-        case 'LAST_7_DAYS': return 300;     // 5 minutes
-        case 'LAST_90_DAYS': return 900;    // 15 minutes
-        default: return 3600;             // 1 hour (ALL_TIME)
-    }
+  switch (filter) {
+    case 'TODAY':
+      return 120; // 2 minutes
+    case 'LAST_7_DAYS':
+      return 300; // 5 minutes
+    case 'LAST_90_DAYS':
+      return 900; // 15 minutes
+    default:
+      return 3600; // 1 hour (ALL_TIME)
+  }
 }
 
 /**
@@ -52,27 +64,27 @@ function calculateTTL(filter?: string | null): number {
  * Results are cached in Redis with smart TTL.
  */
 export async function getTopAllianceTargets(
-    allianceId: number,
-    filter?: string | null
+  allianceId: number,
+  filter?: string | null,
 ): Promise<Array<{ killCount: number; alliance: any }>> {
-    const cacheKey = getCacheKey(allianceId, 'alliances', filter);
+  const cacheKey = getCacheKey(allianceId, 'alliances', filter);
 
-    // Check cache first
-    const cached = await redis.get(cacheKey);
-    if (cached) {
-        return JSON.parse(cached);
-    }
+  // Check cache first
+  const cached = await redis.get(cacheKey);
+  if (cached) {
+    return JSON.parse(cached);
+  }
 
-    // Query database
-    type Row = {
-        victim_alliance_id: number;
-        alliance_name: string;
-        alliance_ticker: string;
-        kill_count: bigint;
-    };
+  // Query database
+  type Row = {
+    victim_alliance_id: number;
+    alliance_name: string;
+    alliance_ticker: string;
+    kill_count: bigint;
+  };
 
-    const filterSql = timeFilter(filter);
-    const results = await prisma.$queryRaw<Row[]>`
+  const filterSql = timeFilter(filter);
+  const results = await prisma.$queryRaw<Row[]>`
     SELECT
       kf.victim_alliance_id,
       a.name AS alliance_name,
@@ -88,20 +100,20 @@ export async function getTopAllianceTargets(
     LIMIT 10
   `;
 
-    const mapped = results.map((row: Row) => ({
-        killCount: Number(row.kill_count),
-        alliance: {
-            id: row.victim_alliance_id,
-            name: row.alliance_name,
-            ticker: row.alliance_ticker,
-        },
-    }));
+  const mapped = results.map((row: Row) => ({
+    killCount: Number(row.kill_count),
+    alliance: {
+      id: row.victim_alliance_id,
+      name: row.alliance_name,
+      ticker: row.alliance_ticker,
+    },
+  }));
 
-    // Cache with smart TTL
-    const ttl = calculateTTL(filter);
-    await redis.setex(cacheKey, ttl, JSON.stringify(mapped));
+  // Cache with smart TTL
+  const ttl = calculateTTL(filter);
+  await redis.setex(cacheKey, ttl, JSON.stringify(mapped));
 
-    return mapped;
+  return mapped;
 }
 
 /**
@@ -110,27 +122,27 @@ export async function getTopAllianceTargets(
  * Results are cached in Redis with smart TTL.
  */
 export async function getTopCorporationTargets(
-    allianceId: number,
-    filter?: string | null
+  allianceId: number,
+  filter?: string | null,
 ): Promise<Array<{ killCount: number; corporation: any }>> {
-    const cacheKey = getCacheKey(allianceId, 'corporations', filter);
+  const cacheKey = getCacheKey(allianceId, 'corporations', filter);
 
-    // Check cache first
-    const cached = await redis.get(cacheKey);
-    if (cached) {
-        return JSON.parse(cached);
-    }
+  // Check cache first
+  const cached = await redis.get(cacheKey);
+  if (cached) {
+    return JSON.parse(cached);
+  }
 
-    // Query database
-    type Row = {
-        victim_corporation_id: number;
-        corporation_name: string;
-        corporation_ticker: string;
-        kill_count: bigint;
-    };
+  // Query database
+  type Row = {
+    victim_corporation_id: number;
+    corporation_name: string;
+    corporation_ticker: string;
+    kill_count: bigint;
+  };
 
-    const filterSql = timeFilter(filter);
-    const results = await prisma.$queryRaw<Row[]>`
+  const filterSql = timeFilter(filter);
+  const results = await prisma.$queryRaw<Row[]>`
     SELECT
       kf.victim_corporation_id,
       co.name AS corporation_name,
@@ -146,20 +158,20 @@ export async function getTopCorporationTargets(
     LIMIT 10
   `;
 
-    const mapped = results.map((row: Row) => ({
-        killCount: Number(row.kill_count),
-        corporation: {
-            id: row.victim_corporation_id,
-            name: row.corporation_name,
-            ticker: row.corporation_ticker,
-        },
-    }));
+  const mapped = results.map((row: Row) => ({
+    killCount: Number(row.kill_count),
+    corporation: {
+      id: row.victim_corporation_id,
+      name: row.corporation_name,
+      ticker: row.corporation_ticker,
+    },
+  }));
 
-    // Cache with smart TTL
-    const ttl = calculateTTL(filter);
-    await redis.setex(cacheKey, ttl, JSON.stringify(mapped));
+  // Cache with smart TTL
+  const ttl = calculateTTL(filter);
+  await redis.setex(cacheKey, ttl, JSON.stringify(mapped));
 
-    return mapped;
+  return mapped;
 }
 
 /**
@@ -168,26 +180,26 @@ export async function getTopCorporationTargets(
  * Results are cached in Redis with smart TTL.
  */
 export async function getTopShipTargets(
-    allianceId: number,
-    filter?: string | null
+  allianceId: number,
+  filter?: string | null,
 ): Promise<Array<{ killCount: number; shipType: any }>> {
-    const cacheKey = getCacheKey(allianceId, 'ships', filter);
+  const cacheKey = getCacheKey(allianceId, 'ships', filter);
 
-    // Check cache first
-    const cached = await redis.get(cacheKey);
-    if (cached) {
-        return JSON.parse(cached);
-    }
+  // Check cache first
+  const cached = await redis.get(cacheKey);
+  if (cached) {
+    return JSON.parse(cached);
+  }
 
-    // Query database
-    type Row = {
-        victim_ship_type_id: number;
-        ship_name: string;
-        kill_count: bigint;
-    };
+  // Query database
+  type Row = {
+    victim_ship_type_id: number;
+    ship_name: string;
+    kill_count: bigint;
+  };
 
-    const filterSql = timeFilter(filter);
-    const results = await prisma.$queryRaw<Row[]>`
+  const filterSql = timeFilter(filter);
+  const results = await prisma.$queryRaw<Row[]>`
     SELECT
       kf.victim_ship_type_id,
       t.name AS ship_name,
@@ -202,19 +214,19 @@ export async function getTopShipTargets(
     LIMIT 10
   `;
 
-    const mapped = results.map((row: Row) => ({
-        killCount: Number(row.kill_count),
-        shipType: {
-            id: row.victim_ship_type_id,
-            name: row.ship_name,
-        },
-    }));
+  const mapped = results.map((row: Row) => ({
+    killCount: Number(row.kill_count),
+    shipType: {
+      id: row.victim_ship_type_id,
+      name: row.ship_name,
+    },
+  }));
 
-    // Cache with smart TTL
-    const ttl = calculateTTL(filter);
-    await redis.setex(cacheKey, ttl, JSON.stringify(mapped));
+  // Cache with smart TTL
+  const ttl = calculateTTL(filter);
+  await redis.setex(cacheKey, ttl, JSON.stringify(mapped));
 
-    return mapped;
+  return mapped;
 }
 
 /**
@@ -222,26 +234,26 @@ export async function getTopShipTargets(
  * Uses killmail_filters table with GIN indexes on attacker_alliance_ids array
  */
 export async function getTopShips(
-    allianceId: number,
-    filter?: string | null,
+  allianceId: number,
+  filter?: string | null,
 ): Promise<Array<{ killCount: number; shipType: any }>> {
-    const cacheKey = getCacheKey(allianceId, 'top_ships', filter);
+  const cacheKey = getCacheKey(allianceId, 'top_ships', filter);
 
-    // Try cache first
-    const cached = await redis.get(cacheKey);
-    if (cached) {
-        return JSON.parse(cached);
-    }
+  // Try cache first
+  const cached = await redis.get(cacheKey);
+  if (cached) {
+    return JSON.parse(cached);
+  }
 
-    // Query database - from attackers table to get ship_type_id
-    type Row = {
-        ship_type_id: number;
-        ship_name: string;
-        kill_count: bigint;
-    };
+  // Query database - from attackers table to get ship_type_id
+  type Row = {
+    ship_type_id: number;
+    ship_name: string;
+    kill_count: bigint;
+  };
 
-    const filterSql = timeFilter(filter);
-    const results = await prisma.$queryRaw<Row[]>`
+  const filterSql = timeFilter(filter);
+  const results = await prisma.$queryRaw<Row[]>`
     SELECT
       a.ship_type_id,
       t.name AS ship_name,
@@ -257,35 +269,37 @@ export async function getTopShips(
     LIMIT 10
   `;
 
-    const mapped = results.map((row: Row) => ({
-        killCount: Number(row.kill_count),
-        shipType: {
-            id: row.ship_type_id,
-            name: row.ship_name,
-        },
-    }));
+  const mapped = results.map((row: Row) => ({
+    killCount: Number(row.kill_count),
+    shipType: {
+      id: row.ship_type_id,
+      name: row.ship_name,
+    },
+  }));
 
-    // Cache with smart TTL
-    const ttl = calculateTTL(filter);
-    await redis.setex(cacheKey, ttl, JSON.stringify(mapped));
+  // Cache with smart TTL
+  const ttl = calculateTTL(filter);
+  await redis.setex(cacheKey, ttl, JSON.stringify(mapped));
 
-    return mapped;
+  return mapped;
 }
 
 /**
  * Invalidate all alliance stats cache for a given alliance
  * Call this when new killmails are added for this alliance
  */
-export async function invalidateAllianceStats(allianceId: number): Promise<void> {
-    const pattern = `alliance_stats:${allianceId}:*`;
+export async function invalidateAllianceStats(
+  allianceId: number,
+): Promise<void> {
+  const pattern = `alliance_stats:${allianceId}:*`;
 
-    // Get all matching keys
-    const keys = await redis.keys(pattern);
+  // Get all matching keys
+  const keys = await redis.keys(pattern);
 
-    if (keys.length > 0) {
-        // Delete all matching keys
-        await redis.del(...keys);
-    }
+  if (keys.length > 0) {
+    // Delete all matching keys
+    await redis.del(...keys);
+  }
 }
 
 /**
@@ -294,31 +308,31 @@ export async function invalidateAllianceStats(allianceId: number): Promise<void>
  * Results are cached in Redis with smart TTL.
  */
 export async function getTopCharacters(
-    allianceId: number,
-    filter?: string | null
+  allianceId: number,
+  filter?: string | null,
 ): Promise<Array<{ killCount: number; character: any }>> {
-    const cacheKey = getCacheKey(allianceId, 'characters', filter);
+  const cacheKey = getCacheKey(allianceId, 'characters', filter);
 
-    // Check cache first
-    const cached = await redis.get(cacheKey);
-    if (cached) {
-        return JSON.parse(cached);
-    }
+  // Check cache first
+  const cached = await redis.get(cacheKey);
+  if (cached) {
+    return JSON.parse(cached);
+  }
 
-    // Query database
-    type Row = {
-        character_id: number;
-        character_name: string;
-        security_status: number | null;
-        corp_id: number | null;
-        corp_name: string | null;
-        alliance_id: number | null;
-        alliance_name: string | null;
-        kill_count: bigint;
-    };
+  // Query database
+  type Row = {
+    character_id: number;
+    character_name: string;
+    security_status: number | null;
+    corp_id: number | null;
+    corp_name: string | null;
+    alliance_id: number | null;
+    alliance_name: string | null;
+    kill_count: bigint;
+  };
 
-    const filterSql = timeFilter(filter);
-    const results = await prisma.$queryRaw<Row[]>`
+  const filterSql = timeFilter(filter);
+  const results = await prisma.$queryRaw<Row[]>`
     SELECT
       a.character_id,
       ch.name AS character_name,
@@ -342,20 +356,24 @@ export async function getTopCharacters(
     LIMIT 10
   `;
 
-    const mapped = results.map((row: Row) => ({
-        killCount: Number(row.kill_count),
-        character: {
-            id: row.character_id,
-            name: row.character_name,
-            securityStatus: row.security_status,
-            corporation: row.corp_id ? { id: row.corp_id, name: row.corp_name } : null,
-            alliance: row.alliance_id ? { id: row.alliance_id, name: row.alliance_name } : null,
-        },
-    }));
+  const mapped = results.map((row: Row) => ({
+    killCount: Number(row.kill_count),
+    character: {
+      id: row.character_id,
+      name: row.character_name,
+      securityStatus: row.security_status,
+      corporation: row.corp_id
+        ? { id: row.corp_id, name: row.corp_name }
+        : null,
+      alliance: row.alliance_id
+        ? { id: row.alliance_id, name: row.alliance_name }
+        : null,
+    },
+  }));
 
-    // Cache with smart TTL
-    const ttl = calculateTTL(filter);
-    await redis.setex(cacheKey, ttl, JSON.stringify(mapped));
+  // Cache with smart TTL
+  const ttl = calculateTTL(filter);
+  await redis.setex(cacheKey, ttl, JSON.stringify(mapped));
 
-    return mapped;
+  return mapped;
 }

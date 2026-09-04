@@ -1,19 +1,19 @@
-"use client";
+'use client';
 
-import CharacterCard from "@/components/Card/CharacterCard";
-import CharacterFilters from "@/components/Filters/CharacterFilters";
-import Loader from "@/components/Loader";
-import Paginator from "@/components/Paginator/Paginator";
-import { useCharactersQuery } from "@/generated/graphql";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import CharacterCard from '@/components/Card/CharacterCard';
+import CharacterFilters from '@/components/Filters/CharacterFilters';
+import Loader from '@/components/Loader';
+import Paginator from '@/components/Paginator/Paginator';
+import { useCharactersQuery } from '@/generated/graphql';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 
 function CharactersContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const pageFromUrl = Number(searchParams.get("page")) || 1;
-  const orderByFromUrl = searchParams.get("orderBy") || "nameAsc";
+  const pageFromUrl = Number(searchParams.get('page')) || 1;
+  const orderByFromUrl = searchParams.get('orderBy') || 'nameAsc';
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(25);
   const [orderBy, setOrderBy] = useState<string>(orderByFromUrl);
@@ -37,8 +37,8 @@ function CharactersContent() {
 
   // URL'deki parametreler değiştiğinde state'i güncelle
   useEffect(() => {
-    const urlPage = Number(searchParams.get("page")) || 1;
-    const urlOrderBy = searchParams.get("orderBy") || "nameAsc";
+    const urlPage = Number(searchParams.get('page')) || 1;
+    const urlOrderBy = searchParams.get('orderBy') || 'nameAsc';
     if (urlPage !== currentPage) {
       setCurrentPage(urlPage);
     }
@@ -49,12 +49,12 @@ function CharactersContent() {
 
   // currentPage veya orderBy değiştiğinde URL'i güncelle
   useEffect(() => {
-    const urlPage = Number(searchParams.get("page")) || 1;
-    const urlOrderBy = searchParams.get("orderBy") || "nameAsc";
+    const urlPage = Number(searchParams.get('page')) || 1;
+    const urlOrderBy = searchParams.get('orderBy') || 'nameAsc';
     if (currentPage !== urlPage || orderBy !== urlOrderBy) {
       const params = new URLSearchParams();
-      params.set("page", currentPage.toString());
-      params.set("orderBy", orderBy);
+      params.set('page', currentPage.toString());
+      params.set('orderBy', orderBy);
       router.push(`/characters?${params.toString()}`, { scroll: false });
     }
   }, [currentPage, orderBy]);
@@ -67,7 +67,7 @@ function CharactersContent() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-xl text-red-400">
-          Error: {error.message || "Character not found"}
+          Error: {error.message || 'Character not found'}
         </div>
       </div>
     );
@@ -121,18 +121,10 @@ function CharactersContent() {
 
   return (
     <div>
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          <h1 className="text-3xl font-semibold text-white">Characters</h1>
-          <h2 className="mt-2 text-xl text-white">
-            A list of all EVE Online characters including their security status
-            and corporation.
-          </h2>
-        </div>
-      </div>
+      <h1 className="sr-only">Characters</h1>
 
       {/* Filters */}
-      <div className="mt-6">
+      <div>
         <CharacterFilters
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}

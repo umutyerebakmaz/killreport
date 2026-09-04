@@ -18,7 +18,8 @@ export const characterMutations: MutationResolvers = {
       if (recentlyQueued) {
         return {
           success: false,
-          message: 'Character was recently queued for refresh. Please wait 5 minutes.',
+          message:
+            'Character was recently queued for refresh. Please wait 5 minutes.',
           characterId,
           queued: false,
         };
@@ -56,7 +57,7 @@ export const characterMutations: MutationResolvers = {
       channel.sendToQueue(
         'esi_character_info_queue',
         Buffer.from(JSON.stringify(message)),
-        { persistent: true }
+        { persistent: true },
       );
 
       // Set rate limit (5 minutes)
@@ -65,9 +66,12 @@ export const characterMutations: MutationResolvers = {
       // Invalidate cache
       await redis.del(`character:detail:${characterId}`);
 
-      logger.info(`Character ${characterId} (${character.name}) queued for refresh`, {
-        userId: context.user?.id,
-      });
+      logger.info(
+        `Character ${characterId} (${character.name}) queued for refresh`,
+        {
+          userId: context.user?.id,
+        },
+      );
 
       return {
         success: true,

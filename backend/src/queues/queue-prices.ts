@@ -62,8 +62,8 @@ async function queuePrices() {
 
       logger.info(
         `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
-          typeIds.length / BATCH_SIZE
-        )} (${batch.length} types)`
+          typeIds.length / BATCH_SIZE,
+        )} (${batch.length} types)`,
       );
     }
 

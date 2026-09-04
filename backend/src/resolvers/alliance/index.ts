@@ -10,4 +10,3 @@ export { allianceFields } from './fields';
 export { allianceMutations } from './mutations';
 export { allianceQueries } from './queries';
 export { allianceStatsQueries } from './stats-queries';
-

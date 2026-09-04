@@ -37,8 +37,9 @@ function getIdentifier(request: any): string {
 
   // Fallback to IP address
   const forwarded = request?.headers?.get('x-forwarded-for');
-  const ip = forwarded ? forwarded.split(',')[0].trim() :
-    request?.headers?.get('x-real-ip') || 'unknown';
+  const ip = forwarded
+    ? forwarded.split(',')[0].trim()
+    : request?.headers?.get('x-real-ip') || 'unknown';
 
   return `ip:${ip}`;
 }
@@ -46,7 +47,9 @@ function getIdentifier(request: any): string {
 /**
  * Create rate limiting plugin
  */
-export function createRateLimitPlugin(config: Partial<RateLimitConfig> = {}): Plugin {
+export function createRateLimitPlugin(
+  config: Partial<RateLimitConfig> = {},
+): Plugin {
   const finalConfig = { ...DEFAULT_CONFIG, ...config };
 
   return {
@@ -64,7 +67,9 @@ export function createRateLimitPlugin(config: Partial<RateLimitConfig> = {}): Pl
           const ttl = await redisCache.ttl(key);
           const resetIn = Math.ceil(ttl || finalConfig.windowMs / 1000);
 
-          logger.warn(`🚫 Rate limit exceeded: ${identifier} (${count}/${finalConfig.max})`);
+          logger.warn(
+            `🚫 Rate limit exceeded: ${identifier} (${count}/${finalConfig.max})`,
+          );
 
           // Return 429 response with all headers
           const response = new fetchAPI.Response(
@@ -90,7 +95,7 @@ export function createRateLimitPlugin(config: Partial<RateLimitConfig> = {}): Pl
                 'X-RateLimit-Remaining': '0',
                 'X-RateLimit-Reset': String(Date.now() + resetIn * 1000),
               },
-            }
+            },
           );
 
           endResponse(response);
@@ -114,7 +119,9 @@ export function createRateLimitPlugin(config: Partial<RateLimitConfig> = {}): Pl
         const ttl = await redisCache.ttl(key);
         const resetTime = Date.now() + (ttl || windowSeconds) * 1000;
 
-        logger.debug(`✅ Rate limit: ${identifier} (${newCount}/${finalConfig.max})`);
+        logger.debug(
+          `✅ Rate limit: ${identifier} (${newCount}/${finalConfig.max})`,
+        );
 
         // Store rate limit info on request for later
         (request as any).__rateLimit = {
@@ -122,7 +129,6 @@ export function createRateLimitPlugin(config: Partial<RateLimitConfig> = {}): Pl
           remaining,
           reset: resetTime,
         };
-
       } catch (error) {
         // Fail open - don't block requests if Redis is down
         logger.error('Rate limit error (failing open):', error);
@@ -135,7 +141,10 @@ export function createRateLimitPlugin(config: Partial<RateLimitConfig> = {}): Pl
 
       if (rateLimitData) {
         response.headers.set('X-RateLimit-Limit', String(rateLimitData.limit));
-        response.headers.set('X-RateLimit-Remaining', String(rateLimitData.remaining));
+        response.headers.set(
+          'X-RateLimit-Remaining',
+          String(rateLimitData.remaining),
+        );
         response.headers.set('X-RateLimit-Reset', String(rateLimitData.reset));
       }
     },

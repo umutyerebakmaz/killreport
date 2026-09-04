@@ -114,7 +114,8 @@ module.exports = {
       },
       max_memory_restart: '512M',
       autorestart: true,
-      error_file: '/var/www/killreport/logs/worker-alliance-corporations-error.log',
+      error_file:
+        '/var/www/killreport/logs/worker-alliance-corporations-error.log',
       out_file: '/var/www/killreport/logs/worker-alliance-corporations-out.log',
       time: true,
     },
@@ -229,7 +230,8 @@ module.exports = {
         NODE_ENV: 'production',
         LOG_LEVEL: 'info',
       },
-      error_file: '/var/www/killreport/logs/queue-alliance-corporations-error.log',
+      error_file:
+        '/var/www/killreport/logs/queue-alliance-corporations-error.log',
       out_file: '/var/www/killreport/logs/queue-alliance-corporations-out.log',
       time: true,
     },

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { XMarkIcon } from "@heroicons/react/24/outline";
-import { useEffect } from "react";
+import { XMarkIcon } from '@heroicons/react/24/outline';
+import { useEffect } from 'react';
 
 export interface ToastAlert {
   id: string;
@@ -10,18 +10,24 @@ export interface ToastAlert {
 }
 
 const TYPE_STYLE: Record<string, string> = {
-  campaign_started: "border-orange-400/40",
-  campaign_ended: "border-cyan-400/40",
-  territory_change: "border-yellow-400/40",
+  campaign_started: 'border-orange-400/40',
+  campaign_ended: 'border-cyan-400/40',
+  territory_change: 'border-yellow-400/40',
 };
 
 const TYPE_LABEL: Record<string, string> = {
-  campaign_started: "New campaign",
-  campaign_ended: "Campaign ended",
-  territory_change: "Territory change",
+  campaign_started: 'New campaign',
+  campaign_ended: 'Campaign ended',
+  territory_change: 'Territory change',
 };
 
-function ToastItem({ toast, onDismiss }: { toast: ToastAlert; onDismiss: (id: string) => void }) {
+function ToastItem({
+  toast,
+  onDismiss,
+}: {
+  toast: ToastAlert;
+  onDismiss: (id: string) => void;
+}) {
   useEffect(() => {
     const t = setTimeout(() => onDismiss(toast.id), 8000);
     return () => clearTimeout(t);
@@ -29,11 +35,11 @@ function ToastItem({ toast, onDismiss }: { toast: ToastAlert; onDismiss: (id: st
 
   return (
     <div
-      className={`w-80 border bg-neutral-900/95 backdrop-blur px-4 py-3 shadow-lg ${TYPE_STYLE[toast.type] ?? "border-white/20"}`}
+      className={`w-80 border bg-neutral-900/95 backdrop-blur px-4 py-3 shadow-lg ${TYPE_STYLE[toast.type] ?? 'border-white/20'}`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="text-xs font-semibold tracking-wider text-gray-400 uppercase">
-          {TYPE_LABEL[toast.type] ?? "Sovereignty"}
+          {TYPE_LABEL[toast.type] ?? 'Sovereignty'}
         </div>
         <button
           type="button"

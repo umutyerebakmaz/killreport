@@ -282,7 +282,7 @@ location /_next/static {
 
 ### Hetzner (Cheaper)
 
-**Total: ~€35/month (~$38)**
+**Total: ~~€35/month (~~$38)**
 
 - ✅ Very cheap (4 vCPU, 8 GB = €10)
 - ✅ NVMe SSD

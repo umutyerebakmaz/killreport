@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode } from 'react';
 
 export interface SectionTitleProps {
   children: ReactNode;
@@ -9,8 +9,9 @@ export interface SectionTitleProps {
 }
 
 /**
- * The heading of a card or a section inside a page. One step below
- * PageHeader; replaces the ten <h2>/<h3> variants in the codebase.
+ * The heading of a card or a section inside a page, replacing the ten
+ * <h2>/<h3> variants the codebase had grown. Page-level titles are not its
+ * job: those are a single sr-only <h1> written inline by each route.
  */
 export default function SectionTitle({
   children,

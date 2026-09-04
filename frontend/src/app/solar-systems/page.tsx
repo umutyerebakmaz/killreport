@@ -1,24 +1,23 @@
-"use client";
+'use client';
 
-import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
-import SolarSystemCard from "@/components/Cards/SolarSystemCard";
-import SolarSystemFilters from "@/components/Filters/SolarSystemFilters";
-import { Loader } from "@/components/Loader/Loader";
-import Paginator from "@/components/Paginator/Paginator";
-import { useSolarSystemsQuery } from "@/generated/graphql";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import SolarSystemCard from '@/components/Cards/SolarSystemCard';
+import SolarSystemFilters from '@/components/Filters/SolarSystemFilters';
+import { Loader } from '@/components/Loader/Loader';
+import Paginator from '@/components/Paginator/Paginator';
+import { useSolarSystemsQuery } from '@/generated/graphql';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 
 function SolarSystemsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const pageFromUrl = Number(searchParams.get("page")) || 1;
-  const orderByFromUrl = searchParams.get("orderBy") || "nameAsc";
-  const searchFromUrl = searchParams.get("search") || "";
-  const securityFromUrl = searchParams.get("security") || "all";
-  const regionIdFromUrl = searchParams.get("regionId") || "";
-  const constellationIdFromUrl = searchParams.get("constellationId") || "";
+  const pageFromUrl = Number(searchParams.get('page')) || 1;
+  const orderByFromUrl = searchParams.get('orderBy') || 'nameAsc';
+  const searchFromUrl = searchParams.get('search') || '';
+  const securityFromUrl = searchParams.get('security') || 'all';
+  const regionIdFromUrl = searchParams.get('regionId') || '';
+  const constellationIdFromUrl = searchParams.get('constellationId') || '';
 
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(25);
@@ -56,13 +55,13 @@ function SolarSystemsContent() {
   // URL sync
   useEffect(() => {
     const params = new URLSearchParams();
-    params.set("page", currentPage.toString());
-    params.set("orderBy", orderBy);
-    if (searchTerm) params.set("search", searchTerm);
-    if (securityFilter !== "all") params.set("security", securityFilter);
-    if (selectedRegionId) params.set("regionId", selectedRegionId);
+    params.set('page', currentPage.toString());
+    params.set('orderBy', orderBy);
+    if (searchTerm) params.set('search', searchTerm);
+    if (securityFilter !== 'all') params.set('security', securityFilter);
+    if (selectedRegionId) params.set('regionId', selectedRegionId);
     if (selectedConstellationId)
-      params.set("constellationId", selectedConstellationId);
+      params.set('constellationId', selectedConstellationId);
     router.push(`/solar-systems?${params.toString()}`, { scroll: false });
   }, [
     currentPage,
@@ -80,36 +79,36 @@ function SolarSystemsContent() {
     securityStatusMin?: number;
     securityStatusMax?: number;
   }) => {
-    setSearchTerm(filters.search || "");
-    setSelectedRegionId(filters.region_id ? filters.region_id.toString() : "");
+    setSearchTerm(filters.search || '');
+    setSelectedRegionId(filters.region_id ? filters.region_id.toString() : '');
     setSelectedConstellationId(
-      filters.constellation_id ? filters.constellation_id.toString() : "",
+      filters.constellation_id ? filters.constellation_id.toString() : '',
     );
     setSecurityStatusMin(filters.securityStatusMin);
     setSecurityStatusMax(filters.securityStatusMax);
 
     // Update security filter state for URL sync
     if (filters.securityStatusMin === 0.5) {
-      setSecurityFilter("highsec");
+      setSecurityFilter('highsec');
     } else if (
       filters.securityStatusMin === 0.1 &&
       filters.securityStatusMax === 0.4
     ) {
-      setSecurityFilter("lowsec");
+      setSecurityFilter('lowsec');
     } else if (filters.securityStatusMax === 0.0) {
-      setSecurityFilter("nullsec");
+      setSecurityFilter('nullsec');
     } else {
-      setSecurityFilter("all");
+      setSecurityFilter('all');
     }
 
     setCurrentPage(1);
   };
 
   const handleClearFilters = () => {
-    setSearchTerm("");
-    setSelectedRegionId("");
-    setSelectedConstellationId("");
-    setSecurityFilter("all");
+    setSearchTerm('');
+    setSelectedRegionId('');
+    setSelectedConstellationId('');
+    setSecurityFilter('all');
     setSecurityStatusMin(undefined);
     setSecurityStatusMax(undefined);
     setCurrentPage(1);
@@ -136,20 +135,9 @@ function SolarSystemsContent() {
 
   return (
     <div>
-      <Breadcrumb items={[{ label: "Solar Systems" }]} />
+      <h1 className="sr-only">Solar Systems</h1>
 
-      <div className="sm:flex sm:items-center sm:justify-between">
-        <div className="sm:flex-auto">
-          <h1 className="flex items-center gap-3 text-3xl font-semibold text-white">
-            Solar Systems
-          </h1>
-          <p className="mt-2 text-gray-400">
-            Explore all solar systems in New Eden. Filter by security status to
-            find specific areas.
-          </p>
-        </div>
-      </div>
-      <div className="mt-6">
+      <div>
         <SolarSystemFilters
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}

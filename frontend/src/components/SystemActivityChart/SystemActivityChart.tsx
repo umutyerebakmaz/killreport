@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import dynamic from "next/dynamic";
-import { useMemo } from "react";
+import dynamic from 'next/dynamic';
+import { useMemo } from 'react';
 
 // ECharts cannot render on the server; AllianceGrowthChart loads it the same way.
-const ReactECharts = dynamic(() => import("echarts-for-react"), { ssr: false });
+const ReactECharts = dynamic(() => import('echarts-for-react'), { ssr: false });
 
-export type ActivityRange = "24h" | "7d";
+export type ActivityRange = '24h' | '7d';
 
 interface Snapshot {
   timestamp: string;
@@ -23,12 +23,12 @@ interface SystemActivityChartProps {
 }
 
 function formatHour(timestamp: string): string {
-  return new Date(timestamp).toLocaleString("en-US", {
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
+  return new Date(timestamp).toLocaleString('en-US', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
     hour12: false,
-    timeZone: "UTC",
+    timeZone: 'UTC',
   });
 }
 
@@ -44,35 +44,35 @@ export default function SystemActivityChart({
         new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
     );
     return {
-      backgroundColor: "transparent",
-      tooltip: { trigger: "axis" },
+      backgroundColor: 'transparent',
+      tooltip: { trigger: 'axis' },
       legend: {
-        data: ["Ship kills", "Pod kills", "NPC kills"],
-        textStyle: { color: "#9ca3af" },
+        data: ['Ship kills', 'Pod kills', 'NPC kills'],
+        textStyle: { color: '#9ca3af' },
       },
       grid: { left: 48, right: 16, top: 48, bottom: 40 },
       xAxis: {
-        type: "category",
+        type: 'category',
         data: sorted.map((s) => formatHour(s.timestamp)),
-        axisLabel: { color: "#9ca3af" },
+        axisLabel: { color: '#9ca3af' },
       },
-      yAxis: { type: "value", axisLabel: { color: "#9ca3af" } },
+      yAxis: { type: 'value', axisLabel: { color: '#9ca3af' } },
       series: [
         {
-          name: "Ship kills",
-          type: "line",
+          name: 'Ship kills',
+          type: 'line',
           smooth: true,
           data: sorted.map((s) => s.ship_kills),
         },
         {
-          name: "Pod kills",
-          type: "line",
+          name: 'Pod kills',
+          type: 'line',
           smooth: true,
           data: sorted.map((s) => s.pod_kills),
         },
         {
-          name: "NPC kills",
-          type: "line",
+          name: 'NPC kills',
+          type: 'line',
           smooth: true,
           data: sorted.map((s) => s.npc_kills),
         },
@@ -87,17 +87,17 @@ export default function SystemActivityChart({
           Kill activity
         </h3>
         <div className="flex gap-2">
-          {(["24h", "7d"] as const).map((r) => (
+          {(['24h', '7d'] as const).map((r) => (
             <button
               key={r}
               onClick={() => onRangeChange(r)}
-              className={`px-3 py-1 text-xs font-semibold border cursor-pointer transition-colors ${
+              className={`px-3 py-1 text-xs font-semibold border transition-colors ${
                 range === r
-                  ? "border-cyan-500 text-cyan-500"
-                  : "border-white/10 text-gray-400 hover:text-gray-200"
+                  ? 'border-cyan-500 text-cyan-500'
+                  : 'border-white/10 text-gray-400 hover:text-gray-200'
               }`}
             >
-              {r === "24h" ? "24 Hours" : "7 Days"}
+              {r === '24h' ? '24 Hours' : '7 Days'}
             </button>
           ))}
         </div>

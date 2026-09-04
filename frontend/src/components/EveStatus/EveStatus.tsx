@@ -20,7 +20,7 @@ export default function EveStatus({ players }: EveStatusProps) {
           d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.25a7.5 7.5 0 1115 0v.75a.75.75 0 01-.75.75H5.25a.75.75 0 01-.75-.75v-.75z"
         />
       </svg>
-      Tranquility {players?.toLocaleString() ?? "-"}
+      Tranquility {players?.toLocaleString() ?? '-'}
     </div>
   );
 }

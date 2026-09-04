@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import SecurityStatus from "@/components/SecurityStatus/SecurityStatus";
-import ShipTierBadge from "@/components/ShipTierBadge/ShipTierBadge";
-import Tooltip from "@/components/Tooltip/Tooltip";
-import { formatKillmailDateTime, formatKillmailTime } from "@/utils/date";
-import { formatISK } from "@/utils/formatISK";
-import { getShipTier } from "@/utils/shipTier";
-import Link from "next/link";
-import { getKillmailRowStyles } from "./killmailRowStyles";
-import { KillmailRowProps } from "./types";
+import SecurityStatus from '@/components/SecurityStatus/SecurityStatus';
+import ShipTierBadge from '@/components/ShipTierBadge/ShipTierBadge';
+import Tooltip from '@/components/Tooltip/Tooltip';
+import { formatKillmailDateTime, formatKillmailTime } from '@/utils/date';
+import { formatISK } from '@/utils/formatISK';
+import { getShipTier } from '@/utils/shipTier';
+import Link from 'next/link';
+import { getKillmailRowStyles } from './killmailRowStyles';
+import { KillmailRowProps } from './types';
 
 export default function KillmailRow({
   killmail: km,
@@ -16,7 +16,7 @@ export default function KillmailRow({
   characterId,
   corporationId,
   allianceId,
-  variant = "list",
+  variant = 'list',
 }: KillmailRowProps) {
   // Get row styling based on entity involvement (victim vs attacker)
   const { totalValueColor, rowBgColor, rowHoverColor } = getKillmailRowStyles({
@@ -35,9 +35,9 @@ export default function KillmailRow({
   return (
     <tr
       className={`transition-colors ${rowHoverColor} ${rowBgColor} ${
-        isAnimating ? "animate-slide-in-row" : ""
+        isAnimating ? 'animate-slide-in-row' : ''
       }`}
-      style={isAnimating ? { display: "table-row" } : undefined}
+      style={isAnimating ? { display: 'table-row' } : undefined}
     >
       {/* Time & Value Column */}
       <td className="px-4 py-4 text-base align-top">
@@ -83,13 +83,13 @@ export default function KillmailRow({
                 )}
                 <img
                   src={`https://images.evetech.net/types/${km.victim?.shipType?.id}/render?size=128`}
-                  alt={km.victim?.shipType?.name || "Ship"}
+                  alt={km.victim?.shipType?.name || 'Ship'}
                   className="transition-opacity size-20 hover:opacity-80"
                   loading="lazy"
                   onError={(e) => {
                     // Fallback to icon if render fails (e.g., for some faction ships)
                     const target = e.target as HTMLImageElement;
-                    if (target.src.includes("/render?")) {
+                    if (target.src.includes('/render?')) {
                       target.src = `https://images.evetech.net/types/${km.victim?.shipType?.id}/icon?size=128`;
                     }
                   }}
@@ -99,7 +99,7 @@ export default function KillmailRow({
           )}
           <div className="flex-1 min-w-0 leading-tight">
             <div className="font-medium text-orange-400">
-              {km.victim?.shipType?.name || "Unknown Ship"}
+              {km.victim?.shipType?.name || 'Unknown Ship'}
             </div>
             {km.victim?.shipType?.group && (
               <div className="text-base text-gray-500">
@@ -126,7 +126,7 @@ export default function KillmailRow({
               className="font-medium text-orange-400 transition-colors hover:text-orange-500"
               prefetch={false}
             >
-              {km.solarSystem?.name || "Unknown"}
+              {km.solarSystem?.name || 'Unknown'}
             </Link>
           </Tooltip>
         </div>
@@ -172,7 +172,7 @@ export default function KillmailRow({
               alt={
                 km.victim.alliance?.name ||
                 km.victim?.corporation?.name ||
-                "Logo"
+                'Logo'
               }
               className="shadow-md size-20"
               loading="lazy"
@@ -251,7 +251,7 @@ export default function KillmailRow({
                 alt={
                   km.finalBlow.alliance?.name ||
                   km.finalBlow.corporation?.name ||
-                  "Logo"
+                  'Logo'
                 }
                 className="shadow-md size-20"
                 loading="lazy"

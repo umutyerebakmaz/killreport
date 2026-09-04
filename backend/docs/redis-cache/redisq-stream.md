@@ -212,7 +212,7 @@ Worker responds to `SIGINT` (Ctrl+C):
 Edit `backend/src/workers/worker-redisq-stream.ts`:
 
 ```typescript
-const QUEUE_ID = "killreport-stream"; // Unique ID (change if running multiple instances)
+const QUEUE_ID = 'killreport-stream'; // Unique ID (change if running multiple instances)
 const TIME_TO_WAIT = 1; // 1-10 seconds timeout
 const REQUEST_DELAY = 500; // 500ms = 2 req/sec (CloudFlare limit)
 const MAX_RETRIES = 3; // Number of retry attempts

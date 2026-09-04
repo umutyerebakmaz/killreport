@@ -6,17 +6,17 @@ import prisma from '@services/prisma';
  * Handles fetching race data
  */
 export const raceQueries: QueryResolvers = {
-    race: async (_, { id }) => {
-        const race = await prisma.race.findUnique({
-            where: { id: Number(id) },
-        });
-        return race;
-    },
+  race: async (_, { id }) => {
+    const race = await prisma.race.findUnique({
+      where: { id: Number(id) },
+    });
+    return race;
+  },
 
-    races: async () => {
-        const races = await prisma.race.findMany({
-            orderBy: { name: 'asc' },
-        });
-        return races;
-    },
+  races: async () => {
+    const races = await prisma.race.findMany({
+      orderBy: { name: 'asc' },
+    });
+    return races;
+  },
 };
