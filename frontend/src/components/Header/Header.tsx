@@ -2,26 +2,29 @@
 
 import {
   Dialog,
+  DialogBackdrop,
   DialogPanel,
-  Disclosure,
-  DisclosureButton,
-  DisclosurePanel,
   PopoverGroup,
 } from '@headlessui/react';
-import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import { Bars3Icon, XMarkIcon, HomeIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import ActiveUsersCounter from '../ActiveUsersCounter';
 import AuthButton from '../AuthButton/AuthButton';
 import NotificationBell from '../Notifications/NotificationBell';
 import EveStatus from '../EveStatus/EveStatus';
 import EveTime from '../EveTime/EveTime';
 import Tooltip from '../Tooltip/Tooltip';
+import {
+  MobileNavDisclosure,
+  MobileNavLink,
+  MobileNavSubLink,
+} from './MobileNav';
 import { NAV_ITEM, NavPopover, NavPopoverLink } from './NavPopover';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
   const [status, setStatus] = useState<{ players?: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -99,18 +102,18 @@ export default function Header() {
               description="Explore wormhole space killmails and statistics"
             />
           </NavPopover>
-          <a href="/alliances" className={NAV_ITEM}>
+          <Link href="/alliances" className={NAV_ITEM}>
             ALLIANCES
-          </a>
-          <a href="/corporations" className={NAV_ITEM}>
+          </Link>
+          <Link href="/corporations" className={NAV_ITEM}>
             CORPORATIONS
-          </a>
-          <a href="/characters" className={NAV_ITEM}>
+          </Link>
+          <Link href="/characters" className={NAV_ITEM}>
             CHARACTERS
-          </a>
-          <a href="/leaderboards" className={NAV_ITEM}>
+          </Link>
+          <Link href="/leaderboards" className={NAV_ITEM}>
             LEADERBOARDS
-          </a>
+          </Link>
           <NavPopover label="SOVEREIGNTY">
             <NavPopoverLink
               href="/sovereignty"
@@ -138,9 +141,9 @@ export default function Header() {
               description="Territory map colored by controlling alliance"
             />
           </NavPopover>
-          <a href="/workers" className={NAV_ITEM}>
+          <Link href="/workers" className={NAV_ITEM}>
             WORKERS
-          </a>
+          </Link>
         </PopoverGroup>
 
         <div className="hidden xl:flex xl:flex-1 xl:justify-end xl:items-center xl:gap-4 2xl:gap-6 min-[1800px]:gap-8">
@@ -173,21 +176,28 @@ export default function Header() {
       <Dialog
         open={mobileMenuOpen}
         onClose={setMobileMenuOpen}
+        transition
         className="xl:hidden"
       >
-        <div className="fixed inset-0 z-50" />
-        <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full p-6 overflow-y-auto bg-stone-900 sm:max-w-sm sm:ring-1 sm:ring-gray-100/10">
+        <DialogBackdrop
+          transition
+          className="fixed inset-0 z-50 transition duration-300 ease-out bg-black/60 data-closed:opacity-0 data-leave:duration-200 data-leave:ease-in"
+        />
+        <DialogPanel
+          transition
+          className="fixed inset-y-0 right-0 z-50 w-full p-6 overflow-y-auto transition duration-300 ease-out bg-stone-900 sm:max-w-sm sm:ring-1 sm:ring-gray-100/10 data-closed:translate-x-full data-leave:duration-200 data-leave:ease-in"
+        >
           <div className="flex items-center justify-between">
             <Link
               href="/"
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={closeMobileMenu}
               className="-m-1.5 p-1.5 text-gray-200 transition-colors hover:text-white"
             >
               <span className="sr-only">KillReport</span>
               <HomeIcon aria-hidden="true" className="size-7" />
             </Link>
             <button
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={closeMobileMenu}
               className="-m-2.5 rounded-md p-2.5 text-gray-400"
             >
               <span className="sr-only">Close menu</span>
@@ -197,139 +207,93 @@ export default function Header() {
           <div className="flow-root mt-6">
             <div className="-my-6 divide-y divide-white/5">
               <div className="py-6 space-y-2">
-                <Disclosure as="div" className="-mx-3">
-                  <DisclosureButton className="group flex w-full items-center justify-between py-2 pr-3.5 pl-3 text-base/7 font-semibold text-white hover:bg-white/5">
-                    UNIVERSE
-                    <ChevronDownIcon
-                      aria-hidden="true"
-                      className="flex-none size-5 group-data-open:rotate-180"
-                    />
-                  </DisclosureButton>
-                  <DisclosurePanel className="mt-2 space-y-2">
-                    <DisclosureButton
-                      as="a"
-                      href="/regions"
-                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
-                    >
-                      REGIONS
-                    </DisclosureButton>
-                    <DisclosureButton
-                      as="a"
-                      href="/constellations"
-                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
-                    >
-                      CONSTELLATIONS
-                    </DisclosureButton>
-                    <DisclosureButton
-                      as="a"
-                      href="/solar-systems"
-                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
-                    >
-                      SOLAR SYSTEMS
-                    </DisclosureButton>
-                  </DisclosurePanel>
-                </Disclosure>
-                <Disclosure as="div" className="-mx-3">
-                  <DisclosureButton className="group flex w-full items-center justify-between py-2 pr-3.5 pl-3 text-base/7 font-semibold text-white hover:bg-white/5">
-                    KILLMAILS
-                    <ChevronDownIcon
-                      aria-hidden="true"
-                      className="flex-none size-5 group-data-open:rotate-180"
-                    />
-                  </DisclosureButton>
-                  <DisclosurePanel className="mt-2 space-y-2">
-                    <DisclosureButton
-                      as="a"
-                      href="/killmails?page=1&regionId=10000070"
-                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
-                    >
-                      POCHVEN
-                    </DisclosureButton>
-                    <DisclosureButton
-                      as="a"
-                      href="/killmails?page=1&securitySpace=wormhole"
-                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
-                    >
-                      WORMHOLES
-                    </DisclosureButton>
-                  </DisclosurePanel>
-                </Disclosure>
-                <a
-                  href="/alliances"
-                  className="block px-3 py-2 -mx-3 font-semibold text-white text-base/7 hover:bg-white/5"
-                >
+                <MobileNavDisclosure label="UNIVERSE">
+                  <MobileNavSubLink
+                    href="/regions"
+                    onNavigate={closeMobileMenu}
+                  >
+                    REGIONS
+                  </MobileNavSubLink>
+                  <MobileNavSubLink
+                    href="/constellations"
+                    onNavigate={closeMobileMenu}
+                  >
+                    CONSTELLATIONS
+                  </MobileNavSubLink>
+                  <MobileNavSubLink
+                    href="/solar-systems"
+                    onNavigate={closeMobileMenu}
+                  >
+                    SOLAR SYSTEMS
+                  </MobileNavSubLink>
+                </MobileNavDisclosure>
+                <MobileNavDisclosure label="KILLMAILS">
+                  <MobileNavSubLink
+                    href="/killmails?page=1&regionId=10000070"
+                    onNavigate={closeMobileMenu}
+                  >
+                    POCHVEN
+                  </MobileNavSubLink>
+                  <MobileNavSubLink
+                    href="/killmails?page=1&securitySpace=wormhole"
+                    onNavigate={closeMobileMenu}
+                  >
+                    WORMHOLES
+                  </MobileNavSubLink>
+                </MobileNavDisclosure>
+                <MobileNavLink href="/alliances" onNavigate={closeMobileMenu}>
                   ALLIANCES
-                </a>
-                <a
+                </MobileNavLink>
+                <MobileNavLink
                   href="/corporations"
-                  className="block px-3 py-2 -mx-3 font-semibold text-white text-base/7 hover:bg-white/5"
+                  onNavigate={closeMobileMenu}
                 >
                   CORPORATIONS
-                </a>
-                <a
-                  href="/characters"
-                  className="block px-3 py-2 -mx-3 font-semibold text-white text-base/7 hover:bg-white/5"
-                >
+                </MobileNavLink>
+                <MobileNavLink href="/characters" onNavigate={closeMobileMenu}>
                   CHARACTERS
-                </a>
-                <a
+                </MobileNavLink>
+                <MobileNavLink
                   href="/leaderboards"
-                  className="block px-3 py-2 -mx-3 font-semibold text-white text-base/7 hover:bg-white/5"
+                  onNavigate={closeMobileMenu}
                 >
                   LEADERBOARDS
-                </a>
-                <Disclosure as="div" className="-mx-3">
-                  <DisclosureButton className="group flex w-full items-center justify-between py-2 pr-3.5 pl-3 text-base/7 font-semibold text-white hover:bg-white/5">
-                    SOVEREIGNTY
-                    <ChevronDownIcon
-                      aria-hidden="true"
-                      className="flex-none size-5 group-data-open:rotate-180"
-                    />
-                  </DisclosureButton>
-                  <DisclosurePanel className="mt-2 space-y-2">
-                    <DisclosureButton
-                      as="a"
-                      href="/sovereignty"
-                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
-                    >
-                      OVERVIEW
-                    </DisclosureButton>
-                    <DisclosureButton
-                      as="a"
-                      href="/sovereignty/structures"
-                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
-                    >
-                      STRUCTURES &amp; TIMERS
-                    </DisclosureButton>
-                    <DisclosureButton
-                      as="a"
-                      href="/sovereignty/history"
-                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
-                    >
-                      HISTORY
-                    </DisclosureButton>
-                    <DisclosureButton
-                      as="a"
-                      href="/sovereignty/hotspots"
-                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
-                    >
-                      HOT ZONES
-                    </DisclosureButton>
-                    <DisclosureButton
-                      as="a"
-                      href="/sovereignty/map"
-                      className="block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5"
-                    >
-                      MAP
-                    </DisclosureButton>
-                  </DisclosurePanel>
-                </Disclosure>
-                <a
-                  href="/workers"
-                  className="block px-3 py-2 -mx-3 font-semibold text-white text-base/7 hover:bg-white/5"
-                >
+                </MobileNavLink>
+                <MobileNavDisclosure label="SOVEREIGNTY">
+                  <MobileNavSubLink
+                    href="/sovereignty"
+                    onNavigate={closeMobileMenu}
+                  >
+                    OVERVIEW
+                  </MobileNavSubLink>
+                  <MobileNavSubLink
+                    href="/sovereignty/structures"
+                    onNavigate={closeMobileMenu}
+                  >
+                    STRUCTURES &amp; TIMERS
+                  </MobileNavSubLink>
+                  <MobileNavSubLink
+                    href="/sovereignty/history"
+                    onNavigate={closeMobileMenu}
+                  >
+                    HISTORY
+                  </MobileNavSubLink>
+                  <MobileNavSubLink
+                    href="/sovereignty/hotspots"
+                    onNavigate={closeMobileMenu}
+                  >
+                    HOT ZONES
+                  </MobileNavSubLink>
+                  <MobileNavSubLink
+                    href="/sovereignty/map"
+                    onNavigate={closeMobileMenu}
+                  >
+                    MAP
+                  </MobileNavSubLink>
+                </MobileNavDisclosure>
+                <MobileNavLink href="/workers" onNavigate={closeMobileMenu}>
                   WORKERS
-                </a>
+                </MobileNavLink>
               </div>
               <div className="py-6">
                 <div className="px-3">

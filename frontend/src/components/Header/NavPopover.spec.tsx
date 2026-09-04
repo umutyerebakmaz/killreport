@@ -49,6 +49,16 @@ describe('NavPopover', () => {
     expect(screen.getByRole('link', { name: /regions/i })).toBeInTheDocument();
   });
 
+  it('marks the button open, which is what turns the chevron over', async () => {
+    const user = userEvent.setup();
+    const { button } = renderNavPopover();
+
+    expect(button).not.toHaveAttribute('data-open');
+    await user.click(button);
+
+    expect(button).toHaveAttribute('data-open');
+  });
+
   it('closes the panel when a link inside it is selected', async () => {
     const user = userEvent.setup();
     const { button } = renderNavPopover();
