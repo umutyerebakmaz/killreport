@@ -12,12 +12,10 @@ export interface KillmailCardData {
   id: string;
   killmailTime: string;
   totalValue?: number | null;
-  solo: boolean;
-  npc: boolean;
-  victim: {
+  victim?: {
     character?: { id: number; name: string } | null;
-    corporation?: { id: number; name: string; ticker: string } | null;
-    alliance?: { id: number; name: string; ticker: string } | null;
+    corporation?: { id: number; name: string } | null;
+    alliance?: { id: number; name: string } | null;
     shipType?: {
       id: number;
       name: string;
@@ -29,7 +27,7 @@ export interface KillmailCardData {
   solarSystem?: {
     id: number;
     name: string;
-    securityStatus: number;
+    securityStatus?: number | null;
     constellation?: {
       id: number;
       name: string;
@@ -83,17 +81,7 @@ export default function KillmailCard({
           </div>
           {rank !== undefined && (
             <div className="flex items-center justify-center">
-              <span
-                className={`text-lg font-black tabular-nums ${
-                  rank === 1
-                    ? "text-yellow-400"
-                    : rank === 2
-                      ? "text-gray-300"
-                      : rank === 3
-                        ? "text-amber-600"
-                        : "text-gray-500"
-                }`}
-              >
+              <span className="text-lg font-black tabular-nums text-gray-500">
                 #{rank}
               </span>
             </div>

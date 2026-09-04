@@ -12,6 +12,14 @@ const envSchema = z.object({
   // RabbitMQ
   RABBITMQ_URL: z.string().default('amqp://localhost'),
 
+  // Redis. A trailing /<n> selects a logical database, which is how a second
+  // checkout keeps its keys apart from this one.
+  REDIS_URL: z.string().default('redis://localhost:6379'),
+  USE_REDIS_PUBSUB: z
+    .string()
+    .default('false')
+    .transform((val) => val === 'true'),
+
   // EVE SSO
   EVE_CLIENT_ID: z.string().min(1, 'EVE_CLIENT_ID is required'),
   EVE_CLIENT_SECRET: z.string().min(1, 'EVE_CLIENT_SECRET is required'),
@@ -22,6 +30,16 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().default('4000').transform(Number),
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'http', 'debug']).default('info'),
+
+  // ESI
+  // ESI's own ceiling is 150 req/sec. 50 is the project's safety margin and the
+  // right default when several workers run at once; raise it for a single
+  // process that has the budget to itself.
+  ESI_MAX_RPS: z.string().default('50').transform(Number),
+  // Messages a topology worker holds unacked at once. Concurrency only - the
+  // dispatch ceiling above still applies. Temporarily 100 for the manual
+  // universe run; 25 was the long-standing value.
+  ESI_PREFETCH: z.string().default('100').transform(Number),
 
   // GraphQL
   GRAPHQL_INTROSPECTION: z.string().default('true').transform(val => val === 'true'),
@@ -53,6 +71,10 @@ export const config = {
   rabbitmq: {
     url: process.env.RABBITMQ_URL || 'amqp://localhost:5672',
   },
+  redis: {
+    url: env.REDIS_URL,
+    usePubSub: env.USE_REDIS_PUBSUB,
+  },
   eveSso: {
     clientId: env.EVE_CLIENT_ID,
     clientSecret: env.EVE_CLIENT_SECRET,
@@ -77,6 +99,10 @@ export const config = {
     isDevelopment: env.NODE_ENV === 'development',
     isProduction: env.NODE_ENV === 'production',
     isTest: env.NODE_ENV === 'test',
+  },
+  esi: {
+    maxRequestsPerSecond: env.ESI_MAX_RPS,
+    prefetch: env.ESI_PREFETCH,
   },
   graphql: {
     introspection: env.GRAPHQL_INTROSPECTION,

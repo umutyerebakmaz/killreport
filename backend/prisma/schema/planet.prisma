@@ -1,0 +1,23 @@
+model Planet {
+  id              Int     @id @map("planet_id")
+  name            String?
+  solar_system_id Int
+  type_id         Int?
+  /// ESI'nın planets[] dizisindeki 1 tabanlı sıra.
+  orbit_index     Int?
+  position_x      Float?
+  position_y      Float?
+  position_z      Float?
+
+  solar_system   SolarSystem    @relation(fields: [solar_system_id], references: [id], onDelete: Cascade)
+  moons          Moon[]
+  asteroid_belts AsteroidBelt[]
+
+  /// Bileşik FK'nin hedefi: moons ve asteroid_belts (planet_id, solar_system_id)
+  /// ikilisiyle buraya bağlanır. Aynı zamanda indeks olarak da hizmet eder.
+  @@unique([id, solar_system_id])
+  /// planetsBySystem: WHERE solar_system_id IN (...) ORDER BY orbit_index, id.
+  /// counts sayımı da bu indeksin soldan önekiyle karşılanır.
+  @@index([solar_system_id, orbit_index, id])
+  @@map("planets")
+}

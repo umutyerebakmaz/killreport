@@ -1,0 +1,26 @@
+model Stargate {
+  id                      Int     @id @map("stargate_id")
+  name                    String?
+  solar_system_id         Int
+  /// Adım 2 bunu boş bırakır; yalnızca worker-stargates doldurur.
+  destination_system_id   Int?
+  destination_stargate_id Int?
+  type_id                 Int?
+  position_x              Float?
+  position_y              Float?
+  position_z              Float?
+
+  solar_system       SolarSystem  @relation("StargateSystem", fields: [solar_system_id], references: [id], onDelete: Cascade)
+  /// ON DELETE SET NULL, Cascade değil: bir sistem silindiğinde ona bakan BAŞKA
+  /// sistemlerdeki geçitler silinmemeli, yalnızca hedefleri boşalmalı.
+  /// destination_stargate_id'ye FK konmuyor: hedef geçit satırını da aynı worker
+  /// yarattığı için kuyruğun kendi içinde sık tetiklenen bir sıra bağımlılığı doğardı.
+  destination_system SolarSystem? @relation("StargateDestination", fields: [destination_system_id], references: [id], onDelete: SetNull)
+
+  /// stargatesBySystem: WHERE solar_system_id IN (...) ORDER BY id.
+  @@index([solar_system_id, id])
+  /// Bugün hiçbir sorgu buradan filtrelemiyor, ama yeni SET NULL FK'si gerekli
+  /// kılıyor: indekssiz bir sistem silme bu tabloda tam tarama yapar.
+  @@index([destination_system_id])
+  @@map("stargates")
+}

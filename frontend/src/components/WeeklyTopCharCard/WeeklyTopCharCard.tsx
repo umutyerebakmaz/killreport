@@ -1,6 +1,7 @@
 "use client";
 
 import { Loader } from "@/components/Loader/Loader";
+import RankNumber from "@/components/ui/RankNumber";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import { useTopWeeklyPilotsQuery } from "@/generated/graphql";
 import { getSecurityStatusColor } from "@/utils/securityStatus";
@@ -41,21 +42,7 @@ export default function WeeklyTopCharCard() {
               <div key={pilot.rank} className="p-3 hover:bg-white/8">
                 <div className="flex items-center gap-3">
                   {/* Rank */}
-                  <div className="flex items-center justify-center w-6 shrink-0">
-                    <span
-                      className={`text-lg font-black tabular-nums ${
-                        pilot.rank === 1
-                          ? "text-yellow-400"
-                          : pilot.rank === 2
-                            ? "text-gray-300"
-                            : pilot.rank === 3
-                              ? "text-amber-600"
-                              : "text-gray-600"
-                      }`}
-                    >
-                      #{pilot.rank}
-                    </span>
-                  </div>
+                  <RankNumber rank={pilot.rank} />
 
                   {/* Portrait */}
                   <div className="relative shrink-0">

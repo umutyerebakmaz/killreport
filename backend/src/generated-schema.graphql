@@ -118,6 +118,15 @@ type AlliancesResponse {
   pageInfo: PageInfo!
 }
 
+type AsteroidBelt {
+  id: Int!
+  name: String
+  orbitIndex: Int
+  planet: Planet
+  position: Position
+  solarSystem: SolarSystem
+}
+
 type Attacker {
   alliance: Alliance
   character: Character
@@ -590,6 +599,17 @@ type KillmailsResponse {
   pageInfo: PageInfo!
 }
 
+type Moon {
+  id: Int!
+  name: String
+
+  """ESI'nin planets[].moons dizisindeki 1 tabanlı sıra."""
+  orbitIndex: Int
+  planet: Planet
+  position: Position
+  solarSystem: SolarSystem
+}
+
 type Mutation {
   _empty: String
 
@@ -643,6 +663,22 @@ type PageInfo {
   hasPreviousPage: Boolean!
   totalCount: Int!
   totalPages: Int!
+}
+
+type Planet {
+  asteroidBelts: [AsteroidBelt!]!
+  id: Int!
+  moons: [Moon!]!
+  name: String
+
+  """ESI'nin planets[] dizisindeki 1 tabanlı sıra."""
+  orbitIndex: Int
+  position: Position
+  solarSystem: SolarSystem
+
+  """Barren, Gas, Temperate, Storm…"""
+  type: Type
+  typeId: Int
 }
 
 type Position {
@@ -728,10 +764,11 @@ type Query {
   region(id: Int!): Region
   regions(filter: RegionFilter): RegionsResponse!
   solarSystem(id: Int!): SolarSystem
+  solarSystemStats(systemId: Int!): SolarSystemStats!
   solarSystems(filter: SolarSystemFilter): SolarSystemsResponse!
 
   """Currently active sovereignty campaigns, newest first."""
-  sovereigntyActiveCampaigns(limit: Int): [SovereigntyCampaign!]!
+  sovereigntyActiveCampaigns(limit: Int, systemId: Int): [SovereigntyCampaign!]!
 
   """Resolved (ended) campaigns, newest-ended first, paginated."""
   sovereigntyCampaignHistory(limit: Int, offset: Int): SovereigntyCampaignHistoryPage!
@@ -931,13 +968,29 @@ type SlotGroup {
 
 type SolarSystem {
   constellation: Constellation
+  counts: SolarSystemCounts!
   id: Int!
   latestKills: SystemKills
   name: String!
+  planets: [Planet!]!
   position: Position
   securityStatus: Float
   security_class: String
+
+  """Step 3 çalışmadan önce isimsiz; star_id boşsa null."""
+  star: Star
   star_id: Int
+  stargates: [Stargate!]!
+  stations: [Station!]!
+}
+
+type SolarSystemCounts {
+  asteroidBelts: Int!
+  moons: Int!
+  planets: Int!
+  sovereigntyStructures: Int!
+  stargates: Int!
+  stations: Int!
 }
 
 input SolarSystemFilter {
@@ -963,6 +1016,18 @@ enum SolarSystemOrderBy {
   securityStatusDesc
   shipKillsAsc
   shipKillsDesc
+}
+
+type SolarSystemStats {
+  """Son 7 günde en çok kill olan UTC saati (0-23)."""
+  busiestHourUtc: Int
+  iskDestroyed7d: Float!
+  kills7d: Int!
+  kills24h: Int!
+  lastKillTime: String
+  systemId: Int!
+  totalIskDestroyed: Float!
+  totalKills: Int!
 }
 
 type SolarSystemsResponse {
@@ -1131,6 +1196,57 @@ type StandaloneWorkerStatus {
   running: Boolean!
 }
 
+type Star {
+  """Yıl."""
+  age: Float
+  id: Int!
+  luminosity: Float
+  name: String
+
+  """Metre."""
+  radius: Float
+  solarSystem: SolarSystem
+
+  """Örn. "M2 V"."""
+  spectralClass: String
+
+  """Kelvin."""
+  temperature: Int
+  type: Type
+  typeId: Int
+}
+
+"""
+Sistemdeki stargate. ESI'nin stargates[] dizisini yansıtır, uçları çözülmüş halde.
+"""
+type Stargate {
+  destination: StargateDestination
+  id: Int!
+  name: String
+  position: Position
+  solarSystem: SolarSystem
+  type: Type
+  typeId: Int
+}
+
+"""
+ESI'nin stargate yanıtındaki destination nesnesi.
+Ham ID'ler step 3 çalışmadan önce null; nesneler ayrıca karşılık gelen satır
+veritabanında yoksa da null.
+"""
+type StargateDestination {
+  destinationStargateId: Int
+  destinationSystemId: Int
+
+  """
+  Karşı uçtaki stargate; kendi destination'ı bu sisteme geri işaret eder.
+  """
+  stargate: Stargate
+
+  """Karşı uçtaki sistem."""
+  system: SolarSystem
+}
+
 input StartAllianceSyncInput {
   clientMutationId: String
 }
@@ -1221,6 +1337,27 @@ type StartTypeSyncPayload {
   clientMutationId: String
   message: String
   success: Boolean!
+}
+
+type Station {
+  id: Int!
+  maxDockableShipVolume: Float
+  name: String
+
+  """ISK cinsinden ofis kirası."""
+  officeRentalCost: Float
+  ownerCorporation: Corporation
+  ownerCorporationId: Int
+  position: Position
+  raceId: Int
+  reprocessingEfficiency: Float
+
+  """İstasyonun yeniden işlemeden aldığı pay; 0.05 = %5."""
+  reprocessingStationsTake: Float
+  services: [String!]!
+  solarSystem: SolarSystem
+  type: Type
+  typeId: Int
 }
 
 type Subscription {
