@@ -1,0 +1,23 @@
+# Code owners are requested for review automatically, and Renovate reads this
+# file too (reviewersFromCodeOwners in ../renovate.json), so dependency pull
+# requests reach the same people as the code they touch.
+#
+# Later lines win: the last matching pattern decides the owner.
+
+*                           @umutyerebakmaz
+
+# Workspaces
+/backend/                   @umutyerebakmaz
+/frontend/                  @umutyerebakmaz
+
+# The parts where a wrong change is expensive, called out so they are never
+# owned by a broad glob alone.
+/backend/prisma/            @umutyerebakmaz
+/backend/src/workers/       @umutyerebakmaz
+/backend/src/queues/        @umutyerebakmaz
+/ecosystem.config.js        @umutyerebakmaz
+
+# Repository-wide settings and automation
+/.github/                   @umutyerebakmaz
+/renovate.json              @umutyerebakmaz
+/CLAUDE.md                  @umutyerebakmaz
