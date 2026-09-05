@@ -65,6 +65,13 @@
     @apply text-white bg-white/10;
   }
 
+  /* (0,3,0), same as .button[aria-pressed='true']:hover above, so this wins
+     only by being written after it. Without it a selected ghost segment
+     flashes the accent under the pointer. */
+  .button-ghost[aria-pressed='true']:hover {
+    @apply bg-white/10;
+  }
+
   /* --- Modifiers ---
    * These must come AFTER the appearances: they match .button's specificity
    * (0,1,0), so source order is the only thing letting them win on padding. */
