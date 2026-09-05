@@ -77,8 +77,8 @@ export default function TopCorporationCard({
                     <img
                       src={`https://images.evetech.net/corporations/${corporation.id}/logo?size=64`}
                       alt={corporation.name}
-                      width={32}
-                      height={32}
+                      width={40}
+                      height={40}
                       className="shadow-md bg-black/50 ring-1 ring-black/50"
                       loading="lazy"
                     />

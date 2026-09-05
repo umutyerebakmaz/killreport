@@ -93,8 +93,8 @@ export default function TopTargetsCard({
                   <img
                     src={getImageUrl(target.id, targetType)}
                     alt={target.name}
-                    width={32}
-                    height={32}
+                    width={40}
+                    height={40}
                     className="shadow-md bg-black/50 ring-1 ring-black/50"
                     loading="lazy"
                   />

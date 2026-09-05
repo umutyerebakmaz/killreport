@@ -87,8 +87,8 @@ export default function TopCharacterCard({
                     <img
                       src={`https://images.evetech.net/characters/${character.id}/portrait?size=64`}
                       alt={character.name}
-                      width={32}
-                      height={32}
+                      width={40}
+                      height={40}
                       className="shadow-md bg-black/50 ring-1 ring-black/50"
                       loading="lazy"
                     />

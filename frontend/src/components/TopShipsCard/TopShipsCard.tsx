@@ -86,7 +86,7 @@ export default function TopShipsCard({
                     <img
                       src={`https://images.evetech.net/types/${ship.id}/render?size=64`}
                       alt={ship.name}
-                      className="shadow-md size-8"
+                      className="shadow-md size-10"
                       loading="lazy"
                       onError={(e) => {
                         // Fallback to icon if render fails (e.g., for some faction ships)
