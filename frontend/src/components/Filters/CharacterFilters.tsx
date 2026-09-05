@@ -117,7 +117,9 @@ export default function CharacterFilters({
           <div className="relative flex-1" ref={dropdownRef}>
             <input
               type="text"
-              placeholder="Search characters (min 3 letters)..."
+              id="filter-character-search"
+              aria-label="Search characters"
+              aria-describedby="filter-character-search-hint"
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -139,6 +141,12 @@ export default function CharacterFilters({
               }}
               className="input"
             />
+            <p
+              id="filter-character-search-hint"
+              className="mt-1 text-[11px] text-gray-500"
+            >
+              Type at least 3 letters to search.
+            </p>
             {searchLoading && search.length >= 3 && (
               <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                 <div className="w-5 h-5 border-2 border-blue-500 rounded-full animate-spin border-t-transparent"></div>

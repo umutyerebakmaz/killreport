@@ -60,7 +60,7 @@ export default function ConstellationFilters({
           <div className="relative flex-1">
             <input
               type="text"
-              placeholder="Search constellations..."
+              aria-label="Search constellations"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="input"
