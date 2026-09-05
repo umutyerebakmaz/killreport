@@ -1,7 +1,11 @@
+/*
+ * No ground of its own: the table lives inside a .card, and carrying one
+ * would punch a hole in the card's surface. It used to be bg-black.
+ */
 .table {
-  @apply min-w-full divide-y divide-white/5 bg-black;
+  @apply min-w-full divide-y divide-white/5;
 }
 
 .th-cell {
-  @apply px-4 py-4 text-base tracking-wider  text-gray-400 font-semibold;
+  @apply px-4 py-4 text-base font-semibold tracking-wider text-gray-400;
 }
