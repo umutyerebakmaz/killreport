@@ -68,6 +68,25 @@
   /* (0,3,0), same as .button[aria-pressed='true']:hover above, so this wins
      only by being written after it. Without it a selected ghost segment
      flashes the accent under the pointer. */
+  /* A label wrapping a radio has no aria-selected to set — its state lives in
+     the input's :checked. Same appearance class, same look, third mechanism.
+     :has() carries the (0,2,0) needed to beat .button-ghost itself. */
+  .button-ghost:has(:checked) {
+    @apply text-white bg-white/10;
+  }
+
+  .button-ghost:has(:checked):hover {
+    @apply bg-white/10;
+  }
+
+  .button-ghost:has(:focus-visible) {
+    @apply outline-1 outline-white/40;
+  }
+
+  .button-ghost:has(:disabled) {
+    @apply opacity-50 cursor-not-allowed;
+  }
+
   .button-ghost[aria-pressed='true']:hover {
     @apply bg-white/10;
   }
