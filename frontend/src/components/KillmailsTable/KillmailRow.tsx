@@ -84,7 +84,7 @@ export default function KillmailRow({
                 <img
                   src={`https://images.evetech.net/types/${km.victim?.shipType?.id}/render?size=128`}
                   alt={km.victim?.shipType?.name || 'Ship'}
-                  className="transition-opacity size-20 hover:opacity-80"
+                  className="transition-opacity size-16 hover:opacity-80"
                   loading="lazy"
                   onError={(e) => {
                     // Fallback to icon if render fails (e.g., for some faction ships)
@@ -174,7 +174,7 @@ export default function KillmailRow({
                 km.victim?.corporation?.name ||
                 'Logo'
               }
-              className="shadow-md size-20"
+              className="shadow-md size-16"
               loading="lazy"
             />
           )}
@@ -253,7 +253,7 @@ export default function KillmailRow({
                   km.finalBlow.corporation?.name ||
                   'Logo'
                 }
-                className="shadow-md size-20"
+                className="shadow-md size-16"
                 loading="lazy"
               />
             )}
