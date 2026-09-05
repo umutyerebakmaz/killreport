@@ -6,31 +6,33 @@
  * than decoration — it only means anything with content behind it.
  */
 
-/* .card holds no padding of its own — every caller lays out its own
-   insides. That decision was already made in ui/Card.tsx; it stands. */
-.card {
-  @apply border bg-surface border-white/10;
-}
+@layer components {
+  /* .card holds no padding of its own — every caller lays out its own
+     insides. That decision was already made in ui/Card.tsx; it stands. */
+  .card {
+    @apply border bg-surface border-white/10;
+  }
 
-/* The header lives INSIDE the card. In five components (TopShipsCard,
-   TopTargetsCard, TopCharacterCard, TopCorporationCard, TopAllianceCard)
-   the root element had no background, so the header read as a separate
-   thing sitting on the page. */
-.card-header {
-  @apply px-4 py-3 border-b border-white/10;
-}
+  /* The header lives INSIDE the card. In five components (TopShipsCard,
+     TopTargetsCard, TopCharacterCard, TopCorporationCard, TopAllianceCard)
+     the root element had no background, so the header read as a separate
+     thing sitting on the page. */
+  .card-header {
+    @apply px-4 py-3 border-b border-white/10;
+  }
 
-.card-body {
-  @apply p-4;
-}
+  .card-body {
+    @apply p-4;
+  }
 
-/* The floating layer: popover panels, the mobile drawer, FilterDialog, Tooltip. */
-.float {
-  @apply border rounded-md bg-gray-900/80 backdrop-blur-md border-white/10;
-}
+  /* The floating layer: popover panels, the mobile drawer, FilterDialog, Tooltip. */
+  .float {
+    @apply border rounded-md bg-gray-900/80 backdrop-blur-md border-white/10;
+  }
 
-/* A list row that carries a <button> tag but is not visually a button.
-   Forcing it into the button vocabulary would have been wrong. */
-.menu-row {
-  @apply relative flex items-center w-full p-3 transition-colors gap-x-3 text-sm/6 hover:bg-cyan-900/50;
+  /* A list row that carries a <button> tag but is not visually a button.
+     Forcing it into the button vocabulary would have been wrong. */
+  .menu-row {
+    @apply relative flex items-center w-full p-3 transition-colors gap-x-3 text-sm/6 hover:bg-cyan-900/50;
+  }
 }
