@@ -13,14 +13,10 @@ import FilterBar from '@/components/ui/FilterBar';
 import FilterDialog from '@/components/ui/FilterDialog';
 import FilterField from '@/components/ui/FilterField';
 import { useDebounce } from '@/hooks/useDebounce';
-import {
-  ChevronDownIcon,
-  MagnifyingGlassIcon,
-  XMarkIcon,
-} from '@heroicons/react/24/outline';
+import { ChevronDownIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useEffect, useRef, useState } from 'react';
 
-interface SolarSystemFiltersProps {
+interface SolarSystemFilterFormProps {
   onFilterChange: (filters: {
     search?: string;
     region_id?: number;
@@ -37,7 +33,7 @@ interface SolarSystemFiltersProps {
   initialSecurity?: string;
 }
 
-export default function SolarSystemFilters({
+export default function SolarSystemFilterForm({
   onFilterChange,
   onClearFilters,
   orderBy = 'nameAsc',
@@ -46,7 +42,7 @@ export default function SolarSystemFilters({
   initialRegionId = '',
   initialConstellationId = '',
   initialSecurity = 'all',
-}: SolarSystemFiltersProps) {
+}: SolarSystemFilterFormProps) {
   // Panel open/close state
   const [isOpen, setIsOpen] = useState(false);
 
@@ -310,27 +306,37 @@ export default function SolarSystemFilters({
         onClose={() => setIsOpen(false)}
         title="Solar System Filters"
         footer={
-          <button
-            type="submit"
-            form="solar-system-filters"
-            className="apply-filter-button"
-          >
-            Apply Filters
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={handleClearAll}
+              className="button button-ghost"
+            >
+              CLEAR
+            </button>
+            <button
+              type="submit"
+              form="solar-system-filters"
+              className="button button-secondary"
+            >
+              APPLY
+            </button>
+          </>
         }
       >
         <div className="space-y-4">
           {/* Solar System Search */}
-          <FilterField label="Solar System" htmlFor="filter-solar-system">
+          <FilterField
+            label="Solar System"
+            htmlFor="filter-solar-system"
+            hint="Type at least 3 letters to search"
+          >
             <div ref={solarSystemDropdownRef}>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
-                </div>
                 <input
                   type="text"
                   id="filter-solar-system"
-                  placeholder="Search solar system (min 3 letters)..."
+                  aria-describedby="filter-solar-system-hint"
                   value={solarSystemSearch}
                   onChange={(e) => {
                     setSolarSystemSearch(e.target.value);
@@ -346,7 +352,7 @@ export default function SolarSystemFilters({
                     )
                       setShowSolarSystemDropdown(true);
                   }}
-                  className="search-input"
+                  className="input"
                 />
                 {solarSystemLoading && solarSystemSearch.length >= 3 && (
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -383,7 +389,7 @@ export default function SolarSystemFilters({
                               onClick={() =>
                                 handleSolarSystemSelect(system.name)
                               }
-                              className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
+                              className="menu-row group"
                             >
                               <div className="flex-auto min-w-0 text-left">
                                 <div className="flex items-center gap-2">
@@ -429,24 +435,23 @@ export default function SolarSystemFilters({
 
             {/* Solar System chip */}
             {selectedSystemName && (
-              <div className="flex flex-col gap-2 mt-3">
-                <div className="text-xs font-medium text-gray-400">
+              <div className="mt-3">
+                <div className="mb-2 text-xs font-medium text-gray-400">
                   Solar System
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
-                    <span className="font-semibold truncate">
-                      {selectedSystemName}
-                    </span>
-                  </div>
+                <span className="chip">
+                  <span className="font-semibold truncate">
+                    {selectedSystemName}
+                  </span>
                   <button
                     type="button"
                     onClick={() => setSelectedSystemName('')}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                    className="button button-ghost p-1"
+                    aria-label="Remove solar system filter"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
-                </div>
+                </span>
               </div>
             )}
           </FilterField>
@@ -472,14 +477,14 @@ export default function SolarSystemFilters({
 
             {/* Region chip */}
             {selectedRegionId && (
-              <div className="flex flex-col gap-2 mt-3">
-                <div className="text-xs font-medium text-gray-400">Region</div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
-                    <span className="font-semibold truncate">
-                      {selectedRegionName || `Region ${selectedRegionId}`}
-                    </span>
-                  </div>
+              <div className="mt-3">
+                <div className="mb-2 text-xs font-medium text-gray-400">
+                  Region
+                </div>
+                <span className="chip">
+                  <span className="font-semibold truncate">
+                    {selectedRegionName || `Region ${selectedRegionId}`}
+                  </span>
                   <button
                     type="button"
                     onClick={() => {
@@ -489,11 +494,12 @@ export default function SolarSystemFilters({
                       setSelectedConstellationId('');
                       setSelectedConstellationName('');
                     }}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                    className="button button-ghost p-1"
+                    aria-label="Remove region filter"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
-                </div>
+                </span>
               </div>
             )}
           </FilterField>
@@ -520,28 +526,27 @@ export default function SolarSystemFilters({
 
             {/* Constellation chip */}
             {selectedConstellationId && (
-              <div className="flex flex-col gap-2 mt-3">
-                <div className="text-xs font-medium text-gray-400">
+              <div className="mt-3">
+                <div className="mb-2 text-xs font-medium text-gray-400">
                   Constellation
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
-                    <span className="font-semibold truncate">
-                      {selectedConstellationName ||
-                        `Constellation ${selectedConstellationId}`}
-                    </span>
-                  </div>
+                <span className="chip">
+                  <span className="font-semibold truncate">
+                    {selectedConstellationName ||
+                      `Constellation ${selectedConstellationId}`}
+                  </span>
                   <button
                     type="button"
                     onClick={() => {
                       setSelectedConstellationId('');
                       setSelectedConstellationName('');
                     }}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                    className="button button-ghost p-1"
+                    aria-label="Remove constellation filter"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
-                </div>
+                </span>
               </div>
             )}
           </FilterField>

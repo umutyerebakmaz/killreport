@@ -72,8 +72,8 @@ export default function KillmailDetailPage({
           <div
             className={
               isStructure
-                ? 'flex flex-col gap-6 px-6 pt-6 pb-24 fit-and-victim'
-                : 'flex flex-col gap-6 p-6 fit-and-victim'
+                ? 'flex flex-col gap-6 px-6 pt-6 pb-24 card'
+                : 'flex flex-col gap-6 p-6 card'
             }
           >
             <div className="victim-card">
@@ -87,7 +87,7 @@ export default function KillmailDetailPage({
                         href={`https://zkillboard.com/kill/${km.id}/`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-3 py-1 text-sm font-medium text-gray-300 transition-colors rounded bg-gray-800/50 hover:bg-gray-700/50 hover:text-white"
+                        className="button button-secondary button-sm"
                       >
                         <ArrowTopRightOnSquareIcon className="w-4 h-4" />
                         zKillboard
@@ -96,7 +96,7 @@ export default function KillmailDetailPage({
                         href={`https://kb.evetools.org/kill/${km.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-3 py-1 text-sm font-medium text-gray-300 transition-colors rounded bg-gray-800/50 hover:bg-gray-700/50 hover:text-white"
+                        className="button button-secondary button-sm"
                       >
                         <ArrowTopRightOnSquareIcon className="w-4 h-4" />
                         EVE Tools
@@ -105,14 +105,14 @@ export default function KillmailDetailPage({
                         href={`https://esi.evetech.net/killmails/${km.id}/${km.killmailHash}/`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-3 py-1 text-sm font-medium text-gray-300 transition-colors rounded bg-gray-800/50 hover:bg-gray-700/50 hover:text-white"
+                        className="button button-secondary button-sm"
                       >
                         <ArrowTopRightOnSquareIcon className="w-4 h-4" />
                         ESI Verified
                       </a>
                       <button
                         onClick={handleShare}
-                        className="flex items-center gap-2 px-3 py-1 text-sm font-medium text-gray-300 transition-colors rounded bg-gray-800/50 hover:bg-gray-700/50 hover:text-white"
+                        className="button button-secondary button-sm"
                       >
                         {copied ? (
                           <>

@@ -68,28 +68,19 @@ jobs:
 
       # Two lint passes, and the split is deliberate. The repository carries a
       # backlog of pre-existing ESLint errors, so linting everything cannot gate
-      # a build without blocking unrelated work. Linting only what the pull
-      # request touched can, and does: the backlog shrinks or holds, never grows.
-      - name: Lint changed frontend files
+      # a build without blocking unrelated work.
+      #
+      # This gate used to lint whole changed files, which held until a change was
+      # broad rather than deep: a repository-wide restyling touches the files
+      # carrying the most backlog and inherits every problem already in them,
+      # none of which it caused. It now measures the lines the pull request adds,
+      # which asks what the gate always meant to ask — did this make things worse
+      # — instead of asking who last touched the file.
+      - name: Lint lines added by this pull request
         if: github.event_name == 'pull_request'
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: |
-          set -euo pipefail
-          # Filter with grep rather than a git pathspec: git globs match "/" with a
-          # single "*", so a pathspec here would quietly widen the selection.
-          files=$(git diff --name-only --diff-filter=ACMR "$BASE_SHA" HEAD \
-            | grep -E '^frontend/src/.*\.tsx?$' \
-            | sed 's|^frontend/||' || true)
-          if [ -z "$files" ]; then
-            echo "No frontend source files changed."
-            exit 0
-          fi
-          echo "$files"
-          # NUL-delimited so a path with a space survives, and so the step behaves
-          # the same under BSD xargs when rehearsed on a Mac.
-          printf '%s\n' "$files" | tr '\n' '\0' \
-            | xargs -0 yarn workspace frontend exec eslint
+        run: node .github/scripts/lint-added-lines.mjs "$BASE_SHA"
 
       - name: Lint the whole frontend (report only)
         run: yarn workspace frontend lint

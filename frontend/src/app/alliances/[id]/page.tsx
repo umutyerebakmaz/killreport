@@ -24,6 +24,7 @@ import {
   useAllianceTopShipTargetsQuery,
   useKillmailsDateCountsQuery,
 } from '@/generated/graphql';
+import { useTabList } from '@/hooks/useTabList';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { use, useCallback, useEffect, useMemo, useState } from 'react';
@@ -34,6 +35,22 @@ interface AllianceDetailPageProps {
 
 type TabType =
   'attributes' | 'growth' | 'killmails' | 'war-history' | 'members';
+
+const TAB_IDS: TabType[] = [
+  'attributes',
+  'killmails',
+  'war-history',
+  'members',
+  'growth',
+];
+
+const TAB_LABELS: Record<TabType, string> = {
+  attributes: 'Attributes',
+  killmails: 'Killmails',
+  'war-history': 'War History',
+  members: 'Members',
+  growth: 'Growth',
+};
 
 export default function AllianceDetailPage({
   params,
@@ -49,6 +66,7 @@ export default function AllianceDetailPage({
   const [activeTab, setActiveTab] = useState<TabType>(tabFromUrl);
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(pageSizeFromUrl);
+  const { onKeyDown } = useTabList(TAB_IDS, activeTab, setActiveTab);
 
   // Separate pagination for corporations
   const [corporationsPage, setCorporationsPage] = useState(1);
@@ -248,14 +266,6 @@ export default function AllianceDetailPage({
     );
   }
 
-  const tabs = [
-    { id: 'attributes' as TabType, label: 'Attributes' },
-    { id: 'killmails' as TabType, label: 'Killmails' },
-    { id: 'war-history' as TabType, label: 'War History' },
-    { id: 'members' as TabType, label: 'Members' },
-    { id: 'growth' as TabType, label: 'Growth' },
-  ];
-
   // Delta verilerini al (haftalık değişim)
   const memberDelta7d = alliance.metrics?.memberCountDelta7d ?? null;
   const memberGrowthRate7d = alliance.metrics?.memberCountGrowthRate7d ?? null;
@@ -317,7 +327,7 @@ export default function AllianceDetailPage({
 
   return (
     <main>
-      <div className="alliance-detail-card">
+      <div className="card p-6 flex flex-col">
         {/* Logo and Alliance Name */}
         <div className="flex flex-row items-center justify-between">
           <div className="flex items-center justify-center gap-6">
@@ -354,18 +364,20 @@ export default function AllianceDetailPage({
 
         {/* Tabs */}
         <div className="mb-6 border-b border-white/10">
-          <nav className="flex gap-4" aria-label="Tabs">
-            {tabs.map((tab) => (
+          <nav className="flex gap-4" aria-label="Tabs" role="tablist">
+            {TAB_IDS.map((tabId) => (
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-3 text-sm font-semibold transition-colors border-b-2 ${
-                  activeTab === tab.id
-                    ? 'border-cyan-500 text-cyan-500'
-                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
-                }`}
+                key={tabId}
+                role="tab"
+                id={`tab-${tabId}`}
+                aria-controls={`panel-${tabId}`}
+                aria-selected={activeTab === tabId}
+                tabIndex={activeTab === tabId ? 0 : -1}
+                onClick={() => setActiveTab(tabId)}
+                onKeyDown={onKeyDown}
+                className="tab"
               >
-                {tab.label}
+                {TAB_LABELS[tabId]}
               </button>
             ))}
           </nav>
@@ -374,7 +386,12 @@ export default function AllianceDetailPage({
         {/* Tab Content */}
         <div className="mt-6">
           {activeTab === 'attributes' && (
-            <div className="detail-tab-content">
+            <div
+              role="tabpanel"
+              id="panel-attributes"
+              aria-labelledby="tab-attributes"
+              className="detail-tab-content"
+            >
               <h2 className="mb-4 text-2xl font-bold">Attributes</h2>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -440,7 +457,12 @@ export default function AllianceDetailPage({
           )}
 
           {activeTab === 'growth' && (
-            <div className="detail-tab-content">
+            <div
+              role="tabpanel"
+              id="panel-growth"
+              aria-labelledby="tab-growth"
+              className="detail-tab-content"
+            >
               <AllianceGrowthChart
                 snapshots={growthData?.alliance?.snapshots ?? []}
                 loading={growthLoading}
@@ -449,7 +471,12 @@ export default function AllianceDetailPage({
           )}
 
           {activeTab === 'killmails' && (
-            <div className="killmails-tab">
+            <div
+              role="tabpanel"
+              id="panel-killmails"
+              aria-labelledby="tab-killmails"
+              className="killmails-tab"
+            >
               <h2 className="sr-only">Killmails</h2>
 
               {/* 2-column grid layout */}
@@ -572,7 +599,12 @@ export default function AllianceDetailPage({
           )}
 
           {activeTab === 'war-history' && (
-            <div className="detail-tab-content">
+            <div
+              role="tabpanel"
+              id="panel-war-history"
+              aria-labelledby="tab-war-history"
+              className="detail-tab-content"
+            >
               <h2 className="mb-4 text-2xl font-bold">War History</h2>
               <p className="text-gray-300">
                 War history information will be displayed here.
@@ -581,7 +613,12 @@ export default function AllianceDetailPage({
           )}
 
           {activeTab === 'members' && (
-            <div className="alliance-corporations-tab">
+            <div
+              role="tabpanel"
+              id="panel-members"
+              aria-labelledby="tab-members"
+              className="alliance-corporations-tab"
+            >
               <div className="sm:flex-auto">
                 <h2 className="sr-only">Member Corporations</h2>
                 {corporationsPageInfo?.totalCount !== undefined && (

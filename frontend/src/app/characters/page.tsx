@@ -1,7 +1,7 @@
 'use client';
 
 import CharacterCard from '@/components/Card/CharacterCard';
-import CharacterFilters from '@/components/Filters/CharacterFilters';
+import CharacterFilterForm from '@/components/Filters/CharacterFilterForm';
 import Loader from '@/components/Loader';
 import Paginator from '@/components/Paginator/Paginator';
 import { useCharactersQuery } from '@/generated/graphql';
@@ -125,7 +125,7 @@ function CharactersContent() {
 
       {/* Filters */}
       <div>
-        <CharacterFilters
+        <CharacterFilterForm
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}
           orderBy={orderBy}

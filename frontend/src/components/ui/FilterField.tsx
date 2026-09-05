@@ -5,6 +5,11 @@ export interface FilterFieldProps {
   label: string;
   /** Forwarded to the label's htmlFor, when the control has a matching id. */
   htmlFor?: string;
+  /**
+   * Persistent hint shown below the control, in small muted text.
+   * Unlike a placeholder, it stays visible while the user types.
+   */
+  hint?: string;
   children: ReactNode;
 }
 
@@ -15,6 +20,7 @@ export interface FilterFieldProps {
 export default function FilterField({
   label,
   htmlFor,
+  hint,
   children,
 }: FilterFieldProps) {
   return (
@@ -26,6 +32,14 @@ export default function FilterField({
         {label}
       </label>
       {children}
+      {hint && (
+        <p
+          id={htmlFor ? `${htmlFor}-hint` : undefined}
+          className="mt-1 text-[11px] text-gray-500"
+        >
+          {hint}
+        </p>
+      )}
     </div>
   );
 }

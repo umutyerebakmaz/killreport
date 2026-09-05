@@ -50,7 +50,7 @@ export default function TopShipsCard({
   }
 
   return (
-    <div className="top-ships">
+    <div>
       <div className="py-4 border-b border-white/10">
         <h3 className="text-lg font-semibold text-white">{title}</h3>
         {subtitle && (

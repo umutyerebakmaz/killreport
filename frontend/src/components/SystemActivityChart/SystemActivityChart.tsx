@@ -90,12 +90,9 @@ export default function SystemActivityChart({
           {(['24h', '7d'] as const).map((r) => (
             <button
               key={r}
+              aria-pressed={range === r}
+              className="button button-ghost button-sm"
               onClick={() => onRangeChange(r)}
-              className={`px-3 py-1 text-xs font-semibold border transition-colors ${
-                range === r
-                  ? 'border-cyan-500 text-cyan-500'
-                  : 'border-white/10 text-gray-400 hover:text-gray-200'
-              }`}
             >
               {r === '24h' ? '24 Hours' : '7 Days'}
             </button>
