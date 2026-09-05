@@ -8,6 +8,7 @@ import {
   MostValuableScope,
   useMostValuableKillmailsQuery,
 } from '@/generated/graphql';
+import { useTabList } from '@/hooks/useTabList';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -53,6 +54,9 @@ const TABS: Tab[] = [
   },
 ];
 
+/** Same order as TABS, derived rather than declared again. */
+const TAB_SCOPES: MostValuableScope[] = TABS.map((tab) => tab.scope);
+
 /**
  * The Most Valuable shelf on the killmails page. Self-contained: it owns its tab
  * state, its scrolling and its own query, so the page only has to place it.
@@ -64,6 +68,8 @@ export default function MostValuableCarousel() {
   const [activeScope, setActiveScope] = useState<MostValuableScope>(
     MostValuableScope.Ships,
   );
+
+  const { onKeyDown } = useTabList(TAB_SCOPES, activeScope, setActiveScope);
 
   const { data, loading } = useMostValuableKillmailsQuery({
     variables: { scope: activeScope, days: WINDOW_DAYS, limit: CARD_COUNT },
@@ -134,7 +140,9 @@ export default function MostValuableCarousel() {
               role="tab"
               aria-selected={tab.scope === activeScope}
               aria-controls={PANEL_ID}
+              tabIndex={tab.scope === activeScope ? 0 : -1}
               onClick={() => setActiveScope(tab.scope)}
+              onKeyDown={onKeyDown}
               className="button button-ghost button-sm"
             >
               {tab.label}
