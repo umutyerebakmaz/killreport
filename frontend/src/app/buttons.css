@@ -38,6 +38,10 @@
    * (0,2,0) and already outranks the appearance classes at (0,1,0), so none
    * are needed. The appearance can no longer drift from what a screen reader
    * announces.
+   *
+   * border-cyan-500/50 below only has a border to color: it takes effect
+   * alongside .button-secondary or .button-danger, which declare `border`.
+   * On .button-primary or .button-ghost it is inert.
    */
   .button[aria-pressed='true'] {
     @apply text-white bg-accent border-cyan-500/50;
