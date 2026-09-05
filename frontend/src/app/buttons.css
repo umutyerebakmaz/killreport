@@ -73,6 +73,20 @@
 }
 
 /*
+ * The underlined tab. Six detail pages (regions, alliances, solar-systems,
+ * corporations, characters, constellations) each write this bar out
+ * separately today. The selected state is read from ARIA here too.
+ */
+.tab {
+  @apply px-4 py-3 text-sm font-semibold transition-colors border-b-2 whitespace-nowrap
+    border-transparent text-gray-400 hover:text-white hover:border-white/20;
+}
+
+.tab[aria-selected='true'] {
+  @apply text-white border-accent;
+}
+
+/*
  * Browsers give <button> the arrow cursor, so the pointer has to be asked for.
  * It was being asked for one element at a time and 24 of the 85 buttons in the
  * app had been missed, so it is set once here instead. Disabled buttons keep
