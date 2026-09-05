@@ -57,7 +57,7 @@ export default function NotificationBell() {
                   <button
                     type="button"
                     onClick={clear}
-                    className="text-xs text-gray-400 hover:text-gray-200"
+                    className="button button-ghost button-sm"
                   >
                     Clear
                   </button>

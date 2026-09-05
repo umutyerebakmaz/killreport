@@ -10,7 +10,7 @@ export interface FilterDialogProps {
   onClose: () => void;
   title?: string;
   children: ReactNode;
-  /** Rendered in the sticky footer — typically the Apply button. */
+  /** Rendered in the sticky footer — the Clear and Apply actions. */
   footer?: ReactNode;
 }
 
@@ -31,10 +31,14 @@ export default function FilterDialog({
 }: FilterDialogProps) {
   return (
     <Dialog open={open} onClose={onClose} className="relative z-50">
-      <div aria-hidden="true" className="fixed inset-0 bg-black/70" />
+      {/* Lighter than it was: the panel above is glass, and glass with an
+          almost-opaque scrim behind it has nothing to blur. The scrim blurs
+          nothing itself — .float already blurs what sits behind it, and two
+          blurs stacked read as smeared rather than deep. */}
+      <div aria-hidden="true" className="fixed inset-0 bg-black/40" />
 
       <div className="fixed inset-0 flex items-start justify-center p-4 overflow-y-auto sm:p-6">
-        <DialogPanel className="w-full max-w-3xl my-8 border bg-neutral-900 border-white/10">
+        <DialogPanel className="float w-full max-w-3xl my-8">
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
             <DialogTitle className="text-lg font-semibold text-white">
               {title}
@@ -42,7 +46,7 @@ export default function FilterDialog({
             <button
               type="button"
               onClick={onClose}
-              className="p-1 text-gray-400 transition-colors hover:text-white"
+              className="button button-ghost button-icon"
             >
               <span className="sr-only">Close filters</span>
               <XMarkIcon aria-hidden="true" className="size-6" />
@@ -52,7 +56,7 @@ export default function FilterDialog({
           <div className="p-6 space-y-4">{children}</div>
 
           {footer && (
-            <div className="flex justify-end px-6 py-4 border-t border-white/10">
+            <div className="flex justify-end gap-2 px-6 py-4 border-t border-white/10">
               {footer}
             </div>
           )}

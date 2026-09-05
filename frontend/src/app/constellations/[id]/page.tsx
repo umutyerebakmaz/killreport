@@ -3,6 +3,7 @@
 import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
 import SecurityBadge from '@/components/SecurityStatus/SecurityStatus';
 import { useConstellationQuery } from '@/generated/graphql';
+import { useTabList } from '@/hooks/useTabList';
 import { GlobeAltIcon, MapIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { use, useState } from 'react';
@@ -13,11 +14,14 @@ interface ConstellationDetailPageProps {
 
 type TabType = 'overview' | 'systems';
 
+const TAB_IDS: TabType[] = ['overview', 'systems'];
+
 export default function ConstellationDetailPage({
   params,
 }: ConstellationDetailPageProps) {
   const { id } = use(params);
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const { onKeyDown } = useTabList(TAB_IDS, activeTab, setActiveTab);
 
   const { data, loading, error } = useConstellationQuery({
     variables: { id: parseInt(id) },
@@ -52,17 +56,14 @@ export default function ConstellationDetailPage({
     );
   }
 
-  const tabs = [
-    { id: 'overview' as TabType, label: 'Overview' },
-    {
-      id: 'systems' as TabType,
-      label: `Solar Systems (${constellation.solarSystemCount})`,
-    },
-  ];
+  const tabLabels: Record<TabType, string> = {
+    overview: 'Overview',
+    systems: `Solar Systems (${constellation.solarSystemCount})`,
+  };
 
   return (
     <div>
-      <div className="constellation-detail-card">
+      <div className="card p-6 flex flex-col">
         {/* Header */}
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-start gap-6">
@@ -136,18 +137,20 @@ export default function ConstellationDetailPage({
 
         {/* Tabs */}
         <div className="mt-8 border-b border-white/10">
-          <nav className="flex gap-4" aria-label="Tabs">
-            {tabs.map((tab) => (
+          <nav className="flex gap-4" aria-label="Tabs" role="tablist">
+            {TAB_IDS.map((tabId) => (
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-3 text-sm font-semibold transition-colors border-b-2 ${
-                  activeTab === tab.id
-                    ? 'border-cyan-500 text-cyan-500'
-                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
-                }`}
+                key={tabId}
+                role="tab"
+                id={`tab-${tabId}`}
+                aria-controls={`panel-${tabId}`}
+                aria-selected={activeTab === tabId}
+                tabIndex={activeTab === tabId ? 0 : -1}
+                onClick={() => setActiveTab(tabId)}
+                onKeyDown={onKeyDown}
+                className="tab"
               >
-                {tab.label}
+                {tabLabels[tabId]}
               </button>
             ))}
           </nav>
@@ -156,7 +159,12 @@ export default function ConstellationDetailPage({
         {/* Tab Content */}
         <div className="mt-6">
           {activeTab === 'overview' && (
-            <div className="grid gap-6 md:grid-cols-2">
+            <div
+              role="tabpanel"
+              id="panel-overview"
+              aria-labelledby="tab-overview"
+              className="grid gap-6 md:grid-cols-2"
+            >
               {/* Constellation Info */}
               <div className="p-6 border bg-white/5 border-white/10">
                 <h2 className="mb-4 text-xl font-bold">
@@ -267,7 +275,12 @@ export default function ConstellationDetailPage({
           )}
 
           {activeTab === 'systems' && (
-            <div className="overflow-hidden border border-white/10">
+            <div
+              role="tabpanel"
+              id="panel-systems"
+              aria-labelledby="tab-systems"
+              className="overflow-hidden border border-white/10"
+            >
               <table className="table">
                 <thead className="bg-neutral-800">
                   <tr>

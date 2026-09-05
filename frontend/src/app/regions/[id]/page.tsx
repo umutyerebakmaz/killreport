@@ -3,6 +3,7 @@
 import Loader from '@/components/Loader';
 import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
 import { useRegionQuery } from '@/generated/graphql';
+import { useTabList } from '@/hooks/useTabList';
 import { GlobeAltIcon, MapIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { use, useState } from 'react';
@@ -13,9 +14,12 @@ interface RegionDetailPageProps {
 
 type TabType = 'overview' | 'constellations';
 
+const TAB_IDS: TabType[] = ['overview', 'constellations'];
+
 export default function RegionDetailPage({ params }: RegionDetailPageProps) {
   const { id } = use(params);
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const { onKeyDown } = useTabList(TAB_IDS, activeTab, setActiveTab);
 
   const { data, loading, error } = useRegionQuery({
     variables: { id: parseInt(id) },
@@ -43,17 +47,14 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
     );
   }
 
-  const tabs = [
-    { id: 'overview' as TabType, label: 'Overview' },
-    {
-      id: 'constellations' as TabType,
-      label: `Constellations (${region.constellationCount})`,
-    },
-  ];
+  const tabLabels: Record<TabType, string> = {
+    overview: 'Overview',
+    constellations: `Constellations (${region.constellationCount})`,
+  };
 
   return (
     <div>
-      <div className="region-detail-card">
+      <div className="card p-6 flex flex-col">
         {/* Header */}
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-start gap-6">
@@ -124,18 +125,20 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
 
         {/* Tabs */}
         <div className="mt-8 border-b border-white/10">
-          <nav className="flex gap-4" aria-label="Tabs">
-            {tabs.map((tab) => (
+          <nav className="flex gap-4" aria-label="Tabs" role="tablist">
+            {TAB_IDS.map((tabId) => (
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-3 text-sm font-semibold transition-colors border-b-2 ${
-                  activeTab === tab.id
-                    ? 'border-cyan-500 text-cyan-500'
-                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
-                }`}
+                key={tabId}
+                role="tab"
+                id={`tab-${tabId}`}
+                aria-controls={`panel-${tabId}`}
+                aria-selected={activeTab === tabId}
+                tabIndex={activeTab === tabId ? 0 : -1}
+                onClick={() => setActiveTab(tabId)}
+                onKeyDown={onKeyDown}
+                className="tab"
               >
-                {tab.label}
+                {tabLabels[tabId]}
               </button>
             ))}
           </nav>
@@ -144,7 +147,12 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
         {/* Tab Content */}
         <div className="mt-6">
           {activeTab === 'overview' && (
-            <div className="grid gap-6 md:grid-cols-2">
+            <div
+              role="tabpanel"
+              id="panel-overview"
+              aria-labelledby="tab-overview"
+              className="grid gap-6 md:grid-cols-2"
+            >
               {/* Region Info */}
               <div className="p-6 border bg-white/5 border-white/10">
                 <h2 className="mb-4 text-xl font-bold">Region Information</h2>
@@ -218,7 +226,12 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
           )}
 
           {activeTab === 'constellations' && (
-            <div className="overflow-hidden border border-white/10">
+            <div
+              role="tabpanel"
+              id="panel-constellations"
+              aria-labelledby="tab-constellations"
+              className="overflow-hidden border border-white/10"
+            >
               <table className="table">
                 <thead className="bg-neutral-800">
                   <tr>

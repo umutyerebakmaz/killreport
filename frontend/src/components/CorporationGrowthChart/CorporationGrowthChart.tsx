@@ -180,12 +180,9 @@ export default function CorporationGrowthChart({
           {(Object.keys(RANGE_LABELS) as RangeType[]).map((r) => (
             <button
               key={r}
+              aria-pressed={range === r}
+              className="button button-ghost button-sm"
               onClick={() => setRange(r)}
-              className={`px-3 py-1 text-xs font-semibold transition-colors ${
-                range === r
-                  ? 'bg-cyan-600/80 text-white'
-                  : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-gray-200'
-              }`}
             >
               {RANGE_LABELS[r]}
             </button>

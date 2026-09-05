@@ -259,7 +259,7 @@ function HistoryContent() {
               type="button"
               disabled={page === 0}
               onClick={() => setPage((p) => Math.max(0, p - 1))}
-              className="px-3 py-1 border border-white/10 text-gray-300 disabled:opacity-40 hover:bg-neutral-900"
+              className="button button-secondary button-sm"
             >
               ← Prev
             </button>
@@ -270,7 +270,7 @@ function HistoryContent() {
               type="button"
               disabled={page >= totalPages - 1}
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-              className="px-3 py-1 border border-white/10 text-gray-300 disabled:opacity-40 hover:bg-neutral-900"
+              className="button button-secondary button-sm"
             >
               Next →
             </button>

@@ -1,6 +1,6 @@
 'use client';
 
-import KillmailFilters from '@/components/Filters/KillmailFilters';
+import KillmailFilterForm from '@/components/Filters/KillmailFilterForm';
 import KillmailsTable from '@/components/KillmailsTable';
 import Loader from '@/components/Loader';
 import MostValuableCarousel from '@/components/MostValuableCarousel/MostValuableCarousel';
@@ -18,7 +18,7 @@ import {
 import {
   buildKillmailFiltersUrl,
   parseKillmailFiltersFromUrl,
-  type KillmailFilters as KillmailFilterValues,
+  type KillmailFilters,
 } from '@/utils/filterUrlHelpers';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
@@ -62,7 +62,7 @@ function KillmailsContent() {
 
   const [currentPage, setCurrentPage] = useState(urlFilters.page);
   const [pageSize, setPageSize] = useState(25);
-  const [filters, setFilters] = useState<KillmailFilterValues>({
+  const [filters, setFilters] = useState<KillmailFilters>({
     characterId: urlFilters.characterId,
     shipTypeId: urlFilters.shipTypeId,
     shipGroupIds: urlFilters.shipGroupIds,
@@ -168,7 +168,7 @@ function KillmailsContent() {
     [currentPage, resetRealtimeState],
   );
 
-  const handleFilterChange = (newFilters: KillmailFilterValues) => {
+  const handleFilterChange = (newFilters: KillmailFilters) => {
     setFilters(newFilters);
     resetRealtimeState();
     setCurrentPage(1); // Reset to first page when filters change
@@ -323,7 +323,7 @@ function KillmailsContent() {
 
       {/* Filters */}
       <div>
-        <KillmailFilters
+        <KillmailFilterForm
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}
           initialShipTypeId={urlFilters.shipTypeId}

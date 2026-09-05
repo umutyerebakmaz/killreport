@@ -146,7 +146,8 @@ function KillmailToastItem({
         {/* Dismiss button */}
         <button
           onClick={handleDismiss}
-          className="absolute p-1 text-gray-500 transition-colors top-2 right-2 hover:text-gray-300 hover:bg-gray-800"
+          className="button button-ghost button-icon absolute top-2 right-2"
+          aria-label="Dismiss notification"
         >
           <XMarkIcon className="w-4 h-4" />
         </button>

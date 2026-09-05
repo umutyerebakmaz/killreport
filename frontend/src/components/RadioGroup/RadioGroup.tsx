@@ -12,6 +12,15 @@ interface RadioGroupProps<T extends string> {
   disabled?: boolean;
 }
 
+/**
+ * A one-of-N choice, wearing the secondary button appearance.
+ *
+ * It stays a real radio group rather than becoming buttons: the semantics of
+ * "pick exactly one" are what a screen reader needs, and only the looks were
+ * ever the problem. The input is visually hidden and the label carries the
+ * appearance, so `.button-secondary:has(:checked)` paints the selected one —
+ * the same rule that serves `aria-selected` and `aria-pressed` elsewhere.
+ */
 export default function RadioGroup<T extends string>({
   name,
   options,
@@ -20,18 +29,9 @@ export default function RadioGroup<T extends string>({
   disabled = false,
 }: RadioGroupProps<T>) {
   return (
-    <div
-      className={`grid gap-2`}
-      style={{
-        gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))`,
-      }}
-    >
+    <div className="flex flex-wrap gap-1">
       {options.map((option) => (
-        <label
-          key={option.value}
-          aria-label={option.label}
-          className="relative flex items-center justify-center p-2 duration-150 border group border-white/10 bg-gray-800/50 has-checked:border-indigo-500 has-checked:bg-indigo-500 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-indigo-500 has-disabled:border-white/10 has-disabled:bg-gray-800 has-disabled:opacity-25 has-disabled:cursor-not-allowed transition-color"
-        >
+        <label key={option.value} className="button button-secondary button-sm">
           <input
             type="radio"
             name={name}
@@ -39,9 +39,9 @@ export default function RadioGroup<T extends string>({
             checked={value === option.value}
             disabled={disabled || option.disabled}
             onChange={() => onChange(option.value)}
-            className="absolute inset-0 appearance-none cursor-pointer focus:outline-none disabled:cursor-not-allowed"
+            className="sr-only"
           />
-          <span className="text-xs font-medium text-white">{option.label}</span>
+          {option.label}
         </label>
       ))}
     </div>

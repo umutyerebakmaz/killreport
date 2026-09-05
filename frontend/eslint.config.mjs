@@ -8,6 +8,9 @@ const eslintConfig = [
     ignores: [
       'node_modules/**',
       '.next/**',
+      // build:check writes here so a verification build cannot disturb the dev
+      // server; without this line eslint walks it and reports ~13k problems.
+      '.next-check/**',
       'out/**',
       'build/**',
       'next-env.d.ts',

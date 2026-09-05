@@ -1,7 +1,7 @@
 'use client';
 
 import AvgSecurity from '@/components/AvgSecurity/AvgSecurity';
-import ConstellationFilters from '@/components/Filters/ConstellationFilters';
+import ConstellationFilterForm from '@/components/Filters/ConstellationFilterForm';
 import { Loader } from '@/components/Loader/Loader';
 import Paginator from '@/components/Paginator/Paginator';
 import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
@@ -88,7 +88,7 @@ function ConstellationsContent() {
       <h1 className="sr-only">Constellations</h1>
 
       <div>
-        <ConstellationFilters
+        <ConstellationFilterForm
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}
           orderBy={orderBy}

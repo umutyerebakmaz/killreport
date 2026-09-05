@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "yarn kill && next dev --turbopack",
-    "build": "yarn kill && next build --turbopack",
+    "build": "next build --turbopack",
+    "build:check": "NEXT_DIST_DIR=.next-check next build --turbopack",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
