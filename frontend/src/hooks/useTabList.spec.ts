@@ -135,14 +135,59 @@ describe('useTabList', () => {
       {},
       {},
     ] as unknown as NodeListOf<HTMLElement>;
-    const parentElement = {
+    const tablist = {
       querySelectorAll: vi.fn(() => tabElements),
     };
-    const currentTarget = { parentElement } as unknown as Partial<HTMLElement>;
+    const currentTarget = {
+      closest: vi.fn(() => tablist),
+    } as unknown as Partial<HTMLElement>;
 
     fireKey(result.current.onKeyDown, 'ArrowRight', currentTarget);
 
-    expect(parentElement.querySelectorAll).toHaveBeenCalledWith('[role="tab"]');
+    expect(
+      (currentTarget as unknown as { closest: (selector: string) => unknown })
+        .closest,
+    ).toHaveBeenCalledWith('[role="tablist"]');
+    expect(tablist.querySelectorAll).toHaveBeenCalledWith('[role="tab"]');
     expect(nextTabButton.focus).toHaveBeenCalled();
+  });
+
+  it('moves focus to the next tab even when a tab sits inside a wrapper element', () => {
+    // Regression test: the lookup must scope to the tablist itself, not to
+    // whatever the currently focused tab's immediate parent happens to be.
+    // Here the focused tab ("members") is nested inside a <span> (e.g. a
+    // badge wrapper), so its parentElement is the span, not the tablist.
+    const onTabChange = vi.fn();
+    const { result } = renderHook(() =>
+      useTabList(tabs, 'members', onTabChange),
+    );
+
+    const tablist = document.createElement('div');
+    tablist.setAttribute('role', 'tablist');
+
+    const overviewButton = document.createElement('button');
+    overviewButton.setAttribute('role', 'tab');
+    tablist.appendChild(overviewButton);
+
+    const wrapper = document.createElement('span');
+    const membersButton = document.createElement('button');
+    membersButton.setAttribute('role', 'tab');
+    wrapper.appendChild(membersButton);
+    tablist.appendChild(wrapper);
+
+    const killmailsButton = document.createElement('button');
+    killmailsButton.setAttribute('role', 'tab');
+    tablist.appendChild(killmailsButton);
+
+    const growthButton = document.createElement('button');
+    growthButton.setAttribute('role', 'tab');
+    tablist.appendChild(growthButton);
+
+    const focusSpy = vi.spyOn(killmailsButton, 'focus');
+
+    fireKey(result.current.onKeyDown, 'ArrowRight', membersButton);
+
+    expect(onTabChange).toHaveBeenCalledWith('killmails');
+    expect(focusSpy).toHaveBeenCalled();
   });
 });

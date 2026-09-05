@@ -10,8 +10,10 @@ export interface UseTabListResult {
  *
  * Left/Right move the selection by one tab, wrapping past either end; Home
  * and End jump straight to the first and last tab. The tab that becomes
- * selected also receives DOM focus, via the button's own parent element, so
- * the arrow keys keep working without the user pressing Tab again.
+ * selected also receives DOM focus, found by walking up to the enclosing
+ * `role="tablist"` and querying its `role="tab"` descendants, so the arrow
+ * keys keep working without the user pressing Tab again — and without
+ * assuming every tab is a direct child of the tablist.
  *
  * @param tabs - the tab ids, in the order they are rendered
  * @param activeTab - the currently selected tab id
@@ -50,11 +52,12 @@ export function useTabList<T extends string>(
     event.preventDefault();
     onTabChange(tabs[nextIndex]);
 
-    const tabElements =
-      event.currentTarget?.parentElement?.querySelectorAll<HTMLElement>(
-        '[role="tab"]',
-      );
-    tabElements?.[nextIndex]?.focus();
+    const tablist = event.currentTarget?.closest('[role="tablist"]');
+    if (!tablist) {
+      return;
+    }
+    const tabElements = tablist.querySelectorAll<HTMLElement>('[role="tab"]');
+    tabElements[nextIndex]?.focus();
   };
 
   return { onKeyDown };
