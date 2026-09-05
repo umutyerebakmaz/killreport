@@ -143,7 +143,7 @@ export default function MostValuableCarousel() {
               tabIndex={tab.scope === activeScope ? 0 : -1}
               onClick={() => setActiveScope(tab.scope)}
               onKeyDown={onKeyDown}
-              className="button button-ghost button-sm"
+              className="button button-secondary button-sm"
             >
               {tab.label}
             </button>

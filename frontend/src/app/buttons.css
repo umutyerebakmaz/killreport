@@ -95,6 +95,24 @@
     @apply bg-white/10;
   }
 
+  /* Secondary's "on" state, for all three mechanisms at once. It already has
+     a ground, so selection is marked with the accent on the border rather
+     than a fill — the fill stays reserved for an engaged toggle.
+     The :hover pair below is not optional: .button-secondary's own hover sets
+     border-white/20 at the same (0,2,0), and without these it would wash the
+     accent border off under the pointer. */
+  .button-secondary[aria-selected='true'],
+  .button-secondary[aria-pressed='true'],
+  .button-secondary:has(:checked) {
+    @apply text-white border-accent bg-surface-inset;
+  }
+
+  .button-secondary[aria-selected='true']:hover,
+  .button-secondary[aria-pressed='true']:hover,
+  .button-secondary:has(:checked):hover {
+    @apply border-accent;
+  }
+
   /* --- Modifiers ---
    * These must come AFTER the appearances: they match .button's specificity
    * (0,1,0), so source order is the only thing letting them win on padding. */
