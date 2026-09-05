@@ -8,10 +8,14 @@
  */
 
 @layer components {
+  /* The pointer is on .button rather than only on <button> in the base layer,
+     because a <label> wrapping a radio wears this class too and the base rule
+     cannot see it. `.button-ghost:has(:disabled)` takes it back for a disabled
+     one, since a label has no :disabled of its own. */
   .button {
     @apply inline-flex items-center justify-center gap-x-1.5 px-4 py-2.5 text-sm font-medium
-      transition-colors focus:outline-none focus-visible:outline-1 focus-visible:outline-white/40
-      disabled:opacity-50 disabled:cursor-not-allowed;
+      cursor-pointer transition-colors focus:outline-none focus-visible:outline-1
+      focus-visible:outline-white/40 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   /* --- Appearances --- */
