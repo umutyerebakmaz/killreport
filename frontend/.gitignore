@@ -15,6 +15,7 @@
 
 # next.js
 /.next/
+/.next-check/
 /out/
 /AGENTS.md
 /CLAUDE.md
