@@ -47,13 +47,10 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
     );
   }
 
-  const tabs = [
-    { id: 'overview' as TabType, label: 'Overview' },
-    {
-      id: 'constellations' as TabType,
-      label: `Constellations (${region.constellationCount})`,
-    },
-  ];
+  const tabLabels: Record<TabType, string> = {
+    overview: 'Overview',
+    constellations: `Constellations (${region.constellationCount})`,
+  };
 
   return (
     <div>
@@ -129,19 +126,19 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
         {/* Tabs */}
         <div className="mt-8 border-b border-white/10">
           <nav className="flex gap-4" aria-label="Tabs" role="tablist">
-            {tabs.map((tab) => (
+            {TAB_IDS.map((tabId) => (
               <button
-                key={tab.id}
+                key={tabId}
                 role="tab"
-                id={`tab-${tab.id}`}
-                aria-controls={`panel-${tab.id}`}
-                aria-selected={activeTab === tab.id}
-                tabIndex={activeTab === tab.id ? 0 : -1}
-                onClick={() => setActiveTab(tab.id)}
+                id={`tab-${tabId}`}
+                aria-controls={`panel-${tabId}`}
+                aria-selected={activeTab === tabId}
+                tabIndex={activeTab === tabId ? 0 : -1}
+                onClick={() => setActiveTab(tabId)}
                 onKeyDown={onKeyDown}
                 className="tab"
               >
-                {tab.label}
+                {tabLabels[tabId]}
               </button>
             ))}
           </nav>

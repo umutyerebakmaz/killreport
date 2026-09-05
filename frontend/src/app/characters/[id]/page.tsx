@@ -31,6 +31,12 @@ type TabType = 'bio' | 'killmails' | 'statistics';
 
 const TAB_IDS: TabType[] = ['bio', 'killmails', 'statistics'];
 
+const TAB_LABELS: Record<TabType, string> = {
+  bio: 'Bio',
+  killmails: 'Killmails',
+  statistics: 'Statistics',
+};
+
 export default function CharacterDetailPage({
   params,
 }: CharacterDetailPageProps) {
@@ -208,12 +214,6 @@ export default function CharacterDetailPage({
       dogmaAttributes: ship.shipType.dogmaAttributes,
     })) || [];
 
-  const tabs = [
-    { id: 'bio' as TabType, label: 'Bio' },
-    { id: 'killmails' as TabType, label: 'Killmails' },
-    { id: 'statistics' as TabType, label: 'Statistics' },
-  ];
-
   const age = calculateAge(character.birthday);
   const updatedAt = humanReadableDate(character.updatedAt);
   const updatedAtHuman = calculateAge(character.updatedAt);
@@ -336,19 +336,19 @@ export default function CharacterDetailPage({
         {/* Tabs */}
         <div className="mb-6 border-b border-white/10">
           <nav className="flex gap-4" aria-label="Tabs" role="tablist">
-            {tabs.map((tab) => (
+            {TAB_IDS.map((tabId) => (
               <button
-                key={tab.id}
+                key={tabId}
                 role="tab"
-                id={`tab-${tab.id}`}
-                aria-controls={`panel-${tab.id}`}
-                aria-selected={activeTab === tab.id}
-                tabIndex={activeTab === tab.id ? 0 : -1}
-                onClick={() => setActiveTab(tab.id)}
+                id={`tab-${tabId}`}
+                aria-controls={`panel-${tabId}`}
+                aria-selected={activeTab === tabId}
+                tabIndex={activeTab === tabId ? 0 : -1}
+                onClick={() => setActiveTab(tabId)}
                 onKeyDown={onKeyDown}
                 className="tab"
               >
-                {tab.label}
+                {TAB_LABELS[tabId]}
               </button>
             ))}
           </nav>

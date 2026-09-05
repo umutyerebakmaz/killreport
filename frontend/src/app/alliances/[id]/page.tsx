@@ -44,6 +44,14 @@ const TAB_IDS: TabType[] = [
   'growth',
 ];
 
+const TAB_LABELS: Record<TabType, string> = {
+  attributes: 'Attributes',
+  killmails: 'Killmails',
+  'war-history': 'War History',
+  members: 'Members',
+  growth: 'Growth',
+};
+
 export default function AllianceDetailPage({
   params,
 }: AllianceDetailPageProps) {
@@ -258,14 +266,6 @@ export default function AllianceDetailPage({
     );
   }
 
-  const tabs = [
-    { id: 'attributes' as TabType, label: 'Attributes' },
-    { id: 'killmails' as TabType, label: 'Killmails' },
-    { id: 'war-history' as TabType, label: 'War History' },
-    { id: 'members' as TabType, label: 'Members' },
-    { id: 'growth' as TabType, label: 'Growth' },
-  ];
-
   // Delta verilerini al (haftalık değişim)
   const memberDelta7d = alliance.metrics?.memberCountDelta7d ?? null;
   const memberGrowthRate7d = alliance.metrics?.memberCountGrowthRate7d ?? null;
@@ -365,19 +365,19 @@ export default function AllianceDetailPage({
         {/* Tabs */}
         <div className="mb-6 border-b border-white/10">
           <nav className="flex gap-4" aria-label="Tabs" role="tablist">
-            {tabs.map((tab) => (
+            {TAB_IDS.map((tabId) => (
               <button
-                key={tab.id}
+                key={tabId}
                 role="tab"
-                id={`tab-${tab.id}`}
-                aria-controls={`panel-${tab.id}`}
-                aria-selected={activeTab === tab.id}
-                tabIndex={activeTab === tab.id ? 0 : -1}
-                onClick={() => setActiveTab(tab.id)}
+                id={`tab-${tabId}`}
+                aria-controls={`panel-${tabId}`}
+                aria-selected={activeTab === tabId}
+                tabIndex={activeTab === tabId ? 0 : -1}
+                onClick={() => setActiveTab(tabId)}
                 onKeyDown={onKeyDown}
                 className="tab"
               >
-                {tab.label}
+                {TAB_LABELS[tabId]}
               </button>
             ))}
           </nav>
