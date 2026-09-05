@@ -67,7 +67,7 @@ export default function KillmailsTable({
             </h2>
 
             {/* Table for this date */}
-            <div className="border border-neutral-800">
+            <div className="border border-white/10">
               <table className="table w-full table-fixed">
                 <colgroup>
                   <col className="w-10" />
