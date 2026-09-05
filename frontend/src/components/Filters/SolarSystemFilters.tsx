@@ -429,25 +429,23 @@ export default function SolarSystemFilters({
 
             {/* Solar System chip */}
             {selectedSystemName && (
-              <div className="flex flex-col gap-2 mt-3">
-                <div className="text-xs font-medium text-gray-400">
+              <div className="mt-3">
+                <div className="mb-2 text-xs font-medium text-gray-400">
                   Solar System
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
-                    <span className="font-semibold truncate">
-                      {selectedSystemName}
-                    </span>
-                  </div>
+                <span className="chip">
+                  <span className="font-semibold truncate">
+                    {selectedSystemName}
+                  </span>
                   <button
                     type="button"
                     onClick={() => setSelectedSystemName('')}
-                    className="button button-ghost button-icon"
+                    className="button button-ghost p-1"
                     aria-label="Remove solar system filter"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
-                </div>
+                </span>
               </div>
             )}
           </FilterField>
@@ -473,14 +471,14 @@ export default function SolarSystemFilters({
 
             {/* Region chip */}
             {selectedRegionId && (
-              <div className="flex flex-col gap-2 mt-3">
-                <div className="text-xs font-medium text-gray-400">Region</div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
-                    <span className="font-semibold truncate">
-                      {selectedRegionName || `Region ${selectedRegionId}`}
-                    </span>
-                  </div>
+              <div className="mt-3">
+                <div className="mb-2 text-xs font-medium text-gray-400">
+                  Region
+                </div>
+                <span className="chip">
+                  <span className="font-semibold truncate">
+                    {selectedRegionName || `Region ${selectedRegionId}`}
+                  </span>
                   <button
                     type="button"
                     onClick={() => {
@@ -490,12 +488,12 @@ export default function SolarSystemFilters({
                       setSelectedConstellationId('');
                       setSelectedConstellationName('');
                     }}
-                    className="button button-ghost button-icon"
+                    className="button button-ghost p-1"
                     aria-label="Remove region filter"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
-                </div>
+                </span>
               </div>
             )}
           </FilterField>
@@ -522,29 +520,27 @@ export default function SolarSystemFilters({
 
             {/* Constellation chip */}
             {selectedConstellationId && (
-              <div className="flex flex-col gap-2 mt-3">
-                <div className="text-xs font-medium text-gray-400">
+              <div className="mt-3">
+                <div className="mb-2 text-xs font-medium text-gray-400">
                   Constellation
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
-                    <span className="font-semibold truncate">
-                      {selectedConstellationName ||
-                        `Constellation ${selectedConstellationId}`}
-                    </span>
-                  </div>
+                <span className="chip">
+                  <span className="font-semibold truncate">
+                    {selectedConstellationName ||
+                      `Constellation ${selectedConstellationId}`}
+                  </span>
                   <button
                     type="button"
                     onClick={() => {
                       setSelectedConstellationId('');
                       setSelectedConstellationName('');
                     }}
-                    className="button button-ghost button-icon"
+                    className="button button-ghost p-1"
                     aria-label="Remove constellation filter"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
-                </div>
+                </span>
               </div>
             )}
           </FilterField>

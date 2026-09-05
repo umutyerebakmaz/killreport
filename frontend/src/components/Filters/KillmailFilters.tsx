@@ -749,22 +749,20 @@ export default function KillmailFilters({
 
             {/* Character chip + its own RadioGroup */}
             {characterId && (
-              <div className="flex flex-col gap-2 mt-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-gray-700/50">
-                    <img
-                      src={`https://images.evetech.net/characters/${characterId}/portrait?size=64`}
-                      alt={characterName}
-                      className="object-cover size-8"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          '/images/default-avatar.png';
-                      }}
-                    />
-                    <span className="font-semibold truncate">
-                      {characterName}
-                    </span>
-                  </div>
+              <div className="flex flex-wrap items-center justify-between gap-3 mt-3">
+                <span className="chip">
+                  <img
+                    src={`https://images.evetech.net/characters/${characterId}/portrait?size=64`}
+                    alt={characterName}
+                    className="object-cover size-8"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        '/images/default-avatar.png';
+                    }}
+                  />
+                  <span className="font-semibold truncate">
+                    {characterName}
+                  </span>
                   <button
                     type="button"
                     onClick={() => {
@@ -772,12 +770,12 @@ export default function KillmailFilters({
                       setCharacterName('');
                       setCharacterRole('all');
                     }}
-                    className="button button-ghost button-icon"
+                    className="button button-ghost p-1"
                     aria-label="Remove character filter"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
-                </div>
+                </span>
                 <RadioGroup
                   name="character-role"
                   value={characterRole}
@@ -879,22 +877,18 @@ export default function KillmailFilters({
 
             {/* Ship chip + its own RadioGroup */}
             {shipTypeId && (
-              <div className="flex flex-col gap-2 mt-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-gray-700/50">
-                    <img
-                      src={`https://images.evetech.net/types/${shipTypeId}/icon?size=64`}
-                      alt={shipTypeName}
-                      className="object-cover size-8"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          '/images/default-ship.png';
-                      }}
-                    />
-                    <span className="font-semibold truncate">
-                      {shipTypeName}
-                    </span>
-                  </div>
+              <div className="flex flex-wrap items-center justify-between gap-3 mt-3">
+                <span className="chip">
+                  <img
+                    src={`https://images.evetech.net/types/${shipTypeId}/icon?size=64`}
+                    alt={shipTypeName}
+                    className="object-cover size-8"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        '/images/default-ship.png';
+                    }}
+                  />
+                  <span className="font-semibold truncate">{shipTypeName}</span>
                   <button
                     type="button"
                     onClick={() => {
@@ -902,12 +896,12 @@ export default function KillmailFilters({
                       setShipTypeName('');
                       setShipRole('all');
                     }}
-                    className="button button-ghost button-icon"
+                    className="button button-ghost p-1"
                     aria-label="Remove ship filter"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
-                </div>
+                </span>
                 <RadioGroup
                   name="ship-type-role"
                   value={shipRole}
@@ -1009,39 +1003,41 @@ export default function KillmailFilters({
 
             {/* Ship Groups chips */}
             {shipGroupIds.length > 0 && (
-              <div className="flex flex-col gap-2 mt-3">
-                <div className="text-xs font-medium text-gray-400">
+              <div className="mt-3">
+                <div className="mb-2 text-xs font-medium text-gray-400">
                   Ship Groups
                 </div>
-                {shipGroupIds.map((groupId) => (
-                  <div key={groupId} className="flex items-center gap-2">
-                    <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-blue-900/30">
-                      <span className="font-semibold truncate">
-                        {shipGroupNames.get(groupId) || `Group ${groupId}`}
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {shipGroupIds.map((groupId) => (
+                      <span key={groupId} className="chip">
+                        <span className="font-semibold truncate">
+                          {shipGroupNames.get(groupId) || `Group ${groupId}`}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleGroupRemove(groupId)}
+                          className="button button-ghost p-1"
+                          aria-label="Remove ship group filter"
+                        >
+                          <XMarkIcon className="w-4 h-4" />
+                        </button>
                       </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleGroupRemove(groupId)}
-                      className="button button-ghost button-icon"
-                      aria-label="Remove ship group filter"
-                    >
-                      <XMarkIcon className="w-4 h-4" />
-                    </button>
+                    ))}
                   </div>
-                ))}
-                {!shipTypeId && (
-                  <RadioGroup
-                    name="ship-group-role"
-                    value={shipRole}
-                    onChange={setShipRole}
-                    options={[
-                      { value: 'all', label: 'All' },
-                      { value: 'victim', label: 'Victim' },
-                      { value: 'attacker', label: 'Attacker' },
-                    ]}
-                  />
-                )}
+                  {!shipTypeId && (
+                    <RadioGroup
+                      name="ship-group-role"
+                      value={shipRole}
+                      onChange={setShipRole}
+                      options={[
+                        { value: 'all', label: 'All' },
+                        { value: 'victim', label: 'Victim' },
+                        { value: 'attacker', label: 'Attacker' },
+                      ]}
+                    />
+                  )}
+                </div>
               </div>
             )}
           </FilterField>
@@ -1155,16 +1151,14 @@ export default function KillmailFilters({
 
             {/* Solar System chip */}
             {systemId && (
-              <div className="flex flex-col gap-2 mt-3">
-                <div className="text-xs font-medium text-gray-400">
+              <div className="mt-3">
+                <div className="mb-2 text-xs font-medium text-gray-400">
                   Solar System
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
-                    <span className="font-semibold truncate">
-                      {solarSystemName || `System ${systemId}`}
-                    </span>
-                  </div>
+                <span className="chip">
+                  <span className="font-semibold truncate">
+                    {solarSystemName || `System ${systemId}`}
+                  </span>
                   <button
                     type="button"
                     onClick={() => {
@@ -1180,12 +1174,12 @@ export default function KillmailFilters({
                       setSystemId(undefined);
                       setSolarSystemName('');
                     }}
-                    className="button button-ghost button-icon"
+                    className="button button-ghost p-1"
                     aria-label="Remove solar system filter"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
-                </div>
+                </span>
               </div>
             )}
           </FilterField>
@@ -1286,26 +1280,26 @@ export default function KillmailFilters({
 
             {/* Region chip */}
             {regionId && (
-              <div className="flex flex-col gap-2 mt-3">
-                <div className="text-xs font-medium text-gray-400">Region</div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
-                    <span className="font-semibold truncate">
-                      {regionName || `Region ${regionId}`}
-                    </span>
-                  </div>
+              <div className="mt-3">
+                <div className="mb-2 text-xs font-medium text-gray-400">
+                  Region
+                </div>
+                <span className="chip">
+                  <span className="font-semibold truncate">
+                    {regionName || `Region ${regionId}`}
+                  </span>
                   <button
                     type="button"
                     onClick={() => {
                       setRegionId(undefined);
                       setRegionName('');
                     }}
-                    className="button button-ghost button-icon"
+                    className="button button-ghost p-1"
                     aria-label="Remove region filter"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
-                </div>
+                </span>
               </div>
             )}
           </FilterField>
@@ -1418,16 +1412,14 @@ export default function KillmailFilters({
 
             {/* Constellation chip */}
             {constellationId && (
-              <div className="flex flex-col gap-2 mt-3">
-                <div className="text-xs font-medium text-gray-400">
+              <div className="mt-3">
+                <div className="mb-2 text-xs font-medium text-gray-400">
                   Constellation
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
-                    <span className="font-semibold truncate">
-                      {constellationName || `Constellation ${constellationId}`}
-                    </span>
-                  </div>
+                <span className="chip">
+                  <span className="font-semibold truncate">
+                    {constellationName || `Constellation ${constellationId}`}
+                  </span>
                   <button
                     type="button"
                     onClick={() => {
@@ -1443,12 +1435,12 @@ export default function KillmailFilters({
                       setConstellationId(undefined);
                       setConstellationName('');
                     }}
-                    className="button button-ghost button-icon"
+                    className="button button-ghost p-1"
                     aria-label="Remove constellation filter"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
-                </div>
+                </span>
               </div>
             )}
           </FilterField>
