@@ -667,7 +667,7 @@ export default function KillmailFilters({
                 <input
                   type="text"
                   id="filter-pilot"
-                  placeholder=""
+                  placeholder="Search pilot (min 3 letters)..."
                   value={pilotSearch}
                   onChange={(e) => {
                     setPilotSearch(e.target.value);
