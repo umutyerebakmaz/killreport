@@ -55,6 +55,13 @@
     @apply text-white bg-white/10;
   }
 
+  /* A ghost segment's "on" is subtle whichever attribute says so. The accent
+     fill above belongs to a toggle that is currently engaged, not to one
+     segment of a group where something is always selected. */
+  .button-ghost[aria-pressed='true'] {
+    @apply text-white bg-white/10;
+  }
+
   /* --- Modifiers ---
    * These must come AFTER the appearances: they match .button's specificity
    * (0,1,0), so source order is the only thing letting them win on padding. */
