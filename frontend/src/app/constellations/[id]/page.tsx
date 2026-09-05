@@ -136,16 +136,14 @@ export default function ConstellationDetailPage({
 
         {/* Tabs */}
         <div className="mt-8 border-b border-white/10">
-          <nav className="flex gap-4" aria-label="Tabs">
+          <nav className="flex gap-4" aria-label="Tabs" role="tablist">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
+                role="tab"
+                aria-selected={activeTab === tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-3 text-sm font-semibold transition-colors border-b-2 ${
-                  activeTab === tab.id
-                    ? 'border-cyan-500 text-cyan-500'
-                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
-                }`}
+                className="tab"
               >
                 {tab.label}
               </button>

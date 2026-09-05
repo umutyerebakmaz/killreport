@@ -229,18 +229,20 @@ export default function SolarSystemDetailPage({
 
         {/* Tabs — overflow-x-auto because six tabs overflow a narrow screen */}
         <div className="mt-8 mb-6 border-b border-white/10">
-          <nav className="flex gap-4 overflow-x-auto" aria-label="Tabs">
+          <nav
+            className="flex gap-4 overflow-x-auto"
+            aria-label="Tabs"
+            role="tablist"
+          >
             {SOLAR_SYSTEM_TABS.map((tab) => {
               const count = tabCount(tab);
               return (
                 <button
                   key={tab}
+                  role="tab"
+                  aria-selected={activeTab === tab}
                   onClick={() => handleTabChange(tab)}
-                  className={`px-4 py-3 text-sm font-semibold whitespace-nowrap transition-colors border-b-2 ${
-                    activeTab === tab
-                      ? 'border-cyan-500 text-cyan-500'
-                      : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
-                  }`}
+                  className="tab whitespace-nowrap"
                 >
                   {TAB_LABELS[tab]}
                   {count !== null && (
