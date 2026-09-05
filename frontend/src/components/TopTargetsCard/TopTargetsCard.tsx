@@ -78,7 +78,7 @@ export default function TopTargetsCard({
           {targets.map((target, index) => (
             <div
               key={target.id}
-              className={`p-3 duration-100 transition-color ${
+              className={`px-3 py-2 duration-100 transition-color ${
                 variant === 'list'
                   ? 'bg-neutral-900 hover:bg-neutral-800'
                   : 'bg-neutral-800 hover:bg-neutral-700'

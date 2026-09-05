@@ -72,7 +72,7 @@ export default function TopCharacterCard({
             return (
               <div
                 key={character.id}
-                className={`p-3 transition-colors duration-100 ${
+                className={`px-3 py-2 transition-colors duration-100 ${
                   variant === 'list'
                     ? 'bg-neutral-900 hover:bg-neutral-800'
                     : 'bg-neutral-800 hover:bg-neutral-700'
