@@ -63,7 +63,8 @@ export default function FilterBar({
         <button
           type="button"
           onClick={onOpenFilters}
-          className={`button ${hasBadge ? 'active-filter-button' : ''}`}
+          aria-pressed={hasBadge}
+          className="button button-secondary"
         >
           <FunnelIcon className="w-5 h-5" />
           Filters
