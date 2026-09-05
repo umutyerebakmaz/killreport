@@ -275,11 +275,26 @@ varyantlarını açar. "Aynı görünsün" isteniyorsa aynı dosya olmalı.
 Düz bir `@font-face` yerine `next/font/local` kullanılmasının sebebi: preload ve CLS
 önleyen `size-adjust` fallback metriklerini otomatik vermesi.
 
-Sonuç: `fonts.css` 162 satırdan tek bloğa iner, `public/fonts/shentox` silinir,
-Mona Sans `@import`'u gider, `--font-sans` güncellenir.
+**İtalik de gerekiyor.** Uygulama altı yerde `italic` kullanıyor
+(`WeeklyTopCharCard`, `OrbitalBodiesTab`, `StarCard` ve üç yer daha), yani tek dosya
+yetmez — `InterVariable.woff2` ve `InterVariable-Italic.woff2` birlikte gelir.
 
-**Ön koşul:** `InterVariable.woff2` dosyasının depoya eklenmesi gerekiyor
-(bkz. §10, açık karar).
+Ağırlık tarafında sorun yok: kullanımlar `font-semibold` (245), `font-medium` (103),
+`font-bold` (35), `font-normal` (2), `font-black` (2). Variable font 100-900 aralığının
+tamamını tek dosyada taşıyor.
+
+**Dosyalar depoya eklendi** — `frontend/src/fonts/`, rsms.me'den Inter v4.66:
+
+| Dosya                        | Boyut  |
+| ---------------------------- | ------ |
+| `InterVariable.woff2`        | 352 KB |
+| `InterVariable-Italic.woff2` | 388 KB |
+
+Toplam **740 KB**, bugünkü Shentox'un **5.9 MB**'ına karşılık — %87 azalma.
+
+Sonuç: `fonts.css` 162 satırdan iki `@font-face`'e iner (aslında `next/font/local`
+onları da yazacağı için dosya tamamen kalkabilir), `public/fonts/shentox` silinir,
+Mona Sans `@import`'u gider, `--font-sans` güncellenir.
 
 ---
 
@@ -359,12 +374,9 @@ yazmak, sözlük değişirse hepsini yeniden yazmak demek.
 
 ## 10. Açık kalan kararlar
 
-Bu ikisi uygulamadan önce kullanıcı kararı bekliyor.
+Uygulamadan önce tek bir karar bekliyor. (Font dosyası sorusu kapandı: indirildi, §6.)
 
-**1. `InterVariable.woff2` dosyasını kim koyacak?** rsms.me/inter'den indirilecek. Ajan
-indirsin mi, yoksa kullanıcı mı ekleyecek?
-
-**2. Skala dışı kutular yukarı mı aşağı mı yuvarlanacak?** 48 → 32 tabloları
+**1. Skala dışı kutular yukarı mı aşağı mı yuvarlanacak?** 48 → 32 tabloları
 sıkılaştırır, 48 → 64 şişirir. 56 ve 80 için aynı soru. Bu görsel bir karar; PR 7'de her
 biri için öneri sunulur, kullanıcı bakarak onaylar.
 
