@@ -1,13 +1,10 @@
 'use client';
 
-import { useSearchAlliancesQuery } from '@/generated/graphql';
 import FilterBar from '@/components/ui/FilterBar';
 import FilterDialog from '@/components/ui/FilterDialog';
 import FilterField from '@/components/ui/FilterField';
-import { useDebounce } from '@/hooks/useDebounce';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
-import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 
 interface AllianceFilterFormProps {
   onFilterChange: (filters: {
@@ -27,29 +24,11 @@ export default function AllianceFilterForm({
   orderBy = 'memberCountDesc',
   onOrderByChange,
 }: AllianceFilterFormProps) {
-  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [search, setSearch] = useState('');
   const [name, setName] = useState('');
   const [ticker, setTicker] = useState('');
   const [dateFoundedFrom, setDateFoundedFrom] = useState('');
   const [dateFoundedTo, setDateFoundedTo] = useState('');
-
-  // Alliance search dropdown state
-  const [showDropdown, setShowDropdown] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Debounce the search query
-  const debouncedSearch = useDebounce(search, 500);
-
-  // GraphQL query for alliance search
-  const { data: searchData, loading: searchLoading } = useSearchAlliancesQuery({
-    variables: {
-      search: debouncedSearch,
-      limit: 20,
-    },
-    skip: debouncedSearch.length < 3, // Only search after 3 characters
-  });
 
   const activeFilterCount = [
     name,
@@ -60,38 +39,6 @@ export default function AllianceFilterForm({
   const hasActiveFilters = Boolean(
     name || ticker || dateFoundedFrom || dateFoundedTo,
   );
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setShowDropdown(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Show dropdown when we have results
-  useEffect(() => {
-    if (
-      debouncedSearch.length >= 3 &&
-      searchData?.alliances?.items &&
-      searchData.alliances.items.length > 0
-    ) {
-      setShowDropdown(true);
-    }
-  }, [debouncedSearch, searchData]);
-
-  const handleAllianceSelect = (allianceId: number) => {
-    router.push(`/alliances/${allianceId}`);
-    setSearch('');
-    setShowDropdown(false);
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,7 +52,6 @@ export default function AllianceFilterForm({
   };
 
   const handleClearAll = () => {
-    setSearch('');
     setName('');
     setTicker('');
     setDateFoundedFrom('');
@@ -116,107 +62,6 @@ export default function AllianceFilterForm({
   return (
     <form onSubmit={handleSubmit} id="alliance-filters" className="mb-6">
       <FilterBar
-        search={
-          <div className="relative flex-1" ref={dropdownRef}>
-            <input
-              type="text"
-              id="filter-alliance-search"
-              aria-label="Go to alliance"
-              aria-describedby="filter-alliance-search-hint"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                if (e.target.value.length >= 3) {
-                  setShowDropdown(true);
-                } else {
-                  setShowDropdown(false);
-                }
-              }}
-              onFocus={() => {
-                // Show dropdown if we have valid search results
-                if (
-                  search.length >= 3 &&
-                  searchData?.alliances?.items &&
-                  searchData.alliances.items.length > 0
-                ) {
-                  setShowDropdown(true);
-                }
-              }}
-              className="input"
-            />
-            <p
-              id="filter-alliance-search-hint"
-              className="mt-1 text-[11px] text-gray-500"
-            >
-              Type at least 3 letters to find an alliance.
-            </p>
-            {searchLoading && search.length >= 3 && (
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                <div className="w-5 h-5 border-2 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
-              </div>
-            )}
-
-            {/* Dropdown Results */}
-            {showDropdown &&
-              searchData?.alliances?.items &&
-              searchData.alliances.items.length > 0 && (
-                <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
-                  <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto md:grid-cols-2 character-dropdown-scroll max-h-96">
-                    {searchData.alliances.items.map((alliance) => {
-                      const logoUrl = `https://images.evetech.net/alliances/${alliance.id}/logo?size=128`;
-
-                      return (
-                        <button
-                          key={alliance.id}
-                          type="button"
-                          onClick={() => handleAllianceSelect(alliance.id)}
-                          className="menu-row group"
-                        >
-                          <div className="flex items-center justify-center flex-none size-16 bg-gray-700/50 group-hover:bg-gray-700">
-                            <img
-                              src={logoUrl}
-                              alt={alliance.name}
-                              className="object-cover size-16"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.src = '/images/default-alliance.png';
-                              }}
-                            />
-                          </div>
-                          <div className="flex-auto min-w-0 text-left">
-                            <div className="font-semibold text-white truncate">
-                              {alliance.name}
-                            </div>
-                            <div className="text-sm text-gray-400">
-                              <div className="text-gray-400 truncate">
-                                [{alliance.ticker}] • {alliance.memberCount}{' '}
-                                members
-                              </div>
-                              <div className="text-gray-400 truncate">
-                                {alliance.corporationCount} corporations
-                              </div>
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-            {/* No Results Message */}
-            {showDropdown &&
-              debouncedSearch.length >= 3 &&
-              !searchLoading &&
-              searchData?.alliances?.items?.length === 0 && (
-                <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
-                  <div className="p-4 text-sm text-gray-400">
-                    No alliances found for "{debouncedSearch}"
-                  </div>
-                </div>
-              )}
-          </div>
-        }
         orderBy={
           <div className="select-option-container">
             <select
