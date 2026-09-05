@@ -638,13 +638,22 @@ export default function KillmailFilters({
         open={isOpen}
         onClose={() => setIsOpen(false)}
         footer={
-          <button
-            type="submit"
-            form="killmail-filters"
-            className="button button-primary"
-          >
-            APPLY
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={handleClearAll}
+              className="button button-secondary"
+            >
+              CLEAR
+            </button>
+            <button
+              type="submit"
+              form="killmail-filters"
+              className="button button-primary"
+            >
+              APPLY
+            </button>
+          </>
         }
       >
         <div className="space-y-4">

@@ -10,7 +10,7 @@ export interface FilterDialogProps {
   onClose: () => void;
   title?: string;
   children: ReactNode;
-  /** Rendered in the sticky footer — typically the Apply button. */
+  /** Rendered in the sticky footer — the Clear and Apply actions. */
   footer?: ReactNode;
 }
 
@@ -52,7 +52,7 @@ export default function FilterDialog({
           <div className="p-6 space-y-4">{children}</div>
 
           {footer && (
-            <div className="flex justify-end px-6 py-4 border-t border-white/10">
+            <div className="flex justify-end gap-2 px-6 py-4 border-t border-white/10">
               {footer}
             </div>
           )}

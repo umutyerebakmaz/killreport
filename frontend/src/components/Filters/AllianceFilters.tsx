@@ -264,13 +264,22 @@ export default function AllianceFilters({
         open={isOpen}
         onClose={() => setIsOpen(false)}
         footer={
-          <button
-            type="submit"
-            form="alliance-filters"
-            className="button button-primary"
-          >
-            APPLY
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={handleClearAll}
+              className="button button-secondary"
+            >
+              CLEAR
+            </button>
+            <button
+              type="submit"
+              form="alliance-filters"
+              className="button button-primary"
+            >
+              APPLY
+            </button>
+          </>
         }
       >
         <div className="space-y-4">
