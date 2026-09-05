@@ -248,38 +248,52 @@ Görsel kontrol kullanıcıda. Bakılacaklar: altı detay sayfasının sekme çu
 
 ---
 
-### Task 6: Filtre çipleri — içeriği kadar, kapatma butonu içeride
+### Task 6: Filtre çipleri — içeriği kadar, butonu içinde, radyosu yanında
 
-Kullanıcı isteği. Bugün çip tam genişlik kaplıyor ve kapatma butonu onun **dışında**, kardeş eleman olarak duruyor.
+Kullanıcı isteği, iki parçalı. Bugün çip satırın tamamını kaplıyor (`flex-1`), kapatma
+butonu onun **dışında** kardeş eleman olarak duruyor, ve varsa radyo grubu **altına**
+iniyor. Olması gereken: çip içeriği kadar yer kaplasın, butonunu içinde taşısın, radyo
+grubu da yanına gelsin.
 
-**Files:** yedi çağrı noktası —
+**Envanter — 9 çip, iki tür.** Sayı ve tür ölçüldü, tahmin değil.
 
-- `frontend/src/components/Filters/KillmailFilters.tsx:1018` (Ship Groups)
-- `frontend/src/components/Filters/KillmailFilters.tsx:1163` (Solar System)
-- `frontend/src/components/Filters/KillmailFilters.tsx:1292` (Region)
-- `frontend/src/components/Filters/KillmailFilters.tsx:1426` (Constellation)
+Çip **artı RadioGroup** (4):
+
+- `frontend/src/components/Filters/KillmailFilters.tsx:754` — karakter
+- `frontend/src/components/Filters/KillmailFilters.tsx:884` — gemi
+- `frontend/src/components/Filters/KillmailFilters.tsx:1018` — gemi grubu
+- `frontend/src/components/Filters/KillmailFilters.tsx:1426` — takımyıldız
+
+Yalnız çip (5):
+
+- `frontend/src/components/Filters/KillmailFilters.tsx:1163`
+- `frontend/src/components/Filters/KillmailFilters.tsx:1292`
 - `frontend/src/components/Filters/SolarSystemFilters.tsx:437`
 - `frontend/src/components/Filters/SolarSystemFilters.tsx:479`
 - `frontend/src/components/Filters/SolarSystemFilters.tsx:530`
+
+Zeminleri üç ayrı renk: `bg-purple-900/30` (6), `bg-gray-700/50` (2), `bg-blue-900/30` (1).
+Kullanıcı doğruladı: **renkler anlam taşımıyor**, filtrenin türünü kodlamıyorlar. Hepsi
+nötrleşiyor.
 
 - [ ] **Step 1: `.chip`'i `cards.css`'e ekle**
 
 ```css
 /* A selected-filter chip: hugs its label and holds its own remove button.
-   The colours it used to carry (purple, blue) meant nothing — the user
-   confirmed they were not a code for the filter's type. */
+   The three grounds it used to carry (purple, blue, grey) meant nothing —
+   the user confirmed they were not a code for the filter's type. */
 .chip {
-  @apply inline-flex items-center gap-1 py-1 pl-3 pr-1 text-sm text-white bg-surface-inset;
+  @apply inline-flex items-center gap-2 py-1 pl-2 pr-1 text-sm text-white bg-surface-inset;
 }
 ```
 
-- [ ] **Step 2: Yedi çağrı noktasını yeniden kur**
+- [ ] **Step 2: Yalnız çipleri (5) yeniden kur**
 
-Bugünkü yapı — çip `flex-1` ile tam genişlik, buton dışarıda:
+Bugün — `flex-1` ile tam genişlik, buton dışarıda:
 
 ```tsx
 <div className="flex items-center gap-2">
-  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-blue-900/30">
+  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
     <span className="font-semibold truncate">{name}</span>
   </div>
   <button
@@ -292,7 +306,7 @@ Bugünkü yapı — çip `flex-1` ile tam genişlik, buton dışarıda:
 </div>
 ```
 
-Olması gereken — tek eleman, içeriği kadar, buton içeride:
+Olması gereken — tek eleman, içeriği kadar, buton içinde:
 
 ```tsx
 <span className="chip">
@@ -303,11 +317,53 @@ Olması gereken — tek eleman, içeriği kadar, buton içeride:
 </span>
 ```
 
-`flex-1` gidiyor; saran `<div className="flex items-center gap-2">` gereksizleşiyorsa kaldır. `.button-icon` yerine `p-1` — `.button-icon`'un `p-2`'si çipin içinde fazla yer kaplıyor. **`aria-label`'ları olduğu gibi koru**, önceki görevde eklendiler.
+`flex-1` gidiyor, saran `<div>` gereksizleşiyorsa kalkıyor. `.button-icon` yerine `p-1`:
+`p-2` çipin içinde fazla şişiriyor. **`aria-label`'lar aynen korunuyor**, önceki görevde
+eklendiler.
 
-Çipler liste hâlinde geliyorsa (`shipGroupIds.map` gibi) saran kap `flex flex-wrap gap-2` olmalı: çipler yan yana aksın, sığmayınca alt satıra geçsin.
+- [ ] **Step 3: Çip artı RadioGroup olan 4'ünü ikiye böl**
 
-- [ ] **Step 3: Doğrula ve commit**
+Bugün ikisi alt alta — dış kap `flex-col`:
+
+```tsx
+<div className="flex flex-col gap-2 mt-3">
+  <div className="flex items-center gap-2">
+    <div className="... flex-1 ... bg-gray-700/50">
+      <img ... />
+      <span className="font-semibold truncate">{shipTypeName}</span>
+    </div>
+    <button ...>X</button>
+  </div>
+  <RadioGroup name="ship-type-role" value={shipRole} onChange={setShipRole} options={...} />
+</div>
+```
+
+Olması gereken — tek satır, solda çip, sağda radyolar:
+
+```tsx
+<div className="flex flex-wrap items-center justify-between gap-3 mt-3">
+  <span className="chip">
+    <img ... />
+    <span className="font-semibold truncate">{shipTypeName}</span>
+    <button ...>X</button>
+  </span>
+  <RadioGroup name="ship-type-role" value={shipRole} onChange={setShipRole} options={...} />
+</div>
+```
+
+`flex-col` yerine `flex-wrap items-center justify-between`: dar ekranda ikisi yan yana
+sığmazsa radyolar alt satıra geçer, sığdığı sürece karşılıklı dururlar. `RadioGroup`
+bileşenine dokunma — prop'ları ve davranışı aynen kalıyor.
+
+Çipin içindeki `<img>` de kalıyor; `size-8` gibi boyut sınıfları yerleşim, `.chip` onlara
+karışmıyor.
+
+- [ ] **Step 4: Doğrula ve commit**
+
+`yarn workspace frontend typecheck && lint && test`. Ardından
+`yarn workspace frontend build:check` ile `.chip` kuralının üretilen CSS'e girdiğini
+doğrula. Dokuz çipin hiçbirinde `flex-1`, `bg-purple-900/30`, `bg-blue-900/30` veya
+`bg-gray-700/50` kalmamalı.
 
 Commit: `feat(frontend): let the filter chips hug their content`
 
