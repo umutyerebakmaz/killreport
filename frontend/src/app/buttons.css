@@ -10,12 +10,24 @@
 @layer components {
   /* The pointer is on .button rather than only on <button> in the base layer,
      because a <label> wrapping a radio wears this class too and the base rule
-     cannot see it. `.button-ghost:has(:disabled)` takes it back for a disabled
+     cannot see it. `.button:has(:disabled)` below takes it back for a disabled
      one, since a label has no :disabled of its own. */
   .button {
     @apply inline-flex items-center justify-center gap-x-1.5 px-4 py-2.5 text-sm font-medium
       cursor-pointer transition-colors focus:outline-none focus-visible:outline-1
       focus-visible:outline-white/40 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* A <label> wrapping an input has no :focus-visible or :disabled of its own,
+     so the structural states are read through the input it contains. These sit
+     on .button rather than on an appearance because they are the same whatever
+     the button looks like. */
+  .button:has(:focus-visible) {
+    @apply outline-1 outline-white/40;
+  }
+
+  .button:has(:disabled) {
+    @apply opacity-50 cursor-not-allowed;
   }
 
   /* --- Appearances --- */
@@ -75,22 +87,6 @@
   /* A label wrapping a radio has no aria-selected to set — its state lives in
      the input's :checked. Same appearance class, same look, third mechanism.
      :has() carries the (0,2,0) needed to beat .button-ghost itself. */
-  .button-ghost:has(:checked) {
-    @apply text-white bg-white/10;
-  }
-
-  .button-ghost:has(:checked):hover {
-    @apply bg-white/10;
-  }
-
-  .button-ghost:has(:focus-visible) {
-    @apply outline-1 outline-white/40;
-  }
-
-  .button-ghost:has(:disabled) {
-    @apply opacity-50 cursor-not-allowed;
-  }
-
   .button-ghost[aria-pressed='true']:hover {
     @apply bg-white/10;
   }

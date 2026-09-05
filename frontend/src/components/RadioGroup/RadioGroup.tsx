@@ -13,13 +13,13 @@ interface RadioGroupProps<T extends string> {
 }
 
 /**
- * A one-of-N choice, wearing the ghost button appearance.
+ * A one-of-N choice, wearing the secondary button appearance.
  *
  * It stays a real radio group rather than becoming buttons: the semantics of
  * "pick exactly one" are what a screen reader needs, and only the looks were
  * ever the problem. The input is visually hidden and the label carries the
- * appearance, so `.button-ghost:has(:checked)` paints the selected one — the
- * same rule that serves `aria-selected` and `aria-pressed` elsewhere.
+ * appearance, so `.button-secondary:has(:checked)` paints the selected one —
+ * the same rule that serves `aria-selected` and `aria-pressed` elsewhere.
  */
 export default function RadioGroup<T extends string>({
   name,
@@ -31,7 +31,7 @@ export default function RadioGroup<T extends string>({
   return (
     <div className="flex flex-wrap gap-1">
       {options.map((option) => (
-        <label key={option.value} className="button button-ghost button-sm">
+        <label key={option.value} className="button button-secondary button-sm">
           <input
             type="radio"
             name={name}
