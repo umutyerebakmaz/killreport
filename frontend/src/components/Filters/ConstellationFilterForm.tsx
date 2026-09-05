@@ -5,7 +5,7 @@ import FilterBar from '@/components/ui/FilterBar';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 
-interface ConstellationFiltersProps {
+interface ConstellationFilterFormProps {
   onFilterChange: (filters: { search?: string; region_id?: number }) => void;
   onClearFilters: () => void;
   orderBy?: string;
@@ -14,14 +14,14 @@ interface ConstellationFiltersProps {
   initialRegionId?: string;
 }
 
-export default function ConstellationFilters({
+export default function ConstellationFilterForm({
   onFilterChange,
   onClearFilters,
   orderBy = 'nameAsc',
   onOrderByChange,
   initialSearch = '',
   initialRegionId = '',
-}: ConstellationFiltersProps) {
+}: ConstellationFilterFormProps) {
   const [search, setSearch] = useState(initialSearch);
   const [selectedRegionId, setSelectedRegionId] = useState(initialRegionId);
 

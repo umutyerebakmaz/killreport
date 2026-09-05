@@ -9,7 +9,7 @@ import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
-interface CharacterFiltersProps {
+interface CharacterFilterFormProps {
   onFilterChange: (filters: {
     search?: string;
     name?: string;
@@ -21,12 +21,12 @@ interface CharacterFiltersProps {
   onOrderByChange: (orderBy: string) => void;
 }
 
-export default function CharacterFilters({
+export default function CharacterFilterForm({
   onFilterChange,
   onClearFilters,
   orderBy = 'nameAsc',
   onOrderByChange,
-}: CharacterFiltersProps) {
+}: CharacterFilterFormProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');

@@ -9,7 +9,7 @@ import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
-interface AllianceFiltersProps {
+interface AllianceFilterFormProps {
   onFilterChange: (filters: {
     search?: string;
     name?: string;
@@ -22,12 +22,12 @@ interface AllianceFiltersProps {
   onOrderByChange: (orderBy: string) => void;
 }
 
-export default function AllianceFilters({
+export default function AllianceFilterForm({
   onFilterChange,
   onClearFilters,
   orderBy = 'memberCountDesc',
   onOrderByChange,
-}: AllianceFiltersProps) {
+}: AllianceFilterFormProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');

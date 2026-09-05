@@ -21,7 +21,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useEffect, useRef, useState } from 'react';
 
-interface KillmailFiltersProps {
+interface KillmailFilterFormProps {
   onFilterChange: (filters: {
     shipTypeId?: number;
     shipGroupIds?: number[];
@@ -58,7 +58,7 @@ interface KillmailFiltersProps {
   initialWarRelated?: boolean;
 }
 
-export default function KillmailFilters({
+export default function KillmailFilterForm({
   onFilterChange,
   onClearFilters,
   initialShipTypeId,
@@ -75,7 +75,7 @@ export default function KillmailFilters({
   initialCharacterRole = 'all',
   initialSecuritySpace = 'all',
   initialWarRelated = false,
-}: KillmailFiltersProps) {
+}: KillmailFilterFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [typeSearch, setTypeSearch] = useState('');
   const [shipTypeId, setShipTypeId] = useState<number | undefined>(

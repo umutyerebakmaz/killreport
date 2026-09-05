@@ -16,7 +16,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { ChevronDownIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useEffect, useRef, useState } from 'react';
 
-interface SolarSystemFiltersProps {
+interface SolarSystemFilterFormProps {
   onFilterChange: (filters: {
     search?: string;
     region_id?: number;
@@ -33,7 +33,7 @@ interface SolarSystemFiltersProps {
   initialSecurity?: string;
 }
 
-export default function SolarSystemFilters({
+export default function SolarSystemFilterForm({
   onFilterChange,
   onClearFilters,
   orderBy = 'nameAsc',
@@ -42,7 +42,7 @@ export default function SolarSystemFilters({
   initialRegionId = '',
   initialConstellationId = '',
   initialSecurity = 'all',
-}: SolarSystemFiltersProps) {
+}: SolarSystemFilterFormProps) {
   // Panel open/close state
   const [isOpen, setIsOpen] = useState(false);
 
