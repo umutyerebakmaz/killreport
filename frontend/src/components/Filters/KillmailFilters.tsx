@@ -18,7 +18,7 @@ import {
   useSearchTypesQuery,
 } from '@/generated/graphql';
 import { useDebounce } from '@/hooks/useDebounce';
-import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useEffect, useRef, useState } from 'react';
 
 interface KillmailFiltersProps {
@@ -661,9 +661,6 @@ export default function KillmailFilters({
           <FilterField label="Pilot" htmlFor="filter-pilot">
             <div ref={pilotDropdownRef}>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
-                </div>
                 <input
                   type="text"
                   id="filter-pilot"
@@ -682,7 +679,7 @@ export default function KillmailFilters({
                     )
                       setShowPilotDropdown(true);
                   }}
-                  className="search-input"
+                  className="input"
                 />
                 {pilotLoading && pilotSearch.length >= 3 && (
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -803,9 +800,6 @@ export default function KillmailFilters({
           <FilterField label="Ship" htmlFor="filter-ship">
             <div ref={shipDropdownRef}>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
-                </div>
                 <input
                   type="text"
                   id="filter-ship"
@@ -824,7 +818,7 @@ export default function KillmailFilters({
                     )
                       setShowDropdown(true);
                   }}
-                  className="search-input"
+                  className="input"
                 />
                 {typeLoading && typeSearch.length >= 3 && (
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -932,9 +926,6 @@ export default function KillmailFilters({
           >
             <div ref={groupDropdownRef}>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
-                </div>
                 <input
                   type="text"
                   id="filter-ship-group"
@@ -953,7 +944,7 @@ export default function KillmailFilters({
                     )
                       setShowGroupDropdown(true);
                   }}
-                  className="search-input"
+                  className="input"
                 />
                 {groupLoading && groupSearch.length >= 2 && (
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -1055,9 +1046,6 @@ export default function KillmailFilters({
           <FilterField label="Solar System" htmlFor="filter-solar-system">
             <div ref={solarSystemDropdownRef}>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
-                </div>
                 <input
                   type="text"
                   id="filter-solar-system"
@@ -1077,7 +1065,7 @@ export default function KillmailFilters({
                     )
                       setShowSolarSystemDropdown(true);
                   }}
-                  className="search-input"
+                  className="input"
                 />
                 {solarSystemLoading && solarSystemSearch.length >= 3 && (
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -1197,9 +1185,6 @@ export default function KillmailFilters({
           <FilterField label="Region" htmlFor="filter-region">
             <div ref={regionDropdownRef}>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
-                </div>
                 <input
                   type="text"
                   id="filter-region"
@@ -1218,7 +1203,7 @@ export default function KillmailFilters({
                     )
                       setShowRegionDropdown(true);
                   }}
-                  className="search-input"
+                  className="input"
                 />
                 {regionLoading && regionSearch.length >= 3 && (
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -1317,9 +1302,6 @@ export default function KillmailFilters({
           <FilterField label="Constellation" htmlFor="filter-constellation">
             <div ref={constellationDropdownRef}>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
-                </div>
                 <input
                   type="text"
                   id="filter-constellation"
@@ -1339,7 +1321,7 @@ export default function KillmailFilters({
                     )
                       setShowConstellationDropdown(true);
                   }}
-                  className="search-input"
+                  className="input"
                 />
                 {constellationLoading && constellationSearch.length >= 3 && (
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3">

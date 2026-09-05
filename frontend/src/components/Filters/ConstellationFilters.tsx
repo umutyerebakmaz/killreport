@@ -2,10 +2,7 @@
 
 import { useRegionsQuery } from '@/generated/graphql';
 import FilterBar from '@/components/ui/FilterBar';
-import {
-  ChevronDownIcon,
-  MagnifyingGlassIcon,
-} from '@heroicons/react/24/outline';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 
 interface ConstellationFiltersProps {
@@ -61,15 +58,12 @@ export default function ConstellationFilters({
       <FilterBar
         search={
           <div className="relative flex-1">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
-            </div>
             <input
               type="text"
               placeholder="Search constellations..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="search-input"
+              className="input"
             />
           </div>
         }
@@ -93,7 +87,6 @@ export default function ConstellationFilters({
             </div>
 
             <button type="submit" className="button button-secondary">
-              <MagnifyingGlassIcon className="w-5 h-5" />
               Search
             </button>
           </>

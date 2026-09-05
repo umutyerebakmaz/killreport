@@ -5,10 +5,7 @@ import FilterBar from '@/components/ui/FilterBar';
 import FilterDialog from '@/components/ui/FilterDialog';
 import FilterField from '@/components/ui/FilterField';
 import { useDebounce } from '@/hooks/useDebounce';
-import {
-  ChevronDownIcon,
-  MagnifyingGlassIcon,
-} from '@heroicons/react/24/outline';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
@@ -124,9 +121,6 @@ export default function CorporationFilters({
       <FilterBar
         search={
           <div className="relative flex-1" ref={dropdownRef}>
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
-            </div>
             <input
               type="text"
               placeholder="Search corporations (min 3 letters)..."
@@ -149,7 +143,7 @@ export default function CorporationFilters({
                   setShowDropdown(true);
                 }
               }}
-              className="search-input"
+              className="input"
             />
             {searchLoading && search.length >= 3 && (
               <div className="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -224,7 +218,6 @@ export default function CorporationFilters({
         }
         controls={
           <button type="submit" className="button button-secondary">
-            <MagnifyingGlassIcon className="w-5 h-5" />
             Search
           </button>
         }

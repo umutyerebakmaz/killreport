@@ -13,11 +13,7 @@ import FilterBar from '@/components/ui/FilterBar';
 import FilterDialog from '@/components/ui/FilterDialog';
 import FilterField from '@/components/ui/FilterField';
 import { useDebounce } from '@/hooks/useDebounce';
-import {
-  ChevronDownIcon,
-  MagnifyingGlassIcon,
-  XMarkIcon,
-} from '@heroicons/react/24/outline';
+import { ChevronDownIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useEffect, useRef, useState } from 'react';
 
 interface SolarSystemFiltersProps {
@@ -333,9 +329,6 @@ export default function SolarSystemFilters({
           <FilterField label="Solar System" htmlFor="filter-solar-system">
             <div ref={solarSystemDropdownRef}>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
-                </div>
                 <input
                   type="text"
                   id="filter-solar-system"
@@ -355,7 +348,7 @@ export default function SolarSystemFilters({
                     )
                       setShowSolarSystemDropdown(true);
                   }}
-                  className="search-input"
+                  className="input"
                 />
                 {solarSystemLoading && solarSystemSearch.length >= 3 && (
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3">
