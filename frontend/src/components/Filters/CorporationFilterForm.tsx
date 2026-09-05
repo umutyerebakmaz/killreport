@@ -11,7 +11,6 @@ import { useEffect, useRef, useState } from 'react';
 
 interface CorporationFilterFormProps {
   onFilterChange: (filters: {
-    search?: string;
     name?: string;
     ticker?: string;
     dateFoundedFrom?: string;
@@ -60,7 +59,7 @@ export default function CorporationFilterForm({
     dateFoundedTo,
   ].filter(Boolean).length;
   const hasActiveFilters = Boolean(
-    search || name || ticker || dateFoundedFrom || dateFoundedTo,
+    name || ticker || dateFoundedFrom || dateFoundedTo,
   );
 
   // Close dropdown when clicking outside
@@ -98,7 +97,6 @@ export default function CorporationFilterForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onFilterChange({
-      search: search || undefined,
       name: name || undefined,
       ticker: ticker || undefined,
       dateFoundedFrom: dateFoundedFrom || undefined,
@@ -124,7 +122,7 @@ export default function CorporationFilterForm({
             <input
               type="text"
               id="filter-corporation-search"
-              aria-label="Search corporations"
+              aria-label="Go to corporation"
               aria-describedby="filter-corporation-search-hint"
               value={search}
               onChange={(e) => {
@@ -151,7 +149,7 @@ export default function CorporationFilterForm({
               id="filter-corporation-search-hint"
               className="mt-1 text-[11px] text-gray-500"
             >
-              Type at least 3 letters to search.
+              Type at least 3 letters to find a corporation.
             </p>
             {searchLoading && search.length >= 3 && (
               <div className="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -223,11 +221,6 @@ export default function CorporationFilterForm({
                 </div>
               )}
           </div>
-        }
-        controls={
-          <button type="submit" className="button button-secondary">
-            Search
-          </button>
         }
         orderBy={
           <div className="select-option-container">

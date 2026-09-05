@@ -11,7 +11,6 @@ import { useEffect, useRef, useState } from 'react';
 
 interface AllianceFilterFormProps {
   onFilterChange: (filters: {
-    search?: string;
     name?: string;
     ticker?: string;
     dateFoundedFrom?: string;
@@ -59,7 +58,7 @@ export default function AllianceFilterForm({
     dateFoundedTo,
   ].filter(Boolean).length;
   const hasActiveFilters = Boolean(
-    search || name || ticker || dateFoundedFrom || dateFoundedTo,
+    name || ticker || dateFoundedFrom || dateFoundedTo,
   );
 
   // Close dropdown when clicking outside
@@ -97,7 +96,6 @@ export default function AllianceFilterForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onFilterChange({
-      search: search || undefined,
       name: name || undefined,
       ticker: ticker || undefined,
       dateFoundedFrom: dateFoundedFrom || undefined,
@@ -123,7 +121,7 @@ export default function AllianceFilterForm({
             <input
               type="text"
               id="filter-alliance-search"
-              aria-label="Search alliances"
+              aria-label="Go to alliance"
               aria-describedby="filter-alliance-search-hint"
               value={search}
               onChange={(e) => {
@@ -150,7 +148,7 @@ export default function AllianceFilterForm({
               id="filter-alliance-search-hint"
               className="mt-1 text-[11px] text-gray-500"
             >
-              Type at least 3 letters to search.
+              Type at least 3 letters to find an alliance.
             </p>
             {searchLoading && search.length >= 3 && (
               <div className="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -218,11 +216,6 @@ export default function AllianceFilterForm({
                 </div>
               )}
           </div>
-        }
-        controls={
-          <button type="submit" className="button button-secondary">
-            Search
-          </button>
         }
         orderBy={
           <div className="select-option-container">
