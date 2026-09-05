@@ -46,8 +46,14 @@ export default function Header() {
       });
   }, []);
 
+  // No backdrop-blur on the header. It did nothing for the header itself —
+  // bg-surface is opaque, so no backdrop ever showed through to blur — while
+  // an ancestor carrying backdrop-filter establishes a Backdrop Root, and every
+  // panel inside then samples only what is painted within that root. That is
+  // why the nav popover and the notification panel came out see-through but
+  // flat: .float was blurring the header's own opaque ground.
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-sm bg-surface">
+    <header className="sticky top-0 z-50 bg-surface">
       <nav
         aria-label="Global"
         className="flex items-center justify-between p-6 mx-auto lg:px-8 xl:px-12 2xl:px-16 max-w-480"
