@@ -32,14 +32,12 @@ export default function TopCorporationCard({
   variant = 'detail',
 }: TopCorporationCardProps) {
   const header = (
-    <>
+    <div className="flex items-center justify-between gap-3">
       <h3 className="text-lg font-semibold text-white">{title}</h3>
       {subtitle && (
-        <p className="flex items-center justify-between text-xs text-gray-500">
-          {subtitle}
-        </p>
+        <span className="text-xs text-gray-500 shrink-0">{subtitle}</span>
       )}
-    </>
+    </div>
   );
 
   if (loading) {

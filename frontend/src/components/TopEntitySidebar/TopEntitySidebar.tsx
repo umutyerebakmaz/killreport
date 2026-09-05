@@ -41,14 +41,7 @@ interface TopEntitySidebarProps {
   variant?: 'detail' | 'list';
 }
 
-const ROLLING_SUBTITLE = (
-  <>
-    Last 7 days{' '}
-    <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
-      ROLLING
-    </span>
-  </>
-);
+const LAST_7_DAYS = 'Last 7 days';
 
 export default function TopEntitySidebar({
   filter,
@@ -92,7 +85,7 @@ export default function TopEntitySidebar({
               <TopCharacterCard
                 key={card.kind}
                 title={card.title}
-                subtitle={ROLLING_SUBTITLE}
+                subtitle={LAST_7_DAYS}
                 characters={
                   pilots?.topLast7DaysPilots?.map((pilot) => ({
                     id: pilot.character?.id || 0,
@@ -124,7 +117,7 @@ export default function TopEntitySidebar({
               <TopCorporationCard
                 key={card.kind}
                 title={card.title}
-                subtitle={ROLLING_SUBTITLE}
+                subtitle={LAST_7_DAYS}
                 corporations={
                   corporations?.topLast7DaysCorporations?.map((corp) => ({
                     id: corp.corporation?.id || 0,
@@ -144,7 +137,7 @@ export default function TopEntitySidebar({
               <TopAllianceCard
                 key={card.kind}
                 title={card.title}
-                subtitle={ROLLING_SUBTITLE}
+                subtitle={LAST_7_DAYS}
                 alliances={
                   alliances?.topLast7DaysAlliances?.map((alliance) => ({
                     id: alliance.alliance?.id || 0,
@@ -165,7 +158,7 @@ export default function TopEntitySidebar({
               <TopShipsCard
                 key={card.kind}
                 title={card.title}
-                subtitle={ROLLING_SUBTITLE}
+                subtitle={LAST_7_DAYS}
                 ships={
                   attackerShips?.topLast7DaysAttackerShips?.map((ship) => ({
                     id: ship.shipType?.id || 0,
@@ -185,7 +178,7 @@ export default function TopEntitySidebar({
               <TopShipsCard
                 key={card.kind}
                 title={card.title}
-                subtitle={ROLLING_SUBTITLE}
+                subtitle={LAST_7_DAYS}
                 ships={
                   ships?.topLast7DaysShips?.map((ship) => ({
                     id: ship.shipType?.id || 0,
