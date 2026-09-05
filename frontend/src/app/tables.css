@@ -8,13 +8,13 @@
   }
 
   /*
-   * Same type as a .card-header's title — text-lg, white — because the two sit
-   * side by side on /killmails and any difference between them reads as an
-   * accident rather than a hierarchy. The padding follows from that: py-3
-   * around a text-lg line box is 24 + 28 = 52, the exact height .card-header
-   * lands on. It was py-3.5 while this was text-base.
+   * Type identical to a .card-header's title, tracking included: the two sit
+   * side by side on /killmails, so any difference between them reads as an
+   * accident rather than as a hierarchy. The padding follows from the type —
+   * py-3 around a text-lg line box is 24 + 28 = 52, the height .card-header
+   * lands on. It was py-3.5 back when this was text-base.
    */
   .th-cell {
-    @apply px-4 py-3 text-lg font-semibold tracking-wider text-white;
+    @apply px-4 py-3 text-lg font-semibold text-white;
   }
 }
