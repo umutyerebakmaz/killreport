@@ -92,7 +92,7 @@ export default function ConstellationFilters({
               <ChevronDownIcon className="chevron-down-icon" />
             </div>
 
-            <button type="submit" className="button">
+            <button type="submit" className="button button-secondary">
               <MagnifyingGlassIcon className="w-5 h-5" />
               Search
             </button>

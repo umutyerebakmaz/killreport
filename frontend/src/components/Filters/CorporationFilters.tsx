@@ -223,7 +223,7 @@ export default function CorporationFilters({
           </div>
         }
         controls={
-          <button type="submit" className="button">
+          <button type="submit" className="button button-secondary">
             <MagnifyingGlassIcon className="w-5 h-5" />
             Search
           </button>
