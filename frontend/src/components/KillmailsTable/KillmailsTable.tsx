@@ -67,7 +67,7 @@ export default function KillmailsTable({
             </h2>
 
             {/* Table for this date */}
-            <div className="border border-neutral-800">
+            <div className="border border-white/10">
               <table className="table w-full table-fixed">
                 <colgroup>
                   <col className="w-10" />
@@ -77,7 +77,7 @@ export default function KillmailsTable({
                   <col className="w-30" />
                   <col className="w-12" />
                 </colgroup>
-                <thead className="bg-neutral-800">
+                <thead className="bg-surface-inset">
                   <tr>
                     <th className="text-left th-cell">Time</th>
                     <th className="text-left th-cell">Ship</th>
