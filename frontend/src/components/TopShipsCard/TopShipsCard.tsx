@@ -21,7 +21,6 @@ export interface TopShipsCardProps {
   ships: TopShip[];
   loading?: boolean;
   emptyText?: string;
-  variant?: 'detail' | 'list';
 }
 
 export default function TopShipsCard({
@@ -30,7 +29,6 @@ export default function TopShipsCard({
   ships,
   loading = false,
   emptyText = 'No ships yet',
-  variant = 'detail',
 }: TopShipsCardProps) {
   const header = (
     <div className="flex items-center justify-between gap-3">
@@ -65,11 +63,7 @@ export default function TopShipsCard({
             return (
               <div
                 key={ship.id}
-                className={`px-3 py-2 transition-colors duration-100 ${
-                  variant === 'list'
-                    ? 'bg-neutral-900 hover:bg-neutral-800'
-                    : 'bg-neutral-800 hover:bg-neutral-700'
-                }`}
+                className="px-3 py-2 transition-colors duration-100 hover:bg-surface-inset"
               >
                 <div className="flex items-center gap-3">
                   {/* Rank */}

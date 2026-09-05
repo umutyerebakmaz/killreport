@@ -17,8 +17,10 @@
      TopTargetsCard, TopCharacterCard, TopCorporationCard, TopAllianceCard)
      the root element had no background, so the header read as a separate
      thing sitting on the page. */
+  /* A ground of its own, one step up from the card, so the heading reads as
+     the card's own title rather than as its first row. */
   .card-header {
-    @apply px-4 py-3 border-b border-white/10;
+    @apply px-4 py-3 border-b bg-surface-inset border-white/10;
   }
 
   .card-body {

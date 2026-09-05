@@ -21,7 +21,6 @@ export interface TopTargetsCardProps {
   emptyText?: string;
   targetType: 'alliance' | 'corporation' | 'character';
   linkPrefix: string; // e.g., "/alliances", "/corporations", "/characters"
-  variant?: 'detail' | 'list';
 }
 
 export default function TopTargetsCard({
@@ -32,7 +31,6 @@ export default function TopTargetsCard({
   emptyText = 'No targets yet',
   targetType,
   linkPrefix,
-  variant = 'detail',
 }: TopTargetsCardProps) {
   // Get image URL based on target type
   const getImageUrl = (id: number, type: typeof targetType): string => {
@@ -78,11 +76,7 @@ export default function TopTargetsCard({
           {targets.map((target, index) => (
             <div
               key={target.id}
-              className={`px-3 py-2 duration-100 transition-color ${
-                variant === 'list'
-                  ? 'bg-neutral-900 hover:bg-neutral-800'
-                  : 'bg-neutral-800 hover:bg-neutral-700'
-              }`}
+              className="px-3 py-2 duration-100 transition-color hover:bg-surface-inset"
             >
               <div className="flex items-center gap-3">
                 {/* Rank */}

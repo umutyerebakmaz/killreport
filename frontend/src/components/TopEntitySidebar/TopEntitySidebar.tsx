@@ -38,7 +38,6 @@ interface TopEntitySidebarProps {
   filter?: TopEntityFilter;
   /** Cards to render, in order. Each one is a separate query. */
   cards: TopEntityCardSpec[];
-  variant?: 'detail' | 'list';
 }
 
 const LAST_7_DAYS = 'Last 7 days';
@@ -46,7 +45,6 @@ const LAST_7_DAYS = 'Last 7 days';
 export default function TopEntitySidebar({
   filter,
   cards,
-  variant = 'detail',
 }: TopEntitySidebarProps) {
   const { limit = 10, ...scope } = filter ?? {};
   const variables = { filter: { limit, ...scope } };
@@ -108,7 +106,6 @@ export default function TopEntitySidebar({
                 }
                 loading={pilotsLoading}
                 emptyText={card.emptyText}
-                variant={variant}
               />
             );
 
@@ -128,7 +125,6 @@ export default function TopEntitySidebar({
                 }
                 loading={corporationsLoading}
                 emptyText={card.emptyText}
-                variant={variant}
               />
             );
 
@@ -148,7 +144,6 @@ export default function TopEntitySidebar({
                 }
                 loading={alliancesLoading}
                 emptyText={card.emptyText}
-                variant={variant}
               />
             );
 
@@ -169,7 +164,6 @@ export default function TopEntitySidebar({
                 }
                 loading={attackerShipsLoading}
                 emptyText={card.emptyText}
-                variant={variant}
               />
             );
 
@@ -189,7 +183,6 @@ export default function TopEntitySidebar({
                 }
                 loading={shipsLoading}
                 emptyText={card.emptyText}
-                variant={variant}
               />
             );
         }

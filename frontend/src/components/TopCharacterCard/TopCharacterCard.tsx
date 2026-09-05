@@ -29,7 +29,6 @@ export interface TopCharacterCardProps {
   characters: TopCharacter[];
   loading?: boolean;
   emptyText?: string;
-  variant?: 'detail' | 'list';
 }
 
 export default function TopCharacterCard({
@@ -38,7 +37,6 @@ export default function TopCharacterCard({
   characters,
   loading = false,
   emptyText = 'No characters',
-  variant = 'detail',
 }: TopCharacterCardProps) {
   const header = (
     <div className="flex items-center justify-between gap-3">
@@ -72,11 +70,7 @@ export default function TopCharacterCard({
             return (
               <div
                 key={character.id}
-                className={`px-3 py-2 transition-colors duration-100 ${
-                  variant === 'list'
-                    ? 'bg-neutral-900 hover:bg-neutral-800'
-                    : 'bg-neutral-800 hover:bg-neutral-700'
-                }`}
+                className="px-3 py-2 transition-colors duration-100 hover:bg-surface-inset"
               >
                 <div className="flex items-center gap-3">
                   {/* Rank */}

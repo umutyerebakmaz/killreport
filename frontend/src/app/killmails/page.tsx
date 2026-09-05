@@ -382,7 +382,7 @@ function KillmailsContent() {
 
         {/* Right side - Sidebar */}
         <div className="lg:col-span-1 lg:mt-10">
-          <TopEntitySidebar cards={SIDEBAR_CARDS} variant="list" />
+          <TopEntitySidebar cards={SIDEBAR_CARDS} />
         </div>
       </div>
     </div>
