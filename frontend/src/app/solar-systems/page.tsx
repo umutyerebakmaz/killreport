@@ -1,7 +1,7 @@
 'use client';
 
 import SolarSystemCard from '@/components/Cards/SolarSystemCard';
-import SolarSystemFilters from '@/components/Filters/SolarSystemFilters';
+import SolarSystemFilterForm from '@/components/Filters/SolarSystemFilterForm';
 import { Loader } from '@/components/Loader/Loader';
 import Paginator from '@/components/Paginator/Paginator';
 import { useSolarSystemsQuery } from '@/generated/graphql';
@@ -138,7 +138,7 @@ function SolarSystemsContent() {
       <h1 className="sr-only">Solar Systems</h1>
 
       <div>
-        <SolarSystemFilters
+        <SolarSystemFilterForm
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}
           orderBy={orderBy}

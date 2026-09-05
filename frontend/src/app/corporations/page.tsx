@@ -1,7 +1,7 @@
 'use client';
 
 import CorporationCard from '@/components/Card/CorporationCard';
-import CorporationFilters from '@/components/Filters/CorporationFilters';
+import CorporationFilterForm from '@/components/Filters/CorporationFilterForm';
 import Loader from '@/components/Loader';
 import Paginator from '@/components/Paginator/Paginator';
 import { useCorporationsQuery } from '@/generated/graphql';
@@ -119,7 +119,7 @@ function CorporationsContent() {
 
       {/* Filters */}
       <div>
-        <CorporationFilters
+        <CorporationFilterForm
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}
           orderBy={orderBy}
