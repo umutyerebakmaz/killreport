@@ -25,7 +25,7 @@
   }
 
   .button-ghost {
-    @apply text-gray-400 hover:bg-white/5 hover:text-white;
+    @apply text-gray-400 hover:not-aria-selected:bg-white/5 hover:not-aria-selected:text-white;
   }
 
   .button-danger {
@@ -80,7 +80,8 @@
    */
   .tab {
     @apply px-4 py-3 text-sm font-semibold transition-colors border-b-2 whitespace-nowrap
-      border-transparent text-gray-400 hover:text-white hover:border-white/20;
+      border-transparent text-gray-400 hover:not-aria-selected:text-white
+      hover:not-aria-selected:border-white/20;
   }
 
   .tab[aria-selected='true'] {
