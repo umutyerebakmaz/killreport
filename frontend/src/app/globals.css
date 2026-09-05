@@ -5,7 +5,19 @@
 @import './tables.css';
 
 @theme {
-  --font-sans: 'Shentox', 'Mona Sans', sans-serif;
+  /* Typography */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /* Depth — three steps, no more. Four grounds are in use today
+     (bg-white/5, neutral-900, neutral-800, stone-900) and nothing says
+     which one means what. */
+  --color-ground: var(--color-gray-950); /* the page */
+  --color-surface: var(--color-gray-900); /* cards, tables, panels */
+  --color-surface-inset: var(--color-gray-800); /* a box inside a card */
+
+  /* Accent — the primary action fill. It sits in three separate
+     pockets today: cyan, indigo and blue. */
+  --color-accent: var(--color-cyan-600);
 }
 
 html,
@@ -14,7 +26,6 @@ body {
 }
 
 body {
-  font-family: 'Shentox', 'Mona Sans', sans-serif;
   font-weight: 400;
 }
 
