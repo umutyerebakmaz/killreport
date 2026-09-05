@@ -150,7 +150,7 @@ export default function MostValuableCarousel() {
           <button
             onClick={() => scroll('left')}
             disabled={!canScrollLeft}
-            className="button button-ghost button-icon"
+            className="button button-secondary button-icon"
             aria-label="Scroll left"
           >
             <ChevronLeftIcon className="w-5 h-5" />
@@ -158,7 +158,7 @@ export default function MostValuableCarousel() {
           <button
             onClick={() => scroll('right')}
             disabled={!canScrollRight}
-            className="button button-ghost button-icon"
+            className="button button-secondary button-icon"
             aria-label="Scroll right"
           >
             <ChevronRightIcon className="w-5 h-5" />
