@@ -253,7 +253,7 @@ export default function SolarSystemDetailPage({
                   tabIndex={activeTab === tab ? 0 : -1}
                   onClick={() => handleTabChange(tab)}
                   onKeyDown={onKeyDown}
-                  className="tab whitespace-nowrap"
+                  className="tab"
                 >
                   {TAB_LABELS[tab]}
                   {count !== null && (
