@@ -18,7 +18,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className="flex flex-col font-sans antialiased text-white bg-black"
+        // Not pure black: with no shadows, the only thing telling a surface it
+        // sits above the page is being a shade lighter than it. On black, a
+        // gray-900 card barely separated.
+        className="flex flex-col font-sans antialiased text-white bg-ground"
         suppressHydrationWarning
       >
         <ApolloWrapper>

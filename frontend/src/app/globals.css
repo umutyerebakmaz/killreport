@@ -1,13 +1,26 @@
-@import url('https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wght@0,200..900;1,200..900&display=swap');
 @import 'tailwindcss';
 
 @import './fonts.css';
+
 @import './buttons.css';
 @import './inputs.css';
 @import './tables.css';
+@import './cards.css';
 
 @theme {
-  --font-sans: 'Shentox', 'Mona Sans', sans-serif;
+  /* Typography */
+  --font-sans: 'Shentox', ui-sans-serif, system-ui, sans-serif;
+
+  /* Depth — three steps, no more. Four grounds are in use today
+     (bg-white/5, neutral-900, neutral-800, stone-900) and nothing says
+     which one means what. */
+  --color-ground: var(--color-gray-950); /* the page */
+  --color-surface: var(--color-gray-900); /* cards, tables, panels */
+  --color-surface-inset: var(--color-gray-800); /* a box inside a card */
+
+  /* Accent — the primary action fill. It sits in three separate
+     pockets today: cyan, indigo and blue. */
+  --color-accent: var(--color-cyan-600);
 }
 
 html,
@@ -16,88 +29,7 @@ body {
 }
 
 body {
-  font-family: 'Shentox', 'Mona Sans', sans-serif;
   font-weight: 400;
-}
-
-.fit-and-victim,
-.items-card {
-  @apply border bg-neutral-900 border-neutral-800;
-}
-
-.alliance-detail-card,
-.region-detail-card,
-.constellation-detail-card,
-.system-detail-card,
-.corporation-detail-card,
-.character-detail-card {
-  @apply border bg-neutral-900 border-neutral-800 p-6 flex flex-col;
-}
-
-.select-option-container {
-  @apply relative;
-}
-
-.select {
-  @apply px-4 py-2.5 pr-10 text-sm font-medium text-white transition-all duration-200 border appearance-none cursor-pointer bg-gray-900/70 border-gray-700/70 shadow-sm hover:bg-gray-800/80 hover:border-white/5 focus:outline-none focus:ring-2 focus:ring-white/5 focus:border-white/5;
-}
-
-.select:disabled {
-  @apply opacity-50 cursor-not-allowed bg-gray-900/30 text-gray-500 hover:bg-gray-900/30 hover:border-gray-700/70 hover:shadow-none;
-}
-
-.select option {
-  @apply py-3 px-3 text-sm font-medium text-gray-200 bg-gray-900 transition-colors duration-150;
-}
-
-.select option:hover {
-  @apply bg-linear-to-r from-gray-800 to-gray-800/90 text-white cursor-pointer;
-}
-
-.select option:checked {
-  @apply bg-linear-to-r from-gray-800/30 to-gray-700/20 text-gray-200 font-semibold;
-}
-
-/* Custom scrollbar for select dropdowns */
-.select::-webkit-scrollbar {
-  width: 8px;
-}
-
-.select::-webkit-scrollbar-track {
-  @apply bg-gray-900;
-}
-
-.select::-webkit-scrollbar-thumb {
-  @apply bg-gray-700 rounded-full hover:bg-gray-600;
-}
-
-.select::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-600;
-}
-
-/* Custom scrollbar for character dropdown */
-.character-dropdown-scroll::-webkit-scrollbar {
-  width: 8px;
-}
-
-.character-dropdown-scroll::-webkit-scrollbar-track {
-  @apply bg-gray-900;
-}
-
-.character-dropdown-scroll::-webkit-scrollbar-thumb {
-  @apply bg-gray-700 rounded-full hover:bg-gray-600;
-}
-
-.character-dropdown-scroll::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-600;
-}
-
-.select-option-container .chevron-down-icon {
-  @apply absolute w-5 h-5 text-gray-400 transition-all duration-200 pointer-events-none right-3 top-2.5;
-}
-
-.select-option-container:hover .chevron-down-icon {
-  @apply text-gray-300;
 }
 
 .alliance-name,

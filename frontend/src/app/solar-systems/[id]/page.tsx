@@ -16,6 +16,7 @@ import {
   TAB_LABELS,
 } from '@/components/SolarSystemDetail/tabs';
 import { useSolarSystemQuery } from '@/generated/graphql';
+import { useTabList } from '@/hooks/useTabList';
 import { formatTimeAgo } from '@/utils/date';
 import { getSecurityColor } from '@/utils/security';
 import { GlobeAltIcon, MapIcon, MapPinIcon } from '@heroicons/react/24/outline';
@@ -84,6 +85,12 @@ export default function SolarSystemDetailPage({
     [pageSize, syncUrl],
   );
 
+  const { onKeyDown } = useTabList(
+    SOLAR_SYSTEM_TABS,
+    activeTab,
+    handleTabChange,
+  );
+
   const handlePageChange = useCallback(
     (page: number) => {
       setCurrentPage(page);
@@ -146,7 +153,7 @@ export default function SolarSystemDetailPage({
 
   return (
     <div>
-      <div className="system-detail-card">
+      <div className="card p-6 flex flex-col">
         {/* Header */}
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-start gap-6">
@@ -229,18 +236,24 @@ export default function SolarSystemDetailPage({
 
         {/* Tabs — overflow-x-auto because six tabs overflow a narrow screen */}
         <div className="mt-8 mb-6 border-b border-white/10">
-          <nav className="flex gap-4 overflow-x-auto" aria-label="Tabs">
+          <nav
+            className="flex gap-4 overflow-x-auto"
+            aria-label="Tabs"
+            role="tablist"
+          >
             {SOLAR_SYSTEM_TABS.map((tab) => {
               const count = tabCount(tab);
               return (
                 <button
                   key={tab}
+                  role="tab"
+                  id={`tab-${tab}`}
+                  aria-controls={`panel-${tab}`}
+                  aria-selected={activeTab === tab}
+                  tabIndex={activeTab === tab ? 0 : -1}
                   onClick={() => handleTabChange(tab)}
-                  className={`px-4 py-3 text-sm font-semibold whitespace-nowrap transition-colors border-b-2 ${
-                    activeTab === tab
-                      ? 'border-cyan-500 text-cyan-500'
-                      : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
-                  }`}
+                  onKeyDown={onKeyDown}
+                  className="tab"
                 >
                   {TAB_LABELS[tab]}
                   {count !== null && (
@@ -257,33 +270,71 @@ export default function SolarSystemDetailPage({
         {/* Tab content */}
         <div>
           {activeTab === 'overview' && (
-            <OverviewTab
-              systemId={systemId}
-              starId={system.star_id}
-              securityClass={system.security_class}
-              securityStatus={system.securityStatus}
-              position={system.position}
-              star={system.star}
-            />
+            <div
+              role="tabpanel"
+              id="panel-overview"
+              aria-labelledby="tab-overview"
+            >
+              <OverviewTab
+                systemId={systemId}
+                starId={system.star_id}
+                securityClass={system.security_class}
+                securityStatus={system.securityStatus}
+                position={system.position}
+                star={system.star}
+              />
+            </div>
           )}
           {activeTab === 'adjacent' && (
-            <AdjacentSystemsTab systemId={systemId} />
+            <div
+              role="tabpanel"
+              id="panel-adjacent"
+              aria-labelledby="tab-adjacent"
+            >
+              <AdjacentSystemsTab systemId={systemId} />
+            </div>
           )}
           {activeTab === 'orbital-bodies' && (
-            <OrbitalBodiesTab systemId={systemId} />
+            <div
+              role="tabpanel"
+              id="panel-orbital-bodies"
+              aria-labelledby="tab-orbital-bodies"
+            >
+              <OrbitalBodiesTab systemId={systemId} />
+            </div>
           )}
-          {activeTab === 'structures' && <StructuresTab systemId={systemId} />}
+          {activeTab === 'structures' && (
+            <div
+              role="tabpanel"
+              id="panel-structures"
+              aria-labelledby="tab-structures"
+            >
+              <StructuresTab systemId={systemId} />
+            </div>
+          )}
           {activeTab === 'sovereignty' && (
-            <SovereigntyTab systemId={systemId} />
+            <div
+              role="tabpanel"
+              id="panel-sovereignty"
+              aria-labelledby="tab-sovereignty"
+            >
+              <SovereigntyTab systemId={systemId} />
+            </div>
           )}
           {activeTab === 'killmails' && (
-            <KillmailsTab
-              systemId={systemId}
-              currentPage={currentPage}
-              pageSize={pageSize}
-              onPageChange={handlePageChange}
-              onPageSizeChange={handlePageSizeChange}
-            />
+            <div
+              role="tabpanel"
+              id="panel-killmails"
+              aria-labelledby="tab-killmails"
+            >
+              <KillmailsTab
+                systemId={systemId}
+                currentPage={currentPage}
+                pageSize={pageSize}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+              />
+            </div>
           )}
         </div>
       </div>

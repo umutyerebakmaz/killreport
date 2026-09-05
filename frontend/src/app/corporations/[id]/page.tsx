@@ -23,6 +23,7 @@ import {
   useCorporationTopShipsQuery,
   useKillmailsDateCountsQuery,
 } from '@/generated/graphql';
+import { useTabList } from '@/hooks/useTabList';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { use, useCallback, useEffect, useMemo, useState } from 'react';
@@ -32,6 +33,15 @@ interface CorporationDetailPageProps {
 }
 
 type TabType = 'attributes' | 'killmails' | 'members' | 'growth';
+
+const TAB_IDS: TabType[] = ['attributes', 'killmails', 'members', 'growth'];
+
+const TAB_LABELS: Record<TabType, string> = {
+  attributes: 'Attributes',
+  killmails: 'Killmails',
+  members: 'Members',
+  growth: 'Growth',
+};
 
 export default function CorporationDetailPage({
   params,
@@ -47,6 +57,7 @@ export default function CorporationDetailPage({
   const [activeTab, setActiveTab] = useState<TabType>(tabFromUrl);
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(pageSizeFromUrl);
+  const { onKeyDown } = useTabList(TAB_IDS, activeTab, setActiveTab);
 
   // Separate pagination for characters
   const [charactersPage, setCharactersPage] = useState(1);
@@ -245,13 +256,6 @@ export default function CorporationDetailPage({
     );
   }
 
-  const tabs = [
-    { id: 'attributes' as TabType, label: 'Attributes' },
-    { id: 'killmails' as TabType, label: 'Killmails' },
-    { id: 'members' as TabType, label: 'Members' },
-    { id: 'growth' as TabType, label: 'Growth' },
-  ];
-
   // Delta verilerini al (haftalık değişim)
   const memberDelta7d = corporation.metrics?.memberCountDelta7d ?? null;
   const memberGrowthRate7d =
@@ -323,7 +327,7 @@ export default function CorporationDetailPage({
 
   return (
     <main>
-      <div className="alliance-detail-card">
+      <div className="card p-6 flex flex-col">
         {/* Logo and Corporation Name */}
         <div className="flex flex-row items-center justify-between">
           <div className="flex items-center justify-center gap-6">
@@ -376,18 +380,20 @@ export default function CorporationDetailPage({
 
         {/* Tabs */}
         <div className="mb-6 border-b border-white/10">
-          <nav className="flex gap-4" aria-label="Tabs">
-            {tabs.map((tab) => (
+          <nav className="flex gap-4" aria-label="Tabs" role="tablist">
+            {TAB_IDS.map((tabId) => (
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-3 text-sm font-semibold transition-colors border-b-2 ${
-                  activeTab === tab.id
-                    ? 'border-cyan-500 text-cyan-500'
-                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
-                }`}
+                key={tabId}
+                role="tab"
+                id={`tab-${tabId}`}
+                aria-controls={`panel-${tabId}`}
+                aria-selected={activeTab === tabId}
+                tabIndex={activeTab === tabId ? 0 : -1}
+                onClick={() => setActiveTab(tabId)}
+                onKeyDown={onKeyDown}
+                className="tab"
               >
-                {tab.label}
+                {TAB_LABELS[tabId]}
               </button>
             ))}
           </nav>
@@ -395,7 +401,12 @@ export default function CorporationDetailPage({
         {/* Tab Content */}
         <div className="mt-6">
           {activeTab === 'attributes' && (
-            <div className="p-6 bg-white/5 border-white/10">
+            <div
+              role="tabpanel"
+              id="panel-attributes"
+              aria-labelledby="tab-attributes"
+              className="p-6 bg-white/5 border-white/10"
+            >
               <h2 className="mb-4 text-2xl font-bold">Attributes</h2>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -493,7 +504,12 @@ export default function CorporationDetailPage({
           )}
 
           {activeTab === 'killmails' && (
-            <div className="killmails-tab">
+            <div
+              role="tabpanel"
+              id="panel-killmails"
+              aria-labelledby="tab-killmails"
+              className="killmails-tab"
+            >
               <h2 className="sr-only">Killmails</h2>
 
               {/* 2-column grid layout */}
@@ -616,7 +632,12 @@ export default function CorporationDetailPage({
           )}
 
           {activeTab === 'members' && (
-            <div className="p-6 bg-white/5 border-white/10">
+            <div
+              role="tabpanel"
+              id="panel-members"
+              aria-labelledby="tab-members"
+              className="p-6 bg-white/5 border-white/10"
+            >
               <h2 className="mb-4 text-2xl font-bold">Members</h2>
               <CharactersTable characters={characters} loading={false} />
               {characters.length > 0 && (
@@ -643,7 +664,12 @@ export default function CorporationDetailPage({
           )}
 
           {activeTab === 'growth' && (
-            <div className="detail-tab-content">
+            <div
+              role="tabpanel"
+              id="panel-growth"
+              aria-labelledby="tab-growth"
+              className="detail-tab-content"
+            >
               <CorporationGrowthChart
                 snapshots={growthData?.corporation?.snapshots ?? []}
                 loading={growthLoading}

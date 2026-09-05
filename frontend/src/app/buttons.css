@@ -1,28 +1,150 @@
-.button {
-  @apply inline-flex items-center gap-x-1.5 px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 border bg-gray-900/70 border-gray-700/70 shadow-sm hover:bg-gray-800/80 hover:border-white/5 focus:outline-none focus:ring-2 focus:ring-white/5 focus:border-white/5;
-}
+/*
+ * The button vocabulary. A button wears a structure class (.button), an
+ * appearance (.button-primary and friends) and optional modifiers:
+ *
+ *   <button className="button button-secondary button-icon">
+ *
+ * No radius: nothing sitting on the page takes one. Only .float does.
+ */
 
-.active-filter-button {
-  background-color: rgb(79 70 229 / 0.8) !important;
-  border-color: rgb(99 102 241 / 0.5) !important;
-  color: white !important;
-}
+@layer components {
+  /* The pointer is on .button rather than only on <button> in the base layer,
+     because a <label> wrapping a radio wears this class too and the base rule
+     cannot see it. `.button:has(:disabled)` below takes it back for a disabled
+     one, since a label has no :disabled of its own. */
+  .button {
+    @apply inline-flex items-center justify-center gap-x-1.5 px-4 py-2.5 text-sm font-medium
+      cursor-pointer transition-colors focus:outline-none focus-visible:outline-1
+      focus-visible:outline-white/40 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
 
-.active-filter-button:hover {
-  background-color: rgb(79 70 229) !important;
-  border-color: rgb(99 102 241) !important;
-}
+  /* A <label> wrapping an input has no :focus-visible or :disabled of its own,
+     so the structural states are read through the input it contains. These sit
+     on .button rather than on an appearance because they are the same whatever
+     the button looks like. */
+  .button:has(:focus-visible) {
+    @apply outline-1 outline-white/40;
+  }
 
-.badge {
-  @apply inline-flex items-center justify-center w-5 h-5 ml-1 text-xs font-bold text-indigo-600 bg-white rounded-full;
-}
+  .button:has(:disabled) {
+    @apply opacity-50 cursor-not-allowed;
+  }
 
-.apply-filter-button {
-  @apply inline-flex justify-center items-center gap-x-1.5 bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors;
-}
+  /* --- Appearances --- */
 
-.clear-filter-button {
-  @apply inline-flex items-center gap-x-1.5 bg-red-600/20 border border-red-500/30 px-3 py-2.5 text-sm font-medium text-red-400 hover:bg-red-600/30 transition-colors;
+  .button-primary {
+    @apply text-white bg-accent hover:bg-cyan-500;
+  }
+
+  .button-secondary {
+    @apply text-white border bg-surface border-white/10 hover:bg-surface-inset hover:border-white/20;
+  }
+
+  .button-ghost {
+    @apply text-gray-400 hover:not-aria-selected:bg-white/5 hover:not-aria-selected:text-white;
+  }
+
+  .button-danger {
+    @apply border text-red-400 bg-red-600/20 border-red-500/30 hover:bg-red-600/30;
+  }
+
+  /*
+   * The pressed state comes from ARIA, not from a class. .active-filter-button
+   * used to do this with five !important declarations; [aria-pressed] is
+   * (0,2,0) and already outranks the appearance classes at (0,1,0), so none
+   * are needed. The appearance can no longer drift from what a screen reader
+   * announces.
+   *
+   * border-cyan-500/50 below only has a border to color: it takes effect
+   * alongside .button-secondary or .button-danger, which declare `border`.
+   * On .button-primary or .button-ghost it is inert.
+   */
+  .button[aria-pressed='true'] {
+    @apply text-white bg-accent border-cyan-500/50;
+  }
+
+  .button[aria-pressed='true']:hover {
+    @apply bg-cyan-500;
+  }
+
+  .button-ghost[aria-selected='true'] {
+    @apply text-white bg-white/10;
+  }
+
+  /* A ghost segment's "on" is subtle whichever attribute says so. The accent
+     fill above belongs to a toggle that is currently engaged, not to one
+     segment of a group where something is always selected. */
+  /* Equal specificity to .button[aria-pressed='true'] above (0,2,0), so this
+     wins only by being written second. Move it up and every ghost segment
+     silently takes the accent fill instead. */
+  .button-ghost[aria-pressed='true'] {
+    @apply text-white bg-white/10;
+  }
+
+  /* (0,3,0), same as .button[aria-pressed='true']:hover above, so this wins
+     only by being written after it. Without it a selected ghost segment
+     flashes the accent under the pointer. */
+  /* A label wrapping a radio has no aria-selected to set — its state lives in
+     the input's :checked. Same appearance class, same look, third mechanism.
+     :has() carries the (0,2,0) needed to beat .button-ghost itself. */
+  .button-ghost[aria-pressed='true']:hover {
+    @apply bg-white/10;
+  }
+
+  /* Secondary's "on" state, for all three mechanisms at once. It already has
+     a ground, so selection is marked with the accent on the border rather
+     than a fill — the fill stays reserved for an engaged toggle.
+     The :hover pair below is not optional: .button-secondary's own hover sets
+     border-white/20 at the same (0,2,0), and without these it would wash the
+     accent border off under the pointer. */
+  .button-secondary[aria-selected='true'],
+  .button-secondary[aria-pressed='true'],
+  .button-secondary:has(:checked) {
+    @apply text-white border-accent bg-surface-inset;
+  }
+
+  .button-secondary[aria-selected='true']:hover,
+  .button-secondary[aria-pressed='true']:hover,
+  .button-secondary:has(:checked):hover {
+    @apply border-accent;
+  }
+
+  /* --- Modifiers ---
+   * These must come AFTER the appearances: they match .button's specificity
+   * (0,1,0), so source order is the only thing letting them win on padding. */
+
+  .button-icon {
+    @apply p-2;
+  }
+
+  .button-sm {
+    @apply px-3 py-1 text-xs;
+  }
+
+  /* .button already sets justify-center; this only needs the width. */
+  .button-block {
+    @apply w-full;
+  }
+
+  /* The count bubble on a filter button. */
+  .badge {
+    @apply inline-flex items-center justify-center w-5 h-5 ml-1 text-xs font-bold rounded-full text-cyan-700 bg-white;
+  }
+
+  /*
+   * The underlined tab. Six detail pages (regions, alliances, solar-systems,
+   * corporations, characters, constellations) each write this bar out
+   * separately today. The selected state is read from ARIA here too.
+   */
+  .tab {
+    @apply px-4 py-3 text-sm font-semibold transition-colors border-b-2 whitespace-nowrap
+      border-transparent text-gray-400 hover:not-aria-selected:text-white
+      hover:not-aria-selected:border-white/20;
+  }
+
+  .tab[aria-selected='true'] {
+    @apply text-white border-accent;
+  }
 }
 
 /*

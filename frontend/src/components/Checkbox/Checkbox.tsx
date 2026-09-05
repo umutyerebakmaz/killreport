@@ -23,7 +23,7 @@ export default function Checkbox({
             checked={checked}
             disabled={disabled}
             onChange={(e) => onChange(e.target.checked)}
-            className="col-start-1 row-start-1 border appearance-none cursor-pointer border-white/10 bg-white/5 checked:border-indigo-500 checked:bg-indigo-500 indeterminate:border-indigo-500 indeterminate:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:border-white/5 disabled:bg-white/10 disabled:checked:bg-white/10 forced-colors:appearance-auto"
+            className="col-start-1 row-start-1 border appearance-none cursor-pointer border-white/10 bg-white/5 checked:border-accent checked:bg-accent indeterminate:border-accent indeterminate:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:border-white/5 disabled:bg-white/10 disabled:checked:bg-white/10 forced-colors:appearance-auto"
           />
           <svg
             viewBox="0 0 14 14"

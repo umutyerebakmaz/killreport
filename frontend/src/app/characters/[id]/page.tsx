@@ -16,6 +16,7 @@ import {
   useCharacterTopShipTargetsQuery,
   useKillmailsDateCountsQuery,
 } from '@/generated/graphql';
+import { useTabList } from '@/hooks/useTabList';
 import { calculateAge, humanReadableDate } from '@/utils/date';
 import { getSecurityStatusColor } from '@/utils/securityStatus';
 import Link from 'next/link';
@@ -27,6 +28,14 @@ interface CharacterDetailPageProps {
 }
 
 type TabType = 'bio' | 'killmails' | 'statistics';
+
+const TAB_IDS: TabType[] = ['bio', 'killmails', 'statistics'];
+
+const TAB_LABELS: Record<TabType, string> = {
+  bio: 'Bio',
+  killmails: 'Killmails',
+  statistics: 'Statistics',
+};
 
 export default function CharacterDetailPage({
   params,
@@ -42,6 +51,7 @@ export default function CharacterDetailPage({
   const [activeTab, setActiveTab] = useState<TabType>(tabFromUrl);
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(pageSizeFromUrl);
+  const { onKeyDown } = useTabList(TAB_IDS, activeTab, setActiveTab);
 
   const { data, loading, error } = useCharacterQuery({
     variables: {
@@ -204,19 +214,13 @@ export default function CharacterDetailPage({
       dogmaAttributes: ship.shipType.dogmaAttributes,
     })) || [];
 
-  const tabs = [
-    { id: 'bio' as TabType, label: 'Bio' },
-    { id: 'killmails' as TabType, label: 'Killmails' },
-    { id: 'statistics' as TabType, label: 'Statistics' },
-  ];
-
   const age = calculateAge(character.birthday);
   const updatedAt = humanReadableDate(character.updatedAt);
   const updatedAtHuman = calculateAge(character.updatedAt);
 
   return (
     <main>
-      <div className="character-detail-card">
+      <div className="card p-6 flex flex-col">
         {/* Portrait and Character Name */}
         <div className="flex items-center justify-center">
           <img
@@ -331,18 +335,20 @@ export default function CharacterDetailPage({
 
         {/* Tabs */}
         <div className="mb-6 border-b border-white/10">
-          <nav className="flex gap-4" aria-label="Tabs">
-            {tabs.map((tab) => (
+          <nav className="flex gap-4" aria-label="Tabs" role="tablist">
+            {TAB_IDS.map((tabId) => (
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-3 text-sm font-semibold transition-colors border-b-2 ${
-                  activeTab === tab.id
-                    ? 'border-cyan-500 text-cyan-500'
-                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600'
-                }`}
+                key={tabId}
+                role="tab"
+                id={`tab-${tabId}`}
+                aria-controls={`panel-${tabId}`}
+                aria-selected={activeTab === tabId}
+                tabIndex={activeTab === tabId ? 0 : -1}
+                onClick={() => setActiveTab(tabId)}
+                onKeyDown={onKeyDown}
+                className="tab"
               >
-                {tab.label}
+                {TAB_LABELS[tabId]}
               </button>
             ))}
           </nav>
@@ -351,7 +357,12 @@ export default function CharacterDetailPage({
         {/* Tab Content */}
         <div className="mt-6">
           {activeTab === 'bio' && (
-            <div className="p-6 bg-white/5 border-white/10">
+            <div
+              role="tabpanel"
+              id="panel-bio"
+              aria-labelledby="tab-bio"
+              className="p-6 bg-white/5 border-white/10"
+            >
               <div className="grid grid-cols-2 gap-4">
                 {character.description && (
                   <div className="col-span-2">
@@ -369,7 +380,12 @@ export default function CharacterDetailPage({
           )}
 
           {activeTab === 'killmails' && (
-            <div className="killmails-tab">
+            <div
+              role="tabpanel"
+              id="panel-killmails"
+              aria-labelledby="tab-killmails"
+              className="killmails-tab"
+            >
               <h2 className="sr-only">Killmails</h2>
 
               {/* 2-column grid layout */}
@@ -477,7 +493,12 @@ export default function CharacterDetailPage({
           )}
 
           {activeTab === 'statistics' && (
-            <div className="p-6 bg-white/5 border-white/10">
+            <div
+              role="tabpanel"
+              id="panel-statistics"
+              aria-labelledby="tab-statistics"
+              className="p-6 bg-white/5 border-white/10"
+            >
               <h2 className="mb-4 text-2xl font-bold">Statistics</h2>
               <p className="text-gray-400">Statistics coming soon...</p>
             </div>

@@ -1,6 +1,9 @@
 'use client';
 
 import RadioGroup from '@/components/RadioGroup/RadioGroup';
+import FilterBar from '@/components/ui/FilterBar';
+import FilterDialog from '@/components/ui/FilterDialog';
+import FilterField from '@/components/ui/FilterField';
 import {
   useSearchCharacterQuery,
   useSearchCharactersQuery,
@@ -14,14 +17,11 @@ import {
   useSearchTypeQuery,
   useSearchTypesQuery,
 } from '@/generated/graphql';
-import FilterBar from '@/components/ui/FilterBar';
-import FilterDialog from '@/components/ui/FilterDialog';
-import FilterField from '@/components/ui/FilterField';
 import { useDebounce } from '@/hooks/useDebounce';
-import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useEffect, useRef, useState } from 'react';
 
-interface KillmailFiltersProps {
+interface KillmailFilterFormProps {
   onFilterChange: (filters: {
     shipTypeId?: number;
     shipGroupIds?: number[];
@@ -58,7 +58,7 @@ interface KillmailFiltersProps {
   initialWarRelated?: boolean;
 }
 
-export default function KillmailFilters({
+export default function KillmailFilterForm({
   onFilterChange,
   onClearFilters,
   initialShipTypeId,
@@ -75,7 +75,7 @@ export default function KillmailFilters({
   initialCharacterRole = 'all',
   initialSecuritySpace = 'all',
   initialWarRelated = false,
-}: KillmailFiltersProps) {
+}: KillmailFilterFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [typeSearch, setTypeSearch] = useState('');
   const [shipTypeId, setShipTypeId] = useState<number | undefined>(
@@ -481,7 +481,7 @@ export default function KillmailFilters({
     setShipTypeName(typeName);
     setTypeSearch(''); // Clear arama inputunu
     setShowDropdown(false);
-    // Filter will be applied when user clicks "Apply Filters" button
+    // Filter will be applied when user clicks the APPLY button
   };
 
   const handleGroupSelect = (groupId: number, groupName: string) => {
@@ -638,27 +638,37 @@ export default function KillmailFilters({
         open={isOpen}
         onClose={() => setIsOpen(false)}
         footer={
-          <button
-            type="submit"
-            form="killmail-filters"
-            className="apply-filter-button"
-          >
-            Apply Filters
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={handleClearAll}
+              className="button button-ghost"
+            >
+              CLEAR
+            </button>
+            <button
+              type="submit"
+              form="killmail-filters"
+              className="button button-secondary"
+            >
+              APPLY
+            </button>
+          </>
         }
       >
         <div className="space-y-4">
           {/* Pilot Search */}
-          <FilterField label="Pilot" htmlFor="filter-pilot">
+          <FilterField
+            label="Pilot"
+            htmlFor="filter-pilot"
+            hint="Type at least 3 letters to search"
+          >
             <div ref={pilotDropdownRef}>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
-                </div>
                 <input
                   type="text"
                   id="filter-pilot"
-                  placeholder="Search pilot (min 3 letters)..."
+                  aria-describedby="filter-pilot-hint"
                   value={pilotSearch}
                   onChange={(e) => {
                     setPilotSearch(e.target.value);
@@ -673,7 +683,7 @@ export default function KillmailFilters({
                     )
                       setShowPilotDropdown(true);
                   }}
-                  className="search-input"
+                  className="input"
                 />
                 {pilotLoading && pilotSearch.length >= 3 && (
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -696,7 +706,7 @@ export default function KillmailFilters({
                               onClick={() =>
                                 handlePilotSelect(character.id, character.name)
                               }
-                              className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
+                              className="menu-row group"
                             >
                               <div className="flex items-center justify-center flex-none size-16 bg-gray-700/50 group-hover:bg-gray-700">
                                 <img
@@ -749,22 +759,20 @@ export default function KillmailFilters({
 
             {/* Character chip + its own RadioGroup */}
             {characterId && (
-              <div className="flex flex-col gap-2 mt-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-gray-700/50">
-                    <img
-                      src={`https://images.evetech.net/characters/${characterId}/portrait?size=64`}
-                      alt={characterName}
-                      className="object-cover size-8"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          '/images/default-avatar.png';
-                      }}
-                    />
-                    <span className="font-semibold truncate">
-                      {characterName}
-                    </span>
-                  </div>
+              <div className="flex flex-wrap items-center justify-between gap-3 mt-3">
+                <span className="chip">
+                  <img
+                    src={`https://images.evetech.net/characters/${characterId}/portrait?size=64`}
+                    alt={characterName}
+                    className="object-cover size-8"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        '/images/default-avatar.png';
+                    }}
+                  />
+                  <span className="font-semibold truncate">
+                    {characterName}
+                  </span>
                   <button
                     type="button"
                     onClick={() => {
@@ -772,11 +780,12 @@ export default function KillmailFilters({
                       setCharacterName('');
                       setCharacterRole('all');
                     }}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                    className="button button-ghost p-1"
+                    aria-label="Remove character filter"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
-                </div>
+                </span>
                 <RadioGroup
                   name="character-role"
                   value={characterRole}
@@ -792,16 +801,17 @@ export default function KillmailFilters({
           </FilterField>
 
           {/* Ship Search */}
-          <FilterField label="Ship" htmlFor="filter-ship">
+          <FilterField
+            label="Ship"
+            htmlFor="filter-ship"
+            hint="Type at least 3 letters to search"
+          >
             <div ref={shipDropdownRef}>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
-                </div>
                 <input
                   type="text"
                   id="filter-ship"
-                  placeholder="Search ship (min 3 letters)..."
+                  aria-describedby="filter-ship-hint"
                   value={typeSearch}
                   onChange={(e) => {
                     setTypeSearch(e.target.value);
@@ -816,7 +826,7 @@ export default function KillmailFilters({
                     )
                       setShowDropdown(true);
                   }}
-                  className="search-input"
+                  className="input"
                 />
                 {typeLoading && typeSearch.length >= 3 && (
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -835,7 +845,7 @@ export default function KillmailFilters({
                             key={type.id}
                             type="button"
                             onClick={() => handleShipSelect(type.id, type.name)}
-                            className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
+                            className="menu-row group"
                           >
                             <div className="flex items-center justify-center flex-none size-16 bg-gray-700/50 group-hover:bg-gray-700">
                               <img
@@ -878,22 +888,18 @@ export default function KillmailFilters({
 
             {/* Ship chip + its own RadioGroup */}
             {shipTypeId && (
-              <div className="flex flex-col gap-2 mt-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-gray-700/50">
-                    <img
-                      src={`https://images.evetech.net/types/${shipTypeId}/icon?size=64`}
-                      alt={shipTypeName}
-                      className="object-cover size-8"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          '/images/default-ship.png';
-                      }}
-                    />
-                    <span className="font-semibold truncate">
-                      {shipTypeName}
-                    </span>
-                  </div>
+              <div className="flex flex-wrap items-center justify-between gap-3 mt-3">
+                <span className="chip">
+                  <img
+                    src={`https://images.evetech.net/types/${shipTypeId}/icon?size=64`}
+                    alt={shipTypeName}
+                    className="object-cover size-8"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        '/images/default-ship.png';
+                    }}
+                  />
+                  <span className="font-semibold truncate">{shipTypeName}</span>
                   <button
                     type="button"
                     onClick={() => {
@@ -901,11 +907,12 @@ export default function KillmailFilters({
                       setShipTypeName('');
                       setShipRole('all');
                     }}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                    className="button button-ghost p-1"
+                    aria-label="Remove ship filter"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
-                </div>
+                </span>
                 <RadioGroup
                   name="ship-type-role"
                   value={shipRole}
@@ -924,16 +931,14 @@ export default function KillmailFilters({
           <FilterField
             label="Ship Group (e.g., Assault Frigate)"
             htmlFor="filter-ship-group"
+            hint="Type at least 2 letters to search"
           >
             <div ref={groupDropdownRef}>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
-                </div>
                 <input
                   type="text"
                   id="filter-ship-group"
-                  placeholder="Search ship group (min 2 letters)..."
+                  aria-describedby="filter-ship-group-hint"
                   value={groupSearch}
                   onChange={(e) => {
                     setGroupSearch(e.target.value);
@@ -948,7 +953,7 @@ export default function KillmailFilters({
                     )
                       setShowGroupDropdown(true);
                   }}
-                  className="search-input"
+                  className="input"
                 />
                 {groupLoading && groupSearch.length >= 2 && (
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -970,7 +975,7 @@ export default function KillmailFilters({
                               handleGroupSelect(group.id, group.name)
                             }
                             disabled={shipGroupIds.includes(group.id)}
-                            className={`relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5 ${shipGroupIds.includes(group.id) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`menu-row group ${shipGroupIds.includes(group.id) ? 'opacity-50 cursor-not-allowed' : ''}`}
                           >
                             <div className="flex-auto min-w-0 text-left">
                               <div className="font-semibold text-white truncate">
@@ -1007,53 +1012,57 @@ export default function KillmailFilters({
 
             {/* Ship Groups chips */}
             {shipGroupIds.length > 0 && (
-              <div className="flex flex-col gap-2 mt-3">
-                <div className="text-xs font-medium text-gray-400">
+              <div className="mt-3">
+                <div className="mb-2 text-xs font-medium text-gray-400">
                   Ship Groups
                 </div>
-                {shipGroupIds.map((groupId) => (
-                  <div key={groupId} className="flex items-center gap-2">
-                    <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-blue-900/30">
-                      <span className="font-semibold truncate">
-                        {shipGroupNames.get(groupId) || `Group ${groupId}`}
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {shipGroupIds.map((groupId) => (
+                      <span key={groupId} className="chip">
+                        <span className="font-semibold truncate">
+                          {shipGroupNames.get(groupId) || `Group ${groupId}`}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleGroupRemove(groupId)}
+                          className="button button-ghost p-1"
+                          aria-label="Remove ship group filter"
+                        >
+                          <XMarkIcon className="w-4 h-4" />
+                        </button>
                       </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleGroupRemove(groupId)}
-                      className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
-                    >
-                      <XMarkIcon className="w-4 h-4" />
-                    </button>
+                    ))}
                   </div>
-                ))}
-                {!shipTypeId && (
-                  <RadioGroup
-                    name="ship-group-role"
-                    value={shipRole}
-                    onChange={setShipRole}
-                    options={[
-                      { value: 'all', label: 'All' },
-                      { value: 'victim', label: 'Victim' },
-                      { value: 'attacker', label: 'Attacker' },
-                    ]}
-                  />
-                )}
+                  {!shipTypeId && (
+                    <RadioGroup
+                      name="ship-group-role"
+                      value={shipRole}
+                      onChange={setShipRole}
+                      options={[
+                        { value: 'all', label: 'All' },
+                        { value: 'victim', label: 'Victim' },
+                        { value: 'attacker', label: 'Attacker' },
+                      ]}
+                    />
+                  )}
+                </div>
               </div>
             )}
           </FilterField>
 
           {/* Solar System Search */}
-          <FilterField label="Solar System" htmlFor="filter-solar-system">
+          <FilterField
+            label="Solar System"
+            htmlFor="filter-solar-system"
+            hint="Type at least 3 letters to search"
+          >
             <div ref={solarSystemDropdownRef}>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
-                </div>
                 <input
                   type="text"
                   id="filter-solar-system"
-                  placeholder="Search solar system (min 3 letters)..."
+                  aria-describedby="filter-solar-system-hint"
                   value={solarSystemSearch}
                   onChange={(e) => {
                     setSolarSystemSearch(e.target.value);
@@ -1069,7 +1078,7 @@ export default function KillmailFilters({
                     )
                       setShowSolarSystemDropdown(true);
                   }}
-                  className="search-input"
+                  className="input"
                 />
                 {solarSystemLoading && solarSystemSearch.length >= 3 && (
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -1106,7 +1115,7 @@ export default function KillmailFilters({
                               onClick={() =>
                                 handleSolarSystemSelect(system.id, system.name)
                               }
-                              className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
+                              className="menu-row group"
                             >
                               <div className="flex-auto min-w-0 text-left">
                                 <div className="flex items-center gap-2">
@@ -1152,16 +1161,14 @@ export default function KillmailFilters({
 
             {/* Solar System chip */}
             {systemId && (
-              <div className="flex flex-col gap-2 mt-3">
-                <div className="text-xs font-medium text-gray-400">
+              <div className="mt-3">
+                <div className="mb-2 text-xs font-medium text-gray-400">
                   Solar System
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
-                    <span className="font-semibold truncate">
-                      {solarSystemName || `System ${systemId}`}
-                    </span>
-                  </div>
+                <span className="chip">
+                  <span className="font-semibold truncate">
+                    {solarSystemName || `System ${systemId}`}
+                  </span>
                   <button
                     type="button"
                     onClick={() => {
@@ -1177,26 +1184,28 @@ export default function KillmailFilters({
                       setSystemId(undefined);
                       setSolarSystemName('');
                     }}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                    className="button button-ghost p-1"
+                    aria-label="Remove solar system filter"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
-                </div>
+                </span>
               </div>
             )}
           </FilterField>
 
           {/* Region Search */}
-          <FilterField label="Region" htmlFor="filter-region">
+          <FilterField
+            label="Region"
+            htmlFor="filter-region"
+            hint="Type at least 3 letters to search"
+          >
             <div ref={regionDropdownRef}>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
-                </div>
                 <input
                   type="text"
                   id="filter-region"
-                  placeholder="Search region (min 3 letters)..."
+                  aria-describedby="filter-region-hint"
                   value={regionSearch}
                   onChange={(e) => {
                     setRegionSearch(e.target.value);
@@ -1211,7 +1220,7 @@ export default function KillmailFilters({
                     )
                       setShowRegionDropdown(true);
                   }}
-                  className="search-input"
+                  className="input"
                 />
                 {regionLoading && regionSearch.length >= 3 && (
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -1241,7 +1250,7 @@ export default function KillmailFilters({
                               onClick={() =>
                                 handleRegionSelect(region.id, region.name)
                               }
-                              className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
+                              className="menu-row group"
                             >
                               <div className="flex-auto min-w-0 text-left">
                                 <div className="flex items-center gap-2">
@@ -1282,40 +1291,42 @@ export default function KillmailFilters({
 
             {/* Region chip */}
             {regionId && (
-              <div className="flex flex-col gap-2 mt-3">
-                <div className="text-xs font-medium text-gray-400">Region</div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
-                    <span className="font-semibold truncate">
-                      {regionName || `Region ${regionId}`}
-                    </span>
-                  </div>
+              <div className="mt-3">
+                <div className="mb-2 text-xs font-medium text-gray-400">
+                  Region
+                </div>
+                <span className="chip">
+                  <span className="font-semibold truncate">
+                    {regionName || `Region ${regionId}`}
+                  </span>
                   <button
                     type="button"
                     onClick={() => {
                       setRegionId(undefined);
                       setRegionName('');
                     }}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                    className="button button-ghost p-1"
+                    aria-label="Remove region filter"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
-                </div>
+                </span>
               </div>
             )}
           </FilterField>
 
           {/* Constellation Search */}
-          <FilterField label="Constellation" htmlFor="filter-constellation">
+          <FilterField
+            label="Constellation"
+            htmlFor="filter-constellation"
+            hint="Type at least 3 letters to search"
+          >
             <div ref={constellationDropdownRef}>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
-                </div>
                 <input
                   type="text"
                   id="filter-constellation"
-                  placeholder="Search constellation (min 3 letters)..."
+                  aria-describedby="filter-constellation-hint"
                   value={constellationSearch}
                   onChange={(e) => {
                     setConstellationSearch(e.target.value);
@@ -1331,7 +1342,7 @@ export default function KillmailFilters({
                     )
                       setShowConstellationDropdown(true);
                   }}
-                  className="search-input"
+                  className="input"
                 />
                 {constellationLoading && constellationSearch.length >= 3 && (
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -1366,7 +1377,7 @@ export default function KillmailFilters({
                                     constellation.name,
                                   )
                                 }
-                                className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
+                                className="menu-row group"
                               >
                                 <div className="flex-auto min-w-0 text-left">
                                   <div className="flex items-center gap-2">
@@ -1413,16 +1424,14 @@ export default function KillmailFilters({
 
             {/* Constellation chip */}
             {constellationId && (
-              <div className="flex flex-col gap-2 mt-3">
-                <div className="text-xs font-medium text-gray-400">
+              <div className="mt-3">
+                <div className="mb-2 text-xs font-medium text-gray-400">
                   Constellation
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-purple-900/30">
-                    <span className="font-semibold truncate">
-                      {constellationName || `Constellation ${constellationId}`}
-                    </span>
-                  </div>
+                <span className="chip">
+                  <span className="font-semibold truncate">
+                    {constellationName || `Constellation ${constellationId}`}
+                  </span>
                   <button
                     type="button"
                     onClick={() => {
@@ -1438,11 +1447,12 @@ export default function KillmailFilters({
                       setConstellationId(undefined);
                       setConstellationName('');
                     }}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                    className="button button-ghost p-1"
+                    aria-label="Remove constellation filter"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
-                </div>
+                </span>
               </div>
             )}
           </FilterField>
@@ -1452,7 +1462,6 @@ export default function KillmailFilters({
             <input
               type="number"
               id="filter-min-attackers"
-              placeholder="Min attackers..."
               value={minAttackers}
               onChange={(e) => setMinAttackers(e.target.value)}
               className="input"
@@ -1465,7 +1474,6 @@ export default function KillmailFilters({
             <input
               type="number"
               id="filter-max-attackers"
-              placeholder="Max attackers..."
               value={maxAttackers}
               onChange={(e) => setMaxAttackers(e.target.value)}
               className="input"
@@ -1478,7 +1486,6 @@ export default function KillmailFilters({
             <input
               type="number"
               id="filter-min-value"
-              placeholder="Min ISK value..."
               value={minValue}
               onChange={(e) => setMinValue(e.target.value)}
               className="input"
@@ -1492,7 +1499,6 @@ export default function KillmailFilters({
             <input
               type="number"
               id="filter-max-value"
-              placeholder="Max ISK value..."
               value={maxValue}
               onChange={(e) => setMaxValue(e.target.value)}
               className="input"

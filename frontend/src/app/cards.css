@@ -1,0 +1,46 @@
+/*
+ * Surfaces.
+ *
+ * Everything sitting on the page is opaque and sharp; everything floating
+ * above it is glass with a small radius. Glass is a layer signal rather
+ * than decoration — it only means anything with content behind it.
+ */
+
+@layer components {
+  /* .card holds no padding of its own — every caller lays out its own
+     insides. That decision was already made in ui/Card.tsx; it stands. */
+  .card {
+    @apply border bg-surface border-white/10;
+  }
+
+  /* The header lives INSIDE the card. In five components (TopShipsCard,
+     TopTargetsCard, TopCharacterCard, TopCorporationCard, TopAllianceCard)
+     the root element had no background, so the header read as a separate
+     thing sitting on the page. */
+  .card-header {
+    @apply px-4 py-3 border-b border-white/10;
+  }
+
+  .card-body {
+    @apply p-4;
+  }
+
+  /* The floating layer: popover panels, the mobile drawer, FilterDialog, Tooltip. */
+  .float {
+    @apply border rounded-md bg-gray-900/80 backdrop-blur-md border-white/10;
+  }
+
+  /* A list row that carries a <button> tag but is not visually a button.
+     Hovers to the same neutral as .button-ghost; the accent stays reserved
+     for actions. */
+  .menu-row {
+    @apply relative flex items-center w-full p-3 transition-colors gap-x-3 text-sm/6 hover:bg-white/5;
+  }
+
+  /* A selected-filter chip: hugs its label and holds its own remove button.
+     The three grounds it used to carry (purple, blue, grey) meant nothing —
+     the user confirmed they were not a code for the filter's type. */
+  .chip {
+    @apply inline-flex items-center gap-2 py-1 pl-2 pr-1 text-sm text-white bg-surface-inset;
+  }
+}

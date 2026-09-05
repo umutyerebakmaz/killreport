@@ -6,10 +6,7 @@ import Paginator from '@/components/Paginator/Paginator';
 import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
 import Tooltip from '@/components/Tooltip/Tooltip';
 import { useRegionsQuery } from '@/generated/graphql';
-import {
-  ChevronDownIcon,
-  MagnifyingGlassIcon,
-} from '@heroicons/react/24/outline';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
@@ -78,15 +75,12 @@ function RegionsContent() {
       {/* Filters */}
       <div className="flex items-center gap-3">
         <div className="relative flex-1">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
-          </div>
           <input
             type="text"
             placeholder="Search regions..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
+            className="input"
           />
         </div>
 

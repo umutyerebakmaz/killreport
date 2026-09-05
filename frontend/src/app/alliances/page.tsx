@@ -1,7 +1,7 @@
 'use client';
 
 import AllianceCard from '@/components/Card/AllianceCard';
-import AllianceFilters from '@/components/Filters/AllianceFilters';
+import AllianceFilterForm from '@/components/Filters/AllianceFilterForm';
 import Loader from '@/components/Loader';
 import Paginator from '@/components/Paginator/Paginator';
 import { useAlliancesQuery } from '@/generated/graphql';
@@ -117,7 +117,7 @@ function AlliancesContent() {
 
       {/* Filters */}
       <div>
-        <AllianceFilters
+        <AllianceFilterForm
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}
           orderBy={orderBy}

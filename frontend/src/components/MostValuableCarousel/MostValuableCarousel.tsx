@@ -8,6 +8,7 @@ import {
   MostValuableScope,
   useMostValuableKillmailsQuery,
 } from '@/generated/graphql';
+import { useTabList } from '@/hooks/useTabList';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -53,6 +54,9 @@ const TABS: Tab[] = [
   },
 ];
 
+/** Same order as TABS, derived rather than declared again. */
+const TAB_SCOPES: MostValuableScope[] = TABS.map((tab) => tab.scope);
+
 /**
  * The Most Valuable shelf on the killmails page. Self-contained: it owns its tab
  * state, its scrolling and its own query, so the page only has to place it.
@@ -64,6 +68,8 @@ export default function MostValuableCarousel() {
   const [activeScope, setActiveScope] = useState<MostValuableScope>(
     MostValuableScope.Ships,
   );
+
+  const { onKeyDown } = useTabList(TAB_SCOPES, activeScope, setActiveScope);
 
   const { data, loading } = useMostValuableKillmailsQuery({
     variables: { scope: activeScope, days: WINDOW_DAYS, limit: CARD_COUNT },
@@ -134,12 +140,10 @@ export default function MostValuableCarousel() {
               role="tab"
               aria-selected={tab.scope === activeScope}
               aria-controls={PANEL_ID}
+              tabIndex={tab.scope === activeScope ? 0 : -1}
               onClick={() => setActiveScope(tab.scope)}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                tab.scope === activeScope
-                  ? 'bg-white/10 text-white'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
+              onKeyDown={onKeyDown}
+              className="button button-secondary button-sm"
             >
               {tab.label}
             </button>
@@ -150,11 +154,7 @@ export default function MostValuableCarousel() {
           <button
             onClick={() => scroll('left')}
             disabled={!canScrollLeft}
-            className={`p-2 transition-all ${
-              canScrollLeft
-                ? 'bg-white/10 hover:bg-white/20 text-white'
-                : 'bg-white/5 text-gray-600 cursor-not-allowed'
-            }`}
+            className="button button-secondary button-icon"
             aria-label="Scroll left"
           >
             <ChevronLeftIcon className="w-5 h-5" />
@@ -162,11 +162,7 @@ export default function MostValuableCarousel() {
           <button
             onClick={() => scroll('right')}
             disabled={!canScrollRight}
-            className={`p-2 transition-all ${
-              canScrollRight
-                ? 'bg-white/10 hover:bg-white/20 text-white'
-                : 'bg-white/5 text-gray-600 cursor-not-allowed'
-            }`}
+            className="button button-secondary button-icon"
             aria-label="Scroll right"
           >
             <ChevronRightIcon className="w-5 h-5" />

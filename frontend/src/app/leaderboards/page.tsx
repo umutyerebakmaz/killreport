@@ -252,7 +252,7 @@ function DailyLeaderboard() {
       <div className="flex items-center gap-2 min-h-9.5">
         <button
           onClick={prevDay}
-          className="p-1.5 text-gray-400 border border-white/10 hover:text-white hover:border-white/30 shrink-0"
+          className="button button-secondary button-icon shrink-0"
           aria-label="Previous day"
         >
           <ChevronLeftIcon className="w-4 h-4" />
@@ -275,11 +275,7 @@ function DailyLeaderboard() {
         <button
           onClick={nextDay}
           disabled={isToday}
-          className={`p-1.5 border border-white/10 shrink-0 ${
-            isToday
-              ? 'text-gray-700 cursor-not-allowed'
-              : 'text-gray-400 hover:text-white hover:border-white/30'
-          }`}
+          className="button button-secondary button-icon shrink-0"
           aria-label="Next day"
         >
           <ChevronRightIcon className="w-4 h-4" />
@@ -339,7 +335,7 @@ function WeeklyLeaderboard() {
       <div className="flex items-center gap-2 min-h-9.5">
         <button
           onClick={prevWeek}
-          className="p-1.5 text-gray-400 border border-white/10 hover:text-white hover:border-white/30 shrink-0"
+          className="button button-secondary button-icon shrink-0"
           aria-label="Previous week"
         >
           <ChevronLeftIcon className="w-4 h-4" />
@@ -355,11 +351,7 @@ function WeeklyLeaderboard() {
         <button
           onClick={nextWeek}
           disabled={isCurrentWeek}
-          className={`p-1.5 border border-white/10 shrink-0 ${
-            isCurrentWeek
-              ? 'text-gray-700 cursor-not-allowed'
-              : 'text-gray-400 hover:text-white hover:border-white/30'
-          }`}
+          className="button button-secondary button-icon shrink-0"
           aria-label="Next week"
         >
           <ChevronRightIcon className="w-4 h-4" />
@@ -470,7 +462,7 @@ function MonthlyLeaderboard() {
       <div className="flex items-center gap-2 min-h-9.5">
         <button
           onClick={prevMonth}
-          className="p-1.5 text-gray-400 border border-white/10 hover:text-white hover:border-white/30 shrink-0"
+          className="button button-secondary button-icon shrink-0"
           aria-label="Previous month"
         >
           <ChevronLeftIcon className="w-4 h-4" />
@@ -486,11 +478,7 @@ function MonthlyLeaderboard() {
         <button
           onClick={nextMonth}
           disabled={isCurrentMonth}
-          className={`p-1.5 border border-white/10 shrink-0 ${
-            isCurrentMonth
-              ? 'text-gray-700 cursor-not-allowed'
-              : 'text-gray-400 hover:text-white hover:border-white/30'
-          }`}
+          className="button button-secondary button-icon shrink-0"
           aria-label="Next month"
         >
           <ChevronRightIcon className="w-4 h-4" />
