@@ -37,14 +37,17 @@ if (files.length === 0) {
 
 /** file -> Set of line numbers the diff adds, read from unified=0 hunks. */
 const addedLines = new Map();
+// No pathspec here, and that is deliberate. Limiting the diff to the new paths
+// stops git pairing a renamed file with its old path, so it reports the whole
+// file as added and every pre-existing problem in it counts as new. The loop
+// below filters by path instead, which keeps rename detection intact.
 const diff = git(
   'diff',
   '--unified=0',
+  '--find-renames',
   '--diff-filter=ACMR',
   base,
   'HEAD',
-  '--',
-  ...files,
 );
 
 let current = null;
