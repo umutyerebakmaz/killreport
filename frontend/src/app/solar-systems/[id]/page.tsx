@@ -146,7 +146,7 @@ export default function SolarSystemDetailPage({
 
   return (
     <div>
-      <div className="system-detail-card">
+      <div className="card p-6 flex flex-col">
         {/* Header */}
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-start gap-6">

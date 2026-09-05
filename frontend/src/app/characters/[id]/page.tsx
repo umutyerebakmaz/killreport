@@ -216,7 +216,7 @@ export default function CharacterDetailPage({
 
   return (
     <main>
-      <div className="character-detail-card">
+      <div className="card p-6 flex flex-col">
         {/* Portrait and Character Name */}
         <div className="flex items-center justify-center">
           <img

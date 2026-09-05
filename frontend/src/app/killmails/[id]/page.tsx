@@ -72,8 +72,8 @@ export default function KillmailDetailPage({
           <div
             className={
               isStructure
-                ? 'flex flex-col gap-6 px-6 pt-6 pb-24 fit-and-victim'
-                : 'flex flex-col gap-6 p-6 fit-and-victim'
+                ? 'flex flex-col gap-6 px-6 pt-6 pb-24 border bg-neutral-900 border-neutral-800'
+                : 'flex flex-col gap-6 p-6 border bg-neutral-900 border-neutral-800'
             }
           >
             <div className="victim-card">

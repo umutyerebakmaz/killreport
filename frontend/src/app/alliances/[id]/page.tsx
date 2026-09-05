@@ -317,7 +317,7 @@ export default function AllianceDetailPage({
 
   return (
     <main>
-      <div className="alliance-detail-card">
+      <div className="card p-6 flex flex-col">
         {/* Logo and Alliance Name */}
         <div className="flex flex-row items-center justify-between">
           <div className="flex items-center justify-center gap-6">
