@@ -135,11 +135,7 @@ export default function MostValuableCarousel() {
               aria-selected={tab.scope === activeScope}
               aria-controls={PANEL_ID}
               onClick={() => setActiveScope(tab.scope)}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                tab.scope === activeScope
-                  ? 'bg-white/10 text-white'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
+              className="button button-ghost button-sm"
             >
               {tab.label}
             </button>
