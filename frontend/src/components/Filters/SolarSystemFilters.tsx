@@ -315,7 +315,7 @@ export default function SolarSystemFilters({
             form="solar-system-filters"
             className="button button-primary"
           >
-            Apply Filters
+            APPLY
           </button>
         }
       >

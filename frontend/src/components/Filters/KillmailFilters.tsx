@@ -1,6 +1,9 @@
 'use client';
 
 import RadioGroup from '@/components/RadioGroup/RadioGroup';
+import FilterBar from '@/components/ui/FilterBar';
+import FilterDialog from '@/components/ui/FilterDialog';
+import FilterField from '@/components/ui/FilterField';
 import {
   useSearchCharacterQuery,
   useSearchCharactersQuery,
@@ -14,9 +17,6 @@ import {
   useSearchTypeQuery,
   useSearchTypesQuery,
 } from '@/generated/graphql';
-import FilterBar from '@/components/ui/FilterBar';
-import FilterDialog from '@/components/ui/FilterDialog';
-import FilterField from '@/components/ui/FilterField';
 import { useDebounce } from '@/hooks/useDebounce';
 import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useEffect, useRef, useState } from 'react';
@@ -481,7 +481,7 @@ export default function KillmailFilters({
     setShipTypeName(typeName);
     setTypeSearch(''); // Clear arama inputunu
     setShowDropdown(false);
-    // Filter will be applied when user clicks "Apply Filters" button
+    // Filter will be applied when user clicks the APPLY button
   };
 
   const handleGroupSelect = (groupId: number, groupName: string) => {
@@ -643,7 +643,7 @@ export default function KillmailFilters({
             form="killmail-filters"
             className="button button-primary"
           >
-            Apply Filters
+            APPLY
           </button>
         }
       >
@@ -658,7 +658,7 @@ export default function KillmailFilters({
                 <input
                   type="text"
                   id="filter-pilot"
-                  placeholder="Search pilot (min 3 letters)..."
+                  placeholder=""
                   value={pilotSearch}
                   onChange={(e) => {
                     setPilotSearch(e.target.value);

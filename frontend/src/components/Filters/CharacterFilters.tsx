@@ -267,7 +267,7 @@ export default function CharacterFilters({
             form="character-filters"
             className="button button-primary"
           >
-            Apply Filters
+            APPLY
           </button>
         }
       >

@@ -274,7 +274,7 @@ export default function CorporationFilters({
             form="corporation-filters"
             className="button button-primary"
           >
-            Apply Filters
+            APPLY
           </button>
         }
       >

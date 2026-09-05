@@ -269,7 +269,7 @@ export default function AllianceFilters({
             form="alliance-filters"
             className="button button-primary"
           >
-            Apply Filters
+            APPLY
           </button>
         }
       >
