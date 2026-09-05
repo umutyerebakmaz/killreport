@@ -233,7 +233,7 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
               className="overflow-hidden border border-white/10"
             >
               <table className="table">
-                <thead className="bg-neutral-800">
+                <thead className="bg-surface-inset">
                   <tr>
                     <th className="th-cell">Constellation</th>
                     <th className="th-cell">Systems</th>

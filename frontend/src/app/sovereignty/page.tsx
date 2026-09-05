@@ -26,7 +26,7 @@ const CHANGE_STYLES: Record<string, string> = {
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="p-4 border border-white/10 bg-neutral-900">
+    <div className="p-4 border border-white/10 bg-surface">
       <div className="text-2xl font-semibold text-white">
         {typeof value === 'number' ? value.toLocaleString() : value}
       </div>
@@ -119,7 +119,7 @@ function SovereigntyContent() {
         </h3>
         <div className="mt-4 overflow-x-auto border border-white/10">
           <table className="table">
-            <thead className="bg-neutral-800">
+            <thead className="bg-surface-inset">
               <tr>
                 <th className="text-left th-cell">#</th>
                 <th className="text-left th-cell">Alliance</th>
@@ -133,7 +133,7 @@ function SovereigntyContent() {
               {rankings.map((r) => (
                 <tr
                   key={r.allianceId}
-                  className="transition-colors bg-neutral-950 hover:bg-neutral-900"
+                  className="transition-colors bg-ground hover:bg-surface"
                 >
                   <td className="px-4 py-3 text-gray-400 whitespace-nowrap">
                     {r.rank}
@@ -178,7 +178,7 @@ function SovereigntyContent() {
 
       {/* Activity leaderboards + hottest regions */}
       <section className="grid grid-cols-1 gap-4 mt-10 lg:grid-cols-3">
-        <div className="border border-white/10 bg-neutral-900">
+        <div className="border border-white/10 bg-surface">
           <h3 className="px-4 py-3 text-lg font-semibold text-white border-b border-white/10">
             Most Aggressive
           </h3>
@@ -204,7 +204,7 @@ function SovereigntyContent() {
           </ul>
         </div>
 
-        <div className="border border-white/10 bg-neutral-900">
+        <div className="border border-white/10 bg-surface">
           <h3 className="px-4 py-3 text-lg font-semibold text-white border-b border-white/10">
             Most Defensive
           </h3>
@@ -232,7 +232,7 @@ function SovereigntyContent() {
           </ul>
         </div>
 
-        <div className="border border-white/10 bg-neutral-900">
+        <div className="border border-white/10 bg-surface">
           <h3 className="px-4 py-3 text-lg font-semibold text-white border-b border-white/10">
             Hottest Regions Right Now
           </h3>
@@ -249,7 +249,7 @@ function SovereigntyContent() {
                   </Link>
                   <span className="text-gray-300">{r.campaignCount}</span>
                 </div>
-                <div className="h-1.5 mt-1 overflow-hidden rounded bg-neutral-800">
+                <div className="h-1.5 mt-1 overflow-hidden rounded bg-surface-inset">
                   <div
                     className="h-full bg-orange-500"
                     style={{
@@ -276,7 +276,7 @@ function SovereigntyContent() {
         </h3>
         <div className="mt-4 overflow-x-auto border border-white/10">
           <table className="table">
-            <thead className="bg-neutral-800">
+            <thead className="bg-surface-inset">
               <tr>
                 <th className="th-cell w-8"></th>
                 <th className="text-left th-cell">System</th>
@@ -296,7 +296,7 @@ function SovereigntyContent() {
                 return (
                   <Fragment key={c.campaignId}>
                     <tr
-                      className={`transition-colors bg-neutral-950 ${hasDetail ? 'cursor-pointer hover:bg-neutral-900' : ''}`}
+                      className={`transition-colors bg-ground ${hasDetail ? 'cursor-pointer hover:bg-surface' : ''}`}
                       onClick={
                         hasDetail
                           ? () =>
@@ -359,7 +359,7 @@ function SovereigntyContent() {
                       </td>
                     </tr>
                     {expanded && (
-                      <tr className="bg-neutral-900">
+                      <tr className="bg-surface">
                         <td colSpan={9} className="px-4 py-3">
                           {c.warKills > 0 && (
                             <div className="mb-4">
@@ -429,7 +429,7 @@ function SovereigntyContent() {
         </h3>
         <div className="mt-4 overflow-x-auto border border-white/10">
           <table className="table">
-            <thead className="bg-neutral-800">
+            <thead className="bg-surface-inset">
               <tr>
                 <th className="text-left th-cell">System</th>
                 <th className="text-left th-cell">Change</th>
@@ -442,7 +442,7 @@ function SovereigntyContent() {
               {changes.map((c) => (
                 <tr
                   key={c.id}
-                  className="transition-colors bg-neutral-950 hover:bg-neutral-900"
+                  className="transition-colors bg-ground hover:bg-surface"
                 >
                   <td className="px-4 py-3 whitespace-nowrap">
                     <Link

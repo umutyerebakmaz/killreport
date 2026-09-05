@@ -42,7 +42,7 @@ function HotspotsContent() {
       <section className="mt-8">
         <div className="overflow-x-auto border border-white/10">
           <table className="table">
-            <thead className="bg-neutral-800">
+            <thead className="bg-surface-inset">
               <tr>
                 <th className="text-left th-cell">Region</th>
                 <th className="text-right th-cell">Active Campaigns</th>
@@ -55,7 +55,7 @@ function HotspotsContent() {
               {hotspots.map((h) => (
                 <tr
                   key={h.regionId}
-                  className="transition-colors bg-neutral-950 hover:bg-neutral-900"
+                  className="transition-colors bg-ground hover:bg-surface"
                 >
                   <td className="px-4 py-3 whitespace-nowrap">
                     <Link

@@ -30,7 +30,7 @@ export default function AttackerRow({
   const isNpcAttackers = killmail.npc;
 
   return (
-    <div className="p-3 transition-colors duration-100 bg-neutral-900 hover:bg-neutral-800">
+    <div className="p-3 transition-colors duration-100 bg-surface hover:bg-surface-inset">
       <div className="flex">
         {/* Character/Corporation Image */}
         {attacker.character?.id ? (
@@ -72,7 +72,7 @@ export default function AttackerRow({
           </div>
         ) : (
           <div
-            className="relative flex items-center justify-center shadow-md shrink-0 bg-neutral-800"
+            className="relative flex items-center justify-center shadow-md shrink-0 bg-surface-inset"
             style={{ width: 96, height: 96 }}
           >
             <span className="text-2xl font-bold text-red-500">NPC</span>

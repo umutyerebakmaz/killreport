@@ -122,7 +122,7 @@ export default function AttackersCard({
 
   return (
     <div>
-      <div className="flex justify-end px-4 py-2 border-b border-neutral-800 bg-neutral-900 hover:bg-neutral-800">
+      <div className="flex justify-end px-4 py-2 border-b border-white/10 bg-surface hover:bg-surface-inset">
         <span className="text-lg font-semibold text-gray-300">
           {killmail.attackerCount} ATTACKERS
         </span>
@@ -183,7 +183,7 @@ export default function AttackersCard({
                   {/* Alliance Row */}
                   <div
                     onClick={() => toggleAlliance(alliance.id)}
-                    className="flex items-center gap-2 px-3 py-2 transition-colors duration-100 cursor-pointer bg-neutral-900 hover:bg-neutral-800"
+                    className="flex items-center gap-2 px-3 py-2 transition-colors duration-100 cursor-pointer bg-surface hover:bg-surface-inset"
                   >
                     {isExpanded ? (
                       <ChevronDownIcon className="w-4 h-4 text-gray-400" />
@@ -218,7 +218,7 @@ export default function AttackersCard({
                         <Link
                           key={`corp-${corp.id}`}
                           href={`/corporations/${corp.id}`}
-                          className="flex items-center gap-2 px-3 py-1.5 transition-colors duration-100 bg-neutral-900 hover:bg-neutral-800"
+                          className="flex items-center gap-2 px-3 py-1.5 transition-colors duration-100 bg-surface hover:bg-surface-inset"
                           prefetch={false}
                         >
                           <img
@@ -248,7 +248,7 @@ export default function AttackersCard({
               <Link
                 key={`independent-corp-${corp.id}`}
                 href={`/corporations/${corp.id}`}
-                className="flex items-center gap-2 px-3 py-2 transition-colors duration-100 bg-neutral-900 hover:bg-neutral-800"
+                className="flex items-center gap-2 px-3 py-2 transition-colors duration-100 bg-surface hover:bg-surface-inset"
                 prefetch={false}
               >
                 <div className="w-4" /> {/* Spacer for alignment */}

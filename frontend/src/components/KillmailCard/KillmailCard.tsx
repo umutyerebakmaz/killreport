@@ -73,7 +73,7 @@ export default function KillmailCard({
   return (
     <Link
       href={`/killmails/${km.id}`}
-      className="group relative block h-[420px] w-full overflow-hidden border bg-neutral-900 border-white/10 transition-colors duration-200 hover:border-white/25"
+      className="group relative block h-[420px] w-full overflow-hidden border bg-surface border-white/10 transition-colors duration-200 hover:border-white/25"
       prefetch={false}
     >
       {shipTypeId && (

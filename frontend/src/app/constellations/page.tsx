@@ -121,7 +121,7 @@ function ConstellationsContent() {
       {/* Table */}
       <div className="mt-6 overflow-hidden border border-white/10">
         <table className="table">
-          <thead className="bg-neutral-800">
+          <thead className="bg-surface-inset">
             <tr>
               <th className="text-left th-cell">Constellation</th>
               <th className="text-left th-cell">Region</th>
@@ -155,7 +155,7 @@ function ConstellationsContent() {
               constellations.map((constellation) => (
                 <tr
                   key={constellation.id}
-                  className="transition-colors hover:bg-neutral-800 bg-neutral-900"
+                  className="transition-colors hover:bg-surface-inset bg-surface"
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">

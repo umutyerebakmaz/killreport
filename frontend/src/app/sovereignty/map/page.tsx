@@ -72,7 +72,7 @@ function MapContent() {
         </div>
       </div>
 
-      <section className="mt-4 border border-white/10 bg-neutral-950">
+      <section className="mt-4 border border-white/10 bg-ground">
         <TerritoryMap points={filtered} />
       </section>
       <p className="mt-2 text-xs text-gray-500">

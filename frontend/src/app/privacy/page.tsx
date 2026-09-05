@@ -2,7 +2,7 @@
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen text-gray-200 bg-neutral-900">
+    <div className="min-h-screen text-gray-200 bg-surface">
       <div className="max-w-4xl px-6 py-12 mx-auto sm:py-16 lg:py-20">
         <h1 className="mb-12 text-4xl font-bold text-white">Privacy Policy</h1>
 
@@ -222,7 +222,7 @@ export default function PrivacyPage() {
               </ul>
             </div>
 
-            <div className="bg-neutral-800 border border-neutral-700 p-4 rounded">
+            <div className="bg-surface-inset border border-white/10 p-4 rounded">
               <p className="text-sm text-gray-300 mb-2">
                 <span className="font-semibold text-cyan-400">Important:</span>{' '}
                 We do NOT use traditional cookies. All data is stored in your
@@ -278,7 +278,7 @@ export default function PrivacyPage() {
           <h2 className="mb-6 text-2xl font-semibold text-white">
             About EVE Online Data Ownership
           </h2>
-          <div className="bg-neutral-800 border border-neutral-700 p-4 rounded space-y-3">
+          <div className="bg-surface-inset border border-white/10 p-4 rounded space-y-3">
             <p className="text-gray-300">
               <span className="font-semibold text-orange-400">Important:</span>{' '}
               All EVE Online related data is owned by CCP Games. For detailed
@@ -394,7 +394,7 @@ export default function PrivacyPage() {
           </div>
         </section>
 
-        <div className="border-t border-neutral-700 pt-8 mt-12">
+        <div className="border-t border-white/10 pt-8 mt-12">
           <p className="text-sm text-gray-400">
             We are committed to maintaining your trust through transparent and
             responsible data practices.

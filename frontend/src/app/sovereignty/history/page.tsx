@@ -31,7 +31,7 @@ const OUTCOME_STYLES: Record<string, string> = {
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="p-4 border border-white/10 bg-neutral-900">
+    <div className="p-4 border border-white/10 bg-surface">
       <div className="text-2xl font-semibold text-white">
         {typeof value === 'number' ? value.toLocaleString() : value}
       </div>
@@ -52,7 +52,7 @@ function OutcomeBar({
   const total = defenderWon + attackerWon + abandoned || 1;
   const pct = (n: number) => `${(n / total) * 100}%`;
   return (
-    <div className="flex h-2 max-w-2xl overflow-hidden rounded bg-neutral-800">
+    <div className="flex h-2 max-w-2xl overflow-hidden rounded bg-surface-inset">
       <div className="bg-cyan-500" style={{ width: pct(defenderWon) }} />
       <div className="bg-red-500" style={{ width: pct(attackerWon) }} />
       <div className="bg-gray-600" style={{ width: pct(abandoned) }} />
@@ -115,7 +115,7 @@ function HistoryContent() {
         <h3 className="text-xl font-semibold text-white">Top Defenders</h3>
         <div className="mt-4 overflow-x-auto border border-white/10">
           <table className="table">
-            <thead className="bg-neutral-800">
+            <thead className="bg-surface-inset">
               <tr>
                 <th className="text-left th-cell">#</th>
                 <th className="text-left th-cell">Alliance</th>
@@ -128,7 +128,7 @@ function HistoryContent() {
               {defenders.map((d) => (
                 <tr
                   key={d.allianceId}
-                  className="transition-colors bg-neutral-950 hover:bg-neutral-900"
+                  className="transition-colors bg-ground hover:bg-surface"
                 >
                   <td className="px-4 py-3 text-gray-400 whitespace-nowrap">
                     {d.rank}
@@ -173,7 +173,7 @@ function HistoryContent() {
         </h3>
         <div className="mt-4 overflow-x-auto border border-white/10">
           <table className="table">
-            <thead className="bg-neutral-800">
+            <thead className="bg-surface-inset">
               <tr>
                 <th className="text-left th-cell">System</th>
                 <th className="text-left th-cell">Region</th>
@@ -189,7 +189,7 @@ function HistoryContent() {
               {campaigns.map((c) => (
                 <tr
                   key={c.campaignId}
-                  className="transition-colors bg-neutral-950 hover:bg-neutral-900"
+                  className="transition-colors bg-ground hover:bg-surface"
                 >
                   <td className="px-4 py-3 whitespace-nowrap">
                     <Link

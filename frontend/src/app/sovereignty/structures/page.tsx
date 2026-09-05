@@ -110,7 +110,7 @@ function StructuresContent() {
         </h3>
         <div className="mt-4 overflow-x-auto border border-white/10">
           <table className="table">
-            <thead className="bg-neutral-800">
+            <thead className="bg-surface-inset">
               <tr>
                 <th className="text-left th-cell">System</th>
                 <th className="text-left th-cell">Type</th>
@@ -123,7 +123,7 @@ function StructuresContent() {
               {timers.map((s) => (
                 <tr
                   key={s.structureId}
-                  className="transition-colors bg-neutral-950 hover:bg-neutral-900"
+                  className="transition-colors bg-ground hover:bg-surface"
                 >
                   <td className="px-4 py-3 whitespace-nowrap">
                     <SystemCell
@@ -175,7 +175,7 @@ function StructuresContent() {
         </h3>
         <div className="mt-4 overflow-x-auto border border-white/10">
           <table className="table">
-            <thead className="bg-neutral-800">
+            <thead className="bg-surface-inset">
               <tr>
                 <th className="text-left th-cell">System</th>
                 <th className="text-left th-cell">Type</th>
@@ -188,7 +188,7 @@ function StructuresContent() {
               {structures.map((s) => (
                 <tr
                   key={s.structureId}
-                  className="transition-colors bg-neutral-950 hover:bg-neutral-900"
+                  className="transition-colors bg-ground hover:bg-surface"
                 >
                   <td className="px-4 py-3 whitespace-nowrap">
                     <SystemCell

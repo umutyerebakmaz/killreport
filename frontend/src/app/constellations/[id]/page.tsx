@@ -282,7 +282,7 @@ export default function ConstellationDetailPage({
               className="overflow-hidden border border-white/10"
             >
               <table className="table">
-                <thead className="bg-neutral-800">
+                <thead className="bg-surface-inset">
                   <tr>
                     <th className="th-cell">Solar System</th>
                     <th className="th-cell">Security Status</th>

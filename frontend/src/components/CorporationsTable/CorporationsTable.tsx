@@ -34,7 +34,7 @@ export default function CorporationsTable({
   return (
     <div className="mt-6 overflow-hidden border border-white/10">
       <table className="table">
-        <thead className="bg-neutral-800">
+        <thead className="bg-surface-inset">
           <tr>
             <th className="text-left th-cell">Corporation</th>
             <th className="text-left th-cell">Ticker</th>
@@ -46,7 +46,7 @@ export default function CorporationsTable({
           {corporations.map((corp) => (
             <tr
               key={corp.id}
-              className="transition-colors bg-neutral-950 hover:bg-neutral-900"
+              className="transition-colors bg-ground hover:bg-surface"
             >
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center gap-3">

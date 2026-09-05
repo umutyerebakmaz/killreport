@@ -29,7 +29,7 @@ export default function CharactersTable({
   return (
     <div className="mt-6 overflow-hidden border border-white/10">
       <table className="table">
-        <thead className="bg-neutral-800">
+        <thead className="bg-surface-inset">
           <tr>
             <th className="th-cell">Name</th>
           </tr>
