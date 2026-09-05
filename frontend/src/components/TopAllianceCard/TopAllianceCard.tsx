@@ -58,10 +58,7 @@ export default function TopAllianceCard({
         <div className="flex flex-col divide-y divide-white/5">
           {alliances.map((alliance, index) => {
             return (
-              <div
-                key={alliance.id}
-                className="px-3 py-2 transition-colors duration-100 hover:bg-surface-inset"
-              >
+              <div key={alliance.id} className="card-row">
                 <div className="flex items-center gap-3">
                   {/* Rank */}
                   <RankNumber rank={index + 1} />

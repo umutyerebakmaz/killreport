@@ -61,10 +61,7 @@ export default function TopShipsCard({
             const shipTier = getShipTier(ship.dogmaAttributes);
 
             return (
-              <div
-                key={ship.id}
-                className="px-3 py-2 transition-colors duration-100 hover:bg-surface-inset"
-              >
+              <div key={ship.id} className="card-row">
                 <div className="flex items-center gap-3">
                   {/* Rank */}
                   <RankNumber rank={index + 1} />

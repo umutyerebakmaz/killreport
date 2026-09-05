@@ -74,10 +74,7 @@ export default function TopTargetsCard({
       ) : (
         <div className="flex flex-col divide-y divide-white/5">
           {targets.map((target, index) => (
-            <div
-              key={target.id}
-              className="px-3 py-2 duration-100 transition-color hover:bg-surface-inset"
-            >
+            <div key={target.id} className="card-row">
               <div className="flex items-center gap-3">
                 {/* Rank */}
                 <RankNumber rank={index + 1} />

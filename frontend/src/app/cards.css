@@ -39,6 +39,15 @@
     @apply flex items-center gap-2 px-4 py-2 border-b min-h-14 border-white/10;
   }
 
+  /* One entry in a card's list. This string existed in six copies — the five
+     Top*Cards and the leaderboards' PilotList — and one copy read
+     transition-color, which is not a Tailwind class, so that card's rows
+     hovered with no transition and the diff between it and its neighbours was
+     a single letter. */
+  .card-row {
+    @apply px-3 py-2 transition-colors duration-100 hover:bg-surface-inset;
+  }
+
   /* The floating layer: popover panels, the mobile drawer, FilterDialog, Tooltip. */
   .float {
     @apply border rounded-md bg-gray-900/80 backdrop-blur-md border-white/10;

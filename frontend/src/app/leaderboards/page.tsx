@@ -61,10 +61,15 @@ function PilotList({
   loading: boolean;
   emptyText: string;
 }) {
-  if (loading) return <Loader fullHeight size="lg" text="Loading..." />;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader size="lg" />
+      </div>
+    );
   if (pilots.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-16 text-gray-500">
+      <div className="flex flex-col items-center justify-center gap-3 py-12 text-gray-500">
         <TrophyIcon className="w-10 h-10 opacity-30" />
         <p className="text-sm font-medium text-center">{emptyText}</p>
       </div>
@@ -76,10 +81,7 @@ function PilotList({
         const char = pilot.character;
         const secColor = getSecurityStatusColor(char?.securityStatus);
         return (
-          <div
-            key={pilot.rank}
-            className="p-3 transition-colors duration-100 hover:bg-surface-inset"
-          >
+          <div key={pilot.rank} className="card-row">
             <div className="flex items-center gap-3">
               {/* Rank */}
               <RankNumber rank={pilot.rank} />

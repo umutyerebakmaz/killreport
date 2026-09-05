@@ -68,10 +68,7 @@ export default function TopCharacterCard({
           {characters.map((character, index) => {
             const secColor = getSecurityStatusColor(character.securityStatus);
             return (
-              <div
-                key={character.id}
-                className="px-3 py-2 transition-colors duration-100 hover:bg-surface-inset"
-              >
+              <div key={character.id} className="card-row">
                 <div className="flex items-center gap-3">
                   {/* Rank */}
                   <RankNumber rank={index + 1} />

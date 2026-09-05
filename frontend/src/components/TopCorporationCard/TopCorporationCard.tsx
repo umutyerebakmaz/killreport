@@ -58,10 +58,7 @@ export default function TopCorporationCard({
         <div className="flex flex-col divide-y divide-white/5">
           {corporations.map((corporation, index) => {
             return (
-              <div
-                key={corporation.id}
-                className="px-3 py-2 transition-colors duration-100 hover:bg-surface-inset"
-              >
+              <div key={corporation.id} className="card-row">
                 <div className="flex items-center gap-3">
                   {/* Rank */}
                   <RankNumber rank={index + 1} />
