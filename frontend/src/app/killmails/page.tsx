@@ -20,6 +20,10 @@ import {
   parseKillmailFiltersFromUrl,
   type KillmailFilters,
 } from '@/utils/filterUrlHelpers';
+import {
+  bufferRealtimeKillmail,
+  mergeRealtimeKillmails,
+} from '@/utils/killmailFeed';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -130,9 +134,7 @@ function KillmailsContent() {
       const km = data.data?.newKillmail;
       if (!km) return;
 
-      setNewKillmails((prev) =>
-        prev.some((k) => k.id === km.id) ? prev : [km, ...prev],
-      );
+      setNewKillmails((prev) => bufferRealtimeKillmail(prev, km, pageSize));
 
       // Update date count for the killmail's date
       const killmailDate = new Date(km.killmailTime)
@@ -206,22 +208,6 @@ function KillmailsContent() {
     },
   });
 
-  // Debug logging - replaces deprecated onCompleted callback
-  useEffect(() => {
-    if (data) {
-      console.log('🔍 GraphQL Query Variables:', {
-        shipTypeId: filters.shipTypeId,
-        shipGroupIds: filters.shipGroupIds,
-        victim: filters.victim,
-        attacker: filters.attacker,
-      });
-      console.log('🔍 GraphQL Response:', {
-        itemsCount: data?.killmails?.items?.length,
-        totalCount: data?.killmails?.pageInfo?.totalCount,
-      });
-    }
-  }, [data, filters]);
-
   // Fetch date counts for correct totals per date
   const { data: dateCountsData } = useKillmailsDateCountsQuery({
     variables: {
@@ -252,13 +238,16 @@ function KillmailsContent() {
     router.push(`/killmails?${urlParams}`, { scroll: false });
   }, [currentPage, filters, router]);
 
-  // Memoize killmails array to prevent unnecessary recalculations
+  // Live arrivals first, then the fetched page — minus anything the query has
+  // caught up with, and capped at one page. See utils/killmailFeed.
   const killmails = useMemo(
-    () => [
-      ...newKillmails, // Add new real-time killmails first
-      ...(data?.killmails.items || []),
-    ],
-    [newKillmails, data?.killmails.items],
+    () =>
+      mergeRealtimeKillmails(
+        newKillmails,
+        data?.killmails.items ?? [],
+        pageSize,
+      ),
+    [newKillmails, data?.killmails.items, pageSize],
   );
 
   // Create a map of date -> total count for that date
