@@ -7,7 +7,10 @@
     @apply min-w-full divide-y divide-white/5;
   }
 
+  /* py-3.5, not py-4, so the head matches a .card-header exactly: that one is
+     py-3 around a text-lg line box (24 + 28 = 52), this is a text-base line
+     box (24) and needs 28 of padding to land on the same 52. */
   .th-cell {
-    @apply px-4 py-4 text-base font-semibold tracking-wider text-gray-400;
+    @apply px-4 py-3.5 text-base font-semibold tracking-wider text-gray-400;
   }
 }
