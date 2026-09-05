@@ -3,6 +3,7 @@ import ApolloWrapper from '../components/ApolloWrapper';
 import Footer from '../components/Footer/Footer';
 import Header from '../components/Header/Header';
 import { SovereigntyAlertsProvider } from '../components/Sovereignty/SovereigntyAlertsProvider';
+import { inter } from '../fonts/inter';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -16,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
       <body
         className="flex flex-col font-sans antialiased text-white bg-black"
         suppressHydrationWarning
