@@ -30,7 +30,7 @@ export default function RadioGroup<T extends string>({
         <label
           key={option.value}
           aria-label={option.label}
-          className="relative flex items-center justify-center p-2 duration-150 border group border-white/10 bg-gray-800/50 has-checked:border-indigo-500 has-checked:bg-indigo-500 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-indigo-500 has-disabled:border-white/10 has-disabled:bg-gray-800 has-disabled:opacity-25 has-disabled:cursor-not-allowed transition-color"
+          className="relative flex items-center justify-center p-2 duration-150 border group border-white/10 bg-gray-800/50 has-checked:border-accent has-checked:bg-accent has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-accent has-disabled:border-white/10 has-disabled:bg-gray-800 has-disabled:opacity-25 has-disabled:cursor-not-allowed transition-color"
         >
           <input
             type="radio"
