@@ -2,6 +2,7 @@
 
 import Loader from '@/components/Loader';
 import Card from '@/components/ui/Card';
+import RankNumber from '@/components/ui/RankNumber';
 import Tooltip from '@/components/Tooltip/Tooltip';
 import {
   useTop90DaysPilotsQuery,
@@ -81,19 +82,7 @@ function PilotList({
           >
             <div className="flex items-center gap-3">
               {/* Rank */}
-              <div className="flex items-center justify-center w-16 shrink-0">
-                {pilot.rank === 1 ? (
-                  <span className="text-4xl">🥇</span>
-                ) : pilot.rank === 2 ? (
-                  <span className="text-4xl">🥈</span>
-                ) : pilot.rank === 3 ? (
-                  <span className="text-4xl">🥉</span>
-                ) : (
-                  <span className="text-3xl font-black text-gray-600 tabular-nums">
-                    #{pilot.rank}
-                  </span>
-                )}
-              </div>
+              <RankNumber rank={pilot.rank} />
 
               {/* Portrait */}
               <div className="relative shrink-0">
@@ -171,8 +160,8 @@ function PilotList({
 
                 {/* Kill count + logos */}
                 <div className="flex flex-col items-end justify-between pl-2 gap-y-1 shrink-0">
-                  <span className="text-sm font-semibold text-red-400 tabular-nums whitespace-nowrap">
-                    {pilot.killCount.toLocaleString()} KILLS
+                  <span className="text-lg font-semibold text-gray-400 tabular-nums whitespace-nowrap">
+                    {pilot.killCount.toLocaleString()}
                   </span>
                   <div className="flex">
                     {char?.corporation && (
