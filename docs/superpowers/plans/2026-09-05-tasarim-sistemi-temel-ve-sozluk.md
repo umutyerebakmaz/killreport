@@ -34,7 +34,7 @@ Sebebi spec'in kendi gerekçesi: _"1 ve 2 onaylanmadan 3-6'yı yazmak, sözlük 
 
 ### Spec'ten iki sapma
 
-**1. `.card` göçü PR 2'ye alındı.** Spec §9 kart sınıflarının tanımını PR 2'ye, kullanımını PR 5'e koyuyordu. Ölçüm bunu gereksiz kıldı: silinecek sekiz sınıftan **üçünün hiç kullanıcısı yok** (`fit-and-victim`, `items-card`, `corporation-detail-card` — ölü sınıflar), kalan beşinin toplam **6 çağrı noktası** var. Altı satır, PR 2'nin içinde biter ve `.card` kullanıcısız kalmaz.
+**1. `.card` göçü PR 2'ye alındı.** Spec §9 kart sınıflarının tanımını PR 2'ye, kullanımını PR 5'e koyuyordu. Ölçüm bunu gereksiz kıldı: silinecek sekiz sınıftan **ikisinin hiç kullanıcısı yok** (`items-card`, `corporation-detail-card`), kalan altısının toplam **8 çağrı noktası** var. Altı satır, PR 2'nin içinde biter ve `.card` kullanıcısız kalmaz.
 
 **2. `FilterBar`'ın `aria-pressed`'i PR 2'ye alındı.** Spec §9 bunu PR 3'e koyuyordu. Tek bir öznitelik ve tek bir className değişikliği; PR 2'ye alınınca `.button[aria-pressed='true']` kuralı yazıldığı anda gerçek bir kullanıcıya bağlanıyor ve test edilebiliyor.
 
@@ -615,7 +615,9 @@ Diğer import'ların yanına, `tables.css`'ten sonra:
 }
 ```
 
-Üçü de ölü: `fit-and-victim` 0 kullanıcı, `items-card` 0 kullanıcı, `corporation-detail-card` 0 kullanıcı.
+İkisi ölü: `items-card` 0 kullanıcı, `corporation-detail-card` 0 kullanıcı.
+`fit-and-victim` ise **ölü değil** — `app/killmails/[id]/page.tsx:75-76`'da bir ternary
+içinde kuruluyor ve ilk taramam bunu kaçırdı. O iki çağrı noktası da `card`'a geçer.
 
 `corporation-detail-card`'ın neden ölü olduğu ilginç: `app/corporations/[id]/page.tsx`
 kendi sınıfını değil **`alliance-detail-card`**'ı kullanıyor. İkisi zaten aynı kuralı
