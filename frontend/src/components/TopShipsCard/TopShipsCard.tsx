@@ -84,15 +84,15 @@ export default function TopShipsCard({
                       </div>
                     )}
                     <img
-                      src={`https://images.evetech.net/types/${ship.id}/render?size=128`}
+                      src={`https://images.evetech.net/types/${ship.id}/render?size=64`}
                       alt={ship.name}
-                      className="shadow-md size-12"
+                      className="shadow-md size-8"
                       loading="lazy"
                       onError={(e) => {
                         // Fallback to icon if render fails (e.g., for some faction ships)
                         const target = e.target as HTMLImageElement;
                         if (target.src.includes('/render?')) {
-                          target.src = `https://images.evetech.net/types/${ship.id}/icon?size=128`;
+                          target.src = `https://images.evetech.net/types/${ship.id}/icon?size=64`;
                         }
                       }}
                     />

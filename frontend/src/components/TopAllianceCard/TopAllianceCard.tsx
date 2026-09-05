@@ -75,10 +75,10 @@ export default function TopAllianceCard({
                   {/* Logo */}
                   <div className="relative shrink-0">
                     <img
-                      src={`https://images.evetech.net/alliances/${alliance.id}/logo?size=128`}
+                      src={`https://images.evetech.net/alliances/${alliance.id}/logo?size=64`}
                       alt={alliance.name}
-                      width={48}
-                      height={48}
+                      width={32}
+                      height={32}
                       className="shadow-md bg-black/50 ring-1 ring-black/50"
                       loading="lazy"
                     />
@@ -107,7 +107,7 @@ export default function TopAllianceCard({
                     </div>
 
                     {/* Kill Count */}
-                    <span className="text-base font-semibold text-gray-400 tabular-nums whitespace-nowrap shrink-0">
+                    <span className="text-lg font-semibold text-gray-400 tabular-nums whitespace-nowrap shrink-0">
                       {alliance.killCount.toLocaleString()}
                     </span>
                   </div>

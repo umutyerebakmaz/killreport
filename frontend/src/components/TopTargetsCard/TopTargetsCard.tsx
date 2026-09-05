@@ -38,11 +38,11 @@ export default function TopTargetsCard({
   const getImageUrl = (id: number, type: typeof targetType): string => {
     switch (type) {
       case 'alliance':
-        return `https://images.evetech.net/alliances/${id}/logo?size=128`;
+        return `https://images.evetech.net/alliances/${id}/logo?size=64`;
       case 'corporation':
-        return `https://images.evetech.net/corporations/${id}/logo?size=128`;
+        return `https://images.evetech.net/corporations/${id}/logo?size=64`;
       case 'character':
-        return `https://images.evetech.net/characters/${id}/portrait?size=128`;
+        return `https://images.evetech.net/characters/${id}/portrait?size=64`;
       default:
         return '';
     }
@@ -93,8 +93,8 @@ export default function TopTargetsCard({
                   <img
                     src={getImageUrl(target.id, targetType)}
                     alt={target.name}
-                    width={48}
-                    height={48}
+                    width={32}
+                    height={32}
                     className="shadow-md bg-black/50 ring-1 ring-black/50"
                     loading="lazy"
                   />

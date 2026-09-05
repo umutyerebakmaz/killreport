@@ -85,10 +85,10 @@ export default function TopCharacterCard({
                   {/* Portrait */}
                   <div className="relative shrink-0">
                     <img
-                      src={`https://images.evetech.net/characters/${character.id}/portrait?size=128`}
+                      src={`https://images.evetech.net/characters/${character.id}/portrait?size=64`}
                       alt={character.name}
-                      width={48}
-                      height={48}
+                      width={32}
+                      height={32}
                       className="shadow-md bg-black/50 ring-1 ring-black/50"
                       loading="lazy"
                     />
