@@ -17,12 +17,35 @@
      TopTargetsCard, TopCharacterCard, TopCorporationCard, TopAllianceCard)
      the root element had no background, so the header read as a separate
      thing sitting on the page. */
+  /* A ground of its own, one step up from the card, so the heading reads as
+     the card's own title rather than as its first row. */
   .card-header {
-    @apply px-4 py-3 border-b border-white/10;
+    @apply px-4 py-3 border-b bg-surface-inset border-white/10;
   }
 
   .card-body {
     @apply p-4;
+  }
+
+  /* A strip of controls between the header and the body — the leaderboards'
+     date steppers. It keeps the card's own surface rather than the header's,
+     so a card never reads as having two titles: this is chrome belonging to
+     the body, not a second heading.
+
+     The min-height is what makes four leaderboard columns line their lists up
+     with each other, including the one whose strip holds only a date range and
+     no buttons at all. */
+  .card-band {
+    @apply flex items-center gap-2 px-4 py-2 border-b min-h-14 border-white/10;
+  }
+
+  /* One entry in a card's list. This string existed in six copies — the five
+     Top*Cards and the leaderboards' PilotList — and one copy read
+     transition-color, which is not a Tailwind class, so that card's rows
+     hovered with no transition and the diff between it and its neighbours was
+     a single letter. */
+  .card-row {
+    @apply px-3 py-2 transition-colors duration-100 hover:bg-surface-inset;
   }
 
   /* The floating layer: popover panels, the mobile drawer, FilterDialog, Tooltip. */
