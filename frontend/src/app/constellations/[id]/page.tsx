@@ -3,6 +3,7 @@
 import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
 import SecurityBadge from '@/components/SecurityStatus/SecurityStatus';
 import { useConstellationQuery } from '@/generated/graphql';
+import { useTabList } from '@/hooks/useTabList';
 import { GlobeAltIcon, MapIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { use, useState } from 'react';
@@ -13,11 +14,14 @@ interface ConstellationDetailPageProps {
 
 type TabType = 'overview' | 'systems';
 
+const TAB_IDS: TabType[] = ['overview', 'systems'];
+
 export default function ConstellationDetailPage({
   params,
 }: ConstellationDetailPageProps) {
   const { id } = use(params);
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const { onKeyDown } = useTabList(TAB_IDS, activeTab, setActiveTab);
 
   const { data, loading, error } = useConstellationQuery({
     variables: { id: parseInt(id) },
@@ -141,8 +145,12 @@ export default function ConstellationDetailPage({
               <button
                 key={tab.id}
                 role="tab"
+                id={`tab-${tab.id}`}
+                aria-controls={`panel-${tab.id}`}
                 aria-selected={activeTab === tab.id}
+                tabIndex={activeTab === tab.id ? 0 : -1}
                 onClick={() => setActiveTab(tab.id)}
+                onKeyDown={onKeyDown}
                 className="tab"
               >
                 {tab.label}
@@ -154,7 +162,12 @@ export default function ConstellationDetailPage({
         {/* Tab Content */}
         <div className="mt-6">
           {activeTab === 'overview' && (
-            <div className="grid gap-6 md:grid-cols-2">
+            <div
+              role="tabpanel"
+              id="panel-overview"
+              aria-labelledby="tab-overview"
+              className="grid gap-6 md:grid-cols-2"
+            >
               {/* Constellation Info */}
               <div className="p-6 border bg-white/5 border-white/10">
                 <h2 className="mb-4 text-xl font-bold">
@@ -265,7 +278,12 @@ export default function ConstellationDetailPage({
           )}
 
           {activeTab === 'systems' && (
-            <div className="overflow-hidden border border-white/10">
+            <div
+              role="tabpanel"
+              id="panel-systems"
+              aria-labelledby="tab-systems"
+              className="overflow-hidden border border-white/10"
+            >
               <table className="table">
                 <thead className="bg-neutral-800">
                   <tr>

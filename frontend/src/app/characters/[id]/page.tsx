@@ -16,6 +16,7 @@ import {
   useCharacterTopShipTargetsQuery,
   useKillmailsDateCountsQuery,
 } from '@/generated/graphql';
+import { useTabList } from '@/hooks/useTabList';
 import { calculateAge, humanReadableDate } from '@/utils/date';
 import { getSecurityStatusColor } from '@/utils/securityStatus';
 import Link from 'next/link';
@@ -27,6 +28,8 @@ interface CharacterDetailPageProps {
 }
 
 type TabType = 'bio' | 'killmails' | 'statistics';
+
+const TAB_IDS: TabType[] = ['bio', 'killmails', 'statistics'];
 
 export default function CharacterDetailPage({
   params,
@@ -42,6 +45,7 @@ export default function CharacterDetailPage({
   const [activeTab, setActiveTab] = useState<TabType>(tabFromUrl);
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(pageSizeFromUrl);
+  const { onKeyDown } = useTabList(TAB_IDS, activeTab, setActiveTab);
 
   const { data, loading, error } = useCharacterQuery({
     variables: {
@@ -336,8 +340,12 @@ export default function CharacterDetailPage({
               <button
                 key={tab.id}
                 role="tab"
+                id={`tab-${tab.id}`}
+                aria-controls={`panel-${tab.id}`}
                 aria-selected={activeTab === tab.id}
+                tabIndex={activeTab === tab.id ? 0 : -1}
                 onClick={() => setActiveTab(tab.id)}
+                onKeyDown={onKeyDown}
                 className="tab"
               >
                 {tab.label}
@@ -349,7 +357,12 @@ export default function CharacterDetailPage({
         {/* Tab Content */}
         <div className="mt-6">
           {activeTab === 'bio' && (
-            <div className="p-6 bg-white/5 border-white/10">
+            <div
+              role="tabpanel"
+              id="panel-bio"
+              aria-labelledby="tab-bio"
+              className="p-6 bg-white/5 border-white/10"
+            >
               <div className="grid grid-cols-2 gap-4">
                 {character.description && (
                   <div className="col-span-2">
@@ -367,7 +380,12 @@ export default function CharacterDetailPage({
           )}
 
           {activeTab === 'killmails' && (
-            <div className="killmails-tab">
+            <div
+              role="tabpanel"
+              id="panel-killmails"
+              aria-labelledby="tab-killmails"
+              className="killmails-tab"
+            >
               <h2 className="sr-only">Killmails</h2>
 
               {/* 2-column grid layout */}
@@ -475,7 +493,12 @@ export default function CharacterDetailPage({
           )}
 
           {activeTab === 'statistics' && (
-            <div className="p-6 bg-white/5 border-white/10">
+            <div
+              role="tabpanel"
+              id="panel-statistics"
+              aria-labelledby="tab-statistics"
+              className="p-6 bg-white/5 border-white/10"
+            >
               <h2 className="mb-4 text-2xl font-bold">Statistics</h2>
               <p className="text-gray-400">Statistics coming soon...</p>
             </div>

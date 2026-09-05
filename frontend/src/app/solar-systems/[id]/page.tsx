@@ -16,6 +16,7 @@ import {
   TAB_LABELS,
 } from '@/components/SolarSystemDetail/tabs';
 import { useSolarSystemQuery } from '@/generated/graphql';
+import { useTabList } from '@/hooks/useTabList';
 import { formatTimeAgo } from '@/utils/date';
 import { getSecurityColor } from '@/utils/security';
 import { GlobeAltIcon, MapIcon, MapPinIcon } from '@heroicons/react/24/outline';
@@ -82,6 +83,12 @@ export default function SolarSystemDetailPage({
       syncUrl(tab, 1, pageSize);
     },
     [pageSize, syncUrl],
+  );
+
+  const { onKeyDown } = useTabList(
+    SOLAR_SYSTEM_TABS,
+    activeTab,
+    handleTabChange,
   );
 
   const handlePageChange = useCallback(
@@ -240,8 +247,12 @@ export default function SolarSystemDetailPage({
                 <button
                   key={tab}
                   role="tab"
+                  id={`tab-${tab}`}
+                  aria-controls={`panel-${tab}`}
                   aria-selected={activeTab === tab}
+                  tabIndex={activeTab === tab ? 0 : -1}
                   onClick={() => handleTabChange(tab)}
+                  onKeyDown={onKeyDown}
                   className="tab whitespace-nowrap"
                 >
                   {TAB_LABELS[tab]}
@@ -259,33 +270,71 @@ export default function SolarSystemDetailPage({
         {/* Tab content */}
         <div>
           {activeTab === 'overview' && (
-            <OverviewTab
-              systemId={systemId}
-              starId={system.star_id}
-              securityClass={system.security_class}
-              securityStatus={system.securityStatus}
-              position={system.position}
-              star={system.star}
-            />
+            <div
+              role="tabpanel"
+              id="panel-overview"
+              aria-labelledby="tab-overview"
+            >
+              <OverviewTab
+                systemId={systemId}
+                starId={system.star_id}
+                securityClass={system.security_class}
+                securityStatus={system.securityStatus}
+                position={system.position}
+                star={system.star}
+              />
+            </div>
           )}
           {activeTab === 'adjacent' && (
-            <AdjacentSystemsTab systemId={systemId} />
+            <div
+              role="tabpanel"
+              id="panel-adjacent"
+              aria-labelledby="tab-adjacent"
+            >
+              <AdjacentSystemsTab systemId={systemId} />
+            </div>
           )}
           {activeTab === 'orbital-bodies' && (
-            <OrbitalBodiesTab systemId={systemId} />
+            <div
+              role="tabpanel"
+              id="panel-orbital-bodies"
+              aria-labelledby="tab-orbital-bodies"
+            >
+              <OrbitalBodiesTab systemId={systemId} />
+            </div>
           )}
-          {activeTab === 'structures' && <StructuresTab systemId={systemId} />}
+          {activeTab === 'structures' && (
+            <div
+              role="tabpanel"
+              id="panel-structures"
+              aria-labelledby="tab-structures"
+            >
+              <StructuresTab systemId={systemId} />
+            </div>
+          )}
           {activeTab === 'sovereignty' && (
-            <SovereigntyTab systemId={systemId} />
+            <div
+              role="tabpanel"
+              id="panel-sovereignty"
+              aria-labelledby="tab-sovereignty"
+            >
+              <SovereigntyTab systemId={systemId} />
+            </div>
           )}
           {activeTab === 'killmails' && (
-            <KillmailsTab
-              systemId={systemId}
-              currentPage={currentPage}
-              pageSize={pageSize}
-              onPageChange={handlePageChange}
-              onPageSizeChange={handlePageSizeChange}
-            />
+            <div
+              role="tabpanel"
+              id="panel-killmails"
+              aria-labelledby="tab-killmails"
+            >
+              <KillmailsTab
+                systemId={systemId}
+                currentPage={currentPage}
+                pageSize={pageSize}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+              />
+            </div>
           )}
         </div>
       </div>

@@ -23,6 +23,7 @@ import {
   useCorporationTopShipsQuery,
   useKillmailsDateCountsQuery,
 } from '@/generated/graphql';
+import { useTabList } from '@/hooks/useTabList';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { use, useCallback, useEffect, useMemo, useState } from 'react';
@@ -32,6 +33,8 @@ interface CorporationDetailPageProps {
 }
 
 type TabType = 'attributes' | 'killmails' | 'members' | 'growth';
+
+const TAB_IDS: TabType[] = ['attributes', 'killmails', 'members', 'growth'];
 
 export default function CorporationDetailPage({
   params,
@@ -47,6 +50,7 @@ export default function CorporationDetailPage({
   const [activeTab, setActiveTab] = useState<TabType>(tabFromUrl);
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(pageSizeFromUrl);
+  const { onKeyDown } = useTabList(TAB_IDS, activeTab, setActiveTab);
 
   // Separate pagination for characters
   const [charactersPage, setCharactersPage] = useState(1);
@@ -381,8 +385,12 @@ export default function CorporationDetailPage({
               <button
                 key={tab.id}
                 role="tab"
+                id={`tab-${tab.id}`}
+                aria-controls={`panel-${tab.id}`}
                 aria-selected={activeTab === tab.id}
+                tabIndex={activeTab === tab.id ? 0 : -1}
                 onClick={() => setActiveTab(tab.id)}
+                onKeyDown={onKeyDown}
                 className="tab"
               >
                 {tab.label}
@@ -393,7 +401,12 @@ export default function CorporationDetailPage({
         {/* Tab Content */}
         <div className="mt-6">
           {activeTab === 'attributes' && (
-            <div className="p-6 bg-white/5 border-white/10">
+            <div
+              role="tabpanel"
+              id="panel-attributes"
+              aria-labelledby="tab-attributes"
+              className="p-6 bg-white/5 border-white/10"
+            >
               <h2 className="mb-4 text-2xl font-bold">Attributes</h2>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -491,7 +504,12 @@ export default function CorporationDetailPage({
           )}
 
           {activeTab === 'killmails' && (
-            <div className="killmails-tab">
+            <div
+              role="tabpanel"
+              id="panel-killmails"
+              aria-labelledby="tab-killmails"
+              className="killmails-tab"
+            >
               <h2 className="sr-only">Killmails</h2>
 
               {/* 2-column grid layout */}
@@ -614,7 +632,12 @@ export default function CorporationDetailPage({
           )}
 
           {activeTab === 'members' && (
-            <div className="p-6 bg-white/5 border-white/10">
+            <div
+              role="tabpanel"
+              id="panel-members"
+              aria-labelledby="tab-members"
+              className="p-6 bg-white/5 border-white/10"
+            >
               <h2 className="mb-4 text-2xl font-bold">Members</h2>
               <CharactersTable characters={characters} loading={false} />
               {characters.length > 0 && (
@@ -641,7 +664,12 @@ export default function CorporationDetailPage({
           )}
 
           {activeTab === 'growth' && (
-            <div className="detail-tab-content">
+            <div
+              role="tabpanel"
+              id="panel-growth"
+              aria-labelledby="tab-growth"
+              className="detail-tab-content"
+            >
               <CorporationGrowthChart
                 snapshots={growthData?.corporation?.snapshots ?? []}
                 loading={growthLoading}

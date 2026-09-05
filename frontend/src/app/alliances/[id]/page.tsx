@@ -24,6 +24,7 @@ import {
   useAllianceTopShipTargetsQuery,
   useKillmailsDateCountsQuery,
 } from '@/generated/graphql';
+import { useTabList } from '@/hooks/useTabList';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { use, useCallback, useEffect, useMemo, useState } from 'react';
@@ -34,6 +35,14 @@ interface AllianceDetailPageProps {
 
 type TabType =
   'attributes' | 'growth' | 'killmails' | 'war-history' | 'members';
+
+const TAB_IDS: TabType[] = [
+  'attributes',
+  'killmails',
+  'war-history',
+  'members',
+  'growth',
+];
 
 export default function AllianceDetailPage({
   params,
@@ -49,6 +58,7 @@ export default function AllianceDetailPage({
   const [activeTab, setActiveTab] = useState<TabType>(tabFromUrl);
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(pageSizeFromUrl);
+  const { onKeyDown } = useTabList(TAB_IDS, activeTab, setActiveTab);
 
   // Separate pagination for corporations
   const [corporationsPage, setCorporationsPage] = useState(1);
@@ -359,8 +369,12 @@ export default function AllianceDetailPage({
               <button
                 key={tab.id}
                 role="tab"
+                id={`tab-${tab.id}`}
+                aria-controls={`panel-${tab.id}`}
                 aria-selected={activeTab === tab.id}
+                tabIndex={activeTab === tab.id ? 0 : -1}
                 onClick={() => setActiveTab(tab.id)}
+                onKeyDown={onKeyDown}
                 className="tab"
               >
                 {tab.label}
@@ -372,7 +386,12 @@ export default function AllianceDetailPage({
         {/* Tab Content */}
         <div className="mt-6">
           {activeTab === 'attributes' && (
-            <div className="detail-tab-content">
+            <div
+              role="tabpanel"
+              id="panel-attributes"
+              aria-labelledby="tab-attributes"
+              className="detail-tab-content"
+            >
               <h2 className="mb-4 text-2xl font-bold">Attributes</h2>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -438,7 +457,12 @@ export default function AllianceDetailPage({
           )}
 
           {activeTab === 'growth' && (
-            <div className="detail-tab-content">
+            <div
+              role="tabpanel"
+              id="panel-growth"
+              aria-labelledby="tab-growth"
+              className="detail-tab-content"
+            >
               <AllianceGrowthChart
                 snapshots={growthData?.alliance?.snapshots ?? []}
                 loading={growthLoading}
@@ -447,7 +471,12 @@ export default function AllianceDetailPage({
           )}
 
           {activeTab === 'killmails' && (
-            <div className="killmails-tab">
+            <div
+              role="tabpanel"
+              id="panel-killmails"
+              aria-labelledby="tab-killmails"
+              className="killmails-tab"
+            >
               <h2 className="sr-only">Killmails</h2>
 
               {/* 2-column grid layout */}
@@ -570,7 +599,12 @@ export default function AllianceDetailPage({
           )}
 
           {activeTab === 'war-history' && (
-            <div className="detail-tab-content">
+            <div
+              role="tabpanel"
+              id="panel-war-history"
+              aria-labelledby="tab-war-history"
+              className="detail-tab-content"
+            >
               <h2 className="mb-4 text-2xl font-bold">War History</h2>
               <p className="text-gray-300">
                 War history information will be displayed here.
@@ -579,7 +613,12 @@ export default function AllianceDetailPage({
           )}
 
           {activeTab === 'members' && (
-            <div className="alliance-corporations-tab">
+            <div
+              role="tabpanel"
+              id="panel-members"
+              aria-labelledby="tab-members"
+              className="alliance-corporations-tab"
+            >
               <div className="sm:flex-auto">
                 <h2 className="sr-only">Member Corporations</h2>
                 {corporationsPageInfo?.totalCount !== undefined && (

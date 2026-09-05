@@ -3,6 +3,7 @@
 import Loader from '@/components/Loader';
 import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
 import { useRegionQuery } from '@/generated/graphql';
+import { useTabList } from '@/hooks/useTabList';
 import { GlobeAltIcon, MapIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { use, useState } from 'react';
@@ -13,9 +14,12 @@ interface RegionDetailPageProps {
 
 type TabType = 'overview' | 'constellations';
 
+const TAB_IDS: TabType[] = ['overview', 'constellations'];
+
 export default function RegionDetailPage({ params }: RegionDetailPageProps) {
   const { id } = use(params);
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const { onKeyDown } = useTabList(TAB_IDS, activeTab, setActiveTab);
 
   const { data, loading, error } = useRegionQuery({
     variables: { id: parseInt(id) },
@@ -129,8 +133,12 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
               <button
                 key={tab.id}
                 role="tab"
+                id={`tab-${tab.id}`}
+                aria-controls={`panel-${tab.id}`}
                 aria-selected={activeTab === tab.id}
+                tabIndex={activeTab === tab.id ? 0 : -1}
                 onClick={() => setActiveTab(tab.id)}
+                onKeyDown={onKeyDown}
                 className="tab"
               >
                 {tab.label}
@@ -142,7 +150,12 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
         {/* Tab Content */}
         <div className="mt-6">
           {activeTab === 'overview' && (
-            <div className="grid gap-6 md:grid-cols-2">
+            <div
+              role="tabpanel"
+              id="panel-overview"
+              aria-labelledby="tab-overview"
+              className="grid gap-6 md:grid-cols-2"
+            >
               {/* Region Info */}
               <div className="p-6 border bg-white/5 border-white/10">
                 <h2 className="mb-4 text-xl font-bold">Region Information</h2>
@@ -216,7 +229,12 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
           )}
 
           {activeTab === 'constellations' && (
-            <div className="overflow-hidden border border-white/10">
+            <div
+              role="tabpanel"
+              id="panel-constellations"
+              aria-labelledby="tab-constellations"
+              className="overflow-hidden border border-white/10"
+            >
               <table className="table">
                 <thead className="bg-neutral-800">
                   <tr>
