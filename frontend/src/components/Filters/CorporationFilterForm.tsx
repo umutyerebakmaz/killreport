@@ -274,14 +274,14 @@ export default function CorporationFilterForm({
             <button
               type="button"
               onClick={handleClearAll}
-              className="button button-secondary"
+              className="button button-ghost"
             >
               CLEAR
             </button>
             <button
               type="submit"
               form="corporation-filters"
-              className="button button-primary"
+              className="button button-secondary"
             >
               APPLY
             </button>

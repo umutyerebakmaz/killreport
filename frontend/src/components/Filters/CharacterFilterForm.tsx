@@ -267,14 +267,14 @@ export default function CharacterFilterForm({
             <button
               type="button"
               onClick={handleClearAll}
-              className="button button-secondary"
+              className="button button-ghost"
             >
               CLEAR
             </button>
             <button
               type="submit"
               form="character-filters"
-              className="button button-primary"
+              className="button button-secondary"
             >
               APPLY
             </button>
