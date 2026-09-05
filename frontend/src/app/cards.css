@@ -31,8 +31,9 @@
   }
 
   /* A list row that carries a <button> tag but is not visually a button.
-     Forcing it into the button vocabulary would have been wrong. */
+     Hovers to the same neutral as .button-ghost; the accent stays reserved
+     for actions. */
   .menu-row {
-    @apply relative flex items-center w-full p-3 transition-colors gap-x-3 text-sm/6 hover:bg-cyan-900/50;
+    @apply relative flex items-center w-full p-3 transition-colors gap-x-3 text-sm/6 hover:bg-white/5;
   }
 }

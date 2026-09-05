@@ -383,7 +383,7 @@ export default function SolarSystemFilters({
                               onClick={() =>
                                 handleSolarSystemSelect(system.name)
                               }
-                              className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
+                              className="menu-row group"
                             >
                               <div className="flex-auto min-w-0 text-left">
                                 <div className="flex items-center gap-2">

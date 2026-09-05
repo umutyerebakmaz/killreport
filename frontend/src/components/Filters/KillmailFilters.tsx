@@ -696,7 +696,7 @@ export default function KillmailFilters({
                               onClick={() =>
                                 handlePilotSelect(character.id, character.name)
                               }
-                              className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
+                              className="menu-row group"
                             >
                               <div className="flex items-center justify-center flex-none size-16 bg-gray-700/50 group-hover:bg-gray-700">
                                 <img
@@ -836,7 +836,7 @@ export default function KillmailFilters({
                             key={type.id}
                             type="button"
                             onClick={() => handleShipSelect(type.id, type.name)}
-                            className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
+                            className="menu-row group"
                           >
                             <div className="flex items-center justify-center flex-none size-16 bg-gray-700/50 group-hover:bg-gray-700">
                               <img
@@ -972,7 +972,7 @@ export default function KillmailFilters({
                               handleGroupSelect(group.id, group.name)
                             }
                             disabled={shipGroupIds.includes(group.id)}
-                            className={`relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5 ${shipGroupIds.includes(group.id) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`menu-row group ${shipGroupIds.includes(group.id) ? 'opacity-50 cursor-not-allowed' : ''}`}
                           >
                             <div className="flex-auto min-w-0 text-left">
                               <div className="font-semibold text-white truncate">
@@ -1109,7 +1109,7 @@ export default function KillmailFilters({
                               onClick={() =>
                                 handleSolarSystemSelect(system.id, system.name)
                               }
-                              className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
+                              className="menu-row group"
                             >
                               <div className="flex-auto min-w-0 text-left">
                                 <div className="flex items-center gap-2">
@@ -1245,7 +1245,7 @@ export default function KillmailFilters({
                               onClick={() =>
                                 handleRegionSelect(region.id, region.name)
                               }
-                              className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
+                              className="menu-row group"
                             >
                               <div className="flex-auto min-w-0 text-left">
                                 <div className="flex items-center gap-2">
@@ -1371,7 +1371,7 @@ export default function KillmailFilters({
                                     constellation.name,
                                   )
                                 }
-                                className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-white/5"
+                                className="menu-row group"
                               >
                                 <div className="flex-auto min-w-0 text-left">
                                   <div className="flex items-center gap-2">
