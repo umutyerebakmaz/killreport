@@ -44,10 +44,7 @@ export default function CorporationsTable({
         </thead>
         <tbody className="divide-y divide-white/5">
           {corporations.map((corp) => (
-            <tr
-              key={corp.id}
-              className="transition-colors bg-ground hover:bg-surface"
-            >
+            <tr key={corp.id} className="tr-row">
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center gap-3">
                   <img

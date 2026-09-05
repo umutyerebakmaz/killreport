@@ -149,10 +149,7 @@ function RegionsContent() {
               </tr>
             ) : (
               regions.map((region) => (
-                <tr
-                  key={region.id}
-                  className="transition-colors hover:bg-surface-inset bg-surface"
-                >
+                <tr key={region.id} className="tr-row">
                   <td className="px-6 py-4 text-base">
                     <div className="flex items-center">
                       <Link

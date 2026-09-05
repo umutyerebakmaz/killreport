@@ -53,10 +53,7 @@ function HotspotsContent() {
             </thead>
             <tbody className="divide-y divide-white/5">
               {hotspots.map((h) => (
-                <tr
-                  key={h.regionId}
-                  className="transition-colors bg-ground hover:bg-surface"
-                >
+                <tr key={h.regionId} className="tr-row">
                   <td className="px-4 py-3 whitespace-nowrap">
                     <Link
                       href={`/regions/${h.regionId}`}

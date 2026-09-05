@@ -64,28 +64,28 @@ function SovereigntyContent() {
           <Link
             href="/sovereignty/structures"
             prefetch={false}
-            className="text-sm text-cyan-400 hover:text-cyan-300"
+            className="button button-secondary button-sm"
           >
             Structures &amp; Timers →
           </Link>
           <Link
             href="/sovereignty/history"
             prefetch={false}
-            className="text-sm text-cyan-400 hover:text-cyan-300"
+            className="button button-secondary button-sm"
           >
             History →
           </Link>
           <Link
             href="/sovereignty/hotspots"
             prefetch={false}
-            className="text-sm text-cyan-400 hover:text-cyan-300"
+            className="button button-secondary button-sm"
           >
             Hot Zones →
           </Link>
           <Link
             href="/sovereignty/map"
             prefetch={false}
-            className="text-sm text-cyan-400 hover:text-cyan-300"
+            className="button button-secondary button-sm"
           >
             Map →
           </Link>
@@ -131,10 +131,7 @@ function SovereigntyContent() {
             </thead>
             <tbody className="divide-y divide-white/5">
               {rankings.map((r) => (
-                <tr
-                  key={r.allianceId}
-                  className="transition-colors bg-ground hover:bg-surface"
-                >
+                <tr key={r.allianceId} className="tr-row">
                   <td className="px-4 py-3 text-gray-400 whitespace-nowrap">
                     {r.rank}
                   </td>
@@ -296,7 +293,7 @@ function SovereigntyContent() {
                 return (
                   <Fragment key={c.campaignId}>
                     <tr
-                      className={`transition-colors bg-ground ${hasDetail ? 'cursor-pointer hover:bg-surface' : ''}`}
+                      className={`tr-row ${hasDetail ? 'cursor-pointer' : ''}`}
                       onClick={
                         hasDetail
                           ? () =>
@@ -440,10 +437,7 @@ function SovereigntyContent() {
             </thead>
             <tbody className="divide-y divide-white/5">
               {changes.map((c) => (
-                <tr
-                  key={c.id}
-                  className="transition-colors bg-ground hover:bg-surface"
-                >
+                <tr key={c.id} className="tr-row">
                   <td className="px-4 py-3 whitespace-nowrap">
                     <Link
                       href={`/solar-systems/${c.solarSystemId}`}

@@ -36,7 +36,7 @@ export default function CharactersTable({
         </thead>
         <tbody className="divide-y divide-white/5">
           {characters.map((char) => (
-            <tr key={char.id} className="transition-colors hover:bg-white/5">
+            <tr key={char.id} className="tr-row">
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center gap-3">
                   <img

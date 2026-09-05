@@ -379,10 +379,7 @@ function StandaloneWorkerSection({ workers }: any) {
           </thead>
           <tbody className="divide-y divide-gray-800">
             {workers.map((worker: any) => (
-              <tr
-                key={worker.name}
-                className="transition-colors bg-surface hover:bg-surface-inset"
-              >
+              <tr key={worker.name} className="tr-row">
                 <td className="px-2 py-4 md:px-4">
                   <div className="flex items-center gap-2">
                     <div
@@ -460,10 +457,7 @@ function QueueSection({ title, subtitle, queues }: any) {
           </thead>
           <tbody className="divide-y divide-white/5">
             {queues.map((queue: QueueInfo) => (
-              <tr
-                key={queue.name}
-                className="transition-colors bg-surface hover:bg-surface-inset"
-              >
+              <tr key={queue.name} className="tr-row">
                 <td className="px-2 py-4 md:px-4">
                   <div className="flex items-center gap-2">
                     <div

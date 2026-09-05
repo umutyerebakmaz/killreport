@@ -126,10 +126,7 @@ function HistoryContent() {
             </thead>
             <tbody className="divide-y divide-white/5">
               {defenders.map((d) => (
-                <tr
-                  key={d.allianceId}
-                  className="transition-colors bg-ground hover:bg-surface"
-                >
+                <tr key={d.allianceId} className="tr-row">
                   <td className="px-4 py-3 text-gray-400 whitespace-nowrap">
                     {d.rank}
                   </td>
@@ -187,10 +184,7 @@ function HistoryContent() {
             </thead>
             <tbody className="divide-y divide-white/5">
               {campaigns.map((c) => (
-                <tr
-                  key={c.campaignId}
-                  className="transition-colors bg-ground hover:bg-surface"
-                >
+                <tr key={c.campaignId} className="tr-row">
                   <td className="px-4 py-3 whitespace-nowrap">
                     <Link
                       href={`/solar-systems/${c.solarSystemId}`}

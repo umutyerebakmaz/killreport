@@ -293,10 +293,7 @@ export default function ConstellationDetailPage({
                   {constellation.solarSystems &&
                   constellation.solarSystems.length > 0 ? (
                     constellation.solarSystems.map((system) => (
-                      <tr
-                        key={system.id}
-                        className="transition-colors hover:bg-white/5"
-                      >
+                      <tr key={system.id} className="tr-row">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
                             <MapPinIcon className="w-5 h-5 text-orange-400 shrink-0" />

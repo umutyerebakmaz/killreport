@@ -121,10 +121,7 @@ function StructuresContent() {
             </thead>
             <tbody className="divide-y divide-white/5">
               {timers.map((s) => (
-                <tr
-                  key={s.structureId}
-                  className="transition-colors bg-ground hover:bg-surface"
-                >
+                <tr key={s.structureId} className="tr-row">
                   <td className="px-4 py-3 whitespace-nowrap">
                     <SystemCell
                       id={s.solarSystemId}
@@ -186,10 +183,7 @@ function StructuresContent() {
             </thead>
             <tbody className="divide-y divide-white/5">
               {structures.map((s) => (
-                <tr
-                  key={s.structureId}
-                  className="transition-colors bg-ground hover:bg-surface"
-                >
+                <tr key={s.structureId} className="tr-row">
                   <td className="px-4 py-3 whitespace-nowrap">
                     <SystemCell
                       id={s.solarSystemId}

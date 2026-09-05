@@ -153,10 +153,7 @@ function ConstellationsContent() {
               </tr>
             ) : (
               constellations.map((constellation) => (
-                <tr
-                  key={constellation.id}
-                  className="transition-colors hover:bg-surface-inset bg-surface"
-                >
+                <tr key={constellation.id} className="tr-row">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <Link

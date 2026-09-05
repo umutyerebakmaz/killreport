@@ -244,10 +244,7 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
                 <tbody className="divide-y divide-white/5">
                   {region.constellations && region.constellations.length > 0 ? (
                     region.constellations.map((constellation) => (
-                      <tr
-                        key={constellation.id}
-                        className="transition-colors hover:bg-white/5"
-                      >
+                      <tr key={constellation.id} className="tr-row">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
                             <MapIcon className="w-5 h-5 text-purple-400 shrink-0" />
