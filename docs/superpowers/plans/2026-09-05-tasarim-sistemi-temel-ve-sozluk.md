@@ -20,6 +20,8 @@
 - **Semantik renkler kapsam dışı:** `utils/securityStatus.ts` ve `utils/security.ts` içindeki renkler değişmez.
 - **`rounded-full` kapsam dışı:** 52 kullanım; avatar ve durum noktaları, stil kararı değil.
 - **Commit mesajları İngilizce**, `type(scope): küçük harfle başlayan özet`. Claude attribution yok.
+- **Kod yorumları İngilizce.** `CLAUDE.md`: GitHub'a giden her şey — yorumlar dahil — İngilizce.
+  Bu plan ve spec Türkçe, ama içlerindeki kod blokları İngilizce yorum taşır.
 - Görsel doğrulama kullanıcıda. Bu plandaki hiçbir adım tarayıcı açmaz.
 
 ---
@@ -97,11 +99,11 @@ Sebebi spec'in kendi gerekçesi: _"1 ve 2 onaylanmadan 3-6'yı yazmak, sözlük 
 import localFont from 'next/font/local';
 
 /**
- * Tailwind Plus'ın self-host ettiği InterVariable (rsms.me, v4.66).
+ * InterVariable, the face Tailwind Plus self-hosts (rsms.me, v4.66).
  *
- * İki yüz gerekiyor: uygulama altı yerde `italic` kullanıyor ve tek yüzle
- * tarayıcı sahte eğik üretir. Variable font 100-900 aralığının tamamını
- * taşıdığı için ağırlık başına ayrı dosya yok — Shentox'ta 56 dosya vardı.
+ * Both faces are needed: the app sets `italic` in six places, and with the
+ * roman alone the browser synthesises an oblique. One file covers every
+ * weight because it is variable — Shentox needed 56.
  */
 export const inter = localFont({
   src: [
@@ -184,18 +186,18 @@ git commit -m "feat(frontend): replace shentox with intervariable"
 
 ```css
 @theme {
-  /* Tipografi */
+  /* Typography */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
-  /* Derinlik — üç kademe, fazlası yok.
-     Bugün dört ayrı zemin var (bg-white/5, neutral-900, neutral-800,
-     stone-900) ve hangisinin ne demek olduğu belli değil. */
-  --color-ground: var(--color-gray-950); /* sayfa zemini */
-  --color-surface: var(--color-gray-900); /* kart, tablo, panel */
-  --color-surface-inset: var(--color-gray-800); /* kartın içindeki kutu */
+  /* Depth — three steps, no more. Four grounds are in use today
+     (bg-white/5, neutral-900, neutral-800, stone-900) and nothing says
+     which one means what. */
+  --color-ground: var(--color-gray-950); /* the page */
+  --color-surface: var(--color-gray-900); /* cards, tables, panels */
+  --color-surface-inset: var(--color-gray-800); /* a box inside a card */
 
-  /* Vurgu — birincil eylem dolgusu. Bugün cyan, indigo ve blue olarak
-     üç ayrı cepte duruyor. */
+  /* Accent — the primary action fill. It sits in three separate
+     pockets today: cyan, indigo and blue. */
   --color-accent: var(--color-cyan-600);
 }
 ```
@@ -227,9 +229,9 @@ Gerekçe yoruma yazılır, çünkü bu görünür bir değişiklik ve sebebi tas
 
 ```tsx
 {
-  /* Zemin saf siyah değil: flat tasarımda gölge olmadığı için bir yüzeyin
-     "yukarıda" olduğunu anlatan tek şey zeminden bir ton açık olmasıdır.
-     Siyah üstünde gray-900 kart zar zor ayrışıyordu. */
+  /* Not pure black: with no shadows, the only thing telling a surface it
+     sits above the page is being a shade lighter than it. On black, a
+     gray-900 card barely separated. */
 }
 ```
 
@@ -283,12 +285,12 @@ Mevcut `.button`, `.apply-filter-button`, `.clear-filter-button`, `.active-filte
 
 ```css
 /*
- * Buton sözlüğü. Bir buton bir yapı sınıfı (.button), bir görünüm
- * (.button-primary vb.) ve isteğe bağlı değiştiriciler taşır:
+ * The button vocabulary. A button wears a structure class (.button), an
+ * appearance (.button-primary and friends) and optional modifiers:
  *
  *   <button className="button button-secondary button-icon">
  *
- * Radius yok: sayfada duran hiçbir şey radius almaz. Yalnızca .float alır.
+ * No radius: nothing sitting on the page takes one. Only .float does.
  */
 
 .button {
@@ -297,7 +299,7 @@ Mevcut `.button`, `.apply-filter-button`, `.clear-filter-button`, `.active-filte
     disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
-/* --- Görünümler --- */
+/* --- Appearances --- */
 
 .button-primary {
   @apply text-white bg-accent hover:bg-cyan-500;
@@ -316,10 +318,11 @@ Mevcut `.button`, `.apply-filter-button`, `.clear-filter-button`, `.active-filte
 }
 
 /*
- * Basılı durum sınıfla değil ARIA ile geliyor. Eskiden .active-filter-button
- * bunu beş !important ile yapıyordu; [aria-pressed] seçicisi (0,2,0) zaten
- * görünüm sınıflarından (0,1,0) daha özgül, o yüzden !important gerekmiyor.
- * Yan kazanç: görünüm, ekran okuyucunun duyduğu şeyden ayrı düşemiyor.
+ * The pressed state comes from ARIA, not from a class. .active-filter-button
+ * used to do this with five !important declarations; [aria-pressed] is
+ * (0,2,0) and already outranks the appearance classes at (0,1,0), so none
+ * are needed. The appearance can no longer drift from what a screen reader
+ * announces.
  */
 .button[aria-pressed='true'] {
   @apply text-white bg-accent border-cyan-500/50;
@@ -333,9 +336,9 @@ Mevcut `.button`, `.apply-filter-button`, `.clear-filter-button`, `.active-filte
   @apply text-white bg-white/10;
 }
 
-/* --- Değiştiriciler ---
- * Görünümlerden SONRA gelmeleri şart: .button ile aynı özgüllükteler
- * (0,1,0), dolayısıyla dolguyu ezmelerini sağlayan tek şey kaynak sırası. */
+/* --- Modifiers ---
+ * These must come AFTER the appearances: they match .button's specificity
+ * (0,1,0), so source order is the only thing letting them win on padding. */
 
 .button-icon {
   @apply p-2;
@@ -349,7 +352,7 @@ Mevcut `.button`, `.apply-filter-button`, `.clear-filter-button`, `.active-filte
   @apply justify-center w-full;
 }
 
-/* Filtre butonlarındaki sayaç balonu. */
+/* The count bubble on a filter button. */
 .badge {
   @apply inline-flex items-center justify-center w-5 h-5 ml-1 text-xs font-bold rounded-full text-cyan-700 bg-white;
 }
@@ -402,9 +405,9 @@ git commit -m "feat(frontend): define the button vocabulary"
 
 ```css
 /*
- * Alt çizgili sekme. Altı detay sayfası (regions, alliances, solar-systems,
- * corporations, characters, constellations) bugün aynı çubuğu ayrı ayrı
- * yazıyor. Seçili durum yine ARIA'dan okunuyor.
+ * The underlined tab. Six detail pages (regions, alliances, solar-systems,
+ * corporations, characters, constellations) each write this bar out
+ * separately today. The selected state is read from ARIA here too.
  */
 .tab {
   @apply px-4 py-3 text-sm font-semibold transition-colors border-b-2 whitespace-nowrap
@@ -451,8 +454,8 @@ git commit -m "feat(frontend): define the underlined tab class"
 
 ```css
 /*
- * globals.css'ten taşındı — orası 293 satırdı ve içinde bununla ilgisi
- * olmayan çok şey vardı. Sınıf adları aynı, 32 çağrı noktası değişmiyor.
+ * Moved out of globals.css, which was 293 lines of mostly unrelated rules.
+ * The class names are unchanged, so all 32 call sites stay as they are.
  */
 .select-option-container {
   @apply relative;
@@ -555,23 +558,23 @@ git commit -m "feat(frontend): move the select family into inputs.css and put in
 
 ```css
 /*
- * Yüzeyler.
+ * Surfaces.
  *
- * Sayfada duran her şey opak ve keskin; içeriğin üstünde yüzen her şey cam
- * ve küçük radius'lu. Cam bu yüzden dekorasyon değil, katman sinyali:
- * arkasında bir şey olduğunda anlamlı.
+ * Everything sitting on the page is opaque and sharp; everything floating
+ * above it is glass with a small radius. Glass is a layer signal rather
+ * than decoration — it only means anything with content behind it.
  */
 
-/* .card kendi dolgusunu taşımaz — her çağıran içini kendi yerleştirir.
-   Bu ui/Card.tsx'te alınmış bir karardı ve korunuyor. */
+/* .card holds no padding of its own — every caller lays out its own
+   insides. That decision was already made in ui/Card.tsx; it stands. */
 .card {
   @apply border bg-surface border-white/10;
 }
 
-/* Header kartın İÇİNDE. Beş bileşende (TopShipsCard, TopTargetsCard,
-   TopCharacterCard, TopCorporationCard, TopAllianceCard) kök elemanın
-   arka planı yoktu, o yüzden header sayfanın üstünde ayrı bir element
-   gibi duruyordu. */
+/* The header lives INSIDE the card. In five components (TopShipsCard,
+   TopTargetsCard, TopCharacterCard, TopCorporationCard, TopAllianceCard)
+   the root element had no background, so the header read as a separate
+   thing sitting on the page. */
 .card-header {
   @apply px-4 py-3 border-b border-white/10;
 }
@@ -580,13 +583,13 @@ git commit -m "feat(frontend): move the select family into inputs.css and put in
   @apply p-4;
 }
 
-/* Yüzen katman: popover panelleri, mobil çekmece, FilterDialog, Tooltip. */
+/* The floating layer: popover panels, the mobile drawer, FilterDialog, Tooltip. */
 .float {
   @apply border rounded-md bg-gray-900/80 backdrop-blur-md border-white/10;
 }
 
-/* <button> etiketi taşıyan ama görsel olarak buton olmayan liste satırı.
-   Buton sözlüğüne sokmak yanlış olurdu. */
+/* A list row that carries a <button> tag but is not visually a button.
+   Forcing it into the button vocabulary would have been wrong. */
 .menu-row {
   @apply relative flex items-center w-full p-3 transition-colors gap-x-3 text-sm/6 hover:bg-cyan-900/50;
 }
@@ -723,9 +726,9 @@ import { ReactNode } from 'react';
 export interface CardProps {
   children: ReactNode;
   /**
-   * Kart başlığı. Kartın İÇİNDE render edilir — beş `*Card` bileşeninde
-   * header, arka planı olmayan bir kökün üstünde duruyordu ve kartın
-   * dışında ayrı bir element gibi görünüyordu.
+   * The card's heading. Rendered INSIDE the card — in five `*Card`
+   * components the header sat on a root with no background, so it read as
+   * a separate element outside the card.
    */
   header?: ReactNode;
   /**
@@ -784,8 +787,8 @@ git commit -m "feat(frontend): give card a header slot inside its own surface"
 
 ```css
 /*
- * Zemin yok: tablo bir .card'ın içinde yaşıyor ve kendi zeminini taşırsa
- * kartın yüzeyini deler. Eskiden bg-black'ti.
+ * No ground of its own: the table lives inside a .card, and carrying one
+ * would punch a hole in the card's surface. It used to be bg-black.
  */
 .table {
   @apply min-w-full divide-y divide-white/5;
