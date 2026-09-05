@@ -1,6 +1,7 @@
 'use client';
 
 import { Loader } from '@/components/Loader/Loader';
+import Card from '@/components/ui/Card';
 import RankNumber from '@/components/ui/RankNumber';
 import Tooltip from '@/components/Tooltip/Tooltip';
 import Link from 'next/link';
@@ -47,35 +48,29 @@ export default function TopTargetsCard({
     }
   };
 
+  const header = (
+    <>
+      <h3 className="text-lg font-semibold text-white">{title}</h3>
+      {subtitle && (
+        <p className="flex items-center justify-between text-xs text-gray-500">
+          {subtitle}
+        </p>
+      )}
+    </>
+  );
+
   if (loading) {
     return (
-      <div className="">
-        <div className="py-4 border-b border-white/10">
-          <h3 className="text-lg font-semibold text-white">{title}</h3>
-          {subtitle && (
-            <p className="flex items-center justify-between text-xs text-gray-500">
-              {subtitle}
-            </p>
-          )}
-        </div>
+      <Card header={header}>
         <div className="flex items-center justify-center py-12">
           <Loader size="lg" />
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="top-targets">
-      <div className="py-4 border-b border-white/10">
-        <h3 className="text-lg font-semibold text-white">{title}</h3>
-        {subtitle && (
-          <p className="flex items-center justify-between text-xs text-gray-500">
-            {subtitle}
-          </p>
-        )}
-      </div>
-
+    <Card header={header}>
       {targets.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-3 py-12 text-gray-500">
           <p className="text-sm font-medium text-center">{emptyText}</p>
@@ -132,6 +127,6 @@ export default function TopTargetsCard({
           ))}
         </div>
       )}
-    </div>
+    </Card>
   );
 }
