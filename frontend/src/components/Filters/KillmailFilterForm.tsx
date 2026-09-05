@@ -695,7 +695,7 @@ export default function KillmailFilterForm({
                 {showPilotDropdown &&
                   pilotData?.characters?.items &&
                   pilotData.characters.items.length > 0 && (
-                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-surface outline-1 -outline-offset-1 outline-white/10">
                       <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto md:grid-cols-2 character-dropdown-scroll max-h-96">
                         {pilotData.characters.items.map((character) => {
                           const avatarUrl = `https://images.evetech.net/characters/${character.id}/portrait?size=128`;
@@ -748,7 +748,7 @@ export default function KillmailFilterForm({
                   debouncedPilotSearch.length >= 3 &&
                   !pilotLoading &&
                   pilotData?.characters?.items?.length === 0 && (
-                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-surface outline-1 -outline-offset-1 outline-white/10">
                       <div className="p-4 text-sm text-gray-400">
                         No pilots found for "{debouncedPilotSearch}"
                       </div>
@@ -838,7 +838,7 @@ export default function KillmailFilterForm({
                 {showDropdown &&
                   typeData?.types?.items &&
                   typeData.types.items.length > 0 && (
-                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-surface outline-1 -outline-offset-1 outline-white/10">
                       <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto md:grid-cols-2 character-dropdown-scroll max-h-96">
                         {typeData.types.items.map((type) => (
                           <button
@@ -877,7 +877,7 @@ export default function KillmailFilterForm({
                   debouncedSearch.length >= 3 &&
                   !typeLoading &&
                   typeData?.types?.items?.length === 0 && (
-                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-surface outline-1 -outline-offset-1 outline-white/10">
                       <div className="p-4 text-sm text-gray-400">
                         No ships found for "{debouncedSearch}"
                       </div>
@@ -965,7 +965,7 @@ export default function KillmailFilterForm({
                 {showGroupDropdown &&
                   groupData?.itemGroups?.items &&
                   groupData.itemGroups.items.length > 0 && (
-                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-surface outline-1 -outline-offset-1 outline-white/10">
                       <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto character-dropdown-scroll max-h-96">
                         {groupData.itemGroups.items.map((group) => (
                           <button
@@ -1001,7 +1001,7 @@ export default function KillmailFilterForm({
                   debouncedGroupSearch.length >= 2 &&
                   !groupLoading &&
                   groupData?.itemGroups?.items?.length === 0 && (
-                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-surface outline-1 -outline-offset-1 outline-white/10">
                       <div className="p-4 text-sm text-gray-400">
                         No ship groups found for "{debouncedGroupSearch}"
                       </div>
@@ -1090,7 +1090,7 @@ export default function KillmailFilterForm({
                 {showSolarSystemDropdown &&
                   solarSystemData?.solarSystems?.items &&
                   solarSystemData.solarSystems.items.length > 0 && (
-                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-surface outline-1 -outline-offset-1 outline-white/10">
                       <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto character-dropdown-scroll max-h-96">
                         {solarSystemData.solarSystems.items.map((system) => {
                           const securityClass =
@@ -1149,7 +1149,7 @@ export default function KillmailFilterForm({
                   debouncedSolarSystemSearch.length >= 3 &&
                   !solarSystemLoading &&
                   solarSystemData?.solarSystems?.items?.length === 0 && (
-                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-surface outline-1 -outline-offset-1 outline-white/10">
                       <div className="p-4 text-sm text-gray-400">
                         No solar systems found for "{debouncedSolarSystemSearch}
                         "
@@ -1232,7 +1232,7 @@ export default function KillmailFilterForm({
                 {showRegionDropdown &&
                   regionsData?.regions?.items &&
                   regionsData.regions.items.length > 0 && (
-                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-surface outline-1 -outline-offset-1 outline-white/10">
                       <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto character-dropdown-scroll max-h-96">
                         {regionsData.regions.items.map((region: any) => {
                           const avgSec = region.securityStats?.avgSecurity ?? 0;
@@ -1280,7 +1280,7 @@ export default function KillmailFilterForm({
                   debouncedRegionSearch.length >= 3 &&
                   !regionLoading &&
                   regionsData?.regions?.items?.length === 0 && (
-                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-surface outline-1 -outline-offset-1 outline-white/10">
                       <div className="p-4 text-sm text-gray-400">
                         No regions found for "{debouncedRegionSearch}"
                       </div>
@@ -1354,7 +1354,7 @@ export default function KillmailFilterForm({
                 {showConstellationDropdown &&
                   constellationData?.constellations?.items &&
                   constellationData.constellations.items.length > 0 && (
-                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-surface outline-1 -outline-offset-1 outline-white/10">
                       <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto character-dropdown-scroll max-h-96">
                         {constellationData.constellations.items.map(
                           (constellation: any) => {
@@ -1412,7 +1412,7 @@ export default function KillmailFilterForm({
                   debouncedConstellationSearch.length >= 3 &&
                   !constellationLoading &&
                   constellationData?.constellations?.items?.length === 0 && (
-                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-surface outline-1 -outline-offset-1 outline-white/10">
                       <div className="p-4 text-sm text-gray-400">
                         No constellations found for "
                         {debouncedConstellationSearch}"
