@@ -75,10 +75,10 @@ export default function TopAllianceCard({
                   {/* Logo */}
                   <div className="relative shrink-0">
                     <img
-                      src={`https://images.evetech.net/alliances/${alliance.id}/logo?size=64`}
+                      src={`https://images.evetech.net/alliances/${alliance.id}/logo?size=128`}
                       alt={alliance.name}
-                      width={40}
-                      height={40}
+                      width={64}
+                      height={64}
                       className="shadow-md bg-black/50 ring-1 ring-black/50"
                       loading="lazy"
                     />
