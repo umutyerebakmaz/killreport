@@ -32,11 +32,10 @@ export default function FilterDialog({
   return (
     <Dialog open={open} onClose={onClose} className="relative z-50">
       {/* Lighter than it was: the panel above is glass, and glass with an
-          almost-opaque scrim behind it has nothing to blur. */}
-      <div
-        aria-hidden="true"
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm"
-      />
+          almost-opaque scrim behind it has nothing to blur. The scrim blurs
+          nothing itself — .float already blurs what sits behind it, and two
+          blurs stacked read as smeared rather than deep. */}
+      <div aria-hidden="true" className="fixed inset-0 bg-black/40" />
 
       <div className="fixed inset-0 flex items-start justify-center p-4 overflow-y-auto sm:p-6">
         <DialogPanel className="float w-full max-w-3xl my-8">
