@@ -1,11 +1,11 @@
 import localFont from 'next/font/local';
 
 /**
- * Tailwind Plus'ın self-host ettiği InterVariable (rsms.me, v4.66).
+ * InterVariable, the face Tailwind Plus self-hosts (rsms.me, v4.66).
  *
- * İki yüz gerekiyor: uygulama altı yerde `italic` kullanıyor ve tek yüzle
- * tarayıcı sahte eğik üretir. Variable font 100-900 aralığının tamamını
- * taşıdığı için ağırlık başına ayrı dosya yok — Shentox'ta 56 dosya vardı.
+ * Both faces are needed: the app sets `italic` in six places, and with the
+ * roman alone the browser synthesises an oblique. One file covers every
+ * weight because it is variable — Shentox needed 56.
  */
 export const inter = localFont({
   src: [
