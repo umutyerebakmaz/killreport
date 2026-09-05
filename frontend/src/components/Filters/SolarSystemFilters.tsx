@@ -313,7 +313,7 @@ export default function SolarSystemFilters({
           <button
             type="submit"
             form="solar-system-filters"
-            className="apply-filter-button"
+            className="button button-primary"
           >
             Apply Filters
           </button>

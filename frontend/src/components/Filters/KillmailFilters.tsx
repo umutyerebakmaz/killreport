@@ -641,7 +641,7 @@ export default function KillmailFilters({
           <button
             type="submit"
             form="killmail-filters"
-            className="apply-filter-button"
+            className="button button-primary"
           >
             Apply Filters
           </button>

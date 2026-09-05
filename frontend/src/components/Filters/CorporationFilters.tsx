@@ -272,7 +272,7 @@ export default function CorporationFilters({
           <button
             type="submit"
             form="corporation-filters"
-            className="apply-filter-button"
+            className="button button-primary"
           >
             Apply Filters
           </button>

@@ -265,7 +265,7 @@ export default function CharacterFilters({
           <button
             type="submit"
             form="character-filters"
-            className="apply-filter-button"
+            className="button button-primary"
           >
             Apply Filters
           </button>

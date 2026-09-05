@@ -267,7 +267,7 @@ export default function AllianceFilters({
           <button
             type="submit"
             form="alliance-filters"
-            className="apply-filter-button"
+            className="button button-primary"
           >
             Apply Filters
           </button>
