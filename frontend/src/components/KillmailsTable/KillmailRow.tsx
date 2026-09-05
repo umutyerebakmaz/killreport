@@ -102,11 +102,11 @@ export default function KillmailRow({
               {km.victim?.shipType?.name || 'Unknown Ship'}
             </div>
             {km.victim?.shipType?.group && (
-              <div className="text-gray-500">
+              <div className="text-base text-gray-500">
                 {km.victim?.shipType?.group?.name}
               </div>
             )}
-            <div className="text-red-400">
+            <div className="text-base text-red-400">
               {km.victim?.damageTaken?.toLocaleString() || 0}
             </div>
           </div>
@@ -131,7 +131,7 @@ export default function KillmailRow({
           </Tooltip>
         </div>
         {km.solarSystem?.constellation && (
-          <div className="text-purple-500">
+          <div className="text-base text-purple-500">
             <Tooltip content="Show Constellation Info" position="top">
               <Link
                 href={`/constellations/${km.solarSystem.constellation?.id}`}
@@ -144,7 +144,7 @@ export default function KillmailRow({
           </div>
         )}
         {km.solarSystem?.constellation?.region && (
-          <div className="text-blue-400">
+          <div className="text-base text-blue-400">
             <Tooltip content="Show Region Info" position="top">
               <Link
                 href={`/regions/${km.solarSystem.constellation.region.id}`}
@@ -207,7 +207,7 @@ export default function KillmailRow({
                 >
                   <Link
                     href={`/corporations/${km.victim.corporation?.id}`}
-                    className="block text-gray-400 truncate transition-colors hover:text-blue-400"
+                    className="block text-base text-gray-400 truncate transition-colors hover:text-blue-400"
                     prefetch={false}
                   >
                     {km.victim.corporation?.name}
@@ -216,7 +216,7 @@ export default function KillmailRow({
               </div>
             )}
             {km.victim?.alliance && (
-              <div className="min-w-0 text-gray-500">
+              <div className="min-w-0 text-base text-gray-500">
                 <Tooltip
                   content="Show Alliance Info"
                   position="top"
@@ -278,7 +278,7 @@ export default function KillmailRow({
                 )}
               </div>
               {km.finalBlow.corporation && (
-                <div className="min-w-0 text-gray-400">
+                <div className="min-w-0 text-base text-gray-400">
                   <Tooltip
                     content="Show Corporation Info"
                     position="top"
@@ -295,7 +295,7 @@ export default function KillmailRow({
                 </div>
               )}
               {km.finalBlow.alliance && (
-                <div className="min-w-0 text-gray-500">
+                <div className="min-w-0 text-base text-gray-500">
                   <Tooltip
                     content="Show Alliance Info"
                     position="top"
