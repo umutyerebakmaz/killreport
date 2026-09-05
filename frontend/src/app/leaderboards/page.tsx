@@ -398,9 +398,6 @@ function Last90DaysLeaderboard() {
       {/* Range label — same min-h as nav rows */}
       <div className="flex items-center gap-2 min-h-9.5">
         <span className="text-xs font-medium text-gray-400">{rangeLabel}</span>
-        <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
-          ROLLING
-        </span>
       </div>
 
       <PilotList

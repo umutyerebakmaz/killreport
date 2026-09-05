@@ -2,13 +2,13 @@
 
 import KillmailFilterForm from '@/components/Filters/KillmailFilterForm';
 import KillmailsTable from '@/components/KillmailsTable';
+import type { Killmail } from '@/components/KillmailsTable/types';
 import Loader from '@/components/Loader';
 import MostValuableCarousel from '@/components/MostValuableCarousel/MostValuableCarousel';
 import Paginator from '@/components/Paginator/Paginator';
 import TopEntitySidebar, {
   TopEntityCardSpec,
 } from '@/components/TopEntitySidebar/TopEntitySidebar';
-import type { Killmail } from '@/components/KillmailsTable/types';
 import {
   KillmailOrderBy,
   useKillmailsDateCountsQuery,
@@ -381,7 +381,7 @@ function KillmailsContent() {
         </div>
 
         {/* Right side - Sidebar */}
-        <div className="lg:col-span-1 lg:-mt-11">
+        <div className="lg:col-span-1 lg:mt-10">
           <TopEntitySidebar cards={SIDEBAR_CARDS} variant="list" />
         </div>
       </div>

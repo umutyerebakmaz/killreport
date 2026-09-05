@@ -1,6 +1,7 @@
 'use client';
 
 import { Loader } from '@/components/Loader/Loader';
+import Card from '@/components/ui/Card';
 import RankNumber from '@/components/ui/RankNumber';
 import Tooltip from '@/components/Tooltip/Tooltip';
 import Link from 'next/link';
@@ -30,35 +31,27 @@ export default function TopCorporationCard({
   emptyText = 'No corporations',
   variant = 'detail',
 }: TopCorporationCardProps) {
+  const header = (
+    <div className="flex items-center justify-between gap-3">
+      <h3 className="text-lg font-semibold text-white">{title}</h3>
+      {subtitle && (
+        <span className="text-xs text-gray-500 shrink-0">{subtitle}</span>
+      )}
+    </div>
+  );
+
   if (loading) {
     return (
-      <div>
-        <div className="py-4 border-b border-white/10">
-          <h3 className="text-lg font-semibold text-white">{title}</h3>
-          {subtitle && (
-            <p className="flex items-center justify-between text-xs text-gray-500">
-              {subtitle}
-            </p>
-          )}
-        </div>
+      <Card header={header}>
         <div className="flex items-center justify-center py-12">
           <Loader size="lg" />
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div>
-      <div className="py-4 border-b border-white/10">
-        <h3 className="text-lg font-semibold text-white">{title}</h3>
-        {subtitle && (
-          <p className="flex items-center justify-between text-xs text-gray-500">
-            {subtitle}
-          </p>
-        )}
-      </div>
-
+    <Card header={header}>
       {corporations.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-3 py-12 text-gray-500">
           <p className="text-sm font-medium text-center">{emptyText}</p>
@@ -84,8 +77,8 @@ export default function TopCorporationCard({
                     <img
                       src={`https://images.evetech.net/corporations/${corporation.id}/logo?size=128`}
                       alt={corporation.name}
-                      width={48}
-                      height={48}
+                      width={64}
+                      height={64}
                       className="shadow-md bg-black/50 ring-1 ring-black/50"
                       loading="lazy"
                     />
@@ -114,7 +107,7 @@ export default function TopCorporationCard({
                     </div>
 
                     {/* Kill Count */}
-                    <span className="text-base font-semibold text-gray-400 tabular-nums whitespace-nowrap shrink-0">
+                    <span className="text-lg font-semibold text-gray-400 tabular-nums whitespace-nowrap shrink-0">
                       {corporation.killCount.toLocaleString()}
                     </span>
                   </div>
@@ -124,6 +117,6 @@ export default function TopCorporationCard({
           })}
         </div>
       )}
-    </div>
+    </Card>
   );
 }
