@@ -30,4 +30,13 @@ describe('FilterBar', () => {
       'false',
     );
   });
+
+  it('leaves the filter button unpressed even when hasActiveFilters is true from the search box alone', () => {
+    renderFilterBar({ activeFilterCount: 0, hasActiveFilters: true });
+
+    expect(screen.getByRole('button', { name: /filters/i })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+  });
 });

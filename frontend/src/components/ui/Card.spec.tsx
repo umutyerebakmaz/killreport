@@ -11,10 +11,13 @@ describe('Card', () => {
   });
 
   it('puts the header inside the card surface', () => {
-    render(<Card header={<h2>TOP SHIPS</h2>}>gövde</Card>);
+    const { container } = render(
+      <Card header={<h2>TOP SHIPS</h2>}>gövde</Card>,
+    );
 
     const heading = screen.getByRole('heading', { name: 'TOP SHIPS' });
     expect(heading.closest('.card')).not.toBeNull();
+    expect(container.querySelector('.card-header')).not.toBeNull();
   });
 
   it('leaves out the header element when no header is given', () => {
