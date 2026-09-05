@@ -62,8 +62,9 @@
   @apply px-3 py-1 text-xs;
 }
 
+/* .button already sets justify-center; this only needs the width. */
 .button-block {
-  @apply justify-center w-full;
+  @apply w-full;
 }
 
 /* The count bubble on a filter button. */
