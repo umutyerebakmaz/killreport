@@ -334,3 +334,60 @@ Expected: 0
 - [ ] **Step 3: Doğrula ve commit**
 
 Commit: `refactor(frontend): move the radio and checkbox onto the accent`
+
+---
+
+### Task 8: Sekme ARIA'sını tamamla
+
+Task 3 altı sayfaya `role="tab"` ve `aria-selected` koydu, ama hiçbiri bir panele bağlı değil ve ok tuşu gezinmesi yok. Yarım ARIA hiç ARIA'dan kötü olabilir: ekran okuyucu "sekme, 4'ün 1'i, seçili" diye duyuruyor, kullanıcı ok tuşuna basıyor, hiçbir şey olmuyor. `role="tab"` bir vaat; verildiyse tutulmalı.
+
+**Files** — altı detay sayfası, toplam 27 koşullu panel bloğu:
+
+- `frontend/src/app/alliances/[id]/page.tsx` (7 blok)
+- `frontend/src/app/corporations/[id]/page.tsx` (6 blok)
+- `frontend/src/app/solar-systems/[id]/page.tsx` (6 blok)
+- `frontend/src/app/characters/[id]/page.tsx` (4 blok)
+- `frontend/src/app/regions/[id]/page.tsx` (2 blok)
+- `frontend/src/app/constellations/[id]/page.tsx` (2 blok)
+
+- [ ] **Step 1: Sekme ve panelleri birbirine bağla**
+
+Paneller bugün `{activeTab === 'overview' && (...)}` şeklinde koşullu bloklar; kararlı bir eleman ve `id`'leri yok. Her biri sarılır:
+
+```tsx
+{
+  activeTab === 'overview' && (
+    <div role="tabpanel" id="panel-overview" aria-labelledby="tab-overview">
+      ...
+    </div>
+  );
+}
+```
+
+Her sekme butonu da karşılığını alır:
+
+```tsx
+<button
+  role="tab"
+  id={`tab-${tab.id}`}
+  aria-controls={`panel-${tab.id}`}
+  aria-selected={activeTab === tab.id}
+  className="tab"
+>
+```
+
+`id`'ler sayfa içinde benzersiz olmalı. Sayfada başka bir `id` çakışması var mı diye bak.
+
+- [ ] **Step 2: Ok tuşu gezinmesi**
+
+`role="tablist"` bir etkileşim modeli vaat ediyor: sol/sağ ok seçimi taşır, `Home`/`End` uçlara gider. Seçili olmayan sekmeler `tabIndex={-1}` alır, seçili olan `0` — yani `Tab` tuşu çubuğa bir kez girer, içinde oklarla gezilir (roving tabindex).
+
+Altı sayfa aynı mantığı yazmasın: ortak bir kanca çıkar, `frontend/src/hooks/useTabList.ts`. Mevcut kanca stilini görmek için `frontend/src/hooks/useDebounce.ts`'e bak.
+
+- [ ] **Step 3: Kancanın testi**
+
+`frontend/src/hooks/useTabList.spec.ts` — sağ ok bir sonrakine geçiyor, son sekmede başa dönüyor, `Home` ilkine gidiyor. `useDebounce.spec.ts` ev stilini gösteriyor.
+
+- [ ] **Step 4: Doğrula ve commit**
+
+`typecheck`, `lint`, `test` — test sayısı eklediğin kadar artmalı. Commit: `feat(frontend): finish the tab aria on the detail pages`
