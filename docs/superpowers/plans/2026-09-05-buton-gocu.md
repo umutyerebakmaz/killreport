@@ -245,3 +245,92 @@ Görsel kontrol kullanıcıda. Bakılacaklar: altı detay sayfasının sekme çu
 **Spec'ten sapma.** Spec §4.4 menü satırlarını 3 diye sayıyordu; gerçek sayı 12. Sözlük değişmiyor, yalnızca `.menu-row`'un kapsamı beklenenden geniş. İkon-only grubu da spec'te ayrı sayılmamıştı, 23 tane.
 
 **Bilinen zayıflık.** Task 1 ve 2, hangi butonun hangi varyanta gideceğini okumaya bırakıyor; kenarlık taşıyıp taşımadığı grep'le güvenilir ayrılmıyor. Ayrım kuralı her iki adımda da açıkça yazılı.
+
+---
+
+### Task 6: Filtre çipleri — içeriği kadar, kapatma butonu içeride
+
+Kullanıcı isteği. Bugün çip tam genişlik kaplıyor ve kapatma butonu onun **dışında**, kardeş eleman olarak duruyor.
+
+**Files:** yedi çağrı noktası —
+
+- `frontend/src/components/Filters/KillmailFilters.tsx:1018` (Ship Groups)
+- `frontend/src/components/Filters/KillmailFilters.tsx:1163` (Solar System)
+- `frontend/src/components/Filters/KillmailFilters.tsx:1292` (Region)
+- `frontend/src/components/Filters/KillmailFilters.tsx:1426` (Constellation)
+- `frontend/src/components/Filters/SolarSystemFilters.tsx:437`
+- `frontend/src/components/Filters/SolarSystemFilters.tsx:479`
+- `frontend/src/components/Filters/SolarSystemFilters.tsx:530`
+
+- [ ] **Step 1: `.chip`'i `cards.css`'e ekle**
+
+```css
+/* A selected-filter chip: hugs its label and holds its own remove button.
+   The colours it used to carry (purple, blue) meant nothing — the user
+   confirmed they were not a code for the filter's type. */
+.chip {
+  @apply inline-flex items-center gap-1 py-1 pl-3 pr-1 text-sm text-white bg-surface-inset;
+}
+```
+
+- [ ] **Step 2: Yedi çağrı noktasını yeniden kur**
+
+Bugünkü yapı — çip `flex-1` ile tam genişlik, buton dışarıda:
+
+```tsx
+<div className="flex items-center gap-2">
+  <div className="flex items-center flex-1 gap-2 px-3 py-2 text-sm text-white bg-blue-900/30">
+    <span className="font-semibold truncate">{name}</span>
+  </div>
+  <button
+    onClick={remove}
+    className="button button-ghost button-icon"
+    aria-label="..."
+  >
+    <XMarkIcon className="w-4 h-4" />
+  </button>
+</div>
+```
+
+Olması gereken — tek eleman, içeriği kadar, buton içeride:
+
+```tsx
+<span className="chip">
+  <span className="font-semibold truncate">{name}</span>
+  <button onClick={remove} className="button button-ghost p-1" aria-label="...">
+    <XMarkIcon className="w-4 h-4" />
+  </button>
+</span>
+```
+
+`flex-1` gidiyor; saran `<div className="flex items-center gap-2">` gereksizleşiyorsa kaldır. `.button-icon` yerine `p-1` — `.button-icon`'un `p-2`'si çipin içinde fazla yer kaplıyor. **`aria-label`'ları olduğu gibi koru**, önceki görevde eklendiler.
+
+Çipler liste hâlinde geliyorsa (`shipGroupIds.map` gibi) saran kap `flex flex-wrap gap-2` olmalı: çipler yan yana aksın, sığmayınca alt satıra geçsin.
+
+- [ ] **Step 3: Doğrula ve commit**
+
+Commit: `feat(frontend): let the filter chips hug their content`
+
+---
+
+### Task 7: Kalan indigo cepleri
+
+`RadioGroup` ve `Checkbox` hâlâ indigo kullanıyor — birincil rengin son iki cebi. Advanced Filter'da altı yerde görünüyorlar.
+
+**Files:**
+
+- `frontend/src/components/RadioGroup/RadioGroup.tsx` — `bg-indigo-500`, `border-indigo-500`, `outline-indigo-500`
+- `frontend/src/components/Checkbox/Checkbox.tsx` — beş `indigo-500` kullanımı
+
+- [ ] **Step 1: `accent`'e çevir**
+
+`bg-indigo-500` → `bg-accent`, `border-indigo-500` → `border-accent`, `outline-indigo-500` → `outline-accent`. `checked:` ve `indeterminate:` varyantları dahil.
+
+- [ ] **Step 2: Uygulamada indigo kalmadığını doğrula**
+
+Run: `grep -rn "indigo" frontend/src --include='*.tsx' --include='*.css' | wc -l`
+Expected: 0
+
+- [ ] **Step 3: Doğrula ve commit**
+
+Commit: `refactor(frontend): move the radio and checkbox onto the accent`
