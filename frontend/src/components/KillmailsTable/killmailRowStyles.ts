@@ -25,8 +25,6 @@ export function getKillmailRowStyles({
   allianceId,
   variant = 'list',
 }: KillmailRowStylesParams): KillmailRowStyles {
-  const hasEntity = Boolean(characterId || corporationId || allianceId);
-
   // Check if the entity is the victim
   const isVictim = Boolean(
     (characterId && km.victim?.character?.id === characterId) ||
@@ -45,26 +43,6 @@ export function getKillmailRowStyles({
     (allianceId && km.attackers?.some((a) => a.alliance?.id === allianceId)),
   );
 
-  // No entity provided - use neutral colors based on variant
-  if (!hasEntity) {
-    return {
-      totalValueColor: 'text-orange-400',
-      rowBgColor: variant === 'list' ? 'bg-neutral-900' : 'bg-neutral-800',
-      rowHoverColor:
-        variant === 'list' ? 'hover:bg-neutral-800' : 'hover:bg-neutral-700',
-    };
-  }
-
-  // Entity exists but is neither victim nor attacker - use neutral colors based on variant
-  if (!isVictim && !isAttacker) {
-    return {
-      totalValueColor: 'text-orange-400',
-      rowBgColor: variant === 'list' ? 'bg-neutral-900' : 'bg-neutral-800',
-      rowHoverColor:
-        variant === 'list' ? 'hover:bg-neutral-800' : 'hover:bg-neutral-700',
-    };
-  }
-
   // Entity is victim (loss) - use red colors
   if (isVictim) {
     return {
@@ -77,11 +55,36 @@ export function getKillmailRowStyles({
   }
 
   // Entity is attacker (kill) - use green colors
+  if (isAttacker) {
+    return {
+      totalValueColor: 'text-green-500',
+      rowBgColor: characterId ? 'bg-green-500/15' : 'bg-green-500/20',
+      rowHoverColor: characterId
+        ? 'hover:bg-green-500/20'
+        : 'hover:bg-green-500/30',
+    };
+  }
+
+  // Not involved, or no entity to be involved with. One branch, not two: an
+  // absent entity cannot be a victim or an attacker either, so the old
+  // !hasEntity case returned exactly this and never reached anything else.
+  //
+  // The greys are the theme's own. neutral and gray are different families —
+  // neutral is flat, gray carries a blue cast — so bg-neutral-900 rows read
+  // slightly warm against the gray-900 head and cards around them. list maps
+  // to the two surface tokens; detail keeps its one-step-lighter footing on
+  // the same gray ramp, since the theme names no third surface.
+  if (variant === 'detail') {
+    return {
+      totalValueColor: 'text-orange-400',
+      rowBgColor: 'bg-surface-inset',
+      rowHoverColor: 'hover:bg-gray-700',
+    };
+  }
+
   return {
-    totalValueColor: 'text-green-500',
-    rowBgColor: characterId ? 'bg-green-500/15' : 'bg-green-500/20',
-    rowHoverColor: characterId
-      ? 'hover:bg-green-500/20'
-      : 'hover:bg-green-500/30',
+    totalValueColor: 'text-orange-400',
+    rowBgColor: 'bg-surface',
+    rowHoverColor: 'hover:bg-surface-inset',
   };
 }

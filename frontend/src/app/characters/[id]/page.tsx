@@ -426,14 +426,7 @@ export default function CharacterDetailPage({
                 <div className="space-y-6 lg:col-span-1 lg:-mt-9">
                   <TopTargetsCard
                     title="Most Killed Alliances"
-                    subtitle={
-                      <>
-                        Last 7 days{' '}
-                        <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
-                          ROLLING
-                        </span>
-                      </>
-                    }
+                    subtitle={<>Last 7 days</>}
                     targets={allianceTargets}
                     targetType="alliance"
                     linkPrefix="/alliances"
@@ -443,14 +436,7 @@ export default function CharacterDetailPage({
 
                   <TopTargetsCard
                     title="Most Killed Corporations"
-                    subtitle={
-                      <>
-                        Last 7 days{' '}
-                        <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
-                          ROLLING
-                        </span>
-                      </>
-                    }
+                    subtitle={<>Last 7 days</>}
                     targets={corporationTargets}
                     targetType="corporation"
                     linkPrefix="/corporations"
@@ -460,14 +446,7 @@ export default function CharacterDetailPage({
 
                   <TopShipsCard
                     title="Most Killed Ships"
-                    subtitle={
-                      <>
-                        Last 7 days{' '}
-                        <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
-                          ROLLING
-                        </span>
-                      </>
-                    }
+                    subtitle={<>Last 7 days</>}
                     ships={topShipTargets}
                     emptyText="No ships killed yet"
                     loading={shipTargetsLoading}
@@ -475,14 +454,7 @@ export default function CharacterDetailPage({
 
                   <TopShipsCard
                     title="Most Used Ships"
-                    subtitle={
-                      <>
-                        Last 7 days{' '}
-                        <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
-                          ROLLING
-                        </span>
-                      </>
-                    }
+                    subtitle={<>Last 7 days</>}
                     ships={topAttackerShips}
                     emptyText="No ships used yet"
                     loading={topShipsLoading}

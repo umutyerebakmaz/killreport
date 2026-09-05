@@ -517,14 +517,7 @@ export default function AllianceDetailPage({
                 <div className="space-y-6 lg:col-span-1 lg:-mt-9">
                   <TopCharacterCard
                     title="Most Active Pilots"
-                    subtitle={
-                      <>
-                        Last 7 days{' '}
-                        <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
-                          ROLLING
-                        </span>
-                      </>
-                    }
+                    subtitle={<>Last 7 days</>}
                     characters={topCharacters}
                     emptyText="No pilots yet"
                     loading={topCharactersLoading}
@@ -532,14 +525,7 @@ export default function AllianceDetailPage({
 
                   <TopShipsCard
                     title="Most Used Ships"
-                    subtitle={
-                      <>
-                        Last 7 days{' '}
-                        <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
-                          ROLLING
-                        </span>
-                      </>
-                    }
+                    subtitle={<>Last 7 days</>}
                     ships={topAttackerShips}
                     emptyText="No ships used yet"
                     loading={shipsLoading}
@@ -547,14 +533,7 @@ export default function AllianceDetailPage({
 
                   <TopTargetsCard
                     title="Most Killed Alliances"
-                    subtitle={
-                      <>
-                        Last 7 days{' '}
-                        <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
-                          ROLLING
-                        </span>
-                      </>
-                    }
+                    subtitle={<>Last 7 days</>}
                     targets={allianceTargets}
                     targetType="alliance"
                     linkPrefix="/alliances"
@@ -564,14 +543,7 @@ export default function AllianceDetailPage({
 
                   <TopTargetsCard
                     title="Most Killed Corporations"
-                    subtitle={
-                      <>
-                        Last 7 days{' '}
-                        <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
-                          ROLLING
-                        </span>
-                      </>
-                    }
+                    subtitle={<>Last 7 days</>}
                     targets={corporationTargets}
                     targetType="corporation"
                     linkPrefix="/corporations"
@@ -581,14 +553,7 @@ export default function AllianceDetailPage({
 
                   <TopShipsCard
                     title="Most Killed Ships"
-                    subtitle={
-                      <>
-                        Last 7 days{' '}
-                        <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
-                          ROLLING
-                        </span>
-                      </>
-                    }
+                    subtitle={<>Last 7 days</>}
                     ships={topShipTargets}
                     emptyText="No ships killed yet"
                     loading={shipTargetsLoading}

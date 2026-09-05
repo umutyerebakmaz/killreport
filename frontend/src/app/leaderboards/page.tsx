@@ -1,6 +1,8 @@
 'use client';
 
 import Loader from '@/components/Loader';
+import Card from '@/components/ui/Card';
+import RankNumber from '@/components/ui/RankNumber';
 import Tooltip from '@/components/Tooltip/Tooltip';
 import {
   useTop90DaysPilotsQuery,
@@ -59,40 +61,30 @@ function PilotList({
   loading: boolean;
   emptyText: string;
 }) {
-  if (loading) return <Loader fullHeight size="lg" text="Loading..." />;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader size="lg" />
+      </div>
+    );
   if (pilots.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-16 text-gray-500 border border-white/10">
+      <div className="flex flex-col items-center justify-center gap-3 py-12 text-gray-500">
         <TrophyIcon className="w-10 h-10 opacity-30" />
         <p className="text-sm font-medium text-center">{emptyText}</p>
       </div>
     );
   }
   return (
-    <div className="flex flex-col border divide-y divide-white/5 border-white/10">
+    <div className="flex flex-col divide-y divide-white/5">
       {pilots.map((pilot) => {
         const char = pilot.character;
         const secColor = getSecurityStatusColor(char?.securityStatus);
         return (
-          <div
-            key={pilot.rank}
-            className="p-3 transition-colors duration-100 bg-neutral-900 hover:bg-neutral-800"
-          >
+          <div key={pilot.rank} className="card-row">
             <div className="flex items-center gap-3">
               {/* Rank */}
-              <div className="flex items-center justify-center w-16 shrink-0">
-                {pilot.rank === 1 ? (
-                  <span className="text-4xl">🥇</span>
-                ) : pilot.rank === 2 ? (
-                  <span className="text-4xl">🥈</span>
-                ) : pilot.rank === 3 ? (
-                  <span className="text-4xl">🥉</span>
-                ) : (
-                  <span className="text-3xl font-black text-gray-600 tabular-nums">
-                    #{pilot.rank}
-                  </span>
-                )}
-              </div>
+              <RankNumber rank={pilot.rank} />
 
               {/* Portrait */}
               <div className="relative shrink-0">
@@ -170,8 +162,8 @@ function PilotList({
 
                 {/* Kill count + logos */}
                 <div className="flex flex-col items-end justify-between pl-2 gap-y-1 shrink-0">
-                  <span className="text-sm font-semibold text-red-400 tabular-nums whitespace-nowrap">
-                    {pilot.killCount.toLocaleString()} KILLS
+                  <span className="text-lg font-semibold text-gray-400 tabular-nums whitespace-nowrap">
+                    {pilot.killCount.toLocaleString()}
                   </span>
                   <div className="flex">
                     {char?.corporation && (
@@ -241,15 +233,16 @@ function DailyLeaderboard() {
   const pilots = (data?.topPilots ?? []) as PilotEntry[];
 
   return (
-    <div className="flex flex-col flex-1 min-w-0 gap-4">
-      {/* Header */}
-      <div className="flex items-center gap-2">
-        <TrophyIcon className="w-5 h-5 text-yellow-400 shrink-0" />
-        <h2 className="text-lg font-semibold text-white">Daily Top 100</h2>
-      </div>
-
-      {/* Navigation */}
-      <div className="flex items-center gap-2 min-h-9.5">
+    <Card
+      className="flex-1 min-w-0"
+      header={
+        <div className="flex items-center gap-2">
+          <TrophyIcon className="w-5 h-5 text-yellow-400 shrink-0" />
+          <h2 className="text-lg font-semibold text-white">Daily Top 100</h2>
+        </div>
+      }
+    >
+      <div className="card-band">
         <button
           onClick={prevDay}
           className="button button-secondary button-icon shrink-0"
@@ -267,11 +260,6 @@ function DailyLeaderboard() {
         <span className="hidden text-xs text-gray-400 sm:block shrink-0">
           {displayDate}
         </span>
-        {isToday && (
-          <span className="px-1.5 py-0.5 text-xs font-semibold text-green-400 bg-green-400/10 border border-green-400/20 shrink-0">
-            TODAY
-          </span>
-        )}
         <button
           onClick={nextDay}
           disabled={isToday}
@@ -287,7 +275,7 @@ function DailyLeaderboard() {
         loading={loading}
         emptyText="No killmail data for this day"
       />
-    </div>
+    </Card>
   );
 }
 
@@ -324,15 +312,16 @@ function WeeklyLeaderboard() {
   const pilots = (data?.topWeeklyPilots ?? []) as PilotEntry[];
 
   return (
-    <div className="flex flex-col flex-1 min-w-0 gap-4">
-      {/* Header */}
-      <div className="flex items-center gap-2">
-        <CalendarDaysIcon className="w-5 h-5 text-gray-300 shrink-0" />
-        <h2 className="text-lg font-semibold text-white">Weekly Top 100</h2>
-      </div>
-
-      {/* Navigation */}
-      <div className="flex items-center gap-2 min-h-9.5">
+    <Card
+      className="flex-1 min-w-0"
+      header={
+        <div className="flex items-center gap-2">
+          <CalendarDaysIcon className="w-5 h-5 text-gray-300 shrink-0" />
+          <h2 className="text-lg font-semibold text-white">Weekly Top 100</h2>
+        </div>
+      }
+    >
+      <div className="card-band">
         <button
           onClick={prevWeek}
           className="button button-secondary button-icon shrink-0"
@@ -343,11 +332,6 @@ function WeeklyLeaderboard() {
         <span className="flex-1 min-w-0 text-xs font-medium text-center text-gray-300 truncate">
           {weekLabel}
         </span>
-        {isCurrentWeek && (
-          <span className="px-1.5 py-0.5 text-xs font-semibold text-blue-400 bg-blue-400/10 border border-blue-400/20 shrink-0">
-            THIS WEEK
-          </span>
-        )}
         <button
           onClick={nextWeek}
           disabled={isCurrentWeek}
@@ -363,7 +347,7 @@ function WeeklyLeaderboard() {
         loading={loading}
         emptyText="No killmail data for this week"
       />
-    </div>
+    </Card>
   );
 }
 
@@ -388,19 +372,19 @@ function Last90DaysLeaderboard() {
   const pilots = (data?.top90DaysPilots ?? []) as PilotEntry[];
 
   return (
-    <div className="flex flex-col flex-1 min-w-0 gap-4">
-      {/* Header */}
-      <div className="flex items-center gap-2">
-        <ClockIcon className="w-5 h-5 text-gray-300 shrink-0" />
-        <h2 className="text-lg font-semibold text-white">Last 90 Days</h2>
-      </div>
-
-      {/* Range label — same min-h as nav rows */}
-      <div className="flex items-center gap-2 min-h-9.5">
+    <Card
+      className="flex-1 min-w-0"
+      header={
+        <div className="flex items-center gap-2">
+          <ClockIcon className="w-5 h-5 text-gray-300 shrink-0" />
+          <h2 className="text-lg font-semibold text-white">Last 90 Days</h2>
+        </div>
+      }
+    >
+      {/* No stepper to show: this range is fixed. The band still carries it so
+          this column's list starts level with the other three. */}
+      <div className="card-band">
         <span className="text-xs font-medium text-gray-400">{rangeLabel}</span>
-        <span className="px-1.5 py-0.5 text-xs font-semibold text-orange-400 bg-orange-400/10 border border-orange-400/20">
-          ROLLING
-        </span>
       </div>
 
       <PilotList
@@ -408,7 +392,7 @@ function Last90DaysLeaderboard() {
         loading={loading}
         emptyText="No killmail data for the last 90 days"
       />
-    </div>
+    </Card>
   );
 }
 
@@ -451,15 +435,16 @@ function MonthlyLeaderboard() {
   const pilots = (data?.topMonthlyPilots ?? []) as PilotEntry[];
 
   return (
-    <div className="flex flex-col flex-1 min-w-0 gap-4">
-      {/* Header */}
-      <div className="flex items-center gap-2">
-        <CalendarDaysIcon className="w-5 h-5 text-purple-400 shrink-0" />
-        <h2 className="text-lg font-semibold text-white">Monthly Top 100</h2>
-      </div>
-
-      {/* Navigation */}
-      <div className="flex items-center gap-2 min-h-9.5">
+    <Card
+      className="flex-1 min-w-0"
+      header={
+        <div className="flex items-center gap-2">
+          <CalendarDaysIcon className="w-5 h-5 text-purple-400 shrink-0" />
+          <h2 className="text-lg font-semibold text-white">Monthly Top 100</h2>
+        </div>
+      }
+    >
+      <div className="card-band">
         <button
           onClick={prevMonth}
           className="button button-secondary button-icon shrink-0"
@@ -470,11 +455,6 @@ function MonthlyLeaderboard() {
         <span className="flex-1 min-w-0 text-xs font-medium text-center text-gray-300 truncate">
           {monthLabel}
         </span>
-        {isCurrentMonth && (
-          <span className="px-1.5 py-0.5 text-xs font-semibold text-purple-400 bg-purple-400/10 border border-purple-400/20 shrink-0">
-            THIS MONTH
-          </span>
-        )}
         <button
           onClick={nextMonth}
           disabled={isCurrentMonth}
@@ -490,7 +470,7 @@ function MonthlyLeaderboard() {
         loading={loading}
         emptyText="No killmail data for this month"
       />
-    </div>
+    </Card>
   );
 }
 
