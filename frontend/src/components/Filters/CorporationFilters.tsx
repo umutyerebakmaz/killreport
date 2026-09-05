@@ -173,7 +173,7 @@ export default function CorporationFilters({
                           onClick={() =>
                             handleCorporationSelect(corporation.id)
                           }
-                          className="relative flex items-center w-full p-3 group gap-x-3 text-sm/6 hover:bg-cyan-900/50"
+                          className="menu-row group"
                         >
                           <div className="flex items-center justify-center flex-none size-16 bg-gray-700/50 group-hover:bg-gray-700">
                             <img
