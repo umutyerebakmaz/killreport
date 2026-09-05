@@ -281,7 +281,6 @@ export default function AllianceFilters({
             <input
               type="text"
               id="filter-name"
-              placeholder="Alliance name..."
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="input"
@@ -293,7 +292,6 @@ export default function AllianceFilters({
             <input
               type="text"
               id="filter-ticker"
-              placeholder="Ticker..."
               value={ticker}
               onChange={(e) => setTicker(e.target.value)}
               className="input"

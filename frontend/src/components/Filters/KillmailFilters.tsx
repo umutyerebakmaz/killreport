@@ -658,13 +658,17 @@ export default function KillmailFilters({
       >
         <div className="space-y-4">
           {/* Pilot Search */}
-          <FilterField label="Pilot" htmlFor="filter-pilot">
+          <FilterField
+            label="Pilot"
+            htmlFor="filter-pilot"
+            hint="Type at least 3 letters to search"
+          >
             <div ref={pilotDropdownRef}>
               <div className="relative">
                 <input
                   type="text"
                   id="filter-pilot"
-                  placeholder="Search pilot (min 3 letters)..."
+                  aria-describedby="filter-pilot-hint"
                   value={pilotSearch}
                   onChange={(e) => {
                     setPilotSearch(e.target.value);
@@ -797,13 +801,17 @@ export default function KillmailFilters({
           </FilterField>
 
           {/* Ship Search */}
-          <FilterField label="Ship" htmlFor="filter-ship">
+          <FilterField
+            label="Ship"
+            htmlFor="filter-ship"
+            hint="Type at least 3 letters to search"
+          >
             <div ref={shipDropdownRef}>
               <div className="relative">
                 <input
                   type="text"
                   id="filter-ship"
-                  placeholder="Search ship (min 3 letters)..."
+                  aria-describedby="filter-ship-hint"
                   value={typeSearch}
                   onChange={(e) => {
                     setTypeSearch(e.target.value);
@@ -923,13 +931,14 @@ export default function KillmailFilters({
           <FilterField
             label="Ship Group (e.g., Assault Frigate)"
             htmlFor="filter-ship-group"
+            hint="Type at least 2 letters to search"
           >
             <div ref={groupDropdownRef}>
               <div className="relative">
                 <input
                   type="text"
                   id="filter-ship-group"
-                  placeholder="Search ship group (min 2 letters)..."
+                  aria-describedby="filter-ship-group-hint"
                   value={groupSearch}
                   onChange={(e) => {
                     setGroupSearch(e.target.value);
@@ -1043,13 +1052,17 @@ export default function KillmailFilters({
           </FilterField>
 
           {/* Solar System Search */}
-          <FilterField label="Solar System" htmlFor="filter-solar-system">
+          <FilterField
+            label="Solar System"
+            htmlFor="filter-solar-system"
+            hint="Type at least 3 letters to search"
+          >
             <div ref={solarSystemDropdownRef}>
               <div className="relative">
                 <input
                   type="text"
                   id="filter-solar-system"
-                  placeholder="Search solar system (min 3 letters)..."
+                  aria-describedby="filter-solar-system-hint"
                   value={solarSystemSearch}
                   onChange={(e) => {
                     setSolarSystemSearch(e.target.value);
@@ -1182,13 +1195,17 @@ export default function KillmailFilters({
           </FilterField>
 
           {/* Region Search */}
-          <FilterField label="Region" htmlFor="filter-region">
+          <FilterField
+            label="Region"
+            htmlFor="filter-region"
+            hint="Type at least 3 letters to search"
+          >
             <div ref={regionDropdownRef}>
               <div className="relative">
                 <input
                   type="text"
                   id="filter-region"
-                  placeholder="Search region (min 3 letters)..."
+                  aria-describedby="filter-region-hint"
                   value={regionSearch}
                   onChange={(e) => {
                     setRegionSearch(e.target.value);
@@ -1299,13 +1316,17 @@ export default function KillmailFilters({
           </FilterField>
 
           {/* Constellation Search */}
-          <FilterField label="Constellation" htmlFor="filter-constellation">
+          <FilterField
+            label="Constellation"
+            htmlFor="filter-constellation"
+            hint="Type at least 3 letters to search"
+          >
             <div ref={constellationDropdownRef}>
               <div className="relative">
                 <input
                   type="text"
                   id="filter-constellation"
-                  placeholder="Search constellation (min 3 letters)..."
+                  aria-describedby="filter-constellation-hint"
                   value={constellationSearch}
                   onChange={(e) => {
                     setConstellationSearch(e.target.value);
@@ -1441,7 +1462,6 @@ export default function KillmailFilters({
             <input
               type="number"
               id="filter-min-attackers"
-              placeholder="Min attackers..."
               value={minAttackers}
               onChange={(e) => setMinAttackers(e.target.value)}
               className="input"
@@ -1454,7 +1474,6 @@ export default function KillmailFilters({
             <input
               type="number"
               id="filter-max-attackers"
-              placeholder="Max attackers..."
               value={maxAttackers}
               onChange={(e) => setMaxAttackers(e.target.value)}
               className="input"
@@ -1467,7 +1486,6 @@ export default function KillmailFilters({
             <input
               type="number"
               id="filter-min-value"
-              placeholder="Min ISK value..."
               value={minValue}
               onChange={(e) => setMinValue(e.target.value)}
               className="input"
@@ -1481,7 +1499,6 @@ export default function KillmailFilters({
             <input
               type="number"
               id="filter-max-value"
-              placeholder="Max ISK value..."
               value={maxValue}
               onChange={(e) => setMaxValue(e.target.value)}
               className="input"

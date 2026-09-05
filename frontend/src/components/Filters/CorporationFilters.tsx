@@ -286,7 +286,6 @@ export default function CorporationFilters({
             <input
               type="text"
               id="filter-name"
-              placeholder="Corporation name..."
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="input"
@@ -298,7 +297,6 @@ export default function CorporationFilters({
             <input
               type="text"
               id="filter-ticker"
-              placeholder="Ticker..."
               value={ticker}
               onChange={(e) => setTicker(e.target.value)}
               className="input"

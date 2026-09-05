@@ -326,13 +326,17 @@ export default function SolarSystemFilters({
       >
         <div className="space-y-4">
           {/* Solar System Search */}
-          <FilterField label="Solar System" htmlFor="filter-solar-system">
+          <FilterField
+            label="Solar System"
+            htmlFor="filter-solar-system"
+            hint="Type at least 3 letters to search"
+          >
             <div ref={solarSystemDropdownRef}>
               <div className="relative">
                 <input
                   type="text"
                   id="filter-solar-system"
-                  placeholder="Search solar system (min 3 letters)..."
+                  aria-describedby="filter-solar-system-hint"
                   value={solarSystemSearch}
                   onChange={(e) => {
                     setSolarSystemSearch(e.target.value);

@@ -279,7 +279,6 @@ export default function CharacterFilters({
             <input
               type="text"
               id="filter-name"
-              placeholder="Character name..."
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="input"
@@ -291,7 +290,6 @@ export default function CharacterFilters({
             <input
               type="number"
               id="filter-corporation"
-              placeholder="Corporation ID..."
               value={corporationId}
               onChange={(e) => setCorporationId(e.target.value)}
               className="input"
@@ -303,7 +301,6 @@ export default function CharacterFilters({
             <input
               type="number"
               id="filter-alliance"
-              placeholder="Alliance ID..."
               value={allianceId}
               onChange={(e) => setAllianceId(e.target.value)}
               className="input"
