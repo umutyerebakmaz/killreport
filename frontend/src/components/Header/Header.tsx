@@ -185,7 +185,7 @@ export default function Header() {
         />
         <DialogPanel
           transition
-          className="fixed inset-y-0 right-0 z-50 w-full p-6 overflow-y-auto transition duration-300 ease-out bg-surface sm:max-w-sm sm:ring-1 sm:ring-gray-100/10 data-closed:translate-x-full data-leave:duration-200 data-leave:ease-in"
+          className="fixed inset-y-0 right-0 z-50 w-full p-6 overflow-y-auto transition duration-300 ease-out float sm:max-w-sm data-closed:translate-x-full data-leave:duration-200 data-leave:ease-in"
         >
           <div className="flex items-center justify-between">
             <Link

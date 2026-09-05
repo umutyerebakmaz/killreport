@@ -48,7 +48,7 @@ export default function NotificationBell() {
             transition
             className="absolute right-0 z-10 pt-3 w-80 transition duration-0 data-closed:opacity-0 data-leave:duration-150 data-leave:ease-in"
           >
-            <div className="overflow-hidden bg-surface outline-1 -outline-offset-1 outline-white/10">
+            <div className="overflow-hidden float">
               <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
                 <span className="font-semibold text-white">
                   Sovereignty Alerts
