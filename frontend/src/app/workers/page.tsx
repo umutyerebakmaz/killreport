@@ -84,7 +84,7 @@ export default function WorkersPage() {
           <p className="mt-2 text-sm text-gray-400">{error.message}</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 mt-4 text-white bg-blue-600 hover:bg-blue-700"
+            className="button button-primary mt-4"
           >
             Reconnect
           </button>

@@ -45,10 +45,7 @@ export default function AuthButton() {
         <span className="text-sm font-semibold text-white">
           {user.characterName}
         </span>
-        <button
-          onClick={logout}
-          className="px-3 py-2 text-sm font-semibold text-white transition-colors bg-red-600/80 hover:bg-red-600"
-        >
+        <button onClick={logout} className="button button-danger">
           LOGOUT
         </button>
       </div>
@@ -59,7 +56,7 @@ export default function AuthButton() {
     <button
       onClick={handleLogin}
       disabled={loginLoading}
-      className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-white transition-colors bg-cyan-600/80 hover:bg-cyan-600 disabled:opacity-50"
+      className="button button-primary"
     >
       {loginLoading ? <Loader size="sm" /> : 'LOGIN'}
     </button>

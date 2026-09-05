@@ -44,7 +44,7 @@ function ToastItem({
         <button
           type="button"
           onClick={() => onDismiss(toast.id)}
-          className="text-gray-500 hover:text-gray-300"
+          className="button button-ghost button-icon"
           aria-label="Dismiss"
         >
           <XMarkIcon className="w-4 h-4" />

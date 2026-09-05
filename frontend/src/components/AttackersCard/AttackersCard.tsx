@@ -146,7 +146,7 @@ export default function AttackersCard({
       {remainingCount > 0 && !showAll && (
         <button
           onClick={() => setShowAll(true)}
-          className="flex items-center justify-center w-full gap-2 px-4 py-3 font-medium text-gray-300 transition-all border-t bg-neutral-900 hover:bg-neutral-800 border-white/10"
+          className="button button-secondary button-block"
         >
           <ChevronDownIcon className="w-5 h-5" />
           <span>Show other {remainingCount} participants</span>
@@ -157,7 +157,7 @@ export default function AttackersCard({
       {showAll && sortedAttackers.length > initialCount && (
         <button
           onClick={() => setShowAll(false)}
-          className="flex items-center justify-center w-full gap-2 px-4 py-3 font-medium text-gray-300 transition-all bg-white/5 hover:bg-white/10 inset-ring inset-ring-white/10 hover:inset-ring-white/20"
+          className="button button-secondary button-block"
         >
           <ChevronUpIcon className="w-5 h-5" />
           <span>Show less</span>

@@ -58,6 +58,9 @@
   /* A ghost segment's "on" is subtle whichever attribute says so. The accent
      fill above belongs to a toggle that is currently engaged, not to one
      segment of a group where something is always selected. */
+  /* Equal specificity to .button[aria-pressed='true'] above (0,2,0), so this
+     wins only by being written second. Move it up and every ghost segment
+     silently takes the accent fill instead. */
   .button-ghost[aria-pressed='true'] {
     @apply text-white bg-white/10;
   }

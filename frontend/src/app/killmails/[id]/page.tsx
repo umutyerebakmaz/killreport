@@ -112,7 +112,7 @@ export default function KillmailDetailPage({
                       </a>
                       <button
                         onClick={handleShare}
-                        className="flex items-center gap-2 px-3 py-1 text-sm font-medium text-gray-300 transition-colors rounded bg-gray-800/50 hover:bg-gray-700/50 hover:text-white"
+                        className="button button-secondary button-sm"
                       >
                         {copied ? (
                           <>
