@@ -772,7 +772,8 @@ export default function KillmailFilters({
                       setCharacterName('');
                       setCharacterRole('all');
                     }}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                    className="button button-ghost button-icon"
+                    aria-label="Remove character filter"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
@@ -901,7 +902,8 @@ export default function KillmailFilters({
                       setShipTypeName('');
                       setShipRole('all');
                     }}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                    className="button button-ghost button-icon"
+                    aria-label="Remove ship filter"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
@@ -1021,7 +1023,8 @@ export default function KillmailFilters({
                     <button
                       type="button"
                       onClick={() => handleGroupRemove(groupId)}
-                      className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                      className="button button-ghost button-icon"
+                      aria-label="Remove ship group filter"
                     >
                       <XMarkIcon className="w-4 h-4" />
                     </button>
@@ -1177,7 +1180,8 @@ export default function KillmailFilters({
                       setSystemId(undefined);
                       setSolarSystemName('');
                     }}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                    className="button button-ghost button-icon"
+                    aria-label="Remove solar system filter"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
@@ -1296,7 +1300,8 @@ export default function KillmailFilters({
                       setRegionId(undefined);
                       setRegionName('');
                     }}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                    className="button button-ghost button-icon"
+                    aria-label="Remove region filter"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
@@ -1438,7 +1443,8 @@ export default function KillmailFilters({
                       setConstellationId(undefined);
                       setConstellationName('');
                     }}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                    className="button button-ghost button-icon"
+                    aria-label="Remove constellation filter"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>

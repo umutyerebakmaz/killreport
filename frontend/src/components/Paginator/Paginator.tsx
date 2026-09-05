@@ -43,10 +43,11 @@ export default function Paginator({
         {/* First Page */}
         <Tooltip content="First Page">
           <button
-            className="p-2 text-gray-400 transition-colors hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed focus:outline-none"
+            className="button button-ghost button-icon"
             onClick={onFirst}
             disabled={!hasPrevPage || loading}
             style={{ margin: 0 }}
+            aria-label="First page"
           >
             <ChevronDoubleLeftIcon className="w-5 h-5" />
           </button>
@@ -55,10 +56,11 @@ export default function Paginator({
         {/* Previous Page */}
         <Tooltip content="Previous Page">
           <button
-            className="p-2 text-gray-400 transition-colors hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed focus:outline-none"
+            className="button button-ghost button-icon"
             onClick={onPrev}
             disabled={!hasPrevPage || loading}
             style={{ margin: 0 }}
+            aria-label="Previous page"
           >
             <ChevronLeftIcon className="w-5 h-5" />
           </button>
@@ -67,10 +69,11 @@ export default function Paginator({
         {/* Next Page */}
         <Tooltip content="Next Page">
           <button
-            className="p-2 text-gray-400 transition-colors hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed disabled:text-gray-600 focus:outline-none"
+            className="button button-ghost button-icon"
             onClick={onNext}
             disabled={!hasNextPage || loading}
             style={{ margin: 0 }}
+            aria-label="Next page"
           >
             <ChevronRightIcon className="w-5 h-5" />
           </button>
@@ -79,10 +82,11 @@ export default function Paginator({
         {/* Last Page */}
         <Tooltip content="Last Page">
           <button
-            className="p-2 text-gray-400 transition-colors hover:bg-gray-800/50 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="button button-ghost button-icon"
             onClick={onLast}
             disabled={!hasNextPage || loading}
             style={{ margin: 0 }}
+            aria-label="Last page"
           >
             <ChevronDoubleRightIcon className="w-5 h-5" />
           </button>

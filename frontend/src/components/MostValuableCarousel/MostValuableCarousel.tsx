@@ -150,11 +150,7 @@ export default function MostValuableCarousel() {
           <button
             onClick={() => scroll('left')}
             disabled={!canScrollLeft}
-            className={`p-2 transition-all ${
-              canScrollLeft
-                ? 'bg-white/10 hover:bg-white/20 text-white'
-                : 'bg-white/5 text-gray-600 cursor-not-allowed'
-            }`}
+            className="button button-ghost button-icon"
             aria-label="Scroll left"
           >
             <ChevronLeftIcon className="w-5 h-5" />
@@ -162,11 +158,7 @@ export default function MostValuableCarousel() {
           <button
             onClick={() => scroll('right')}
             disabled={!canScrollRight}
-            className={`p-2 transition-all ${
-              canScrollRight
-                ? 'bg-white/10 hover:bg-white/20 text-white'
-                : 'bg-white/5 text-gray-600 cursor-not-allowed'
-            }`}
+            className="button button-ghost button-icon"
             aria-label="Scroll right"
           >
             <ChevronRightIcon className="w-5 h-5" />

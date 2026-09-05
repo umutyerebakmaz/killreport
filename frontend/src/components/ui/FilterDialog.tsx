@@ -42,7 +42,7 @@ export default function FilterDialog({
             <button
               type="button"
               onClick={onClose}
-              className="p-1 text-gray-400 transition-colors hover:text-white"
+              className="button button-ghost button-icon"
             >
               <span className="sr-only">Close filters</span>
               <XMarkIcon aria-hidden="true" className="size-6" />

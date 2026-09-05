@@ -442,7 +442,8 @@ export default function SolarSystemFilters({
                   <button
                     type="button"
                     onClick={() => setSelectedSystemName('')}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                    className="button button-ghost button-icon"
+                    aria-label="Remove solar system filter"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
@@ -489,7 +490,8 @@ export default function SolarSystemFilters({
                       setSelectedConstellationId('');
                       setSelectedConstellationName('');
                     }}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                    className="button button-ghost button-icon"
+                    aria-label="Remove region filter"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
@@ -537,7 +539,8 @@ export default function SolarSystemFilters({
                       setSelectedConstellationId('');
                       setSelectedConstellationName('');
                     }}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-700"
+                    className="button button-ghost button-icon"
+                    aria-label="Remove constellation filter"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
