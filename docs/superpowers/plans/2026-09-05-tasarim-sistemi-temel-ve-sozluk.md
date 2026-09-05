@@ -348,8 +348,9 @@ Mevcut `.button`, `.apply-filter-button`, `.clear-filter-button`, `.active-filte
   @apply px-3 py-1 text-xs;
 }
 
+/* .button already sets justify-center; this only needs the width. */
 .button-block {
-  @apply justify-center w-full;
+  @apply w-full;
 }
 
 /* The count bubble on a filter button. */
@@ -361,7 +362,7 @@ Mevcut `.button`, `.apply-filter-button`, `.clear-filter-button`, `.active-filte
 - [ ] **Step 2: Eski sınıfların kullanıcısı kalmadığını doğrula**
 
 Run: `grep -rn "apply-filter-button\|clear-filter-button\|active-filter-button" frontend/src --include='*.tsx'`
-Expected: tam olarak altı satır —
+Expected: tam olarak yedi satır (altı çağrı noktası; `FilterBar` iki farklı sınıf taşıyor) —
 
 | Dosya                            | Sınıf                  | Ne zaman göç ediyor |
 | -------------------------------- | ---------------------- | ------------------- |
