@@ -40,7 +40,7 @@ export default function KillmailRow({
       style={isAnimating ? { display: 'table-row' } : undefined}
     >
       {/* Time & Value Column */}
-      <td className="px-4 py-4 text-base align-top">
+      <td className="td-cell align-top">
         <Tooltip
           content={formatKillmailDateTime(km.killmailTime)}
           position="top"
@@ -62,7 +62,7 @@ export default function KillmailRow({
       </td>
 
       {/* Ship Column */}
-      <td className="px-4 py-4 text-base align-top">
+      <td className="td-cell align-top">
         <div className="flex items-start gap-3">
           {km.victim?.shipType && (
             <Tooltip content="View Killmail Details" position="top">
@@ -84,7 +84,7 @@ export default function KillmailRow({
                 <img
                   src={`https://images.evetech.net/types/${km.victim?.shipType?.id}/render?size=128`}
                   alt={km.victim?.shipType?.name || 'Ship'}
-                  className="transition-opacity size-20 hover:opacity-80"
+                  className="transition-opacity size-16 hover:opacity-80"
                   loading="lazy"
                   onError={(e) => {
                     // Fallback to icon if render fails (e.g., for some faction ships)
@@ -114,7 +114,7 @@ export default function KillmailRow({
       </td>
 
       {/* System Column */}
-      <td className="px-4 py-4 text-base align-top">
+      <td className="td-cell align-top">
         <div className="flex items-center gap-2">
           {km.solarSystem?.securityStatus !== null &&
             km.solarSystem?.securityStatus !== undefined && (
@@ -159,7 +159,7 @@ export default function KillmailRow({
       </td>
 
       {/* Victim Column */}
-      <td className="px-4 py-4 text-base align-top">
+      <td className="td-cell align-top">
         <div className="flex items-center gap-3">
           {/* Alliance logo if exists, otherwise corporation logo */}
           {(km.victim?.alliance?.id || km.victim?.corporation?.id) && (
@@ -174,7 +174,7 @@ export default function KillmailRow({
                 km.victim?.corporation?.name ||
                 'Logo'
               }
-              className="shadow-md size-20"
+              className="shadow-md size-16"
               loading="lazy"
             />
           )}
@@ -237,7 +237,7 @@ export default function KillmailRow({
       </td>
 
       {/* Final Blow Column */}
-      <td className="px-4 py-4 text-base align-top">
+      <td className="td-cell align-top">
         {km.finalBlow && (
           <div className="flex items-center gap-3">
             {/* Alliance logo if exists, otherwise corporation logo */}
@@ -253,7 +253,7 @@ export default function KillmailRow({
                   km.finalBlow.corporation?.name ||
                   'Logo'
                 }
-                className="shadow-md size-20"
+                className="shadow-md size-16"
                 loading="lazy"
               />
             )}
@@ -317,7 +317,7 @@ export default function KillmailRow({
       </td>
 
       {/* Attackers Column */}
-      <td className="px-4 py-4 text-base">
+      <td className="td-cell">
         <div className="flex items-center justify-center gap-2">
           {isSolo ? (
             <span className="px-2 py-0.5 font-medium text-green-600 rounded bg-green-600/10">

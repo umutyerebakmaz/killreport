@@ -14,6 +14,24 @@
    * py-3 around a text-lg line box is 24 + 28 = 52, the height .card-header
    * lands on. It was py-3.5 back when this was text-base.
    */
+  /*
+   * py-2, down from py-4 in three steps. Five of the six columns are
+   * align-top, so the top padding is the whole visible gap between a row's
+   * divider and its first line, and 16 there read as slack.
+   *
+   * This is the floor that costs nothing. The row is whatever its tallest
+   * cell is, and that is the 64px image: 64 + 16 = 80. The victim column
+   * stacks three text-base leading-tight lines, 60, which still clears the
+   * padding. Going to py-1 would take the row to 72 by squeezing the cell
+   * rather than by removing anything from it.
+   *
+   * Alignment is deliberately not in here. It is per-column — the attackers
+   * count centres, the rest sit at the top — while the padding is not.
+   */
+  .td-cell {
+    @apply px-4 py-2 text-base;
+  }
+
   .th-cell {
     @apply px-4 py-3 text-lg font-semibold text-white;
   }
