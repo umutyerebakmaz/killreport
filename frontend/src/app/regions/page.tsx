@@ -5,11 +5,16 @@ import { Loader } from '@/components/Loader/Loader';
 import Paginator from '@/components/Paginator/Paginator';
 import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
 import Tooltip from '@/components/Tooltip/Tooltip';
+import Select from '@/components/ui/Select';
 import { useRegionsQuery } from '@/generated/graphql';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
+
+const ORDER_BY_OPTIONS = [
+  { value: 'nameAsc', label: 'Name A-Z' },
+  { value: 'nameDesc', label: 'Name Z-A' },
+];
 
 function RegionsContent() {
   const router = useRouter();
@@ -85,17 +90,12 @@ function RegionsContent() {
         </div>
 
         {/* OrderBy Dropdown */}
-        <div className="select-option-container">
-          <select
-            value={orderBy}
-            onChange={(e) => setOrderBy(e.target.value)}
-            className="select"
-          >
-            <option value="nameAsc">Name A-Z</option>
-            <option value="nameDesc">Name Z-A</option>
-          </select>
-          <ChevronDownIcon className="chevron-down-icon" />
-        </div>
+        <Select
+          value={orderBy}
+          onChange={setOrderBy}
+          options={ORDER_BY_OPTIONS}
+          aria-label="Sort regions"
+        />
       </div>
 
       {/* Legend */}

@@ -3,8 +3,16 @@
 import FilterBar from '@/components/ui/FilterBar';
 import FilterDialog from '@/components/ui/FilterDialog';
 import FilterField from '@/components/ui/FilterField';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
+
+import Select from '@/components/ui/Select';
+
+const ORDER_BY_OPTIONS = [
+  { value: 'memberCountDesc', label: 'Most Members' },
+  { value: 'memberCountAsc', label: 'Least Members' },
+  { value: 'nameAsc', label: 'Name A-Z' },
+  { value: 'nameDesc', label: 'Name Z-A' },
+];
 
 interface AllianceFilterFormProps {
   onFilterChange: (filters: {
@@ -63,35 +71,12 @@ export default function AllianceFilterForm({
     <form onSubmit={handleSubmit} id="alliance-filters" className="mb-6">
       <FilterBar
         orderBy={
-          <div className="select-option-container">
-            <select
-              value={orderBy}
-              onChange={(e) => onOrderByChange(e.target.value)}
-              className="select"
-            >
-              <option value="memberCountDesc">
-                {orderBy === 'memberCountDesc' ? '✓' : '\u00A0\u00A0'}
-                {'   '}
-                Most Members
-              </option>
-              <option value="memberCountAsc">
-                {orderBy === 'memberCountAsc' ? '✓' : '\u00A0\u00A0'}
-                {'   '}
-                Least Members
-              </option>
-              <option value="nameAsc">
-                {orderBy === 'nameAsc' ? '✓' : '\u00A0\u00A0'}
-                {'   '}
-                Name A-Z
-              </option>
-              <option value="nameDesc">
-                {orderBy === 'nameDesc' ? '✓' : '\u00A0\u00A0'}
-                {'   '}
-                Name Z-A
-              </option>
-            </select>
-            <ChevronDownIcon className="chevron-down-icon" />
-          </div>
+          <Select
+            value={orderBy}
+            onChange={onOrderByChange}
+            options={ORDER_BY_OPTIONS}
+            aria-label="Sort alliances"
+          />
         }
         onOpenFilters={() => setIsOpen(true)}
         activeFilterCount={activeFilterCount}

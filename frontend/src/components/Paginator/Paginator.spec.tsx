@@ -81,7 +81,9 @@ describe('Paginator', () => {
 
   it('renders the page size selector only when a handler is given', () => {
     renderPaginator();
-    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Rows per page' }),
+    ).not.toBeInTheDocument();
   });
 
   it('reports page size changes as numbers', async () => {
@@ -89,10 +91,14 @@ describe('Paginator', () => {
     const onPageSizeChange = vi.fn();
     renderPaginator({ pageSize: 25, onPageSizeChange });
 
-    const select = screen.getByRole('combobox');
-    expect(select).toHaveValue('25');
+    // The listbox shows the current size on its button and only renders the
+    // options once it is open, so the value has to be read and changed the
+    // way a person would rather than through a native select's value.
+    const trigger = screen.getByRole('button', { name: 'Rows per page' });
+    expect(trigger).toHaveTextContent('25 per page');
 
-    await user.selectOptions(select, '100');
+    await user.click(trigger);
+    await user.click(screen.getByRole('option', { name: '100 per page' }));
 
     expect(onPageSizeChange).toHaveBeenCalledWith(100);
   });
