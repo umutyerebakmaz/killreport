@@ -6,7 +6,8 @@ import {
   ListboxOption,
   ListboxOptions,
 } from '@headlessui/react';
-import { CheckIcon, ChevronDownIcon } from '@heroicons/react/20/solid';
+import { CheckIcon } from '@heroicons/react/20/solid';
+import { ChevronUpDownIcon } from '@heroicons/react/16/solid';
 
 export interface SelectOption {
   value: string;
@@ -36,7 +37,8 @@ interface SelectProps {
  * Nothing is invented here. The panel is `.float` because it is a floating
  * layer, the rows hover like `.menu-row`, and selection is marked by weight
  * and a tick rather than a coloured ground — the accent stays with actions.
- * The chevron turns over the same 200ms as the nav popover's.
+ * The chevron and the tick keep the block's own geometry; only their colours
+ * are ours, because indigo is a palette family this app no longer carries.
  */
 export default function Select({
   value,
@@ -73,9 +75,9 @@ export default function Select({
         >
           {widest}
         </span>
-        <ChevronDownIcon
+        <ChevronUpDownIcon
           aria-hidden="true"
-          className="self-center col-start-1 row-start-1 text-gray-400 transition-transform duration-200 pointer-events-none size-5 justify-self-end group-data-open:rotate-180"
+          className="self-center col-start-1 row-start-1 text-gray-400 size-5 justify-self-end sm:size-4"
         />
       </ListboxButton>
 
@@ -97,8 +99,8 @@ export default function Select({
             <span className="block truncate group-data-selected:font-semibold group-data-selected:text-white">
               {option.label}
             </span>
-            <span className="absolute inset-y-0 left-0 flex items-center pl-2 text-blue-400 group-not-data-selected:hidden">
-              <CheckIcon aria-hidden="true" className="size-4" />
+            <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-blue-400 group-not-data-selected:hidden group-data-focus:text-white">
+              <CheckIcon aria-hidden="true" className="size-5" />
             </span>
           </ListboxOption>
         ))}
