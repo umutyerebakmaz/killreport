@@ -1,26 +1,59 @@
 @layer components {
+  /* A field among other fields: no edge of its own, because the form's rows
+     already say where one ends and the next begins. `color-scheme` used to be
+     declared here too, until #173 moved it to `html` where it belongs. */
   .input {
     @apply block w-full px-3 py-2 text-white border-0 bg-white/5
-      placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm sm:leading-6 scheme-dark;
+      placeholder:text-gray-400 focus:bg-white/10 focus:outline-none sm:text-sm sm:leading-6;
   }
 
   /*
-   * Moved out of globals.css, which was 293 lines of mostly unrelated rules.
+   * A field that has to hold its own edge, because it sits among buttons
+   * rather than among fields — the leaderboards' date stepper is the one.
    *
-   * What used to sit here was the dressing for a native `<select>`: an
-   * `option` block no browser applied, a `.select-option-container` wrapper
-   * whose only job was to position a chevron, and the chevron's own rules.
-   * `components/ui/Select.tsx` owns all of that now, so only the control
-   * itself is left — and its one remaining caller is the leaderboards' date
-   * input, which borrows the look.
+   * This was `.select`, and the name outlived the thing: every `<select>` in
+   * the app became a `Listbox` in #173, so all that was left was a box being
+   * borrowed by a date input, still holding a `pr-10` gutter open for a
+   * chevron that is not there. The gutter went; `appearance-none` stayed,
+   * because a date field is still a control the browser would otherwise
+   * paint its own way.
    */
-  .select {
-    @apply px-4 py-2.5 pr-10 text-sm font-medium text-white transition-colors border appearance-none
-      cursor-pointer bg-surface border-white/10 hover:bg-surface-inset hover:border-white/20
+  .input-boxed {
+    @apply px-4 py-2.5 text-sm font-medium text-white transition-colors border appearance-none
+      bg-surface border-white/10 hover:bg-surface-inset hover:border-white/20
       focus:outline-none focus-visible:outline-1 focus-visible:outline-white/40;
   }
 
-  .select:disabled {
+  .input-boxed:disabled {
     @apply text-gray-500 opacity-50 cursor-not-allowed bg-surface hover:bg-surface hover:border-white/10;
+  }
+
+  /*
+   * A native date field draws its own insides: a calendar button at the right
+   * edge, and one editable segment per part of the date. Those are the parts
+   * that never matched their neighbours. The box around them stays whichever
+   * of the two above suits the row; these rules are only what is inside it.
+   *
+   * The panel that button opens is the browser's and stays the browser's —
+   * nothing reaches it, and it reads in the visitor's own language whatever
+   * the page says, because no attribute overrides that.
+   */
+  .input-date::-webkit-calendar-picker-indicator {
+    @apply transition-opacity cursor-pointer opacity-50 hover:opacity-100;
+  }
+
+  /* Editing walks the segments with the arrow keys, so the one being edited
+     has to be visible — the browser's own highlight is a system blue. */
+  .input-date::-webkit-datetime-edit-day-field:focus,
+  .input-date::-webkit-datetime-edit-month-field:focus,
+  .input-date::-webkit-datetime-edit-year-field:focus {
+    @apply text-white outline-none bg-white/15;
+  }
+
+  /* Empty, the browser still draws the format as a hint and paints it in the
+     field's own colour — white here, which reads as a date that has been set.
+     `DateInput` marks the empty state, since no selector exposes it. */
+  .input-date-empty::-webkit-datetime-edit {
+    @apply text-gray-400;
   }
 }
