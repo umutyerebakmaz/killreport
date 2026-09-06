@@ -132,23 +132,23 @@ function SovereigntyContent() {
             <tbody className="divide-y divide-white/5">
               {rankings.map((r) => (
                 <tr key={r.allianceId} className="tr-row">
-                  <td className="px-4 py-3 text-gray-400 whitespace-nowrap">
+                  <td className="td-cell text-gray-400 whitespace-nowrap">
                     {r.rank}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="td-cell whitespace-nowrap">
                     <AllianceLink
                       id={r.allianceId}
                       name={r.allianceName}
                       ticker={r.allianceTicker}
                     />
                   </td>
-                  <td className="px-4 py-3 font-semibold text-right text-white whitespace-nowrap">
+                  <td className="td-cell font-semibold text-right text-white whitespace-nowrap">
                     {r.systemsControlled.toLocaleString()}
                   </td>
-                  <td className="px-4 py-3 text-right text-gray-300 whitespace-nowrap">
+                  <td className="td-cell text-right text-gray-300 whitespace-nowrap">
                     {r.ihubCount}
                   </td>
-                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                  <td className="td-cell text-right whitespace-nowrap">
                     {r.campaignsAttacking > 0 ? (
                       <span className="text-red-400">
                         {r.campaignsAttacking}
@@ -157,7 +157,7 @@ function SovereigntyContent() {
                       <span className="text-gray-600">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                  <td className="td-cell text-right whitespace-nowrap">
                     {r.campaignsDefending > 0 ? (
                       <span className="text-cyan-400">
                         {r.campaignsDefending}
@@ -246,7 +246,7 @@ function SovereigntyContent() {
                   </Link>
                   <span className="text-gray-300">{r.campaignCount}</span>
                 </div>
-                <div className="h-1.5 mt-1 overflow-hidden rounded bg-surface-inset">
+                <div className="h-1.5 mt-1 overflow-hidden bg-surface-inset">
                   <div
                     className="h-full bg-orange-500"
                     style={{
@@ -303,10 +303,10 @@ function SovereigntyContent() {
                           : undefined
                       }
                     >
-                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
+                      <td className="td-cell text-gray-500 whitespace-nowrap">
                         {hasDetail ? (expanded ? '▾' : '▸') : ''}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
+                      <td className="td-cell whitespace-nowrap">
                         <Link
                           href={`/solar-systems/${c.solarSystemId}`}
                           prefetch={false}
@@ -316,33 +316,33 @@ function SovereigntyContent() {
                           {c.solarSystemName ?? c.solarSystemId}
                         </Link>
                       </td>
-                      <td className="px-4 py-3 text-gray-300 whitespace-nowrap">
+                      <td className="td-cell text-gray-300 whitespace-nowrap">
                         {c.regionName ?? '—'}
                       </td>
-                      <td className="px-4 py-3 text-gray-300 whitespace-nowrap">
+                      <td className="td-cell text-gray-300 whitespace-nowrap">
                         {EVENT_LABELS[c.eventType] ?? c.eventType}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
+                      <td className="td-cell whitespace-nowrap">
                         <AllianceLink
                           id={c.defenderId}
                           name={c.defenderName}
                           ticker={c.defenderTicker}
                         />
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
+                      <td className="td-cell whitespace-nowrap">
                         <ScoreBar
                           defender={c.defenderScore}
                           attackers={c.attackersScore}
                         />
                       </td>
-                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <td className="td-cell text-right whitespace-nowrap">
                         {c.warKills > 0 ? (
                           <span className="text-red-400">{c.warKills}</span>
                         ) : (
                           <span className="text-gray-600">—</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <td className="td-cell text-right whitespace-nowrap">
                         {c.iskDestroyed > 0 ? (
                           <span className="text-red-400">
                             {formatISK(c.iskDestroyed)}
@@ -351,7 +351,7 @@ function SovereigntyContent() {
                           <span className="text-gray-600">—</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-sm text-right text-gray-400 whitespace-nowrap">
+                      <td className="td-cell text-sm text-right text-gray-400 whitespace-nowrap">
                         {formatRelativeTime(c.startTime)}
                       </td>
                     </tr>
@@ -438,7 +438,7 @@ function SovereigntyContent() {
             <tbody className="divide-y divide-white/5">
               {changes.map((c) => (
                 <tr key={c.id} className="tr-row">
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="td-cell whitespace-nowrap">
                     <Link
                       href={`/solar-systems/${c.solarSystemId}`}
                       prefetch={false}
@@ -452,16 +452,16 @@ function SovereigntyContent() {
                   >
                     {c.changeType}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="td-cell whitespace-nowrap">
                     <AllianceLink
                       id={c.previousOwnerId}
                       name={c.previousOwnerName}
                     />
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="td-cell whitespace-nowrap">
                     <AllianceLink id={c.newOwnerId} name={c.newOwnerName} />
                   </td>
-                  <td className="px-4 py-3 text-sm text-right text-gray-400 whitespace-nowrap">
+                  <td className="td-cell text-sm text-right text-gray-400 whitespace-nowrap">
                     {formatTimeAgo(c.detectedAt)}
                   </td>
                 </tr>

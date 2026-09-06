@@ -24,9 +24,9 @@ function HotspotsContent() {
         <Link
           href="/sovereignty"
           prefetch={false}
-          className="text-sm text-cyan-400 hover:text-cyan-300"
+          className="button button-secondary button-sm"
         >
-          ← Sovereignty Overview
+          Sovereignty Overview
         </Link>
       </div>
       {/* Treemap */}
@@ -54,7 +54,7 @@ function HotspotsContent() {
             <tbody className="divide-y divide-white/5">
               {hotspots.map((h) => (
                 <tr key={h.regionId} className="tr-row">
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="td-cell whitespace-nowrap">
                     <Link
                       href={`/regions/${h.regionId}`}
                       prefetch={false}
@@ -63,17 +63,17 @@ function HotspotsContent() {
                       {h.regionName ?? `#${h.regionId}`}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-right text-gray-300 whitespace-nowrap">
+                  <td className="td-cell text-right text-gray-300 whitespace-nowrap">
                     {h.activeCampaigns}
                   </td>
-                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                  <td className="td-cell text-right whitespace-nowrap">
                     {h.warKills > 0 ? (
                       <span className="text-red-400">{h.warKills}</span>
                     ) : (
                       <span className="text-gray-600">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                  <td className="td-cell text-right whitespace-nowrap">
                     {h.iskDestroyed > 0 ? (
                       <span className="text-red-400">
                         {formatISK(h.iskDestroyed)}
@@ -82,7 +82,7 @@ function HotspotsContent() {
                       <span className="text-gray-600">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 font-semibold text-right text-white whitespace-nowrap">
+                  <td className="td-cell font-semibold text-right text-white whitespace-nowrap">
                     {h.intensityScore}
                   </td>
                 </tr>

@@ -39,9 +39,9 @@ function MapContent() {
         <Link
           href="/sovereignty"
           prefetch={false}
-          className="text-sm text-cyan-400 hover:text-cyan-300"
+          className="button button-secondary button-sm"
         >
-          ← Sovereignty Overview
+          Sovereignty Overview
         </Link>
       </div>
       <div className="flex items-center gap-3 mt-4">

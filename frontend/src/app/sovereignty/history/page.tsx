@@ -52,7 +52,7 @@ function OutcomeBar({
   const total = defenderWon + attackerWon + abandoned || 1;
   const pct = (n: number) => `${(n / total) * 100}%`;
   return (
-    <div className="flex h-2 max-w-2xl overflow-hidden rounded bg-surface-inset">
+    <div className="flex h-2 max-w-2xl overflow-hidden bg-surface-inset">
       <div className="bg-cyan-500" style={{ width: pct(defenderWon) }} />
       <div className="bg-red-500" style={{ width: pct(attackerWon) }} />
       <div className="bg-gray-600" style={{ width: pct(abandoned) }} />
@@ -84,9 +84,9 @@ function HistoryContent() {
         <Link
           href="/sovereignty"
           prefetch={false}
-          className="text-sm text-cyan-400 hover:text-cyan-300"
+          className="button button-secondary button-sm"
         >
-          ← Sovereignty Overview
+          Sovereignty Overview
         </Link>
       </div>
       {/* Outcome distribution */}
@@ -127,23 +127,23 @@ function HistoryContent() {
             <tbody className="divide-y divide-white/5">
               {defenders.map((d) => (
                 <tr key={d.allianceId} className="tr-row">
-                  <td className="px-4 py-3 text-gray-400 whitespace-nowrap">
+                  <td className="td-cell text-gray-400 whitespace-nowrap">
                     {d.rank}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="td-cell whitespace-nowrap">
                     <AllianceLink
                       id={d.allianceId}
                       name={d.allianceName}
                       ticker={d.allianceTicker}
                     />
                   </td>
-                  <td className="px-4 py-3 font-semibold text-right text-cyan-400 whitespace-nowrap">
+                  <td className="td-cell font-semibold text-right text-cyan-400 whitespace-nowrap">
                     {d.defensesWon}
                   </td>
-                  <td className="px-4 py-3 text-right text-gray-300 whitespace-nowrap">
+                  <td className="td-cell text-right text-gray-300 whitespace-nowrap">
                     {d.defensesTotal}
                   </td>
-                  <td className="px-4 py-3 text-right text-gray-300 whitespace-nowrap">
+                  <td className="td-cell text-right text-gray-300 whitespace-nowrap">
                     {Math.round(d.defenseSuccessRate * 100)}%
                   </td>
                 </tr>
@@ -185,7 +185,7 @@ function HistoryContent() {
             <tbody className="divide-y divide-white/5">
               {campaigns.map((c) => (
                 <tr key={c.campaignId} className="tr-row">
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="td-cell whitespace-nowrap">
                     <Link
                       href={`/solar-systems/${c.solarSystemId}`}
                       prefetch={false}
@@ -194,13 +194,13 @@ function HistoryContent() {
                       {c.solarSystemName ?? c.solarSystemId}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-gray-300 whitespace-nowrap">
+                  <td className="td-cell text-gray-300 whitespace-nowrap">
                     {c.regionName ?? '—'}
                   </td>
-                  <td className="px-4 py-3 text-gray-300 whitespace-nowrap">
+                  <td className="td-cell text-gray-300 whitespace-nowrap">
                     {EVENT_LABELS[c.eventType] ?? c.eventType}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="td-cell whitespace-nowrap">
                     <AllianceLink
                       id={c.defenderId}
                       name={c.defenderName}
@@ -212,16 +212,16 @@ function HistoryContent() {
                   >
                     {OUTCOME_LABELS[c.outcome ?? ''] ?? '—'}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="td-cell whitespace-nowrap">
                     <ScoreBar
                       defender={c.defenderScore}
                       attackers={c.attackersScore}
                     />
                   </td>
-                  <td className="px-4 py-3 text-right text-gray-300 whitespace-nowrap">
+                  <td className="td-cell text-right text-gray-300 whitespace-nowrap">
                     {c.durationHours != null ? `${c.durationHours}h` : '—'}
                   </td>
-                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                  <td className="td-cell text-right whitespace-nowrap">
                     {c.iskDestroyed > 0 ? (
                       <span className="text-red-400">
                         {formatISK(c.iskDestroyed)}
@@ -255,7 +255,7 @@ function HistoryContent() {
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               className="button button-secondary button-sm"
             >
-              ← Prev
+              Prev
             </button>
             <span className="text-gray-500">
               Page {page + 1} of {totalPages}
@@ -266,7 +266,7 @@ function HistoryContent() {
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               className="button button-secondary button-sm"
             >
-              Next →
+              Next
             </button>
           </div>
         )}

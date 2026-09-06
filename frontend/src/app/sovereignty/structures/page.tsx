@@ -97,9 +97,9 @@ function StructuresContent() {
         <Link
           href="/sovereignty"
           prefetch={false}
-          className="text-sm text-cyan-400 hover:text-cyan-300"
+          className="button button-secondary button-sm"
         >
-          ← Sovereignty Overview
+          Sovereignty Overview
         </Link>
       </div>
       {/* Next 24h timers */}
@@ -122,27 +122,27 @@ function StructuresContent() {
             <tbody className="divide-y divide-white/5">
               {timers.map((s) => (
                 <tr key={s.structureId} className="tr-row">
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="td-cell whitespace-nowrap">
                     <SystemCell
                       id={s.solarSystemId}
                       name={s.solarSystemName}
                       regionName={s.regionName}
                     />
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="td-cell whitespace-nowrap">
                     <TypeBadge typeName={s.structureTypeName} />
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="td-cell whitespace-nowrap">
                     <AllianceLink
                       id={s.allianceId}
                       name={s.allianceName}
                       ticker={s.allianceTicker}
                     />
                   </td>
-                  <td className="px-4 py-3 text-sm text-right whitespace-nowrap">
+                  <td className="td-cell text-sm text-right whitespace-nowrap">
                     <TimerCountdown target={s.vulnerableStartTime} />
                   </td>
-                  <td className="px-4 py-3 text-right text-gray-300 whitespace-nowrap">
+                  <td className="td-cell text-right text-gray-300 whitespace-nowrap">
                     {s.occupancyLevel != null
                       ? s.occupancyLevel.toFixed(1)
                       : '—'}
@@ -184,29 +184,29 @@ function StructuresContent() {
             <tbody className="divide-y divide-white/5">
               {structures.map((s) => (
                 <tr key={s.structureId} className="tr-row">
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="td-cell whitespace-nowrap">
                     <SystemCell
                       id={s.solarSystemId}
                       name={s.solarSystemName}
                       regionName={s.regionName}
                     />
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="td-cell whitespace-nowrap">
                     <TypeBadge typeName={s.structureTypeName} />
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="td-cell whitespace-nowrap">
                     <AllianceLink
                       id={s.allianceId}
                       name={s.allianceName}
                       ticker={s.allianceTicker}
                     />
                   </td>
-                  <td className="px-4 py-3 text-right text-gray-300 whitespace-nowrap">
+                  <td className="td-cell text-right text-gray-300 whitespace-nowrap">
                     {s.occupancyLevel != null
                       ? s.occupancyLevel.toFixed(1)
                       : '—'}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-400 whitespace-nowrap">
+                  <td className="td-cell text-sm text-gray-400 whitespace-nowrap">
                     {s.vulnerableStartTime
                       ? `${formatRelativeTime(s.vulnerableStartTime, true)}`
                       : '—'}
