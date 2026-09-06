@@ -1,9 +1,15 @@
 'use client';
 
+import Select from '@/components/ui/Select';
+
 import { useRegionsQuery } from '@/generated/graphql';
 import FilterBar from '@/components/ui/FilterBar';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
+
+const ORDER_BY_OPTIONS = [
+  { value: 'nameAsc', label: 'Name A-Z' },
+  { value: 'nameDesc', label: 'Name Z-A' },
+];
 
 interface ConstellationFilterFormProps {
   onFilterChange: (filters: { search?: string; region_id?: number }) => void;
@@ -70,21 +76,19 @@ export default function ConstellationFilterForm({
         controls={
           <>
             {/* Region Filter Dropdown */}
-            <div className="select-option-container">
-              <select
-                value={selectedRegionId}
-                onChange={(e) => setSelectedRegionId(e.target.value)}
-                className="select min-w-[180px]"
-              >
-                <option value="">All Regions</option>
-                {regions.map((region) => (
-                  <option key={region.id} value={region.id}>
-                    {region.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDownIcon className="chevron-down-icon" />
-            </div>
+            <Select
+              value={selectedRegionId}
+              onChange={setSelectedRegionId}
+              options={[
+                { value: '', label: 'All Regions' },
+                ...regions.map((region) => ({
+                  value: String(region.id),
+                  label: region.name,
+                })),
+              ]}
+              className="min-w-[180px]"
+              aria-label="Filter by region"
+            />
 
             <button type="submit" className="button button-secondary">
               Search
@@ -92,25 +96,12 @@ export default function ConstellationFilterForm({
           </>
         }
         orderBy={
-          <div className="select-option-container">
-            <select
-              value={orderBy}
-              onChange={(e) => onOrderByChange(e.target.value)}
-              className="select"
-            >
-              <option value="nameAsc">
-                {orderBy === 'nameAsc' ? '✓' : '\u00A0\u00A0'}
-                {'   '}
-                Name A-Z
-              </option>
-              <option value="nameDesc">
-                {orderBy === 'nameDesc' ? '✓' : '\u00A0\u00A0'}
-                {'   '}
-                Name Z-A
-              </option>
-            </select>
-            <ChevronDownIcon className="chevron-down-icon" />
-          </div>
+          <Select
+            value={orderBy}
+            onChange={onOrderByChange}
+            options={ORDER_BY_OPTIONS}
+            aria-label="Sort constellations"
+          />
         }
         activeFilterCount={activeFilterCount}
         onClear={handleClearAll}

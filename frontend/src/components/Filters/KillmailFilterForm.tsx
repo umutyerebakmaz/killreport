@@ -696,7 +696,7 @@ export default function KillmailFilterForm({
                   pilotData?.characters?.items &&
                   pilotData.characters.items.length > 0 && (
                     <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
-                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto md:grid-cols-2 character-dropdown-scroll max-h-96">
+                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto md:grid-cols-2 max-h-96">
                         {pilotData.characters.items.map((character) => {
                           const avatarUrl = `https://images.evetech.net/characters/${character.id}/portrait?size=128`;
                           return (
@@ -839,7 +839,7 @@ export default function KillmailFilterForm({
                   typeData?.types?.items &&
                   typeData.types.items.length > 0 && (
                     <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
-                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto md:grid-cols-2 character-dropdown-scroll max-h-96">
+                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto md:grid-cols-2 max-h-96">
                         {typeData.types.items.map((type) => (
                           <button
                             key={type.id}
@@ -966,7 +966,7 @@ export default function KillmailFilterForm({
                   groupData?.itemGroups?.items &&
                   groupData.itemGroups.items.length > 0 && (
                     <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
-                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto character-dropdown-scroll max-h-96">
+                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto max-h-96">
                         {groupData.itemGroups.items.map((group) => (
                           <button
                             key={group.id}
@@ -1091,7 +1091,7 @@ export default function KillmailFilterForm({
                   solarSystemData?.solarSystems?.items &&
                   solarSystemData.solarSystems.items.length > 0 && (
                     <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
-                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto character-dropdown-scroll max-h-96">
+                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto max-h-96">
                         {solarSystemData.solarSystems.items.map((system) => {
                           const securityClass =
                             system.security_class || 'Unknown';
@@ -1233,7 +1233,7 @@ export default function KillmailFilterForm({
                   regionsData?.regions?.items &&
                   regionsData.regions.items.length > 0 && (
                     <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
-                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto character-dropdown-scroll max-h-96">
+                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto max-h-96">
                         {regionsData.regions.items.map((region: any) => {
                           const avgSec = region.securityStats?.avgSecurity ?? 0;
                           const securityColor =
@@ -1355,7 +1355,7 @@ export default function KillmailFilterForm({
                   constellationData?.constellations?.items &&
                   constellationData.constellations.items.length > 0 && (
                     <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
-                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto character-dropdown-scroll max-h-96">
+                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto max-h-96">
                         {constellationData.constellations.items.map(
                           (constellation: any) => {
                             const avgSec =

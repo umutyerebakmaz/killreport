@@ -1,10 +1,10 @@
 import {
   ChevronDoubleLeftIcon,
   ChevronDoubleRightIcon,
-  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
 } from '@heroicons/react/20/solid';
+import Select from '../ui/Select';
 import Tooltip from '../Tooltip/Tooltip';
 
 interface PaginatorProps {
@@ -103,22 +103,15 @@ export default function Paginator({
 
       {/* Page Size Selector */}
       {onPageSizeChange && (
-        <div className="select-option-container">
-          <select
-            className="select"
-            value={pageSize}
-            onChange={(e) => onPageSizeChange(Number(e.target.value))}
-          >
-            {pageSizeOptions.map((size) => (
-              <option key={size} value={size}>
-                {size === pageSize ? '✓' : '\u00A0\u00A0'}
-                {'   '}
-                {size} per page
-              </option>
-            ))}
-          </select>
-          <ChevronDownIcon className="chevron-down-icon" />
-        </div>
+        <Select
+          value={String(pageSize)}
+          onChange={(next) => onPageSizeChange(Number(next))}
+          options={pageSizeOptions.map((size) => ({
+            value: String(size),
+            label: `${size} per page`,
+          }))}
+          aria-label="Rows per page"
+        />
       )}
     </div>
   );
