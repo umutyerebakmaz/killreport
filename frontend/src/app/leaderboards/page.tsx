@@ -1,5 +1,6 @@
 'use client';
 
+import DateInput from '@/components/ui/DateInput';
 import Loader from '@/components/Loader';
 import Card from '@/components/ui/Card';
 import RankNumber from '@/components/ui/RankNumber';
@@ -250,12 +251,12 @@ function DailyLeaderboard() {
         >
           <ChevronLeftIcon className="w-4 h-4" />
         </button>
-        <input
-          type="date"
+        <DateInput
           value={selectedDate}
           max={today}
-          onChange={(e) => e.target.value && setSelectedDate(e.target.value)}
-          className="px-2 py-1.5 text-xs select flex-1 min-w-0 scheme-dark"
+          onChange={(next) => next && setSelectedDate(next)}
+          className="input-boxed px-2 py-1.5 text-xs flex-1 min-w-0"
+          aria-label="Leaderboard date"
         />
         <span className="hidden text-xs text-gray-400 sm:block shrink-0">
           {displayDate}
