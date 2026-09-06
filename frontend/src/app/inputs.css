@@ -24,15 +24,32 @@
     @apply text-gray-500 opacity-50 cursor-not-allowed bg-surface hover:bg-surface hover:border-white/10;
   }
 
-  .character-dropdown-scroll::-webkit-scrollbar {
+  /*
+   * A scrolling panel's scrollbar, which the system draws in its own colours
+   * unless asked otherwise. Used by the filter autocompletes and by the
+   * select's picker — the class was called `character-dropdown-scroll` while
+   * the autocompletes were its only callers.
+   */
+  .scroll-thin::-webkit-scrollbar {
     width: 8px;
   }
 
-  .character-dropdown-scroll::-webkit-scrollbar-track {
+  .scroll-thin::-webkit-scrollbar-track {
     @apply bg-surface;
   }
 
-  .character-dropdown-scroll::-webkit-scrollbar-thumb {
+  .scroll-thin::-webkit-scrollbar-thumb {
     @apply rounded-full bg-gray-700 hover:bg-gray-600;
+  }
+
+  /* Firefox has no `::-webkit-scrollbar`, and the standard properties are the
+     only way in. They are kept behind the query because Chrome 121+ drops the
+     rules above the moment `scrollbar-width` or `scrollbar-color` is set to
+     anything but `auto` — and it inherits, so this must not leak. */
+  @supports not selector(::-webkit-scrollbar) {
+    .scroll-thin {
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-gray-700) var(--color-surface);
+    }
   }
 }

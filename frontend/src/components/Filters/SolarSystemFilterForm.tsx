@@ -387,7 +387,7 @@ export default function SolarSystemFilterForm({
                   solarSystemData?.solarSystems?.items &&
                   solarSystemData.solarSystems.items.length > 0 && (
                     <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
-                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto character-dropdown-scroll max-h-96">
+                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto scroll-thin max-h-96">
                         {solarSystemData.solarSystems.items.map((system) => {
                           const securityClass =
                             system.security_class || 'Unknown';
