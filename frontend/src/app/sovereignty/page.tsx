@@ -66,28 +66,28 @@ function SovereigntyContent() {
             prefetch={false}
             className="button button-secondary button-sm"
           >
-            Structures &amp; Timers →
+            Structures &amp; Timers
           </Link>
           <Link
             href="/sovereignty/history"
             prefetch={false}
             className="button button-secondary button-sm"
           >
-            History →
+            History
           </Link>
           <Link
             href="/sovereignty/hotspots"
             prefetch={false}
             className="button button-secondary button-sm"
           >
-            Hot Zones →
+            Hot Zones
           </Link>
           <Link
             href="/sovereignty/map"
             prefetch={false}
             className="button button-secondary button-sm"
           >
-            Map →
+            Map
           </Link>
         </div>
       </div>
