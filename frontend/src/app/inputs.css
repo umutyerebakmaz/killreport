@@ -13,11 +13,13 @@
    *
    * This was `.select`, and the name outlived the thing: every `<select>` in
    * the app became a `Listbox` in #173, so all that was left was a box being
-   * borrowed by a date input, still carrying `appearance-none` and a `pr-10`
-   * gutter held open for a chevron that is not there.
+   * borrowed by a date input, still holding a `pr-10` gutter open for a
+   * chevron that is not there. The gutter went; `appearance-none` stayed,
+   * because a date field is still a control the browser would otherwise
+   * paint its own way.
    */
   .input-boxed {
-    @apply px-4 py-2.5 text-sm font-medium text-white transition-colors border
+    @apply px-4 py-2.5 text-sm font-medium text-white transition-colors border appearance-none
       bg-surface border-white/10 hover:bg-surface-inset hover:border-white/20
       focus:outline-none focus-visible:outline-1 focus-visible:outline-white/40;
   }
