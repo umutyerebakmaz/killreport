@@ -3,7 +3,7 @@
 import Loader from '@/components/Loader';
 import { TerritoryMap } from '@/components/Sovereignty/TerritoryMap';
 import { useSovereigntyMapQuery } from '@/generated/graphql';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import Select from '@/components/ui/Select';
 import Link from 'next/link';
 import { Suspense, useMemo, useState } from 'react';
 
@@ -48,28 +48,15 @@ function MapContent() {
         <label htmlFor="region" className="text-sm text-gray-400">
           Region
         </label>
-        <div className="select-option-container">
-          <select
-            id="region"
-            value={region}
-            onChange={(e) => setRegion(e.target.value)}
-            className="select"
-          >
-            <option value="all">
-              {region === 'all' ? '✓' : '  '}
-              {'   '}
-              All regions
-            </option>
-            {regions.map((r) => (
-              <option key={r} value={r}>
-                {region === r ? '✓' : '  '}
-                {'   '}
-                {r}
-              </option>
-            ))}
-          </select>
-          <ChevronDownIcon className="chevron-down-icon" />
-        </div>
+        <Select
+          value={region}
+          onChange={setRegion}
+          options={[
+            { value: 'all', label: 'All regions' },
+            ...regions.map((r) => ({ value: r, label: r })),
+          ]}
+          aria-label="Region"
+        />
       </div>
 
       <section className="mt-4 border border-white/10 bg-surface">

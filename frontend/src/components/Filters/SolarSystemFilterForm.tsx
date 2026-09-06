@@ -1,5 +1,7 @@
 'use client';
 
+import Select from '@/components/ui/Select';
+
 import {
   useConstellationsQuery,
   useRegionsQuery,
@@ -13,8 +15,28 @@ import FilterBar from '@/components/ui/FilterBar';
 import FilterDialog from '@/components/ui/FilterDialog';
 import FilterField from '@/components/ui/FilterField';
 import { useDebounce } from '@/hooks/useDebounce';
-import { ChevronDownIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useEffect, useRef, useState } from 'react';
+
+const SECURITY_OPTIONS = [
+  { value: 'all', label: 'All Security' },
+  { value: 'highsec', label: 'High Sec (≥0.5)' },
+  { value: 'lowsec', label: 'Low Sec (0.1-0.4)' },
+  { value: 'nullsec', label: 'Null Sec (≤0.0)' },
+];
+
+const ORDER_BY_OPTIONS = [
+  { value: 'nameAsc', label: 'Name A-Z' },
+  { value: 'nameDesc', label: 'Name Z-A' },
+  { value: 'securityStatusDesc', label: 'Security (Highest First)' },
+  { value: 'securityStatusAsc', label: 'Security (Lowest First)' },
+  { value: 'shipKillsDesc', label: 'Ship Kills (Most First)' },
+  { value: 'shipKillsAsc', label: 'Ship Kills (Least First)' },
+  { value: 'podKillsDesc', label: 'Pod Kills (Most First)' },
+  { value: 'podKillsAsc', label: 'Pod Kills (Least First)' },
+  { value: 'npcKillsDesc', label: 'NPC Kills (Most First)' },
+  { value: 'npcKillsAsc', label: 'NPC Kills (Least First)' },
+];
 
 interface SolarSystemFilterFormProps {
   onFilterChange: (filters: {
@@ -458,22 +480,19 @@ export default function SolarSystemFilterForm({
 
           {/* Region Filter */}
           <FilterField label="Region" htmlFor="filter-region">
-            <div className="select-option-container">
-              <select
-                id="filter-region"
-                value={selectedRegionId}
-                onChange={(e) => handleRegionChange(e.target.value)}
-                className="w-full select"
-              >
-                <option value="">All Regions</option>
-                {regions.map((region) => (
-                  <option key={region.id} value={region.id}>
-                    {region.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDownIcon className="chevron-down-icon" />
-            </div>
+            <Select
+              value={selectedRegionId}
+              onChange={handleRegionChange}
+              options={[
+                { value: '', label: 'All Regions' },
+                ...regions.map((region) => ({
+                  value: String(region.id),
+                  label: region.name,
+                })),
+              ]}
+              className="w-full"
+              aria-label="Region"
+            />
 
             {/* Region chip */}
             {selectedRegionId && (
@@ -506,23 +525,20 @@ export default function SolarSystemFilterForm({
 
           {/* Constellation Filter */}
           <FilterField label="Constellation" htmlFor="filter-constellation">
-            <div className="select-option-container">
-              <select
-                id="filter-constellation"
-                value={selectedConstellationId}
-                onChange={(e) => handleConstellationChange(e.target.value)}
-                className="w-full select"
-                disabled={!selectedRegionId}
-              >
-                <option value="">All Constellations</option>
-                {constellations.map((constellation) => (
-                  <option key={constellation.id} value={constellation.id}>
-                    {constellation.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDownIcon className="chevron-down-icon" />
-            </div>
+            <Select
+              value={selectedConstellationId}
+              onChange={handleConstellationChange}
+              disabled={!selectedRegionId}
+              options={[
+                { value: '', label: 'All Constellations' },
+                ...constellations.map((constellation) => ({
+                  value: String(constellation.id),
+                  label: constellation.name,
+                })),
+              ]}
+              className="w-full"
+              aria-label="Constellation"
+            />
 
             {/* Constellation chip */}
             {selectedConstellationId && (
@@ -553,48 +569,24 @@ export default function SolarSystemFilterForm({
 
           {/* Security Filter */}
           <FilterField label="Security Status" htmlFor="filter-security">
-            <div className="select-option-container">
-              <select
-                id="filter-security"
-                value={securityFilter}
-                onChange={(e) => setSecurityFilter(e.target.value)}
-                className="w-full select"
-              >
-                <option value="all">All Security</option>
-                <option value="highsec">High Sec (≥0.5)</option>
-                <option value="lowsec">Low Sec (0.1-0.4)</option>
-                <option value="nullsec">Null Sec (≤0.0)</option>
-              </select>
-              <ChevronDownIcon className="chevron-down-icon" />
-            </div>
+            <Select
+              value={securityFilter}
+              onChange={setSecurityFilter}
+              options={SECURITY_OPTIONS}
+              className="w-full"
+              aria-label="Security status"
+            />
           </FilterField>
 
           {/* Sort By */}
           <FilterField label="Sort By" htmlFor="filter-sort">
-            <div className="select-option-container">
-              <select
-                id="filter-sort"
-                value={orderBy}
-                onChange={(e) => onOrderByChange(e.target.value)}
-                className="w-full select"
-              >
-                <option value="nameAsc">Name A-Z</option>
-                <option value="nameDesc">Name Z-A</option>
-                <option value="securityStatusDesc">
-                  Security (Highest First)
-                </option>
-                <option value="securityStatusAsc">
-                  Security (Lowest First)
-                </option>
-                <option value="shipKillsDesc">Ship Kills (Most First)</option>
-                <option value="shipKillsAsc">Ship Kills (Least First)</option>
-                <option value="podKillsDesc">Pod Kills (Most First)</option>
-                <option value="podKillsAsc">Pod Kills (Least First)</option>
-                <option value="npcKillsDesc">NPC Kills (Most First)</option>
-                <option value="npcKillsAsc">NPC Kills (Least First)</option>
-              </select>
-              <ChevronDownIcon className="chevron-down-icon" />
-            </div>
+            <Select
+              value={orderBy}
+              onChange={onOrderByChange}
+              options={ORDER_BY_OPTIONS}
+              className="w-full"
+              aria-label="Sort solar systems"
+            />
           </FilterField>
         </div>
       </FilterDialog>
