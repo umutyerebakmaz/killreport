@@ -364,7 +364,7 @@ export default function SolarSystemFilterForm({
                 {showSolarSystemDropdown &&
                   solarSystemData?.solarSystems?.items &&
                   solarSystemData.solarSystems.items.length > 0 && (
-                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
                       <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto character-dropdown-scroll max-h-96">
                         {solarSystemData.solarSystems.items.map((system) => {
                           const securityClass =
@@ -423,7 +423,7 @@ export default function SolarSystemFilterForm({
                   debouncedSolarSystemSearch.length >= 3 &&
                   !solarSystemLoading &&
                   solarSystemData?.solarSystems?.items?.length === 0 && (
-                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition bg-stone-900 outline-1 -outline-offset-1 outline-white/10">
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
                       <div className="p-4 text-sm text-gray-400">
                         No solar systems found for "{debouncedSolarSystemSearch}
                         "

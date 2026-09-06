@@ -68,7 +68,7 @@ export default function Footer() {
   });
 
   return (
-    <footer className="bg-neutral-900">
+    <footer className="bg-surface">
       <div className="px-6 pt-16 pb-8 mx-auto sm:pt-24 lg:px-8 xl:px-12 2xl:px-16 lg:pt-32 max-w-[1920px]">
         <div className="xl:grid xl:grid-cols-4 xl:gap-8">
           <div className="space-y-8">
@@ -221,7 +221,7 @@ export default function Footer() {
                 </p>
                 <Link
                   href={`/characters/${characterId}`}
-                  className="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold text-gray-300 transition-all bg-neutral-900 hover:bg-neutral-800 hover:text-gray-100"
+                  className="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold text-gray-300 transition-all bg-surface hover:bg-surface-inset hover:text-gray-100"
                   prefetch={false}
                 >
                   View Character

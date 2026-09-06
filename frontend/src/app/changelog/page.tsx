@@ -178,7 +178,7 @@ export default function ChangelogPage() {
   if (error) {
     return (
       <div className="container mx-auto">
-        <div className="p-6 mt-8 border bg-neutral-900 border-neutral-700">
+        <div className="p-6 mt-8 border bg-surface border-white/10">
           <h2 className="mb-2 text-xl font-bold text-red-400">
             Failed to load changelog
           </h2>
@@ -200,7 +200,7 @@ export default function ChangelogPage() {
         </h2>
 
         {!data?.commits || data.commits.length === 0 ? (
-          <div className="p-8 text-center border border-white/10 bg-neutral-900">
+          <div className="p-8 text-center border border-white/10 bg-surface">
             <p className="text-gray-400">No recent commits available</p>
           </div>
         ) : (
@@ -216,7 +216,7 @@ export default function ChangelogPage() {
                   </div>
 
                   {/* Commits for this date */}
-                  <div className="overflow-hidden border divide-y rounded-lg border-white/10 bg-neutral-900 divide-white/5">
+                  <div className="overflow-hidden border divide-y rounded-lg border-white/10 bg-surface divide-white/5">
                     {commits.map((commit) => {
                       const commitInfo = getCommitType(commit.commit.message);
                       const firstLine = commit.commit.message.split('\n')[0];
@@ -224,7 +224,7 @@ export default function ChangelogPage() {
                       return (
                         <div
                           key={commit.sha}
-                          className="p-4 transition-colors hover:bg-neutral-800"
+                          className="p-4 transition-colors hover:bg-surface-inset"
                         >
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1">
@@ -287,11 +287,11 @@ export default function ChangelogPage() {
             Releases
           </h2>
 
-          <div className="overflow-hidden border divide-y rounded-lg border-white/10 bg-neutral-900 divide-white/5">
+          <div className="overflow-hidden border divide-y rounded-lg border-white/10 bg-surface divide-white/5">
             {data.releases.map((release) => (
               <div
                 key={release.tag_name}
-                className="p-6 transition-colors hover:bg-neutral-800"
+                className="p-6 transition-colors hover:bg-surface-inset"
               >
                 <div className="mb-3">
                   <div className="flex items-center gap-2 mb-2">

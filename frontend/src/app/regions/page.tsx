@@ -122,7 +122,7 @@ function RegionsContent() {
       {/* Table */}
       <div className="mt-6 overflow-hidden border border-white/10">
         <table className="table">
-          <thead className="bg-neutral-800">
+          <thead className="bg-surface-inset">
             <tr>
               <th className="text-left th-cell">Region</th>
               <th className="text-left th-cell">Constellations</th>
@@ -149,16 +149,13 @@ function RegionsContent() {
               </tr>
             ) : (
               regions.map((region) => (
-                <tr
-                  key={region.id}
-                  className="transition-colors hover:bg-neutral-800 bg-neutral-900"
-                >
+                <tr key={region.id} className="tr-row">
                   <td className="px-6 py-4 text-base">
                     <div className="flex items-center">
                       <Link
                         href={`/regions/${region.id}`}
                         prefetch={false}
-                        className="font-medium text-gray-400 transition-colors hover:text-cyan-300"
+                        className="font-medium text-gray-400 transition-colors hover:text-blue-400"
                       >
                         {region.name}
                       </Link>

@@ -152,7 +152,7 @@ export default function WorkersPage() {
         </div>
       </div>
 
-      <div className="p-6 mb-6 border border-white/5 bg-neutral-900">
+      <div className="p-6 mb-6 border border-white/5 bg-surface">
         <div className="flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-center">
           <div>
             <h2 className="text-lg font-semibold text-white">System Health</h2>
@@ -218,7 +218,7 @@ export default function WorkersPage() {
 
       {/* Redis Cache Status */}
       {workerStatus?.redis && (
-        <div className="p-6 mb-6 border border-white/5 bg-neutral-900">
+        <div className="p-6 mb-6 border border-white/5 bg-surface">
           <div className="flex flex-col items-start justify-between gap-4 mb-6 lg:flex-row lg:items-center">
             <div className="flex items-center gap-3">
               <div
@@ -361,7 +361,7 @@ function StandaloneWorkerSection({ workers }: any) {
       </div>
       <div className="overflow-x-auto border border-white/5">
         <table className="w-full min-w-max">
-          <thead className="bg-neutral-800">
+          <thead className="bg-surface-inset">
             <tr>
               <th className="px-2 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase md:px-4">
                 Status
@@ -379,10 +379,7 @@ function StandaloneWorkerSection({ workers }: any) {
           </thead>
           <tbody className="divide-y divide-gray-800">
             {workers.map((worker: any) => (
-              <tr
-                key={worker.name}
-                className="transition-colors bg-neutral-900 hover:bg-neutral-800"
-              >
+              <tr key={worker.name} className="tr-row">
                 <td className="px-2 py-4 md:px-4">
                   <div className="flex items-center gap-2">
                     <div
@@ -436,7 +433,7 @@ function QueueSection({ title, subtitle, queues }: any) {
       </div>
       <div className="overflow-x-auto border border-white/5">
         <table className="w-full min-w-max">
-          <thead className="bg-neutral-800">
+          <thead className="bg-surface-inset">
             <tr>
               <th className="px-2 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase md:px-4">
                 Queue Status
@@ -460,10 +457,7 @@ function QueueSection({ title, subtitle, queues }: any) {
           </thead>
           <tbody className="divide-y divide-white/5">
             {queues.map((queue: QueueInfo) => (
-              <tr
-                key={queue.name}
-                className="transition-colors bg-neutral-900 hover:bg-neutral-800"
-              >
+              <tr key={queue.name} className="tr-row">
                 <td className="px-2 py-4 md:px-4">
                   <div className="flex items-center gap-2">
                     <div

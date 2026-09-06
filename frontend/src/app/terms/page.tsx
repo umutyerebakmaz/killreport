@@ -2,7 +2,7 @@
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen text-gray-200 bg-neutral-900">
+    <div className="min-h-screen text-gray-200 bg-surface">
       <div className="max-w-4xl px-6 py-12 mx-auto sm:py-16 lg:py-20">
         <h1 className="mb-12 text-4xl font-bold text-white">
           Terms of Service
@@ -132,7 +132,7 @@ export default function TermsPage() {
               </ul>
             </div>
 
-            <div className="bg-neutral-800 border border-neutral-700 p-4 rounded">
+            <div className="bg-surface-inset border border-white/10 p-4 rounded">
               <h4 className="font-semibold text-white mb-2">Enforcement</h4>
               <p className="text-sm text-gray-300">
                 We reserve the right to remove, edit, or restrict content that
@@ -244,7 +244,7 @@ export default function TermsPage() {
           </div>
         </section>
 
-        <div className="border-t border-neutral-700 pt-8 mt-12">
+        <div className="border-t border-white/10 pt-8 mt-12">
           <p className="text-sm text-gray-400">
             These Terms of Service are designed to ensure Killreport remains a
             safe and respectful community while complying with legal
