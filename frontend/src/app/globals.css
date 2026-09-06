@@ -28,6 +28,19 @@ body {
   height: 100%;
 }
 
+/*
+ * The app is dark, but nothing had ever said so to the browser — `color-scheme`
+ * was set on `.input` and three date fields and nowhere else. So Chrome treated
+ * the document as light and drew every scrollbar, and every native control it
+ * was not told about, in the light system colours.
+ *
+ * One declaration here is what the Tailwind Plus previews get for free, and it
+ * is why their scroll bars look designed without a line of scrollbar CSS.
+ */
+html {
+  color-scheme: dark;
+}
+
 body {
   font-weight: 400;
 }

@@ -87,7 +87,7 @@ export default function Select({
       <ListboxOptions
         transition
         anchor="bottom start"
-        className="float scroll-thin w-(--button-width) max-h-60 overflow-auto py-1 text-sm [--anchor-gap:--spacing(1)] data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0"
+        className="float w-(--button-width) max-h-60 overflow-auto py-1 text-sm [--anchor-gap:--spacing(1)] data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0"
       >
         {options.map((option) => (
           <ListboxOption
