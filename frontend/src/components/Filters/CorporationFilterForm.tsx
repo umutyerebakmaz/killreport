@@ -5,6 +5,7 @@ import FilterDialog from '@/components/ui/FilterDialog';
 import FilterField from '@/components/ui/FilterField';
 import { useState } from 'react';
 
+import DateInput from '@/components/ui/DateInput';
 import Select from '@/components/ui/Select';
 
 const ORDER_BY_OPTIONS = [
@@ -131,23 +132,21 @@ export default function CorporationFilterForm({
 
           {/* Date Founded From Filter */}
           <FilterField label="Founded From" htmlFor="filter-date-from">
-            <input
-              type="date"
+            <DateInput
               id="filter-date-from"
               value={dateFoundedFrom}
-              onChange={(e) => setDateFoundedFrom(e.target.value)}
-              className="input scheme-dark"
+              onChange={setDateFoundedFrom}
+              className="input"
             />
           </FilterField>
 
           {/* Date Founded To Filter */}
           <FilterField label="Founded To" htmlFor="filter-date-to">
-            <input
-              type="date"
+            <DateInput
               id="filter-date-to"
               value={dateFoundedTo}
-              onChange={(e) => setDateFoundedTo(e.target.value)}
-              className="input scheme-dark"
+              onChange={setDateFoundedTo}
+              className="input"
             />
           </FilterField>
         </div>
