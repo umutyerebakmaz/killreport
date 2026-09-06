@@ -3,8 +3,16 @@
 import FilterBar from '@/components/ui/FilterBar';
 import FilterDialog from '@/components/ui/FilterDialog';
 import FilterField from '@/components/ui/FilterField';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
+
+import Select from '@/components/ui/Select';
+
+const ORDER_BY_OPTIONS = [
+  { value: 'nameAsc', label: 'Name A-Z' },
+  { value: 'nameDesc', label: 'Name Z-A' },
+  { value: 'securityStatusDesc', label: 'Highest Security' },
+  { value: 'securityStatusAsc', label: 'Lowest Security' },
+];
 
 interface CharacterFilterFormProps {
   onFilterChange: (filters: {
@@ -54,35 +62,12 @@ export default function CharacterFilterForm({
     <form onSubmit={handleSubmit} id="character-filters" className="mb-6">
       <FilterBar
         orderBy={
-          <div className="select-option-container">
-            <select
-              value={orderBy}
-              onChange={(e) => onOrderByChange(e.target.value)}
-              className="select"
-            >
-              <option value="nameAsc">
-                {orderBy === 'nameAsc' ? '✓' : '\u00A0\u00A0'}
-                {'   '}
-                Name A-Z
-              </option>
-              <option value="nameDesc">
-                {orderBy === 'nameDesc' ? '✓' : '\u00A0\u00A0'}
-                {'   '}
-                Name Z-A
-              </option>
-              <option value="securityStatusDesc">
-                {orderBy === 'securityStatusDesc' ? '✓' : '\u00A0\u00A0'}
-                {'   '}
-                Highest Security
-              </option>
-              <option value="securityStatusAsc">
-                {orderBy === 'securityStatusAsc' ? '✓' : '\u00A0\u00A0'}
-                {'   '}
-                Lowest Security
-              </option>
-            </select>
-            <ChevronDownIcon className="chevron-down-icon" />
-          </div>
+          <Select
+            value={orderBy}
+            onChange={onOrderByChange}
+            options={ORDER_BY_OPTIONS}
+            aria-label="Sort characters"
+          />
         }
         onOpenFilters={() => setIsOpen(true)}
         activeFilterCount={activeFilterCount}
