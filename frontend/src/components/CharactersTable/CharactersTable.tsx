@@ -29,14 +29,14 @@ export default function CharactersTable({
   return (
     <div className="mt-6 overflow-hidden border border-white/10">
       <table className="table">
-        <thead className="bg-neutral-800">
+        <thead className="bg-surface-inset">
           <tr>
             <th className="th-cell">Name</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-white/5">
           {characters.map((char) => (
-            <tr key={char.id} className="transition-colors hover:bg-white/5">
+            <tr key={char.id} className="tr-row">
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center gap-3">
                   <img
@@ -48,7 +48,7 @@ export default function CharactersTable({
                   <Link
                     href={`/characters/${char.id}`}
                     prefetch={false}
-                    className="text-cyan-400 hover:text-cyan-300"
+                    className="text-gray-400 hover:text-blue-400"
                   >
                     {char.name}
                   </Link>

@@ -26,7 +26,7 @@ const CHANGE_STYLES: Record<string, string> = {
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="p-4 border border-white/10 bg-neutral-900">
+    <div className="p-4 border border-white/10 bg-surface">
       <div className="text-2xl font-semibold text-white">
         {typeof value === 'number' ? value.toLocaleString() : value}
       </div>
@@ -64,30 +64,30 @@ function SovereigntyContent() {
           <Link
             href="/sovereignty/structures"
             prefetch={false}
-            className="text-sm text-cyan-400 hover:text-cyan-300"
+            className="button button-secondary button-sm"
           >
-            Structures &amp; Timers →
+            Structures &amp; Timers
           </Link>
           <Link
             href="/sovereignty/history"
             prefetch={false}
-            className="text-sm text-cyan-400 hover:text-cyan-300"
+            className="button button-secondary button-sm"
           >
-            History →
+            History
           </Link>
           <Link
             href="/sovereignty/hotspots"
             prefetch={false}
-            className="text-sm text-cyan-400 hover:text-cyan-300"
+            className="button button-secondary button-sm"
           >
-            Hot Zones →
+            Hot Zones
           </Link>
           <Link
             href="/sovereignty/map"
             prefetch={false}
-            className="text-sm text-cyan-400 hover:text-cyan-300"
+            className="button button-secondary button-sm"
           >
-            Map →
+            Map
           </Link>
         </div>
       </div>
@@ -119,7 +119,7 @@ function SovereigntyContent() {
         </h3>
         <div className="mt-4 overflow-x-auto border border-white/10">
           <table className="table">
-            <thead className="bg-neutral-800">
+            <thead className="bg-surface-inset">
               <tr>
                 <th className="text-left th-cell">#</th>
                 <th className="text-left th-cell">Alliance</th>
@@ -131,27 +131,24 @@ function SovereigntyContent() {
             </thead>
             <tbody className="divide-y divide-white/5">
               {rankings.map((r) => (
-                <tr
-                  key={r.allianceId}
-                  className="transition-colors bg-neutral-950 hover:bg-neutral-900"
-                >
-                  <td className="px-4 py-3 text-gray-400 whitespace-nowrap">
+                <tr key={r.allianceId} className="tr-row">
+                  <td className="td-cell text-gray-400 whitespace-nowrap">
                     {r.rank}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="td-cell whitespace-nowrap">
                     <AllianceLink
                       id={r.allianceId}
                       name={r.allianceName}
                       ticker={r.allianceTicker}
                     />
                   </td>
-                  <td className="px-4 py-3 font-semibold text-right text-white whitespace-nowrap">
+                  <td className="td-cell font-semibold text-right text-white whitespace-nowrap">
                     {r.systemsControlled.toLocaleString()}
                   </td>
-                  <td className="px-4 py-3 text-right text-gray-300 whitespace-nowrap">
+                  <td className="td-cell text-right text-gray-300 whitespace-nowrap">
                     {r.ihubCount}
                   </td>
-                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                  <td className="td-cell text-right whitespace-nowrap">
                     {r.campaignsAttacking > 0 ? (
                       <span className="text-red-400">
                         {r.campaignsAttacking}
@@ -160,7 +157,7 @@ function SovereigntyContent() {
                       <span className="text-gray-600">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                  <td className="td-cell text-right whitespace-nowrap">
                     {r.campaignsDefending > 0 ? (
                       <span className="text-cyan-400">
                         {r.campaignsDefending}
@@ -178,7 +175,7 @@ function SovereigntyContent() {
 
       {/* Activity leaderboards + hottest regions */}
       <section className="grid grid-cols-1 gap-4 mt-10 lg:grid-cols-3">
-        <div className="border border-white/10 bg-neutral-900">
+        <div className="border border-white/10 bg-surface">
           <h3 className="px-4 py-3 text-lg font-semibold text-white border-b border-white/10">
             Most Aggressive
           </h3>
@@ -204,7 +201,7 @@ function SovereigntyContent() {
           </ul>
         </div>
 
-        <div className="border border-white/10 bg-neutral-900">
+        <div className="border border-white/10 bg-surface">
           <h3 className="px-4 py-3 text-lg font-semibold text-white border-b border-white/10">
             Most Defensive
           </h3>
@@ -232,7 +229,7 @@ function SovereigntyContent() {
           </ul>
         </div>
 
-        <div className="border border-white/10 bg-neutral-900">
+        <div className="border border-white/10 bg-surface">
           <h3 className="px-4 py-3 text-lg font-semibold text-white border-b border-white/10">
             Hottest Regions Right Now
           </h3>
@@ -243,13 +240,13 @@ function SovereigntyContent() {
                   <Link
                     href={`/regions/${r.regionId}`}
                     prefetch={false}
-                    className="text-cyan-400 hover:text-cyan-300"
+                    className="text-gray-400 hover:text-blue-400"
                   >
                     {r.regionName ?? `#${r.regionId}`}
                   </Link>
                   <span className="text-gray-300">{r.campaignCount}</span>
                 </div>
-                <div className="h-1.5 mt-1 overflow-hidden rounded bg-neutral-800">
+                <div className="h-1.5 mt-1 overflow-hidden bg-surface-inset">
                   <div
                     className="h-full bg-orange-500"
                     style={{
@@ -276,7 +273,7 @@ function SovereigntyContent() {
         </h3>
         <div className="mt-4 overflow-x-auto border border-white/10">
           <table className="table">
-            <thead className="bg-neutral-800">
+            <thead className="bg-surface-inset">
               <tr>
                 <th className="th-cell w-8"></th>
                 <th className="text-left th-cell">System</th>
@@ -296,7 +293,7 @@ function SovereigntyContent() {
                 return (
                   <Fragment key={c.campaignId}>
                     <tr
-                      className={`transition-colors bg-neutral-950 ${hasDetail ? 'cursor-pointer hover:bg-neutral-900' : ''}`}
+                      className={`tr-row ${hasDetail ? 'cursor-pointer' : ''}`}
                       onClick={
                         hasDetail
                           ? () =>
@@ -306,46 +303,46 @@ function SovereigntyContent() {
                           : undefined
                       }
                     >
-                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
+                      <td className="td-cell text-gray-500 whitespace-nowrap">
                         {hasDetail ? (expanded ? '▾' : '▸') : ''}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
+                      <td className="td-cell whitespace-nowrap">
                         <Link
                           href={`/solar-systems/${c.solarSystemId}`}
                           prefetch={false}
-                          className="text-cyan-400 hover:text-cyan-300"
+                          className="text-gray-400 hover:text-blue-400"
                           onClick={(e) => e.stopPropagation()}
                         >
                           {c.solarSystemName ?? c.solarSystemId}
                         </Link>
                       </td>
-                      <td className="px-4 py-3 text-gray-300 whitespace-nowrap">
+                      <td className="td-cell text-gray-300 whitespace-nowrap">
                         {c.regionName ?? '—'}
                       </td>
-                      <td className="px-4 py-3 text-gray-300 whitespace-nowrap">
+                      <td className="td-cell text-gray-300 whitespace-nowrap">
                         {EVENT_LABELS[c.eventType] ?? c.eventType}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
+                      <td className="td-cell whitespace-nowrap">
                         <AllianceLink
                           id={c.defenderId}
                           name={c.defenderName}
                           ticker={c.defenderTicker}
                         />
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
+                      <td className="td-cell whitespace-nowrap">
                         <ScoreBar
                           defender={c.defenderScore}
                           attackers={c.attackersScore}
                         />
                       </td>
-                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <td className="td-cell text-right whitespace-nowrap">
                         {c.warKills > 0 ? (
                           <span className="text-red-400">{c.warKills}</span>
                         ) : (
                           <span className="text-gray-600">—</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <td className="td-cell text-right whitespace-nowrap">
                         {c.iskDestroyed > 0 ? (
                           <span className="text-red-400">
                             {formatISK(c.iskDestroyed)}
@@ -354,12 +351,12 @@ function SovereigntyContent() {
                           <span className="text-gray-600">—</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-sm text-right text-gray-400 whitespace-nowrap">
+                      <td className="td-cell text-sm text-right text-gray-400 whitespace-nowrap">
                         {formatRelativeTime(c.startTime)}
                       </td>
                     </tr>
                     {expanded && (
-                      <tr className="bg-neutral-900">
+                      <tr className="bg-surface">
                         <td colSpan={9} className="px-4 py-3">
                           {c.warKills > 0 && (
                             <div className="mb-4">
@@ -429,7 +426,7 @@ function SovereigntyContent() {
         </h3>
         <div className="mt-4 overflow-x-auto border border-white/10">
           <table className="table">
-            <thead className="bg-neutral-800">
+            <thead className="bg-surface-inset">
               <tr>
                 <th className="text-left th-cell">System</th>
                 <th className="text-left th-cell">Change</th>
@@ -440,15 +437,12 @@ function SovereigntyContent() {
             </thead>
             <tbody className="divide-y divide-white/5">
               {changes.map((c) => (
-                <tr
-                  key={c.id}
-                  className="transition-colors bg-neutral-950 hover:bg-neutral-900"
-                >
-                  <td className="px-4 py-3 whitespace-nowrap">
+                <tr key={c.id} className="tr-row">
+                  <td className="td-cell whitespace-nowrap">
                     <Link
                       href={`/solar-systems/${c.solarSystemId}`}
                       prefetch={false}
-                      className="text-cyan-400 hover:text-cyan-300"
+                      className="text-gray-400 hover:text-blue-400"
                     >
                       {c.solarSystemName ?? c.solarSystemId}
                     </Link>
@@ -458,16 +452,16 @@ function SovereigntyContent() {
                   >
                     {c.changeType}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="td-cell whitespace-nowrap">
                     <AllianceLink
                       id={c.previousOwnerId}
                       name={c.previousOwnerName}
                     />
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="td-cell whitespace-nowrap">
                     <AllianceLink id={c.newOwnerId} name={c.newOwnerName} />
                   </td>
-                  <td className="px-4 py-3 text-sm text-right text-gray-400 whitespace-nowrap">
+                  <td className="td-cell text-sm text-right text-gray-400 whitespace-nowrap">
                     {formatTimeAgo(c.detectedAt)}
                   </td>
                 </tr>

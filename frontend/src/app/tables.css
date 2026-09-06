@@ -32,6 +32,20 @@
     @apply px-4 py-2 text-base;
   }
 
+  /*
+   * One body row. Fifteen of these existed in four spellings and three
+   * behaviours: eight sat on bg-ground, which is the page itself, so those
+   * tables read as a hole punched in the page rather than as a panel; three
+   * carried no ground at all and hovered to white/5; and two pairs said the
+   * same thing in a different word order.
+   *
+   * Killmail rows are the deliberate exception and keep their own classes —
+   * theirs are red or green by whether the entity in view won or lost.
+   */
+  .tr-row {
+    @apply transition-colors bg-surface hover:bg-surface-inset;
+  }
+
   .th-cell {
     @apply px-4 py-3 text-lg font-semibold text-white;
   }

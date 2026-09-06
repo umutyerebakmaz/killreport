@@ -39,9 +39,9 @@ function MapContent() {
         <Link
           href="/sovereignty"
           prefetch={false}
-          className="text-sm text-cyan-400 hover:text-cyan-300"
+          className="button button-secondary button-sm"
         >
-          ← Sovereignty Overview
+          Sovereignty Overview
         </Link>
       </div>
       <div className="flex items-center gap-3 mt-4">
@@ -72,7 +72,7 @@ function MapContent() {
         </div>
       </div>
 
-      <section className="mt-4 border border-white/10 bg-neutral-950">
+      <section className="mt-4 border border-white/10 bg-surface">
         <TerritoryMap points={filtered} />
       </section>
       <p className="mt-2 text-xs text-gray-500">

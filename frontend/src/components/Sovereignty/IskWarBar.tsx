@@ -26,7 +26,7 @@ export function IskWarBar({
           Attacker lost {formatISK(attackerLost)}
         </span>
       </div>
-      <div className="flex h-2 overflow-hidden rounded bg-neutral-800">
+      <div className="flex h-2 overflow-hidden rounded bg-surface-inset">
         <div className="bg-cyan-500" style={{ width: `${dPct}%` }} />
         <div className="bg-red-500" style={{ width: `${100 - dPct}%` }} />
       </div>

@@ -20,7 +20,7 @@ export function AllianceLink({
       <Link
         href={`/alliances/${id}`}
         prefetch={false}
-        className="text-cyan-400 hover:text-cyan-300"
+        className="text-gray-400 hover:text-blue-400"
       >
         {name ?? `#${id}`}
       </Link>

@@ -39,7 +39,7 @@ export default function KillmailSummaryCard({
   totalValue,
 }: KillmailSummaryCardProps) {
   return (
-    <div className="border bg-neutral-900 border-neutral-800">
+    <div className="border bg-surface border-white/10">
       {/* Ship */}
       {victim?.shipType && (
         <div className="border-b border-white/10">

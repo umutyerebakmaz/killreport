@@ -16,7 +16,7 @@ export default function WeeklyTopCharCard() {
   const pilots = data?.topWeeklyPilots ?? [];
 
   return (
-    <div className="flex flex-col border bg-neutral-900 hover:bg-neutral-800">
+    <div className="flex flex-col border bg-surface hover:bg-surface-inset">
       {/* Header */}
       <div className="flex items-center gap-2 p-4 border-b border-white/10">
         <CalendarDaysIcon className="w-4 h-4 text-cyan-400 shrink-0" />
@@ -76,7 +76,7 @@ export default function WeeklyTopCharCard() {
                       >
                         <Link
                           href={`/characters/${char.id}`}
-                          className="block text-xs font-medium text-gray-300 truncate hover:text-cyan-400"
+                          className="block text-xs font-medium text-gray-300 truncate hover:text-blue-400"
                           prefetch={false}
                         >
                           {char.name}

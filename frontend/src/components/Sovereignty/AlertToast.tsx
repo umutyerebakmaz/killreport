@@ -35,7 +35,7 @@ function ToastItem({
 
   return (
     <div
-      className={`w-80 border bg-neutral-900/95 backdrop-blur px-4 py-3 shadow-lg ${TYPE_STYLE[toast.type] ?? 'border-white/20'}`}
+      className={`w-80 border bg-surface/95 backdrop-blur px-4 py-3 shadow-lg ${TYPE_STYLE[toast.type] ?? 'border-white/20'}`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="text-xs font-semibold tracking-wider text-gray-400 uppercase">

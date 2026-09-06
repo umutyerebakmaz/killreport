@@ -34,8 +34,7 @@ const NAV_POPOVER_PANEL =
 
 // The visible surface, held one level in so `overflow-hidden` clips the menu
 // rows and not the gap above them.
-const NAV_POPOVER_SURFACE =
-  'overflow-hidden bg-stone-900 outline-1 -outline-offset-1 outline-white/10 p-4';
+const NAV_POPOVER_SURFACE = 'overflow-hidden float p-4';
 
 /**
  * A menu that opens on hover without a transition, aligns to the start of its

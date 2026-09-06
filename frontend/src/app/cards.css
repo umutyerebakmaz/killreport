@@ -48,9 +48,17 @@
     @apply px-3 py-2 transition-colors duration-100 hover:bg-surface-inset;
   }
 
-  /* The floating layer: popover panels, the mobile drawer, FilterDialog, Tooltip. */
+  /*
+   * The floating layer: the nav popover, the notification panel, the mobile
+   * drawer, FilterDialog, Tooltip and the filter autocompletes. Glass is the
+   * layer signal — 80% of the surface plus a blur, so what is behind stays
+   * legible as behind rather than as gone.
+   *
+   * Square, and no longer rounded: the panels that opened over the page were
+   * sharp while the dialog alone was not, and the app is flat.
+   */
   .float {
-    @apply border rounded-md bg-gray-900/80 backdrop-blur-md border-white/10;
+    @apply border bg-surface/80 backdrop-blur-md border-white/10;
   }
 
   /* A list row that carries a <button> tag but is not visually a button.

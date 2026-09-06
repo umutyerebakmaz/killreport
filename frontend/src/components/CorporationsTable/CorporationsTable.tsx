@@ -34,7 +34,7 @@ export default function CorporationsTable({
   return (
     <div className="mt-6 overflow-hidden border border-white/10">
       <table className="table">
-        <thead className="bg-neutral-800">
+        <thead className="bg-surface-inset">
           <tr>
             <th className="text-left th-cell">Corporation</th>
             <th className="text-left th-cell">Ticker</th>
@@ -44,10 +44,7 @@ export default function CorporationsTable({
         </thead>
         <tbody className="divide-y divide-white/5">
           {corporations.map((corp) => (
-            <tr
-              key={corp.id}
-              className="transition-colors bg-neutral-950 hover:bg-neutral-900"
-            >
+            <tr key={corp.id} className="tr-row">
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center gap-3">
                   <img
@@ -59,7 +56,7 @@ export default function CorporationsTable({
                   <Link
                     href={`/corporations/${corp.id}`}
                     prefetch={false}
-                    className="text-cyan-400 hover:text-cyan-300"
+                    className="text-gray-400 hover:text-blue-400"
                   >
                     {corp.name}
                   </Link>
@@ -76,7 +73,7 @@ export default function CorporationsTable({
                   <Link
                     href={`/characters/${corp.ceo.id}`}
                     prefetch={false}
-                    className="text-cyan-400 hover:text-cyan-300"
+                    className="text-gray-400 hover:text-blue-400"
                   >
                     {corp.ceo.name}
                   </Link>

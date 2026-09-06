@@ -42,7 +42,7 @@ export default function SolarSystemCard({ system }: SolarSystemCardProps) {
   };
 
   return (
-    <div className="p-4 transition-all border bg-neutral-900 border-white/5 hover:bg-neutral-800 hover:border-white/20">
+    <div className="p-4 transition-all border bg-surface border-white/5 hover:bg-surface-inset hover:border-white/20">
       {/* Security Status + System Name */}
       <div className="flex items-center gap-3">
         <SecurityBadge securityStatus={system.securityStatus ?? 0} />
