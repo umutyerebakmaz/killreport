@@ -240,7 +240,7 @@ function SovereigntyContent() {
                   <Link
                     href={`/regions/${r.regionId}`}
                     prefetch={false}
-                    className="text-cyan-400 hover:text-cyan-300"
+                    className="text-gray-400 hover:text-blue-400"
                   >
                     {r.regionName ?? `#${r.regionId}`}
                   </Link>
@@ -310,7 +310,7 @@ function SovereigntyContent() {
                         <Link
                           href={`/solar-systems/${c.solarSystemId}`}
                           prefetch={false}
-                          className="text-cyan-400 hover:text-cyan-300"
+                          className="text-gray-400 hover:text-blue-400"
                           onClick={(e) => e.stopPropagation()}
                         >
                           {c.solarSystemName ?? c.solarSystemId}
@@ -442,7 +442,7 @@ function SovereigntyContent() {
                     <Link
                       href={`/solar-systems/${c.solarSystemId}`}
                       prefetch={false}
-                      className="text-cyan-400 hover:text-cyan-300"
+                      className="text-gray-400 hover:text-blue-400"
                     >
                       {c.solarSystemName ?? c.solarSystemId}
                     </Link>

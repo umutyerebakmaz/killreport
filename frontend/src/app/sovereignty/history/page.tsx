@@ -189,7 +189,7 @@ function HistoryContent() {
                     <Link
                       href={`/solar-systems/${c.solarSystemId}`}
                       prefetch={false}
-                      className="text-cyan-400 hover:text-cyan-300"
+                      className="text-gray-400 hover:text-blue-400"
                     >
                       {c.solarSystemName ?? c.solarSystemId}
                     </Link>

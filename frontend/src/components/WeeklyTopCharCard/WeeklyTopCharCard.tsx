@@ -76,7 +76,7 @@ export default function WeeklyTopCharCard() {
                       >
                         <Link
                           href={`/characters/${char.id}`}
-                          className="block text-xs font-medium text-gray-300 truncate hover:text-cyan-400"
+                          className="block text-xs font-medium text-gray-300 truncate hover:text-blue-400"
                           prefetch={false}
                         >
                           {char.name}

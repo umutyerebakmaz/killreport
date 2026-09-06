@@ -65,7 +65,7 @@ export default function SovereigntyTab({ systemId }: SovereigntyTabProps) {
                       <Link
                         href={`/alliances/${structure.allianceId}`}
                         prefetch={false}
-                        className="text-cyan-400 hover:underline"
+                        className="text-gray-400 hover:text-blue-400"
                       >
                         {structure.allianceName ?? structure.allianceId}
                         {structure.allianceTicker && (
@@ -118,7 +118,7 @@ export default function SovereigntyTab({ systemId }: SovereigntyTabProps) {
                     <Link
                       href={`/alliances/${campaign.defenderId}`}
                       prefetch={false}
-                      className="text-cyan-400 hover:underline"
+                      className="text-gray-400 hover:text-blue-400"
                     >
                       {campaign.defenderName ?? campaign.defenderId}
                     </Link>

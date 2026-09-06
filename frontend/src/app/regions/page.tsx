@@ -155,7 +155,7 @@ function RegionsContent() {
                       <Link
                         href={`/regions/${region.id}`}
                         prefetch={false}
-                        className="font-medium text-gray-400 transition-colors hover:text-cyan-300"
+                        className="font-medium text-gray-400 transition-colors hover:text-blue-400"
                       >
                         {region.name}
                       </Link>

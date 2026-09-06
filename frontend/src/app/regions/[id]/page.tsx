@@ -251,7 +251,7 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
                             <Link
                               href={`/constellations/${constellation.id}`}
                               prefetch={false}
-                              className="font-medium transition-colors text-cyan-400 hover:text-cyan-300"
+                              className="font-medium transition-colors text-gray-400 hover:text-blue-400"
                             >
                               {constellation.name}
                             </Link>
