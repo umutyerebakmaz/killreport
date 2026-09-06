@@ -193,7 +193,7 @@ export default function CorporationGrowthChart({
       <div className="flex items-center justify-end gap-4 mb-2">
         <div className="flex items-center gap-1.5">
           <span className="inline-block w-6 h-0.5 bg-cyan-400" />
-          <span className="text-xs text-slate-400">Members</span>
+          <span className="text-xs text-gray-400">Members</span>
         </div>
       </div>
       <ReactECharts

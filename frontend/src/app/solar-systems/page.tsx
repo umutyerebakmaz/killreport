@@ -156,7 +156,7 @@ function SolarSystemsContent() {
             <Loader size="lg" />
           </div>
         ) : systems.length === 0 ? (
-          <div className="px-6 py-12 text-center text-gray-400 border rounded-lg border-white/10 bg-neutral-900">
+          <div className="px-6 py-12 text-center text-gray-400 border rounded-lg border-white/10 bg-surface">
             No solar systems found
           </div>
         ) : (

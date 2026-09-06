@@ -233,7 +233,7 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
               className="overflow-hidden border border-white/10"
             >
               <table className="table">
-                <thead className="bg-neutral-800">
+                <thead className="bg-surface-inset">
                   <tr>
                     <th className="th-cell">Constellation</th>
                     <th className="th-cell">Systems</th>
@@ -244,17 +244,14 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
                 <tbody className="divide-y divide-white/5">
                   {region.constellations && region.constellations.length > 0 ? (
                     region.constellations.map((constellation) => (
-                      <tr
-                        key={constellation.id}
-                        className="transition-colors hover:bg-white/5"
-                      >
+                      <tr key={constellation.id} className="tr-row">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
                             <MapIcon className="w-5 h-5 text-purple-400 shrink-0" />
                             <Link
                               href={`/constellations/${constellation.id}`}
                               prefetch={false}
-                              className="font-medium transition-colors text-cyan-400 hover:text-cyan-300"
+                              className="font-medium transition-colors text-gray-400 hover:text-blue-400"
                             >
                               {constellation.name}
                             </Link>

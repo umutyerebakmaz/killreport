@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 export default function LegalPage() {
   return (
-    <div className="min-h-screen text-gray-200 bg-neutral-900">
+    <div className="min-h-screen text-gray-200 bg-surface">
       <div className="max-w-4xl px-6 py-12 mx-auto sm:py-16 lg:py-20">
         <h1 className="mb-12 text-4xl font-bold text-white">
           Legal Information
@@ -20,7 +20,7 @@ export default function LegalPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <Link
               href="/terms"
-              className="p-4 transition-colors border rounded bg-neutral-800 border-neutral-700 hover:border-cyan-500"
+              className="p-4 transition-colors border rounded bg-surface-inset border-white/10 hover:border-cyan-500"
             >
               <h3 className="mb-2 font-semibold text-white">
                 Terms of Service
@@ -31,7 +31,7 @@ export default function LegalPage() {
             </Link>
             <Link
               href="/privacy"
-              className="p-4 transition-colors border rounded bg-neutral-800 border-neutral-700 hover:border-cyan-500"
+              className="p-4 transition-colors border rounded bg-surface-inset border-white/10 hover:border-cyan-500"
             >
               <h3 className="mb-2 font-semibold text-white">Privacy Policy</h3>
               <p className="text-sm text-gray-400">
@@ -129,7 +129,7 @@ export default function LegalPage() {
                 </p>
               </div>
             </div>
-            <p className="pt-4 mt-4 text-sm border-t border-neutral-700">
+            <p className="pt-4 mt-4 text-sm border-t border-white/10">
               <span className="font-semibold text-cyan-400">Key Point:</span>{' '}
               Killreport is an analysis and presentation layer. We don&apos;t
               create killmail data—CCP Games does through EVE Online&apos;s
@@ -150,7 +150,7 @@ export default function LegalPage() {
               concerns:
             </p>
             <div className="space-y-3">
-              <div className="p-4 border rounded bg-neutral-800 border-neutral-700">
+              <div className="p-4 border rounded bg-surface-inset border-white/10">
                 <h3 className="font-semibold text-white mb-2">
                   Regarding Your EVE Online Data
                 </h3>
@@ -165,7 +165,7 @@ export default function LegalPage() {
                   legal@ccpgames.com
                 </a>
               </div>
-              <div className="p-4 border rounded bg-neutral-800 border-neutral-700">
+              <div className="p-4 border rounded bg-surface-inset border-white/10">
                 <h3 className="font-semibold text-white mb-2">
                   Regarding Killreport
                 </h3>
@@ -200,7 +200,7 @@ export default function LegalPage() {
           </div>
         </section>
 
-        <div className="pt-8 mt-12 border-t border-neutral-700">
+        <div className="pt-8 mt-12 border-t border-white/10">
           <p className="text-sm text-gray-400">
             All EVE related materials are property of{' '}
             <a

@@ -71,7 +71,7 @@ export default function StructuresTab({ systemId }: StructuresTabProps) {
                   <Link
                     href={`/corporations/${station.ownerCorporation.id}`}
                     prefetch={false}
-                    className="text-cyan-400 hover:underline"
+                    className="text-gray-400 hover:text-blue-400"
                   >
                     {station.ownerCorporation.name}
                   </Link>

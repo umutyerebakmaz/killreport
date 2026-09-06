@@ -81,7 +81,7 @@ export default function ConstellationDetailPage({
                   <Link
                     href={`/regions/${constellation.region.id}`}
                     prefetch={false}
-                    className="transition-colors text-cyan-400 hover:text-cyan-300"
+                    className="transition-colors text-gray-400 hover:text-blue-400"
                   >
                     {constellation.region.name}
                   </Link>
@@ -182,7 +182,7 @@ export default function ConstellationDetailPage({
                         <Link
                           href={`/regions/${constellation.region.id}`}
                           prefetch={false}
-                          className="text-cyan-400 hover:text-cyan-300"
+                          className="text-gray-400 hover:text-blue-400"
                         >
                           {constellation.region.name}
                         </Link>
@@ -282,7 +282,7 @@ export default function ConstellationDetailPage({
               className="overflow-hidden border border-white/10"
             >
               <table className="table">
-                <thead className="bg-neutral-800">
+                <thead className="bg-surface-inset">
                   <tr>
                     <th className="th-cell">Solar System</th>
                     <th className="th-cell">Security Status</th>
@@ -293,17 +293,14 @@ export default function ConstellationDetailPage({
                   {constellation.solarSystems &&
                   constellation.solarSystems.length > 0 ? (
                     constellation.solarSystems.map((system) => (
-                      <tr
-                        key={system.id}
-                        className="transition-colors hover:bg-white/5"
-                      >
+                      <tr key={system.id} className="tr-row">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
                             <MapPinIcon className="w-5 h-5 text-orange-400 shrink-0" />
                             <Link
                               href={`/solar-systems/${system.id}`}
                               prefetch={false}
-                              className="font-medium transition-colors text-cyan-400 hover:text-cyan-300"
+                              className="font-medium transition-colors text-gray-400 hover:text-blue-400"
                             >
                               {system.name}
                             </Link>
