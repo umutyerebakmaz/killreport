@@ -302,13 +302,6 @@ export const leaderboardQueries: QueryResolvers = {
 
     // COUNT(*), not COUNT(DISTINCT killmail_id): the question is how many
     // pilots flew this hull, so a five-Raven fleet counts five.
-    //
-    // The spatial columns are written inline with an "IS NULL OR" guard
-    // rather than the ternary-Prisma.sql fragment the other resolvers use:
-    // a nested Prisma.sql value is opaque to the outer query text, and this
-    // is the query that previously had no spatial filter at all, so it is
-    // worth being able to see kf.solar_system_id land on the right side of
-    // the join at a glance rather than trusting a conditional fragment.
     type Row = { ship_type_id: number; kill_count: bigint };
     const rows = await prisma.$queryRaw<Row[]>`
       SELECT a.ship_type_id, COUNT(*)::BIGINT AS kill_count
@@ -317,9 +310,9 @@ export const leaderboardQueries: QueryResolvers = {
       WHERE  kf.killmail_time >= ${startDate}::date
         AND  kf.killmail_time <  ${endDate}::date + INTERVAL '1 day'
         AND  a.ship_type_id IS NOT NULL
-        AND  (${systemId ?? null}::int IS NULL OR kf.solar_system_id = ${systemId ?? null})
-        AND  (${constellationId ?? null}::int IS NULL OR kf.constellation_id = ${constellationId ?? null})
-        AND  (${regionId ?? null}::int IS NULL OR kf.region_id = ${regionId ?? null})
+        ${systemId ? Prisma.sql`AND kf.solar_system_id = ${systemId}` : Prisma.empty}
+        ${constellationId ? Prisma.sql`AND kf.constellation_id = ${constellationId}` : Prisma.empty}
+        ${regionId ? Prisma.sql`AND kf.region_id = ${regionId}` : Prisma.empty}
       GROUP  BY a.ship_type_id
       ORDER  BY kill_count DESC
       LIMIT  ${limit}

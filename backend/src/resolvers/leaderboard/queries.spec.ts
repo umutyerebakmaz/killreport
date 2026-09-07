@@ -279,10 +279,10 @@ describe('topAttackerShips', () => {
     expect(querySql()).not.toContain('COUNT(DISTINCT');
   });
 
-  it('accepts a spatial filter and passes it to the query', async () => {
+  it('joins killmail_filters and passes the spatial filter as a value', async () => {
     await call('topAttackerShips', { limit: 10, systemId: 30000142 });
 
-    expect(querySql()).toContain('kf.solar_system_id');
+    expect(querySql()).toContain('INNER JOIN killmail_filters kf');
     expect(queryValues()).toContain(30000142);
   });
 
