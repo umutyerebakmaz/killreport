@@ -3,6 +3,8 @@ import { Prisma } from '@generated/prisma/client';
 import prisma from '@services/prisma';
 import redis from '@services/redis';
 
+import { getWeekMonday } from './period';
+
 /**
  * Leaderboard Query Resolvers
  *
@@ -15,15 +17,6 @@ import redis from '@services/redis';
  *
  * See: backend/docs/leaderboards/leaderboard-queries.md for architecture details.
  */
-/** Returns the Monday (UTC) of the week containing the given date string */
-function getWeekMonday(dateStr: string): string {
-  const d = new Date(dateStr + 'T00:00:00Z');
-  const day = d.getUTCDay(); // 0=Sun, 1=Mon … 6=Sat
-  const diff = day === 0 ? -6 : 1 - day;
-  d.setUTCDate(d.getUTCDate() + diff);
-  return d.toISOString().split('T')[0];
-}
-
 export const leaderboardQueries: QueryResolvers = {
   topWeeklyPilots: async (_, { filter }) => {
     const limit = Math.min(filter?.limit ?? 100, 100);
