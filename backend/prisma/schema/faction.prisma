@@ -1,0 +1,11 @@
+model Faction {
+  id                     Int      @id
+  name                   String
+  description            String?
+  corporation_id         Int?
+  militia_corporation_id Int?
+  created_at             DateTime @default(now())
+  updated_at             DateTime @updatedAt
+
+  @@map("factions")
+}

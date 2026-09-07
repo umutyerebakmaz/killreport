@@ -88,6 +88,7 @@
     "worker:redisq": "tsx src/workers/worker-redisq-stream.ts",
     "worker:races": "tsx src/workers/worker-races.ts",
     "worker:bloodlines": "tsx src/workers/worker-bloodlines.ts",
+    "worker:factions": "tsx src/workers/worker-factions.ts",
     "worker:prices": "tsx src/workers/worker-prices.ts",
     "worker:backfill-values": "tsx src/workers/worker-backfill-values.ts",
     "worker:sov:campaigns": "tsx src/workers/worker-sovereignty-campaigns.ts",
