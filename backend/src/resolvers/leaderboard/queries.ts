@@ -1,9 +1,9 @@
-import { QueryResolvers } from '@generated-types';
+import { LeaderboardPeriod, QueryResolvers } from '@generated-types';
 import { Prisma } from '@generated/prisma/client';
 import prisma from '@services/prisma';
 import redis from '@services/redis';
 
-import { getWeekMonday } from './period';
+import { resolvePeriod } from './period';
 
 /**
  * Leaderboard Query Resolvers
@@ -18,130 +18,18 @@ import { getWeekMonday } from './period';
  * See: backend/docs/leaderboards/leaderboard-queries.md for architecture details.
  */
 export const leaderboardQueries: QueryResolvers = {
-  topWeeklyPilots: async (_, { filter }) => {
-    const limit = Math.min(filter?.limit ?? 100, 100);
-    const today = new Date().toISOString().split('T')[0];
-    const weekStart = filter?.weekStart
-      ? getWeekMonday(filter.weekStart)
-      : getWeekMonday(today);
-
-    const cacheKey = `leaderboard:topWeeklyPilots:${weekStart}:${limit}`;
-    const cached = await redis.get(cacheKey);
-    if (cached) return JSON.parse(cached);
-
-    type Row = { character_id: number; kill_count: bigint };
-    const rows = await prisma.$queryRaw<Row[]>`
-      SELECT character_id, SUM(kill_count) AS kill_count
-      FROM   character_kill_stats
-      WHERE  kill_date >= ${weekStart}::date
-        AND  kill_date <  (${weekStart}::date + INTERVAL '7 days')
-      GROUP  BY character_id
-      ORDER  BY kill_count DESC
-      LIMIT  ${limit}
-    `;
-
-    if (rows.length === 0) return [];
-
-    const characterIds = rows.map((r) => r.character_id);
-    const characters = await prisma.character.findMany({
-      where: { id: { in: characterIds } },
-    });
-    const charMap = new Map(characters.map((c) => [c.id, c]));
-
-    const currentWeekStart = getWeekMonday(today);
-    const isCurrentWeek = weekStart === currentWeekStart;
-
-    const result = rows.map((row, idx) => {
-      const char = charMap.get(row.character_id);
-      return {
-        rank: idx + 1,
-        killCount: Number(row.kill_count),
-        character: char
-          ? {
-              ...char,
-              securityStatus: char.security_status ?? null,
-              birthday: char.birthday.toISOString(),
-              updatedAt: char.updated_at?.toISOString() ?? null,
-            }
-          : null,
-      };
-    });
-
-    await redis.setex(
-      cacheKey,
-      isCurrentWeek ? 300 : 3600,
-      JSON.stringify(result),
-    );
-    return result;
-  },
-
   topPilots: async (_, { filter }) => {
     const limit = Math.min(filter?.limit ?? 100, 100);
-    const targetDate = filter?.date ?? new Date().toISOString().split('T')[0];
-
-    const cacheKey = `leaderboard:topPilots:${targetDate}:${limit}`;
-
-    const cached = await redis.get(cacheKey);
-    if (cached) {
-      return JSON.parse(cached);
-    }
-
-    // Fast leaderboard read from the character_kill_stats table
-    // Index: idx_character_kill_stats_date_count → (kill_date, kill_count DESC)
-    type Row = { character_id: number; kill_count: number };
-
-    const rows = await prisma.$queryRaw<Row[]>`
-            SELECT character_id, kill_count
-            FROM   character_kill_stats
-            WHERE  kill_date = ${targetDate}::date
-            ORDER  BY kill_count DESC
-            LIMIT  ${limit}
-        `;
-
-    if (rows.length === 0) {
-      return [];
-    }
-
-    // Load full character rows in a single query
-    const characterIds = rows.map((r) => r.character_id);
-    const characters = await prisma.character.findMany({
-      where: { id: { in: characterIds } },
-    });
-
-    const charMap = new Map(characters.map((c) => [c.id, c]));
-
-    const result = rows.map((row, idx) => {
-      const char = charMap.get(row.character_id);
-      return {
-        rank: idx + 1,
-        killCount: row.kill_count,
-        character: char
-          ? {
-              ...char,
-              securityStatus: char.security_status ?? null,
-              birthday: char.birthday.toISOString(),
-              updatedAt: char.updated_at?.toISOString() ?? null,
-            }
-          : null,
-      };
-    });
-
-    // Cache 5 minutes for today (next mv refresh will supersede anyway),
-    // 1 hour for past dates (those never change)
-    const isToday = targetDate === new Date().toISOString().split('T')[0];
-    await redis.setex(cacheKey, isToday ? 300 : 3600, JSON.stringify(result));
-
-    return result;
-  },
-
-  topLast7DaysPilots: async (_, { filter }) => {
-    const limit = Math.min(filter?.limit ?? 100, 100);
-    const today = new Date().toISOString().split('T')[0];
+    const period = filter?.period ?? LeaderboardPeriod.Last_7Days;
+    const { startDate, endDate, cacheTtl, cacheAnchor } = resolvePeriod(
+      period,
+      filter?.anchor,
+    );
     const systemId = filter?.systemId;
     const constellationId = filter?.constellationId;
     const regionId = filter?.regionId;
 
-    const cacheKey = `leaderboard:topLast7DaysPilots:${today}:${limit}:${systemId || ''}:${constellationId || ''}:${regionId || ''}`;
+    const cacheKey = `leaderboard:topPilots:${period}:${cacheAnchor}:${limit}:${systemId || ''}:${constellationId || ''}:${regionId || ''}`;
     const cached = await redis.get(cacheKey);
     if (cached) return JSON.parse(cached);
 
@@ -149,13 +37,14 @@ export const leaderboardQueries: QueryResolvers = {
     let rows: Row[];
 
     if (systemId || constellationId || regionId) {
-      // Query with spatial filter - join with killmail_filters
+      // Shape B: the daily stats table carries no location, so a spatial
+      // filter has to go back to the killmails themselves.
       rows = await prisma.$queryRaw<Row[]>`
         SELECT a.character_id, COUNT(DISTINCT kf.killmail_id)::BIGINT AS kill_count
         FROM attackers a
         INNER JOIN killmail_filters kf ON kf.killmail_id = a.killmail_id
-        WHERE kf.killmail_time >= (${today}::date - INTERVAL '6 days')
-          AND kf.killmail_time <= ${today}::date + INTERVAL '1 day'
+        WHERE kf.killmail_time >= ${startDate}::date
+          AND kf.killmail_time <  ${endDate}::date + INTERVAL '1 day'
           AND a.character_id IS NOT NULL
           ${systemId ? Prisma.sql`AND kf.solar_system_id = ${systemId}` : Prisma.empty}
           ${constellationId ? Prisma.sql`AND kf.constellation_id = ${constellationId}` : Prisma.empty}
@@ -165,12 +54,12 @@ export const leaderboardQueries: QueryResolvers = {
         LIMIT ${limit}
       `;
     } else {
-      // Original query from stats table
+      // Shape A: pre-aggregated daily counts, one index scan.
       rows = await prisma.$queryRaw<Row[]>`
-        SELECT character_id, SUM(kill_count) AS kill_count
+        SELECT character_id, SUM(kill_count)::BIGINT AS kill_count
         FROM   character_kill_stats
-        WHERE  kill_date >= (${today}::date - INTERVAL '6 days')
-          AND  kill_date <= ${today}::date
+        WHERE  kill_date >= ${startDate}::date
+          AND  kill_date <= ${endDate}::date
         GROUP  BY character_id
         ORDER  BY kill_count DESC
         LIMIT  ${limit}
@@ -201,118 +90,7 @@ export const leaderboardQueries: QueryResolvers = {
       };
     });
 
-    // Cache 5 minutes (rolling data - refreshes daily)
-    await redis.setex(cacheKey, 300, JSON.stringify(result));
-    return result;
-  },
-
-  top90DaysPilots: async (_, { filter }) => {
-    const limit = Math.min(filter?.limit ?? 100, 100);
-    const today = new Date().toISOString().split('T')[0];
-
-    const cacheKey = `leaderboard:top90DaysPilots:${today}:${limit}`;
-    const cached = await redis.get(cacheKey);
-    if (cached) return JSON.parse(cached);
-
-    type Row = { character_id: number; kill_count: bigint };
-    const rows = await prisma.$queryRaw<Row[]>`
-      SELECT character_id, SUM(kill_count) AS kill_count
-      FROM   character_kill_stats
-      WHERE  kill_date >= (${today}::date - INTERVAL '89 days')
-      GROUP  BY character_id
-      ORDER  BY kill_count DESC
-      LIMIT  ${limit}
-    `;
-
-    if (rows.length === 0) return [];
-
-    const characterIds = rows.map((r) => r.character_id);
-    const characters = await prisma.character.findMany({
-      where: { id: { in: characterIds } },
-    });
-    const charMap = new Map(characters.map((c) => [c.id, c]));
-
-    const result = rows.map((row, idx) => {
-      const char = charMap.get(row.character_id);
-      return {
-        rank: idx + 1,
-        killCount: Number(row.kill_count),
-        character: char
-          ? {
-              ...char,
-              securityStatus: char.security_status ?? null,
-              birthday: char.birthday.toISOString(),
-              updatedAt: char.updated_at?.toISOString() ?? null,
-            }
-          : null,
-      };
-    });
-
-    // Cache 5 minutes (refreshes with MV)
-    await redis.setex(cacheKey, 300, JSON.stringify(result));
-    return result;
-  },
-
-  topMonthlyPilots: async (_, { filter }) => {
-    const limit = Math.min(filter?.limit ?? 100, 100);
-    const today = new Date();
-    const defaultMonth = `${today.getUTCFullYear()}-${String(today.getUTCMonth() + 1).padStart(2, '0')}`;
-    const targetMonth = filter?.month ?? defaultMonth;
-
-    // Derive first day of the month and first day of the next month
-    const [year, month] = targetMonth.split('-').map(Number);
-    const monthStart = `${year}-${String(month).padStart(2, '0')}-01`;
-    const nextMonthStart =
-      month === 12
-        ? `${year + 1}-01-01`
-        : `${year}-${String(month + 1).padStart(2, '0')}-01`;
-
-    const cacheKey = `leaderboard:topMonthlyPilots:${targetMonth}:${limit}`;
-    const cached = await redis.get(cacheKey);
-    if (cached) return JSON.parse(cached);
-
-    type Row = { character_id: number; kill_count: bigint };
-    const rows = await prisma.$queryRaw<Row[]>`
-      SELECT character_id, SUM(kill_count) AS kill_count
-      FROM   character_kill_stats
-      WHERE  kill_date >= ${monthStart}::date
-        AND  kill_date <  ${nextMonthStart}::date
-      GROUP  BY character_id
-      ORDER  BY kill_count DESC
-      LIMIT  ${limit}
-    `;
-
-    if (rows.length === 0) return [];
-
-    const characterIds = rows.map((r) => r.character_id);
-    const characters = await prisma.character.findMany({
-      where: { id: { in: characterIds } },
-    });
-    const charMap = new Map(characters.map((c) => [c.id, c]));
-
-    const isCurrentMonth = targetMonth === defaultMonth;
-
-    const result = rows.map((row, idx) => {
-      const char = charMap.get(row.character_id);
-      return {
-        rank: idx + 1,
-        killCount: Number(row.kill_count),
-        character: char
-          ? {
-              ...char,
-              securityStatus: char.security_status ?? null,
-              birthday: char.birthday.toISOString(),
-              updatedAt: char.updated_at?.toISOString() ?? null,
-            }
-          : null,
-      };
-    });
-
-    await redis.setex(
-      cacheKey,
-      isCurrentMonth ? 300 : 3600,
-      JSON.stringify(result),
-    );
+    await redis.setex(cacheKey, cacheTtl, JSON.stringify(result));
     return result;
   },
 

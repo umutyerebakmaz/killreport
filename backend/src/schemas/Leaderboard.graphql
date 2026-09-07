@@ -32,89 +32,6 @@ type TopPilot {
   character: Character
 }
 
-input TopPilotsFilter {
-  """
-  ISO date string YYYY-MM-DD; defaults to today (UTC)
-  """
-  date: String
-  """
-  Max 100; default 100
-  """
-  limit: Int
-}
-
-type TopWeeklyPilot {
-  rank: Int!
-  killCount: Int!
-  character: Character
-}
-
-input TopWeeklyPilotsFilter {
-  """
-  ISO date string YYYY-MM-DD for the Monday (start) of the week; defaults to current week's Monday (UTC)
-  """
-  weekStart: String
-  """
-  Max 100; default 100
-  """
-  limit: Int
-}
-
-type TopMonthlyPilot {
-  rank: Int!
-  killCount: Int!
-  character: Character
-}
-
-input TopMonthlyPilotsFilter {
-  """
-  Year-month string YYYY-MM; defaults to current month (UTC)
-  """
-  month: String
-  """
-  Max 100; default 100
-  """
-  limit: Int
-}
-
-type Top90DaysPilot {
-  rank: Int!
-  killCount: Int!
-  character: Character
-}
-
-input Top90DaysPilotsFilter {
-  """
-  Max 100; default 100
-  """
-  limit: Int
-}
-
-type TopLast7DaysPilot {
-  rank: Int!
-  killCount: Int!
-  character: Character
-}
-
-input TopLast7DaysPilotsFilter {
-  """
-  Max 100; default 100
-  """
-  limit: Int
-  """
-  Filter by region ID
-  """
-  regionId: Int
-  """
-  Filter by constellation ID
-  """
-  constellationId: Int
-  """
-  Filter by solar system ID
-  """
-  systemId: Int
-}
-
 type TopLast7DaysCorporation {
   rank: Int!
   killCount: Int!
@@ -205,19 +122,9 @@ input TopLast7DaysAttackerShipsFilter {
 
 extend type Query {
   """
-  Returns top pilots ranked by kill count for a given day (default: today)
+  Top pilots by kill count over the window named by filter.period.
   """
-  topPilots(filter: TopPilotsFilter): [TopPilot!]!
-
-  """
-  Returns top pilots ranked by total kill count for a given week (Mon–Sun); defaults to current week
-  """
-  topWeeklyPilots(filter: TopWeeklyPilotsFilter): [TopWeeklyPilot!]!
-
-  """
-  Returns top pilots ranked by total kill count over the last 7 days (rolling window, today - 6 days)
-  """
-  topLast7DaysPilots(filter: TopLast7DaysPilotsFilter): [TopLast7DaysPilot!]!
+  topPilots(filter: TopFilter): [TopPilot!]!
 
   """
   Returns top corporations ranked by total kill count over the last 7 days (rolling window, today - 6 days)
@@ -244,14 +151,4 @@ extend type Query {
   topLast7DaysAttackerShips(
     filter: TopLast7DaysAttackerShipsFilter
   ): [TopLast7DaysAttackerShip!]!
-
-  """
-  Returns top pilots ranked by total kill count over the last 90 days (rolling window)
-  """
-  top90DaysPilots(filter: Top90DaysPilotsFilter): [Top90DaysPilot!]!
-
-  """
-  Returns top pilots ranked by total kill count for a given calendar month (default: current month)
-  """
-  topMonthlyPilots(filter: TopMonthlyPilotsFilter): [TopMonthlyPilot!]!
 }

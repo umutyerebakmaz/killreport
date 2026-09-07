@@ -1,4 +1,4 @@
-query TopPilots($filter: TopPilotsFilter) {
+query TopPilots($filter: TopFilter) {
   topPilots(filter: $filter) {
     rank
     killCount

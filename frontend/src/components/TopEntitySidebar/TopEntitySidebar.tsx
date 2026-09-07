@@ -5,10 +5,11 @@ import TopCharacterCard from '@/components/TopCharacterCard/TopCharacterCard';
 import TopCorporationCard from '@/components/TopCorporationCard/TopCorporationCard';
 import TopShipsCard from '@/components/TopShipsCard/TopShipsCard';
 import {
+  LeaderboardPeriod,
+  useTopPilotsQuery,
   useTopLast7DaysAlliancesQuery,
   useTopLast7DaysAttackerShipsQuery,
   useTopLast7DaysCorporationsQuery,
-  useTopLast7DaysPilotsQuery,
   useTopLast7DaysShipsQuery,
 } from '@/generated/graphql';
 
@@ -53,8 +54,10 @@ export default function TopEntitySidebar({
   // requested: hooks cannot be called from inside the cards.map() below.
   const has = (kind: TopEntityCardKind) => cards.some((c) => c.kind === kind);
 
-  const { data: pilots, loading: pilotsLoading } = useTopLast7DaysPilotsQuery({
-    variables,
+  const { data: pilots, loading: pilotsLoading } = useTopPilotsQuery({
+    variables: {
+      filter: { period: LeaderboardPeriod.Last_7Days, ...variables.filter },
+    },
     skip: !has('characters'),
   });
   const { data: corporations, loading: corporationsLoading } =
@@ -85,7 +88,7 @@ export default function TopEntitySidebar({
                 title={card.title}
                 subtitle={LAST_7_DAYS}
                 characters={
-                  pilots?.topLast7DaysPilots?.map((pilot) => ({
+                  pilots?.topPilots?.map((pilot) => ({
                     id: pilot.character?.id || 0,
                     name: pilot.character?.name || 'Unknown',
                     killCount: pilot.killCount,
