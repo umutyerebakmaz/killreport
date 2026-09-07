@@ -432,6 +432,14 @@ type DogmaEffectsResponse {
   pageInfo: PageInfo!
 }
 
+type Faction {
+  corporationId: Int
+  description: String
+  id: Int!
+  militiaCorporationId: Int
+  name: String!
+}
+
 """
 Organized fitting data for a ship
 Groups modules, rigs, and subsystems by their slot types
@@ -757,6 +765,8 @@ type Query {
   dogmaAttributes(filter: DogmaAttributeFilter): DogmaAttributesResponse!
   dogmaEffect(id: Int!): DogmaEffect
   dogmaEffects(filter: DogmaEffectFilter): DogmaEffectsResponse!
+  faction(id: Int!): Faction
+  factions: [Faction!]!
   itemGroup(id: Int!): ItemGroup
   itemGroups(filter: ItemGroupFilter): ItemGroupsResponse!
 
@@ -853,8 +863,21 @@ type Query {
   """Ships destroyed most often over the window named by filter.period."""
   topDestroyedShips(filter: TopFilter): [TopShip!]!
 
+  """
+  Factions whose members scored the most kills over the window named by
+  filter.period. Counts distinct killmails, so a twenty-strong militia fleet
+  counts once for that kill.
+  """
+  topFactions(filter: TopFilter): [TopFaction!]!
+
   """Top pilots by kill count over the window named by filter.period."""
   topPilots(filter: TopFilter): [TopPilot!]!
+
+  """Regions with the most kills over the window named by filter.period."""
+  topRegions(filter: TopFilter): [TopRegion!]!
+
+  """Systems with the most kills over the window named by filter.period."""
+  topSystems(filter: TopFilter): [TopSystem!]!
   type(id: Int!): Type
   types(filter: TypeFilter): TypesResponse!
   user(id: ID!): User
@@ -1452,6 +1475,12 @@ type TopCorporation {
   rank: Int!
 }
 
+type TopFaction {
+  faction: Faction
+  killCount: Int!
+  rank: Int!
+}
+
 input TopFilter {
   """
   Anchors the period. YYYY-MM-DD for TODAY, any day of the target week for
@@ -1476,10 +1505,22 @@ type TopPilot {
   rank: Int!
 }
 
+type TopRegion {
+  killCount: Int!
+  rank: Int!
+  region: Region
+}
+
 type TopShip {
   killCount: Int!
   rank: Int!
   shipType: Type
+}
+
+type TopSystem {
+  killCount: Int!
+  rank: Int!
+  solarSystem: SolarSystem
 }
 
 enum TopTargetFilter {

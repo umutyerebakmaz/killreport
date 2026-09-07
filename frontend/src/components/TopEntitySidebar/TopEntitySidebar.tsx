@@ -3,7 +3,10 @@
 import TopAllianceCard from '@/components/TopAllianceCard/TopAllianceCard';
 import TopCharacterCard from '@/components/TopCharacterCard/TopCharacterCard';
 import TopCorporationCard from '@/components/TopCorporationCard/TopCorporationCard';
+import TopFactionsCard from '@/components/TopFactionsCard/TopFactionsCard';
+import TopRegionsCard from '@/components/TopRegionsCard/TopRegionsCard';
 import TopShipsCard from '@/components/TopShipsCard/TopShipsCard';
+import TopSystemsCard from '@/components/TopSystemsCard/TopSystemsCard';
 import {
   LeaderboardPeriod,
   useTopPilotsQuery,
@@ -11,6 +14,9 @@ import {
   useTopAttackerShipsQuery,
   useTopCorporationsQuery,
   useTopDestroyedShipsQuery,
+  useTopFactionsQuery,
+  useTopRegionsQuery,
+  useTopSystemsQuery,
 } from '@/generated/graphql';
 
 /**
@@ -28,7 +34,14 @@ export interface TopEntityFilter {
 }
 
 export type TopEntityCardKind =
-  'characters' | 'corporations' | 'alliances' | 'attackerShips' | 'ships';
+  | 'characters'
+  | 'corporations'
+  | 'alliances'
+  | 'factions'
+  | 'attackerShips'
+  | 'ships'
+  | 'systems'
+  | 'regions';
 
 export interface TopEntityCardSpec {
   kind: TopEntityCardKind;
@@ -49,43 +62,48 @@ export default function TopEntitySidebar({
   cards,
 }: TopEntitySidebarProps) {
   const { limit = 10, ...scope } = filter ?? {};
-  const variables = { filter: { limit, ...scope } };
+  // One filter object for every query in this sidebar. Keeping it shared is
+  // deliberate: it is what makes a card that silently stops accepting the
+  // page's scope impossible rather than merely unlikely.
+  const filterVars = { ...scope, limit, period: LeaderboardPeriod.Last_7Days };
 
   // Every hook is called unconditionally and skipped when its card is not
   // requested: hooks cannot be called from inside the cards.map() below.
   const has = (kind: TopEntityCardKind) => cards.some((c) => c.kind === kind);
 
   const { data: pilots, loading: pilotsLoading } = useTopPilotsQuery({
-    variables: {
-      filter: { ...variables.filter, period: LeaderboardPeriod.Last_7Days },
-    },
+    variables: { filter: filterVars },
     skip: !has('characters'),
   });
   const { data: corporations, loading: corporationsLoading } =
     useTopCorporationsQuery({
-      variables: {
-        filter: { ...variables.filter, period: LeaderboardPeriod.Last_7Days },
-      },
+      variables: { filter: filterVars },
       skip: !has('corporations'),
     });
   const { data: alliances, loading: alliancesLoading } = useTopAlliancesQuery({
-    variables: {
-      filter: { ...variables.filter, period: LeaderboardPeriod.Last_7Days },
-    },
+    variables: { filter: filterVars },
     skip: !has('alliances'),
+  });
+  const { data: factions, loading: factionsLoading } = useTopFactionsQuery({
+    variables: { filter: filterVars },
+    skip: !has('factions'),
   });
   const { data: attackerShips, loading: attackerShipsLoading } =
     useTopAttackerShipsQuery({
-      variables: {
-        filter: { ...variables.filter, period: LeaderboardPeriod.Last_7Days },
-      },
+      variables: { filter: filterVars },
       skip: !has('attackerShips'),
     });
   const { data: ships, loading: shipsLoading } = useTopDestroyedShipsQuery({
-    variables: {
-      filter: { ...variables.filter, period: LeaderboardPeriod.Last_7Days },
-    },
+    variables: { filter: filterVars },
     skip: !has('ships'),
+  });
+  const { data: systems, loading: systemsLoading } = useTopSystemsQuery({
+    variables: { filter: filterVars },
+    skip: !has('systems'),
+  });
+  const { data: regions, loading: regionsLoading } = useTopRegionsQuery({
+    variables: { filter: filterVars },
+    skip: !has('regions'),
   });
 
   return (
@@ -161,6 +179,24 @@ export default function TopEntitySidebar({
               />
             );
 
+          case 'factions':
+            return (
+              <TopFactionsCard
+                key={card.kind}
+                title={card.title}
+                subtitle={LAST_7_DAYS}
+                factions={
+                  factions?.topFactions?.map((entry) => ({
+                    id: entry.faction?.id || 0,
+                    name: entry.faction?.name || 'Unknown',
+                    killCount: entry.killCount,
+                  })) || []
+                }
+                loading={factionsLoading}
+                emptyText={card.emptyText}
+              />
+            );
+
           // Ships flown by the attackers, as opposed to the ships that died.
           case 'attackerShips':
             return (
@@ -196,6 +232,44 @@ export default function TopEntitySidebar({
                   })) || []
                 }
                 loading={shipsLoading}
+                emptyText={card.emptyText}
+              />
+            );
+
+          case 'systems':
+            return (
+              <TopSystemsCard
+                key={card.kind}
+                title={card.title}
+                subtitle={LAST_7_DAYS}
+                systems={
+                  systems?.topSystems?.map((entry) => ({
+                    id: entry.solarSystem?.id || 0,
+                    name: entry.solarSystem?.name || 'Unknown',
+                    killCount: entry.killCount,
+                    securityStatus: entry.solarSystem?.securityStatus,
+                    regionName: entry.solarSystem?.constellation?.region?.name,
+                  })) || []
+                }
+                loading={systemsLoading}
+                emptyText={card.emptyText}
+              />
+            );
+
+          case 'regions':
+            return (
+              <TopRegionsCard
+                key={card.kind}
+                title={card.title}
+                subtitle={LAST_7_DAYS}
+                regions={
+                  regions?.topRegions?.map((entry) => ({
+                    id: entry.region?.id || 0,
+                    name: entry.region?.name || 'Unknown',
+                    killCount: entry.killCount,
+                  })) || []
+                }
+                loading={regionsLoading}
                 emptyText={card.emptyText}
               />
             );

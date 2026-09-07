@@ -50,6 +50,24 @@ type TopShip {
   shipType: Type
 }
 
+type TopSystem {
+  rank: Int!
+  killCount: Int!
+  solarSystem: SolarSystem
+}
+
+type TopRegion {
+  rank: Int!
+  killCount: Int!
+  region: Region
+}
+
+type TopFaction {
+  rank: Int!
+  killCount: Int!
+  faction: Faction
+}
+
 extend type Query {
   """
   Top pilots by kill count over the window named by filter.period.
@@ -76,4 +94,21 @@ extend type Query {
   Counts attacker rows, so a five-ship fleet counts five.
   """
   topAttackerShips(filter: TopFilter): [TopShip!]!
+
+  """
+  Systems with the most kills over the window named by filter.period.
+  """
+  topSystems(filter: TopFilter): [TopSystem!]!
+
+  """
+  Regions with the most kills over the window named by filter.period.
+  """
+  topRegions(filter: TopFilter): [TopRegion!]!
+
+  """
+  Factions whose members scored the most kills over the window named by
+  filter.period. Counts distinct killmails, so a twenty-strong militia fleet
+  counts once for that kill.
+  """
+  topFactions(filter: TopFilter): [TopFaction!]!
 }

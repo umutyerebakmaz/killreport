@@ -44,6 +44,11 @@ const SIDEBAR_CARDS: TopEntityCardSpec[] = [
     emptyText: 'No alliance data available',
   },
   {
+    kind: 'factions',
+    title: 'Most Active Factions',
+    emptyText: 'No faction data available',
+  },
+  {
     kind: 'attackerShips',
     title: 'Most Used Ships',
     emptyText: 'No ship data available',
@@ -52,6 +57,16 @@ const SIDEBAR_CARDS: TopEntityCardSpec[] = [
     kind: 'ships',
     title: 'Most Killed Ships',
     emptyText: 'No ship data available',
+  },
+  {
+    kind: 'systems',
+    title: 'Most Active Systems',
+    emptyText: 'No system data available',
+  },
+  {
+    kind: 'regions',
+    title: 'Most Active Regions',
+    emptyText: 'No region data available',
   },
 ];
 
