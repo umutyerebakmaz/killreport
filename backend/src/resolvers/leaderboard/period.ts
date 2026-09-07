@@ -59,6 +59,11 @@ export function resolvePeriod(
   now: Date = new Date(),
 ): ResolvedPeriod {
   const today = toDate(now);
+  // Whenever the caller supplied the field at all — not merely a truthy one —
+  // it must be validated, and the fallback must be derived from the same
+  // condition so the two can't drift apart. `anchor ?? today` alone would let
+  // an empty string skip validation and survive into `startDate`.
+  const hasAnchor = anchor !== undefined && anchor !== null;
 
   let startDate: string;
   let endDate: string;
@@ -66,24 +71,24 @@ export function resolvePeriod(
 
   switch (period) {
     case LeaderboardPeriod.Today: {
-      if (anchor) requireFormat(anchor, DATE, period, 'YYYY-MM-DD');
-      startDate = anchor ?? today;
+      if (hasAnchor) requireFormat(anchor, DATE, period, 'YYYY-MM-DD');
+      startDate = hasAnchor ? anchor : today;
       endDate = startDate;
       cacheAnchor = startDate;
       break;
     }
 
     case LeaderboardPeriod.Week: {
-      if (anchor) requireFormat(anchor, DATE, period, 'YYYY-MM-DD');
-      startDate = getWeekMonday(anchor ?? today);
+      if (hasAnchor) requireFormat(anchor, DATE, period, 'YYYY-MM-DD');
+      startDate = getWeekMonday(hasAnchor ? anchor : today);
       endDate = addDays(startDate, 6);
       cacheAnchor = startDate;
       break;
     }
 
     case LeaderboardPeriod.Month: {
-      if (anchor) requireFormat(anchor, MONTH, period, 'YYYY-MM');
-      const month = anchor ?? today.slice(0, 7);
+      if (hasAnchor) requireFormat(anchor, MONTH, period, 'YYYY-MM');
+      const month = hasAnchor ? anchor : today.slice(0, 7);
       startDate = `${month}-01`;
       // Day 0 of the following month is the last day of this one, which also
       // gets February right in a leap year.

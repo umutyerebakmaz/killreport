@@ -149,4 +149,31 @@ describe('resolvePeriod rejects a malformed anchor', () => {
       /anchor/i,
     );
   });
+
+  it('throws when TODAY gets an empty string', () => {
+    expect(() => resolvePeriod(LeaderboardPeriod.Today, '', NOW)).toThrow(
+      /anchor/i,
+    );
+  });
+
+  it('throws when WEEK gets an empty string', () => {
+    expect(() => resolvePeriod(LeaderboardPeriod.Week, '', NOW)).toThrow(
+      /anchor/i,
+    );
+  });
+
+  it('throws when MONTH gets an empty string', () => {
+    expect(() => resolvePeriod(LeaderboardPeriod.Month, '', NOW)).toThrow(
+      /anchor/i,
+    );
+  });
+
+  it('still falls back to today when the anchor is undefined or null', () => {
+    expect(resolvePeriod(LeaderboardPeriod.Today, undefined, NOW).startDate).toBe(
+      '2026-09-09',
+    );
+    expect(resolvePeriod(LeaderboardPeriod.Today, null, NOW).startDate).toBe(
+      '2026-09-09',
+    );
+  });
 });
