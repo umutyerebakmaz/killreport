@@ -118,6 +118,22 @@ as `topAttackerShips` — there is exactly one victim per killmail, so counting
 rows and counting distinct killmails come out identical here and the
 distinction that matters for Shape B doesn't arise.
 
+**A note on joining `killmail_filters` instead of `killmails`.** Shapes B and C
+both read `killmail_filters`, not the `killmails` table itself. That row is
+written by `insertKillmailFilter` in
+`backend/src/services/killmail-filters-realtime.ts`, which runs on
+`prismaWorker`, **outside** the killmail's own save transaction, and catches
+and logs its own failures rather than propagating them. `topPilots`,
+`topCorporations` and `topAlliances` already depended on this table for their
+spatially-filtered branch before this refactor, so `topAttackerShips` joining
+it too (Shape B, unconditionally) is a consistency gain, not a new pattern.
+It is, however, a new failure mode for `topAttackerShips` specifically: before
+this refactor it joined `killmails` directly, which is authoritative by
+comparison; now a killmail whose filter row failed to write vanishes silently
+from "Most Used Ships" (`topAttackerShips`) rather than surfacing as an error.
+Coverage was 27,859 / 27,859 at the time of writing, so this is a latent risk
+to keep in mind rather than an observed gap.
+
 ---
 
 ## Architecture: Real-Time Aggregation (Shape A)
@@ -208,12 +224,16 @@ anchor is rounded back to its Monday by `getWeekMonday()`.
 ```sql
 SELECT character_id, SUM(kill_count)::BIGINT AS kill_count
 FROM   character_kill_stats
-WHERE  kill_date >= $mondayOfWeek::date
-  AND  kill_date <= $mondayOfWeek::date + INTERVAL '6 days'
+WHERE  kill_date >= $startDate::date
+  AND  kill_date <= $endDate::date
 GROUP  BY character_id
 ORDER  BY kill_count DESC
 LIMIT  $limit
 ```
+
+`$startDate` is the Monday `getWeekMonday()` computes and `$endDate` is that
+Monday plus 6 days, both bound as query parameters — `resolvePeriod()` never
+hands Postgres a `mondayOfWeek` name or leans on `CURRENT_DATE` to find it.
 
 **DB cost:** Range scan over 7 pre-aggregated daily rows per character.
 
@@ -248,12 +268,16 @@ LIMIT  $limit
 ```sql
 SELECT character_id, SUM(kill_count)::BIGINT AS kill_count
 FROM   character_kill_stats
-WHERE  kill_date >= (CURRENT_DATE - INTERVAL '89 days')
-  AND  kill_date <= CURRENT_DATE
+WHERE  kill_date >= $startDate::date
+  AND  kill_date <= $endDate::date
 GROUP  BY character_id
 ORDER  BY kill_count DESC
 LIMIT  $limit
 ```
+
+`$startDate` and `$endDate` are computed in JavaScript by `resolvePeriod()` —
+always from `today - 89 days` to `today` in UTC — and bound as query
+parameters, not read from the database session with `CURRENT_DATE`.
 
 **DB cost:** Range scan over 90 pre-aggregated daily rows per character.
 
@@ -270,12 +294,16 @@ LIMIT  $limit
 ```sql
 SELECT character_id, SUM(kill_count)::BIGINT AS kill_count
 FROM   character_kill_stats
-WHERE  kill_date >= (CURRENT_DATE - INTERVAL '6 days')
-  AND  kill_date <= CURRENT_DATE
+WHERE  kill_date >= $startDate::date
+  AND  kill_date <= $endDate::date
 GROUP  BY character_id
 ORDER  BY kill_count DESC
 LIMIT  $limit
 ```
+
+`$startDate` and `$endDate` are computed in JavaScript by `resolvePeriod()` —
+always from `today - 6 days` to `today` in UTC — and bound as query
+parameters, not read from the database session with `CURRENT_DATE`.
 
 **DB cost:** Range scan over 7 pre-aggregated daily rows per character.
 

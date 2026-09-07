@@ -1465,7 +1465,7 @@ input TopFilter {
   limit: Int
 
   """Defaults to LAST_7_DAYS."""
-  period: LeaderboardPeriod
+  period: LeaderboardPeriod = LAST_7_DAYS
   regionId: Int
   systemId: Int
 }

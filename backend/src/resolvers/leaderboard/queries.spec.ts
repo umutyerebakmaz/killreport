@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
  * The leaderboard resolvers are thin: cache read, one raw query, a batched
@@ -24,6 +24,7 @@ vi.mock('@services/redis', () => ({ default: redis, redis }));
 import { LeaderboardPeriod } from '@generated-types';
 
 import { leaderboardQueries } from './queries';
+import { resolvePeriod } from './period';
 
 /** The SQL text of the nth $queryRaw call, values replaced by "?". */
 function querySql(call = 0) {
@@ -341,6 +342,20 @@ describe('every subject accepts every period', () => {
     [LeaderboardPeriod.Last_90Days, null],
   ] as const;
 
+  // A fixed clock so `resolvePeriod` inside the test and inside the resolver
+  // agree on what "today" is — otherwise a run straddling midnight could
+  // make the two disagree without either being wrong.
+  const NOW = new Date('2026-09-09T11:30:00.000Z');
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   for (const subject of SUBJECTS) {
     for (const [period] of PERIODS) {
       it(`${subject} over ${period}`, async () => {
@@ -352,6 +367,14 @@ describe('every subject accepts every period', () => {
         expect(prisma.$queryRaw).toHaveBeenCalledOnce();
         const [key] = redis.get.mock.calls[0];
         expect(key).toContain(`:${period}:`);
+
+        // Not just the cache key — the actual startDate resolvePeriod
+        // produced must be one of the values bound into the SQL. A resolver
+        // that keyed the cache correctly but bound `cacheAnchor` (or a bare
+        // `today`) instead would pass the assertions above while silently
+        // serving the wrong window.
+        const { startDate } = resolvePeriod(period, null, NOW);
+        expect(queryValues()).toContain(startDate);
       });
     }
   }

@@ -53,6 +53,40 @@ function requireFormat(
   }
 }
 
+/**
+ * True only if `dateStr` (YYYY-MM-DD) names a date that actually exists.
+ * `DATE`/`MONTH` above check shape, not calendar validity, and `new
+ * Date(...)` does not reliably reject an out-of-range one either: a bad
+ * month (e.g. '2026-13-01') does become `Invalid Date`, but a bad
+ * day-of-month (e.g. '2026-02-30') silently rolls forward into the next
+ * month instead of throwing. Round-tripping through `toISOString()` and
+ * comparing catches both — a rolled-over date never reproduces its input.
+ */
+function isCalendarDate(dateStr: string): boolean {
+  const d = new Date(`${dateStr}T00:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === dateStr;
+}
+
+/**
+ * Validates that `dateStr` is a real calendar date, reporting the error
+ * against `displayAnchor` (the caller-supplied anchor, which for MONTH is
+ * not the same string as `dateStr`). Called before `getWeekMonday` so a
+ * rolled-over day-of-month is rejected instead of silently naming the wrong
+ * week, and before any anchor reaches a raw SQL query.
+ */
+function requireCalendarDate(
+  dateStr: string,
+  displayAnchor: string,
+  period: LeaderboardPeriod,
+  shape: string,
+): void {
+  if (!isCalendarDate(dateStr)) {
+    throw new Error(
+      `Invalid anchor "${displayAnchor}" for period ${period}: expected ${shape}.`,
+    );
+  }
+}
+
 export function resolvePeriod(
   period: LeaderboardPeriod,
   anchor?: string | null,
@@ -71,7 +105,10 @@ export function resolvePeriod(
 
   switch (period) {
     case LeaderboardPeriod.Today: {
-      if (hasAnchor) requireFormat(anchor, DATE, period, 'YYYY-MM-DD');
+      if (hasAnchor) {
+        requireFormat(anchor, DATE, period, 'YYYY-MM-DD');
+        requireCalendarDate(anchor, anchor, period, 'YYYY-MM-DD');
+      }
       startDate = hasAnchor ? anchor : today;
       endDate = startDate;
       cacheAnchor = startDate;
@@ -79,7 +116,10 @@ export function resolvePeriod(
     }
 
     case LeaderboardPeriod.Week: {
-      if (hasAnchor) requireFormat(anchor, DATE, period, 'YYYY-MM-DD');
+      if (hasAnchor) {
+        requireFormat(anchor, DATE, period, 'YYYY-MM-DD');
+        requireCalendarDate(anchor, anchor, period, 'YYYY-MM-DD');
+      }
       startDate = getWeekMonday(hasAnchor ? anchor : today);
       endDate = addDays(startDate, 6);
       cacheAnchor = startDate;
@@ -89,6 +129,7 @@ export function resolvePeriod(
     case LeaderboardPeriod.Month: {
       if (hasAnchor) requireFormat(anchor, MONTH, period, 'YYYY-MM');
       const month = hasAnchor ? anchor : today.slice(0, 7);
+      if (hasAnchor) requireCalendarDate(`${month}-01`, anchor, period, 'YYYY-MM');
       startDate = `${month}-01`;
       // Day 0 of the following month is the last day of this one, which also
       // gets February right in a leap year.

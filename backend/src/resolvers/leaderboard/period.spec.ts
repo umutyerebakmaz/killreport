@@ -176,4 +176,37 @@ describe('resolvePeriod rejects a malformed anchor', () => {
       '2026-09-09',
     );
   });
+
+  // The DATE/MONTH regexes check shape, not whether the date actually
+  // exists on the calendar — '2026-02-30' and '2026-13' both match their
+  // pattern. Left unchecked, `new Date(...)` doesn't reliably reject them
+  // either: it silently rolls a bad day-of-month into the next month rather
+  // than throwing, which would hand back a window for the wrong week/day
+  // instead of an error.
+  it('throws when TODAY gets a day that does not exist', () => {
+    expect(() =>
+      resolvePeriod(LeaderboardPeriod.Today, '2026-02-30', NOW),
+    ).toThrow(/anchor/i);
+  });
+
+  it('throws when WEEK gets a day that does not exist', () => {
+    expect(() =>
+      resolvePeriod(LeaderboardPeriod.Week, '2026-02-30', NOW),
+    ).toThrow(/anchor/i);
+  });
+
+  it('throws when MONTH gets a month that does not exist', () => {
+    expect(() => resolvePeriod(LeaderboardPeriod.Month, '2026-13', NOW)).toThrow(
+      /anchor/i,
+    );
+  });
+
+  it('still accepts a real leap day', () => {
+    expect(
+      resolvePeriod(LeaderboardPeriod.Today, '2024-02-29', NOW).startDate,
+    ).toBe('2024-02-29');
+    expect(
+      resolvePeriod(LeaderboardPeriod.Week, '2024-02-29', NOW).startDate,
+    ).toBe('2024-02-26');
+  });
 });
