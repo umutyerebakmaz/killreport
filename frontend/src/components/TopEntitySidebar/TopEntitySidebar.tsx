@@ -5,18 +5,20 @@ import TopCharacterCard from '@/components/TopCharacterCard/TopCharacterCard';
 import TopCorporationCard from '@/components/TopCorporationCard/TopCorporationCard';
 import TopShipsCard from '@/components/TopShipsCard/TopShipsCard';
 import {
-  useTopLast7DaysAlliancesQuery,
-  useTopLast7DaysAttackerShipsQuery,
-  useTopLast7DaysCorporationsQuery,
-  useTopLast7DaysPilotsQuery,
-  useTopLast7DaysShipsQuery,
+  LeaderboardPeriod,
+  useTopPilotsQuery,
+  useTopAlliancesQuery,
+  useTopAttackerShipsQuery,
+  useTopCorporationsQuery,
+  useTopDestroyedShipsQuery,
 } from '@/generated/graphql';
 
 /**
- * The scope the cards are computed over. These are exactly the fields the
- * TopLast7Days* filters accept — there is no allianceId or corporationId, which
- * is why the alliance and corporation pages have their own entity-scoped
- * sidebars rather than using this one.
+ * The scope the cards are computed over. Every hook in this file takes a
+ * TopFilter, and this is the subset of TopFilter's spatial fields the cards
+ * are scoped by — there is no allianceId or corporationId, which is why the
+ * alliance and corporation pages have their own entity-scoped sidebars
+ * rather than using this one.
  */
 export interface TopEntityFilter {
   systemId?: number;
@@ -53,24 +55,36 @@ export default function TopEntitySidebar({
   // requested: hooks cannot be called from inside the cards.map() below.
   const has = (kind: TopEntityCardKind) => cards.some((c) => c.kind === kind);
 
-  const { data: pilots, loading: pilotsLoading } = useTopLast7DaysPilotsQuery({
-    variables,
+  const { data: pilots, loading: pilotsLoading } = useTopPilotsQuery({
+    variables: {
+      filter: { ...variables.filter, period: LeaderboardPeriod.Last_7Days },
+    },
     skip: !has('characters'),
   });
   const { data: corporations, loading: corporationsLoading } =
-    useTopLast7DaysCorporationsQuery({
-      variables,
+    useTopCorporationsQuery({
+      variables: {
+        filter: { ...variables.filter, period: LeaderboardPeriod.Last_7Days },
+      },
       skip: !has('corporations'),
     });
-  const { data: alliances, loading: alliancesLoading } =
-    useTopLast7DaysAlliancesQuery({ variables, skip: !has('alliances') });
+  const { data: alliances, loading: alliancesLoading } = useTopAlliancesQuery({
+    variables: {
+      filter: { ...variables.filter, period: LeaderboardPeriod.Last_7Days },
+    },
+    skip: !has('alliances'),
+  });
   const { data: attackerShips, loading: attackerShipsLoading } =
-    useTopLast7DaysAttackerShipsQuery({
-      variables,
+    useTopAttackerShipsQuery({
+      variables: {
+        filter: { ...variables.filter, period: LeaderboardPeriod.Last_7Days },
+      },
       skip: !has('attackerShips'),
     });
-  const { data: ships, loading: shipsLoading } = useTopLast7DaysShipsQuery({
-    variables,
+  const { data: ships, loading: shipsLoading } = useTopDestroyedShipsQuery({
+    variables: {
+      filter: { ...variables.filter, period: LeaderboardPeriod.Last_7Days },
+    },
     skip: !has('ships'),
   });
 
@@ -85,7 +99,7 @@ export default function TopEntitySidebar({
                 title={card.title}
                 subtitle={LAST_7_DAYS}
                 characters={
-                  pilots?.topLast7DaysPilots?.map((pilot) => ({
+                  pilots?.topPilots?.map((pilot) => ({
                     id: pilot.character?.id || 0,
                     name: pilot.character?.name || 'Unknown',
                     killCount: pilot.killCount,
@@ -116,7 +130,7 @@ export default function TopEntitySidebar({
                 title={card.title}
                 subtitle={LAST_7_DAYS}
                 corporations={
-                  corporations?.topLast7DaysCorporations?.map((corp) => ({
+                  corporations?.topCorporations?.map((corp) => ({
                     id: corp.corporation?.id || 0,
                     name: corp.corporation?.name || 'Unknown',
                     ticker: corp.corporation?.ticker,
@@ -135,7 +149,7 @@ export default function TopEntitySidebar({
                 title={card.title}
                 subtitle={LAST_7_DAYS}
                 alliances={
-                  alliances?.topLast7DaysAlliances?.map((alliance) => ({
+                  alliances?.topAlliances?.map((alliance) => ({
                     id: alliance.alliance?.id || 0,
                     name: alliance.alliance?.name || 'Unknown',
                     ticker: alliance.alliance?.ticker,
@@ -155,7 +169,7 @@ export default function TopEntitySidebar({
                 title={card.title}
                 subtitle={LAST_7_DAYS}
                 ships={
-                  attackerShips?.topLast7DaysAttackerShips?.map((ship) => ({
+                  attackerShips?.topAttackerShips?.map((ship) => ({
                     id: ship.shipType?.id || 0,
                     name: ship.shipType?.name || 'Unknown',
                     killCount: ship.killCount,
@@ -174,7 +188,7 @@ export default function TopEntitySidebar({
                 title={card.title}
                 subtitle={LAST_7_DAYS}
                 ships={
-                  ships?.topLast7DaysShips?.map((ship) => ({
+                  ships?.topDestroyedShips?.map((ship) => ({
                     id: ship.shipType?.id || 0,
                     name: ship.shipType?.name || 'Unknown',
                     killCount: ship.killCount,
