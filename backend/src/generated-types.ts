@@ -987,6 +987,10 @@ export type Query = {
   topDestroyedShips: Array<TopShip>;
   /** Top pilots by kill count over the window named by filter.period. */
   topPilots: Array<TopPilot>;
+  /** Regions with the most kills over the window named by filter.period. */
+  topRegions: Array<TopRegion>;
+  /** Systems with the most kills over the window named by filter.period. */
+  topSystems: Array<TopSystem>;
   type?: Maybe<Type>;
   types: TypesResponse;
   user?: Maybe<User>;
@@ -1318,6 +1322,16 @@ export type QueryTopDestroyedShipsArgs = {
 
 
 export type QueryTopPilotsArgs = {
+  filter?: InputMaybe<TopFilter>;
+};
+
+
+export type QueryTopRegionsArgs = {
+  filter?: InputMaybe<TopFilter>;
+};
+
+
+export type QueryTopSystemsArgs = {
   filter?: InputMaybe<TopFilter>;
 };
 
@@ -1929,11 +1943,25 @@ export type TopPilot = {
   rank: Scalars['Int']['output'];
 };
 
+export type TopRegion = {
+  __typename?: 'TopRegion';
+  killCount: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+  region?: Maybe<Region>;
+};
+
 export type TopShip = {
   __typename?: 'TopShip';
   killCount: Scalars['Int']['output'];
   rank: Scalars['Int']['output'];
   shipType?: Maybe<Type>;
+};
+
+export type TopSystem = {
+  __typename?: 'TopSystem';
+  killCount: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+  solarSystem?: Maybe<SolarSystem>;
 };
 
 export enum TopTargetFilter {
@@ -2258,7 +2286,9 @@ export type ResolversTypes = {
   TopCorporation: ResolverTypeWrapper<TopCorporation>;
   TopFilter: TopFilter;
   TopPilot: ResolverTypeWrapper<TopPilot>;
+  TopRegion: ResolverTypeWrapper<TopRegion>;
   TopShip: ResolverTypeWrapper<TopShip>;
+  TopSystem: ResolverTypeWrapper<TopSystem>;
   TopTargetFilter: TopTargetFilter;
   Type: ResolverTypeWrapper<Type>;
   TypeDogmaAttribute: ResolverTypeWrapper<TypeDogmaAttribute>;
@@ -2398,7 +2428,9 @@ export type ResolversParentTypes = {
   TopCorporation: TopCorporation;
   TopFilter: TopFilter;
   TopPilot: TopPilot;
+  TopRegion: TopRegion;
   TopShip: TopShip;
+  TopSystem: TopSystem;
   Type: Type;
   TypeDogmaAttribute: TypeDogmaAttribute;
   TypeDogmaEffect: TypeDogmaEffect;
@@ -2959,6 +2991,8 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   topDefenders?: Resolver<Array<ResolversTypes['AllianceDefenseRecord']>, ParentType, ContextType, Partial<QueryTopDefendersArgs>>;
   topDestroyedShips?: Resolver<Array<ResolversTypes['TopShip']>, ParentType, ContextType, Partial<QueryTopDestroyedShipsArgs>>;
   topPilots?: Resolver<Array<ResolversTypes['TopPilot']>, ParentType, ContextType, Partial<QueryTopPilotsArgs>>;
+  topRegions?: Resolver<Array<ResolversTypes['TopRegion']>, ParentType, ContextType, Partial<QueryTopRegionsArgs>>;
+  topSystems?: Resolver<Array<ResolversTypes['TopSystem']>, ParentType, ContextType, Partial<QueryTopSystemsArgs>>;
   type?: Resolver<Maybe<ResolversTypes['Type']>, ParentType, ContextType, RequireFields<QueryTypeArgs, 'id'>>;
   types?: Resolver<ResolversTypes['TypesResponse'], ParentType, ContextType, Partial<QueryTypesArgs>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
@@ -3344,10 +3378,22 @@ export type TopPilotResolvers<ContextType = any, ParentType extends ResolversPar
   rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
+export type TopRegionResolvers<ContextType = any, ParentType extends ResolversParentTypes['TopRegion'] = ResolversParentTypes['TopRegion']> = {
+  killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  region?: Resolver<Maybe<ResolversTypes['Region']>, ParentType, ContextType>;
+};
+
 export type TopShipResolvers<ContextType = any, ParentType extends ResolversParentTypes['TopShip'] = ResolversParentTypes['TopShip']> = {
   killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   shipType?: Resolver<Maybe<ResolversTypes['Type']>, ParentType, ContextType>;
+};
+
+export type TopSystemResolvers<ContextType = any, ParentType extends ResolversParentTypes['TopSystem'] = ResolversParentTypes['TopSystem']> = {
+  killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  solarSystem?: Resolver<Maybe<ResolversTypes['SolarSystem']>, ParentType, ContextType>;
 };
 
 export type TypeResolvers<ContextType = any, ParentType extends ResolversParentTypes['Type'] = ResolversParentTypes['Type']> = {
@@ -3513,7 +3559,9 @@ export type Resolvers<ContextType = any> = {
   TopAlliance?: TopAllianceResolvers<ContextType>;
   TopCorporation?: TopCorporationResolvers<ContextType>;
   TopPilot?: TopPilotResolvers<ContextType>;
+  TopRegion?: TopRegionResolvers<ContextType>;
   TopShip?: TopShipResolvers<ContextType>;
+  TopSystem?: TopSystemResolvers<ContextType>;
   Type?: TypeResolvers<ContextType>;
   TypeDogmaAttribute?: TypeDogmaAttributeResolvers<ContextType>;
   TypeDogmaEffect?: TypeDogmaEffectResolvers<ContextType>;
