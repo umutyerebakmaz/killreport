@@ -112,17 +112,18 @@ comment above the `topAttackerShips` query in
 `backend/src/resolvers/leaderboard/queries.ts`. This asymmetry is intentional,
 not an inconsistency to fix.
 
-`topFactions` is the second `COUNT(DISTINCT kf.killmail_id)` user, for the same
+`topFactions` is the fourth `COUNT(DISTINCT kf.killmail_id)` user, for the same
 reason as the three entity leaderboards: a twenty-strong militia fleet on one
 kill must count once for its faction, not twenty times. It is also the only
-query in the codebase with a hardcoded id exclusion —
+leaderboard query with a hardcoded id exclusion —
 `AND a.faction_id <> 500021`. Faction `500021` is ESI's placeholder for "no
 faction"; its name is literally `Unknown` and it has no `corporation_id`, so it
 has no logo and no meaning on a leaderboard. See the comment above the
 `topFactions` query in `backend/src/resolvers/leaderboard/queries.ts`.
 
 **Shape C — `killmail_filters` alone.** Used unconditionally by
-`topDestroyedShips`, which counts victims and has no attacker to join against.
+`topDestroyedShips`, `topSystems` and `topRegions` — none of them has an
+attacker to join against, because what they count lives on the killmail itself.
 Same timestamp-exclusive upper bound as Shape B, and the same plain `COUNT(*)`
 as `topAttackerShips` — there is exactly one victim per killmail, so counting
 rows and counting distinct killmails come out identical here and the
