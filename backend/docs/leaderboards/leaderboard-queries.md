@@ -68,18 +68,55 @@ pre-aggregated table, date-bounded inclusively on both ends
 (`kill_date >= startDate AND kill_date <= endDate`), since the table's primary
 key is `(kill_date, entity_id)` — a date column, not a timestamp.
 
-**Shape B — `attackers ⋈ killmail_filters`.** Used by `topPilots`,
-`topCorporations`, `topAlliances` whenever `systemId`, `constellationId` or
-`regionId` is set (the daily stats tables carry no location, so a spatial filter
-has to go back to the killmails themselves), and unconditionally by
-`topAttackerShips` (which counts attacker rows — a five-ship fleet counts five,
-so it can never be a `SUM` over a pre-aggregated count). Bounded on
+**Shape B — `attackers ⋈ killmail_filters`, counting distinct killmails.**
+Used by `topPilots`, `topCorporations`, `topAlliances` whenever `systemId`,
+`constellationId` or `regionId` is set (the daily stats tables carry no
+location, so a spatial filter has to go back to the killmails themselves), and
+unconditionally by `topAttackerShips` — see the counting rule below for why
+that one query does *not* share this shape's `COUNT(DISTINCT ...)`. Bounded on
 `killmail_time`, a timestamp, so the upper bound is
 `killmail_time < endDate::date + INTERVAL '1 day'` rather than `<=`.
 
+The `topPilots` form of the spatially-filtered branch (`topCorporations` and
+`topAlliances` are identical but for `a.corporation_id` / `a.alliance_id` in
+place of `a.character_id`, straight from
+`backend/src/resolvers/leaderboard/queries.ts`):
+
+```sql
+SELECT a.character_id, COUNT(DISTINCT kf.killmail_id)::BIGINT AS kill_count
+FROM   attackers a
+INNER JOIN killmail_filters kf ON kf.killmail_id = a.killmail_id
+WHERE  kf.killmail_time >= $startDate::date
+  AND  kf.killmail_time <  $endDate::date + INTERVAL '1 day'
+  AND  a.character_id IS NOT NULL
+  -- + optional: AND kf.solar_system_id = $systemId
+  -- + optional: AND kf.constellation_id = $constellationId
+  -- + optional: AND kf.region_id = $regionId
+GROUP  BY a.character_id
+ORDER  BY kill_count DESC
+LIMIT  $limit
+```
+
+**The counting rule, stated once, because it is easy to misread from the SQL
+alone:** an `attackers` row exists per attacker *slot* on a killmail, not per
+killmail — a character who both tackled and landed the final blow owns two
+rows on the same kill. The three entity leaderboards (`topPilots`,
+`topCorporations`, `topAlliances`) must count that kill once, so Shape B uses
+`COUNT(DISTINCT kf.killmail_id)`, and Shape A's pre-aggregated `kill_count`
+column is deduplicated the same way at write time by `kill-stats-realtime.ts`.
+`topAttackerShips` is the deliberate exception: it counts **attacker rows**
+with plain `COUNT(*)`, because its question is "how many pilots flew this
+hull", so a five-Raven fleet on one kill counts as five, not one — see the
+comment above the `topAttackerShips` query in
+`backend/src/resolvers/leaderboard/queries.ts`. This asymmetry is intentional,
+not an inconsistency to fix.
+
 **Shape C — `killmail_filters` alone.** Used unconditionally by
 `topDestroyedShips`, which counts victims and has no attacker to join against.
-Same timestamp-exclusive upper bound as Shape B.
+Same timestamp-exclusive upper bound as Shape B, and the same plain `COUNT(*)`
+as `topAttackerShips` — there is exactly one victim per killmail, so counting
+rows and counting distinct killmails come out identical here and the
+distinction that matters for Shape B doesn't arise.
 
 ---
 
@@ -270,6 +307,11 @@ LIMIT  $limit
 
 **Cache:** 5 minutes while the window includes today, 1 hour once it has fully closed.
 
+**Spatial filter:** passing `systemId`, `constellationId` or `regionId` switches
+this query to Shape B (`attackers ⋈ killmail_filters`, `COUNT(DISTINCT
+kf.killmail_id)`) — see "The three SQL shapes" above for the full query and the
+counting rule.
+
 ---
 
 ### 7. `topAlliances` — Alliance Leaderboard
@@ -289,6 +331,11 @@ LIMIT  $limit
 **DB cost:** Range scan over the daily rows in the requested window, per alliance.
 
 **Cache:** 5 minutes while the window includes today, 1 hour once it has fully closed.
+
+**Spatial filter:** passing `systemId`, `constellationId` or `regionId` switches
+this query to Shape B (`attackers ⋈ killmail_filters`, `COUNT(DISTINCT
+kf.killmail_id)`) — see "The three SQL shapes" above for the full query and the
+counting rule.
 
 ---
 
