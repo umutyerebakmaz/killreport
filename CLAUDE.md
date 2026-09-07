@@ -181,9 +181,11 @@ yarn dev:frontend    # Next.js on :3000 by default
 yarn install         # installs both workspaces
 ```
 
-There is no test runner and no test files in either workspace. Verification is:
+Vitest 5 runs in both workspaces — `yarn test` from the root runs backend then
+frontend. Verification is:
 
 ```bash
+yarn test
 yarn workspace backend build      # tsc --noEmit
 yarn workspace backend codegen    # after any .graphql change — run this first
 yarn workspace frontend codegen   # reads ../backend/src/generated-schema.graphql
