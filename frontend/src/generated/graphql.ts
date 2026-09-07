@@ -509,6 +509,15 @@ export type DogmaEffectsResponse = {
   pageInfo: PageInfo;
 };
 
+export type Faction = {
+  __typename?: 'Faction';
+  corporationId?: Maybe<Scalars['Int']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['Int']['output'];
+  militiaCorporationId?: Maybe<Scalars['Int']['output']>;
+  name: Scalars['String']['output'];
+};
+
 /**
  * Organized fitting data for a ship
  * Groups modules, rigs, and subsystems by their slot types
@@ -917,6 +926,8 @@ export type Query = {
   dogmaAttributes: DogmaAttributesResponse;
   dogmaEffect?: Maybe<DogmaEffect>;
   dogmaEffects: DogmaEffectsResponse;
+  faction?: Maybe<Faction>;
+  factions: Array<Faction>;
   itemGroup?: Maybe<ItemGroup>;
   itemGroups: ItemGroupsResponse;
   /** Fetches a single killmail */
@@ -975,8 +986,18 @@ export type Query = {
   topDefenders: Array<AllianceDefenseRecord>;
   /** Ships destroyed most often over the window named by filter.period. */
   topDestroyedShips: Array<TopShip>;
+  /**
+   * Factions whose members scored the most kills over the window named by
+   * filter.period. Counts distinct killmails, so a twenty-strong militia fleet
+   * counts once for that kill.
+   */
+  topFactions: Array<TopFaction>;
   /** Top pilots by kill count over the window named by filter.period. */
   topPilots: Array<TopPilot>;
+  /** Regions with the most kills over the window named by filter.period. */
+  topRegions: Array<TopRegion>;
+  /** Systems with the most kills over the window named by filter.period. */
+  topSystems: Array<TopSystem>;
   type?: Maybe<Type>;
   types: TypesResponse;
   user?: Maybe<User>;
@@ -1160,6 +1181,11 @@ export type QueryDogmaEffectsArgs = {
 };
 
 
+export type QueryFactionArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
 export type QueryItemGroupArgs = {
   id: Scalars['Int']['input'];
 };
@@ -1302,7 +1328,22 @@ export type QueryTopDestroyedShipsArgs = {
 };
 
 
+export type QueryTopFactionsArgs = {
+  filter?: InputMaybe<TopFilter>;
+};
+
+
 export type QueryTopPilotsArgs = {
+  filter?: InputMaybe<TopFilter>;
+};
+
+
+export type QueryTopRegionsArgs = {
+  filter?: InputMaybe<TopFilter>;
+};
+
+
+export type QueryTopSystemsArgs = {
   filter?: InputMaybe<TopFilter>;
 };
 
@@ -1891,6 +1932,13 @@ export type TopCorporation = {
   rank: Scalars['Int']['output'];
 };
 
+export type TopFaction = {
+  __typename?: 'TopFaction';
+  faction?: Maybe<Faction>;
+  killCount: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+};
+
 export type TopFilter = {
   /**
    * Anchors the period. YYYY-MM-DD for TODAY, any day of the target week for
@@ -1914,11 +1962,25 @@ export type TopPilot = {
   rank: Scalars['Int']['output'];
 };
 
+export type TopRegion = {
+  __typename?: 'TopRegion';
+  killCount: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+  region?: Maybe<Region>;
+};
+
 export type TopShip = {
   __typename?: 'TopShip';
   killCount: Scalars['Int']['output'];
   rank: Scalars['Int']['output'];
   shipType?: Maybe<Type>;
+};
+
+export type TopSystem = {
+  __typename?: 'TopSystem';
+  killCount: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+  solarSystem?: Maybe<SolarSystem>;
 };
 
 export enum TopTargetFilter {
@@ -2546,12 +2608,33 @@ export type TopDestroyedShipsQueryVariables = Exact<{
 
 export type TopDestroyedShipsQuery = { __typename?: 'Query', topDestroyedShips: Array<{ __typename?: 'TopShip', rank: number, killCount: number, shipType?: { __typename?: 'Type', id: number, name: string, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } | null }> };
 
+export type TopFactionsQueryVariables = Exact<{
+  filter?: InputMaybe<TopFilter>;
+}>;
+
+
+export type TopFactionsQuery = { __typename?: 'Query', topFactions: Array<{ __typename?: 'TopFaction', rank: number, killCount: number, faction?: { __typename?: 'Faction', id: number, name: string } | null }> };
+
 export type TopPilotsQueryVariables = Exact<{
   filter?: InputMaybe<TopFilter>;
 }>;
 
 
 export type TopPilotsQuery = { __typename?: 'Query', topPilots: Array<{ __typename?: 'TopPilot', rank: number, killCount: number, character?: { __typename?: 'Character', id: number, name: string, securityStatus?: number | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } | null }> };
+
+export type TopRegionsQueryVariables = Exact<{
+  filter?: InputMaybe<TopFilter>;
+}>;
+
+
+export type TopRegionsQuery = { __typename?: 'Query', topRegions: Array<{ __typename?: 'TopRegion', rank: number, killCount: number, region?: { __typename?: 'Region', id: number, name: string } | null }> };
+
+export type TopSystemsQueryVariables = Exact<{
+  filter?: InputMaybe<TopFilter>;
+}>;
+
+
+export type TopSystemsQuery = { __typename?: 'Query', topSystems: Array<{ __typename?: 'TopSystem', rank: number, killCount: number, solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', region?: { __typename?: 'Region', id: number, name: string } | null } | null } | null }> };
 
 export type WorkerStatusSubscriptionSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -7529,6 +7612,54 @@ export type TopDestroyedShipsQueryHookResult = ReturnType<typeof useTopDestroyed
 export type TopDestroyedShipsLazyQueryHookResult = ReturnType<typeof useTopDestroyedShipsLazyQuery>;
 export type TopDestroyedShipsSuspenseQueryHookResult = ReturnType<typeof useTopDestroyedShipsSuspenseQuery>;
 export type TopDestroyedShipsQueryResult = Apollo.QueryResult<TopDestroyedShipsQuery, TopDestroyedShipsQueryVariables>;
+export const TopFactionsDocument = gql`
+    query TopFactions($filter: TopFilter) {
+  topFactions(filter: $filter) {
+    rank
+    killCount
+    faction {
+      id
+      name
+    }
+  }
+}
+    `;
+
+/**
+ * __useTopFactionsQuery__
+ *
+ * To run a query within a React component, call `useTopFactionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTopFactionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTopFactionsQuery({
+ *   variables: {
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useTopFactionsQuery(baseOptions?: Apollo.QueryHookOptions<TopFactionsQuery, TopFactionsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TopFactionsQuery, TopFactionsQueryVariables>(TopFactionsDocument, options);
+      }
+export function useTopFactionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TopFactionsQuery, TopFactionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TopFactionsQuery, TopFactionsQueryVariables>(TopFactionsDocument, options);
+        }
+// @ts-ignore
+export function useTopFactionsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<TopFactionsQuery, TopFactionsQueryVariables>): Apollo.UseSuspenseQueryResult<TopFactionsQuery, TopFactionsQueryVariables>;
+export function useTopFactionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<TopFactionsQuery, TopFactionsQueryVariables>): Apollo.UseSuspenseQueryResult<TopFactionsQuery | undefined, TopFactionsQueryVariables>;
+export function useTopFactionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<TopFactionsQuery, TopFactionsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<TopFactionsQuery, TopFactionsQueryVariables>(TopFactionsDocument, options);
+        }
+export type TopFactionsQueryHookResult = ReturnType<typeof useTopFactionsQuery>;
+export type TopFactionsLazyQueryHookResult = ReturnType<typeof useTopFactionsLazyQuery>;
+export type TopFactionsSuspenseQueryHookResult = ReturnType<typeof useTopFactionsSuspenseQuery>;
+export type TopFactionsQueryResult = Apollo.QueryResult<TopFactionsQuery, TopFactionsQueryVariables>;
 export const TopPilotsDocument = gql`
     query TopPilots($filter: TopFilter) {
   topPilots(filter: $filter) {
@@ -7588,6 +7719,109 @@ export type TopPilotsQueryHookResult = ReturnType<typeof useTopPilotsQuery>;
 export type TopPilotsLazyQueryHookResult = ReturnType<typeof useTopPilotsLazyQuery>;
 export type TopPilotsSuspenseQueryHookResult = ReturnType<typeof useTopPilotsSuspenseQuery>;
 export type TopPilotsQueryResult = Apollo.QueryResult<TopPilotsQuery, TopPilotsQueryVariables>;
+export const TopRegionsDocument = gql`
+    query TopRegions($filter: TopFilter) {
+  topRegions(filter: $filter) {
+    rank
+    killCount
+    region {
+      id
+      name
+    }
+  }
+}
+    `;
+
+/**
+ * __useTopRegionsQuery__
+ *
+ * To run a query within a React component, call `useTopRegionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTopRegionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTopRegionsQuery({
+ *   variables: {
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useTopRegionsQuery(baseOptions?: Apollo.QueryHookOptions<TopRegionsQuery, TopRegionsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TopRegionsQuery, TopRegionsQueryVariables>(TopRegionsDocument, options);
+      }
+export function useTopRegionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TopRegionsQuery, TopRegionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TopRegionsQuery, TopRegionsQueryVariables>(TopRegionsDocument, options);
+        }
+// @ts-ignore
+export function useTopRegionsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<TopRegionsQuery, TopRegionsQueryVariables>): Apollo.UseSuspenseQueryResult<TopRegionsQuery, TopRegionsQueryVariables>;
+export function useTopRegionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<TopRegionsQuery, TopRegionsQueryVariables>): Apollo.UseSuspenseQueryResult<TopRegionsQuery | undefined, TopRegionsQueryVariables>;
+export function useTopRegionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<TopRegionsQuery, TopRegionsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<TopRegionsQuery, TopRegionsQueryVariables>(TopRegionsDocument, options);
+        }
+export type TopRegionsQueryHookResult = ReturnType<typeof useTopRegionsQuery>;
+export type TopRegionsLazyQueryHookResult = ReturnType<typeof useTopRegionsLazyQuery>;
+export type TopRegionsSuspenseQueryHookResult = ReturnType<typeof useTopRegionsSuspenseQuery>;
+export type TopRegionsQueryResult = Apollo.QueryResult<TopRegionsQuery, TopRegionsQueryVariables>;
+export const TopSystemsDocument = gql`
+    query TopSystems($filter: TopFilter) {
+  topSystems(filter: $filter) {
+    rank
+    killCount
+    solarSystem {
+      id
+      name
+      securityStatus
+      constellation {
+        region {
+          id
+          name
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useTopSystemsQuery__
+ *
+ * To run a query within a React component, call `useTopSystemsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTopSystemsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTopSystemsQuery({
+ *   variables: {
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useTopSystemsQuery(baseOptions?: Apollo.QueryHookOptions<TopSystemsQuery, TopSystemsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TopSystemsQuery, TopSystemsQueryVariables>(TopSystemsDocument, options);
+      }
+export function useTopSystemsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TopSystemsQuery, TopSystemsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TopSystemsQuery, TopSystemsQueryVariables>(TopSystemsDocument, options);
+        }
+// @ts-ignore
+export function useTopSystemsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<TopSystemsQuery, TopSystemsQueryVariables>): Apollo.UseSuspenseQueryResult<TopSystemsQuery, TopSystemsQueryVariables>;
+export function useTopSystemsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<TopSystemsQuery, TopSystemsQueryVariables>): Apollo.UseSuspenseQueryResult<TopSystemsQuery | undefined, TopSystemsQueryVariables>;
+export function useTopSystemsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<TopSystemsQuery, TopSystemsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<TopSystemsQuery, TopSystemsQueryVariables>(TopSystemsDocument, options);
+        }
+export type TopSystemsQueryHookResult = ReturnType<typeof useTopSystemsQuery>;
+export type TopSystemsLazyQueryHookResult = ReturnType<typeof useTopSystemsLazyQuery>;
+export type TopSystemsSuspenseQueryHookResult = ReturnType<typeof useTopSystemsSuspenseQuery>;
+export type TopSystemsQueryResult = Apollo.QueryResult<TopSystemsQuery, TopSystemsQueryVariables>;
 export const WorkerStatusSubscriptionDocument = gql`
     subscription WorkerStatusSubscription {
   workerStatusUpdates {
