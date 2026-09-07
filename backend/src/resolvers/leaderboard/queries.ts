@@ -478,20 +478,11 @@ export const leaderboardQueries: QueryResolvers = {
     });
     const factionMap = new Map(factions.map((f) => [f.id, f]));
 
-    const result = rows.map((row, idx) => {
-      const faction = factionMap.get(row.faction_id);
-      return {
-        rank: idx + 1,
-        killCount: Number(row.kill_count),
-        faction: faction
-          ? {
-              ...faction,
-              corporationId: faction.corporation_id,
-              militiaCorporationId: faction.militia_corporation_id,
-            }
-          : null,
-      };
-    });
+    const result = rows.map((row, idx) => ({
+      rank: idx + 1,
+      killCount: Number(row.kill_count),
+      faction: factionMap.get(row.faction_id) ?? null,
+    }));
 
     await redis.setex(cacheKey, cacheTtl, JSON.stringify(result));
     return result;

@@ -12,7 +12,6 @@ export interface TopSystem {
   name: string;
   killCount: number;
   securityStatus?: number | null;
-  regionId?: number | null;
   regionName?: string | null;
 }
 
