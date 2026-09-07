@@ -1,229 +1,79 @@
+enum LeaderboardPeriod {
+  TODAY
+  WEEK
+  MONTH
+  LAST_7_DAYS
+  LAST_90_DAYS
+}
+
+input TopFilter {
+  """
+  Defaults to LAST_7_DAYS.
+  """
+  period: LeaderboardPeriod = LAST_7_DAYS
+  """
+  Anchors the period. YYYY-MM-DD for TODAY, any day of the target week for
+  WEEK (rounded back to its Monday), YYYY-MM for MONTH. Ignored by the rolling
+  windows LAST_7_DAYS and LAST_90_DAYS. Empty means today / this week / this month.
+  """
+  anchor: String
+  """
+  Max 100; default 100
+  """
+  limit: Int
+  systemId: Int
+  constellationId: Int
+  regionId: Int
+}
+
 type TopPilot {
   rank: Int!
   killCount: Int!
   character: Character
 }
 
-input TopPilotsFilter {
-  """
-  ISO date string YYYY-MM-DD; defaults to today (UTC)
-  """
-  date: String
-  """
-  Max 100; default 100
-  """
-  limit: Int
-}
-
-type TopWeeklyPilot {
-  rank: Int!
-  killCount: Int!
-  character: Character
-}
-
-input TopWeeklyPilotsFilter {
-  """
-  ISO date string YYYY-MM-DD for the Monday (start) of the week; defaults to current week's Monday (UTC)
-  """
-  weekStart: String
-  """
-  Max 100; default 100
-  """
-  limit: Int
-}
-
-type TopMonthlyPilot {
-  rank: Int!
-  killCount: Int!
-  character: Character
-}
-
-input TopMonthlyPilotsFilter {
-  """
-  Year-month string YYYY-MM; defaults to current month (UTC)
-  """
-  month: String
-  """
-  Max 100; default 100
-  """
-  limit: Int
-}
-
-type Top90DaysPilot {
-  rank: Int!
-  killCount: Int!
-  character: Character
-}
-
-input Top90DaysPilotsFilter {
-  """
-  Max 100; default 100
-  """
-  limit: Int
-}
-
-type TopLast7DaysPilot {
-  rank: Int!
-  killCount: Int!
-  character: Character
-}
-
-input TopLast7DaysPilotsFilter {
-  """
-  Max 100; default 100
-  """
-  limit: Int
-  """
-  Filter by region ID
-  """
-  regionId: Int
-  """
-  Filter by constellation ID
-  """
-  constellationId: Int
-  """
-  Filter by solar system ID
-  """
-  systemId: Int
-}
-
-type TopLast7DaysCorporation {
+type TopCorporation {
   rank: Int!
   killCount: Int!
   corporation: Corporation
 }
 
-input TopLast7DaysCorporationsFilter {
-  """
-  Max 100; default 100
-  """
-  limit: Int
-  """
-  Filter by region ID
-  """
-  regionId: Int
-  """
-  Filter by constellation ID
-  """
-  constellationId: Int
-  """
-  Filter by solar system ID
-  """
-  systemId: Int
-}
-
-type TopLast7DaysAlliance {
+type TopAlliance {
   rank: Int!
   killCount: Int!
   alliance: Alliance
 }
 
-input TopLast7DaysAlliancesFilter {
-  """
-  Max 100; default 100
-  """
-  limit: Int
-  """
-  Filter by region ID
-  """
-  regionId: Int
-  """
-  Filter by constellation ID
-  """
-  constellationId: Int
-  """
-  Filter by solar system ID
-  """
-  systemId: Int
-}
-
-type TopLast7DaysShip {
+type TopShip {
   rank: Int!
   killCount: Int!
   shipType: Type
-}
-
-input TopLast7DaysShipsFilter {
-  """
-  Max 100; default 100
-  """
-  limit: Int
-  """
-  Filter by region ID
-  """
-  regionId: Int
-  """
-  Filter by constellation ID
-  """
-  constellationId: Int
-  """
-  Filter by solar system ID
-  """
-  systemId: Int
-}
-
-type TopLast7DaysAttackerShip {
-  rank: Int!
-  killCount: Int!
-  shipType: Type
-}
-
-input TopLast7DaysAttackerShipsFilter {
-  """
-  Max 100; default 100
-  """
-  limit: Int
 }
 
 extend type Query {
   """
-  Returns top pilots ranked by kill count for a given day (default: today)
+  Top pilots by kill count over the window named by filter.period.
   """
-  topPilots(filter: TopPilotsFilter): [TopPilot!]!
+  topPilots(filter: TopFilter): [TopPilot!]!
 
   """
-  Returns top pilots ranked by total kill count for a given week (Mon–Sun); defaults to current week
+  Top corporations by kill count over the window named by filter.period.
   """
-  topWeeklyPilots(filter: TopWeeklyPilotsFilter): [TopWeeklyPilot!]!
+  topCorporations(filter: TopFilter): [TopCorporation!]!
 
   """
-  Returns top pilots ranked by total kill count over the last 7 days (rolling window, today - 6 days)
+  Top alliances by kill count over the window named by filter.period.
   """
-  topLast7DaysPilots(filter: TopLast7DaysPilotsFilter): [TopLast7DaysPilot!]!
+  topAlliances(filter: TopFilter): [TopAlliance!]!
 
   """
-  Returns top corporations ranked by total kill count over the last 7 days (rolling window, today - 6 days)
+  Ships destroyed most often over the window named by filter.period.
   """
-  topLast7DaysCorporations(
-    filter: TopLast7DaysCorporationsFilter
-  ): [TopLast7DaysCorporation!]!
+  topDestroyedShips(filter: TopFilter): [TopShip!]!
 
   """
-  Returns top alliances ranked by total kill count over the last 7 days (rolling window, today - 6 days)
+  Ships attackers flew most often over the window named by filter.period.
+  Counts attacker rows, so a five-ship fleet counts five.
   """
-  topLast7DaysAlliances(
-    filter: TopLast7DaysAlliancesFilter
-  ): [TopLast7DaysAlliance!]!
-
-  """
-  Returns top ship types ranked by total kill count over the last 7 days (rolling window, today - 6 days)
-  """
-  topLast7DaysShips(filter: TopLast7DaysShipsFilter): [TopLast7DaysShip!]!
-
-  """
-  Returns top attacker ship types by usage count over the last 7 days (rolling window, today - 6 days)
-  """
-  topLast7DaysAttackerShips(
-    filter: TopLast7DaysAttackerShipsFilter
-  ): [TopLast7DaysAttackerShip!]!
-
-  """
-  Returns top pilots ranked by total kill count over the last 90 days (rolling window)
-  """
-  top90DaysPilots(filter: Top90DaysPilotsFilter): [Top90DaysPilot!]!
-
-  """
-  Returns top pilots ranked by total kill count for a given calendar month (default: current month)
-  """
-  topMonthlyPilots(filter: TopMonthlyPilotsFilter): [TopMonthlyPilot!]!
+  topAttackerShips(filter: TopFilter): [TopShip!]!
 }

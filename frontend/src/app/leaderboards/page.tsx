@@ -5,12 +5,7 @@ import Loader from '@/components/Loader';
 import Card from '@/components/ui/Card';
 import RankNumber from '@/components/ui/RankNumber';
 import Tooltip from '@/components/Tooltip/Tooltip';
-import {
-  useTop90DaysPilotsQuery,
-  useTopMonthlyPilotsQuery,
-  useTopPilotsQuery,
-  useTopWeeklyPilotsQuery,
-} from '@/generated/graphql';
+import { LeaderboardPeriod, useTopPilotsQuery } from '@/generated/graphql';
 import { getSecurityStatusColor } from '@/utils/securityStatus';
 import {
   CalendarDaysIcon,
@@ -210,7 +205,13 @@ function DailyLeaderboard() {
   const isToday = selectedDate === today;
 
   const { data, loading } = useTopPilotsQuery({
-    variables: { filter: { date: selectedDate, limit: 10 } },
+    variables: {
+      filter: {
+        period: LeaderboardPeriod.Today,
+        anchor: selectedDate,
+        limit: 10,
+      },
+    },
   });
 
   function prevDay() {
@@ -286,8 +287,10 @@ function WeeklyLeaderboard() {
   const currentWeekStart = getWeekMonday(today);
   const isCurrentWeek = weekStart === currentWeekStart;
 
-  const { data, loading } = useTopWeeklyPilotsQuery({
-    variables: { filter: { weekStart, limit: 10 } },
+  const { data, loading } = useTopPilotsQuery({
+    variables: {
+      filter: { period: LeaderboardPeriod.Week, anchor: weekStart, limit: 10 },
+    },
   });
 
   function prevWeek() {
@@ -310,7 +313,7 @@ function WeeklyLeaderboard() {
   };
   const weekLabel = `${new Date(weekStart + 'T00:00:00Z').toLocaleDateString('en-US', fmtOpts)} – ${new Date(getWeekSunday(weekStart) + 'T00:00:00Z').toLocaleDateString('en-US', fmtOpts)}`;
 
-  const pilots = (data?.topWeeklyPilots ?? []) as PilotEntry[];
+  const pilots = (data?.topPilots ?? []) as PilotEntry[];
 
   return (
     <Card
@@ -353,8 +356,8 @@ function WeeklyLeaderboard() {
 }
 
 function Last90DaysLeaderboard() {
-  const { data, loading } = useTop90DaysPilotsQuery({
-    variables: { filter: { limit: 10 } },
+  const { data, loading } = useTopPilotsQuery({
+    variables: { filter: { period: LeaderboardPeriod.Last_90Days, limit: 10 } },
   });
 
   const today = toDateString(new Date());
@@ -370,7 +373,7 @@ function Last90DaysLeaderboard() {
   };
   const rangeLabel = `${new Date(from + 'T00:00:00Z').toLocaleDateString('en-US', fmtOpts)} – ${new Date(today + 'T00:00:00Z').toLocaleDateString('en-US', fmtOpts)}`;
 
-  const pilots = (data?.top90DaysPilots ?? []) as PilotEntry[];
+  const pilots = (data?.topPilots ?? []) as PilotEntry[];
 
   return (
     <Card
@@ -403,8 +406,10 @@ function MonthlyLeaderboard() {
   const [month, setMonth] = useState<string>(defaultMonth);
   const isCurrentMonth = month === defaultMonth;
 
-  const { data, loading } = useTopMonthlyPilotsQuery({
-    variables: { filter: { month, limit: 10 } },
+  const { data, loading } = useTopPilotsQuery({
+    variables: {
+      filter: { period: LeaderboardPeriod.Month, anchor: month, limit: 10 },
+    },
   });
 
   function prevMonth() {
@@ -433,7 +438,7 @@ function MonthlyLeaderboard() {
     },
   );
 
-  const pilots = (data?.topMonthlyPilots ?? []) as PilotEntry[];
+  const pilots = (data?.topPilots ?? []) as PilotEntry[];
 
   return (
     <Card

@@ -1,5 +1,5 @@
-query TopLast7DaysAttackerShips($filter: TopLast7DaysAttackerShipsFilter) {
-  topLast7DaysAttackerShips(filter: $filter) {
+query TopDestroyedShips($filter: TopFilter) {
+  topDestroyedShips(filter: $filter) {
     rank
     killCount
     shipType {

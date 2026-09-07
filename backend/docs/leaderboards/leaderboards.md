@@ -29,8 +29,11 @@ The leaderboard system is built on two different architectural patterns:
 
 ### 1.1 Global Leaderboards — Pre-Aggregated Kill Stats Tables
 
-Global rankings on the Killmails page (`topPilots`, `topLast7DaysPilots`, etc.) read from **pre-aggregated**
-tables. These tables are updated **atomically within a transaction** whenever a killmail is saved.
+Global rankings on the Killmails page (`topPilots(filter: { period: TODAY })`, `topPilots` with the
+default `LAST_7_DAYS` period, etc.) read from **pre-aggregated** tables. These tables are updated
+**atomically within a transaction** whenever a killmail is saved. See
+[`leaderboard-queries.md`](./leaderboard-queries.md) for the full `TopFilter` / `LeaderboardPeriod`
+reference and the three SQL shapes behind these five queries.
 
 ```mermaid
 flowchart LR
@@ -141,12 +144,12 @@ All rankings use a **rolling 7-day window** (today - 6 days).
 ### 2.1 Most Active Pilots (Killmails)
 
 **Component:** `TopCharacterCard`
-**GraphQL Query:** `topLast7DaysPilots`
+**GraphQL Query:** `topPilots` (default period, `LAST_7_DAYS`)
 **Source Table:** `character_kill_stats`
 
 ```graphql
-query TopLast7DaysPilots($filter: TopLast7DaysPilotsFilter) {
-  topLast7DaysPilots(filter: $filter) {
+query TopPilots($filter: TopFilter) {
+  topPilots(filter: $filter) {
     rank
     killCount
     character {
@@ -177,12 +180,12 @@ LIMIT  100
 ### 2.2 Most Active Corporations (Killmails)
 
 **Component:** `TopCorporationCard`
-**GraphQL Query:** `topLast7DaysCorporations`
+**GraphQL Query:** `topCorporations` (default period, `LAST_7_DAYS`)
 **Source Table:** `corporation_kill_stats`
 
 ```graphql
-query TopLast7DaysCorporations($filter: TopLast7DaysCorporationsFilter) {
-  topLast7DaysCorporations(filter: $filter) {
+query TopCorporations($filter: TopFilter) {
+  topCorporations(filter: $filter) {
     rank
     killCount
     corporation {
@@ -213,12 +216,12 @@ LIMIT  100
 ### 2.3 Most Active Alliances (Killmails)
 
 **Component:** `TopAllianceCard`
-**GraphQL Query:** `topLast7DaysAlliances`
+**GraphQL Query:** `topAlliances` (default period, `LAST_7_DAYS`)
 **Source Table:** `alliance_kill_stats`
 
 ```graphql
-query TopLast7DaysAlliances($filter: TopLast7DaysAlliancesFilter) {
-  topLast7DaysAlliances(filter: $filter) {
+query TopAlliances($filter: TopFilter) {
+  topAlliances(filter: $filter) {
     rank
     killCount
     alliance {
@@ -251,12 +254,12 @@ LIMIT  100
 > Most used ship types by **attackers**.
 
 **Component:** `TopShipsCard` (attacker variant)
-**GraphQL Query:** `topLast7DaysAttackerShips`
-**Source Table:** `attackers` (via ship_type_id)
+**GraphQL Query:** `topAttackerShips` (default period, `LAST_7_DAYS`)
+**Source Table:** `attackers ⋈ killmail_filters` (via ship_type_id — always this join, in every period; see [`leaderboard-queries.md`](./leaderboard-queries.md))
 
 ```graphql
-query TopLast7DaysAttackerShips($filter: TopLast7DaysAttackerShipsFilter) {
-  topLast7DaysAttackerShips(filter: $filter) {
+query TopAttackerShips($filter: TopFilter) {
+  topAttackerShips(filter: $filter) {
     rank
     killCount
     shipType {
@@ -276,12 +279,12 @@ query TopLast7DaysAttackerShips($filter: TopLast7DaysAttackerShipsFilter) {
 > Most commonly **killed** (victim) ship types.
 
 **Component:** `TopShipsCard` (victim variant)
-**GraphQL Query:** `topLast7DaysShips`
-**Source Table:** `victims` (via ship_type_id)
+**GraphQL Query:** `topDestroyedShips` (default period, `LAST_7_DAYS`)
+**Source Table:** `killmail_filters` (via victim_ship_type_id — always this table, in every period; see [`leaderboard-queries.md`](./leaderboard-queries.md))
 
 ```graphql
-query TopLast7DaysShips($filter: TopLast7DaysShipsFilter) {
-  topLast7DaysShips(filter: $filter) {
+query TopDestroyedShips($filter: TopFilter) {
+  topDestroyedShips(filter: $filter) {
     rank
     killCount
     shipType {
@@ -762,13 +765,13 @@ for filtering; this way only the relevant killmail_id's are found instead of sca
 | Historical date (static data) | **1 hour**    |
 | 90 day rolling                | **5 minutes** |
 
-**Cache key format:** `leaderboard:{queryName}:{dateParam}:{limit}`
+**Cache key format:** `leaderboard:{queryName}:{period}:{cacheAnchor}:{limit}:{systemId}:{constellationId}:{regionId}`
 
 Example:
 
-- `leaderboard:topPilots:2026-03-03:100`
-- `leaderboard:topLast7DaysPilots:2026-03-03:100`
-- `leaderboard:topWeeklyPilots:2026-02-23:100`
+- `leaderboard:topPilots:TODAY:2026-03-03:100:::`
+- `leaderboard:topPilots:LAST_7_DAYS:2026-03-03:100:::`
+- `leaderboard:topPilots:WEEK:2026-02-23:100:::`
 
 ### 7.2 Entity-Specific Cache (Alliance/Corporation/Character Pages)
 
@@ -791,27 +794,27 @@ Example:
 
 ## 8. Comparison Table
 
-| Leaderboard              | Page        | GraphQL Query                      | Source Table                     | Time Filter       | Cache TTL |
-| ------------------------ | ----------- | ---------------------------------- | -------------------------------- | ----------------- | --------- |
-| Most Active Pilots       | Killmails   | `topLast7DaysPilots`               | `character_kill_stats`           | Rolling 7 days    | 5 min     |
-| Most Active Corporations | Killmails   | `topLast7DaysCorporations`         | `corporation_kill_stats`         | Rolling 7 days    | 5 min     |
-| Most Active Alliances    | Killmails   | `topLast7DaysAlliances`            | `alliance_kill_stats`            | Rolling 7 days    | 5 min     |
-| Most Used Ships          | Killmails   | `topLast7DaysAttackerShips`        | `attackers`                      | Rolling 7 days    | 5 min     |
-| Most Killed Ships        | Killmails   | `topLast7DaysShips`                | `victims`                        | Rolling 7 days    | 5 min     |
-| Most Active Pilots       | Alliance    | `allianceTopCharacters`            | `attackers` + `killmail_filters` | `TopTargetFilter` | 2min–1hr  |
-| Most Used Ships          | Alliance    | `allianceTopShips`                 | `attackers` + `killmail_filters` | `TopTargetFilter` | 2min–1hr  |
-| Most Killed Alliances    | Alliance    | `allianceTopAllianceTargets`       | `killmail_filters`               | `TopTargetFilter` | 2min–1hr  |
-| Most Killed Corporations | Alliance    | `allianceTopCorporationTargets`    | `killmail_filters`               | `TopTargetFilter` | 2min–1hr  |
-| Most Killed Ships        | Alliance    | `allianceTopShipTargets`           | `killmail_filters`               | `TopTargetFilter` | 2min–1hr  |
-| Most Active Pilots       | Corporation | `corporationTopCharacters`         | `attackers` + `killmail_filters` | `TopTargetFilter` | 2min–1hr  |
-| Most Used Ships          | Corporation | `corporationTopShips`              | `attackers` + `killmail_filters` | `TopTargetFilter` | 2min–1hr  |
-| Most Killed Ships        | Corporation | `corporationTopShipTargets`        | `killmail_filters`               | `TopTargetFilter` | 2min–1hr  |
-| Most Killed Alliances    | Corporation | `corporationTopAllianceTargets`    | `killmail_filters`               | `TopTargetFilter` | 2min–1hr  |
-| Most Killed Corporations | Corporation | `corporationTopCorporationTargets` | `killmail_filters`               | `TopTargetFilter` | 2min–1hr  |
-| Most Killed Alliances    | Character   | `characterTopAllianceTargets`      | `killmail_filters`               | `TopTargetFilter` | 2min–1hr  |
-| Most Killed Corporations | Character   | `characterTopCorporationTargets`   | `killmail_filters`               | `TopTargetFilter` | 2min–1hr  |
-| Most Killed Ships        | Character   | `characterTopShipTargets`          | `killmail_filters`               | `TopTargetFilter` | 2min–1hr  |
-| Most Used Ships          | Character   | `characterTopShips`                | `attackers` + `killmail_filters` | `TopTargetFilter` | 2min–1hr  |
+| Leaderboard              | Page        | GraphQL Query                      | Source Table                     | Time Filter                         | Cache TTL  |
+| ------------------------ | ----------- | ---------------------------------- | -------------------------------- | ----------------------------------- | ---------- |
+| Most Active Pilots       | Killmails   | `topPilots`                        | `character_kill_stats`           | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
+| Most Active Corporations | Killmails   | `topCorporations`                  | `corporation_kill_stats`         | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
+| Most Active Alliances    | Killmails   | `topAlliances`                     | `alliance_kill_stats`            | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
+| Most Used Ships          | Killmails   | `topAttackerShips`                 | `attackers` + `killmail_filters` | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
+| Most Killed Ships        | Killmails   | `topDestroyedShips`                | `killmail_filters`               | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
+| Most Active Pilots       | Alliance    | `allianceTopCharacters`            | `attackers` + `killmail_filters` | `TopTargetFilter`                   | 2min–1hr   |
+| Most Used Ships          | Alliance    | `allianceTopShips`                 | `attackers` + `killmail_filters` | `TopTargetFilter`                   | 2min–1hr   |
+| Most Killed Alliances    | Alliance    | `allianceTopAllianceTargets`       | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
+| Most Killed Corporations | Alliance    | `allianceTopCorporationTargets`    | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
+| Most Killed Ships        | Alliance    | `allianceTopShipTargets`           | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
+| Most Active Pilots       | Corporation | `corporationTopCharacters`         | `attackers` + `killmail_filters` | `TopTargetFilter`                   | 2min–1hr   |
+| Most Used Ships          | Corporation | `corporationTopShips`              | `attackers` + `killmail_filters` | `TopTargetFilter`                   | 2min–1hr   |
+| Most Killed Ships        | Corporation | `corporationTopShipTargets`        | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
+| Most Killed Alliances    | Corporation | `corporationTopAllianceTargets`    | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
+| Most Killed Corporations | Corporation | `corporationTopCorporationTargets` | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
+| Most Killed Alliances    | Character   | `characterTopAllianceTargets`      | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
+| Most Killed Corporations | Character   | `characterTopCorporationTargets`   | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
+| Most Killed Ships        | Character   | `characterTopShipTargets`          | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
+| Most Used Ships          | Character   | `characterTopShips`                | `attackers` + `killmail_filters` | `TopTargetFilter`                   | 2min–1hr   |
 
 ---
 
