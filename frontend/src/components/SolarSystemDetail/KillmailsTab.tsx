@@ -37,6 +37,11 @@ const SIDEBAR_CARDS: TopEntityCardSpec[] = [
     emptyText: 'No alliance activity in the last 7 days',
   },
   {
+    kind: 'factions',
+    title: 'Top Factions',
+    emptyText: 'No faction activity in the last 7 days',
+  },
+  {
     kind: 'ships',
     title: 'Top Ships',
     emptyText: 'No ship activity in the last 7 days',
