@@ -23,6 +23,7 @@
 - **TTL:** live window 300 s, closed historical window 3600 s.
 - **Test baseline before any change:** backend 482 tests / 17 files, frontend 250 tests / 21 files, all passing. `yarn test` from the repo root runs both. No task may reduce these counts except where it deletes a test alongside the code it covered.
 - **Backend dev port is read from `backend/.env`** (`PORT`, currently 4010). Never hardcode 4000. Never kill by process name.
+- **`yarn workspace frontend lint` is not clean and never has been.** On `main` it reports **148 errors and 85 warnings**, none of them in files this plan touches. The bar for every task is therefore *no new finding in a file you changed* — not a clean run. Do not fix unrelated lint errors; that is its own piece of work. `leaderboards/page.tsx` (3) and `WeeklyTopCharCard.tsx` (1) carry pre-existing `no-img-element` warnings whose counts are identical on `main`; leave them.
 
 ---
 
@@ -1042,7 +1043,7 @@ yarn workspace frontend build
 yarn test
 ```
 
-Expected: codegen succeeds, lint clean, build succeeds, all tests pass.
+Expected: codegen succeeds, build succeeds, all tests pass. Lint reports the repo's pre-existing 148 errors / 85 warnings — confirm none of them names a file you changed, and do not try to reach zero.
 
 - [ ] **Step 11: Commit**
 
@@ -1403,7 +1404,8 @@ yarn workspace frontend build
 yarn test
 ```
 
-Expected: all green.
+Expected: codegen, build and tests green. Lint still reports the repo's
+pre-existing 148 errors / 85 warnings; confirm none names a file you changed.
 
 - [ ] **Step 9: Commit**
 
@@ -1754,7 +1756,8 @@ yarn workspace frontend build
 yarn test
 ```
 
-Expected: all green.
+Expected: codegen, build and tests green. Lint still reports the repo's
+pre-existing 148 errors / 85 warnings; confirm none names a file you changed.
 
 - [ ] **Step 9: Prove the broken sidebar card is fixed**
 
