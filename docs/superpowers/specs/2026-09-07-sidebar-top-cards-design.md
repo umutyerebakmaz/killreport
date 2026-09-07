@@ -316,15 +316,20 @@ kartlık sıraya göre yeniden dizilir.
 
 ## Doğrulama
 
-Test runner yok. Doğrulama şu komutlarla yapılır ve çıktıları okunur:
+Doğrulama şu komutlarla yapılır ve çıktıları okunur:
 
 ```bash
+yarn test
 yarn workspace backend codegen
 yarn workspace backend build
 yarn workspace frontend codegen
 yarn workspace frontend lint
 yarn workspace frontend build
 ```
+
+Yeni resolver'lar önkoşul spec'in kurduğu test kalıbıyla kapsanır: `vi.hoisted`
+ile `prisma.$queryRaw` ve `redis` mock'lanır, üretilen SQL ve cache anahtarı
+doğrulanır — 500021'in dışlandığı dahil.
 
 Migration öncesi/sonrası beş korumalı tablonun satır sayıları karşılaştırılır;
 hiçbiri azalmamalıdır.

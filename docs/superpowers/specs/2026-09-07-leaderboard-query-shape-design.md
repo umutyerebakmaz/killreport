@@ -303,7 +303,12 @@ güncellenir.
 
 ## Doğrulama
 
+Vitest 5 kurulu ve iki workspace'te de çalışıyor — bugünkü taban backend'de
+482 test / 17 dosya, frontend'de 250 test / 21 dosya, hepsi geçiyor.
+(CLAUDE.md hâlâ "test runner yok" diyor; bu eskimiş ve düzeltilmeli.)
+
 ```bash
+yarn test
 yarn workspace backend codegen
 yarn workspace backend build
 yarn workspace frontend codegen
@@ -311,7 +316,14 @@ yarn workspace frontend lint
 yarn workspace frontend build
 ```
 
-Davranış eşitliği, refactor'un asıl riski olduğu için ölçülerek gösterilir.
+`resolvePeriod` saf bir fonksiyon olduğu için beş periyodun tarih aralığı,
+`isLive` ve TTL değerleri birim testleriyle sabitlenir. Resolver'lar
+`backend/src/services/solar-system/solar-system-stats.service.spec.ts`'teki
+kurulu kalıpla test edilir: `vi.hoisted` ile `prisma.$queryRaw` ve `redis`
+mock'lanır, üretilen SQL metni ve cache anahtarı doğrulanır.
+
+Davranış eşitliği, refactor'un asıl riski olduğu için ayrıca canlı olarak da
+ölçülür.
 Değişiklikten **önce** dokuz sorgunun her biri backend'e atılıp çıktıları
 kaydedilir; **sonra** yeni karşılıkları aynı parametrelerle atılır ve sıralama
 ile `killCount` değerleri karşılaştırılır:
