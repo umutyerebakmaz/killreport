@@ -335,4 +335,100 @@ export const leaderboardQueries: QueryResolvers = {
     await redis.setex(cacheKey, cacheTtl, JSON.stringify(result));
     return result;
   },
+
+  topSystems: async (_, { filter }) => {
+    const limit = Math.min(filter?.limit ?? 100, 100);
+    const period = filter?.period ?? LeaderboardPeriod.Last_7Days;
+    const { startDate, endDate, cacheTtl, cacheAnchor } = resolvePeriod(
+      period,
+      filter?.anchor,
+    );
+    const systemId = filter?.systemId;
+    const constellationId = filter?.constellationId;
+    const regionId = filter?.regionId;
+
+    const cacheKey = `leaderboard:topSystems:${period}:${cacheAnchor}:${limit}:${systemId || ''}:${constellationId || ''}:${regionId || ''}`;
+    const cached = await redis.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
+    type Row = { solar_system_id: number; kill_count: bigint };
+    const rows = await prisma.$queryRaw<Row[]>`
+      SELECT solar_system_id, COUNT(*)::BIGINT AS kill_count
+      FROM   killmail_filters
+      WHERE  killmail_time >= ${startDate}::date
+        AND  killmail_time <  ${endDate}::date + INTERVAL '1 day'
+        AND  solar_system_id IS NOT NULL
+        ${systemId ? Prisma.sql`AND solar_system_id = ${systemId}` : Prisma.empty}
+        ${constellationId ? Prisma.sql`AND constellation_id = ${constellationId}` : Prisma.empty}
+        ${regionId ? Prisma.sql`AND region_id = ${regionId}` : Prisma.empty}
+      GROUP  BY solar_system_id
+      ORDER  BY kill_count DESC
+      LIMIT  ${limit}
+    `;
+
+    if (rows.length === 0) return [];
+
+    const systemIds = rows.map((r) => r.solar_system_id);
+    const systems = await prisma.solarSystem.findMany({
+      where: { id: { in: systemIds } },
+    });
+    const systemMap = new Map(systems.map((s) => [s.id, s]));
+
+    const result = rows.map((row, idx) => ({
+      rank: idx + 1,
+      killCount: Number(row.kill_count),
+      solarSystem: systemMap.get(row.solar_system_id) ?? null,
+    }));
+
+    await redis.setex(cacheKey, cacheTtl, JSON.stringify(result));
+    return result;
+  },
+
+  topRegions: async (_, { filter }) => {
+    const limit = Math.min(filter?.limit ?? 100, 100);
+    const period = filter?.period ?? LeaderboardPeriod.Last_7Days;
+    const { startDate, endDate, cacheTtl, cacheAnchor } = resolvePeriod(
+      period,
+      filter?.anchor,
+    );
+    const systemId = filter?.systemId;
+    const constellationId = filter?.constellationId;
+    const regionId = filter?.regionId;
+
+    const cacheKey = `leaderboard:topRegions:${period}:${cacheAnchor}:${limit}:${systemId || ''}:${constellationId || ''}:${regionId || ''}`;
+    const cached = await redis.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
+    type Row = { region_id: number; kill_count: bigint };
+    const rows = await prisma.$queryRaw<Row[]>`
+      SELECT region_id, COUNT(*)::BIGINT AS kill_count
+      FROM   killmail_filters
+      WHERE  killmail_time >= ${startDate}::date
+        AND  killmail_time <  ${endDate}::date + INTERVAL '1 day'
+        AND  region_id IS NOT NULL
+        ${systemId ? Prisma.sql`AND solar_system_id = ${systemId}` : Prisma.empty}
+        ${constellationId ? Prisma.sql`AND constellation_id = ${constellationId}` : Prisma.empty}
+        ${regionId ? Prisma.sql`AND region_id = ${regionId}` : Prisma.empty}
+      GROUP  BY region_id
+      ORDER  BY kill_count DESC
+      LIMIT  ${limit}
+    `;
+
+    if (rows.length === 0) return [];
+
+    const regionIds = rows.map((r) => r.region_id);
+    const regions = await prisma.region.findMany({
+      where: { id: { in: regionIds } },
+    });
+    const regionMap = new Map(regions.map((r) => [r.id, r]));
+
+    const result = rows.map((row, idx) => ({
+      rank: idx + 1,
+      killCount: Number(row.kill_count),
+      region: regionMap.get(row.region_id) ?? null,
+    }));
+
+    await redis.setex(cacheKey, cacheTtl, JSON.stringify(result));
+    return result;
+  },
 };
