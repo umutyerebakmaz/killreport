@@ -129,7 +129,8 @@ export function resolvePeriod(
     case LeaderboardPeriod.Month: {
       if (hasAnchor) requireFormat(anchor, MONTH, period, 'YYYY-MM');
       const month = hasAnchor ? anchor : today.slice(0, 7);
-      if (hasAnchor) requireCalendarDate(`${month}-01`, anchor, period, 'YYYY-MM');
+      if (hasAnchor)
+        requireCalendarDate(`${month}-01`, anchor, period, 'YYYY-MM');
       startDate = `${month}-01`;
       // Day 0 of the following month is the last day of this one, which also
       // gets February right in a leap year.
@@ -156,5 +157,11 @@ export function resolvePeriod(
 
   const isLive = startDate <= today && today <= endDate;
 
-  return { startDate, endDate, isLive, cacheTtl: isLive ? 300 : 3600, cacheAnchor };
+  return {
+    startDate,
+    endDate,
+    isLive,
+    cacheTtl: isLive ? 300 : 3600,
+    cacheAnchor,
+  };
 }

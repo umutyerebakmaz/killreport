@@ -359,9 +359,7 @@ describe('every subject accepts every period', () => {
   for (const subject of SUBJECTS) {
     for (const [period] of PERIODS) {
       it(`${subject} over ${period}`, async () => {
-        await expect(
-          call(subject, { period, limit: 10 }),
-        ).resolves.toEqual([]);
+        await expect(call(subject, { period, limit: 10 })).resolves.toEqual([]);
 
         // The window reached the query rather than being silently dropped.
         expect(prisma.$queryRaw).toHaveBeenCalledOnce();

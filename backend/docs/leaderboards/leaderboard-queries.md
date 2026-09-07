@@ -40,12 +40,12 @@ input TopFilter {
 **`anchor`** pins the window to a point in the past instead of "now". Its format
 depends on `period`:
 
-| Period                         | Anchor format | Meaning                                             |
-| ------------------------------ | -------------- | ---------------------------------------------------- |
-| `TODAY`                        | `YYYY-MM-DD`   | That calendar day.                                    |
-| `WEEK`                         | `YYYY-MM-DD`   | Any day in the target week — rounded back to its Monday. |
-| `MONTH`                        | `YYYY-MM`      | That calendar month.                                   |
-| `LAST_7_DAYS` / `LAST_90_DAYS` | ignored        | Always a rolling window ending today.                  |
+| Period                         | Anchor format | Meaning                                                  |
+| ------------------------------ | ------------- | -------------------------------------------------------- |
+| `TODAY`                        | `YYYY-MM-DD`  | That calendar day.                                       |
+| `WEEK`                         | `YYYY-MM-DD`  | Any day in the target week — rounded back to its Monday. |
+| `MONTH`                        | `YYYY-MM`     | That calendar month.                                     |
+| `LAST_7_DAYS` / `LAST_90_DAYS` | ignored       | Always a rolling window ending today.                    |
 
 An empty `anchor` means today / this week / this month. `WEEK` uses the
 **calendar week** (Monday–Sunday); `LAST_7_DAYS` is a **rolling** window
@@ -73,7 +73,7 @@ Used by `topPilots`, `topCorporations`, `topAlliances` whenever `systemId`,
 `constellationId` or `regionId` is set (the daily stats tables carry no
 location, so a spatial filter has to go back to the killmails themselves), and
 unconditionally by `topAttackerShips` — see the counting rule below for why
-that one query does *not* share this shape's `COUNT(DISTINCT ...)`. Bounded on
+that one query does _not_ share this shape's `COUNT(DISTINCT ...)`. Bounded on
 `killmail_time`, a timestamp, so the upper bound is
 `killmail_time < endDate::date + INTERVAL '1 day'` rather than `<=`.
 
@@ -98,7 +98,7 @@ LIMIT  $limit
 ```
 
 **The counting rule, stated once, because it is easy to misread from the SQL
-alone:** an `attackers` row exists per attacker *slot* on a killmail, not per
+alone:** an `attackers` row exists per attacker _slot_ on a killmail, not per
 killmail — a character who both tackled and landed the final blow owns two
 rows on the same kill. The three entity leaderboards (`topPilots`,
 `topCorporations`, `topAlliances`) must count that kill once, so Shape B uses
@@ -417,13 +417,13 @@ LIMIT  $limit
 
 ## Comparison Table
 
-| Query               | Shape | Source                                    | Periods supported | Cache TTL                    |
-| -------------------- | ----- | ------------------------------------------ | ------------------ | ----------------------------- |
-| `topPilots`          | A / B | `character_kill_stats`, or `attackers ⋈ killmail_filters` when spatially filtered | all five | 5 min (live) / 1 hr (closed) |
-| `topCorporations`    | A / B | `corporation_kill_stats`, or `attackers ⋈ killmail_filters` when spatially filtered | all five | 5 min (live) / 1 hr (closed) |
-| `topAlliances`       | A / B | `alliance_kill_stats`, or `attackers ⋈ killmail_filters` when spatially filtered | all five | 5 min (live) / 1 hr (closed) |
-| `topDestroyedShips`  | C     | `killmail_filters`                        | all five           | 5 min (live) / 1 hr (closed) |
-| `topAttackerShips`   | B     | `attackers ⋈ killmail_filters`            | all five           | 5 min (live) / 1 hr (closed) |
+| Query               | Shape | Source                                                                              | Periods supported | Cache TTL                    |
+| ------------------- | ----- | ----------------------------------------------------------------------------------- | ----------------- | ---------------------------- |
+| `topPilots`         | A / B | `character_kill_stats`, or `attackers ⋈ killmail_filters` when spatially filtered   | all five          | 5 min (live) / 1 hr (closed) |
+| `topCorporations`   | A / B | `corporation_kill_stats`, or `attackers ⋈ killmail_filters` when spatially filtered | all five          | 5 min (live) / 1 hr (closed) |
+| `topAlliances`      | A / B | `alliance_kill_stats`, or `attackers ⋈ killmail_filters` when spatially filtered    | all five          | 5 min (live) / 1 hr (closed) |
+| `topDestroyedShips` | C     | `killmail_filters`                                                                  | all five          | 5 min (live) / 1 hr (closed) |
+| `topAttackerShips`  | B     | `attackers ⋈ killmail_filters`                                                      | all five          | 5 min (live) / 1 hr (closed) |
 
 "Live" means the window includes today (`isLive` in `resolvePeriod()`); a window
 entirely in the past is "closed" and gets the longer TTL since its numbers can

@@ -15,15 +15,15 @@ TOP SYSTEMS, TOP REGIONS.
 
 Eşleştirme:
 
-| Rakip | Bizde | Durum |
-| --- | --- | --- |
-| TOP CHARACTERS | Most Active Pilots | var |
-| TOP CORPORATIONS | Most Active Corporations | var |
-| TOP ALLIANCES | Most Active Alliances | var |
-| TOP SHIPS | Most Used Ships + Most Killed Ships | var, bizde saldıran/ölen ayrımıyla |
-| TOP FACTIONS | — | eksik |
-| TOP SYSTEMS | — | eksik |
-| TOP REGIONS | — | eksik |
+| Rakip            | Bizde                               | Durum                              |
+| ---------------- | ----------------------------------- | ---------------------------------- |
+| TOP CHARACTERS   | Most Active Pilots                  | var                                |
+| TOP CORPORATIONS | Most Active Corporations            | var                                |
+| TOP ALLIANCES    | Most Active Alliances               | var                                |
+| TOP SHIPS        | Most Used Ships + Most Killed Ships | var, bizde saldıran/ölen ayrımıyla |
+| TOP FACTIONS     | —                                   | eksik                              |
+| TOP SYSTEMS      | —                                   | eksik                              |
+| TOP REGIONS      | —                                   | eksik                              |
 
 ## Hedef
 
@@ -69,14 +69,14 @@ bugün hiçbir faction'ın adı, açıklaması veya logosu çözülemiyor; front
 
 Buna karşılık `faction_id` dokuz kolonda duruyor ve dördü dolduruluyor:
 
-| Tablo | Dolu | Toplam |
-| --- | --- | --- |
-| `corporations.faction_id` | 363 | 20.149 |
-| `attackers.faction_id` | 106 | 134.743 |
-| `alliances.faction_id` | 76 | 3.619 |
-| `victims.faction_id` | 18 | 27.859 |
-| `characters.faction_id` | 0 | 50.953 |
-| `sovereignty_map_current.faction_id` | 0 | 0 (tablo boş) |
+| Tablo                                | Dolu | Toplam        |
+| ------------------------------------ | ---- | ------------- |
+| `corporations.faction_id`            | 363  | 20.149        |
+| `attackers.faction_id`               | 106  | 134.743       |
+| `alliances.faction_id`               | 76   | 3.619         |
+| `victims.faction_id`                 | 18   | 27.859        |
+| `characters.faction_id`              | 0    | 50.953        |
+| `sovereignty_map_current.faction_id` | 0    | 0 (tablo boş) |
 
 Yani worker'lar ESI'den geleni yazıyor, okuyan kimse yok. `factions` tablosu
 geldiğinde kart dışında da işe yarar — 363 corporation ve 76 alliance'ın
@@ -210,9 +210,21 @@ extend type Query {
 tipi yeni tanımlanmaz — önkoşul spec'in bıraktığı `TopFilter` kullanılır:
 
 ```graphql
-type TopFaction { rank: Int!, killCount: Int!, faction: Faction }
-type TopSystem  { rank: Int!, killCount: Int!, solarSystem: SolarSystem }
-type TopRegion  { rank: Int!, killCount: Int!, region: Region }
+type TopFaction {
+  rank: Int!
+  killCount: Int!
+  faction: Faction
+}
+type TopSystem {
+  rank: Int!
+  killCount: Int!
+  solarSystem: SolarSystem
+}
+type TopRegion {
+  rank: Int!
+  killCount: Int!
+  region: Region
+}
 
 extend type Query {
   topFactions(filter: TopFilter): [TopFaction!]!
@@ -297,6 +309,7 @@ listesi + loading/empty durumları):
 - `TopRegionsCard` — bölge adı, kill sayısı, `/regions/{id}` linki.
 
 `TopEntitySidebar.tsx`:
+
 - `TopEntityCardKind`'a `'factions' | 'systems' | 'regions'` eklenir.
 - Üç yeni hook, mevcutlar gibi `skip: !has(kind)` ile koşulsuz çağrılır.
 - `switch` bloğuna üç yeni `case`.

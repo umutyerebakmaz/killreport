@@ -74,10 +74,26 @@ input TopFilter {
   regionId: Int
 }
 
-type TopPilot       { rank: Int!, killCount: Int!, character: Character }
-type TopCorporation { rank: Int!, killCount: Int!, corporation: Corporation }
-type TopAlliance    { rank: Int!, killCount: Int!, alliance: Alliance }
-type TopShip        { rank: Int!, killCount: Int!, shipType: Type }
+type TopPilot {
+  rank: Int!
+  killCount: Int!
+  character: Character
+}
+type TopCorporation {
+  rank: Int!
+  killCount: Int!
+  corporation: Corporation
+}
+type TopAlliance {
+  rank: Int!
+  killCount: Int!
+  alliance: Alliance
+}
+type TopShip {
+  rank: Int!
+  killCount: Int!
+  shipType: Type
+}
 
 extend type Query {
   topPilots(filter: TopFilter): [TopPilot!]!
@@ -121,13 +137,13 @@ resolvePeriod(period, anchor) => {
 
 Mevcut dokuz resolver'ın tarih mantığı buraya taşınır, davranış birebir korunur:
 
-| period | aralık | isLive |
-| --- | --- | --- |
-| `TODAY` | `anchor` (boşsa bugün), tek gün | çıpa == bugün |
-| `WEEK` | `getWeekMonday(anchor)` → +6 gün | pencere bugünü kapsıyorsa |
-| `MONTH` | ayın 1'i → ayın son günü | pencere bugünü kapsıyorsa |
-| `LAST_7_DAYS` | bugün − 6 gün → bugün | her zaman |
-| `LAST_90_DAYS` | bugün − 89 gün → bugün | her zaman |
+| period         | aralık                           | isLive                    |
+| -------------- | -------------------------------- | ------------------------- |
+| `TODAY`        | `anchor` (boşsa bugün), tek gün  | çıpa == bugün             |
+| `WEEK`         | `getWeekMonday(anchor)` → +6 gün | pencere bugünü kapsıyorsa |
+| `MONTH`        | ayın 1'i → ayın son günü         | pencere bugünü kapsıyorsa |
+| `LAST_7_DAYS`  | bugün − 6 gün → bugün            | her zaman                 |
+| `LAST_90_DAYS` | bugün − 89 gün → bugün           | her zaman                 |
 
 `getWeekMonday` bugün `queries.ts` içinde; buraya taşınır. UTC hesabı değişmez.
 
@@ -235,13 +251,13 @@ eklemektir — ama bugün spekülatif olur.
 
 Dokuz doküman beşe iner (`frontend/src/graphql/`):
 
-| Silinen | Yerine |
-| --- | --- |
-| `TopPilots.graphql`, `TopWeeklyPilots.graphql`, `TopMonthlyPilots.graphql`, `Top90DaysPilots.graphql`, `TopLast7DaysPilots.graphql` | `TopPilots.graphql` |
-| `TopLast7DaysCorporations.graphql` | `TopCorporations.graphql` |
-| `TopLast7DaysAlliances.graphql` | `TopAlliances.graphql` |
-| `TopLast7DaysAttackerShips.graphql` | `TopAttackerShips.graphql` |
-| `TopLast7DaysShips.graphql` | `TopDestroyedShips.graphql` |
+| Silinen                                                                                                                             | Yerine                      |
+| ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| `TopPilots.graphql`, `TopWeeklyPilots.graphql`, `TopMonthlyPilots.graphql`, `Top90DaysPilots.graphql`, `TopLast7DaysPilots.graphql` | `TopPilots.graphql`         |
+| `TopLast7DaysCorporations.graphql`                                                                                                  | `TopCorporations.graphql`   |
+| `TopLast7DaysAlliances.graphql`                                                                                                     | `TopAlliances.graphql`      |
+| `TopLast7DaysAttackerShips.graphql`                                                                                                 | `TopAttackerShips.graphql`  |
+| `TopLast7DaysShips.graphql`                                                                                                         | `TopDestroyedShips.graphql` |
 
 Hepsi `$filter: TopFilter` alır.
 
@@ -328,17 +344,17 @@ Değişiklikten **önce** dokuz sorgunun her biri backend'e atılıp çıktılar
 kaydedilir; **sonra** yeni karşılıkları aynı parametrelerle atılır ve sıralama
 ile `killCount` değerleri karşılaştırılır:
 
-| Eski | Yeni |
-| --- | --- |
-| `topPilots` | `topPilots(period: TODAY)` |
-| `topWeeklyPilots` | `topPilots(period: WEEK)` |
-| `topMonthlyPilots` | `topPilots(period: MONTH)` |
-| `top90DaysPilots` | `topPilots(period: LAST_90_DAYS)` |
-| `topLast7DaysPilots` | `topPilots(period: LAST_7_DAYS)` |
-| `topLast7DaysCorporations` | `topCorporations(period: LAST_7_DAYS)` |
-| `topLast7DaysAlliances` | `topAlliances(period: LAST_7_DAYS)` |
-| `topLast7DaysShips` | `topDestroyedShips(period: LAST_7_DAYS)` |
-| `topLast7DaysAttackerShips` | `topAttackerShips(period: LAST_7_DAYS)` |
+| Eski                        | Yeni                                     |
+| --------------------------- | ---------------------------------------- |
+| `topPilots`                 | `topPilots(period: TODAY)`               |
+| `topWeeklyPilots`           | `topPilots(period: WEEK)`                |
+| `topMonthlyPilots`          | `topPilots(period: MONTH)`               |
+| `top90DaysPilots`           | `topPilots(period: LAST_90_DAYS)`        |
+| `topLast7DaysPilots`        | `topPilots(period: LAST_7_DAYS)`         |
+| `topLast7DaysCorporations`  | `topCorporations(period: LAST_7_DAYS)`   |
+| `topLast7DaysAlliances`     | `topAlliances(period: LAST_7_DAYS)`      |
+| `topLast7DaysShips`         | `topDestroyedShips(period: LAST_7_DAYS)` |
+| `topLast7DaysAttackerShips` | `topAttackerShips(period: LAST_7_DAYS)`  |
 
 Tek beklenen fark, gün sınırındaki `<=` → `<` düzeltmesinin ertesi günün tam
 00:00:00'ındaki bir killmail'i artık dışarıda bırakmasıdır.

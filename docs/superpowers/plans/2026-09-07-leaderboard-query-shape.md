@@ -23,7 +23,7 @@
 - **TTL:** live window 300 s, closed historical window 3600 s.
 - **Test baseline before any change:** backend 482 tests / 17 files, frontend 250 tests / 21 files, all passing. `yarn test` from the repo root runs both. No task may reduce these counts except where it deletes a test alongside the code it covered.
 - **Backend dev port is read from `backend/.env`** (`PORT`, currently 4010). Never hardcode 4000. Never kill by process name.
-- **`yarn workspace frontend lint` is not clean and never has been.** On `main` it reports **148 errors and 85 warnings**, none of them in files this plan touches. The bar for every task is therefore *no new finding in a file you changed* — not a clean run. Do not fix unrelated lint errors; that is its own piece of work. `leaderboards/page.tsx` (3) and `WeeklyTopCharCard.tsx` (1) carry pre-existing `no-img-element` warnings whose counts are identical on `main`; leave them.
+- **`yarn workspace frontend lint` is not clean and never has been.** On `main` it reports **148 errors and 85 warnings**, none of them in files this plan touches. The bar for every task is therefore _no new finding in a file you changed_ — not a clean run. Do not fix unrelated lint errors; that is its own piece of work. `leaderboards/page.tsx` (3) and `WeeklyTopCharCard.tsx` (1) carry pre-existing `no-img-element` warnings whose counts are identical on `main`; leave them.
 
 ---
 
@@ -31,29 +31,29 @@
 
 **Created:**
 
-| File | Responsibility |
-| --- | --- |
-| `backend/src/resolvers/leaderboard/period.ts` | `getWeekMonday`, `resolvePeriod`, `ResolvedPeriod`. Pure date arithmetic, no I/O. |
-| `backend/src/resolvers/leaderboard/period.spec.ts` | Unit tests for the above. |
-| `backend/src/resolvers/leaderboard/queries.spec.ts` | Resolver tests: emitted SQL, cache keys, TTLs, BigInt handling. |
-| `frontend/src/graphql/TopCorporations.graphql` | Replaces `TopLast7DaysCorporations.graphql`. |
-| `frontend/src/graphql/TopAlliances.graphql` | Replaces `TopLast7DaysAlliances.graphql`. |
-| `frontend/src/graphql/TopAttackerShips.graphql` | Replaces `TopLast7DaysAttackerShips.graphql`. |
-| `frontend/src/graphql/TopDestroyedShips.graphql` | Replaces `TopLast7DaysShips.graphql`. |
+| File                                                | Responsibility                                                                    |
+| --------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `backend/src/resolvers/leaderboard/period.ts`       | `getWeekMonday`, `resolvePeriod`, `ResolvedPeriod`. Pure date arithmetic, no I/O. |
+| `backend/src/resolvers/leaderboard/period.spec.ts`  | Unit tests for the above.                                                         |
+| `backend/src/resolvers/leaderboard/queries.spec.ts` | Resolver tests: emitted SQL, cache keys, TTLs, BigInt handling.                   |
+| `frontend/src/graphql/TopCorporations.graphql`      | Replaces `TopLast7DaysCorporations.graphql`.                                      |
+| `frontend/src/graphql/TopAlliances.graphql`         | Replaces `TopLast7DaysAlliances.graphql`.                                         |
+| `frontend/src/graphql/TopAttackerShips.graphql`     | Replaces `TopLast7DaysAttackerShips.graphql`.                                     |
+| `frontend/src/graphql/TopDestroyedShips.graphql`    | Replaces `TopLast7DaysShips.graphql`.                                             |
 
 **Modified:**
 
-| File | Change |
-| --- | --- |
-| `backend/src/schemas/Leaderboard.graphql` | Whole file rewritten across Tasks 1, 3, 4, 5. |
-| `backend/src/resolvers/leaderboard/queries.ts` | Nine resolvers become five. |
-| `frontend/src/graphql/TopPilots.graphql` | Absorbs the four other pilot documents. |
-| `frontend/src/app/leaderboards/page.tsx` | Four hooks become one, called four times. |
+| File                                                              | Change                                           |
+| ----------------------------------------------------------------- | ------------------------------------------------ |
+| `backend/src/schemas/Leaderboard.graphql`                         | Whole file rewritten across Tasks 1, 3, 4, 5.    |
+| `backend/src/resolvers/leaderboard/queries.ts`                    | Nine resolvers become five.                      |
+| `frontend/src/graphql/TopPilots.graphql`                          | Absorbs the four other pilot documents.          |
+| `frontend/src/app/leaderboards/page.tsx`                          | Four hooks become one, called four times.        |
 | `frontend/src/components/WeeklyTopCharCard/WeeklyTopCharCard.tsx` | `useTopWeeklyPilotsQuery` → `useTopPilotsQuery`. |
-| `frontend/src/components/TopEntitySidebar/TopEntitySidebar.tsx` | Five hooks renamed. |
-| `backend/docs/leaderboards/leaderboard-queries.md` | Query names and shapes. |
-| `backend/docs/leaderboards/leaderboards.md` | Query names. |
-| `CLAUDE.md` | Correct the stale "no test runner" claim. |
+| `frontend/src/components/TopEntitySidebar/TopEntitySidebar.tsx`   | Five hooks renamed.                              |
+| `backend/docs/leaderboards/leaderboard-queries.md`                | Query names and shapes.                          |
+| `backend/docs/leaderboards/leaderboards.md`                       | Query names.                                     |
+| `CLAUDE.md`                                                       | Correct the stale "no test runner" claim.        |
 
 **Deleted:**
 
@@ -66,9 +66,11 @@
 The schema additions here are purely additive — no existing query changes — so the build and every existing frontend document keep working. The baseline capture must happen **before** anything else in this plan, because it is the "before" side of the behavioural comparison in Task 6.
 
 **Files:**
+
 - Modify: `backend/src/schemas/Leaderboard.graphql`
 
 **Interfaces:**
+
 - Produces: GraphQL `enum LeaderboardPeriod { TODAY WEEK MONTH LAST_7_DAYS LAST_90_DAYS }` and `input TopFilter { period, anchor, limit, systemId, constellationId, regionId }`. Codegen emits these as `LeaderboardPeriod` (a TS `enum` with string values) and `TopFilter` in `backend/src/generated-types.ts`. Task 2 imports `LeaderboardPeriod` from `@generated-types`.
 
 - [ ] **Step 1: Start the backend on the port from `.env`**
@@ -199,11 +201,13 @@ in the commits that follow."
 Pure date arithmetic, no I/O, so this is straight TDD. It also takes `getWeekMonday` out of `queries.ts`, where it currently sits as a file-local function.
 
 **Files:**
+
 - Create: `backend/src/resolvers/leaderboard/period.ts`
 - Create: `backend/src/resolvers/leaderboard/period.spec.ts`
 - Modify: `backend/src/resolvers/leaderboard/queries.ts` (delete the local `getWeekMonday`, import it instead)
 
 **Interfaces:**
+
 - Consumes: `LeaderboardPeriod` from `@generated-types` (Task 1).
 - Produces:
   - `getWeekMonday(dateStr: string): string`
@@ -352,9 +356,9 @@ describe('resolvePeriod rolling windows', () => {
 
 describe('resolvePeriod rejects a malformed anchor', () => {
   it('throws when TODAY gets a month string', () => {
-    expect(() => resolvePeriod(LeaderboardPeriod.Today, '2026-09', NOW)).toThrow(
-      /anchor/i,
-    );
+    expect(() =>
+      resolvePeriod(LeaderboardPeriod.Today, '2026-09', NOW),
+    ).toThrow(/anchor/i);
   });
 
   it('throws when MONTH gets a full date', () => {
@@ -364,9 +368,9 @@ describe('resolvePeriod rejects a malformed anchor', () => {
   });
 
   it('throws on a non-date string', () => {
-    expect(() => resolvePeriod(LeaderboardPeriod.Week, 'last week', NOW)).toThrow(
-      /anchor/i,
-    );
+    expect(() =>
+      resolvePeriod(LeaderboardPeriod.Week, 'last week', NOW),
+    ).toThrow(/anchor/i);
   });
 });
 ```
@@ -500,7 +504,13 @@ export function resolvePeriod(
 
   const isLive = startDate <= today && today <= endDate;
 
-  return { startDate, endDate, isLive, cacheTtl: isLive ? 300 : 3600, cacheAnchor };
+  return {
+    startDate,
+    endDate,
+    isLive,
+    cacheTtl: isLive ? 300 : 3600,
+    cacheAnchor,
+  };
 }
 ```
 
@@ -563,6 +573,7 @@ tested place; no resolver uses it yet."
 The largest task, because pilots is the only subject with all five periods today and it has four call sites. Schema, resolver, frontend documents and every consumer move together — splitting them would leave the build broken between commits.
 
 **Files:**
+
 - Modify: `backend/src/schemas/Leaderboard.graphql`
 - Modify: `backend/src/resolvers/leaderboard/queries.ts`
 - Create: `backend/src/resolvers/leaderboard/queries.spec.ts`
@@ -573,6 +584,7 @@ The largest task, because pilots is the only subject with all five periods today
 - Modify: `frontend/src/components/TopEntitySidebar/TopEntitySidebar.tsx`
 
 **Interfaces:**
+
 - Consumes: `resolvePeriod`, `ResolvedPeriod` (Task 2); `LeaderboardPeriod`, `TopFilter` (Task 1).
 - Produces: `Query.topPilots(filter: TopFilter): [TopPilot!]!`. Frontend hook `useTopPilotsQuery`, result field `data.topPilots`. Tasks 4 and 5 copy this resolver's seven-step skeleton and the test file's mocking harness.
 
@@ -711,9 +723,7 @@ describe('topPilots', () => {
   });
 
   it('converts BigInt counts before caching', async () => {
-    prisma.$queryRaw.mockResolvedValue([
-      { character_id: 42, kill_count: 7n },
-    ]);
+    prisma.$queryRaw.mockResolvedValue([{ character_id: 42, kill_count: 7n }]);
     prisma.character.findMany.mockResolvedValue([characterRow(42)]);
 
     const result = (await call('topPilots', { limit: 10 })) as Array<{
@@ -726,9 +736,7 @@ describe('topPilots', () => {
 
   it('caches a live window for 300 s and a closed one for 3600 s', async () => {
     // setex is only reached when there are rows to cache.
-    prisma.$queryRaw.mockResolvedValue([
-      { character_id: 42, kill_count: 7n },
-    ]);
+    prisma.$queryRaw.mockResolvedValue([{ character_id: 42, kill_count: 7n }]);
     prisma.character.findMany.mockResolvedValue([characterRow(42)]);
 
     await call('topPilots', { period: LeaderboardPeriod.Today, limit: 10 });
@@ -940,41 +948,43 @@ Then change each hook call and its result field:
 `DailyLeaderboard`:
 
 ```typescript
-  const { data, loading } = useTopPilotsQuery({
-    variables: {
-      filter: {
-        period: LeaderboardPeriod.Today,
-        anchor: selectedDate,
-        limit: 10,
-      },
+const { data, loading } = useTopPilotsQuery({
+  variables: {
+    filter: {
+      period: LeaderboardPeriod.Today,
+      anchor: selectedDate,
+      limit: 10,
     },
-  });
+  },
+});
 ```
 
 `WeeklyLeaderboard`:
 
 ```typescript
-  const { data, loading } = useTopPilotsQuery({
-    variables: {
-      filter: { period: LeaderboardPeriod.Week, anchor: weekStart, limit: 10 },
-    },
-  });
+const { data, loading } = useTopPilotsQuery({
+  variables: {
+    filter: { period: LeaderboardPeriod.Week, anchor: weekStart, limit: 10 },
+  },
+});
 ```
 
 `Last90DaysLeaderboard`:
 
 ```typescript
-  const { data, loading } = useTopPilotsQuery({
-    variables: { filter: { period: LeaderboardPeriod.Last_90Days, limit: 10 } },
-  });
+const { data, loading } = useTopPilotsQuery({
+  variables: { filter: { period: LeaderboardPeriod.Last_90Days, limit: 10 } },
+});
 ```
 
 `MonthlyLeaderboard`:
 
 ```typescript
-  const { data, loading } = useTopPilotsQuery({
-    variables: { filter: { period: LeaderboardPeriod.Month, anchor: month, limit: 10 } },
-  });
+const { data, loading } = useTopPilotsQuery({
+  variables: {
+    filter: { period: LeaderboardPeriod.Month, anchor: month, limit: 10 },
+  },
+});
 ```
 
 Then replace every read of the old result fields with `data?.topPilots`:
@@ -996,11 +1006,11 @@ import { LeaderboardPeriod, useTopPilotsQuery } from '@/generated/graphql';
 ```
 
 ```typescript
-  const { data, loading } = useTopPilotsQuery({
-    variables: { filter: { period: LeaderboardPeriod.Week, limit: 10 } },
-  });
+const { data, loading } = useTopPilotsQuery({
+  variables: { filter: { period: LeaderboardPeriod.Week, limit: 10 } },
+});
 
-  const pilots = data?.topPilots ?? [];
+const pilots = data?.topPilots ?? [];
 ```
 
 - [ ] **Step 9: Update the sidebar's pilot hook**
@@ -1019,10 +1029,12 @@ import {
 ```
 
 ```typescript
-  const { data: pilots, loading: pilotsLoading } = useTopPilotsQuery({
-    variables: { filter: { period: LeaderboardPeriod.Last_7Days, ...variables.filter } },
-    skip: !has('characters'),
-  });
+const { data: pilots, loading: pilotsLoading } = useTopPilotsQuery({
+  variables: {
+    filter: { period: LeaderboardPeriod.Last_7Days, ...variables.filter },
+  },
+  skip: !has('characters'),
+});
 ```
 
 and the read below it:
@@ -1071,6 +1083,7 @@ BigInt and is converted before caching."
 Both are mechanical copies of the `topPilots` skeleton against their own stats table and entity, and neither has a period other than the rolling week today. They travel together because they are the same edit twice and share one sidebar file.
 
 **Files:**
+
 - Modify: `backend/src/schemas/Leaderboard.graphql`
 - Modify: `backend/src/resolvers/leaderboard/queries.ts`
 - Modify: `backend/src/resolvers/leaderboard/queries.spec.ts`
@@ -1079,6 +1092,7 @@ Both are mechanical copies of the `topPilots` skeleton against their own stats t
 - Modify: `frontend/src/components/TopEntitySidebar/TopEntitySidebar.tsx`
 
 **Interfaces:**
+
 - Consumes: `resolvePeriod` (Task 2); the `querySql` / `queryValues` / `call` helpers in `queries.spec.ts` (Task 3).
 - Produces: `Query.topCorporations(filter: TopFilter): [TopCorporation!]!` and `Query.topAlliances(filter: TopFilter): [TopAlliance!]!`. Frontend hooks `useTopCorporationsQuery` / `useTopAlliancesQuery`, result fields `data.topCorporations` / `data.topAlliances`.
 
@@ -1374,15 +1388,19 @@ query TopAlliances($filter: TopFilter) {
 In `frontend/src/components/TopEntitySidebar/TopEntitySidebar.tsx`, change the two hooks and the two result reads:
 
 ```typescript
-  const { data: corporations, loading: corporationsLoading } =
-    useTopCorporationsQuery({
-      variables: { filter: { period: LeaderboardPeriod.Last_7Days, ...variables.filter } },
-      skip: !has('corporations'),
-    });
-  const { data: alliances, loading: alliancesLoading } = useTopAlliancesQuery({
-    variables: { filter: { period: LeaderboardPeriod.Last_7Days, ...variables.filter } },
-    skip: !has('alliances'),
+const { data: corporations, loading: corporationsLoading } =
+  useTopCorporationsQuery({
+    variables: {
+      filter: { period: LeaderboardPeriod.Last_7Days, ...variables.filter },
+    },
+    skip: !has('corporations'),
   });
+const { data: alliances, loading: alliancesLoading } = useTopAlliancesQuery({
+  variables: {
+    filter: { period: LeaderboardPeriod.Last_7Days, ...variables.filter },
+  },
+  skip: !has('alliances'),
+});
 ```
 
 ```typescript
@@ -1426,6 +1444,7 @@ is given, the killmail_filters join when one is."
 `topLast7DaysAttackerShips` is the one resolver that joins `killmails` directly and the only filter without the spatial fields. Both change here, which is what makes the Most Used Ships card on `/solar-systems/[id]` render at all.
 
 **Files:**
+
 - Modify: `backend/src/schemas/Leaderboard.graphql`
 - Modify: `backend/src/resolvers/leaderboard/queries.ts`
 - Modify: `backend/src/resolvers/leaderboard/queries.spec.ts`
@@ -1434,6 +1453,7 @@ is given, the killmail_filters join when one is."
 - Modify: `frontend/src/components/TopEntitySidebar/TopEntitySidebar.tsx`
 
 **Interfaces:**
+
 - Consumes: `resolvePeriod` (Task 2); the spec helpers from Task 3.
 - Produces: `Query.topDestroyedShips(filter: TopFilter): [TopShip!]!` and `Query.topAttackerShips(filter: TopFilter): [TopShip!]!`, sharing one `TopShip` output type. Frontend hooks `useTopDestroyedShipsQuery` / `useTopAttackerShipsQuery`, result fields `data.topDestroyedShips` / `data.topAttackerShips`.
 
@@ -1528,9 +1548,7 @@ describe('every subject accepts every period', () => {
   for (const subject of SUBJECTS) {
     for (const [period] of PERIODS) {
       it(`${subject} over ${period}`, async () => {
-        await expect(
-          call(subject, { period, limit: 10 }),
-        ).resolves.toEqual([]);
+        await expect(call(subject, { period, limit: 10 })).resolves.toEqual([]);
 
         // The window reached the query rather than being silently dropped.
         expect(prisma.$queryRaw).toHaveBeenCalledOnce();
@@ -1726,15 +1744,19 @@ query TopAttackerShips($filter: TopFilter) {
 In `frontend/src/components/TopEntitySidebar/TopEntitySidebar.tsx`, change the last two hooks and their reads:
 
 ```typescript
-  const { data: attackerShips, loading: attackerShipsLoading } =
-    useTopAttackerShipsQuery({
-      variables: { filter: { period: LeaderboardPeriod.Last_7Days, ...variables.filter } },
-      skip: !has('attackerShips'),
-    });
-  const { data: ships, loading: shipsLoading } = useTopDestroyedShipsQuery({
-    variables: { filter: { period: LeaderboardPeriod.Last_7Days, ...variables.filter } },
-    skip: !has('ships'),
+const { data: attackerShips, loading: attackerShipsLoading } =
+  useTopAttackerShipsQuery({
+    variables: {
+      filter: { period: LeaderboardPeriod.Last_7Days, ...variables.filter },
+    },
+    skip: !has('attackerShips'),
   });
+const { data: ships, loading: shipsLoading } = useTopDestroyedShipsQuery({
+  variables: {
+    filter: { period: LeaderboardPeriod.Last_7Days, ...variables.filter },
+  },
+  skip: !has('ships'),
+});
 ```
 
 ```typescript
@@ -1797,11 +1819,13 @@ tables cover the same killmails, and the count stays COUNT(*)."
 The rename is only safe if the new queries return what the old ones did. This task runs that comparison against the baseline captured in Task 1 and brings the prose in line.
 
 **Files:**
+
 - Modify: `backend/docs/leaderboards/leaderboard-queries.md`
 - Modify: `backend/docs/leaderboards/leaderboards.md`
 - Modify: `CLAUDE.md`
 
 **Interfaces:**
+
 - Consumes: `.superpowers/sdd/2026-09-07-leaderboard-query-shape/baseline/*.json` (Task 1 Step 2); every query from Tasks 3–5.
 
 - [ ] **Step 1: Capture the "after" output**
@@ -1868,14 +1892,14 @@ kills land inside the same few days, so a resolver that silently used the wrong
 window would still match. Six extra baselines were captured against past
 periods, where the windows do separate:
 
-| Baseline file | Old query | New query |
-| --- | --- | --- |
-| `anchored-today-2025-12-29` | `topPilots(date: "2025-12-29")` | `topPilots(period: TODAY, anchor: "2025-12-29")` |
-| `anchored-week-2025-12-29` | `topWeeklyPilots(weekStart: "2025-12-29")` | `topPilots(period: WEEK, anchor: "2025-12-29")` |
-| `anchored-month-2025-12` | `topMonthlyPilots(month: "2025-12")` | `topPilots(period: MONTH, anchor: "2025-12")` |
-| `anchored-month-2025-10` | `topMonthlyPilots(month: "2025-10")` | `topPilots(period: MONTH, anchor: "2025-10")` |
-| `anchored-today-2025-10-09` | `topPilots(date: "2025-10-09")` | `topPilots(period: TODAY, anchor: "2025-10-09")` |
-| `anchored-week-2025-10-09` | `topWeeklyPilots(weekStart: "2025-10-09")` | `topPilots(period: WEEK, anchor: "2025-10-09")` |
+| Baseline file               | Old query                                  | New query                                        |
+| --------------------------- | ------------------------------------------ | ------------------------------------------------ |
+| `anchored-today-2025-12-29` | `topPilots(date: "2025-12-29")`            | `topPilots(period: TODAY, anchor: "2025-12-29")` |
+| `anchored-week-2025-12-29`  | `topWeeklyPilots(weekStart: "2025-12-29")` | `topPilots(period: WEEK, anchor: "2025-12-29")`  |
+| `anchored-month-2025-12`    | `topMonthlyPilots(month: "2025-12")`       | `topPilots(period: MONTH, anchor: "2025-12")`    |
+| `anchored-month-2025-10`    | `topMonthlyPilots(month: "2025-10")`       | `topPilots(period: MONTH, anchor: "2025-10")`    |
+| `anchored-today-2025-10-09` | `topPilots(date: "2025-10-09")`            | `topPilots(period: TODAY, anchor: "2025-10-09")` |
+| `anchored-week-2025-10-09`  | `topWeeklyPilots(weekStart: "2025-10-09")` | `topPilots(period: WEEK, anchor: "2025-10-09")`  |
 
 ```bash
 cd /Users/umut/Sites/killreport
@@ -1912,17 +1936,17 @@ Skip it in the comparison; Task 5 Step 9 is what proves it fixed.
 
 In `backend/docs/leaderboards/leaderboard-queries.md` and `backend/docs/leaderboards/leaderboards.md`, replace every old query name with its new form:
 
-| Old | New |
-| --- | --- |
-| `topPilots` | `topPilots(filter: { period: TODAY })` |
-| `topWeeklyPilots` | `topPilots(filter: { period: WEEK })` |
-| `topMonthlyPilots` | `topPilots(filter: { period: MONTH })` |
-| `top90DaysPilots` | `topPilots(filter: { period: LAST_90_DAYS })` |
-| `topLast7DaysPilots` | `topPilots(filter: { period: LAST_7_DAYS })` |
-| `topLast7DaysCorporations` | `topCorporations` |
-| `topLast7DaysAlliances` | `topAlliances` |
-| `topLast7DaysShips` | `topDestroyedShips` |
-| `topLast7DaysAttackerShips` | `topAttackerShips` |
+| Old                         | New                                           |
+| --------------------------- | --------------------------------------------- |
+| `topPilots`                 | `topPilots(filter: { period: TODAY })`        |
+| `topWeeklyPilots`           | `topPilots(filter: { period: WEEK })`         |
+| `topMonthlyPilots`          | `topPilots(filter: { period: MONTH })`        |
+| `top90DaysPilots`           | `topPilots(filter: { period: LAST_90_DAYS })` |
+| `topLast7DaysPilots`        | `topPilots(filter: { period: LAST_7_DAYS })`  |
+| `topLast7DaysCorporations`  | `topCorporations`                             |
+| `topLast7DaysAlliances`     | `topAlliances`                                |
+| `topLast7DaysShips`         | `topDestroyedShips`                           |
+| `topLast7DaysAttackerShips` | `topAttackerShips`                            |
 
 Add a short section describing `TopFilter`, the `LeaderboardPeriod` values, and the three SQL shapes (daily stats table / `attackers ⋈ killmail_filters` / `killmail_filters` alone) with which subject uses which.
 
@@ -1936,7 +1960,7 @@ Check each path resolves relative to the file containing it.
 
 - [ ] **Step 5: Correct the stale test-runner claim in CLAUDE.md**
 
-`CLAUDE.md` currently says, under *Verifying work*:
+`CLAUDE.md` currently says, under _Verifying work_:
 
 ```
 There is no test runner and no test files in either workspace. Verification is:

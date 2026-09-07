@@ -133,9 +133,9 @@ describe('resolvePeriod rolling windows', () => {
 
 describe('resolvePeriod rejects a malformed anchor', () => {
   it('throws when TODAY gets a month string', () => {
-    expect(() => resolvePeriod(LeaderboardPeriod.Today, '2026-09', NOW)).toThrow(
-      /anchor/i,
-    );
+    expect(() =>
+      resolvePeriod(LeaderboardPeriod.Today, '2026-09', NOW),
+    ).toThrow(/anchor/i);
   });
 
   it('throws when MONTH gets a full date', () => {
@@ -145,9 +145,9 @@ describe('resolvePeriod rejects a malformed anchor', () => {
   });
 
   it('throws on a non-date string', () => {
-    expect(() => resolvePeriod(LeaderboardPeriod.Week, 'last week', NOW)).toThrow(
-      /anchor/i,
-    );
+    expect(() =>
+      resolvePeriod(LeaderboardPeriod.Week, 'last week', NOW),
+    ).toThrow(/anchor/i);
   });
 
   it('throws when TODAY gets an empty string', () => {
@@ -169,9 +169,9 @@ describe('resolvePeriod rejects a malformed anchor', () => {
   });
 
   it('still falls back to today when the anchor is undefined or null', () => {
-    expect(resolvePeriod(LeaderboardPeriod.Today, undefined, NOW).startDate).toBe(
-      '2026-09-09',
-    );
+    expect(
+      resolvePeriod(LeaderboardPeriod.Today, undefined, NOW).startDate,
+    ).toBe('2026-09-09');
     expect(resolvePeriod(LeaderboardPeriod.Today, null, NOW).startDate).toBe(
       '2026-09-09',
     );
@@ -196,9 +196,9 @@ describe('resolvePeriod rejects a malformed anchor', () => {
   });
 
   it('throws when MONTH gets a month that does not exist', () => {
-    expect(() => resolvePeriod(LeaderboardPeriod.Month, '2026-13', NOW)).toThrow(
-      /anchor/i,
-    );
+    expect(() =>
+      resolvePeriod(LeaderboardPeriod.Month, '2026-13', NOW),
+    ).toThrow(/anchor/i);
   });
 
   it('still accepts a real leap day', () => {
