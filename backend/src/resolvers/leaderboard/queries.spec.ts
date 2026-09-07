@@ -14,6 +14,9 @@ const { prisma, redis } = vi.hoisted(() => ({
     corporation: { findMany: vi.fn() },
     alliance: { findMany: vi.fn() },
     type: { findMany: vi.fn() },
+    solarSystem: { findMany: vi.fn() },
+    region: { findMany: vi.fn() },
+    faction: { findMany: vi.fn() },
   },
   redis: { get: vi.fn(), setex: vi.fn() },
 }));
@@ -84,6 +87,9 @@ beforeEach(() => {
   prisma.corporation.findMany.mockResolvedValue([]);
   prisma.alliance.findMany.mockResolvedValue([]);
   prisma.type.findMany.mockResolvedValue([]);
+  prisma.solarSystem.findMany.mockResolvedValue([]);
+  prisma.region.findMany.mockResolvedValue([]);
+  prisma.faction.findMany.mockResolvedValue([]);
 });
 
 describe('topPilots', () => {
@@ -325,6 +331,143 @@ describe('topAttackerShips', () => {
   });
 });
 
+describe('topSystems', () => {
+  it('counts killmails per system straight out of killmail_filters', async () => {
+    await call('topSystems', { limit: 10 });
+
+    expect(querySql()).toContain('FROM killmail_filters');
+    expect(querySql()).toContain('GROUP BY solar_system_id');
+    expect(querySql()).not.toContain('FROM attackers');
+  });
+
+  it('bounds the upper edge with < next day', async () => {
+    await call('topSystems', { limit: 10 });
+
+    expect(querySql()).toContain("< ? ::date + INTERVAL '1 day'");
+  });
+
+  it('puts every filter parameter in the cache key', async () => {
+    await call('topSystems', { limit: 10, regionId: 10000002 });
+
+    const [key] = redis.get.mock.calls[0];
+    expect(key).toMatch(
+      /^leaderboard:topSystems:LAST_7_DAYS:\d{4}-\d{2}-\d{2}:10:::10000002$/,
+    );
+  });
+
+  it('converts BigInt counts before caching', async () => {
+    prisma.$queryRaw.mockResolvedValue([
+      { solar_system_id: 30000142, kill_count: 91n },
+    ]);
+    prisma.solarSystem.findMany.mockResolvedValue([
+      { id: 30000142, name: 'Jita' },
+    ]);
+
+    const result = (await call('topSystems', { limit: 10 })) as Array<{
+      killCount: number;
+    }>;
+
+    expect(result[0].killCount).toBe(91);
+    expect(() => JSON.stringify(result)).not.toThrow();
+  });
+});
+
+describe('topRegions', () => {
+  it('groups by region rather than system', async () => {
+    await call('topRegions', { limit: 10 });
+
+    expect(querySql()).toContain('FROM killmail_filters');
+    expect(querySql()).toContain('GROUP BY region_id');
+  });
+
+  it('puts every filter parameter in the cache key', async () => {
+    await call('topRegions', { limit: 10 });
+
+    const [key] = redis.get.mock.calls[0];
+    expect(key).toMatch(
+      /^leaderboard:topRegions:LAST_7_DAYS:\d{4}-\d{2}-\d{2}:10:::$/,
+    );
+  });
+
+  it('converts BigInt counts before caching', async () => {
+    prisma.$queryRaw.mockResolvedValue([
+      { region_id: 10000002, kill_count: 337n },
+    ]);
+    prisma.region.findMany.mockResolvedValue([
+      { id: 10000002, name: 'The Forge' },
+    ]);
+
+    const result = (await call('topRegions', { limit: 10 })) as Array<{
+      killCount: number;
+    }>;
+
+    expect(result[0].killCount).toBe(337);
+  });
+});
+
+describe('topFactions', () => {
+  it('joins attackers to killmail_filters and counts distinct killmails', async () => {
+    await call('topFactions', { limit: 10 });
+
+    expect(querySql()).toContain('FROM attackers a');
+    expect(querySql()).toContain('INNER JOIN killmail_filters kf');
+    expect(querySql()).toContain('COUNT(DISTINCT kf.killmail_id)');
+    expect(querySql()).toContain('GROUP BY a.faction_id');
+  });
+
+  it('excludes the 500021 placeholder', async () => {
+    await call('topFactions', { limit: 10 });
+
+    expect(queryValues()).toContain(500021);
+    expect(querySql()).toContain('a.faction_id <> ?');
+  });
+
+  it('accepts a spatial filter and passes it to the query', async () => {
+    await call('topFactions', { limit: 10, systemId: 30000142 });
+
+    expect(querySql()).toContain('INNER JOIN killmail_filters kf');
+    expect(queryValues()).toContain(30000142);
+  });
+
+  it('puts every filter parameter in the cache key', async () => {
+    await call('topFactions', { limit: 10, systemId: 30000142 });
+
+    const [key] = redis.get.mock.calls[0];
+    expect(key).toMatch(
+      /^leaderboard:topFactions:LAST_7_DAYS:\d{4}-\d{2}-\d{2}:10:30000142::$/,
+    );
+  });
+
+  it('converts BigInt counts before caching, and attaches the raw faction row', async () => {
+    prisma.$queryRaw.mockResolvedValue([
+      { faction_id: 500003, kill_count: 25n },
+    ]);
+    prisma.faction.findMany.mockResolvedValue([
+      {
+        id: 500003,
+        name: 'Amarr Empire',
+        description: null,
+        corporation_id: 1000084,
+        militia_corporation_id: 1000179,
+      },
+    ]);
+
+    const result = (await call('topFactions', { limit: 10 })) as Array<{
+      killCount: number;
+      faction: { id: number; corporation_id: number | null } | null;
+    }>;
+
+    expect(result[0].killCount).toBe(25);
+    // topFactions' job ends at looking up and attaching the faction row it
+    // found — snake_case columns and all. Mapping corporation_id to
+    // corporationId is the Faction field resolver's job (see
+    // faction/fields.spec.ts), not this resolver's.
+    expect(result[0].faction?.id).toBe(500003);
+    expect(result[0].faction?.corporation_id).toBe(1000084);
+    expect(() => JSON.stringify(result)).not.toThrow();
+  });
+});
+
 describe('every subject accepts every period', () => {
   const SUBJECTS = [
     'topPilots',
@@ -332,6 +475,9 @@ describe('every subject accepts every period', () => {
     'topAlliances',
     'topDestroyedShips',
     'topAttackerShips',
+    'topFactions',
+    'topSystems',
+    'topRegions',
   ] as const;
 
   const PERIODS = [

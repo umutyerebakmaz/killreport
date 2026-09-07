@@ -1,0 +1,12 @@
+type Faction {
+  id: Int!
+  name: String!
+  description: String
+  corporationId: Int
+  militiaCorporationId: Int
+}
+
+extend type Query {
+  faction(id: Int!): Faction
+  factions: [Faction!]!
+}

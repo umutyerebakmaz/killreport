@@ -1,0 +1,16 @@
+query TopSystems($filter: TopFilter) {
+  topSystems(filter: $filter) {
+    rank
+    killCount
+    solarSystem {
+      id
+      name
+      securityStatus
+      constellation {
+        region {
+          name
+        }
+      }
+    }
+  }
+}

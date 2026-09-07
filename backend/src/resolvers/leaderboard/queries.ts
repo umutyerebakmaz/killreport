@@ -335,4 +335,156 @@ export const leaderboardQueries: QueryResolvers = {
     await redis.setex(cacheKey, cacheTtl, JSON.stringify(result));
     return result;
   },
+
+  topSystems: async (_, { filter }) => {
+    const limit = Math.min(filter?.limit ?? 100, 100);
+    const period = filter?.period ?? LeaderboardPeriod.Last_7Days;
+    const { startDate, endDate, cacheTtl, cacheAnchor } = resolvePeriod(
+      period,
+      filter?.anchor,
+    );
+    const systemId = filter?.systemId;
+    const constellationId = filter?.constellationId;
+    const regionId = filter?.regionId;
+
+    const cacheKey = `leaderboard:topSystems:${period}:${cacheAnchor}:${limit}:${systemId || ''}:${constellationId || ''}:${regionId || ''}`;
+    const cached = await redis.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
+    type Row = { solar_system_id: number; kill_count: bigint };
+    const rows = await prisma.$queryRaw<Row[]>`
+      SELECT solar_system_id, COUNT(*)::BIGINT AS kill_count
+      FROM   killmail_filters
+      WHERE  killmail_time >= ${startDate}::date
+        AND  killmail_time <  ${endDate}::date + INTERVAL '1 day'
+        AND  solar_system_id IS NOT NULL
+        ${systemId ? Prisma.sql`AND solar_system_id = ${systemId}` : Prisma.empty}
+        ${constellationId ? Prisma.sql`AND constellation_id = ${constellationId}` : Prisma.empty}
+        ${regionId ? Prisma.sql`AND region_id = ${regionId}` : Prisma.empty}
+      GROUP  BY solar_system_id
+      ORDER  BY kill_count DESC
+      LIMIT  ${limit}
+    `;
+
+    if (rows.length === 0) return [];
+
+    const systemIds = rows.map((r) => r.solar_system_id);
+    const systems = await prisma.solarSystem.findMany({
+      where: { id: { in: systemIds } },
+    });
+    const systemMap = new Map(systems.map((s) => [s.id, s]));
+
+    const result = rows.map((row, idx) => ({
+      rank: idx + 1,
+      killCount: Number(row.kill_count),
+      solarSystem: systemMap.get(row.solar_system_id) ?? null,
+    }));
+
+    await redis.setex(cacheKey, cacheTtl, JSON.stringify(result));
+    return result;
+  },
+
+  topRegions: async (_, { filter }) => {
+    const limit = Math.min(filter?.limit ?? 100, 100);
+    const period = filter?.period ?? LeaderboardPeriod.Last_7Days;
+    const { startDate, endDate, cacheTtl, cacheAnchor } = resolvePeriod(
+      period,
+      filter?.anchor,
+    );
+    const systemId = filter?.systemId;
+    const constellationId = filter?.constellationId;
+    const regionId = filter?.regionId;
+
+    const cacheKey = `leaderboard:topRegions:${period}:${cacheAnchor}:${limit}:${systemId || ''}:${constellationId || ''}:${regionId || ''}`;
+    const cached = await redis.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
+    type Row = { region_id: number; kill_count: bigint };
+    const rows = await prisma.$queryRaw<Row[]>`
+      SELECT region_id, COUNT(*)::BIGINT AS kill_count
+      FROM   killmail_filters
+      WHERE  killmail_time >= ${startDate}::date
+        AND  killmail_time <  ${endDate}::date + INTERVAL '1 day'
+        AND  region_id IS NOT NULL
+        ${systemId ? Prisma.sql`AND solar_system_id = ${systemId}` : Prisma.empty}
+        ${constellationId ? Prisma.sql`AND constellation_id = ${constellationId}` : Prisma.empty}
+        ${regionId ? Prisma.sql`AND region_id = ${regionId}` : Prisma.empty}
+      GROUP  BY region_id
+      ORDER  BY kill_count DESC
+      LIMIT  ${limit}
+    `;
+
+    if (rows.length === 0) return [];
+
+    const regionIds = rows.map((r) => r.region_id);
+    const regions = await prisma.region.findMany({
+      where: { id: { in: regionIds } },
+    });
+    const regionMap = new Map(regions.map((r) => [r.id, r]));
+
+    const result = rows.map((row, idx) => ({
+      rank: idx + 1,
+      killCount: Number(row.kill_count),
+      region: regionMap.get(row.region_id) ?? null,
+    }));
+
+    await redis.setex(cacheKey, cacheTtl, JSON.stringify(result));
+    return result;
+  },
+
+  topFactions: async (_, { filter }) => {
+    const limit = Math.min(filter?.limit ?? 100, 100);
+    const period = filter?.period ?? LeaderboardPeriod.Last_7Days;
+    const { startDate, endDate, cacheTtl, cacheAnchor } = resolvePeriod(
+      period,
+      filter?.anchor,
+    );
+    const systemId = filter?.systemId;
+    const constellationId = filter?.constellationId;
+    const regionId = filter?.regionId;
+
+    const cacheKey = `leaderboard:topFactions:${period}:${cacheAnchor}:${limit}:${systemId || ''}:${constellationId || ''}:${regionId || ''}`;
+    const cached = await redis.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
+    // COUNT(DISTINCT kf.killmail_id), not COUNT(*): a twenty-strong militia
+    // fleet counts once for that faction on that kill, not twenty times.
+    //
+    // 500021 is ESI's placeholder faction — its name is literally "Unknown"
+    // and it has no corporation_id, so it has no logo and no meaning in a
+    // leaderboard.
+    type Row = { faction_id: number; kill_count: bigint };
+    const rows = await prisma.$queryRaw<Row[]>`
+      SELECT a.faction_id, COUNT(DISTINCT kf.killmail_id)::BIGINT AS kill_count
+      FROM   attackers a
+      INNER JOIN killmail_filters kf ON kf.killmail_id = a.killmail_id
+      WHERE  kf.killmail_time >= ${startDate}::date
+        AND  kf.killmail_time <  ${endDate}::date + INTERVAL '1 day'
+        AND  a.faction_id IS NOT NULL
+        AND  a.faction_id <> ${500021}
+        ${systemId ? Prisma.sql`AND kf.solar_system_id = ${systemId}` : Prisma.empty}
+        ${constellationId ? Prisma.sql`AND kf.constellation_id = ${constellationId}` : Prisma.empty}
+        ${regionId ? Prisma.sql`AND kf.region_id = ${regionId}` : Prisma.empty}
+      GROUP  BY a.faction_id
+      ORDER  BY kill_count DESC
+      LIMIT  ${limit}
+    `;
+
+    if (rows.length === 0) return [];
+
+    const factionIds = rows.map((r) => r.faction_id);
+    const factions = await prisma.faction.findMany({
+      where: { id: { in: factionIds } },
+    });
+    const factionMap = new Map(factions.map((f) => [f.id, f]));
+
+    const result = rows.map((row, idx) => ({
+      rank: idx + 1,
+      killCount: Number(row.kill_count),
+      faction: factionMap.get(row.faction_id) ?? null,
+    }));
+
+    await redis.setex(cacheKey, cacheTtl, JSON.stringify(result));
+    return result;
+  },
 };

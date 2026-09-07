@@ -508,6 +508,15 @@ export type DogmaEffectsResponse = {
   pageInfo: PageInfo;
 };
 
+export type Faction = {
+  __typename?: 'Faction';
+  corporationId?: Maybe<Scalars['Int']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['Int']['output'];
+  militiaCorporationId?: Maybe<Scalars['Int']['output']>;
+  name: Scalars['String']['output'];
+};
+
 /**
  * Organized fitting data for a ship
  * Groups modules, rigs, and subsystems by their slot types
@@ -916,6 +925,8 @@ export type Query = {
   dogmaAttributes: DogmaAttributesResponse;
   dogmaEffect?: Maybe<DogmaEffect>;
   dogmaEffects: DogmaEffectsResponse;
+  faction?: Maybe<Faction>;
+  factions: Array<Faction>;
   itemGroup?: Maybe<ItemGroup>;
   itemGroups: ItemGroupsResponse;
   /** Fetches a single killmail */
@@ -974,8 +985,18 @@ export type Query = {
   topDefenders: Array<AllianceDefenseRecord>;
   /** Ships destroyed most often over the window named by filter.period. */
   topDestroyedShips: Array<TopShip>;
+  /**
+   * Factions whose members scored the most kills over the window named by
+   * filter.period. Counts distinct killmails, so a twenty-strong militia fleet
+   * counts once for that kill.
+   */
+  topFactions: Array<TopFaction>;
   /** Top pilots by kill count over the window named by filter.period. */
   topPilots: Array<TopPilot>;
+  /** Regions with the most kills over the window named by filter.period. */
+  topRegions: Array<TopRegion>;
+  /** Systems with the most kills over the window named by filter.period. */
+  topSystems: Array<TopSystem>;
   type?: Maybe<Type>;
   types: TypesResponse;
   user?: Maybe<User>;
@@ -1159,6 +1180,11 @@ export type QueryDogmaEffectsArgs = {
 };
 
 
+export type QueryFactionArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
 export type QueryItemGroupArgs = {
   id: Scalars['Int']['input'];
 };
@@ -1301,7 +1327,22 @@ export type QueryTopDestroyedShipsArgs = {
 };
 
 
+export type QueryTopFactionsArgs = {
+  filter?: InputMaybe<TopFilter>;
+};
+
+
 export type QueryTopPilotsArgs = {
+  filter?: InputMaybe<TopFilter>;
+};
+
+
+export type QueryTopRegionsArgs = {
+  filter?: InputMaybe<TopFilter>;
+};
+
+
+export type QueryTopSystemsArgs = {
   filter?: InputMaybe<TopFilter>;
 };
 
@@ -1890,6 +1931,13 @@ export type TopCorporation = {
   rank: Scalars['Int']['output'];
 };
 
+export type TopFaction = {
+  __typename?: 'TopFaction';
+  faction?: Maybe<Faction>;
+  killCount: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+};
+
 export type TopFilter = {
   /**
    * Anchors the period. YYYY-MM-DD for TODAY, any day of the target week for
@@ -1913,11 +1961,25 @@ export type TopPilot = {
   rank: Scalars['Int']['output'];
 };
 
+export type TopRegion = {
+  __typename?: 'TopRegion';
+  killCount: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+  region?: Maybe<Region>;
+};
+
 export type TopShip = {
   __typename?: 'TopShip';
   killCount: Scalars['Int']['output'];
   rank: Scalars['Int']['output'];
   shipType?: Maybe<Type>;
+};
+
+export type TopSystem = {
+  __typename?: 'TopSystem';
+  killCount: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+  solarSystem?: Maybe<SolarSystem>;
 };
 
 export enum TopTargetFilter {
@@ -2157,6 +2219,7 @@ export type ResolversTypes = {
   DogmaEffect: ResolverTypeWrapper<DogmaEffect>;
   DogmaEffectFilter: DogmaEffectFilter;
   DogmaEffectsResponse: ResolverTypeWrapper<DogmaEffectsResponse>;
+  Faction: ResolverTypeWrapper<Faction>;
   Fitting: ResolverTypeWrapper<Fitting>;
   FittingModule: ResolverTypeWrapper<FittingModule>;
   FittingSlot: ResolverTypeWrapper<FittingSlot>;
@@ -2239,9 +2302,12 @@ export type ResolversTypes = {
   TerritoryChange: ResolverTypeWrapper<TerritoryChange>;
   TopAlliance: ResolverTypeWrapper<TopAlliance>;
   TopCorporation: ResolverTypeWrapper<TopCorporation>;
+  TopFaction: ResolverTypeWrapper<TopFaction>;
   TopFilter: TopFilter;
   TopPilot: ResolverTypeWrapper<TopPilot>;
+  TopRegion: ResolverTypeWrapper<TopRegion>;
   TopShip: ResolverTypeWrapper<TopShip>;
+  TopSystem: ResolverTypeWrapper<TopSystem>;
   TopTargetFilter: TopTargetFilter;
   Type: ResolverTypeWrapper<Type>;
   TypeDogmaAttribute: ResolverTypeWrapper<TypeDogmaAttribute>;
@@ -2301,6 +2367,7 @@ export type ResolversParentTypes = {
   DogmaEffect: DogmaEffect;
   DogmaEffectFilter: DogmaEffectFilter;
   DogmaEffectsResponse: DogmaEffectsResponse;
+  Faction: Faction;
   Fitting: Fitting;
   FittingModule: FittingModule;
   FittingSlot: FittingSlot;
@@ -2378,9 +2445,12 @@ export type ResolversParentTypes = {
   TerritoryChange: TerritoryChange;
   TopAlliance: TopAlliance;
   TopCorporation: TopCorporation;
+  TopFaction: TopFaction;
   TopFilter: TopFilter;
   TopPilot: TopPilot;
+  TopRegion: TopRegion;
   TopShip: TopShip;
+  TopSystem: TopSystem;
   Type: Type;
   TypeDogmaAttribute: TypeDogmaAttribute;
   TypeDogmaEffect: TypeDogmaEffect;
@@ -2700,6 +2770,14 @@ export type DogmaEffectsResponseResolvers<ContextType = any, ParentType extends 
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
 };
 
+export type FactionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Faction'] = ResolversParentTypes['Faction']> = {
+  corporationId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  militiaCorporationId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
 export type FittingResolvers<ContextType = any, ParentType extends ResolversParentTypes['Fitting'] = ResolversParentTypes['Fitting']> = {
   cargo?: Resolver<Array<ResolversTypes['FittingModule']>, ParentType, ContextType>;
   coreRoom?: Resolver<Array<ResolversTypes['FittingModule']>, ParentType, ContextType>;
@@ -2898,6 +2976,8 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   dogmaAttributes?: Resolver<ResolversTypes['DogmaAttributesResponse'], ParentType, ContextType, Partial<QueryDogmaAttributesArgs>>;
   dogmaEffect?: Resolver<Maybe<ResolversTypes['DogmaEffect']>, ParentType, ContextType, RequireFields<QueryDogmaEffectArgs, 'id'>>;
   dogmaEffects?: Resolver<ResolversTypes['DogmaEffectsResponse'], ParentType, ContextType, Partial<QueryDogmaEffectsArgs>>;
+  faction?: Resolver<Maybe<ResolversTypes['Faction']>, ParentType, ContextType, RequireFields<QueryFactionArgs, 'id'>>;
+  factions?: Resolver<Array<ResolversTypes['Faction']>, ParentType, ContextType>;
   itemGroup?: Resolver<Maybe<ResolversTypes['ItemGroup']>, ParentType, ContextType, RequireFields<QueryItemGroupArgs, 'id'>>;
   itemGroups?: Resolver<ResolversTypes['ItemGroupsResponse'], ParentType, ContextType, Partial<QueryItemGroupsArgs>>;
   killmail?: Resolver<Maybe<ResolversTypes['Killmail']>, ParentType, ContextType, RequireFields<QueryKillmailArgs, 'id'>>;
@@ -2930,7 +3010,10 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   topCorporations?: Resolver<Array<ResolversTypes['TopCorporation']>, ParentType, ContextType, Partial<QueryTopCorporationsArgs>>;
   topDefenders?: Resolver<Array<ResolversTypes['AllianceDefenseRecord']>, ParentType, ContextType, Partial<QueryTopDefendersArgs>>;
   topDestroyedShips?: Resolver<Array<ResolversTypes['TopShip']>, ParentType, ContextType, Partial<QueryTopDestroyedShipsArgs>>;
+  topFactions?: Resolver<Array<ResolversTypes['TopFaction']>, ParentType, ContextType, Partial<QueryTopFactionsArgs>>;
   topPilots?: Resolver<Array<ResolversTypes['TopPilot']>, ParentType, ContextType, Partial<QueryTopPilotsArgs>>;
+  topRegions?: Resolver<Array<ResolversTypes['TopRegion']>, ParentType, ContextType, Partial<QueryTopRegionsArgs>>;
+  topSystems?: Resolver<Array<ResolversTypes['TopSystem']>, ParentType, ContextType, Partial<QueryTopSystemsArgs>>;
   type?: Resolver<Maybe<ResolversTypes['Type']>, ParentType, ContextType, RequireFields<QueryTypeArgs, 'id'>>;
   types?: Resolver<ResolversTypes['TypesResponse'], ParentType, ContextType, Partial<QueryTypesArgs>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
@@ -3310,16 +3393,34 @@ export type TopCorporationResolvers<ContextType = any, ParentType extends Resolv
   rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
+export type TopFactionResolvers<ContextType = any, ParentType extends ResolversParentTypes['TopFaction'] = ResolversParentTypes['TopFaction']> = {
+  faction?: Resolver<Maybe<ResolversTypes['Faction']>, ParentType, ContextType>;
+  killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
 export type TopPilotResolvers<ContextType = any, ParentType extends ResolversParentTypes['TopPilot'] = ResolversParentTypes['TopPilot']> = {
   character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
   killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
+export type TopRegionResolvers<ContextType = any, ParentType extends ResolversParentTypes['TopRegion'] = ResolversParentTypes['TopRegion']> = {
+  killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  region?: Resolver<Maybe<ResolversTypes['Region']>, ParentType, ContextType>;
+};
+
 export type TopShipResolvers<ContextType = any, ParentType extends ResolversParentTypes['TopShip'] = ResolversParentTypes['TopShip']> = {
   killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   shipType?: Resolver<Maybe<ResolversTypes['Type']>, ParentType, ContextType>;
+};
+
+export type TopSystemResolvers<ContextType = any, ParentType extends ResolversParentTypes['TopSystem'] = ResolversParentTypes['TopSystem']> = {
+  killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  solarSystem?: Resolver<Maybe<ResolversTypes['SolarSystem']>, ParentType, ContextType>;
 };
 
 export type TypeResolvers<ContextType = any, ParentType extends ResolversParentTypes['Type'] = ResolversParentTypes['Type']> = {
@@ -3425,6 +3526,7 @@ export type Resolvers<ContextType = any> = {
   DogmaAttributesResponse?: DogmaAttributesResponseResolvers<ContextType>;
   DogmaEffect?: DogmaEffectResolvers<ContextType>;
   DogmaEffectsResponse?: DogmaEffectsResponseResolvers<ContextType>;
+  Faction?: FactionResolvers<ContextType>;
   Fitting?: FittingResolvers<ContextType>;
   FittingModule?: FittingModuleResolvers<ContextType>;
   FittingSlot?: FittingSlotResolvers<ContextType>;
@@ -3483,8 +3585,11 @@ export type Resolvers<ContextType = any> = {
   TerritoryChange?: TerritoryChangeResolvers<ContextType>;
   TopAlliance?: TopAllianceResolvers<ContextType>;
   TopCorporation?: TopCorporationResolvers<ContextType>;
+  TopFaction?: TopFactionResolvers<ContextType>;
   TopPilot?: TopPilotResolvers<ContextType>;
+  TopRegion?: TopRegionResolvers<ContextType>;
   TopShip?: TopShipResolvers<ContextType>;
+  TopSystem?: TopSystemResolvers<ContextType>;
   Type?: TypeResolvers<ContextType>;
   TypeDogmaAttribute?: TypeDogmaAttributeResolvers<ContextType>;
   TypeDogmaEffect?: TypeDogmaEffectResolvers<ContextType>;
