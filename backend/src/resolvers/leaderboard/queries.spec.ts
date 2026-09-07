@@ -262,6 +262,20 @@ describe('topDestroyedShips', () => {
       /^leaderboard:topDestroyedShips:LAST_7_DAYS:\d{4}-\d{2}-\d{2}:10::20000020:$/,
     );
   });
+
+  it('converts BigInt counts before caching', async () => {
+    prisma.$queryRaw.mockResolvedValue([
+      { victim_ship_type_id: 670, kill_count: 650n },
+    ]);
+    prisma.type.findMany.mockResolvedValue([{ id: 670, name: 'Capsule' }]);
+
+    const result = (await call('topDestroyedShips', { limit: 10 })) as Array<{
+      killCount: number;
+    }>;
+
+    expect(result[0].killCount).toBe(650);
+    expect(() => JSON.stringify(result)).not.toThrow();
+  });
 });
 
 describe('topAttackerShips', () => {
@@ -293,6 +307,20 @@ describe('topAttackerShips', () => {
     expect(key).toMatch(
       /^leaderboard:topAttackerShips:LAST_7_DAYS:\d{4}-\d{2}-\d{2}:10:30000142::$/,
     );
+  });
+
+  it('converts BigInt counts before caching', async () => {
+    prisma.$queryRaw.mockResolvedValue([
+      { ship_type_id: 638, kill_count: 479n },
+    ]);
+    prisma.type.findMany.mockResolvedValue([{ id: 638, name: 'Raven' }]);
+
+    const result = (await call('topAttackerShips', { limit: 10 })) as Array<{
+      killCount: number;
+    }>;
+
+    expect(result[0].killCount).toBe(479);
+    expect(() => JSON.stringify(result)).not.toThrow();
   });
 });
 
