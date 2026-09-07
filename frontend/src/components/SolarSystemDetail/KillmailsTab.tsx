@@ -43,7 +43,7 @@ const SIDEBAR_CARDS: TopEntityCardSpec[] = [
   },
   {
     kind: 'ships',
-    title: 'Top Ships',
+    title: 'Top Ships Killed',
     emptyText: 'No ship activity in the last 7 days',
   },
 ];
