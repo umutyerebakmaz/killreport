@@ -62,6 +62,12 @@ type TopRegion {
   region: Region
 }
 
+type TopFaction {
+  rank: Int!
+  killCount: Int!
+  faction: Faction
+}
+
 extend type Query {
   """
   Top pilots by kill count over the window named by filter.period.
@@ -98,4 +104,11 @@ extend type Query {
   Regions with the most kills over the window named by filter.period.
   """
   topRegions(filter: TopFilter): [TopRegion!]!
+
+  """
+  Factions whose members scored the most kills over the window named by
+  filter.period. Counts distinct killmails, so a twenty-strong militia fleet
+  counts once for that kill.
+  """
+  topFactions(filter: TopFilter): [TopFaction!]!
 }
