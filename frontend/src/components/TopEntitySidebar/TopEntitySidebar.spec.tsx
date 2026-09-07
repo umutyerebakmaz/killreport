@@ -9,7 +9,7 @@ import { LeaderboardPeriod } from '@/generated/graphql';
 
 /**
  * TopEntitySidebar builds one `variables` object and shares it across all
- * five leaderboard queries; this file pins that wiring so a future edit
+ * eight leaderboard queries; this file pins that wiring so a future edit
  * can't quietly special-case one hook without a test noticing.
  *
  * It does not pin the bug that motivated it. "Most Used Ships" rendered
@@ -45,6 +45,9 @@ const {
   useTopAlliancesQuery,
   useTopAttackerShipsQuery,
   useTopDestroyedShipsQuery,
+  useTopFactionsQuery,
+  useTopSystemsQuery,
+  useTopRegionsQuery,
 } = vi.hoisted(() => {
   const makeHook = () =>
     vi.fn<(args: QueryHookArgs) => { data: undefined; loading: boolean }>(
@@ -56,6 +59,9 @@ const {
     useTopAlliancesQuery: makeHook(),
     useTopAttackerShipsQuery: makeHook(),
     useTopDestroyedShipsQuery: makeHook(),
+    useTopFactionsQuery: makeHook(),
+    useTopSystemsQuery: makeHook(),
+    useTopRegionsQuery: makeHook(),
   };
 });
 
@@ -71,6 +77,9 @@ vi.mock('@/generated/graphql', async (importOriginal) => {
     useTopAlliancesQuery,
     useTopAttackerShipsQuery,
     useTopDestroyedShipsQuery,
+    useTopFactionsQuery,
+    useTopSystemsQuery,
+    useTopRegionsQuery,
   };
 });
 
@@ -82,14 +91,20 @@ const allHooks: MockHook[] = [
   useTopAlliancesQuery,
   useTopAttackerShipsQuery,
   useTopDestroyedShipsQuery,
+  useTopFactionsQuery,
+  useTopSystemsQuery,
+  useTopRegionsQuery,
 ];
 
 const allCards: TopEntityCardSpec[] = [
   { kind: 'characters', title: 'Top Pilots', emptyText: 'No pilots' },
   { kind: 'corporations', title: 'Top Corporations', emptyText: 'No corps' },
   { kind: 'alliances', title: 'Top Alliances', emptyText: 'No alliances' },
+  { kind: 'factions', title: 'Top Factions', emptyText: 'No factions' },
   { kind: 'attackerShips', title: 'Most Used Ships', emptyText: 'No ships' },
   { kind: 'ships', title: 'Most Destroyed Ships', emptyText: 'No ships' },
+  { kind: 'systems', title: 'Top Systems', emptyText: 'No systems' },
+  { kind: 'regions', title: 'Top Regions', emptyText: 'No regions' },
 ];
 
 function renderSidebar(
@@ -110,8 +125,8 @@ describe('TopEntitySidebar', () => {
     // This is the regression the branch fixed: TopLast7DaysAttackerShipsFilter
     // used to be the one leaderboard filter type without a systemId field, so
     // on /solar-systems/[id] the attacker-ships query alone failed GraphQL
-    // variable validation while its four siblings succeeded. Giving every
-    // query the shared TopFilter means systemId now reaches all five.
+    // variable validation while its siblings succeeded. Giving every query
+    // the shared TopFilter means systemId now reaches all eight.
     renderSidebar({ systemId: 30000142 });
 
     for (const hook of allHooks) {
