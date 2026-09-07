@@ -33,7 +33,7 @@ Global rankings on the Killmails page (`topPilots(filter: { period: TODAY })`, `
 default `LAST_7_DAYS` period, etc.) read from **pre-aggregated** tables. These tables are updated
 **atomically within a transaction** whenever a killmail is saved. See
 [`leaderboard-queries.md`](./leaderboard-queries.md) for the full `TopFilter` / `LeaderboardPeriod`
-reference and the three SQL shapes behind these five queries.
+reference and the three SQL shapes behind these eight queries.
 
 ```mermaid
 flowchart LR
@@ -799,8 +799,11 @@ Example:
 | Most Active Pilots       | Killmails   | `topPilots`                        | `character_kill_stats`           | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
 | Most Active Corporations | Killmails   | `topCorporations`                  | `corporation_kill_stats`         | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
 | Most Active Alliances    | Killmails   | `topAlliances`                     | `alliance_kill_stats`            | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
+| Most Active Factions     | Killmails   | `topFactions`                      | `attackers` + `killmail_filters` | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
 | Most Used Ships          | Killmails   | `topAttackerShips`                 | `attackers` + `killmail_filters` | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
 | Most Killed Ships        | Killmails   | `topDestroyedShips`                | `killmail_filters`               | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
+| Most Active Systems      | Killmails   | `topSystems`                       | `killmail_filters`               | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
+| Most Active Regions      | Killmails   | `topRegions`                       | `killmail_filters`               | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
 | Most Active Pilots       | Alliance    | `allianceTopCharacters`            | `attackers` + `killmail_filters` | `TopTargetFilter`                   | 2min–1hr   |
 | Most Used Ships          | Alliance    | `allianceTopShips`                 | `attackers` + `killmail_filters` | `TopTargetFilter`                   | 2min–1hr   |
 | Most Killed Alliances    | Alliance    | `allianceTopAllianceTargets`       | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |

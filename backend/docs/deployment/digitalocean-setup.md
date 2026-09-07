@@ -187,7 +187,7 @@ EOF
 cd backend
 yarn install
 yarn prisma:generate
-yarn prisma:migrate deploy
+yarn prisma:migrate:deploy
 yarn tsc
 
 # Build frontend
@@ -369,7 +369,7 @@ yarn build
 
 # Run migrations if needed
 cd ../backend
-yarn prisma:migrate deploy
+yarn prisma:migrate:deploy
 
 # Restart services (zero-downtime with cluster mode)
 cd ..
