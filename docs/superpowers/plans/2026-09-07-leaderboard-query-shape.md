@@ -1855,7 +1855,57 @@ done
 
 Expected: nine `SAME` lines. A `DIFF` is only acceptable if it is explained by the `<= endDate + 1 day` → `<` correction — a kill at exactly the next midnight. Investigate any other difference before continuing; do not proceed on an unexplained `DIFF`.
 
-- [ ] **Step 3: Update the leaderboard docs**
+- [ ] **Step 3: Compare the anchored historical windows**
+
+The nine default-anchor captures in Step 2 cannot tell the five periods apart
+in this database: `topPilots` and `topWeeklyPilots` both returned
+`[8, 7, 6, 6, 6]`, and `topMonthlyPilots`, `top90DaysPilots` and
+`topLast7DaysPilots` all returned `[57, 50, 47, 46, 45]`. Nearly all recent
+kills land inside the same few days, so a resolver that silently used the wrong
+window would still match. Six extra baselines were captured against past
+periods, where the windows do separate:
+
+| Baseline file | Old query | New query |
+| --- | --- | --- |
+| `anchored-today-2025-12-29` | `topPilots(date: "2025-12-29")` | `topPilots(period: TODAY, anchor: "2025-12-29")` |
+| `anchored-week-2025-12-29` | `topWeeklyPilots(weekStart: "2025-12-29")` | `topPilots(period: WEEK, anchor: "2025-12-29")` |
+| `anchored-month-2025-12` | `topMonthlyPilots(month: "2025-12")` | `topPilots(period: MONTH, anchor: "2025-12")` |
+| `anchored-month-2025-10` | `topMonthlyPilots(month: "2025-10")` | `topPilots(period: MONTH, anchor: "2025-10")` |
+| `anchored-today-2025-10-09` | `topPilots(date: "2025-10-09")` | `topPilots(period: TODAY, anchor: "2025-10-09")` |
+| `anchored-week-2025-10-09` | `topWeeklyPilots(weekStart: "2025-10-09")` | `topPilots(period: WEEK, anchor: "2025-10-09")` |
+
+```bash
+cd /Users/umut/Sites/killreport
+PORT=$(grep -m1 '^PORT' backend/.env | cut -d= -f2- | tr -d '"')
+A=.superpowers/sdd/2026-09-07-leaderboard-query-shape/after
+
+q() {
+  curl -s "http://localhost:$PORT/graphql" -H 'content-type: application/json' \
+    -d "{\"query\":\"$1\"}" > "$A/$2.json"
+}
+
+q '{ topPilots(filter:{period:TODAY,anchor:\"2025-12-29\",limit:10}){ rank killCount character{ id name } } }' anchored-today-2025-12-29
+q '{ topPilots(filter:{period:WEEK,anchor:\"2025-12-29\",limit:10}){ rank killCount character{ id name } } }' anchored-week-2025-12-29
+q '{ topPilots(filter:{period:MONTH,anchor:\"2025-12\",limit:10}){ rank killCount character{ id name } } }' anchored-month-2025-12
+q '{ topPilots(filter:{period:MONTH,anchor:\"2025-10\",limit:10}){ rank killCount character{ id name } } }' anchored-month-2025-10
+q '{ topPilots(filter:{period:TODAY,anchor:\"2025-10-09\",limit:10}){ rank killCount character{ id name } } }' anchored-today-2025-10-09
+q '{ topPilots(filter:{period:WEEK,anchor:\"2025-10-09\",limit:10}){ rank killCount character{ id name } } }' anchored-week-2025-10-09
+```
+
+Then re-run the Step 2 comparison loop — it already walks every file in the
+baseline directory, so it picks these up too. All six must report `SAME`.
+
+Two of these are the load-bearing ones. `anchored-today-2025-10-09` returned
+`[3, 3, 2, 2, 2]` and `anchored-week-2025-10-09` returned `[7, 7, 6, 6, 5]`
+from the same anchor string: TODAY and WEEK genuinely differ there, and the
+week rounds a Thursday back to Monday 2025-10-06. If those two come back equal
+to each other, the period is not reaching the query — investigate before
+continuing, whatever the SAME/DIFF lines say.
+
+`spatial-filter-bug.json` in the baseline directory holds an error, not data.
+Skip it in the comparison; Task 5 Step 9 is what proves it fixed.
+
+- [ ] **Step 4: Update the leaderboard docs**
 
 In `backend/docs/leaderboards/leaderboard-queries.md` and `backend/docs/leaderboards/leaderboards.md`, replace every old query name with its new form:
 
@@ -1881,7 +1931,7 @@ grep -rn --include='*.md' -oE '\]\([^)#][^)]*\)' backend/docs/leaderboards/ | gr
 
 Check each path resolves relative to the file containing it.
 
-- [ ] **Step 4: Correct the stale test-runner claim in CLAUDE.md**
+- [ ] **Step 5: Correct the stale test-runner claim in CLAUDE.md**
 
 `CLAUDE.md` currently says, under *Verifying work*:
 
@@ -1898,7 +1948,7 @@ frontend. Verification is:
 
 and add `yarn test` as the first line of the command block that follows.
 
-- [ ] **Step 5: Verify everything one last time**
+- [ ] **Step 6: Verify everything one last time**
 
 ```bash
 cd /Users/umut/Sites/killreport
@@ -1920,7 +1970,7 @@ grep -rn "topLast7Days\|topWeeklyPilots\|topMonthlyPilots\|top90DaysPilots" \
 
 Expected: no output.
 
-- [ ] **Step 6: Leave the orphaned Redis keys alone**
+- [ ] **Step 7: Leave the orphaned Redis keys alone**
 
 Every cache key changed format, so entries written under the old names are now
 unreachable. Do **not** flush them. They expire on their own within 3600 s at
@@ -1930,7 +1980,7 @@ so a manual sweep can delete another checkout's or another application's keys.
 
 No command to run here — this step exists so the next person does not "tidy up".
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
 git add -A backend/docs CLAUDE.md
