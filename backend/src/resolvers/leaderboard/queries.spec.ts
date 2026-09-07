@@ -405,6 +405,64 @@ describe('topRegions', () => {
   });
 });
 
+describe('topFactions', () => {
+  it('joins attackers to killmail_filters and counts distinct killmails', async () => {
+    await call('topFactions', { limit: 10 });
+
+    expect(querySql()).toContain('FROM attackers a');
+    expect(querySql()).toContain('INNER JOIN killmail_filters kf');
+    expect(querySql()).toContain('COUNT(DISTINCT kf.killmail_id)');
+    expect(querySql()).toContain('GROUP BY a.faction_id');
+  });
+
+  it('excludes the 500021 placeholder', async () => {
+    await call('topFactions', { limit: 10 });
+
+    expect(queryValues()).toContain(500021);
+    expect(querySql()).toContain('a.faction_id <> ?');
+  });
+
+  it('accepts a spatial filter and passes it to the query', async () => {
+    await call('topFactions', { limit: 10, systemId: 30000142 });
+
+    expect(querySql()).toContain('INNER JOIN killmail_filters kf');
+    expect(queryValues()).toContain(30000142);
+  });
+
+  it('puts every filter parameter in the cache key', async () => {
+    await call('topFactions', { limit: 10, systemId: 30000142 });
+
+    const [key] = redis.get.mock.calls[0];
+    expect(key).toMatch(
+      /^leaderboard:topFactions:LAST_7_DAYS:\d{4}-\d{2}-\d{2}:10:30000142::$/,
+    );
+  });
+
+  it('converts BigInt counts before caching', async () => {
+    prisma.$queryRaw.mockResolvedValue([
+      { faction_id: 500003, kill_count: 25n },
+    ]);
+    prisma.faction.findMany.mockResolvedValue([
+      {
+        id: 500003,
+        name: 'Amarr Empire',
+        description: null,
+        corporation_id: 1000084,
+        militia_corporation_id: 1000179,
+      },
+    ]);
+
+    const result = (await call('topFactions', { limit: 10 })) as Array<{
+      killCount: number;
+      faction: { corporationId: number | null } | null;
+    }>;
+
+    expect(result[0].killCount).toBe(25);
+    expect(result[0].faction?.corporationId).toBe(1000084);
+    expect(() => JSON.stringify(result)).not.toThrow();
+  });
+});
+
 describe('every subject accepts every period', () => {
   const SUBJECTS = [
     'topPilots',
@@ -412,6 +470,9 @@ describe('every subject accepts every period', () => {
     'topAlliances',
     'topDestroyedShips',
     'topAttackerShips',
+    'topFactions',
+    'topSystems',
+    'topRegions',
   ] as const;
 
   const PERIODS = [

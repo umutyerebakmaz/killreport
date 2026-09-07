@@ -863,6 +863,13 @@ type Query {
   """Ships destroyed most often over the window named by filter.period."""
   topDestroyedShips(filter: TopFilter): [TopShip!]!
 
+  """
+  Factions whose members scored the most kills over the window named by
+  filter.period. Counts distinct killmails, so a twenty-strong militia fleet
+  counts once for that kill.
+  """
+  topFactions(filter: TopFilter): [TopFaction!]!
+
   """Top pilots by kill count over the window named by filter.period."""
   topPilots(filter: TopFilter): [TopPilot!]!
 
@@ -1464,6 +1471,12 @@ type TopAlliance {
 
 type TopCorporation {
   corporation: Corporation
+  killCount: Int!
+  rank: Int!
+}
+
+type TopFaction {
+  faction: Faction
   killCount: Int!
   rank: Int!
 }

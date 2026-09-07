@@ -985,6 +985,12 @@ export type Query = {
   topDefenders: Array<AllianceDefenseRecord>;
   /** Ships destroyed most often over the window named by filter.period. */
   topDestroyedShips: Array<TopShip>;
+  /**
+   * Factions whose members scored the most kills over the window named by
+   * filter.period. Counts distinct killmails, so a twenty-strong militia fleet
+   * counts once for that kill.
+   */
+  topFactions: Array<TopFaction>;
   /** Top pilots by kill count over the window named by filter.period. */
   topPilots: Array<TopPilot>;
   /** Regions with the most kills over the window named by filter.period. */
@@ -1317,6 +1323,11 @@ export type QueryTopDefendersArgs = {
 
 
 export type QueryTopDestroyedShipsArgs = {
+  filter?: InputMaybe<TopFilter>;
+};
+
+
+export type QueryTopFactionsArgs = {
   filter?: InputMaybe<TopFilter>;
 };
 
@@ -1920,6 +1931,13 @@ export type TopCorporation = {
   rank: Scalars['Int']['output'];
 };
 
+export type TopFaction = {
+  __typename?: 'TopFaction';
+  faction?: Maybe<Faction>;
+  killCount: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+};
+
 export type TopFilter = {
   /**
    * Anchors the period. YYYY-MM-DD for TODAY, any day of the target week for
@@ -2284,6 +2302,7 @@ export type ResolversTypes = {
   TerritoryChange: ResolverTypeWrapper<TerritoryChange>;
   TopAlliance: ResolverTypeWrapper<TopAlliance>;
   TopCorporation: ResolverTypeWrapper<TopCorporation>;
+  TopFaction: ResolverTypeWrapper<TopFaction>;
   TopFilter: TopFilter;
   TopPilot: ResolverTypeWrapper<TopPilot>;
   TopRegion: ResolverTypeWrapper<TopRegion>;
@@ -2426,6 +2445,7 @@ export type ResolversParentTypes = {
   TerritoryChange: TerritoryChange;
   TopAlliance: TopAlliance;
   TopCorporation: TopCorporation;
+  TopFaction: TopFaction;
   TopFilter: TopFilter;
   TopPilot: TopPilot;
   TopRegion: TopRegion;
@@ -2990,6 +3010,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   topCorporations?: Resolver<Array<ResolversTypes['TopCorporation']>, ParentType, ContextType, Partial<QueryTopCorporationsArgs>>;
   topDefenders?: Resolver<Array<ResolversTypes['AllianceDefenseRecord']>, ParentType, ContextType, Partial<QueryTopDefendersArgs>>;
   topDestroyedShips?: Resolver<Array<ResolversTypes['TopShip']>, ParentType, ContextType, Partial<QueryTopDestroyedShipsArgs>>;
+  topFactions?: Resolver<Array<ResolversTypes['TopFaction']>, ParentType, ContextType, Partial<QueryTopFactionsArgs>>;
   topPilots?: Resolver<Array<ResolversTypes['TopPilot']>, ParentType, ContextType, Partial<QueryTopPilotsArgs>>;
   topRegions?: Resolver<Array<ResolversTypes['TopRegion']>, ParentType, ContextType, Partial<QueryTopRegionsArgs>>;
   topSystems?: Resolver<Array<ResolversTypes['TopSystem']>, ParentType, ContextType, Partial<QueryTopSystemsArgs>>;
@@ -3372,6 +3393,12 @@ export type TopCorporationResolvers<ContextType = any, ParentType extends Resolv
   rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
+export type TopFactionResolvers<ContextType = any, ParentType extends ResolversParentTypes['TopFaction'] = ResolversParentTypes['TopFaction']> = {
+  faction?: Resolver<Maybe<ResolversTypes['Faction']>, ParentType, ContextType>;
+  killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
 export type TopPilotResolvers<ContextType = any, ParentType extends ResolversParentTypes['TopPilot'] = ResolversParentTypes['TopPilot']> = {
   character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType>;
   killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -3558,6 +3585,7 @@ export type Resolvers<ContextType = any> = {
   TerritoryChange?: TerritoryChangeResolvers<ContextType>;
   TopAlliance?: TopAllianceResolvers<ContextType>;
   TopCorporation?: TopCorporationResolvers<ContextType>;
+  TopFaction?: TopFactionResolvers<ContextType>;
   TopPilot?: TopPilotResolvers<ContextType>;
   TopRegion?: TopRegionResolvers<ContextType>;
   TopShip?: TopShipResolvers<ContextType>;
