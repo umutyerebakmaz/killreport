@@ -3,17 +3,17 @@
 import { Loader } from '@/components/Loader/Loader';
 import RankNumber from '@/components/ui/RankNumber';
 import Tooltip from '@/components/Tooltip/Tooltip';
-import { useTopWeeklyPilotsQuery } from '@/generated/graphql';
+import { LeaderboardPeriod, useTopPilotsQuery } from '@/generated/graphql';
 import { getSecurityStatusColor } from '@/utils/securityStatus';
 import { CalendarDaysIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 
 export default function WeeklyTopCharCard() {
-  const { data, loading } = useTopWeeklyPilotsQuery({
-    variables: { filter: { limit: 10 } },
+  const { data, loading } = useTopPilotsQuery({
+    variables: { filter: { period: LeaderboardPeriod.Week, limit: 10 } },
   });
 
-  const pilots = data?.topWeeklyPilots ?? [];
+  const pilots = data?.topPilots ?? [];
 
   return (
     <div className="flex flex-col border bg-surface hover:bg-surface-inset">
