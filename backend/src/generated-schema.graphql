@@ -838,21 +838,20 @@ type Query {
   """Top alliances by kill count over the window named by filter.period."""
   topAlliances(filter: TopFilter): [TopAlliance!]!
 
+  """
+  Ships attackers flew most often over the window named by filter.period.
+  Counts attacker rows, so a five-ship fleet counts five.
+  """
+  topAttackerShips(filter: TopFilter): [TopShip!]!
+
   """Top corporations by kill count over the window named by filter.period."""
   topCorporations(filter: TopFilter): [TopCorporation!]!
 
   """Alliances ranked by successful defenses of ended campaigns."""
   topDefenders(limit: Int): [AllianceDefenseRecord!]!
 
-  """
-  Returns top attacker ship types by usage count over the last 7 days (rolling window, today - 6 days)
-  """
-  topLast7DaysAttackerShips(filter: TopLast7DaysAttackerShipsFilter): [TopLast7DaysAttackerShip!]!
-
-  """
-  Returns top ship types ranked by total kill count over the last 7 days (rolling window, today - 6 days)
-  """
-  topLast7DaysShips(filter: TopLast7DaysShipsFilter): [TopLast7DaysShip!]!
+  """Ships destroyed most often over the window named by filter.period."""
+  topDestroyedShips(filter: TopFilter): [TopShip!]!
 
   """Top pilots by kill count over the window named by filter.period."""
   topPilots(filter: TopFilter): [TopPilot!]!
@@ -1471,41 +1470,16 @@ input TopFilter {
   systemId: Int
 }
 
-type TopLast7DaysAttackerShip {
-  killCount: Int!
-  rank: Int!
-  shipType: Type
-}
-
-input TopLast7DaysAttackerShipsFilter {
-  """Max 100; default 100"""
-  limit: Int
-}
-
-type TopLast7DaysShip {
-  killCount: Int!
-  rank: Int!
-  shipType: Type
-}
-
-input TopLast7DaysShipsFilter {
-  """Filter by constellation ID"""
-  constellationId: Int
-
-  """Max 100; default 100"""
-  limit: Int
-
-  """Filter by region ID"""
-  regionId: Int
-
-  """Filter by solar system ID"""
-  systemId: Int
-}
-
 type TopPilot {
   character: Character
   killCount: Int!
   rank: Int!
+}
+
+type TopShip {
+  killCount: Int!
+  rank: Int!
+  shipType: Type
 }
 
 enum TopTargetFilter {

@@ -44,42 +44,10 @@ type TopAlliance {
   alliance: Alliance
 }
 
-type TopLast7DaysShip {
+type TopShip {
   rank: Int!
   killCount: Int!
   shipType: Type
-}
-
-input TopLast7DaysShipsFilter {
-  """
-  Max 100; default 100
-  """
-  limit: Int
-  """
-  Filter by region ID
-  """
-  regionId: Int
-  """
-  Filter by constellation ID
-  """
-  constellationId: Int
-  """
-  Filter by solar system ID
-  """
-  systemId: Int
-}
-
-type TopLast7DaysAttackerShip {
-  rank: Int!
-  killCount: Int!
-  shipType: Type
-}
-
-input TopLast7DaysAttackerShipsFilter {
-  """
-  Max 100; default 100
-  """
-  limit: Int
 }
 
 extend type Query {
@@ -99,14 +67,13 @@ extend type Query {
   topAlliances(filter: TopFilter): [TopAlliance!]!
 
   """
-  Returns top ship types ranked by total kill count over the last 7 days (rolling window, today - 6 days)
+  Ships destroyed most often over the window named by filter.period.
   """
-  topLast7DaysShips(filter: TopLast7DaysShipsFilter): [TopLast7DaysShip!]!
+  topDestroyedShips(filter: TopFilter): [TopShip!]!
 
   """
-  Returns top attacker ship types by usage count over the last 7 days (rolling window, today - 6 days)
+  Ships attackers flew most often over the window named by filter.period.
+  Counts attacker rows, so a five-ship fleet counts five.
   """
-  topLast7DaysAttackerShips(
-    filter: TopLast7DaysAttackerShipsFilter
-  ): [TopLast7DaysAttackerShip!]!
+  topAttackerShips(filter: TopFilter): [TopShip!]!
 }

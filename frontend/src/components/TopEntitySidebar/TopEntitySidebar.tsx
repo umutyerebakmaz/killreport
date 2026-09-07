@@ -8,16 +8,17 @@ import {
   LeaderboardPeriod,
   useTopPilotsQuery,
   useTopAlliancesQuery,
-  useTopLast7DaysAttackerShipsQuery,
+  useTopAttackerShipsQuery,
   useTopCorporationsQuery,
-  useTopLast7DaysShipsQuery,
+  useTopDestroyedShipsQuery,
 } from '@/generated/graphql';
 
 /**
- * The scope the cards are computed over. These are exactly the fields the
- * TopLast7Days* filters accept — there is no allianceId or corporationId, which
- * is why the alliance and corporation pages have their own entity-scoped
- * sidebars rather than using this one.
+ * The scope the cards are computed over. Every hook in this file takes a
+ * TopFilter, and this is the subset of TopFilter's spatial fields the cards
+ * are scoped by — there is no allianceId or corporationId, which is why the
+ * alliance and corporation pages have their own entity-scoped sidebars
+ * rather than using this one.
  */
 export interface TopEntityFilter {
   systemId?: number;
@@ -56,7 +57,7 @@ export default function TopEntitySidebar({
 
   const { data: pilots, loading: pilotsLoading } = useTopPilotsQuery({
     variables: {
-      filter: { period: LeaderboardPeriod.Last_7Days, ...variables.filter },
+      filter: { ...variables.filter, period: LeaderboardPeriod.Last_7Days },
     },
     skip: !has('characters'),
   });
@@ -74,12 +75,16 @@ export default function TopEntitySidebar({
     skip: !has('alliances'),
   });
   const { data: attackerShips, loading: attackerShipsLoading } =
-    useTopLast7DaysAttackerShipsQuery({
-      variables,
+    useTopAttackerShipsQuery({
+      variables: {
+        filter: { ...variables.filter, period: LeaderboardPeriod.Last_7Days },
+      },
       skip: !has('attackerShips'),
     });
-  const { data: ships, loading: shipsLoading } = useTopLast7DaysShipsQuery({
-    variables,
+  const { data: ships, loading: shipsLoading } = useTopDestroyedShipsQuery({
+    variables: {
+      filter: { ...variables.filter, period: LeaderboardPeriod.Last_7Days },
+    },
     skip: !has('ships'),
   });
 
@@ -164,7 +169,7 @@ export default function TopEntitySidebar({
                 title={card.title}
                 subtitle={LAST_7_DAYS}
                 ships={
-                  attackerShips?.topLast7DaysAttackerShips?.map((ship) => ({
+                  attackerShips?.topAttackerShips?.map((ship) => ({
                     id: ship.shipType?.id || 0,
                     name: ship.shipType?.name || 'Unknown',
                     killCount: ship.killCount,
@@ -183,7 +188,7 @@ export default function TopEntitySidebar({
                 title={card.title}
                 subtitle={LAST_7_DAYS}
                 ships={
-                  ships?.topLast7DaysShips?.map((ship) => ({
+                  ships?.topDestroyedShips?.map((ship) => ({
                     id: ship.shipType?.id || 0,
                     name: ship.shipType?.name || 'Unknown',
                     killCount: ship.killCount,

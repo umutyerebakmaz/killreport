@@ -238,3 +238,93 @@ describe('topAlliances', () => {
     expect(querySql()).toContain('INNER JOIN killmail_filters kf');
   });
 });
+
+describe('topDestroyedShips', () => {
+  it('counts victim ships straight out of killmail_filters', async () => {
+    await call('topDestroyedShips', { limit: 10 });
+
+    expect(querySql()).toContain('FROM killmail_filters');
+    expect(querySql()).toContain('victim_ship_type_id');
+    expect(querySql()).not.toContain('FROM attackers');
+  });
+
+  it('bounds the upper edge with < next day', async () => {
+    await call('topDestroyedShips', { limit: 10 });
+
+    expect(querySql()).toContain("< ? ::date + INTERVAL '1 day'");
+  });
+
+  it('puts every filter parameter in the cache key', async () => {
+    await call('topDestroyedShips', { limit: 10, constellationId: 20000020 });
+
+    const [key] = redis.get.mock.calls[0];
+    expect(key).toMatch(
+      /^leaderboard:topDestroyedShips:LAST_7_DAYS:\d{4}-\d{2}-\d{2}:10::20000020:$/,
+    );
+  });
+});
+
+describe('topAttackerShips', () => {
+  it('joins killmail_filters rather than killmails', async () => {
+    await call('topAttackerShips', { limit: 10 });
+
+    expect(querySql()).toContain('INNER JOIN killmail_filters kf');
+    expect(querySql()).not.toContain('INNER JOIN killmails');
+  });
+
+  it('counts every attacker row, not distinct killmails', async () => {
+    await call('topAttackerShips', { limit: 10 });
+
+    expect(querySql()).toContain('COUNT(*)');
+    expect(querySql()).not.toContain('COUNT(DISTINCT');
+  });
+
+  it('accepts a spatial filter and passes it to the query', async () => {
+    await call('topAttackerShips', { limit: 10, systemId: 30000142 });
+
+    expect(querySql()).toContain('kf.solar_system_id');
+    expect(queryValues()).toContain(30000142);
+  });
+
+  it('puts the spatial parameters in the cache key', async () => {
+    await call('topAttackerShips', { limit: 10, systemId: 30000142 });
+
+    const [key] = redis.get.mock.calls[0];
+    expect(key).toMatch(
+      /^leaderboard:topAttackerShips:LAST_7_DAYS:\d{4}-\d{2}-\d{2}:10:30000142::$/,
+    );
+  });
+});
+
+describe('every subject accepts every period', () => {
+  const SUBJECTS = [
+    'topPilots',
+    'topCorporations',
+    'topAlliances',
+    'topDestroyedShips',
+    'topAttackerShips',
+  ] as const;
+
+  const PERIODS = [
+    [LeaderboardPeriod.Today, null],
+    [LeaderboardPeriod.Week, null],
+    [LeaderboardPeriod.Month, null],
+    [LeaderboardPeriod.Last_7Days, null],
+    [LeaderboardPeriod.Last_90Days, null],
+  ] as const;
+
+  for (const subject of SUBJECTS) {
+    for (const [period] of PERIODS) {
+      it(`${subject} over ${period}`, async () => {
+        await expect(
+          call(subject, { period, limit: 10 }),
+        ).resolves.toEqual([]);
+
+        // The window reached the query rather than being silently dropped.
+        expect(prisma.$queryRaw).toHaveBeenCalledOnce();
+        const [key] = redis.get.mock.calls[0];
+        expect(key).toContain(`:${period}:`);
+      });
+    }
+  }
+});

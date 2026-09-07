@@ -237,31 +237,35 @@ export const leaderboardQueries: QueryResolvers = {
     return result;
   },
 
-  topLast7DaysShips: async (_, { filter }) => {
+  topDestroyedShips: async (_, { filter }) => {
     const limit = Math.min(filter?.limit ?? 100, 100);
-    const today = new Date().toISOString().split('T')[0];
+    const period = filter?.period ?? LeaderboardPeriod.Last_7Days;
+    const { startDate, endDate, cacheTtl, cacheAnchor } = resolvePeriod(
+      period,
+      filter?.anchor,
+    );
     const systemId = filter?.systemId;
     const constellationId = filter?.constellationId;
     const regionId = filter?.regionId;
 
-    const cacheKey = `leaderboard:topLast7DaysShips:${today}:${limit}:${systemId || ''}:${constellationId || ''}:${regionId || ''}`;
+    const cacheKey = `leaderboard:topDestroyedShips:${period}:${cacheAnchor}:${limit}:${systemId || ''}:${constellationId || ''}:${regionId || ''}`;
     const cached = await redis.get(cacheKey);
     if (cached) return JSON.parse(cached);
 
     type Row = { victim_ship_type_id: number; kill_count: bigint };
     const rows = await prisma.$queryRaw<Row[]>`
-            SELECT victim_ship_type_id, COUNT(*)::BIGINT AS kill_count
-            FROM   killmail_filters
-            WHERE  killmail_time >= (${today}::date - INTERVAL '6 days')
-              AND  killmail_time <= ${today}::date + INTERVAL '1 day'
-              AND  victim_ship_type_id IS NOT NULL
-              ${systemId ? Prisma.sql`AND solar_system_id = ${systemId}` : Prisma.empty}
-              ${constellationId ? Prisma.sql`AND constellation_id = ${constellationId}` : Prisma.empty}
-              ${regionId ? Prisma.sql`AND region_id = ${regionId}` : Prisma.empty}
-            GROUP  BY victim_ship_type_id
-            ORDER  BY kill_count DESC
-            LIMIT  ${limit}
-        `;
+      SELECT victim_ship_type_id, COUNT(*)::BIGINT AS kill_count
+      FROM   killmail_filters
+      WHERE  killmail_time >= ${startDate}::date
+        AND  killmail_time <  ${endDate}::date + INTERVAL '1 day'
+        AND  victim_ship_type_id IS NOT NULL
+        ${systemId ? Prisma.sql`AND solar_system_id = ${systemId}` : Prisma.empty}
+        ${constellationId ? Prisma.sql`AND constellation_id = ${constellationId}` : Prisma.empty}
+        ${regionId ? Prisma.sql`AND region_id = ${regionId}` : Prisma.empty}
+      GROUP  BY victim_ship_type_id
+      ORDER  BY kill_count DESC
+      LIMIT  ${limit}
+    `;
 
     if (rows.length === 0) return [];
 
@@ -271,40 +275,55 @@ export const leaderboardQueries: QueryResolvers = {
     });
     const shipTypeMap = new Map(shipTypes.map((s) => [s.id, s]));
 
-    const result = rows.map((row, idx) => {
-      const shipType = shipTypeMap.get(row.victim_ship_type_id);
-      return {
-        rank: idx + 1,
-        killCount: Number(row.kill_count),
-        shipType: shipType ?? null,
-      };
-    });
+    const result = rows.map((row, idx) => ({
+      rank: idx + 1,
+      killCount: Number(row.kill_count),
+      shipType: shipTypeMap.get(row.victim_ship_type_id) ?? null,
+    }));
 
-    // Cache 5 minutes (rolling data)
-    await redis.setex(cacheKey, 300, JSON.stringify(result));
+    await redis.setex(cacheKey, cacheTtl, JSON.stringify(result));
     return result;
   },
 
-  topLast7DaysAttackerShips: async (_, { filter }) => {
+  topAttackerShips: async (_, { filter }) => {
     const limit = Math.min(filter?.limit ?? 100, 100);
-    const today = new Date().toISOString().split('T')[0];
+    const period = filter?.period ?? LeaderboardPeriod.Last_7Days;
+    const { startDate, endDate, cacheTtl, cacheAnchor } = resolvePeriod(
+      period,
+      filter?.anchor,
+    );
+    const systemId = filter?.systemId;
+    const constellationId = filter?.constellationId;
+    const regionId = filter?.regionId;
 
-    const cacheKey = `leaderboard:topLast7DaysAttackerShips:${today}:${limit}`;
+    const cacheKey = `leaderboard:topAttackerShips:${period}:${cacheAnchor}:${limit}:${systemId || ''}:${constellationId || ''}:${regionId || ''}`;
     const cached = await redis.get(cacheKey);
     if (cached) return JSON.parse(cached);
 
+    // COUNT(*), not COUNT(DISTINCT killmail_id): the question is how many
+    // pilots flew this hull, so a five-Raven fleet counts five.
+    //
+    // The spatial columns are written inline with an "IS NULL OR" guard
+    // rather than the ternary-Prisma.sql fragment the other resolvers use:
+    // a nested Prisma.sql value is opaque to the outer query text, and this
+    // is the query that previously had no spatial filter at all, so it is
+    // worth being able to see kf.solar_system_id land on the right side of
+    // the join at a glance rather than trusting a conditional fragment.
     type Row = { ship_type_id: number; kill_count: bigint };
     const rows = await prisma.$queryRaw<Row[]>`
-            SELECT a.ship_type_id, COUNT(*)::BIGINT AS kill_count
-            FROM   attackers a
-            INNER JOIN killmails k ON k.killmail_id = a.killmail_id
-            WHERE  k.killmail_time >= (${today}::date - INTERVAL '6 days')
-              AND  k.killmail_time <= ${today}::date + INTERVAL '1 day'
-              AND  a.ship_type_id IS NOT NULL
-            GROUP  BY a.ship_type_id
-            ORDER  BY kill_count DESC
-            LIMIT  ${limit}
-        `;
+      SELECT a.ship_type_id, COUNT(*)::BIGINT AS kill_count
+      FROM   attackers a
+      INNER JOIN killmail_filters kf ON kf.killmail_id = a.killmail_id
+      WHERE  kf.killmail_time >= ${startDate}::date
+        AND  kf.killmail_time <  ${endDate}::date + INTERVAL '1 day'
+        AND  a.ship_type_id IS NOT NULL
+        AND  (${systemId ?? null}::int IS NULL OR kf.solar_system_id = ${systemId ?? null})
+        AND  (${constellationId ?? null}::int IS NULL OR kf.constellation_id = ${constellationId ?? null})
+        AND  (${regionId ?? null}::int IS NULL OR kf.region_id = ${regionId ?? null})
+      GROUP  BY a.ship_type_id
+      ORDER  BY kill_count DESC
+      LIMIT  ${limit}
+    `;
 
     if (rows.length === 0) return [];
 
@@ -314,17 +333,13 @@ export const leaderboardQueries: QueryResolvers = {
     });
     const shipTypeMap = new Map(shipTypes.map((s) => [s.id, s]));
 
-    const result = rows.map((row, idx) => {
-      const shipType = shipTypeMap.get(row.ship_type_id);
-      return {
-        rank: idx + 1,
-        killCount: Number(row.kill_count),
-        shipType: shipType ?? null,
-      };
-    });
+    const result = rows.map((row, idx) => ({
+      rank: idx + 1,
+      killCount: Number(row.kill_count),
+      shipType: shipTypeMap.get(row.ship_type_id) ?? null,
+    }));
 
-    // Cache 5 minutes (rolling data)
-    await redis.setex(cacheKey, 300, JSON.stringify(result));
+    await redis.setex(cacheKey, cacheTtl, JSON.stringify(result));
     return result;
   },
 };
