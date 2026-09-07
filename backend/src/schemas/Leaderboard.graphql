@@ -1,3 +1,31 @@
+enum LeaderboardPeriod {
+  TODAY
+  WEEK
+  MONTH
+  LAST_7_DAYS
+  LAST_90_DAYS
+}
+
+input TopFilter {
+  """
+  Defaults to LAST_7_DAYS.
+  """
+  period: LeaderboardPeriod
+  """
+  Anchors the period. YYYY-MM-DD for TODAY, any day of the target week for
+  WEEK (rounded back to its Monday), YYYY-MM for MONTH. Ignored by the rolling
+  windows LAST_7_DAYS and LAST_90_DAYS. Empty means today / this week / this month.
+  """
+  anchor: String
+  """
+  Max 100; default 100
+  """
+  limit: Int
+  systemId: Int
+  constellationId: Int
+  regionId: Int
+}
+
 type TopPilot {
   rank: Int!
   killCount: Int!

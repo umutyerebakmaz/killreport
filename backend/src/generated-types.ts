@@ -677,6 +677,14 @@ export type KillmailsResponse = {
   pageInfo: PageInfo;
 };
 
+export enum LeaderboardPeriod {
+  Last_7Days = 'LAST_7_DAYS',
+  Last_90Days = 'LAST_90_DAYS',
+  Month = 'MONTH',
+  Today = 'TODAY',
+  Week = 'WEEK'
+}
+
 export type Moon = {
   __typename?: 'Moon';
   id: Scalars['Int']['output'];
@@ -1905,6 +1913,22 @@ export type Top90DaysPilotsFilter = {
   limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type TopFilter = {
+  /**
+   * Anchors the period. YYYY-MM-DD for TODAY, any day of the target week for
+   * WEEK (rounded back to its Monday), YYYY-MM for MONTH. Ignored by the rolling
+   * windows LAST_7_DAYS and LAST_90_DAYS. Empty means today / this week / this month.
+   */
+  anchor?: InputMaybe<Scalars['String']['input']>;
+  constellationId?: InputMaybe<Scalars['Int']['input']>;
+  /** Max 100; default 100 */
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  /** Defaults to LAST_7_DAYS. */
+  period?: InputMaybe<LeaderboardPeriod>;
+  regionId?: InputMaybe<Scalars['Int']['input']>;
+  systemId?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type TopLast7DaysAlliance = {
   __typename?: 'TopLast7DaysAlliance';
   alliance?: Maybe<Alliance>;
@@ -2284,6 +2308,7 @@ export type ResolversTypes = {
   KillmailItem: ResolverTypeWrapper<KillmailItem>;
   KillmailOrderBy: KillmailOrderBy;
   KillmailsResponse: ResolverTypeWrapper<KillmailsResponse>;
+  LeaderboardPeriod: LeaderboardPeriod;
   Moon: ResolverTypeWrapper<Moon>;
   MostValuableScope: MostValuableScope;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
@@ -2349,6 +2374,7 @@ export type ResolversTypes = {
   TerritoryChange: ResolverTypeWrapper<TerritoryChange>;
   Top90DaysPilot: ResolverTypeWrapper<Top90DaysPilot>;
   Top90DaysPilotsFilter: Top90DaysPilotsFilter;
+  TopFilter: TopFilter;
   TopLast7DaysAlliance: ResolverTypeWrapper<TopLast7DaysAlliance>;
   TopLast7DaysAlliancesFilter: TopLast7DaysAlliancesFilter;
   TopLast7DaysAttackerShip: ResolverTypeWrapper<TopLast7DaysAttackerShip>;
@@ -2501,6 +2527,7 @@ export type ResolversParentTypes = {
   TerritoryChange: TerritoryChange;
   Top90DaysPilot: Top90DaysPilot;
   Top90DaysPilotsFilter: Top90DaysPilotsFilter;
+  TopFilter: TopFilter;
   TopLast7DaysAlliance: TopLast7DaysAlliance;
   TopLast7DaysAlliancesFilter: TopLast7DaysAlliancesFilter;
   TopLast7DaysAttackerShip: TopLast7DaysAttackerShip;

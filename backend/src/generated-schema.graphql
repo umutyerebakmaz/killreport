@@ -599,6 +599,14 @@ type KillmailsResponse {
   pageInfo: PageInfo!
 }
 
+enum LeaderboardPeriod {
+  LAST_7_DAYS
+  LAST_90_DAYS
+  MONTH
+  TODAY
+  WEEK
+}
+
 type Moon {
   id: Int!
   name: String
@@ -1468,6 +1476,24 @@ type Top90DaysPilot {
 input Top90DaysPilotsFilter {
   """Max 100; default 100"""
   limit: Int
+}
+
+input TopFilter {
+  """
+  Anchors the period. YYYY-MM-DD for TODAY, any day of the target week for
+  WEEK (rounded back to its Monday), YYYY-MM for MONTH. Ignored by the rolling
+  windows LAST_7_DAYS and LAST_90_DAYS. Empty means today / this week / this month.
+  """
+  anchor: String
+  constellationId: Int
+
+  """Max 100; default 100"""
+  limit: Int
+
+  """Defaults to LAST_7_DAYS."""
+  period: LeaderboardPeriod
+  regionId: Int
+  systemId: Int
 }
 
 type TopLast7DaysAlliance {
