@@ -7,6 +7,23 @@ import TopEntitySidebar, {
 } from './TopEntitySidebar';
 import { LeaderboardPeriod } from '@/generated/graphql';
 
+/**
+ * TopEntitySidebar builds one `variables` object and shares it across all
+ * five leaderboard queries; this file pins that wiring so a future edit
+ * can't quietly special-case one hook without a test noticing.
+ *
+ * It does not pin the bug that motivated it. "Most Used Ships" rendered
+ * empty on a solar system page because one generated filter type,
+ * TopLast7DaysAttackerShipsFilter, didn't declare systemId, so that one
+ * query failed GraphQL variable validation while its four siblings
+ * succeeded — a schema mismatch. `tsc` and the GraphQL server catch that
+ * class of bug, not these tests: the hooks below are `vi.fn()`s with no
+ * type enforcement, so they'd have accepted a systemId that the real
+ * generated type used to reject. What these tests do catch is a future
+ * hand-written divergence — one hook stops receiving the shared scope, or
+ * the skip/period/limit wiring drifts.
+ */
+
 // The card components fall back to <Loader>, which pulls in lottie-web.
 // lottie-web reaches for a canvas 2D context at import time, which jsdom
 // does not implement (no `canvas` package installed) and throws before any
