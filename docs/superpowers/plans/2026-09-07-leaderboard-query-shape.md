@@ -88,13 +88,13 @@ Expected: `PORT=4010` (use whatever this prints as `$PORT` below; do not assume 
 - [ ] **Step 2: Capture the "before" output of all nine queries**
 
 ```bash
-mkdir -p /tmp/leaderboard-baseline
-PORT=$(grep -m1 '^PORT' backend/.env | cut -d= -f2- | tr -d '"'"'"'')
+mkdir -p .superpowers/sdd/2026-09-07-leaderboard-query-shape/baseline
+PORT=$(grep -m1 '^PORT' backend/.env | cut -d= -f2- | tr -d '"')
 
 q() {
   curl -s "http://localhost:$PORT/graphql" -H 'content-type: application/json' \
-    -d "{\"query\":\"$1\"}" > "/tmp/leaderboard-baseline/$2.json"
-  echo "$2: $(head -c 120 /tmp/leaderboard-baseline/$2.json)"
+    -d "{\"query\":\"$1\"}" > ".superpowers/sdd/2026-09-07-leaderboard-query-shape/baseline/$2.json"
+  echo "$2: $(head -c 120 .superpowers/sdd/2026-09-07-leaderboard-query-shape/baseline/$2.json)"
 }
 
 q '{ topPilots(filter:{limit:10}){ rank killCount character{ id name } } }' topPilots
@@ -111,7 +111,7 @@ q '{ topLast7DaysAttackerShips(filter:{limit:10}){ rank killCount shipType{ id n
 Expected: nine JSON files, none containing an `"errors"` key. Verify:
 
 ```bash
-grep -l '"errors"' /tmp/leaderboard-baseline/*.json || echo "all nine clean"
+grep -l '"errors"' .superpowers/sdd/2026-09-07-leaderboard-query-shape/baseline/*.json || echo "all nine clean"
 ```
 
 Expected: `all nine clean`.
@@ -724,7 +724,7 @@ describe('topPilots', () => {
   });
 
   it('caches a live window for 300 s and a closed one for 3600 s', async () => {
-    await call('topPilots', { period: LeaderboardPeriod.Today, limit: 10 });
+    // setex is only reached when there are rows to cache.
     prisma.$queryRaw.mockResolvedValue([
       { character_id: 42, kill_count: 7n },
     ]);
@@ -1761,7 +1761,7 @@ Expected: all green.
 Restart the backend so it serves the new schema, then:
 
 ```bash
-PORT=$(grep -m1 '^PORT' backend/.env | cut -d= -f2- | tr -d '"'"'"'')
+PORT=$(grep -m1 '^PORT' backend/.env | cut -d= -f2- | tr -d '"')
 curl -s "http://localhost:$PORT/graphql" -H 'content-type: application/json' \
   -d '{"query":"query($f: TopFilter){ topAttackerShips(filter:$f){ rank killCount shipType{ id name } } }","variables":{"f":{"limit":3,"systemId":30000142}}}'
 ```
@@ -1799,7 +1799,7 @@ The rename is only safe if the new queries return what the old ones did. This ta
 - Modify: `CLAUDE.md`
 
 **Interfaces:**
-- Consumes: `/tmp/leaderboard-baseline/*.json` (Task 1 Step 2); every query from Tasks 3–5.
+- Consumes: `.superpowers/sdd/2026-09-07-leaderboard-query-shape/baseline/*.json` (Task 1 Step 2); every query from Tasks 3–5.
 
 - [ ] **Step 1: Capture the "after" output**
 
@@ -1807,12 +1807,12 @@ Restart the backend, then:
 
 ```bash
 cd /Users/umut/Sites/killreport
-mkdir -p /tmp/leaderboard-after
-PORT=$(grep -m1 '^PORT' backend/.env | cut -d= -f2- | tr -d '"'"'"'')
+mkdir -p .superpowers/sdd/2026-09-07-leaderboard-query-shape/after
+PORT=$(grep -m1 '^PORT' backend/.env | cut -d= -f2- | tr -d '"')
 
 q() {
   curl -s "http://localhost:$PORT/graphql" -H 'content-type: application/json' \
-    -d "{\"query\":\"$1\"}" > "/tmp/leaderboard-after/$2.json"
+    -d "{\"query\":\"$1\"}" > ".superpowers/sdd/2026-09-07-leaderboard-query-shape/after/$2.json"
 }
 
 q '{ topPilots(filter:{period:TODAY,limit:10}){ rank killCount character{ id name } } }' topPilots
@@ -1825,7 +1825,7 @@ q '{ topAlliances(filter:{period:LAST_7_DAYS,limit:10}){ rank killCount alliance
 q '{ topDestroyedShips(filter:{period:LAST_7_DAYS,limit:10}){ rank killCount shipType{ id name } } }' topLast7DaysShips
 q '{ topAttackerShips(filter:{period:LAST_7_DAYS,limit:10}){ rank killCount shipType{ id name } } }' topLast7DaysAttackerShips
 
-grep -l '"errors"' /tmp/leaderboard-after/*.json || echo "all nine clean"
+grep -l '"errors"' .superpowers/sdd/2026-09-07-leaderboard-query-shape/after/*.json || echo "all nine clean"
 ```
 
 Expected: `all nine clean`.
@@ -1833,7 +1833,7 @@ Expected: `all nine clean`.
 - [ ] **Step 2: Compare rank and killCount, ignoring the field name that changed**
 
 ```bash
-for f in /tmp/leaderboard-baseline/*.json; do
+for f in .superpowers/sdd/2026-09-07-leaderboard-query-shape/baseline/*.json; do
   n=$(basename "$f")
   before=$(python3 -c "
 import json,sys
@@ -1843,7 +1843,7 @@ print([(r['rank'], r['killCount']) for r in rows])
 ")
   after=$(python3 -c "
 import json,sys
-d=json.load(open('/tmp/leaderboard-after/$n'))['data']
+d=json.load(open('.superpowers/sdd/2026-09-07-leaderboard-query-shape/after/$n'))['data']
 rows=list(d.values())[0]
 print([(r['rank'], r['killCount']) for r in rows])
 ")
