@@ -1,0 +1,11 @@
+query TopCorporations($filter: TopFilter) {
+  topCorporations(filter: $filter) {
+    rank
+    killCount
+    corporation {
+      id
+      name
+      ticker
+    }
+  }
+}

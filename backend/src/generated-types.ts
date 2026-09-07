@@ -961,14 +961,14 @@ export type Query = {
   systemKillsHistory: Array<SystemKills>;
   systemLatestKills?: Maybe<SystemKills>;
   topActiveSystems: Array<SystemKillsStats>;
+  /** Top alliances by kill count over the window named by filter.period. */
+  topAlliances: Array<TopAlliance>;
+  /** Top corporations by kill count over the window named by filter.period. */
+  topCorporations: Array<TopCorporation>;
   /** Alliances ranked by successful defenses of ended campaigns. */
   topDefenders: Array<AllianceDefenseRecord>;
-  /** Returns top alliances ranked by total kill count over the last 7 days (rolling window, today - 6 days) */
-  topLast7DaysAlliances: Array<TopLast7DaysAlliance>;
   /** Returns top attacker ship types by usage count over the last 7 days (rolling window, today - 6 days) */
   topLast7DaysAttackerShips: Array<TopLast7DaysAttackerShip>;
-  /** Returns top corporations ranked by total kill count over the last 7 days (rolling window, today - 6 days) */
-  topLast7DaysCorporations: Array<TopLast7DaysCorporation>;
   /** Returns top ship types ranked by total kill count over the last 7 days (rolling window, today - 6 days) */
   topLast7DaysShips: Array<TopLast7DaysShip>;
   /** Top pilots by kill count over the window named by filter.period. */
@@ -1273,23 +1273,23 @@ export type QueryTopActiveSystemsArgs = {
 };
 
 
+export type QueryTopAlliancesArgs = {
+  filter?: InputMaybe<TopFilter>;
+};
+
+
+export type QueryTopCorporationsArgs = {
+  filter?: InputMaybe<TopFilter>;
+};
+
+
 export type QueryTopDefendersArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
-export type QueryTopLast7DaysAlliancesArgs = {
-  filter?: InputMaybe<TopLast7DaysAlliancesFilter>;
-};
-
-
 export type QueryTopLast7DaysAttackerShipsArgs = {
   filter?: InputMaybe<TopLast7DaysAttackerShipsFilter>;
-};
-
-
-export type QueryTopLast7DaysCorporationsArgs = {
-  filter?: InputMaybe<TopLast7DaysCorporationsFilter>;
 };
 
 
@@ -1873,6 +1873,20 @@ export type TerritoryChange = {
   solarSystemName?: Maybe<Scalars['String']['output']>;
 };
 
+export type TopAlliance = {
+  __typename?: 'TopAlliance';
+  alliance?: Maybe<Alliance>;
+  killCount: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+};
+
+export type TopCorporation = {
+  __typename?: 'TopCorporation';
+  corporation?: Maybe<Corporation>;
+  killCount: Scalars['Int']['output'];
+  rank: Scalars['Int']['output'];
+};
+
 export type TopFilter = {
   /**
    * Anchors the period. YYYY-MM-DD for TODAY, any day of the target week for
@@ -1889,24 +1903,6 @@ export type TopFilter = {
   systemId?: InputMaybe<Scalars['Int']['input']>;
 };
 
-export type TopLast7DaysAlliance = {
-  __typename?: 'TopLast7DaysAlliance';
-  alliance?: Maybe<Alliance>;
-  killCount: Scalars['Int']['output'];
-  rank: Scalars['Int']['output'];
-};
-
-export type TopLast7DaysAlliancesFilter = {
-  /** Filter by constellation ID */
-  constellationId?: InputMaybe<Scalars['Int']['input']>;
-  /** Max 100; default 100 */
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  /** Filter by region ID */
-  regionId?: InputMaybe<Scalars['Int']['input']>;
-  /** Filter by solar system ID */
-  systemId?: InputMaybe<Scalars['Int']['input']>;
-};
-
 export type TopLast7DaysAttackerShip = {
   __typename?: 'TopLast7DaysAttackerShip';
   killCount: Scalars['Int']['output'];
@@ -1917,24 +1913,6 @@ export type TopLast7DaysAttackerShip = {
 export type TopLast7DaysAttackerShipsFilter = {
   /** Max 100; default 100 */
   limit?: InputMaybe<Scalars['Int']['input']>;
-};
-
-export type TopLast7DaysCorporation = {
-  __typename?: 'TopLast7DaysCorporation';
-  corporation?: Maybe<Corporation>;
-  killCount: Scalars['Int']['output'];
-  rank: Scalars['Int']['output'];
-};
-
-export type TopLast7DaysCorporationsFilter = {
-  /** Filter by constellation ID */
-  constellationId?: InputMaybe<Scalars['Int']['input']>;
-  /** Max 100; default 100 */
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  /** Filter by region ID */
-  regionId?: InputMaybe<Scalars['Int']['input']>;
-  /** Filter by solar system ID */
-  systemId?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type TopLast7DaysShip = {
@@ -2279,13 +2257,11 @@ export type ResolversTypes = {
   SystemKillsFilter: SystemKillsFilter;
   SystemKillsStats: ResolverTypeWrapper<SystemKillsStats>;
   TerritoryChange: ResolverTypeWrapper<TerritoryChange>;
+  TopAlliance: ResolverTypeWrapper<TopAlliance>;
+  TopCorporation: ResolverTypeWrapper<TopCorporation>;
   TopFilter: TopFilter;
-  TopLast7DaysAlliance: ResolverTypeWrapper<TopLast7DaysAlliance>;
-  TopLast7DaysAlliancesFilter: TopLast7DaysAlliancesFilter;
   TopLast7DaysAttackerShip: ResolverTypeWrapper<TopLast7DaysAttackerShip>;
   TopLast7DaysAttackerShipsFilter: TopLast7DaysAttackerShipsFilter;
-  TopLast7DaysCorporation: ResolverTypeWrapper<TopLast7DaysCorporation>;
-  TopLast7DaysCorporationsFilter: TopLast7DaysCorporationsFilter;
   TopLast7DaysShip: ResolverTypeWrapper<TopLast7DaysShip>;
   TopLast7DaysShipsFilter: TopLast7DaysShipsFilter;
   TopPilot: ResolverTypeWrapper<TopPilot>;
@@ -2423,13 +2399,11 @@ export type ResolversParentTypes = {
   SystemKillsFilter: SystemKillsFilter;
   SystemKillsStats: SystemKillsStats;
   TerritoryChange: TerritoryChange;
+  TopAlliance: TopAlliance;
+  TopCorporation: TopCorporation;
   TopFilter: TopFilter;
-  TopLast7DaysAlliance: TopLast7DaysAlliance;
-  TopLast7DaysAlliancesFilter: TopLast7DaysAlliancesFilter;
   TopLast7DaysAttackerShip: TopLast7DaysAttackerShip;
   TopLast7DaysAttackerShipsFilter: TopLast7DaysAttackerShipsFilter;
-  TopLast7DaysCorporation: TopLast7DaysCorporation;
-  TopLast7DaysCorporationsFilter: TopLast7DaysCorporationsFilter;
   TopLast7DaysShip: TopLast7DaysShip;
   TopLast7DaysShipsFilter: TopLast7DaysShipsFilter;
   TopPilot: TopPilot;
@@ -2977,10 +2951,10 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   systemKillsHistory?: Resolver<Array<ResolversTypes['SystemKills']>, ParentType, ContextType, RequireFields<QuerySystemKillsHistoryArgs, 'filter'>>;
   systemLatestKills?: Resolver<Maybe<ResolversTypes['SystemKills']>, ParentType, ContextType, RequireFields<QuerySystemLatestKillsArgs, 'system_id'>>;
   topActiveSystems?: Resolver<Array<ResolversTypes['SystemKillsStats']>, ParentType, ContextType, Partial<QueryTopActiveSystemsArgs>>;
+  topAlliances?: Resolver<Array<ResolversTypes['TopAlliance']>, ParentType, ContextType, Partial<QueryTopAlliancesArgs>>;
+  topCorporations?: Resolver<Array<ResolversTypes['TopCorporation']>, ParentType, ContextType, Partial<QueryTopCorporationsArgs>>;
   topDefenders?: Resolver<Array<ResolversTypes['AllianceDefenseRecord']>, ParentType, ContextType, Partial<QueryTopDefendersArgs>>;
-  topLast7DaysAlliances?: Resolver<Array<ResolversTypes['TopLast7DaysAlliance']>, ParentType, ContextType, Partial<QueryTopLast7DaysAlliancesArgs>>;
   topLast7DaysAttackerShips?: Resolver<Array<ResolversTypes['TopLast7DaysAttackerShip']>, ParentType, ContextType, Partial<QueryTopLast7DaysAttackerShipsArgs>>;
-  topLast7DaysCorporations?: Resolver<Array<ResolversTypes['TopLast7DaysCorporation']>, ParentType, ContextType, Partial<QueryTopLast7DaysCorporationsArgs>>;
   topLast7DaysShips?: Resolver<Array<ResolversTypes['TopLast7DaysShip']>, ParentType, ContextType, Partial<QueryTopLast7DaysShipsArgs>>;
   topPilots?: Resolver<Array<ResolversTypes['TopPilot']>, ParentType, ContextType, Partial<QueryTopPilotsArgs>>;
   type?: Resolver<Maybe<ResolversTypes['Type']>, ParentType, ContextType, RequireFields<QueryTypeArgs, 'id'>>;
@@ -3350,8 +3324,14 @@ export type TerritoryChangeResolvers<ContextType = any, ParentType extends Resol
   solarSystemName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
-export type TopLast7DaysAllianceResolvers<ContextType = any, ParentType extends ResolversParentTypes['TopLast7DaysAlliance'] = ResolversParentTypes['TopLast7DaysAlliance']> = {
+export type TopAllianceResolvers<ContextType = any, ParentType extends ResolversParentTypes['TopAlliance'] = ResolversParentTypes['TopAlliance']> = {
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType>;
+  killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type TopCorporationResolvers<ContextType = any, ParentType extends ResolversParentTypes['TopCorporation'] = ResolversParentTypes['TopCorporation']> = {
+  corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType>;
   killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
@@ -3360,12 +3340,6 @@ export type TopLast7DaysAttackerShipResolvers<ContextType = any, ParentType exte
   killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   shipType?: Resolver<Maybe<ResolversTypes['Type']>, ParentType, ContextType>;
-};
-
-export type TopLast7DaysCorporationResolvers<ContextType = any, ParentType extends ResolversParentTypes['TopLast7DaysCorporation'] = ResolversParentTypes['TopLast7DaysCorporation']> = {
-  corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType>;
-  killCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  rank?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
 export type TopLast7DaysShipResolvers<ContextType = any, ParentType extends ResolversParentTypes['TopLast7DaysShip'] = ResolversParentTypes['TopLast7DaysShip']> = {
@@ -3539,9 +3513,9 @@ export type Resolvers<ContextType = any> = {
   SystemKills?: SystemKillsResolvers<ContextType>;
   SystemKillsStats?: SystemKillsStatsResolvers<ContextType>;
   TerritoryChange?: TerritoryChangeResolvers<ContextType>;
-  TopLast7DaysAlliance?: TopLast7DaysAllianceResolvers<ContextType>;
+  TopAlliance?: TopAllianceResolvers<ContextType>;
+  TopCorporation?: TopCorporationResolvers<ContextType>;
   TopLast7DaysAttackerShip?: TopLast7DaysAttackerShipResolvers<ContextType>;
-  TopLast7DaysCorporation?: TopLast7DaysCorporationResolvers<ContextType>;
   TopLast7DaysShip?: TopLast7DaysShipResolvers<ContextType>;
   TopPilot?: TopPilotResolvers<ContextType>;
   Type?: TypeResolvers<ContextType>;

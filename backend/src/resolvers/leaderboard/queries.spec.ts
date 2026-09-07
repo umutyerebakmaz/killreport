@@ -172,3 +172,69 @@ describe('topPilots', () => {
     expect(prisma.character.findMany).not.toHaveBeenCalled();
   });
 });
+
+describe('topCorporations', () => {
+  it('reads the corporation stats table by default', async () => {
+    await call('topCorporations', { limit: 10 });
+
+    expect(querySql()).toContain('FROM corporation_kill_stats');
+  });
+
+  it('puts every filter parameter in the cache key', async () => {
+    await call('topCorporations', {
+      period: LeaderboardPeriod.Month,
+      anchor: '2026-07',
+      limit: 25,
+      regionId: 10000002,
+    });
+
+    const [key] = redis.get.mock.calls[0];
+    expect(key).toBe('leaderboard:topCorporations:MONTH:2026-07:25:::10000002');
+  });
+
+  it('joins killmail_filters when a region is given', async () => {
+    await call('topCorporations', { limit: 10, regionId: 10000002 });
+
+    expect(querySql()).toContain('INNER JOIN killmail_filters kf');
+    expect(querySql()).toContain('COUNT(DISTINCT kf.killmail_id)');
+    expect(queryValues()).toContain(10000002);
+  });
+
+  it('converts BigInt counts before caching', async () => {
+    prisma.$queryRaw.mockResolvedValue([
+      { corporation_id: 98000001, kill_count: 4n },
+    ]);
+    prisma.corporation.findMany.mockResolvedValue([
+      { id: 98000001, name: 'Corp', shares: null, updated_at: null },
+    ]);
+
+    const result = (await call('topCorporations', { limit: 10 })) as Array<{
+      killCount: number;
+    }>;
+
+    expect(result[0].killCount).toBe(4);
+  });
+});
+
+describe('topAlliances', () => {
+  it('reads the alliance stats table by default', async () => {
+    await call('topAlliances', { limit: 10 });
+
+    expect(querySql()).toContain('FROM alliance_kill_stats');
+  });
+
+  it('puts every filter parameter in the cache key', async () => {
+    await call('topAlliances', { limit: 10, systemId: 30000142 });
+
+    const [key] = redis.get.mock.calls[0];
+    expect(key).toMatch(
+      /^leaderboard:topAlliances:LAST_7_DAYS:\d{4}-\d{2}-\d{2}:10:30000142::$/,
+    );
+  });
+
+  it('joins killmail_filters when a system is given', async () => {
+    await call('topAlliances', { limit: 10, systemId: 30000142 });
+
+    expect(querySql()).toContain('INNER JOIN killmail_filters kf');
+  });
+});

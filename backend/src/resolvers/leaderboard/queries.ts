@@ -94,14 +94,18 @@ export const leaderboardQueries: QueryResolvers = {
     return result;
   },
 
-  topLast7DaysCorporations: async (_, { filter }) => {
+  topCorporations: async (_, { filter }) => {
     const limit = Math.min(filter?.limit ?? 100, 100);
-    const today = new Date().toISOString().split('T')[0];
+    const period = filter?.period ?? LeaderboardPeriod.Last_7Days;
+    const { startDate, endDate, cacheTtl, cacheAnchor } = resolvePeriod(
+      period,
+      filter?.anchor,
+    );
     const systemId = filter?.systemId;
     const constellationId = filter?.constellationId;
     const regionId = filter?.regionId;
 
-    const cacheKey = `leaderboard:topLast7DaysCorporations:${today}:${limit}:${systemId || ''}:${constellationId || ''}:${regionId || ''}`;
+    const cacheKey = `leaderboard:topCorporations:${period}:${cacheAnchor}:${limit}:${systemId || ''}:${constellationId || ''}:${regionId || ''}`;
     const cached = await redis.get(cacheKey);
     if (cached) return JSON.parse(cached);
 
@@ -109,13 +113,12 @@ export const leaderboardQueries: QueryResolvers = {
     let rows: Row[];
 
     if (systemId || constellationId || regionId) {
-      // Query with spatial filter - join with killmail_filters
       rows = await prisma.$queryRaw<Row[]>`
         SELECT a.corporation_id, COUNT(DISTINCT kf.killmail_id)::BIGINT AS kill_count
         FROM attackers a
         INNER JOIN killmail_filters kf ON kf.killmail_id = a.killmail_id
-        WHERE kf.killmail_time >= (${today}::date - INTERVAL '6 days')
-          AND kf.killmail_time <= ${today}::date + INTERVAL '1 day'
+        WHERE kf.killmail_time >= ${startDate}::date
+          AND kf.killmail_time <  ${endDate}::date + INTERVAL '1 day'
           AND a.corporation_id IS NOT NULL
           ${systemId ? Prisma.sql`AND kf.solar_system_id = ${systemId}` : Prisma.empty}
           ${constellationId ? Prisma.sql`AND kf.constellation_id = ${constellationId}` : Prisma.empty}
@@ -125,12 +128,11 @@ export const leaderboardQueries: QueryResolvers = {
         LIMIT ${limit}
       `;
     } else {
-      // Original query from stats table
       rows = await prisma.$queryRaw<Row[]>`
-        SELECT corporation_id, SUM(kill_count) AS kill_count
+        SELECT corporation_id, SUM(kill_count)::BIGINT AS kill_count
         FROM   corporation_kill_stats
-        WHERE  kill_date >= (${today}::date - INTERVAL '6 days')
-          AND  kill_date <= ${today}::date
+        WHERE  kill_date >= ${startDate}::date
+          AND  kill_date <= ${endDate}::date
         GROUP  BY corporation_id
         ORDER  BY kill_count DESC
         LIMIT  ${limit}
@@ -160,19 +162,22 @@ export const leaderboardQueries: QueryResolvers = {
       };
     });
 
-    // Cache 5 minutes (rolling data)
-    await redis.setex(cacheKey, 300, JSON.stringify(result));
+    await redis.setex(cacheKey, cacheTtl, JSON.stringify(result));
     return result;
   },
 
-  topLast7DaysAlliances: async (_, { filter }) => {
+  topAlliances: async (_, { filter }) => {
     const limit = Math.min(filter?.limit ?? 100, 100);
-    const today = new Date().toISOString().split('T')[0];
+    const period = filter?.period ?? LeaderboardPeriod.Last_7Days;
+    const { startDate, endDate, cacheTtl, cacheAnchor } = resolvePeriod(
+      period,
+      filter?.anchor,
+    );
     const systemId = filter?.systemId;
     const constellationId = filter?.constellationId;
     const regionId = filter?.regionId;
 
-    const cacheKey = `leaderboard:topLast7DaysAlliances:${today}:${limit}:${systemId || ''}:${constellationId || ''}:${regionId || ''}`;
+    const cacheKey = `leaderboard:topAlliances:${period}:${cacheAnchor}:${limit}:${systemId || ''}:${constellationId || ''}:${regionId || ''}`;
     const cached = await redis.get(cacheKey);
     if (cached) return JSON.parse(cached);
 
@@ -180,13 +185,12 @@ export const leaderboardQueries: QueryResolvers = {
     let rows: Row[];
 
     if (systemId || constellationId || regionId) {
-      // Query with spatial filter - join with killmail_filters
       rows = await prisma.$queryRaw<Row[]>`
         SELECT a.alliance_id, COUNT(DISTINCT kf.killmail_id)::BIGINT AS kill_count
         FROM attackers a
         INNER JOIN killmail_filters kf ON kf.killmail_id = a.killmail_id
-        WHERE kf.killmail_time >= (${today}::date - INTERVAL '6 days')
-          AND kf.killmail_time <= ${today}::date + INTERVAL '1 day'
+        WHERE kf.killmail_time >= ${startDate}::date
+          AND kf.killmail_time <  ${endDate}::date + INTERVAL '1 day'
           AND a.alliance_id IS NOT NULL
           ${systemId ? Prisma.sql`AND kf.solar_system_id = ${systemId}` : Prisma.empty}
           ${constellationId ? Prisma.sql`AND kf.constellation_id = ${constellationId}` : Prisma.empty}
@@ -196,12 +200,11 @@ export const leaderboardQueries: QueryResolvers = {
         LIMIT ${limit}
       `;
     } else {
-      // Original query from stats table
       rows = await prisma.$queryRaw<Row[]>`
-        SELECT alliance_id, SUM(kill_count) AS kill_count
+        SELECT alliance_id, SUM(kill_count)::BIGINT AS kill_count
         FROM   alliance_kill_stats
-        WHERE  kill_date >= (${today}::date - INTERVAL '6 days')
-          AND  kill_date <= ${today}::date
+        WHERE  kill_date >= ${startDate}::date
+          AND  kill_date <= ${endDate}::date
         GROUP  BY alliance_id
         ORDER  BY kill_count DESC
         LIMIT  ${limit}
@@ -230,8 +233,7 @@ export const leaderboardQueries: QueryResolvers = {
       };
     });
 
-    // Cache 5 minutes (rolling data)
-    await redis.setex(cacheKey, 300, JSON.stringify(result));
+    await redis.setex(cacheKey, cacheTtl, JSON.stringify(result));
     return result;
   },
 

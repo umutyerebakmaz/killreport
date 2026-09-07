@@ -32,54 +32,16 @@ type TopPilot {
   character: Character
 }
 
-type TopLast7DaysCorporation {
+type TopCorporation {
   rank: Int!
   killCount: Int!
   corporation: Corporation
 }
 
-input TopLast7DaysCorporationsFilter {
-  """
-  Max 100; default 100
-  """
-  limit: Int
-  """
-  Filter by region ID
-  """
-  regionId: Int
-  """
-  Filter by constellation ID
-  """
-  constellationId: Int
-  """
-  Filter by solar system ID
-  """
-  systemId: Int
-}
-
-type TopLast7DaysAlliance {
+type TopAlliance {
   rank: Int!
   killCount: Int!
   alliance: Alliance
-}
-
-input TopLast7DaysAlliancesFilter {
-  """
-  Max 100; default 100
-  """
-  limit: Int
-  """
-  Filter by region ID
-  """
-  regionId: Int
-  """
-  Filter by constellation ID
-  """
-  constellationId: Int
-  """
-  Filter by solar system ID
-  """
-  systemId: Int
 }
 
 type TopLast7DaysShip {
@@ -127,18 +89,14 @@ extend type Query {
   topPilots(filter: TopFilter): [TopPilot!]!
 
   """
-  Returns top corporations ranked by total kill count over the last 7 days (rolling window, today - 6 days)
+  Top corporations by kill count over the window named by filter.period.
   """
-  topLast7DaysCorporations(
-    filter: TopLast7DaysCorporationsFilter
-  ): [TopLast7DaysCorporation!]!
+  topCorporations(filter: TopFilter): [TopCorporation!]!
 
   """
-  Returns top alliances ranked by total kill count over the last 7 days (rolling window, today - 6 days)
+  Top alliances by kill count over the window named by filter.period.
   """
-  topLast7DaysAlliances(
-    filter: TopLast7DaysAlliancesFilter
-  ): [TopLast7DaysAlliance!]!
+  topAlliances(filter: TopFilter): [TopAlliance!]!
 
   """
   Returns top ship types ranked by total kill count over the last 7 days (rolling window, today - 6 days)

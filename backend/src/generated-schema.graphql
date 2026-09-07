@@ -835,23 +835,19 @@ type Query {
   systemLatestKills(system_id: Int!): SystemKills
   topActiveSystems(limit: Int): [SystemKillsStats!]!
 
+  """Top alliances by kill count over the window named by filter.period."""
+  topAlliances(filter: TopFilter): [TopAlliance!]!
+
+  """Top corporations by kill count over the window named by filter.period."""
+  topCorporations(filter: TopFilter): [TopCorporation!]!
+
   """Alliances ranked by successful defenses of ended campaigns."""
   topDefenders(limit: Int): [AllianceDefenseRecord!]!
-
-  """
-  Returns top alliances ranked by total kill count over the last 7 days (rolling window, today - 6 days)
-  """
-  topLast7DaysAlliances(filter: TopLast7DaysAlliancesFilter): [TopLast7DaysAlliance!]!
 
   """
   Returns top attacker ship types by usage count over the last 7 days (rolling window, today - 6 days)
   """
   topLast7DaysAttackerShips(filter: TopLast7DaysAttackerShipsFilter): [TopLast7DaysAttackerShip!]!
-
-  """
-  Returns top corporations ranked by total kill count over the last 7 days (rolling window, today - 6 days)
-  """
-  topLast7DaysCorporations(filter: TopLast7DaysCorporationsFilter): [TopLast7DaysCorporation!]!
 
   """
   Returns top ship types ranked by total kill count over the last 7 days (rolling window, today - 6 days)
@@ -1445,6 +1441,18 @@ type TerritoryChange {
   solarSystemName: String
 }
 
+type TopAlliance {
+  alliance: Alliance
+  killCount: Int!
+  rank: Int!
+}
+
+type TopCorporation {
+  corporation: Corporation
+  killCount: Int!
+  rank: Int!
+}
+
 input TopFilter {
   """
   Anchors the period. YYYY-MM-DD for TODAY, any day of the target week for
@@ -1463,26 +1471,6 @@ input TopFilter {
   systemId: Int
 }
 
-type TopLast7DaysAlliance {
-  alliance: Alliance
-  killCount: Int!
-  rank: Int!
-}
-
-input TopLast7DaysAlliancesFilter {
-  """Filter by constellation ID"""
-  constellationId: Int
-
-  """Max 100; default 100"""
-  limit: Int
-
-  """Filter by region ID"""
-  regionId: Int
-
-  """Filter by solar system ID"""
-  systemId: Int
-}
-
 type TopLast7DaysAttackerShip {
   killCount: Int!
   rank: Int!
@@ -1492,26 +1480,6 @@ type TopLast7DaysAttackerShip {
 input TopLast7DaysAttackerShipsFilter {
   """Max 100; default 100"""
   limit: Int
-}
-
-type TopLast7DaysCorporation {
-  corporation: Corporation
-  killCount: Int!
-  rank: Int!
-}
-
-input TopLast7DaysCorporationsFilter {
-  """Filter by constellation ID"""
-  constellationId: Int
-
-  """Max 100; default 100"""
-  limit: Int
-
-  """Filter by region ID"""
-  regionId: Int
-
-  """Filter by solar system ID"""
-  systemId: Int
 }
 
 type TopLast7DaysShip {

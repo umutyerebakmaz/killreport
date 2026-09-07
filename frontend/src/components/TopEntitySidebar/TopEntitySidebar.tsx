@@ -7,9 +7,9 @@ import TopShipsCard from '@/components/TopShipsCard/TopShipsCard';
 import {
   LeaderboardPeriod,
   useTopPilotsQuery,
-  useTopLast7DaysAlliancesQuery,
+  useTopAlliancesQuery,
   useTopLast7DaysAttackerShipsQuery,
-  useTopLast7DaysCorporationsQuery,
+  useTopCorporationsQuery,
   useTopLast7DaysShipsQuery,
 } from '@/generated/graphql';
 
@@ -61,12 +61,18 @@ export default function TopEntitySidebar({
     skip: !has('characters'),
   });
   const { data: corporations, loading: corporationsLoading } =
-    useTopLast7DaysCorporationsQuery({
-      variables,
+    useTopCorporationsQuery({
+      variables: {
+        filter: { ...variables.filter, period: LeaderboardPeriod.Last_7Days },
+      },
       skip: !has('corporations'),
     });
-  const { data: alliances, loading: alliancesLoading } =
-    useTopLast7DaysAlliancesQuery({ variables, skip: !has('alliances') });
+  const { data: alliances, loading: alliancesLoading } = useTopAlliancesQuery({
+    variables: {
+      filter: { ...variables.filter, period: LeaderboardPeriod.Last_7Days },
+    },
+    skip: !has('alliances'),
+  });
   const { data: attackerShips, loading: attackerShipsLoading } =
     useTopLast7DaysAttackerShipsQuery({
       variables,
@@ -119,7 +125,7 @@ export default function TopEntitySidebar({
                 title={card.title}
                 subtitle={LAST_7_DAYS}
                 corporations={
-                  corporations?.topLast7DaysCorporations?.map((corp) => ({
+                  corporations?.topCorporations?.map((corp) => ({
                     id: corp.corporation?.id || 0,
                     name: corp.corporation?.name || 'Unknown',
                     ticker: corp.corporation?.ticker,
@@ -138,7 +144,7 @@ export default function TopEntitySidebar({
                 title={card.title}
                 subtitle={LAST_7_DAYS}
                 alliances={
-                  alliances?.topLast7DaysAlliances?.map((alliance) => ({
+                  alliances?.topAlliances?.map((alliance) => ({
                     id: alliance.alliance?.id || 0,
                     name: alliance.alliance?.name || 'Unknown',
                     ticker: alliance.alliance?.ticker,
