@@ -27,6 +27,7 @@ export default function FilterField({
     <div>
       <label
         htmlFor={htmlFor}
+        id={htmlFor ? `${htmlFor}-label` : undefined}
         className="block mb-2 text-xs font-medium text-gray-400"
       >
         {label}
