@@ -1,0 +1,10 @@
+query TopRegions($filter: TopFilter) {
+  topRegions(filter: $filter) {
+    rank
+    killCount
+    region {
+      id
+      name
+    }
+  }
+}

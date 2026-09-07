@@ -1,0 +1,10 @@
+query TopFactions($filter: TopFilter) {
+  topFactions(filter: $filter) {
+    rank
+    killCount
+    faction {
+      id
+      name
+    }
+  }
+}
