@@ -33,7 +33,7 @@ Global rankings on the Killmails page (`topPilots(filter: { period: TODAY })`, `
 default `LAST_7_DAYS` period, etc.) read from **pre-aggregated** tables. These tables are updated
 **atomically within a transaction** whenever a killmail is saved. See
 [`leaderboard-queries.md`](./leaderboard-queries.md) for the full `TopFilter` / `LeaderboardPeriod`
-reference and the three SQL shapes behind these five queries.
+reference and the three SQL shapes behind these eight queries.
 
 ```mermaid
 flowchart LR
