@@ -248,7 +248,6 @@ export default function TopEntitySidebar({
                     name: entry.solarSystem?.name || 'Unknown',
                     killCount: entry.killCount,
                     securityStatus: entry.solarSystem?.securityStatus,
-                    regionId: entry.solarSystem?.constellation?.region?.id,
                     regionName: entry.solarSystem?.constellation?.region?.name,
                   })) || []
                 }

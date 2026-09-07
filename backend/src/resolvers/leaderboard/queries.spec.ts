@@ -438,7 +438,7 @@ describe('topFactions', () => {
     );
   });
 
-  it('converts BigInt counts before caching', async () => {
+  it('converts BigInt counts before caching, and attaches the raw faction row', async () => {
     prisma.$queryRaw.mockResolvedValue([
       { faction_id: 500003, kill_count: 25n },
     ]);
@@ -454,11 +454,16 @@ describe('topFactions', () => {
 
     const result = (await call('topFactions', { limit: 10 })) as Array<{
       killCount: number;
-      faction: { corporationId: number | null } | null;
+      faction: { id: number; corporation_id: number | null } | null;
     }>;
 
     expect(result[0].killCount).toBe(25);
-    expect(result[0].faction?.corporationId).toBe(1000084);
+    // topFactions' job ends at looking up and attaching the faction row it
+    // found — snake_case columns and all. Mapping corporation_id to
+    // corporationId is the Faction field resolver's job (see
+    // faction/fields.spec.ts), not this resolver's.
+    expect(result[0].faction?.id).toBe(500003);
+    expect(result[0].faction?.corporation_id).toBe(1000084);
     expect(() => JSON.stringify(result)).not.toThrow();
   });
 });

@@ -11,21 +11,12 @@ export const factionQueries: QueryResolvers = {
       where: { id: Number(id) },
     });
     if (!faction) return null;
-    return {
-      ...faction,
-      corporationId: faction.corporation_id,
-      militiaCorporationId: faction.militia_corporation_id,
-    };
+    return faction;
   },
 
   factions: async () => {
-    const factions = await prisma.faction.findMany({
+    return prisma.faction.findMany({
       orderBy: { name: 'asc' },
     });
-    return factions.map((faction) => ({
-      ...faction,
-      corporationId: faction.corporation_id,
-      militiaCorporationId: faction.militia_corporation_id,
-    }));
   },
 };

@@ -2,15 +2,16 @@
 
 ## Overview
 
-Five queries — `topPilots`, `topCorporations`, `topAlliances`, `topDestroyedShips`,
-`topAttackerShips` — share one input type, `TopFilter`. The time window that used
-to be baked into nine separate query names, one per subject-and-period
-combination, is now `filter.period`, a `LeaderboardPeriod` enum value. Three of
-the five subjects (pilots, corporations,
+Eight queries — `topPilots`, `topCorporations`, `topAlliances`, `topDestroyedShips`,
+`topAttackerShips`, `topSystems`, `topRegions`, `topFactions` — share one input
+type, `TopFilter`. The time window that used to be baked into nine separate
+query names, one per subject-and-period combination, is now `filter.period`, a
+`LeaderboardPeriod` enum value. Three of the eight subjects (pilots, corporations,
 alliances) also read from **real-time aggregation tables**
 (`character_kill_stats`, `corporation_kill_stats`, `alliance_kill_stats`) updated
-immediately as killmails are saved; the ship queries and any spatially-filtered
-query read `killmail_filters` / `attackers` directly. See
+immediately as killmails are saved; the ship queries, `topSystems`, `topRegions`,
+`topFactions`, and any spatially-filtered pilot/corporation/alliance query read
+`killmail_filters` / `attackers` directly. See
 [TopFilter and LeaderboardPeriod](#topfilter-and-leaderboardperiod) below for
 which subject uses which shape.
 
@@ -51,7 +52,7 @@ An empty `anchor` means today / this week / this month. `WEEK` uses the
 **calendar week** (Monday–Sunday); `LAST_7_DAYS` is a **rolling** window
 (today − 6 days to today) — the two agree only when today is a Monday.
 `resolvePeriod()` in `backend/src/resolvers/leaderboard/period.ts` is the single
-place this logic lives; every one of the five resolvers calls it.
+place this logic lives; every one of the eight resolvers calls it.
 
 **`systemId` / `constellationId` / `regionId`** filter to activity in one part of
 space. Supplying any one of them changes which SQL shape a pilot/corporation/
@@ -110,6 +111,15 @@ hull", so a five-Raven fleet on one kill counts as five, not one — see the
 comment above the `topAttackerShips` query in
 `backend/src/resolvers/leaderboard/queries.ts`. This asymmetry is intentional,
 not an inconsistency to fix.
+
+`topFactions` is the second `COUNT(DISTINCT kf.killmail_id)` user, for the same
+reason as the three entity leaderboards: a twenty-strong militia fleet on one
+kill must count once for its faction, not twenty times. It is also the only
+query in the codebase with a hardcoded id exclusion —
+`AND a.faction_id <> 500021`. Faction `500021` is ESI's placeholder for "no
+faction"; its name is literally `Unknown` and it has no `corporation_id`, so it
+has no logo and no meaning on a leaderboard. See the comment above the
+`topFactions` query in `backend/src/resolvers/leaderboard/queries.ts`.
 
 **Shape C — `killmail_filters` alone.** Used unconditionally by
 `topDestroyedShips`, which counts victims and has no attacker to join against.
@@ -424,6 +434,9 @@ LIMIT  $limit
 | `topAlliances`      | A / B | `alliance_kill_stats`, or `attackers ⋈ killmail_filters` when spatially filtered    | all five          | 5 min (live) / 1 hr (closed) |
 | `topDestroyedShips` | C     | `killmail_filters`                                                                  | all five          | 5 min (live) / 1 hr (closed) |
 | `topAttackerShips`  | B     | `attackers ⋈ killmail_filters`                                                      | all five          | 5 min (live) / 1 hr (closed) |
+| `topSystems`        | C     | `killmail_filters`                                                                  | all five          | 5 min (live) / 1 hr (closed) |
+| `topRegions`        | C     | `killmail_filters`                                                                  | all five          | 5 min (live) / 1 hr (closed) |
+| `topFactions`       | B     | `attackers ⋈ killmail_filters`                                                      | all five          | 5 min (live) / 1 hr (closed) |
 
 "Live" means the window includes today (`isLive` in `resolvePeriod()`); a window
 entirely in the past is "closed" and gets the longer TTL since its numbers can

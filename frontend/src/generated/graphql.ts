@@ -2634,7 +2634,7 @@ export type TopSystemsQueryVariables = Exact<{
 }>;
 
 
-export type TopSystemsQuery = { __typename?: 'Query', topSystems: Array<{ __typename?: 'TopSystem', rank: number, killCount: number, solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', region?: { __typename?: 'Region', id: number, name: string } | null } | null } | null }> };
+export type TopSystemsQuery = { __typename?: 'Query', topSystems: Array<{ __typename?: 'TopSystem', rank: number, killCount: number, solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', region?: { __typename?: 'Region', name: string } | null } | null } | null }> };
 
 export type WorkerStatusSubscriptionSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -7778,7 +7778,6 @@ export const TopSystemsDocument = gql`
       securityStatus
       constellation {
         region {
-          id
           name
         }
       }
