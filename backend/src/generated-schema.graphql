@@ -865,6 +865,12 @@ type Query {
 
   """Top pilots by kill count over the window named by filter.period."""
   topPilots(filter: TopFilter): [TopPilot!]!
+
+  """Regions with the most kills over the window named by filter.period."""
+  topRegions(filter: TopFilter): [TopRegion!]!
+
+  """Systems with the most kills over the window named by filter.period."""
+  topSystems(filter: TopFilter): [TopSystem!]!
   type(id: Int!): Type
   types(filter: TypeFilter): TypesResponse!
   user(id: ID!): User
@@ -1486,10 +1492,22 @@ type TopPilot {
   rank: Int!
 }
 
+type TopRegion {
+  killCount: Int!
+  rank: Int!
+  region: Region
+}
+
 type TopShip {
   killCount: Int!
   rank: Int!
   shipType: Type
+}
+
+type TopSystem {
+  killCount: Int!
+  rank: Int!
+  solarSystem: SolarSystem
 }
 
 enum TopTargetFilter {
