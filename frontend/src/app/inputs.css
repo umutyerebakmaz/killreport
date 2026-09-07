@@ -13,10 +13,10 @@
    *
    * This was `.select`, and the name outlived the thing: every `<select>` in
    * the app became a `Listbox` in #173, so all that was left was a box being
-   * borrowed by a date input, still holding a `pr-10` gutter open for a
-   * chevron that is not there. The gutter went; `appearance-none` stayed,
-   * because a date field is still a control the browser would otherwise
-   * paint its own way.
+   * borrowed by `DateInput`'s trigger, still holding a `pr-10` gutter open
+   * for a chevron that is not there. The gutter went; `appearance-none`
+   * stayed, harmlessly inert now that the trigger is a `<button>` rather
+   * than a control the browser would otherwise paint its own way.
    */
   .input-boxed {
     @apply px-4 py-2.5 text-sm font-medium text-white transition-colors border appearance-none
@@ -26,34 +26,5 @@
 
   .input-boxed:disabled {
     @apply text-gray-500 opacity-50 cursor-not-allowed bg-surface hover:bg-surface hover:border-white/10;
-  }
-
-  /*
-   * A native date field draws its own insides: a calendar button at the right
-   * edge, and one editable segment per part of the date. Those are the parts
-   * that never matched their neighbours. The box around them stays whichever
-   * of the two above suits the row; these rules are only what is inside it.
-   *
-   * The panel that button opens is the browser's and stays the browser's —
-   * nothing reaches it, and it reads in the visitor's own language whatever
-   * the page says, because no attribute overrides that.
-   */
-  .input-date::-webkit-calendar-picker-indicator {
-    @apply transition-opacity cursor-pointer opacity-50 hover:opacity-100;
-  }
-
-  /* Editing walks the segments with the arrow keys, so the one being edited
-     has to be visible — the browser's own highlight is a system blue. */
-  .input-date::-webkit-datetime-edit-day-field:focus,
-  .input-date::-webkit-datetime-edit-month-field:focus,
-  .input-date::-webkit-datetime-edit-year-field:focus {
-    @apply text-white outline-none bg-white/15;
-  }
-
-  /* Empty, the browser still draws the format as a hint and paints it in the
-     field's own colour — white here, which reads as a date that has been set.
-     `DateInput` marks the empty state, since no selector exposes it. */
-  .input-date-empty::-webkit-datetime-edit {
-    @apply text-gray-400;
   }
 }
