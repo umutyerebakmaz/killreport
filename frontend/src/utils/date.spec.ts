@@ -8,6 +8,12 @@ import {
   formatKillmailTime,
   formatRelativeTime,
   formatTimeAgo,
+  toISODate,
+  parseISODate,
+  formatDateLabel,
+  buildMonthGrid,
+  MONTH_LABELS,
+  WEEKDAY_LABELS,
 } from './date';
 
 // Built in local time so the calendar-based tests are stable in any timezone.
@@ -246,5 +252,99 @@ describe('killmail formatters', () => {
 
   it('formats a full UTC date time', () => {
     expect(formatKillmailDateTime(iso)).toBe('March 11, 2026 08:05:09 UTC');
+  });
+});
+
+describe('toISODate', () => {
+  it('renders a UTC date as YYYY-MM-DD', () => {
+    expect(toISODate(new Date(Date.UTC(2011, 2, 15)))).toBe('2011-03-15');
+  });
+
+  it('pads single-digit months and days', () => {
+    expect(toISODate(new Date(Date.UTC(2003, 0, 6)))).toBe('2003-01-06');
+  });
+});
+
+describe('parseISODate', () => {
+  it('parses at UTC midnight, not local midnight', () => {
+    const date = parseISODate('2011-03-15');
+    expect(date?.getUTCFullYear()).toBe(2011);
+    expect(date?.getUTCMonth()).toBe(2);
+    expect(date?.getUTCDate()).toBe(15);
+    expect(date?.getUTCHours()).toBe(0);
+  });
+
+  it('returns null for anything that is not a plain ISO date', () => {
+    expect(parseISODate('')).toBeNull();
+    expect(parseISODate('15/03/2011')).toBeNull();
+    expect(parseISODate('2011-03-15T12:00:00Z')).toBeNull();
+    expect(parseISODate('2011-13-01')).toBeNull();
+  });
+
+  it('returns null for a day that overflows its month, rather than the rolled-over date', () => {
+    // `Date.UTC` rolls `2011-02-30` forward to `2011-03-02`; the round-trip
+    // through `toISODate` is what catches that, not the `Number.isNaN` check
+    // above it (that one only catches month overflow, e.g. `2011-13-01`).
+    expect(parseISODate('2011-02-30')).toBeNull();
+  });
+});
+
+describe('formatDateLabel', () => {
+  // The whole point of the component: the label is English wherever the
+  // reader is, and does not slip a day in a negative UTC offset.
+  it('formats in English regardless of the runtime locale', () => {
+    expect(formatDateLabel('2011-03-15')).toBe('Mar 15, 2011');
+    expect(formatDateLabel('2026-12-01')).toBe('Dec 1, 2026');
+  });
+
+  it('returns an empty string for an unset or malformed value', () => {
+    expect(formatDateLabel('')).toBe('');
+    expect(formatDateLabel('nope')).toBe('');
+  });
+});
+
+describe('buildMonthGrid', () => {
+  it('always returns six weeks', () => {
+    expect(buildMonthGrid(2011, 2)).toHaveLength(42);
+    expect(buildMonthGrid(2026, 1)).toHaveLength(42);
+  });
+
+  it('starts on the Monday on or before the first of the month', () => {
+    // 1 March 2011 was a Tuesday, so the grid opens on 28 February.
+    const grid = buildMonthGrid(2011, 2);
+    expect(grid[0]).toEqual({ iso: '2011-02-28', day: 28, inMonth: false });
+    expect(grid[1]).toEqual({ iso: '2011-03-01', day: 1, inMonth: true });
+  });
+
+  it('opens on the first when the month already starts on a Monday', () => {
+    // 1 April 2024 was a Monday.
+    expect(buildMonthGrid(2024, 3)[0]).toEqual({
+      iso: '2024-04-01',
+      day: 1,
+      inMonth: true,
+    });
+  });
+
+  it('carries the leap day', () => {
+    const grid = buildMonthGrid(2024, 1);
+    expect(grid.some((cell) => cell.iso === '2024-02-29')).toBe(true);
+    expect(grid.filter((cell) => cell.inMonth)).toHaveLength(29);
+  });
+
+  it('crosses a year boundary', () => {
+    const grid = buildMonthGrid(2026, 0);
+    expect(grid[0].iso).toBe('2025-12-29');
+  });
+});
+
+describe('MONTH_LABELS and WEEKDAY_LABELS', () => {
+  it('names the months in English', () => {
+    expect(MONTH_LABELS).toHaveLength(12);
+    expect(MONTH_LABELS[0]).toBe('January');
+    expect(MONTH_LABELS[11]).toBe('December');
+  });
+
+  it('starts the week on Monday, the way the app counts weeks', () => {
+    expect(WEEKDAY_LABELS).toEqual(['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']);
   });
 });

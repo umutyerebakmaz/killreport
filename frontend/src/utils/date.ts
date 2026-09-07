@@ -190,3 +190,75 @@ export const formatRelativeTime = (
   }
   return future ? `in ${value} ${unit}` : `${value} ${unit} ago`;
 };
+
+/** One cell of a month grid. Always UTC, always a plain `YYYY-MM-DD`. */
+export interface CalendarDay {
+  iso: string;
+  day: number;
+  /** False for the days borrowed from the neighbouring months. */
+  inMonth: boolean;
+}
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** EVE Online opened in 2003, so nothing in this data is older. */
+export const EVE_FIRST_YEAR = 2003;
+
+export const MONTH_LABELS = Array.from({ length: 12 }, (_, month) =>
+  new Date(Date.UTC(2000, month, 1)).toLocaleDateString('en-US', {
+    timeZone: 'UTC',
+    month: 'long',
+  }),
+);
+
+/** Monday first: the app counts its weeks from Monday (`getWeekMonday`). */
+export const WEEKDAY_LABELS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+
+export const toISODate = (date: Date): string =>
+  date.toISOString().slice(0, 10);
+
+/**
+ * `new Date('2011-03-15')` is UTC midnight, but every getter that is not
+ * `getUTC*` reads it in local time — west of Greenwich that is the day
+ * before. Parsing here keeps the whole component on one clock.
+ */
+export const parseISODate = (iso: string): Date | null => {
+  if (!ISO_DATE.test(iso)) return null;
+  const date = new Date(`${iso}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return null;
+  // `2011-13-01` is already caught above — it parses to `Invalid Date`, not
+  // a rolled-over one. The round-trip instead catches day overflow, which
+  // `Date.UTC` happily rolls forward: `2011-02-30` becomes `2011-03-02`.
+  return toISODate(date) === iso ? date : null;
+};
+
+/** `2011-03-15` → `Mar 15, 2011`, in English wherever it is read. */
+export const formatDateLabel = (iso: string): string => {
+  const date = parseISODate(iso);
+  if (!date) return '';
+  return date.toLocaleDateString('en-US', {
+    timeZone: 'UTC',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+};
+
+/**
+ * Six weeks of days for a month, so the grid never changes height and the
+ * rows below it never jump. `month` is 0-11.
+ */
+export const buildMonthGrid = (year: number, month: number): CalendarDay[] => {
+  const first = new Date(Date.UTC(year, month, 1));
+  // getUTCDay is 0=Sunday; shift so 0=Monday.
+  const offset = (first.getUTCDay() + 6) % 7;
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(Date.UTC(year, month, 1 - offset + index));
+    return {
+      iso: toISODate(date),
+      day: date.getUTCDate(),
+      inMonth: date.getUTCMonth() === month && date.getUTCFullYear() === year,
+    };
+  });
+};
