@@ -431,4 +431,69 @@ export const leaderboardQueries: QueryResolvers = {
     await redis.setex(cacheKey, cacheTtl, JSON.stringify(result));
     return result;
   },
+
+  topFactions: async (_, { filter }) => {
+    const limit = Math.min(filter?.limit ?? 100, 100);
+    const period = filter?.period ?? LeaderboardPeriod.Last_7Days;
+    const { startDate, endDate, cacheTtl, cacheAnchor } = resolvePeriod(
+      period,
+      filter?.anchor,
+    );
+    const systemId = filter?.systemId;
+    const constellationId = filter?.constellationId;
+    const regionId = filter?.regionId;
+
+    const cacheKey = `leaderboard:topFactions:${period}:${cacheAnchor}:${limit}:${systemId || ''}:${constellationId || ''}:${regionId || ''}`;
+    const cached = await redis.get(cacheKey);
+    if (cached) return JSON.parse(cached);
+
+    // COUNT(DISTINCT kf.killmail_id), not COUNT(*): a twenty-strong militia
+    // fleet counts once for that faction on that kill, not twenty times.
+    //
+    // 500021 is ESI's placeholder faction — its name is literally "Unknown"
+    // and it has no corporation_id, so it has no logo and no meaning in a
+    // leaderboard.
+    type Row = { faction_id: number; kill_count: bigint };
+    const rows = await prisma.$queryRaw<Row[]>`
+      SELECT a.faction_id, COUNT(DISTINCT kf.killmail_id)::BIGINT AS kill_count
+      FROM   attackers a
+      INNER JOIN killmail_filters kf ON kf.killmail_id = a.killmail_id
+      WHERE  kf.killmail_time >= ${startDate}::date
+        AND  kf.killmail_time <  ${endDate}::date + INTERVAL '1 day'
+        AND  a.faction_id IS NOT NULL
+        AND  a.faction_id <> ${500021}
+        ${systemId ? Prisma.sql`AND kf.solar_system_id = ${systemId}` : Prisma.empty}
+        ${constellationId ? Prisma.sql`AND kf.constellation_id = ${constellationId}` : Prisma.empty}
+        ${regionId ? Prisma.sql`AND kf.region_id = ${regionId}` : Prisma.empty}
+      GROUP  BY a.faction_id
+      ORDER  BY kill_count DESC
+      LIMIT  ${limit}
+    `;
+
+    if (rows.length === 0) return [];
+
+    const factionIds = rows.map((r) => r.faction_id);
+    const factions = await prisma.faction.findMany({
+      where: { id: { in: factionIds } },
+    });
+    const factionMap = new Map(factions.map((f) => [f.id, f]));
+
+    const result = rows.map((row, idx) => {
+      const faction = factionMap.get(row.faction_id);
+      return {
+        rank: idx + 1,
+        killCount: Number(row.kill_count),
+        faction: faction
+          ? {
+              ...faction,
+              corporationId: faction.corporation_id,
+              militiaCorporationId: faction.militia_corporation_id,
+            }
+          : null,
+      };
+    });
+
+    await redis.setex(cacheKey, cacheTtl, JSON.stringify(result));
+    return result;
+  },
 };
