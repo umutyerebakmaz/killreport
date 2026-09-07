@@ -141,7 +141,7 @@ it too (Shape B, unconditionally) is a consistency gain, not a new pattern.
 It is, however, a new failure mode for `topAttackerShips` specifically: before
 this refactor it joined `killmails` directly, which is authoritative by
 comparison; now a killmail whose filter row failed to write vanishes silently
-from "Most Used Ships" (`topAttackerShips`) rather than surfacing as an error.
+from "Top Ships Used" (`topAttackerShips`) rather than surfacing as an error.
 Coverage was 27,859 / 27,859 at the time of writing, so this is a latent risk
 to keep in mind rather than an observed gap.
 
