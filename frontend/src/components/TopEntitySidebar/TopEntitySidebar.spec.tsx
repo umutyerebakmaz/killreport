@@ -12,8 +12,9 @@ import { LeaderboardPeriod } from '@/generated/graphql';
  * eight leaderboard queries; this file pins that wiring so a future edit
  * can't quietly special-case one hook without a test noticing.
  *
- * It does not pin the bug that motivated it. "Most Used Ships" rendered
- * empty on a solar system page because one generated filter type,
+ * It does not pin the bug that motivated it. The attacker-ships card —
+ * "Top Ships Used", called "Most Used Ships" at the time — rendered empty
+ * on a solar system page because one generated filter type,
  * TopLast7DaysAttackerShipsFilter, didn't declare systemId, so that one
  * query failed GraphQL variable validation while its four siblings
  * succeeded — a schema mismatch. `tsc` and the GraphQL server catch that
@@ -101,7 +102,7 @@ const allCards: TopEntityCardSpec[] = [
   { kind: 'corporations', title: 'Top Corporations', emptyText: 'No corps' },
   { kind: 'alliances', title: 'Top Alliances', emptyText: 'No alliances' },
   { kind: 'factions', title: 'Top Factions', emptyText: 'No factions' },
-  { kind: 'attackerShips', title: 'Most Used Ships', emptyText: 'No ships' },
+  { kind: 'attackerShips', title: 'Top Ships Used', emptyText: 'No ships' },
   { kind: 'ships', title: 'Most Destroyed Ships', emptyText: 'No ships' },
   { kind: 'systems', title: 'Top Systems', emptyText: 'No systems' },
   { kind: 'regions', title: 'Top Regions', emptyText: 'No regions' },
@@ -151,7 +152,7 @@ describe('TopEntitySidebar', () => {
       { kind: 'characters', title: 'Top Pilots', emptyText: 'No pilots' },
       {
         kind: 'attackerShips',
-        title: 'Most Used Ships',
+        title: 'Top Ships Used',
         emptyText: 'No ships',
       },
     ]);

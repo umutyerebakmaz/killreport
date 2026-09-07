@@ -30,42 +30,42 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 const SIDEBAR_CARDS: TopEntityCardSpec[] = [
   {
     kind: 'characters',
-    title: 'Most Active Pilots',
+    title: 'Top Characters',
     emptyText: 'No pilot data available',
   },
   {
     kind: 'corporations',
-    title: 'Most Active Corporations',
+    title: 'Top Corporations',
     emptyText: 'No corporation data available',
   },
   {
     kind: 'alliances',
-    title: 'Most Active Alliances',
+    title: 'Top Alliances',
     emptyText: 'No alliance data available',
   },
   {
     kind: 'factions',
-    title: 'Most Active Factions',
+    title: 'Top Factions',
     emptyText: 'No faction data available',
   },
   {
     kind: 'attackerShips',
-    title: 'Most Used Ships',
+    title: 'Top Ships Used',
     emptyText: 'No ship data available',
   },
   {
     kind: 'ships',
-    title: 'Most Killed Ships',
+    title: 'Top Ships Killed',
     emptyText: 'No ship data available',
   },
   {
     kind: 'systems',
-    title: 'Most Active Systems',
+    title: 'Top Systems',
     emptyText: 'No system data available',
   },
   {
     kind: 'regions',
-    title: 'Most Active Regions',
+    title: 'Top Regions',
     emptyText: 'No region data available',
   },
 ];

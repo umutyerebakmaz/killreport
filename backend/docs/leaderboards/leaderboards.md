@@ -141,7 +141,7 @@ All three tables (`character_kill_stats`, `corporation_kill_stats`, `alliance_ki
 The Killmails page (`/killmails`) displays **global** activity statistics for the last 7 days.
 All rankings use a **rolling 7-day window** (today - 6 days).
 
-### 2.1 Most Active Pilots (Killmails)
+### 2.1 Top Characters (Killmails)
 
 **Component:** `TopCharacterCard`
 **GraphQL Query:** `topPilots` (default period, `LAST_7_DAYS`)
@@ -177,7 +177,7 @@ LIMIT  100
 
 ---
 
-### 2.2 Most Active Corporations (Killmails)
+### 2.2 Top Corporations (Killmails)
 
 **Component:** `TopCorporationCard`
 **GraphQL Query:** `topCorporations` (default period, `LAST_7_DAYS`)
@@ -213,7 +213,7 @@ LIMIT  100
 
 ---
 
-### 2.3 Most Active Alliances (Killmails)
+### 2.3 Top Alliances (Killmails)
 
 **Component:** `TopAllianceCard`
 **GraphQL Query:** `topAlliances` (default period, `LAST_7_DAYS`)
@@ -249,7 +249,7 @@ LIMIT  100
 
 ---
 
-### 2.4 Most Used Ships (Killmails)
+### 2.4 Top Ships Used (Killmails)
 
 > Most used ship types by **attackers**.
 
@@ -274,7 +274,7 @@ query TopAttackerShips($filter: TopFilter) {
 
 ---
 
-### 2.5 Most Killed Ships (Killmails)
+### 2.5 Top Ships Killed (Killmails)
 
 > Most commonly **killed** (victim) ship types.
 
@@ -315,7 +315,7 @@ All queries accept an `allianceId` parameter and can be filtered by time period 
 
 ---
 
-### 3.1 Most Active Pilots (Alliance)
+### 3.1 Top Characters (Alliance)
 
 > Characters with the most kills on behalf of this alliance.
 
@@ -350,7 +350,7 @@ query AllianceTopCharacters($allianceId: Int!, $filter: TopTargetFilter) {
 
 ---
 
-### 3.2 Most Used Ships (Alliance)
+### 3.2 Top Ships Used (Alliance)
 
 > Ship types most commonly used by this alliance as attackers.
 
@@ -375,7 +375,7 @@ query AllianceTopShips($allianceId: Int!, $filter: TopTargetFilter) {
 
 ---
 
-### 3.3 Most Killed Alliances (Alliance)
+### 3.3 Top Alliances Killed (Alliance)
 
 > Enemy alliances this alliance has killed the most.
 
@@ -401,7 +401,7 @@ query AllianceTopAllianceTargets($allianceId: Int!, $filter: TopTargetFilter) {
 
 ---
 
-### 3.4 Most Killed Corporations (Alliance)
+### 3.4 Top Corporations Killed (Alliance)
 
 > Enemy corporations this alliance has killed the most.
 
@@ -430,7 +430,7 @@ query AllianceTopCorporationTargets(
 
 ---
 
-### 3.5 Most Killed Ships (Alliance)
+### 3.5 Top Ships Killed (Alliance)
 
 > Victim ship types most commonly killed by this alliance.
 
@@ -462,7 +462,7 @@ It uses the same `TopTargetFilter` enum as the Alliance page.
 
 ---
 
-### 4.1 Most Active Pilots (Corporation)
+### 4.1 Top Characters (Corporation)
 
 > Characters with the most kills on behalf of this corporation.
 
@@ -497,7 +497,7 @@ query CorporationTopCharacters($corporationId: Int!, $filter: TopTargetFilter) {
 
 ---
 
-### 4.2 Most Used Ships (Corporation)
+### 4.2 Top Ships Used (Corporation)
 
 > Ship types most commonly used by this corporation as attackers.
 
@@ -522,7 +522,7 @@ query CorporationTopShips($corporationId: Int!, $filter: TopTargetFilter) {
 
 ---
 
-### 4.3 Most Killed Ships (Corporation)
+### 4.3 Top Ships Killed (Corporation)
 
 > Victim ship types most commonly killed by this corporation.
 
@@ -549,7 +549,7 @@ query CorporationTopShipTargets(
 
 ---
 
-### 4.4 Most Killed Alliances (Corporation)
+### 4.4 Top Alliances Killed (Corporation)
 
 > Enemy alliances this corporation has killed the most.
 
@@ -580,7 +580,7 @@ query CorporationTopAllianceTargets(
 
 ---
 
-### 4.5 Most Killed Corporations (Corporation)
+### 4.5 Top Corporations Killed (Corporation)
 
 > Enemy corporations this corporation has killed the most.
 
@@ -617,7 +617,7 @@ The Character page (`/characters/[id]`) displays statistics specific to a partic
 
 ---
 
-### 5.1 Most Killed Alliances (Character)
+### 5.1 Top Alliances Killed (Character)
 
 > Enemy alliances this character has killed the most.
 
@@ -645,7 +645,7 @@ query CharacterTopAllianceTargets(
 
 ---
 
-### 5.2 Most Killed Corporations (Character)
+### 5.2 Top Corporations Killed (Character)
 
 > Enemy corporations this character has killed the most.
 
@@ -673,7 +673,7 @@ query CharacterTopCorporationTargets(
 
 ---
 
-### 5.3 Most Killed Ships (Character)
+### 5.3 Top Ships Killed (Character)
 
 > Victim ship types most commonly killed by this character.
 
@@ -697,7 +697,7 @@ query CharacterTopShipTargets($characterId: Int!, $filter: TopTargetFilter) {
 
 ---
 
-### 5.4 Most Used Ships (Character)
+### 5.4 Top Ships Used (Character)
 
 > Ship types most commonly used by this character as an attacker.
 
@@ -794,30 +794,30 @@ Example:
 
 ## 8. Comparison Table
 
-| Leaderboard              | Page        | GraphQL Query                      | Source Table                     | Time Filter                         | Cache TTL  |
-| ------------------------ | ----------- | ---------------------------------- | -------------------------------- | ----------------------------------- | ---------- |
-| Most Active Pilots       | Killmails   | `topPilots`                        | `character_kill_stats`           | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
-| Most Active Corporations | Killmails   | `topCorporations`                  | `corporation_kill_stats`         | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
-| Most Active Alliances    | Killmails   | `topAlliances`                     | `alliance_kill_stats`            | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
-| Most Active Factions     | Killmails   | `topFactions`                      | `attackers` + `killmail_filters` | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
-| Most Used Ships          | Killmails   | `topAttackerShips`                 | `attackers` + `killmail_filters` | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
-| Most Killed Ships        | Killmails   | `topDestroyedShips`                | `killmail_filters`               | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
-| Most Active Systems      | Killmails   | `topSystems`                       | `killmail_filters`               | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
-| Most Active Regions      | Killmails   | `topRegions`                       | `killmail_filters`               | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
-| Most Active Pilots       | Alliance    | `allianceTopCharacters`            | `attackers` + `killmail_filters` | `TopTargetFilter`                   | 2min–1hr   |
-| Most Used Ships          | Alliance    | `allianceTopShips`                 | `attackers` + `killmail_filters` | `TopTargetFilter`                   | 2min–1hr   |
-| Most Killed Alliances    | Alliance    | `allianceTopAllianceTargets`       | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
-| Most Killed Corporations | Alliance    | `allianceTopCorporationTargets`    | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
-| Most Killed Ships        | Alliance    | `allianceTopShipTargets`           | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
-| Most Active Pilots       | Corporation | `corporationTopCharacters`         | `attackers` + `killmail_filters` | `TopTargetFilter`                   | 2min–1hr   |
-| Most Used Ships          | Corporation | `corporationTopShips`              | `attackers` + `killmail_filters` | `TopTargetFilter`                   | 2min–1hr   |
-| Most Killed Ships        | Corporation | `corporationTopShipTargets`        | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
-| Most Killed Alliances    | Corporation | `corporationTopAllianceTargets`    | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
-| Most Killed Corporations | Corporation | `corporationTopCorporationTargets` | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
-| Most Killed Alliances    | Character   | `characterTopAllianceTargets`      | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
-| Most Killed Corporations | Character   | `characterTopCorporationTargets`   | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
-| Most Killed Ships        | Character   | `characterTopShipTargets`          | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
-| Most Used Ships          | Character   | `characterTopShips`                | `attackers` + `killmail_filters` | `TopTargetFilter`                   | 2min–1hr   |
+| Leaderboard             | Page        | GraphQL Query                      | Source Table                     | Time Filter                         | Cache TTL  |
+| ----------------------- | ----------- | ---------------------------------- | -------------------------------- | ----------------------------------- | ---------- |
+| Top Characters          | Killmails   | `topPilots`                        | `character_kill_stats`           | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
+| Top Corporations        | Killmails   | `topCorporations`                  | `corporation_kill_stats`         | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
+| Top Alliances           | Killmails   | `topAlliances`                     | `alliance_kill_stats`            | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
+| Top Factions            | Killmails   | `topFactions`                      | `attackers` + `killmail_filters` | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
+| Top Ships Used          | Killmails   | `topAttackerShips`                 | `attackers` + `killmail_filters` | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
+| Top Ships Killed        | Killmails   | `topDestroyedShips`                | `killmail_filters`               | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
+| Top Systems             | Killmails   | `topSystems`                       | `killmail_filters`               | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
+| Top Regions             | Killmails   | `topRegions`                       | `killmail_filters`               | `TopFilter` (default `LAST_7_DAYS`) | 5 min–1 hr |
+| Top Characters          | Alliance    | `allianceTopCharacters`            | `attackers` + `killmail_filters` | `TopTargetFilter`                   | 2min–1hr   |
+| Top Ships Used          | Alliance    | `allianceTopShips`                 | `attackers` + `killmail_filters` | `TopTargetFilter`                   | 2min–1hr   |
+| Top Alliances Killed    | Alliance    | `allianceTopAllianceTargets`       | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
+| Top Corporations Killed | Alliance    | `allianceTopCorporationTargets`    | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
+| Top Ships Killed        | Alliance    | `allianceTopShipTargets`           | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
+| Top Characters          | Corporation | `corporationTopCharacters`         | `attackers` + `killmail_filters` | `TopTargetFilter`                   | 2min–1hr   |
+| Top Ships Used          | Corporation | `corporationTopShips`              | `attackers` + `killmail_filters` | `TopTargetFilter`                   | 2min–1hr   |
+| Top Ships Killed        | Corporation | `corporationTopShipTargets`        | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
+| Top Alliances Killed    | Corporation | `corporationTopAllianceTargets`    | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
+| Top Corporations Killed | Corporation | `corporationTopCorporationTargets` | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
+| Top Alliances Killed    | Character   | `characterTopAllianceTargets`      | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
+| Top Corporations Killed | Character   | `characterTopCorporationTargets`   | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
+| Top Ships Killed        | Character   | `characterTopShipTargets`          | `killmail_filters`               | `TopTargetFilter`                   | 2min–1hr   |
+| Top Ships Used          | Character   | `characterTopShips`                | `attackers` + `killmail_filters` | `TopTargetFilter`                   | 2min–1hr   |
 
 ---
 
