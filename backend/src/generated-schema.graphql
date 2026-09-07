@@ -432,6 +432,14 @@ type DogmaEffectsResponse {
   pageInfo: PageInfo!
 }
 
+type Faction {
+  corporationId: Int
+  description: String
+  id: Int!
+  militiaCorporationId: Int
+  name: String!
+}
+
 """
 Organized fitting data for a ship
 Groups modules, rigs, and subsystems by their slot types
@@ -757,6 +765,8 @@ type Query {
   dogmaAttributes(filter: DogmaAttributeFilter): DogmaAttributesResponse!
   dogmaEffect(id: Int!): DogmaEffect
   dogmaEffects(filter: DogmaEffectFilter): DogmaEffectsResponse!
+  faction(id: Int!): Faction
+  factions: [Faction!]!
   itemGroup(id: Int!): ItemGroup
   itemGroups(filter: ItemGroupFilter): ItemGroupsResponse!
 

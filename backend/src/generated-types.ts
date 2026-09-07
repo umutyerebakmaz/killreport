@@ -508,6 +508,15 @@ export type DogmaEffectsResponse = {
   pageInfo: PageInfo;
 };
 
+export type Faction = {
+  __typename?: 'Faction';
+  corporationId?: Maybe<Scalars['Int']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['Int']['output'];
+  militiaCorporationId?: Maybe<Scalars['Int']['output']>;
+  name: Scalars['String']['output'];
+};
+
 /**
  * Organized fitting data for a ship
  * Groups modules, rigs, and subsystems by their slot types
@@ -916,6 +925,8 @@ export type Query = {
   dogmaAttributes: DogmaAttributesResponse;
   dogmaEffect?: Maybe<DogmaEffect>;
   dogmaEffects: DogmaEffectsResponse;
+  faction?: Maybe<Faction>;
+  factions: Array<Faction>;
   itemGroup?: Maybe<ItemGroup>;
   itemGroups: ItemGroupsResponse;
   /** Fetches a single killmail */
@@ -1156,6 +1167,11 @@ export type QueryDogmaEffectArgs = {
 
 export type QueryDogmaEffectsArgs = {
   filter?: InputMaybe<DogmaEffectFilter>;
+};
+
+
+export type QueryFactionArgs = {
+  id: Scalars['Int']['input'];
 };
 
 
@@ -2157,6 +2173,7 @@ export type ResolversTypes = {
   DogmaEffect: ResolverTypeWrapper<DogmaEffect>;
   DogmaEffectFilter: DogmaEffectFilter;
   DogmaEffectsResponse: ResolverTypeWrapper<DogmaEffectsResponse>;
+  Faction: ResolverTypeWrapper<Faction>;
   Fitting: ResolverTypeWrapper<Fitting>;
   FittingModule: ResolverTypeWrapper<FittingModule>;
   FittingSlot: ResolverTypeWrapper<FittingSlot>;
@@ -2301,6 +2318,7 @@ export type ResolversParentTypes = {
   DogmaEffect: DogmaEffect;
   DogmaEffectFilter: DogmaEffectFilter;
   DogmaEffectsResponse: DogmaEffectsResponse;
+  Faction: Faction;
   Fitting: Fitting;
   FittingModule: FittingModule;
   FittingSlot: FittingSlot;
@@ -2700,6 +2718,14 @@ export type DogmaEffectsResponseResolvers<ContextType = any, ParentType extends 
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
 };
 
+export type FactionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Faction'] = ResolversParentTypes['Faction']> = {
+  corporationId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  militiaCorporationId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
 export type FittingResolvers<ContextType = any, ParentType extends ResolversParentTypes['Fitting'] = ResolversParentTypes['Fitting']> = {
   cargo?: Resolver<Array<ResolversTypes['FittingModule']>, ParentType, ContextType>;
   coreRoom?: Resolver<Array<ResolversTypes['FittingModule']>, ParentType, ContextType>;
@@ -2898,6 +2924,8 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   dogmaAttributes?: Resolver<ResolversTypes['DogmaAttributesResponse'], ParentType, ContextType, Partial<QueryDogmaAttributesArgs>>;
   dogmaEffect?: Resolver<Maybe<ResolversTypes['DogmaEffect']>, ParentType, ContextType, RequireFields<QueryDogmaEffectArgs, 'id'>>;
   dogmaEffects?: Resolver<ResolversTypes['DogmaEffectsResponse'], ParentType, ContextType, Partial<QueryDogmaEffectsArgs>>;
+  faction?: Resolver<Maybe<ResolversTypes['Faction']>, ParentType, ContextType, RequireFields<QueryFactionArgs, 'id'>>;
+  factions?: Resolver<Array<ResolversTypes['Faction']>, ParentType, ContextType>;
   itemGroup?: Resolver<Maybe<ResolversTypes['ItemGroup']>, ParentType, ContextType, RequireFields<QueryItemGroupArgs, 'id'>>;
   itemGroups?: Resolver<ResolversTypes['ItemGroupsResponse'], ParentType, ContextType, Partial<QueryItemGroupsArgs>>;
   killmail?: Resolver<Maybe<ResolversTypes['Killmail']>, ParentType, ContextType, RequireFields<QueryKillmailArgs, 'id'>>;
@@ -3425,6 +3453,7 @@ export type Resolvers<ContextType = any> = {
   DogmaAttributesResponse?: DogmaAttributesResponseResolvers<ContextType>;
   DogmaEffect?: DogmaEffectResolvers<ContextType>;
   DogmaEffectsResponse?: DogmaEffectsResponseResolvers<ContextType>;
+  Faction?: FactionResolvers<ContextType>;
   Fitting?: FittingResolvers<ContextType>;
   FittingModule?: FittingModuleResolvers<ContextType>;
   FittingSlot?: FittingSlotResolvers<ContextType>;
