@@ -549,7 +549,7 @@ export default function CorporationDetailPage({
                 {/* Right side - Top Targets Cards */}
                 <div className="space-y-6 lg:col-span-1 lg:-mt-9">
                   <TopCharacterCard
-                    title="Most Active Pilots"
+                    title="Top Characters"
                     subtitle={<>Last 7 days</>}
                     characters={topCharacters}
                     emptyText="No pilots yet"
@@ -557,7 +557,7 @@ export default function CorporationDetailPage({
                   />
 
                   <TopShipsCard
-                    title="Most Used Ships"
+                    title="Top Ships Used"
                     subtitle={<>Last 7 days</>}
                     ships={topAttackerShips}
                     emptyText="No ships used yet"
@@ -565,7 +565,7 @@ export default function CorporationDetailPage({
                   />
 
                   <TopShipsCard
-                    title="Most Killed Ships"
+                    title="Top Ships Killed"
                     subtitle={<>Last 7 days</>}
                     ships={topShipTargets}
                     emptyText="No ships killed yet"
@@ -573,7 +573,7 @@ export default function CorporationDetailPage({
                   />
 
                   <TopTargetsCard
-                    title="Most Killed Alliances"
+                    title="Top Alliances Killed"
                     subtitle={<>Last 7 days</>}
                     targets={allianceTargets}
                     targetType="alliance"
@@ -583,7 +583,7 @@ export default function CorporationDetailPage({
                   />
 
                   <TopTargetsCard
-                    title="Most Killed Corporations"
+                    title="Top Corporations Killed"
                     subtitle={<>Last 7 days</>}
                     targets={corporationTargets}
                     targetType="corporation"
