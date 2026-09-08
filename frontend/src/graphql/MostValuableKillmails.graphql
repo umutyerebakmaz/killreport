@@ -37,9 +37,10 @@ query MostValuableKillmails(
       id
       name
       securityStatus
+      # Kept for the region hanging off it; the constellation's own name is
+      # not shown on the card.
       constellation {
         id
-        name
         region {
           id
           name
