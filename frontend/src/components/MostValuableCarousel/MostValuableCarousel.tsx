@@ -178,12 +178,12 @@ export default function MostValuableCarousel() {
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="flex-none w-64 h-[420px] bg-white/5 animate-pulse"
+                className="flex-none w-64 aspect-square bg-white/5 animate-pulse"
               />
             ))}
           </div>
         ) : killmails.length === 0 ? (
-          <div className="flex items-center justify-center h-[420px] text-gray-500">
+          <div className="flex items-center justify-center h-64 text-gray-500">
             <p className="text-sm font-medium">{activeTab.emptyText}</p>
           </div>
         ) : (
