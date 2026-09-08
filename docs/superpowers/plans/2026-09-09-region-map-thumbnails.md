@@ -612,11 +612,13 @@ Sayılardan biri tutmazsa dur ve rapor et — beklenen toplamlar spec'te ölçü
 ```bash
 cd /root/killreport
 ls frontend/public/images/regions/*.svg | wc -l                    # 114
-grep -c '<circle' frontend/public/images/regions/10000046.svg      # 27  (Fade)
+grep -o '<circle' frontend/public/images/regions/10000046.svg | wc -l   # 27  (Fade)
 grep -o '#4CC94C' frontend/public/images/regions/10000046.svg | wc -l   # 6
 grep -l '<rect' frontend/public/images/regions/*.svg               # hiçbir şey döndürmemeli
-grep -c '<circle' frontend/public/images/regions/10000043.svg      # 189 (Domain)
+grep -o '<circle' frontend/public/images/regions/10000043.svg | wc -l   # 189 (Domain)
 ```
+
+Her SVG tek satır olduğu için sayımlar `grep -o ... | wc -l` ile yapılır; `grep -c` satır sayar ve her dosyada 1 döner.
 
 Fade'in nokta koordinatları Task 1'in testinde zaten doğrulandı; burada üretilen dosyanın aynı sayıları taşıdığı kontrol ediliyor.
 
