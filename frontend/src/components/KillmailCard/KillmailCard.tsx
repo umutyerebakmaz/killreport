@@ -28,7 +28,6 @@ export interface KillmailCardData {
     shipType?: {
       id: number;
       name: string;
-      group?: { name: string } | null;
       dogmaAttributes?: Array<{ attribute_id: number; value: number }> | null;
     } | null;
   } | null;
@@ -120,15 +119,8 @@ export default function KillmailCard({
           )}
         </div>
 
-        <div>
-          <div className="font-semibold text-orange-400 truncate">
-            {km.victim?.shipType?.name || 'Unknown Ship'}
-          </div>
-          {km.victim?.shipType?.group && (
-            <div className="text-sm text-gray-400 truncate">
-              {km.victim.shipType.group.name}
-            </div>
-          )}
+        <div className="font-semibold text-orange-400 truncate">
+          {km.victim?.shipType?.name || 'Unknown Ship'}
         </div>
 
         {/* System and region read as one place, so they share a line. The
