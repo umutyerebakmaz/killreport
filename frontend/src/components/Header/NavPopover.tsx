@@ -17,7 +17,7 @@ export const NAV_ITEM =
 // The ring is kept for keyboard focus and taken away for pointer focus: the
 // browser draws its own on a plain `:focus`, and the menu hands focus back to
 // the button every time it closes, so a pointer left one sitting on the nav.
-const NAV_POPOVER_BUTTON = `group flex items-center gap-x-1 focus:outline-none focus-visible:outline-1 focus-visible:outline-white/40 ${NAV_ITEM}`;
+const NAV_POPOVER_BUTTON = `group flex items-center gap-x-1 focus:outline-none focus-visible:outline-1 focus-visible:outline-accent ${NAV_ITEM}`;
 
 // Matches the drawer's chevron, which turns over the same 200ms. `data-open`
 // is on the button, so the icon reads it through the button's `group`.

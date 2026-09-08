@@ -15,7 +15,7 @@
   .button {
     @apply inline-flex items-center justify-center gap-x-1.5 px-4 py-2.5 text-sm font-medium
       cursor-pointer transition-colors focus:outline-none focus-visible:outline-1
-      focus-visible:outline-white/40 disabled:opacity-50 disabled:cursor-not-allowed;
+      focus-visible:outline-accent disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   /* A <label> wrapping an input has no :focus-visible or :disabled of its own,
@@ -23,7 +23,7 @@
      on .button rather than on an appearance because they are the same whatever
      the button looks like. */
   .button:has(:focus-visible) {
-    @apply outline-1 outline-white/40;
+    @apply outline-1 outline-accent;
   }
 
   .button:has(:disabled) {
