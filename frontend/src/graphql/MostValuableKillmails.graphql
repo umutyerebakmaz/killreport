@@ -7,13 +7,7 @@ query MostValuableKillmails(
     id
     killmailTime
     totalValue
-    # The four below are read off the killmail row itself, not through a
-    # loader, so the hover layer costs the shelf no extra queries.
-    attackerCount
-    solo
-    isWarRelated
     victim {
-      damageTaken
       character {
         id
         name

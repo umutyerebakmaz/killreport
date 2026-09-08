@@ -2,6 +2,7 @@
 
 import SecurityStatus from '@/components/SecurityStatus/SecurityStatus';
 import ShipTierBadge from '@/components/ShipTierBadge/ShipTierBadge';
+import Tooltip from '@/components/Tooltip/Tooltip';
 import { formatKillmailDate, formatKillmailDateTime } from '@/utils/date';
 import { formatISK } from '@/utils/formatISK';
 import { getShipTier } from '@/utils/shipTier';
@@ -20,11 +21,7 @@ export interface KillmailCardData {
   id: string;
   killmailTime: string;
   totalValue?: number | null;
-  attackerCount?: number | null;
-  solo?: boolean | null;
-  isWarRelated?: boolean | null;
   victim?: {
-    damageTaken?: number | null;
     character?: { id: number; name: string } | null;
     corporation?: { id: number; name: string } | null;
     alliance?: { id: number; name: string } | null;
@@ -94,54 +91,6 @@ export default function KillmailCard({
       {/* Keeps the text legible over whatever the render happens to be. */}
       <div className="absolute inset-0 bg-linear-to-t from-black/95 via-black/70 to-transparent" />
 
-      {/*
-       * The second layer. It fills the top of the card, which is bare render
-       * otherwise, so nothing already on screen moves or disappears when it
-       * opens. pt-14 clears the two corner badges; they carry z-10 and this
-       * does not, so they stay above it.
-       *
-       * group-focus-visible matters as much as group-hover here: the card is a
-       * link, and a keyboard reaches it. pointer-events-none keeps the layer
-       * from swallowing the click that the whole card exists to receive.
-       *
-       * Everything it shows rides on the killmail row the shelf already
-       * fetched — no lazy query, so it opens with no wait and touch devices,
-       * which never hover, lose nothing they could not reach by tapping
-       * through to the detail page.
-       */}
-      <div className="absolute inset-x-0 top-0 px-4 pt-14 pb-6 transition-opacity duration-200 opacity-0 pointer-events-none bg-linear-to-b from-black/90 via-black/70 to-transparent group-hover:opacity-100 group-focus-visible:opacity-100">
-        <dl className="space-y-1 text-xs">
-          <div className="flex items-baseline justify-between gap-2">
-            <dt className="text-gray-400 shrink-0">Killed</dt>
-            <dd className="text-gray-200 truncate tabular-nums">
-              {formatKillmailDateTime(km.killmailTime)}
-            </dd>
-          </div>
-          {km.attackerCount != null && (
-            <div className="flex items-baseline justify-between gap-2">
-              <dt className="text-gray-400 shrink-0">Attackers</dt>
-              <dd className="text-gray-200 tabular-nums">
-                {km.solo ? 'Solo kill' : km.attackerCount.toLocaleString()}
-              </dd>
-            </div>
-          )}
-          {km.victim?.damageTaken != null && (
-            <div className="flex items-baseline justify-between gap-2">
-              <dt className="text-gray-400 shrink-0">Damage</dt>
-              <dd className="text-gray-200 tabular-nums">
-                {km.victim.damageTaken.toLocaleString()}
-              </dd>
-            </div>
-          )}
-          {km.isWarRelated && (
-            <div className="flex items-baseline justify-between gap-2">
-              <dt className="text-gray-400 shrink-0">War</dt>
-              <dd className="text-gray-200">War-related</dd>
-            </div>
-          )}
-        </dl>
-      </div>
-
       {shipTier && (
         <div className="absolute z-10 top-3 left-3 drop-shadow-lg">
           <ShipTierBadge tier={shipTier} className="size-10" />
@@ -155,9 +104,14 @@ export default function KillmailCard({
 
       <div className="absolute inset-x-0 bottom-0 p-4 space-y-3">
         <div>
-          <div className="text-sm text-gray-300">
-            {formatKillmailDate(km.killmailTime)}
-          </div>
+          <Tooltip
+            content={formatKillmailDateTime(km.killmailTime)}
+            position="top"
+          >
+            <div className="text-sm text-gray-300">
+              {formatKillmailDate(km.killmailTime)}
+            </div>
+          </Tooltip>
           {km.totalValue && (
             <div className="mt-1 text-xl font-bold text-yellow-400 tabular-nums">
               {formatISK(km.totalValue)}
