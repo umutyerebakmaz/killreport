@@ -1,0 +1,15 @@
+#!/bin/sh
+# Regenerate the Prisma client when a pull brought in a schema change.
+#
+# Nothing else catches this. `postinstall` in backend/package.json runs only
+# when dependencies change, so a pull that touches prisma/schema/ and leaves
+# yarn.lock alone never reaches it. `prisma migrate status` reports "Database
+# schema is up to date!" the whole time, because the migration is applied — it
+# is the generated client that is behind. The failure then surfaces much later
+# and far away, as `prismaWorker.<model>` being undefined inside a worker.
+
+if git diff --name-only ORIG_HEAD HEAD 2>/dev/null |
+  grep -q '^backend/prisma/schema/'; then
+  echo "husky - backend/prisma/schema changed, regenerating the Prisma client"
+  yarn workspace backend prisma:generate
+fi

@@ -1,0 +1,15 @@
+#!/bin/sh
+# Switching branches leaves the generated Prisma client as stale as pulling
+# does; see .husky/post-merge for why neither postinstall nor migrate status
+# catches it.
+#
+# $1 is the previous HEAD, $2 the new one, and $3 is 1 for a branch checkout
+# and 0 for a file checkout, which changes no schema worth regenerating for.
+
+[ "$3" = "1" ] || exit 0
+
+if git diff --name-only "$1" "$2" 2>/dev/null |
+  grep -q '^backend/prisma/schema/'; then
+  echo "husky - backend/prisma/schema changed, regenerating the Prisma client"
+  yarn workspace backend prisma:generate
+fi
