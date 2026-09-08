@@ -15,8 +15,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 const WINDOW_DAYS = 7;
 const CARD_COUNT = 20;
 
-/** Card width (w-80 = 320px) plus the flex gap (gap-4 = 16px). */
-const CARD_PITCH = 336;
+/** Card width (w-64 = 256px) plus the flex gap (gap-3 = 12px). */
+const CARD_PITCH = 268;
 
 /**
  * One panel element whose content swaps, so every tab points at the same id.
@@ -174,11 +174,11 @@ export default function MostValuableCarousel() {
         {loading ? (
           // Skeletons rather than a centred spinner: the shelf keeps its height, so
           // switching tabs does not make the page jump.
-          <div className="flex gap-4 overflow-hidden">
-            {Array.from({ length: 4 }).map((_, i) => (
+          <div className="flex gap-3 overflow-hidden">
+            {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="flex-none w-80 h-[420px] bg-white/5 animate-pulse"
+                className="flex-none w-64 h-[420px] bg-white/5 animate-pulse"
               />
             ))}
           </div>
@@ -190,11 +190,11 @@ export default function MostValuableCarousel() {
           <div
             ref={scrollRef}
             onScroll={measure}
-            className="flex gap-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory"
+            className="flex gap-3 overflow-x-auto hide-scrollbar snap-x snap-mandatory"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {killmails.map((killmail, index) => (
-              <div key={killmail.id} className="flex-none w-80 snap-start">
+              <div key={killmail.id} className="flex-none w-64 snap-start">
                 <KillmailCard killmail={killmail} rank={index + 1} />
               </div>
             ))}
