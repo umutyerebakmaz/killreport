@@ -59,11 +59,12 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
         {/* Header */}
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-start gap-6">
-            <div className="flex items-center justify-center w-64 h-64 shrink-0">
+            <div className="flex items-center justify-center w-24 h-24 sm:w-64 sm:h-64 shrink-0">
               <RegionMap
                 regionId={region.id}
                 regionName={region.name}
                 size={256}
+                className="w-full h-full"
               />
             </div>
             <div>
