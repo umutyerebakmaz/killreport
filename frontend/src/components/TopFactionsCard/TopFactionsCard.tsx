@@ -63,12 +63,14 @@ export default function TopFactionsCard({
                   Faction ids live in the alliance id space there, so the
                   alliance endpoint is the correct source for a faction logo.
                 */}
-                <img
-                  src={`https://images.evetech.net/alliances/${faction.id}/logo?size=64`}
-                  alt={faction.name}
-                  className="rounded-full shadow-md size-10 shrink-0"
-                  loading="lazy"
-                />
+                <div className="thumb-edge shrink-0">
+                  <img
+                    src={`https://images.evetech.net/alliances/${faction.id}/logo?size=128`}
+                    alt={faction.name}
+                    className="shadow-md bg-black/50 size-16"
+                    loading="lazy"
+                  />
+                </div>
 
                 <div className="flex items-center justify-between flex-1 min-w-0 gap-2">
                   <span className="block min-w-0 font-medium text-orange-400 truncate">

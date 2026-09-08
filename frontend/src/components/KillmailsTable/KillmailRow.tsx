@@ -68,13 +68,9 @@ export default function KillmailRow({
             <Tooltip content="View Killmail Details" position="top">
               <Link
                 href={`/killmails/${km.id}`}
-                className="relative block shrink-0"
+                className="block thumb-edge shrink-0"
                 prefetch={false}
               >
-                {/* Left gradient border: brown → transparent top to bottom */}
-                <div className="absolute top-0 left-0 z-10 w-px h-full bg-linear-to-b from-amber-800 to-transparent" />
-                {/* Top gradient border: brown → transparent left to right */}
-                <div className="absolute top-0 left-0 z-10 w-full h-px bg-linear-to-r from-amber-800 to-transparent" />
                 {/* Ship tier badge */}
                 {shipTier && (
                   <div className="absolute top-0 left-0 z-20">

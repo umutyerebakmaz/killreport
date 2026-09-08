@@ -67,7 +67,7 @@ export default function TopShipsCard({
                   <RankNumber rank={index + 1} />
 
                   {/* Ship Image */}
-                  <div className="relative shrink-0">
+                  <div className="thumb-edge shrink-0">
                     {/* Ship tier badge */}
                     {shipTier && (
                       <div className="absolute top-0 left-0 z-20">
