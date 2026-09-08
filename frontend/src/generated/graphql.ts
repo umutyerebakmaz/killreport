@@ -2369,7 +2369,7 @@ export type MostValuableKillmailsQueryVariables = Exact<{
 }>;
 
 
-export type MostValuableKillmailsQuery = { __typename?: 'Query', mostValuableKillmails: Array<{ __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null }> };
+export type MostValuableKillmailsQuery = { __typename?: 'Query', mostValuableKillmails: Array<{ __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, region?: { __typename?: 'Region', id: number, name: string } | null } | null }, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null }> };
 
 export type NewKillmailSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -5549,7 +5549,6 @@ export const MostValuableKillmailsDocument = gql`
       securityStatus
       constellation {
         id
-        name
         region {
           id
           name
