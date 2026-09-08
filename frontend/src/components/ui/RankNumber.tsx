@@ -11,8 +11,13 @@ export interface RankNumberProps {
 export default function RankNumber({ rank }: RankNumberProps) {
   // w-10, not w-8: at text-lg a two-digit rank overflows 32px, and this
   // component does not cap the list — it renders whatever it is given.
+  //
+  // justify-start, not justify-center: the box is here to line the column up,
+  // not to centre anything in it. Centred, the rank's visible left margin was
+  // the row's px-3 plus half of whatever slack the digits left over — wider
+  // than the count's flat px-3 on the right, and wider on #1 than on #10.
   return (
-    <div className="flex items-center justify-center w-10 shrink-0">
+    <div className="flex items-center justify-start w-10 shrink-0">
       <span className="text-lg font-semibold text-gray-500 tabular-nums">
         #{rank}
       </span>
