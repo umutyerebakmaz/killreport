@@ -174,9 +174,9 @@ Bunlar için ayrı bir yedek görsel üretilmiyor.
 Bu script ne kuyruk yayıncısı ne kuyruk tüketicisi, yani `src/queues/` ve
 `src/workers/` tanımlarının ikisine de girmiyor. İki seçenek:
 
-1. **`backend/src/scripts/render-region-maps.ts`** — yeni bir dizin. Ne olduğunu
-   doğru anlatır. Bedeli: CLAUDE.md'nin "tek tiplilik yerel optimumu yener"
-   kuralına göre yeni dizin icat etmek varsayılan olarak yanlış.
+1. **`backend/src/scripts/render-region-maps.ts`** — dizin zaten var:
+   `clean-invalid-killmails.ts` 2026-09-03'ten beri orada (PR #139). Ne olduğunu
+   doğru anlatır ve yeni bir desen icat etmez.
 2. **`backend/src/workers/render-region-maps.ts`** — mevcut tek emsali izler:
    `workers/fetch-single-killmail.ts` de kuyruk tüketmiyor, `tsx` ile elle
    çalıştırılıyor (`fetch:killmail`). Bedeli: `workers/` dizininin anlamı
