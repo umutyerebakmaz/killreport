@@ -9,16 +9,20 @@ export interface RankNumberProps {
  * as one ranked column rather than a podium plus an afterthought.
  */
 export default function RankNumber({ rank }: RankNumberProps) {
-  // justify-end: a column of numbers aligns on its units, so #1 and #10 end at
+  // justify-end: a column of numbers aligns on its units, so 1 and 10 end at
   // the same x and the avatars beside them all start at the same one.
   //
-  // The width is 3ch, not w-10. tabular-nums makes every digit exactly 1ch, so
-  // 3ch is the width of "#10" in whatever font is loaded — no pixel guess to
-  // drift when the face changes. w-10 was 40px against ~32px of content, so
-  // every row lost 8px and a single-digit row lost 19, all of it piling up on
-  // the left because the number is flush right.
+  // The width is 2ch, not w-10. tabular-nums makes every digit exactly 1ch, so
+  // 2ch is the width of "10" in whatever font is loaded — no pixel guess to go
+  // stale when the face changes. w-10 was 40px against content that is now
+  // about 22px, and with the number flush right every one of those spare
+  // pixels sat between the card's edge and the rank.
+  //
+  // Every list that uses this asks for ten rows, so two digits is the whole
+  // range. A three-digit rank would spill into the gap-3 beside it rather
+  // than push anything — worth knowing before a caller raises its limit.
   return (
-    <div className="flex items-center w-[3ch] shrink-0 justify-end">
+    <div className="flex items-center w-[2ch] shrink-0 justify-end">
       <span className="text-lg font-semibold text-gray-500 tabular-nums">
         {rank}
       </span>
