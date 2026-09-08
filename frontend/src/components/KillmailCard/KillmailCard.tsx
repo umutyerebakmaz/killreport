@@ -139,7 +139,7 @@ export default function KillmailCard({
               <>
                 {/* The separator belongs to neither name, so it takes neither
                     colour. */}
-                <span className="text-gray-500">{' · '}</span>
+                <span className="text-gray-400">{' · '}</span>
                 <span className="font-medium text-blue-400">
                   {km.solarSystem.constellation.region.name}
                 </span>
