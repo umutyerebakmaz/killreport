@@ -55,7 +55,6 @@ export default function WeeklyTopCharCard() {
                       alt={char?.name ?? 'Unknown'}
                       width={40}
                       height={40}
-                      className="shadow-md"
                       loading="lazy"
                     />
                     {char?.securityStatus != null && (

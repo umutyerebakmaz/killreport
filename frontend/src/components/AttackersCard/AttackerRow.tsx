@@ -40,7 +40,6 @@ export default function AttackerRow({
               alt={attacker.character?.name || 'Character'}
               width={96}
               height={96}
-              className="shadow-md"
               loading="lazy"
             />
             {/* Security Status - Bottom Left */}
@@ -66,7 +65,6 @@ export default function AttackerRow({
               alt={attacker.corporation?.name || 'Corporation'}
               width={96}
               height={96}
-              className="shadow-md"
               loading="lazy"
             />
           </div>
@@ -97,7 +95,6 @@ export default function AttackerRow({
                   alt={attacker.shipType?.name || 'Ship'}
                   width={48}
                   height={48}
-                  className="shadow-md"
                   loading="lazy"
                 />
               ) : (

@@ -169,7 +169,7 @@ export default function KillmailCard({
                 km.victim.corporation?.name ||
                 'Logo'
               }
-              className="shadow-md size-10 shrink-0"
+              className="size-10 shrink-0"
               loading="lazy"
             />
           )}
