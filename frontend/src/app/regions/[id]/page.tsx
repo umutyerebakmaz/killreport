@@ -3,8 +3,9 @@
 import Loader from '@/components/Loader';
 import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
 import { useRegionQuery } from '@/generated/graphql';
+import RegionMap from '@/components/RegionMap/RegionMap';
 import { useTabList } from '@/hooks/useTabList';
-import { GlobeAltIcon, MapIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import { MapIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { use, useState } from 'react';
 
@@ -59,7 +60,11 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-start gap-6">
             <div className="flex items-center justify-center w-24 h-24 shadow-md bg-gray-800/50 shrink-0">
-              <GlobeAltIcon className="w-12 h-12 text-cyan-500" />
+              <RegionMap
+                regionId={region.id}
+                regionName={region.name}
+                size={96}
+              />
             </div>
             <div>
               <h1 className="text-4xl font-bold text-white">{region.name}</h1>
