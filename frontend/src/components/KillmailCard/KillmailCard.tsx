@@ -10,9 +10,10 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 /**
- * Renders are square and the card is portrait, so `object-cover` scales to the
- * height and crops the sides. 512 is enough for a 420px-tall card; 1024 exists
- * but costs two and a half times the bytes for a shelf of twenty.
+ * Renders are square and so is the card, so `object-cover` has nothing to crop.
+ * 512 is twice the 256px the card renders at, which is what a retina screen
+ * wants; 1024 exists but costs two and a half times the bytes for a shelf of
+ * twenty.
  */
 const RENDER_SIZE = 512;
 const ICON_SIZE = 128;
@@ -71,7 +72,7 @@ export default function KillmailCard({
   return (
     <Link
       href={`/killmails/${km.id}`}
-      className="group relative block h-[420px] w-full overflow-hidden border bg-surface border-white/10 transition-colors duration-200 hover:border-white/25"
+      className="group relative block w-full overflow-hidden border aspect-square bg-surface border-white/10 transition-colors duration-200 hover:border-white/25"
       prefetch={false}
     >
       {shipTypeId && (
@@ -102,18 +103,25 @@ export default function KillmailCard({
         </span>
       )}
 
-      <div className="absolute inset-x-0 bottom-0 p-4 space-y-3">
+      {/*
+       * Every measurement here is bought from the render above it: the card is
+       * 256px tall now, and each pixel this block takes is one the ship does
+       * not get. p-3 over p-4, space-y-2 over space-y-3, and the two smaller
+       * type steps below come to 68px — the difference between a sliver of
+       * hull and something you can recognise.
+       */}
+      <div className="absolute inset-x-0 bottom-0 p-3 space-y-2">
         <div>
           <Tooltip
             content={formatKillmailDateTime(km.killmailTime)}
             position="top"
           >
-            <div className="text-sm text-gray-300">
+            <div className="text-xs text-gray-300">
               {formatKillmailDate(km.killmailTime)}
             </div>
           </Tooltip>
           {km.totalValue && (
-            <div className="mt-1 text-xl font-bold text-yellow-400 tabular-nums">
+            <div className="text-lg font-bold text-yellow-400 tabular-nums">
               {formatISK(km.totalValue)}
             </div>
           )}
@@ -148,7 +156,7 @@ export default function KillmailCard({
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {(km.victim?.alliance?.id || km.victim?.corporation?.id) && (
             <img
               src={
@@ -161,7 +169,7 @@ export default function KillmailCard({
                 km.victim.corporation?.name ||
                 'Logo'
               }
-              className="shadow-md size-12 shrink-0"
+              className="shadow-md size-10 shrink-0"
               loading="lazy"
             />
           )}
