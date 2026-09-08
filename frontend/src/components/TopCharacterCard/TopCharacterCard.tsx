@@ -74,17 +74,17 @@ export default function TopCharacterCard({
                   <RankNumber rank={index + 1} />
 
                   {/* Portrait */}
-                  <div className="relative shrink-0">
+                  <div className="thumb-edge shrink-0">
                     <img
                       src={`https://images.evetech.net/characters/${character.id}/portrait?size=128`}
                       alt={character.name}
                       width={64}
                       height={64}
-                      className="shadow-md bg-black/50 ring-1 ring-black/50"
+                      className="shadow-md bg-black/50"
                       loading="lazy"
                     />
                     {character.securityStatus != null && (
-                      <div className="absolute bottom-0 left-0 px-1 py-0 text-xs font-semibold bg-black/70 backdrop-blur-sm">
+                      <div className="absolute bottom-0 left-0 z-20 px-1 py-0 text-xs font-semibold bg-black/70 backdrop-blur-sm">
                         <span className={secColor}>
                           {character.securityStatus.toFixed(1)}
                         </span>

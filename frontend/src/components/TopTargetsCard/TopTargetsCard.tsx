@@ -80,13 +80,13 @@ export default function TopTargetsCard({
                 <RankNumber rank={index + 1} />
 
                 {/* Logo/Portrait */}
-                <div className="relative shrink-0">
+                <div className="thumb-edge shrink-0">
                   <img
                     src={getImageUrl(target.id, targetType)}
                     alt={target.name}
                     width={64}
                     height={64}
-                    className="shadow-md bg-black/50 ring-1 ring-black/50"
+                    className="shadow-md bg-black/50"
                     loading="lazy"
                   />
                 </div>

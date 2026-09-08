@@ -49,6 +49,37 @@
   }
 
   /*
+   * The amber edge the killmail table draws around a ship render: a 1px line
+   * down the left and across the top, each fading out, meeting at the corner
+   * in an L. It marks the subject of a row — the thing the row is about —
+   * which is why the 32px corporation and alliance badges beside it do not
+   * wear it.
+   *
+   * Pseudo-elements rather than the two absolutely positioned divs the table
+   * writes by hand: an <img> cannot carry them itself, so the class goes on
+   * the wrapper the four cards already had for their overlays.
+   *
+   * z-10 matches the divs it replaces. Anything meant to sit above the edge —
+   * a security badge, a tier badge — needs z-20, as the table's does.
+   */
+  .thumb-edge {
+    @apply relative;
+  }
+
+  .thumb-edge::before,
+  .thumb-edge::after {
+    @apply absolute top-0 left-0 z-10 content-[''];
+  }
+
+  .thumb-edge::before {
+    @apply w-px h-full bg-linear-to-b from-amber-800 to-transparent;
+  }
+
+  .thumb-edge::after {
+    @apply w-full h-px bg-linear-to-r from-amber-800 to-transparent;
+  }
+
+  /*
    * The floating layer: the nav popover, the notification panel, the mobile
    * drawer, FilterDialog, Tooltip and the filter autocompletes. Glass is the
    * layer signal — 80% of the surface plus a blur, so what is behind stays
