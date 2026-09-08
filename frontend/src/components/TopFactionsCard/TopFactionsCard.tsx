@@ -66,7 +66,7 @@ export default function TopFactionsCard({
                 <img
                   src={`https://images.evetech.net/alliances/${faction.id}/logo?size=64`}
                   alt={faction.name}
-                  className="rounded-full shadow-md size-10 shrink-0"
+                  className="rounded-full size-10 shrink-0"
                   loading="lazy"
                 />
 
