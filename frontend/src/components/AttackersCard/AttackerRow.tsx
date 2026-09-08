@@ -91,7 +91,7 @@ export default function AttackerRow({
                 )}
               {attacker.shipType?.id ? (
                 <img
-                  src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=64`}
+                  src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=128`}
                   alt={attacker.shipType?.name || 'Ship'}
                   width={48}
                   height={48}
@@ -107,7 +107,7 @@ export default function AttackerRow({
           <Tooltip content={attacker.weaponType?.name || 'Unknown Weapon'}>
             {attacker.weaponType?.id ? (
               <img
-                src={`https://images.evetech.net/types/${attacker.weaponType?.id}/icon?size=64`}
+                src={`https://images.evetech.net/types/${attacker.weaponType?.id}/icon?size=128`}
                 alt={attacker.weaponType?.name || 'Weapon'}
                 width={48}
                 height={48}
@@ -116,7 +116,7 @@ export default function AttackerRow({
               />
             ) : attacker.shipType?.id ? (
               <img
-                src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=64`}
+                src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=128`}
                 alt={attacker.shipType?.name || 'Ship'}
                 width={48}
                 height={48}

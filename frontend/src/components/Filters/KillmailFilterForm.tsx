@@ -849,7 +849,7 @@ export default function KillmailFilterForm({
                           >
                             <div className="flex items-center justify-center flex-none size-16 bg-gray-700/50 group-hover:bg-gray-700">
                               <img
-                                src={`https://images.evetech.net/types/${type.id}/icon?size=64`}
+                                src={`https://images.evetech.net/types/${type.id}/icon?size=128`}
                                 alt={type.name}
                                 className="object-cover size-16"
                                 onError={(e) => {
