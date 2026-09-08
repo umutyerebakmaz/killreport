@@ -8,6 +8,8 @@ import { ReactNode } from 'react';
 export interface TopFaction {
   id: number;
   name: string;
+  /** The faction's owning NPC corporation — the only source of its logo. */
+  corporationId: number;
   killCount: number;
 }
 
@@ -60,15 +62,19 @@ export default function TopFactionsCard({
 
                 {/*
                   CCP's image server has no /factions/ path — it returns 400.
-                  Faction ids live in the alliance id space there, so the
-                  alliance endpoint is the correct source for a faction logo.
+                  The alliance endpoint accepts a faction id but answers with
+                  the same blank placeholder for every one of them, so the
+                  logo has to come from the faction's owning NPC corporation.
                 */}
-                <img
-                  src={`https://images.evetech.net/alliances/${faction.id}/logo?size=64`}
-                  alt={faction.name}
-                  className="rounded-full size-10 shrink-0"
-                  loading="lazy"
-                />
+                <div className="relative shrink-0">
+                  <img
+                    src={`https://images.evetech.net/corporations/${faction.corporationId}/logo?size=128`}
+                    alt={faction.name}
+                    width={64}
+                    height={64}
+                    loading="lazy"
+                  />
+                </div>
 
                 <div className="flex items-center justify-between flex-1 min-w-0 gap-2">
                   <span className="block min-w-0 font-medium text-orange-400 truncate">
