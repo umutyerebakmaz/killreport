@@ -1,6 +1,7 @@
 'use client';
 
 import { Loader } from '@/components/Loader/Loader';
+import RegionMap from '@/components/RegionMap/RegionMap';
 import Card from '@/components/ui/Card';
 import RankNumber from '@/components/ui/RankNumber';
 import Link from 'next/link';
@@ -58,6 +59,13 @@ export default function TopRegionsCard({
             <div key={region.id} className="card-row">
               <div className="flex items-center gap-3">
                 <RankNumber rank={index + 1} />
+
+                <RegionMap
+                  regionId={region.id}
+                  regionName={region.name}
+                  size={64}
+                  className="shrink-0"
+                />
 
                 <div className="flex items-center justify-between flex-1 min-w-0 gap-2">
                   <Link

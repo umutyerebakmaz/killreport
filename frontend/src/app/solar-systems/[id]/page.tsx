@@ -15,11 +15,12 @@ import {
   SolarSystemTab,
   TAB_LABELS,
 } from '@/components/SolarSystemDetail/tabs';
+import RegionMap from '@/components/RegionMap/RegionMap';
 import { useSolarSystemQuery } from '@/generated/graphql';
 import { useTabList } from '@/hooks/useTabList';
 import { formatTimeAgo } from '@/utils/date';
 import { getSecurityColor } from '@/utils/security';
-import { GlobeAltIcon, MapIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import { MapIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { use, useCallback, useState } from 'react';
@@ -201,7 +202,12 @@ export default function SolarSystemDetailPage({
                 )}
                 {system.constellation?.region && (
                   <div className="flex items-center gap-2 text-gray-400">
-                    <GlobeAltIcon className="w-4 h-4 text-cyan-500" />
+                    <RegionMap
+                      regionId={system.constellation.region.id}
+                      regionName={system.constellation.region.name}
+                      size={20}
+                      className="shrink-0"
+                    />
                     <span>Region:</span>
                     <Link
                       href={`/regions/${system.constellation.region.id}`}

@@ -3,6 +3,7 @@
 import AvgSecurity from '@/components/AvgSecurity/AvgSecurity';
 import { Loader } from '@/components/Loader/Loader';
 import Paginator from '@/components/Paginator/Paginator';
+import RegionMap from '@/components/RegionMap/RegionMap';
 import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
 import Tooltip from '@/components/Tooltip/Tooltip';
 import Select from '@/components/ui/Select';
@@ -151,7 +152,13 @@ function RegionsContent() {
               regions.map((region) => (
                 <tr key={region.id} className="tr-row">
                   <td className="px-6 py-4 text-base">
-                    <div className="flex items-center">
+                    <div className="flex items-center gap-3">
+                      <RegionMap
+                        regionId={region.id}
+                        regionName={region.name}
+                        size={64}
+                        className="shrink-0"
+                      />
                       <Link
                         href={`/regions/${region.id}`}
                         prefetch={false}

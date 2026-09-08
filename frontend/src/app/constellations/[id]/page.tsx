@@ -1,10 +1,11 @@
 'use client';
 
+import RegionMap from '@/components/RegionMap/RegionMap';
 import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
 import SecurityBadge from '@/components/SecurityStatus/SecurityStatus';
 import { useConstellationQuery } from '@/generated/graphql';
 import { useTabList } from '@/hooks/useTabList';
-import { GlobeAltIcon, MapIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import { MapIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { use, useState } from 'react';
 
@@ -76,7 +77,12 @@ export default function ConstellationDetailPage({
               </h1>
               {constellation.region && (
                 <div className="flex items-center gap-2 mt-2 text-gray-400">
-                  <GlobeAltIcon className="w-4 h-4 text-cyan-500" />
+                  <RegionMap
+                    regionId={constellation.region.id}
+                    regionName={constellation.region.name}
+                    size={20}
+                    className="shrink-0"
+                  />
                   <span>Region:</span>
                   <Link
                     href={`/regions/${constellation.region.id}`}
