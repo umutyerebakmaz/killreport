@@ -195,7 +195,6 @@ export default function AttackersCard({
                       alt={alliance.name}
                       width={32}
                       height={32}
-                      className="shadow-sm"
                       loading="lazy"
                     />
                     <Link
@@ -226,7 +225,6 @@ export default function AttackersCard({
                             alt={corp.name}
                             width={32}
                             height={32}
-                            className="shadow-sm"
                             loading="lazy"
                           />
                           <span className="flex-1 text-base text-gray-300">
@@ -257,7 +255,6 @@ export default function AttackersCard({
                   alt={corp.name}
                   width={32}
                   height={32}
-                  className="shadow-sm"
                   loading="lazy"
                 />
                 <span className="flex-1 text-base text-gray-300">
