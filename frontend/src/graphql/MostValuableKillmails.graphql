@@ -12,9 +12,6 @@ query MostValuableKillmails(
         id
         name
       }
-      # Neither name is drawn as its own line any more. They stay because the
-      # logo's alt text is the alliance's name when there is one and the
-      # corporation's otherwise, and both arrive on rows the card already loads.
       corporation {
         id
         name
@@ -26,24 +23,41 @@ query MostValuableKillmails(
       shipType {
         id
         name
+        group {
+          name
+        }
         dogmaAttributes(ids: [422, 1692]) {
           attribute_id
           value
         }
       }
+      damageTaken
     }
     solarSystem {
       id
       name
       securityStatus
-      # The region hangs off the constellation, so the node has to stay even
-      # though the constellation's own name is no longer shown.
       constellation {
         id
+        name
         region {
           id
           name
         }
+      }
+    }
+    finalBlow {
+      character {
+        id
+        name
+      }
+      corporation {
+        id
+        name
+      }
+      alliance {
+        id
+        name
       }
     }
   }
