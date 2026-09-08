@@ -51,15 +51,15 @@ text, 64px in a list row, 96px in a page header. An SVG has no resolution, so
 there is nothing to export at 2x and no `srcset`.
 
 What does change with size is line weight: everything scales together, so at
-64px the `w 0.75` jump line lands at 0.42 of a pixel and reads faint. If that
+64px the `w 0.75` jump line lands at about 0.4 of a pixel and reads faint. If that
 turns out too weak in place, raise `JUMP_WIDTH` in `region-map-svg.ts` and
 re-run — it is one number and 114 files.
 
 ## Regions with nothing to draw
 
-- 47 regions contain no stargates at all (wormhole and abyssal space). They
-  render as a scatter of dots with no lines. That is correct: those regions
-  genuinely have no gate topology.
+- 46 regions, all wormhole and abyssal space, have no stargate connections.
+  They render as dots only. That is correct: those regions genuinely have no
+  gate topology.
 - 48 regions have no gates leaving them, so they carry no green.
 - 3 regions hold a single system (G-R00031, GPMR-01, Yasna Zakh) and render as
   one dot.
