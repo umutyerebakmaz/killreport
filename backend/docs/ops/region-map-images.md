@@ -21,11 +21,17 @@ Expected output today:
 ```
 114 regions written to .../frontend/public/images/regions
   8490 systems, 6619 internal jumps, 740 outbound gates
+  0 stale files removed
 ```
 
 Then commit whatever changed. The diff is the record of what the SDE update
 did to the map — that is the reason these live in git rather than in object
 storage.
+
+The run also deletes any `.svg` in the directory whose region no longer exists,
+so a retired or renumbered region cannot leave a stale (or wrong) map behind;
+expect `0 stale files removed` on an ordinary run and check the diff if that
+number is not zero.
 
 ## What it draws
 
@@ -47,8 +53,9 @@ that queries and writes is
 ## Sizes
 
 There is one file per region and it is used at every size — 20px in a line of
-text, 64px in a list row, 96px in a page header. An SVG has no resolution, so
-there is nothing to export at 2x and no `srcset`.
+text, 64px in a list row, 256px in a page header (96px below the `sm`
+breakpoint). An SVG has no resolution, so there is nothing to export at 2x and
+no `srcset`.
 
 What does change with size is line weight: everything scales together, so at
 64px the `w 0.75` jump line lands at about 0.4 of a pixel and reads faint. If that
