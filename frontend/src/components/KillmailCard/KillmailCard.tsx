@@ -137,23 +137,25 @@ export default function KillmailCard({
           )}
         </div>
 
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            {km.solarSystem?.securityStatus !== null &&
-              km.solarSystem?.securityStatus !== undefined && (
-                <SecurityStatus
-                  securityStatus={km.solarSystem.securityStatus}
-                />
-              )}
-            <span className="font-medium text-orange-400 truncate">
+        {/* System and region read as one place, so they share a line. The
+            truncation sits on the span holding both: put it on each name and
+            a long region would keep its full width while the system clipped. */}
+        <div className="flex items-center gap-2 min-w-0">
+          {km.solarSystem?.securityStatus !== null &&
+            km.solarSystem?.securityStatus !== undefined && (
+              <SecurityStatus securityStatus={km.solarSystem.securityStatus} />
+            )}
+          <span className="truncate">
+            <span className="font-medium text-orange-400">
               {km.solarSystem?.name || 'Unknown'}
             </span>
-          </div>
-          {km.solarSystem?.constellation?.region && (
-            <div className="text-sm text-blue-400 truncate">
-              {km.solarSystem.constellation.region.name}
-            </div>
-          )}
+            {km.solarSystem?.constellation?.region && (
+              <span className="text-sm text-blue-400">
+                {' · '}
+                {km.solarSystem.constellation.region.name}
+              </span>
+            )}
+          </span>
         </div>
 
         <div className="flex items-center gap-3">
