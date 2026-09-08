@@ -20,7 +20,11 @@ export default function ServiceSlot({ slots }: ServiceSlotProps) {
                   {/* Ring background */}
                   <div className="absolute inset-0 overflow-visible border border-white/10 size-12 bg-white/5"></div>
                   <img
-                    src={getItemImageUrl(module.itemType, module.singleton, 64)}
+                    src={getItemImageUrl(
+                      module.itemType,
+                      module.singleton,
+                      128,
+                    )}
                     alt={module.itemType.name}
                     className="relative z-10 size-12"
                   />

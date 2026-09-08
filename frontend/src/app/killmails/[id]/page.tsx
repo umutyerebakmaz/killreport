@@ -182,7 +182,7 @@ export default function KillmailDetailPage({
                           {victim?.corporation?.id && (
                             <a href={`/corporations/${victim.corporation?.id}`}>
                               <img
-                                src={`https://images.evetech.net/corporations/${victim.corporation?.id}/logo?size=64`}
+                                src={`https://images.evetech.net/corporations/${victim.corporation?.id}/logo?size=128`}
                                 alt={victim.corporation?.name || 'Corporation'}
                                 width={48}
                                 height={48}
@@ -195,7 +195,7 @@ export default function KillmailDetailPage({
                           {victim?.alliance?.id && (
                             <a href={`/alliances/${victim.alliance?.id}`}>
                               <img
-                                src={`https://images.evetech.net/alliances/${victim.alliance?.id}/logo?size=64`}
+                                src={`https://images.evetech.net/alliances/${victim.alliance?.id}/logo?size=128`}
                                 alt={victim.alliance?.name || 'Alliance'}
                                 width={48}
                                 height={48}
