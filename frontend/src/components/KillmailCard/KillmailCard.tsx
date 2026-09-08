@@ -37,9 +37,9 @@ export interface KillmailCardData {
     id: number;
     name: string;
     securityStatus?: number | null;
+    /** Carried only for the region hanging off it. */
     constellation?: {
       id: number;
-      name: string;
       region?: {
         id: number;
         name: string;
@@ -149,11 +149,6 @@ export default function KillmailCard({
               {km.solarSystem?.name || 'Unknown'}
             </span>
           </div>
-          {km.solarSystem?.constellation && (
-            <div className="text-sm text-purple-400 truncate">
-              {km.solarSystem.constellation.name}
-            </div>
-          )}
           {km.solarSystem?.constellation?.region && (
             <div className="text-sm text-blue-400 truncate">
               {km.solarSystem.constellation.region.name}
