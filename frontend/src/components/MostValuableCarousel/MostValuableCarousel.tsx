@@ -150,22 +150,22 @@ export default function MostValuableCarousel() {
           ))}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-1">
           <button
             onClick={() => scroll('left')}
             disabled={!canScrollLeft}
-            className="button button-secondary button-icon"
+            className="button button-secondary button-icon-sm"
             aria-label="Scroll left"
           >
-            <ChevronLeftIcon className="w-5 h-5" />
+            <ChevronLeftIcon className="size-4" />
           </button>
           <button
             onClick={() => scroll('right')}
             disabled={!canScrollRight}
-            className="button button-secondary button-icon"
+            className="button button-secondary button-icon-sm"
             aria-label="Scroll right"
           >
-            <ChevronRightIcon className="w-5 h-5" />
+            <ChevronRightIcon className="size-4" />
           </button>
         </div>
       </div>
