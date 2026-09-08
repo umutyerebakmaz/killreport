@@ -5,6 +5,7 @@ query TopFactions($filter: TopFilter) {
     faction {
       id
       name
+      corporationId
     }
   }
 }
