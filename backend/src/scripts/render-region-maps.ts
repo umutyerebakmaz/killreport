@@ -131,7 +131,38 @@ async function main(): Promise<void> {
     return match !== null && !renderedIds.has(Number(match[1]));
   });
 
-  await Promise.all(removable.map((name) => unlink(join(OUT_DIR, name))));
+  // Guard against a botched query silently emptying the region set. If the
+  // systems query returns zero rows, or far fewer than it should (wrong
+  // database, an empty table after a bad restore, a broken WHERE clause),
+  // `byRegion` ends up empty or tiny, `renderedIds` follows it, and the
+  // reconciliation above would then delete most or all of the 114 committed
+  // SVGs — reporting that deletion as a success line. A real SDE update
+  // retires a region or two at a time, never a large share of the committed
+  // set, so refuse to delete when nothing was rendered at all, or when what
+  // we are about to remove is a large fraction of what is already on disk.
+  // This only skips the deletion step; the files rendered above are still
+  // written either way.
+  const MAX_REMOVAL_FRACTION = 0.25;
+  const reconciliationLooksUnsafe =
+    files.length === 0 ||
+    (existing.length > 0 &&
+      removable.length / existing.length > MAX_REMOVAL_FRACTION);
+
+  let reconciliationLine: string;
+  if (reconciliationLooksUnsafe) {
+    reconciliationLine =
+      removable.length > 0
+        ? `\n  reconciliation skipped: would remove ${removable.length} of ` +
+          `${existing.length} files on disk — this looks like an incomplete ` +
+          `query, not retired regions. Check the database before re-running.`
+        : '\n  0 stale files removed';
+  } else {
+    await Promise.all(removable.map((name) => unlink(join(OUT_DIR, name))));
+    reconciliationLine =
+      removable.length > 0
+        ? `\n  ${removable.length} stale files removed: ${removable.join(', ')}`
+        : '\n  0 stale files removed';
+  }
 
   console.log(
     `${files.length} regions written to ${OUT_DIR}\n` +
@@ -139,9 +170,7 @@ async function main(): Promise<void> {
       (orphaned > 0
         ? `\n  ${orphaned} gates skipped: endpoint missing or unpositioned`
         : '') +
-      (removable.length > 0
-        ? `\n  ${removable.length} stale files removed: ${removable.join(', ')}`
-        : '\n  0 stale files removed'),
+      reconciliationLine,
   );
 
   await prismaWorker.$disconnect();
