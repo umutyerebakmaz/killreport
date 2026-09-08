@@ -127,7 +127,7 @@ export default function MostValuableCarousel() {
        * The scroll buttons sit next to the tablist rather than inside it: a
        * tablist that holds anything but tabs stops announcing them correctly.
        */}
-      <div className="flex items-center justify-between gap-4 mb-6">
+      <div className="flex items-center justify-between gap-4 mb-3">
         <div
           role="tablist"
           aria-label="Most valuable scope"
