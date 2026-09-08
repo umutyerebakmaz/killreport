@@ -30,14 +30,29 @@ const colors = {
 
 winston.addColors(colors);
 
+// Arguments after the message land here. winston merges the ones that are
+// objects — a plain object, an Error — into `info` itself, so the rest spread
+// below already covers those. Everything else it leaves only under this key,
+// which is a symbol and therefore invisible to that spread: before this, a
+// `logger.error('failed:', error.message)` printed just "failed:".
+// Symbol.for('splat') is the symbol triple-beam exports as SPLAT
+// (triple-beam/index.js:35), taken this way because it ships no typings.
+const SPLAT = Symbol.for('splat');
+
 const format = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.colorize({ all: true }),
   winston.format.printf((info) => {
     const { timestamp, level, message, ...meta } = info;
+    const splat = (info[SPLAT] as unknown[] | undefined) ?? [];
+    const extras = splat.filter(
+      (arg) => typeof arg !== 'object' || arg === null,
+    );
+    const extraStr =
+      extras.length > 0 ? ` ${extras.map(String).join(' ')}` : '';
     const metaStr =
       Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : '';
-    return `${timestamp} ${level}: ${message}${metaStr}`;
+    return `${timestamp} ${level}: ${message}${extraStr}${metaStr}`;
   }),
 );
 
