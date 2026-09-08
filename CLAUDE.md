@@ -182,7 +182,7 @@ yarn install         # installs both workspaces
 ```
 
 Vitest 5 runs in both workspaces — `yarn test` from the root runs backend then
-frontend. Verification is:
+frontend. The full set is:
 
 ```bash
 yarn test
@@ -195,6 +195,39 @@ yarn workspace frontend build
 
 Backend codegen must run before frontend codegen. Run the command and read its
 output before claiming anything passes.
+
+### When to run which
+
+The full set runs **once, before opening the PR** — not after every edit. CI
+runs all of it on every PR anyway, so a local full pass per edit is the same
+work a third time. In between, run only what the edit can actually break:
+
+| The edit touches                       | What can break                  | Run                     |
+| -------------------------------------- | ------------------------------- | ----------------------- |
+| `className` or a `.css` file           | nothing type- or test-checkable | nothing                 |
+| `.tsx` structure, props, an interface  | types                           | `build`                 |
+| a `.graphql` document                  | generated types, call sites     | `codegen`, then `build` |
+| logic, `utils/`, a resolver, a service | behaviour                       | `test`, then `build`    |
+
+Class strings are the row worth stating outright: no spec asserts on one, and
+ESLint does not parse Tailwind, so `test` and `lint` cannot fail on a class
+change. Those are verified by looking at the page, which is the user's job.
+
+One check sits outside the table because it applies to every row, including a
+change that touches nothing but Markdown: CI runs **Format**, which is
+`prettier --check .` over the whole repo. Run `npx prettier --check <file>` on
+whatever you edited before opening the PR. `.husky/pre-commit` calls
+`lint-staged` to do this automatically, but the hook only fires where husky is
+installed — `git config core.hooksPath` is empty in a checkout where it is
+not, and there the commit is formatted by nobody.
+
+The cost of batching is honesty about it. **Until the full set has run, say
+"not verified yet" rather than "passes".** Skipping a command is a scheduling
+decision; claiming its result without running it is not.
+
+`lint` reports pre-existing problems across the repo — 234 as of 2026-09-08.
+The number, not a clean exit, is the signal: compare it against `main` and
+confirm none of the entries name a file the branch touched.
 
 Other debugging entry points:
 
