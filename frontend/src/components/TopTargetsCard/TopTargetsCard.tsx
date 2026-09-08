@@ -86,7 +86,7 @@ export default function TopTargetsCard({
                     alt={target.name}
                     width={64}
                     height={64}
-                    className="shadow-md bg-black/50 ring-1 ring-black/50"
+                    className="shadow-md bg-black/50"
                     loading="lazy"
                   />
                 </div>

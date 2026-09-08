@@ -46,7 +46,7 @@ export default function FeaturedAttackerCard({
                   alt={attacker.corporation?.name || 'Corporation'}
                   width={32}
                   height={32}
-                  className="shadow-md bg-black/50 ring-2 ring-black/50"
+                  className="shadow-md bg-black/50"
                   loading="lazy"
                 />
               </Tooltip>
@@ -60,7 +60,7 @@ export default function FeaturedAttackerCard({
                   alt={attacker.alliance?.name || 'Alliance'}
                   width={32}
                   height={32}
-                  className="shadow-md bg-black/50 ring-2 ring-black/50"
+                  className="shadow-md bg-black/50"
                   loading="lazy"
                 />
               </Tooltip>
