@@ -28,28 +28,21 @@ export interface KillmailCardData {
     shipType?: {
       id: number;
       name: string;
-      group?: { name: string } | null;
       dogmaAttributes?: Array<{ attribute_id: number; value: number }> | null;
     } | null;
-    damageTaken?: number | null;
   } | null;
   solarSystem?: {
     id: number;
     name: string;
     securityStatus?: number | null;
+    /** Carried only for the region hanging off it. */
     constellation?: {
       id: number;
-      name: string;
       region?: {
         id: number;
         name: string;
       } | null;
     } | null;
-  } | null;
-  finalBlow?: {
-    character?: { id: number; name: string } | null;
-    corporation?: { id: number; name: string } | null;
-    alliance?: { id: number; name: string } | null;
   } | null;
 }
 
@@ -121,44 +114,29 @@ export default function KillmailCard({
           )}
         </div>
 
-        <div>
-          <div className="font-semibold text-orange-400 truncate">
-            {km.victim?.shipType?.name || 'Unknown Ship'}
-          </div>
-          {km.victim?.shipType?.group && (
-            <div className="text-sm text-gray-400 truncate">
-              {km.victim.shipType.group.name}
-            </div>
-          )}
-          {km.victim?.damageTaken && (
-            <div className="mt-1 text-sm text-red-400">
-              {km.victim.damageTaken.toLocaleString()} damage
-            </div>
-          )}
+        <div className="font-semibold text-orange-400 truncate">
+          {km.victim?.shipType?.name || 'Unknown Ship'}
         </div>
 
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            {km.solarSystem?.securityStatus !== null &&
-              km.solarSystem?.securityStatus !== undefined && (
-                <SecurityStatus
-                  securityStatus={km.solarSystem.securityStatus}
-                />
-              )}
-            <span className="font-medium text-orange-400 truncate">
+        {/* System and region on one line. The region reads as the quieter half
+            of a single place, so it takes the muted grey rather than a hue of
+            its own. */}
+        <div className="flex items-center gap-2 min-w-0">
+          {km.solarSystem?.securityStatus !== null &&
+            km.solarSystem?.securityStatus !== undefined && (
+              <SecurityStatus securityStatus={km.solarSystem.securityStatus} />
+            )}
+          <span className="truncate">
+            <span className="font-medium text-orange-400">
               {km.solarSystem?.name || 'Unknown'}
             </span>
-          </div>
-          {km.solarSystem?.constellation && (
-            <div className="text-sm text-purple-400 truncate">
-              {km.solarSystem.constellation.name}
-            </div>
-          )}
-          {km.solarSystem?.constellation?.region && (
-            <div className="text-sm text-blue-400 truncate">
-              {km.solarSystem.constellation.region.name}
-            </div>
-          )}
+            {km.solarSystem?.constellation?.region && (
+              <span className="text-gray-400">
+                {' · '}
+                {km.solarSystem.constellation.region.name}
+              </span>
+            )}
+          </span>
         </div>
 
         <div className="flex items-center gap-3">
@@ -185,11 +163,6 @@ export default function KillmailCard({
               </div>
             ) : (
               <div className="text-gray-400">Unknown Pilot</div>
-            )}
-            {km.victim?.corporation && (
-              <div className="text-sm text-gray-400 truncate">
-                {km.victim.corporation.name}
-              </div>
             )}
           </div>
         </div>
