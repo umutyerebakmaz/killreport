@@ -174,7 +174,7 @@ export default function KillmailRow({
                 km.victim?.corporation?.name ||
                 'Logo'
               }
-              className="shadow-md size-16"
+              className="size-16"
               loading="lazy"
             />
           )}
@@ -253,7 +253,7 @@ export default function KillmailRow({
                   km.finalBlow.corporation?.name ||
                   'Logo'
                 }
-                className="shadow-md size-16"
+                className="size-16"
                 loading="lazy"
               />
             )}
