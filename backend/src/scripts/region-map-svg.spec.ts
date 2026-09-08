@@ -104,6 +104,27 @@ describe('renderRegionMap', () => {
     expect(svg.indexOf('#94a3b8')).toBeLessThan(svg.indexOf('<circle'));
   });
 
+  it('normalises the long axis to 0-100 when z is the longer span', () => {
+    // Two systems 50 apart on x, 100 on z — the mirror image of twoSystems
+    // above, where x is the longer span. Pins Math.max(spanX, spanY) picking
+    // spanY: scale = 100 / 100 = 1, so id 1 projects to (0, 0) and id 2 to
+    // (50, 100) (z negated, then both axes shifted so the minimum is 0).
+    // viewBox width = spanX*scale + 14.6 = 64.6, height = spanY*scale + 14.6 = 114.6.
+    const svg = renderRegionMap({
+      systems: [
+        { id: 1, x: 0, z: 0, security: 0.9 },
+        { id: 2, x: 50, z: -100, security: -0.2 },
+      ],
+      jumps: [],
+      gates: [],
+    });
+    expect(svg).toContain('<circle cx="0.0" cy="0.0" r="1.3" fill="#48F0C0"/>');
+    expect(svg).toContain(
+      '<circle cx="50.0" cy="100.0" r="1.3" fill="#F00000"/>',
+    );
+    expect(svg).toContain('viewBox="-7.3 -7.3 64.6 114.6"');
+  });
+
   it('gives a single-system region a 14.6-unit square viewBox', () => {
     const svg = renderRegionMap({
       systems: [{ id: 1, x: 42, z: -7, security: -1 }],
