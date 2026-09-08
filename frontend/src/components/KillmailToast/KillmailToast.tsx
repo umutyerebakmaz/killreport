@@ -54,13 +54,13 @@ function KillmailToastItem({
 
   // Ship image URL from EVE image server
   const shipImageUrl = toast.victimShipTypeId
-    ? `https://images.evetech.net/types/${toast.victimShipTypeId}/render?size=64`
+    ? `https://images.evetech.net/types/${toast.victimShipTypeId}/render?size=128`
     : null;
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const target = e.target as HTMLImageElement;
     if (target.src.includes('/render?') && toast.victimShipTypeId) {
-      target.src = `https://images.evetech.net/types/${toast.victimShipTypeId}/icon?size=64`;
+      target.src = `https://images.evetech.net/types/${toast.victimShipTypeId}/icon?size=128`;
     }
   };
 
