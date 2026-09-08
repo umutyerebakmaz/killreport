@@ -2613,7 +2613,7 @@ export type TopFactionsQueryVariables = Exact<{
 }>;
 
 
-export type TopFactionsQuery = { __typename?: 'Query', topFactions: Array<{ __typename?: 'TopFaction', rank: number, killCount: number, faction?: { __typename?: 'Faction', id: number, name: string } | null }> };
+export type TopFactionsQuery = { __typename?: 'Query', topFactions: Array<{ __typename?: 'TopFaction', rank: number, killCount: number, faction?: { __typename?: 'Faction', id: number, name: string, corporationId?: number | null } | null }> };
 
 export type TopPilotsQueryVariables = Exact<{
   filter?: InputMaybe<TopFilter>;
@@ -7615,6 +7615,7 @@ export const TopFactionsDocument = gql`
     faction {
       id
       name
+      corporationId
     }
   }
 }
