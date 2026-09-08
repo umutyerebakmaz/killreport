@@ -80,7 +80,6 @@ export default function TopCharacterCard({
                       alt={character.name}
                       width={64}
                       height={64}
-                      className="shadow-md bg-black/50"
                       loading="lazy"
                     />
                     {character.securityStatus != null && (
