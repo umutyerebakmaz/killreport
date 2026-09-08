@@ -459,15 +459,13 @@ Task 1'in modülünü veritabanına bağlar ve 114 dosyayı yazar.
  */
 
 import { mkdir, writeFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { prismaWorker } from '@services/prisma-worker';
+import { join } from 'node:path';
+import prismaWorker from '@services/prisma-worker';
 import { MapGate, MapJump, MapSystem, renderRegionMap } from './region-map-svg';
 
-const OUT_DIR = join(
-  dirname(fileURLToPath(import.meta.url)),
-  '../../../frontend/public/images/regions',
-);
+// backend is CommonJS (no "type": "module"), so __dirname is the way here —
+// import.meta.url is not available. From src/scripts that is three levels up.
+const OUT_DIR = join(__dirname, '../../../frontend/public/images/regions');
 
 interface SystemRow {
   region_id: number;
