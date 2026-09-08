@@ -64,7 +64,7 @@ export default function Select({
     <Listbox value={value} onChange={onChange} disabled={disabled}>
       <ListboxButton
         aria-label={ariaLabel}
-        className={`group grid cursor-pointer grid-cols-1 border py-2.5 pr-2 pl-4 text-left text-sm font-medium text-white transition-colors bg-surface border-white/10 hover:bg-surface-inset hover:border-white/20 focus:outline-none focus-visible:outline-1 focus-visible:outline-white/40 data-disabled:cursor-not-allowed data-disabled:text-gray-500 data-disabled:opacity-50 data-disabled:hover:bg-surface data-disabled:hover:border-white/10 ${className}`}
+        className={`group grid cursor-pointer grid-cols-1 border py-2.5 pr-2 pl-4 text-left text-sm font-medium text-white transition-colors bg-surface border-white/10 hover:bg-surface-inset hover:border-white/20 focus:outline-none focus-visible:outline-1 focus-visible:outline-accent data-disabled:cursor-not-allowed data-disabled:text-gray-500 data-disabled:opacity-50 data-disabled:hover:bg-surface data-disabled:hover:border-white/10 ${className}`}
       >
         <span className="col-start-1 row-start-1 pr-6 truncate">
           {selected?.label ?? ''}

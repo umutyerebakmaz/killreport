@@ -14,7 +14,7 @@ const MOBILE_NAV_LINK =
 const MOBILE_NAV_SUB_LINK =
   'block py-2 pl-6 pr-3 font-semibold text-white text-sm/7 hover:bg-white/5';
 const MOBILE_NAV_DISCLOSURE_BUTTON =
-  'group flex w-full items-center justify-between py-2 pr-3.5 pl-3 text-base/7 font-semibold text-white hover:bg-white/5 focus:outline-none focus-visible:outline-1 focus-visible:outline-white/40';
+  'group flex w-full items-center justify-between py-2 pr-3.5 pl-3 text-base/7 font-semibold text-white hover:bg-white/5 focus:outline-none focus-visible:outline-1 focus-visible:outline-accent';
 
 // A real height transition: the row goes from 0fr to 1fr, so the group opens
 // downwards at the speed the links appear. Sliding the rows into a box that
