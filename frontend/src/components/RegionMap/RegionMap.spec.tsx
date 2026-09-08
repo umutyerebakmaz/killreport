@@ -17,4 +17,18 @@ describe('RegionMap', () => {
     fireEvent.error(image);
     expect(screen.queryByAltText('Nowhere map')).not.toBeInTheDocument();
   });
+
+  it('shows a new region after a previous one failed to load', () => {
+    const { rerender } = render(
+      <RegionMap regionId={999} regionName="Nowhere" size={64} />,
+    );
+    fireEvent.error(screen.getByAltText('Nowhere map'));
+    expect(screen.queryByAltText('Nowhere map')).not.toBeInTheDocument();
+
+    rerender(<RegionMap regionId={10000046} regionName="Fade" size={64} />);
+    expect(screen.getByAltText('Fade map')).toHaveAttribute(
+      'src',
+      '/images/regions/10000046.svg',
+    );
+  });
 });

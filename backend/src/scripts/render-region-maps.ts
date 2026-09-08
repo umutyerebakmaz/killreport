@@ -1,8 +1,9 @@
 /**
- * Her bölge için bir harita SVG'si üretir ve frontend'in statik dizinine yazar.
+ * Generates a map SVG for each region and writes it to the frontend's static
+ * directory.
  *
- * Elle çalıştırılır, PM2 süreci değildir: SDE güncellemesinden sonra bir kez.
- * Bkz. backend/docs/ops/region-map-images.md
+ * Run by hand, not a PM2 process: once after an SDE update.
+ * See backend/docs/ops/region-map-images.md
  */
 
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -89,7 +90,7 @@ async function main(): Promise<void> {
 
   await mkdir(OUT_DIR, { recursive: true });
 
-  // Hepsi önce bellekte üretilir: yarım kalan bir koşu diske yarım set bırakmasın.
+  // All maps are generated in memory first: an interrupted run should not leave a partial set on disk.
   const files = [...byRegion.entries()].map(([regionId, regionSystems]) => ({
     path: join(OUT_DIR, `${regionId}.svg`),
     svg: renderRegionMap({

@@ -1,10 +1,10 @@
 /**
- * Bir bölgenin harita SVG'sini üretir. Veritabanı bilmez: girdi olarak
- * sistemleri ve atlamaları alır, string döndürür.
+ * Generates a region's map SVG. Database-agnostic: takes systems and jumps as
+ * input, returns a string.
  *
- * Bütün sabitler haritanın kendi 0-100 koordinat uzayındadır; dosyanın
- * kendisinin pikseli yoktur, `width`/`height` yalnızca doğal boyuttur ve
- * <img> üzerindeki CSS onu ezer.
+ * All constants are in the map's own 0–100 coordinate space; the file itself
+ * has no pixels, `width`/`height` is natural size only, and CSS on the `<img>`
+ * tag overrides it.
  */
 
 const DOT_R = 1.3;
@@ -15,11 +15,11 @@ const GATE_COLOUR = '#4CC94C';
 const GATE_WIDTH = 0.9;
 const GATE_OPACITY = 0.9;
 const GATE_LENGTH = 10;
-/** Çerçeve payı. Round 6'dan devralındı: 5 (o günkü stub) + 1.3 (nokta) + 1.0. */
+/** Frame padding. Inherited from Round 6: 5 (stub at the time) + 1.3 (dot) + 1.0. */
 const PAD = 7.3;
 const SPAN = 100;
 
-/** EVE'in güvenlik rampası, 0.0'dan 1.0'a. */
+/** EVE's security ramp, 0.0 to 1.0. */
 const RAMP = [
   '#F00000',
   '#D73000',
@@ -46,7 +46,7 @@ export interface MapJump {
   toId: number;
 }
 
-/** Bölgeden çıkan bir geçit. Hedef, bölgenin dışındaki sistemin ham koordinatı. */
+/** A gate exiting the region. Target is the raw coordinates of the system outside the region. */
 export interface MapGate {
   fromId: number;
   toX: number;
@@ -75,7 +75,7 @@ export function renderRegionMap({
     );
   }
 
-  // x ekranın x'i, -z ekranın y'si. position_y atılır: EVE'de dikey eksen odur.
+  // x is screen x, -z is screen y. position_y is dropped: it's the vertical axis in EVE.
   const xs = systems.map((s) => s.x);
   const ys = systems.map((s) => -s.z);
   const minX = Math.min(...xs);
@@ -83,8 +83,9 @@ export function renderRegionMap({
   const spanX = Math.max(...xs) - minX;
   const spanY = Math.max(...ys) - minY;
 
-  // Tek katsayı, iki eksene birden: dönüşüm benzerlik dönüşümü kalsın, yönler
-  // bozulmasın. Tek sistemli bölgede uzunluk sıfırdır, katsayı önemsizdir.
+  // Single scale factor for both axes: the transformation stays a similarity
+  // transform and direction is preserved. For a region with one system the span
+  // is zero and the scale factor is irrelevant.
   const longest = Math.max(spanX, spanY);
   const scale = longest === 0 ? 1 : SPAN / longest;
   const project = (s: { x: number; z: number }) => ({
@@ -114,7 +115,7 @@ export function renderRegionMap({
     );
   });
 
-  // Her atlama veritabanında iki geçit satırı olarak duruyor. Küçük id önce.
+  // Each jump appears in the database as two rows. Small ID first.
   const seen = new Set<string>();
   const edges: string[] = [];
   for (const jump of jumps) {
@@ -139,7 +140,7 @@ export function renderRegionMap({
     return `<circle cx="${n(p.x)}" cy="${n(p.y)}" r="${DOT_R}" fill="${securityColour(s.security)}"/>`;
   });
 
-  // Çerçeve yalnızca noktalardan hesaplanır; stub'lar dışarı taşıp kesilir.
+  // The frame is computed from dots only; stubs extend outward and are clipped.
   const width = spanX * scale + PAD * 2;
   const height = spanY * scale + PAD * 2;
 
