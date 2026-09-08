@@ -9,17 +9,18 @@ export interface RankNumberProps {
  * as one ranked column rather than a podium plus an afterthought.
  */
 export default function RankNumber({ rank }: RankNumberProps) {
-  // w-10, not w-8: at text-lg a two-digit rank overflows 32px, and this
-  // component does not cap the list — it renders whatever it is given.
+  // justify-end: a column of numbers aligns on its units, so #1 and #10 end at
+  // the same x and the avatars beside them all start at the same one.
   //
-  // justify-start, not justify-center: the box is here to line the column up,
-  // not to centre anything in it. Centred, the rank's visible left margin was
-  // the row's px-3 plus half of whatever slack the digits left over — wider
-  // than the count's flat px-3 on the right, and wider on #1 than on #10.
+  // The width is 3ch, not w-10. tabular-nums makes every digit exactly 1ch, so
+  // 3ch is the width of "#10" in whatever font is loaded — no pixel guess to
+  // drift when the face changes. w-10 was 40px against ~32px of content, so
+  // every row lost 8px and a single-digit row lost 19, all of it piling up on
+  // the left because the number is flush right.
   return (
-    <div className="flex items-center justify-start w-10 shrink-0">
+    <div className="flex items-center w-[3ch] shrink-0 justify-end">
       <span className="text-lg font-semibold text-gray-500 tabular-nums">
-        #{rank}
+        {rank}
       </span>
     </div>
   );
