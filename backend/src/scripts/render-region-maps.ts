@@ -6,7 +6,7 @@
  * See backend/docs/ops/region-map-images.md
  */
 
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, unlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import prismaWorker from '@services/prisma-worker';
 import { MapGate, MapJump, MapSystem, renderRegionMap } from './region-map-svg';
@@ -117,12 +117,31 @@ async function main(): Promise<void> {
     0,
   );
 
+  // Reconcile the directory: a region retired (or renumbered) since the last
+  // run leaves a stale file that this pass did not write. A region id is only
+  // ever reused for a different region, never revived for the same one, so a
+  // stale file is not just outdated — it can silently show the wrong region's
+  // map. Only ever remove `<digits>.svg` in this one directory; anything else
+  // (a dotfile, a directory, a name that doesn't parse as a region id) is left
+  // alone.
+  const renderedIds = new Set(byRegion.keys());
+  const existing = await readdir(OUT_DIR);
+  const removable = existing.filter((name) => {
+    const match = /^(\d+)\.svg$/.exec(name);
+    return match !== null && !renderedIds.has(Number(match[1]));
+  });
+
+  await Promise.all(removable.map((name) => unlink(join(OUT_DIR, name))));
+
   console.log(
     `${files.length} regions written to ${OUT_DIR}\n` +
       `  ${dots} systems, ${edges} internal jumps, ${stubs} outbound gates` +
       (orphaned > 0
         ? `\n  ${orphaned} gates skipped: endpoint missing or unpositioned`
-        : ''),
+        : '') +
+      (removable.length > 0
+        ? `\n  ${removable.length} stale files removed: ${removable.join(', ')}`
+        : '\n  0 stale files removed'),
   );
 
   await prismaWorker.$disconnect();
