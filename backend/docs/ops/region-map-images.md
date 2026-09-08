@@ -61,7 +61,7 @@ re-run — it is one number and 114 files.
   They render as dots only. That is correct: those regions genuinely have no
   gate topology.
 - 48 regions have no gates leaving them, so they carry no green.
-- 3 regions hold a single system (G-R00031, GPMR-01, Yasna Zakh) and render as
-  one dot.
+- 3 regions hold a single system (G-R00031, GPMR-01, Yasna Zakh): two render as
+  a dot, and Yasna Zakh renders as a dot with four green stubs.
 
 None of these get a substitute image.
