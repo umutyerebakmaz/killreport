@@ -248,7 +248,6 @@ export default function AttackerRow({
                     alt={attacker.corporation?.name || 'Corporation'}
                     width={32}
                     height={32}
-                    className="shadow-md bg-black/50"
                     loading="lazy"
                   />
                 </Tooltip>
@@ -264,7 +263,6 @@ export default function AttackerRow({
                     alt={attacker.alliance?.name || 'Alliance'}
                     width={32}
                     height={32}
-                    className="shadow-md bg-black/50"
                     loading="lazy"
                   />
                 </Tooltip>
