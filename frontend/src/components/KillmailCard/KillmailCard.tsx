@@ -161,8 +161,8 @@ export default function KillmailCard({
             <img
               src={
                 km.victim.alliance?.id
-                  ? `https://images.evetech.net/alliances/${km.victim.alliance.id}/logo?size=64`
-                  : `https://images.evetech.net/corporations/${km.victim.corporation?.id}/logo?size=64`
+                  ? `https://images.evetech.net/alliances/${km.victim.alliance.id}/logo?size=128`
+                  : `https://images.evetech.net/corporations/${km.victim.corporation?.id}/logo?size=128`
               }
               alt={
                 km.victim.alliance?.name ||

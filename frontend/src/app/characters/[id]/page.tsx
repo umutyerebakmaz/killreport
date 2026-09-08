@@ -241,7 +241,7 @@ export default function CharacterDetailPage({
                 }`}
               >
                 <img
-                  src={`https://images.evetech.net/corporations/${character.corporation?.id}/logo?size=64`}
+                  src={`https://images.evetech.net/corporations/${character.corporation?.id}/logo?size=128`}
                   alt={character.corporation?.name || 'Corporation'}
                   width={64}
                   height={64}
@@ -257,7 +257,7 @@ export default function CharacterDetailPage({
                 content={`Alliance: ${character.alliance?.name || 'Unknown'}`}
               >
                 <img
-                  src={`https://images.evetech.net/alliances/${character.alliance?.id}/logo?size=64`}
+                  src={`https://images.evetech.net/alliances/${character.alliance?.id}/logo?size=128`}
                   alt={character.alliance?.name || 'Alliance'}
                   width={64}
                   height={64}

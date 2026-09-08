@@ -49,8 +49,8 @@ export default function WeeklyTopCharCard() {
                     <img
                       src={
                         char
-                          ? `https://images.evetech.net/characters/${char.id}/portrait?size=64`
-                          : `https://images.evetech.net/characters/0/portrait?size=64`
+                          ? `https://images.evetech.net/characters/${char.id}/portrait?size=128`
+                          : `https://images.evetech.net/characters/0/portrait?size=128`
                       }
                       alt={char?.name ?? 'Unknown'}
                       width={40}

@@ -65,7 +65,7 @@ export default function Slot({
                             module?.charge
                               ? module.charge.singleton
                               : module.singleton,
-                            64,
+                            128,
                           )}
                           alt={name}
                           className="z-10 size-12"
@@ -82,7 +82,7 @@ export default function Slot({
                             src={getItemImageUrl(
                               module.itemType,
                               module.singleton,
-                              64,
+                              128,
                             )}
                             alt={module.itemType.name}
                             className="size-12"
