@@ -70,7 +70,6 @@ export default function TopAllianceCard({
                       alt={alliance.name}
                       width={64}
                       height={64}
-                      className="shadow-md bg-black/50"
                       loading="lazy"
                     />
                   </div>
