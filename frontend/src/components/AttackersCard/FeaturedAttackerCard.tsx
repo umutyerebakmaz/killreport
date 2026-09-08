@@ -32,7 +32,7 @@ export default function FeaturedAttackerCard({
               alt={attacker.character?.name || 'Character'}
               width={256}
               height={256}
-              className="w-full shadow-lg"
+              className="w-full"
               loading="lazy"
             />
           </Tooltip>
@@ -87,7 +87,6 @@ export default function FeaturedAttackerCard({
               alt={attacker.shipType?.name || 'Ship'}
               width={48}
               height={48}
-              className="shadow-lg"
               loading="lazy"
             />
           </Tooltip>
@@ -103,7 +102,6 @@ export default function FeaturedAttackerCard({
               alt={attacker.weaponType?.name || 'Weapon'}
               width={48}
               height={48}
-              className="shadow-lg"
               loading="lazy"
             />
           </Tooltip>
