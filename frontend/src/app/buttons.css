@@ -121,6 +121,14 @@
     @apply px-3 py-1 text-xs;
   }
 
+  /* .button-icon at the small size, for an icon button standing next to
+     .button-sm text buttons: p-1 around a size-4 icon is 26px, the same
+     height a .button-sm renders at. Must stay after .button-sm, which would
+     otherwise win on padding by being written later. */
+  .button-icon-sm {
+    @apply p-1;
+  }
+
   /* .button already sets justify-center; this only needs the width. */
   .button-block {
     @apply w-full;

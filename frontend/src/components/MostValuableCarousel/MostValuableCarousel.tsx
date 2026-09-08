@@ -15,8 +15,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 const WINDOW_DAYS = 7;
 const CARD_COUNT = 20;
 
-/** Card width (w-80 = 320px) plus the flex gap (gap-4 = 16px). */
-const CARD_PITCH = 336;
+/** Card width (w-64 = 256px) plus the flex gap (gap-3 = 12px). */
+const CARD_PITCH = 268;
 
 /**
  * One panel element whose content swaps, so every tab points at the same id.
@@ -127,7 +127,7 @@ export default function MostValuableCarousel() {
        * The scroll buttons sit next to the tablist rather than inside it: a
        * tablist that holds anything but tabs stops announcing them correctly.
        */}
-      <div className="flex items-center justify-between gap-4 pb-3 mb-4 border-b border-white/5">
+      <div className="flex items-center justify-between gap-4 mb-3">
         <div
           role="tablist"
           aria-label="Most valuable scope"
@@ -150,22 +150,22 @@ export default function MostValuableCarousel() {
           ))}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-1">
           <button
             onClick={() => scroll('left')}
             disabled={!canScrollLeft}
-            className="button button-secondary button-icon"
+            className="button button-secondary button-icon-sm"
             aria-label="Scroll left"
           >
-            <ChevronLeftIcon className="w-5 h-5" />
+            <ChevronLeftIcon className="size-4" />
           </button>
           <button
             onClick={() => scroll('right')}
             disabled={!canScrollRight}
-            className="button button-secondary button-icon"
+            className="button button-secondary button-icon-sm"
             aria-label="Scroll right"
           >
-            <ChevronRightIcon className="w-5 h-5" />
+            <ChevronRightIcon className="size-4" />
           </button>
         </div>
       </div>
@@ -174,27 +174,27 @@ export default function MostValuableCarousel() {
         {loading ? (
           // Skeletons rather than a centred spinner: the shelf keeps its height, so
           // switching tabs does not make the page jump.
-          <div className="flex gap-4 overflow-hidden">
-            {Array.from({ length: 4 }).map((_, i) => (
+          <div className="flex gap-3 overflow-hidden">
+            {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="flex-none w-80 h-[420px] bg-white/5 animate-pulse"
+                className="flex-none w-64 aspect-square bg-white/5 animate-pulse"
               />
             ))}
           </div>
         ) : killmails.length === 0 ? (
-          <div className="flex items-center justify-center h-[420px] text-gray-500">
+          <div className="flex items-center justify-center h-64 text-gray-500">
             <p className="text-sm font-medium">{activeTab.emptyText}</p>
           </div>
         ) : (
           <div
             ref={scrollRef}
             onScroll={measure}
-            className="flex gap-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory"
+            className="flex gap-3 overflow-x-auto hide-scrollbar snap-x snap-mandatory"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {killmails.map((killmail, index) => (
-              <div key={killmail.id} className="flex-none w-80 snap-start">
+              <div key={killmail.id} className="flex-none w-64 snap-start">
                 <KillmailCard killmail={killmail} rank={index + 1} />
               </div>
             ))}
