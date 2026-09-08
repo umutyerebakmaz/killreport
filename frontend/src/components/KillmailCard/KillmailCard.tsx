@@ -10,9 +10,10 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 /**
- * Renders are square and the card is portrait, so `object-cover` scales to the
- * height and crops the sides. 512 is enough for a 420px-tall card; 1024 exists
- * but costs two and a half times the bytes for a shelf of twenty.
+ * Renders are square and so is the card, so `object-cover` has nothing to crop.
+ * 512 is twice the 256px the card renders at, which is what a retina screen
+ * wants; 1024 exists but costs two and a half times the bytes for a shelf of
+ * twenty.
  */
 const RENDER_SIZE = 512;
 const ICON_SIZE = 128;
@@ -28,18 +29,16 @@ export interface KillmailCardData {
     shipType?: {
       id: number;
       name: string;
-      group?: { name: string } | null;
       dogmaAttributes?: Array<{ attribute_id: number; value: number }> | null;
     } | null;
-    damageTaken?: number | null;
   } | null;
   solarSystem?: {
     id: number;
     name: string;
     securityStatus?: number | null;
+    /** Carried only for the region hanging off it. */
     constellation?: {
       id: number;
-      name: string;
       region?: {
         id: number;
         name: string;
@@ -73,7 +72,7 @@ export default function KillmailCard({
   return (
     <Link
       href={`/killmails/${km.id}`}
-      className="group relative block h-[420px] w-full overflow-hidden border bg-surface border-white/10 transition-colors duration-200 hover:border-white/25"
+      className="group relative block w-full overflow-hidden border aspect-square bg-surface border-white/10 transition-colors duration-200 hover:border-white/25"
       prefetch={false}
     >
       {shipTypeId && (
@@ -104,64 +103,60 @@ export default function KillmailCard({
         </span>
       )}
 
-      <div className="absolute inset-x-0 bottom-0 p-4 space-y-3">
+      {/*
+       * Every measurement here is bought from the render above it: the card is
+       * 256px tall now, and each pixel this block takes is one the ship does
+       * not get. p-3 over p-4, space-y-2 over space-y-3, and the two smaller
+       * type steps below come to 68px — the difference between a sliver of
+       * hull and something you can recognise.
+       */}
+      <div className="absolute inset-x-0 bottom-0 p-3 space-y-2">
         <div>
           <Tooltip
             content={formatKillmailDateTime(km.killmailTime)}
             position="top"
           >
-            <div className="text-sm text-gray-300">
+            <div className="text-xs text-gray-300">
               {formatKillmailDate(km.killmailTime)}
             </div>
           </Tooltip>
           {km.totalValue && (
-            <div className="mt-1 text-xl font-bold text-yellow-400 tabular-nums">
+            <div className="text-lg font-bold text-yellow-400 tabular-nums">
               {formatISK(km.totalValue)}
             </div>
           )}
         </div>
 
-        <div>
-          <div className="font-semibold text-orange-400 truncate">
-            {km.victim?.shipType?.name || 'Unknown Ship'}
-          </div>
-          {km.victim?.shipType?.group && (
-            <div className="text-sm text-gray-400 truncate">
-              {km.victim.shipType.group.name}
-            </div>
-          )}
-          {km.victim?.damageTaken && (
-            <div className="mt-1 text-sm text-red-400">
-              {km.victim.damageTaken.toLocaleString()} damage
-            </div>
-          )}
+        <div className="font-semibold text-orange-400 truncate">
+          {km.victim?.shipType?.name || 'Unknown Ship'}
         </div>
 
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            {km.solarSystem?.securityStatus !== null &&
-              km.solarSystem?.securityStatus !== undefined && (
-                <SecurityStatus
-                  securityStatus={km.solarSystem.securityStatus}
-                />
-              )}
-            <span className="font-medium text-orange-400 truncate">
+        {/* System and region read as one place, so they share a line. The
+            truncation sits on the span holding both: put it on each name and
+            a long region would keep its full width while the system clipped. */}
+        <div className="flex items-center gap-2 min-w-0">
+          {km.solarSystem?.securityStatus !== null &&
+            km.solarSystem?.securityStatus !== undefined && (
+              <SecurityStatus securityStatus={km.solarSystem.securityStatus} />
+            )}
+          <span className="truncate">
+            <span className="font-medium text-orange-400">
               {km.solarSystem?.name || 'Unknown'}
             </span>
-          </div>
-          {km.solarSystem?.constellation && (
-            <div className="text-sm text-purple-400 truncate">
-              {km.solarSystem.constellation.name}
-            </div>
-          )}
-          {km.solarSystem?.constellation?.region && (
-            <div className="text-sm text-blue-400 truncate">
-              {km.solarSystem.constellation.region.name}
-            </div>
-          )}
+            {km.solarSystem?.constellation?.region && (
+              <>
+                {/* The separator belongs to neither name, so it takes neither
+                    colour. */}
+                <span className="text-gray-400">{' · '}</span>
+                <span className="font-medium text-blue-400">
+                  {km.solarSystem.constellation.region.name}
+                </span>
+              </>
+            )}
+          </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {(km.victim?.alliance?.id || km.victim?.corporation?.id) && (
             <img
               src={
@@ -174,7 +169,7 @@ export default function KillmailCard({
                 km.victim.corporation?.name ||
                 'Logo'
               }
-              className="shadow-md size-12 shrink-0"
+              className="shadow-md size-10 shrink-0"
               loading="lazy"
             />
           )}
