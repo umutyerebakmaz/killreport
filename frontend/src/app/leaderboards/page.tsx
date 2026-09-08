@@ -171,7 +171,6 @@ function PilotList({
                           alt={char.corporation.name}
                           width={32}
                           height={32}
-                          className="shadow-md bg-black/50 ring-1 ring-black/50"
                           loading="lazy"
                         />
                       </Tooltip>
@@ -183,7 +182,6 @@ function PilotList({
                           alt={char.alliance.name}
                           width={32}
                           height={32}
-                          className="shadow-md bg-black/50 ring-1 ring-black/50"
                           loading="lazy"
                         />
                       </Tooltip>
