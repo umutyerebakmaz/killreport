@@ -31,7 +31,6 @@ query MostValuableKillmails(
           value
         }
       }
-      damageTaken
     }
     solarSystem {
       id

@@ -31,7 +31,6 @@ export interface KillmailCardData {
       group?: { name: string } | null;
       dogmaAttributes?: Array<{ attribute_id: number; value: number }> | null;
     } | null;
-    damageTaken?: number | null;
   } | null;
   solarSystem?: {
     id: number;
@@ -128,11 +127,6 @@ export default function KillmailCard({
           {km.victim?.shipType?.group && (
             <div className="text-sm text-gray-400 truncate">
               {km.victim.shipType.group.name}
-            </div>
-          )}
-          {km.victim?.damageTaken && (
-            <div className="mt-1 text-sm text-red-400">
-              {km.victim.damageTaken.toLocaleString()} damage
             </div>
           )}
         </div>
