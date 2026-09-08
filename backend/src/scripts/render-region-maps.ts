@@ -32,7 +32,8 @@ async function main(): Promise<void> {
     SELECT c.region_id, s.system_id, s.position_x, s.position_z, s.security_status
     FROM solar_systems s
     JOIN constellations c ON c.constellation_id = s.constellation_id
-    WHERE s.position_x IS NOT NULL AND s.position_z IS NOT NULL`;
+    WHERE s.position_x IS NOT NULL AND s.position_z IS NOT NULL
+      AND c.region_id IS NOT NULL`;
 
   const gates = await prismaWorker.$queryRaw<GateRow[]>`
     SELECT solar_system_id, destination_system_id
