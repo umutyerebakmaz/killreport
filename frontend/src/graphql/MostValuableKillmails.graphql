@@ -23,9 +23,6 @@ query MostValuableKillmails(
       shipType {
         id
         name
-        group {
-          name
-        }
         dogmaAttributes(ids: [422, 1692]) {
           attribute_id
           value
