@@ -1,11 +1,12 @@
 'use client';
 
 import RegionMap from '@/components/RegionMap/RegionMap';
+import ConstellationMap from '@/components/ConstellationMap/ConstellationMap';
 import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
 import SecurityBadge from '@/components/SecurityStatus/SecurityStatus';
 import { useConstellationQuery } from '@/generated/graphql';
 import { useTabList } from '@/hooks/useTabList';
-import { MapIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import { MapPinIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { use, useState } from 'react';
 
@@ -68,8 +69,13 @@ export default function ConstellationDetailPage({
         {/* Header */}
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-start gap-6">
-            <div className="flex items-center justify-center w-24 h-24 shadow-md bg-gray-800/50 shrink-0">
-              <MapIcon className="w-12 h-12 text-purple-500" />
+            <div className="flex items-center justify-center w-24 h-24 sm:w-64 sm:h-64 shrink-0">
+              <ConstellationMap
+                constellationId={constellation.id}
+                constellationName={constellation.name}
+                size={256}
+                className="w-full h-full"
+              />
             </div>
             <div>
               <h1 className="text-4xl font-bold text-white">

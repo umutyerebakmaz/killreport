@@ -3,13 +3,19 @@
  * directory.
  *
  * Run by hand, not a PM2 process: once after an SDE update.
- * See backend/docs/ops/region-map-images.md
+ * See backend/docs/ops/star-map-images.md
  */
 
 import { mkdir, readdir, unlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import prismaWorker from '@services/prisma-worker';
-import { MapGate, MapJump, MapSystem, renderRegionMap } from './region-map-svg';
+import {
+  MapGate,
+  MapJump,
+  MapSystem,
+  REGION_PALETTE,
+  renderStarMap,
+} from './star-map-svg';
 
 // backend is CommonJS (no "type": "module"), so __dirname is the way here —
 // import.meta.url is not available. From src/scripts that is three levels up.
@@ -93,11 +99,14 @@ async function main(): Promise<void> {
   // All maps are generated in memory first: an interrupted run should not leave a partial set on disk.
   const files = [...byRegion.entries()].map(([regionId, regionSystems]) => ({
     path: join(OUT_DIR, `${regionId}.svg`),
-    svg: renderRegionMap({
-      systems: regionSystems,
-      jumps: jumpsOf.get(regionId) ?? [],
-      gates: gatesOf.get(regionId) ?? [],
-    }),
+    svg: renderStarMap(
+      {
+        systems: regionSystems,
+        jumps: jumpsOf.get(regionId) ?? [],
+        gates: gatesOf.get(regionId) ?? [],
+      },
+      REGION_PALETTE,
+    ),
   }));
 
   await Promise.all(
