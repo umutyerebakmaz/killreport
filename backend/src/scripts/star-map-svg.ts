@@ -89,13 +89,15 @@ export const REGION_PALETTE: MapPalette = {
  * A constellation averages 7.2 systems against a region's 74.5, and outbound
  * gates run about 1:2 against internal jumps instead of 1:9 — so it gets its
  * own language rather than the region's. Red at 0.55 goes muddy on the site's
- * dark surfaces, which is why jumpOpacity is 0.7 here and 0.55 there.
+ * dark surfaces, which is why jumpOpacity is 0.7 here and 0.55 there, and the
+ * jump line is twice the region's width: with a tenth of the systems there is
+ * no mass of lines to read as texture, so each one has to carry on its own.
  */
 export const CONSTELLATION_PALETTE: MapPalette = {
   dotR: 1.3,
   dotFill: () => '#FFFFFF',
   jump: '#DC2626',
-  jumpWidth: 0.75,
+  jumpWidth: 1.5,
   jumpOpacity: 0.7,
   gate: '#1D4ED8',
   gateWidth: 0.9,

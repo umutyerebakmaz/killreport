@@ -225,9 +225,9 @@ describe('renderStarMap with CONSTELLATION_PALETTE', () => {
     expect(svg).not.toContain('#F00000');
   });
 
-  it('draws internal jumps red, at a higher opacity than the region', () => {
+  it('draws internal jumps red, wider and more opaque than the region', () => {
     expect(renderStarMap(twoSystems, CONSTELLATION_PALETTE)).toContain(
-      '<line x1="0.0" y1="0.0" x2="100.0" y2="50.0" stroke="#DC2626" stroke-width="0.75" stroke-opacity="0.7"/>',
+      '<line x1="0.0" y1="0.0" x2="100.0" y2="50.0" stroke="#DC2626" stroke-width="1.5" stroke-opacity="0.7"/>',
     );
   });
 

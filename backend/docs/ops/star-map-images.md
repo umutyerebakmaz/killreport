@@ -69,8 +69,10 @@ Only the palette differs.
 
 - One **white** `#FFFFFF` dot per system, `r 1.3`. No security ramp.
 - One **red** `#DC2626` line per stargate jump inside the constellation, at
-  `stroke-opacity` 0.7 rather than the region's 0.55 — red goes muddy on the
-  site's dark surfaces at the lower value.
+  `w 1.5` and `stroke-opacity` 0.7 against the region's `w 0.75` and 0.55. Red
+  goes muddy on the site's dark surfaces at the lower opacity, and with a tenth
+  of the systems there is no mass of lines to read as texture — each one has to
+  carry on its own.
 - A 10-unit **dark blue** `#1D4ED8` stub for each gate leaving the
   constellation.
 
@@ -102,10 +104,13 @@ constellation header, 256px in the region header (96px below the `sm`
 breakpoint). An SVG has no resolution, so there is nothing to export at 2x and
 no `srcset`.
 
-What does change with size is line weight: everything scales together, so at
-64px a `w 0.75` jump line lands at about 0.4 of a pixel and reads faint. If that
-turns out too weak in place, raise `jumpWidth` in the relevant palette in
-`star-map-svg.ts` and re-run — it is one number.
+What does change with size is line weight: everything scales together, and the
+frame is always 114,6 units across, so a line of width `w` at `p` pixels lands
+at `w × p / 114,6`. A region jump line at 64px is about 0,4 of a pixel and reads
+faint; the constellation's `w 1.5` is about 0,8 there and 1,3 at the 96px
+header. If a weight turns out wrong in place, change `jumpWidth` in the relevant
+palette in `star-map-svg.ts` and re-run — it is one number. Region's is still
+the open one.
 
 ## Maps with nothing to draw
 
