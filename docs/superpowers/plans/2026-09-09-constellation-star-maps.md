@@ -666,24 +666,35 @@ Expected: boş çıktı. `render:maps` region'ları da yeniden ürettiği için 
 - [ ] **Step 3: Uç durumları gözle doğrula**
 
 ```bash
-ls frontend/public/images/constellations | wc -l          # 1184
-grep -c '<circle' frontend/public/images/constellations/20010001.svg   # 1  (Manifest District, tek sistem)
-grep -c '#1D4ED8' frontend/public/images/constellations/20010001.svg   # 5  (beş dışa çıkan kapı)
-grep -c '#DC2626' frontend/public/images/constellations/21000329.svg   # 0  (E-C00329, wormhole: iç bağlantı yok)
-grep -c '#1D4ED8' frontend/public/images/constellations/21000329.svg   # 0  (kapı da yok)
-grep -c '<circle' frontend/public/images/constellations/21000329.svg   # 19 (sadece nokta)
-grep -c '#F00000\|#2FEFEF' frontend/public/images/constellations/20000020.svg  # 0  (security ramp kullanılmıyor)
+cd frontend/public/images/constellations
+ls | wc -l                                # 1184
+grep -o '<circle' 20010001.svg | wc -l    # 1   Manifest District, tek sistem
+grep -o '#1D4ED8' 20010001.svg | wc -l    # 5   beş dışa çıkan kapı
+grep -o '<circle' 21000329.svg | wc -l    # 19  E-C00329, wormhole: sadece nokta
+grep -o '#DC2626' 21000329.svg | wc -l    # 0   iç bağlantı yok
+grep -o '#1D4ED8' 21000329.svg | wc -l    # 0   kapı da yok
+grep -o '<circle' 20000020.svg | wc -l    # 7   Kimotoro
+grep -o '#DC2626' 20000020.svg | wc -l    # 9   iç bağlantı
+grep -o '#1D4ED8' 20000020.svg | wc -l    # 14  dışa çıkan kapı
+grep -o '#F00000\|#2FEFEF' 20000020.svg | wc -l  # 0   security ramp kullanılmıyor
 ```
+
+`grep -o ... | wc -l` şart: bir SVG tek satırdır, `grep -c` her dosya için
+1 döndürür ve uyuşmazlığı gizler.
 
 Beklenen değerler her satırın yanında. Biri tutmuyorsa palet ya da gruplama yanlış bağlanmıştır.
 
 - [ ] **Step 4: Boyutu kaydet**
 
 ```bash
-du -sh frontend/public/images/constellations
+ls -l frontend/public/images/constellations/*.svg |
+  awk '{s+=$5; n++} END {printf "%.2f MB across %d files, avg %d bytes\n", s/1048576, n, s/n}'
 ```
 
-Expected: ~1,5 MB. Spec'in tahmini eleman başına 77 byte üzerinden 1,47 MB'tı; belirgin sapma varsa commit'ten önce nedenini anla.
+Expected: ~1,4 MB / 1184 dosya / ~1240 byte. Spec'in tahmini eleman başına
+77 byte üzerinden 1,47 MB'tı; belirgin sapma varsa commit'ten önce nedenini anla.
+`du -sh` kullanma — 4K blok tahsisini ölçer ve 1.184 küçük dosyada 4,7 MB gibi
+alakasız bir sayı verir; `du -sh --apparent-size` doğru olanı söyler.
 
 - [ ] **Step 5: Commit**
 
