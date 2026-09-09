@@ -15,12 +15,13 @@ import {
   SolarSystemTab,
   TAB_LABELS,
 } from '@/components/SolarSystemDetail/tabs';
+import ConstellationMap from '@/components/ConstellationMap/ConstellationMap';
 import RegionMap from '@/components/RegionMap/RegionMap';
 import { useSolarSystemQuery } from '@/generated/graphql';
 import { useTabList } from '@/hooks/useTabList';
 import { formatTimeAgo } from '@/utils/date';
 import { getSecurityColor } from '@/utils/security';
-import { MapIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import { MapPinIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { use, useCallback, useState } from 'react';
@@ -189,7 +190,12 @@ export default function SolarSystemDetailPage({
               <div className="flex flex-wrap items-center gap-6 mt-4 text-sm">
                 {system.constellation && (
                   <div className="flex items-center gap-2 text-gray-400">
-                    <MapIcon className="w-4 h-4 text-purple-500" />
+                    <ConstellationMap
+                      constellationId={system.constellation.id}
+                      constellationName={system.constellation.name}
+                      size={20}
+                      className="shrink-0"
+                    />
                     <span>Constellation:</span>
                     <Link
                       href={`/constellations/${system.constellation.id}`}

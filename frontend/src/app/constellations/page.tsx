@@ -1,5 +1,6 @@
 'use client';
 
+import ConstellationMap from '@/components/ConstellationMap/ConstellationMap';
 import AvgSecurity from '@/components/AvgSecurity/AvgSecurity';
 import ConstellationFilterForm from '@/components/Filters/ConstellationFilterForm';
 import { Loader } from '@/components/Loader/Loader';
@@ -156,6 +157,12 @@ function ConstellationsContent() {
                 <tr key={constellation.id} className="tr-row">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
+                      <ConstellationMap
+                        constellationId={constellation.id}
+                        constellationName={constellation.name}
+                        size={64}
+                        className="shrink-0"
+                      />
                       <Link
                         href={`/constellations/${constellation.id}`}
                         prefetch={false}
