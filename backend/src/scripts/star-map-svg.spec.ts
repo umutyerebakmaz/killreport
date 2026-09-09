@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { renderRegionMap, securityColour } from './region-map-svg';
+import {
+  CONSTELLATION_PALETTE,
+  REGION_PALETTE,
+  renderStarMap,
+  securityColour,
+} from './star-map-svg';
 import { FADE_SYSTEMS } from './fade.fixture';
 
 describe('securityColour', () => {
@@ -32,7 +37,7 @@ describe('securityColour', () => {
   });
 });
 
-describe('renderRegionMap', () => {
+describe('renderStarMap with REGION_PALETTE', () => {
   // Two systems 100 units apart on x, 50 on z. The long axis is x, so the
   // scale is 1 and z passes through at 50 — negated, so the system with the
   // LOWER z (id 2) gets the LARGER y and sits at the bottom of the drawing.
@@ -46,7 +51,7 @@ describe('renderRegionMap', () => {
   };
 
   it('normalises the long axis to 0-100 and negates z', () => {
-    const svg = renderRegionMap(twoSystems);
+    const svg = renderStarMap(twoSystems, REGION_PALETTE);
     expect(svg).toContain('<circle cx="0.0" cy="0.0" r="1.3" fill="#48F0C0"/>');
     expect(svg).toContain(
       '<circle cx="100.0" cy="50.0" r="1.3" fill="#F00000"/>',
@@ -54,52 +59,61 @@ describe('renderRegionMap', () => {
   });
 
   it('pads the viewBox by 7.3 on every side', () => {
-    expect(renderRegionMap(twoSystems)).toContain(
+    expect(renderStarMap(twoSystems, REGION_PALETTE)).toContain(
       'viewBox="-7.3 -7.3 114.6 64.6"',
     );
   });
 
   it('is square and letterboxed, with no background', () => {
-    const svg = renderRegionMap(twoSystems);
+    const svg = renderStarMap(twoSystems, REGION_PALETTE);
     expect(svg).toContain('width="128" height="128"');
     expect(svg).toContain('preserveAspectRatio="xMidYMid meet"');
     expect(svg).not.toContain('<rect');
   });
 
   it('draws one line per internal jump, in the neutral colour', () => {
-    expect(renderRegionMap(twoSystems)).toContain(
+    expect(renderStarMap(twoSystems, REGION_PALETTE)).toContain(
       '<line x1="0.0" y1="0.0" x2="100.0" y2="50.0" stroke="#94a3b8" stroke-width="0.75" stroke-opacity="0.55"/>',
     );
   });
 
   it('deduplicates a jump listed in both directions', () => {
-    const svg = renderRegionMap({
-      ...twoSystems,
-      jumps: [
-        { fromId: 1, toId: 2 },
-        { fromId: 2, toId: 1 },
-      ],
-    });
+    const svg = renderStarMap(
+      {
+        ...twoSystems,
+        jumps: [
+          { fromId: 1, toId: 2 },
+          { fromId: 2, toId: 1 },
+        ],
+      },
+      REGION_PALETTE,
+    );
     expect(svg.match(/#94a3b8/g)).toHaveLength(1);
   });
 
   it('draws an outbound gate as a 10-unit stub towards its destination', () => {
-    const svg = renderRegionMap({
-      systems: [{ id: 1, x: 0, z: 0, security: 0.5 }],
-      jumps: [],
-      // destination is far to the right; direction is +x, so the stub ends at x=10
-      gates: [{ fromId: 1, toX: 900, toZ: 0 }],
-    });
+    const svg = renderStarMap(
+      {
+        systems: [{ id: 1, x: 0, z: 0, security: 0.5 }],
+        jumps: [],
+        // destination is far to the right; direction is +x, so the stub ends at x=10
+        gates: [{ fromId: 1, toX: 900, toZ: 0 }],
+      },
+      REGION_PALETTE,
+    );
     expect(svg).toContain(
       '<line x1="0.0" y1="0.0" x2="10.00" y2="0.00" stroke="#4CC94C" stroke-width="0.9" stroke-opacity="0.9"/>',
     );
   });
 
   it('draws stubs beneath the jump lines, and dots on top of both', () => {
-    const svg = renderRegionMap({
-      ...twoSystems,
-      gates: [{ fromId: 1, toX: -900, toZ: 0 }],
-    });
+    const svg = renderStarMap(
+      {
+        ...twoSystems,
+        gates: [{ fromId: 1, toX: -900, toZ: 0 }],
+      },
+      REGION_PALETTE,
+    );
     expect(svg.indexOf('#4CC94C')).toBeLessThan(svg.indexOf('#94a3b8'));
     expect(svg.indexOf('#94a3b8')).toBeLessThan(svg.indexOf('<circle'));
   });
@@ -110,14 +124,17 @@ describe('renderRegionMap', () => {
     // spanY: scale = 100 / 100 = 1, so id 1 projects to (0, 0) and id 2 to
     // (50, 100) (z negated, then both axes shifted so the minimum is 0).
     // viewBox width = spanX*scale + 14.6 = 64.6, height = spanY*scale + 14.6 = 114.6.
-    const svg = renderRegionMap({
-      systems: [
-        { id: 1, x: 0, z: 0, security: 0.9 },
-        { id: 2, x: 50, z: -100, security: -0.2 },
-      ],
-      jumps: [],
-      gates: [],
-    });
+    const svg = renderStarMap(
+      {
+        systems: [
+          { id: 1, x: 0, z: 0, security: 0.9 },
+          { id: 2, x: 50, z: -100, security: -0.2 },
+        ],
+        jumps: [],
+        gates: [],
+      },
+      REGION_PALETTE,
+    );
     expect(svg).toContain('<circle cx="0.0" cy="0.0" r="1.3" fill="#48F0C0"/>');
     expect(svg).toContain(
       '<circle cx="50.0" cy="100.0" r="1.3" fill="#F00000"/>',
@@ -126,11 +143,14 @@ describe('renderRegionMap', () => {
   });
 
   it('gives a single-system region a 14.6-unit square viewBox', () => {
-    const svg = renderRegionMap({
-      systems: [{ id: 1, x: 42, z: -7, security: -1 }],
-      jumps: [],
-      gates: [],
-    });
+    const svg = renderStarMap(
+      {
+        systems: [{ id: 1, x: 42, z: -7, security: -1 }],
+        jumps: [],
+        gates: [],
+      },
+      REGION_PALETTE,
+    );
     expect(svg).toContain('viewBox="-7.3 -7.3 14.6 14.6"');
     expect(svg).toContain('<circle cx="0.0" cy="0.0" r="1.3" fill="#F00000"/>');
   });
@@ -167,11 +187,14 @@ describe('renderRegionMap', () => {
       [32.0, 8.7],
       [38.3, 3.0],
     ];
-    const svg = renderRegionMap({
-      systems: FADE_SYSTEMS,
-      jumps: [],
-      gates: [],
-    });
+    const svg = renderStarMap(
+      {
+        systems: FADE_SYSTEMS,
+        jumps: [],
+        gates: [],
+      },
+      REGION_PALETTE,
+    );
     const drawn = [
       ...svg.matchAll(/<circle cx="([-\d.]+)" cy="([-\d.]+)"/g),
     ].map((m) => [Number(m[1]), Number(m[2])]);
@@ -179,5 +202,47 @@ describe('renderRegionMap', () => {
     for (const point of expected) {
       expect(drawn).toContainEqual(point);
     }
+  });
+});
+
+describe('renderStarMap with CONSTELLATION_PALETTE', () => {
+  const twoSystems = {
+    systems: [
+      { id: 1, x: 0, z: 0, security: 0.9 },
+      { id: 2, x: 100, z: -50, security: -0.2 },
+    ],
+    jumps: [{ fromId: 1, toId: 2 }],
+    gates: [{ fromId: 1, toX: 900, toZ: 0 }],
+  };
+
+  it('draws every system white, whatever its security', () => {
+    const svg = renderStarMap(twoSystems, CONSTELLATION_PALETTE);
+    expect(svg).toContain('<circle cx="0.0" cy="0.0" r="1.3" fill="#FFFFFF"/>');
+    expect(svg).toContain(
+      '<circle cx="100.0" cy="50.0" r="1.3" fill="#FFFFFF"/>',
+    );
+    expect(svg).not.toContain('#48F0C0');
+    expect(svg).not.toContain('#F00000');
+  });
+
+  it('draws internal jumps red, at a higher opacity than the region', () => {
+    expect(renderStarMap(twoSystems, CONSTELLATION_PALETTE)).toContain(
+      '<line x1="0.0" y1="0.0" x2="100.0" y2="50.0" stroke="#DC2626" stroke-width="0.75" stroke-opacity="0.7"/>',
+    );
+  });
+
+  it('draws outbound gates dark blue', () => {
+    expect(renderStarMap(twoSystems, CONSTELLATION_PALETTE)).toContain(
+      'stroke="#1D4ED8" stroke-width="0.9" stroke-opacity="0.9"',
+    );
+  });
+
+  it('shares the region geometry exactly, differing only in colour', () => {
+    const viewBoxOf = (svg: string) => /viewBox="[^"]+"/.exec(svg)?.[0];
+    const region = renderStarMap(twoSystems, REGION_PALETTE);
+    const constellation = renderStarMap(twoSystems, CONSTELLATION_PALETTE);
+    expect(viewBoxOf(constellation)).toBe(viewBoxOf(region));
+    expect(constellation.match(/<circle/g)).toHaveLength(2);
+    expect(constellation.match(/<line/g)).toHaveLength(2);
   });
 });
