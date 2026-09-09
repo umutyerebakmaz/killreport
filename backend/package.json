@@ -26,6 +26,8 @@
     "rabbitmq:purge": "rabbitmqctl list_queues -q --no-table-headers name | xargs -n1 rabbitmqctl purge_queue",
     "rabbitmq:reset": "bash scripts/reset-rabbitmq.sh",
     "render:region-maps": "tsx src/scripts/render-region-maps.ts",
+    "render:constellation-maps": "tsx src/scripts/render-constellation-maps.ts",
+    "render:maps": "yarn render:region-maps && yarn render:constellation-maps",
     "queue:alliances": "tsx src/queues/queue-alliances.ts",
     "queue:alliance-corporations": "tsx src/queues/queue-alliance-corporations.ts",
     "queue:alliance-corp-characters": "tsx src/queues/queue-alliance-corporation-characters.ts",
