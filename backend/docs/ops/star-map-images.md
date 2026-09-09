@@ -99,10 +99,9 @@ and
 ## Sizes
 
 There is one file per region and per constellation, used at every size — 20px
-in a line of text, 24px in a table row, 64px in a list row, 96px in the
-constellation header, 256px in the region header (96px below the `sm`
-breakpoint). An SVG has no resolution, so there is nothing to export at 2x and
-no `srcset`.
+in a line of text, 24px in a table row, 64px in a list row, and 256px in either
+detail header (96px below the `sm` breakpoint). An SVG has no resolution, so
+there is nothing to export at 2x and no `srcset`.
 
 What does change with size is line weight: everything scales together, and the
 frame is always 114,6 units across, so a line of width `w` at `p` pixels lands
