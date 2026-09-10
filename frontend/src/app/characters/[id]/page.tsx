@@ -424,7 +424,13 @@ export default function CharacterDetailPage({
               </div>
 
               {/* Right side - Top Targets Cards */}
-              <div className="space-y-6 lg:col-span-1 lg:-mt-9">
+              {/*
+              lg:mt-10 drops the first card past the table's header row, so it
+              lines up with the first killmail rather than with the column
+              titles. It was a negative -mt-9, which pulled the cards up over
+              the header instead. The killmails page and KillmailsTab use 10.
+            */}
+              <div className="space-y-6 lg:col-span-1 lg:mt-10">
                 <TopTargetsCard
                   title="Top Alliances Killed"
                   subtitle={<>Last 7 days</>}
