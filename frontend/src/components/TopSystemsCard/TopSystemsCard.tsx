@@ -2,6 +2,7 @@
 
 import { Loader } from '@/components/Loader/Loader';
 import SecurityStatus from '@/components/SecurityStatus/SecurityStatus';
+import SolarSystemMap from '@/components/SolarSystemMap/SolarSystemMap';
 import Card from '@/components/ui/Card';
 import RankNumber from '@/components/ui/RankNumber';
 import Link from 'next/link';
@@ -61,6 +62,13 @@ export default function TopSystemsCard({
             <div key={system.id} className="card-row">
               <div className="flex items-center gap-3">
                 <RankNumber rank={index + 1} />
+
+                <SolarSystemMap
+                  systemId={system.id}
+                  systemName={system.name}
+                  size={64}
+                  className="shrink-0"
+                />
 
                 <div className="flex items-center justify-between flex-1 min-w-0 gap-2">
                   <div className="min-w-0">

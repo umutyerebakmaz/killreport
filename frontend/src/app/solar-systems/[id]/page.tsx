@@ -17,11 +17,10 @@ import {
 } from '@/components/SolarSystemDetail/tabs';
 import ConstellationMap from '@/components/ConstellationMap/ConstellationMap';
 import RegionMap from '@/components/RegionMap/RegionMap';
+import SolarSystemMap from '@/components/SolarSystemMap/SolarSystemMap';
 import { useSolarSystemQuery } from '@/generated/graphql';
 import { useTabList } from '@/hooks/useTabList';
 import { formatTimeAgo } from '@/utils/date';
-import { getSecurityColor } from '@/utils/security';
-import { MapPinIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { use, useCallback, useState } from 'react';
@@ -132,7 +131,6 @@ export default function SolarSystemDetailPage({
     );
   }
 
-  const securityColor = getSecurityColor(system.securityStatus);
   const counts = system.counts;
 
   // The Adjacent label counts stargate rows, not resolved destinations: the row
@@ -159,18 +157,13 @@ export default function SolarSystemDetailPage({
         {/* Header */}
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-start gap-6">
-            <div
-              className={`flex items-center justify-center w-24 h-24 shadow-md shrink-0 ${
-                system.securityStatus != null && system.securityStatus >= 0.5
-                  ? 'bg-green-500/20 border border-green-500/50'
-                  : system.securityStatus != null && system.securityStatus > 0
-                    ? 'bg-yellow-500/20 border border-yellow-500/50'
-                    : system.securityStatus != null
-                      ? 'bg-red-500/20 border border-red-500/50'
-                      : 'bg-purple-500/20 border border-purple-500/50'
-              }`}
-            >
-              <MapPinIcon className={`w-12 h-12 ${securityColor}`} />
+            <div className="flex items-center justify-center w-24 h-24 sm:w-64 sm:h-64 shrink-0">
+              <SolarSystemMap
+                systemId={system.id}
+                systemName={system.name}
+                size={256}
+                className="w-full h-full"
+              />
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-3">
