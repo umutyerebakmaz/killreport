@@ -808,6 +808,11 @@ type Query {
 
     """Capped at 50."""
     limit: Int = 20
+
+    """
+    Restrict the shelf to kills in one region. Null ranks the whole cluster.
+    """
+    regionId: Int
     scope: MostValuableScope!
   ): [Killmail!]!
   race(id: Int!): Race

@@ -1228,6 +1228,7 @@ export type QueryMostDefensiveAlliancesArgs = {
 export type QueryMostValuableKillmailsArgs = {
   days?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
+  regionId?: InputMaybe<Scalars['Int']['input']>;
   scope: MostValuableScope;
 };
 
