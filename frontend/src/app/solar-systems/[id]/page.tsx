@@ -248,108 +248,103 @@ export default function SolarSystemDetailPage({
       */}
       <div className="tab-shell mt-6">
         {/* Tabs — overflow-x-auto because six tabs overflow a narrow screen */}
-        <div className="px-2 border-b border-white/10">
-          <nav
-            className="flex gap-4 overflow-x-auto"
-            aria-label="Tabs"
-            role="tablist"
-          >
-            {SOLAR_SYSTEM_TABS.map((tab) => {
-              const count = tabCount(tab);
-              return (
-                <button
-                  key={tab}
-                  role="tab"
-                  id={`tab-${tab}`}
-                  aria-controls={`panel-${tab}`}
-                  aria-selected={activeTab === tab}
-                  tabIndex={activeTab === tab ? 0 : -1}
-                  onClick={() => handleTabChange(tab)}
-                  onKeyDown={onKeyDown}
-                  className="tab"
-                >
-                  {TAB_LABELS[tab]}
-                  {count !== null && (
-                    <span className="ml-1.5 text-xs text-gray-500">
-                      ({count})
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </nav>
-        </div>
+        <nav
+          className="flex gap-1 mb-3 overflow-x-auto"
+          aria-label="Tabs"
+          role="tablist"
+        >
+          {SOLAR_SYSTEM_TABS.map((tab) => {
+            const count = tabCount(tab);
+            return (
+              <button
+                key={tab}
+                role="tab"
+                id={`tab-${tab}`}
+                aria-controls={`panel-${tab}`}
+                aria-selected={activeTab === tab}
+                tabIndex={activeTab === tab ? 0 : -1}
+                onClick={() => handleTabChange(tab)}
+                onKeyDown={onKeyDown}
+                className="button button-secondary button-sm"
+              >
+                {TAB_LABELS[tab]}
+                {count !== null && (
+                  <span className="ml-1.5 text-xs text-gray-500">
+                    ({count})
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
 
-        {/* Tab content */}
-        <div className="p-6">
-          {activeTab === 'overview' && (
-            <div
-              role="tabpanel"
-              id="panel-overview"
-              aria-labelledby="tab-overview"
-            >
-              <OverviewTab
-                systemId={systemId}
-                starId={system.star_id}
-                securityClass={system.security_class}
-                securityStatus={system.securityStatus}
-                position={system.position}
-                star={system.star}
-              />
-            </div>
-          )}
-          {activeTab === 'adjacent' && (
-            <div
-              role="tabpanel"
-              id="panel-adjacent"
-              aria-labelledby="tab-adjacent"
-            >
-              <AdjacentSystemsTab systemId={systemId} />
-            </div>
-          )}
-          {activeTab === 'orbital-bodies' && (
-            <div
-              role="tabpanel"
-              id="panel-orbital-bodies"
-              aria-labelledby="tab-orbital-bodies"
-            >
-              <OrbitalBodiesTab systemId={systemId} />
-            </div>
-          )}
-          {activeTab === 'structures' && (
-            <div
-              role="tabpanel"
-              id="panel-structures"
-              aria-labelledby="tab-structures"
-            >
-              <StructuresTab systemId={systemId} />
-            </div>
-          )}
-          {activeTab === 'sovereignty' && (
-            <div
-              role="tabpanel"
-              id="panel-sovereignty"
-              aria-labelledby="tab-sovereignty"
-            >
-              <SovereigntyTab systemId={systemId} />
-            </div>
-          )}
-          {activeTab === 'killmails' && (
-            <div
-              role="tabpanel"
-              id="panel-killmails"
-              aria-labelledby="tab-killmails"
-            >
-              <KillmailsTab
-                scope={{ systemId }}
-                currentPage={currentPage}
-                pageSize={pageSize}
-                onPageChange={handlePageChange}
-                onPageSizeChange={handlePageSizeChange}
-              />
-            </div>
-          )}
-        </div>
+        {activeTab === 'overview' && (
+          <div
+            role="tabpanel"
+            id="panel-overview"
+            aria-labelledby="tab-overview"
+          >
+            <OverviewTab
+              systemId={systemId}
+              starId={system.star_id}
+              securityClass={system.security_class}
+              securityStatus={system.securityStatus}
+              position={system.position}
+              star={system.star}
+            />
+          </div>
+        )}
+        {activeTab === 'adjacent' && (
+          <div
+            role="tabpanel"
+            id="panel-adjacent"
+            aria-labelledby="tab-adjacent"
+          >
+            <AdjacentSystemsTab systemId={systemId} />
+          </div>
+        )}
+        {activeTab === 'orbital-bodies' && (
+          <div
+            role="tabpanel"
+            id="panel-orbital-bodies"
+            aria-labelledby="tab-orbital-bodies"
+          >
+            <OrbitalBodiesTab systemId={systemId} />
+          </div>
+        )}
+        {activeTab === 'structures' && (
+          <div
+            role="tabpanel"
+            id="panel-structures"
+            aria-labelledby="tab-structures"
+          >
+            <StructuresTab systemId={systemId} />
+          </div>
+        )}
+        {activeTab === 'sovereignty' && (
+          <div
+            role="tabpanel"
+            id="panel-sovereignty"
+            aria-labelledby="tab-sovereignty"
+          >
+            <SovereigntyTab systemId={systemId} />
+          </div>
+        )}
+        {activeTab === 'killmails' && (
+          <div
+            role="tabpanel"
+            id="panel-killmails"
+            aria-labelledby="tab-killmails"
+          >
+            <KillmailsTab
+              scope={{ systemId }}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
