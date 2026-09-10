@@ -327,6 +327,11 @@ export type Constellation = {
   securityStats: SecurityStats;
   solarSystemCount: Scalars['Int']['output'];
   solarSystems: Array<SolarSystem>;
+  /**
+   * Who holds the constellation, or null where nothing in it is held —
+   * wormhole space and unclaimed nullsec, 400 of the 1184 constellations.
+   */
+  sovereignty?: Maybe<SovereigntyHolder>;
 };
 
 export type ConstellationFilter = {
@@ -1224,6 +1229,7 @@ export type QueryMostDefensiveAlliancesArgs = {
 export type QueryMostValuableKillmailsArgs = {
   days?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
+  regionId?: InputMaybe<Scalars['Int']['input']>;
   scope: MostValuableScope;
 };
 
@@ -1422,6 +1428,11 @@ export type Region = {
   name: Scalars['String']['output'];
   securityStats: SecurityStats;
   solarSystemCount: Scalars['Int']['output'];
+  /**
+   * Who holds the region, or null where nothing in it is held — 44 of the 114
+   * regions, wormhole space among them.
+   */
+  sovereignty?: Maybe<SovereigntyHolder>;
 };
 
 /** Count of active sovereignty campaigns in a region. */
@@ -1626,6 +1637,30 @@ export type SovereigntyCampaignHistoryPage = {
   totalCount: Scalars['Int']['output'];
 };
 
+/**
+ * Who holds a region or a constellation. EVE tracks sovereignty per solar
+ * system, so this is the owner of the most of its systems, and `systemCount`
+ * says how thin or wide that majority is — read the two together, never the
+ * name alone.
+ *
+ * A constellation is usually undivided: 739 of the 784 held ones have a single
+ * owner throughout, and none mixes a faction with an alliance. A region is not.
+ * 31 of the 70 held regions have more than one owner, 4 of them across both
+ * kinds, and the leader averages 82% of the region's held systems but drops to
+ * 20% at the thinnest. Providence, for one, is reported to its largest holder
+ * on 24 of its 84 systems.
+ */
+export type SovereigntyHolder = {
+  __typename?: 'SovereigntyHolder';
+  /** The alliance's ticker; null for a faction. */
+  allianceTicker?: Maybe<Scalars['String']['output']>;
+  ownerId: Scalars['Int']['output'];
+  ownerName?: Maybe<Scalars['String']['output']>;
+  ownerType: SovereigntyOwnerType;
+  /** How many of the systems below it this owner holds. */
+  systemCount: Scalars['Int']['output'];
+};
+
 /** Distribution of resolved campaign outcomes. */
 export type SovereigntyOutcomeStats = {
   __typename?: 'SovereigntyOutcomeStats';
@@ -1647,6 +1682,12 @@ export type SovereigntyOverview = {
   /** Total killmails correlated to active sovereignty campaigns. */
   warKills: Scalars['Int']['output'];
 };
+
+/** FACTION in NPC space, ALLIANCE in sovereign space. */
+export enum SovereigntyOwnerType {
+  Alliance = 'ALLIANCE',
+  Faction = 'FACTION'
+}
 
 /** A tracked sovereignty structure (IHub or TCU) with ownership and timer info. */
 export type SovereigntyStructureInfo = {
@@ -2613,7 +2654,7 @@ export type TopFactionsQueryVariables = Exact<{
 }>;
 
 
-export type TopFactionsQuery = { __typename?: 'Query', topFactions: Array<{ __typename?: 'TopFaction', rank: number, killCount: number, faction?: { __typename?: 'Faction', id: number, name: string, corporationId?: number | null } | null }> };
+export type TopFactionsQuery = { __typename?: 'Query', topFactions: Array<{ __typename?: 'TopFaction', rank: number, killCount: number, faction?: { __typename?: 'Faction', id: number, name: string } | null }> };
 
 export type TopPilotsQueryVariables = Exact<{
   filter?: InputMaybe<TopFilter>;
@@ -7595,7 +7636,6 @@ export const TopFactionsDocument = gql`
     faction {
       id
       name
-      corporationId
     }
   }
 }
