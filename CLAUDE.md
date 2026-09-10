@@ -225,7 +225,7 @@ The cost of batching is honesty about it. **Until the full set has run, say
 "not verified yet" rather than "passes".** Skipping a command is a scheduling
 decision; claiming its result without running it is not.
 
-`lint` reports pre-existing problems across the repo — 234 as of 2026-09-08.
+`lint` reports pre-existing problems across the repo — 237 as of 2026-09-10.
 The number, not a clean exit, is the signal: compare it against `main` and
 confirm none of the entries name a file the branch touched.
 
