@@ -2,6 +2,7 @@
 
 import SecurityStatus from '@/components/SecurityStatus/SecurityStatus';
 import ShipTierBadge from '@/components/ShipTierBadge/ShipTierBadge';
+import SolarSystemMap from '@/components/SolarSystemMap/SolarSystemMap';
 import Tooltip from '@/components/Tooltip/Tooltip';
 import { formatKillmailDate, formatKillmailDateTime } from '@/utils/date';
 import { formatISK } from '@/utils/formatISK';
@@ -135,6 +136,14 @@ export default function KillmailCard({
             truncation sits on the span holding both: put it on each name and
             a long region would keep its full width while the system clipped. */}
         <div className="flex items-center gap-2 min-w-0">
+          {km.solarSystem && (
+            <SolarSystemMap
+              systemId={km.solarSystem.id}
+              systemName={km.solarSystem.name}
+              size={20}
+              className="shrink-0"
+            />
+          )}
           {km.solarSystem?.securityStatus !== null &&
             km.solarSystem?.securityStatus !== undefined && (
               <SecurityStatus securityStatus={km.solarSystem.securityStatus} />

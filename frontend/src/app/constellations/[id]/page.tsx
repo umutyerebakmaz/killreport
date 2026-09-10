@@ -2,6 +2,7 @@
 
 import RegionMap from '@/components/RegionMap/RegionMap';
 import ConstellationMap from '@/components/ConstellationMap/ConstellationMap';
+import SolarSystemMap from '@/components/SolarSystemMap/SolarSystemMap';
 import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
 import SecurityBadge from '@/components/SecurityStatus/SecurityStatus';
 import { useConstellationQuery } from '@/generated/graphql';
@@ -308,7 +309,12 @@ export default function ConstellationDetailPage({
                       <tr key={system.id} className="tr-row">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
-                            <MapPinIcon className="w-5 h-5 text-orange-400 shrink-0" />
+                            <SolarSystemMap
+                              systemId={system.id}
+                              systemName={system.name}
+                              size={24}
+                              className="shrink-0"
+                            />
                             <Link
                               href={`/solar-systems/${system.id}`}
                               prefetch={false}
