@@ -88,14 +88,20 @@ describe('sanitizeEveHtml', () => {
     );
   });
 
+  it('keeps the formatting tags EVE descriptions carry', () => {
+    expect(
+      sanitizeEveHtml('<b>bold</b> <i>italic</i> <u>under</u> <p>para</p>'),
+    ).toBe('<b>bold</b> <i>italic</i> <u>under</u> <p>para</p>');
+  });
+
   it('replaces disallowed tags with their text content', () => {
     expect(
-      sanitizeEveHtml('<b>bold</b> <script>x()</script> <img src=x>'),
-    ).toBe('bold x() ');
+      sanitizeEveHtml('<div>block</div> <script>x()</script> <img src=x>'),
+    ).toBe('block x() ');
   });
 
   it('unwraps a disallowed tag nested inside an allowed one', () => {
-    expect(sanitizeEveHtml('<color=0xffffffff><i>it</i></color>')).toBe(
+    expect(sanitizeEveHtml('<color=0xffffffff><div>it</div></color>')).toBe(
       '<span style="color: rgba(255, 255, 255, 1);">it</span>',
     );
   });
