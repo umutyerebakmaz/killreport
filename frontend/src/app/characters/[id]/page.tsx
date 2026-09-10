@@ -332,150 +332,150 @@ export default function CharacterDetailPage({
             )}
           </div>
         </div>
+      </div>
 
-        {/* Tabs */}
-        <div className="mb-6 border-b border-white/10">
-          <nav className="flex gap-4" aria-label="Tabs" role="tablist">
-            {TAB_IDS.map((tabId) => (
-              <button
-                key={tabId}
-                role="tab"
-                id={`tab-${tabId}`}
-                aria-controls={`panel-${tabId}`}
-                aria-selected={activeTab === tabId}
-                tabIndex={activeTab === tabId ? 0 : -1}
-                onClick={() => setActiveTab(tabId)}
-                onKeyDown={onKeyDown}
-                className="tab"
-              >
-                {TAB_LABELS[tabId]}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        {/* Tab Content */}
-        <div className="mt-6">
-          {activeTab === 'bio' && (
-            <div
-              role="tabpanel"
-              id="panel-bio"
-              aria-labelledby="tab-bio"
-              className="p-6 bg-white/5 border-white/10"
+      <div className="tab-shell mt-6">
+        <nav
+          className="flex gap-1 mb-3 overflow-x-auto"
+          aria-label="Tabs"
+          role="tablist"
+        >
+          {TAB_IDS.map((tabId) => (
+            <button
+              key={tabId}
+              role="tab"
+              id={`tab-${tabId}`}
+              aria-controls={`panel-${tabId}`}
+              aria-selected={activeTab === tabId}
+              tabIndex={activeTab === tabId ? 0 : -1}
+              onClick={() => setActiveTab(tabId)}
+              onKeyDown={onKeyDown}
+              className="button button-secondary button-sm"
             >
-              <div className="grid grid-cols-2 gap-4">
-                {character.description && (
-                  <div className="col-span-2">
-                    <div className="mt-2">
-                      <EveHtmlRenderer html={character.description} />
-                    </div>
+              {TAB_LABELS[tabId]}
+            </button>
+          ))}
+        </nav>
+
+        {activeTab === 'bio' && (
+          <div
+            role="tabpanel"
+            id="panel-bio"
+            aria-labelledby="tab-bio"
+            className="p-6 bg-white/5 border-white/10"
+          >
+            <div className="grid grid-cols-2 gap-4">
+              {character.description && (
+                <div className="col-span-2">
+                  <div className="mt-2">
+                    <EveHtmlRenderer html={character.description} />
+                  </div>
+                </div>
+              )}
+              <div className="flex flex-col items-end justify-end col-start-2 col-end-3 text-xs text-gray-500 justify-self-end">
+                <div>{updatedAt}</div>
+                <div>{updatedAtHuman} ago</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'killmails' && (
+          <div
+            role="tabpanel"
+            id="panel-killmails"
+            aria-labelledby="tab-killmails"
+            className="killmails-tab"
+          >
+            <h2 className="sr-only">Killmails</h2>
+
+            {/* 2-column grid layout */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+              {/* Left side - Killmails Table (takes 3 columns) */}
+              <div className="lg:col-span-3">
+                <KillmailsTable
+                  killmails={killmails}
+                  loading={killmailsLoading}
+                  characterId={parseInt(id)}
+                  dateCountsMap={dateCountsMap}
+                  totalCount={pageInfo?.totalCount}
+                />
+
+                {killmails.length > 0 && (
+                  <div className="mt-6">
+                    <Paginator
+                      hasNextPage={pageInfo?.hasNextPage ?? false}
+                      hasPrevPage={pageInfo?.hasPreviousPage ?? false}
+                      onNext={handleNext}
+                      onPrev={handlePrev}
+                      onFirst={handleFirst}
+                      onLast={handleLast}
+                      loading={killmailsLoading}
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      pageSize={pageSize}
+                      onPageSizeChange={(size) => {
+                        setPageSize(size);
+                        setCurrentPage(1);
+                      }}
+                    />
                   </div>
                 )}
-                <div className="flex flex-col items-end justify-end col-start-2 col-end-3 text-xs text-gray-500 justify-self-end">
-                  <div>{updatedAt}</div>
-                  <div>{updatedAtHuman} ago</div>
-                </div>
+              </div>
+
+              {/* Right side - Top Targets Cards */}
+              <div className="space-y-6 lg:col-span-1 lg:-mt-9">
+                <TopTargetsCard
+                  title="Top Alliances Killed"
+                  subtitle={<>Last 7 days</>}
+                  targets={allianceTargets}
+                  targetType="alliance"
+                  linkPrefix="/alliances"
+                  emptyText="No alliance targets yet"
+                  loading={allianceTargetsLoading}
+                />
+
+                <TopTargetsCard
+                  title="Top Corporations Killed"
+                  subtitle={<>Last 7 days</>}
+                  targets={corporationTargets}
+                  targetType="corporation"
+                  linkPrefix="/corporations"
+                  emptyText="No corporation targets yet"
+                  loading={corporationTargetsLoading}
+                />
+
+                <TopShipsCard
+                  title="Top Ships Killed"
+                  subtitle={<>Last 7 days</>}
+                  ships={topShipTargets}
+                  emptyText="No ships killed yet"
+                  loading={shipTargetsLoading}
+                />
+
+                <TopShipsCard
+                  title="Top Ships Used"
+                  subtitle={<>Last 7 days</>}
+                  ships={topAttackerShips}
+                  emptyText="No ships used yet"
+                  loading={topShipsLoading}
+                />
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {activeTab === 'killmails' && (
-            <div
-              role="tabpanel"
-              id="panel-killmails"
-              aria-labelledby="tab-killmails"
-              className="killmails-tab"
-            >
-              <h2 className="sr-only">Killmails</h2>
-
-              {/* 2-column grid layout */}
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
-                {/* Left side - Killmails Table (takes 3 columns) */}
-                <div className="lg:col-span-3">
-                  <KillmailsTable
-                    killmails={killmails}
-                    loading={killmailsLoading}
-                    characterId={parseInt(id)}
-                    dateCountsMap={dateCountsMap}
-                    totalCount={pageInfo?.totalCount}
-                  />
-
-                  {killmails.length > 0 && (
-                    <div className="mt-6">
-                      <Paginator
-                        hasNextPage={pageInfo?.hasNextPage ?? false}
-                        hasPrevPage={pageInfo?.hasPreviousPage ?? false}
-                        onNext={handleNext}
-                        onPrev={handlePrev}
-                        onFirst={handleFirst}
-                        onLast={handleLast}
-                        loading={killmailsLoading}
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        pageSize={pageSize}
-                        onPageSizeChange={(size) => {
-                          setPageSize(size);
-                          setCurrentPage(1);
-                        }}
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Right side - Top Targets Cards */}
-                <div className="space-y-6 lg:col-span-1 lg:-mt-9">
-                  <TopTargetsCard
-                    title="Top Alliances Killed"
-                    subtitle={<>Last 7 days</>}
-                    targets={allianceTargets}
-                    targetType="alliance"
-                    linkPrefix="/alliances"
-                    emptyText="No alliance targets yet"
-                    loading={allianceTargetsLoading}
-                  />
-
-                  <TopTargetsCard
-                    title="Top Corporations Killed"
-                    subtitle={<>Last 7 days</>}
-                    targets={corporationTargets}
-                    targetType="corporation"
-                    linkPrefix="/corporations"
-                    emptyText="No corporation targets yet"
-                    loading={corporationTargetsLoading}
-                  />
-
-                  <TopShipsCard
-                    title="Top Ships Killed"
-                    subtitle={<>Last 7 days</>}
-                    ships={topShipTargets}
-                    emptyText="No ships killed yet"
-                    loading={shipTargetsLoading}
-                  />
-
-                  <TopShipsCard
-                    title="Top Ships Used"
-                    subtitle={<>Last 7 days</>}
-                    ships={topAttackerShips}
-                    emptyText="No ships used yet"
-                    loading={topShipsLoading}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'statistics' && (
-            <div
-              role="tabpanel"
-              id="panel-statistics"
-              aria-labelledby="tab-statistics"
-              className="p-6 bg-white/5 border-white/10"
-            >
-              <h2 className="mb-4 text-2xl font-bold">Statistics</h2>
-              <p className="text-gray-400">Statistics coming soon...</p>
-            </div>
-          )}
-        </div>
+        {activeTab === 'statistics' && (
+          <div
+            role="tabpanel"
+            id="panel-statistics"
+            aria-labelledby="tab-statistics"
+            className="p-6 bg-white/5 border-white/10"
+          >
+            <h2 className="mb-4 text-2xl font-bold">Statistics</h2>
+            <p className="text-gray-400">Statistics coming soon...</p>
+          </div>
+        )}
       </div>
     </main>
   );
