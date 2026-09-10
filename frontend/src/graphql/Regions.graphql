@@ -23,11 +23,24 @@ query Region($id: Int!) {
     name
     description
     constellationCount
-    solarSystemCount
+    sovereignty {
+      ownerType
+      ownerId
+      ownerName
+      allianceTicker
+      systemCount
+    }
     constellations {
       id
       name
       solarSystemCount
+      sovereignty {
+        ownerType
+        ownerId
+        ownerName
+        allianceTicker
+        systemCount
+      }
     }
   }
 }

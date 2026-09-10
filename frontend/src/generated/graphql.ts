@@ -2407,6 +2407,7 @@ export type MostValuableKillmailsQueryVariables = Exact<{
   scope: MostValuableScope;
   days?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
+  regionId?: InputMaybe<Scalars['Int']['input']>;
 }>;
 
 
@@ -2429,7 +2430,7 @@ export type RegionQueryVariables = Exact<{
 }>;
 
 
-export type RegionQuery = { __typename?: 'Query', region?: { __typename?: 'Region', id: number, name: string, description?: string | null, constellationCount: number, solarSystemCount: number, constellations: Array<{ __typename?: 'Constellation', id: number, name: string, solarSystemCount: number }> } | null };
+export type RegionQuery = { __typename?: 'Query', region?: { __typename?: 'Region', id: number, name: string, description?: string | null, constellationCount: number, sovereignty?: { __typename?: 'SovereigntyHolder', ownerType: SovereigntyOwnerType, ownerId: number, ownerName?: string | null, allianceTicker?: string | null, systemCount: number } | null, constellations: Array<{ __typename?: 'Constellation', id: number, name: string, solarSystemCount: number, sovereignty?: { __typename?: 'SovereigntyHolder', ownerType: SovereigntyOwnerType, ownerId: number, ownerName?: string | null, allianceTicker?: string | null, systemCount: number } | null }> } | null };
 
 export type SearchAlliancesQueryVariables = Exact<{
   search: Scalars['String']['input'];
@@ -5553,8 +5554,13 @@ export type KillmailsDateCountsLazyQueryHookResult = ReturnType<typeof useKillma
 export type KillmailsDateCountsSuspenseQueryHookResult = ReturnType<typeof useKillmailsDateCountsSuspenseQuery>;
 export type KillmailsDateCountsQueryResult = Apollo.QueryResult<KillmailsDateCountsQuery, KillmailsDateCountsQueryVariables>;
 export const MostValuableKillmailsDocument = gql`
-    query MostValuableKillmails($scope: MostValuableScope!, $days: Int, $limit: Int) {
-  mostValuableKillmails(scope: $scope, days: $days, limit: $limit) {
+    query MostValuableKillmails($scope: MostValuableScope!, $days: Int, $limit: Int, $regionId: Int) {
+  mostValuableKillmails(
+    scope: $scope
+    days: $days
+    limit: $limit
+    regionId: $regionId
+  ) {
     id
     killmailTime
     totalValue
@@ -5625,6 +5631,7 @@ export const MostValuableKillmailsDocument = gql`
  *      scope: // value for 'scope'
  *      days: // value for 'days'
  *      limit: // value for 'limit'
+ *      regionId: // value for 'regionId'
  *   },
  * });
  */
@@ -5798,11 +5805,24 @@ export const RegionDocument = gql`
     name
     description
     constellationCount
-    solarSystemCount
+    sovereignty {
+      ownerType
+      ownerId
+      ownerName
+      allianceTicker
+      systemCount
+    }
     constellations {
       id
       name
       solarSystemCount
+      sovereignty {
+        ownerType
+        ownerId
+        ownerName
+        allianceTicker
+        systemCount
+      }
     }
   }
 }
