@@ -326,6 +326,11 @@ export type Constellation = {
   securityStats: SecurityStats;
   solarSystemCount: Scalars['Int']['output'];
   solarSystems: Array<SolarSystem>;
+  /**
+   * Who holds the constellation, or null where nothing in it is held —
+   * wormhole space and unclaimed nullsec, 400 of the 1184 constellations.
+   */
+  sovereignty?: Maybe<SovereigntyHolder>;
 };
 
 export type ConstellationFilter = {
@@ -1223,6 +1228,7 @@ export type QueryMostDefensiveAlliancesArgs = {
 export type QueryMostValuableKillmailsArgs = {
   days?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
+  regionId?: InputMaybe<Scalars['Int']['input']>;
   scope: MostValuableScope;
 };
 
@@ -1421,6 +1427,11 @@ export type Region = {
   name: Scalars['String']['output'];
   securityStats: SecurityStats;
   solarSystemCount: Scalars['Int']['output'];
+  /**
+   * Who holds the region, or null where nothing in it is held — 44 of the 114
+   * regions, wormhole space among them.
+   */
+  sovereignty?: Maybe<SovereigntyHolder>;
 };
 
 /** Count of active sovereignty campaigns in a region. */
@@ -1625,6 +1636,30 @@ export type SovereigntyCampaignHistoryPage = {
   totalCount: Scalars['Int']['output'];
 };
 
+/**
+ * Who holds a region or a constellation. EVE tracks sovereignty per solar
+ * system, so this is the owner of the most of its systems, and `systemCount`
+ * says how thin or wide that majority is — read the two together, never the
+ * name alone.
+ *
+ * A constellation is usually undivided: 739 of the 784 held ones have a single
+ * owner throughout, and none mixes a faction with an alliance. A region is not.
+ * 31 of the 70 held regions have more than one owner, 4 of them across both
+ * kinds, and the leader averages 82% of the region's held systems but drops to
+ * 20% at the thinnest. Providence, for one, is reported to its largest holder
+ * on 24 of its 84 systems.
+ */
+export type SovereigntyHolder = {
+  __typename?: 'SovereigntyHolder';
+  /** The alliance's ticker; null for a faction. */
+  allianceTicker?: Maybe<Scalars['String']['output']>;
+  ownerId: Scalars['Int']['output'];
+  ownerName?: Maybe<Scalars['String']['output']>;
+  ownerType: SovereigntyOwnerType;
+  /** How many of the systems below it this owner holds. */
+  systemCount: Scalars['Int']['output'];
+};
+
 /** Distribution of resolved campaign outcomes. */
 export type SovereigntyOutcomeStats = {
   __typename?: 'SovereigntyOutcomeStats';
@@ -1646,6 +1681,12 @@ export type SovereigntyOverview = {
   /** Total killmails correlated to active sovereignty campaigns. */
   warKills: Scalars['Int']['output'];
 };
+
+/** FACTION in NPC space, ALLIANCE in sovereign space. */
+export enum SovereigntyOwnerType {
+  Alliance = 'ALLIANCE',
+  Faction = 'FACTION'
+}
 
 /** A tracked sovereignty structure (IHub or TCU) with ownership and timer info. */
 export type SovereigntyStructureInfo = {
@@ -2266,8 +2307,10 @@ export type ResolversTypes = {
   SovereigntyAlert: ResolverTypeWrapper<SovereigntyAlert>;
   SovereigntyCampaign: ResolverTypeWrapper<SovereigntyCampaign>;
   SovereigntyCampaignHistoryPage: ResolverTypeWrapper<SovereigntyCampaignHistoryPage>;
+  SovereigntyHolder: ResolverTypeWrapper<SovereigntyHolder>;
   SovereigntyOutcomeStats: ResolverTypeWrapper<SovereigntyOutcomeStats>;
   SovereigntyOverview: ResolverTypeWrapper<SovereigntyOverview>;
+  SovereigntyOwnerType: SovereigntyOwnerType;
   SovereigntyStructureInfo: ResolverTypeWrapper<SovereigntyStructureInfo>;
   StandaloneWorkerStatus: ResolverTypeWrapper<StandaloneWorkerStatus>;
   Star: ResolverTypeWrapper<Star>;
@@ -2409,6 +2452,7 @@ export type ResolversParentTypes = {
   SovereigntyAlert: SovereigntyAlert;
   SovereigntyCampaign: SovereigntyCampaign;
   SovereigntyCampaignHistoryPage: SovereigntyCampaignHistoryPage;
+  SovereigntyHolder: SovereigntyHolder;
   SovereigntyOutcomeStats: SovereigntyOutcomeStats;
   SovereigntyOverview: SovereigntyOverview;
   SovereigntyStructureInfo: SovereigntyStructureInfo;
@@ -2673,6 +2717,7 @@ export type ConstellationResolvers<ContextType = any, ParentType extends Resolve
   securityStats?: Resolver<ResolversTypes['SecurityStats'], ParentType, ContextType>;
   solarSystemCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   solarSystems?: Resolver<Array<ResolversTypes['SolarSystem']>, ParentType, ContextType>;
+  sovereignty?: Resolver<Maybe<ResolversTypes['SovereigntyHolder']>, ParentType, ContextType>;
 };
 
 export type ConstellationsResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['ConstellationsResponse'] = ResolversParentTypes['ConstellationsResponse']> = {
@@ -3062,6 +3107,7 @@ export type RegionResolvers<ContextType = any, ParentType extends ResolversParen
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   securityStats?: Resolver<ResolversTypes['SecurityStats'], ParentType, ContextType>;
   solarSystemCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  sovereignty?: Resolver<Maybe<ResolversTypes['SovereigntyHolder']>, ParentType, ContextType>;
 };
 
 export type RegionCampaignCountResolvers<ContextType = any, ParentType extends ResolversParentTypes['RegionCampaignCount'] = ResolversParentTypes['RegionCampaignCount']> = {
@@ -3189,6 +3235,14 @@ export type SovereigntyCampaignResolvers<ContextType = any, ParentType extends R
 export type SovereigntyCampaignHistoryPageResolvers<ContextType = any, ParentType extends ResolversParentTypes['SovereigntyCampaignHistoryPage'] = ResolversParentTypes['SovereigntyCampaignHistoryPage']> = {
   items?: Resolver<Array<ResolversTypes['SovereigntyCampaign']>, ParentType, ContextType>;
   totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type SovereigntyHolderResolvers<ContextType = any, ParentType extends ResolversParentTypes['SovereigntyHolder'] = ResolversParentTypes['SovereigntyHolder']> = {
+  allianceTicker?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  ownerId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  ownerName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  ownerType?: Resolver<ResolversTypes['SovereigntyOwnerType'], ParentType, ContextType>;
+  systemCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
 export type SovereigntyOutcomeStatsResolvers<ContextType = any, ParentType extends ResolversParentTypes['SovereigntyOutcomeStats'] = ResolversParentTypes['SovereigntyOutcomeStats']> = {
@@ -3561,6 +3615,7 @@ export type Resolvers<ContextType = any> = {
   SovereigntyAlert?: SovereigntyAlertResolvers<ContextType>;
   SovereigntyCampaign?: SovereigntyCampaignResolvers<ContextType>;
   SovereigntyCampaignHistoryPage?: SovereigntyCampaignHistoryPageResolvers<ContextType>;
+  SovereigntyHolder?: SovereigntyHolderResolvers<ContextType>;
   SovereigntyOutcomeStats?: SovereigntyOutcomeStatsResolvers<ContextType>;
   SovereigntyOverview?: SovereigntyOverviewResolvers<ContextType>;
   SovereigntyStructureInfo?: SovereigntyStructureInfoResolvers<ContextType>;

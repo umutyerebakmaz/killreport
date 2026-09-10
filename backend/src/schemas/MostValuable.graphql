@@ -21,5 +21,7 @@ extend type Query {
     days: Int = 7
     "Capped at 50."
     limit: Int = 20
+    "Restrict the shelf to kills in one region. Null ranks the whole cluster."
+    regionId: Int
   ): [Killmail!]!
 }

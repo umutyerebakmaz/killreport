@@ -58,9 +58,9 @@ describe('renderStarMap with REGION_PALETTE', () => {
     );
   });
 
-  it('pads the viewBox by 7.3 on every side', () => {
+  it('pads the viewBox by 2.3 around the ink on every side', () => {
     expect(renderStarMap(twoSystems, REGION_PALETTE)).toContain(
-      'viewBox="-7.3 -7.3 114.6 64.6"',
+      'viewBox="-2.3 -2.3 104.6 54.6"',
     );
   });
 
@@ -123,7 +123,7 @@ describe('renderStarMap with REGION_PALETTE', () => {
     // above, where x is the longer span. Pins Math.max(spanX, spanY) picking
     // spanY: scale = 100 / 100 = 1, so id 1 projects to (0, 0) and id 2 to
     // (50, 100) (z negated, then both axes shifted so the minimum is 0).
-    // viewBox width = spanX*scale + 14.6 = 64.6, height = spanY*scale + 14.6 = 114.6.
+    // viewBox width = spanX*scale + 4.6 = 54.6, height = spanY*scale + 4.6 = 104.6.
     const svg = renderStarMap(
       {
         systems: [
@@ -139,10 +139,10 @@ describe('renderStarMap with REGION_PALETTE', () => {
     expect(svg).toContain(
       '<circle cx="50.0" cy="100.0" r="1.3" fill="#F00000"/>',
     );
-    expect(svg).toContain('viewBox="-7.3 -7.3 64.6 114.6"');
+    expect(svg).toContain('viewBox="-2.3 -2.3 54.6 104.6"');
   });
 
-  it('gives a single-system region a 14.6-unit square viewBox', () => {
+  it('gives a single-system region a 4.6-unit square viewBox', () => {
     const svg = renderStarMap(
       {
         systems: [{ id: 1, x: 42, z: -7, security: -1 }],
@@ -151,8 +151,60 @@ describe('renderStarMap with REGION_PALETTE', () => {
       },
       REGION_PALETTE,
     );
-    expect(svg).toContain('viewBox="-7.3 -7.3 14.6 14.6"');
+    expect(svg).toContain('viewBox="-2.3 -2.3 4.6 4.6"');
     expect(svg).toContain('<circle cx="0.0" cy="0.0" r="1.3" fill="#F00000"/>');
+  });
+
+  it('grows the frame to fit a stub that leaves the dots behind', () => {
+    // One system at the origin with a gate heading -x: the stub ends at
+    // (-10, 0), 10 units outside the dots' own box, and the frame has to
+    // follow it. It used to be measured over the dots alone, which cut the
+    // stub 2.7 units short of its end.
+    const svg = renderStarMap(
+      {
+        systems: [{ id: 1, x: 0, z: 0, security: 0.5 }],
+        jumps: [],
+        gates: [{ fromId: 1, toX: -900, toZ: 0 }],
+      },
+      REGION_PALETTE,
+    );
+
+    expect(svg).toContain('viewBox="-12.3 -2.3 14.6 4.6"');
+  });
+
+  it('draws every stub inside the frame, in all four directions', () => {
+    // Four gates off one system, one per axis. Whichever way a stub points, its
+    // endpoint has to land inside the viewBox.
+    const svg = renderStarMap(
+      {
+        systems: [
+          { id: 1, x: 0, z: 0, security: 0.5 },
+          { id: 2, x: 100, z: -100, security: 0.5 },
+        ],
+        jumps: [],
+        gates: [
+          { fromId: 1, toX: -900, toZ: 0 },
+          { fromId: 1, toX: 0, toZ: 900 },
+          { fromId: 2, toX: 900, toZ: -100 },
+          { fromId: 2, toX: 100, toZ: -900 },
+        ],
+      },
+      REGION_PALETTE,
+    );
+
+    const [x, y, w, h] = /viewBox="([^"]+)"/
+      .exec(svg)![1]
+      .split(' ')
+      .map(Number);
+    const ends = [...svg.matchAll(/<line [^>]*x2="([-\d.]+)" y2="([-\d.]+)"/g)];
+
+    expect(ends).toHaveLength(4);
+    for (const end of ends) {
+      expect(Number(end[1])).toBeGreaterThanOrEqual(x);
+      expect(Number(end[1])).toBeLessThanOrEqual(x + w);
+      expect(Number(end[2])).toBeGreaterThanOrEqual(y);
+      expect(Number(end[2])).toBeLessThanOrEqual(y + h);
+    }
   });
 
   it('reproduces the approved drawing of Fade', () => {

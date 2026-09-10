@@ -48,15 +48,23 @@ export async function getMostValuableKillmails(
   scope: MostValuableScope,
   days?: number | null,
   limit?: number | null,
+  regionId?: number | null,
 ) {
   const cappedLimit = Math.min(limit ?? DEFAULT_LIMIT, MAX_LIMIT);
   const window = Math.min(Math.max(days ?? DEFAULT_DAYS, MIN_DAYS), MAX_DAYS);
 
-  const cacheKey = `killmails:mostvaluable:${scope}:${window}:${cappedLimit}`;
+  // The region is named in the key even when absent, so a region shelf can
+  // never be served the whole cluster's, or the other way round.
+  const cacheKey = `killmails:mostvaluable:${scope}:${window}:${cappedLimit}:${regionId ?? 'all'}`;
   const cached = await redis.get(cacheKey);
   if (cached) return JSON.parse(cached);
 
   const since = new Date(Date.now() - window * 24 * 60 * 60 * 1000);
+
+  // killmail_filters carries region_id and indexes (region_id, killmail_time
+  // DESC), so a region shelf is the same one indexed read as the global one.
+  const regionPredicate =
+    regionId != null ? Prisma.sql`AND region_id = ${regionId}` : Prisma.sql``;
 
   const rows = await prisma.$queryRaw<MostValuableRow[]>`
       SELECT killmail_id, killmail_time, solar_system_id, total_value, attacker_count
@@ -67,6 +75,7 @@ export async function getMostValuableKillmails(
         -- them, so the gap is permanent for those killmails.
         AND total_value IS NOT NULL
         AND ${SCOPE_PREDICATE[scope]}
+        ${regionPredicate}
       ORDER BY total_value DESC
       LIMIT ${cappedLimit}
     `;

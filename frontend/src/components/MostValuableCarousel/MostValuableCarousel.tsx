@@ -57,14 +57,24 @@ const TABS: Tab[] = [
 /** Same order as TABS, derived rather than declared again. */
 const TAB_SCOPES: MostValuableScope[] = TABS.map((tab) => tab.scope);
 
+export interface MostValuableCarouselProps {
+  /**
+   * Rank only kills inside this region. Omitted, the shelf ranks the whole
+   * cluster, which is what the killmails page wants.
+   */
+  regionId?: number;
+}
+
 /**
- * The Most Valuable shelf on the killmails page. Self-contained: it owns its tab
- * state, its scrolling and its own query, so the page only has to place it.
+ * The Most Valuable shelf. Self-contained: it owns its tab state, its scrolling
+ * and its own query, so a page only has to place it.
  *
  * Only the active tab queries. Apollo keeps what previous tabs fetched, so moving
  * back to one is instant.
  */
-export default function MostValuableCarousel() {
+export default function MostValuableCarousel({
+  regionId,
+}: MostValuableCarouselProps = {}) {
   const [activeScope, setActiveScope] = useState<MostValuableScope>(
     MostValuableScope.Ships,
   );
@@ -72,7 +82,12 @@ export default function MostValuableCarousel() {
   const { onKeyDown } = useTabList(TAB_SCOPES, activeScope, setActiveScope);
 
   const { data, loading } = useMostValuableKillmailsQuery({
-    variables: { scope: activeScope, days: WINDOW_DAYS, limit: CARD_COUNT },
+    variables: {
+      scope: activeScope,
+      days: WINDOW_DAYS,
+      limit: CARD_COUNT,
+      regionId,
+    },
   });
 
   const killmails: KillmailCardData[] = data?.mostValuableKillmails ?? [];

@@ -36,6 +36,8 @@ const { prismaMock, MODELS } = vi.hoisted(() => {
     'typeDogmaEffect',
     'corporationSnapshot',
     'allianceSnapshot',
+    'sovereigntyMapCurrent',
+    'faction',
   ] as const;
   const prismaMock = Object.fromEntries(
     MODELS.map((name) => [name, { findMany: vi.fn() }]),
@@ -539,6 +541,169 @@ describe('constellationSecurityStats loader', () => {
   });
 });
 
+describe('constellationSovereignty loader', () => {
+  /**
+   * 10 is Amarr high sec: one faction across every system. 20 is nullsec split
+   * between two alliances. 30 is a tie. 40 is held by nobody, and 50 has no
+   * systems at all.
+   */
+  beforeEach(() => {
+    findMany('solarSystem').mockResolvedValue([
+      { id: 101, constellation_id: 10 },
+      { id: 102, constellation_id: 10 },
+      { id: 201, constellation_id: 20 },
+      { id: 202, constellation_id: 20 },
+      { id: 203, constellation_id: 20 },
+      { id: 301, constellation_id: 30 },
+      { id: 302, constellation_id: 30 },
+      { id: 401, constellation_id: 40 },
+    ]);
+    findMany('sovereigntyMapCurrent').mockResolvedValue([
+      { solar_system_id: 101, alliance_id: null, faction_id: 500003 },
+      { solar_system_id: 102, alliance_id: null, faction_id: 500003 },
+      { solar_system_id: 201, alliance_id: 99000001, faction_id: null },
+      { solar_system_id: 202, alliance_id: 99000001, faction_id: null },
+      { solar_system_id: 203, alliance_id: 99000002, faction_id: null },
+      { solar_system_id: 301, alliance_id: 99000009, faction_id: null },
+      { solar_system_id: 302, alliance_id: 99000002, faction_id: null },
+      { solar_system_id: 401, alliance_id: null, faction_id: null },
+    ]);
+    findMany('alliance').mockResolvedValue([
+      { id: 99000001, name: 'Holders', ticker: 'HOLD' },
+      { id: 99000002, name: 'Challengers', ticker: 'CHAL' },
+    ]);
+    findMany('faction').mockResolvedValue([
+      { id: 500003, name: 'Amarr Empire' },
+    ]);
+  });
+
+  it('reports a faction owner', async () => {
+    const loader = loaders.createConstellationSovereigntyLoader();
+
+    expect(await loader.load(10)).toEqual({
+      ownerType: 'FACTION',
+      ownerId: 500003,
+      ownerName: 'Amarr Empire',
+      allianceTicker: null,
+      systemCount: 2,
+    });
+  });
+
+  it('gives a split constellation to the alliance holding the most systems', async () => {
+    const loader = loaders.createConstellationSovereigntyLoader();
+
+    expect(await loader.load(20)).toEqual({
+      ownerType: 'ALLIANCE',
+      ownerId: 99000001,
+      ownerName: 'Holders',
+      allianceTicker: 'HOLD',
+      systemCount: 2,
+    });
+  });
+
+  it('breaks a tie on the lower id, so the answer does not move between requests', async () => {
+    const loader = loaders.createConstellationSovereigntyLoader();
+
+    expect(await loader.load(30)).toMatchObject({
+      ownerId: 99000002,
+      systemCount: 1,
+    });
+  });
+
+  it('returns null for a constellation nobody holds and for one with no systems', async () => {
+    const loader = loaders.createConstellationSovereigntyLoader();
+    const [unheld, empty] = await Promise.all([
+      loader.load(40),
+      loader.load(50),
+    ]);
+
+    expect(unheld).toBeNull();
+    expect(empty).toBeNull();
+  });
+
+  it('batches one query per table, and looks each winning owner up once', async () => {
+    const loader = loaders.createConstellationSovereigntyLoader();
+    await Promise.all([
+      loader.load(10),
+      loader.load(20),
+      loader.load(30),
+      loader.load(40),
+    ]);
+
+    expect(findMany('solarSystem')).toHaveBeenCalledTimes(1);
+    expect(findMany('sovereigntyMapCurrent')).toHaveBeenCalledTimes(1);
+    expect(findMany('alliance')).toHaveBeenCalledTimes(1);
+    expect(findMany('faction')).toHaveBeenCalledTimes(1);
+    expect(whereOf('solarSystem').constellation_id).toEqual({
+      in: [10, 20, 30, 40],
+    });
+    expect(whereOf('faction').id).toEqual({ in: [500003] });
+    // 99000001 won 20 and 99000002 won 30; each is asked for once even though
+    // three sovereignty rows name them.
+    expect(whereOf('alliance').id).toEqual({ in: [99000001, 99000002] });
+  });
+});
+
+describe('regionSovereignty loader', () => {
+  it('rolls systems up through their constellation to the region', async () => {
+    // Region 1 holds two constellations: 4 systems for the faction, 1 for an
+    // alliance. Region 2 holds one constellation that nobody claims.
+    findMany('constellation').mockResolvedValue([
+      { id: 100, region_id: 1 },
+      { id: 101, region_id: 1 },
+      { id: 200, region_id: 2 },
+    ]);
+    findMany('solarSystem').mockResolvedValue([
+      { id: 1001, constellation_id: 100 },
+      { id: 1002, constellation_id: 100 },
+      { id: 1011, constellation_id: 101 },
+      { id: 1012, constellation_id: 101 },
+      { id: 1013, constellation_id: 101 },
+      { id: 2001, constellation_id: 200 },
+    ]);
+    findMany('sovereigntyMapCurrent').mockResolvedValue([
+      { solar_system_id: 1001, alliance_id: null, faction_id: 500003 },
+      { solar_system_id: 1002, alliance_id: null, faction_id: 500003 },
+      { solar_system_id: 1011, alliance_id: null, faction_id: 500003 },
+      { solar_system_id: 1012, alliance_id: null, faction_id: 500003 },
+      { solar_system_id: 1013, alliance_id: 99000001, faction_id: null },
+      { solar_system_id: 2001, alliance_id: null, faction_id: null },
+    ]);
+    findMany('alliance').mockResolvedValue([
+      { id: 99000001, name: 'Holders', ticker: 'HOLD' },
+    ]);
+    findMany('faction').mockResolvedValue([
+      { id: 500003, name: 'Amarr Empire' },
+    ]);
+
+    const loader = loaders.createRegionSovereigntyLoader();
+    const [held, unheld] = await Promise.all([loader.load(1), loader.load(2)]);
+
+    expect(held).toEqual({
+      ownerType: 'FACTION',
+      ownerId: 500003,
+      ownerName: 'Amarr Empire',
+      allianceTicker: null,
+      systemCount: 4,
+    });
+    expect(unheld).toBeNull();
+    expect(whereOf('constellation').region_id).toEqual({ in: [1, 2] });
+    expect(whereOf('solarSystem').constellation_id).toEqual({
+      in: [100, 101, 200],
+    });
+  });
+
+  it('asks for nothing further when a region has no constellations', async () => {
+    findMany('constellation').mockResolvedValue([]);
+    findMany('sovereigntyMapCurrent').mockResolvedValue([]);
+
+    const loader = loaders.createRegionSovereigntyLoader();
+
+    expect(await loader.load(9)).toBeNull();
+    expect(findMany('solarSystem')).not.toHaveBeenCalled();
+  });
+});
+
 describe('regionSecurityStats loader', () => {
   it('rolls systems up through their constellation to the region', async () => {
     findMany('constellation').mockResolvedValue([
@@ -603,6 +768,7 @@ describe('createDataLoaders', () => {
         'charactersByCorp',
         'constellation',
         'constellationSecurityStats',
+        'constellationSovereignty',
         'constellationsByRegion',
         'corporation',
         'corporationSnapshot',
@@ -617,6 +783,7 @@ describe('createDataLoaders', () => {
         'planetsBySystem',
         'race',
         'region',
+        'regionSovereignty',
         'regionSecurityStats',
         'regionStats',
         'solarSystem',

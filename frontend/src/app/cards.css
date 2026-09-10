@@ -13,6 +13,26 @@
     @apply border bg-surface border-white/10;
   }
 
+  /*
+   * The frame around a tab bar and its panels. Same border as a .card, but on
+   * the page's ground rather than on `surface`.
+   *
+   * That is not a free choice. The three depth steps are ground → surface →
+   * surface-inset, and everything a tab panel holds already claims the middle
+   * one: .tr-row is `bg-surface hover:bg-surface-inset`, and the entity cards
+   * do the same. Give the frame `surface` too and the contents match their own
+   * container exactly — the rows and cards disappear into it and the hover is
+   * the only thing left saying where one ends, landing on surface-inset, the
+   * tone that is supposed to mean "inside a card". On ground they read the way
+   * they do on the killmails page, which is where they were designed.
+   *
+   * So: .card for a leaf surface holding text and controls, .tab-shell for a
+   * frame holding surfaces of its own.
+   */
+  .tab-shell {
+    @apply bg-ground;
+  }
+
   /* The header lives INSIDE the card. In five components (TopShipsCard,
      TopTargetsCard, TopCharacterCard, TopCorporationCard, TopAllianceCard)
      the root element had no background, so the header read as a separate

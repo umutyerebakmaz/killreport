@@ -1,9 +1,10 @@
 'use client';
 
+import RegionMap from '@/components/RegionMap/RegionMap';
 import Tooltip from '@/components/Tooltip/Tooltip';
 import Card from '@/components/ui/Card';
 import { RegionsQuery } from '@/generated/graphql';
-import { GlobeAltIcon, MapIcon } from '@heroicons/react/24/outline';
+import { MapIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 
 // useRegionsQuery'nin döndüğü Region type'ını extract et
@@ -14,15 +15,17 @@ type RegionCardProps = {
 };
 
 export default function RegionCard({ region }: RegionCardProps) {
-  const constellationCount = region.constellationCount ?? 0;
-
   return (
     <Card>
       <div className="px-4 py-5 sm:p-6">
         <div className="flex flex-col items-center gap-4">
-          {/* Region Icon */}
-          <div className="flex items-center justify-center w-32 h-32 bg-gray-800/50">
-            <GlobeAltIcon className="w-16 h-16 text-cyan-500" />
+          {/* Region star map */}
+          <div className="flex items-center justify-center w-32 h-32">
+            <RegionMap
+              regionId={region.id}
+              regionName={region.name}
+              size={128}
+            />
           </div>
 
           {/* Region Name */}
@@ -37,22 +40,25 @@ export default function RegionCard({ region }: RegionCardProps) {
           {/* Metrics */}
           <div className="card-metrics">
             {/* Constellation count */}
-            <Tooltip content="Total Constellations" position="top">
+            <Tooltip content="Constellations in this region" position="top">
               <div className="flex items-center gap-2">
                 <MapIcon className="w-5 h-5 text-purple-400" />
-                <span className="text-sm font-medium text-purple-300">
-                  {constellationCount}
+                <span className="font-medium text-purple-300">
+                  {region.constellationCount}
+                </span>
+              </div>
+            </Tooltip>
+
+            {/* Solar system count */}
+            <Tooltip content="Solar systems in this region" position="top">
+              <div className="flex items-center gap-2">
+                <MapPinIcon className="w-5 h-5 text-orange-400" />
+                <span className="font-medium text-orange-300">
+                  {region.solarSystemCount}
                 </span>
               </div>
             </Tooltip>
           </div>
-
-          {/* Description */}
-          {region.description && (
-            <div className="text-xs text-center text-gray-400 line-clamp-2">
-              {region.description}
-            </div>
-          )}
         </div>
       </div>
     </Card>

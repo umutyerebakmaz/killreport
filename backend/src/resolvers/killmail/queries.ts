@@ -417,11 +417,12 @@ export const killmailQueries: QueryResolvers = {
     }
   },
 
-  mostValuableKillmails: async (_, { scope, days, limit }) => {
+  mostValuableKillmails: async (_, { scope, days, limit, regionId }) => {
     return MostValuableService.getMostValuableKillmails(
       scope,
       days,
       limit,
+      regionId,
     ) as any;
   },
 

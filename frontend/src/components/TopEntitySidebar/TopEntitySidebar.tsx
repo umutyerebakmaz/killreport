@@ -189,7 +189,6 @@ export default function TopEntitySidebar({
                   factions?.topFactions?.map((entry) => ({
                     id: entry.faction?.id || 0,
                     name: entry.faction?.name || 'Unknown',
-                    corporationId: entry.faction?.corporationId || 0,
                     killCount: entry.killCount,
                   })) || []
                 }

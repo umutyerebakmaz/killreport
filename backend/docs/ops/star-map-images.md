@@ -87,17 +87,19 @@ diff there is a reliable signal that something upstream changed.
 
 The region and constellation maps share every line of geometry: `x` becomes
 screen x, `−z` becomes screen y, the long axis is normalised to 0–100, each
-jump is drawn once, and outbound stubs run 10 units towards their destination
-and are allowed to clip. Only the palette differs. The solar system map does
-not share this geometry at all — see below.
+jump is drawn once, and outbound stubs run 10 units towards their destination.
+The frame is measured over the stub endpoints as well as the dots, so a stub is
+never cut. Only the palette differs. The solar system map does not share this
+geometry at all — see below.
 
 ### Regions
 
 - One dot per system, `r 1.3`, coloured on EVE's own security ramp
   (`#2FEFEF` at 1.0 down to `#F00000` at 0.0 and below).
 - One neutral `#94a3b8` line per stargate jump inside the region.
-- A 10-unit green `#4CC94C` stub for each gate leaving the region. Stubs are
-  allowed to run past the frame and be clipped — 690 of the 740 clear it whole.
+- A 10-unit green `#4CC94C` stub for each gate leaving the region. A stub that
+  leaves the dots' bounding box pushes the frame out with it, so all 740 are
+  drawn whole.
 
 ### Constellations
 
@@ -189,17 +191,20 @@ size — 20px in a line of text, 24px in a table row, 64px in a list row, and
 256px in a detail header (96px below the `sm` breakpoint). An SVG has no
 resolution, so there is nothing to export at 2x and no `srcset`.
 
-What does change with size is line weight: everything scales together, and
-the region and constellation frame is always 114,6 units across, so a line of
-width `w` at `p` pixels lands at `w × p / 114,6`. A region jump line at 64px is
-about 0,4 of a pixel and reads faint; the constellation's `w 1.5` is about 0,8
-there and 1,3 at the 96px header. If a weight turns out wrong in place, change
-`jumpWidth` in the relevant palette in `star-map-svg.ts` and re-run — it is one
-number. Region's is still the open one.
+What does change with size is line weight: everything scales together, and a
+region or constellation frame is 104,6 units on its long axis — the normalised
+0–100 plus the 2,3 pad twice — wherever no stub overhangs that axis, which is
+638 of the 1.298 maps. A stub adds up to 10 per side, so the rest run to 124,6
+at the widest; the mean is 108,8. A line of width `w` at `p` pixels therefore
+lands at about `w × p / 104,6`, a little finer on the maps whose stubs push the
+frame out. A region jump line at 64px is about 0,5 of a pixel and reads faint;
+the constellation's `w 1.5` is about 0,9 there and 1,4 at the 96px header. If a
+weight turns out wrong in place, change `jumpWidth` in the relevant palette in
+`star-map-svg.ts` and re-run — it is one number. Region's is still the open one.
 
-The solar system frame is **100 units**, not 114,6 — the drawing is centred
-and circular, so its padding does not need to carry an outbound stub, and the
-formula becomes `w × p / 100`. The 0,6 orbit ring lands at 1,54 pixels at
+The solar system frame is **100 units**, and fixed where the other two vary —
+the drawing is centred and circular, so its padding does not need to carry an
+outbound stub, and the formula becomes `w × p / 100`. The 0,6 orbit ring lands at 1,54 pixels at
 256px, 0,38 at 64px, and 0,12 at 20px — effectively nothing, so at 24px and
 below the planet dots carry the map on their own, not the ring. `RING_WIDTH`
 in `solar-system-map-svg.ts` is the number to calibrate, the same way

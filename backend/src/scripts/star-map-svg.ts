@@ -63,7 +63,11 @@ export interface MapPalette {
   gateWidth: number;
   gateOpacity: number;
   gateLength: number;
-  /** Frame padding. Inherited from Round 6: 5 (stub at the time) + 1.3 (dot) + 1.0. */
+  /**
+   * Margin between the outermost ink and the frame: the dot radius plus 1.0 to
+   * breathe. It does not have to allow for `gateLength` — the frame is measured
+   * over the stub endpoints too.
+   */
   pad: number;
 }
 
@@ -82,7 +86,7 @@ export const REGION_PALETTE: MapPalette = {
   gateWidth: 0.9,
   gateOpacity: 0.9,
   gateLength: 10,
-  pad: 7.3,
+  pad: 2.3,
 };
 
 /**
@@ -103,7 +107,7 @@ export const CONSTELLATION_PALETTE: MapPalette = {
   gateWidth: 0.9,
   gateOpacity: 0.9,
   gateLength: 10,
-  pad: 7.3,
+  pad: 2.3,
 };
 
 export function renderStarMap(
@@ -135,6 +139,7 @@ export function renderStarMap(
   const at = new Map(systems.map((s) => [s.id, project(s)]));
   const n = (value: number) => value.toFixed(1);
 
+  const stubEnds: { x: number; y: number }[] = [];
   const stubs = gates.map((gate) => {
     const from = at.get(gate.fromId);
     if (!from) {
@@ -144,10 +149,15 @@ export function renderStarMap(
     const dx = to.x - from.x;
     const dy = to.y - from.y;
     const length = Math.hypot(dx, dy) || 1;
+    const end = {
+      x: from.x + (dx / length) * palette.gateLength,
+      y: from.y + (dy / length) * palette.gateLength,
+    };
+    stubEnds.push(end);
     return (
       `<line x1="${n(from.x)}" y1="${n(from.y)}"` +
-      ` x2="${(from.x + (dx / length) * palette.gateLength).toFixed(2)}"` +
-      ` y2="${(from.y + (dy / length) * palette.gateLength).toFixed(2)}"` +
+      ` x2="${end.x.toFixed(2)}"` +
+      ` y2="${end.y.toFixed(2)}"` +
       ` stroke="${palette.gate}" stroke-width="${palette.gateWidth}" stroke-opacity="${palette.gateOpacity}"/>`
     );
   });
@@ -177,13 +187,23 @@ export function renderStarMap(
     return `<circle cx="${n(p.x)}" cy="${n(p.y)}" r="${palette.dotR}" fill="${palette.dotFill(s.security)}"/>`;
   });
 
-  // The frame is computed from dots only; stubs extend outward and are clipped.
-  const width = spanX * scale + palette.pad * 2;
-  const height = spanY * scale + palette.pad * 2;
+  // The frame bounds everything drawn, stubs included. Measuring it over the
+  // dots alone cut every stub that left their bounding box: a stub is
+  // `gateLength` long (10) against a pad of 7.3, so any gate pointing straight
+  // out of an edge system lost its last 2.7 units to the viewBox.
+  //
+  // Projection puts the dots' own box at 0..spanX*scale by 0..spanY*scale, so
+  // only the stub ends can push these out.
+  const stubXs = stubEnds.map((end) => end.x);
+  const stubYs = stubEnds.map((end) => end.y);
+  const minFrameX = Math.min(0, ...stubXs) - palette.pad;
+  const minFrameY = Math.min(0, ...stubYs) - palette.pad;
+  const width = Math.max(spanX * scale, ...stubXs) + palette.pad - minFrameX;
+  const height = Math.max(spanY * scale, ...stubYs) + palette.pad - minFrameY;
 
   return (
     `<svg xmlns="http://www.w3.org/2000/svg"` +
-    ` viewBox="${n(-palette.pad)} ${n(-palette.pad)} ${n(width)} ${n(height)}"` +
+    ` viewBox="${n(minFrameX)} ${n(minFrameY)} ${n(width)} ${n(height)}"` +
     ` width="128" height="128" preserveAspectRatio="xMidYMid meet">` +
     stubs.join('') +
     edges.join('') +

@@ -2,6 +2,7 @@
 
 import { Loader } from '@/components/Loader/Loader';
 import SecurityBadge from '@/components/SecurityStatus/SecurityStatus';
+import SolarSystemMap from '@/components/SolarSystemMap/SolarSystemMap';
 import { useSolarSystemAdjacentQuery } from '@/generated/graphql';
 import Link from 'next/link';
 
@@ -75,13 +76,21 @@ export default function AdjacentSystemsTab({
                 className="border-b border-white/5 last:border-0"
               >
                 <td className="px-4 py-3">
-                  <Link
-                    href={`/solar-systems/${system.id}`}
-                    prefetch={false}
-                    className="text-gray-400 hover:text-blue-400"
-                  >
-                    {system.name}
-                  </Link>
+                  <div className="flex items-center gap-3">
+                    <SolarSystemMap
+                      systemId={system.id}
+                      systemName={system.name}
+                      size={24}
+                      className="shrink-0"
+                    />
+                    <Link
+                      href={`/solar-systems/${system.id}`}
+                      prefetch={false}
+                      className="text-gray-400 hover:text-blue-400"
+                    >
+                      {system.name}
+                    </Link>
+                  </div>
                 </td>
                 <td className="px-4 py-3">
                   <SecurityBadge securityStatus={system.securityStatus} />
