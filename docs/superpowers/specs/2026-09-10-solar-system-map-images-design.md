@@ -260,6 +260,8 @@ iki dosyadan çıkarılabilir.
 **Eklenen**
 
 - `backend/src/scripts/solar-system-map-svg.ts` + `.spec.ts`
+- `backend/src/scripts/jita.fixture.ts` — golden test verisi, faz 1'in
+  `fade.fixture.ts`'iyle aynı rolde
 - `backend/src/scripts/render-solar-system-maps.ts`
 - `frontend/src/components/SolarSystemMap/SolarSystemMap.tsx` + `.spec.tsx`
 - `frontend/src/utils/solarSystemMapUrl.ts` + `.spec.ts`
