@@ -45,8 +45,8 @@ Expected output today:
 Then commit whatever changed. The diff is the record of what the SDE update
 did to the map — that is the reason these live in git rather than in object
 storage, with the caveat in "Determinism" below. All three sets together are
-about ~8,7 MB raw, and at the constellation set's measured 15% gzip ratio that
-is a small fraction of a packed repo.
+about ~8,86 MiB raw, and at the constellation set's measured 15% gzip ratio
+that is a small fraction of a packed repo.
 
 Each run also deletes any `.svg` in its directory whose region, constellation
 or solar system no longer exists, so a retired or renumbered one cannot leave
@@ -116,8 +116,8 @@ its outbound gates run about 1:2 against internal jumps instead of 1:9 — the
 edges of a constellation are most of what there is to see, so they get a colour
 of their own.
 
-Both have a transparent background. The site has a single dark theme and the
-image sits on three different surfaces, one of which changes on hover
+All three have a transparent background. The site has a single dark theme and
+each image sits on three different surfaces, one of which changes on hover
 (`.card-row` in `cards.css`), so a baked-in background would leave a dark
 square behind.
 

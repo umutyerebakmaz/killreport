@@ -1127,8 +1127,12 @@ yarn workspace frontend build
 yarn workspace frontend lint 2>&1 | tail -5
 ```
 
-Beklenen: build başarılı. Lint sayısı `main`'deki 234'ten yukarı çıkmamalı ve
-uyarıların hiçbiri bu iki dosyayı adlandırmamalı. Karşılaştırma için:
+Beklenen: build başarılı. `SolarSystemMap.tsx`'in kendi `<img>`'i task 3'te
+main'deki 236'yı zaten 237'ye çıkarmıştı — `RegionMap.tsx` ve
+`ConstellationMap.tsx`'in main'de zaten taşıdığı aynı
+`@next/next/no-img-element` uyarısı, repodaki 63 örnekten biri. Bu task sayıyı
+daha da yükseltmemeli ve uyarıların hiçbiri bu iki dosyayı adlandırmamalı.
+Karşılaştırma için:
 
 ```bash
 git stash && yarn workspace frontend lint 2>&1 | tail -3 && git stash pop
@@ -1553,10 +1557,10 @@ PR etiketleri: `feat` artı `frontend`, `backend` ve `ops`.
 
 ## Doğrulama özeti
 
-| Task | Kapı                                                                   |
-| ---- | ---------------------------------------------------------------------- |
-| 1    | `vitest run src/scripts/solar-system-map-svg.spec.ts` — 14 test        |
-| 2    | 8.089 / 68.407 / 8.089 / 401 / 0, eski iki script'e dokunulmamış       |
-| 3    | `vitest run` — 4 test                                                  |
-| 4-6  | `yarn workspace frontend build` + `lint` sayısı `main`'e göre artmamış |
-| 7    | `yarn test`, iki `build`, `lint`, `prettier --check .`                 |
+| Task | Kapı                                                                                           |
+| ---- | ---------------------------------------------------------------------------------------------- |
+| 1    | `vitest run src/scripts/solar-system-map-svg.spec.ts` — 14 test                                |
+| 2    | 8.089 / 68.407 / 8.089 / 401 / 0, eski iki script'e dokunulmamış                               |
+| 3    | `vitest run` — 4 test                                                                          |
+| 4-6  | `yarn workspace frontend build` + `lint` 236 → 237 (`SolarSystemMap.tsx`), daha ileri artmamış |
+| 7    | `yarn test`, iki `build`, `lint`, `prettier --check .`                                         |

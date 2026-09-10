@@ -9,7 +9,12 @@
 import { mkdir, readdir, unlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import prismaWorker from '@services/prisma-worker';
-import { MapPlanet, renderSolarSystemMap } from './solar-system-map-svg';
+import {
+  MapPlanet,
+  PLANET_R,
+  renderSolarSystemMap,
+  STAR_R,
+} from './solar-system-map-svg';
 
 // backend is CommonJS (no "type": "module"), so __dirname is the way here —
 // import.meta.url is not available. From src/scripts that is three levels up.
@@ -84,14 +89,16 @@ async function main(): Promise<void> {
     files.map((file) => writeFile(file.path, file.svg, 'utf8')),
   );
 
+  // Counted off the constants rather than a literal, so a radius change in
+  // the drawing module cannot silently turn these totals into zero.
   const occurrences = (svg: string, needle: string) =>
     svg.split(needle).length - 1;
   const planetDots = files.reduce(
-    (sum, f) => sum + occurrences(f.svg, 'r="1.6"'),
+    (sum, f) => sum + occurrences(f.svg, `r="${PLANET_R}"`),
     0,
   );
   const starDots = files.reduce(
-    (sum, f) => sum + occurrences(f.svg, 'r="2.6"'),
+    (sum, f) => sum + occurrences(f.svg, `r="${STAR_R}"`),
     0,
   );
 

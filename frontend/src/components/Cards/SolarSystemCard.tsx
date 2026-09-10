@@ -44,7 +44,7 @@ export default function SolarSystemCard({ system }: SolarSystemCardProps) {
 
   return (
     <div className="p-4 transition-all border bg-surface border-white/5 hover:bg-surface-inset hover:border-white/20">
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-3">
         <SolarSystemMap
           systemId={system.id}
           systemName={system.name}

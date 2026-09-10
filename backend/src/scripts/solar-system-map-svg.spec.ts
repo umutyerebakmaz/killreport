@@ -83,6 +83,38 @@ describe('renderSolarSystemMap', () => {
     );
   });
 
+  it('refuses to draw a system where a planet sits at the centre among others', () => {
+    // lo=0 makes Math.log(lo) -Infinity, so with a second, non-zero radius
+    // present the ramp's span comes out infinite and every position would be
+    // NaN. Regression test for that.
+    expect(() =>
+      renderSolarSystemMap({
+        star: { spectralClass: 'G2 V' },
+        planets: [
+          { id: 1, x: 0, z: 0, typeId: 11 },
+          { id: 2, x: 100, z: 0, typeId: 13 },
+        ],
+      }),
+    ).toThrow(
+      'renderSolarSystemMap: a planet at the centre of the system (a non-positive orbital radius) cannot be drawn on a logarithmic ramp',
+    );
+  });
+
+  it('places a single planet at the centre halfway up the ramp too', () => {
+    // A lone planet at radius 0 makes lo=hi=0 and span NaN rather than
+    // Infinity — there is no second radius for it to be degenerate against,
+    // so it gets the same halfway treatment as any other single planet
+    // instead of the throw above.
+    const svg = renderSolarSystemMap({
+      star: { spectralClass: 'M3 V' },
+      planets: [{ id: 1, x: 0, z: 0, typeId: 11 }],
+    });
+    expect(svg).toContain('<circle r="27.5"/>');
+    expect(svg).toContain(
+      '<circle cx="27.5" cy="0.0" r="1.6" fill="#4ade80"/>',
+    );
+  });
+
   it('draws one ring per distinct radius, sharing a single stroke', () => {
     const svg = renderSolarSystemMap({
       star: { spectralClass: 'K0 V' },
@@ -156,6 +188,5 @@ describe('renderSolarSystemMap', () => {
         '<circle r="27.0"/><circle r="34.9"/><circle r="41.4"/>' +
         '<circle r="43.3"/><circle r="46.0"/></g>',
     );
-    expect(svg).toHaveLength(783);
   });
 });

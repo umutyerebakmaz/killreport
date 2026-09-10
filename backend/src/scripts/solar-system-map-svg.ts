@@ -16,8 +16,8 @@ const OUTER = 46;
 const PAD = 4;
 const HALF = OUTER + PAD;
 
-const STAR_R = 2.6;
-const PLANET_R = 1.6;
+export const STAR_R = 2.6;
+export const PLANET_R = 1.6;
 const RING = '#475569';
 const RING_WIDTH = 0.6;
 
@@ -95,13 +95,28 @@ export function renderSolarSystemMap({
   const hi = Math.max(...radii);
   const span = Math.log(hi) - Math.log(lo);
 
+  // A planet at the system's centre makes lo (or hi) zero, and Math.log(0) is
+  // -Infinity. With a second, non-zero radius in the mix that leaves span
+  // infinite, and every ramp value below comes out NaN — an SVG full of
+  // r="NaN" that browsers silently drop rather than error on. Refuse instead
+  // of emitting that. A single planet at the centre does not hit this: lo and
+  // hi are the same zero, so span is NaN rather than Infinity, and it falls
+  // into the same halfway ramp as any other single-planet system below —
+  // there is no second radius for it to be degenerate against.
+  if (planets.length > 1 && !Number.isFinite(span)) {
+    throw new Error(
+      'renderSolarSystemMap: a planet at the centre of the system (a non-positive orbital radius) cannot be drawn on a logarithmic ramp',
+    );
+  }
+
   // The innermost orbit is 2.44e10 m and the outermost 3.04e13 — 1,246 times
   // wider — so the ramp is logarithmic. A single planet leaves the span at
-  // zero: it sits halfway up the ramp.
+  // zero (or NaN, when that one planet sits at the centre): either way it
+  // sits halfway up the ramp.
   const ramp = (r: number) =>
-    span <= 0
-      ? (INNER + OUTER) / 2
-      : INNER + (OUTER - INNER) * ((Math.log(r) - Math.log(lo)) / span);
+    span > 0
+      ? INNER + (OUTER - INNER) * ((Math.log(r) - Math.log(lo)) / span)
+      : (INNER + OUTER) / 2;
 
   const n = (value: number) => value.toFixed(1);
   const parts: string[] = [];
