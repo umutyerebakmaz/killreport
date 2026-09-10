@@ -75,8 +75,11 @@ export function parseEveHtml(eveHtml: string | null | undefined): string {
 export function sanitizeEveHtml(eveHtml: string | null | undefined): string {
   const parsed = parseEveHtml(eveHtml);
 
-  // Additional security: only allow specific tags and attributes
-  const allowedTags = ['span', 'a', 'br'];
+  // Additional security: only allow specific tags and attributes.
+  // `b`, `i`, `u` and `p` are the formatting tags EVE descriptions actually
+  // carry once `font`, `color` and `loc` have been rewritten above — without
+  // them the tag was stripped and its markup read as text on the page.
+  const allowedTags = ['span', 'a', 'br', 'b', 'i', 'u', 'p'];
   const allowedAttributes = ['style', 'href', 'target', 'rel', 'class'];
 
   // Create a temporary element to parse HTML

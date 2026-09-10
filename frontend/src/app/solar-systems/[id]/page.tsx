@@ -3,7 +3,7 @@
 import AdjacentSystemsTab from '@/components/SolarSystemDetail/AdjacentSystemsTab';
 import { Loader } from '@/components/Loader/Loader';
 import SecurityBadge from '@/components/SecurityStatus/SecurityStatus';
-import KillmailsTab from '@/components/SolarSystemDetail/KillmailsTab';
+import KillmailsTab from '@/components/KillmailsTab/KillmailsTab';
 import OrbitalBodiesTab from '@/components/SolarSystemDetail/OrbitalBodiesTab';
 import OverviewTab from '@/components/SolarSystemDetail/OverviewTab';
 import SovereigntyTab from '@/components/SolarSystemDetail/SovereigntyTab';
@@ -238,9 +238,17 @@ export default function SolarSystemDetailPage({
 
         {/* Above the tab bar on purpose: it summarises the system, not a tab. */}
         <SystemStatsStrip systemId={systemId} />
+      </div>
 
+      {/*
+        The tab bar and its panels sit outside the header card, on .tab-shell's
+        ground. Inside the card they shared its `surface`, so the killmail rows
+        had to be lifted a step to be visible at all — which put them at the
+        tone that means hover everywhere else.
+      */}
+      <div className="tab-shell mt-6">
         {/* Tabs — overflow-x-auto because six tabs overflow a narrow screen */}
-        <div className="mt-8 mb-6 border-b border-white/10">
+        <div className="px-2 border-b border-white/10">
           <nav
             className="flex gap-4 overflow-x-auto"
             aria-label="Tabs"
@@ -273,7 +281,7 @@ export default function SolarSystemDetailPage({
         </div>
 
         {/* Tab content */}
-        <div>
+        <div className="p-6">
           {activeTab === 'overview' && (
             <div
               role="tabpanel"
@@ -333,7 +341,7 @@ export default function SolarSystemDetailPage({
               aria-labelledby="tab-killmails"
             >
               <KillmailsTab
-                systemId={systemId}
+                scope={{ systemId }}
                 currentPage={currentPage}
                 pageSize={pageSize}
                 onPageChange={handlePageChange}

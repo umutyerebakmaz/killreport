@@ -8,8 +8,6 @@ import { ReactNode } from 'react';
 export interface TopFaction {
   id: number;
   name: string;
-  /** The faction's owning NPC corporation — the only source of its logo. */
-  corporationId: number;
   killCount: number;
 }
 
@@ -61,14 +59,18 @@ export default function TopFactionsCard({
                 <RankNumber rank={index + 1} />
 
                 {/*
-                  CCP's image server has no /factions/ path — it returns 400.
-                  The alliance endpoint accepts a faction id but answers with
-                  the same blank placeholder for every one of them, so the
-                  logo has to come from the faction's owning NPC corporation.
+                  CCP's image server has no /factions/ path — it returns 400,
+                  and /alliances/ answers a faction id with the same blank
+                  placeholder for every one of them. /corporations/ does accept
+                  a faction id and serves the faction's own emblem: all 27
+                  factions in the database come back as 27 distinct images.
+                  Going through the faction's owning NPC corporation instead
+                  drew that corporation's crest — Amarr Empire showed the
+                  Imperial Navy logo.
                 */}
                 <div className="relative shrink-0">
                   <img
-                    src={`https://images.evetech.net/corporations/${faction.corporationId}/logo?size=128`}
+                    src={`https://images.evetech.net/corporations/${faction.id}/logo?size=128`}
                     alt={faction.name}
                     width={64}
                     height={64}

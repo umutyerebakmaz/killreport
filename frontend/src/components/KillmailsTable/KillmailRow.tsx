@@ -17,7 +17,6 @@ export default function KillmailRow({
   characterId,
   corporationId,
   allianceId,
-  variant = 'list',
 }: KillmailRowProps) {
   // Get row styling based on entity involvement (victim vs attacker)
   const { totalValueColor, rowBgColor, rowHoverColor } = getKillmailRowStyles({
@@ -25,7 +24,6 @@ export default function KillmailRow({
     characterId,
     corporationId,
     allianceId,
-    variant,
   });
 
   // Use backend-computed fields
@@ -116,55 +114,61 @@ export default function KillmailRow({
 
       {/* System Column */}
       <td className="td-cell align-top">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {km.solarSystem && (
             <SolarSystemMap
               systemId={km.solarSystem.id}
               systemName={km.solarSystem.name}
-              size={20}
+              size={64}
               className="shrink-0"
             />
           )}
-          {km.solarSystem?.securityStatus !== null &&
-            km.solarSystem?.securityStatus !== undefined && (
-              <SecurityStatus securityStatus={km.solarSystem.securityStatus} />
+          <div className="flex-1 min-w-0 leading-tight">
+            <div className="flex items-center gap-2">
+              {km.solarSystem?.securityStatus !== null &&
+                km.solarSystem?.securityStatus !== undefined && (
+                  <SecurityStatus
+                    securityStatus={km.solarSystem.securityStatus}
+                  />
+                )}
+              <Tooltip content="Show Solar System Info" position="top">
+                <Link
+                  href={`/solar-systems/${km.solarSystem?.id}?tab=killmails`}
+                  className="font-medium text-orange-400 transition-colors hover:text-orange-500"
+                  prefetch={false}
+                >
+                  {km.solarSystem?.name || 'Unknown'}
+                </Link>
+              </Tooltip>
+            </div>
+            {km.solarSystem?.constellation && (
+              <div className="text-base text-purple-500">
+                <Tooltip content="Show Constellation Info" position="top">
+                  <Link
+                    href={`/constellations/${km.solarSystem.constellation?.id}`}
+                    className="transition-colors hover:text-purple-400"
+                    prefetch={false}
+                  >
+                    {km.solarSystem.constellation.name}
+                  </Link>
+                </Tooltip>
+              </div>
             )}
-          <Tooltip content="Show Solar System Info" position="top">
-            <Link
-              href={`/solar-systems/${km.solarSystem?.id}?tab=killmails`}
-              className="font-medium text-orange-400 transition-colors hover:text-orange-500"
-              prefetch={false}
-            >
-              {km.solarSystem?.name || 'Unknown'}
-            </Link>
-          </Tooltip>
+            {km.solarSystem?.constellation?.region && (
+              <div className="text-base text-blue-400">
+                <Tooltip content="Show Region Info" position="top">
+                  <Link
+                    href={`/regions/${km.solarSystem.constellation.region.id}`}
+                    className="transition-colors hover:text-blue-300"
+                    prefetch={false}
+                  >
+                    {km.solarSystem.constellation.region.name}
+                  </Link>
+                </Tooltip>
+              </div>
+            )}
+          </div>
         </div>
-        {km.solarSystem?.constellation && (
-          <div className="text-base text-purple-500">
-            <Tooltip content="Show Constellation Info" position="top">
-              <Link
-                href={`/constellations/${km.solarSystem.constellation?.id}`}
-                className="transition-colors hover:text-purple-400"
-                prefetch={false}
-              >
-                {km.solarSystem.constellation.name}
-              </Link>
-            </Tooltip>
-          </div>
-        )}
-        {km.solarSystem?.constellation?.region && (
-          <div className="text-base text-blue-400">
-            <Tooltip content="Show Region Info" position="top">
-              <Link
-                href={`/regions/${km.solarSystem.constellation.region.id}`}
-                className="transition-colors hover:text-blue-300"
-                prefetch={false}
-              >
-                {km.solarSystem.constellation.region.name}
-              </Link>
-            </Tooltip>
-          </div>
-        )}
       </td>
 
       {/* Victim Column */}
