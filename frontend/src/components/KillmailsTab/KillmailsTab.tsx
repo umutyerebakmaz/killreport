@@ -113,7 +113,7 @@ export default function KillmailsTab({
   const totalPages = pageInfo?.totalPages || 0;
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-6 mt-8 lg:grid-cols-4">
       <div className="lg:col-span-3">
         <h2 className="sr-only">Killmails</h2>
 
@@ -147,7 +147,13 @@ export default function KillmailsTab({
         )}
       </div>
 
-      <div className="lg:col-span-1 lg:mt-9">
+      {/*
+        lg:mt-10 drops the first card past the table's header row, so it lines
+        up with the first killmail rather than with the column titles. The
+        killmails page writes this same two-column block out a second time and
+        uses 10 there; this copy had drifted to 9. Change both or neither.
+      */}
+      <div className="lg:col-span-1 lg:mt-10">
         <TopEntitySidebar filter={scope} cards={SIDEBAR_CARDS} />
       </div>
     </div>
