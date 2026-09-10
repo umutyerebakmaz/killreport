@@ -6,8 +6,12 @@ import { useState } from 'react';
 export interface RegionMapProps {
   regionId: number;
   regionName: string;
-  /** Edge length in pixels. The image is a vector, so it will be sharp at any size. */
-  size: number;
+  /**
+   * Edge length in pixels. The image is a vector, so it will be sharp at any
+   * size. Omit it to let `className` do the sizing — a full-bleed map has no
+   * fixed edge length, it takes the size of whatever box it fills.
+   */
+  size?: number;
   className?: string;
 }
 
