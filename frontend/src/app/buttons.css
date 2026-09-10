@@ -138,21 +138,6 @@
   .badge {
     @apply inline-flex items-center justify-center w-5 h-5 ml-1 text-xs font-bold rounded-full text-cyan-700 bg-white;
   }
-
-  /*
-   * The underlined tab. Six detail pages (regions, alliances, solar-systems,
-   * corporations, characters, constellations) each write this bar out
-   * separately today. The selected state is read from ARIA here too.
-   */
-  .tab {
-    @apply px-4 py-3 text-sm font-semibold transition-colors border-b-2 whitespace-nowrap
-      border-transparent text-gray-400 hover:not-aria-selected:text-white
-      hover:not-aria-selected:border-white/20;
-  }
-
-  .tab[aria-selected='true'] {
-    @apply text-white border-accent;
-  }
 }
 
 /*

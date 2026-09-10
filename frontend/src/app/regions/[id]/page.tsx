@@ -165,11 +165,11 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
       </div>
 
       <div className="tab-shell mt-6">
-        {/* Tabs — the Most Valuable shelf's button tablist, not the
-            underlined .tab. .button-secondary carries `surface`, which is the
-            step above the shell's ground, and its aria-selected state marks
-            the active one with the accent border. */}
-        <nav className="flex gap-1 mb-3" aria-label="Tabs" role="tablist">
+        <nav
+          className="flex gap-1 mb-3 overflow-x-auto"
+          aria-label="Tabs"
+          role="tablist"
+        >
           {TAB_IDS.map((tabId) => (
             <button
               key={tabId}
