@@ -11,6 +11,20 @@ describe('RegionMap', () => {
     expect(image).toHaveAttribute('height', '64');
   });
 
+  it('leaves the size to CSS when no size is given', () => {
+    render(
+      <RegionMap
+        regionId={10000046}
+        regionName="Fade"
+        className="h-full w-full"
+      />,
+    );
+    const image = screen.getByAltText('Fade map');
+    expect(image).not.toHaveAttribute('width');
+    expect(image).not.toHaveAttribute('height');
+    expect(image).toHaveClass('h-full', 'w-full');
+  });
+
   it('removes itself when the file is missing, rather than showing a broken image', () => {
     render(<RegionMap regionId={999} regionName="Nowhere" size={64} />);
     const image = screen.getByAltText('Nowhere map');

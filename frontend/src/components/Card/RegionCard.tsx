@@ -2,9 +2,7 @@
 
 import RegionMap from '@/components/RegionMap/RegionMap';
 import Tooltip from '@/components/Tooltip/Tooltip';
-import Card from '@/components/ui/Card';
 import { RegionsQuery } from '@/generated/graphql';
-import { MapIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 
 // useRegionsQuery'nin döndüğü Region type'ını extract et
@@ -14,53 +12,43 @@ type RegionCardProps = {
   region: Region;
 };
 
+/**
+ * A region, shown as its own star map.
+ *
+ * The map is the card rather than a thumbnail inside it, so the link is the
+ * card too — the name alone used to be the only target. Same shape as
+ * KillmailCard, which is the other card built out of a single full-bleed image.
+ */
 export default function RegionCard({ region }: RegionCardProps) {
   return (
-    <Card>
-      <div className="px-4 py-5 sm:p-6">
-        <div className="flex flex-col items-center gap-4">
-          {/* Region star map */}
-          <div className="flex items-center justify-center w-32 h-32">
-            <RegionMap
-              regionId={region.id}
-              regionName={region.name}
-              size={128}
-            />
-          </div>
+    <Link
+      href={`/regions/${region.id}`}
+      className="region-card group"
+      prefetch={false}
+      aria-label={region.name}
+    >
+      <RegionMap
+        regionId={region.id}
+        regionName={region.name}
+        className="region-card-map"
+      />
 
-          {/* Region Name */}
-          <Link
-            href={`/regions/${region.id}`}
-            className="region-name"
-            prefetch={false}
-          >
-            {region.name}
-          </Link>
+      <div className="region-card-scrim" />
 
-          {/* Metrics */}
-          <div className="card-metrics">
-            {/* Constellation count */}
-            <Tooltip content="Constellations in this region" position="top">
-              <div className="flex items-center gap-2">
-                <MapIcon className="w-5 h-5 text-purple-400" />
-                <span className="font-medium text-purple-300">
-                  {region.constellationCount}
-                </span>
-              </div>
-            </Tooltip>
+      <div className="region-card-label">
+        <span className="region-card-name">{region.name}</span>
 
-            {/* Solar system count */}
-            <Tooltip content="Solar systems in this region" position="top">
-              <div className="flex items-center gap-2">
-                <MapPinIcon className="w-5 h-5 text-orange-400" />
-                <span className="font-medium text-orange-300">
-                  {region.solarSystemCount}
-                </span>
-              </div>
-            </Tooltip>
-          </div>
-        </div>
+        {/* 7/12 says nothing on its own, so the tooltip spells it out.
+            The classes go on Tooltip's own wrapper, which is the flex item
+            here — shrink-0 on an inner span would never be read. */}
+        <Tooltip
+          className="region-card-counts"
+          content={`${region.constellationCount} constellations · ${region.solarSystemCount} solar systems`}
+          position="top"
+        >
+          {region.constellationCount}/{region.solarSystemCount}
+        </Tooltip>
       </div>
-    </Card>
+    </Link>
   );
 }
