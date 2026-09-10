@@ -1,30 +1,95 @@
 'use client';
 
-import ConstellationMap from '@/components/ConstellationMap/ConstellationMap';
+import ConstellationCard from '@/components/Cards/ConstellationCard';
+import EveHtmlRenderer from '@/components/EveHtmlRenderer';
+import KillmailsTab from '@/components/KillmailsTab/KillmailsTab';
 import Loader from '@/components/Loader';
-import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
-import { useRegionQuery } from '@/generated/graphql';
+import MostValuableCarousel from '@/components/MostValuableCarousel/MostValuableCarousel';
 import RegionMap from '@/components/RegionMap/RegionMap';
+import SovereigntyLogo from '@/components/Sovereignty/SovereigntyLogo';
+import { useRegionQuery } from '@/generated/graphql';
 import { useTabList } from '@/hooks/useTabList';
-import { MapIcon, MapPinIcon } from '@heroicons/react/24/outline';
-import Link from 'next/link';
-import { use, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { use, useCallback, useState } from 'react';
 
 interface RegionDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-type TabType = 'overview' | 'constellations';
+type TabType = 'killmails' | 'overview' | 'constellations';
 
-const TAB_IDS: TabType[] = ['overview', 'constellations'];
+const TAB_IDS: TabType[] = ['killmails', 'overview', 'constellations'];
+
+function isTabType(value: string | null): value is TabType {
+  return value !== null && (TAB_IDS as string[]).includes(value);
+}
 
 export default function RegionDetailPage({ params }: RegionDetailPageProps) {
   const { id } = use(params);
-  const [activeTab, setActiveTab] = useState<TabType>('overview');
-  const { onKeyDown } = useTabList(TAB_IDS, activeTab, setActiveTab);
+  const regionId = parseInt(id);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Killmails is what the page is for, so it leads the tablist and opens by
+  // default. `?tab=` still wins where a link names a tab — SolarSystemCard's
+  // region line is one.
+  const tabParam = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState<TabType>(
+    isTabType(tabParam) ? tabParam : 'killmails',
+  );
+  const [currentPage, setCurrentPage] = useState(
+    Number(searchParams.get('page')) || 1,
+  );
+  const [pageSize, setPageSize] = useState(
+    Number(searchParams.get('pageSize')) || 25,
+  );
+
+  // Written from the same callback that changes the state, and replace rather
+  // than push, so switching tabs does not fill the back button.
+  const syncUrl = useCallback(
+    (tab: TabType, page: number, size: number) => {
+      const next = new URLSearchParams();
+      next.set('tab', tab);
+      if (tab === 'killmails') {
+        next.set('page', page.toString());
+        next.set('pageSize', size.toString());
+      }
+      router.replace(`/regions/${id}?${next.toString()}`, { scroll: false });
+    },
+    [id, router],
+  );
+
+  const handleTabChange = useCallback(
+    (tab: TabType) => {
+      setActiveTab(tab);
+      // Leaving the killmails tab on page 7 and coming back must not keep it.
+      setCurrentPage(1);
+      syncUrl(tab, 1, pageSize);
+    },
+    [pageSize, syncUrl],
+  );
+
+  const { onKeyDown } = useTabList(TAB_IDS, activeTab, handleTabChange);
+
+  const handlePageChange = useCallback(
+    (page: number) => {
+      setCurrentPage(page);
+      syncUrl(activeTab, page, pageSize);
+    },
+    [activeTab, pageSize, syncUrl],
+  );
+
+  const handlePageSizeChange = useCallback(
+    (size: number) => {
+      setPageSize(size);
+      setCurrentPage(1);
+      syncUrl(activeTab, 1, size);
+    },
+    [activeTab, syncUrl],
+  );
 
   const { data, loading, error } = useRegionQuery({
-    variables: { id: parseInt(id) },
+    variables: { id: regionId },
   });
 
   if (loading) {
@@ -50,14 +115,15 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
   }
 
   const tabLabels: Record<TabType, string> = {
+    killmails: 'Killmails',
     overview: 'Overview',
     constellations: `Constellations (${region.constellationCount})`,
   };
 
   return (
     <div>
+      {/* Region detail card */}
       <div className="card p-6 flex flex-col">
-        {/* Header */}
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-start gap-6">
             <div className="flex items-center justify-center w-24 h-24 sm:w-64 sm:h-64 shrink-0">
@@ -71,263 +137,103 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
             <div>
               <h1 className="text-4xl font-bold text-white">{region.name}</h1>
               {region.description && (
-                <p className="max-w-2xl mt-2 text-gray-400">
-                  {region.description}
-                </p>
+                <EveHtmlRenderer
+                  html={region.description}
+                  className="max-w-2xl mt-2 text-gray-400"
+                />
               )}
-              <div className="flex items-center gap-6 mt-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <MapIcon className="w-5 h-5 text-purple-400" />
-                  <span className="font-medium text-purple-300">
-                    {region.constellationCount}
-                  </span>
-                  <span className="text-gray-500">Constellations</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPinIcon className="w-5 h-5 text-orange-400" />
-                  <span className="font-medium text-orange-300">
-                    {region.solarSystemCount}
-                  </span>
-                  <span className="text-gray-500">Systems</span>
-                </div>
-              </div>
             </div>
           </div>
 
-          {/* Security Stats Card */}
-          {region.securityStats && (
-            <div className="bg-white/5 border border-white/10 p-4 min-w-70">
-              <h3 className="mb-3 text-sm font-medium text-gray-400">
-                Security Distribution
-              </h3>
-              <SecurityStatsBar
-                stats={{
-                  highSec: region.securityStats.highSec,
-                  lowSec: region.securityStats.lowSec,
-                  nullSec: region.securityStats.nullSec,
-                  wormhole: region.securityStats.wormhole,
-                }}
-              />
-              {region.securityStats.avgSecurity != null && (
-                <div className="flex items-center justify-between pt-3 mt-3 border-t border-white/10">
-                  <span className="text-sm text-gray-400">
-                    Average Security:
-                  </span>
-                  <span
-                    className={`font-medium ${
-                      region.securityStats.avgSecurity >= 0.5
-                        ? 'text-green-400'
-                        : region.securityStats.avgSecurity > 0
-                          ? 'text-yellow-400'
-                          : 'text-red-400'
-                    }`}
-                  >
-                    {region.securityStats.avgSecurity.toFixed(2)}
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
+          {/*
+            The region's holder, at the right edge of the card. 128 rather than
+            256: the image server answers size=512 with a real 512x512 file,
+            but at 19.4KB against 15.9KB for the 256 it is plainly an upscale of
+            a smaller master, so a 256px box rendered soft.
+          */}
+          <SovereigntyLogo
+            holder={region.sovereignty}
+            size={128}
+            className="self-center shrink-0 lg:self-start"
+          />
         </div>
+      </div>
 
-        {/* Tabs */}
-        <div className="mt-8 border-b border-white/10">
-          <nav className="flex gap-4" aria-label="Tabs" role="tablist">
-            {TAB_IDS.map((tabId) => (
-              <button
-                key={tabId}
-                role="tab"
-                id={`tab-${tabId}`}
-                aria-controls={`panel-${tabId}`}
-                aria-selected={activeTab === tabId}
-                tabIndex={activeTab === tabId ? 0 : -1}
-                onClick={() => setActiveTab(tabId)}
-                onKeyDown={onKeyDown}
-                className="tab"
-              >
-                {tabLabels[tabId]}
-              </button>
-            ))}
-          </nav>
-        </div>
+      {/* Most Valuable, scoped to this region */}
+      <div className="mt-6">
+        <MostValuableCarousel regionId={region.id} />
+      </div>
+
+      <div className="tab-shell mt-6">
+        {/* Tabs — the Most Valuable shelf's button tablist, not the
+            underlined .tab. .button-secondary carries `surface`, which is the
+            step above the shell's ground, and its aria-selected state marks
+            the active one with the accent border. */}
+        <nav className="flex gap-1 mb-3" aria-label="Tabs" role="tablist">
+          {TAB_IDS.map((tabId) => (
+            <button
+              key={tabId}
+              role="tab"
+              id={`tab-${tabId}`}
+              aria-controls={`panel-${tabId}`}
+              aria-selected={activeTab === tabId}
+              tabIndex={activeTab === tabId ? 0 : -1}
+              onClick={() => handleTabChange(tabId)}
+              onKeyDown={onKeyDown}
+              className="button button-secondary button-sm"
+            >
+              {tabLabels[tabId]}
+            </button>
+          ))}
+        </nav>
 
         {/* Tab Content */}
-        <div className="mt-6">
-          {activeTab === 'overview' && (
-            <div
-              role="tabpanel"
-              id="panel-overview"
-              aria-labelledby="tab-overview"
-              className="grid gap-6 md:grid-cols-2"
-            >
-              {/* Region Info */}
-              <div className="p-6 border bg-white/5 border-white/10">
-                <h2 className="mb-4 text-xl font-bold">Region Information</h2>
-                <dl className="space-y-3">
-                  <div className="flex justify-between">
-                    <dt className="text-gray-400">Region ID</dt>
-                    <dd className="text-gray-200">{region.id}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-gray-400">Constellations</dt>
-                    <dd className="font-medium text-purple-300">
-                      {region.constellationCount}
-                    </dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-gray-400">Solar Systems</dt>
-                    <dd className="font-medium text-orange-300">
-                      {region.solarSystemCount}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
+        {activeTab === 'overview' && (
+          <div
+            role="tabpanel"
+            id="panel-overview"
+            aria-labelledby="tab-overview"
+          />
+        )}
 
-              {/* Security Breakdown */}
-              <div className="p-6 border bg-white/5 border-white/10">
-                <h2 className="mb-4 text-xl font-bold">Security Breakdown</h2>
-                {region.securityStats && (
-                  <dl className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <dt className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-green-500 rounded-full" />
-                        <span className="text-gray-400">High Security</span>
-                      </dt>
-                      <dd className="font-medium text-green-400">
-                        {region.securityStats.highSec} systems
-                      </dd>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <dt className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-yellow-500 rounded-full" />
-                        <span className="text-gray-400">Low Security</span>
-                      </dt>
-                      <dd className="font-medium text-yellow-400">
-                        {region.securityStats.lowSec} systems
-                      </dd>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <dt className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-red-500 rounded-full" />
-                        <span className="text-gray-400">Null Security</span>
-                      </dt>
-                      <dd className="font-medium text-red-400">
-                        {region.securityStats.nullSec} systems
-                      </dd>
-                    </div>
-                    {region.securityStats.wormhole > 0 && (
-                      <div className="flex items-center justify-between">
-                        <dt className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-purple-500 rounded-full" />
-                          <span className="text-gray-400">Wormhole</span>
-                        </dt>
-                        <dd className="font-medium text-purple-400">
-                          {region.securityStats.wormhole} systems
-                        </dd>
-                      </div>
-                    )}
-                  </dl>
-                )}
+        {activeTab === 'constellations' && (
+          <div
+            role="tabpanel"
+            id="panel-constellations"
+            aria-labelledby="tab-constellations"
+          >
+            {region.constellations && region.constellations.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+                {region.constellations.map((constellation) => (
+                  <ConstellationCard
+                    key={constellation.id}
+                    constellation={constellation}
+                  />
+                ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="py-12 text-center text-gray-400">
+                No constellations found
+              </div>
+            )}
+          </div>
+        )}
 
-          {activeTab === 'constellations' && (
-            <div
-              role="tabpanel"
-              id="panel-constellations"
-              aria-labelledby="tab-constellations"
-              className="overflow-hidden border border-white/10"
-            >
-              <table className="table">
-                <thead className="bg-surface-inset">
-                  <tr>
-                    <th className="th-cell">Constellation</th>
-                    <th className="th-cell">Systems</th>
-                    <th className="th-cell">Security Distribution</th>
-                    <th className="th-cell">Avg Security</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {region.constellations && region.constellations.length > 0 ? (
-                    region.constellations.map((constellation) => (
-                      <tr key={constellation.id} className="tr-row">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-3">
-                            <ConstellationMap
-                              constellationId={constellation.id}
-                              constellationName={constellation.name}
-                              size={24}
-                              className="shrink-0"
-                            />
-                            <Link
-                              href={`/constellations/${constellation.id}`}
-                              prefetch={false}
-                              className="font-medium transition-colors text-gray-400 hover:text-blue-400"
-                            >
-                              {constellation.name}
-                            </Link>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-gray-300 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            <MapPinIcon className="w-4 h-4 text-orange-400" />
-                            <span className="text-orange-300">
-                              {constellation.solarSystemCount}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          {constellation.securityStats && (
-                            <SecurityStatsBar
-                              stats={{
-                                highSec: constellation.securityStats.highSec,
-                                lowSec: constellation.securityStats.lowSec,
-                                nullSec: constellation.securityStats.nullSec,
-                              }}
-                              showLabels={false}
-                              compact={false}
-                            />
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {constellation.securityStats?.avgSecurity !== null &&
-                          constellation.securityStats?.avgSecurity !==
-                            undefined ? (
-                            <span
-                              className={`${
-                                constellation.securityStats.avgSecurity >= 0.5
-                                  ? 'text-green-400'
-                                  : constellation.securityStats.avgSecurity > 0
-                                    ? 'text-yellow-400'
-                                    : 'text-red-400'
-                              }`}
-                            >
-                              {constellation.securityStats.avgSecurity.toFixed(
-                                2,
-                              )}
-                            </span>
-                          ) : (
-                            <span className="text-gray-500">-</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={4}
-                        className="px-6 py-12 text-center text-gray-400"
-                      >
-                        No constellations found
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+        {activeTab === 'killmails' && (
+          <div
+            role="tabpanel"
+            id="panel-killmails"
+            aria-labelledby="tab-killmails"
+          >
+            <KillmailsTab
+              scope={{ regionId }}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

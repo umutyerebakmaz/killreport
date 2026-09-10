@@ -32,16 +32,6 @@ describe('getKillmailRowStyles', () => {
       });
     });
 
-    it('steps one shade lighter for the detail variant', () => {
-      expect(
-        getKillmailRowStyles({ killmail: killmail(), variant: 'detail' }),
-      ).toEqual({
-        totalValueColor: 'text-orange-400',
-        rowBgColor: 'bg-surface-inset',
-        rowHoverColor: 'hover:bg-gray-700',
-      });
-    });
-
     it('uses them again when the entity appears on neither side', () => {
       const km = killmail({
         victim: { character: { id: 7 } },
@@ -64,12 +54,10 @@ describe('getKillmailRowStyles', () => {
         victim: { character: { id: CHARACTER } },
       } as Partial<Killmail>);
 
-      // variant only reaches the uninvolved branch; a loss ignores it
       expect(
         getKillmailRowStyles({
           killmail: km,
           characterId: CHARACTER,
-          variant: 'detail',
         }),
       ).toEqual({
         totalValueColor: 'text-red-500',

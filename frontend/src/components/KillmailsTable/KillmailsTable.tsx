@@ -14,7 +14,6 @@ export default function KillmailsTable({
   allianceId,
   dateCountsMap,
   totalCount,
-  variant = 'list',
 }: KillmailsTableProps) {
   // Group killmails by date inside component
   const groupedKillmails = useMemo(() => {
@@ -72,7 +71,7 @@ export default function KillmailsTable({
                 <colgroup>
                   <col className="w-10" />
                   <col className="w-30" />
-                  <col className="w-16" />
+                  <col className="w-30" />
                   <col className="w-30" />
                   <col className="w-30" />
                   <col className="w-12" />
@@ -96,7 +95,6 @@ export default function KillmailsTable({
                       characterId={characterId}
                       corporationId={corporationId}
                       allianceId={allianceId}
-                      variant={variant}
                     />
                   ))}
                 </tbody>

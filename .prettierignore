@@ -26,3 +26,8 @@ yarn.lock
 
 # Written by Next.js on every build and marked "should not be edited".
 frontend/next-env.d.ts
+
+# `yarn workspace frontend build:check` writes here instead of .next, so that a
+# verification build does not fight the dev server. Same generated output, so
+# it is ignored the same way.
+frontend/.next-check

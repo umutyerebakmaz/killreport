@@ -2,8 +2,14 @@ query MostValuableKillmails(
   $scope: MostValuableScope!
   $days: Int
   $limit: Int
+  $regionId: Int
 ) {
-  mostValuableKillmails(scope: $scope, days: $days, limit: $limit) {
+  mostValuableKillmails(
+    scope: $scope
+    days: $days
+    limit: $limit
+    regionId: $regionId
+  ) {
     id
     killmailTime
     totalValue

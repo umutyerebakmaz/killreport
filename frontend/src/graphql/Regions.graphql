@@ -6,13 +6,6 @@ query Regions($filter: RegionFilter) {
       description
       constellationCount
       solarSystemCount
-      securityStats {
-        highSec
-        lowSec
-        nullSec
-        wormhole
-        avgSecurity
-      }
     }
     pageInfo {
       currentPage
@@ -30,23 +23,23 @@ query Region($id: Int!) {
     name
     description
     constellationCount
-    solarSystemCount
-    securityStats {
-      highSec
-      lowSec
-      nullSec
-      wormhole
-      avgSecurity
+    sovereignty {
+      ownerType
+      ownerId
+      ownerName
+      allianceTicker
+      systemCount
     }
     constellations {
       id
       name
       solarSystemCount
-      securityStats {
-        highSec
-        lowSec
-        nullSec
-        avgSecurity
+      sovereignty {
+        ownerType
+        ownerId
+        ownerName
+        allianceTicker
+        systemCount
       }
     }
   }

@@ -14,6 +14,11 @@ type Region {
   constellationCount: Int!
   solarSystemCount: Int!
   securityStats: SecurityStats!
+  """
+  Who holds the region, or null where nothing in it is held — 44 of the 114
+  regions, wormhole space among them.
+  """
+  sovereignty: SovereigntyHolder
 }
 
 enum RegionOrderBy {

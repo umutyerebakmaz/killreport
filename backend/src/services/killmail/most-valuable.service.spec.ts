@@ -92,19 +92,19 @@ describe('caching', () => {
   it('keys on the scope, the window and the limit', async () => {
     await getMostValuableKillmails(MostValuableScope.Capitals, 30, 10);
 
-    expect(cacheKey()).toBe('killmails:mostvaluable:CAPITALS:30:10');
+    expect(cacheKey()).toBe('killmails:mostvaluable:CAPITALS:30:10:all');
   });
 
   it('names the defaults in the key rather than leaving a hole', async () => {
     await getMostValuableKillmails(MostValuableScope.Ships);
 
-    expect(cacheKey()).toBe('killmails:mostvaluable:SHIPS:7:20');
+    expect(cacheKey()).toBe('killmails:mostvaluable:SHIPS:7:20:all');
   });
 
   it('treats a null window and limit as the defaults', async () => {
     await getMostValuableKillmails(MostValuableScope.Ships, null, null);
 
-    expect(cacheKey()).toBe('killmails:mostvaluable:SHIPS:7:20');
+    expect(cacheKey()).toBe('killmails:mostvaluable:SHIPS:7:20:all');
   });
 
   it('gives two scopes separate entries', async () => {
@@ -112,8 +112,26 @@ describe('caching', () => {
     await getMostValuableKillmails(MostValuableScope.Solo, 7, 20);
 
     expect(redis.get.mock.calls.map(([key]) => key)).toEqual([
-      'killmails:mostvaluable:SHIPS:7:20',
-      'killmails:mostvaluable:SOLO:7:20',
+      'killmails:mostvaluable:SHIPS:7:20:all',
+      'killmails:mostvaluable:SOLO:7:20:all',
+    ]);
+  });
+
+  it('keys on the region, and names its absence rather than leaving a hole', async () => {
+    await getMostValuableKillmails(MostValuableScope.Ships, 7, 20, 10000002);
+
+    expect(cacheKey()).toBe('killmails:mostvaluable:SHIPS:7:20:10000002');
+  });
+
+  it('gives a region shelf and the whole cluster separate entries', async () => {
+    await getMostValuableKillmails(MostValuableScope.Ships, 7, 20, 10000002);
+    await getMostValuableKillmails(MostValuableScope.Ships, 7, 20);
+    await getMostValuableKillmails(MostValuableScope.Ships, 7, 20, 10000010);
+
+    expect(redis.get.mock.calls.map(([key]) => key)).toEqual([
+      'killmails:mostvaluable:SHIPS:7:20:10000002',
+      'killmails:mostvaluable:SHIPS:7:20:all',
+      'killmails:mostvaluable:SHIPS:7:20:10000010',
     ]);
   });
 
@@ -121,7 +139,7 @@ describe('caching', () => {
     await getMostValuableKillmails(MostValuableScope.Ships);
 
     expect(redis.setex).toHaveBeenCalledWith(
-      'killmails:mostvaluable:SHIPS:7:20',
+      'killmails:mostvaluable:SHIPS:7:20:all',
       300,
       expect.any(String),
     );
@@ -132,26 +150,26 @@ describe('clamping the caller', () => {
   it('caps the limit at 50', async () => {
     await getMostValuableKillmails(MostValuableScope.Ships, 7, 10_000);
 
-    expect(cacheKey()).toBe('killmails:mostvaluable:SHIPS:7:50');
+    expect(cacheKey()).toBe('killmails:mostvaluable:SHIPS:7:50:all');
     expect(queryValues()).toContain(50);
   });
 
   it('caps the window at 90 days', async () => {
     await getMostValuableKillmails(MostValuableScope.Ships, 3650, 20);
 
-    expect(cacheKey()).toBe('killmails:mostvaluable:SHIPS:90:20');
+    expect(cacheKey()).toBe('killmails:mostvaluable:SHIPS:90:20:all');
   });
 
   it('raises a window below one day back to one', async () => {
     await getMostValuableKillmails(MostValuableScope.Ships, 0, 20);
 
-    expect(cacheKey()).toBe('killmails:mostvaluable:SHIPS:1:20');
+    expect(cacheKey()).toBe('killmails:mostvaluable:SHIPS:1:20:all');
   });
 
   it('raises a negative window back to one day', async () => {
     await getMostValuableKillmails(MostValuableScope.Ships, -30, 20);
 
-    expect(cacheKey()).toBe('killmails:mostvaluable:SHIPS:1:20');
+    expect(cacheKey()).toBe('killmails:mostvaluable:SHIPS:1:20:all');
   });
 
   it('cannot be made to open an entry outside the clamped range', async () => {
@@ -225,6 +243,31 @@ describe('the query', () => {
 
     expect(sql()).toContain('total_value IS NOT NULL');
     expect(sql()).toContain('ORDER BY total_value DESC');
+  });
+
+  it('adds a region condition only when a region was asked for', async () => {
+    await getMostValuableKillmails(MostValuableScope.Ships, 7, 20, 10000002);
+
+    const region = queryValues().find(
+      (v): v is { fragment: string; values: unknown[] } =>
+        typeof v === 'object' &&
+        v !== null &&
+        'fragment' in v &&
+        (v as { fragment: string }).fragment.includes('region_id'),
+    );
+    expect(region?.fragment).toContain('AND region_id =');
+    expect(region?.values).toEqual([10000002]);
+  });
+
+  it('splices an empty fragment when no region was asked for', async () => {
+    await getMostValuableKillmails(MostValuableScope.Ships);
+
+    const fragments = queryValues().filter(
+      (v): v is { fragment: string; values: unknown[] } =>
+        typeof v === 'object' && v !== null && 'fragment' in v,
+    );
+    expect(fragments.map((f) => f.fragment)).toContain('');
+    expect(fragments.some((f) => f.fragment.includes('region_id'))).toBe(false);
   });
 });
 
