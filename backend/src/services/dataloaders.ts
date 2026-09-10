@@ -2,6 +2,15 @@ import DataLoader from 'dataloader';
 import logger from './logger';
 import prisma from './prisma';
 
+/** A region's or a constellation's dominant sovereignty holder. */
+export interface SovereigntyHolderRow {
+  ownerType: 'FACTION' | 'ALLIANCE';
+  ownerId: number;
+  ownerName: string | null;
+  allianceTicker: string | null;
+  systemCount: number;
+}
+
 /**
  * Alliance DataLoader - Batch loading için
  *
@@ -437,6 +446,8 @@ export interface DataLoaderContext {
         avgSecurity: number | null;
       }
     >;
+    constellationSovereignty: DataLoader<number, SovereigntyHolderRow | null>;
+    regionSovereignty: DataLoader<number, SovereigntyHolderRow | null>;
     corporationSnapshot: DataLoader<{ corporationId: number; date: Date }, any>;
     allianceSnapshot: DataLoader<{ allianceId: number; date: Date }, any>;
     typeDogmaAttributes: DataLoader<number, any[]>;
@@ -479,6 +490,8 @@ export const createDataLoaders = (): DataLoaderContext => ({
     regionStats: createRegionStatsLoader(),
     regionSecurityStats: createRegionSecurityStatsLoader(),
     constellationSecurityStats: createConstellationSecurityStatsLoader(),
+    constellationSovereignty: createConstellationSovereigntyLoader(),
+    regionSovereignty: createRegionSovereigntyLoader(),
     corporationSnapshot: createCorporationSnapshotLoader(),
     allianceSnapshot: createAllianceSnapshotLoader(),
     typeDogmaAttributes: createTypeDogmaAttributesLoader(),
@@ -1073,6 +1086,201 @@ export const createConstellationSecurityStatsLoader = () => {
       };
     });
   });
+};
+
+/**
+ * Resolves the dominant sovereignty holder for a set of groups of systems.
+ *
+ * EVE holds sovereignty per solar system, so a region's or a constellation's
+ * owner is whoever holds the most of its systems. Ownership is rarely split:
+ * of the 784 held constellations 739 have one owner throughout, and a faction
+ * never shares one with an alliance.
+ *
+ * `groupOf` says which group each system id belongs to — a constellation id or
+ * a region id. Two batched name queries follow, one per owner kind.
+ */
+async function resolveSovereigntyHolders(
+  groupIds: readonly number[],
+  groupOf: Map<number, number>,
+): Promise<(SovereigntyHolderRow | null)[]> {
+  const systemIds = [...groupOf.keys()];
+  const sovRows = systemIds.length
+    ? await prisma.sovereigntyMapCurrent.findMany({
+        where: { solar_system_id: { in: systemIds } },
+        select: { solar_system_id: true, alliance_id: true, faction_id: true },
+      })
+    : [];
+
+  // Count systems per owner within each group. The key keeps the owner's kind,
+  // so an alliance and a faction that share an id cannot collide.
+  const counts = new Map<number, Map<string, number>>();
+  for (const row of sovRows) {
+    const groupId = groupOf.get(row.solar_system_id);
+    if (groupId === undefined) continue;
+
+    const ownerType = row.alliance_id !== null ? 'ALLIANCE' : 'FACTION';
+    const ownerId = row.alliance_id ?? row.faction_id;
+    if (ownerId === null) continue;
+
+    const perOwner = counts.get(groupId) ?? new Map<string, number>();
+    const key = `${ownerType}:${ownerId}`;
+    perOwner.set(key, (perOwner.get(key) ?? 0) + 1);
+    counts.set(groupId, perOwner);
+  }
+
+  // Pick each group's dominant owner, breaking a tie on the lower id so the
+  // answer does not move between requests.
+  type Winner = {
+    ownerType: 'ALLIANCE' | 'FACTION';
+    ownerId: number;
+    systemCount: number;
+  };
+  const winners = new Map<number, Winner>();
+  for (const [groupId, perOwner] of counts) {
+    let winner: Winner | null = null;
+
+    for (const [key, systemCount] of perOwner) {
+      const [ownerType, rawId] = key.split(':');
+      const ownerId = Number(rawId);
+      if (
+        !winner ||
+        systemCount > winner.systemCount ||
+        (systemCount === winner.systemCount && ownerId < winner.ownerId)
+      ) {
+        winner = {
+          ownerType: ownerType as 'ALLIANCE' | 'FACTION',
+          ownerId,
+          systemCount,
+        };
+      }
+    }
+
+    if (winner) winners.set(groupId, winner);
+  }
+
+  const allianceIds = [...winners.values()]
+    .filter((w) => w.ownerType === 'ALLIANCE')
+    .map((w) => w.ownerId);
+  const factionIds = [...winners.values()]
+    .filter((w) => w.ownerType === 'FACTION')
+    .map((w) => w.ownerId);
+
+  const [alliances, factions] = await Promise.all([
+    allianceIds.length
+      ? prisma.alliance.findMany({
+          where: { id: { in: allianceIds } },
+          select: { id: true, name: true, ticker: true },
+        })
+      : [],
+    factionIds.length
+      ? prisma.faction.findMany({
+          where: { id: { in: factionIds } },
+          select: { id: true, name: true },
+        })
+      : [],
+  ]);
+
+  const allianceMap = new Map(alliances.map((a) => [a.id, a]));
+  const factionMap = new Map(factions.map((f) => [f.id, f]));
+
+  return groupIds.map((groupId) => {
+    const winner = winners.get(groupId);
+    if (!winner) return null;
+
+    if (winner.ownerType === 'ALLIANCE') {
+      const alliance = allianceMap.get(winner.ownerId);
+      return {
+        ownerType: 'ALLIANCE',
+        ownerId: winner.ownerId,
+        ownerName: alliance?.name ?? null,
+        allianceTicker: alliance?.ticker ?? null,
+        systemCount: winner.systemCount,
+      };
+    }
+
+    const faction = factionMap.get(winner.ownerId);
+    return {
+      ownerType: 'FACTION',
+      ownerId: winner.ownerId,
+      ownerName: faction?.name ?? null,
+      allianceTicker: null,
+      systemCount: winner.systemCount,
+    };
+  });
+}
+
+/**
+ * Constellation Sovereignty DataLoader
+ *
+ * One query for the systems, then the shared roll-up above.
+ */
+export const createConstellationSovereigntyLoader = () => {
+  return new DataLoader<number, SovereigntyHolderRow | null>(
+    async (constellationIds) => {
+      console.log(
+        `🔄 DataLoader: Batching ${constellationIds.length} constellation sovereignty queries`,
+      );
+
+      const systems = await prisma.solarSystem.findMany({
+        where: { constellation_id: { in: [...constellationIds] } },
+        select: { id: true, constellation_id: true },
+      });
+
+      const groupOf = new Map<number, number>();
+      for (const sys of systems) {
+        if (sys.constellation_id === null) continue;
+        groupOf.set(sys.id, sys.constellation_id);
+      }
+
+      return resolveSovereigntyHolders(constellationIds, groupOf);
+    },
+  );
+};
+
+/**
+ * Region Sovereignty DataLoader
+ *
+ * Same roll-up one level higher: systems reach a region through their
+ * constellation, the way regionSecurityStats does it.
+ */
+export const createRegionSovereigntyLoader = () => {
+  return new DataLoader<number, SovereigntyHolderRow | null>(
+    async (regionIds) => {
+      console.log(
+        `🔄 DataLoader: Batching ${regionIds.length} region sovereignty queries`,
+      );
+
+      const constellations = await prisma.constellation.findMany({
+        where: { region_id: { in: [...regionIds] } },
+        select: { id: true, region_id: true },
+      });
+
+      const regionOfConstellation = new Map<number, number>();
+      for (const constellation of constellations) {
+        if (constellation.region_id === null) continue;
+        regionOfConstellation.set(constellation.id, constellation.region_id);
+      }
+
+      const systems = constellations.length
+        ? await prisma.solarSystem.findMany({
+            where: {
+              constellation_id: { in: [...regionOfConstellation.keys()] },
+            },
+            select: { id: true, constellation_id: true },
+          })
+        : [];
+
+      const groupOf = new Map<number, number>();
+      for (const sys of systems) {
+        if (sys.constellation_id === null) continue;
+        const regionId = regionOfConstellation.get(sys.constellation_id);
+        if (regionId === undefined) continue;
+        groupOf.set(sys.id, regionId);
+      }
+
+      return resolveSovereigntyHolders(regionIds, groupOf);
+    },
+  );
 };
 
 /**

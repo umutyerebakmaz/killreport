@@ -281,6 +281,12 @@ type Constellation {
   securityStats: SecurityStats!
   solarSystemCount: Int!
   solarSystems: [SolarSystem!]!
+
+  """
+  Who holds the constellation, or null where nothing in it is held —
+  wormhole space and unclaimed nullsec, 400 of the 1184 constellations.
+  """
+  sovereignty: SovereigntyHolder
 }
 
 input ConstellationFilter {
@@ -954,6 +960,12 @@ type Region {
   name: String!
   securityStats: SecurityStats!
   solarSystemCount: Int!
+
+  """
+  Who holds the region, or null where nothing in it is held — 44 of the 114
+  regions, wormhole space among them.
+  """
+  sovereignty: SovereigntyHolder
 }
 
 """Count of active sovereignty campaigns in a region."""
@@ -1169,6 +1181,30 @@ type SovereigntyCampaignHistoryPage {
   totalCount: Int!
 }
 
+"""
+Who holds a region or a constellation. EVE tracks sovereignty per solar
+system, so this is the owner of the most of its systems, and `systemCount`
+says how thin or wide that majority is — read the two together, never the
+name alone.
+
+A constellation is usually undivided: 739 of the 784 held ones have a single
+owner throughout, and none mixes a faction with an alliance. A region is not.
+31 of the 70 held regions have more than one owner, 4 of them across both
+kinds, and the leader averages 82% of the region's held systems but drops to
+20% at the thinnest. Providence, for one, is reported to its largest holder
+on 24 of its 84 systems.
+"""
+type SovereigntyHolder {
+  """The alliance's ticker; null for a faction."""
+  allianceTicker: String
+  ownerId: Int!
+  ownerName: String
+  ownerType: SovereigntyOwnerType!
+
+  """How many of the systems below it this owner holds."""
+  systemCount: Int!
+}
+
 """Distribution of resolved campaign outcomes."""
 type SovereigntyOutcomeStats {
   abandoned: Int!
@@ -1189,6 +1225,12 @@ type SovereigntyOverview {
 
   """Total killmails correlated to active sovereignty campaigns."""
   warKills: Int!
+}
+
+"""FACTION in NPC space, ALLIANCE in sovereign space."""
+enum SovereigntyOwnerType {
+  ALLIANCE
+  FACTION
 }
 
 """

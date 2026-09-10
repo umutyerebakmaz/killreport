@@ -51,4 +51,8 @@ export const constellationFields: ConstellationResolvers = {
     // Use optimized DataLoader to batch security stats queries
     return context.loaders.constellationSecurityStats.load(parent.id);
   },
+  sovereignty: async (parent, _, context) => {
+    if (!parent.id) return null;
+    return context.loaders.constellationSovereignty.load(parent.id);
+  },
 };

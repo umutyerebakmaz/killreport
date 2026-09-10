@@ -72,4 +72,8 @@ export const regionFields: RegionResolvers = {
     // Use DataLoader to batch security stats queries
     return context.loaders.regionSecurityStats.load(parent.id);
   },
+  sovereignty: async (parent, _, context) => {
+    if (!parent.id) return null;
+    return context.loaders.regionSovereignty.load(parent.id);
+  },
 };
