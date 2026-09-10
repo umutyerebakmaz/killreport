@@ -484,7 +484,7 @@ export function renderSolarSystemMap({
 yarn workspace backend vitest run src/scripts/solar-system-map-svg.spec.ts
 ```
 
-Beklenen: PASS, 12 test.
+Beklenen: PASS, 14 test.
 
 - [ ] **Step 6: Formatla ve commit et**
 
@@ -741,15 +741,50 @@ Sayılardan biri tutmuyorsa dur ve nedenini bul; commit etme.
 - [ ] **Step 5: Region ve constellation regresyonunu doğrula**
 
 Bu task o iki modüle dokunmadı, ama `render:maps` artık üç adım ve üçünün
-birlikte koştuğunu görmek gerekiyor:
+birlikte koştuğunu görmek gerekiyor. Planın bu adımı ilk yazıldığında
+`yarn workspace backend render:maps` koşturup iki eski dizinde
+`git status --porcelain`'in boş çıkmasını istiyordu; bu kontrol koşulamaz:
+`render-region-maps.ts` ve `render-constellation-maps.ts` sorgularının
+hiçbirinde `ORDER BY` yok, yani veri hiç değişmese bile ikinci bir koşu
+1.184 constellation dosyasının önemli bir kısmını aynı içerikle farklı
+sırada yeniden yazıyor — boş çıkması hiçbir zaman garanti edilemeyecek bir
+şey isteniyordu. Yerine gerçekte koşulan üç kontrol geçer:
 
-```bash
-yarn workspace backend render:maps
-git status --porcelain frontend/public/images/regions frontend/public/images/constellations
-```
+1. Bu fazın o iki script'e ve paylaştıkları çizim modülüne dokunmadığını
+   doğrula:
 
-İkinci komutun çıktısı **boş** olmalı. Değilse bu task yanlış: iki mevcut
-setin byte'ı değişmemeli.
+   ```bash
+   git diff --stat main..HEAD -- backend/src/scripts/render-region-maps.ts backend/src/scripts/render-constellation-maps.ts backend/src/scripts/star-map-svg.ts
+   ```
+
+   Çıktı **boş** olmalı.
+
+2. Region ve constellation dizinlerinden hiçbir dosyanın bu fazın
+   commit'lerine girmediğini doğrula:
+
+   ```bash
+   git diff --stat main..HEAD -- frontend/public/images/regions frontend/public/images/constellations
+   ```
+
+   Çıktı **boş** olmalı.
+
+3. Yeni renderer'ın — o ikisinin aksine — belirlenimli olduğunu kanıtla:
+   iki kez koştur ve her seferinde tüm dosyaların dosya adına göre sıralı
+   birleşiminin checksum'ını al:
+
+   ```bash
+   yarn workspace backend render:solar-system-maps
+   find frontend/public/images/solar-systems -name '*.svg' | sort | xargs cat | shasum
+   yarn workspace backend render:solar-system-maps
+   find frontend/public/images/solar-systems -name '*.svg' | sort | xargs cat | shasum
+   ```
+
+   İki checksum eşit olmalı.
+
+Adımın amacı değişmedi — bu fazın faz 1 ve faz 2'yi bozmadığını görmek — ama
+kontrolün şekli değişti: `git status --porcelain`'in boş çıkmasını beklemek,
+o iki script'in kendi belirlenimsizliği yüzünden hiçbir zaman güvenilir
+olmayacak bir teste dayanıyordu.
 
 - [ ] **Step 6: Jita'nın dosyasını gözle doğrula**
 
@@ -1310,9 +1345,13 @@ Bu task spec'in tek ölçülmemiş iddiasını taşıyor: 100 satırlık bir lis
             )}
 ```
 
-`km.solarSystem` koruması gerekli: bileşenin kendi prop arayüzü onu
-opsiyonel tanımlıyor (`KillmailCard.tsx:35` ve `KillmailRow`'un karşılığı),
-üretilmiş GraphQL tipi zorunlu tutsa da.
+`km.solarSystem` koruması iki dosyada farklı gerekçeyle duruyor. Kartta
+derleyici zorunlu kılıyor: `KillmailCard.tsx:36` `solarSystem`'i kendi prop
+arayüzünde elle opsiyonel tanımlıyor, koruma olmadan derlenmez. `KillmailRow`
+öyle değil — tipi `types.ts` üzerinden üretilmiş GraphQL sorgu tipinden
+geliyor ve orada `solarSystem` zorunlu bir alan, yani koruma orada
+savunma amaçlı ve bilinçli: satırın geri kalanındaki mevcut
+`km.solarSystem?.` üslubuyla simetri için tutuluyor.
 
 - [ ] **Step 2: Karta ekle**
 
@@ -1516,8 +1555,8 @@ PR etiketleri: `feat` artı `frontend`, `backend` ve `ops`.
 
 | Task | Kapı                                                                   |
 | ---- | ---------------------------------------------------------------------- |
-| 1    | `vitest run src/scripts/solar-system-map-svg.spec.ts` — 12 test        |
-| 2    | 8.089 / 68.407 / 8.089 / 401 / 0, ve ilk iki setin diff'i boş          |
+| 1    | `vitest run src/scripts/solar-system-map-svg.spec.ts` — 14 test        |
+| 2    | 8.089 / 68.407 / 8.089 / 401 / 0, eski iki script'e dokunulmamış       |
 | 3    | `vitest run` — 4 test                                                  |
 | 4-6  | `yarn workspace frontend build` + `lint` sayısı `main`'e göre artmamış |
 | 7    | `yarn test`, iki `build`, `lint`, `prettier --check .`                 |
