@@ -88,6 +88,50 @@
     @apply relative flex items-center w-full p-3 transition-colors gap-x-3 text-sm/6 hover:bg-white/5;
   }
 
+  /*
+   * A region card: the region's star map fills the whole card, and the label
+   * sits on top of it rather than beside it.
+   *
+   * The frame is KillmailCard's — same aspect, border, hover and scrim, because
+   * this is the same kind of object: a link whose whole surface is one image.
+   * `group` cannot be applied here (it is a variant marker, not a utility), so
+   * it stays on the element in RegionCard.tsx.
+   *
+   * Square, because the map SVGs are. Their viewBoxes run from 0.32 to 2.54 in
+   * aspect ratio, but every file draws into a square viewport with
+   * `preserveAspectRatio="xMidYMid meet"` — so a square card is the one shape
+   * that shows every region whole. `object-cover` would crop the tall ones.
+   */
+  .region-card {
+    @apply relative block w-full overflow-hidden transition-colors duration-200 border aspect-square bg-surface border-white/10 hover:border-white/25;
+  }
+
+  .region-card-map {
+    @apply absolute inset-0 object-contain transition-transform duration-300 size-full group-hover:scale-105;
+  }
+
+  /* The maps put stars right up to their edges, and a name laid straight over
+     one is unreadable. Only the bottom band is darkened, not the whole card as
+     in KillmailCard — a ship render survives being dimmed all over, a field of
+     1px stars does not. */
+  .region-card-scrim {
+    @apply absolute inset-x-0 bottom-0 h-24 pointer-events-none bg-linear-to-t from-black/95 via-black/70 to-transparent;
+  }
+
+  .region-card-label {
+    @apply absolute inset-x-0 bottom-0 flex items-baseline justify-between gap-3 p-3;
+  }
+
+  .region-card-name {
+    @apply font-semibold text-gray-100 truncate group-hover:text-cyan-400;
+  }
+
+  /* Constellations over solar systems, e.g. 7/12. Tabular figures so the counts
+     line up down a column of cards instead of wandering. */
+  .region-card-counts {
+    @apply text-sm text-gray-200 shrink-0 tabular-nums;
+  }
+
   /* A selected-filter chip: hugs its label and holds its own remove button.
      The three grounds it used to carry (purple, blue, grey) meant nothing —
      the user confirmed they were not a code for the filter's type. */
