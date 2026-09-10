@@ -5,7 +5,6 @@ interface KillmailRowStylesParams {
   characterId?: number;
   corporationId?: number;
   allianceId?: number;
-  variant?: 'detail' | 'list';
 }
 
 interface KillmailRowStyles {
@@ -23,7 +22,6 @@ export function getKillmailRowStyles({
   characterId,
   corporationId,
   allianceId,
-  variant = 'list',
 }: KillmailRowStylesParams): KillmailRowStyles {
   // Check if the entity is the victim
   const isVictim = Boolean(
@@ -69,19 +67,12 @@ export function getKillmailRowStyles({
   // absent entity cannot be a victim or an attacker either, so the old
   // !hasEntity case returned exactly this and never reached anything else.
   //
-  // The greys are the theme's own. neutral and gray are different families —
-  // neutral is flat, gray carries a blue cast — so bg-neutral-900 rows read
-  // slightly warm against the gray-900 head and cards around them. list maps
-  // to the two surface tokens; detail keeps its one-step-lighter footing on
-  // the same gray ramp, since the theme names no third surface.
-  if (variant === 'detail') {
-    return {
-      totalValueColor: 'text-orange-400',
-      rowBgColor: 'bg-surface-inset',
-      rowHoverColor: 'hover:bg-gray-700',
-    };
-  }
-
+  // The greys are the theme's own, and there is one set of them. A `detail`
+  // variant used to lift these rows to surface-inset, because the only table
+  // whose rows are neutral — the killmails tab of a detail page — sat inside a
+  // .card and would have matched it exactly. That container is .tab-shell's
+  // ground now, so the lift is gone: a row rests on surface and hovers to
+  // surface-inset, on every page.
   return {
     totalValueColor: 'text-orange-400',
     rowBgColor: 'bg-surface',

@@ -17,7 +17,6 @@ export default function KillmailRow({
   characterId,
   corporationId,
   allianceId,
-  variant = 'list',
 }: KillmailRowProps) {
   // Get row styling based on entity involvement (victim vs attacker)
   const { totalValueColor, rowBgColor, rowHoverColor } = getKillmailRowStyles({
@@ -25,7 +24,6 @@ export default function KillmailRow({
     characterId,
     corporationId,
     allianceId,
-    variant,
   });
 
   // Use backend-computed fields

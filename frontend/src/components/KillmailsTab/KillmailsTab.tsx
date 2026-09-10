@@ -12,14 +12,34 @@ import {
 } from '@/generated/graphql';
 import { useMemo } from 'react';
 
+/**
+ * What the tab is scoped to. These three are the fields KillmailFilter and
+ * TopEntityFilter have in common, so one of them scopes the table, the date
+ * counts and the sidebar together.
+ */
+export interface KillmailsTabScope {
+  systemId?: number;
+  constellationId?: number;
+  regionId?: number;
+}
+
 interface KillmailsTabProps {
-  systemId: number;
+  scope: KillmailsTabScope;
   currentPage: number;
   pageSize: number;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
 }
 
+/**
+ * Same order as the killmails page's sidebar, Top Ships Used ahead of Top
+ * Ships Killed. The used-ships card was missing here because it once rendered
+ * empty under a spatial scope: topAttackerShips took its own filter input
+ * which did not declare systemId, so that one query failed variable
+ * validation while its siblings succeeded. Every top query now takes the one
+ * TopFilter, which carries systemId, constellationId and regionId, so the
+ * cause is gone.
+ */
 const SIDEBAR_CARDS: TopEntityCardSpec[] = [
   {
     kind: 'characters',
@@ -42,6 +62,11 @@ const SIDEBAR_CARDS: TopEntityCardSpec[] = [
     emptyText: 'No faction activity in the last 7 days',
   },
   {
+    kind: 'attackerShips',
+    title: 'Top Ships Used',
+    emptyText: 'No ship activity in the last 7 days',
+  },
+  {
     kind: 'ships',
     title: 'Top Ships Killed',
     emptyText: 'No ship activity in the last 7 days',
@@ -49,7 +74,7 @@ const SIDEBAR_CARDS: TopEntityCardSpec[] = [
 ];
 
 export default function KillmailsTab({
-  systemId,
+  scope,
   currentPage,
   pageSize,
   onPageChange,
@@ -59,7 +84,7 @@ export default function KillmailsTab({
   const { data: killmailsData, loading: killmailsLoading } = useKillmailsQuery({
     variables: {
       filter: {
-        systemId,
+        ...scope,
         page: currentPage,
         limit: pageSize,
         orderBy: KillmailOrderBy.TimeDesc,
@@ -68,7 +93,7 @@ export default function KillmailsTab({
   });
 
   const { data: dateCountsData } = useKillmailsDateCountsQuery({
-    variables: { filter: { systemId } },
+    variables: { filter: scope },
   });
 
   const killmails = useMemo(
@@ -97,7 +122,6 @@ export default function KillmailsTab({
           loading={killmailsLoading}
           dateCountsMap={dateCountsMap}
           totalCount={pageInfo?.totalCount}
-          variant="detail"
         />
 
         {killmails.length > 0 && (
@@ -124,7 +148,7 @@ export default function KillmailsTab({
       </div>
 
       <div className="lg:col-span-1 lg:mt-9">
-        <TopEntitySidebar filter={{ systemId }} cards={SIDEBAR_CARDS} />
+        <TopEntitySidebar filter={scope} cards={SIDEBAR_CARDS} />
       </div>
     </div>
   );

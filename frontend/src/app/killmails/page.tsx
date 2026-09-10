@@ -361,7 +361,6 @@ function KillmailsContent() {
             loading={loading}
             dateCountsMap={dateCountsMap}
             totalCount={totalCount}
-            variant="list"
           />
 
           <div className="mt-6">
