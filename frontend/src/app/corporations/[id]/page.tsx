@@ -377,271 +377,276 @@ export default function CorporationDetailPage({
             />
           </div>
         </div>
+      </div>
 
-        {/* Tabs */}
-        <div className="mb-6 border-b border-white/10">
-          <nav className="flex gap-4" aria-label="Tabs" role="tablist">
-            {TAB_IDS.map((tabId) => (
-              <button
-                key={tabId}
-                role="tab"
-                id={`tab-${tabId}`}
-                aria-controls={`panel-${tabId}`}
-                aria-selected={activeTab === tabId}
-                tabIndex={activeTab === tabId ? 0 : -1}
-                onClick={() => setActiveTab(tabId)}
-                onKeyDown={onKeyDown}
-                className="tab"
-              >
-                {TAB_LABELS[tabId]}
-              </button>
-            ))}
-          </nav>
-        </div>
-        {/* Tab Content */}
-        <div className="mt-6">
-          {activeTab === 'attributes' && (
-            <div
-              role="tabpanel"
-              id="panel-attributes"
-              aria-labelledby="tab-attributes"
-              className="p-6 bg-white/5 border-white/10"
+      <div className="tab-shell mt-6">
+        <nav
+          className="flex gap-1 mb-3 overflow-x-auto"
+          aria-label="Tabs"
+          role="tablist"
+        >
+          {TAB_IDS.map((tabId) => (
+            <button
+              key={tabId}
+              role="tab"
+              id={`tab-${tabId}`}
+              aria-controls={`panel-${tabId}`}
+              aria-selected={activeTab === tabId}
+              tabIndex={activeTab === tabId ? 0 : -1}
+              onClick={() => setActiveTab(tabId)}
+              onKeyDown={onKeyDown}
+              className="button button-secondary button-sm"
             >
-              <h2 className="mb-4 text-2xl font-bold">Attributes</h2>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="text-gray-400">Corporation Name</span>
-                  <span className="ml-2 font-semibold">{corporation.name}</span>
-                </div>
-                <div>
-                  <span className="text-gray-400">Ticker</span>
-                  <span className="ml-2 font-semibold">
-                    {corporation.ticker}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-400">CEO</span>
-                  <span className="ml-2 font-semibold">
-                    {corporation.ceo ? (
-                      <Link
-                        href={`/characters/${corporation.ceo.id}`}
-                        prefetch={false}
-                        className="text-gray-400 hover:text-blue-400"
-                      >
-                        {corporation.ceo.name}
-                      </Link>
-                    ) : (
-                      'N/A'
-                    )}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-400">Creator</span>
-                  <span className="ml-2 font-semibold">
-                    {corporation.creator ? (
-                      <Link
-                        href={`/characters/${corporation.creator.id}`}
-                        prefetch={false}
-                        className="text-gray-400 hover:text-blue-400"
-                      >
-                        {corporation.creator.name}
-                      </Link>
-                    ) : (
-                      'N/A'
-                    )}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-400">Member Count</span>
-                  <span className="ml-2 font-semibold">
-                    {corporation.member_count?.toLocaleString() || 'N/A'}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-400">Tax Rate</span>
-                  <span className="ml-2 font-semibold">
-                    {corporation.tax_rate
-                      ? `${(corporation.tax_rate * 100).toFixed(1)}%`
-                      : 'N/A'}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-400">Founded</span>
-                  <span className="ml-2 font-semibold">{foundedDate}</span>
-                </div>
-                <div>
-                  <span className="text-gray-400">Alliance</span>
-                  <span className="ml-2 font-semibold">
-                    {corporation.alliance ? (
-                      <Link
-                        href={`/alliances/${corporation.alliance.id}`}
-                        prefetch={false}
-                        className="text-gray-400 hover:text-blue-400"
-                      >
-                        [{corporation.alliance.ticker}]{' '}
-                        {corporation.alliance.name}
-                      </Link>
-                    ) : (
-                      <span className="text-gray-500">No Alliance</span>
-                    )}
-                  </span>
-                </div>
-                {corporation.url && (
-                  <div className="col-span-2">
-                    <span className="text-gray-400">Website</span>
-                    <a
-                      href={corporation.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="ml-2 font-semibold text-cyan-400 hover:text-cyan-300"
+              {TAB_LABELS[tabId]}
+            </button>
+          ))}
+        </nav>
+
+        {activeTab === 'attributes' && (
+          <div
+            role="tabpanel"
+            id="panel-attributes"
+            aria-labelledby="tab-attributes"
+            className="p-6 bg-white/5 border-white/10"
+          >
+            <h2 className="mb-4 text-2xl font-bold">Attributes</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <span className="text-gray-400">Corporation Name</span>
+                <span className="ml-2 font-semibold">{corporation.name}</span>
+              </div>
+              <div>
+                <span className="text-gray-400">Ticker</span>
+                <span className="ml-2 font-semibold">{corporation.ticker}</span>
+              </div>
+              <div>
+                <span className="text-gray-400">CEO</span>
+                <span className="ml-2 font-semibold">
+                  {corporation.ceo ? (
+                    <Link
+                      href={`/characters/${corporation.ceo.id}`}
+                      prefetch={false}
+                      className="text-gray-400 hover:text-blue-400"
                     >
-                      {corporation.url}
-                    </a>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'killmails' && (
-            <div
-              role="tabpanel"
-              id="panel-killmails"
-              aria-labelledby="tab-killmails"
-              className="killmails-tab"
-            >
-              <h2 className="sr-only">Killmails</h2>
-
-              {/* 2-column grid layout */}
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
-                {/* Left side - Killmails Table (takes 3 columns) */}
-                <div className="lg:col-span-3">
-                  <KillmailsTable
-                    killmails={killmails}
-                    loading={killmailsLoading}
-                    corporationId={parseInt(id)}
-                    dateCountsMap={dateCountsMap}
-                    totalCount={pageInfo?.totalCount}
-                  />
-
-                  {killmails.length > 0 && (
-                    <div className="mt-6">
-                      <Paginator
-                        hasNextPage={pageInfo?.hasNextPage ?? false}
-                        hasPrevPage={pageInfo?.hasPreviousPage ?? false}
-                        onNext={handleNext}
-                        onPrev={handlePrev}
-                        onFirst={handleFirst}
-                        onLast={handleLast}
-                        loading={killmailsLoading}
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        pageSize={pageSize}
-                        onPageSizeChange={(size) => {
-                          setPageSize(size);
-                          setCurrentPage(1);
-                        }}
-                      />
-                    </div>
+                      {corporation.ceo.name}
+                    </Link>
+                  ) : (
+                    'N/A'
                   )}
-                </div>
-
-                {/* Right side - Top Targets Cards */}
-                <div className="space-y-6 lg:col-span-1 lg:-mt-9">
-                  <TopCharacterCard
-                    title="Top Characters"
-                    subtitle={<>Last 7 days</>}
-                    characters={topCharacters}
-                    emptyText="No pilots yet"
-                    loading={topCharactersLoading}
-                  />
-
-                  <TopShipsCard
-                    title="Top Ships Used"
-                    subtitle={<>Last 7 days</>}
-                    ships={topAttackerShips}
-                    emptyText="No ships used yet"
-                    loading={shipsLoading}
-                  />
-
-                  <TopShipsCard
-                    title="Top Ships Killed"
-                    subtitle={<>Last 7 days</>}
-                    ships={topShipTargets}
-                    emptyText="No ships killed yet"
-                    loading={shipTargetsLoading}
-                  />
-
-                  <TopTargetsCard
-                    title="Top Alliances Killed"
-                    subtitle={<>Last 7 days</>}
-                    targets={allianceTargets}
-                    targetType="alliance"
-                    linkPrefix="/alliances"
-                    emptyText="No alliance targets yet"
-                    loading={allianceTargetsLoading}
-                  />
-
-                  <TopTargetsCard
-                    title="Top Corporations Killed"
-                    subtitle={<>Last 7 days</>}
-                    targets={corporationTargets}
-                    targetType="corporation"
-                    linkPrefix="/corporations"
-                    emptyText="No corporation targets yet"
-                    loading={corporationTargetsLoading}
-                  />
-                </div>
+                </span>
               </div>
-            </div>
-          )}
-
-          {activeTab === 'members' && (
-            <div
-              role="tabpanel"
-              id="panel-members"
-              aria-labelledby="tab-members"
-              className="p-6 bg-white/5 border-white/10"
-            >
-              <h2 className="mb-4 text-2xl font-bold">Members</h2>
-              <CharactersTable characters={characters} loading={false} />
-              {characters.length > 0 && (
-                <div className="mt-6">
-                  <Paginator
-                    hasNextPage={charactersPageInfo?.hasNextPage ?? false}
-                    hasPrevPage={charactersPageInfo?.hasPreviousPage ?? false}
-                    onNext={handleCharactersNext}
-                    onPrev={handleCharactersPrev}
-                    onFirst={handleCharactersFirst}
-                    onLast={handleCharactersLast}
-                    loading={charactersLoading}
-                    currentPage={charactersPage}
-                    totalPages={charactersTotalPages}
-                    pageSize={charactersPageSize}
-                    onPageSizeChange={(size) => {
-                      setCharactersPageSize(size);
-                      setCharactersPage(1);
-                    }}
-                  />
+              <div>
+                <span className="text-gray-400">Creator</span>
+                <span className="ml-2 font-semibold">
+                  {corporation.creator ? (
+                    <Link
+                      href={`/characters/${corporation.creator.id}`}
+                      prefetch={false}
+                      className="text-gray-400 hover:text-blue-400"
+                    >
+                      {corporation.creator.name}
+                    </Link>
+                  ) : (
+                    'N/A'
+                  )}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-400">Member Count</span>
+                <span className="ml-2 font-semibold">
+                  {corporation.member_count?.toLocaleString() || 'N/A'}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-400">Tax Rate</span>
+                <span className="ml-2 font-semibold">
+                  {corporation.tax_rate
+                    ? `${(corporation.tax_rate * 100).toFixed(1)}%`
+                    : 'N/A'}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-400">Founded</span>
+                <span className="ml-2 font-semibold">{foundedDate}</span>
+              </div>
+              <div>
+                <span className="text-gray-400">Alliance</span>
+                <span className="ml-2 font-semibold">
+                  {corporation.alliance ? (
+                    <Link
+                      href={`/alliances/${corporation.alliance.id}`}
+                      prefetch={false}
+                      className="text-gray-400 hover:text-blue-400"
+                    >
+                      [{corporation.alliance.ticker}]{' '}
+                      {corporation.alliance.name}
+                    </Link>
+                  ) : (
+                    <span className="text-gray-500">No Alliance</span>
+                  )}
+                </span>
+              </div>
+              {corporation.url && (
+                <div className="col-span-2">
+                  <span className="text-gray-400">Website</span>
+                  <a
+                    href={corporation.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ml-2 font-semibold text-cyan-400 hover:text-cyan-300"
+                  >
+                    {corporation.url}
+                  </a>
                 </div>
               )}
             </div>
-          )}
+          </div>
+        )}
 
-          {activeTab === 'growth' && (
-            <div
-              role="tabpanel"
-              id="panel-growth"
-              aria-labelledby="tab-growth"
-              className="detail-tab-content"
-            >
-              <CorporationGrowthChart
-                snapshots={growthData?.corporation?.snapshots ?? []}
-                loading={growthLoading}
-              />
+        {activeTab === 'killmails' && (
+          <div
+            role="tabpanel"
+            id="panel-killmails"
+            aria-labelledby="tab-killmails"
+            className="killmails-tab"
+          >
+            <h2 className="sr-only">Killmails</h2>
+
+            {/* 2-column grid layout */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+              {/* Left side - Killmails Table (takes 3 columns) */}
+              <div className="lg:col-span-3">
+                <KillmailsTable
+                  killmails={killmails}
+                  loading={killmailsLoading}
+                  corporationId={parseInt(id)}
+                  dateCountsMap={dateCountsMap}
+                  totalCount={pageInfo?.totalCount}
+                />
+
+                {killmails.length > 0 && (
+                  <div className="mt-6">
+                    <Paginator
+                      hasNextPage={pageInfo?.hasNextPage ?? false}
+                      hasPrevPage={pageInfo?.hasPreviousPage ?? false}
+                      onNext={handleNext}
+                      onPrev={handlePrev}
+                      onFirst={handleFirst}
+                      onLast={handleLast}
+                      loading={killmailsLoading}
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      pageSize={pageSize}
+                      onPageSizeChange={(size) => {
+                        setPageSize(size);
+                        setCurrentPage(1);
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Right side - Top Targets Cards */}
+              {/*
+              lg:mt-10 drops the first card past the table's header row, so it
+              lines up with the first killmail rather than with the column
+              titles. It was a negative -mt-9, which pulled the cards up over
+              the header instead. The killmails page and KillmailsTab use 10.
+            */}
+              <div className="space-y-6 lg:col-span-1 lg:mt-10">
+                <TopCharacterCard
+                  title="Top Characters"
+                  subtitle={<>Last 7 days</>}
+                  characters={topCharacters}
+                  emptyText="No pilots yet"
+                  loading={topCharactersLoading}
+                />
+
+                <TopShipsCard
+                  title="Top Ships Used"
+                  subtitle={<>Last 7 days</>}
+                  ships={topAttackerShips}
+                  emptyText="No ships used yet"
+                  loading={shipsLoading}
+                />
+
+                <TopShipsCard
+                  title="Top Ships Killed"
+                  subtitle={<>Last 7 days</>}
+                  ships={topShipTargets}
+                  emptyText="No ships killed yet"
+                  loading={shipTargetsLoading}
+                />
+
+                <TopTargetsCard
+                  title="Top Alliances Killed"
+                  subtitle={<>Last 7 days</>}
+                  targets={allianceTargets}
+                  targetType="alliance"
+                  linkPrefix="/alliances"
+                  emptyText="No alliance targets yet"
+                  loading={allianceTargetsLoading}
+                />
+
+                <TopTargetsCard
+                  title="Top Corporations Killed"
+                  subtitle={<>Last 7 days</>}
+                  targets={corporationTargets}
+                  targetType="corporation"
+                  linkPrefix="/corporations"
+                  emptyText="No corporation targets yet"
+                  loading={corporationTargetsLoading}
+                />
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
+        {activeTab === 'members' && (
+          <div
+            role="tabpanel"
+            id="panel-members"
+            aria-labelledby="tab-members"
+            className="p-6 bg-white/5 border-white/10"
+          >
+            <h2 className="mb-4 text-2xl font-bold">Members</h2>
+            <CharactersTable characters={characters} loading={false} />
+            {characters.length > 0 && (
+              <div className="mt-6">
+                <Paginator
+                  hasNextPage={charactersPageInfo?.hasNextPage ?? false}
+                  hasPrevPage={charactersPageInfo?.hasPreviousPage ?? false}
+                  onNext={handleCharactersNext}
+                  onPrev={handleCharactersPrev}
+                  onFirst={handleCharactersFirst}
+                  onLast={handleCharactersLast}
+                  loading={charactersLoading}
+                  currentPage={charactersPage}
+                  totalPages={charactersTotalPages}
+                  pageSize={charactersPageSize}
+                  onPageSizeChange={(size) => {
+                    setCharactersPageSize(size);
+                    setCharactersPage(1);
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'growth' && (
+          <div
+            role="tabpanel"
+            id="panel-growth"
+            aria-labelledby="tab-growth"
+            className="detail-tab-content"
+          >
+            <CorporationGrowthChart
+              snapshots={growthData?.corporation?.snapshots ?? []}
+              loading={growthLoading}
+            />
+          </div>
+        )}
       </div>
     </main>
   );

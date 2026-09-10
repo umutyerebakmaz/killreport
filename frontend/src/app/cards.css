@@ -28,6 +28,13 @@
    *
    * So: .card for a leaf surface holding text and controls, .tab-shell for a
    * frame holding surfaces of its own.
+   *
+   * The bar itself is `button button-secondary button-sm` per tab, not a class
+   * of its own: .button-secondary carries `surface`, one step above the
+   * shell's ground, and its [aria-selected] rule marks the active tab with the
+   * accent border. The underlined .tab it replaced is gone. All six tabbed
+   * screens still write the bar out separately, which is a component waiting
+   * to be extracted.
    */
   .tab-shell {
     @apply bg-ground;

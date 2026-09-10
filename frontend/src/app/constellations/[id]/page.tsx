@@ -147,208 +147,206 @@ export default function ConstellationDetailPage({
             </div>
           )}
         </div>
+      </div>
 
-        {/* Tabs */}
-        <div className="mt-8 border-b border-white/10">
-          <nav className="flex gap-4" aria-label="Tabs" role="tablist">
-            {TAB_IDS.map((tabId) => (
-              <button
-                key={tabId}
-                role="tab"
-                id={`tab-${tabId}`}
-                aria-controls={`panel-${tabId}`}
-                aria-selected={activeTab === tabId}
-                tabIndex={activeTab === tabId ? 0 : -1}
-                onClick={() => setActiveTab(tabId)}
-                onKeyDown={onKeyDown}
-                className="tab"
-              >
-                {tabLabels[tabId]}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        {/* Tab Content */}
-        <div className="mt-6">
-          {activeTab === 'overview' && (
-            <div
-              role="tabpanel"
-              id="panel-overview"
-              aria-labelledby="tab-overview"
-              className="grid gap-6 md:grid-cols-2"
+      <div className="tab-shell mt-6">
+        <nav
+          className="flex gap-1 mb-3 overflow-x-auto"
+          aria-label="Tabs"
+          role="tablist"
+        >
+          {TAB_IDS.map((tabId) => (
+            <button
+              key={tabId}
+              role="tab"
+              id={`tab-${tabId}`}
+              aria-controls={`panel-${tabId}`}
+              aria-selected={activeTab === tabId}
+              tabIndex={activeTab === tabId ? 0 : -1}
+              onClick={() => setActiveTab(tabId)}
+              onKeyDown={onKeyDown}
+              className="button button-secondary button-sm"
             >
-              {/* Constellation Info */}
-              <div className="p-6 border bg-white/5 border-white/10">
-                <h2 className="mb-4 text-xl font-bold">
-                  Constellation Information
-                </h2>
-                <dl className="space-y-3">
+              {tabLabels[tabId]}
+            </button>
+          ))}
+        </nav>
+
+        {activeTab === 'overview' && (
+          <div
+            role="tabpanel"
+            id="panel-overview"
+            aria-labelledby="tab-overview"
+            className="grid gap-6 md:grid-cols-2"
+          >
+            {/* Constellation Info */}
+            <div className="p-6 border bg-white/5 border-white/10">
+              <h2 className="mb-4 text-xl font-bold">
+                Constellation Information
+              </h2>
+              <dl className="space-y-3">
+                <div className="flex justify-between">
+                  <dt className="text-gray-400">Constellation ID</dt>
+                  <dd className="text-gray-200">{constellation.id}</dd>
+                </div>
+                {constellation.region && (
                   <div className="flex justify-between">
-                    <dt className="text-gray-400">Constellation ID</dt>
-                    <dd className="text-gray-200">{constellation.id}</dd>
+                    <dt className="text-gray-400">Region</dt>
+                    <dd>
+                      <Link
+                        href={`/regions/${constellation.region.id}`}
+                        prefetch={false}
+                        className="text-gray-400 hover:text-blue-400"
+                      >
+                        {constellation.region.name}
+                      </Link>
+                    </dd>
                   </div>
-                  {constellation.region && (
-                    <div className="flex justify-between">
-                      <dt className="text-gray-400">Region</dt>
-                      <dd>
-                        <Link
-                          href={`/regions/${constellation.region.id}`}
-                          prefetch={false}
-                          className="text-gray-400 hover:text-blue-400"
-                        >
-                          {constellation.region.name}
-                        </Link>
+                )}
+                <div className="flex justify-between">
+                  <dt className="text-gray-400">Solar Systems</dt>
+                  <dd className="font-medium text-orange-300">
+                    {constellation.solarSystemCount}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+
+            {/* Security Breakdown */}
+            <div className="p-6 border bg-white/5 border-white/10">
+              <h2 className="mb-4 text-xl font-bold">Security Breakdown</h2>
+              {constellation.securityStats && (
+                <dl className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <dt className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-green-500 rounded-full" />
+                      <span className="text-gray-400">High Security</span>
+                    </dt>
+                    <dd className="font-medium text-green-400">
+                      {constellation.securityStats.highSec} systems
+                    </dd>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <dt className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full" />
+                      <span className="text-gray-400">Low Security</span>
+                    </dt>
+                    <dd className="font-medium text-yellow-400">
+                      {constellation.securityStats.lowSec} systems
+                    </dd>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <dt className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-red-500 rounded-full" />
+                      <span className="text-gray-400">Null Security</span>
+                    </dt>
+                    <dd className="font-medium text-red-400">
+                      {constellation.securityStats.nullSec} systems
+                    </dd>
+                  </div>
+                  {(constellation.securityStats.wormhole ?? 0) > 0 && (
+                    <div className="flex items-center justify-between">
+                      <dt className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-purple-500 rounded-full" />
+                        <span className="text-gray-400">Wormhole</span>
+                      </dt>
+                      <dd className="font-medium text-purple-400">
+                        {constellation.securityStats.wormhole} systems
                       </dd>
                     </div>
                   )}
-                  <div className="flex justify-between">
-                    <dt className="text-gray-400">Solar Systems</dt>
-                    <dd className="font-medium text-orange-300">
-                      {constellation.solarSystemCount}
-                    </dd>
-                  </div>
                 </dl>
-              </div>
+              )}
+            </div>
 
-              {/* Security Breakdown */}
-              <div className="p-6 border bg-white/5 border-white/10">
-                <h2 className="mb-4 text-xl font-bold">Security Breakdown</h2>
-                {constellation.securityStats && (
-                  <dl className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <dt className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-green-500 rounded-full" />
-                        <span className="text-gray-400">High Security</span>
-                      </dt>
-                      <dd className="font-medium text-green-400">
-                        {constellation.securityStats.highSec} systems
-                      </dd>
+            {/* Position Info */}
+            {constellation.position && (
+              <div className="p-6 border bg-white/5 border-white/10 md:col-span-2">
+                <h2 className="mb-4 text-xl font-bold">Position in Space</h2>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="text-sm text-gray-400">X</div>
+                    <div className="text-gray-200">
+                      {constellation.position.x.toExponential(2)}
                     </div>
-                    <div className="flex items-center justify-between">
-                      <dt className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-yellow-500 rounded-full" />
-                        <span className="text-gray-400">Low Security</span>
-                      </dt>
-                      <dd className="font-medium text-yellow-400">
-                        {constellation.securityStats.lowSec} systems
-                      </dd>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-400">Y</div>
+                    <div className="text-gray-200">
+                      {constellation.position.y.toExponential(2)}
                     </div>
-                    <div className="flex items-center justify-between">
-                      <dt className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-red-500 rounded-full" />
-                        <span className="text-gray-400">Null Security</span>
-                      </dt>
-                      <dd className="font-medium text-red-400">
-                        {constellation.securityStats.nullSec} systems
-                      </dd>
-                    </div>
-                    {(constellation.securityStats.wormhole ?? 0) > 0 && (
-                      <div className="flex items-center justify-between">
-                        <dt className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-purple-500 rounded-full" />
-                          <span className="text-gray-400">Wormhole</span>
-                        </dt>
-                        <dd className="font-medium text-purple-400">
-                          {constellation.securityStats.wormhole} systems
-                        </dd>
-                      </div>
-                    )}
-                  </dl>
-                )}
-              </div>
-
-              {/* Position Info */}
-              {constellation.position && (
-                <div className="p-6 border bg-white/5 border-white/10 md:col-span-2">
-                  <h2 className="mb-4 text-xl font-bold">Position in Space</h2>
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                      <div className="text-sm text-gray-400">X</div>
-                      <div className="text-gray-200">
-                        {constellation.position.x.toExponential(2)}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-400">Y</div>
-                      <div className="text-gray-200">
-                        {constellation.position.y.toExponential(2)}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-400">Z</div>
-                      <div className="text-gray-200">
-                        {constellation.position.z.toExponential(2)}
-                      </div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-400">Z</div>
+                    <div className="text-gray-200">
+                      {constellation.position.z.toExponential(2)}
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
+        )}
 
-          {activeTab === 'systems' && (
-            <div
-              role="tabpanel"
-              id="panel-systems"
-              aria-labelledby="tab-systems"
-              className="overflow-hidden border border-white/10"
-            >
-              <table className="table">
-                <thead className="bg-surface-inset">
-                  <tr>
-                    <th className="th-cell">Solar System</th>
-                    <th className="th-cell">Security Status</th>
-                    <th className="th-cell">Security Class</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {constellation.solarSystems &&
-                  constellation.solarSystems.length > 0 ? (
-                    constellation.solarSystems.map((system) => (
-                      <tr key={system.id} className="tr-row">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-3">
-                            <SolarSystemMap
-                              systemId={system.id}
-                              systemName={system.name}
-                              size={24}
-                              className="shrink-0"
-                            />
-                            <Link
-                              href={`/solar-systems/${system.id}`}
-                              prefetch={false}
-                              className="font-medium transition-colors text-gray-400 hover:text-blue-400"
-                            >
-                              {system.name}
-                            </Link>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <SecurityBadge
-                            securityStatus={system.securityStatus}
+        {activeTab === 'systems' && (
+          <div
+            role="tabpanel"
+            id="panel-systems"
+            aria-labelledby="tab-systems"
+            className="overflow-hidden border border-white/10"
+          >
+            <table className="table">
+              <thead className="bg-surface-inset">
+                <tr>
+                  <th className="th-cell">Solar System</th>
+                  <th className="th-cell">Security Status</th>
+                  <th className="th-cell">Security Class</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {constellation.solarSystems &&
+                constellation.solarSystems.length > 0 ? (
+                  constellation.solarSystems.map((system) => (
+                    <tr key={system.id} className="tr-row">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-3">
+                          <SolarSystemMap
+                            systemId={system.id}
+                            systemName={system.name}
+                            size={24}
+                            className="shrink-0"
                           />
-                        </td>
-                        <td className="px-6 py-4 text-gray-400 whitespace-nowrap">
-                          {system.security_class || '-'}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={3}
-                        className="px-6 py-12 text-center text-gray-400"
-                      >
-                        No solar systems found
+                          <Link
+                            href={`/solar-systems/${system.id}`}
+                            prefetch={false}
+                            className="font-medium transition-colors text-gray-400 hover:text-blue-400"
+                          >
+                            {system.name}
+                          </Link>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <SecurityBadge securityStatus={system.securityStatus} />
+                      </td>
+                      <td className="px-6 py-4 text-gray-400 whitespace-nowrap">
+                        {system.security_class || '-'}
                       </td>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={3}
+                      className="px-6 py-12 text-center text-gray-400"
+                    >
+                      No solar systems found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
