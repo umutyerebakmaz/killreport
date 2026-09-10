@@ -1,14 +1,10 @@
 'use client';
 
-import AvgSecurity from '@/components/AvgSecurity/AvgSecurity';
+import RegionCard from '@/components/Card/RegionCard';
 import { Loader } from '@/components/Loader/Loader';
 import Paginator from '@/components/Paginator/Paginator';
-import RegionMap from '@/components/RegionMap/RegionMap';
-import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
-import Tooltip from '@/components/Tooltip/Tooltip';
 import Select from '@/components/ui/Select';
 import { useRegionsQuery } from '@/generated/graphql';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 
@@ -99,118 +95,23 @@ function RegionsContent() {
         />
       </div>
 
-      {/* Legend */}
-      <div className="flex items-center gap-6 mt-4 text-xs text-gray-400">
-        <span className="font-medium text-gray-300">Security:</span>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 bg-green-500 rounded-full" />
-          <span>High Sec (≥0.5)</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 bg-yellow-500 rounded-full" />
-          <span>Low Sec (0.1-0.4)</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 bg-red-500 rounded-full" />
-          <span>Null Sec (≤0.0)</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 bg-purple-500 rounded-full" />
-          <span>Wormhole</span>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="mt-6 overflow-hidden border border-white/10">
-        <table className="table">
-          <thead className="bg-surface-inset">
-            <tr>
-              <th className="text-left th-cell">Region</th>
-              <th className="text-left th-cell">Constellations</th>
-              <th className="text-left th-cell">Systems</th>
-              <th className="text-left th-cell">Security Distribution</th>
-              <th className="text-left th-cell">Avg Security</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5">
-            {loading ? (
-              <tr>
-                <td colSpan={5} className="px-6 py-12">
-                  <Loader size="md" text="Loading regions..." />
-                </td>
-              </tr>
-            ) : regions.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={5}
-                  className="px-6 py-12 text-center text-gray-400"
-                >
-                  No regions found
-                </td>
-              </tr>
-            ) : (
-              regions.map((region) => (
-                <tr key={region.id} className="tr-row">
-                  <td className="px-6 py-4 text-base">
-                    <div className="flex items-center gap-3">
-                      <RegionMap
-                        regionId={region.id}
-                        regionName={region.name}
-                        size={64}
-                        className="shrink-0"
-                      />
-                      <Link
-                        href={`/regions/${region.id}`}
-                        prefetch={false}
-                        className="font-medium text-gray-400 transition-colors hover:text-blue-400"
-                      >
-                        {region.name}
-                      </Link>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-base">
-                    <Tooltip
-                      content="Constellations in this region"
-                      position="top"
-                    >
-                      <span className="font-medium text-purple-400">
-                        {region.constellationCount}
-                      </span>
-                    </Tooltip>
-                  </td>
-                  <td className="px-6 py-4 text-base">
-                    <Tooltip
-                      content="Solar systems in this region"
-                      position="top"
-                    >
-                      <span className="font-medium text-orange-400">
-                        {region.solarSystemCount}
-                      </span>
-                    </Tooltip>
-                  </td>
-                  <td className="px-6 py-4 text-base">
-                    {region.securityStats && (
-                      <SecurityStatsBar
-                        stats={{
-                          highSec: region.securityStats.highSec,
-                          lowSec: region.securityStats.lowSec,
-                          nullSec: region.securityStats.nullSec,
-                          wormhole: region.securityStats.wormhole,
-                        }}
-                        showLabels={false}
-                      />
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-base">
-                    <AvgSecurity
-                      avgSecurity={region.securityStats?.avgSecurity ?? null}
-                    />
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+      {/* Grid Layout */}
+      <div className="mt-6">
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader size="lg" text="Loading regions..." />
+          </div>
+        ) : regions.length === 0 ? (
+          <div className="px-6 py-12 text-center text-gray-400 border border-white/10 bg-surface">
+            No regions found
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5">
+            {regions.map((region) => (
+              <RegionCard key={region.id} region={region} />
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="mt-6">

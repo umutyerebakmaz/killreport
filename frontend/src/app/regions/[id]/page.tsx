@@ -1,8 +1,8 @@
 'use client';
 
 import ConstellationMap from '@/components/ConstellationMap/ConstellationMap';
+import EveHtmlRenderer from '@/components/EveHtmlRenderer';
 import Loader from '@/components/Loader';
-import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
 import { useRegionQuery } from '@/generated/graphql';
 import RegionMap from '@/components/RegionMap/RegionMap';
 import { useTabList } from '@/hooks/useTabList';
@@ -71,9 +71,10 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
             <div>
               <h1 className="text-4xl font-bold text-white">{region.name}</h1>
               {region.description && (
-                <p className="max-w-2xl mt-2 text-gray-400">
-                  {region.description}
-                </p>
+                <EveHtmlRenderer
+                  html={region.description}
+                  className="max-w-2xl mt-2 text-gray-400"
+                />
               )}
               <div className="flex items-center gap-6 mt-4 text-sm">
                 <div className="flex items-center gap-2">
@@ -93,41 +94,6 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
               </div>
             </div>
           </div>
-
-          {/* Security Stats Card */}
-          {region.securityStats && (
-            <div className="bg-white/5 border border-white/10 p-4 min-w-70">
-              <h3 className="mb-3 text-sm font-medium text-gray-400">
-                Security Distribution
-              </h3>
-              <SecurityStatsBar
-                stats={{
-                  highSec: region.securityStats.highSec,
-                  lowSec: region.securityStats.lowSec,
-                  nullSec: region.securityStats.nullSec,
-                  wormhole: region.securityStats.wormhole,
-                }}
-              />
-              {region.securityStats.avgSecurity != null && (
-                <div className="flex items-center justify-between pt-3 mt-3 border-t border-white/10">
-                  <span className="text-sm text-gray-400">
-                    Average Security:
-                  </span>
-                  <span
-                    className={`font-medium ${
-                      region.securityStats.avgSecurity >= 0.5
-                        ? 'text-green-400'
-                        : region.securityStats.avgSecurity > 0
-                          ? 'text-yellow-400'
-                          : 'text-red-400'
-                    }`}
-                  >
-                    {region.securityStats.avgSecurity.toFixed(2)}
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Tabs */}
@@ -158,78 +124,7 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
               role="tabpanel"
               id="panel-overview"
               aria-labelledby="tab-overview"
-              className="grid gap-6 md:grid-cols-2"
-            >
-              {/* Region Info */}
-              <div className="p-6 border bg-white/5 border-white/10">
-                <h2 className="mb-4 text-xl font-bold">Region Information</h2>
-                <dl className="space-y-3">
-                  <div className="flex justify-between">
-                    <dt className="text-gray-400">Region ID</dt>
-                    <dd className="text-gray-200">{region.id}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-gray-400">Constellations</dt>
-                    <dd className="font-medium text-purple-300">
-                      {region.constellationCount}
-                    </dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-gray-400">Solar Systems</dt>
-                    <dd className="font-medium text-orange-300">
-                      {region.solarSystemCount}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-
-              {/* Security Breakdown */}
-              <div className="p-6 border bg-white/5 border-white/10">
-                <h2 className="mb-4 text-xl font-bold">Security Breakdown</h2>
-                {region.securityStats && (
-                  <dl className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <dt className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-green-500 rounded-full" />
-                        <span className="text-gray-400">High Security</span>
-                      </dt>
-                      <dd className="font-medium text-green-400">
-                        {region.securityStats.highSec} systems
-                      </dd>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <dt className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-yellow-500 rounded-full" />
-                        <span className="text-gray-400">Low Security</span>
-                      </dt>
-                      <dd className="font-medium text-yellow-400">
-                        {region.securityStats.lowSec} systems
-                      </dd>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <dt className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-red-500 rounded-full" />
-                        <span className="text-gray-400">Null Security</span>
-                      </dt>
-                      <dd className="font-medium text-red-400">
-                        {region.securityStats.nullSec} systems
-                      </dd>
-                    </div>
-                    {region.securityStats.wormhole > 0 && (
-                      <div className="flex items-center justify-between">
-                        <dt className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-purple-500 rounded-full" />
-                          <span className="text-gray-400">Wormhole</span>
-                        </dt>
-                        <dd className="font-medium text-purple-400">
-                          {region.securityStats.wormhole} systems
-                        </dd>
-                      </div>
-                    )}
-                  </dl>
-                )}
-              </div>
-            </div>
+            />
           )}
 
           {activeTab === 'constellations' && (
@@ -244,8 +139,6 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
                   <tr>
                     <th className="th-cell">Constellation</th>
                     <th className="th-cell">Systems</th>
-                    <th className="th-cell">Security Distribution</th>
-                    <th className="th-cell">Avg Security</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -277,46 +170,12 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
                             </span>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          {constellation.securityStats && (
-                            <SecurityStatsBar
-                              stats={{
-                                highSec: constellation.securityStats.highSec,
-                                lowSec: constellation.securityStats.lowSec,
-                                nullSec: constellation.securityStats.nullSec,
-                              }}
-                              showLabels={false}
-                              compact={false}
-                            />
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {constellation.securityStats?.avgSecurity !== null &&
-                          constellation.securityStats?.avgSecurity !==
-                            undefined ? (
-                            <span
-                              className={`${
-                                constellation.securityStats.avgSecurity >= 0.5
-                                  ? 'text-green-400'
-                                  : constellation.securityStats.avgSecurity > 0
-                                    ? 'text-yellow-400'
-                                    : 'text-red-400'
-                              }`}
-                            >
-                              {constellation.securityStats.avgSecurity.toFixed(
-                                2,
-                              )}
-                            </span>
-                          ) : (
-                            <span className="text-gray-500">-</span>
-                          )}
-                        </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
                       <td
-                        colSpan={4}
+                        colSpan={2}
                         className="px-6 py-12 text-center text-gray-400"
                       >
                         No constellations found

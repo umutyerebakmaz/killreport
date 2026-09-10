@@ -2381,14 +2381,14 @@ export type RegionsQueryVariables = Exact<{
 }>;
 
 
-export type RegionsQuery = { __typename?: 'Query', regions: { __typename?: 'RegionsResponse', items: Array<{ __typename?: 'Region', id: number, name: string, description?: string | null, constellationCount: number, solarSystemCount: number, securityStats: { __typename?: 'SecurityStats', highSec: number, lowSec: number, nullSec: number, wormhole: number, avgSecurity?: number | null } }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type RegionsQuery = { __typename?: 'Query', regions: { __typename?: 'RegionsResponse', items: Array<{ __typename?: 'Region', id: number, name: string, description?: string | null, constellationCount: number, solarSystemCount: number }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type RegionQueryVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
 
 
-export type RegionQuery = { __typename?: 'Query', region?: { __typename?: 'Region', id: number, name: string, description?: string | null, constellationCount: number, solarSystemCount: number, securityStats: { __typename?: 'SecurityStats', highSec: number, lowSec: number, nullSec: number, wormhole: number, avgSecurity?: number | null }, constellations: Array<{ __typename?: 'Constellation', id: number, name: string, solarSystemCount: number, securityStats: { __typename?: 'SecurityStats', highSec: number, lowSec: number, nullSec: number, avgSecurity?: number | null } }> } | null };
+export type RegionQuery = { __typename?: 'Query', region?: { __typename?: 'Region', id: number, name: string, description?: string | null, constellationCount: number, solarSystemCount: number, constellations: Array<{ __typename?: 'Constellation', id: number, name: string, solarSystemCount: number }> } | null };
 
 export type SearchAlliancesQueryVariables = Exact<{
   search: Scalars['String']['input'];
@@ -5703,13 +5703,6 @@ export const RegionsDocument = gql`
       description
       constellationCount
       solarSystemCount
-      securityStats {
-        highSec
-        lowSec
-        nullSec
-        wormhole
-        avgSecurity
-      }
     }
     pageInfo {
       currentPage
@@ -5765,23 +5758,10 @@ export const RegionDocument = gql`
     description
     constellationCount
     solarSystemCount
-    securityStats {
-      highSec
-      lowSec
-      nullSec
-      wormhole
-      avgSecurity
-    }
     constellations {
       id
       name
       solarSystemCount
-      securityStats {
-        highSec
-        lowSec
-        nullSec
-        avgSecurity
-      }
     }
   }
 }
