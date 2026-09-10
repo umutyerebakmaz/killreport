@@ -221,7 +221,7 @@ olmayan sistem sayısı sıfır.
 | Yer                                  |      Boyut | Bugün ne var                        |
 | ------------------------------------ | ---------: | ----------------------------------- |
 | `solar-systems/[id]/page.tsx:173`    | 256 / 96px | güvenlik renkli kutuda `MapPinIcon` |
-| `constellations/[id]/page.tsx:311`   |       20px | satır başına `MapPinIcon`           |
+| `constellations/[id]/page.tsx:311`   |       24px | satır başına `MapPinIcon`           |
 | `Cards/SolarSystemCard.tsx`          |       64px | hiçbir şey                          |
 | `TopSystemsCard/TopSystemsCard.tsx`  |       64px | hiçbir şey                          |
 | `KillmailsTable/KillmailRow.tsx:121` |       20px | hiçbir şey                          |
@@ -229,7 +229,8 @@ olmayan sistem sayısı sıfır.
 
 Detay başlığı `sm` kırılımının altında 96px, üstünde 256px — region ve
 constellation detay başlıklarıyla aynı. `TopSystemsCard` 64px alıyor çünkü
-yanındaki `TopRegionsCard.tsx:63` 64px; simetri oradan.
+yanındaki `TopRegionsCard.tsx:63` 64px, ve constellation sekmesi 24px alıyor
+çünkü `regions/[id]/page.tsx:257` bir tablo satırında 24px; simetri oradan.
 
 `SolarSystemCard`'a harita eklemek kartın iç düzenini değiştiriyor: bugün üç
 satır metin (sistem / constellation / region) art arda diziliyor, harita sola
@@ -293,7 +294,7 @@ Dizin adı `solar-systems`, issue #138'in yazdığı `systems` değil: rota
    `yarn workspace frontend build`. Codegen gerekmiyor: `.graphql` değişmiyor.
 5. `npx prettier --check` — değişen dosyalar üzerinde.
 6. Görsel doğrulama kullanıcıya ait: altı dosyanın dokunduğu beş yer gözle
-   kontrol edilir, özellikle 20px'teki iki yer ve killmail listesinin ilk
+   kontrol edilir, özellikle küçük boyuttaki üç yer ve killmail listesinin ilk
    boyaması.
 
 ## Sonraya bırakılanlar
