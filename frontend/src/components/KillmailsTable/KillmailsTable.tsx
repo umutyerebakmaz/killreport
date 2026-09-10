@@ -72,7 +72,7 @@ export default function KillmailsTable({
                 <colgroup>
                   <col className="w-10" />
                   <col className="w-30" />
-                  <col className="w-16" />
+                  <col className="w-30" />
                   <col className="w-30" />
                   <col className="w-30" />
                   <col className="w-12" />
