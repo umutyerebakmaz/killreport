@@ -294,11 +294,22 @@ export default function SolarSystemFilterForm({
     setIsOpen(false);
   };
 
+  // Every field's three pieces of state: what is typed, what is chosen, and
+  // whether its dropdown is open. The typed text used to have nowhere to live
+  // for region and constellation — both were Selects — so it was not reset
+  // here, and a cleared region left its search box full.
   const handleClearAll = () => {
     setSolarSystemSearch('');
     setSelectedSystemName('');
+    setShowSolarSystemDropdown(false);
+    setRegionSearch('');
     setSelectedRegionId('');
+    setSelectedRegionName('');
+    setShowRegionDropdown(false);
+    setConstellationSearch('');
     setSelectedConstellationId('');
+    setSelectedConstellationName('');
+    setShowConstellationDropdown(false);
     setSecurityFilter('all');
     onClearFilters();
   };

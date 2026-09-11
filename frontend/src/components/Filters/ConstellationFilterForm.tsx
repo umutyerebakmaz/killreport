@@ -117,6 +117,7 @@ export default function ConstellationFilterForm({
     setName('');
     setRegion(null);
     setRegionSearch('');
+    setShowRegionDropdown(false);
     setApplied({});
     setIsOpen(false);
     onClearFilters();
