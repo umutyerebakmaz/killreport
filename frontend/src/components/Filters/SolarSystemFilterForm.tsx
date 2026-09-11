@@ -21,9 +21,11 @@ import { useEffect, useRef, useState } from 'react';
 
 // The swatch colours are the ones the security legend carried before it was
 // dropped: green high, yellow low, red null. The bounds they used to spell out
-// live in getSecurityFilter below.
+// live in getSecurityFilter below. Grey rather than white for the unfiltered
+// row: white is the brightest mark in the palette and would pull more attention
+// than the bands it sits above.
 const SECURITY_OPTIONS = [
-  { value: 'all', label: 'All Security' },
+  { value: 'all', label: 'All Security', swatch: 'bg-gray-500' },
   { value: 'highsec', label: 'High Sec', swatch: 'bg-green-500' },
   { value: 'lowsec', label: 'Low Sec', swatch: 'bg-yellow-500' },
   { value: 'nullsec', label: 'Null Sec', swatch: 'bg-red-500' },
