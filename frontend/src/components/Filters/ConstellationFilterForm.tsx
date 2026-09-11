@@ -1,5 +1,6 @@
 'use client';
 
+import RegionMap from '@/components/RegionMap/RegionMap';
 import FilterBar from '@/components/ui/FilterBar';
 import FilterDialog from '@/components/ui/FilterDialog';
 import FilterField from '@/components/ui/FilterField';
@@ -213,10 +214,22 @@ export default function ConstellationFilterForm({
                           }}
                           className="menu-row group"
                         >
+                          {/* The map sits where the portrait does in the pilot
+                              search. No tile behind it: a portrait is an opaque
+                              square and needs a ground, a star map is
+                              transparent and is meant to take the colour of
+                              the row it sits on, hover included. */}
+                          <div className="flex items-center justify-center flex-none size-16">
+                            <RegionMap
+                              regionId={region.id}
+                              regionName={region.name}
+                              size={64}
+                            />
+                          </div>
                           <div className="flex-auto min-w-0 text-left">
-                            <span className="font-semibold text-white truncate">
+                            <div className="font-semibold text-white truncate">
                               {region.name}
-                            </span>
+                            </div>
                             <div className="text-sm text-gray-400">
                               {region.constellationCount} constellations ·{' '}
                               {region.solarSystemCount} systems
