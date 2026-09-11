@@ -10,16 +10,20 @@ import {
   useSearchRegionsQuery,
 } from '@/generated/graphql';
 import { useDebounce } from '@/hooks/useDebounce';
-import { ArrowDownIcon, ArrowUpIcon } from '@heroicons/react/16/solid';
+import { BarsArrowDownIcon, BarsArrowUpIcon } from '@heroicons/react/16/solid';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useEffect, useRef, useState } from 'react';
 
-// Ascending takes the up arrow and descending the down one. The labels keep
-// saying which way round that is — an arrow alone cannot tell Name A-Z from
-// Name Z-A, and it is only worth removing words the mark actually replaces.
-const ASC = <ArrowUpIcon aria-hidden="true" className="size-4 text-gray-400" />;
+// Heroicons' sort pair — lines for the list, an arrow for the direction.
+// A bare arrow reads as a direction alone; these read as sorting in one. There
+// is no alphabetical variant in the set, and none would survive 16px: letters
+// inside an icon that small blur into a smudge. The labels carry the alphabet,
+// the icon carries the direction.
+const ASC = (
+  <BarsArrowUpIcon aria-hidden="true" className="size-4 text-gray-400" />
+);
 const DESC = (
-  <ArrowDownIcon aria-hidden="true" className="size-4 text-gray-400" />
+  <BarsArrowDownIcon aria-hidden="true" className="size-4 text-gray-400" />
 );
 
 const ORDER_BY_OPTIONS = [
