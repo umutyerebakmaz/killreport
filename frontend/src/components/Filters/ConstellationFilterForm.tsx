@@ -34,21 +34,12 @@ export default function ConstellationFilterForm({
 }: ConstellationFilterFormProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  // The bar's own search box filters as it is typed.
-  const [search, setSearch] = useState(initialSearch);
-  const debouncedSearch = useDebounce(search, 500);
-
-  // The region lives in the dialog and is submit-driven like every other
-  // dialog field, so it needs two states: what is picked in the dialog, and
-  // what the list is actually filtered by. Without the split, a region chosen
-  // and then abandoned would ride along on the next keystroke's emit.
-  const [appliedRegion, setAppliedRegion] = useState<{
-    id: number;
-    name: string;
-  } | null>(
+  // Both filters live in the dialog and are applied together by Apply, so the
+  // state below is what is typed, not what the list is filtered by.
+  const [name, setName] = useState(initialSearch);
+  const [region, setRegion] = useState<{ id: number; name: string } | null>(
     initialRegionId ? { id: parseInt(initialRegionId), name: '' } : null,
   );
-  const [pendingRegion, setPendingRegion] = useState(appliedRegion);
 
   // Region typeahead, the same shape as the killmail filter's: three letters,
   // debounced, at most 40 answers.
@@ -75,55 +66,28 @@ export default function ConstellationFilterForm({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // The first run would re-emit the filters the page already read out of the
-  // URL, resetting the page number to 1 on every load.
-  const emitted = useRef(false);
-  useEffect(() => {
-    if (!emitted.current) {
-      emitted.current = true;
-      return;
-    }
+  const activeFilterCount = [name, region].filter(Boolean).length;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     onFilterChange({
-      search: debouncedSearch || undefined,
-      region_id: appliedRegion?.id,
+      search: name || undefined,
+      region_id: region?.id,
     });
-    // onFilterChange is redefined on every render of the page above, so it
-    // cannot be a dependency without emitting on every render.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearch, appliedRegion]);
-
-  const activeFilterCount = appliedRegion ? 1 : 0;
-  const hasActiveFilters = Boolean(search || appliedRegion);
-
-  const handleApply = () => {
-    setAppliedRegion(pendingRegion);
     setIsOpen(false);
   };
 
   const handleClearAll = () => {
-    setSearch('');
-    setPendingRegion(null);
-    setAppliedRegion(null);
+    setName('');
+    setRegion(null);
     setRegionSearch('');
     setIsOpen(false);
     onClearFilters();
   };
 
   return (
-    <>
+    <form onSubmit={handleSubmit} id="constellation-filters">
       <FilterBar
-        search={
-          <div className="relative flex-1">
-            <input
-              type="text"
-              aria-label="Search constellations"
-              placeholder="Search constellations..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="input"
-            />
-          </div>
-        }
         orderBy={
           <Select
             value={orderBy}
@@ -132,12 +96,8 @@ export default function ConstellationFilterForm({
             aria-label="Sort constellations"
           />
         }
-        onOpenFilters={() => {
-          setPendingRegion(appliedRegion);
-          setIsOpen(true);
-        }}
+        onOpenFilters={() => setIsOpen(true)}
         activeFilterCount={activeFilterCount}
-        hasActiveFilters={hasActiveFilters}
         onClear={handleClearAll}
       />
 
@@ -154,8 +114,8 @@ export default function ConstellationFilterForm({
               CLEAR
             </button>
             <button
-              type="button"
-              onClick={handleApply}
+              type="submit"
+              form="constellation-filters"
               className="button button-secondary"
             >
               APPLY
@@ -163,6 +123,16 @@ export default function ConstellationFilterForm({
           </>
         }
       >
+        <FilterField label="Constellation Name" htmlFor="filter-name">
+          <input
+            type="text"
+            id="filter-name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="input"
+          />
+        </FilterField>
+
         <FilterField
           label="Region"
           htmlFor="filter-region"
@@ -200,15 +170,12 @@ export default function ConstellationFilterForm({
                 regionsData.regions.items.length > 0 && (
                   <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
                     <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto max-h-96">
-                      {regionsData.regions.items.map((region) => (
+                      {regionsData.regions.items.map((item) => (
                         <button
-                          key={region.id}
+                          key={item.id}
                           type="button"
                           onClick={() => {
-                            setPendingRegion({
-                              id: region.id,
-                              name: region.name,
-                            });
+                            setRegion({ id: item.id, name: item.name });
                             setRegionSearch('');
                             setShowRegionDropdown(false);
                           }}
@@ -221,18 +188,18 @@ export default function ConstellationFilterForm({
                               the row it sits on, hover included. */}
                           <div className="flex items-center justify-center flex-none size-16">
                             <RegionMap
-                              regionId={region.id}
-                              regionName={region.name}
+                              regionId={item.id}
+                              regionName={item.name}
                               size={64}
                             />
                           </div>
                           <div className="flex-auto min-w-0 text-left">
                             <div className="font-semibold text-white truncate">
-                              {region.name}
+                              {item.name}
                             </div>
                             <div className="text-sm text-gray-400">
-                              {region.constellationCount} constellations ·{' '}
-                              {region.solarSystemCount} systems
+                              {item.constellationCount} constellations ·{' '}
+                              {item.solarSystemCount} systems
                             </div>
                           </div>
                         </button>
@@ -254,15 +221,15 @@ export default function ConstellationFilterForm({
             </div>
           </div>
 
-          {pendingRegion && (
+          {region && (
             <div className="mt-3">
               <span className="chip">
                 <span className="font-semibold truncate">
-                  {pendingRegion.name || `Region ${pendingRegion.id}`}
+                  {region.name || `Region ${region.id}`}
                 </span>
                 <button
                   type="button"
-                  onClick={() => setPendingRegion(null)}
+                  onClick={() => setRegion(null)}
                   className="button button-ghost p-1"
                   aria-label="Remove region filter"
                 >
@@ -273,6 +240,6 @@ export default function ConstellationFilterForm({
           )}
         </FilterField>
       </FilterDialog>
-    </>
+    </form>
   );
 }
