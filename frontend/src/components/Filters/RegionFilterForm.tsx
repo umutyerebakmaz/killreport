@@ -2,20 +2,23 @@
 
 import FilterBar from '@/components/ui/FilterBar';
 import Select from '@/components/ui/Select';
+import { RegionOrderBy } from '@/generated/graphql';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useEffect, useRef, useState } from 'react';
 
 const ORDER_BY_OPTIONS = [
-  { value: 'nameAsc', label: 'Name A-Z' },
-  { value: 'nameDesc', label: 'Name Z-A' },
+  { value: RegionOrderBy.NameAsc, label: 'Name A-Z' },
+  { value: RegionOrderBy.NameDesc, label: 'Name Z-A' },
 ];
 
 interface RegionFilterFormProps {
-  onFilterChange: (filters: { search?: string }) => void;
+  onFilterChange: (filters: {
+    search?: string;
+    orderBy: RegionOrderBy;
+  }) => void;
   onClearFilters: () => void;
-  orderBy?: string;
-  onOrderByChange: (orderBy: string) => void;
   initialSearch?: string;
+  initialOrderBy?: RegionOrderBy;
 }
 
 /**
@@ -28,14 +31,16 @@ interface RegionFilterFormProps {
 export default function RegionFilterForm({
   onFilterChange,
   onClearFilters,
-  orderBy = 'nameAsc',
-  onOrderByChange,
   initialSearch = '',
+  initialOrderBy = RegionOrderBy.NameAsc,
 }: RegionFilterFormProps) {
   const [search, setSearch] = useState(initialSearch);
+  const [orderBy, setOrderBy] = useState(initialOrderBy);
   const debouncedSearch = useDebounce(search, 500);
 
-  // The first run would re-emit the search the page already read out of the
+  // Nothing here waits for an Apply — the search filters as it is typed and
+  // the sort acts on the spot — so one effect emits whichever of the two
+  // moved. The first run would re-emit what the page already read out of the
   // URL, resetting the page number to 1 on every load.
   const emitted = useRef(false);
   useEffect(() => {
@@ -43,11 +48,11 @@ export default function RegionFilterForm({
       emitted.current = true;
       return;
     }
-    onFilterChange({ search: debouncedSearch || undefined });
+    onFilterChange({ search: debouncedSearch || undefined, orderBy });
     // onFilterChange is redefined on every render of the page above, so it
     // cannot be a dependency without emitting on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearch]);
+  }, [debouncedSearch, orderBy]);
 
   const handleClearAll = () => {
     setSearch('');
@@ -71,7 +76,7 @@ export default function RegionFilterForm({
       orderBy={
         <Select
           value={orderBy}
-          onChange={onOrderByChange}
+          onChange={(value) => setOrderBy(value as RegionOrderBy)}
           options={ORDER_BY_OPTIONS}
           aria-label="Sort regions"
         />

@@ -4,7 +4,7 @@ import RegionCard from '@/components/Card/RegionCard';
 import RegionFilterForm from '@/components/Filters/RegionFilterForm';
 import { Loader } from '@/components/Loader/Loader';
 import Paginator from '@/components/Paginator/Paginator';
-import { useRegionsQuery } from '@/generated/graphql';
+import { RegionOrderBy, useRegionsQuery } from '@/generated/graphql';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 
@@ -13,16 +13,21 @@ function RegionsContent() {
   const searchParams = useSearchParams();
 
   const pageFromUrl = Number(searchParams.get('page')) || 1;
-  const orderByFromUrl = searchParams.get('orderBy') || 'nameAsc';
+  const orderByFromUrl = (searchParams.get('orderBy') ||
+    RegionOrderBy.NameAsc) as RegionOrderBy;
   const searchFromUrl = searchParams.get('search') || '';
 
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(25);
-  const [orderBy, setOrderBy] = useState<string>(orderByFromUrl);
+  const [orderBy, setOrderBy] = useState(orderByFromUrl);
   const [searchTerm, setSearchTerm] = useState(searchFromUrl);
 
-  const handleFilterChange = (filters: { search?: string }) => {
+  const handleFilterChange = (filters: {
+    search?: string;
+    orderBy: RegionOrderBy;
+  }) => {
     setSearchTerm(filters.search || '');
+    setOrderBy(filters.orderBy);
     setCurrentPage(1);
   };
 
@@ -31,17 +36,12 @@ function RegionsContent() {
     setCurrentPage(1);
   };
 
-  const handleOrderByChange = (newOrderBy: string) => {
-    setOrderBy(newOrderBy);
-    setCurrentPage(1);
-  };
-
   const { data, loading, error } = useRegionsQuery({
     variables: {
       filter: {
         page: currentPage,
         limit: pageSize,
-        orderBy: orderBy as any,
+        orderBy,
         search: searchTerm || undefined,
       },
     },
@@ -77,9 +77,8 @@ function RegionsContent() {
       <RegionFilterForm
         onFilterChange={handleFilterChange}
         onClearFilters={handleClearFilters}
-        orderBy={orderBy}
-        onOrderByChange={handleOrderByChange}
         initialSearch={searchTerm}
+        initialOrderBy={orderBy}
       />
 
       {/* Grid Layout */}
