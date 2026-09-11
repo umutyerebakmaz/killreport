@@ -1,6 +1,7 @@
 'use client';
 
 import RegionMap from '@/components/RegionMap/RegionMap';
+import SolarSystemMap from '@/components/SolarSystemMap/SolarSystemMap';
 import Select from '@/components/ui/Select';
 
 import {
@@ -379,7 +380,7 @@ export default function SolarSystemFilterForm({
                   solarSystemData?.solarSystems?.items &&
                   solarSystemData.solarSystems.items.length > 0 && (
                     <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
-                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto max-h-96">
+                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto md:grid-cols-2 max-h-96">
                         {solarSystemData.solarSystems.items.map((system) => {
                           const securityClass =
                             system.security_class || 'Unknown';
@@ -405,6 +406,17 @@ export default function SolarSystemFilterForm({
                               }
                               className="menu-row group"
                             >
+                              {/* The diagram sits where the portrait does in
+                                  the pilot search. It removes itself for the
+                                  401 systems that have neither a star nor a
+                                  planet, so the row falls back to text. */}
+                              <div className="flex items-center justify-center flex-none size-16">
+                                <SolarSystemMap
+                                  systemId={system.id}
+                                  systemName={system.name}
+                                  size={64}
+                                />
+                              </div>
                               <div className="flex-auto min-w-0 text-left">
                                 <div className="flex items-center gap-2">
                                   <span className="font-semibold text-white truncate">
