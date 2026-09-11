@@ -60,4 +60,40 @@ describe('Select', () => {
 
     expect(screen.getByText('High Sec')).toBeInTheDocument();
   });
+
+  it("draws the selected option's icon on the closed button", () => {
+    const SORTED: SelectOption[] = [
+      {
+        value: 'asc',
+        label: 'Name A-Z',
+        icon: <span data-testid="up" />,
+      },
+      {
+        value: 'desc',
+        label: 'Name Z-A',
+        icon: <span data-testid="down" />,
+      },
+    ];
+
+    renderSelect(SORTED, 'desc');
+
+    expect(screen.getByTestId('down')).toBeInTheDocument();
+    expect(screen.queryByTestId('up')).not.toBeInTheDocument();
+  });
+
+  it('takes an icon in place of a swatch on the same option', () => {
+    const BOTH: SelectOption[] = [
+      {
+        value: 'a',
+        label: 'Icon wins',
+        swatch: 'bg-green-500',
+        icon: <span data-testid="icon" />,
+      },
+    ];
+
+    const { container } = renderSelect(BOTH, 'a');
+
+    expect(screen.getByTestId('icon')).toBeInTheDocument();
+    expect(swatches(container)).toHaveLength(0);
+  });
 });

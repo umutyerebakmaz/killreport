@@ -16,6 +16,7 @@ import FilterBar from '@/components/ui/FilterBar';
 import FilterDialog from '@/components/ui/FilterDialog';
 import FilterField from '@/components/ui/FilterField';
 import { useDebounce } from '@/hooks/useDebounce';
+import { ArrowDownIcon, ArrowUpIcon } from '@heroicons/react/16/solid';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useEffect, useRef, useState } from 'react';
 
@@ -31,17 +32,29 @@ const SECURITY_OPTIONS = [
   { value: 'nullsec', label: 'Null Sec', swatch: 'bg-red-500' },
 ];
 
+// Ascending takes the up arrow and descending the down one. The labels keep
+// saying which way round that is — an arrow alone cannot tell Name A-Z from
+// Name Z-A, and it is only worth removing words the mark actually replaces.
+const ASC = <ArrowUpIcon aria-hidden="true" className="size-4 text-gray-400" />;
+const DESC = (
+  <ArrowDownIcon aria-hidden="true" className="size-4 text-gray-400" />
+);
+
 const ORDER_BY_OPTIONS = [
-  { value: 'nameAsc', label: 'Name A-Z' },
-  { value: 'nameDesc', label: 'Name Z-A' },
-  { value: 'securityStatusDesc', label: 'Security (Highest First)' },
-  { value: 'securityStatusAsc', label: 'Security (Lowest First)' },
-  { value: 'shipKillsDesc', label: 'Ship Kills (Most First)' },
-  { value: 'shipKillsAsc', label: 'Ship Kills (Least First)' },
-  { value: 'podKillsDesc', label: 'Pod Kills (Most First)' },
-  { value: 'podKillsAsc', label: 'Pod Kills (Least First)' },
-  { value: 'npcKillsDesc', label: 'NPC Kills (Most First)' },
-  { value: 'npcKillsAsc', label: 'NPC Kills (Least First)' },
+  { value: 'nameAsc', label: 'Name A-Z', icon: ASC },
+  { value: 'nameDesc', label: 'Name Z-A', icon: DESC },
+  {
+    value: 'securityStatusDesc',
+    label: 'Security (Highest First)',
+    icon: DESC,
+  },
+  { value: 'securityStatusAsc', label: 'Security (Lowest First)', icon: ASC },
+  { value: 'shipKillsDesc', label: 'Ship Kills (Most First)', icon: DESC },
+  { value: 'shipKillsAsc', label: 'Ship Kills (Least First)', icon: ASC },
+  { value: 'podKillsDesc', label: 'Pod Kills (Most First)', icon: DESC },
+  { value: 'podKillsAsc', label: 'Pod Kills (Least First)', icon: ASC },
+  { value: 'npcKillsDesc', label: 'NPC Kills (Most First)', icon: DESC },
+  { value: 'npcKillsAsc', label: 'NPC Kills (Least First)', icon: ASC },
 ];
 
 interface SolarSystemFilterFormProps {

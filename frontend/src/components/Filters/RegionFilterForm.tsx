@@ -4,11 +4,20 @@ import FilterBar from '@/components/ui/FilterBar';
 import Select from '@/components/ui/Select';
 import { RegionOrderBy } from '@/generated/graphql';
 import { useDebounce } from '@/hooks/useDebounce';
+import { ArrowDownIcon, ArrowUpIcon } from '@heroicons/react/16/solid';
 import { useEffect, useRef, useState } from 'react';
 
+// Ascending takes the up arrow and descending the down one. The labels keep
+// saying which way round that is — an arrow alone cannot tell Name A-Z from
+// Name Z-A, and it is only worth removing words the mark actually replaces.
+const ASC = <ArrowUpIcon aria-hidden="true" className="size-4 text-gray-400" />;
+const DESC = (
+  <ArrowDownIcon aria-hidden="true" className="size-4 text-gray-400" />
+);
+
 const ORDER_BY_OPTIONS = [
-  { value: RegionOrderBy.NameAsc, label: 'Name A-Z' },
-  { value: RegionOrderBy.NameDesc, label: 'Name Z-A' },
+  { value: RegionOrderBy.NameAsc, label: 'Name A-Z', icon: ASC },
+  { value: RegionOrderBy.NameDesc, label: 'Name Z-A', icon: DESC },
 ];
 
 interface RegionFilterFormProps {
