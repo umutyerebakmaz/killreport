@@ -658,27 +658,32 @@ export default function SolarSystemFilterForm({
             )}
           </FilterField>
 
-          {/* Security Filter */}
-          <FilterField label="Security Status" htmlFor="filter-security">
-            <Select
-              value={securityFilter}
-              onChange={setSecurityFilter}
-              options={SECURITY_OPTIONS}
-              className="w-full"
-              aria-label="Security status"
-            />
-          </FilterField>
+          {/* Security and sort are both one Select wide, so they share a row
+              from sm up rather than each taking a line of their own. Below
+              that the dialog is too narrow for two and they stack. */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {/* Security Filter */}
+            <FilterField label="Security Status" htmlFor="filter-security">
+              <Select
+                value={securityFilter}
+                onChange={setSecurityFilter}
+                options={SECURITY_OPTIONS}
+                className="w-full"
+                aria-label="Security status"
+              />
+            </FilterField>
 
-          {/* Sort By */}
-          <FilterField label="Sort By" htmlFor="filter-sort">
-            <Select
-              value={orderBy}
-              onChange={onOrderByChange}
-              options={ORDER_BY_OPTIONS}
-              className="w-full"
-              aria-label="Sort solar systems"
-            />
-          </FilterField>
+            {/* Sort By */}
+            <FilterField label="Sort By" htmlFor="filter-sort">
+              <Select
+                value={orderBy}
+                onChange={onOrderByChange}
+                options={ORDER_BY_OPTIONS}
+                className="w-full"
+                aria-label="Sort solar systems"
+              />
+            </FilterField>
+          </div>
         </div>
       </FilterDialog>
     </form>
