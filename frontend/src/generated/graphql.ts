@@ -2292,7 +2292,7 @@ export type ConstellationQueryVariables = Exact<{
 }>;
 
 
-export type ConstellationQuery = { __typename?: 'Query', constellation?: { __typename?: 'Constellation', id: number, name: string, solarSystemCount: number, region?: { __typename?: 'Region', id: number, name: string } | null, solarSystems: Array<{ __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, security_class?: string | null }> } | null };
+export type ConstellationQuery = { __typename?: 'Query', constellation?: { __typename?: 'Constellation', id: number, name: string, solarSystemCount: number, sovereignty?: { __typename?: 'SovereigntyHolder', ownerType: SovereigntyOwnerType, ownerId: number, ownerName?: string | null, allianceTicker?: string | null, systemCount: number } | null, region?: { __typename?: 'Region', id: number, name: string } | null, solarSystems: Array<{ __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, security_class?: string | null, latestKills?: { __typename?: 'SystemKills', ship_kills: number, pod_kills: number, npc_kills: number, timestamp: string } | null }> } | null };
 
 export type CorporationQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -3971,6 +3971,13 @@ export const ConstellationDocument = gql`
     id
     name
     solarSystemCount
+    sovereignty {
+      ownerType
+      ownerId
+      ownerName
+      allianceTicker
+      systemCount
+    }
     region {
       id
       name
@@ -3980,6 +3987,12 @@ export const ConstellationDocument = gql`
       name
       securityStatus
       security_class
+      latestKills {
+        ship_kills
+        pod_kills
+        npc_kills
+        timestamp
+      }
     }
   }
 }

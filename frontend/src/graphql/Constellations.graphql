@@ -20,6 +20,13 @@ query Constellation($id: Int!) {
     id
     name
     solarSystemCount
+    sovereignty {
+      ownerType
+      ownerId
+      ownerName
+      allianceTicker
+      systemCount
+    }
     region {
       id
       name
@@ -29,6 +36,12 @@ query Constellation($id: Int!) {
       name
       securityStatus
       security_class
+      latestKills {
+        ship_kills
+        pod_kills
+        npc_kills
+        timestamp
+      }
     }
   }
 }

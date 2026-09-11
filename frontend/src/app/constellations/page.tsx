@@ -48,7 +48,7 @@ function ConstellationsContent() {
     if (searchTerm) params.set('search', searchTerm);
     if (selectedRegionId) params.set('regionId', selectedRegionId);
     router.push(`/constellations?${params.toString()}`, { scroll: false });
-  }, [currentPage, orderBy, searchTerm, selectedRegionId]);
+  }, [currentPage, orderBy, router, searchTerm, selectedRegionId]);
 
   const handleFilterChange = (filters: {
     search?: string;
