@@ -17,6 +17,20 @@ describe('ConstellationMap', () => {
     expect(image).toHaveAttribute('height', '64');
   });
 
+  it('leaves the size to CSS when no size is given', () => {
+    render(
+      <ConstellationMap
+        constellationId={20000020}
+        constellationName="Kimotoro"
+        className="h-full w-full"
+      />,
+    );
+    const image = screen.getByAltText('Kimotoro map');
+    expect(image).not.toHaveAttribute('width');
+    expect(image).not.toHaveAttribute('height');
+    expect(image).toHaveClass('h-full', 'w-full');
+  });
+
   it('removes itself when the file is missing, rather than showing a broken image', () => {
     render(
       <ConstellationMap

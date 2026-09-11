@@ -1,12 +1,10 @@
 'use client';
 
-import ConstellationMap from '@/components/ConstellationMap/ConstellationMap';
+import ConstellationCard from '@/components/Card/ConstellationCard';
 import ConstellationFilterForm from '@/components/Filters/ConstellationFilterForm';
 import { Loader } from '@/components/Loader/Loader';
 import Paginator from '@/components/Paginator/Paginator';
-import Tooltip from '@/components/Tooltip/Tooltip';
 import { useConstellationsQuery } from '@/generated/graphql';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 
@@ -96,85 +94,26 @@ function ConstellationsContent() {
           initialRegionId={selectedRegionId}
         />
       </div>
-      {/* Table */}
-      <div className="mt-6 overflow-hidden border border-white/10">
-        <table className="table">
-          <thead className="bg-surface-inset">
-            <tr>
-              <th className="text-left th-cell">Constellation</th>
-              <th className="text-left th-cell">Region</th>
-              <th className="text-left th-cell">Systems</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5">
-            {loading ? (
-              <tr>
-                <td
-                  colSpan={3}
-                  className="px-6 py-12 text-center text-gray-400"
-                >
-                  <div className="flex items-center justify-center">
-                    <Loader size="lg" />
-                  </div>
-                </td>
-              </tr>
-            ) : constellations.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={3}
-                  className="px-6 py-12 text-center text-gray-400"
-                >
-                  No constellations found
-                </td>
-              </tr>
-            ) : (
-              constellations.map((constellation) => (
-                <tr key={constellation.id} className="tr-row">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <ConstellationMap
-                        constellationId={constellation.id}
-                        constellationName={constellation.name}
-                        size={64}
-                        className="shrink-0"
-                      />
-                      <Link
-                        href={`/constellations/${constellation.id}`}
-                        prefetch={false}
-                        className="font-medium text-gray-400 transition-colors hover:text-gray-400"
-                      >
-                        {constellation.name}
-                      </Link>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    {constellation.region ? (
-                      <Link
-                        href={`/regions/${constellation.region.id}`}
-                        prefetch={false}
-                        className="flex items-center gap-2 text-gray-400 transition-colors hover:text-gray-400"
-                      >
-                        {constellation.region.name}
-                      </Link>
-                    ) : (
-                      <span className="text-gray-500">Unknown</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <Tooltip
-                      content="Solar systems in this constellation"
-                      position="top"
-                    >
-                      <span className="font-medium text-orange-300">
-                        {constellation.solarSystemCount}
-                      </span>
-                    </Tooltip>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+      {/* Grid Layout */}
+      <div className="mt-6">
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader size="lg" text="Loading constellations..." />
+          </div>
+        ) : constellations.length === 0 ? (
+          <div className="px-6 py-12 text-center text-gray-400 border border-white/10 bg-surface">
+            No constellations found
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5">
+            {constellations.map((constellation) => (
+              <ConstellationCard
+                key={constellation.id}
+                constellation={constellation}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="mt-6">

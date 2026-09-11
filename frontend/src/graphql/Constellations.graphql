@@ -4,10 +4,6 @@ query Constellations($filter: ConstellationFilter) {
       id
       name
       solarSystemCount
-      region {
-        id
-        name
-      }
     }
     pageInfo {
       currentPage

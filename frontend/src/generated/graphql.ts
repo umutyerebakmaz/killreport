@@ -2285,7 +2285,7 @@ export type ConstellationsQueryVariables = Exact<{
 }>;
 
 
-export type ConstellationsQuery = { __typename?: 'Query', constellations: { __typename?: 'ConstellationsResponse', items: Array<{ __typename?: 'Constellation', id: number, name: string, solarSystemCount: number, region?: { __typename?: 'Region', id: number, name: string } | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type ConstellationsQuery = { __typename?: 'Query', constellations: { __typename?: 'ConstellationsResponse', items: Array<{ __typename?: 'Constellation', id: number, name: string, solarSystemCount: number }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type ConstellationQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -3918,10 +3918,6 @@ export const ConstellationsDocument = gql`
       id
       name
       solarSystemCount
-      region {
-        id
-        name
-      }
     }
     pageInfo {
       currentPage
