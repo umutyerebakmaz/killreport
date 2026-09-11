@@ -1,17 +1,12 @@
 'use client';
 
 import RegionCard from '@/components/Card/RegionCard';
+import RegionFilterForm from '@/components/Filters/RegionFilterForm';
 import { Loader } from '@/components/Loader/Loader';
 import Paginator from '@/components/Paginator/Paginator';
-import Select from '@/components/ui/Select';
 import { useRegionsQuery } from '@/generated/graphql';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
-
-const ORDER_BY_OPTIONS = [
-  { value: 'nameAsc', label: 'Name A-Z' },
-  { value: 'nameDesc', label: 'Name Z-A' },
-];
 
 function RegionsContent() {
   const router = useRouter();
@@ -25,16 +20,21 @@ function RegionsContent() {
   const [pageSize, setPageSize] = useState(25);
   const [orderBy, setOrderBy] = useState<string>(orderByFromUrl);
   const [searchTerm, setSearchTerm] = useState(searchFromUrl);
-  const [debouncedSearch, setDebouncedSearch] = useState(searchFromUrl);
 
-  // Debounce search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-      setCurrentPage(1);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
+  const handleFilterChange = (filters: { search?: string }) => {
+    setSearchTerm(filters.search || '');
+    setCurrentPage(1);
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setCurrentPage(1);
+  };
+
+  const handleOrderByChange = (newOrderBy: string) => {
+    setOrderBy(newOrderBy);
+    setCurrentPage(1);
+  };
 
   const { data, loading, error } = useRegionsQuery({
     variables: {
@@ -42,7 +42,7 @@ function RegionsContent() {
         page: currentPage,
         limit: pageSize,
         orderBy: orderBy as any,
-        search: debouncedSearch || undefined,
+        search: searchTerm || undefined,
       },
     },
   });
@@ -52,9 +52,9 @@ function RegionsContent() {
     const params = new URLSearchParams();
     params.set('page', currentPage.toString());
     params.set('orderBy', orderBy);
-    if (debouncedSearch) params.set('search', debouncedSearch);
+    if (searchTerm) params.set('search', searchTerm);
     router.push(`/regions?${params.toString()}`, { scroll: false });
-  }, [currentPage, orderBy, debouncedSearch]);
+  }, [currentPage, orderBy, searchTerm]);
 
   if (error)
     return <div className="p-8 text-red-500">Error: {error.message}</div>;
@@ -74,26 +74,13 @@ function RegionsContent() {
     <div>
       <h1 className="sr-only">Regions</h1>
 
-      {/* Filters */}
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1">
-          <input
-            type="text"
-            placeholder="Search regions..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="input"
-          />
-        </div>
-
-        {/* OrderBy Dropdown */}
-        <Select
-          value={orderBy}
-          onChange={setOrderBy}
-          options={ORDER_BY_OPTIONS}
-          aria-label="Sort regions"
-        />
-      </div>
+      <RegionFilterForm
+        onFilterChange={handleFilterChange}
+        onClearFilters={handleClearFilters}
+        orderBy={orderBy}
+        onOrderByChange={handleOrderByChange}
+        initialSearch={searchTerm}
+      />
 
       {/* Grid Layout */}
       <div className="mt-6">

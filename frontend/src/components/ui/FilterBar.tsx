@@ -14,10 +14,11 @@ export interface FilterBarProps {
   search?: ReactNode;
   /**
    * Extra controls belonging in the bar itself, rendered between the search
-   * element and the Filters button: an inline filter select, a submit
-   * button. Filtering in these forms is submit-driven, so a form whose only
-   * action is Apply-inside-the-dialog still needs its own visible submit
-   * control here.
+   * element and the Filters button: an inline filter select, a submit button.
+   *
+   * The dialog's own fields are submit-driven — its Apply commits them — but
+   * the bar's `search` box is not: where a form has one it filters as it is
+   * typed, debounced. So a search box needs no submit control beside it.
    */
   controls?: ReactNode;
   /** The sort dropdown, when the page has one. */

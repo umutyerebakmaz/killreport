@@ -84,16 +84,15 @@ function ConstellationsContent() {
     <div>
       <h1 className="sr-only">Constellations</h1>
 
-      <div>
-        <ConstellationFilterForm
-          onFilterChange={handleFilterChange}
-          onClearFilters={handleClearFilters}
-          orderBy={orderBy}
-          onOrderByChange={handleOrderByChange}
-          initialSearch={searchTerm}
-          initialRegionId={selectedRegionId}
-        />
-      </div>
+      <ConstellationFilterForm
+        onFilterChange={handleFilterChange}
+        onClearFilters={handleClearFilters}
+        orderBy={orderBy}
+        onOrderByChange={handleOrderByChange}
+        initialSearch={searchTerm}
+        initialRegionId={selectedRegionId}
+      />
+
       {/* Grid Layout */}
       <div className="mt-6">
         {loading ? (
