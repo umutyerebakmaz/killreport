@@ -1,29 +1,22 @@
 'use client';
 
-import RegionMap from '@/components/RegionMap/RegionMap';
 import ConstellationMap from '@/components/ConstellationMap/ConstellationMap';
-import SolarSystemMap from '@/components/SolarSystemMap/SolarSystemMap';
+import RegionMap from '@/components/RegionMap/RegionMap';
 import SecurityBadge from '@/components/SecurityStatus/SecurityStatus';
+import SolarSystemMap from '@/components/SolarSystemMap/SolarSystemMap';
 import { useConstellationQuery } from '@/generated/graphql';
-import { useTabList } from '@/hooks/useTabList';
 import { MapPinIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import { use, useState } from 'react';
+import { use } from 'react';
 
 interface ConstellationDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-type TabType = 'overview' | 'systems';
-
-const TAB_IDS: TabType[] = ['overview', 'systems'];
-
 export default function ConstellationDetailPage({
   params,
 }: ConstellationDetailPageProps) {
   const { id } = use(params);
-  const [activeTab, setActiveTab] = useState<TabType>('overview');
-  const { onKeyDown } = useTabList(TAB_IDS, activeTab, setActiveTab);
 
   const { data, loading, error } = useConstellationQuery({
     variables: { id: parseInt(id) },
@@ -57,11 +50,6 @@ export default function ConstellationDetailPage({
       </div>
     );
   }
-
-  const tabLabels: Record<TabType, string> = {
-    overview: 'Overview',
-    systems: `Solar Systems (${constellation.solarSystemCount})`,
-  };
 
   return (
     <div>
@@ -113,157 +101,60 @@ export default function ConstellationDetailPage({
         </div>
       </div>
 
-      <div className="tab-shell mt-6">
-        <nav
-          className="flex gap-1 mb-3 overflow-x-auto"
-          aria-label="Tabs"
-          role="tablist"
-        >
-          {TAB_IDS.map((tabId) => (
-            <button
-              key={tabId}
-              role="tab"
-              id={`tab-${tabId}`}
-              aria-controls={`panel-${tabId}`}
-              aria-selected={activeTab === tabId}
-              tabIndex={activeTab === tabId ? 0 : -1}
-              onClick={() => setActiveTab(tabId)}
-              onKeyDown={onKeyDown}
-              className="button button-secondary button-sm"
-            >
-              {tabLabels[tabId]}
-            </button>
-          ))}
-        </nav>
-
-        {activeTab === 'overview' && (
-          <div
-            role="tabpanel"
-            id="panel-overview"
-            aria-labelledby="tab-overview"
-            className="grid gap-6 md:grid-cols-2"
-          >
-            {/* Constellation Info */}
-            <div className="p-6 border bg-white/5 border-white/10">
-              <h2 className="mb-4 text-xl font-bold">
-                Constellation Information
-              </h2>
-              <dl className="space-y-3">
-                <div className="flex justify-between">
-                  <dt className="text-gray-400">Constellation ID</dt>
-                  <dd className="text-gray-200">{constellation.id}</dd>
-                </div>
-                {constellation.region && (
-                  <div className="flex justify-between">
-                    <dt className="text-gray-400">Region</dt>
-                    <dd>
-                      <Link
-                        href={`/regions/${constellation.region.id}`}
-                        prefetch={false}
-                        className="text-gray-400 hover:text-blue-400"
-                      >
-                        {constellation.region.name}
-                      </Link>
-                    </dd>
-                  </div>
-                )}
-                <div className="flex justify-between">
-                  <dt className="text-gray-400">Solar Systems</dt>
-                  <dd className="font-medium text-orange-300">
-                    {constellation.solarSystemCount}
-                  </dd>
-                </div>
-              </dl>
-            </div>
-
-            {/* Position Info */}
-            {constellation.position && (
-              <div className="p-6 border bg-white/5 border-white/10">
-                <h2 className="mb-4 text-xl font-bold">Position in Space</h2>
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <div className="text-sm text-gray-400">X</div>
-                    <div className="text-gray-200">
-                      {constellation.position.x.toExponential(2)}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-400">Y</div>
-                    <div className="text-gray-200">
-                      {constellation.position.y.toExponential(2)}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-400">Z</div>
-                    <div className="text-gray-200">
-                      {constellation.position.z.toExponential(2)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {activeTab === 'systems' && (
-          <div
-            role="tabpanel"
-            id="panel-systems"
-            aria-labelledby="tab-systems"
-            className="overflow-hidden border border-white/10"
-          >
-            <table className="table">
-              <thead className="bg-surface-inset">
-                <tr>
-                  <th className="th-cell">Solar System</th>
-                  <th className="th-cell">Security Status</th>
-                  <th className="th-cell">Security Class</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {constellation.solarSystems &&
-                constellation.solarSystems.length > 0 ? (
-                  constellation.solarSystems.map((system) => (
-                    <tr key={system.id} className="tr-row">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          <SolarSystemMap
-                            systemId={system.id}
-                            systemName={system.name}
-                            size={24}
-                            className="shrink-0"
-                          />
-                          <Link
-                            href={`/solar-systems/${system.id}`}
-                            prefetch={false}
-                            className="font-medium transition-colors text-gray-400 hover:text-blue-400"
-                          >
-                            {system.name}
-                          </Link>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <SecurityBadge securityStatus={system.securityStatus} />
-                      </td>
-                      <td className="px-6 py-4 text-gray-400 whitespace-nowrap">
-                        {system.security_class || '-'}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={3}
-                      className="px-6 py-12 text-center text-gray-400"
-                    >
-                      No solar systems found
+      {/* One panel left, so no tab bar: the systems table stands on its own. */}
+      <div className="mt-6">
+        <div className="overflow-hidden border border-white/10">
+          <table className="table">
+            <thead className="bg-surface-inset">
+              <tr>
+                <th className="th-cell">Solar System</th>
+                <th className="th-cell">Security Status</th>
+                <th className="th-cell">Security Class</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {constellation.solarSystems &&
+              constellation.solarSystems.length > 0 ? (
+                constellation.solarSystems.map((system) => (
+                  <tr key={system.id} className="tr-row">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-3">
+                        <SolarSystemMap
+                          systemId={system.id}
+                          systemName={system.name}
+                          size={24}
+                          className="shrink-0"
+                        />
+                        <Link
+                          href={`/solar-systems/${system.id}`}
+                          prefetch={false}
+                          className="font-medium transition-colors text-gray-400 hover:text-blue-400"
+                        >
+                          {system.name}
+                        </Link>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <SecurityBadge securityStatus={system.securityStatus} />
+                    </td>
+                    <td className="px-6 py-4 text-gray-400 whitespace-nowrap">
+                      {system.security_class || '-'}
                     </td>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={3}
+                    className="px-6 py-12 text-center text-gray-400"
+                  >
+                    No solar systems found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

@@ -20,11 +20,6 @@ query Constellation($id: Int!) {
     id
     name
     solarSystemCount
-    position {
-      x
-      y
-      z
-    }
     region {
       id
       name

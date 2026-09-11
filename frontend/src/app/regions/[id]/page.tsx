@@ -16,9 +16,9 @@ interface RegionDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-type TabType = 'killmails' | 'overview' | 'constellations';
+type TabType = 'killmails' | 'constellations';
 
-const TAB_IDS: TabType[] = ['killmails', 'overview', 'constellations'];
+const TAB_IDS: TabType[] = ['killmails', 'constellations'];
 
 function isTabType(value: string | null): value is TabType {
   return value !== null && (TAB_IDS as string[]).includes(value);
@@ -116,7 +116,6 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
 
   const tabLabels: Record<TabType, string> = {
     killmails: 'Killmails',
-    overview: 'Overview',
     constellations: `Constellations (${region.constellationCount})`,
   };
 
@@ -188,14 +187,6 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
         </nav>
 
         {/* Tab Content */}
-        {activeTab === 'overview' && (
-          <div
-            role="tabpanel"
-            id="panel-overview"
-            aria-labelledby="tab-overview"
-          />
-        )}
-
         {activeTab === 'constellations' && (
           <div
             role="tabpanel"

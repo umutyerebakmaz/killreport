@@ -2292,7 +2292,7 @@ export type ConstellationQueryVariables = Exact<{
 }>;
 
 
-export type ConstellationQuery = { __typename?: 'Query', constellation?: { __typename?: 'Constellation', id: number, name: string, solarSystemCount: number, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, region?: { __typename?: 'Region', id: number, name: string } | null, solarSystems: Array<{ __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, security_class?: string | null }> } | null };
+export type ConstellationQuery = { __typename?: 'Query', constellation?: { __typename?: 'Constellation', id: number, name: string, solarSystemCount: number, region?: { __typename?: 'Region', id: number, name: string } | null, solarSystems: Array<{ __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, security_class?: string | null }> } | null };
 
 export type CorporationQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -3971,11 +3971,6 @@ export const ConstellationDocument = gql`
     id
     name
     solarSystemCount
-    position {
-      x
-      y
-      z
-    }
     region {
       id
       name
