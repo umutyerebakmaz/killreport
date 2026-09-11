@@ -148,16 +148,6 @@ export default function ConstellationFilterForm({
           </>
         }
       >
-        <FilterField label="Constellation Name" htmlFor="filter-name">
-          <input
-            type="text"
-            id="filter-name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="input"
-          />
-        </FilterField>
-
         <FilterField
           label="Region"
           htmlFor="filter-region"
@@ -263,6 +253,16 @@ export default function ConstellationFilterForm({
               </span>
             </div>
           )}
+        </FilterField>
+
+        <FilterField label="Constellation Name" htmlFor="filter-name">
+          <input
+            type="text"
+            id="filter-name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="input"
+          />
         </FilterField>
       </FilterDialog>
     </form>
