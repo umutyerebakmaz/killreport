@@ -18,11 +18,14 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useEffect, useRef, useState } from 'react';
 
+// The swatch colours are the ones the security legend carried before it was
+// dropped: green high, yellow low, red null. The bounds they used to spell out
+// live in getSecurityFilter below.
 const SECURITY_OPTIONS = [
   { value: 'all', label: 'All Security' },
-  { value: 'highsec', label: 'High Sec (≥0.5)' },
-  { value: 'lowsec', label: 'Low Sec (0.1-0.4)' },
-  { value: 'nullsec', label: 'Null Sec (≤0.0)' },
+  { value: 'highsec', label: 'High Sec', swatch: 'bg-green-500' },
+  { value: 'lowsec', label: 'Low Sec', swatch: 'bg-yellow-500' },
+  { value: 'nullsec', label: 'Null Sec', swatch: 'bg-red-500' },
 ];
 
 const ORDER_BY_OPTIONS = [
