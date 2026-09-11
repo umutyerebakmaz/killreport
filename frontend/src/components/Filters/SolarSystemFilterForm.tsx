@@ -1,10 +1,10 @@
 'use client';
 
+import RegionMap from '@/components/RegionMap/RegionMap';
 import Select from '@/components/ui/Select';
 
 import {
   useConstellationsQuery,
-  useRegionsQuery,
   useSearchConstellationQuery,
   useSearchConstellationsQuery,
   useSearchRegionQuery,
@@ -127,16 +127,6 @@ export default function SolarSystemFilterForm({
       },
       skip: debouncedConstellationSearch.length < 3,
     });
-
-  // GraphQL query for all regions (for dropdown)
-  const { data: allRegionsData } = useRegionsQuery({
-    variables: {
-      filter: {
-        limit: 1000,
-        orderBy: 'nameAsc' as any,
-      },
-    },
-  });
 
   // GraphQL query for constellations filtered by region (for dropdown)
   const { data: allConstellationsData } = useConstellationsQuery({
@@ -290,11 +280,11 @@ export default function SolarSystemFilterForm({
     onClearFilters();
   };
 
-  const handleRegionChange = (regionId: string) => {
-    setSelectedRegionId(regionId);
-    // Set region name
-    const region = regions.find((r) => r.id === parseInt(regionId));
-    setSelectedRegionName(region?.name || '');
+  const handleRegionSelect = (id: number, name: string) => {
+    setSelectedRegionId(String(id));
+    setSelectedRegionName(name);
+    setRegionSearch('');
+    setShowRegionDropdown(false);
     // Clear constellation when region changes
     if (selectedConstellationId) {
       setSelectedConstellationId('');
@@ -311,8 +301,7 @@ export default function SolarSystemFilterForm({
     setSelectedConstellationName(constellation?.name || '');
   };
 
-  // Extract regions and constellations for dropdowns
-  const regions = allRegionsData?.regions?.items || [];
+  // Extract constellations for the dropdown
   const constellations = allConstellationsData?.constellations?.items || [];
 
   return (
@@ -479,20 +468,92 @@ export default function SolarSystemFilterForm({
           </FilterField>
 
           {/* Region Filter */}
-          <FilterField label="Region" htmlFor="filter-region">
-            <Select
-              value={selectedRegionId}
-              onChange={handleRegionChange}
-              options={[
-                { value: '', label: 'All Regions' },
-                ...regions.map((region) => ({
-                  value: String(region.id),
-                  label: region.name,
-                })),
-              ]}
-              className="w-full"
-              aria-label="Region"
-            />
+          <FilterField
+            label="Region"
+            htmlFor="filter-region"
+            hint="Type at least 3 letters to search"
+          >
+            <div ref={regionDropdownRef}>
+              <div className="relative">
+                <input
+                  type="text"
+                  id="filter-region"
+                  aria-describedby="filter-region-hint"
+                  value={regionSearch}
+                  onChange={(e) => {
+                    setRegionSearch(e.target.value);
+                    setShowRegionDropdown(e.target.value.length >= 3);
+                  }}
+                  onFocus={() => {
+                    if (
+                      regionSearch.length >= 3 &&
+                      regionsData?.regions?.items?.length
+                    ) {
+                      setShowRegionDropdown(true);
+                    }
+                  }}
+                  className="input"
+                />
+                {regionLoading && regionSearch.length >= 3 && (
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <div className="w-5 h-5 border-2 border-blue-500 rounded-full animate-spin border-t-transparent" />
+                  </div>
+                )}
+
+                {/* Region Dropdown */}
+                {showRegionDropdown &&
+                  regionsData?.regions?.items &&
+                  regionsData.regions.items.length > 0 && (
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
+                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto max-h-96">
+                        {regionsData.regions.items.map((region) => (
+                          <button
+                            key={region.id}
+                            type="button"
+                            onClick={() =>
+                              handleRegionSelect(region.id, region.name)
+                            }
+                            className="menu-row group"
+                          >
+                            {/* The map sits where the portrait does in the
+                                pilot search. No tile behind it: RegionMap is
+                                transparent and takes the colour of the row it
+                                sits on, hover included. */}
+                            <div className="flex items-center justify-center flex-none size-16">
+                              <RegionMap
+                                regionId={region.id}
+                                regionName={region.name}
+                                size={64}
+                              />
+                            </div>
+                            <div className="flex-auto min-w-0 text-left">
+                              <div className="font-semibold text-white truncate">
+                                {region.name}
+                              </div>
+                              <div className="text-sm text-gray-400">
+                                {region.constellationCount} constellations ·{' '}
+                                {region.solarSystemCount} systems
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                {/* No Results */}
+                {showRegionDropdown &&
+                  debouncedRegionSearch.length >= 3 &&
+                  !regionLoading &&
+                  regionsData?.regions?.items?.length === 0 && (
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
+                      <div className="p-4 text-sm text-gray-400">
+                        No regions found for &quot;{debouncedRegionSearch}&quot;
+                      </div>
+                    </div>
+                  )}
+              </div>
+            </div>
 
             {/* Region chip */}
             {selectedRegionId && (
