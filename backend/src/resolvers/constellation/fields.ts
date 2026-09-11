@@ -39,18 +39,6 @@ export const constellationFields: ConstellationResolvers = {
     );
     return systems.length;
   },
-  securityStats: async (parent, _, context) => {
-    if (!parent.id)
-      return {
-        highSec: 0,
-        lowSec: 0,
-        nullSec: 0,
-        wormhole: 0,
-        avgSecurity: null,
-      };
-    // Use optimized DataLoader to batch security stats queries
-    return context.loaders.constellationSecurityStats.load(parent.id);
-  },
   sovereignty: async (parent, _, context) => {
     if (!parent.id) return null;
     return context.loaders.constellationSovereignty.load(parent.id);

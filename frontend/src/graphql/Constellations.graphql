@@ -4,13 +4,6 @@ query Constellations($filter: ConstellationFilter) {
       id
       name
       solarSystemCount
-      securityStats {
-        highSec
-        lowSec
-        nullSec
-        wormhole
-        avgSecurity
-      }
       region {
         id
         name
@@ -31,13 +24,6 @@ query Constellation($id: Int!) {
     id
     name
     solarSystemCount
-    securityStats {
-      highSec
-      lowSec
-      nullSec
-      wormhole
-      avgSecurity
-    }
     position {
       x
       y

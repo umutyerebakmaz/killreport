@@ -3,7 +3,6 @@
 import RegionMap from '@/components/RegionMap/RegionMap';
 import ConstellationMap from '@/components/ConstellationMap/ConstellationMap';
 import SolarSystemMap from '@/components/SolarSystemMap/SolarSystemMap';
-import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
 import SecurityBadge from '@/components/SecurityStatus/SecurityStatus';
 import { useConstellationQuery } from '@/generated/graphql';
 import { useTabList } from '@/hooks/useTabList';
@@ -111,41 +110,6 @@ export default function ConstellationDetailPage({
               </div>
             </div>
           </div>
-
-          {/* Security Stats Card */}
-          {constellation.securityStats && (
-            <div className="bg-white/5 border border-white/10 p-4 min-w-70">
-              <h3 className="mb-3 text-sm font-medium text-gray-400">
-                Security Distribution
-              </h3>
-              <SecurityStatsBar
-                stats={{
-                  highSec: constellation.securityStats.highSec,
-                  lowSec: constellation.securityStats.lowSec,
-                  nullSec: constellation.securityStats.nullSec,
-                  wormhole: constellation.securityStats.wormhole,
-                }}
-              />
-              {constellation.securityStats.avgSecurity != null && (
-                <div className="flex items-center justify-between pt-3 mt-3 border-t border-white/10">
-                  <span className="text-sm text-gray-400">
-                    Average Security:
-                  </span>
-                  <span
-                    className={`font-medium ${
-                      constellation.securityStats.avgSecurity >= 0.5
-                        ? 'text-green-400'
-                        : constellation.securityStats.avgSecurity > 0
-                          ? 'text-yellow-400'
-                          : 'text-red-400'
-                    }`}
-                  >
-                    {constellation.securityStats.avgSecurity.toFixed(2)}
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
 
@@ -212,56 +176,9 @@ export default function ConstellationDetailPage({
               </dl>
             </div>
 
-            {/* Security Breakdown */}
-            <div className="p-6 border bg-white/5 border-white/10">
-              <h2 className="mb-4 text-xl font-bold">Security Breakdown</h2>
-              {constellation.securityStats && (
-                <dl className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <dt className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-green-500 rounded-full" />
-                      <span className="text-gray-400">High Security</span>
-                    </dt>
-                    <dd className="font-medium text-green-400">
-                      {constellation.securityStats.highSec} systems
-                    </dd>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <dt className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-yellow-500 rounded-full" />
-                      <span className="text-gray-400">Low Security</span>
-                    </dt>
-                    <dd className="font-medium text-yellow-400">
-                      {constellation.securityStats.lowSec} systems
-                    </dd>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <dt className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-red-500 rounded-full" />
-                      <span className="text-gray-400">Null Security</span>
-                    </dt>
-                    <dd className="font-medium text-red-400">
-                      {constellation.securityStats.nullSec} systems
-                    </dd>
-                  </div>
-                  {(constellation.securityStats.wormhole ?? 0) > 0 && (
-                    <div className="flex items-center justify-between">
-                      <dt className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-purple-500 rounded-full" />
-                        <span className="text-gray-400">Wormhole</span>
-                      </dt>
-                      <dd className="font-medium text-purple-400">
-                        {constellation.securityStats.wormhole} systems
-                      </dd>
-                    </div>
-                  )}
-                </dl>
-              )}
-            </div>
-
             {/* Position Info */}
             {constellation.position && (
-              <div className="p-6 border bg-white/5 border-white/10 md:col-span-2">
+              <div className="p-6 border bg-white/5 border-white/10">
                 <h2 className="mb-4 text-xl font-bold">Position in Space</h2>
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>

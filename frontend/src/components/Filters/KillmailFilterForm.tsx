@@ -1235,14 +1235,6 @@ export default function KillmailFilterForm({
                     <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
                       <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto max-h-96">
                         {regionsData.regions.items.map((region: any) => {
-                          const avgSec = region.securityStats?.avgSecurity ?? 0;
-                          const securityColor =
-                            avgSec >= 0.5
-                              ? 'text-green-400'
-                              : avgSec > 0
-                                ? 'text-yellow-400'
-                                : 'text-red-400';
-
                           return (
                             <button
                               key={region.id}
@@ -1256,11 +1248,6 @@ export default function KillmailFilterForm({
                                 <div className="flex items-center gap-2">
                                   <span className="font-semibold text-white truncate">
                                     {region.name}
-                                  </span>
-                                  <span
-                                    className={`text-xs font-semibold ${securityColor}`}
-                                  >
-                                    {avgSec.toFixed(1)}
                                   </span>
                                 </div>
                                 <div className="text-sm text-gray-400">
@@ -1358,15 +1345,6 @@ export default function KillmailFilterForm({
                       <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto max-h-96">
                         {constellationData.constellations.items.map(
                           (constellation: any) => {
-                            const avgSec =
-                              constellation.securityStats?.avgSecurity ?? 0;
-                            const securityColor =
-                              avgSec >= 0.5
-                                ? 'text-green-400'
-                                : avgSec > 0
-                                  ? 'text-yellow-400'
-                                  : 'text-red-400';
-
                             return (
                               <button
                                 key={constellation.id}
@@ -1383,11 +1361,6 @@ export default function KillmailFilterForm({
                                   <div className="flex items-center gap-2">
                                     <span className="font-semibold text-white truncate">
                                       {constellation.name}
-                                    </span>
-                                    <span
-                                      className={`text-xs font-semibold ${securityColor}`}
-                                    >
-                                      {avgSec.toFixed(1)}
                                     </span>
                                   </div>
                                   <div className="text-sm text-gray-400">

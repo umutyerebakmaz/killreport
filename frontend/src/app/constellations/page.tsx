@@ -1,11 +1,9 @@
 'use client';
 
 import ConstellationMap from '@/components/ConstellationMap/ConstellationMap';
-import AvgSecurity from '@/components/AvgSecurity/AvgSecurity';
 import ConstellationFilterForm from '@/components/Filters/ConstellationFilterForm';
 import { Loader } from '@/components/Loader/Loader';
 import Paginator from '@/components/Paginator/Paginator';
-import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
 import Tooltip from '@/components/Tooltip/Tooltip';
 import { useConstellationsQuery } from '@/generated/graphql';
 import Link from 'next/link';
@@ -98,27 +96,6 @@ function ConstellationsContent() {
           initialRegionId={selectedRegionId}
         />
       </div>
-      {/* Legend */}
-      <div className="flex items-center gap-6 mt-4 text-xs text-gray-400">
-        <span className="font-medium text-gray-300">Security:</span>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 bg-green-500 rounded-full" />
-          <span>High Sec (≥0.5)</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 bg-yellow-500 rounded-full" />
-          <span>Low Sec (0.1-0.4)</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 bg-red-500 rounded-full" />
-          <span>Null Sec (≤0.0)</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 bg-purple-500 rounded-full" />
-          <span>Wormhole</span>
-        </div>
-      </div>
-
       {/* Table */}
       <div className="mt-6 overflow-hidden border border-white/10">
         <table className="table">
@@ -127,15 +104,13 @@ function ConstellationsContent() {
               <th className="text-left th-cell">Constellation</th>
               <th className="text-left th-cell">Region</th>
               <th className="text-left th-cell">Systems</th>
-              <th className="text-left th-cell">Security Distribution</th>
-              <th className="text-left th-cell">Avg Security</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
             {loading ? (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={3}
                   className="px-6 py-12 text-center text-gray-400"
                 >
                   <div className="flex items-center justify-center">
@@ -146,7 +121,7 @@ function ConstellationsContent() {
             ) : constellations.length === 0 ? (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={3}
                   className="px-6 py-12 text-center text-gray-400"
                 >
                   No constellations found
@@ -194,26 +169,6 @@ function ConstellationsContent() {
                         {constellation.solarSystemCount}
                       </span>
                     </Tooltip>
-                  </td>
-                  <td className="px-6 py-4">
-                    {constellation.securityStats && (
-                      <SecurityStatsBar
-                        stats={{
-                          highSec: constellation.securityStats.highSec,
-                          lowSec: constellation.securityStats.lowSec,
-                          nullSec: constellation.securityStats.nullSec,
-                          wormhole: constellation.securityStats.wormhole,
-                        }}
-                        showLabels={false}
-                      />
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <AvgSecurity
-                      avgSecurity={
-                        constellation.securityStats?.avgSecurity ?? null
-                      }
-                    />
                   </td>
                 </tr>
               ))
