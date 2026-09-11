@@ -184,7 +184,7 @@ export default function ConstellationFilterForm({
                 regionsData?.regions?.items &&
                 regionsData.regions.items.length > 0 && (
                   <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
-                    <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto max-h-96">
+                    <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto md:grid-cols-2 max-h-96">
                       {regionsData.regions.items.map((item) => (
                         <button
                           key={item.id}
