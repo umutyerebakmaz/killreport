@@ -5,32 +5,37 @@ import FilterBar from '@/components/ui/FilterBar';
 import FilterDialog from '@/components/ui/FilterDialog';
 import FilterField from '@/components/ui/FilterField';
 import Select from '@/components/ui/Select';
-import { useSearchRegionsQuery } from '@/generated/graphql';
+import {
+  ConstellationOrderBy,
+  useSearchRegionsQuery,
+} from '@/generated/graphql';
 import { useDebounce } from '@/hooks/useDebounce';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useEffect, useRef, useState } from 'react';
 
 const ORDER_BY_OPTIONS = [
-  { value: 'nameAsc', label: 'Name A-Z' },
-  { value: 'nameDesc', label: 'Name Z-A' },
+  { value: ConstellationOrderBy.NameAsc, label: 'Name A-Z' },
+  { value: ConstellationOrderBy.NameDesc, label: 'Name Z-A' },
 ];
 
 interface ConstellationFilterFormProps {
-  onFilterChange: (filters: { search?: string; region_id?: number }) => void;
+  onFilterChange: (filters: {
+    search?: string;
+    region_id?: number;
+    orderBy: ConstellationOrderBy;
+  }) => void;
   onClearFilters: () => void;
-  orderBy?: string;
-  onOrderByChange: (orderBy: string) => void;
   initialSearch?: string;
   initialRegionId?: string;
+  initialOrderBy?: ConstellationOrderBy;
 }
 
 export default function ConstellationFilterForm({
   onFilterChange,
   onClearFilters,
-  orderBy = 'nameAsc',
-  onOrderByChange,
   initialSearch = '',
   initialRegionId = '',
+  initialOrderBy = ConstellationOrderBy.NameAsc,
 }: ConstellationFilterFormProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -40,6 +45,19 @@ export default function ConstellationFilterForm({
   const [region, setRegion] = useState<{ id: number; name: string } | null>(
     initialRegionId ? { id: parseInt(initialRegionId), name: '' } : null,
   );
+
+  // Sort sits in the bar, outside the dialog, so it acts the moment it is
+  // changed. That is why the applied pair below is kept separately: emitting
+  // on a sort change must not drag along a name or region that was typed into
+  // the dialog and never applied.
+  const [orderBy, setOrderBy] = useState(initialOrderBy);
+  const [applied, setApplied] = useState<{
+    search?: string;
+    region_id?: number;
+  }>({
+    search: initialSearch || undefined,
+    region_id: initialRegionId ? parseInt(initialRegionId) : undefined,
+  });
 
   // Region typeahead, the same shape as the killmail filter's: three letters,
   // debounced, at most 40 answers.
@@ -70,17 +88,23 @@ export default function ConstellationFilterForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onFilterChange({
-      search: name || undefined,
-      region_id: region?.id,
-    });
+    const next = { search: name || undefined, region_id: region?.id };
+    setApplied(next);
+    onFilterChange({ ...next, orderBy });
     setIsOpen(false);
+  };
+
+  const handleOrderByChange = (value: string) => {
+    const next = value as ConstellationOrderBy;
+    setOrderBy(next);
+    onFilterChange({ ...applied, orderBy: next });
   };
 
   const handleClearAll = () => {
     setName('');
     setRegion(null);
     setRegionSearch('');
+    setApplied({});
     setIsOpen(false);
     onClearFilters();
   };
@@ -91,7 +115,7 @@ export default function ConstellationFilterForm({
         orderBy={
           <Select
             value={orderBy}
-            onChange={onOrderByChange}
+            onChange={handleOrderByChange}
             options={ORDER_BY_OPTIONS}
             aria-label="Sort constellations"
           />
@@ -104,6 +128,7 @@ export default function ConstellationFilterForm({
       <FilterDialog
         open={isOpen}
         onClose={() => setIsOpen(false)}
+        title="Constellation Filter"
         footer={
           <>
             <button

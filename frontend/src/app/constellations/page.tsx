@@ -4,7 +4,10 @@ import ConstellationCard from '@/components/Card/ConstellationCard';
 import ConstellationFilterForm from '@/components/Filters/ConstellationFilterForm';
 import { Loader } from '@/components/Loader/Loader';
 import Paginator from '@/components/Paginator/Paginator';
-import { useConstellationsQuery } from '@/generated/graphql';
+import {
+  ConstellationOrderBy,
+  useConstellationsQuery,
+} from '@/generated/graphql';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 
@@ -13,13 +16,14 @@ function ConstellationsContent() {
   const searchParams = useSearchParams();
 
   const pageFromUrl = Number(searchParams.get('page')) || 1;
-  const orderByFromUrl = searchParams.get('orderBy') || 'nameAsc';
+  const orderByFromUrl = (searchParams.get('orderBy') ||
+    ConstellationOrderBy.NameAsc) as ConstellationOrderBy;
   const searchFromUrl = searchParams.get('search') || '';
   const regionIdFromUrl = searchParams.get('regionId') || '';
 
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(25);
-  const [orderBy, setOrderBy] = useState<string>(orderByFromUrl);
+  const [orderBy, setOrderBy] = useState(orderByFromUrl);
   const [searchTerm, setSearchTerm] = useState(searchFromUrl);
   const [selectedRegionId, setSelectedRegionId] =
     useState<string>(regionIdFromUrl);
@@ -29,7 +33,7 @@ function ConstellationsContent() {
       filter: {
         page: currentPage,
         limit: pageSize,
-        orderBy: orderBy as any,
+        orderBy,
         search: searchTerm || undefined,
         region_id: selectedRegionId ? parseInt(selectedRegionId) : undefined,
       },
@@ -49,20 +53,17 @@ function ConstellationsContent() {
   const handleFilterChange = (filters: {
     search?: string;
     region_id?: number;
+    orderBy: ConstellationOrderBy;
   }) => {
     setSearchTerm(filters.search || '');
     setSelectedRegionId(filters.region_id ? filters.region_id.toString() : '');
+    setOrderBy(filters.orderBy);
     setCurrentPage(1);
   };
 
   const handleClearFilters = () => {
     setSearchTerm('');
     setSelectedRegionId('');
-    setCurrentPage(1);
-  };
-
-  const handleOrderByChange = (newOrderBy: string) => {
-    setOrderBy(newOrderBy);
     setCurrentPage(1);
   };
 
@@ -87,10 +88,9 @@ function ConstellationsContent() {
       <ConstellationFilterForm
         onFilterChange={handleFilterChange}
         onClearFilters={handleClearFilters}
-        orderBy={orderBy}
-        onOrderByChange={handleOrderByChange}
         initialSearch={searchTerm}
         initialRegionId={selectedRegionId}
+        initialOrderBy={orderBy}
       />
 
       {/* Grid Layout */}
