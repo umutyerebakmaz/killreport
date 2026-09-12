@@ -2326,13 +2326,6 @@ export function useMapCamera(scope: MapScope, fit: MapCamera | null) {
   const lastWritten = useRef<MapCamera | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // The autofit is not known until the geometry lands, so the camera is seeded
-  // late — and only once. A later fit (the window was resized) must not throw
-  // away where the user has moved to.
-  useEffect(() => {
-    if (camera === null && fit !== null) setCamera(fit);
-  }, [camera, fit]);
-
   // The URL is authoritative for anything that did not come from the pointer: a
   // nav link, the back button, a pasted link. App Router keeps this component
   // mounted across a query string change, so reading once on mount would
@@ -2369,7 +2362,14 @@ export function useMapCamera(scope: MapScope, fit: MapCamera | null) {
     [],
   );
 
-  return { camera, onCameraChange };
+  // The autofit is not known until the geometry lands, so until the pointer has
+  // moved the camera simply *is* the fit — resolved here at render time rather
+  // than copied into state by an effect. Writing it to state would cost an extra
+  // render pass and trips react-hooks/set-state-in-effect; it would also pin the
+  // very first fit, so a window resized before anyone touched the map would keep
+  // the stale frame. Once `camera` is set, `fit` is ignored, which is what keeps
+  // a later resize from throwing away where the user has moved to.
+  return { camera: camera ?? fit, onCameraChange };
 }
 ```
 
@@ -3100,10 +3100,17 @@ yarn workspace frontend typecheck
 yarn workspace frontend lint 2>&1 | tail -5
 ```
 
-`lint` deponun genelinde önceden var olan sorunları sayıyor — 2026-09-10
-itibarıyla 237. Sinyal temiz çıkış değil, **sayı**: `main`'le karşılaştır ve
-girdilerden hiçbirinin bu branch'in dokunduğu bir dosyayı adlandırmadığını
-doğrula.
+`lint` deponun genelinde önceden var olan sorunları sayıyor — bu dal açılırken
+`main` 228 (144 hata, 84 uyarı). Sinyal temiz çıkış değil, **fark**: sayıyı
+`main`'le karşılaştır ve girdilerden hiçbirinin bu dalın dokunduğu bir dosyayı
+adlandırmadığını doğrula. Kabul kriteri **228**, yani sıfır fark.
+
+2026-09-13'te bu kontrol bir şey yakaladı ve yakalaması gereken tam da buydu:
+dal 229'a çıkmıştı, tek fazlası `useMapCamera.ts`'te
+`react-hooks/set-state-in-effect` — bir `useEffect` içinde `setCamera(fit)`.
+Çözümü kuralı susturmak değil, efekti kaldırmak oldu; yukarıdaki hook artık
+`camera ?? fit` döndürüyor. `Header.tsx`'in iki uyarısı `main`'de de var,
+bu dalla ilgisiz.
 
 ```bash
 git stash list  # boş olmalı
@@ -3123,6 +3130,20 @@ yarn workspace frontend build:check
 Beklenen: başarılı build, `/map` rota listesinde.
 
 - [ ] **Step 7: Prettier, tüm repo**
+
+Önce tek satırlık bir kayıt: `.prettierignore`'a `.superpowers` ekleniyor.
+Gerekçe, subagent-driven-development'ın çalışma dizini oraya yazıyor
+(`.superpowers/sdd/<plan>/`), git tarafından yok sayılıyor ve CI onu hiç
+görmüyor — ama `prettier --check .` yerel çalıştırmada o scratch dosyalarını
+sayıp kirli çıkıyor. Yok sayılan bir dizini biçim kontrolünden çıkarmak
+doğrusu.
+
+```text
+# The subagent-driven-development workspace: git-ignored scratch (ledger,
+# briefs, reports, review packages). CI never checks this out; a local
+# `prettier --check .` would otherwise fail on notes that never ship.
+.superpowers
+```
 
 ```bash
 npx prettier --check .
