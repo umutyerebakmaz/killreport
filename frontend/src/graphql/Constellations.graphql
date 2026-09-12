@@ -4,17 +4,6 @@ query Constellations($filter: ConstellationFilter) {
       id
       name
       solarSystemCount
-      securityStats {
-        highSec
-        lowSec
-        nullSec
-        wormhole
-        avgSecurity
-      }
-      region {
-        id
-        name
-      }
     }
     pageInfo {
       currentPage
@@ -31,17 +20,12 @@ query Constellation($id: Int!) {
     id
     name
     solarSystemCount
-    securityStats {
-      highSec
-      lowSec
-      nullSec
-      wormhole
-      avgSecurity
-    }
-    position {
-      x
-      y
-      z
+    sovereignty {
+      ownerType
+      ownerId
+      ownerName
+      allianceTicker
+      systemCount
     }
     region {
       id
@@ -52,6 +36,12 @@ query Constellation($id: Int!) {
       name
       securityStatus
       security_class
+      latestKills {
+        ship_kills
+        pod_kills
+        npc_kills
+        timestamp
+      }
     }
   }
 }

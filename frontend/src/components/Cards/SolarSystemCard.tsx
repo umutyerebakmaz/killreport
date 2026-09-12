@@ -5,6 +5,16 @@ import { formatTimeAgo } from '@/utils/date';
 import Link from 'next/link';
 
 interface SolarSystemCardProps {
+  /**
+   * Whether to print the system's constellation and region under its name.
+   *
+   * A system list needs them to place the system. A constellation or region
+   * detail page does not: the page IS the placement, so repeating it on every
+   * card is noise. The flag is explicit rather than inferred from the fields
+   * being absent, because absent and unknown are different things — the list
+   * page genuinely shows "Unknown Constellation" where the data is missing.
+   */
+  showLineage?: boolean;
   system: {
     id: number;
     name: string;
@@ -26,7 +36,10 @@ interface SolarSystemCardProps {
   };
 }
 
-export default function SolarSystemCard({ system }: SolarSystemCardProps) {
+export default function SolarSystemCard({
+  system,
+  showLineage = true,
+}: SolarSystemCardProps) {
   // Format kill stats as single line, hiding zero values
   const formatKillStats = (kills: {
     ship_kills: number;
@@ -68,40 +81,44 @@ export default function SolarSystemCard({ system }: SolarSystemCardProps) {
           </div>
 
           {/* Constellation */}
-          <div>
-            {system.constellation ? (
-              <Tooltip content="Show constellation detail">
-                <Link
-                  href={`/constellations/${system.constellation.id}?tab=killmails`}
-                  prefetch={false}
-                  className="text-base text-purple-500 transition-colors hover:text-purple-400"
-                >
-                  {system.constellation.name}
-                </Link>
-              </Tooltip>
-            ) : (
-              <span className="text-sm text-gray-500">
-                Unknown Constellation
-              </span>
-            )}
-          </div>
+          {showLineage && (
+            <div>
+              {system.constellation ? (
+                <Tooltip content="Show constellation detail">
+                  <Link
+                    href={`/constellations/${system.constellation.id}?tab=killmails`}
+                    prefetch={false}
+                    className="text-base text-purple-500 transition-colors hover:text-purple-400"
+                  >
+                    {system.constellation.name}
+                  </Link>
+                </Tooltip>
+              ) : (
+                <span className="text-sm text-gray-500">
+                  Unknown Constellation
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Region */}
-          <div>
-            {system.constellation?.region ? (
-              <Tooltip content="Show region detail">
-                <Link
-                  href={`/regions/${system.constellation.region.id}?tab=killmails`}
-                  prefetch={false}
-                  className="text-base text-blue-400 transition-colors hover:text-blue-300"
-                >
-                  {system.constellation.region.name}
-                </Link>
-              </Tooltip>
-            ) : (
-              <span className="text-sm text-gray-500">Unknown Region</span>
-            )}
-          </div>
+          {showLineage && (
+            <div>
+              {system.constellation?.region ? (
+                <Tooltip content="Show region detail">
+                  <Link
+                    href={`/regions/${system.constellation.region.id}?tab=killmails`}
+                    prefetch={false}
+                    className="text-base text-blue-400 transition-colors hover:text-blue-300"
+                  >
+                    {system.constellation.region.name}
+                  </Link>
+                </Tooltip>
+              ) : (
+                <span className="text-sm text-gray-500">Unknown Region</span>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
