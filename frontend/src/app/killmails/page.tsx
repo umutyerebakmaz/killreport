@@ -25,7 +25,7 @@ import {
   mergeRealtimeKillmails,
 } from '@/utils/killmailFeed';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useMemo, useState } from 'react';
 
 const SIDEBAR_CARDS: TopEntityCardSpec[] = [
   {
@@ -79,26 +79,35 @@ function KillmailsContent() {
     return parseKillmailFiltersFromUrl(searchParams);
   }, [searchParams]);
 
-  const [currentPage, setCurrentPage] = useState(urlFilters.page);
+  // The URL is the only place the page and the filters are kept. The KILLMAILS
+  // nav menu links in with filters already set (`?regionId=10000070`,
+  // `?securitySpace=wormhole`), and App Router keeps this component mounted when
+  // only the query string changes — state seeded from the URL on mount would
+  // never see those links.
+  const currentPage = urlFilters.page;
+  const filters = useMemo<KillmailFilters>(
+    () => ({
+      characterId: urlFilters.characterId,
+      shipTypeId: urlFilters.shipTypeId,
+      shipGroupIds: urlFilters.shipGroupIds,
+      regionId: urlFilters.regionId,
+      systemId: urlFilters.systemId,
+      constellationId: urlFilters.constellationId,
+      securitySpace: urlFilters.securitySpace,
+      minAttackers: urlFilters.minAttackers,
+      maxAttackers: urlFilters.maxAttackers,
+      minValue: urlFilters.minValue,
+      maxValue: urlFilters.maxValue,
+      victim: urlFilters.victim,
+      attacker: urlFilters.attacker,
+      characterVictim: urlFilters.characterVictim,
+      characterAttacker: urlFilters.characterAttacker,
+      warRelated: urlFilters.warRelated,
+    }),
+    [urlFilters],
+  );
+
   const [pageSize, setPageSize] = useState(25);
-  const [filters, setFilters] = useState<KillmailFilters>({
-    characterId: urlFilters.characterId,
-    shipTypeId: urlFilters.shipTypeId,
-    shipGroupIds: urlFilters.shipGroupIds,
-    regionId: urlFilters.regionId,
-    systemId: urlFilters.systemId,
-    constellationId: urlFilters.constellationId,
-    securitySpace: urlFilters.securitySpace,
-    minAttackers: urlFilters.minAttackers,
-    maxAttackers: urlFilters.maxAttackers,
-    minValue: urlFilters.minValue,
-    maxValue: urlFilters.maxValue,
-    victim: urlFilters.victim,
-    attacker: urlFilters.attacker,
-    characterVictim: urlFilters.characterVictim,
-    characterAttacker: urlFilters.characterAttacker,
-    warRelated: urlFilters.warRelated,
-  });
   const [newKillmails, setNewKillmails] = useState<Killmail[]>([]);
   const [animatingKillmails, setAnimatingKillmails] = useState<Set<string>>(
     new Set(),
@@ -175,26 +184,33 @@ function KillmailsContent() {
     },
   });
 
+  const navigate = useCallback(
+    (page: number, nextFilters: KillmailFilters) => {
+      router.push(`/killmails?${buildKillmailFiltersUrl(page, nextFilters)}`, {
+        scroll: false,
+      });
+    },
+    [router],
+  );
+
   // Leaving the page the feed belongs to invalidates the buffered kills.
   const goToPage = useCallback(
     (page: number) => {
       if (page === currentPage) return;
       resetRealtimeState();
-      setCurrentPage(page);
+      navigate(page, filters);
     },
-    [currentPage, resetRealtimeState],
+    [currentPage, filters, navigate, resetRealtimeState],
   );
 
   const handleFilterChange = (newFilters: KillmailFilters) => {
-    setFilters(newFilters);
     resetRealtimeState();
-    setCurrentPage(1); // Reset to first page when filters change
+    navigate(1, newFilters); // Reset to first page when filters change
   };
 
   const handleClearFilters = () => {
-    setFilters({});
     resetRealtimeState();
-    setCurrentPage(1);
+    navigate(1, {});
   };
 
   const { data, loading, error } = useKillmailsQuery({
@@ -246,12 +262,6 @@ function KillmailsContent() {
       },
     },
   });
-
-  // URL sync
-  useEffect(() => {
-    const urlParams = buildKillmailFiltersUrl(currentPage, filters);
-    router.push(`/killmails?${urlParams}`, { scroll: false });
-  }, [currentPage, filters, router]);
 
   // Live arrivals first, then the fetched page — minus anything the query has
   // caught up with, and capped at one page. See utils/killmailFeed.
