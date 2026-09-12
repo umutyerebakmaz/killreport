@@ -23,13 +23,6 @@ export function useMapCamera(scope: MapScope, fit: MapCamera | null) {
   const lastWritten = useRef<MapCamera | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // The autofit is not known until the geometry lands, so the camera is seeded
-  // late — and only once. A later fit (the window was resized) must not throw
-  // away where the user has moved to.
-  useEffect(() => {
-    if (camera === null && fit !== null) setCamera(fit);
-  }, [camera, fit]);
-
   // The URL is authoritative for anything that did not come from the pointer: a
   // nav link, the back button, a pasted link. App Router keeps this component
   // mounted across a query string change, so reading once on mount would
@@ -66,5 +59,12 @@ export function useMapCamera(scope: MapScope, fit: MapCamera | null) {
     [],
   );
 
-  return { camera, onCameraChange };
+  // The autofit is not known until the geometry lands, so until the pointer has
+  // moved the camera simply *is* the fit — resolved here at render time rather
+  // than copied into state by an effect. Writing it to state would cost an extra
+  // render pass and trips react-hooks/set-state-in-effect; it would also pin the
+  // very first fit, so a window resized before anyone touched the map would keep
+  // the stale frame. Once `camera` is set, `fit` is ignored, which is what keeps
+  // a later resize from throwing away where the user has moved to.
+  return { camera: camera ?? fit, onCameraChange };
 }
