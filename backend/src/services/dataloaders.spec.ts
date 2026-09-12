@@ -481,66 +481,6 @@ describe('regionStats loader', () => {
   });
 });
 
-/**
- * Both security loaders classify a system the same way: >= 0.5 high, > 0 low,
- * <= 0 null, and a missing security_status is a wormhole that stays out of
- * the average.
- */
-const MIXED_SYSTEMS = [1.0, 0.5, 0.4, 0.1, 0.0, -0.3, null];
-const MIXED_STATS = {
-  highSec: 2,
-  lowSec: 2,
-  nullSec: 2,
-  wormhole: 1,
-  avgSecurity: (1.0 + 0.5 + 0.4 + 0.1 + 0.0 - 0.3) / 6,
-};
-const EMPTY_STATS = {
-  highSec: 0,
-  lowSec: 0,
-  nullSec: 0,
-  wormhole: 0,
-  avgSecurity: null,
-};
-
-describe('constellationSecurityStats loader', () => {
-  it('classifies systems by security band and averages the non-wormhole ones', async () => {
-    findMany('solarSystem').mockResolvedValue([
-      ...MIXED_SYSTEMS.map((security_status) => ({
-        constellation_id: 10,
-        security_status,
-      })),
-      { constellation_id: 20, security_status: 0.7 },
-      { constellation_id: null, security_status: 0.9 },
-    ]);
-
-    const loader = loaders.createConstellationSecurityStatsLoader();
-    const [mixed, single, empty] = await Promise.all([
-      loader.load(10),
-      loader.load(20),
-      loader.load(30),
-    ]);
-
-    expect(mixed).toMatchObject({
-      highSec: 2,
-      lowSec: 2,
-      nullSec: 2,
-      wormhole: 1,
-    });
-    expect(mixed.avgSecurity).toBeCloseTo(MIXED_STATS.avgSecurity, 10);
-    expect(single).toEqual({
-      highSec: 1,
-      lowSec: 0,
-      nullSec: 0,
-      wormhole: 0,
-      avgSecurity: 0.7,
-    });
-    expect(empty).toEqual(EMPTY_STATS);
-    expect(whereOf('solarSystem').constellation_id).toEqual({
-      in: [10, 20, 30],
-    });
-  });
-});
-
 describe('constellationSovereignty loader', () => {
   /**
    * 10 is Amarr high sec: one faction across every system. 20 is nullsec split
@@ -704,54 +644,6 @@ describe('regionSovereignty loader', () => {
   });
 });
 
-describe('regionSecurityStats loader', () => {
-  it('rolls systems up through their constellation to the region', async () => {
-    findMany('constellation').mockResolvedValue([
-      { id: 100, region_id: 1 },
-      { id: 101, region_id: 1 },
-      { id: 200, region_id: 2 },
-    ]);
-    findMany('solarSystem').mockResolvedValue([
-      ...MIXED_SYSTEMS.slice(0, 4).map((security_status) => ({
-        constellation_id: 100,
-        security_status,
-      })),
-      ...MIXED_SYSTEMS.slice(4).map((security_status) => ({
-        constellation_id: 101,
-        security_status,
-      })),
-      { constellation_id: 200, security_status: -0.1 },
-      { constellation_id: 999, security_status: 1.0 },
-    ]);
-
-    const loader = loaders.createRegionSecurityStatsLoader();
-    const [mixed, single, empty] = await Promise.all([
-      loader.load(1),
-      loader.load(2),
-      loader.load(3),
-    ]);
-
-    expect(mixed).toMatchObject({
-      highSec: 2,
-      lowSec: 2,
-      nullSec: 2,
-      wormhole: 1,
-    });
-    expect(mixed.avgSecurity).toBeCloseTo(MIXED_STATS.avgSecurity, 10);
-    expect(single).toEqual({
-      highSec: 0,
-      lowSec: 0,
-      nullSec: 1,
-      wormhole: 0,
-      avgSecurity: -0.1,
-    });
-    expect(empty).toEqual(EMPTY_STATS);
-    expect(whereOf('solarSystem').constellation_id).toEqual({
-      in: [100, 101, 200],
-    });
-  });
-});
-
 describe('createDataLoaders', () => {
   it('builds every loader the resolvers expect', () => {
     const { loaders: ctx } = loaders.createDataLoaders();
@@ -767,7 +659,6 @@ describe('createDataLoaders', () => {
         'character',
         'charactersByCorp',
         'constellation',
-        'constellationSecurityStats',
         'constellationSovereignty',
         'constellationsByRegion',
         'corporation',
@@ -784,7 +675,6 @@ describe('createDataLoaders', () => {
         'race',
         'region',
         'regionSovereignty',
-        'regionSecurityStats',
         'regionStats',
         'solarSystem',
         'solarSystemsByConstellation',

@@ -5,13 +5,6 @@ query SearchRegions($search: String!, $limit: Int = 40) {
       name
       solarSystemCount
       constellationCount
-      securityStats {
-        highSec
-        lowSec
-        nullSec
-        wormhole
-        avgSecurity
-      }
     }
   }
 }

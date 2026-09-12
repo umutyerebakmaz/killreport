@@ -323,7 +323,6 @@ export type Constellation = {
   name: Scalars['String']['output'];
   position?: Maybe<Position>;
   region?: Maybe<Region>;
-  securityStats: SecurityStats;
   solarSystemCount: Scalars['Int']['output'];
   solarSystems: Array<SolarSystem>;
   /**
@@ -1425,7 +1424,6 @@ export type Region = {
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
-  securityStats: SecurityStats;
   solarSystemCount: Scalars['Int']['output'];
   /**
    * Who holds the region, or null where nothing in it is held — 44 of the 114
@@ -1459,15 +1457,6 @@ export type RegionsResponse = {
   __typename?: 'RegionsResponse';
   items: Array<Region>;
   pageInfo: PageInfo;
-};
-
-export type SecurityStats = {
-  __typename?: 'SecurityStats';
-  avgSecurity?: Maybe<Scalars['Float']['output']>;
-  highSec: Scalars['Int']['output'];
-  lowSec: Scalars['Int']['output'];
-  nullSec: Scalars['Int']['output'];
-  wormhole: Scalars['Int']['output'];
 };
 
 export type ShipTopKill = {
@@ -2294,7 +2283,6 @@ export type ResolversTypes = {
   RegionFilter: RegionFilter;
   RegionOrderBy: RegionOrderBy;
   RegionsResponse: ResolverTypeWrapper<RegionsResponse>;
-  SecurityStats: ResolverTypeWrapper<SecurityStats>;
   ShipTopKill: ResolverTypeWrapper<ShipTopKill>;
   SlotGroup: ResolverTypeWrapper<SlotGroup>;
   SolarSystem: ResolverTypeWrapper<SolarSystem>;
@@ -2440,7 +2428,6 @@ export type ResolversParentTypes = {
   RegionCampaignCount: RegionCampaignCount;
   RegionFilter: RegionFilter;
   RegionsResponse: RegionsResponse;
-  SecurityStats: SecurityStats;
   ShipTopKill: ShipTopKill;
   SlotGroup: SlotGroup;
   SolarSystem: SolarSystem;
@@ -2714,7 +2701,6 @@ export type ConstellationResolvers<ContextType = any, ParentType extends Resolve
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   position?: Resolver<Maybe<ResolversTypes['Position']>, ParentType, ContextType>;
   region?: Resolver<Maybe<ResolversTypes['Region']>, ParentType, ContextType>;
-  securityStats?: Resolver<ResolversTypes['SecurityStats'], ParentType, ContextType>;
   solarSystemCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   solarSystems?: Resolver<Array<ResolversTypes['SolarSystem']>, ParentType, ContextType>;
   sovereignty?: Resolver<Maybe<ResolversTypes['SovereigntyHolder']>, ParentType, ContextType>;
@@ -3105,7 +3091,6 @@ export type RegionResolvers<ContextType = any, ParentType extends ResolversParen
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  securityStats?: Resolver<ResolversTypes['SecurityStats'], ParentType, ContextType>;
   solarSystemCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   sovereignty?: Resolver<Maybe<ResolversTypes['SovereigntyHolder']>, ParentType, ContextType>;
 };
@@ -3119,14 +3104,6 @@ export type RegionCampaignCountResolvers<ContextType = any, ParentType extends R
 export type RegionsResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['RegionsResponse'] = ResolversParentTypes['RegionsResponse']> = {
   items?: Resolver<Array<ResolversTypes['Region']>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
-};
-
-export type SecurityStatsResolvers<ContextType = any, ParentType extends ResolversParentTypes['SecurityStats'] = ResolversParentTypes['SecurityStats']> = {
-  avgSecurity?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
-  highSec?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  lowSec?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  nullSec?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  wormhole?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
 export type ShipTopKillResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShipTopKill'] = ResolversParentTypes['ShipTopKill']> = {
@@ -3604,7 +3581,6 @@ export type Resolvers<ContextType = any> = {
   Region?: RegionResolvers<ContextType>;
   RegionCampaignCount?: RegionCampaignCountResolvers<ContextType>;
   RegionsResponse?: RegionsResponseResolvers<ContextType>;
-  SecurityStats?: SecurityStatsResolvers<ContextType>;
   ShipTopKill?: ShipTopKillResolvers<ContextType>;
   SlotGroup?: SlotGroupResolvers<ContextType>;
   SolarSystem?: SolarSystemResolvers<ContextType>;

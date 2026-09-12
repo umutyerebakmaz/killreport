@@ -1,42 +1,4 @@
-import { RegionResolvers, SecurityStats } from '@generated-types';
-
-// Helper function to calculate security stats from solar systems
-async function calculateSecurityStats(
-  solarSystems: { security_status: number | null }[],
-): Promise<SecurityStats> {
-  let highSec = 0;
-  let lowSec = 0;
-  let nullSec = 0;
-  let wormhole = 0;
-  let totalSecurity = 0;
-  let validSecurityCount = 0;
-
-  for (const system of solarSystems) {
-    const sec = system.security_status;
-    if (sec === null) {
-      wormhole++;
-      continue;
-    }
-    totalSecurity += sec;
-    validSecurityCount++;
-    if (sec >= 0.5) {
-      highSec++;
-    } else if (sec > 0.0) {
-      lowSec++;
-    } else {
-      nullSec++;
-    }
-  }
-
-  return {
-    highSec,
-    lowSec,
-    nullSec,
-    wormhole,
-    avgSecurity:
-      validSecurityCount > 0 ? totalSecurity / validSecurityCount : null,
-  };
-}
+import { RegionResolvers } from '@generated-types';
 
 /**
  * Region Field Resolvers
@@ -59,18 +21,6 @@ export const regionFields: RegionResolvers = {
     // Use DataLoader to batch region stats queries
     const stats = await context.loaders.regionStats.load(parent.id);
     return stats.solarSystemCount;
-  },
-  securityStats: async (parent, _, context) => {
-    if (!parent.id)
-      return {
-        highSec: 0,
-        lowSec: 0,
-        nullSec: 0,
-        wormhole: 0,
-        avgSecurity: null,
-      };
-    // Use DataLoader to batch security stats queries
-    return context.loaders.regionSecurityStats.load(parent.id);
   },
   sovereignty: async (parent, _, context) => {
     if (!parent.id) return null;

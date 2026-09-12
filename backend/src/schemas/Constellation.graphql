@@ -5,7 +5,6 @@ type Constellation {
   region: Region
   solarSystems: [SolarSystem!]!
   solarSystemCount: Int!
-  securityStats: SecurityStats!
   """
   Who holds the constellation, or null where nothing in it is held —
   wormhole space and unclaimed nullsec, 400 of the 1184 constellations.
