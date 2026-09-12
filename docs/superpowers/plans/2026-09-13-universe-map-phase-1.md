@@ -963,11 +963,21 @@ import { getMapGeometry } from '@services/universe';
  * UniverseMap Query Resolvers
  *
  * Orchestration only; the query, the scope predicate and the cache all live in
- * the service. The generated MapScope enum is a string enum whose values are
- * exactly the service's union members, so it passes straight through.
+ * the service.
+ *
+ * `scope` is echoed back deliberately. TypeScript's string enums are nominal in
+ * one direction only: the generated `MapScope` enum value goes into the
+ * service's `'NEW_EDEN' | 'POCHVEN' | 'WORMHOLE'` union without a cast, but the
+ * union coming back out is not assignable to the enum-typed
+ * `MapGeometry.scope` field. Spreading the result and overriding `scope` with
+ * the argument we were handed costs nothing at runtime — it is the same string
+ * — and keeps a cast out of the resolver.
  */
 export const universeMapQueries: QueryResolvers = {
-  mapGeometry: async (_, { scope }) => getMapGeometry(scope),
+  mapGeometry: async (_, { scope }) => {
+    const geometry = await getMapGeometry(scope);
+    return { ...geometry, scope };
+  },
 };
 ```
 
@@ -1047,23 +1057,36 @@ print('nodes', len(g['nodes']), 'edges', len(g['edges']))
 print('bounds', g['bounds'])
 sec = {type(n['securityStatus']).__name__ for n in g['nodes']}
 print('securityStatus types', sec)
+assert sec <= {'int', 'float'}, 'securityStatus is not a JSON number'
 print('max decimals', max(len(str(n['securityStatus']).split('.')[-1]) for n in g['nodes']))
 "
 ```
 
-Beklenen: `nodes 5241 edges 6959`, `securityStatus types {'float'}` (yani
-`{'str'}` veya `{'dict'}` değil — Decimal tuzağı bu adımda yakalanır) ve
-`max decimals` en fazla 2.
+Beklenen: `nodes 5241 edges 6959`, `securityStatus types` yalnızca `int` ve/veya
+`float` içeriyor, ve `max decimals` en fazla 2.
 
-Gövdenin gzip boyutu:
+`{'int', 'float'}` gelmesi normaldir ve bir kusur değil: kesme sonucu tam sayı
+çıkan sistemler (nullsec'in büyük kısmı) JSON'a `0` olarak yazılıyor ve Python
+onu `int` okuyor. Yakalanacak şey `str` veya `dict`: `::DOUBLE PRECISION`
+cast'i düşerse `numeric` Prisma'dan `Prisma.Decimal` olarak gelir ve alan
+sayı olmaktan çıkar. Assert tam olarak bunu kontrol ediyor.
+
+Gövdenin gzip boyutu. Dev sunucusu sıkıştırma uygulamıyor — `Accept-Encoding:
+gzip` göndermek `Content-Encoding` geri getirmiyor, yani ham yanıtı saymak
+bütçeyi ölçmez. Gövdeyi kaydedip kendimiz sıkıştırıyoruz:
 
 ```bash
-curl -s -H 'Accept-Encoding: gzip' -H 'Content-Type: application/json' \
+curl -s -H 'Content-Type: application/json' \
   -d '{"operationName":"MapGeometry","query":"query MapGeometry { mapGeometry(scope: NEW_EDEN) { scope bounds { minX maxX minZ maxZ } nodes { systemId name x z radius securityStatus constellationId regionId } edges { from to } } }"}' \
-  "http://localhost:$PORT/graphql" --output - | wc -c
+  "http://localhost:$PORT/graphql" -o /tmp/map-body.json
+echo -n "raw   "; wc -c < /tmp/map-body.json
+echo -n "gzip-6 "; gzip -6 -c /tmp/map-body.json | wc -c
+echo -n "gzip-9 "; gzip -9 -c /tmp/map-body.json | wc -c
 ```
 
-Beklenen: ≤200 KB (2026-09-13 ölçümü 197 KB). Aşarsa dur ve sor.
+Beklenen: ≤200 KB. 2026-09-13 ölçümü **175 KB** (seviye 9) / **185 KB**
+(seviye 6) — spec'in 197 KB'si düğümleri ve kenarları iki ayrı JSON belgesi
+olarak sıkıştırmıştı, tek gövde daha iyi sıkışıyor. Bütçeyi aşarsa dur ve sor.
 
 - [ ] **Step 8: Prettier ve commit**
 
