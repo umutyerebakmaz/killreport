@@ -85,7 +85,7 @@ describe('the float32 budget on the real NEW_EDEN scene', () => {
     expect(float32StepMetres(4.786565e17)).toBeCloseTo(2.853015e10, -6);
   });
 
-  it('is invisible at the galaxy fit and 0.22 px at the Faz 1 ceiling', () => {
+  it('is invisible at the galaxy fit and 0.22 px at the Phase 1 ceiling', () => {
     const fit = -49.918;
     expect(float32StepPixels(4.786565e17, fit)).toBeLessThan(0.001);
     expect(float32StepPixels(4.786565e17, fit + 13)).toBeCloseTo(0.22, 2);
@@ -93,7 +93,7 @@ describe('the float32 budget on the real NEW_EDEN scene', () => {
 
   it('would be 598 px without the floating origin, which is the whole reason for it', () => {
     // The raw coordinate, fed straight to the GPU, at the deepest zoom the
-    // design reaches (fit + 22.8, opened in Faz 2).
+    // design reaches (fit + 22.8, opened in Phase 2).
     expect(float32StepPixels(9.57e17, -49.918 + 22.8)).toBeGreaterThan(100);
   });
 });

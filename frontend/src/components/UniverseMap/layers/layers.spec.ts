@@ -72,7 +72,7 @@ describe('systemsLayerProps', () => {
     expect(props.updateTriggers?.getPosition).toEqual([origin.x, origin.z]);
   });
 
-  it('is not pickable yet — picking is Faz 3', () => {
+  it('is not pickable yet — picking is Phase 3', () => {
     expect(props.pickable).toBe(false);
   });
 });

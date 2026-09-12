@@ -2,13 +2,13 @@ import type { MapBounds, MapNode } from '@/generated/graphql';
 
 /**
  * The floating origin. Every layer receives `object - origin`, the subtraction
- * happens here in float64, and the origin is the centre of the scene in Faz 1
- * (the focused system's centre from Faz 2 on).
+ * happens here in float64, and the origin is the centre of the scene in Phase 1
+ * (the focused system's centre from Phase 2 on).
  *
  * Why it exists, in one number: a raw galactic coordinate is ~1e18 m, float32
  * quantises it to ~6e10 m, and at the deepest zoom the design reaches that is
  * 598 px of jitter. Relative to the scene centre the same step is 2.85e10 m,
- * which is 0.22 px at the zoom Faz 1 stops at.
+ * which is 0.22 px at the zoom Phase 1 stops at.
  */
 export interface MapOrigin {
   x: number;

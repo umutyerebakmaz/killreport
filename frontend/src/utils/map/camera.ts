@@ -3,7 +3,7 @@ import { boundsCenter } from './origin';
 
 /**
  * The camera, in galactic metres. It is stored this way rather than relative to
- * the origin because the origin moves in Faz 2 and a URL has to keep meaning
+ * the origin because the origin moves in Phase 2 and a URL has to keep meaning
  * the same frame after it does.
  */
 export interface MapCamera {
@@ -24,9 +24,9 @@ export const DEFAULT_SCOPE: MapScope = MapScope.NewEden;
 export const FIT_PADDING = 0.92;
 
 /**
- * Faz 1 stops 13 levels above the fit. The design's threshold for system
+ * Phase 1 stops 13 levels above the fit. The design's threshold for system
  * interiors is fit + 13.1, so this is exactly as far as the galaxy layer alone
- * stays honest; Faz 2 raises it to fit + 22.8.
+ * stays honest; Phase 2 raises it to fit + 22.8.
  */
 export const ZOOM_ABOVE_FIT = 13;
 export const ZOOM_BELOW_FIT = 2;

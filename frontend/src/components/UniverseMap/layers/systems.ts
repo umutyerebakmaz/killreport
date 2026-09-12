@@ -46,7 +46,7 @@ export function systemsLayerProps({
     // keeps the metre contract visible at the layer boundary.
     radiusUnits: 'common',
     radiusMinPixels: SYSTEM_RADIUS_MIN_PIXELS,
-    // Picking, hover and the popup are Faz 3.
+    // Picking, hover and the popup are Phase 3.
     pickable: false,
     updateTriggers: { getPosition: [origin.x, origin.z] },
   };
