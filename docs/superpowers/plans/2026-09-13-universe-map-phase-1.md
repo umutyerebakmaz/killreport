@@ -1132,19 +1132,54 @@ node_modules ağırlığı.
 peer'i; eklenmezse `yarn install` her seferinde eksik peer uyarısı basıyor.
 Import edilmiyor, sadece peer'i susturuyor.
 
+**Üç peer uyarısı kalıyor ve kalması doğru.** `@deck.gl/layers`,
+`@loaders.gl/core`, `@luma.gl/core` ve `@luma.gl/engine`'i workspace'ten
+istiyor; Yarn bunları YN0002 olarak bildiriyor. Kapatmak için üç paketi
+`frontend/package.json`'a yazmak gerekir — hiçbiri import edilmediği halde, ve
+her deck.gl yükseltmesinde sürümleri elle eşlenmek zorunda. Bırakmanın bedeli
+yok: `.yarnrc.yml` `nodeLinker: node-modules` diyor, üçü de
+`@deck.gl/core`'un gerçek bağımlılığı olarak `node_modules/` köküne hoist
+ediliyor ve `require.resolve` frontend'den üçünü de buluyor (denendi).
+Depo bu sınıf uyarıyı zaten taşıyor: `backend` → `@envelop/core`, bu dal
+açılmadan önce de vardı. Uniformity.
+
 - [ ] **Step 1: Bağımlılıkları ekle**
 
 ```bash
 yarn workspace frontend add @deck.gl/core@~9.4.0 @deck.gl/layers@~9.4.0 @deck.gl/react@~9.4.0 @deck.gl/widgets@~9.4.0
 ```
 
-- [ ] **Step 2: Kurulumun peer uyarısı vermediğini doğrula**
+- [ ] **Step 2: Peer uyarılarının tam olarak beklenenler olduğunu doğrula**
+
+Uyarı **olmaması** bu deponun baseline'ı değil: `backend` → `@envelop/core`
+uyarısı bu dal açılmadan önce de vardı.
 
 ```bash
-yarn install 2>&1 | grep -i "peer\|YN0002" || echo "no peer warnings"
+yarn install 2>&1 | grep "YN0002"
 ```
 
-Beklenen: `no peer warnings`.
+Beklenen, tam olarak dört satır — biri önceden var olan backend uyarısı, üçü
+`@deck.gl/layers`'ın istediği paketler:
+
+```text
+backend@workspace:backend doesn't provide @envelop/core ..., requested by @envelop/response-cache.
+frontend@workspace:frontend doesn't provide @loaders.gl/core ..., requested by @deck.gl/layers.
+frontend@workspace:frontend doesn't provide @luma.gl/core ..., requested by @deck.gl/layers and other dependencies.
+frontend@workspace:frontend doesn't provide @luma.gl/engine ..., requested by @deck.gl/layers.
+```
+
+Üçünün de gerçekten çözüldüğünü doğrula — uyarının zararsız olduğunu gösteren
+şey bu:
+
+```bash
+cd frontend && node -e "
+for (const p of ['@luma.gl/core','@loaders.gl/core','@luma.gl/engine']) {
+  console.log(p, '->', require.resolve(p));
+}" && cd ..
+```
+
+Beklenen: üçü de `node_modules/` altında çözülüyor. Çözülmeyen varsa dur ve
+sor. Bu listenin dışında bir YN0002 çıkarsa da dur ve sor.
 
 - [ ] **Step 3: Sorgu dokümanını yaz**
 
