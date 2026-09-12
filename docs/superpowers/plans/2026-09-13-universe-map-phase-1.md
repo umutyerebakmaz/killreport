@@ -1872,6 +1872,16 @@ fonksiyonlar** olarak yazılıyor. Sebebi test: props bir düz nesne, jsdom'da
 WebGL bağlamı gerektirmiyor, ve "GPU'ya giden pozisyonlar" iddiası doğrudan
 `getPosition`'ı çağırarak doğrulanabiliyor.
 
+Bunun bir şartı var ve plan ilk yazımda kaçırdı: **accessor'ların tipi
+daraltılmak zorunda.** deck.gl'in `Accessor<DataT, T>`'si bir birleşim — düz
+bir değer **veya** iki argümanlı `AccessorFunction<DataT, T>` — ve bu birleşimi
+test içinde `as (n: MapNode) => T` ile tek argümanlı bir fonksiyona çevirmek
+geçerli bir dönüşüm değil; `tsc` TS2352 veriyor. Çözüm cast değil: kurucuların
+dönüş tipini kendi arayüzüyle bildirip accessor'ları tek argümanlı fonksiyon
+olarak daraltmak. Tek argümanlı bir fonksiyon deck.gl'in iki argümanlı
+`AccessorFunction`'ına atanabildiği için katman bunu sorunsuz kabul ediyor, ve
+test hiç cast'siz çağırabiliyor.
+
 **Files:**
 
 - Create: `frontend/src/components/UniverseMap/layers/systems.ts`
@@ -1897,10 +1907,21 @@ WebGL bağlamı gerektirmiyor, ve "GPU'ya giden pozisyonlar" iddiası doğrudan
     from: [number, number];
     to: [number, number];
   }
+  export interface SystemsLayerProps extends ScatterplotLayerProps<MapNode> {
+    id: string;
+    getPosition: (node: MapNode) => [number, number];
+    getRadius: (node: MapNode) => number;
+    getFillColor: (node: MapNode) => Rgba;
+  }
+  export interface EdgesLayerProps extends LineLayerProps<EdgeSegment> {
+    id: string;
+    getSourcePosition: (segment: EdgeSegment) => [number, number];
+    getTargetPosition: (segment: EdgeSegment) => [number, number];
+  }
   export function systemsLayerProps(input: {
     nodes: MapNode[];
     origin: MapOrigin;
-  }): ScatterplotLayerProps<MapNode> & { id: string };
+  }): SystemsLayerProps;
   export function edgeSegments(
     edges: MapEdge[],
     nodes: MapNode[],
@@ -1908,7 +1929,7 @@ WebGL bağlamı gerektirmiyor, ve "GPU'ya giden pozisyonlar" iddiası doğrudan
   ): EdgeSegment[];
   export function edgesLayerProps(input: {
     segments: EdgeSegment[];
-  }): LineLayerProps<EdgeSegment> & { id: string };
+  }): EdgesLayerProps;
   ```
 
 - [ ] **Step 1: `layers.spec.ts`'i yaz (kırmızı)**
@@ -1951,30 +1972,37 @@ describe('systemsLayerProps', () => {
   const props = systemsLayerProps({ nodes, origin });
 
   it('hands deck.gl origin-local positions, never galactic ones', () => {
-    const position = props.getPosition as (n: MapNode) => [number, number];
-    expect(position(nodes[0])).toEqual([5e16, -5e16]);
-    expect(position(nodes[1])).toEqual([-5e16, 5e16]);
+    expect(props.getPosition(nodes[0])).toEqual([5e16, -5e16]);
+    expect(props.getPosition(nodes[1])).toEqual([-5e16, 5e16]);
   });
 
-  it('shrinks every coordinate it passes on', () => {
-    const position = props.getPosition as (n: MapNode) => [number, number];
-    for (const n of nodes) {
-      const [x, z] = position(n);
-      expect(Math.abs(x)).toBeLessThan(Math.abs(n.x));
-      expect(Math.abs(z)).toBeLessThan(Math.abs(n.z));
-    }
+  it('shrinks the largest coordinate the layer will hand to the GPU', () => {
+    // Scene-wide, not per node. A node sitting at exactly twice the origin maps
+    // to the same magnitude on the other side of it, so "every coordinate
+    // shrinks" is simply false — node 2 of this fixture is that case. What the
+    // floating origin actually buys is that the largest number reaching a
+    // float32 attribute is bounded by the scene rather than by the distance to
+    // the galactic centre.
+    const largestRaw = Math.max(
+      ...nodes.flatMap((n) => [Math.abs(n.x), Math.abs(n.z)]),
+    );
+    const largestLocal = Math.max(
+      ...nodes.flatMap((n) => props.getPosition(n).map(Math.abs)),
+    );
+
+    expect(largestLocal).toBeLessThan(largestRaw);
+    expect(largestLocal).toBe(5e16);
+    expect(largestRaw).toBe(2.5e17);
   });
 
   it('lets the data drive the radius so a dot becomes a disc on its own', () => {
-    const radius = props.getRadius as (n: MapNode) => number;
-    expect(radius(nodes[0])).toBe(3.88e12);
+    expect(props.getRadius(nodes[0])).toBe(3.88e12);
     expect(props.radiusUnits).toBe('common');
     expect(props.radiusMinPixels).toBe(1.5);
   });
 
   it('colours by security with the shipped ramp', () => {
-    const fill = props.getFillColor as (n: MapNode) => number[];
-    expect(fill(nodes[0])).toEqual(securityColor(0.9));
+    expect(props.getFillColor(nodes[0])).toEqual(securityColor(0.9));
   });
 
   it('rebuilds positions when the origin moves', () => {
@@ -2017,14 +2045,8 @@ describe('edgesLayerProps', () => {
   const props = edgesLayerProps({ segments });
 
   it('reads the endpoints the segments already resolved', () => {
-    const source = props.getSourcePosition as (
-      s: (typeof segments)[0],
-    ) => number[];
-    const target = props.getTargetPosition as (
-      s: (typeof segments)[0],
-    ) => number[];
-    expect(source(segments[0])).toEqual([1, 2]);
-    expect(target(segments[0])).toEqual([3, 4]);
+    expect(props.getSourcePosition(segments[0])).toEqual([1, 2]);
+    expect(props.getTargetPosition(segments[0])).toEqual([3, 4]);
   });
 
   it('keeps a hairline visible at galaxy zoom', () => {
@@ -2046,7 +2068,7 @@ describe('edgesLayerProps', () => {
 
 ```ts
 import type { MapNode } from '@/generated/graphql';
-import { securityColor } from '@/utils/map/colorScales';
+import { securityColor, type Rgba } from '@/utils/map/colorScales';
 import { nodePosition, type MapOrigin } from '@/utils/map/origin';
 import type { ScatterplotLayerProps } from '@deck.gl/layers';
 
@@ -2060,13 +2082,28 @@ export const SYSTEMS_LAYER_ID = 'map-systems';
  */
 export const SYSTEM_RADIUS_MIN_PIXELS = 1.5;
 
+/**
+ * The accessors are narrowed to single-argument functions rather than left as
+ * deck.gl's `Accessor` union. The layer accepts either — a one-argument
+ * function is assignable to deck.gl's two-argument `AccessorFunction` — but
+ * only this form is callable from a test without a cast, and being callable
+ * from a test is the entire reason these builders return props instead of
+ * layer instances.
+ */
+export interface SystemsLayerProps extends ScatterplotLayerProps<MapNode> {
+  id: string;
+  getPosition: (node: MapNode) => [number, number];
+  getRadius: (node: MapNode) => number;
+  getFillColor: (node: MapNode) => Rgba;
+}
+
 export function systemsLayerProps({
   nodes,
   origin,
 }: {
   nodes: MapNode[];
   origin: MapOrigin;
-}): ScatterplotLayerProps<MapNode> & { id: string } {
+}): SystemsLayerProps {
   return {
     id: SYSTEMS_LAYER_ID,
     data: nodes,
@@ -2138,11 +2175,18 @@ export function edgeSegments(
   return segments;
 }
 
+/** Narrowed for the same reason as SystemsLayerProps: callable from a test. */
+export interface EdgesLayerProps extends LineLayerProps<EdgeSegment> {
+  id: string;
+  getSourcePosition: (segment: EdgeSegment) => [number, number];
+  getTargetPosition: (segment: EdgeSegment) => [number, number];
+}
+
 export function edgesLayerProps({
   segments,
 }: {
   segments: EdgeSegment[];
-}): LineLayerProps<EdgeSegment> & { id: string } {
+}): EdgesLayerProps {
   return {
     id: EDGES_LAYER_ID,
     data: segments,
@@ -2164,6 +2208,7 @@ export {
   SYSTEM_RADIUS_MIN_PIXELS,
   SYSTEMS_LAYER_ID,
   systemsLayerProps,
+  type SystemsLayerProps,
 } from './systems';
 export {
   EDGES_LAYER_ID,
@@ -2172,6 +2217,7 @@ export {
   GATE_COLOR,
   GATE_WIDTH_MIN_PIXELS,
   type EdgeSegment,
+  type EdgesLayerProps,
 } from './edges';
 ```
 
