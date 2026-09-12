@@ -88,6 +88,17 @@ yeniden ölçüldü ve spec'le birebir uyuştu.
   (düğümler 159 KB + kenarlar 39 KB). Bütçe ≤200 KB.
 - Sorgu süreleri (soğuk önbellek, üretim veritabanı): düğümler **111–123 ms**,
   kenarlar **9 ms**. Günde bir kez, sahne başına.
+- **Wormhole koordinatları New Eden'ınkinden bir büyüklük mertebesi büyük:**
+  ham x 6,80e18–8,24e18, ham z −1,00e19–−8,91e18. K-space'te ham değer ~5e17.
+  İki sonucu var. Birincisi, float64 ULP'si orada 1,5–2,2 km, yani 1e9
+  ızgarasına yuvarlanmış bir değerin en yakın double'ı gerçek katmandan ~954 m
+  uzakta durabiliyor — `x % 1e9` bunu yakalar ama bir kusur değildir; ızgaranın
+  verdiği söz idempotenslik (`toGrid(toGrid(x)) === toGrid(x)`, her büyüklükte
+  doğrulandı) ve `JSON.stringify`'ın dokuz sıfırla basması, yani sıkıştırma
+  kazancı. İkincisi, GPU'ya giden şey ham değer değil: sahne merkezine göre
+  yarı span 7,19e17 m, float32 adımı 4,29e10 m, WORMHOLE'un kendi
+  `z₀ + 13`'ünde **0,28 px** — NEW_EDEN'ın 0,22 px'iyle aynı mertebede. Kayan
+  orijinin kazandığı yer tam olarak burası.
 - `securityStatus` **kesiliyor, yuvarlanmıyor**: `ROUND(security_status, 2)`
   gerçek değeri 0,495–0,5 arasında olan **14 sistemi** 0,50'ye taşıyor ve
   `frontend/src/utils/security.ts:11`'in `>= 0.5` eşiği onları highsec ilan
@@ -793,7 +804,18 @@ import { getMapGeometry } from './src/services/universe/universe-map.service';
     const ids = new Set(g.nodes.map((n) => n.systemId));
     const orphans = g.edges.filter((e) => !ids.has(e.from) || !ids.has(e.to));
     const unordered = g.edges.filter((e) => e.from >= e.to);
-    const offGrid = g.nodes.filter((n) => n.x % 1e9 !== 0 || n.z % 1e9 !== 0);
+    // Idempotence, not `% 1e9`. WORMHOLE's raw coordinates are ~7e18-1e19 m,
+    // where one float64 ULP is 1.5-2.2 km, so the nearest double to an exact
+    // multiple of 1e9 can sit ~954 m off it and `%` reports that offset. The
+    // grid's actual promise is that re-applying it changes nothing, and that
+    // JSON still serialises nine trailing zeros - which is what it is for.
+    const toGrid = (v: number) => Math.round(v / 1e9) * 1e9;
+    const offGrid = g.nodes.filter(
+      (n) => toGrid(n.x) !== n.x || toGrid(n.z) !== n.z,
+    );
+    const notNineZeros = g.nodes.filter(
+      (n) => !/0{9}$/.test(String(n.x)) || !/0{9}$/.test(String(n.z)),
+    );
     const body = JSON.stringify(g);
     console.log(scope, {
       nodes: g.nodes.length,
@@ -801,6 +823,7 @@ import { getMapGeometry } from './src/services/universe/universe-map.service';
       orphanEdges: orphans.length,
       unorderedEdges: unordered.length,
       offGridNodes: offGrid.length,
+      notNineZeros: notNineZeros.length,
       rawKb: Math.round(body.length / 1024),
       bounds: g.bounds,
     });
@@ -815,11 +838,11 @@ plan yazılırken denendi, ayrı bir script dosyası gerekmiyor.
 
 Beklenen, birebir:
 
-| scope    | nodes | edges | orphanEdges | unorderedEdges | offGridNodes |
-| -------- | ----: | ----: | ----------: | -------------: | -----------: |
-| NEW_EDEN |  5241 |  6959 |           0 |              0 |            0 |
-| POCHVEN  |    27 |    30 |           0 |              0 |            0 |
-| WORMHOLE |  2604 |     0 |           0 |              0 |            0 |
+| scope    | nodes | edges | orphanEdges | unorderedEdges | offGridNodes | notNineZeros |
+| -------- | ----: | ----: | ----------: | -------------: | -----------: | -----------: |
+| NEW_EDEN |  5241 |  6959 |           0 |              0 |            0 |            0 |
+| POCHVEN  |    27 |    30 |           0 |              0 |            0 |            0 |
+| WORMHOLE |  2604 |     0 |           0 |              0 |            0 |            0 |
 
 İkinci çalıştırmada aynı çıktının gelmesi önbelleğin çalıştığını gösterir.
 Herhangi bir sayı tutmuyorsa dur ve sor — ölçümler 2026-09-13'e ait, veri
