@@ -81,6 +81,11 @@ export default function Header() {
         <PopoverGroup className="hidden xl:flex xl:gap-x-4 2xl:gap-x-6 min-[1800px]:gap-x-8">
           <NavPopover label="UNIVERSE">
             <NavPopoverLink
+              href="/map"
+              label="MAP"
+              description="The whole of New Eden in one continuous zoom, with Pochven and wormhole space"
+            />
+            <NavPopoverLink
               href="/regions"
               label="REGIONS"
               description="64 Regions across New Eden - High, Low, Null, and Wormhole space"
@@ -214,6 +219,9 @@ export default function Header() {
             <div className="-my-6 divide-y divide-white/5">
               <div className="py-6 space-y-2">
                 <MobileNavDisclosure label="UNIVERSE">
+                  <MobileNavSubLink href="/map" onNavigate={closeMobileMenu}>
+                    MAP
+                  </MobileNavSubLink>
                   <MobileNavSubLink
                     href="/regions"
                     onNavigate={closeMobileMenu}
