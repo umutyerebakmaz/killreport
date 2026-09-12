@@ -72,11 +72,24 @@ kenarının tamamı kendi içinde — kapalı bir bileşen, dışarı çıkan te
 
 ### Payload
 
-|                              |     ham |       gzip |
-| ---------------------------- | ------: | ---------: |
-| Düğümler (5.241)             | 1,03 MB |     229 KB |
-| Düğümler, 1e9 m yuvarlamayla | 0,82 MB | **142 KB** |
-| Kenarlar (6.959)             |  264 KB |  **39 KB** |
+|                                                |     ham |       gzip |
+| ---------------------------------------------- | ------: | ---------: |
+| Düğümler (5.241)                               | 1,03 MB |     229 KB |
+| Düğümler, 1e9 m yuvarlamayla                   | 1,01 MB |     159 KB |
+| Kenarlar (6.959)                               |  264 KB |  **39 KB** |
+| **`mapGeometry(NEW_EDEN)` gövdesi, tam yükle** | 1,28 MB | **197 KB** |
+
+2026-09-13'te yeniden ölçüldü ve bir madde değişti. İlk ölçümün 142 KB'si
+düğümleri gigametre tamsayısı olarak sayıyordu; metre sözleşmesiyle gerçek
+sayı 159 KB, kenarlarla birlikte **206 KB** — yani 200 KB bütçesi kendi
+tasarımıyla aşılıyordu. Açığı kapatan tek değişiklik `securityStatus`'un iki
+ondalığa indirilmesi (197 KB), ve bunun **yuvarlamayla değil kesmeyle**
+yapılması gerekiyor: `ROUND(security_status, 2)` gerçek değeri 0,495–0,5
+arasında olan **14 sistemi** 0,50'ye taşıyor ve
+`frontend/src/utils/security.ts:11`'in `>= 0.5` eşiği onları highsec ilan
+ediyor. `TRUNC(security_status, 2)` her iki eşikte de sıfır kayma veriyor ve
+`security.ts:90` zaten tek ondalık gösterdiği için görünürde hiçbir şey
+değişmiyor.
 
 ## Sahne modeli
 
@@ -189,6 +202,7 @@ type MapNode {
   x: Float!
   z: Float!
   radius: Float! # en uzak celestial'a mesafe; LOD geçişini veri belirler
+  # İki ondalığa KESİLMİŞ, yuvarlanmamış: yuvarlama 14 sistemi highsec'e taşıyor.
   securityStatus: Float!
   constellationId: Int!
   regionId: Int!
@@ -549,9 +563,11 @@ bırakıp kontur + logoya düşüyor.
 - Her kenar bir kez, `from < to`: New Eden 6.959, Pochven 30, Wormhole 0.
 - Düğüm koordinatları 1e9 m'ye yuvarlanmış; celestial koordinatları
   yuvarlanmamış.
+- `securityStatus` iki ondalığa kesilmiş; kesilmiş değerle hesaplanan güvenlik
+  sınıfı, ham değerle hesaplananla 8.490 sistemin tamamında aynı.
 - Kapsam yüklemleri: NEW_EDEN 5.241, POCHVEN 27, WORMHOLE 2.604.
 - `mapCelestials` 16 sistemden fazlasını reddediyor (sessizce kesmiyor).
-- Payload: galaksi ≤200 KB gzip, territory ≤100 KB gzip.
+- Payload: galaksi ≤200 KB gzip (2026-09-13 ölçümü 197 KB), territory ≤100 KB gzip.
 - `MapGeometry` `PUBLIC_CACHE_QUERIES`'de ve `Query.mapGeometry`
   `TTL_PER_SCHEMA_COORDINATE`'de `STATIC_GAME_DATA` ile; geometri sorgusu çağrı
   yerinde `cache-first`, global Apollo varsayılanları değişmemiş.
