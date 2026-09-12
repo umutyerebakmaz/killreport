@@ -1,0 +1,1 @@
+export { universeMapQueries } from './queries';
