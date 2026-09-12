@@ -1,44 +1,104 @@
 'use client';
 
-import RegionMap from '@/components/RegionMap/RegionMap';
+import SolarSystemCard from '@/components/Cards/SolarSystemCard';
 import ConstellationMap from '@/components/ConstellationMap/ConstellationMap';
-import SolarSystemMap from '@/components/SolarSystemMap/SolarSystemMap';
-import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
-import SecurityBadge from '@/components/SecurityStatus/SecurityStatus';
+import KillmailsTab from '@/components/KillmailsTab/KillmailsTab';
+import Loader from '@/components/Loader';
+import RegionMap from '@/components/RegionMap/RegionMap';
+import SovereigntyLogo from '@/components/Sovereignty/SovereigntyLogo';
 import { useConstellationQuery } from '@/generated/graphql';
 import { useTabList } from '@/hooks/useTabList';
-import { MapPinIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import { use, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { use, useCallback, useState } from 'react';
 
 interface ConstellationDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-type TabType = 'overview' | 'systems';
+type TabType = 'killmails' | 'solarSystems';
 
-const TAB_IDS: TabType[] = ['overview', 'systems'];
+const TAB_IDS: TabType[] = ['killmails', 'solarSystems'];
+
+function isTabType(value: string | null): value is TabType {
+  return value !== null && (TAB_IDS as string[]).includes(value);
+}
 
 export default function ConstellationDetailPage({
   params,
 }: ConstellationDetailPageProps) {
   const { id } = use(params);
-  const [activeTab, setActiveTab] = useState<TabType>('overview');
-  const { onKeyDown } = useTabList(TAB_IDS, activeTab, setActiveTab);
+  const constellationId = parseInt(id);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Same order as the region page: killmails is what the page is for, so it
+  // leads the tablist and opens by default. `?tab=` still wins where a link
+  // names a tab — SolarSystemCard's constellation line already links here with
+  // `?tab=killmails`, which until now landed on a page that had no tabs.
+  const tabParam = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState<TabType>(
+    isTabType(tabParam) ? tabParam : 'killmails',
+  );
+  const [currentPage, setCurrentPage] = useState(
+    Number(searchParams.get('page')) || 1,
+  );
+  const [pageSize, setPageSize] = useState(
+    Number(searchParams.get('pageSize')) || 25,
+  );
+
+  // Written from the same callback that changes the state, and replace rather
+  // than push, so switching tabs does not fill the back button.
+  const syncUrl = useCallback(
+    (tab: TabType, page: number, size: number) => {
+      const next = new URLSearchParams();
+      next.set('tab', tab);
+      if (tab === 'killmails') {
+        next.set('page', page.toString());
+        next.set('pageSize', size.toString());
+      }
+      router.replace(`/constellations/${id}?${next.toString()}`, {
+        scroll: false,
+      });
+    },
+    [id, router],
+  );
+
+  const handleTabChange = useCallback(
+    (tab: TabType) => {
+      setActiveTab(tab);
+      // Leaving the killmails tab on page 7 and coming back must not keep it.
+      setCurrentPage(1);
+      syncUrl(tab, 1, pageSize);
+    },
+    [pageSize, syncUrl],
+  );
+
+  const { onKeyDown } = useTabList(TAB_IDS, activeTab, handleTabChange);
+
+  const handlePageChange = useCallback(
+    (page: number) => {
+      setCurrentPage(page);
+      syncUrl(activeTab, page, pageSize);
+    },
+    [activeTab, pageSize, syncUrl],
+  );
+
+  const handlePageSizeChange = useCallback(
+    (size: number) => {
+      setPageSize(size);
+      setCurrentPage(1);
+      syncUrl(activeTab, 1, size);
+    },
+    [activeTab, syncUrl],
+  );
 
   const { data, loading, error } = useConstellationQuery({
-    variables: { id: parseInt(id) },
+    variables: { id: constellationId },
   });
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex items-center gap-3">
-          <div className="w-6 h-6 border-2 rounded-full animate-spin border-cyan-500 border-t-transparent" />
-          <span className="text-lg">Loading constellation...</span>
-        </div>
-      </div>
-    );
+    return <Loader size="lg" text="Loading constellation..." fullHeight />;
   }
 
   if (error) {
@@ -60,14 +120,14 @@ export default function ConstellationDetailPage({
   }
 
   const tabLabels: Record<TabType, string> = {
-    overview: 'Overview',
-    systems: `Solar Systems (${constellation.solarSystemCount})`,
+    killmails: 'Killmails',
+    solarSystems: `Solar Systems (${constellation.solarSystemCount})`,
   };
 
   return (
     <div>
+      {/* Constellation detail card */}
       <div className="card p-6 flex flex-col">
-        {/* Header */}
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-start gap-6">
             <div className="flex items-center justify-center w-24 h-24 sm:w-64 sm:h-64 shrink-0">
@@ -82,6 +142,11 @@ export default function ConstellationDetailPage({
               <h1 className="text-4xl font-bold text-white">
                 {constellation.name}
               </h1>
+              {/*
+                The parent region, as its map and name alone. No "Region:"
+                label — the map already says what kind of place it is, and the
+                region page names its own parent the same way it names nothing.
+              */}
               {constellation.region && (
                 <div className="flex items-center gap-2 mt-2 text-gray-400">
                   <RegionMap
@@ -90,7 +155,6 @@ export default function ConstellationDetailPage({
                     size={20}
                     className="shrink-0"
                   />
-                  <span>Region:</span>
                   <Link
                     href={`/regions/${constellation.region.id}`}
                     prefetch={false}
@@ -100,52 +164,21 @@ export default function ConstellationDetailPage({
                   </Link>
                 </div>
               )}
-              <div className="flex items-center gap-6 mt-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <MapPinIcon className="w-5 h-5 text-orange-400" />
-                  <span className="font-medium text-orange-300">
-                    {constellation.solarSystemCount}
-                  </span>
-                  <span className="text-gray-500">Solar Systems</span>
-                </div>
-              </div>
             </div>
           </div>
 
-          {/* Security Stats Card */}
-          {constellation.securityStats && (
-            <div className="bg-white/5 border border-white/10 p-4 min-w-70">
-              <h3 className="mb-3 text-sm font-medium text-gray-400">
-                Security Distribution
-              </h3>
-              <SecurityStatsBar
-                stats={{
-                  highSec: constellation.securityStats.highSec,
-                  lowSec: constellation.securityStats.lowSec,
-                  nullSec: constellation.securityStats.nullSec,
-                  wormhole: constellation.securityStats.wormhole,
-                }}
-              />
-              {constellation.securityStats.avgSecurity != null && (
-                <div className="flex items-center justify-between pt-3 mt-3 border-t border-white/10">
-                  <span className="text-sm text-gray-400">
-                    Average Security:
-                  </span>
-                  <span
-                    className={`font-medium ${
-                      constellation.securityStats.avgSecurity >= 0.5
-                        ? 'text-green-400'
-                        : constellation.securityStats.avgSecurity > 0
-                          ? 'text-yellow-400'
-                          : 'text-red-400'
-                    }`}
-                  >
-                    {constellation.securityStats.avgSecurity.toFixed(2)}
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
+          {/*
+            The constellation's holder, at the right edge of the card — the
+            region page's placement and size. `totalSystems` lets the tooltip
+            say what share of the constellation the holder actually holds:
+            sovereignty is per system, so holding part of one is the normal case.
+          */}
+          <SovereigntyLogo
+            holder={constellation.sovereignty}
+            size={128}
+            totalSystems={constellation.solarSystemCount}
+            className="self-center shrink-0 lg:self-start"
+          />
         </div>
       </div>
 
@@ -163,7 +196,7 @@ export default function ConstellationDetailPage({
               aria-controls={`panel-${tabId}`}
               aria-selected={activeTab === tabId}
               tabIndex={activeTab === tabId ? 0 : -1}
-              onClick={() => setActiveTab(tabId)}
+              onClick={() => handleTabChange(tabId)}
               onKeyDown={onKeyDown}
               className="button button-secondary button-sm"
             >
@@ -172,179 +205,47 @@ export default function ConstellationDetailPage({
           ))}
         </nav>
 
-        {activeTab === 'overview' && (
+        {/* Tab Content */}
+        {activeTab === 'solarSystems' && (
           <div
             role="tabpanel"
-            id="panel-overview"
-            aria-labelledby="tab-overview"
-            className="grid gap-6 md:grid-cols-2"
+            id="panel-solarSystems"
+            aria-labelledby="tab-solarSystems"
           >
-            {/* Constellation Info */}
-            <div className="p-6 border bg-white/5 border-white/10">
-              <h2 className="mb-4 text-xl font-bold">
-                Constellation Information
-              </h2>
-              <dl className="space-y-3">
-                <div className="flex justify-between">
-                  <dt className="text-gray-400">Constellation ID</dt>
-                  <dd className="text-gray-200">{constellation.id}</dd>
-                </div>
-                {constellation.region && (
-                  <div className="flex justify-between">
-                    <dt className="text-gray-400">Region</dt>
-                    <dd>
-                      <Link
-                        href={`/regions/${constellation.region.id}`}
-                        prefetch={false}
-                        className="text-gray-400 hover:text-blue-400"
-                      >
-                        {constellation.region.name}
-                      </Link>
-                    </dd>
-                  </div>
-                )}
-                <div className="flex justify-between">
-                  <dt className="text-gray-400">Solar Systems</dt>
-                  <dd className="font-medium text-orange-300">
-                    {constellation.solarSystemCount}
-                  </dd>
-                </div>
-              </dl>
-            </div>
-
-            {/* Security Breakdown */}
-            <div className="p-6 border bg-white/5 border-white/10">
-              <h2 className="mb-4 text-xl font-bold">Security Breakdown</h2>
-              {constellation.securityStats && (
-                <dl className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <dt className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-green-500 rounded-full" />
-                      <span className="text-gray-400">High Security</span>
-                    </dt>
-                    <dd className="font-medium text-green-400">
-                      {constellation.securityStats.highSec} systems
-                    </dd>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <dt className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-yellow-500 rounded-full" />
-                      <span className="text-gray-400">Low Security</span>
-                    </dt>
-                    <dd className="font-medium text-yellow-400">
-                      {constellation.securityStats.lowSec} systems
-                    </dd>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <dt className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-red-500 rounded-full" />
-                      <span className="text-gray-400">Null Security</span>
-                    </dt>
-                    <dd className="font-medium text-red-400">
-                      {constellation.securityStats.nullSec} systems
-                    </dd>
-                  </div>
-                  {(constellation.securityStats.wormhole ?? 0) > 0 && (
-                    <div className="flex items-center justify-between">
-                      <dt className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-purple-500 rounded-full" />
-                        <span className="text-gray-400">Wormhole</span>
-                      </dt>
-                      <dd className="font-medium text-purple-400">
-                        {constellation.securityStats.wormhole} systems
-                      </dd>
-                    </div>
-                  )}
-                </dl>
-              )}
-            </div>
-
-            {/* Position Info */}
-            {constellation.position && (
-              <div className="p-6 border bg-white/5 border-white/10 md:col-span-2">
-                <h2 className="mb-4 text-xl font-bold">Position in Space</h2>
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <div className="text-sm text-gray-400">X</div>
-                    <div className="text-gray-200">
-                      {constellation.position.x.toExponential(2)}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-400">Y</div>
-                    <div className="text-gray-200">
-                      {constellation.position.y.toExponential(2)}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-400">Z</div>
-                    <div className="text-gray-200">
-                      {constellation.position.z.toExponential(2)}
-                    </div>
-                  </div>
-                </div>
+            {constellation.solarSystems &&
+            constellation.solarSystems.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+                {constellation.solarSystems.map((system) => (
+                  // The constellation and the region are what this page
+                  // already is, so the card prints the system alone.
+                  <SolarSystemCard
+                    key={system.id}
+                    system={system}
+                    showLineage={false}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="py-12 text-center text-gray-400">
+                No solar systems found
               </div>
             )}
           </div>
         )}
 
-        {activeTab === 'systems' && (
+        {activeTab === 'killmails' && (
           <div
             role="tabpanel"
-            id="panel-systems"
-            aria-labelledby="tab-systems"
-            className="overflow-hidden border border-white/10"
+            id="panel-killmails"
+            aria-labelledby="tab-killmails"
           >
-            <table className="table">
-              <thead className="bg-surface-inset">
-                <tr>
-                  <th className="th-cell">Solar System</th>
-                  <th className="th-cell">Security Status</th>
-                  <th className="th-cell">Security Class</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {constellation.solarSystems &&
-                constellation.solarSystems.length > 0 ? (
-                  constellation.solarSystems.map((system) => (
-                    <tr key={system.id} className="tr-row">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          <SolarSystemMap
-                            systemId={system.id}
-                            systemName={system.name}
-                            size={24}
-                            className="shrink-0"
-                          />
-                          <Link
-                            href={`/solar-systems/${system.id}`}
-                            prefetch={false}
-                            className="font-medium transition-colors text-gray-400 hover:text-blue-400"
-                          >
-                            {system.name}
-                          </Link>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <SecurityBadge securityStatus={system.securityStatus} />
-                      </td>
-                      <td className="px-6 py-4 text-gray-400 whitespace-nowrap">
-                        {system.security_class || '-'}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={3}
-                      className="px-6 py-12 text-center text-gray-400"
-                    >
-                      No solar systems found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+            <KillmailsTab
+              scope={{ constellationId }}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+            />
           </div>
         )}
       </div>

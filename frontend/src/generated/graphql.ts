@@ -324,7 +324,6 @@ export type Constellation = {
   name: Scalars['String']['output'];
   position?: Maybe<Position>;
   region?: Maybe<Region>;
-  securityStats: SecurityStats;
   solarSystemCount: Scalars['Int']['output'];
   solarSystems: Array<SolarSystem>;
   /**
@@ -1426,7 +1425,6 @@ export type Region = {
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
-  securityStats: SecurityStats;
   solarSystemCount: Scalars['Int']['output'];
   /**
    * Who holds the region, or null where nothing in it is held — 44 of the 114
@@ -1460,15 +1458,6 @@ export type RegionsResponse = {
   __typename?: 'RegionsResponse';
   items: Array<Region>;
   pageInfo: PageInfo;
-};
-
-export type SecurityStats = {
-  __typename?: 'SecurityStats';
-  avgSecurity?: Maybe<Scalars['Float']['output']>;
-  highSec: Scalars['Int']['output'];
-  lowSec: Scalars['Int']['output'];
-  nullSec: Scalars['Int']['output'];
-  wormhole: Scalars['Int']['output'];
 };
 
 export type ShipTopKill = {
@@ -2296,14 +2285,14 @@ export type ConstellationsQueryVariables = Exact<{
 }>;
 
 
-export type ConstellationsQuery = { __typename?: 'Query', constellations: { __typename?: 'ConstellationsResponse', items: Array<{ __typename?: 'Constellation', id: number, name: string, solarSystemCount: number, securityStats: { __typename?: 'SecurityStats', highSec: number, lowSec: number, nullSec: number, wormhole: number, avgSecurity?: number | null }, region?: { __typename?: 'Region', id: number, name: string } | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type ConstellationsQuery = { __typename?: 'Query', constellations: { __typename?: 'ConstellationsResponse', items: Array<{ __typename?: 'Constellation', id: number, name: string, solarSystemCount: number }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type ConstellationQueryVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
 
 
-export type ConstellationQuery = { __typename?: 'Query', constellation?: { __typename?: 'Constellation', id: number, name: string, solarSystemCount: number, securityStats: { __typename?: 'SecurityStats', highSec: number, lowSec: number, nullSec: number, wormhole: number, avgSecurity?: number | null }, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, region?: { __typename?: 'Region', id: number, name: string } | null, solarSystems: Array<{ __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, security_class?: string | null }> } | null };
+export type ConstellationQuery = { __typename?: 'Query', constellation?: { __typename?: 'Constellation', id: number, name: string, solarSystemCount: number, sovereignty?: { __typename?: 'SovereigntyHolder', ownerType: SovereigntyOwnerType, ownerId: number, ownerName?: string | null, allianceTicker?: string | null, systemCount: number } | null, region?: { __typename?: 'Region', id: number, name: string } | null, solarSystems: Array<{ __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, security_class?: string | null, latestKills?: { __typename?: 'SystemKills', ship_kills: number, pod_kills: number, npc_kills: number, timestamp: string } | null }> } | null };
 
 export type CorporationQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -2468,7 +2457,7 @@ export type SearchConstellationsQueryVariables = Exact<{
 }>;
 
 
-export type SearchConstellationsQuery = { __typename?: 'Query', constellations: { __typename?: 'ConstellationsResponse', items: Array<{ __typename?: 'Constellation', id: number, name: string, solarSystemCount: number, securityStats: { __typename?: 'SecurityStats', highSec: number, lowSec: number, nullSec: number, wormhole: number, avgSecurity?: number | null }, region?: { __typename?: 'Region', id: number, name: string } | null }> } };
+export type SearchConstellationsQuery = { __typename?: 'Query', constellations: { __typename?: 'ConstellationsResponse', items: Array<{ __typename?: 'Constellation', id: number, name: string, solarSystemCount: number, region?: { __typename?: 'Region', id: number, name: string } | null }> } };
 
 export type SearchCorporationsQueryVariables = Exact<{
   search: Scalars['String']['input'];
@@ -2506,7 +2495,7 @@ export type SearchRegionsQueryVariables = Exact<{
 }>;
 
 
-export type SearchRegionsQuery = { __typename?: 'Query', regions: { __typename?: 'RegionsResponse', items: Array<{ __typename?: 'Region', id: number, name: string, solarSystemCount: number, constellationCount: number, securityStats: { __typename?: 'SecurityStats', highSec: number, lowSec: number, nullSec: number, wormhole: number, avgSecurity?: number | null } }> } };
+export type SearchRegionsQuery = { __typename?: 'Query', regions: { __typename?: 'RegionsResponse', items: Array<{ __typename?: 'Region', id: number, name: string, solarSystemCount: number, constellationCount: number }> } };
 
 export type SearchSolarSystemQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -3929,17 +3918,6 @@ export const ConstellationsDocument = gql`
       id
       name
       solarSystemCount
-      securityStats {
-        highSec
-        lowSec
-        nullSec
-        wormhole
-        avgSecurity
-      }
-      region {
-        id
-        name
-      }
     }
     pageInfo {
       currentPage
@@ -3993,17 +3971,12 @@ export const ConstellationDocument = gql`
     id
     name
     solarSystemCount
-    securityStats {
-      highSec
-      lowSec
-      nullSec
-      wormhole
-      avgSecurity
-    }
-    position {
-      x
-      y
-      z
+    sovereignty {
+      ownerType
+      ownerId
+      ownerName
+      allianceTicker
+      systemCount
     }
     region {
       id
@@ -4014,6 +3987,12 @@ export const ConstellationDocument = gql`
       name
       securityStatus
       security_class
+      latestKills {
+        ship_kills
+        pod_kills
+        npc_kills
+        timestamp
+      }
     }
   }
 }
@@ -6079,13 +6058,6 @@ export const SearchConstellationsDocument = gql`
       id
       name
       solarSystemCount
-      securityStats {
-        highSec
-        lowSec
-        nullSec
-        wormhole
-        avgSecurity
-      }
       region {
         id
         name
@@ -6336,13 +6308,6 @@ export const SearchRegionsDocument = gql`
       name
       solarSystemCount
       constellationCount
-      securityStats {
-        highSec
-        lowSec
-        nullSec
-        wormhole
-        avgSecurity
-      }
     }
   }
 }

@@ -1,14 +1,13 @@
 'use client';
 
-import ConstellationMap from '@/components/ConstellationMap/ConstellationMap';
-import AvgSecurity from '@/components/AvgSecurity/AvgSecurity';
+import ConstellationCard from '@/components/Card/ConstellationCard';
 import ConstellationFilterForm from '@/components/Filters/ConstellationFilterForm';
 import { Loader } from '@/components/Loader/Loader';
 import Paginator from '@/components/Paginator/Paginator';
-import SecurityStatsBar from '@/components/SecurityStatus/SecurityStatsBar';
-import Tooltip from '@/components/Tooltip/Tooltip';
-import { useConstellationsQuery } from '@/generated/graphql';
-import Link from 'next/link';
+import {
+  ConstellationOrderBy,
+  useConstellationsQuery,
+} from '@/generated/graphql';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 
@@ -17,13 +16,14 @@ function ConstellationsContent() {
   const searchParams = useSearchParams();
 
   const pageFromUrl = Number(searchParams.get('page')) || 1;
-  const orderByFromUrl = searchParams.get('orderBy') || 'nameAsc';
+  const orderByFromUrl = (searchParams.get('orderBy') ||
+    ConstellationOrderBy.NameAsc) as ConstellationOrderBy;
   const searchFromUrl = searchParams.get('search') || '';
   const regionIdFromUrl = searchParams.get('regionId') || '';
 
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [pageSize, setPageSize] = useState(25);
-  const [orderBy, setOrderBy] = useState<string>(orderByFromUrl);
+  const [orderBy, setOrderBy] = useState(orderByFromUrl);
   const [searchTerm, setSearchTerm] = useState(searchFromUrl);
   const [selectedRegionId, setSelectedRegionId] =
     useState<string>(regionIdFromUrl);
@@ -33,7 +33,7 @@ function ConstellationsContent() {
       filter: {
         page: currentPage,
         limit: pageSize,
-        orderBy: orderBy as any,
+        orderBy,
         search: searchTerm || undefined,
         region_id: selectedRegionId ? parseInt(selectedRegionId) : undefined,
       },
@@ -48,25 +48,22 @@ function ConstellationsContent() {
     if (searchTerm) params.set('search', searchTerm);
     if (selectedRegionId) params.set('regionId', selectedRegionId);
     router.push(`/constellations?${params.toString()}`, { scroll: false });
-  }, [currentPage, orderBy, searchTerm, selectedRegionId]);
+  }, [currentPage, orderBy, router, searchTerm, selectedRegionId]);
 
   const handleFilterChange = (filters: {
     search?: string;
     region_id?: number;
+    orderBy: ConstellationOrderBy;
   }) => {
     setSearchTerm(filters.search || '');
     setSelectedRegionId(filters.region_id ? filters.region_id.toString() : '');
+    setOrderBy(filters.orderBy);
     setCurrentPage(1);
   };
 
   const handleClearFilters = () => {
     setSearchTerm('');
     setSelectedRegionId('');
-    setCurrentPage(1);
-  };
-
-  const handleOrderByChange = (newOrderBy: string) => {
-    setOrderBy(newOrderBy);
     setCurrentPage(1);
   };
 
@@ -88,138 +85,34 @@ function ConstellationsContent() {
     <div>
       <h1 className="sr-only">Constellations</h1>
 
-      <div>
-        <ConstellationFilterForm
-          onFilterChange={handleFilterChange}
-          onClearFilters={handleClearFilters}
-          orderBy={orderBy}
-          onOrderByChange={handleOrderByChange}
-          initialSearch={searchTerm}
-          initialRegionId={selectedRegionId}
-        />
-      </div>
-      {/* Legend */}
-      <div className="flex items-center gap-6 mt-4 text-xs text-gray-400">
-        <span className="font-medium text-gray-300">Security:</span>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 bg-green-500 rounded-full" />
-          <span>High Sec (≥0.5)</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 bg-yellow-500 rounded-full" />
-          <span>Low Sec (0.1-0.4)</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 bg-red-500 rounded-full" />
-          <span>Null Sec (≤0.0)</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 bg-purple-500 rounded-full" />
-          <span>Wormhole</span>
-        </div>
-      </div>
+      <ConstellationFilterForm
+        onFilterChange={handleFilterChange}
+        onClearFilters={handleClearFilters}
+        initialSearch={searchTerm}
+        initialRegionId={selectedRegionId}
+        initialOrderBy={orderBy}
+      />
 
-      {/* Table */}
-      <div className="mt-6 overflow-hidden border border-white/10">
-        <table className="table">
-          <thead className="bg-surface-inset">
-            <tr>
-              <th className="text-left th-cell">Constellation</th>
-              <th className="text-left th-cell">Region</th>
-              <th className="text-left th-cell">Systems</th>
-              <th className="text-left th-cell">Security Distribution</th>
-              <th className="text-left th-cell">Avg Security</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5">
-            {loading ? (
-              <tr>
-                <td
-                  colSpan={5}
-                  className="px-6 py-12 text-center text-gray-400"
-                >
-                  <div className="flex items-center justify-center">
-                    <Loader size="lg" />
-                  </div>
-                </td>
-              </tr>
-            ) : constellations.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={5}
-                  className="px-6 py-12 text-center text-gray-400"
-                >
-                  No constellations found
-                </td>
-              </tr>
-            ) : (
-              constellations.map((constellation) => (
-                <tr key={constellation.id} className="tr-row">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <ConstellationMap
-                        constellationId={constellation.id}
-                        constellationName={constellation.name}
-                        size={64}
-                        className="shrink-0"
-                      />
-                      <Link
-                        href={`/constellations/${constellation.id}`}
-                        prefetch={false}
-                        className="font-medium text-gray-400 transition-colors hover:text-gray-400"
-                      >
-                        {constellation.name}
-                      </Link>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    {constellation.region ? (
-                      <Link
-                        href={`/regions/${constellation.region.id}`}
-                        prefetch={false}
-                        className="flex items-center gap-2 text-gray-400 transition-colors hover:text-gray-400"
-                      >
-                        {constellation.region.name}
-                      </Link>
-                    ) : (
-                      <span className="text-gray-500">Unknown</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <Tooltip
-                      content="Solar systems in this constellation"
-                      position="top"
-                    >
-                      <span className="font-medium text-orange-300">
-                        {constellation.solarSystemCount}
-                      </span>
-                    </Tooltip>
-                  </td>
-                  <td className="px-6 py-4">
-                    {constellation.securityStats && (
-                      <SecurityStatsBar
-                        stats={{
-                          highSec: constellation.securityStats.highSec,
-                          lowSec: constellation.securityStats.lowSec,
-                          nullSec: constellation.securityStats.nullSec,
-                          wormhole: constellation.securityStats.wormhole,
-                        }}
-                        showLabels={false}
-                      />
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <AvgSecurity
-                      avgSecurity={
-                        constellation.securityStats?.avgSecurity ?? null
-                      }
-                    />
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+      {/* Grid Layout */}
+      <div className="mt-6">
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader size="lg" text="Loading constellations..." />
+          </div>
+        ) : constellations.length === 0 ? (
+          <div className="px-6 py-12 text-center text-gray-400 border border-white/10 bg-surface">
+            No constellations found
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5">
+            {constellations.map((constellation) => (
+              <ConstellationCard
+                key={constellation.id}
+                constellation={constellation}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="mt-6">

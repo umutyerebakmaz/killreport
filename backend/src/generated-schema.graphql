@@ -278,7 +278,6 @@ type Constellation {
   name: String!
   position: Position
   region: Region
-  securityStats: SecurityStats!
   solarSystemCount: Int!
   solarSystems: [SolarSystem!]!
 
@@ -963,7 +962,6 @@ type Region {
   description: String
   id: Int!
   name: String!
-  securityStats: SecurityStats!
   solarSystemCount: Int!
 
   """
@@ -996,14 +994,6 @@ enum RegionOrderBy {
 type RegionsResponse {
   items: [Region!]!
   pageInfo: PageInfo!
-}
-
-type SecurityStats {
-  avgSecurity: Float
-  highSec: Int!
-  lowSec: Int!
-  nullSec: Int!
-  wormhole: Int!
 }
 
 type ShipTopKill {

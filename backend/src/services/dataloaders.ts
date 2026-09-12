@@ -426,26 +426,6 @@ export interface DataLoaderContext {
       number,
       { constellationCount: number; solarSystemCount: number }
     >;
-    regionSecurityStats: DataLoader<
-      number,
-      {
-        highSec: number;
-        lowSec: number;
-        nullSec: number;
-        wormhole: number;
-        avgSecurity: number | null;
-      }
-    >;
-    constellationSecurityStats: DataLoader<
-      number,
-      {
-        highSec: number;
-        lowSec: number;
-        nullSec: number;
-        wormhole: number;
-        avgSecurity: number | null;
-      }
-    >;
     constellationSovereignty: DataLoader<number, SovereigntyHolderRow | null>;
     regionSovereignty: DataLoader<number, SovereigntyHolderRow | null>;
     corporationSnapshot: DataLoader<{ corporationId: number; date: Date }, any>;
@@ -488,8 +468,6 @@ export const createDataLoaders = (): DataLoaderContext => ({
     itemGroupsByCategory: createItemGroupsByCategoryLoader(),
     typesByGroup: createTypesByGroupLoader(),
     regionStats: createRegionStatsLoader(),
-    regionSecurityStats: createRegionSecurityStatsLoader(),
-    constellationSecurityStats: createConstellationSecurityStatsLoader(),
     constellationSovereignty: createConstellationSovereigntyLoader(),
     regionSovereignty: createRegionSovereigntyLoader(),
     corporationSnapshot: createCorporationSnapshotLoader(),
@@ -899,196 +877,6 @@ export const createRegionStatsLoader = () => {
 };
 
 /**
- * Region Security Stats DataLoader - Batch loading for region security statistics
- * Calculates security distribution for multiple regions at once
- */
-export const createRegionSecurityStatsLoader = () => {
-  return new DataLoader<
-    number,
-    {
-      highSec: number;
-      lowSec: number;
-      nullSec: number;
-      wormhole: number;
-      avgSecurity: number | null;
-    }
-  >(async (regionIds) => {
-    console.log(
-      '🔄 DataLoader: Batching',
-      regionIds.length,
-      'region security stats queries',
-    );
-
-    // Fetch all constellations for these regions
-    const constellations = await prisma.constellation.findMany({
-      where: {
-        region_id: { in: [...regionIds] },
-      },
-      select: { id: true, region_id: true },
-    });
-
-    // Group constellations by region
-    const constByRegion = new Map<number, number[]>();
-    for (const const_obj of constellations) {
-      if (const_obj.region_id === null) continue;
-      if (!constByRegion.has(const_obj.region_id)) {
-        constByRegion.set(const_obj.region_id, []);
-      }
-      constByRegion.get(const_obj.region_id)!.push(const_obj.id);
-    }
-
-    // Fetch solar systems with security status
-    const allConstIds = constellations.map((c) => c.id);
-    const solarSystems = await prisma.solarSystem.findMany({
-      where: {
-        constellation_id: { in: allConstIds },
-      },
-      select: { constellation_id: true, security_status: true },
-    });
-
-    // Group solar systems by region
-    const systemsByRegion = new Map<
-      number,
-      { security_status: number | null }[]
-    >();
-    for (const sys of solarSystems) {
-      const constellation = constellations.find(
-        (c) => c.id === sys.constellation_id,
-      );
-      if (constellation && constellation.region_id !== null) {
-        if (!systemsByRegion.has(constellation.region_id)) {
-          systemsByRegion.set(constellation.region_id, []);
-        }
-        systemsByRegion.get(constellation.region_id)!.push(sys);
-      }
-    }
-
-    // Calculate security stats for each region
-    return regionIds.map((regionId) => {
-      const systems = systemsByRegion.get(regionId) || [];
-
-      let highSec = 0;
-      let lowSec = 0;
-      let nullSec = 0;
-      let wormhole = 0;
-      let totalSecurity = 0;
-      let validSecurityCount = 0;
-
-      for (const system of systems) {
-        const sec = system.security_status;
-        if (sec === null) {
-          wormhole++;
-          continue;
-        }
-        totalSecurity += sec;
-        validSecurityCount++;
-        if (sec >= 0.5) {
-          highSec++;
-        } else if (sec > 0.0) {
-          lowSec++;
-        } else {
-          nullSec++;
-        }
-      }
-
-      return {
-        highSec,
-        lowSec,
-        nullSec,
-        wormhole,
-        avgSecurity:
-          validSecurityCount > 0 ? totalSecurity / validSecurityCount : null,
-      };
-    });
-  });
-};
-
-/**
- * Constellation Security Stats DataLoader - Batch loading for constellation security statistics
- * Calculates security distribution for multiple constellations at once
- */
-export const createConstellationSecurityStatsLoader = () => {
-  return new DataLoader<
-    number,
-    {
-      highSec: number;
-      lowSec: number;
-      nullSec: number;
-      wormhole: number;
-      avgSecurity: number | null;
-    }
-  >(async (constellationIds) => {
-    console.log(
-      '🔄 DataLoader: Batching',
-      constellationIds.length,
-      'constellation security stats queries',
-    );
-
-    // Fetch all solar systems for these constellations with their security status
-    const solarSystems = await prisma.solarSystem.findMany({
-      where: {
-        constellation_id: { in: [...constellationIds] },
-      },
-      select: {
-        constellation_id: true,
-        security_status: true,
-      },
-    });
-
-    // Group solar systems by constellation
-    const systemsByConstellation = new Map<
-      number,
-      { security_status: number | null }[]
-    >();
-    for (const sys of solarSystems) {
-      if (sys.constellation_id === null) continue;
-      if (!systemsByConstellation.has(sys.constellation_id)) {
-        systemsByConstellation.set(sys.constellation_id, []);
-      }
-      systemsByConstellation.get(sys.constellation_id)!.push(sys);
-    }
-
-    // Calculate security stats for each constellation
-    return constellationIds.map((constellationId) => {
-      const systems = systemsByConstellation.get(constellationId) || [];
-
-      let highSec = 0;
-      let lowSec = 0;
-      let nullSec = 0;
-      let wormhole = 0;
-      let totalSecurity = 0;
-      let validSecurityCount = 0;
-
-      for (const system of systems) {
-        const sec = system.security_status;
-        if (sec === null) {
-          wormhole++;
-          continue;
-        }
-        totalSecurity += sec;
-        validSecurityCount++;
-        if (sec >= 0.5) {
-          highSec++;
-        } else if (sec > 0.0) {
-          lowSec++;
-        } else {
-          nullSec++;
-        }
-      }
-
-      return {
-        highSec,
-        lowSec,
-        nullSec,
-        wormhole,
-        avgSecurity:
-          validSecurityCount > 0 ? totalSecurity / validSecurityCount : null,
-      };
-    });
-  });
-};
-
-/**
  * Resolves the dominant sovereignty holder for a set of groups of systems.
  *
  * EVE holds sovereignty per solar system, so a region's or a constellation's
@@ -1241,7 +1029,7 @@ export const createConstellationSovereigntyLoader = () => {
  * Region Sovereignty DataLoader
  *
  * Same roll-up one level higher: systems reach a region through their
- * constellation, the way regionSecurityStats does it.
+ * constellation, so the constellations are read first and the systems second.
  */
 export const createRegionSovereigntyLoader = () => {
   return new DataLoader<number, SovereigntyHolderRow | null>(

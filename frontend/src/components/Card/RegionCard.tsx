@@ -23,26 +23,26 @@ export default function RegionCard({ region }: RegionCardProps) {
   return (
     <Link
       href={`/regions/${region.id}`}
-      className="region-card group"
+      className="map-card group"
       prefetch={false}
       aria-label={region.name}
     >
       <RegionMap
         regionId={region.id}
         regionName={region.name}
-        className="region-card-map"
+        className="map-card-map"
       />
 
-      <div className="region-card-scrim" />
+      <div className="map-card-scrim" />
 
-      <div className="region-card-label">
-        <span className="region-card-name">{region.name}</span>
+      <div className="map-card-label">
+        <span className="map-card-name">{region.name}</span>
 
         {/* 7/12 says nothing on its own, so the tooltip spells it out.
             The classes go on Tooltip's own wrapper, which is the flex item
             here — shrink-0 on an inner span would never be read. */}
         <Tooltip
-          className="region-card-counts"
+          className="map-card-counts"
           content={`${region.constellationCount} constellations · ${region.solarSystemCount} solar systems`}
           position="top"
         >

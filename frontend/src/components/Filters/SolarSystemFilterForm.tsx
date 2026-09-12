@@ -1,10 +1,11 @@
 'use client';
 
+import RegionMap from '@/components/RegionMap/RegionMap';
+import SolarSystemMap from '@/components/SolarSystemMap/SolarSystemMap';
 import Select from '@/components/ui/Select';
 
 import {
   useConstellationsQuery,
-  useRegionsQuery,
   useSearchConstellationQuery,
   useSearchConstellationsQuery,
   useSearchRegionQuery,
@@ -15,27 +16,49 @@ import FilterBar from '@/components/ui/FilterBar';
 import FilterDialog from '@/components/ui/FilterDialog';
 import FilterField from '@/components/ui/FilterField';
 import { useDebounce } from '@/hooks/useDebounce';
+import { BarsArrowDownIcon, BarsArrowUpIcon } from '@heroicons/react/16/solid';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useEffect, useRef, useState } from 'react';
 
+// The swatch colours are the ones the security legend carried before it was
+// dropped: green high, yellow low, red null. The bounds they used to spell out
+// live in getSecurityFilter below. Grey rather than white for the unfiltered
+// row: white is the brightest mark in the palette and would pull more attention
+// than the bands it sits above.
 const SECURITY_OPTIONS = [
-  { value: 'all', label: 'All Security' },
-  { value: 'highsec', label: 'High Sec (≥0.5)' },
-  { value: 'lowsec', label: 'Low Sec (0.1-0.4)' },
-  { value: 'nullsec', label: 'Null Sec (≤0.0)' },
+  { value: 'all', label: 'All Security', swatch: 'bg-gray-500' },
+  { value: 'highsec', label: 'High Sec', swatch: 'bg-green-500' },
+  { value: 'lowsec', label: 'Low Sec', swatch: 'bg-yellow-500' },
+  { value: 'nullsec', label: 'Null Sec', swatch: 'bg-red-500' },
 ];
 
+// Heroicons' sort pair — lines for the list, an arrow for the direction.
+// A bare arrow reads as a direction alone; these read as sorting in one. There
+// is no alphabetical variant in the set, and none would survive 16px: letters
+// inside an icon that small blur into a smudge. The labels carry the alphabet,
+// the icon carries the direction.
+const ASC = (
+  <BarsArrowUpIcon aria-hidden="true" className="size-4 text-gray-400" />
+);
+const DESC = (
+  <BarsArrowDownIcon aria-hidden="true" className="size-4 text-gray-400" />
+);
+
 const ORDER_BY_OPTIONS = [
-  { value: 'nameAsc', label: 'Name A-Z' },
-  { value: 'nameDesc', label: 'Name Z-A' },
-  { value: 'securityStatusDesc', label: 'Security (Highest First)' },
-  { value: 'securityStatusAsc', label: 'Security (Lowest First)' },
-  { value: 'shipKillsDesc', label: 'Ship Kills (Most First)' },
-  { value: 'shipKillsAsc', label: 'Ship Kills (Least First)' },
-  { value: 'podKillsDesc', label: 'Pod Kills (Most First)' },
-  { value: 'podKillsAsc', label: 'Pod Kills (Least First)' },
-  { value: 'npcKillsDesc', label: 'NPC Kills (Most First)' },
-  { value: 'npcKillsAsc', label: 'NPC Kills (Least First)' },
+  { value: 'nameAsc', label: 'Name A-Z', icon: ASC },
+  { value: 'nameDesc', label: 'Name Z-A', icon: DESC },
+  {
+    value: 'securityStatusDesc',
+    label: 'Security (Highest First)',
+    icon: DESC,
+  },
+  { value: 'securityStatusAsc', label: 'Security (Lowest First)', icon: ASC },
+  { value: 'shipKillsDesc', label: 'Ship Kills (Most First)', icon: DESC },
+  { value: 'shipKillsAsc', label: 'Ship Kills (Least First)', icon: ASC },
+  { value: 'podKillsDesc', label: 'Pod Kills (Most First)', icon: DESC },
+  { value: 'podKillsAsc', label: 'Pod Kills (Least First)', icon: ASC },
+  { value: 'npcKillsDesc', label: 'NPC Kills (Most First)', icon: DESC },
+  { value: 'npcKillsAsc', label: 'NPC Kills (Least First)', icon: ASC },
 ];
 
 interface SolarSystemFilterFormProps {
@@ -127,16 +150,6 @@ export default function SolarSystemFilterForm({
       },
       skip: debouncedConstellationSearch.length < 3,
     });
-
-  // GraphQL query for all regions (for dropdown)
-  const { data: allRegionsData } = useRegionsQuery({
-    variables: {
-      filter: {
-        limit: 1000,
-        orderBy: 'nameAsc' as any,
-      },
-    },
-  });
 
   // GraphQL query for constellations filtered by region (for dropdown)
   const { data: allConstellationsData } = useConstellationsQuery({
@@ -281,20 +294,31 @@ export default function SolarSystemFilterForm({
     setIsOpen(false);
   };
 
+  // Every field's three pieces of state: what is typed, what is chosen, and
+  // whether its dropdown is open. The typed text used to have nowhere to live
+  // for region and constellation — both were Selects — so it was not reset
+  // here, and a cleared region left its search box full.
   const handleClearAll = () => {
     setSolarSystemSearch('');
     setSelectedSystemName('');
+    setShowSolarSystemDropdown(false);
+    setRegionSearch('');
     setSelectedRegionId('');
+    setSelectedRegionName('');
+    setShowRegionDropdown(false);
+    setConstellationSearch('');
     setSelectedConstellationId('');
+    setSelectedConstellationName('');
+    setShowConstellationDropdown(false);
     setSecurityFilter('all');
     onClearFilters();
   };
 
-  const handleRegionChange = (regionId: string) => {
-    setSelectedRegionId(regionId);
-    // Set region name
-    const region = regions.find((r) => r.id === parseInt(regionId));
-    setSelectedRegionName(region?.name || '');
+  const handleRegionSelect = (id: number, name: string) => {
+    setSelectedRegionId(String(id));
+    setSelectedRegionName(name);
+    setRegionSearch('');
+    setShowRegionDropdown(false);
     // Clear constellation when region changes
     if (selectedConstellationId) {
       setSelectedConstellationId('');
@@ -311,8 +335,7 @@ export default function SolarSystemFilterForm({
     setSelectedConstellationName(constellation?.name || '');
   };
 
-  // Extract regions and constellations for dropdowns
-  const regions = allRegionsData?.regions?.items || [];
+  // Extract constellations for the dropdown
   const constellations = allConstellationsData?.constellations?.items || [];
 
   return (
@@ -387,7 +410,7 @@ export default function SolarSystemFilterForm({
                   solarSystemData?.solarSystems?.items &&
                   solarSystemData.solarSystems.items.length > 0 && (
                     <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
-                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto max-h-96">
+                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto md:grid-cols-2 max-h-96">
                         {solarSystemData.solarSystems.items.map((system) => {
                           const securityClass =
                             system.security_class || 'Unknown';
@@ -413,6 +436,17 @@ export default function SolarSystemFilterForm({
                               }
                               className="menu-row group"
                             >
+                              {/* The diagram sits where the portrait does in
+                                  the pilot search. It removes itself for the
+                                  401 systems that have neither a star nor a
+                                  planet, so the row falls back to text. */}
+                              <div className="flex items-center justify-center flex-none size-16">
+                                <SolarSystemMap
+                                  systemId={system.id}
+                                  systemName={system.name}
+                                  size={64}
+                                />
+                              </div>
                               <div className="flex-auto min-w-0 text-left">
                                 <div className="flex items-center gap-2">
                                   <span className="font-semibold text-white truncate">
@@ -479,20 +513,92 @@ export default function SolarSystemFilterForm({
           </FilterField>
 
           {/* Region Filter */}
-          <FilterField label="Region" htmlFor="filter-region">
-            <Select
-              value={selectedRegionId}
-              onChange={handleRegionChange}
-              options={[
-                { value: '', label: 'All Regions' },
-                ...regions.map((region) => ({
-                  value: String(region.id),
-                  label: region.name,
-                })),
-              ]}
-              className="w-full"
-              aria-label="Region"
-            />
+          <FilterField
+            label="Region"
+            htmlFor="filter-region"
+            hint="Type at least 3 letters to search"
+          >
+            <div ref={regionDropdownRef}>
+              <div className="relative">
+                <input
+                  type="text"
+                  id="filter-region"
+                  aria-describedby="filter-region-hint"
+                  value={regionSearch}
+                  onChange={(e) => {
+                    setRegionSearch(e.target.value);
+                    setShowRegionDropdown(e.target.value.length >= 3);
+                  }}
+                  onFocus={() => {
+                    if (
+                      regionSearch.length >= 3 &&
+                      regionsData?.regions?.items?.length
+                    ) {
+                      setShowRegionDropdown(true);
+                    }
+                  }}
+                  className="input"
+                />
+                {regionLoading && regionSearch.length >= 3 && (
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <div className="w-5 h-5 border-2 border-blue-500 rounded-full animate-spin border-t-transparent" />
+                  </div>
+                )}
+
+                {/* Region Dropdown */}
+                {showRegionDropdown &&
+                  regionsData?.regions?.items &&
+                  regionsData.regions.items.length > 0 && (
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
+                      <div className="grid grid-cols-1 gap-1 p-1 overflow-y-auto md:grid-cols-2 max-h-96">
+                        {regionsData.regions.items.map((region) => (
+                          <button
+                            key={region.id}
+                            type="button"
+                            onClick={() =>
+                              handleRegionSelect(region.id, region.name)
+                            }
+                            className="menu-row group"
+                          >
+                            {/* The map sits where the portrait does in the
+                                pilot search. No tile behind it: RegionMap is
+                                transparent and takes the colour of the row it
+                                sits on, hover included. */}
+                            <div className="flex items-center justify-center flex-none size-16">
+                              <RegionMap
+                                regionId={region.id}
+                                regionName={region.name}
+                                size={64}
+                              />
+                            </div>
+                            <div className="flex-auto min-w-0 text-left">
+                              <div className="font-semibold text-white truncate">
+                                {region.name}
+                              </div>
+                              <div className="text-sm text-gray-400">
+                                {region.constellationCount} constellations ·{' '}
+                                {region.solarSystemCount} systems
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                {/* No Results */}
+                {showRegionDropdown &&
+                  debouncedRegionSearch.length >= 3 &&
+                  !regionLoading &&
+                  regionsData?.regions?.items?.length === 0 && (
+                    <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
+                      <div className="p-4 text-sm text-gray-400">
+                        No regions found for &quot;{debouncedRegionSearch}&quot;
+                      </div>
+                    </div>
+                  )}
+              </div>
+            </div>
 
             {/* Region chip */}
             {selectedRegionId && (
@@ -567,27 +673,32 @@ export default function SolarSystemFilterForm({
             )}
           </FilterField>
 
-          {/* Security Filter */}
-          <FilterField label="Security Status" htmlFor="filter-security">
-            <Select
-              value={securityFilter}
-              onChange={setSecurityFilter}
-              options={SECURITY_OPTIONS}
-              className="w-full"
-              aria-label="Security status"
-            />
-          </FilterField>
+          {/* Security and sort are both one Select wide, so they share a row
+              from sm up rather than each taking a line of their own. Below
+              that the dialog is too narrow for two and they stack. */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {/* Security Filter */}
+            <FilterField label="Security Status" htmlFor="filter-security">
+              <Select
+                value={securityFilter}
+                onChange={setSecurityFilter}
+                options={SECURITY_OPTIONS}
+                className="w-full"
+                aria-label="Security status"
+              />
+            </FilterField>
 
-          {/* Sort By */}
-          <FilterField label="Sort By" htmlFor="filter-sort">
-            <Select
-              value={orderBy}
-              onChange={onOrderByChange}
-              options={ORDER_BY_OPTIONS}
-              className="w-full"
-              aria-label="Sort solar systems"
-            />
-          </FilterField>
+            {/* Sort By */}
+            <FilterField label="Sort By" htmlFor="filter-sort">
+              <Select
+                value={orderBy}
+                onChange={onOrderByChange}
+                options={ORDER_BY_OPTIONS}
+                className="w-full"
+                aria-label="Sort solar systems"
+              />
+            </FilterField>
+          </div>
         </div>
       </FilterDialog>
     </form>
