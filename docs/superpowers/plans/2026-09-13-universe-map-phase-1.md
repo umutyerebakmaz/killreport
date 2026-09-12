@@ -3072,8 +3072,18 @@ codegen çıktısı var, ekleyip commit et.
 yarn test
 ```
 
-Beklenen: backend ve frontend ayrı ayrı PASS. Bu planın eklediği test sayısı:
-backend 16, frontend 63 (util'ler 33, katmanlar 13, bileşen 12, sayfa 5).
+Beklenen: backend ve frontend ayrı ayrı PASS.
+
+İki ayrı sayıyı karıştırmamak lazım — bu plan yazılırken bir kez karıştırıldı:
+
+|          |                           Bu planın eklediği | Suite'in tamamı |
+| -------- | -------------------------------------------: | --------------: |
+| backend  |                                           16 |             655 |
+| frontend | 63 (util 33, katman 13, bileşen 12, sayfa 5) |             342 |
+
+`yarn test`'in bastığı sayılar sağdaki kolon. Soldaki kolon yalnızca bu dalın
+neyi eklediğini söylüyor ve bir kabul kriteri değil; sağdaki sayılar
+`main`'deki 639 + 337 tabanına göre.
 
 - [ ] **Step 4: Backend derlemesi**
 
