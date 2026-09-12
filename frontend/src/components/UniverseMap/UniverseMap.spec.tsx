@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
@@ -164,5 +164,118 @@ describe('UniverseMap', () => {
       'map-gates',
       'map-systems',
     ]);
+  });
+
+  // The three below are the reason useMapCamera exists at all. #201 shipped
+  // because a page read its query string once on mount; App Router keeps a
+  // component mounted when only the query string changes, so the fix is a
+  // debounced write plus a way to tell that write apart from someone else's.
+  // Without these, an edit that compared raw objects instead of the canonical
+  // query string — or compared on every render instead of through the ref —
+  // would pass every other test in this file.
+
+  function captureViewStateChange() {
+    const { onViewStateChange } = deckProps.at(-1) as {
+      onViewStateChange: (change: {
+        viewState: { target: number[]; zoom: number };
+      }) => void;
+    };
+    return onViewStateChange;
+  }
+
+  function currentViewState() {
+    return (
+      deckProps.at(-1) as { viewState: { target: number[]; zoom: number } }
+    ).viewState;
+  }
+
+  it('writes the camera to the url once the pointer settles, not once per frame', () => {
+    render(<UniverseMap scope={MapScope.NewEden} />);
+    const onViewStateChange = captureViewStateChange();
+
+    // Fake timers go on after render: React's scheduler uses real ones to
+    // flush the first paint.
+    vi.useFakeTimers();
+    try {
+      // Two moves inside one debounce window. A real drag produces dozens.
+      act(() => {
+        onViewStateChange({
+          viewState: { target: [1e16, 2e16, 0], zoom: -45 },
+        });
+      });
+      act(() => {
+        onViewStateChange({
+          viewState: { target: [3e16, 4e16, 0], zoom: -44 },
+        });
+      });
+
+      expect(replace).not.toHaveBeenCalled();
+
+      act(() => {
+        vi.advanceTimersByTime(250);
+      });
+
+      expect(replace).toHaveBeenCalledTimes(1);
+
+      // The origin is the bounds centre [1e17, 0], so the galactic camera is
+      // the local target plus the origin — the target test's arithmetic run the
+      // other way — and only the last move survives.
+      const written = new URLSearchParams(
+        (replace.mock.calls[0][0] as string).replace(/^\?/, ''),
+      );
+      expect(written.get('scope')).toBe('NEW_EDEN');
+      expect(written.get('x')).toBe('130000000000000000');
+      expect(written.get('z')).toBe('40000000000000000');
+      expect(written.get('zoom')).toBe('-44.00');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('follows a url change that arrives after mount — the #201 regression', () => {
+    const { rerender } = render(<UniverseMap scope={MapScope.NewEden} />);
+
+    // The autofit sits on the scene centre, so the target is the origin itself.
+    expect(currentViewState().target).toEqual([0, 0, 0]);
+
+    // A nav link lands while the component stays mounted.
+    searchParams = new URLSearchParams('x=2e17&z=1e17&zoom=-40');
+    rerender(<UniverseMap scope={MapScope.NewEden} />);
+
+    const viewState = currentViewState();
+    expect(viewState.target[0]).toBeCloseTo(1e17, -14);
+    expect(viewState.target[1]).toBeCloseTo(1e17, -14);
+    expect(viewState.zoom).toBe(-40);
+  });
+
+  it('ignores the url it wrote itself, so its own echo cannot fight the pointer', () => {
+    const { rerender } = render(<UniverseMap scope={MapScope.NewEden} />);
+    const onViewStateChange = captureViewStateChange();
+
+    vi.useFakeTimers();
+    try {
+      // A zoom carrying more precision than the URL does: the write rounds it
+      // to -45.01, so adopting the echo would show up as a changed camera.
+      act(() => {
+        onViewStateChange({
+          viewState: { target: [1e16, 2e16, 0], zoom: -45.006 },
+        });
+      });
+      act(() => {
+        vi.advanceTimersByTime(250);
+      });
+      expect(replace).toHaveBeenCalledTimes(1);
+
+      const echoed = (replace.mock.calls[0][0] as string).replace(/^\?/, '');
+      expect(new URLSearchParams(echoed).get('zoom')).toBe('-45.01');
+
+      // The router echoes the write back as a fresh searchParams object.
+      searchParams = new URLSearchParams(echoed);
+      rerender(<UniverseMap scope={MapScope.NewEden} />);
+
+      expect(currentViewState().zoom).toBe(-45.006);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
