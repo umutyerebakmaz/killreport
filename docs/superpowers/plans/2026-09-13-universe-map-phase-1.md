@@ -1021,12 +1021,21 @@ Beklenen: hatasız çıkış.
 
 - [ ] **Step 7: Canlı sorguyla doğrula**
 
-```bash
-yarn dev:backend   # ayrı bir terminalde, :4000
-```
+Port sabit değil: `backend/.env`'deki `PORT`'u `src/config/config.ts` okuyor ve
+`yarn kill` aynı satıra bakıyor. Bu checkout'ta 4010. Aşağıdaki komutlar onu
+`.env`'den türetiyor — iki numaradan birini elle yazmak yanlış checkout'u vurur.
 
 ```bash
-curl -s http://localhost:4000/graphql \
+yarn dev:backend   # ayrı bir terminalde
+PORT=$(grep -m1 '^PORT=' backend/.env | cut -d= -f2)
+```
+
+Şemanın yüklenmesi için sunucunun **yeniden başlaması** şart: `loadFilesSync`
+yalnızca açılışta çalışıyor ve nodemon `src/**/*.ts` izliyor, `.graphql`
+değişikliği tek başına onu tetiklemiyor.
+
+```bash
+curl -s http://localhost:$PORT/graphql \
   -H 'Content-Type: application/json' \
   -d '{"operationName":"MapGeometry","query":"query MapGeometry($scope: MapScope!) { mapGeometry(scope: $scope) { scope bounds { minX maxX minZ maxZ } nodes { systemId name x z radius securityStatus } edges { from to } } }","variables":{"scope":"NEW_EDEN"}}' \
   | python3 -c "
@@ -1051,7 +1060,7 @@ Gövdenin gzip boyutu:
 ```bash
 curl -s -H 'Accept-Encoding: gzip' -H 'Content-Type: application/json' \
   -d '{"operationName":"MapGeometry","query":"query MapGeometry { mapGeometry(scope: NEW_EDEN) { scope bounds { minX maxX minZ maxZ } nodes { systemId name x z radius securityStatus constellationId regionId } edges { from to } } }"}' \
-  http://localhost:4000/graphql --output - | wc -c
+  "http://localhost:$PORT/graphql" --output - | wc -c
 ```
 
 Beklenen: ≤200 KB (2026-09-13 ölçümü 197 KB). Aşarsa dur ve sor.
@@ -2899,8 +2908,9 @@ Beklenen: `All matched files use Prettier code style!`
 Üç sahnenin de canlı sunucudan ölçülen sayıları döndürdüğünü son bir kez gör.
 
 ```bash
+PORT=$(grep -m1 '^PORT=' backend/.env | cut -d= -f2)
 for scope in NEW_EDEN POCHVEN WORMHOLE; do
-  curl -s http://localhost:4000/graphql -H 'Content-Type: application/json' \
+  curl -s "http://localhost:$PORT/graphql" -H 'Content-Type: application/json' \
     -d "{\"operationName\":\"MapGeometry\",\"query\":\"query MapGeometry { mapGeometry(scope: $scope) { nodes { systemId } edges { from to } } }\"}" \
     | python3 -c "
 import json,sys
