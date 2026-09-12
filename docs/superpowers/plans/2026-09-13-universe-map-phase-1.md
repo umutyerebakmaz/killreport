@@ -1407,7 +1407,7 @@ describe('the float32 budget on the real NEW_EDEN scene', () => {
     expect(float32StepMetres(4.786565e17)).toBeCloseTo(2.853015e10, -6);
   });
 
-  it('is invisible at the galaxy fit and 0.22 px at the Faz 1 ceiling', () => {
+  it('is invisible at the galaxy fit and 0.22 px at the Phase 1 ceiling', () => {
     const fit = -49.918;
     expect(float32StepPixels(4.786565e17, fit)).toBeLessThan(0.001);
     expect(float32StepPixels(4.786565e17, fit + 13)).toBeCloseTo(0.22, 2);
@@ -1415,7 +1415,7 @@ describe('the float32 budget on the real NEW_EDEN scene', () => {
 
   it('would be 598 px without the floating origin, which is the whole reason for it', () => {
     // The raw coordinate, fed straight to the GPU, at the deepest zoom the
-    // design reaches (fit + 22.8, opened in Faz 2).
+    // design reaches (fit + 22.8, opened in Phase 2).
     expect(float32StepPixels(9.57e17, -49.918 + 22.8)).toBeGreaterThan(100);
   });
 });
@@ -1428,13 +1428,13 @@ import type { MapBounds, MapNode } from '@/generated/graphql';
 
 /**
  * The floating origin. Every layer receives `object - origin`, the subtraction
- * happens here in float64, and the origin is the centre of the scene in Faz 1
- * (the focused system's centre from Faz 2 on).
+ * happens here in float64, and the origin is the centre of the scene in Phase 1
+ * (the focused system's centre from Phase 2 on).
  *
  * Why it exists, in one number: a raw galactic coordinate is ~1e18 m, float32
  * quantises it to ~6e10 m, and at the deepest zoom the design reaches that is
  * 598 px of jitter. Relative to the scene centre the same step is 2.85e10 m,
- * which is 0.22 px at the zoom Faz 1 stops at.
+ * which is 0.22 px at the zoom Phase 1 stops at.
  */
 export interface MapOrigin {
   x: number;
@@ -1645,7 +1645,7 @@ import { boundsCenter } from './origin';
 
 /**
  * The camera, in galactic metres. It is stored this way rather than relative to
- * the origin because the origin moves in Faz 2 and a URL has to keep meaning
+ * the origin because the origin moves in Phase 2 and a URL has to keep meaning
  * the same frame after it does.
  */
 export interface MapCamera {
@@ -1666,9 +1666,9 @@ export const DEFAULT_SCOPE: MapScope = MapScope.NewEden;
 export const FIT_PADDING = 0.92;
 
 /**
- * Faz 1 stops 13 levels above the fit. The design's threshold for system
+ * Phase 1 stops 13 levels above the fit. The design's threshold for system
  * interiors is fit + 13.1, so this is exactly as far as the galaxy layer alone
- * stays honest; Faz 2 raises it to fit + 22.8.
+ * stays honest; Phase 2 raises it to fit + 22.8.
  */
 export const ZOOM_ABOVE_FIT = 13;
 export const ZOOM_BELOW_FIT = 2;
@@ -2009,7 +2009,7 @@ describe('systemsLayerProps', () => {
     expect(props.updateTriggers?.getPosition).toEqual([origin.x, origin.z]);
   });
 
-  it('is not pickable yet — picking is Faz 3', () => {
+  it('is not pickable yet — picking is Phase 3', () => {
     expect(props.pickable).toBe(false);
   });
 });
@@ -2115,7 +2115,7 @@ export function systemsLayerProps({
     // keeps the metre contract visible at the layer boundary.
     radiusUnits: 'common',
     radiusMinPixels: SYSTEM_RADIUS_MIN_PIXELS,
-    // Picking, hover and the popup are Faz 3.
+    // Picking, hover and the popup are Phase 3.
     pickable: false,
     updateTriggers: { getPosition: [origin.x, origin.z] },
   };
@@ -2669,7 +2669,7 @@ describe('UniverseMap', () => {
     expect(viewState.zoom).toBe(-40);
   });
 
-  it('opens 13 zoom levels above the fit and no more, because interiors are Faz 2', () => {
+  it('opens 13 zoom levels above the fit and no more, because interiors are Phase 2', () => {
     render(<UniverseMap scope={MapScope.NewEden} />);
 
     const { viewState } = deckProps.at(-1) as {
