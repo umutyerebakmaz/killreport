@@ -1,7 +1,7 @@
 # Sürekli evren haritası — galaksiden gezegene tek sahne
 
 **Tarih:** 2026-09-12
-**Durum:** Tasarım — gözden geçirme bekliyor
+**Durum:** Onaylandı (2026-09-13) — uygulama faz faz yürüyor
 **Bağlam:** Issue #176 (#175'i kapatıp devralıyor). Bu spec #176'nın önerisini
 olduğu gibi almıyor: her sayısı 2026-09-12'de üretim veritabanında yeniden
 ölçüldü ve ölçüm dört yerde tasarımı değiştirdi. Ayrıldığımız yerler aşağıda
@@ -435,11 +435,35 @@ Tuval klavyeye açık: `tabIndex`, ok tuşlarıyla pan, `+`/`−` zoom.
 **Detay sayfalarına geçiş — #176'dan ayrılıyoruz.** Issue parallel +
 intercepting route'lar öneriyor (`@modal/(..)solar-systems/[id]`). Gerek yok,
 çünkü kamera zaten URL'de: popup'taki link normal gidiyor, geri dönüldüğünde
-`/map?scope=…&x=…&z=…&zoom=…` aynı kareyi kuruyor. Geometri Redis'te 86400 s ve
-Apollo'nun in-memory cache'inde, yani client tarafı gezinmede ağ trafiği sıfır;
-maliyet layer'ların yeniden kurulması. Intercepting route'lar ancak remount
-ölçülüp gözle görülür biçimde yavaş çıkarsa gelir — deponun hiç kullanmadığı
-iki konvansiyonu kritik yola sokmanın karşılığı yok.
+`/map?scope=…&x=…&z=…&zoom=…` aynı kareyi kuruyor. Dönüşün maliyeti bir HTTP
+turu + layer'ların yeniden kurulması; sorgu Redis'ten dönüyor, veritabanına
+gitmiyor (aşağıya bakın). Intercepting route'lar ancak remount ölçülüp gözle
+görülür biçimde yavaş çıkarsa gelir — deponun hiç kullanmadığı iki
+konvansiyonu kritik yola sokmanın karşılığı yok.
+
+**Dönüşte ne oluyor, tam olarak.** Cache bizim Redis'imiz; Apollo'nun
+in-memory cache'i bu depoda ağ trafiğini kesmiyor.
+`frontend/src/lib/apolloClient.ts:244` `watchQuery` varsayılanını
+`cache-and-network` yapıyor ve `useQuery` watchQuery'dir — cache'te veri olsa
+bile her mount'ta istek çıkar, cache yalnızca ilk kareyi anında boyar.
+`:248`'deki `query` varsayılanı ise `network-only`. Depoda hiçbir çağrı
+`fetchPolicy` override etmiyor. Yani remount'ta istek **çıkıyor**; ucuz olması
+sunucu tarafındaki iki Redis katmanı sayesinde:
+
+1. Servisin `map:geometry:{scope}` anahtarı, 86400 s.
+2. Envelop response cache (`backend/src/plugins/response-cache.plugin.ts`) —
+   resolver'a hiç girmeden tüm yanıtı döner, ama ancak operasyon
+   `PUBLIC_CACHE_QUERIES`'e (`backend/src/config/cache.ts:36`) ve TTL'i
+   `TTL_PER_SCHEMA_COORDINATE`'e (`backend/src/config/cache.ts:80`) yazılırsa.
+   Faz 1 ikisini de yapıyor: `'MapGeometry'` listeye, `'Query.mapGeometry'`
+   `CACHE_TTL.STATIC_GAME_DATA` ile tabloya. Yazılmazsa 120 s
+   `DEFAULT_PUBLIC`'e ve token başına session anahtarına düşer — statik evren
+   verisi için ikisi de yanlış.
+
+Geometri sorgusu **tek istisna olarak `fetchPolicy: 'cache-first'`** ile
+çağrılıyor, çağrı yerinde, global varsayılana dokunmadan (varsayılanı
+değiştirmek her sayfayı etkiler). Gerekçe veri: evren geometrisi statik,
+tazelenecek bir şeyi yok. Aktivite ve sov sorguları varsayılanda kalıyor.
 
 **Dışarıdan girmek.** `/map?focus=30000142` → kamera açılışta o sistemin içine
 uçuyor. Killmail, solar system sayfası ve arama sonucundan "haritada göster"
@@ -528,6 +552,9 @@ bırakıp kontur + logoya düşüyor.
 - Kapsam yüklemleri: NEW_EDEN 5.241, POCHVEN 27, WORMHOLE 2.604.
 - `mapCelestials` 16 sistemden fazlasını reddediyor (sessizce kesmiyor).
 - Payload: galaksi ≤200 KB gzip, territory ≤100 KB gzip.
+- `MapGeometry` `PUBLIC_CACHE_QUERIES`'de ve `Query.mapGeometry`
+  `TTL_PER_SCHEMA_COORDINATE`'de `STATIC_GAME_DATA` ile; geometri sorgusu çağrı
+  yerinde `cache-first`, global Apollo varsayılanları değişmemiş.
 - LOD kova sınırları ölçülen eşiklerle birebir.
 - Territory üretimi küçük bir girdide deterministik; kenar köprüleme sınırı
   uzak tutuşları birleştirmiyor.
@@ -545,12 +572,12 @@ etiket yoğunluğu.
 
 Her faz kendi PR'ı ve kendi incelemesi.
 
-| Faz | İçerik                                                                                                 | Yeni bağımlılık |
-| --- | ------------------------------------------------------------------------------------------------------ | --------------- |
-| 1   | Şema + servis + `mapGeometry`, üç sahne, deck.gl sahnesi, kayan orijin, kamera ve scope URL'de, `/map` | `deck.gl`       |
-| 2   | `mapCelestials`, sistem başına önbellek, LOD eşikleri, sistem içleri, gate uçlarının çapalanması       | —               |
-| 3   | Picking, popup, `?focus=`, klavye, mevcut sayfalardan girişler                                         | —               |
-| 4   | Base katmanlar, aktivite, sunucuda territory, sahip logoları                                           | `d3-contour`    |
+| Faz | İçerik                                                                                                                              | Yeni bağımlılık |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| 1   | Şema + servis + `mapGeometry` (response cache kaydı dâhil), üç sahne, deck.gl sahnesi, kayan orijin, kamera ve scope URL'de, `/map` | `deck.gl`       |
+| 2   | `mapCelestials`, sistem başına önbellek, LOD eşikleri, sistem içleri, gate uçlarının çapalanması                                    | —               |
+| 3   | Picking, popup, `?focus=`, klavye, mevcut sayfalardan girişler                                                                      | —               |
+| 4   | Base katmanlar, aktivite, sunucuda territory, sahip logoları                                                                        | `d3-contour`    |
 
 ## Riskler ve açık sorular
 
