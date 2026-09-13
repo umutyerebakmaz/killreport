@@ -291,3 +291,77 @@ describe('celestialsLayerProps', () => {
     ]);
   });
 });
+
+describe('edgeSegments with loaded gates', () => {
+  const gateNodes = [node(1, 1.5e17, -2.5e17), node(2, 1.6e17, -2.5e17)];
+  const gateEdges: MapEdge[] = [
+    { __typename: 'MapEdge', from: 1, to: 2 } as MapEdge,
+  ];
+  const gateOrigin = { x: 1.5e17, z: -2.5e17 };
+
+  const gateFrom1 = {
+    systemId: 1,
+    destinationSystemId: 2,
+    x: 3e10,
+    z: 0,
+  };
+  const gateFrom2 = {
+    systemId: 2,
+    destinationSystemId: 1,
+    x: -3e10,
+    z: 0,
+  };
+
+  it('leaves both ends at the system centres when no interior is loaded', () => {
+    expect(edgeSegments(gateEdges, gateNodes, gateOrigin)).toEqual([
+      { from: [0, 0], to: [1e16, 0] },
+    ]);
+  });
+
+  it('moves the loaded end onto the real stargate', () => {
+    const [segment] = edgeSegments(gateEdges, gateNodes, gateOrigin, [
+      gateFrom1,
+    ]);
+
+    expect(segment.from).toEqual([3e10, 0]);
+    // The other end is still the neighbour's centre: we do not know where its
+    // gate is until its interior is loaded, and inventing one would be worse.
+    expect(segment.to).toEqual([1e16, 0]);
+  });
+
+  it('anchors both ends once both interiors are loaded', () => {
+    const [segment] = edgeSegments(gateEdges, gateNodes, gateOrigin, [
+      gateFrom1,
+      gateFrom2,
+    ]);
+
+    expect(segment.from).toEqual([3e10, 0]);
+    expect(segment.to[0]).toBeCloseTo(1e16 - 3e10, -6);
+  });
+
+  it('ignores a gate whose destination is not the other end of this edge', () => {
+    const elsewhere = {
+      systemId: 1,
+      destinationSystemId: 999,
+      x: 9e10,
+      z: 9e10,
+    };
+
+    expect(
+      edgeSegments(gateEdges, gateNodes, gateOrigin, [elsewhere])[0].from,
+    ).toEqual([0, 0]);
+  });
+
+  it('ignores a gate with no destination rather than keying on null', () => {
+    const nowhere = {
+      systemId: 1,
+      destinationSystemId: null,
+      x: 9e10,
+      z: 9e10,
+    };
+
+    expect(
+      edgeSegments(gateEdges, gateNodes, gateOrigin, [nowhere])[0].from,
+    ).toEqual([0, 0]);
+  });
+});

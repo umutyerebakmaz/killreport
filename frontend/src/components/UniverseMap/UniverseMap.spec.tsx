@@ -25,12 +25,25 @@ type QueryResult = {
 const useMapGeometryQuery = vi.fn<() => QueryResult>();
 vi.mock('@/generated/graphql', () => ({
   MapScope: { NewEden: 'NEW_EDEN', Pochven: 'POCHVEN', Wormhole: 'WORMHOLE' },
+  MapCelestialKind: {
+    Star: 'STAR',
+    Planet: 'PLANET',
+    Moon: 'MOON',
+    Belt: 'BELT',
+    Station: 'STATION',
+    Gate: 'GATE',
+  },
   useMapGeometryQuery: (options: unknown) => {
     lastQueryOptions = options;
     return useMapGeometryQuery();
   },
+  useMapCelestialsQuery: (options: { variables: unknown; skip?: boolean }) => {
+    lastCelestialsVariables = options.skip ? undefined : options.variables;
+    return { data: { mapCelestials: [] } };
+  },
 }));
 let lastQueryOptions: unknown;
+let lastCelestialsVariables: unknown;
 
 const deckProps: Record<string, unknown>[] = [];
 vi.mock('@deck.gl/react', () => ({
@@ -71,6 +84,7 @@ beforeEach(() => {
   webgl.mockReturnValue(true);
   searchParams = new URLSearchParams('');
   deckProps.length = 0;
+  lastCelestialsVariables = undefined;
   useMapGeometryQuery.mockReturnValue({ data: GEOMETRY, loading: false });
 });
 
