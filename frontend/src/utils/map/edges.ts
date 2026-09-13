@@ -67,9 +67,12 @@ export function edgeSegments(
 /**
  * The edges of one neighbourhood, both ends inside it.
  *
- * A half-contained edge is dropped rather than drawn: the local mesh only
- * places the systems it was given, so the far end would fall at the origin —
- * the same silent [0, 0] line edgeSegments already refuses for an unknown node.
+ * A half-contained edge is dropped rather than drawn. Its far end would be
+ * placed correctly — `drawEdges` is given the whole of `geometry.nodes`, not
+ * just the neighbourhood — but at the zoom where the local mesh is on screen
+ * that end is a long way outside the viewport, so the edge reads as a line
+ * running off to nowhere. The galaxy mesh, which does show those connections,
+ * is hidden at this zoom.
  */
 export function localEdges(edges: MapEdge[], systemIds: number[]): MapEdge[] {
   const inside = new Set(systemIds);

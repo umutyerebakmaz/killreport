@@ -84,10 +84,6 @@ export function zoomToScale(zoom: number): number {
   return 2 ** zoom;
 }
 
-export function scaleToZoom(scale: number): number {
-  return Math.log2(scale);
-}
-
 /**
  * What the root container's transform must be for this camera.
  *

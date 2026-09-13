@@ -9,7 +9,6 @@ import {
   panCamera,
   parseCamera,
   parseScope,
-  scaleToZoom,
   zoomCameraAt,
   zoomLimits,
   zoomToScale,
@@ -163,11 +162,7 @@ describe('zoomToScale', () => {
   it('is deck.gl’s logarithmic zoom, so shipped URLs keep meaning', () => {
     // pixels = metres * 2 ** zoom. The URL still carries the log form.
     expect(zoomToScale(-36.18)).toBeCloseTo(2 ** -36.18, 20);
-    expect(scaleToZoom(2 ** -36.18)).toBeCloseTo(-36.18, 9);
-  });
-
-  it('round-trips', () => {
-    expect(scaleToZoom(zoomToScale(-42.5))).toBeCloseTo(-42.5, 9);
+    expect(zoomToScale(-42.5)).toBeCloseTo(2 ** -42.5, 20);
   });
 });
 
