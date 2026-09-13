@@ -2103,6 +2103,15 @@ git add frontend/src/components/UniverseMap/layers/
 git commit -m "feat(frontend): anchor loaded gate ends onto their real stargates"
 ```
 
+**Uygulamada sapma:** Task 5'in `INTERIOR_KINDS`'ı barrel üzerinden
+`MapCelestialKind`'ı **modül yüklenirken** okuyor, ve `UniverseMap.spec.tsx`
+`@/generated/graphql`'ı kısmi mock'luyor — yani Task 5, Task 7'ye kadar o
+dosyayı toplanamaz hale getiriyor. Task 7 Step 2'deki mock eklemesi (enum +
+`useMapCelestialsQuery` + `lastCelestialsVariables`) buraya, Task 6'nın
+commit'ine öne alındı; aksi halde Task 5 ve 6'nın kendi doğrulama komutu
+çalışmıyor. Ceiling testi (Task 3'ten beri kırmızı) Task 7'de değişmeye devam
+ediyor.
+
 ---
 
 ## Task 7: Tuvale bağlama
@@ -2324,7 +2333,7 @@ git commit -m "feat(frontend): stream system interiors and follow the focused or
 Faz 1'in Task 8'iyle aynı sıra ve aynı kurallar. Değişen beklentiler:
 
 - Test sayıları: Faz 1'in tabanı backend 656 / frontend 342. Bu faz backend'e
-  **15** ekliyor (`map-celestials.service`), frontend'e **47**:
+  **15** ekliyor (`map-celestials.service`), frontend'e **44**:
 
   | Dosya                  |                             Ekleniyor |
   | ---------------------- | ------------------------------------: |
@@ -2332,11 +2341,11 @@ Faz 1'in Task 8'iyle aynı sıra ve aynı kurallar. Değişen beklentiler:
   | `topology.spec.ts`     |                                     4 |
   | `origin.spec.ts`       |                                     6 |
   | `camera.spec.ts`       |           3 yeni − 1 değişen = **+2** |
-  | `layers.spec.ts`       | Task 5'ten 11 + Task 6'dan 5 = **16** |
-  | `UniverseMap.spec.tsx` |                                     6 |
-  | **toplam**             |                                **46** |
+  | `layers.spec.ts`       | Task 5'ten 10 + Task 6'dan 5 = **15** |
+  | `UniverseMap.spec.tsx` |           6 yeni − 1 değişen = **+5** |
+  | **toplam**             |                                **44** |
 
-  Beklenen: **671 / 388**.
+  Beklenen: **671 / 386**.
 
 - `lint` kabul kriteri `main`'in sayısı, **sıfır fark**.
 - `frontend build:check` çalışıyor ve `/map` rota listesinde.
