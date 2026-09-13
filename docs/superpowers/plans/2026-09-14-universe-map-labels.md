@@ -606,8 +606,9 @@ for K in REGION CONSTELLATION; do
 done
 ```
 
-Kabul: `REGION` **67**, `CONSTELLATION` **1.184'ten küçük ama yakın**
-(gate'siz sistemli takımyıldızlar düşüyor), hepsinin adı dolu. Tekrarlayan
+Kabul: `REGION` **67**, `CONSTELLATION` **763**. İkincisinin türetilişi:
+1.184 takımyıldızın tamamı bütün sahnelere ait (33 wormhole bölgesi dahil);
+NEW_EDEN bandına 796'sı giriyor, ve gate'li sistemi olan 763'ü kalıyor. Tekrarlayan
 istekte `extensions.responseCache.hit` `true` olmalı.
 
 - [ ] **Step 7: Prettier ve commit**
@@ -1774,8 +1775,9 @@ done
 ```
 
 Kabul: `REGION` **67** (70 k-space bölgesi, eksi Pochven, eksi tamamen
-gate'siz iki bölge: J7HZ-F ve A821-A), `CONSTELLATION` 1.184'e yakın ama
-altında, hepsinin adı dolu ve koordinatı sayı.
+gate'siz iki bölge: J7HZ-F ve A821-A), `CONSTELLATION` **763** (1.184'ün
+796'sı NEW_EDEN bandında, 763'ünün gate'li sistemi var), hepsinin adı dolu ve
+koordinatı sayı.
 
 - [ ] **Step 3: ASCII varsayımını doğrula**
 
