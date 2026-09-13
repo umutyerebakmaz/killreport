@@ -1439,8 +1439,8 @@ yarn workspace frontend test src/utils/map
 yarn workspace frontend typecheck
 ```
 
-Beklenen: PASS. `lod` 12, `topology` 4, `origin` 10 + 7 = 17, `camera` 16 − 1 + 3 = 18,
-`colorScales` 7 → toplam **58**.
+Beklenen: PASS. `lod` 12, `topology` 4, `origin` 10 + 6 = 16, `camera` 16 − 1 + 3 = 18,
+`colorScales` 7 → toplam **57**.
 
 - [ ] **Step 8: Prettier ve commit**
 
@@ -2330,13 +2330,13 @@ Faz 1'in Task 8'iyle aynı sıra ve aynı kurallar. Değişen beklentiler:
   | ---------------------- | ------------------------------------: |
   | `lod.spec.ts`          |                                    12 |
   | `topology.spec.ts`     |                                     4 |
-  | `origin.spec.ts`       |                                     7 |
+  | `origin.spec.ts`       |                                     6 |
   | `camera.spec.ts`       |           3 yeni − 1 değişen = **+2** |
   | `layers.spec.ts`       | Task 5'ten 11 + Task 6'dan 5 = **16** |
   | `UniverseMap.spec.tsx` |                                     6 |
-  | **toplam**             |                                **47** |
+  | **toplam**             |                                **46** |
 
-  Beklenen: **671 / 389**.
+  Beklenen: **671 / 388**.
 
 - `lint` kabul kriteri `main`'in sayısı, **sıfır fark**.
 - `frontend build:check` çalışıyor ve `/map` rota listesinde.
