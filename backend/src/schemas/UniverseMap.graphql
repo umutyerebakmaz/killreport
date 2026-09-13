@@ -46,6 +46,36 @@ type MapGeometry {
   bounds: MapBounds!
 }
 
+"Sistem içindeki çizilebilir nesnenin türü."
+enum MapCelestialKind {
+  STAR
+  PLANET
+  MOON
+  BELT
+  STATION
+  GATE
+}
+
+"""
+Sistemin içindeki tek bir nesne. Koordinat **sistemin merkezine göre**, metre,
+ve düğümlerin aksine **yuvarlanmamış**: en iç gezegenin yörüngesi 2,4145e10 m,
+1e9'luk ızgara onu %4 kaydırırdı.
+"""
+type MapCelestial {
+  id: Int!
+  systemId: Int!
+  name: String
+  kind: MapCelestialKind!
+  x: Float!
+  z: Float!
+  "ESI'nın 1 tabanlı sırası; gezegen, ay ve kuşakta dolu, diğerlerinde null."
+  orbitIndex: Int
+  "Ay ve kuşağın bağlı olduğu gezegen; diğerlerinde null."
+  planetId: Int
+  "Yalnızca GATE'te dolu: hattın öteki ucundaki sistem. Gate ucunun çapalanması buna dayanıyor."
+  destinationSystemId: Int
+}
+
 extend type Query {
   """
   Statik evren verisi. Servis Redis'te 86400 s tutuyor, ama API'den görünen
@@ -53,4 +83,11 @@ extend type Query {
   haritaya önbellek temizlenmeden gelmez.
   """
   mapGeometry(scope: MapScope! = NEW_EDEN): MapGeometry!
+
+  """
+  Verilen sistemlerin içi. En fazla **16 sistem**; fazlası reddediliyor,
+  sessizce kesilmiyor — kısaltılmış bir liste delikli bir sahne çizer.
+  Önbellek sistem başına, 86400 s.
+  """
+  mapCelestials(systemIds: [Int!]!): [MapCelestial!]!
 }

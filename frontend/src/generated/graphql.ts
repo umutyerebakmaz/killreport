@@ -708,6 +708,37 @@ export type MapBounds = {
   minZ: Scalars['Float']['output'];
 };
 
+/**
+ * Sistemin içindeki tek bir nesne. Koordinat **sistemin merkezine göre**, metre,
+ * ve düğümlerin aksine **yuvarlanmamış**: en iç gezegenin yörüngesi 2,4145e10 m,
+ * 1e9'luk ızgara onu %4 kaydırırdı.
+ */
+export type MapCelestial = {
+  __typename?: 'MapCelestial';
+  /** Yalnızca GATE'te dolu: hattın öteki ucundaki sistem. Gate ucunun çapalanması buna dayanıyor. */
+  destinationSystemId?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['Int']['output'];
+  kind: MapCelestialKind;
+  name?: Maybe<Scalars['String']['output']>;
+  /** ESI'nın 1 tabanlı sırası; gezegen, ay ve kuşakta dolu, diğerlerinde null. */
+  orbitIndex?: Maybe<Scalars['Int']['output']>;
+  /** Ay ve kuşağın bağlı olduğu gezegen; diğerlerinde null. */
+  planetId?: Maybe<Scalars['Int']['output']>;
+  systemId: Scalars['Int']['output'];
+  x: Scalars['Float']['output'];
+  z: Scalars['Float']['output'];
+};
+
+/** Sistem içindeki çizilebilir nesnenin türü. */
+export enum MapCelestialKind {
+  Belt = 'BELT',
+  Gate = 'GATE',
+  Moon = 'MOON',
+  Planet = 'PLANET',
+  Star = 'STAR',
+  Station = 'STATION'
+}
+
 /** Bir geçit çifti. Her çift bir kez, from < to. */
 export type MapEdge = {
   __typename?: 'MapEdge';
@@ -987,6 +1018,12 @@ export type Query = {
   /** Returns count of killmails grouped by date (for the current filter) */
   killmailsDateCounts: Array<KillmailDateCount>;
   /**
+   * Verilen sistemlerin içi. En fazla **16 sistem**; fazlası reddediliyor,
+   * sessizce kesilmiyor — kısaltılmış bir liste delikli bir sahne çizer.
+   * Önbellek sistem başına, 86400 s.
+   */
+  mapCelestials: Array<MapCelestial>;
+  /**
    * Statik evren verisi. Servis Redis'te 86400 s tutuyor, ama API'den görünen
    * tazelik response cache'in STATIC_GAME_DATA'sı: 365 gün. Bir evren backfill'i
    * haritaya önbellek temizlenmeden gelmez.
@@ -1264,6 +1301,11 @@ export type QueryKillmailsArgs = {
 
 export type QueryKillmailsDateCountsArgs = {
   filter?: InputMaybe<KillmailFilter>;
+};
+
+
+export type QueryMapCelestialsArgs = {
+  systemIds: Array<Scalars['Int']['input']>;
 };
 
 
