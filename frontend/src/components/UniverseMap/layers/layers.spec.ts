@@ -1,10 +1,16 @@
-import type { MapEdge, MapNode } from '@/generated/graphql';
+import { MapCelestialKind } from '@/generated/graphql';
+import type { MapCelestial, MapEdge, MapNode } from '@/generated/graphql';
 import { hexToRgba, securityColor } from '@/utils/map/colorScales';
 import { describe, expect, it } from 'vitest';
 import {
+  CELESTIAL_COLOR,
+  CELESTIAL_RADIUS_PIXELS,
+  celestialsLayerProps,
   edgeSegments,
   edgesLayerProps,
+  FINE_KINDS,
   GATE_COLOR,
+  INTERIOR_KINDS,
   systemsLayerProps,
 } from './index';
 
@@ -123,5 +129,165 @@ describe('edgesLayerProps', () => {
 
   it('is never pickable: a 0.5 px line cannot be aimed at', () => {
     expect(props.pickable).toBe(false);
+  });
+});
+
+function celestial(
+  kind: MapCelestialKind,
+  x: number,
+  z: number,
+  extra: Partial<MapCelestial> = {},
+): MapCelestial {
+  return {
+    __typename: 'MapCelestial',
+    id: 1,
+    systemId: 30000142,
+    name: 'x',
+    kind,
+    x,
+    z,
+    orbitIndex: null,
+    planetId: null,
+    destinationSystemId: null,
+    ...extra,
+  } as MapCelestial;
+}
+
+describe('celestialsLayerProps', () => {
+  // The focused system sits at 1.5e17; the origin is its centre, so its own
+  // celestials reduce to their in-system offsets.
+  const systemById = new Map([
+    [30000142, { x: 1.5e17, z: -2.5e17 }],
+    [30000144, { x: 1.6e17, z: -2.5e17 }],
+  ]);
+  const celestialOrigin = { x: 1.5e17, z: -2.5e17 };
+
+  const celestials = [
+    celestial(MapCelestialKind.Star, 0, 0),
+    celestial(MapCelestialKind.Planet, 4e10, -2e10, {
+      id: 2,
+      orbitIndex: 1,
+    }),
+    celestial(MapCelestialKind.Moon, 4.1e10, -2e10, { id: 3, planetId: 2 }),
+    celestial(MapCelestialKind.Gate, -8e10, 1e10, {
+      id: 4,
+      destinationSystemId: 30000144,
+    }),
+    celestial(MapCelestialKind.Station, 1e10, 1e10, { id: 5 }),
+    celestial(MapCelestialKind.Belt, 5e10, -2e10, { id: 6, planetId: 2 }),
+  ];
+
+  const interior = celestialsLayerProps({
+    id: 'map-celestials',
+    celestials,
+    kinds: INTERIOR_KINDS,
+    systemById,
+    origin: celestialOrigin,
+  });
+
+  it('keeps only the kinds it was asked for', () => {
+    expect((interior.data as MapCelestial[]).map((c) => c.kind)).toEqual([
+      'STAR',
+      'PLANET',
+      'GATE',
+      'STATION',
+    ]);
+  });
+
+  it('adds the system centre to the in-system offset, then subtracts the origin', () => {
+    // The focus is the origin, so its own celestials come through unchanged.
+    expect(interior.getPosition(celestials[0])).toEqual([0, 0]);
+    expect(interior.getPosition(celestials[1])).toEqual([4e10, -2e10]);
+  });
+
+  it('places a neighbour celestial one system-gap away, not at its own offset', () => {
+    const neighbourGate = celestial(MapCelestialKind.Gate, 1e10, 0, {
+      id: 9,
+      systemId: 30000144,
+      destinationSystemId: 30000142,
+    });
+    const props = celestialsLayerProps({
+      id: 'map-celestials',
+      celestials: [neighbourGate],
+      kinds: INTERIOR_KINDS,
+      systemById,
+      origin: celestialOrigin,
+    });
+
+    // 1.6e17 + 1e10 - 1.5e17
+    expect(props.getPosition(neighbourGate)[0]).toBeCloseTo(1e16 + 1e10, -6);
+  });
+
+  it('drops a celestial whose system is not in the index rather than drawing it at the origin', () => {
+    const orphan = celestial(MapCelestialKind.Planet, 1e10, 0, {
+      id: 8,
+      systemId: 99999,
+    });
+    const props = celestialsLayerProps({
+      id: 'map-celestials',
+      celestials: [orphan],
+      kinds: INTERIOR_KINDS,
+      systemById,
+      origin: celestialOrigin,
+    });
+
+    expect(props.data).toEqual([]);
+  });
+
+  it('draws marks in pixels, not world metres', () => {
+    // A world radius derived from the median orbit reads 0.23 px at the interior
+    // threshold and 753 px at the ceiling; there is no single world value that
+    // works at both ends, because a real planet is ~1e7 m and never spans a
+    // pixel. The geometry carries the scale, the marks carry the kind.
+    expect(interior.radiusUnits).toBe('pixels');
+    expect(interior.getRadius(celestials[0])).toBe(
+      CELESTIAL_RADIUS_PIXELS.STAR,
+    );
+    expect(interior.getRadius(celestials[1])).toBe(
+      CELESTIAL_RADIUS_PIXELS.PLANET,
+    );
+  });
+
+  it('orders the mark hierarchy star > planet > station = gate > moon > belt', () => {
+    const r = CELESTIAL_RADIUS_PIXELS;
+    expect(r.STAR).toBeGreaterThan(r.PLANET);
+    expect(r.PLANET).toBeGreaterThan(r.STATION);
+    expect(r.STATION).toBe(r.GATE);
+    expect(r.GATE).toBeGreaterThan(r.MOON);
+    expect(r.MOON).toBeGreaterThan(r.BELT);
+  });
+
+  it('inherits the three colours the shipped SVGs already define', () => {
+    // solar-system-map-svg.ts: UNKNOWN_STAR, UNKNOWN_PLANET.
+    // star-map-svg.ts: REGION_PALETTE.gate.
+    expect(CELESTIAL_COLOR.STAR).toEqual(hexToRgba('#FFF4EA'));
+    expect(CELESTIAL_COLOR.PLANET).toEqual(hexToRgba('#9CA3AF'));
+    expect(CELESTIAL_COLOR.GATE).toEqual(hexToRgba('#4CC94C'));
+  });
+
+  it('is not pickable yet \u2014 picking is Phase 3', () => {
+    expect(interior.pickable).toBe(false);
+  });
+
+  it('rebuilds positions when the origin moves', () => {
+    expect(interior.updateTriggers?.getPosition).toEqual([
+      celestialOrigin.x,
+      celestialOrigin.z,
+    ]);
+  });
+
+  it('builds the fine layer from moons and belts only', () => {
+    const fine = celestialsLayerProps({
+      id: 'map-celestials-fine',
+      celestials,
+      kinds: FINE_KINDS,
+      systemById,
+      origin: celestialOrigin,
+    });
+
+    expect((fine.data as MapCelestial[]).map((c) => c.kind)).toEqual([
+      'MOON',
+      'BELT',
+    ]);
   });
 });
