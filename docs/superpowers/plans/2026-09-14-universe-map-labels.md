@@ -1417,7 +1417,7 @@ zaten `stage`'in çocuklarını yok ediyor.
 ```ts
 import { LABEL_LINE_HEIGHT, type LabelCandidate } from '@/utils/map/labels';
 import type { LabelTier } from '@/utils/map/lod';
-import { BitmapFont, BitmapText } from 'pixi.js';
+import { BitmapFont, BitmapFontManager, BitmapText } from 'pixi.js';
 import type { MapScene } from './createScene';
 
 export const LABEL_FONT: Record<LabelTier, string> = {
@@ -1470,13 +1470,23 @@ export function installLabelFonts(): void {
       style: {
         fontFamily: 'Shentox, sans-serif',
         fontSize: style.fontSize,
+        // White, because dynamicFill below needs it: it is what lets a tier be
+        // tinted at runtime instead of costing another atlas.
         fill: 0xffffff,
         letterSpacing: style.letterSpacing,
       },
-      // EVE region, constellation and system names are ASCII; the atlas covers
-      // printable ASCII plus the hyphen-heavy nullsec names.
-      chars: [['a', 'z'], ['A', 'Z'], ['0', '9'], " -'."],
-      resolution: 2,
+      // The preset rather than a hand-rolled range list. Task 8 Step 3 proves
+      // every EVE name in this database is printable ASCII.
+      chars: BitmapFontManager.ASCII,
+      // Managed by the font, not the BitmapText — passing resolution to an
+      // instance is ignored and logs a warning.
+      resolution: window.devicePixelRatio || 1,
+      // Kerning metadata costs memory and install time and buys nothing at
+      // label sizes.
+      skipKerning: true,
+      // Runtime tinting without a new atlas per colour. Phase 4's colour
+      // registry will want this; enabling it now costs nothing.
+      dynamicFill: true,
     });
   }
 
@@ -1484,34 +1494,72 @@ export function installLabelFonts(): void {
 }
 
 /**
- * Writes the placed labels onto the stage.
+ * Writes the placed labels onto the stage, reusing the text objects.
  *
- * Rebuilt wholesale rather than diffed: the set changes on every camera move
- * and is capped at 300, so pooling would buy less than it costs in complexity.
- * If a profile ever says otherwise, a keyed pool goes here — `LabelCandidate.key`
- * exists for exactly that.
+ * This runs on EVERY camera change — every pointermove of a drag — so it is a
+ * pool, not a rebuild. PixiJS's own performance guidance rates destroy-and-
+ * recreate on frequently respawned objects as a high-severity mistake: it
+ * deallocates GPU resources, triggers GC and forces fresh uploads. Creating up
+ * to 300 BitmapText objects per pointer tick would be exactly that.
+ *
+ * The pool is keyed on `LabelCandidate.key` (`tier:id`), and a key's text never
+ * changes — a region is always called the same thing. So a reused entry only
+ * has its position and visibility touched, which is the cheap path BitmapText
+ * exists for.
+ *
+ * Entries that fall out of the placed set are hidden rather than destroyed:
+ * they come back as soon as the camera moves again, and a hidden Container
+ * costs nothing to skip.
  */
 export function drawLabels(scene: MapScene, placed: LabelCandidate[]): void {
-  scene.labels.removeChildren();
+  const pool = poolFor(scene);
 
   for (const candidate of placed) {
-    const style = TIER_STYLE[candidate.tier];
-    const text = new BitmapText({
-      text: style.uppercase ? candidate.name.toUpperCase() : candidate.name,
-      style: { fontFamily: LABEL_FONT[candidate.tier] },
-    });
+    let text = pool.get(candidate.key);
 
-    text.anchor.set(0.5);
-    text.alpha = style.alpha;
+    if (!text) {
+      const style = TIER_STYLE[candidate.tier];
+      text = new BitmapText({
+        text: style.uppercase ? candidate.name.toUpperCase() : candidate.name,
+        style: { fontFamily: LABEL_FONT[candidate.tier] },
+      });
+      text.anchor.set(0.5);
+      text.alpha = style.alpha;
+      pool.set(candidate.key, text);
+      scene.labels.addChild(text);
+    }
+
     // Nudged above the dot rather than centred on it, so the name does not sit
     // on the mark it belongs to.
     text.position.set(
       candidate.screenX,
       candidate.screenY - LABEL_LINE_HEIGHT[candidate.tier],
     );
-
-    scene.labels.addChild(text);
+    text.visible = true;
   }
+
+  // Everything not placed this pass goes invisible. Iterating the pool rather
+  // than diffing two sets: the pool is bounded by how many distinct labels have
+  // ever been on screen, and hiding is one property write.
+  const shown = new Set(placed.map((candidate) => candidate.key));
+  for (const [key, text] of pool) {
+    if (!shown.has(key)) text.visible = false;
+  }
+}
+
+/**
+ * One pool per scene, hung off the scene object rather than a module-level Map
+ * so a second scene — or a remount — does not inherit the first one's text.
+ */
+const POOLS = new WeakMap<MapScene, Map<string, BitmapText>>();
+
+function poolFor(scene: MapScene): Map<string, BitmapText> {
+  let pool = POOLS.get(scene);
+  if (!pool) {
+    pool = new Map();
+    POOLS.set(scene, pool);
+  }
+  return pool;
 }
 ```
 
@@ -1786,8 +1834,23 @@ Kabul: `skip` yalnızca takımyıldız sorgusunda var ve
 
 **Açık riskler:**
 
-- **Font atlası bu depoda ilk kez üretiliyor.** `chars` kümesi ASCII varsayıyor
-  ve Task 8 Step 3 bunu doğruluyor; sıfır çıkmazsa atlas genişler.
+- **Font atlası bu depoda ilk kez üretiliyor.** `BitmapFontManager.ASCII`
+  kullanılıyor ve Task 8 Step 3 bunu gerçek isimlere karşı doğruluyor; sıfır
+  çıkmazsa atlas genişler.
+
+**PixiJS'in resmi skill'lerinden gelen düzeltmeler (2026-09-14'te kuruldu):**
+
+- `chars` elle yazılmış aralık listesi yerine `BitmapFontManager.ASCII` preset'i.
+- `resolution` sabit 2 yerine `window.devicePixelRatio` — ve `BitmapText`
+  örneğine değil `BitmapFont.install`'a verilmeli, örneğe verilen yok sayılıp
+  uyarı basıyor.
+- `skipKerning: true` ve `dynamicFill: true` eklendi; ikincisi çalışma anında
+  tint'e izin veriyor ve faz 4'ün renk kaydı bunu isteyecek.
+- **`drawLabels` yeniden kurmak yerine havuz kullanıyor.** İlk taslak her kamera
+  değişiminde `removeChildren()` yapıp 300'e kadar `BitmapText` yaratıyordu;
+  PixiJS'in performans rehberi sık yaratılıp yok edilen nesnelerde bunu
+  **yüksek şiddetli** hata sayıyor. Sürükleme sırasında her `pointermove`'da
+  olacaktı.
 - **Karakter genişliği yaklaşık.** Çarpışma kutuları `LABEL_CHAR_WIDTH` ile
   hesaplanıyor, gerçek `BitmapText` genişliğiyle değil. ~%10 hata filtre için
   önemsiz; göze batarsa `scene/` ölçüp `halfWidth`'i geçirir, arayüz hazır.
