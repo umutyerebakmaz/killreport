@@ -15,8 +15,17 @@ export interface SystemSprites {
  * The position is the raw galactic metre, with no origin subtracted: Pixi
  * composes the transform in float64 and only the resulting screen coordinate
  * reaches float32.
+ *
+ * `cameraScale` is taken here rather than left to the caller's next camera
+ * pass: a sprite built at Pixi's default scale of 1 is one texture radius of
+ * *world* — 64 metres, roughly 1e-9 px at galaxy zoom — so a build that did not
+ * size what it made would be invisible until the camera happened to move.
  */
-export function buildSystems(scene: MapScene, nodes: MapNode[]): SystemSprites {
+export function buildSystems(
+  scene: MapScene,
+  nodes: MapNode[],
+  cameraScale: number,
+): SystemSprites {
   scene.systems.removeChildren();
 
   const sprites: Sprite[] = [];
@@ -32,7 +41,9 @@ export function buildSystems(scene: MapScene, nodes: MapNode[]): SystemSprites {
     scene.systems.addChild(sprite);
   }
 
-  return { sprites, radii };
+  const built = { sprites, radii };
+  scaleSystems(built, cameraScale);
+  return built;
 }
 
 /**

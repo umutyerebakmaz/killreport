@@ -31,11 +31,16 @@ export interface CelestialSprites {
  *
  * A celestial whose system is not in the index is dropped rather than drawn at
  * the origin — the same rule the gate edges follow, for the same reason.
+ *
+ * `cameraScale` is taken here for the reason `buildSystems` takes it: a sprite
+ * left at Pixi's default scale of 1 measures one texture radius in world
+ * metres, which is invisible at every zoom this map reaches.
  */
 export function buildCelestials(
   scene: MapScene,
   celestials: MapCelestial[],
   systemById: Map<number, Pick<MapNode, 'x' | 'z'>>,
+  cameraScale: number,
 ): CelestialSprites {
   scene.celestials.removeChildren();
 
@@ -94,6 +99,17 @@ export function buildCelestials(
     result.fineRadii.push(radius);
   }
 
+  // The fine container is created at the first moon or belt of a system, so any
+  // planet or station that follows would draw over it. Re-adding it once the
+  // system is complete moves it back to the end of the child list, which is the
+  // ordering deck.gl had for free: its fine layer was pushed onto the stack
+  // last and drew above every interior mark.
+  for (const [systemId, fine] of fineBySystem) {
+    const container = bySystem.get(systemId);
+    if (container) container.addChild(fine);
+  }
+
+  scaleCelestials(result, cameraScale);
   return result;
 }
 

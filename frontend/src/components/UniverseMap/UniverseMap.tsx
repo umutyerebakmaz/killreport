@@ -46,7 +46,13 @@ function MapMessage({ children }: { children: React.ReactNode }) {
 export default function UniverseMap({ scope }: { scope: MapScope }) {
   const [webgl] = useState(isWebgl2Available);
   const [size, setSize] = useState({ width: 0, height: 0 });
-  const host = useRef<HTMLDivElement>(null);
+  // The host div is held in state, not a ref, because the scene is built from
+  // it: it renders behind the loading, error and empty-scene returns below, so
+  // on a cold cache render 1 has no div at all. A ref would leave the creation
+  // effect with nothing to attach to and nothing to re-run it, and the map
+  // would stay blank for the whole visit. State makes the node's arrival a
+  // render the effect can key on.
+  const [host, setHost] = useState<HTMLDivElement | null>(null);
   // The scene is a long-lived mutable Pixi object, not render data — holding
   // it in useState and then mutating its properties (`scene.edgesGalaxy
   // .visible = ...`, below) is exactly what react-hooks' immutability rule
@@ -64,6 +70,13 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   const [canvas, setCanvas] = useState<SceneCanvas | null>(null);
   const systemSprites = useRef<SystemSprites | null>(null);
   const celestialSprites = useRef<CelestialSprites | null>(null);
+  // The camera's linear scale, mirrored into a ref so the build effects can
+  // size what they build without taking `camera` as a dependency — which would
+  // rebuild all 5,241 system sprites on every wheel tick. The counter-scale
+  // effect that writes it is declared before those builds on purpose: effects
+  // run in declaration order, so the value is already current by the time
+  // anything reads it.
+  const cameraScale = useRef(1);
 
   // Static universe data behind a 24 hour Redis key and a STATIC_GAME_DATA
   // response cache: cache-first is overridden here at the call site rather than
@@ -86,10 +99,17 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   const { camera, onCameraChange } = useMapCamera(scope, fit);
 
   const bucket = camera ? lodBucket(camera.zoom) : 'galaxy';
-  const focus =
-    geometry && camera && layerVisibility(bucket).celestials
-      ? nearestNode(geometry.nodes, camera.x, camera.z)
-      : null;
+
+  // Memoised: `nearestNode` is a linear scan of all 5,241 nodes, and without
+  // this it runs on every render — including the many that have nothing to do
+  // with where the camera is pointing.
+  const focus = useMemo(
+    () =>
+      geometry && camera && layerVisibility(bucket).celestials
+        ? nearestNode(geometry.nodes, camera.x, camera.z)
+        : null,
+    [geometry, camera, bucket],
+  );
 
   // Memoised for the same reason as `fit`: `useMapCelestials` keys its cache
   // on this array's identity, and the local-edge effect below rebuilds its
@@ -106,11 +126,11 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // The scene outlives every render; React only builds it, feeds it and tears
   // it down. Mount and unmount, once.
   useEffect(() => {
-    if (!webgl || !host.current) return;
+    if (!webgl || !host) return;
     let live = true;
     let created: MapScene | null = null;
 
-    createScene(host.current).then((built) => {
+    createScene(host).then((built) => {
       if (!live) {
         built.destroy();
         return;
@@ -134,7 +154,32 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       systemSprites.current = null;
       celestialSprites.current = null;
     };
-  }, [webgl]);
+  }, [webgl, host]);
+
+  // Camera and counter-scale. Both are declared above the build effects, so a
+  // commit that changes the camera and the data at once has `cameraScale`
+  // updated before anything is built from it.
+  //
+  // The counter-scale needs neither the scene nor the viewport — only the
+  // camera — so it is its own effect: keeping it out of the transform's
+  // dependency array is what lets `cameraScale` stay current even on the first
+  // commit, before the host has been measured.
+  useEffect(() => {
+    if (!camera) return;
+    const scale = zoomToScale(camera.zoom);
+    cameraScale.current = scale;
+    if (systemSprites.current) scaleSystems(systemSprites.current, scale);
+    if (celestialSprites.current)
+      scaleCelestials(celestialSprites.current, scale);
+  }, [camera]);
+
+  // The transform is one object write.
+  useEffect(() => {
+    if (!scene.current || !camera || !size.width) return;
+    const t = cameraTransform(camera, size.width, size.height);
+    scene.current.world.scale.set(t.scaleX, t.scaleY);
+    scene.current.world.position.set(t.x, t.y);
+  }, [sceneReady, camera, size.width, size.height]);
 
   // The galaxy: 5,241 sprites and the full 6,959-segment mesh, built once per
   // scene. The mesh is scene-centre-local, where float32's step is 0.22 px.
@@ -150,7 +195,11 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // this effect re-runs in response to the flag, the ref is never stale.
   useEffect(() => {
     if (!scene.current || !geometry) return;
-    systemSprites.current = buildSystems(scene.current, geometry.nodes);
+    systemSprites.current = buildSystems(
+      scene.current,
+      geometry.nodes,
+      cameraScale.current,
+    );
     const centre = boundsCenter(geometry.bounds);
     drawEdges(
       scene.current.edgesGalaxy,
@@ -186,22 +235,9 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       scene.current,
       celestials,
       systemById,
+      cameraScale.current,
     );
   }, [sceneReady, geometry, celestials]);
-
-  // Camera and counter-scale. The transform is one object write; the scale
-  // pass is 0.60 ms for every system.
-  useEffect(() => {
-    if (!scene.current || !camera || !size.width) return;
-    const t = cameraTransform(camera, size.width, size.height);
-    scene.current.world.scale.set(t.scaleX, t.scaleY);
-    scene.current.world.position.set(t.x, t.y);
-
-    const scale = zoomToScale(camera.zoom);
-    if (systemSprites.current) scaleSystems(systemSprites.current, scale);
-    if (celestialSprites.current)
-      scaleCelestials(celestialSprites.current, scale);
-  }, [sceneReady, camera, size.width, size.height]);
 
   useEffect(() => {
     if (!scene.current) return;
@@ -220,7 +256,11 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   const limits = fit ? zoomLimits(fit.zoom) : null;
   useMapPointer(canvas, camera, limits, onCameraChange);
 
-  const measure = useCallback((node: HTMLDivElement | null) => {
+  // Stable, so React attaches it once rather than detaching and re-attaching on
+  // every render — which with `setHost` in it would tear the scene down and
+  // rebuild it each time.
+  const attachHost = useCallback((node: HTMLDivElement | null) => {
+    setHost(node);
     if (!node) return;
     const rect = node.getBoundingClientRect();
     setSize({ width: rect.width, height: rect.height });
@@ -251,13 +291,5 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     return <MapMessage>This scene has no systems to draw.</MapMessage>;
   }
 
-  return (
-    <div
-      ref={(node) => {
-        host.current = node;
-        measure(node);
-      }}
-      className="relative w-full h-full bg-ground"
-    />
-  );
+  return <div ref={attachHost} className="relative w-full h-full bg-ground" />;
 }

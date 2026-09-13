@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const webgl = vi.fn(() => true);
@@ -29,11 +29,15 @@ vi.mock('@/generated/graphql', () => ({
   useMapCelestialsQuery: () => ({ data: { mapCelestials: [] } }),
 }));
 
-// The scene is a WebGL object; jsdom has no GPU and this layer is verified by
-// eye, not by assertion. Mocked so the component's branches can be reached.
+// The scene is a WebGL object; jsdom has no GPU and what it draws is verified
+// by eye, not by assertion. It is mocked — but mocked to a scene that actually
+// resolves, because everything the component does with it afterwards is
+// ordinary wiring, and a promise that never settled put all of it out of reach
+// of any test.
+const createScene = vi.fn<(host: HTMLElement) => Promise<FakeScene>>();
 vi.mock('./scene/createScene', () => ({
   DOT_TEXTURE_RADIUS: 32,
-  createScene: vi.fn(() => new Promise(() => {})),
+  createScene: (host: HTMLElement) => createScene(host),
 }));
 vi.mock('./scene/systems', () => ({
   buildSystems: vi.fn(),
@@ -46,12 +50,36 @@ vi.mock('./scene/celestials', () => ({
   setFineVisible: vi.fn(),
 }));
 
+/** The canvas is a real element: `useMapPointer` binds listeners to it. */
+type FakeScene = ReturnType<typeof fakeScene>;
+function fakeScene() {
+  return {
+    app: {
+      canvas: document.createElement('canvas'),
+      renderer: { width: VIEWPORT.width, height: VIEWPORT.height },
+    },
+    world: { scale: { set: vi.fn() }, position: { set: vi.fn() } },
+    edgesGalaxy: { visible: true, clear: vi.fn() },
+    edgesLocal: { visible: true, clear: vi.fn() },
+    systems: { visible: true },
+    celestials: { visible: true },
+    dot: {},
+    destroy: vi.fn(),
+  };
+}
+
+/** jsdom measures every element as 0x0, so the size comes from the renderer. */
+const VIEWPORT = { width: 1400, height: 900 };
+
 vi.mock('@/components/Loader', () => ({
   default: ({ text }: { text?: string }) => <div>{text}</div>,
 }));
 
 import { MapScope } from '@/generated/graphql';
+import { fitZoom, zoomToScale } from '@/utils/map/camera';
 import UniverseMap from './UniverseMap';
+import { buildCelestials } from './scene/celestials';
+import { buildSystems } from './scene/systems';
 
 const GEOMETRY = {
   mapGeometry: {
@@ -73,10 +101,19 @@ const GEOMETRY = {
   },
 };
 
+let scene: FakeScene;
+
 beforeEach(() => {
   webgl.mockReturnValue(true);
   useMapGeometryQuery.mockReturnValue({ data: GEOMETRY, loading: false });
+  scene = fakeScene();
+  createScene.mockResolvedValue(scene);
 });
+
+/** The camera the component autofits to, once the renderer has reported a size. */
+const FIT_SCALE = zoomToScale(
+  fitZoom(GEOMETRY.mapGeometry.bounds, VIEWPORT.width, VIEWPORT.height),
+);
 
 describe('UniverseMap', () => {
   it('says so plainly when the browser has no WebGL 2', () => {
@@ -109,5 +146,58 @@ describe('UniverseMap', () => {
     });
     render(<UniverseMap scope={MapScope.NewEden} />);
     expect(screen.getByText(/no systems to draw/)).toBeInTheDocument();
+  });
+
+  // The host div renders behind the loader, so on a cold Apollo cache it does
+  // not exist on the first render at all. A scene keyed on anything but the
+  // node itself never notices it arriving, and the map stays blank for good.
+  it('builds the scene when the host arrives on a later render', async () => {
+    useMapGeometryQuery.mockReturnValue({ loading: true });
+    const { rerender } = render(<UniverseMap scope={MapScope.NewEden} />);
+    expect(createScene).not.toHaveBeenCalled();
+
+    useMapGeometryQuery.mockReturnValue({ data: GEOMETRY, loading: false });
+    rerender(<UniverseMap scope={MapScope.NewEden} />);
+
+    await waitFor(() => expect(createScene).toHaveBeenCalledTimes(1));
+    expect(createScene).toHaveBeenCalledWith(expect.any(HTMLDivElement));
+  });
+
+  it('builds the scene exactly once across renders that change nothing', async () => {
+    const { rerender } = render(<UniverseMap scope={MapScope.NewEden} />);
+    await waitFor(() => expect(createScene).toHaveBeenCalledTimes(1));
+
+    rerender(<UniverseMap scope={MapScope.NewEden} />);
+    rerender(<UniverseMap scope={MapScope.NewEden} />);
+    expect(createScene).toHaveBeenCalledTimes(1);
+    expect(scene.destroy).not.toHaveBeenCalled();
+  });
+
+  // A sprite built at Pixi's default scale of 1 measures one texture radius in
+  // world metres and is invisible. The build has to size what it makes, rather
+  // than wait for a camera move that may not come.
+  it('hands the builders the camera scale, so nothing is built invisible', async () => {
+    render(<UniverseMap scope={MapScope.NewEden} />);
+
+    await waitFor(() => expect(buildSystems).toHaveBeenCalled());
+    expect(buildSystems).toHaveBeenLastCalledWith(
+      scene,
+      GEOMETRY.mapGeometry.nodes,
+      FIT_SCALE,
+    );
+    expect(buildCelestials).toHaveBeenLastCalledWith(
+      scene,
+      [],
+      expect.any(Map),
+      FIT_SCALE,
+    );
+  });
+
+  it('tears the scene down when the map goes away', async () => {
+    const { unmount } = render(<UniverseMap scope={MapScope.NewEden} />);
+    await waitFor(() => expect(createScene).toHaveBeenCalledTimes(1));
+
+    unmount();
+    expect(scene.destroy).toHaveBeenCalledTimes(1);
   });
 });
