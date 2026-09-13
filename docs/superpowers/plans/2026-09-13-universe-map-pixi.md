@@ -855,7 +855,7 @@ git add frontend/src/utils/map/camera.ts frontend/src/utils/map/camera.spec.ts
 git commit -m "feat(frontend): make the camera a transform pixi can apply"
 ```
 
-Beklenen: `main`'in 18 testi + bu task'ın 13'ü = **31**.
+Beklenen: `main`'in 18 testi + bu task'ın 12'si = **30**.
 
 ---
 
@@ -1086,8 +1086,10 @@ export interface MapOrigin {
 - [ ] **Step 3: `edges.spec.ts`'i yaz**
 
 `main`'deki `layers/layers.spec.ts`'in `edgeSegments` testleri (`edgeSegments`
-ve `edgeSegments with loaded gates` describe'ları, toplam 9 test) **aynen**
-buraya taşınır — import'lar `./edges`'e döner, `origin` yerel değişkenler
+describe'ı 3, `edgeSegments with loaded gates` describe'ı 5, **toplam 8 test**)
+**aynen** buraya taşınır. Task 1 o dosyayı sildiği için kaynak
+`git show main:frontend/src/components/UniverseMap/layers/layers.spec.ts`
+ile okunur — import'lar `./edges`'e döner, `origin` yerel değişkenler
 korunur. Üstüne `localEdges` için:
 
 ```ts
@@ -1121,7 +1123,8 @@ describe('localEdges', () => {
 - [ ] **Step 4: `edges.ts`'i yaz**
 
 `main`'deki `layers/edges.ts`'ten `EdgeSegment` ve `edgeSegments` **aynen**
-taşınır (doküman yorumları dahil; `LineLayerProps` importu ve
+taşınır — kaynak, Task 1 dosyayı sildiği için
+`git show main:frontend/src/components/UniverseMap/layers/edges.ts` ile okunur (doküman yorumları dahil; `LineLayerProps` importu ve
 `edgesLayerProps`, `GATE_COLOR`, `GATE_WIDTH_MIN_PIXELS` gelmez — renk
 `colors.ts`'te). Eklenen:
 
@@ -1150,7 +1153,7 @@ git commit -m "feat(frontend): narrow the floating origin to graphics vertices"
 ```
 
 Beklenen: `origin.spec.ts` **16** (16'dan silinen 1, eklenen 1),
-`edges.spec.ts` **12** (taşınan 9 + yeni 3).
+`edges.spec.ts` **11** (taşınan 8 + yeni 3).
 
 ---
 
