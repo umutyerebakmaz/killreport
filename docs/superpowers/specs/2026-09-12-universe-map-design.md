@@ -612,3 +612,36 @@ Her faz kendi PR'ı ve kendi incelemesi.
 5. **Wormhole sahnesinin anlamı** — geçitsiz bir bulut; aktivite ve sistem içi
    için değerli, topoloji için değil. Sınıf/statik bazlı alternatif bir
    yerleşim ileride ayrı iş.
+
+## Faz 1 bitti — sonraki fazın devraldıkları
+
+Faz 1 #202'de kapandı. Aşağıdakiler o fazın incelemelerinde bulunup bilerek
+ertelendi: hiçbiri Faz 1'de erişilebilir değil, ve her biri onları erişilebilir
+kılan fazın işi. Buraya yazılıyorlar ki yeniden keşfedilmek yerine devralınsınlar.
+
+1. **`useMapCamera` `scope` değişince kamerayı sıfırlamıyor.** Hook kamerayı bir
+   kez kuruyor ve sonrasında yalnızca **kamera taşıyan** bir URL'i benimsiyor
+   (`if (!fromUrl) return`). Elinde başka bir sahnenin galaktik koordinatları
+   varken `?scope=` değişirse doğru kurulmuş ama tamamen ekran dışı bir görünüm
+   çıkıyor — Pochven'in extent'i 24,5 ly, New Eden'ın 89,3. Aynı kökten ikinci
+   yüz: bekleyen 250 ms'lik timer eski `scope`'u kapatıyor, yani 250 ms içinde
+   yapılan bir geçiş eski scope'u URL'e geri yazıyor. **Faz 3'ün işi**, çünkü
+   giriş noktalarını ekleyen faz bu.
+2. **Bozuk URL kamerasından dönüş yolu yok.** `parseCamera` sonlu her sayıyı
+   kabul ediyor, yani `?x=1e300` geçerli ama boş bir kare çiziyor ve Faz 1'de
+   sıfırlama kontrolü yok. Hedefi sahne sınırlarına kelepçelemek ya da merkezden
+   birkaç span'dan uzak bir kamerayı yok saymak kapatır; Faz 3'ün kontrolleri de.
+3. **`cameraQuery` query string'i sıfırdan kuruyor**, yani `router.replace`
+   bilmediği her parametreyi düşürüyor. Dört parametreyle zararsız; Faz 2/3'ün
+   `?focus=`'u ve katman anahtarları için tuzak.
+4. **Zoom tavanı `z₀ + 12,88`, `z₀ + 13` değil.** `zoomLimits`, `FIT_PADDING`'in
+   `log2(0,92)`'sini zaten içeren `fit.zoom`'u alıyor. Faz 1'in 13,1 eşiğine
+   karşı önemsiz, ama Faz 2 tavanı +22,8'e çıkardığında aynı kayma duruyor.
+5. **Soğuk önbellekte stampede.** İki Redis katmanı da boşken N eşzamanlı
+   `/map` yüklemesi iki sorguyu da ayrı ayrı çalıştırıyor; uçuştaki isteği
+   tekilleştiren bir şey yok. Pratikte sahne başına günde bir, ve dört kardeş
+   okuma servisinin hepsi aynı şekilde — yani depo çapında bir iş.
+6. **Geniş ekranda harita ortalanıyor.** `main`'in `mx-auto max-w-480`'ini bir
+   çocuk eleman iptal edemiyor, o yüzden ~1920px üstünde harita kenardan kenara
+   değil. `main` altındaki her sayfanın mevcut davranışı; iptal etmek `fixed`
+   ya da `w-screen` gibi ayrı bir mekanizma gerektiriyor.
