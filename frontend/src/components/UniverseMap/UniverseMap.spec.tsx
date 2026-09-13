@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const webgl = vi.fn(() => true);
@@ -71,12 +71,39 @@ function fakeScene() {
 /** jsdom measures every element as 0x0, so the size comes from the renderer. */
 const VIEWPORT = { width: 1400, height: 900 };
 
+// jsdom has no ResizeObserver. vitest.setup.ts installs an inert stub for the
+// components that merely construct one; this file needs to drive it, so it
+// replaces it with a version that hands the callback back to the test.
+let observedResize: ((box: { width: number; height: number }) => void) | null =
+  null;
+class TestResizeObserver {
+  constructor(callback: ResizeObserverCallback) {
+    observedResize = (box) =>
+      callback(
+        [{ contentRect: box } as ResizeObserverEntry],
+        this as unknown as ResizeObserver,
+      );
+  }
+  observe() {}
+  unobserve() {}
+  disconnect() {
+    observedResize = null;
+  }
+}
+globalThis.ResizeObserver =
+  TestResizeObserver as unknown as typeof ResizeObserver;
+
 vi.mock('@/components/Loader', () => ({
   default: ({ text }: { text?: string }) => <div>{text}</div>,
 }));
 
 import { MapScope } from '@/generated/graphql';
-import { fitZoom, zoomToScale } from '@/utils/map/camera';
+import {
+  cameraTransform,
+  fitCamera,
+  fitZoom,
+  zoomToScale,
+} from '@/utils/map/camera';
 import UniverseMap from './UniverseMap';
 import { buildCelestials } from './scene/celestials';
 import { buildSystems } from './scene/systems';
@@ -191,6 +218,35 @@ describe('UniverseMap', () => {
       expect.any(Map),
       FIT_SCALE,
     );
+  });
+
+  // deck.gl reported its own size through `onResize`. Pixi's `resizeTo` keeps
+  // the canvas right but says nothing to React, so without an observer the
+  // camera keeps centring the viewport the map was opened at and the zoom floor
+  // stays derived from its dimensions.
+  it('follows the host when the viewport changes size', async () => {
+    render(<UniverseMap scope={MapScope.NewEden} />);
+    await waitFor(() => expect(scene.world.position.set).toHaveBeenCalled());
+
+    act(() => observedResize?.({ width: 800, height: 600 }));
+
+    const t = cameraTransform(
+      fitCamera(GEOMETRY.mapGeometry.bounds, 800, 600),
+      800,
+      600,
+    );
+    expect(scene.world.scale.set).toHaveBeenLastCalledWith(t.scaleX, t.scaleY);
+    expect(scene.world.position.set).toHaveBeenLastCalledWith(t.x, t.y);
+  });
+
+  it('ignores a zero-sized observation rather than fitting to nothing', async () => {
+    render(<UniverseMap scope={MapScope.NewEden} />);
+    await waitFor(() => expect(scene.world.position.set).toHaveBeenCalled());
+    const before = scene.world.position.set.mock.lastCall;
+
+    act(() => observedResize?.({ width: 0, height: 0 }));
+
+    expect(scene.world.position.set.mock.lastCall).toEqual(before);
   });
 
   it('tears the scene down when the map goes away', async () => {

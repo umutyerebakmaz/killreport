@@ -156,6 +156,27 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     };
   }, [webgl, host]);
 
+  // The viewport, kept in step with the host. deck.gl reported its own size
+  // through `onResize`; Pixi's `resizeTo: host` keeps the canvas itself correct
+  // but tells React nothing, and `size` is what `cameraTransform` centres on
+  // and what `fit` derives the zoom floor from — so without this the camera
+  // goes on centring the viewport the map was opened at. An observer on the
+  // host rather than a window listener, because the map sits in a flex layout
+  // whose height can change with no window resize at all.
+  useEffect(() => {
+    if (!host) return;
+    const observer = new ResizeObserver(([entry]) => {
+      const box = entry.contentRect;
+      // A hidden or detached element measures 0x0. `fitZoom` has a fallback for
+      // a non-positive span, but there is no reason to hand it one.
+      if (box.width > 0 && box.height > 0) {
+        setSize({ width: box.width, height: box.height });
+      }
+    });
+    observer.observe(host);
+    return () => observer.disconnect();
+  }, [host]);
+
   // Camera and counter-scale. Both are declared above the build effects, so a
   // commit that changes the camera and the data at once has `cameraScale`
   // updated before anything is built from it.
@@ -259,6 +280,9 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // Stable, so React attaches it once rather than detaching and re-attaching on
   // every render — which with `setHost` in it would tear the scene down and
   // rebuild it each time.
+  //
+  // The measurement here is the synchronous first one; the observer above takes
+  // over from the next change onward.
   const attachHost = useCallback((node: HTMLDivElement | null) => {
     setHost(node);
     if (!node) return;
