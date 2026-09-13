@@ -29,7 +29,7 @@ Apollo Client, Vitest 5. Backend'e dokunulmuyor.
 - **Kabul kriteri:** `/map` ekranda `main`'inkinden farklı görünmüyorsa geçiş
   doğrudur. Spec'in "Aynı görünüm tam olarak ne" tablosu bağlayıcıdır.
 - **`lint` kabul kriteri `main`'in sayısı, sıfır fark.** Bu plan yazılırken
-  `main` 229.
+  `main` 228 (2026-09-13 ölçümü).
 - Commit ve PR metinleri **İngilizce**, `type(scope):` sonrası küçük harf,
   Claude atıfsız.
 
