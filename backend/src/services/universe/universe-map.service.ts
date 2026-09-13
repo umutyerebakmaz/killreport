@@ -170,6 +170,7 @@ export async function getMapGeometry(scope: MapScope): Promise<MapGeometry> {
       WHERE ${predicate} ${gateless}
         AND s.position_x IS NOT NULL
         AND s.position_z IS NOT NULL
+        AND s.security_status IS NOT NULL
     ),
     celestial AS (
       SELECT solar_system_id, position_x AS x, position_z AS z
@@ -218,6 +219,7 @@ export async function getMapGeometry(scope: MapScope): Promise<MapGeometry> {
       WHERE ${predicate} ${gateless}
         AND s.position_x IS NOT NULL
         AND s.position_z IS NOT NULL
+        AND s.security_status IS NOT NULL
     )
     SELECT DISTINCT
       LEAST(g.solar_system_id, g.destination_system_id) AS a,
