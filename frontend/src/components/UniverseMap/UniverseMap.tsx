@@ -6,46 +6,34 @@ import {
   useMapGeometryQuery,
   type MapScope,
 } from '@/generated/graphql';
-import { fitCamera, zoomLimits, type MapCamera } from '@/utils/map/camera';
 import {
-  lodBucket,
-  showsMoonsAndBelts,
-  streamsInteriors,
-} from '@/utils/map/lod';
-import { nearestNode, originFor, toLocal } from '@/utils/map/origin';
+  cameraTransform,
+  fitCamera,
+  zoomLimits,
+  zoomToScale,
+} from '@/utils/map/camera';
+import { edgeSegments, localEdges } from '@/utils/map/edges';
+import { layerVisibility, lodBucket } from '@/utils/map/lod';
+import { boundsCenter, nearestNode, originFor } from '@/utils/map/origin';
 import { gateNeighbours } from '@/utils/map/topology';
 import { isWebgl2Available } from '@/utils/map/webgl';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  OrthographicView,
-  type Layer,
-  type OrthographicViewState,
-} from '@deck.gl/core';
-import { LineLayer, ScatterplotLayer } from '@deck.gl/layers';
-import { DeckGL } from '@deck.gl/react';
-import { useCallback, useMemo, useState } from 'react';
+  buildCelestials,
+  scaleCelestials,
+  setFineVisible,
+  type CelestialSprites,
+} from './scene/celestials';
+import { createScene, type MapScene } from './scene/createScene';
+import { drawEdges } from './scene/edges';
 import {
-  CELESTIALS_LAYER_ID,
-  celestialsLayerProps,
-  edgeSegments,
-  edgesLayerProps,
-  FINE_KINDS,
-  FINE_LAYER_ID,
-  INTERIOR_KINDS,
-  systemsLayerProps,
-} from './layers';
+  buildSystems,
+  scaleSystems,
+  type SystemSprites,
+} from './scene/systems';
 import { useMapCamera } from './useMapCamera';
 import { useMapCelestials } from './useMapCelestials';
-
-/**
- * flipY: false, so +z points up the screen. That is the orientation the region
- * and constellation SVGs already shipped with — backend/src/scripts/star-map-svg.ts
- * projects "x is screen x, -z is screen y" into an SVG whose +y runs downward —
- * and a map that disagrees with its own thumbnails is a bug nobody can name.
- *
- * The consequence is that nothing in this component negates a coordinate: world
- * y is z, everywhere, and the only transform is subtracting the origin.
- */
-const VIEW = new OrthographicView({ id: 'universe', flipY: false });
+import { useMapPointer, type SceneCanvas } from './useMapPointer';
 
 function MapMessage({ children }: { children: React.ReactNode }) {
   return (
@@ -58,129 +46,249 @@ function MapMessage({ children }: { children: React.ReactNode }) {
 export default function UniverseMap({ scope }: { scope: MapScope }) {
   const [webgl] = useState(isWebgl2Available);
   const [size, setSize] = useState({ width: 0, height: 0 });
+  // The host div is held in state, not a ref, because the scene is built from
+  // it: it renders behind the loading, error and empty-scene returns below, so
+  // on a cold cache render 1 has no div at all. A ref would leave the creation
+  // effect with nothing to attach to and nothing to re-run it, and the map
+  // would stay blank for the whole visit. State makes the node's arrival a
+  // render the effect can key on.
+  const [host, setHost] = useState<HTMLDivElement | null>(null);
+  // The scene is a long-lived mutable Pixi object, not render data — holding
+  // it in useState and then mutating its properties (`scene.edgesGalaxy
+  // .visible = ...`, below) is exactly what react-hooks' immutability rule
+  // exists to catch, and rightly flagged it. It stays a ref; `sceneReady` is
+  // the render-visible signal that stands in for "the ref now points at
+  // something", so effects can still key off it.
+  const scene = useRef<MapScene | null>(null);
+  const [sceneReady, setSceneReady] = useState(false);
+  // `useMapPointer` is called from the render body, and reading `scene
+  // .current` there — even just to hand its `.app.canvas` to a hook — is a
+  // ref access during render, which is its own lint rule. The canvas itself
+  // is a plain DOM node no code here ever assigns properties on, so holding
+  // its reference in state carries none of the mutation risk `scene` itself
+  // does.
+  const [canvas, setCanvas] = useState<SceneCanvas | null>(null);
+  const systemSprites = useRef<SystemSprites | null>(null);
+  const celestialSprites = useRef<CelestialSprites | null>(null);
+  // The camera's linear scale, mirrored into a ref so the build effects can
+  // size what they build without taking `camera` as a dependency — which would
+  // rebuild all 5,241 system sprites on every wheel tick. The counter-scale
+  // effect that writes it is declared before those builds on purpose: effects
+  // run in declaration order, so the value is already current by the time
+  // anything reads it.
+  const cameraScale = useRef(1);
 
   // Static universe data behind a 24 hour Redis key and a STATIC_GAME_DATA
-  // response cache: cache-first is the one place in this app that overrides the
-  // client's cache-and-network default, and it is overridden here at the call
-  // site rather than globally (frontend/src/lib/apolloClient.ts:244 is shared by
-  // every page).
+  // response cache: cache-first is overridden here at the call site rather than
+  // globally, because apolloClient.ts is shared by every page.
   const { data, loading, error } = useMapGeometryQuery({
     variables: { scope },
     fetchPolicy: 'cache-first',
   });
-
   const geometry = data?.mapGeometry;
 
-  const fit = useMemo<MapCamera | null>(
+  // Memoised: `useMapCamera` and the pointer hook both take this as an input,
+  // and a fresh object every render would churn both on every keystroke of an
+  // unrelated state update, not just when the geometry or viewport actually
+  // change.
+  const fit = useMemo(
     () =>
       geometry ? fitCamera(geometry.bounds, size.width, size.height) : null,
     [geometry, size.width, size.height],
   );
-
   const { camera, onCameraChange } = useMapCamera(scope, fit);
 
-  const bucket = useMemo(
-    () => (camera ? lodBucket(camera.zoom) : 'galaxy'),
-    [camera],
+  const bucket = camera ? lodBucket(camera.zoom) : 'galaxy';
+
+  // Memoised: `nearestNode` is a linear scan of all 5,241 nodes, and without
+  // this it runs on every render — including the many that have nothing to do
+  // with where the camera is pointing.
+  const focus = useMemo(
+    () =>
+      geometry && camera && layerVisibility(bucket).celestials
+        ? nearestNode(geometry.nodes, camera.x, camera.z)
+        : null,
+    [geometry, camera, bucket],
   );
 
-  // The focus only exists above the interior threshold. Below it the origin is
-  // the scene centre, and recomputing a focus on every pan would rebuild all
-  // 5,241 node attributes for nothing.
-  const focus = useMemo(() => {
-    if (!geometry || !camera || !streamsInteriors(bucket)) return null;
-    return nearestNode(geometry.nodes, camera.x, camera.z);
-  }, [geometry, camera, bucket]);
-
-  const origin = useMemo(
-    () => (geometry ? originFor(geometry.bounds, focus) : { x: 0, z: 0 }),
-    [geometry, focus],
+  // Memoised for the same reason as `fit`: `useMapCelestials` keys its cache
+  // on this array's identity, and the local-edge effect below rebuilds its
+  // mesh whenever it changes.
+  const celestialSystemIds = useMemo(
+    () =>
+      focus && geometry
+        ? [focus.systemId, ...gateNeighbours(geometry.edges, focus.systemId)]
+        : [],
+    [focus, geometry],
   );
-
-  const systemById = useMemo(
-    () => new Map((geometry?.nodes ?? []).map((node) => [node.systemId, node])),
-    [geometry],
-  );
-
-  // The focus plus its gate neighbours: at most 9 systems, measured. Asking for
-  // the neighbours is what makes panning one system along instant.
-  const celestialSystemIds = useMemo(() => {
-    if (!focus || !geometry) return [];
-    return [focus.systemId, ...gateNeighbours(geometry.edges, focus.systemId)];
-  }, [focus, geometry]);
-
   const celestials = useMapCelestials(celestialSystemIds);
 
-  const layers = useMemo(() => {
-    if (!geometry) return [];
+  // The scene outlives every render; React only builds it, feeds it and tears
+  // it down. Mount and unmount, once.
+  useEffect(() => {
+    if (!webgl || !host) return;
+    let live = true;
+    let created: MapScene | null = null;
 
+    createScene(host).then((built) => {
+      if (!live) {
+        built.destroy();
+        return;
+      }
+      created = built;
+      scene.current = built;
+      setSceneReady(true);
+      setCanvas(built.app.canvas);
+      setSize({
+        width: built.app.renderer.width,
+        height: built.app.renderer.height,
+      });
+    });
+
+    return () => {
+      live = false;
+      created?.destroy();
+      scene.current = null;
+      setSceneReady(false);
+      setCanvas(null);
+      systemSprites.current = null;
+      celestialSprites.current = null;
+    };
+  }, [webgl, host]);
+
+  // The viewport, kept in step with the host. deck.gl reported its own size
+  // through `onResize`; Pixi's `resizeTo: host` keeps the canvas itself correct
+  // but tells React nothing, and `size` is what `cameraTransform` centres on
+  // and what `fit` derives the zoom floor from — so without this the camera
+  // goes on centring the viewport the map was opened at. An observer on the
+  // host rather than a window listener, because the map sits in a flex layout
+  // whose height can change with no window resize at all.
+  useEffect(() => {
+    if (!host) return;
+    const observer = new ResizeObserver(([entry]) => {
+      const box = entry.contentRect;
+      // A hidden or detached element measures 0x0. `fitZoom` has a fallback for
+      // a non-positive span, but there is no reason to hand it one.
+      if (box.width > 0 && box.height > 0) {
+        setSize({ width: box.width, height: box.height });
+      }
+    });
+    observer.observe(host);
+    return () => observer.disconnect();
+  }, [host]);
+
+  // Camera and counter-scale. Both are declared above the build effects, so a
+  // commit that changes the camera and the data at once has `cameraScale`
+  // updated before anything is built from it.
+  //
+  // The counter-scale needs neither the scene nor the viewport — only the
+  // camera — so it is its own effect: keeping it out of the transform's
+  // dependency array is what lets `cameraScale` stay current even on the first
+  // commit, before the host has been measured.
+  useEffect(() => {
+    if (!camera) return;
+    const scale = zoomToScale(camera.zoom);
+    cameraScale.current = scale;
+    if (systemSprites.current) scaleSystems(systemSprites.current, scale);
+    if (celestialSprites.current)
+      scaleCelestials(celestialSprites.current, scale);
+  }, [camera]);
+
+  // The transform is one object write.
+  useEffect(() => {
+    if (!scene.current || !camera || !size.width) return;
+    const t = cameraTransform(camera, size.width, size.height);
+    scene.current.world.scale.set(t.scaleX, t.scaleY);
+    scene.current.world.position.set(t.x, t.y);
+  }, [sceneReady, camera, size.width, size.height]);
+
+  // The galaxy: 5,241 sprites and the full 6,959-segment mesh, built once per
+  // scene. The mesh is scene-centre-local, where float32's step is 0.22 px.
+  //
+  // `sceneReady` is in the dependency array, not `geometry` alone, because
+  // `scene` is a ref and a ref update does not trigger a re-run. With
+  // `fetchPolicy: 'cache-first'` and mapGeometry cached for 24 hours,
+  // `geometry` can already be present on the very first render of a repeat
+  // visit, before `createScene()`'s promise resolves — an effect keyed on
+  // `[geometry]` alone would run exactly once, find `scene.current === null`,
+  // and never run again: a permanently blank map. `scene.current` is always
+  // set synchronously before `setSceneReady(true)` is called, so by the time
+  // this effect re-runs in response to the flag, the ref is never stale.
+  useEffect(() => {
+    if (!scene.current || !geometry) return;
+    systemSprites.current = buildSystems(
+      scene.current,
+      geometry.nodes,
+      cameraScale.current,
+    );
+    const centre = boundsCenter(geometry.bounds);
+    drawEdges(
+      scene.current.edgesGalaxy,
+      edgeSegments(geometry.edges, geometry.nodes, centre),
+      centre,
+    );
+  }, [sceneReady, geometry]);
+
+  // The focused neighbourhood: at most 9 systems, so the mesh is small and its
+  // vertices are focus-local rather than scene-local.
+  useEffect(() => {
+    if (!scene.current || !geometry) return;
+    if (!focus) {
+      scene.current.edgesLocal.clear();
+      return;
+    }
+    const origin = originFor(geometry.bounds, focus);
+    const near = localEdges(geometry.edges, celestialSystemIds);
     const gates = celestials.filter((c) => c.kind === MapCelestialKind.Gate);
+    drawEdges(
+      scene.current.edgesLocal,
+      edgeSegments(near, geometry.nodes, origin, gates),
+      origin,
+    );
+  }, [sceneReady, geometry, focus, celestials, celestialSystemIds]);
 
-    const stack: Layer[] = [
-      new LineLayer(
-        edgesLayerProps({
-          segments: edgeSegments(geometry.edges, geometry.nodes, origin, gates),
-        }),
-      ),
-      new ScatterplotLayer(
-        systemsLayerProps({ nodes: geometry.nodes, origin }),
-      ),
-    ];
+  useEffect(() => {
+    if (!scene.current || !geometry) return;
+    const systemById = new Map(
+      geometry.nodes.map((node) => [node.systemId, node]),
+    );
+    celestialSprites.current = buildCelestials(
+      scene.current,
+      celestials,
+      systemById,
+      cameraScale.current,
+    );
+  }, [sceneReady, geometry, celestials]);
 
-    if (streamsInteriors(bucket)) {
-      stack.push(
-        new ScatterplotLayer(
-          celestialsLayerProps({
-            id: CELESTIALS_LAYER_ID,
-            celestials,
-            kinds: INTERIOR_KINDS,
-            systemById,
-            origin,
-          }),
-        ),
-      );
+  useEffect(() => {
+    if (!scene.current) return;
+    const v = layerVisibility(bucket);
+    scene.current.edgesGalaxy.visible = v.edgesGalaxy;
+    scene.current.edgesLocal.visible = v.edgesLocal;
+    scene.current.systems.visible = v.systems;
+    scene.current.celestials.visible = v.celestials;
+    if (celestialSprites.current) {
+      setFineVisible(celestialSprites.current, v.fine);
     }
+  }, [sceneReady, bucket, celestials]);
 
-    if (showsMoonsAndBelts(bucket)) {
-      stack.push(
-        new ScatterplotLayer(
-          celestialsLayerProps({
-            id: FINE_LAYER_ID,
-            celestials,
-            kinds: FINE_KINDS,
-            systemById,
-            origin,
-          }),
-        ),
-      );
-    }
+  // Pan and zoom: the listeners bind once per canvas and read the latest
+  // camera through a ref, in useMapPointer.ts — see that file for why.
+  const limits = fit ? zoomLimits(fit.zoom) : null;
+  useMapPointer(canvas, camera, limits, onCameraChange);
 
-    return stack;
-  }, [geometry, origin, celestials, bucket, systemById]);
-
-  const viewState = useMemo<OrthographicViewState | null>(() => {
-    if (!camera || !fit) return null;
-    const [x, z] = toLocal(origin, camera.x, camera.z);
-    return { target: [x, z, 0], zoom: camera.zoom, ...zoomLimits(fit.zoom) };
-  }, [camera, fit, origin]);
-
-  const measure = useCallback((node: HTMLDivElement | null) => {
+  // Stable, so React attaches it once rather than detaching and re-attaching on
+  // every render — which with `setHost` in it would tear the scene down and
+  // rebuild it each time.
+  //
+  // The measurement here is the synchronous first one; the observer above takes
+  // over from the next change onward.
+  const attachHost = useCallback((node: HTMLDivElement | null) => {
+    setHost(node);
     if (!node) return;
     const rect = node.getBoundingClientRect();
     setSize({ width: rect.width, height: rect.height });
   }, []);
-
-  const onViewStateChange = useCallback(
-    ({ viewState: next }: { viewState: OrthographicViewState }) => {
-      const target = next.target ?? [0, 0, 0];
-      onCameraChange({
-        x: target[0] + origin.x,
-        z: target[1] + origin.z,
-        zoom: typeof next.zoom === 'number' ? next.zoom : 0,
-      });
-    },
-    [onCameraChange, origin],
-  );
 
   if (!webgl) {
     return (
@@ -207,18 +315,5 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     return <MapMessage>This scene has no systems to draw.</MapMessage>;
   }
 
-  return (
-    <div ref={measure} className="relative w-full h-full bg-ground">
-      {viewState && (
-        <DeckGL
-          views={VIEW}
-          viewState={viewState}
-          onViewStateChange={onViewStateChange}
-          onResize={setSize}
-          controller
-          layers={layers}
-        />
-      )}
-    </div>
-  );
+  return <div ref={attachHost} className="relative w-full h-full bg-ground" />;
 }

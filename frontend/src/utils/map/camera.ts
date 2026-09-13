@@ -68,6 +68,96 @@ export function zoomLimits(fit: number): { minZoom: number; maxZoom: number } {
   return { minZoom: fit - ZOOM_BELOW_FIT, maxZoom: Math.max(MAX_ZOOM, fit) };
 }
 
+export interface CameraTransform {
+  scaleX: number;
+  scaleY: number;
+  x: number;
+  y: number;
+}
+
+/**
+ * The URL keeps deck.gl's logarithmic zoom so links shipped by phases 1 and 2
+ * keep meaning. Pixi's camera is a linear container scale, and this is the
+ * whole of the conversion: pixels = metres * 2 ** zoom.
+ */
+export function zoomToScale(zoom: number): number {
+  return 2 ** zoom;
+}
+
+/**
+ * What the root container's transform must be for this camera.
+ *
+ * scaleY is NEGATIVE. deck.gl expressed the orientation as flipY: false in one
+ * line; Pixi's screen y runs down and has no such flag, so the axis is flipped
+ * here instead. The region and constellation SVGs project "x is screen x, -z is
+ * screen y", and a map that disagrees with its own thumbnails is a bug nobody
+ * can name. Nothing else in the codebase may negate a coordinate.
+ */
+export function cameraTransform(
+  camera: MapCamera,
+  width: number,
+  height: number,
+): CameraTransform {
+  const scale = zoomToScale(camera.zoom);
+  return {
+    scaleX: scale,
+    scaleY: -scale,
+    x: width / 2 - camera.x * scale,
+    y: height / 2 + camera.z * scale,
+  };
+}
+
+/** A drag of the scene, in screen pixels, as a move of the camera in metres. */
+export function panCamera(
+  camera: MapCamera,
+  dxPixels: number,
+  dyPixels: number,
+): MapCamera {
+  const scale = zoomToScale(camera.zoom);
+  return {
+    x: camera.x - dxPixels / scale,
+    // Plus, not minus: the axis is flipped, so dragging down raises z.
+    z: camera.z + dyPixels / scale,
+    zoom: camera.zoom,
+  };
+}
+
+/**
+ * Zoom about a pointer, keeping the world point under it still. Clamped first,
+ * so a wheel spun past the ceiling does not drag the view sideways while the
+ * zoom refuses to move.
+ */
+export function zoomCameraAt(
+  camera: MapCamera,
+  deltaZoom: number,
+  pointerX: number,
+  pointerY: number,
+  width: number,
+  height: number,
+  limits: { minZoom: number; maxZoom: number },
+): MapCamera {
+  const zoom = Math.min(
+    limits.maxZoom,
+    Math.max(limits.minZoom, camera.zoom + deltaZoom),
+  );
+  if (zoom === camera.zoom) return camera;
+
+  const before = zoomToScale(camera.zoom);
+  const after = zoomToScale(zoom);
+  const offsetX = pointerX - width / 2;
+  const offsetY = pointerY - height / 2;
+
+  // The world point under the pointer, before and after, set equal.
+  const worldX = camera.x + offsetX / before;
+  const worldZ = camera.z - offsetY / before;
+
+  return {
+    x: worldX - offsetX / after,
+    z: worldZ + offsetY / after,
+    zoom,
+  };
+}
+
 export function parseScope(params: URLSearchParams): MapScope {
   const raw = params.get('scope');
   return MAP_SCOPES.includes(raw as MapScope)

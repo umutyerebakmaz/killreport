@@ -1,17 +1,5 @@
 import type { MapCelestial, MapEdge, MapNode } from '@/generated/graphql';
-import { hexToRgba, type Rgba } from '@/utils/map/colorScales';
 import { toLocal, type MapOrigin } from '@/utils/map/origin';
-import type { LineLayerProps } from '@deck.gl/layers';
-
-export const EDGES_LAYER_ID = 'map-gates';
-export const GATE_WIDTH_MIN_PIXELS = 0.5;
-
-/**
- * #94A3B8 at 0.55 alpha — the same line the shipped region SVGs use for an
- * internal jump (backend/src/scripts/star-map-svg.ts, REGION_PALETTE.jump). At
- * galaxy zoom 6.959 of these read as texture, which is the point.
- */
-export const GATE_COLOR: Rgba = hexToRgba('#94A3B8', 140);
 
 export interface EdgeSegment {
   from: [number, number];
@@ -76,27 +64,17 @@ export function edgeSegments(
   return segments;
 }
 
-/** Narrowed for the same reason as SystemsLayerProps: callable from a test. */
-export interface EdgesLayerProps extends LineLayerProps<EdgeSegment> {
-  id: string;
-  getSourcePosition: (segment: EdgeSegment) => [number, number];
-  getTargetPosition: (segment: EdgeSegment) => [number, number];
-}
-
-export function edgesLayerProps({
-  segments,
-}: {
-  segments: EdgeSegment[];
-}): EdgesLayerProps {
-  return {
-    id: EDGES_LAYER_ID,
-    data: segments,
-    getSourcePosition: (segment: EdgeSegment) => segment.from,
-    getTargetPosition: (segment: EdgeSegment) => segment.to,
-    getColor: GATE_COLOR,
-    getWidth: 1,
-    widthUnits: 'pixels',
-    widthMinPixels: GATE_WIDTH_MIN_PIXELS,
-    pickable: false,
-  };
+/**
+ * The edges of one neighbourhood, both ends inside it.
+ *
+ * A half-contained edge is dropped rather than drawn. Its far end would be
+ * placed correctly — `drawEdges` is given the whole of `geometry.nodes`, not
+ * just the neighbourhood — but at the zoom where the local mesh is on screen
+ * that end is a long way outside the viewport, so the edge reads as a line
+ * running off to nowhere. The galaxy mesh, which does show those connections,
+ * is hidden at this zoom.
+ */
+export function localEdges(edges: MapEdge[], systemIds: number[]): MapEdge[] {
+  const inside = new Set(systemIds);
+  return edges.filter((edge) => inside.has(edge.from) && inside.has(edge.to));
 }
