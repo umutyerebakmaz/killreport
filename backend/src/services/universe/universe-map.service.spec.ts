@@ -186,6 +186,23 @@ describe('getMapGeometry', () => {
     expect(edgeSql).toContain('c.region_id <> 10000070');
   });
 
+  it('guards every nullable column the schema declares non-null, in both CTEs', async () => {
+    // position_x, position_z and security_status are all Float? in Prisma and
+    // Float! in the schema. TRUNC(NULL::numeric, 2) is NULL, so one unguarded
+    // null would fail MapGeometry! and — because setex runs before GraphQL
+    // serialisation — sit in the cache for a day. Both CTEs need all three or
+    // they select different system sets, and then an edge can name a system the
+    // node list dropped.
+    await getMapGeometry('NEW_EDEN');
+
+    for (const call of [0, 1]) {
+      const sql = querySql(call);
+      expect(sql).toContain('AND s.position_x IS NOT NULL');
+      expect(sql).toContain('AND s.position_z IS NOT NULL');
+      expect(sql).toContain('AND s.security_status IS NOT NULL');
+    }
+  });
+
   it('derives bounds from the nodes it returns', async () => {
     prisma.$queryRaw
       .mockResolvedValueOnce([
