@@ -1,0 +1,56 @@
+# Faz 1: galaksi katmanı. mapCelestials, mapActivity ve mapSovereignty
+# sırasıyla faz 2 ve faz 4'te bu dosyaya ekleniyor.
+#
+# Tüm koordinatlar METRE. Işık yılına çeviri yalnızca gösterim kenarında
+# (ölçek çubuğu) yapılıyor; ara birim yok.
+
+"Çizilebilir bir sahne. Abyssal, Proving ve GPMR-01 burada yok: içlerinde sıfır gezegen, ay ve istasyon var."
+enum MapScope {
+  NEW_EDEN
+  POCHVEN
+  WORMHOLE
+}
+
+"Bir sistem, galaktik konumunda. Koordinatlar 1e9 m'ye yuvarlanmış ve asla ham GPU'ya gitmez."
+type MapNode {
+  systemId: Int!
+  name: String!
+  x: Float!
+  z: Float!
+  "x/z düzlemindeki en uzak celestial'a mesafe, metre. Nokta bu yarıçapta diske dönüşüyor."
+  radius: Float!
+  "İki ondalığa KESİLMİŞ, yuvarlanmamış: yuvarlama 14 sistemi highsec'e taşıyor."
+  securityStatus: Float!
+  constellationId: Int!
+  regionId: Int!
+}
+
+"Bir geçit çifti. Her çift bir kez, from < to."
+type MapEdge {
+  from: Int!
+  to: Int!
+}
+
+"Sahnedeki düğümlerin sınırları, metre. Kameranın autofit'i buradan geliyor."
+type MapBounds {
+  minX: Float!
+  maxX: Float!
+  minZ: Float!
+  maxZ: Float!
+}
+
+type MapGeometry {
+  scope: MapScope!
+  nodes: [MapNode!]!
+  edges: [MapEdge!]!
+  bounds: MapBounds!
+}
+
+extend type Query {
+  """
+  Statik evren verisi. Servis Redis'te 86400 s tutuyor, ama API'den görünen
+  tazelik response cache'in STATIC_GAME_DATA'sı: 365 gün. Bir evren backfill'i
+  haritaya önbellek temizlenmeden gelmez.
+  """
+  mapGeometry(scope: MapScope! = NEW_EDEN): MapGeometry!
+}

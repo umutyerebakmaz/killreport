@@ -31,3 +31,8 @@ frontend/next-env.d.ts
 # verification build does not fight the dev server. Same generated output, so
 # it is ignored the same way.
 frontend/.next-check
+
+# The subagent-driven-development workspace: git-ignored scratch (ledger,
+# briefs, reports, review packages). CI never checks this out; a local
+# `prettier --check .` would otherwise fail on notes that never ship.
+.superpowers

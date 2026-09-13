@@ -1,0 +1,61 @@
+import type { MapBounds, MapNode } from '@/generated/graphql';
+
+/**
+ * The floating origin. Every layer receives `object - origin`, the subtraction
+ * happens here in float64, and the origin is the centre of the scene in Phase 1
+ * (the focused system's centre from Phase 2 on).
+ *
+ * Why it exists, in one number: a raw galactic coordinate is ~1e18 m, float32
+ * quantises it to ~6e10 m, and at the deepest zoom the design reaches that is
+ * 598 px of jitter. Relative to the scene centre the same step is 2.85e10 m,
+ * which is 0.22 px at the zoom Phase 1 stops at.
+ */
+export interface MapOrigin {
+  x: number;
+  z: number;
+}
+
+/** float32 keeps 24 significand bits, so this is its relative resolution. */
+export const FLOAT32_RELATIVE_STEP = 2 ** -24;
+
+export function boundsCenter(bounds: MapBounds): MapOrigin {
+  return {
+    x: (bounds.minX + bounds.maxX) / 2,
+    z: (bounds.minZ + bounds.maxZ) / 2,
+  };
+}
+
+export function toLocal(
+  origin: MapOrigin,
+  x: number,
+  z: number,
+): [number, number] {
+  return [x - origin.x, z - origin.z];
+}
+
+/** The accessor every layer hands to deck.gl. Nothing else may build positions. */
+export function nodePosition(origin: MapOrigin) {
+  return (node: Pick<MapNode, 'x' | 'z'>): [number, number] =>
+    toLocal(origin, node.x, node.z);
+}
+
+export function maxLocalMagnitude(
+  origin: MapOrigin,
+  nodes: Pick<MapNode, 'x' | 'z'>[],
+): number {
+  let max = 0;
+  for (const node of nodes) {
+    const [x, z] = toLocal(origin, node.x, node.z);
+    max = Math.max(max, Math.abs(x), Math.abs(z));
+  }
+  return max;
+}
+
+export function float32StepMetres(magnitude: number): number {
+  return magnitude * FLOAT32_RELATIVE_STEP;
+}
+
+/** deck.gl's orthographic zoom is logarithmic: pixels = metres * 2 ** zoom. */
+export function float32StepPixels(magnitude: number, zoom: number): number {
+  return float32StepMetres(magnitude) * 2 ** zoom;
+}
