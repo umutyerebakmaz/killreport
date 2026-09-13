@@ -214,7 +214,10 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
 yarn workspace frontend typecheck
 yarn workspace frontend test
 npx prettier --check frontend/src/components/UniverseMap frontend/src/app/map
-git add -A frontend
+# yarn.lock lives at the repo root, so `-A frontend` would silently miss the
+# dependency swap and leave a lockfile matching no package.json.
+git add frontend yarn.lock
+git status --short   # must be empty afterwards
 git commit -m "chore(frontend): remove deck.gl and stand pixi.js up in its place"
 ```
 
