@@ -1,4 +1,4 @@
-import type { MapEdge, MapNode } from '@/generated/graphql';
+import type { MapCelestial, MapEdge, MapNode } from '@/generated/graphql';
 import { hexToRgba, type Rgba } from '@/utils/map/colorScales';
 import { toLocal, type MapOrigin } from '@/utils/map/origin';
 import type { LineLayerProps } from '@deck.gl/layers';
@@ -21,17 +21,45 @@ export interface EdgeSegment {
 /**
  * Resolves each pair's endpoints once, in float64, into origin-local metres.
  *
+ * At galaxy zoom both ends are system centres. Once a system's interior is
+ * loaded, the end at that system moves onto the **real stargate** heading for
+ * the other one — the signature moment of this phase, and the reason
+ * `stargates.destination_system_id` is worth carrying all the way to the
+ * layer. The mapping is unambiguous by measurement: across 13,978
+ * (system, destination) pairs, no system has two gates to the same neighbour.
+ *
+ * A half-anchored line is correct, not a bug. If the neighbour's interior is
+ * not loaded we do not know where its gate is, and its centre is the honest
+ * answer.
+ *
  * An edge naming a system that is not in the node list is dropped rather than
- * drawn. The service guarantees this cannot happen — both endpoints go through
- * the same scope predicate — but a silent line to [0, 0] would be the worst
- * possible symptom if that guarantee ever broke.
+ * drawn. The service guarantees that cannot happen, but a silent line to
+ * [0, 0] would be the worst possible symptom if the guarantee ever broke.
  */
 export function edgeSegments(
   edges: MapEdge[],
   nodes: MapNode[],
   origin: MapOrigin,
+  gates: Pick<
+    MapCelestial,
+    'systemId' | 'destinationSystemId' | 'x' | 'z'
+  >[] = [],
 ): EdgeSegment[] {
   const byId = new Map(nodes.map((node) => [node.systemId, node]));
+
+  const gateBetween = new Map<string, (typeof gates)[number]>();
+  for (const gate of gates) {
+    if (gate.destinationSystemId === null) continue;
+    gateBetween.set(`${gate.systemId}->${gate.destinationSystemId}`, gate);
+  }
+
+  const endpoint = (system: MapNode, towards: number): [number, number] => {
+    const gate = gateBetween.get(`${system.systemId}->${towards}`);
+    return gate
+      ? toLocal(origin, system.x + gate.x, system.z + gate.z)
+      : toLocal(origin, system.x, system.z);
+  };
+
   const segments: EdgeSegment[] = [];
 
   for (const edge of edges) {
@@ -40,8 +68,8 @@ export function edgeSegments(
     if (!from || !to) continue;
 
     segments.push({
-      from: toLocal(origin, from.x, from.z),
-      to: toLocal(origin, to.x, to.z),
+      from: endpoint(from, edge.to),
+      to: endpoint(to, edge.from),
     });
   }
 
