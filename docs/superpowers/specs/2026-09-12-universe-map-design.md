@@ -72,17 +72,21 @@ kenarının tamamı kendi içinde — kapalı bir bileşen, dışarı çıkan te
 
 ### Payload
 
-|                                                |     ham |       gzip |
-| ---------------------------------------------- | ------: | ---------: |
-| Düğümler (5.241)                               | 1,03 MB |     229 KB |
-| Düğümler, 1e9 m yuvarlamayla                   | 1,01 MB |     159 KB |
-| Kenarlar (6.959)                               |  264 KB |  **39 KB** |
-| **`mapGeometry(NEW_EDEN)` gövdesi, tam yükle** | 1,28 MB | **197 KB** |
+|                                                   |     ham |       gzip |
+| ------------------------------------------------- | ------: | ---------: |
+| Düğümler (5.241)                                  | 1,03 MB |     229 KB |
+| Düğümler, 1e9 m yuvarlamayla                      | 1,01 MB |     159 KB |
+| Kenarlar (6.959)                                  |  264 KB |  **39 KB** |
+| Düğümler + kenarlar, iki ayrı JSON belgesi olarak | 1,28 MB |     197 KB |
+| **`mapGeometry(NEW_EDEN)` yanıt gövdesi**         | 1,10 MB | **175 KB** |
 
 2026-09-13'te yeniden ölçüldü ve bir madde değişti. İlk ölçümün 142 KB'si
 düğümleri gigametre tamsayısı olarak sayıyordu; metre sözleşmesiyle gerçek
 sayı 159 KB, kenarlarla birlikte **206 KB** — yani 200 KB bütçesi kendi
-tasarımıyla aşılıyordu. Açığı kapatan tek değişiklik `securityStatus`'un iki
+tasarımıyla aşılıyordu. (Son iki satırın ayrı olması önemli: 197 KB'lik ölçüm
+düğümleri ve kenarları iki ayrı JSON belgesi olarak sıkıştırıyordu; tek bir
+GraphQL yanıt gövdesi daha iyi sıkışıyor ve gerçek sayı **175 KB**. Bütçenin
+payı iddia edilenden fazla, az değil.) Açığı kapatan tek değişiklik `securityStatus`'un iki
 ondalığa indirilmesi (197 KB), ve bunun **yuvarlamayla değil kesmeyle**
 yapılması gerekiyor: `ROUND(security_status, 2)` gerçek değeri 0,495–0,5
 arasında olan **14 sistemi** 0,50'ye taşıyor ve

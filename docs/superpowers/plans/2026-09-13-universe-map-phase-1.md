@@ -84,8 +84,10 @@ yeniden ölçüldü ve spec'le birebir uyuştu.
 - Sistem yarıçapı (x/z düzleminde en uzak celestial): medyan **3,8809e12 m**,
   maks **3,0384e13 m**. NEW_EDEN'daki 5.241 sistemin **hepsinde** celestial
   var, yani `radius` hiçbir düğümde 0 değil.
-- Payload, `mapGeometry(NEW_EDEN)` gövdesi: ham 1,28 MB, **gzip 197 KB**
-  (düğümler 159 KB + kenarlar 39 KB). Bütçe ≤200 KB.
+- Payload, `mapGeometry(NEW_EDEN)` yanıt gövdesi: ham 1,10 MB, **gzip 175 KB**
+  (seviye 9; seviye 6'da 185 KB). Bütçe ≤200 KB. Spec'in 197 KB'si düğümleri ve
+  kenarları iki ayrı JSON belgesi olarak sıkıştırıyordu — tek gövde daha iyi
+  sıkışıyor, yani pay iddia edilenden fazla.
 - Sorgu süreleri (soğuk önbellek, üretim veritabanı): düğümler **111–123 ms**,
   kenarlar **9 ms**. Günde bir kez, sahne başına.
 - **Wormhole koordinatları New Eden'ınkinden bir büyüklük mertebesi büyük:**
@@ -521,8 +523,8 @@ Beklenen: `Failed to resolve import "./universe-map.service"`.
  * galactic coordinates; turning them into something a GPU can hold is the
  * frontend's floating-origin job (`frontend/src/utils/map/origin.ts`).
  *
- * Measured 2026-09-13 against production: NEW_EDEN 5.241 nodes / 6.959 edges
- * in 111-123 ms + 9 ms, POCHVEN 27 / 30, WORMHOLE 2.604 / 0. Behind a 24 hour
+ * Measured 2026-09-13 against production: NEW_EDEN 5,241 nodes / 6,959 edges
+ * in 111-123 ms + 9 ms, POCHVEN 27 / 30, WORMHOLE 2,604 / 0. Behind a 24 hour
  * Redis key, so those queries run once a day per scope.
  */
 
@@ -686,6 +688,7 @@ export async function getMapGeometry(scope: MapScope): Promise<MapGeometry> {
       WHERE ${predicate} ${gateless}
         AND s.position_x IS NOT NULL
         AND s.position_z IS NOT NULL
+        AND s.security_status IS NOT NULL
     ),
     celestial AS (
       SELECT solar_system_id, position_x AS x, position_z AS z
@@ -734,6 +737,7 @@ export async function getMapGeometry(scope: MapScope): Promise<MapGeometry> {
       WHERE ${predicate} ${gateless}
         AND s.position_x IS NOT NULL
         AND s.position_z IS NOT NULL
+        AND s.security_status IS NOT NULL
     )
     SELECT DISTINCT
       LEAST(g.solar_system_id, g.destination_system_id) AS a,
@@ -933,7 +937,11 @@ type MapGeometry {
 }
 
 extend type Query {
-  "Statik evren verisi; Redis'te 86400 s, response cache'te STATIC_GAME_DATA."
+  """
+  Statik evren verisi. Servis Redis'te 86400 s tutuyor, ama API'den görünen
+  tazelik response cache'in STATIC_GAME_DATA'sı: 365 gün. Bir evren backfill'i
+  haritaya önbellek temizlenmeden gelmez.
+  """
   mapGeometry(scope: MapScope! = NEW_EDEN): MapGeometry!
 }
 ```
@@ -2860,10 +2868,11 @@ import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
- * The UNIVERSE nav menu links straight into this page with the scene already
- * chosen — /map?scope=POCHVEN. App Router keeps the same component mounted when
- * only the query string changes, so the scope has to be derived on every render
- * rather than seeded on mount; #201 was exactly this bug on the killmails page.
+ * A link can arrive with the scene already chosen — /map?scope=POCHVEN, pasted
+ * or shared. App Router keeps the same component mounted when only the query
+ * string changes, so the scope has to be derived on every render rather than
+ * seeded on mount; #201 was exactly this bug on the killmails page. (Phase 1
+ * ships no scope switcher, so the nav links to a bare /map.)
  */
 
 let searchParams = new URLSearchParams('');
@@ -3008,7 +3017,7 @@ başına** (haritanın kapsayıcı olması, listedeki en genel giriş olduğu i�
 <NavPopoverLink
   href="/map"
   label="MAP"
-  description="The whole of New Eden in one continuous zoom, with Pochven and wormhole space"
+  description="Every gate-connected system in New Eden, in one continuous zoom"
 />
 ```
 
