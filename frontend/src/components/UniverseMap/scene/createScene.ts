@@ -24,7 +24,11 @@ export interface MapScene {
  */
 export async function createScene(host: HTMLElement): Promise<MapScene> {
   const app = new Application();
-  await app.init({ background: 0x0b0d10, resizeTo: host, antialias: true });
+  // `backgroundAlpha: 0` rather than a colour: the host div already carries
+  // `bg-ground`, and the canvas covers it. Painting the canvas would restate
+  // that colour in a second place, where it can only drift from the
+  // `--color-ground` token the rest of the page is built on.
+  await app.init({ backgroundAlpha: 0, resizeTo: host, antialias: true });
   host.appendChild(app.canvas);
 
   const world = new Container();
@@ -36,9 +40,21 @@ export async function createScene(host: HTMLElement): Promise<MapScene> {
   const celestials = new Container();
   world.addChild(edgesGalaxy, edgesLocal, systems, celestials);
 
-  const dot = app.renderer.generateTexture(
-    new Graphics().circle(0, 0, DOT_TEXTURE_RADIUS).fill(0xffffff),
-  );
+  // A 64 px disc minified to the 1.5 px floor is a 21x reduction, and a single
+  // mip level sampled that far down is what aliasing looks like: deck.gl's
+  // ScatterplotLayer drew the disc analytically and never had the problem.
+  // `autoGenerateMipmaps` gives the reduction a filtered chain to sample from,
+  // and `antialias` smooths the source disc's own edge, which matters at the
+  // other end of the range where a system spans hundreds of pixels.
+  const source = new Graphics().circle(0, 0, DOT_TEXTURE_RADIUS).fill(0xffffff);
+  const dot = app.renderer.generateTexture({
+    target: source,
+    antialias: true,
+    textureSourceOptions: { autoGenerateMipmaps: true },
+  });
+  // Scratch geometry: the texture is rasterised from it once and nothing holds
+  // a reference afterwards.
+  source.destroy(true);
 
   return {
     app,
