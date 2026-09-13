@@ -699,6 +699,52 @@ export enum LeaderboardPeriod {
   Week = 'WEEK'
 }
 
+/** Sahnedeki düğümlerin sınırları, metre. Kameranın autofit'i buradan geliyor. */
+export type MapBounds = {
+  __typename?: 'MapBounds';
+  maxX: Scalars['Float']['output'];
+  maxZ: Scalars['Float']['output'];
+  minX: Scalars['Float']['output'];
+  minZ: Scalars['Float']['output'];
+};
+
+/** Bir geçit çifti. Her çift bir kez, from < to. */
+export type MapEdge = {
+  __typename?: 'MapEdge';
+  from: Scalars['Int']['output'];
+  to: Scalars['Int']['output'];
+};
+
+export type MapGeometry = {
+  __typename?: 'MapGeometry';
+  bounds: MapBounds;
+  edges: Array<MapEdge>;
+  nodes: Array<MapNode>;
+  scope: MapScope;
+};
+
+/** Bir sistem, galaktik konumunda. Koordinatlar 1e9 m'ye yuvarlanmış ve asla ham GPU'ya gitmez. */
+export type MapNode = {
+  __typename?: 'MapNode';
+  constellationId: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  /** x/z düzlemindeki en uzak celestial'a mesafe, metre. Nokta bu yarıçapta diske dönüşüyor. */
+  radius: Scalars['Float']['output'];
+  regionId: Scalars['Int']['output'];
+  /** İki ondalığa KESİLMİŞ, yuvarlanmamış: yuvarlama 14 sistemi highsec'e taşıyor. */
+  securityStatus: Scalars['Float']['output'];
+  systemId: Scalars['Int']['output'];
+  x: Scalars['Float']['output'];
+  z: Scalars['Float']['output'];
+};
+
+/** Çizilebilir bir sahne. Abyssal, Proving ve GPMR-01 burada yok: içlerinde sıfır gezegen, ay ve istasyon var. */
+export enum MapScope {
+  NewEden = 'NEW_EDEN',
+  Pochven = 'POCHVEN',
+  Wormhole = 'WORMHOLE'
+}
+
 export type Moon = {
   __typename?: 'Moon';
   id: Scalars['Int']['output'];
@@ -940,6 +986,12 @@ export type Query = {
   killmails: KillmailsResponse;
   /** Returns count of killmails grouped by date (for the current filter) */
   killmailsDateCounts: Array<KillmailDateCount>;
+  /**
+   * Statik evren verisi. Servis Redis'te 86400 s tutuyor, ama API'den görünen
+   * tazelik response cache'in STATIC_GAME_DATA'sı: 365 gün. Bir evren backfill'i
+   * haritaya önbellek temizlenmeden gelmez.
+   */
+  mapGeometry: MapGeometry;
   /** Mevcut authenticated kullanıcının bilgilerini döner */
   me?: Maybe<User>;
   /** Alliances ranked by campaigns currently attacking (most aggressive first). */
@@ -1212,6 +1264,11 @@ export type QueryKillmailsArgs = {
 
 export type QueryKillmailsDateCountsArgs = {
   filter?: InputMaybe<KillmailFilter>;
+};
+
+
+export type QueryMapGeometryArgs = {
+  scope?: MapScope;
 };
 
 
@@ -2391,6 +2448,13 @@ export type KillmailsDateCountsQueryVariables = Exact<{
 
 
 export type KillmailsDateCountsQuery = { __typename?: 'Query', killmailsDateCounts: Array<{ __typename?: 'KillmailDateCount', date: string, count: number }> };
+
+export type MapGeometryQueryVariables = Exact<{
+  scope: MapScope;
+}>;
+
+
+export type MapGeometryQuery = { __typename?: 'Query', mapGeometry: { __typename?: 'MapGeometry', scope: MapScope, bounds: { __typename?: 'MapBounds', minX: number, maxX: number, minZ: number, maxZ: number }, nodes: Array<{ __typename?: 'MapNode', systemId: number, name: string, x: number, z: number, radius: number, securityStatus: number, constellationId: number, regionId: number }>, edges: Array<{ __typename?: 'MapEdge', from: number, to: number }> } };
 
 export type MostValuableKillmailsQueryVariables = Exact<{
   scope: MostValuableScope;
@@ -5532,6 +5596,69 @@ export type KillmailsDateCountsQueryHookResult = ReturnType<typeof useKillmailsD
 export type KillmailsDateCountsLazyQueryHookResult = ReturnType<typeof useKillmailsDateCountsLazyQuery>;
 export type KillmailsDateCountsSuspenseQueryHookResult = ReturnType<typeof useKillmailsDateCountsSuspenseQuery>;
 export type KillmailsDateCountsQueryResult = Apollo.QueryResult<KillmailsDateCountsQuery, KillmailsDateCountsQueryVariables>;
+export const MapGeometryDocument = gql`
+    query MapGeometry($scope: MapScope!) {
+  mapGeometry(scope: $scope) {
+    scope
+    bounds {
+      minX
+      maxX
+      minZ
+      maxZ
+    }
+    nodes {
+      systemId
+      name
+      x
+      z
+      radius
+      securityStatus
+      constellationId
+      regionId
+    }
+    edges {
+      from
+      to
+    }
+  }
+}
+    `;
+
+/**
+ * __useMapGeometryQuery__
+ *
+ * To run a query within a React component, call `useMapGeometryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMapGeometryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMapGeometryQuery({
+ *   variables: {
+ *      scope: // value for 'scope'
+ *   },
+ * });
+ */
+export function useMapGeometryQuery(baseOptions: Apollo.QueryHookOptions<MapGeometryQuery, MapGeometryQueryVariables> & ({ variables: MapGeometryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MapGeometryQuery, MapGeometryQueryVariables>(MapGeometryDocument, options);
+      }
+export function useMapGeometryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MapGeometryQuery, MapGeometryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MapGeometryQuery, MapGeometryQueryVariables>(MapGeometryDocument, options);
+        }
+// @ts-ignore
+export function useMapGeometrySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MapGeometryQuery, MapGeometryQueryVariables>): Apollo.UseSuspenseQueryResult<MapGeometryQuery, MapGeometryQueryVariables>;
+export function useMapGeometrySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MapGeometryQuery, MapGeometryQueryVariables>): Apollo.UseSuspenseQueryResult<MapGeometryQuery | undefined, MapGeometryQueryVariables>;
+export function useMapGeometrySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MapGeometryQuery, MapGeometryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MapGeometryQuery, MapGeometryQueryVariables>(MapGeometryDocument, options);
+        }
+export type MapGeometryQueryHookResult = ReturnType<typeof useMapGeometryQuery>;
+export type MapGeometryLazyQueryHookResult = ReturnType<typeof useMapGeometryLazyQuery>;
+export type MapGeometrySuspenseQueryHookResult = ReturnType<typeof useMapGeometrySuspenseQuery>;
+export type MapGeometryQueryResult = Apollo.QueryResult<MapGeometryQuery, MapGeometryQueryVariables>;
 export const MostValuableKillmailsDocument = gql`
     query MostValuableKillmails($scope: MostValuableScope!, $days: Int, $limit: Int, $regionId: Int) {
   mostValuableKillmails(

@@ -698,6 +698,52 @@ export enum LeaderboardPeriod {
   Week = 'WEEK'
 }
 
+/** Sahnedeki düğümlerin sınırları, metre. Kameranın autofit'i buradan geliyor. */
+export type MapBounds = {
+  __typename?: 'MapBounds';
+  maxX: Scalars['Float']['output'];
+  maxZ: Scalars['Float']['output'];
+  minX: Scalars['Float']['output'];
+  minZ: Scalars['Float']['output'];
+};
+
+/** Bir geçit çifti. Her çift bir kez, from < to. */
+export type MapEdge = {
+  __typename?: 'MapEdge';
+  from: Scalars['Int']['output'];
+  to: Scalars['Int']['output'];
+};
+
+export type MapGeometry = {
+  __typename?: 'MapGeometry';
+  bounds: MapBounds;
+  edges: Array<MapEdge>;
+  nodes: Array<MapNode>;
+  scope: MapScope;
+};
+
+/** Bir sistem, galaktik konumunda. Koordinatlar 1e9 m'ye yuvarlanmış ve asla ham GPU'ya gitmez. */
+export type MapNode = {
+  __typename?: 'MapNode';
+  constellationId: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  /** x/z düzlemindeki en uzak celestial'a mesafe, metre. Nokta bu yarıçapta diske dönüşüyor. */
+  radius: Scalars['Float']['output'];
+  regionId: Scalars['Int']['output'];
+  /** İki ondalığa KESİLMİŞ, yuvarlanmamış: yuvarlama 14 sistemi highsec'e taşıyor. */
+  securityStatus: Scalars['Float']['output'];
+  systemId: Scalars['Int']['output'];
+  x: Scalars['Float']['output'];
+  z: Scalars['Float']['output'];
+};
+
+/** Çizilebilir bir sahne. Abyssal, Proving ve GPMR-01 burada yok: içlerinde sıfır gezegen, ay ve istasyon var. */
+export enum MapScope {
+  NewEden = 'NEW_EDEN',
+  Pochven = 'POCHVEN',
+  Wormhole = 'WORMHOLE'
+}
+
 export type Moon = {
   __typename?: 'Moon';
   id: Scalars['Int']['output'];
@@ -939,6 +985,12 @@ export type Query = {
   killmails: KillmailsResponse;
   /** Returns count of killmails grouped by date (for the current filter) */
   killmailsDateCounts: Array<KillmailDateCount>;
+  /**
+   * Statik evren verisi. Servis Redis'te 86400 s tutuyor, ama API'den görünen
+   * tazelik response cache'in STATIC_GAME_DATA'sı: 365 gün. Bir evren backfill'i
+   * haritaya önbellek temizlenmeden gelmez.
+   */
+  mapGeometry: MapGeometry;
   /** Mevcut authenticated kullanıcının bilgilerini döner */
   me?: Maybe<User>;
   /** Alliances ranked by campaigns currently attacking (most aggressive first). */
@@ -1211,6 +1263,11 @@ export type QueryKillmailsArgs = {
 
 export type QueryKillmailsDateCountsArgs = {
   filter?: InputMaybe<KillmailFilter>;
+};
+
+
+export type QueryMapGeometryArgs = {
+  scope?: MapScope;
 };
 
 
@@ -2267,6 +2324,11 @@ export type ResolversTypes = {
   KillmailOrderBy: KillmailOrderBy;
   KillmailsResponse: ResolverTypeWrapper<KillmailsResponse>;
   LeaderboardPeriod: LeaderboardPeriod;
+  MapBounds: ResolverTypeWrapper<MapBounds>;
+  MapEdge: ResolverTypeWrapper<MapEdge>;
+  MapGeometry: ResolverTypeWrapper<MapGeometry>;
+  MapNode: ResolverTypeWrapper<MapNode>;
+  MapScope: MapScope;
   Moon: ResolverTypeWrapper<Moon>;
   MostValuableScope: MostValuableScope;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
@@ -2414,6 +2476,10 @@ export type ResolversParentTypes = {
   KillmailFilter: KillmailFilter;
   KillmailItem: KillmailItem;
   KillmailsResponse: KillmailsResponse;
+  MapBounds: MapBounds;
+  MapEdge: MapEdge;
+  MapGeometry: MapGeometry;
+  MapNode: MapNode;
   Moon: Moon;
   Mutation: Record<PropertyKey, never>;
   PageInfo: PageInfo;
@@ -2910,6 +2976,36 @@ export type KillmailsResponseResolvers<ContextType = any, ParentType extends Res
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
 };
 
+export type MapBoundsResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapBounds'] = ResolversParentTypes['MapBounds']> = {
+  maxX?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  maxZ?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  minX?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  minZ?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+};
+
+export type MapEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapEdge'] = ResolversParentTypes['MapEdge']> = {
+  from?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  to?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type MapGeometryResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapGeometry'] = ResolversParentTypes['MapGeometry']> = {
+  bounds?: Resolver<ResolversTypes['MapBounds'], ParentType, ContextType>;
+  edges?: Resolver<Array<ResolversTypes['MapEdge']>, ParentType, ContextType>;
+  nodes?: Resolver<Array<ResolversTypes['MapNode']>, ParentType, ContextType>;
+  scope?: Resolver<ResolversTypes['MapScope'], ParentType, ContextType>;
+};
+
+export type MapNodeResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapNode'] = ResolversParentTypes['MapNode']> = {
+  constellationId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  radius?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  regionId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  securityStatus?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  systemId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  x?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  z?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+};
+
 export type MoonResolvers<ContextType = any, ParentType extends ResolversParentTypes['Moon'] = ResolversParentTypes['Moon']> = {
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -3014,6 +3110,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   killmail?: Resolver<Maybe<ResolversTypes['Killmail']>, ParentType, ContextType, RequireFields<QueryKillmailArgs, 'id'>>;
   killmails?: Resolver<ResolversTypes['KillmailsResponse'], ParentType, ContextType, Partial<QueryKillmailsArgs>>;
   killmailsDateCounts?: Resolver<Array<ResolversTypes['KillmailDateCount']>, ParentType, ContextType, Partial<QueryKillmailsDateCountsArgs>>;
+  mapGeometry?: Resolver<ResolversTypes['MapGeometry'], ParentType, ContextType, RequireFields<QueryMapGeometryArgs, 'scope'>>;
   me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   mostAggressiveAlliances?: Resolver<Array<ResolversTypes['AllianceActivityRank']>, ParentType, ContextType, Partial<QueryMostAggressiveAlliancesArgs>>;
   mostDefensiveAlliances?: Resolver<Array<ResolversTypes['AllianceActivityRank']>, ParentType, ContextType, Partial<QueryMostDefensiveAlliancesArgs>>;
@@ -3568,6 +3665,10 @@ export type Resolvers<ContextType = any> = {
   KillmailDateCount?: KillmailDateCountResolvers<ContextType>;
   KillmailItem?: KillmailItemResolvers<ContextType>;
   KillmailsResponse?: KillmailsResponseResolvers<ContextType>;
+  MapBounds?: MapBoundsResolvers<ContextType>;
+  MapEdge?: MapEdgeResolvers<ContextType>;
+  MapGeometry?: MapGeometryResolvers<ContextType>;
+  MapNode?: MapNodeResolvers<ContextType>;
   Moon?: MoonResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;

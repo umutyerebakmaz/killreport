@@ -65,6 +65,7 @@ import { sovereigntyQueries, sovereigntySubscriptions } from './sovereignty';
 import { systemKillsFields } from './system-kills/fields';
 import { systemKillsQueries } from './system-kills/queries';
 import { typeFields, typeMutations, typeQueries } from './type';
+import { universeMapQueries } from './universe-map';
 import { userMutations, userQueries } from './user';
 import { workerQueries, workerSubscriptions } from './worker';
 
@@ -96,6 +97,7 @@ export const resolvers: Resolvers = {
     ...workerQueries,
     ...analyticsQueries,
     ...leaderboardQueries,
+    ...universeMapQueries,
   },
   Mutation: {
     ...authMutations,
