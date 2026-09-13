@@ -683,14 +683,17 @@ describe('panCamera', () => {
     const c = { x: 0, z: 0, zoom: -50 };
     const scale = 2 ** -50;
     // Dragging the scene 100 px right moves the camera 100 px of world left.
+    // Compared as a ratio, not with toBeCloseTo's absolute tolerance: the value
+    // is ~1.1e17, and even toBeCloseTo(..., -20) admits 5e19 — 444 times the
+    // number under test, which constrains nothing.
     const panned = panCamera(c, 100, 0);
-    expect(panned.x).toBeCloseTo(-100 / scale, -20);
+    expect(panned.x / (-100 / scale)).toBeCloseTo(1, 9);
   });
 
   it('moves +z when dragged down, because the axis is flipped', () => {
     const c = { x: 0, z: 0, zoom: -50 };
     const scale = 2 ** -50;
-    expect(panCamera(c, 0, 100).z).toBeCloseTo(100 / scale, -20);
+    expect(panCamera(c, 0, 100).z / (100 / scale)).toBeCloseTo(1, 9);
   });
 
   it('leaves the zoom alone', () => {
