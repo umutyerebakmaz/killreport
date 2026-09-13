@@ -2,12 +2,17 @@ import { MapScope } from '@/generated/graphql';
 import { describe, expect, it } from 'vitest';
 import {
   cameraQuery,
+  cameraTransform,
   FALLBACK_FIT_ZOOM,
   fitCamera,
   fitZoom,
+  panCamera,
   parseCamera,
   parseScope,
+  scaleToZoom,
+  zoomCameraAt,
   zoomLimits,
+  zoomToScale,
 } from './camera';
 import { MAX_ZOOM } from './lod';
 
@@ -151,5 +156,104 @@ describe('cameraQuery', () => {
     expect(
       parseCamera(new URLSearchParams(cameraQuery(MapScope.Wormhole, camera))),
     ).toEqual(camera);
+  });
+});
+
+describe('zoomToScale', () => {
+  it('is deck.gl’s logarithmic zoom, so shipped URLs keep meaning', () => {
+    // pixels = metres * 2 ** zoom. The URL still carries the log form.
+    expect(zoomToScale(-36.18)).toBeCloseTo(2 ** -36.18, 20);
+    expect(scaleToZoom(2 ** -36.18)).toBeCloseTo(-36.18, 9);
+  });
+
+  it('round-trips', () => {
+    expect(scaleToZoom(zoomToScale(-42.5))).toBeCloseTo(-42.5, 9);
+  });
+});
+
+describe('cameraTransform', () => {
+  const camera = { x: 3e17, z: 2e17, zoom: -50 };
+  const t = cameraTransform(camera, 1400, 900);
+
+  it('flips y, because Pixi’s screen y runs down and the map’s +z runs up', () => {
+    // deck.gl said flipY: false in one line; in Pixi it is a negative y scale.
+    // The region and constellation SVGs are drawn "x is screen x, -z is screen
+    // y", and a map that disagrees with its own thumbnails is a bug nobody can
+    // name.
+    expect(t.scaleX).toBeCloseTo(2 ** -50, 20);
+    expect(t.scaleY).toBeCloseTo(-(2 ** -50), 20);
+  });
+
+  it('puts the camera’s own point at the centre of the viewport', () => {
+    expect(camera.x * t.scaleX + t.x).toBeCloseTo(700, 6);
+    expect(camera.z * t.scaleY + t.y).toBeCloseTo(450, 6);
+  });
+
+  it('maps a point one screen-pixel of world above the camera above it on screen', () => {
+    // +z is up, so a larger z must produce a SMALLER screen y.
+    const higher = (camera.z + 1 / t.scaleX) * t.scaleY + t.y;
+    expect(higher).toBeCloseTo(449, 6);
+  });
+});
+
+describe('panCamera', () => {
+  it('moves the camera opposite the drag, in world metres', () => {
+    const c = { x: 0, z: 0, zoom: -50 };
+    const scale = 2 ** -50;
+    // Dragging the scene 100 px right moves the camera 100 px of world left.
+    // Compared as a ratio, not with toBeCloseTo's absolute tolerance: the value
+    // is ~1.1e17, and even toBeCloseTo(..., -20) admits 5e19 — 444 times the
+    // number under test, which constrains nothing.
+    const panned = panCamera(c, 100, 0);
+    expect(panned.x / (-100 / scale)).toBeCloseTo(1, 9);
+  });
+
+  it('moves +z when dragged down, because the axis is flipped', () => {
+    const c = { x: 0, z: 0, zoom: -50 };
+    const scale = 2 ** -50;
+    expect(panCamera(c, 0, 100).z / (100 / scale)).toBeCloseTo(1, 9);
+  });
+
+  it('leaves the zoom alone', () => {
+    expect(panCamera({ x: 0, z: 0, zoom: -50 }, 10, 10).zoom).toBe(-50);
+  });
+});
+
+describe('zoomCameraAt', () => {
+  const limits = { minZoom: -52, maxZoom: -24.51 };
+
+  it('keeps the world point under the pointer fixed', () => {
+    const before = { x: 1e17, z: -2e17, zoom: -45 };
+    const [px, py] = [1100, 300];
+    const after = zoomCameraAt(before, 1.5, px, py, 1400, 900, limits);
+
+    const worldUnder = (c: typeof before) => {
+      const s = 2 ** c.zoom;
+      return {
+        x: c.x + (px - 700) / s,
+        z: c.z - (py - 450) / s,
+      };
+    };
+    const a = worldUnder(before);
+    const b = worldUnder(after);
+    expect(b.x).toBeCloseTo(a.x, -8);
+    expect(b.z).toBeCloseTo(a.z, -8);
+  });
+
+  it('stops at the ceiling rather than diving past it', () => {
+    const c = { x: 0, z: 0, zoom: -25 };
+    expect(zoomCameraAt(c, 10, 700, 450, 1400, 900, limits).zoom).toBe(-24.51);
+  });
+
+  it('stops at the floor', () => {
+    const c = { x: 0, z: 0, zoom: -51 };
+    expect(zoomCameraAt(c, -10, 700, 450, 1400, 900, limits).zoom).toBe(-52);
+  });
+
+  it('does not move the camera when the zoom is already clamped', () => {
+    const c = { x: 7e16, z: -3e16, zoom: -24.51 };
+    const after = zoomCameraAt(c, 5, 100, 100, 1400, 900, limits);
+    expect(after.x).toBeCloseTo(c.x, 6);
+    expect(after.z).toBeCloseTo(c.z, 6);
   });
 });
