@@ -708,6 +708,37 @@ export type MapBounds = {
   minZ: Scalars['Float']['output'];
 };
 
+/**
+ * Sistemin içindeki tek bir nesne. Koordinat **sistemin merkezine göre**, metre,
+ * ve düğümlerin aksine **yuvarlanmamış**: en iç gezegenin yörüngesi 2,4145e10 m,
+ * 1e9'luk ızgara onu %4 kaydırırdı.
+ */
+export type MapCelestial = {
+  __typename?: 'MapCelestial';
+  /** Yalnızca GATE'te dolu: hattın öteki ucundaki sistem. Gate ucunun çapalanması buna dayanıyor. */
+  destinationSystemId?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['Int']['output'];
+  kind: MapCelestialKind;
+  name?: Maybe<Scalars['String']['output']>;
+  /** ESI'nın 1 tabanlı sırası; gezegen, ay ve kuşakta dolu, diğerlerinde null. */
+  orbitIndex?: Maybe<Scalars['Int']['output']>;
+  /** Ay ve kuşağın bağlı olduğu gezegen; diğerlerinde null. */
+  planetId?: Maybe<Scalars['Int']['output']>;
+  systemId: Scalars['Int']['output'];
+  x: Scalars['Float']['output'];
+  z: Scalars['Float']['output'];
+};
+
+/** Sistem içindeki çizilebilir nesnenin türü. */
+export enum MapCelestialKind {
+  Belt = 'BELT',
+  Gate = 'GATE',
+  Moon = 'MOON',
+  Planet = 'PLANET',
+  Star = 'STAR',
+  Station = 'STATION'
+}
+
 /** Bir geçit çifti. Her çift bir kez, from < to. */
 export type MapEdge = {
   __typename?: 'MapEdge';
@@ -987,6 +1018,12 @@ export type Query = {
   /** Returns count of killmails grouped by date (for the current filter) */
   killmailsDateCounts: Array<KillmailDateCount>;
   /**
+   * Verilen sistemlerin içi. En fazla **16 sistem**; fazlası reddediliyor,
+   * sessizce kesilmiyor — kısaltılmış bir liste delikli bir sahne çizer.
+   * Önbellek sistem başına, 86400 s.
+   */
+  mapCelestials: Array<MapCelestial>;
+  /**
    * Statik evren verisi. Servis Redis'te 86400 s tutuyor, ama API'den görünen
    * tazelik response cache'in STATIC_GAME_DATA'sı: 365 gün. Bir evren backfill'i
    * haritaya önbellek temizlenmeden gelmez.
@@ -1264,6 +1301,11 @@ export type QueryKillmailsArgs = {
 
 export type QueryKillmailsDateCountsArgs = {
   filter?: InputMaybe<KillmailFilter>;
+};
+
+
+export type QueryMapCelestialsArgs = {
+  systemIds: Array<Scalars['Int']['input']>;
 };
 
 
@@ -2448,6 +2490,13 @@ export type KillmailsDateCountsQueryVariables = Exact<{
 
 
 export type KillmailsDateCountsQuery = { __typename?: 'Query', killmailsDateCounts: Array<{ __typename?: 'KillmailDateCount', date: string, count: number }> };
+
+export type MapCelestialsQueryVariables = Exact<{
+  systemIds: Array<Scalars['Int']['input']> | Scalars['Int']['input'];
+}>;
+
+
+export type MapCelestialsQuery = { __typename?: 'Query', mapCelestials: Array<{ __typename?: 'MapCelestial', id: number, systemId: number, name?: string | null, kind: MapCelestialKind, x: number, z: number, orbitIndex?: number | null, planetId?: number | null, destinationSystemId?: number | null }> };
 
 export type MapGeometryQueryVariables = Exact<{
   scope: MapScope;
@@ -5596,6 +5645,57 @@ export type KillmailsDateCountsQueryHookResult = ReturnType<typeof useKillmailsD
 export type KillmailsDateCountsLazyQueryHookResult = ReturnType<typeof useKillmailsDateCountsLazyQuery>;
 export type KillmailsDateCountsSuspenseQueryHookResult = ReturnType<typeof useKillmailsDateCountsSuspenseQuery>;
 export type KillmailsDateCountsQueryResult = Apollo.QueryResult<KillmailsDateCountsQuery, KillmailsDateCountsQueryVariables>;
+export const MapCelestialsDocument = gql`
+    query MapCelestials($systemIds: [Int!]!) {
+  mapCelestials(systemIds: $systemIds) {
+    id
+    systemId
+    name
+    kind
+    x
+    z
+    orbitIndex
+    planetId
+    destinationSystemId
+  }
+}
+    `;
+
+/**
+ * __useMapCelestialsQuery__
+ *
+ * To run a query within a React component, call `useMapCelestialsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMapCelestialsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMapCelestialsQuery({
+ *   variables: {
+ *      systemIds: // value for 'systemIds'
+ *   },
+ * });
+ */
+export function useMapCelestialsQuery(baseOptions: Apollo.QueryHookOptions<MapCelestialsQuery, MapCelestialsQueryVariables> & ({ variables: MapCelestialsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MapCelestialsQuery, MapCelestialsQueryVariables>(MapCelestialsDocument, options);
+      }
+export function useMapCelestialsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MapCelestialsQuery, MapCelestialsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MapCelestialsQuery, MapCelestialsQueryVariables>(MapCelestialsDocument, options);
+        }
+// @ts-ignore
+export function useMapCelestialsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MapCelestialsQuery, MapCelestialsQueryVariables>): Apollo.UseSuspenseQueryResult<MapCelestialsQuery, MapCelestialsQueryVariables>;
+export function useMapCelestialsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MapCelestialsQuery, MapCelestialsQueryVariables>): Apollo.UseSuspenseQueryResult<MapCelestialsQuery | undefined, MapCelestialsQueryVariables>;
+export function useMapCelestialsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MapCelestialsQuery, MapCelestialsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MapCelestialsQuery, MapCelestialsQueryVariables>(MapCelestialsDocument, options);
+        }
+export type MapCelestialsQueryHookResult = ReturnType<typeof useMapCelestialsQuery>;
+export type MapCelestialsLazyQueryHookResult = ReturnType<typeof useMapCelestialsLazyQuery>;
+export type MapCelestialsSuspenseQueryHookResult = ReturnType<typeof useMapCelestialsSuspenseQuery>;
+export type MapCelestialsQueryResult = Apollo.QueryResult<MapCelestialsQuery, MapCelestialsQueryVariables>;
 export const MapGeometryDocument = gql`
     query MapGeometry($scope: MapScope!) {
   mapGeometry(scope: $scope) {

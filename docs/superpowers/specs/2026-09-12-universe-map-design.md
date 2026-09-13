@@ -157,18 +157,29 @@ karışmaz" bir dönüşüm değil, şemada yazılı bir sözleşme.
 ## Zoom merdiveni ve LOD
 
 `zoom`, deck.gl'in ortografik tanımıyla `piksel = birim × 2^zoom`. Birim metre
-olduğu için zoom negatif çıkar; merdiven galaksi fit'i `z₀`'a göre ifade
-ediliyor. 1400 px genişlikte `z₀ ≈ −49,3`, toplam aralık **22,8 seviye**.
+olduğu için zoom negatif çıkar.
 
-| Seviye           | Ne görünür                                                           | Dayanak                                                                                      |
-| ---------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| z₀ (galaksi fit) | 5.241 sistem + 6.959 gate hattı, bölge etiketleri                    | medyan sıçrama 13 px                                                                         |
-| z₀+4 … +9        | takımyıldız ve sistem etiketleri (çarpışma filtreli), noktalar büyür | —                                                                                            |
-| z₀+9 … +13       | sistem diski gerçek yarıçapına ulaşır; sonunda medyan sistem 100 px  | yarıçap medyanı 3,88e12 m                                                                    |
-| **z₀+13,1**      | **sistem içi akar**: yıldız, gezegenler, istasyonlar, geçitler       | medyan sistem çapı 100 px; viewport 0,011 ly = medyan sıçramanın 1/83'ü → ekranda tek sistem |
-| z₀+16,5          | gezegen etiketleri                                                   | medyan yörünge 50 px'i geçer                                                                 |
-| z₀+20,4          | en iç gezegenin yörüngesi rahat okunur                               | min yörünge 2,41e10 m, 50 px                                                                 |
-| z₀+22,8 (en dip) | aylar ve asteroit kuşakları                                          | medyan ay ayrımı 10 px'e ulaşır; 1 px = 9,54e7 m                                             |
+**Eşikler mutlak zoom olarak yazılıyor, galaksi fit'ine göre değil.** Bu ilk
+yazımdan bir düzeltme ve gerekçesi ölçüm: her eşiğin fiziksel tanımı mutlak
+("medyan sistem çapı 100 px", "medyan ay ayrımı 10 px"), oysa `z₀` tuvalin
+genişliğine göre değişiyor. İlk yazımın `z₀+13,1 / +16,5 / +20,4 / +22,8`
+merdiveni 2560 × 1440'ta doğru; 1400 × 900'de aynı fiziksel eşikler
+`fit + 13,86 / +17,29 / +21,19 / +23,53`'e düşüyor, yani 0,7 seviye kayıyor ve
+sistem içleri diskler 100 px değil ~59 px'ken akmaya başlıyordu. Mutlak
+yazıldığında eşiğin adı ne diyorsa o oluyor, ekran ne olursa olsun.
+
+| Mutlak zoom  | Ne görünür                                                           | Dayanak                                                               |
+| ------------ | -------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| galaksi fit  | 5.241 sistem + 6.959 gate hattı, bölge etiketleri                    | medyan sıçrama 13 px; `z₀` = −50,04 (1400×900), −49,36 (2560×1440)    |
+| fit … −40    | takımyıldız ve sistem etiketleri (çarpışma filtreli), noktalar büyür | —                                                                     |
+| −40 … −36,18 | sistem diski gerçek yarıçapına ulaşıyor                              | yarıçap medyanı 3,8809e12 m                                           |
+| **−36,18**   | **sistem içi akar**: yıldız, gezegenler, istasyonlar, geçitler       | medyan sistem çapı 100 px'e ulaşıyor; viewport'ta pratikte tek sistem |
+| −32,75       | gezegen etiketleri                                                   | medyan yörünge 3,6018e11 m, 50 px'i geçiyor                           |
+| −28,85       | en iç gezegenin yörüngesi rahat okunuyor                             | min yörünge 2,4145e10 m, 50 px                                        |
+| **−26,51**   | **aylar ve asteroit kuşakları** (en dip)                             | medyan ay ayrımı 9,5389e8 m, 10 px'e ulaşıyor; 1 px = 9,54e7 m        |
+
+Toplam aralık tuvale göre: 1400 × 900'de 23,5 seviye, 2560 × 1440'ta 22,8.
+İlk yazımın "22,8 seviye"si bir tanım değil, geniş ekranın sonucuydu.
 
 Ölçümün getirdiği dürüstlük maddesi: **ayların en yakın %5'i hiçbir zoomda
 gezegeninden ayrılmıyor** (p05 1,09e8 m; 10 px için aralığın dışında bir zoom
@@ -176,7 +187,7 @@ gerekir; p05 için gereken z₀+25,9, en dipten 3,1 seviye daha derin).
 `radiusMinPixels` tabanının doğal sonucu olarak kabul ediliyor; log
 ölçekle kurtarılmıyor, yoksa iç içe geçme bozulur.
 
-Sistem içi veri akışı: eşikten (z₀+13,1) sonra viewport'ta pratikte tek sistem
+Sistem içi veri akışı: eşikten (z = −36,18) sonra viewport'ta pratikte tek sistem
 olduğu
 için "viewport'taki sistemleri çek" = "odaklı sistemi çek". Odağın gate
 komşuları da çekiliyor (≤8 sistem, en kötü 159 nesne), böylece o yöne pan
@@ -396,9 +407,9 @@ yutulur.
 | `PolygonLayer` territory                 | sov açık + uzak zoom | nötr dolgu, parlak kontur                         |
 | `IconLayer` sahip logoları               | sov açık             | çakışma filtreli, ≤200                            |
 | `ScatterplotLayer` sistemler             | her zaman            | `radiusMinPixels: 1.5`, `getRadius = node.radius` |
-| `ScatterplotLayer` celestial             | z ≥ z₀+13,1          | yıldız, gezegen, istasyon, geçit                  |
-| `LineLayer` çapalanmış gate uçları       | z ≥ z₀+13,1          |                                                   |
-| aylar + kuşaklar                         | z ≥ z₀+22,8          |                                                   |
+| `ScatterplotLayer` celestial             | z ≥ −36,18           | yıldız, gezegen, istasyon, geçit                  |
+| `LineLayer` çapalanmış gate uçları       | z ≥ −36,18           |                                                   |
+| aylar + kuşaklar                         | z ≥ −26,51           |                                                   |
 | `TextLayer` + `CollisionFilterExtension` | kademeli             | görünür etiket ≤300                               |
 
 ### Renk katmanı kaydı

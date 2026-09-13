@@ -1,0 +1,15 @@
+# Operasyon adı MapCelestials olmak zorunda: backend'in response cache'i
+# PUBLIC_CACHE_QUERIES'e operasyon adıyla bakıyor (backend/src/config/cache.ts).
+query MapCelestials($systemIds: [Int!]!) {
+  mapCelestials(systemIds: $systemIds) {
+    id
+    systemId
+    name
+    kind
+    x
+    z
+    orbitIndex
+    planetId
+    destinationSystemId
+  }
+}

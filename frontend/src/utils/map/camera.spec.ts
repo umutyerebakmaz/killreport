@@ -9,6 +9,7 @@ import {
   parseScope,
   zoomLimits,
 } from './camera';
+import { MAX_ZOOM } from './lod';
 
 const NEW_EDEN_BOUNDS = {
   minX: -508743946216137000,
@@ -53,8 +54,17 @@ describe('fitCamera', () => {
 });
 
 describe('zoomLimits', () => {
-  it('opens 13 levels above the fit and 2 below', () => {
-    expect(zoomLimits(-50)).toEqual({ minZoom: -52, maxZoom: -37 });
+  it('opens down to two levels below the fit and up to the absolute ceiling', () => {
+    expect(zoomLimits(-50)).toEqual({ minZoom: -52, maxZoom: MAX_ZOOM });
+  });
+
+  it('gives the same ceiling on every canvas, which a fit offset would not', () => {
+    expect(zoomLimits(-50.04).maxZoom).toBe(zoomLimits(-49.36).maxZoom);
+  });
+
+  it('never returns a ceiling below the floor for a tiny scene', () => {
+    const limits = zoomLimits(-10);
+    expect(limits.maxZoom).toBeGreaterThanOrEqual(limits.minZoom);
   });
 });
 

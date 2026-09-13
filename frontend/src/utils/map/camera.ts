@@ -1,4 +1,5 @@
 import { MapScope, type MapBounds } from '@/generated/graphql';
+import { MAX_ZOOM } from './lod';
 import { boundsCenter } from './origin';
 
 /**
@@ -23,12 +24,6 @@ export const DEFAULT_SCOPE: MapScope = MapScope.NewEden;
 /** Leaves a margin, so the outermost dots are not half-clipped by the edge. */
 export const FIT_PADDING = 0.92;
 
-/**
- * Phase 1 stops 13 levels above the fit. The design's threshold for system
- * interiors is fit + 13.1, so this is exactly as far as the galaxy layer alone
- * stays honest; Phase 2 raises it to fit + 22.8.
- */
-export const ZOOM_ABOVE_FIT = 13;
 export const ZOOM_BELOW_FIT = 2;
 
 /** For a scene with no extent: one node, or none. Matches NEW_EDEN's own fit. */
@@ -62,8 +57,15 @@ export function fitCamera(
   return { x: centre.x, z: centre.z, zoom: fitZoom(bounds, width, height) };
 }
 
+/**
+ * The ceiling is absolute, not an offset from the fit. Phase 1 used fit + 13
+ * because interiors were out of scope; it happened to land below the interior
+ * threshold on every canvas, but for the wrong reason. `Math.max` guards the
+ * degenerate case of a scene so small that its own fit is already deeper than
+ * the ceiling.
+ */
 export function zoomLimits(fit: number): { minZoom: number; maxZoom: number } {
-  return { minZoom: fit - ZOOM_BELOW_FIT, maxZoom: fit + ZOOM_ABOVE_FIT };
+  return { minZoom: fit - ZOOM_BELOW_FIT, maxZoom: Math.max(MAX_ZOOM, fit) };
 }
 
 export function parseScope(params: URLSearchParams): MapScope {

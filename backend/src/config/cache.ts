@@ -73,6 +73,7 @@ export const PUBLIC_CACHE_QUERIES = [
 
   // Universe map — static geometry, same body for every visitor
   'MapGeometry',
+  'MapCelestials',
 ] as const;
 
 /**
@@ -120,6 +121,7 @@ export const TTL_PER_SCHEMA_COORDINATE: Record<string, number> = {
   'Query.solarSystem': CACHE_TTL.STATIC_GAME_DATA,
   'Query.solarSystems': CACHE_TTL.STATIC_GAME_DATA,
   'Query.mapGeometry': CACHE_TTL.STATIC_GAME_DATA,
+  'Query.mapCelestials': CACHE_TTL.STATIC_GAME_DATA,
 };
 
 /**
