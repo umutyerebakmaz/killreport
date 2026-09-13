@@ -9,18 +9,15 @@ import {
 import {
   cameraTransform,
   fitCamera,
-  panCamera,
-  zoomCameraAt,
   zoomLimits,
   zoomToScale,
-  type MapCamera,
 } from '@/utils/map/camera';
 import { edgeSegments, localEdges } from '@/utils/map/edges';
 import { layerVisibility, lodBucket } from '@/utils/map/lod';
 import { boundsCenter, nearestNode, originFor } from '@/utils/map/origin';
 import { gateNeighbours } from '@/utils/map/topology';
 import { isWebgl2Available } from '@/utils/map/webgl';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   buildCelestials,
   scaleCelestials,
@@ -36,6 +33,7 @@ import {
 } from './scene/systems';
 import { useMapCamera } from './useMapCamera';
 import { useMapCelestials } from './useMapCelestials';
+import { useMapPointer } from './useMapPointer';
 
 function MapMessage({ children }: { children: React.ReactNode }) {
   return (
@@ -49,7 +47,11 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   const [webgl] = useState(isWebgl2Available);
   const [size, setSize] = useState({ width: 0, height: 0 });
   const host = useRef<HTMLDivElement>(null);
-  const scene = useRef<MapScene | null>(null);
+  // The scene is a render input, not a ref-only side channel: every effect
+  // below that draws into it must re-run once it exists, and a ref update
+  // does not trigger that. `createScene` still resolves once, asynchronously,
+  // in the mount effect — this only changes where the result is held.
+  const [scene, setScene] = useState<MapScene | null>(null);
   const systemSprites = useRef<SystemSprites | null>(null);
   const celestialSprites = useRef<CelestialSprites | null>(null);
 
@@ -62,9 +64,15 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   });
   const geometry = data?.mapGeometry;
 
-  const fit = geometry
-    ? fitCamera(geometry.bounds, size.width, size.height)
-    : null;
+  // Memoised: `useMapCamera` and the pointer hook both take this as an input,
+  // and a fresh object every render would churn both on every keystroke of an
+  // unrelated state update, not just when the geometry or viewport actually
+  // change.
+  const fit = useMemo(
+    () =>
+      geometry ? fitCamera(geometry.bounds, size.width, size.height) : null,
+    [geometry, size.width, size.height],
+  );
   const { camera, onCameraChange } = useMapCamera(scope, fit);
 
   const bucket = camera ? lodBucket(camera.zoom) : 'galaxy';
@@ -73,10 +81,16 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       ? nearestNode(geometry.nodes, camera.x, camera.z)
       : null;
 
-  const celestialSystemIds =
-    focus && geometry
-      ? [focus.systemId, ...gateNeighbours(geometry.edges, focus.systemId)]
-      : [];
+  // Memoised for the same reason as `fit`: `useMapCelestials` keys its cache
+  // on this array's identity, and the local-edge effect below rebuilds its
+  // mesh whenever it changes.
+  const celestialSystemIds = useMemo(
+    () =>
+      focus && geometry
+        ? [focus.systemId, ...gateNeighbours(geometry.edges, focus.systemId)]
+        : [],
+    [focus, geometry],
+  );
   const celestials = useMapCelestials(celestialSystemIds);
 
   // The scene outlives every render; React only builds it, feeds it and tears
@@ -92,7 +106,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
         return;
       }
       created = built;
-      scene.current = built;
+      setScene(built);
       setSize({
         width: built.app.renderer.width,
         height: built.app.renderer.height,
@@ -102,7 +116,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     return () => {
       live = false;
       created?.destroy();
-      scene.current = null;
+      setScene(null);
       systemSprites.current = null;
       celestialSprites.current = null;
     };
@@ -110,128 +124,81 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
 
   // The galaxy: 5,241 sprites and the full 6,959-segment mesh, built once per
   // scene. The mesh is scene-centre-local, where float32's step is 0.22 px.
+  //
+  // `scene` is in the dependency array because it is a piece of state that
+  // resolves after the mount effect's promise settles: with `fetchPolicy:
+  // 'cache-first'` and mapGeometry cached for 24 hours, `geometry` can be
+  // present on the very first render, before the scene exists. An effect
+  // keyed on `[geometry]` alone would then run exactly once, with no scene to
+  // draw into, and never run again — a permanently blank map on every repeat
+  // visit.
   useEffect(() => {
-    const s = scene.current;
-    if (!s || !geometry) return;
-    systemSprites.current = buildSystems(s, geometry.nodes);
+    if (!scene || !geometry) return;
+    systemSprites.current = buildSystems(scene, geometry.nodes);
     const centre = boundsCenter(geometry.bounds);
     drawEdges(
-      s.edgesGalaxy,
+      scene.edgesGalaxy,
       edgeSegments(geometry.edges, geometry.nodes, centre),
       centre,
     );
-  }, [geometry]);
+  }, [scene, geometry]);
 
   // The focused neighbourhood: at most 9 systems, so the mesh is small and its
   // vertices are focus-local rather than scene-local.
   useEffect(() => {
-    const s = scene.current;
-    if (!s || !geometry) return;
+    if (!scene || !geometry) return;
     if (!focus) {
-      s.edgesLocal.clear();
+      scene.edgesLocal.clear();
       return;
     }
     const origin = originFor(geometry.bounds, focus);
     const near = localEdges(geometry.edges, celestialSystemIds);
     const gates = celestials.filter((c) => c.kind === MapCelestialKind.Gate);
     drawEdges(
-      s.edgesLocal,
+      scene.edgesLocal,
       edgeSegments(near, geometry.nodes, origin, gates),
       origin,
     );
-  }, [geometry, focus, celestials, celestialSystemIds]);
+  }, [scene, geometry, focus, celestials, celestialSystemIds]);
 
   useEffect(() => {
-    const s = scene.current;
-    if (!s || !geometry) return;
+    if (!scene || !geometry) return;
     const systemById = new Map(
       geometry.nodes.map((node) => [node.systemId, node]),
     );
-    celestialSprites.current = buildCelestials(s, celestials, systemById);
-  }, [geometry, celestials]);
+    celestialSprites.current = buildCelestials(scene, celestials, systemById);
+  }, [scene, geometry, celestials]);
 
-  // Camera and counter-scale. The transform is one object write; the scale pass
-  // is 0.60 ms for every system.
+  // Camera and counter-scale. The transform is one object write; the scale
+  // pass is 0.60 ms for every system.
   useEffect(() => {
-    const s = scene.current;
-    if (!s || !camera || !size.width) return;
+    if (!scene || !camera || !size.width) return;
     const t = cameraTransform(camera, size.width, size.height);
-    s.world.scale.set(t.scaleX, t.scaleY);
-    s.world.position.set(t.x, t.y);
+    scene.world.scale.set(t.scaleX, t.scaleY);
+    scene.world.position.set(t.x, t.y);
 
     const scale = zoomToScale(camera.zoom);
     if (systemSprites.current) scaleSystems(systemSprites.current, scale);
     if (celestialSprites.current)
       scaleCelestials(celestialSprites.current, scale);
-  }, [camera, size.width, size.height]);
+  }, [scene, camera, size.width, size.height]);
 
   useEffect(() => {
-    const s = scene.current;
-    if (!s) return;
+    if (!scene) return;
     const v = layerVisibility(bucket);
-    s.edgesGalaxy.visible = v.edgesGalaxy;
-    s.edgesLocal.visible = v.edgesLocal;
-    s.systems.visible = v.systems;
-    s.celestials.visible = v.celestials;
+    scene.edgesGalaxy.visible = v.edgesGalaxy;
+    scene.edgesLocal.visible = v.edgesLocal;
+    scene.systems.visible = v.systems;
+    scene.celestials.visible = v.celestials;
     if (celestialSprites.current) {
       setFineVisible(celestialSprites.current, v.fine);
     }
-  }, [bucket, celestials]);
+  }, [scene, bucket, celestials]);
 
-  // Pan and zoom. deck.gl shipped a controller; Pixi does not, so the events
-  // land here and the arithmetic lives in camera.ts where it is tested.
-  useEffect(() => {
-    const s = scene.current;
-    if (!s || !camera || !fit) return;
-    const canvas = s.app.canvas;
-    const limits = zoomLimits(fit.zoom);
-    let dragging = false;
-    let lastX = 0;
-    let lastY = 0;
-    let current = camera;
-
-    const down = (e: PointerEvent) => {
-      dragging = true;
-      lastX = e.clientX;
-      lastY = e.clientY;
-    };
-    const up = () => (dragging = false);
-    const move = (e: PointerEvent) => {
-      if (!dragging) return;
-      current = panCamera(current, e.clientX - lastX, e.clientY - lastY);
-      lastX = e.clientX;
-      lastY = e.clientY;
-      onCameraChange(current);
-    };
-    const wheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const rect = canvas.getBoundingClientRect();
-      current = zoomCameraAt(
-        current,
-        -e.deltaY / 300,
-        e.clientX - rect.left,
-        e.clientY - rect.top,
-        rect.width,
-        rect.height,
-        limits,
-      );
-      onCameraChange(current);
-    };
-
-    canvas.addEventListener('pointerdown', down);
-    canvas.addEventListener('pointerup', up);
-    canvas.addEventListener('pointerleave', up);
-    canvas.addEventListener('pointermove', move);
-    canvas.addEventListener('wheel', wheel, { passive: false });
-
-    return () => {
-      canvas.removeEventListener('pointerdown', down);
-      canvas.removeEventListener('pointerup', up);
-      canvas.removeEventListener('pointerleave', up);
-      canvas.removeEventListener('pointermove', move);
-      canvas.removeEventListener('wheel', wheel);
-    };
-  }, [camera, fit, onCameraChange]);
+  // Pan and zoom: the listeners bind once per canvas and read the latest
+  // camera through a ref, in useMapPointer.ts — see that file for why.
+  const limits = fit ? zoomLimits(fit.zoom) : null;
+  useMapPointer(scene?.app.canvas ?? null, camera, limits, onCameraChange);
 
   const measure = useCallback((node: HTMLDivElement | null) => {
     if (!node) return;

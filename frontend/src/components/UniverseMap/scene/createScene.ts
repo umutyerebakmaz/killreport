@@ -48,6 +48,14 @@ export async function createScene(host: HTMLElement): Promise<MapScene> {
     systems,
     celestials,
     dot,
-    destroy: () => app.destroy(true, { children: true, texture: true }),
+    // `app.destroy`'s texture pass only reaches textures a sprite in the
+    // display tree still references. A scene torn down before any sprite is
+    // built — an unmount racing `createScene`'s own init — never attaches
+    // `dot` to anything, so it must be freed here directly rather than left
+    // for a walk that will not find it.
+    destroy: () => {
+      dot.destroy(true);
+      app.destroy(true, { children: true, texture: true });
+    },
   };
 }
