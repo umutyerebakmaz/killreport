@@ -1920,7 +1920,7 @@ git add frontend/src/components/UniverseMap/layers/
 git commit -m "feat(frontend): draw system interiors as kind-coded marks"
 ```
 
-Beklenen: Task 5'in 11 testi Faz 1'in 13'ünün üstüne biniyor → `layers.spec.ts` 24.
+Beklenen: Task 5'in 10 testi Faz 1'in 13'ünün üstüne biniyor → `layers.spec.ts` 23.
 
 ---
 
