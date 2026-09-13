@@ -1,13 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import {
   APPROACH_ZOOM,
+  CONSTELLATION_LABEL_ZOOM,
   FINE_ZOOM,
   INTERIOR_ZOOM,
   layerVisibility,
   lodBucket,
   MAX_ZOOM,
+  REGION_LABEL_ZOOM,
   showsMoonsAndBelts,
   streamsInteriors,
+  SYSTEM_LABEL_ZOOM,
+  visibleLabelTiers,
 } from './lod';
 
 /**
@@ -134,5 +138,72 @@ describe('layerVisibility', () => {
     for (const bucket of ['galaxy', 'approach', 'interior', 'fine'] as const) {
       expect(layerVisibility(bucket).systems).toBe(true);
     }
+  });
+});
+
+describe('label thresholds', () => {
+  it("is the zoom at which each tier's median neighbour reaches 60 px", () => {
+    // Measured 2026-09-14: median nearest-neighbour distance is 7.4114e16 m for
+    // regions, 1.3129e16 for constellations, 3.4944e15 for systems. A name needs
+    // ~60 px of separation to read, so the threshold is log2(60 / distance).
+    expect(REGION_LABEL_ZOOM).toBeCloseTo(Math.log2(60 / 7.4114e16), 2);
+    expect(CONSTELLATION_LABEL_ZOOM).toBeCloseTo(Math.log2(60 / 1.3129e16), 2);
+    expect(SYSTEM_LABEL_ZOOM).toBeCloseTo(Math.log2(60 / 3.4944e15), 2);
+  });
+
+  it('opens the coarsest tier first and the finest last', () => {
+    expect(REGION_LABEL_ZOOM).toBeLessThan(CONSTELLATION_LABEL_ZOOM);
+    expect(CONSTELLATION_LABEL_ZOOM).toBeLessThan(SYSTEM_LABEL_ZOOM);
+  });
+
+  it('has regions readable from the galaxy fit itself', () => {
+    // The fit is -50.04 on 1400x900 and -49.36 on 2560x1440; both are above the
+    // region threshold, so region names are on the very first frame.
+    expect(REGION_LABEL_ZOOM).toBeLessThan(-50.04);
+  });
+
+  it('opens every label tier below the approach threshold', () => {
+    // All three land inside the galaxy bucket, which is why label visibility is
+    // derived from the zoom directly rather than from a bucket.
+    expect(SYSTEM_LABEL_ZOOM).toBeLessThan(-40);
+  });
+});
+
+describe('visibleLabelTiers', () => {
+  it('shows nothing below the region threshold', () => {
+    // The camera can go two levels under the fit; at that distance 114 names
+    // would sit on top of each other.
+    expect(visibleLabelTiers(-52)).toEqual([]);
+  });
+
+  it('shows regions alone from their threshold up', () => {
+    expect(visibleLabelTiers(-50)).toEqual(['region']);
+    expect(visibleLabelTiers(-48)).toEqual(['region']);
+  });
+
+  it('accumulates rather than handing over', () => {
+    // A tier opening does not close the one beneath it: zooming in adds names,
+    // it does not swap them. The coarser tier stays as background context, the
+    // way a map keeps a country name while showing cities.
+    expect(visibleLabelTiers(-47)).toEqual(['region', 'constellation']);
+    expect(visibleLabelTiers(-45)).toEqual([
+      'region',
+      'constellation',
+      'system',
+    ]);
+  });
+
+  it('keeps all three at the deepest zoom', () => {
+    expect(visibleLabelTiers(-24.51)).toEqual([
+      'region',
+      'constellation',
+      'system',
+    ]);
+  });
+
+  it('returns the tiers coarsest first, which is the collision priority', () => {
+    // The filter places labels in this order and drops what will not fit, so
+    // the tier sacrificed in a crowd is always the finest one.
+    expect(visibleLabelTiers(-45)[0]).toBe('region');
   });
 });
