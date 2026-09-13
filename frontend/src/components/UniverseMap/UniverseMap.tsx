@@ -33,7 +33,7 @@ import {
 } from './scene/systems';
 import { useMapCamera } from './useMapCamera';
 import { useMapCelestials } from './useMapCelestials';
-import { useMapPointer } from './useMapPointer';
+import { useMapPointer, type SceneCanvas } from './useMapPointer';
 
 function MapMessage({ children }: { children: React.ReactNode }) {
   return (
@@ -47,11 +47,21 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   const [webgl] = useState(isWebgl2Available);
   const [size, setSize] = useState({ width: 0, height: 0 });
   const host = useRef<HTMLDivElement>(null);
-  // The scene is a render input, not a ref-only side channel: every effect
-  // below that draws into it must re-run once it exists, and a ref update
-  // does not trigger that. `createScene` still resolves once, asynchronously,
-  // in the mount effect — this only changes where the result is held.
-  const [scene, setScene] = useState<MapScene | null>(null);
+  // The scene is a long-lived mutable Pixi object, not render data — holding
+  // it in useState and then mutating its properties (`scene.edgesGalaxy
+  // .visible = ...`, below) is exactly what react-hooks' immutability rule
+  // exists to catch, and rightly flagged it. It stays a ref; `sceneReady` is
+  // the render-visible signal that stands in for "the ref now points at
+  // something", so effects can still key off it.
+  const scene = useRef<MapScene | null>(null);
+  const [sceneReady, setSceneReady] = useState(false);
+  // `useMapPointer` is called from the render body, and reading `scene
+  // .current` there — even just to hand its `.app.canvas` to a hook — is a
+  // ref access during render, which is its own lint rule. The canvas itself
+  // is a plain DOM node no code here ever assigns properties on, so holding
+  // its reference in state carries none of the mutation risk `scene` itself
+  // does.
+  const [canvas, setCanvas] = useState<SceneCanvas | null>(null);
   const systemSprites = useRef<SystemSprites | null>(null);
   const celestialSprites = useRef<CelestialSprites | null>(null);
 
@@ -106,7 +116,9 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
         return;
       }
       created = built;
-      setScene(built);
+      scene.current = built;
+      setSceneReady(true);
+      setCanvas(built.app.canvas);
       setSize({
         width: built.app.renderer.width,
         height: built.app.renderer.height,
@@ -116,7 +128,9 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     return () => {
       live = false;
       created?.destroy();
-      setScene(null);
+      scene.current = null;
+      setSceneReady(false);
+      setCanvas(null);
       systemSprites.current = null;
       celestialSprites.current = null;
     };
@@ -125,80 +139,86 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // The galaxy: 5,241 sprites and the full 6,959-segment mesh, built once per
   // scene. The mesh is scene-centre-local, where float32's step is 0.22 px.
   //
-  // `scene` is in the dependency array because it is a piece of state that
-  // resolves after the mount effect's promise settles: with `fetchPolicy:
-  // 'cache-first'` and mapGeometry cached for 24 hours, `geometry` can be
-  // present on the very first render, before the scene exists. An effect
-  // keyed on `[geometry]` alone would then run exactly once, with no scene to
-  // draw into, and never run again — a permanently blank map on every repeat
-  // visit.
+  // `sceneReady` is in the dependency array, not `geometry` alone, because
+  // `scene` is a ref and a ref update does not trigger a re-run. With
+  // `fetchPolicy: 'cache-first'` and mapGeometry cached for 24 hours,
+  // `geometry` can already be present on the very first render of a repeat
+  // visit, before `createScene()`'s promise resolves — an effect keyed on
+  // `[geometry]` alone would run exactly once, find `scene.current === null`,
+  // and never run again: a permanently blank map. `scene.current` is always
+  // set synchronously before `setSceneReady(true)` is called, so by the time
+  // this effect re-runs in response to the flag, the ref is never stale.
   useEffect(() => {
-    if (!scene || !geometry) return;
-    systemSprites.current = buildSystems(scene, geometry.nodes);
+    if (!scene.current || !geometry) return;
+    systemSprites.current = buildSystems(scene.current, geometry.nodes);
     const centre = boundsCenter(geometry.bounds);
     drawEdges(
-      scene.edgesGalaxy,
+      scene.current.edgesGalaxy,
       edgeSegments(geometry.edges, geometry.nodes, centre),
       centre,
     );
-  }, [scene, geometry]);
+  }, [sceneReady, geometry]);
 
   // The focused neighbourhood: at most 9 systems, so the mesh is small and its
   // vertices are focus-local rather than scene-local.
   useEffect(() => {
-    if (!scene || !geometry) return;
+    if (!scene.current || !geometry) return;
     if (!focus) {
-      scene.edgesLocal.clear();
+      scene.current.edgesLocal.clear();
       return;
     }
     const origin = originFor(geometry.bounds, focus);
     const near = localEdges(geometry.edges, celestialSystemIds);
     const gates = celestials.filter((c) => c.kind === MapCelestialKind.Gate);
     drawEdges(
-      scene.edgesLocal,
+      scene.current.edgesLocal,
       edgeSegments(near, geometry.nodes, origin, gates),
       origin,
     );
-  }, [scene, geometry, focus, celestials, celestialSystemIds]);
+  }, [sceneReady, geometry, focus, celestials, celestialSystemIds]);
 
   useEffect(() => {
-    if (!scene || !geometry) return;
+    if (!scene.current || !geometry) return;
     const systemById = new Map(
       geometry.nodes.map((node) => [node.systemId, node]),
     );
-    celestialSprites.current = buildCelestials(scene, celestials, systemById);
-  }, [scene, geometry, celestials]);
+    celestialSprites.current = buildCelestials(
+      scene.current,
+      celestials,
+      systemById,
+    );
+  }, [sceneReady, geometry, celestials]);
 
   // Camera and counter-scale. The transform is one object write; the scale
   // pass is 0.60 ms for every system.
   useEffect(() => {
-    if (!scene || !camera || !size.width) return;
+    if (!scene.current || !camera || !size.width) return;
     const t = cameraTransform(camera, size.width, size.height);
-    scene.world.scale.set(t.scaleX, t.scaleY);
-    scene.world.position.set(t.x, t.y);
+    scene.current.world.scale.set(t.scaleX, t.scaleY);
+    scene.current.world.position.set(t.x, t.y);
 
     const scale = zoomToScale(camera.zoom);
     if (systemSprites.current) scaleSystems(systemSprites.current, scale);
     if (celestialSprites.current)
       scaleCelestials(celestialSprites.current, scale);
-  }, [scene, camera, size.width, size.height]);
+  }, [sceneReady, camera, size.width, size.height]);
 
   useEffect(() => {
-    if (!scene) return;
+    if (!scene.current) return;
     const v = layerVisibility(bucket);
-    scene.edgesGalaxy.visible = v.edgesGalaxy;
-    scene.edgesLocal.visible = v.edgesLocal;
-    scene.systems.visible = v.systems;
-    scene.celestials.visible = v.celestials;
+    scene.current.edgesGalaxy.visible = v.edgesGalaxy;
+    scene.current.edgesLocal.visible = v.edgesLocal;
+    scene.current.systems.visible = v.systems;
+    scene.current.celestials.visible = v.celestials;
     if (celestialSprites.current) {
       setFineVisible(celestialSprites.current, v.fine);
     }
-  }, [scene, bucket, celestials]);
+  }, [sceneReady, bucket, celestials]);
 
   // Pan and zoom: the listeners bind once per canvas and read the latest
   // camera through a ref, in useMapPointer.ts — see that file for why.
   const limits = fit ? zoomLimits(fit.zoom) : null;
-  useMapPointer(scene?.app.canvas ?? null, camera, limits, onCameraChange);
+  useMapPointer(canvas, camera, limits, onCameraChange);
 
   const measure = useCallback((node: HTMLDivElement | null) => {
     if (!node) return;
