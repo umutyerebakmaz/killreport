@@ -5,7 +5,6 @@ import {
   float32StepPixels,
   maxLocalMagnitude,
   nearestNode,
-  nodePosition,
   originFor,
   toLocal,
 } from './origin';
@@ -50,16 +49,18 @@ describe('toLocal', () => {
   it('returns zero at the origin itself', () => {
     expect(toLocal({ x: 1e17, z: -2e17 }, 1e17, -2e17)).toEqual([0, 0]);
   });
-});
 
-describe('nodePosition', () => {
-  it('reads x and z off the node', () => {
-    const position = nodePosition({ x: 1e9, z: 2e9 });
-    expect(position(node(3e9, 5e9))).toEqual([2e9, 3e9]);
+  it('is the only place a Graphics vertex is built — sprites never use it', () => {
+    // Documentation as a test: Pixi composes a sprite's transform in float64 and
+    // writes the screen coordinate to float32, so a sprite takes raw galactic
+    // metres. Only Graphics keeps world-space vertices in a float32 buffer, and
+    // that is the entire remaining job of the origin.
+    const origin = { x: 1e17, z: -2e17 };
+    expect(toLocal(origin, 1.5e17, -2.5e17)).toEqual([5e16, -5e16]);
   });
 });
 
-describe('the float32 budget on the real NEW_EDEN scene', () => {
+describe('the float32 budget on the galaxy edge mesh', () => {
   const origin = boundsCenter(NEW_EDEN_BOUNDS);
   const corners = [
     node(NEW_EDEN_BOUNDS.minX, NEW_EDEN_BOUNDS.minZ),
@@ -77,7 +78,7 @@ describe('the float32 budget on the real NEW_EDEN scene', () => {
         NEW_EDEN_BOUNDS.maxZ - NEW_EDEN_BOUNDS.minZ,
       ) / 2;
     for (const corner of corners) {
-      const [x, z] = nodePosition(origin)(corner);
+      const [x, z] = toLocal(origin, corner.x, corner.z);
       expect(Math.abs(x)).toBeLessThanOrEqual(halfSpan);
       expect(Math.abs(z)).toBeLessThanOrEqual(halfSpan);
     }

@@ -50,3 +50,27 @@ export function streamsInteriors(bucket: LodBucket): boolean {
 export function showsMoonsAndBelts(bucket: LodBucket): boolean {
   return bucket === 'fine';
 }
+
+/**
+ * Which containers exist on screen for a bucket. A pure function rather than a
+ * branch inside the scene, so the one decision that governs what is drawn can
+ * be read and tested without a canvas.
+ */
+export interface LayerVisibility {
+  edgesGalaxy: boolean;
+  edgesLocal: boolean;
+  systems: boolean;
+  celestials: boolean;
+  fine: boolean;
+}
+
+export function layerVisibility(bucket: LodBucket): LayerVisibility {
+  const interiors = streamsInteriors(bucket);
+  return {
+    edgesGalaxy: !interiors,
+    edgesLocal: interiors,
+    systems: true,
+    celestials: interiors,
+    fine: showsMoonsAndBelts(bucket),
+  };
+}

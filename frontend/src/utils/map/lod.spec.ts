@@ -3,6 +3,7 @@ import {
   APPROACH_ZOOM,
   FINE_ZOOM,
   INTERIOR_ZOOM,
+  layerVisibility,
   lodBucket,
   MAX_ZOOM,
   showsMoonsAndBelts,
@@ -95,5 +96,43 @@ describe('showsMoonsAndBelts', () => {
   it('is true only in the fine bucket', () => {
     expect(showsMoonsAndBelts('interior')).toBe(false);
     expect(showsMoonsAndBelts('fine')).toBe(true);
+  });
+});
+
+describe('layerVisibility', () => {
+  it('draws the galaxy edge mesh and the systems, and nothing else, at galaxy zoom', () => {
+    expect(layerVisibility('galaxy')).toEqual({
+      edgesGalaxy: true,
+      edgesLocal: false,
+      systems: true,
+      celestials: false,
+      fine: false,
+    });
+  });
+
+  it('changes nothing on approach — the discs grow on their own', () => {
+    expect(layerVisibility('approach')).toEqual(layerVisibility('galaxy'));
+  });
+
+  it('swaps the galaxy mesh for the local one when interiors open', () => {
+    // The galaxy mesh is hidden rather than kept: its vertices are float32 in
+    // scene-centre-local metres, which is 0.22 px at galaxy zoom and useless
+    // this far in. The local mesh is rebuilt around the focused system instead.
+    const v = layerVisibility('interior');
+    expect(v.edgesGalaxy).toBe(false);
+    expect(v.edgesLocal).toBe(true);
+    expect(v.celestials).toBe(true);
+    expect(v.fine).toBe(false);
+  });
+
+  it('adds moons and belts only in the fine bucket', () => {
+    expect(layerVisibility('fine').fine).toBe(true);
+    expect(layerVisibility('fine').edgesLocal).toBe(true);
+  });
+
+  it('keeps the systems visible in every bucket', () => {
+    for (const bucket of ['galaxy', 'approach', 'interior', 'fine'] as const) {
+      expect(layerVisibility(bucket).systems).toBe(true);
+    }
   });
 });
