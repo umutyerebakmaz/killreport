@@ -1,14 +1,18 @@
 import type { MapBounds, MapNode } from '@/generated/graphql';
 
 /**
- * The floating origin. Every layer receives `object - origin`, the subtraction
- * happens here in float64, and the origin is the centre of the scene in Phase 1
- * (the focused system's centre from Phase 2 on).
+ * The floating origin, for Graphics vertices only.
  *
- * Why it exists, in one number: a raw galactic coordinate is ~1e18 m, float32
- * quantises it to ~6e10 m, and at the deepest zoom the design reaches that is
- * 598 px of jitter. Relative to the scene centre the same step is 2.85e10 m,
- * which is 0.22 px at the zoom Phase 1 stops at.
+ * Sprites do not need one: Pixi's batcher computes `a * x + c * y + tx` in
+ * float64 and writes the screen coordinate — a number in the hundreds — into
+ * the float32 buffer, so a sprite takes raw galactic metres and the 299 px of
+ * jitter deck.gl measured at the deepest zoom never arises.
+ *
+ * A Graphics is different: it builds one geometry buffer of world-space
+ * vertices in float32 and does not repack it per frame. At galaxy zoom the
+ * scene centre puts float32's step at 3.4e10 m, which phase 1 measured as
+ * 0.22 px and is fine; deeper in, the galaxy mesh is hidden and a small local
+ * mesh is built around the focused system instead.
  */
 export interface MapOrigin {
   x: number;
@@ -31,12 +35,6 @@ export function toLocal(
   z: number,
 ): [number, number] {
   return [x - origin.x, z - origin.z];
-}
-
-/** The accessor every layer hands to deck.gl. Nothing else may build positions. */
-export function nodePosition(origin: MapOrigin) {
-  return (node: Pick<MapNode, 'x' | 'z'>): [number, number] =>
-    toLocal(origin, node.x, node.z);
 }
 
 export function maxLocalMagnitude(
