@@ -753,7 +753,7 @@ export { UniverseService } from './universe.service';
 yarn workspace backend test src/services/universe/map-celestials.service.spec.ts
 ```
 
-Beklenen: PASS, 14 test.
+Beklenen: PASS, 15 test (`celestialsCacheKey` 1 + `getMapCelestials` 14).
 
 - [ ] **Step 6: Gerçek veritabanına karşı doğrula**
 
@@ -2324,7 +2324,7 @@ git commit -m "feat(frontend): stream system interiors and follow the focused or
 Faz 1'in Task 8'iyle aynı sıra ve aynı kurallar. Değişen beklentiler:
 
 - Test sayıları: Faz 1'in tabanı backend 656 / frontend 342. Bu faz backend'e
-  **14** ekliyor (`map-celestials.service`), frontend'e **47**:
+  **15** ekliyor (`map-celestials.service`), frontend'e **47**:
 
   | Dosya                  |                             Ekleniyor |
   | ---------------------- | ------------------------------------: |
@@ -2336,7 +2336,7 @@ Faz 1'in Task 8'iyle aynı sıra ve aynı kurallar. Değişen beklentiler:
   | `UniverseMap.spec.tsx` |                                     6 |
   | **toplam**             |                                **47** |
 
-  Beklenen: **670 / 389**.
+  Beklenen: **671 / 389**.
 
 - `lint` kabul kriteri `main`'in sayısı, **sıfır fark**.
 - `frontend build:check` çalışıyor ve `/map` rota listesinde.
