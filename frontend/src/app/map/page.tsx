@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
-// deck.gl reaches for window and a WebGL context at module scope, so the canvas
+// PixiJS reaches for window and a WebGL context at module scope, so the canvas
 // never renders on the server.
 const UniverseMap = dynamic(
   () => import('@/components/UniverseMap/UniverseMap'),
