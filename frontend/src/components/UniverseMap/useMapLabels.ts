@@ -16,6 +16,14 @@ export interface MapLabelData {
 }
 
 /**
+ * Stable identity for "no rows yet" — loading, skipped, or errored all fall
+ * back to this same array. Without it, `data?.mapLabels ?? []` mints a new
+ * array on every render while `data` is undefined, which would re-trigger any
+ * effect that depends on the returned arrays.
+ */
+const EMPTY: MapLabelData[] = [];
+
+/**
  * The two label tiers that need fetching, staged by zoom.
  *
  * The rule this follows: a dataset shown only above a zoom threshold should not
@@ -25,9 +33,17 @@ export interface MapLabelData {
  *
  * System names are absent on purpose: mapGeometry's nodes already carry them.
  *
- * Once the constellation query has run, Apollo keeps the result. Zooming back
- * out re-skips the query but does not throw the data away, so the 31 KB is paid
- * at most once per session.
+ * The network cost is paid at most once per session: Apollo's normalized
+ * cache keeps the constellation rows once fetched, and re-crossing the
+ * threshold reuses them (`fetchPolicy: 'cache-first'`) instead of refetching.
+ * What this hook *returns* is a different story — while `skip` is true,
+ * `useQuery` clears `data` back to `undefined` rather than holding the last
+ * value (a known, deliberately-not-yet-fixed quirk of Apollo Client 3; see
+ * `react/hooks/useQuery.js`'s own comment on this), so `constellations` goes
+ * back to `EMPTY` below the threshold even though the cache still has the
+ * rows. That's harmless here only because `visibleLabelTiers` (lod.ts) stops
+ * drawing the constellation tier at the exact same `CONSTELLATION_LABEL_ZOOM`,
+ * so the data disappears exactly when nothing is reading it.
  */
 export function useMapLabels(scope: MapScope, zoom: number | null) {
   const { data: regionData } = useMapLabelsQuery({
@@ -42,7 +58,7 @@ export function useMapLabels(scope: MapScope, zoom: number | null) {
   });
 
   return {
-    regions: regionData?.mapLabels ?? [],
-    constellations: constellationData?.mapLabels ?? [],
+    regions: regionData?.mapLabels ?? EMPTY,
+    constellations: constellationData?.mapLabels ?? EMPTY,
   };
 }
