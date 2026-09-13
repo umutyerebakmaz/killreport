@@ -754,6 +754,27 @@ export type MapGeometry = {
   scope: MapScope;
 };
 
+/**
+ * Haritada bir isim. Koordinat **galaktik metre**, düğümlerle aynı uzayda.
+ * Bölgede konum yok ve sahnenin çizdiği sistemlerin ortalamasından hesaplanıyor;
+ * takımyıldızda constellations.position_x/z doğrudan kullanılıyor.
+ */
+export type MapLabel = {
+  __typename?: 'MapLabel';
+  /** Bölgede region_id, takımyıldızda constellation_id. Bantlar çakışmıyor ama tek anahtar isteyen bir tüketici kind ile birlikte anahtarlamalı. */
+  id: Scalars['Int']['output'];
+  kind: MapLabelKind;
+  name: Scalars['String']['output'];
+  x: Scalars['Float']['output'];
+  z: Scalars['Float']['output'];
+};
+
+/** Bir etiketin kademesi. Sistem adları mapGeometry'den geldiği için burada yok. */
+export enum MapLabelKind {
+  Constellation = 'CONSTELLATION',
+  Region = 'REGION'
+}
+
 /** Bir sistem, galaktik konumunda. Koordinatlar 1e9 m'ye yuvarlanmış ve asla ham GPU'ya gitmez. */
 export type MapNode = {
   __typename?: 'MapNode';
@@ -1029,6 +1050,11 @@ export type Query = {
    * haritaya önbellek temizlenmeden gelmez.
    */
   mapGeometry: MapGeometry;
+  /**
+   * Verilen sahnenin bir kademesinin adları. Statik evren verisi; servis Redis'te
+   * 86400 s tutuyor, API'den görünen tazelik response cache'in STATIC_GAME_DATA'sı.
+   */
+  mapLabels: Array<MapLabel>;
   /** Mevcut authenticated kullanıcının bilgilerini döner */
   me?: Maybe<User>;
   /** Alliances ranked by campaigns currently attacking (most aggressive first). */
@@ -1310,6 +1336,12 @@ export type QueryMapCelestialsArgs = {
 
 
 export type QueryMapGeometryArgs = {
+  scope?: MapScope;
+};
+
+
+export type QueryMapLabelsArgs = {
+  kind: MapLabelKind;
   scope?: MapScope;
 };
 
@@ -2504,6 +2536,14 @@ export type MapGeometryQueryVariables = Exact<{
 
 
 export type MapGeometryQuery = { __typename?: 'Query', mapGeometry: { __typename?: 'MapGeometry', scope: MapScope, bounds: { __typename?: 'MapBounds', minX: number, maxX: number, minZ: number, maxZ: number }, nodes: Array<{ __typename?: 'MapNode', systemId: number, name: string, x: number, z: number, radius: number, securityStatus: number, constellationId: number, regionId: number }>, edges: Array<{ __typename?: 'MapEdge', from: number, to: number }> } };
+
+export type MapLabelsQueryVariables = Exact<{
+  scope: MapScope;
+  kind: MapLabelKind;
+}>;
+
+
+export type MapLabelsQuery = { __typename?: 'Query', mapLabels: Array<{ __typename?: 'MapLabel', id: number, name: string, kind: MapLabelKind, x: number, z: number }> };
 
 export type MostValuableKillmailsQueryVariables = Exact<{
   scope: MostValuableScope;
@@ -5759,6 +5799,54 @@ export type MapGeometryQueryHookResult = ReturnType<typeof useMapGeometryQuery>;
 export type MapGeometryLazyQueryHookResult = ReturnType<typeof useMapGeometryLazyQuery>;
 export type MapGeometrySuspenseQueryHookResult = ReturnType<typeof useMapGeometrySuspenseQuery>;
 export type MapGeometryQueryResult = Apollo.QueryResult<MapGeometryQuery, MapGeometryQueryVariables>;
+export const MapLabelsDocument = gql`
+    query MapLabels($scope: MapScope!, $kind: MapLabelKind!) {
+  mapLabels(scope: $scope, kind: $kind) {
+    id
+    name
+    kind
+    x
+    z
+  }
+}
+    `;
+
+/**
+ * __useMapLabelsQuery__
+ *
+ * To run a query within a React component, call `useMapLabelsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMapLabelsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMapLabelsQuery({
+ *   variables: {
+ *      scope: // value for 'scope'
+ *      kind: // value for 'kind'
+ *   },
+ * });
+ */
+export function useMapLabelsQuery(baseOptions: Apollo.QueryHookOptions<MapLabelsQuery, MapLabelsQueryVariables> & ({ variables: MapLabelsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MapLabelsQuery, MapLabelsQueryVariables>(MapLabelsDocument, options);
+      }
+export function useMapLabelsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MapLabelsQuery, MapLabelsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MapLabelsQuery, MapLabelsQueryVariables>(MapLabelsDocument, options);
+        }
+// @ts-ignore
+export function useMapLabelsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MapLabelsQuery, MapLabelsQueryVariables>): Apollo.UseSuspenseQueryResult<MapLabelsQuery, MapLabelsQueryVariables>;
+export function useMapLabelsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MapLabelsQuery, MapLabelsQueryVariables>): Apollo.UseSuspenseQueryResult<MapLabelsQuery | undefined, MapLabelsQueryVariables>;
+export function useMapLabelsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MapLabelsQuery, MapLabelsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MapLabelsQuery, MapLabelsQueryVariables>(MapLabelsDocument, options);
+        }
+export type MapLabelsQueryHookResult = ReturnType<typeof useMapLabelsQuery>;
+export type MapLabelsLazyQueryHookResult = ReturnType<typeof useMapLabelsLazyQuery>;
+export type MapLabelsSuspenseQueryHookResult = ReturnType<typeof useMapLabelsSuspenseQuery>;
+export type MapLabelsQueryResult = Apollo.QueryResult<MapLabelsQuery, MapLabelsQueryVariables>;
 export const MostValuableKillmailsDocument = gql`
     query MostValuableKillmails($scope: MostValuableScope!, $days: Int, $limit: Int, $regionId: Int) {
   mostValuableKillmails(

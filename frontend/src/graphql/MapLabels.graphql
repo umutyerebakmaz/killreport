@@ -1,0 +1,11 @@
+# Operasyon adı MapLabels olmak zorunda: backend'in response cache'i
+# PUBLIC_CACHE_QUERIES'e operasyon adıyla bakıyor (backend/src/config/cache.ts).
+query MapLabels($scope: MapScope!, $kind: MapLabelKind!) {
+  mapLabels(scope: $scope, kind: $kind) {
+    id
+    name
+    kind
+    x
+    z
+  }
+}
