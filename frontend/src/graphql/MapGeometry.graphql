@@ -1,0 +1,28 @@
+# Operasyon adı MapGeometry olmak zorunda: backend'in response cache'i
+# PUBLIC_CACHE_QUERIES'e operasyon adıyla bakıyor (backend/src/config/cache.ts).
+# Adı değiştirmek önbelleği sessizce token başına 120 s'ye düşürür.
+query MapGeometry($scope: MapScope!) {
+  mapGeometry(scope: $scope) {
+    scope
+    bounds {
+      minX
+      maxX
+      minZ
+      maxZ
+    }
+    nodes {
+      systemId
+      name
+      x
+      z
+      radius
+      securityStatus
+      constellationId
+      regionId
+    }
+    edges {
+      from
+      to
+    }
+  }
+}
