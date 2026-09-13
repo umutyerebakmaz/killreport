@@ -5,8 +5,8 @@
  * galactic coordinates; turning them into something a GPU can hold is the
  * frontend's floating-origin job (`frontend/src/utils/map/origin.ts`).
  *
- * Measured 2026-09-13 against production: NEW_EDEN 5.241 nodes / 6.959 edges
- * in 111-123 ms + 9 ms, POCHVEN 27 / 30, WORMHOLE 2.604 / 0. Behind a 24 hour
+ * Measured 2026-09-13 against production: NEW_EDEN 5,241 nodes / 6,959 edges
+ * in 111-123 ms + 9 ms, POCHVEN 27 / 30, WORMHOLE 2,604 / 0. Behind a 24 hour
  * Redis key, so those queries run once a day per scope.
  */
 

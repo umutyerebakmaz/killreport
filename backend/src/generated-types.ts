@@ -985,7 +985,11 @@ export type Query = {
   killmails: KillmailsResponse;
   /** Returns count of killmails grouped by date (for the current filter) */
   killmailsDateCounts: Array<KillmailDateCount>;
-  /** Statik evren verisi; Redis'te 86400 s, response cache'te STATIC_GAME_DATA. */
+  /**
+   * Statik evren verisi. Servis Redis'te 86400 s tutuyor, ama API'den görünen
+   * tazelik response cache'in STATIC_GAME_DATA'sı: 365 gün. Bir evren backfill'i
+   * haritaya önbellek temizlenmeden gelmez.
+   */
   mapGeometry: MapGeometry;
   /** Mevcut authenticated kullanıcının bilgilerini döner */
   me?: Maybe<User>;

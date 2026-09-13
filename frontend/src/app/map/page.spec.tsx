@@ -2,10 +2,11 @@ import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
- * The UNIVERSE nav menu links straight into this page with the scene already
- * chosen — /map?scope=POCHVEN. App Router keeps the same component mounted when
- * only the query string changes, so the scope has to be derived on every render
- * rather than seeded on mount; #201 was exactly this bug on the killmails page.
+ * A link can arrive with the scene already chosen — /map?scope=POCHVEN, pasted
+ * or shared. App Router keeps the same component mounted when only the query
+ * string changes, so the scope has to be derived on every render rather than
+ * seeded on mount; #201 was exactly this bug on the killmails page. (Phase 1
+ * ships no scope switcher, so the nav links to a bare /map.)
  */
 
 let searchParams = new URLSearchParams('');

@@ -83,7 +83,7 @@ export default function Header() {
             <NavPopoverLink
               href="/map"
               label="MAP"
-              description="The whole of New Eden in one continuous zoom, with Pochven and wormhole space"
+              description="Every gate-connected system in New Eden, in one continuous zoom"
             />
             <NavPopoverLink
               href="/regions"
