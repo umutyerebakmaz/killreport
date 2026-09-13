@@ -4,7 +4,9 @@ import {
   float32StepMetres,
   float32StepPixels,
   maxLocalMagnitude,
+  nearestNode,
   nodePosition,
+  originFor,
   toLocal,
 } from './origin';
 
@@ -95,5 +97,58 @@ describe('the float32 budget on the real NEW_EDEN scene', () => {
     // The raw coordinate, fed straight to the GPU, at the deepest zoom the
     // design reaches (fit + 22.8, opened in Phase 2).
     expect(float32StepPixels(9.57e17, -49.918 + 22.8)).toBeGreaterThan(100);
+  });
+});
+
+describe('nearestNode', () => {
+  const nodes = [
+    { systemId: 1, x: 0, z: 0 },
+    { systemId: 2, x: 1e16, z: 0 },
+    { systemId: 3, x: 0, z: -2e16 },
+  ];
+
+  it('finds the closest node to a point', () => {
+    expect(nearestNode(nodes, 9e15, 1e15)?.systemId).toBe(2);
+    expect(nearestNode(nodes, 1e14, -1.9e16)?.systemId).toBe(3);
+  });
+
+  it('returns null for an empty scene rather than throwing', () => {
+    expect(nearestNode([], 0, 0)).toBeNull();
+  });
+
+  it('compares squared distances, so it never needs a square root', () => {
+    // A node exactly between two others resolves to the first seen, which is
+    // stable across renders because the node order comes from the query.
+    expect(nearestNode(nodes, 5e15, 0)?.systemId).toBe(1);
+  });
+});
+
+describe('originFor', () => {
+  const bounds = {
+    minX: -508743946216137000,
+    maxX: 336522971264518000,
+    minZ: -484452845697854000,
+    maxZ: 472860102256057000,
+  };
+
+  it('is the scene centre while nothing is focused', () => {
+    expect(originFor(bounds, null)).toEqual(boundsCenter(bounds));
+  });
+
+  it('is the focused system once there is one', () => {
+    expect(originFor(bounds, { x: 1e17, z: -2e17 })).toEqual({
+      x: 1e17,
+      z: -2e17,
+    });
+  });
+
+  it('is what turns 299 px of jitter into 0.019 px', () => {
+    // The numbers that force the switch, asserted rather than left in a comment.
+    const sceneHalfSpan = 4.786565e17;
+    const biggestSystemRadius = 3.0384e13;
+    const deepest = -24.51;
+
+    expect(sceneHalfSpan * 2 ** -24 * 2 ** deepest).toBeGreaterThan(100);
+    expect(biggestSystemRadius * 2 ** -24 * 2 ** deepest).toBeLessThan(0.1);
   });
 });

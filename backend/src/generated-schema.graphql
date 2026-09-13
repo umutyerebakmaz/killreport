@@ -630,6 +630,42 @@ type MapBounds {
   minZ: Float!
 }
 
+"""
+Sistemin içindeki tek bir nesne. Koordinat **sistemin merkezine göre**, metre,
+ve düğümlerin aksine **yuvarlanmamış**: en iç gezegenin yörüngesi 2,4145e10 m,
+1e9'luk ızgara onu %4 kaydırırdı.
+"""
+type MapCelestial {
+  """
+  Yalnızca GATE'te dolu: hattın öteki ucundaki sistem. Gate ucunun çapalanması buna dayanıyor.
+  """
+  destinationSystemId: Int
+  id: Int!
+  kind: MapCelestialKind!
+  name: String
+
+  """
+  ESI'nın 1 tabanlı sırası; gezegen, ay ve kuşakta dolu, diğerlerinde null.
+  """
+  orbitIndex: Int
+
+  """Ay ve kuşağın bağlı olduğu gezegen; diğerlerinde null."""
+  planetId: Int
+  systemId: Int!
+  x: Float!
+  z: Float!
+}
+
+"""Sistem içindeki çizilebilir nesnenin türü."""
+enum MapCelestialKind {
+  BELT
+  GATE
+  MOON
+  PLANET
+  STAR
+  STATION
+}
+
 """Bir geçit çifti. Her çift bir kez, from < to."""
 type MapEdge {
   from: Int!
@@ -837,6 +873,13 @@ type Query {
 
   """Returns count of killmails grouped by date (for the current filter)"""
   killmailsDateCounts(filter: KillmailFilter): [KillmailDateCount!]!
+
+  """
+  Verilen sistemlerin içi. En fazla **16 sistem**; fazlası reddediliyor,
+  sessizce kesilmiyor — kısaltılmış bir liste delikli bir sahne çizer.
+  Önbellek sistem başına, 86400 s.
+  """
+  mapCelestials(systemIds: [Int!]!): [MapCelestial!]!
 
   """
   Statik evren verisi. Servis Redis'te 86400 s tutuyor, ama API'den görünen

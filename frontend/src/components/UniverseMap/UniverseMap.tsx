@@ -1,16 +1,40 @@
 'use client';
 
 import Loader from '@/components/Loader';
-import { useMapGeometryQuery, type MapScope } from '@/generated/graphql';
+import {
+  MapCelestialKind,
+  useMapGeometryQuery,
+  type MapScope,
+} from '@/generated/graphql';
 import { fitCamera, zoomLimits, type MapCamera } from '@/utils/map/camera';
-import { boundsCenter, toLocal } from '@/utils/map/origin';
+import {
+  lodBucket,
+  showsMoonsAndBelts,
+  streamsInteriors,
+} from '@/utils/map/lod';
+import { nearestNode, originFor, toLocal } from '@/utils/map/origin';
+import { gateNeighbours } from '@/utils/map/topology';
 import { isWebgl2Available } from '@/utils/map/webgl';
-import { OrthographicView, type OrthographicViewState } from '@deck.gl/core';
+import {
+  OrthographicView,
+  type Layer,
+  type OrthographicViewState,
+} from '@deck.gl/core';
 import { LineLayer, ScatterplotLayer } from '@deck.gl/layers';
 import { DeckGL } from '@deck.gl/react';
 import { useCallback, useMemo, useState } from 'react';
-import { edgeSegments, edgesLayerProps, systemsLayerProps } from './layers';
+import {
+  CELESTIALS_LAYER_ID,
+  celestialsLayerProps,
+  edgeSegments,
+  edgesLayerProps,
+  FINE_KINDS,
+  FINE_LAYER_ID,
+  INTERIOR_KINDS,
+  systemsLayerProps,
+} from './layers';
 import { useMapCamera } from './useMapCamera';
+import { useMapCelestials } from './useMapCelestials';
 
 /**
  * flipY: false, so +z points up the screen. That is the orientation the region
@@ -47,11 +71,6 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
 
   const geometry = data?.mapGeometry;
 
-  const origin = useMemo(
-    () => (geometry ? boundsCenter(geometry.bounds) : { x: 0, z: 0 }),
-    [geometry],
-  );
-
   const fit = useMemo<MapCamera | null>(
     () =>
       geometry ? fitCamera(geometry.bounds, size.width, size.height) : null,
@@ -60,19 +79,84 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
 
   const { camera, onCameraChange } = useMapCamera(scope, fit);
 
+  const bucket = useMemo(
+    () => (camera ? lodBucket(camera.zoom) : 'galaxy'),
+    [camera],
+  );
+
+  // The focus only exists above the interior threshold. Below it the origin is
+  // the scene centre, and recomputing a focus on every pan would rebuild all
+  // 5,241 node attributes for nothing.
+  const focus = useMemo(() => {
+    if (!geometry || !camera || !streamsInteriors(bucket)) return null;
+    return nearestNode(geometry.nodes, camera.x, camera.z);
+  }, [geometry, camera, bucket]);
+
+  const origin = useMemo(
+    () => (geometry ? originFor(geometry.bounds, focus) : { x: 0, z: 0 }),
+    [geometry, focus],
+  );
+
+  const systemById = useMemo(
+    () => new Map((geometry?.nodes ?? []).map((node) => [node.systemId, node])),
+    [geometry],
+  );
+
+  // The focus plus its gate neighbours: at most 9 systems, measured. Asking for
+  // the neighbours is what makes panning one system along instant.
+  const celestialSystemIds = useMemo(() => {
+    if (!focus || !geometry) return [];
+    return [focus.systemId, ...gateNeighbours(geometry.edges, focus.systemId)];
+  }, [focus, geometry]);
+
+  const celestials = useMapCelestials(celestialSystemIds);
+
   const layers = useMemo(() => {
     if (!geometry) return [];
-    return [
+
+    const gates = celestials.filter((c) => c.kind === MapCelestialKind.Gate);
+
+    const stack: Layer[] = [
       new LineLayer(
         edgesLayerProps({
-          segments: edgeSegments(geometry.edges, geometry.nodes, origin),
+          segments: edgeSegments(geometry.edges, geometry.nodes, origin, gates),
         }),
       ),
       new ScatterplotLayer(
         systemsLayerProps({ nodes: geometry.nodes, origin }),
       ),
     ];
-  }, [geometry, origin]);
+
+    if (streamsInteriors(bucket)) {
+      stack.push(
+        new ScatterplotLayer(
+          celestialsLayerProps({
+            id: CELESTIALS_LAYER_ID,
+            celestials,
+            kinds: INTERIOR_KINDS,
+            systemById,
+            origin,
+          }),
+        ),
+      );
+    }
+
+    if (showsMoonsAndBelts(bucket)) {
+      stack.push(
+        new ScatterplotLayer(
+          celestialsLayerProps({
+            id: FINE_LAYER_ID,
+            celestials,
+            kinds: FINE_KINDS,
+            systemById,
+            origin,
+          }),
+        ),
+      );
+    }
+
+    return stack;
+  }, [geometry, origin, celestials, bucket, systemById]);
 
   const viewState = useMemo<OrthographicViewState | null>(() => {
     if (!camera || !fit) return null;

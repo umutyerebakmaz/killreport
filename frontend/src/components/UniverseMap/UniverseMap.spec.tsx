@@ -25,12 +25,25 @@ type QueryResult = {
 const useMapGeometryQuery = vi.fn<() => QueryResult>();
 vi.mock('@/generated/graphql', () => ({
   MapScope: { NewEden: 'NEW_EDEN', Pochven: 'POCHVEN', Wormhole: 'WORMHOLE' },
+  MapCelestialKind: {
+    Star: 'STAR',
+    Planet: 'PLANET',
+    Moon: 'MOON',
+    Belt: 'BELT',
+    Station: 'STATION',
+    Gate: 'GATE',
+  },
   useMapGeometryQuery: (options: unknown) => {
     lastQueryOptions = options;
     return useMapGeometryQuery();
   },
+  useMapCelestialsQuery: (options: { variables: unknown; skip?: boolean }) => {
+    lastCelestialsVariables = options.skip ? undefined : options.variables;
+    return { data: { mapCelestials: [] } };
+  },
 }));
 let lastQueryOptions: unknown;
+let lastCelestialsVariables: unknown;
 
 const deckProps: Record<string, unknown>[] = [];
 vi.mock('@deck.gl/react', () => ({
@@ -45,6 +58,7 @@ vi.mock('@/components/Loader', () => ({
 }));
 
 import { MapScope } from '@/generated/graphql';
+import { MAX_ZOOM } from '@/utils/map/lod';
 import UniverseMap from './UniverseMap';
 
 const GEOMETRY = {
@@ -71,6 +85,7 @@ beforeEach(() => {
   webgl.mockReturnValue(true);
   searchParams = new URLSearchParams('');
   deckProps.length = 0;
+  lastCelestialsVariables = undefined;
   useMapGeometryQuery.mockReturnValue({ data: GEOMETRY, loading: false });
 });
 
@@ -146,14 +161,69 @@ describe('UniverseMap', () => {
     expect(viewState.zoom).toBe(-40);
   });
 
-  it('opens 13 zoom levels above the fit and no more, because interiors are Phase 2', () => {
+  it('raises the ceiling to the absolute maximum, not thirteen levels above the fit', () => {
     render(<UniverseMap scope={MapScope.NewEden} />);
 
     const { viewState } = deckProps.at(-1) as {
       viewState: { zoom: number; minZoom: number; maxZoom: number };
     };
-    expect(viewState.maxZoom - viewState.zoom).toBeCloseTo(13, 6);
+    expect(viewState.maxZoom).toBeCloseTo(MAX_ZOOM, 6);
     expect(viewState.zoom - viewState.minZoom).toBeCloseTo(2, 6);
+  });
+
+  it('keeps the origin at the scene centre while the galaxy is on screen', () => {
+    render(<UniverseMap scope={MapScope.NewEden} />);
+
+    // Autofit zoom is far below the interior threshold, so no focus exists and
+    // the target is the scene centre itself.
+    expect(currentViewState().target).toEqual([0, 0, 0]);
+    const { layers } = deckProps.at(-1) as { layers: { id: string }[] };
+    expect(layers.map((l) => l.id)).toEqual(['map-gates', 'map-systems']);
+  });
+
+  it('adds the interior layer once the zoom passes the interior threshold', () => {
+    // -36.18 is the absolute threshold; the URL carries it directly.
+    searchParams = new URLSearchParams('x=3e17&z=2e17&zoom=-36');
+    render(<UniverseMap scope={MapScope.NewEden} />);
+
+    const { layers } = deckProps.at(-1) as { layers: { id: string }[] };
+    expect(layers.map((l) => l.id)).toEqual([
+      'map-gates',
+      'map-systems',
+      'map-celestials',
+    ]);
+  });
+
+  it('adds moons and belts only in the fine bucket', () => {
+    searchParams = new URLSearchParams('x=3e17&z=2e17&zoom=-26');
+    render(<UniverseMap scope={MapScope.NewEden} />);
+
+    const { layers } = deckProps.at(-1) as { layers: { id: string }[] };
+    expect(layers.map((l) => l.id)).toEqual([
+      'map-gates',
+      'map-systems',
+      'map-celestials',
+      'map-celestials-fine',
+    ]);
+  });
+
+  it('moves the origin onto the focused system above the threshold', () => {
+    // The fixture has one node at (3e17, 2e17). Focused, it becomes the origin,
+    // so the target it sits at is [0, 0] — with the scene centre as origin the
+    // same camera would be 2e17 away.
+    searchParams = new URLSearchParams('x=3e17&z=2e17&zoom=-36');
+    render(<UniverseMap scope={MapScope.NewEden} />);
+
+    const { target } = currentViewState();
+    expect(target[0]).toBeCloseTo(0, -6);
+    expect(target[1]).toBeCloseTo(0, -6);
+  });
+
+  it('asks for the focused system and its gate neighbours, sorted', () => {
+    searchParams = new URLSearchParams('x=3e17&z=2e17&zoom=-36');
+    render(<UniverseMap scope={MapScope.NewEden} />);
+
+    expect(lastCelestialsVariables).toEqual({ systemIds: [30000142] });
   });
 
   it('draws gates under systems, so a dot is never hidden by a line', () => {
