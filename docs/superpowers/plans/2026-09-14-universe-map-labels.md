@@ -431,17 +431,25 @@ Backend `:4010`'da açıkken bir kerelik script yerine `psql` ile:
 ```bash
 cd /root/killreport/backend
 DB=$(grep -m1 '^DATABASE_URL' .env | cut -d= -f2- | tr -d '"' | tr -d "'")
-psql "$DB" -t -c "
-SELECT COUNT(*) FROM regions r
-JOIN constellations c ON c.region_id=r.region_id
-JOIN solar_systems s ON s.constellation_id=c.constellation_id
-WHERE c.region_id BETWEEN 10000001 AND 10999999 AND c.region_id <> 10000070
-  AND EXISTS (SELECT 1 FROM stargates g WHERE g.solar_system_id = s.system_id)
-GROUP BY r.region_id;" | wc -l
+psql "$DB" -t -A -c "
+SELECT COUNT(*) FROM (
+  SELECT r.region_id
+  FROM regions r
+  JOIN constellations c ON c.region_id=r.region_id
+  JOIN solar_systems s ON s.constellation_id=c.constellation_id
+  WHERE c.region_id BETWEEN 10000001 AND 10999999 AND c.region_id <> 10000070
+    AND EXISTS (SELECT 1 FROM stargates g WHERE g.solar_system_id = s.system_id)
+  GROUP BY r.region_id) t;"
 ```
 
-Kabul: NEW_EDEN'de bölge sayısı **69 civarı** (70 k-space bölgesi eksi Pochven).
-114 çıkarsa `gatelessFilter` ya da `scopePredicate` uygulanmamış demektir.
+Kabul: **67.** Türetilişi: 70 k-space bölgesi, eksi Pochven, eksi hiç stargate'i
+olmayan iki bölge — J7HZ-F (10000017) ve A821-A (10000019). İkisi de gerçekten
+gate'siz, yani `gatelessFilter`'ın onları düşürmesi doğru davranış.
+
+114 çıkarsa yüklemlerden biri uygulanmamış demektir.
+
+`COUNT(*)`'ın alt sorgu içinde olması ve `-A` gerekli: `psql -t` çıktısına
+sondaki boş satırı ekliyor, `| wc -l` onu da sayıyor ve sonuç bir fazla çıkıyor.
 
 - [ ] **Step 8: Prettier ve commit**
 
@@ -598,7 +606,7 @@ for K in REGION CONSTELLATION; do
 done
 ```
 
-Kabul: `REGION` **69 civarı**, `CONSTELLATION` **1.184'ten küçük ama yakın**
+Kabul: `REGION` **67**, `CONSTELLATION` **1.184'ten küçük ama yakın**
 (gate'siz sistemli takımyıldızlar düşüyor), hepsinin adı dolu. Tekrarlayan
 istekte `extensions.responseCache.hit` `true` olmalı.
 
@@ -1765,8 +1773,9 @@ for K in REGION CONSTELLATION; do
 done
 ```
 
-Kabul: `REGION` 69 civarı, `CONSTELLATION` 1.184'e yakın ama altında, hepsinin
-adı dolu ve koordinatı sayı.
+Kabul: `REGION` **67** (70 k-space bölgesi, eksi Pochven, eksi tamamen
+gate'siz iki bölge: J7HZ-F ve A821-A), `CONSTELLATION` 1.184'e yakın ama
+altında, hepsinin adı dolu ve koordinatı sayı.
 
 - [ ] **Step 3: ASCII varsayımını doğrula**
 
