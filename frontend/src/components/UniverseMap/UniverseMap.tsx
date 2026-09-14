@@ -410,14 +410,6 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
 
   useMapPointer(canvas, camera, limits, onCameraChange, pick);
 
-  // The only thing this slice writes to the canvas element itself, and the
-  // hover's only mark on the scene. Not a Pixi object, so it stays here rather
-  // than in scene/.
-  useEffect(() => {
-    if (!canvas) return;
-    canvas.style.cursor = hovered ? 'pointer' : 'default';
-  }, [canvas, hovered]);
-
   // Stable, so React attaches it once rather than detaching and re-attaching on
   // every render — which with `setHost` in it would tear the scene down and
   // rebuild it each time.
@@ -467,7 +459,17 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       : null;
 
   return (
-    <div ref={attachHost} className="relative w-full h-full bg-ground">
+    <div
+      ref={attachHost}
+      // The cursor on the host rather than written to `canvas.style`: the
+      // canvas is held in state, and assigning to a state value's properties
+      // is what react-hooks' immutability rule exists to catch — the same rule
+      // that decided `scene` had to be a ref, above. `cursor` inherits, so the
+      // class on the host reaches the canvas filling it.
+      className={`relative w-full h-full bg-ground ${
+        hovered ? 'cursor-pointer' : ''
+      }`}
+    >
       {/* No tip over the selected system: the popup already says its name, and
           larger. */}
       {hovered && hovered.node.systemId !== selected && (
