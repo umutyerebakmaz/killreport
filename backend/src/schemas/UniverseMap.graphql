@@ -96,6 +96,37 @@ type MapLabel {
   z: Float!
 }
 
+"""
+Bir sistemin popup'ının gösterdiği her şey, tek sorguda.
+
+Neden `solarSystem(id)` değil, oradan hepsi okunabilirken: o koordinat response
+cache'te **365 gün** duruyor (`config/cache.ts`, `STATIC_GAME_DATA`) ve içinden
+okunan saatlik veri bir yıl boyunca donar. Detay sayfasının kendi "2 saat önce"
+satırı bugün bu yüzden donuyor; buraya taşınmıyor.
+"""
+type MapSystemDetails {
+  systemId: Int!
+  name: String!
+  "İki ondalığa KESİLMİŞ, MapNode.securityStatus ile aynı: yuvarlama 14 sistemi highsec'e taşıyor."
+  securityStatus: Float
+  constellationName: String!
+  regionName: String!
+  """
+  `stargates` tablosundan gerçek sayı. `mapGeometry.edges`'ten saymak EKSİK
+  sayar: orada bir kenarın iki ucu da scope içinde olmak zorunda, yani scope
+  dışına çıkan kapı hiç görünmez.
+  """
+  gateCount: Int!
+  "Son anlık görüntü. Sistemin hiç satırı yoksa dördü de null."
+  shipKills: Int
+  podKills: Int
+  npcKills: Int
+  "Satır varken de null olabilir: ESI jumps listesinde o sistemi bildirmediyse. 0 ise bildirdi ve atlama yoktu."
+  shipJumps: Int
+  "Anlık görüntünün saati, ISO. Dört sayı null ise bu da null."
+  snapshotAt: String
+}
+
 extend type Query {
   """
   Statik evren verisi. Servis Redis'te 86400 s tutuyor, ama API'den görünen
@@ -116,4 +147,10 @@ extend type Query {
   86400 s tutuyor, API'den görünen tazelik response cache'in STATIC_GAME_DATA'sı.
   """
   mapLabels(scope: MapScope! = NEW_EDEN, kind: MapLabelKind!): [MapLabel!]!
+
+  """
+  Popup'ın okuduğu tek sorgu. Önbellek sistem başına 300 s — içindeki en kısa
+  ömürlü parça saat başı değişen aktivite.
+  """
+  mapSystemDetails(systemId: Int!): MapSystemDetails
 }

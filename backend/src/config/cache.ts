@@ -23,6 +23,9 @@ export const CACHE_TTL = {
   /** Killmails list - later pages (less frequently accessed) */
   KILLMAIL_LIST: 300_000, // 5 minutes
 
+  /** Hourly ESI snapshots - the map popup's activity numbers */
+  LIVE_SYSTEM_DATA: 300_000, // 5 minutes
+
   /** Default for other public queries */
   DEFAULT_PUBLIC: 120_000, // 2 minutes
 
@@ -75,6 +78,7 @@ export const PUBLIC_CACHE_QUERIES = [
   'MapGeometry',
   'MapCelestials',
   'MapLabels',
+  'MapSystemDetails',
 ] as const;
 
 /**
@@ -124,6 +128,10 @@ export const TTL_PER_SCHEMA_COORDINATE: Record<string, number> = {
   'Query.mapGeometry': CACHE_TTL.STATIC_GAME_DATA,
   'Query.mapCelestials': CACHE_TTL.STATIC_GAME_DATA,
   'Query.mapLabels': CACHE_TTL.STATIC_GAME_DATA,
+  // Not STATIC_GAME_DATA like the three above: this coordinate carries the
+  // hourly activity snapshot. Query.solarSystem's 365 days over the same
+  // numbers is exactly the bug this query exists to avoid.
+  'Query.mapSystemDetails': CACHE_TTL.LIVE_SYSTEM_DATA,
 };
 
 /**
