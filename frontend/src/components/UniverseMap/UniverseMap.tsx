@@ -224,9 +224,14 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       // download.
       setSceneReady(true);
       setCanvas(built.app.canvas);
+      // `app.screen`, not `renderer.width`: the renderer reports physical pixels
+      // — CSS size times the resolution — while the camera, the pointer and the
+      // label placement all work in CSS pixels. On a HiDPI screen the two differ
+      // by the device pixel ratio, and reading the wrong one would fit the map
+      // to a viewport twice the real size and put every hit test out by half.
       setSize({
-        width: built.app.renderer.width,
-        height: built.app.renderer.height,
+        width: built.app.screen.width,
+        height: built.app.screen.height,
       });
       // Generated once per session; the guard inside makes a second call free.
       // Fired here without blocking the lines above: `fontsReady` is what the

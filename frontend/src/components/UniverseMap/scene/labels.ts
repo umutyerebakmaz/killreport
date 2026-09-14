@@ -1,7 +1,7 @@
 import type { LabelCandidate } from '@/utils/map/labels';
 import type { LabelTier } from '@/utils/map/lod';
 import { BitmapFont, BitmapFontManager, BitmapText } from 'pixi.js';
-import type { MapScene } from './createScene';
+import { renderResolution, type MapScene } from './createScene';
 
 export const LABEL_FONT: Record<LabelTier, string> = {
   region: 'MapLabelRegion',
@@ -107,7 +107,11 @@ export async function installLabelFonts(): Promise<void> {
       chars: BitmapFontManager.ASCII,
       // Managed by the font, not the BitmapText — passing resolution to an
       // instance is ignored and logs a warning.
-      resolution: window.devicePixelRatio || 1,
+      //
+      // The renderer's own resolution, not the raw ratio: an atlas rasterised
+      // finer than the canvas it draws into is minified on every glyph, which is
+      // the softness this whole change exists to remove.
+      resolution: renderResolution(),
       // Kerning metadata costs memory and install time and buys nothing at
       // label sizes.
       skipKerning: true,
@@ -159,10 +163,21 @@ export function drawLabels(scene: MapScene, placed: LabelCandidate[]): void {
       scene.labels.addChild(text);
     }
 
-    // Straight to the candidate's own coordinates. The lift above the dot is
-    // already in them — labelCandidates applies it, so the collision filter
-    // and the viewport clip see the box the glyphs actually occupy.
-    text.position.set(candidate.screenX, candidate.screenY);
+    // The candidate's own coordinates, rounded to a whole CSS pixel. The lift
+    // above the dot is already in them — labelCandidates applies it, so the
+    // collision filter and the viewport clip see the box the glyphs actually
+    // occupy.
+    //
+    // The rounding is what keeps the atlas sampling 1:1. A glyph quad landing on
+    // a fractional coordinate is resampled across two texels whatever the
+    // canvas resolution, and at label sizes that is the difference between type
+    // and a smudge. Whole CSS pixels rather than device pixels, so the grid
+    // holds at any integer resolution; the shift is at most half a pixel and the
+    // collision boxes are built with padding far larger than that.
+    text.position.set(
+      Math.round(candidate.screenX),
+      Math.round(candidate.screenY),
+    );
     text.visible = true;
   }
 
