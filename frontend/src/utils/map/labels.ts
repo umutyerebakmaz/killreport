@@ -5,28 +5,38 @@ import type { LabelTier } from './lod';
 export const MAX_VISIBLE_LABELS = 300;
 
 /**
- * Approximate character width in pixels, per tier.
+ * Mean character width in pixels, per tier.
  *
  * The collision box needs the text's width, and a BitmapText only knows its own
- * width once it exists — which a pure function cannot make. Each constant is
- * the tier's mean glyph advance at its font size plus its letterSpacing, both
- * taken from `TIER_STYLE` in `scene/labels.ts`. Region is uppercased at render,
- * so it uses Shentox-Regular's uppercase mean of 0.578 em: 18 × 0.578 + 3 ≈ 13.4.
- * The lowercase tiers use 0.5 em: 13 × 0.5 + 1 = 7.5, and 11 × 0.5 = 5.5.
+ * width once it exists — which a pure function cannot make. Each constant is the
+ * tier's mean glyph advance at its font size plus its letterSpacing, both taken
+ * from `TIER_STYLE` in `scene/labels.ts`.
  *
- * That makes a name of ordinary letter mix come out close, but the error is not
- * bounded: a string of all `I`s is far narrower than the estimate and a string
- * of all `W`s far wider. Good enough for a filter whose job is "do not overlap"
- * rather than pixel alignment. If exact measurement is ever needed, scene/ can
- * measure and pass halfWidth in; the interface already takes it.
+ * Measured 2026-09-15, not estimated: every name the scene can draw, weighed
+ * against Shentox-SemiBold's own advance widths straight out of the TTF.
+ *
+ *   region          70 names, uppercased   0.5438 em   18 × 0.5438 + 3 = 12.79
+ *   constellation  799 names               0.5149 em   13 × 0.5149 + 1 =  7.69
+ *   system       5,485 names               0.5193 em   11 × 0.5193 + 0 =  5.71
+ *
+ * A generic alphabet mean was what these used to be derived from, and it is
+ * wrong for this data: EVE names are thick with digits and hyphens, which pulls
+ * the mean well off the letter-only figure. The error is still not bounded — a
+ * string of all `I`s is far narrower and one of all `W`s far wider — but it is
+ * now centred on the names that actually exist. Kerning makes real strings a
+ * shade narrower than this, which errs the safe way for a filter whose job is
+ * "do not overlap".
+ *
+ * If exact measurement is ever needed, scene/ can measure and pass halfWidth in;
+ * the interface already takes it.
  *
  * The tiers differ in size because the design gives each a role: region is
  * background and largest, system is foreground and smallest.
  */
 export const LABEL_CHAR_WIDTH: Record<LabelTier, number> = {
-  region: 13.4,
-  constellation: 7.5,
-  system: 5.5,
+  region: 12.79,
+  constellation: 7.69,
+  system: 5.71,
 };
 
 /**

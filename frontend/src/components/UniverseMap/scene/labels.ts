@@ -4,6 +4,15 @@ import type { LabelTier } from '@/utils/map/lod';
 import { BitmapFont, BitmapFontManager, BitmapText } from 'pixi.js';
 import { renderResolution, type MapScene } from './createScene';
 
+/**
+ * The weight every entity name on the site is set in — `.system-name` and its
+ * siblings in `globals.css` are `font-semibold`. The map was rasterising at the
+ * browser default of 400 instead, so its labels were Shentox-Regular while the
+ * rest of the app was Shentox-SemiBold: thinner, and at label sizes under
+ * grayscale antialiasing that reads as washed out rather than merely lighter.
+ */
+const LABEL_FONT_WEIGHT = '600';
+
 export const LABEL_FONT: Record<LabelTier, string> = {
   region: 'MapLabelRegion',
   constellation: 'MapLabelConstellation',
@@ -71,8 +80,13 @@ async function ensureShentoxLoaded(): Promise<void> {
   );
 
   try {
+    // The weight belongs in the request. `18px Shentox` asks for weight 400, so
+    // rasterising at 600 against it would install the atlas before SemiBold had
+    // been fetched — the exact fallback this function exists to prevent.
     await Promise.all(
-      [...sizes].map((size) => fonts.load(`${size}px Shentox`)),
+      [...sizes].map((size) =>
+        fonts.load(`${LABEL_FONT_WEIGHT} ${size}px Shentox`),
+      ),
     );
     await fonts.ready;
   } catch {
@@ -104,6 +118,7 @@ export async function installLabelFonts(): Promise<void> {
       style: {
         fontFamily: 'Shentox, sans-serif',
         fontSize: style.fontSize,
+        fontWeight: LABEL_FONT_WEIGHT,
         // White, because dynamicFill below needs it: it is what lets a tier be
         // tinted at runtime instead of costing another atlas.
         fill: 0xffffff,
@@ -119,9 +134,14 @@ export async function installLabelFonts(): Promise<void> {
       // finer than the canvas it draws into is minified on every glyph, which is
       // the softness this whole change exists to remove.
       resolution: renderResolution(),
-      // Kerning metadata costs memory and install time and buys nothing at
-      // label sizes.
-      skipKerning: true,
+      // Kerning on. It was skipped as costing memory and install time for
+      // nothing, which was asserted rather than measured and is wrong: without
+      // it every pair sits at its raw advance, so `AV`, `To` and `Ya` stand
+      // apart and a name takes more room than it should. That looseness is the
+      // most visible difference between these labels and the same name set in
+      // DOM text anywhere else on the site. The cost is one pass over the
+      // character list at install time, three times per session.
+      skipKerning: false,
       // Runtime tinting without a new atlas per colour. Phase 4's colour
       // registry will want this; enabling it now costs nothing.
       dynamicFill: true,
