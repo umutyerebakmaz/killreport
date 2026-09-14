@@ -440,7 +440,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
         setSelected(target ? target.node.systemId : null);
       },
     };
-  }, [camera, size.width, size.height, pickNodes]);
+  }, [camera, size.width, size.height, pickNodes, setSelected]);
 
   useMapPointer(canvas, camera, limits, onCameraChange, pick);
 
