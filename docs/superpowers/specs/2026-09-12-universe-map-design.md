@@ -603,12 +603,81 @@ etiket yoğunluğu.
 
 Her faz kendi PR'ı ve kendi incelemesi.
 
-| Faz | İçerik                                                                                                                              | Yeni bağımlılık |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------- |
-| 1   | Şema + servis + `mapGeometry` (response cache kaydı dâhil), üç sahne, deck.gl sahnesi, kayan orijin, kamera ve scope URL'de, `/map` | `deck.gl`       |
-| 2   | `mapCelestials`, sistem başına önbellek, LOD eşikleri, sistem içleri, gate uçlarının çapalanması                                    | —               |
-| 3   | Picking, popup, `?focus=`, klavye, mevcut sayfalardan girişler                                                                      | —               |
-| 4   | Base katmanlar, aktivite, sunucuda territory, sahip logoları                                                                        | `d3-contour`    |
+> **Durum, 2026-09-14.** Bu bölüm belgenin geri kalanından daha sonra yazıldı ve
+> nerede kalındığının **tek güncel kaydı** budur. Aşağıdaki faz 3 ve faz 4
+> açıklamaları ise yazıldıkları hâliyle duruyor ve **bir kısmı geçersizdir**;
+> hangi kısmı olduğu aşağıda yazılı.
+
+| Faz | İçerik                                                                                                                                            | Durum                       |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| 1   | Şema + servis + `mapGeometry`, üç sahne, kayan orijin, kamera ve scope URL'de, `/map`                                                             | **Bitti** — #202            |
+| 2   | `mapCelestials`, sistem başına önbellek, LOD eşikleri, sistem içleri, gate uçlarının çapalanması                                                  | **Bitti** — #203            |
+| —   | **Renderer deck.gl 9.4 → PixiJS 8.** Faz değil: faz 1-2'nin frontend'ini "`/map` `main`'deki gibi görünsün ve davransın" kriteriyle yeniden yazdı | **Bitti** — #204            |
+| —   | Harita yüksekliği: uzun footer `main`'i sıkıştırıyordu, haritanın yüzde yüksekliği onunla çöküyordu                                               | **Bitti** — #205            |
+| —   | Etiketler: bölge, takımyıldız ve sistem adları; zoom'la açılan ve **biriken** üç kademe                                                           | **Bitti** — #206            |
+| 3   | Picking, popup, `?focus=`, klavye, mevcut sayfalardan girişler                                                                                    | **Başlanmadı**, üçe bölündü |
+| 4   | Base katmanlar, aktivite, sunucuda territory, sahip logoları                                                                                      | Başlanmadı                  |
+
+### Faz 3 üçe bölündü
+
+Beş işi tek dilime sıkıştırmak ikisini de kötü yapardı. Bağımlılık sırasıyla:
+
+| Dilim  | Ne                                                                                       | Neye bağlı                                            |
+| ------ | ---------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| **3a** | İmlecin altındaki sistem, hover ipucu, tıklamada popup                                   | —                                                     |
+| **3b** | `?focus=30000142`, ve bölge/takımyıldız/sistem sayfalarından "haritada göster" girişleri | 3a — var olmayan bir odak durumuna bağlantı verilemez |
+| **3c** | Klavyeyle pan, zoom ve sistemler arası gezinme                                           | 3a                                                    |
+
+**Başlangıç 3a.** Haritayı kullanışlı yapan o, ve diğer ikisi onun tanımladığı
+"seçili sistem" kavramının üstüne kuruluyor.
+
+### Bu belgenin faz 3 ve 4 metni deck.gl şeklinde ve o kısmı geçersiz
+
+Yukarıdaki _Picking_ ve _Popup_ paragrafları `pickable: true`,
+`pickingRadius: 4` ve deck.gl'in React child callback'iyle
+`viewport.project(...)` diyor. **Bunların hiçbiri artık yok.** Faz 3, etiketler
+diliminin yaptığı gibi Pixi için yeniden tasarlanacak — Pixi'de GPU picking
+bedava gelmiyor.
+
+Geçersiz olan yalnızca _nasıl_ yapılacağı. _Ne_ yapılacağı — imlecin altındaki
+sistemi bilmek, hover'da tek satır, tıklamada popup, popup'ın tuvale değil üste
+konumlanan sıradan bir React bileşeni olması — aynen geçerli.
+
+### 3a'nın sıfırdan yazmayacağı üç şey
+
+- **`nearestNode`** (`frontend/src/utils/map/origin.ts`) — 5.241 düğüm üzerinde
+  doğrusal tarama, faz 2'de odak bulmak için yazıldı ve yetti. Quadtree
+  gerekmeyebilir; önce ölçülmeli.
+- **Ekran projeksiyonu ve viewport kırpması**
+  (`frontend/src/utils/map/labels.ts`) — etiket diliminin son düzeltmesinden
+  sonra bir `LabelCandidate`'in koordinatları **piksellerin gerçekten olduğu
+  yeri** gösteriyor, ki hit test'in istediği tam budur.
+- **`useMapCamera`** — URL gidiş-dönüşü, debounce, ve kendi yazdığını başkasının
+  yazdığından ayırma. 3b bunu devralıyor.
+
+### Faz 4 öncesi kapanmamış küçük işler
+
+- **Gezegen adları** — dördüncü etiket kademesi. Verisi `mapCelestials`'ta hazır
+  (`name`), yani payload'ı sıfır. Sistem içi ayrı bir görsel bağlam olduğu için
+  etiket diliminden ayrı tutuldu.
+- **Kademe başına etiket stili** — `TIER_STYLE`'daki punto, opaklık ve harf
+  aralığı bilerek ayarlanmadı: ilk değerler yanlış tipografinin metriklerine
+  bakılarak seçilmişti. Gözle ayarlanacak, ve yanındaki yorumun dediği gibi
+  `LABEL_CHAR_WIDTH` da birlikte güncellenmeli.
+- **Görsel dil** — parlama, derinlik, hareket. Dört muamele gerçek veri üzerinde
+  denendi ve kullanıcı şimdilik bugünkü görünümü seçti; probe `spike/pixi-universe-map`
+  dalında duruyor.
+
+### İki kural, sonraki fazların devraldığı
+
+- **Karar `frontend/src/utils/map/`'te saf fonksiyondur ve testlidir; Pixi
+  nesnesine atama `components/UniverseMap/scene/`'dedir ve testsizdir.** WebGL
+  jsdom'da koşmuyor ve görsel doğrulama kullanıcıya ait; ama _ne_ çizileceğine
+  karar veren hiçbir şey testsiz tarafta durmuyor.
+- **Bir veri kümesi ancak belirli bir zoom'un üstünde gösteriliyorsa, o eşiğin
+  altında çekilmemeli de.** Faz 2'nin `mapCelestials`'ı bunu zaten yapıyordu;
+  etiket dilimi kural olarak adlandırdı. Faz 4'ün aktivite ve sovereignty
+  verisi statik değil ve çok daha büyük olacak.
 
 ## Riskler ve açık sorular
 
