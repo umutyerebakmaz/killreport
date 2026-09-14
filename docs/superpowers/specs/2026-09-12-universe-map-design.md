@@ -608,25 +608,25 @@ Her faz kendi PR'ı ve kendi incelemesi.
 > açıklamaları ise yazıldıkları hâliyle duruyor ve **bir kısmı geçersizdir**;
 > hangi kısmı olduğu aşağıda yazılı.
 
-| Faz | İçerik                                                                                                                                            | Durum                       |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| 1   | Şema + servis + `mapGeometry`, üç sahne, kayan orijin, kamera ve scope URL'de, `/map`                                                             | **Bitti** — #202            |
-| 2   | `mapCelestials`, sistem başına önbellek, LOD eşikleri, sistem içleri, gate uçlarının çapalanması                                                  | **Bitti** — #203            |
-| —   | **Renderer deck.gl 9.4 → PixiJS 8.** Faz değil: faz 1-2'nin frontend'ini "`/map` `main`'deki gibi görünsün ve davransın" kriteriyle yeniden yazdı | **Bitti** — #204            |
-| —   | Harita yüksekliği: uzun footer `main`'i sıkıştırıyordu, haritanın yüzde yüksekliği onunla çöküyordu                                               | **Bitti** — #205            |
-| —   | Etiketler: bölge, takımyıldız ve sistem adları; zoom'la açılan ve **biriken** üç kademe                                                           | **Bitti** — #206            |
-| 3   | Picking, popup, `?focus=`, klavye, mevcut sayfalardan girişler                                                                                    | **Başlanmadı**, üçe bölündü |
-| 4   | Base katmanlar, aktivite, sunucuda territory, sahip logoları                                                                                      | Başlanmadı                  |
+| Faz | İçerik                                                                                                                                            | Durum                                          |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| 1   | Şema + servis + `mapGeometry`, üç sahne, kayan orijin, kamera ve scope URL'de, `/map`                                                             | **Bitti** — #202                               |
+| 2   | `mapCelestials`, sistem başına önbellek, LOD eşikleri, sistem içleri, gate uçlarının çapalanması                                                  | **Bitti** — #203                               |
+| —   | **Renderer deck.gl 9.4 → PixiJS 8.** Faz değil: faz 1-2'nin frontend'ini "`/map` `main`'deki gibi görünsün ve davransın" kriteriyle yeniden yazdı | **Bitti** — #204                               |
+| —   | Harita yüksekliği: uzun footer `main`'i sıkıştırıyordu, haritanın yüzde yüksekliği onunla çöküyordu                                               | **Bitti** — #205                               |
+| —   | Etiketler: bölge, takımyıldız ve sistem adları; zoom'la açılan ve **biriken** üç kademe                                                           | **Bitti** — #206                               |
+| 3   | Picking, popup, `?focus=`, klavye, mevcut sayfalardan girişler                                                                                    | Üçe bölündü: **3a bitti**, 3b ve 3c başlanmadı |
+| 4   | Base katmanlar, aktivite, sunucuda territory, sahip logoları                                                                                      | Başlanmadı                                     |
 
 ### Faz 3 üçe bölündü
 
 Beş işi tek dilime sıkıştırmak ikisini de kötü yapardı. Bağımlılık sırasıyla:
 
-| Dilim  | Ne                                                                                       | Neye bağlı                                            |
-| ------ | ---------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| **3a** | İmlecin altındaki sistem, hover ipucu, tıklamada popup                                   | —                                                     |
-| **3b** | `?focus=30000142`, ve bölge/takımyıldız/sistem sayfalarından "haritada göster" girişleri | 3a — var olmayan bir odak durumuna bağlantı verilemez |
-| **3c** | Klavyeyle pan, zoom ve sistemler arası gezinme                                           | 3a                                                    |
+| Dilim  | Ne                                                                                                                                                                           | Neye bağlı                                            |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| **3a** | İmlecin altındaki sistem, hover ipucu, tıklamada popup — **bitti**, kendi spec'i: [`2026-09-14-universe-map-picking-design.md`](./2026-09-14-universe-map-picking-design.md) | —                                                     |
+| **3b** | `?focus=30000142`, ve bölge/takımyıldız/sistem sayfalarından "haritada göster" girişleri                                                                                     | 3a — var olmayan bir odak durumuna bağlantı verilemez |
+| **3c** | Klavyeyle pan, zoom ve sistemler arası gezinme                                                                                                                               | 3a                                                    |
 
 **Başlangıç 3a.** Haritayı kullanışlı yapan o, ve diğer ikisi onun tanımladığı
 "seçili sistem" kavramının üstüne kuruluyor.

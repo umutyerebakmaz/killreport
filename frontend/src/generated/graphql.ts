@@ -797,6 +797,38 @@ export enum MapScope {
   Wormhole = 'WORMHOLE'
 }
 
+/**
+ * Bir sistemin popup'ının gösterdiği her şey, tek sorguda.
+ *
+ * Neden `solarSystem(id)` değil, oradan hepsi okunabilirken: o koordinat response
+ * cache'te **365 gün** duruyor (`config/cache.ts`, `STATIC_GAME_DATA`) ve içinden
+ * okunan saatlik veri bir yıl boyunca donar. Detay sayfasının kendi "2 saat önce"
+ * satırı bugün bu yüzden donuyor; buraya taşınmıyor.
+ */
+export type MapSystemDetails = {
+  __typename?: 'MapSystemDetails';
+  constellationName: Scalars['String']['output'];
+  /**
+   * `stargates` tablosundan gerçek sayı. `mapGeometry.edges`'ten saymak EKSİK
+   * sayar: orada bir kenarın iki ucu da scope içinde olmak zorunda, yani scope
+   * dışına çıkan kapı hiç görünmez.
+   */
+  gateCount: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  npcKills?: Maybe<Scalars['Int']['output']>;
+  podKills?: Maybe<Scalars['Int']['output']>;
+  regionName: Scalars['String']['output'];
+  /** İki ondalığa KESİLMİŞ, MapNode.securityStatus ile aynı: yuvarlama 14 sistemi highsec'e taşıyor. */
+  securityStatus?: Maybe<Scalars['Float']['output']>;
+  /** Satır varken de null olabilir: ESI jumps listesinde o sistemi bildirmediyse. 0 ise bildirdi ve atlama yoktu. */
+  shipJumps?: Maybe<Scalars['Int']['output']>;
+  /** Son anlık görüntü. Sistemin hiç satırı yoksa dördü de null. */
+  shipKills?: Maybe<Scalars['Int']['output']>;
+  /** Anlık görüntünün saati, ISO. Dört sayı null ise bu da null. */
+  snapshotAt?: Maybe<Scalars['String']['output']>;
+  systemId: Scalars['Int']['output'];
+};
+
 export type Moon = {
   __typename?: 'Moon';
   id: Scalars['Int']['output'];
@@ -1055,6 +1087,11 @@ export type Query = {
    * 86400 s tutuyor, API'den görünen tazelik response cache'in STATIC_GAME_DATA'sı.
    */
   mapLabels: Array<MapLabel>;
+  /**
+   * Popup'ın okuduğu tek sorgu. Önbellek sistem başına 300 s — içindeki en kısa
+   * ömürlü parça saat başı değişen aktivite.
+   */
+  mapSystemDetails?: Maybe<MapSystemDetails>;
   /** Mevcut authenticated kullanıcının bilgilerini döner */
   me?: Maybe<User>;
   /** Alliances ranked by campaigns currently attacking (most aggressive first). */
@@ -1343,6 +1380,11 @@ export type QueryMapGeometryArgs = {
 export type QueryMapLabelsArgs = {
   kind: MapLabelKind;
   scope?: MapScope;
+};
+
+
+export type QueryMapSystemDetailsArgs = {
+  systemId: Scalars['Int']['input'];
 };
 
 
@@ -2545,6 +2587,13 @@ export type MapLabelsQueryVariables = Exact<{
 
 
 export type MapLabelsQuery = { __typename?: 'Query', mapLabels: Array<{ __typename?: 'MapLabel', id: number, name: string, kind: MapLabelKind, x: number, z: number }> };
+
+export type MapSystemDetailsQueryVariables = Exact<{
+  systemId: Scalars['Int']['input'];
+}>;
+
+
+export type MapSystemDetailsQuery = { __typename?: 'Query', mapSystemDetails?: { __typename?: 'MapSystemDetails', systemId: number, name: string, securityStatus?: number | null, constellationName: string, regionName: string, gateCount: number, shipKills?: number | null, podKills?: number | null, npcKills?: number | null, shipJumps?: number | null, snapshotAt?: string | null } | null };
 
 export type MostValuableKillmailsQueryVariables = Exact<{
   scope: MostValuableScope;
@@ -5848,6 +5897,59 @@ export type MapLabelsQueryHookResult = ReturnType<typeof useMapLabelsQuery>;
 export type MapLabelsLazyQueryHookResult = ReturnType<typeof useMapLabelsLazyQuery>;
 export type MapLabelsSuspenseQueryHookResult = ReturnType<typeof useMapLabelsSuspenseQuery>;
 export type MapLabelsQueryResult = Apollo.QueryResult<MapLabelsQuery, MapLabelsQueryVariables>;
+export const MapSystemDetailsDocument = gql`
+    query MapSystemDetails($systemId: Int!) {
+  mapSystemDetails(systemId: $systemId) {
+    systemId
+    name
+    securityStatus
+    constellationName
+    regionName
+    gateCount
+    shipKills
+    podKills
+    npcKills
+    shipJumps
+    snapshotAt
+  }
+}
+    `;
+
+/**
+ * __useMapSystemDetailsQuery__
+ *
+ * To run a query within a React component, call `useMapSystemDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMapSystemDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMapSystemDetailsQuery({
+ *   variables: {
+ *      systemId: // value for 'systemId'
+ *   },
+ * });
+ */
+export function useMapSystemDetailsQuery(baseOptions: Apollo.QueryHookOptions<MapSystemDetailsQuery, MapSystemDetailsQueryVariables> & ({ variables: MapSystemDetailsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MapSystemDetailsQuery, MapSystemDetailsQueryVariables>(MapSystemDetailsDocument, options);
+      }
+export function useMapSystemDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MapSystemDetailsQuery, MapSystemDetailsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MapSystemDetailsQuery, MapSystemDetailsQueryVariables>(MapSystemDetailsDocument, options);
+        }
+// @ts-ignore
+export function useMapSystemDetailsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MapSystemDetailsQuery, MapSystemDetailsQueryVariables>): Apollo.UseSuspenseQueryResult<MapSystemDetailsQuery, MapSystemDetailsQueryVariables>;
+export function useMapSystemDetailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MapSystemDetailsQuery, MapSystemDetailsQueryVariables>): Apollo.UseSuspenseQueryResult<MapSystemDetailsQuery | undefined, MapSystemDetailsQueryVariables>;
+export function useMapSystemDetailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MapSystemDetailsQuery, MapSystemDetailsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MapSystemDetailsQuery, MapSystemDetailsQueryVariables>(MapSystemDetailsDocument, options);
+        }
+export type MapSystemDetailsQueryHookResult = ReturnType<typeof useMapSystemDetailsQuery>;
+export type MapSystemDetailsLazyQueryHookResult = ReturnType<typeof useMapSystemDetailsLazyQuery>;
+export type MapSystemDetailsSuspenseQueryHookResult = ReturnType<typeof useMapSystemDetailsSuspenseQuery>;
+export type MapSystemDetailsQueryResult = Apollo.QueryResult<MapSystemDetailsQuery, MapSystemDetailsQueryVariables>;
 export const MostValuableKillmailsDocument = gql`
     query MostValuableKillmails($scope: MostValuableScope!, $days: Int, $limit: Int, $regionId: Int) {
   mostValuableKillmails(

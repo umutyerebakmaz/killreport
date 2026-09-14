@@ -16,6 +16,7 @@ import { edgeSegments, localEdges } from '@/utils/map/edges';
 import { labelCandidates, placeLabels } from '@/utils/map/labels';
 import { layerVisibility, lodBucket, visibleLabelTiers } from '@/utils/map/lod';
 import { boundsCenter, nearestNode, originFor } from '@/utils/map/origin';
+import { pickSystem, type PickTarget } from '@/utils/map/pick';
 import { gateNeighbours } from '@/utils/map/topology';
 import { isWebgl2Available } from '@/utils/map/webgl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -33,10 +34,12 @@ import {
   scaleSystems,
   type SystemSprites,
 } from './scene/systems';
+import SystemHoverTip from './SystemHoverTip';
+import SystemPopup from './SystemPopup';
 import { useMapCamera } from './useMapCamera';
 import { useMapCelestials } from './useMapCelestials';
 import { useMapLabels } from './useMapLabels';
-import { useMapPointer, type SceneCanvas } from './useMapPointer';
+import { useMapPointer, type MapPick, type SceneCanvas } from './useMapPointer';
 
 function MapMessage({ children }: { children: React.ReactNode }) {
   return (
@@ -84,6 +87,15 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // run in declaration order, so the value is already current by the time
   // anything reads it.
   const cameraScale = useRef(1);
+
+  // The hovered system is held as a full PickTarget: the tip follows the
+  // cursor, so its position is refreshed by the next hover anyway.
+  const [hovered, setHovered] = useState<PickTarget | null>(null);
+  // The selected one is held as an ID only. The popup is anchored to its dot
+  // and follows the camera, so its screen position has to be recomputed every
+  // render — a frozen screenX would tear the popup off its system on the first
+  // pan.
+  const [selected, setSelected] = useState<number | null>(null);
 
   // Static universe data behind a 24 hour Redis key and a STATIC_GAME_DATA
   // response cache: cache-first is overridden here at the call site rather than
@@ -142,6 +154,23 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
         name: node.name,
         x: node.x,
         z: node.z,
+      })),
+    [geometry],
+  );
+
+  // What pickSystem needs, which is what labelSystems needs plus the radius and
+  // the security. Memoised for the same reason: without it every render remaps
+  // all 5,241 nodes, including the many that have nothing to do with the
+  // pointer.
+  const pickNodes = useMemo(
+    () =>
+      (geometry?.nodes ?? []).map((node) => ({
+        systemId: node.systemId,
+        name: node.name,
+        x: node.x,
+        z: node.z,
+        radius: node.radius,
+        securityStatus: node.securityStatus,
       })),
     [geometry],
   );
@@ -352,7 +381,34 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // Pan and zoom: the listeners bind once per canvas and read the latest
   // camera through a ref, in useMapPointer.ts — see that file for why.
   const limits = fit ? zoomLimits(fit.zoom) : null;
-  useMapPointer(canvas, camera, limits, onCameraChange);
+
+  // Rebuilt whenever the camera or the viewport moves, which is correct: the
+  // projection these close over has changed. useMapPointer holds them in a ref,
+  // so a new identity does not rebind the five listeners.
+  const pick = useMemo<MapPick>(() => {
+    const at = (pointerX: number, pointerY: number) =>
+      camera && size.width
+        ? pickSystem({
+            nodes: pickNodes,
+            transform: cameraTransform(camera, size.width, size.height),
+            pointerX,
+            pointerY,
+            cameraScale: cameraScale.current,
+          })
+        : null;
+
+    return {
+      onHover: (pointer) =>
+        setHovered(pointer ? at(pointer.x, pointer.y) : null),
+      // Clicking empty space closes the popup.
+      onSelect: (pointer) => {
+        const target = at(pointer.x, pointer.y);
+        setSelected(target ? target.node.systemId : null);
+      },
+    };
+  }, [camera, size.width, size.height, pickNodes]);
+
+  useMapPointer(canvas, camera, limits, onCameraChange, pick);
 
   // Stable, so React attaches it once rather than detaching and re-attaching on
   // every render — which with `setHost` in it would tear the scene down and
@@ -392,5 +448,51 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     return <MapMessage>This scene has no systems to draw.</MapMessage>;
   }
 
-  return <div ref={attachHost} className="relative w-full h-full bg-ground" />;
+  const selectedNode = selected
+    ? (geometry.nodes.find((node) => node.systemId === selected) ?? null)
+    : null;
+  // Recomputed every render rather than remembered from the click: the popup is
+  // anchored to its system, so it has to travel with the camera.
+  const transform =
+    camera && size.width
+      ? cameraTransform(camera, size.width, size.height)
+      : null;
+
+  return (
+    <div
+      ref={attachHost}
+      // The cursor on the host rather than written to `canvas.style`: the
+      // canvas is held in state, and assigning to a state value's properties
+      // is what react-hooks' immutability rule exists to catch — the same rule
+      // that decided `scene` had to be a ref, above. `cursor` inherits, so the
+      // class on the host reaches the canvas filling it.
+      className={`relative w-full h-full bg-ground ${
+        hovered ? 'cursor-pointer' : ''
+      }`}
+    >
+      {/* No tip over the selected system: the popup already says its name, and
+          larger. */}
+      {hovered && hovered.node.systemId !== selected && (
+        <SystemHoverTip
+          name={hovered.node.name}
+          securityStatus={hovered.node.securityStatus}
+          screenX={hovered.screenX}
+          screenY={hovered.screenY}
+          viewportWidth={size.width}
+          viewportHeight={size.height}
+        />
+      )}
+
+      {selectedNode && transform && (
+        <SystemPopup
+          systemId={selectedNode.systemId}
+          screenX={selectedNode.x * transform.scaleX + transform.x}
+          screenY={selectedNode.z * transform.scaleY + transform.y}
+          viewportWidth={size.width}
+          viewportHeight={size.height}
+          onClose={() => setSelected(null)}
+        />
+      )}
+    </div>
+  );
 }

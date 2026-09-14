@@ -1,0 +1,18 @@
+# Operasyon adı MapSystemDetails olmak zorunda: backend'in response cache'i
+# PUBLIC_CACHE_QUERIES'e operasyon adıyla bakıyor (backend/src/config/cache.ts).
+# Adı değiştirmek önbelleği token başına 120 s'ye düşürür.
+query MapSystemDetails($systemId: Int!) {
+  mapSystemDetails(systemId: $systemId) {
+    systemId
+    name
+    securityStatus
+    constellationName
+    regionName
+    gateCount
+    shipKills
+    podKills
+    npcKills
+    shipJumps
+    snapshotAt
+  }
+}

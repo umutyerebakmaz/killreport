@@ -796,6 +796,38 @@ export enum MapScope {
   Wormhole = 'WORMHOLE'
 }
 
+/**
+ * Bir sistemin popup'ının gösterdiği her şey, tek sorguda.
+ *
+ * Neden `solarSystem(id)` değil, oradan hepsi okunabilirken: o koordinat response
+ * cache'te **365 gün** duruyor (`config/cache.ts`, `STATIC_GAME_DATA`) ve içinden
+ * okunan saatlik veri bir yıl boyunca donar. Detay sayfasının kendi "2 saat önce"
+ * satırı bugün bu yüzden donuyor; buraya taşınmıyor.
+ */
+export type MapSystemDetails = {
+  __typename?: 'MapSystemDetails';
+  constellationName: Scalars['String']['output'];
+  /**
+   * `stargates` tablosundan gerçek sayı. `mapGeometry.edges`'ten saymak EKSİK
+   * sayar: orada bir kenarın iki ucu da scope içinde olmak zorunda, yani scope
+   * dışına çıkan kapı hiç görünmez.
+   */
+  gateCount: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  npcKills?: Maybe<Scalars['Int']['output']>;
+  podKills?: Maybe<Scalars['Int']['output']>;
+  regionName: Scalars['String']['output'];
+  /** İki ondalığa KESİLMİŞ, MapNode.securityStatus ile aynı: yuvarlama 14 sistemi highsec'e taşıyor. */
+  securityStatus?: Maybe<Scalars['Float']['output']>;
+  /** Satır varken de null olabilir: ESI jumps listesinde o sistemi bildirmediyse. 0 ise bildirdi ve atlama yoktu. */
+  shipJumps?: Maybe<Scalars['Int']['output']>;
+  /** Son anlık görüntü. Sistemin hiç satırı yoksa dördü de null. */
+  shipKills?: Maybe<Scalars['Int']['output']>;
+  /** Anlık görüntünün saati, ISO. Dört sayı null ise bu da null. */
+  snapshotAt?: Maybe<Scalars['String']['output']>;
+  systemId: Scalars['Int']['output'];
+};
+
 export type Moon = {
   __typename?: 'Moon';
   id: Scalars['Int']['output'];
@@ -1054,6 +1086,11 @@ export type Query = {
    * 86400 s tutuyor, API'den görünen tazelik response cache'in STATIC_GAME_DATA'sı.
    */
   mapLabels: Array<MapLabel>;
+  /**
+   * Popup'ın okuduğu tek sorgu. Önbellek sistem başına 300 s — içindeki en kısa
+   * ömürlü parça saat başı değişen aktivite.
+   */
+  mapSystemDetails?: Maybe<MapSystemDetails>;
   /** Mevcut authenticated kullanıcının bilgilerini döner */
   me?: Maybe<User>;
   /** Alliances ranked by campaigns currently attacking (most aggressive first). */
@@ -1342,6 +1379,11 @@ export type QueryMapGeometryArgs = {
 export type QueryMapLabelsArgs = {
   kind: MapLabelKind;
   scope?: MapScope;
+};
+
+
+export type QueryMapSystemDetailsArgs = {
+  systemId: Scalars['Int']['input'];
 };
 
 
@@ -2408,6 +2450,7 @@ export type ResolversTypes = {
   MapLabelKind: MapLabelKind;
   MapNode: ResolverTypeWrapper<MapNode>;
   MapScope: MapScope;
+  MapSystemDetails: ResolverTypeWrapper<MapSystemDetails>;
   Moon: ResolverTypeWrapper<Moon>;
   MostValuableScope: MostValuableScope;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
@@ -2561,6 +2604,7 @@ export type ResolversParentTypes = {
   MapGeometry: MapGeometry;
   MapLabel: MapLabel;
   MapNode: MapNode;
+  MapSystemDetails: MapSystemDetails;
   Moon: Moon;
   Mutation: Record<PropertyKey, never>;
   PageInfo: PageInfo;
@@ -3107,6 +3151,20 @@ export type MapNodeResolvers<ContextType = any, ParentType extends ResolversPare
   z?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
 };
 
+export type MapSystemDetailsResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapSystemDetails'] = ResolversParentTypes['MapSystemDetails']> = {
+  constellationName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  gateCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  npcKills?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  podKills?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  regionName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  securityStatus?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  shipJumps?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  shipKills?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  snapshotAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  systemId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
 export type MoonResolvers<ContextType = any, ParentType extends ResolversParentTypes['Moon'] = ResolversParentTypes['Moon']> = {
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -3214,6 +3272,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   mapCelestials?: Resolver<Array<ResolversTypes['MapCelestial']>, ParentType, ContextType, RequireFields<QueryMapCelestialsArgs, 'systemIds'>>;
   mapGeometry?: Resolver<ResolversTypes['MapGeometry'], ParentType, ContextType, RequireFields<QueryMapGeometryArgs, 'scope'>>;
   mapLabels?: Resolver<Array<ResolversTypes['MapLabel']>, ParentType, ContextType, RequireFields<QueryMapLabelsArgs, 'kind' | 'scope'>>;
+  mapSystemDetails?: Resolver<Maybe<ResolversTypes['MapSystemDetails']>, ParentType, ContextType, RequireFields<QueryMapSystemDetailsArgs, 'systemId'>>;
   me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   mostAggressiveAlliances?: Resolver<Array<ResolversTypes['AllianceActivityRank']>, ParentType, ContextType, Partial<QueryMostAggressiveAlliancesArgs>>;
   mostDefensiveAlliances?: Resolver<Array<ResolversTypes['AllianceActivityRank']>, ParentType, ContextType, Partial<QueryMostDefensiveAlliancesArgs>>;
@@ -3775,6 +3834,7 @@ export type Resolvers<ContextType = any> = {
   MapGeometry?: MapGeometryResolvers<ContextType>;
   MapLabel?: MapLabelResolvers<ContextType>;
   MapNode?: MapNodeResolvers<ContextType>;
+  MapSystemDetails?: MapSystemDetailsResolvers<ContextType>;
   Moon?: MoonResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;
