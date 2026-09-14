@@ -37,11 +37,11 @@ export const LABEL_FONT: Record<LabelTier, string> = {
  * two pixels across three tiers and read as one size at a glance. A clean four
  * pixel step separates them, and taking the system tier down rather than the
  * others up is what buys room — it is the crowded tier, and a shorter name
- * clears its neighbours sooner. Size is
- * now the whole of the hierarchy — the alphas were 0.45 / 0.7 / 1 and the tints
- * were three greys, and both were tried and reverted for the same reason: over
- * the galaxy there is nothing behind a name, so anything that dims it makes it
- * unreadable rather than quiet.
+ * clears its neighbours sooner. Size and weight are now the whole of the
+ * hierarchy — the alphas were 0.45 / 0.7 / 1 and the tints were three greys, and
+ * both were tried and reverted for the same reason: over the galaxy there is
+ * nothing behind a name, so anything that dims it makes it unreadable rather
+ * than quiet.
  *
  * These numbers are coupled to the collision boxes: changing a fontSize or a
  * letterSpacing here means updating `LABEL_CHAR_WIDTH` and `LABEL_LINE_HEIGHT`

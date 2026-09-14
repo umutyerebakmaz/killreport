@@ -68,7 +68,7 @@ export const CELESTIAL_TINT: Record<MapCelestialKind, number> = {
  * "quieter" against a card reads as "washed out" against black. Reverted
  * 2026-09-15 after looking.
  *
- * The hierarchy is carried by size instead — 18 / 13 / 11, with region
+ * The hierarchy is carried by size instead — 16 / 12 / 8, with region
  * uppercased and letter-spaced — which is a difference that survives being read
  * at a glance where a difference of tone did not.
  *
