@@ -9,7 +9,7 @@ function place(anchorX: number, anchorY: number, offset = 12) {
   return clampOverlay({ anchorX, anchorY, ...SIZE, ...VIEWPORT, offset });
 }
 
-describe('clampOverlay', () => {
+describe('clampOverlay, below the anchor', () => {
   // Centred across, clear beneath: the system that was clicked or hovered stays
   // visible under the thing describing it.
   it('centres across the anchor and opens under it', () => {
@@ -45,5 +45,38 @@ describe('clampOverlay', () => {
         offset: 12,
       }),
     ).toEqual({ left: 0, top: 0 });
+  });
+});
+
+describe('clampOverlay, above the anchor', () => {
+  function above(anchorX: number, anchorY: number, offset = 12) {
+    return clampOverlay({
+      anchorX,
+      anchorY,
+      ...SIZE,
+      ...VIEWPORT,
+      offset,
+      side: 'above',
+    });
+  }
+
+  it('centres across the anchor and opens over it', () => {
+    // 300 - 12 - 100: the box's bottom edge sits `offset` clear of the anchor.
+    expect(above(400, 300)).toEqual({ left: 300, top: 188 });
+  });
+
+  it('takes the offset as the distance to clear', () => {
+    expect(above(400, 300, 60).top).toBe(300 - 60 - 100);
+  });
+
+  // Same reasoning as the other side: sliding down would return it over the
+  // anchor, so it flips under instead.
+  it('flips below rather than sliding back over the anchor', () => {
+    expect(above(400, 40).top).toBe(52);
+  });
+
+  it('still clamps sideways', () => {
+    expect(above(790, 300).left).toBe(600);
+    expect(above(10, 300).left).toBe(0);
   });
 });

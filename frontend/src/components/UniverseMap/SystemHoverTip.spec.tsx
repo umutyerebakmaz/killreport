@@ -22,7 +22,7 @@ describe('SystemHoverTip', () => {
     expect(screen.getByText('0.9')).toBeInTheDocument();
   });
 
-  it('is centred across the dot and sits clear beneath it', () => {
+  it('is centred across the dot and sits clear above it', () => {
     const { container } = render(
       <SystemHoverTip
         name="Jita"
@@ -36,11 +36,11 @@ describe('SystemHoverTip', () => {
 
     // `left` is the dot's own x, and the class centres the real box on it — the
     // width here is a guess, so placing a left edge from it would sit the tip
-    // off-centre by half the error. Below: 100 + the dot's 1.5 px radius + the
-    // 12 px gap, so the system the tip names is not hidden by it.
+    // off-centre by half the error. Above: 100 - the dot's 1.5 px radius - the
+    // 12 px gap - the 24 px height, so the system the tip names stays visible.
     const tip = container.firstElementChild as HTMLElement;
     expect(tip.style.left).toBe('100px');
-    expect(tip.style.top).toBe('113.5px');
+    expect(tip.style.top).toBe('62.5px');
     expect(tip).toHaveClass('-translate-x-1/2');
   });
 
@@ -59,7 +59,7 @@ describe('SystemHoverTip', () => {
 
     const tip = container.firstElementChild as HTMLElement;
     expect(tip.style.left).toBe('412px');
-    expect(tip.style.top).toBe('318px');
+    expect(tip.style.top).toBe('258px');
   });
 
   it('does not take pointer events, so it cannot block a drag', () => {

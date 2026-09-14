@@ -3,7 +3,7 @@
 import { clampOverlay } from '@/utils/map/overlay';
 import { formatSecurityStatus, getSecurityColor } from '@/utils/security';
 
-/** How far the tip's top edge clears the system's own disc. */
+/** How far the tip's bottom edge clears the system's own disc. */
 const TIP_GAP_PX = 12;
 
 /**
@@ -54,6 +54,7 @@ export default function SystemHoverTip({
     viewportWidth,
     viewportHeight,
     offset: anchorRadius + TIP_GAP_PX,
+    side: 'above',
   });
 
   // Back to the centre the clamp was derived from: `box.left` is that centre
