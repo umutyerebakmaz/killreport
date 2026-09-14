@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { cameraTransform, type MapCamera } from './camera';
+import { systemFloorPx, systemRadiusPx } from './marks';
 import {
   MIN_PICK_RADIUS_PX,
   pickRadiusPx,
@@ -38,14 +39,33 @@ function pick(nodes: PickNode[], pointerX: number, pointerY: number) {
 }
 
 describe('pickRadiusPx', () => {
+  // The drawn floor ramps to SYSTEM_MAX_FLOOR_PX and the pick floor is
+  // MIN_PICK_RADIUS_PX; if the first ever passed the second, a system would be
+  // drawn larger than the area that can be clicked. Swept rather than spot
+  // checked, because the ramp is what makes this non-obvious.
+  it('is never smaller than the mark it stands for, at any zoom', () => {
+    for (let zoom = -52; zoom <= -30; zoom += 0.5) {
+      const cameraScale = 2 ** zoom;
+      const floorPx = systemFloorPx(zoom);
+
+      for (const worldRadius of [0, 3.8809e12, 3.8809e13]) {
+        expect(
+          pickRadiusPx(worldRadius, cameraScale, floorPx),
+        ).toBeGreaterThanOrEqual(
+          systemRadiusPx(worldRadius, cameraScale, floorPx),
+        );
+      }
+    }
+  });
+
   it('floors at MIN_PICK_RADIUS_PX, because a 1.5 px dot cannot be clicked', () => {
     // systemRadiusPx's own floor is 1.5, which is the galaxy zoom case.
-    expect(pickRadiusPx(0, 1)).toBe(MIN_PICK_RADIUS_PX);
+    expect(pickRadiusPx(0, 1, 1.5)).toBe(MIN_PICK_RADIUS_PX);
   });
 
   it('follows the real dot once the dot is larger than the floor', () => {
     // radius 100 m at scale 1 is a 100 px disc; the whole disc is clickable.
-    expect(pickRadiusPx(100, 1)).toBe(100);
+    expect(pickRadiusPx(100, 1, 1.5)).toBe(100);
   });
 });
 

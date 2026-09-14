@@ -1,6 +1,6 @@
 import type { MapNode } from '@/generated/graphql';
 import { securityTint } from '@/utils/map/colors';
-import { spriteScale, systemRadiusPx } from '@/utils/map/marks';
+import { spriteScale, systemFloorPx, systemRadiusPx } from '@/utils/map/marks';
 import { Sprite } from 'pixi.js';
 import { DOT_TEXTURE_RADIUS, type MapScene } from './createScene';
 
@@ -51,15 +51,21 @@ export function buildSystems(
  * of a 60 fps frame and runs only when the zoom changes — not per frame, and
  * deliberately not debounced, because the disc growing continuously is the
  * whole feel of the approach.
+ *
+ * The floor is resolved once, outside the loop: it is a function of the zoom
+ * alone, so 5,241 sprites share one value and recovering the zoom per sprite
+ * would be 5,241 logarithms for an answer that cannot change between them.
  */
 export function scaleSystems(
   { sprites, radii }: SystemSprites,
   cameraScale: number,
 ): void {
+  const floorPx = systemFloorPx(Math.log2(cameraScale));
+
   for (let i = 0; i < sprites.length; i++) {
     sprites[i].scale.set(
       spriteScale(
-        systemRadiusPx(radii[i], cameraScale),
+        systemRadiusPx(radii[i], cameraScale, floorPx),
         DOT_TEXTURE_RADIUS,
         cameraScale,
       ),

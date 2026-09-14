@@ -1,18 +1,63 @@
 import { MapCelestialKind } from '@/generated/graphql';
+import { APPROACH_ZOOM, REGION_LABEL_ZOOM } from './lod';
 
 /**
- * A 1.5 px floor with a data-driven radius is what makes a point turn into a
- * disc without a mode switch: at galaxy zoom every system is the floor, and by
- * the time the median system's 3.8809e12 m radius crosses 1.5 px the disc takes
- * over on its own.
+ * The floor at the galaxy view, where every system is a point and none of them
+ * has any extent worth drawing.
  */
 export const SYSTEM_MIN_RADIUS_PX = 1.5;
 
+/**
+ * Where the floor stops growing and the real radius takes the marks over.
+ *
+ * Measured: the median system radius is 3.8809e12 m, so the data crosses 6 px at
+ * zoom -39.2 — just past APPROACH_ZOOM, which is where the discs are meant to
+ * start separating anyway. A cap much higher would keep every system the same
+ * size well into the approach and flatten exactly the difference that phase
+ * exists to show.
+ */
+export const SYSTEM_MAX_FLOOR_PX = 6;
+
+/**
+ * The floor, as a function of the zoom rather than a constant.
+ *
+ * A fixed 1.5 px floor left the dots flat for the nine zoom levels between the
+ * galaxy fit and -41.2, where the median system's own radius finally overtook
+ * it: you could zoom in a long way and nothing grew. The ramp runs between the
+ * two zooms that already mean something — REGION_LABEL_ZOOM, where the first
+ * names appear, and APPROACH_ZOOM, where the discs begin — so the marks grow in
+ * step with the labels instead of on a schedule of their own.
+ *
+ * Linear in zoom, which is exponential in scale: zoom is logarithmic, so a
+ * straight line here is the gentle curve on screen.
+ */
+export function systemFloorPx(zoom: number): number {
+  if (zoom <= REGION_LABEL_ZOOM) return SYSTEM_MIN_RADIUS_PX;
+  if (zoom >= APPROACH_ZOOM) return SYSTEM_MAX_FLOOR_PX;
+
+  const progress =
+    (zoom - REGION_LABEL_ZOOM) / (APPROACH_ZOOM - REGION_LABEL_ZOOM);
+  return (
+    SYSTEM_MIN_RADIUS_PX +
+    progress * (SYSTEM_MAX_FLOOR_PX - SYSTEM_MIN_RADIUS_PX)
+  );
+}
+
+/**
+ * A point turns into a disc without a mode switch: below the floor every system
+ * draws at the floor, and once its own radius is the larger of the two the data
+ * takes over on its own.
+ *
+ * The floor is passed in rather than derived here. It is one value for a whole
+ * pass over 5,241 sprites, and recovering the zoom from the scale per sprite
+ * would be 5,241 logarithms for an answer that cannot change between them.
+ */
 export function systemRadiusPx(
   worldRadius: number,
   cameraScale: number,
+  floorPx: number,
 ): number {
-  return Math.max(worldRadius * cameraScale, SYSTEM_MIN_RADIUS_PX);
+  return Math.max(worldRadius * cameraScale, floorPx);
 }
 
 /**
