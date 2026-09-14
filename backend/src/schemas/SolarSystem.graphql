@@ -1,14 +1,18 @@
-type SystemKills {
+type SystemActivity {
   id: Int!
   system_id: Int!
   npc_kills: Int!
   pod_kills: Int!
   ship_kills: Int!
+  # Null means ESI did not report the system that hour, not zero traffic.
+  # Every row written before this column existed is null. See
+  # backend/src/utils/system-activity.ts.
+  ship_jumps: Int
   timestamp: String!
   solar_system: SolarSystem
 }
 
-type SystemKillsStats {
+type SystemActivityStats {
   system_id: Int!
   system_name: String!
   total_kills: Int!
@@ -18,7 +22,7 @@ type SystemKillsStats {
   latest_timestamp: String
 }
 
-input SystemKillsFilter {
+input SystemActivityFilter {
   system_id: Int!
   hours: Int # Default 24 hours
 }
@@ -31,7 +35,7 @@ type SolarSystem {
   star_id: Int
   position: Position
   constellation: Constellation
-  latestKills: SystemKills
+  latestActivity: SystemActivity
 }
 
 enum SolarSystemOrderBy {
@@ -69,13 +73,13 @@ extend type Query {
   solarSystems(filter: SolarSystemFilter): SolarSystemsResponse!
 
   # Get hourly kill snapshots for a specific system (for charts)
-  systemKillsHistory(filter: SystemKillsFilter!): [SystemKills!]!
+  systemActivityHistory(filter: SystemActivityFilter!): [SystemActivity!]!
 
   # Get latest kills for a system
-  systemLatestKills(system_id: Int!): SystemKills
+  systemLatestActivity(system_id: Int!): SystemActivity
 
   # Get top active systems (most kills in last 24h)
-  topActiveSystems(limit: Int): [SystemKillsStats!]!
+  topActiveSystems(limit: Int): [SystemActivityStats!]!
 }
 
 # extend type Mutation {

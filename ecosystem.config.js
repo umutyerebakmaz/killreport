@@ -312,12 +312,15 @@ module.exports = {
       time: true,
     },
 
-    // System Kills Worker (Hourly at minute 0)
+    // System Activity Worker (Hourly at minute 0)
+    // One row per system per hour: kills from /universe/system_kills and jumps
+    // from /universe/system_jumps, merged. Replaces worker-system-kills; on the
+    // droplet, `pm2 delete worker-system-kills` once this ships.
     {
-      name: 'worker-system-kills',
+      name: 'worker-system-activity',
       cwd: '/var/www/killreport/backend',
       script: 'yarn',
-      args: 'worker:system-kills',
+      args: 'worker:system-activity',
       instances: 1,
       exec_mode: 'fork',
       autorestart: false,
@@ -326,8 +329,8 @@ module.exports = {
         NODE_ENV: 'production',
         LOG_LEVEL: 'info',
       },
-      error_file: '/var/www/killreport/logs/worker-system-kills-error.log',
-      out_file: '/var/www/killreport/logs/worker-system-kills-out.log',
+      error_file: '/var/www/killreport/logs/worker-system-activity-error.log',
+      out_file: '/var/www/killreport/logs/worker-system-activity-out.log',
       time: true,
     },
 

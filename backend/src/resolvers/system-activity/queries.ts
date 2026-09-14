@@ -1,16 +1,16 @@
 import prisma from '@services/prisma';
 
 /**
- * SystemKills Query Resolvers
- * Handles fetching system kills data for charts and stats
+ * SystemActivity Query Resolvers
+ * Handles fetching system activity data for charts and stats
  */
-export const systemKillsQueries = {
+export const systemActivityQueries = {
   // Get hourly snapshots for a specific system (for 24h charts)
-  systemKillsHistory: async (_: any, { filter }: any) => {
+  systemActivityHistory: async (_: any, { filter }: any) => {
     const hours = filter.hours || 24;
     const hoursAgo = new Date(Date.now() - hours * 60 * 60 * 1000);
 
-    const kills = await prisma.systemKills.findMany({
+    const kills = await prisma.systemActivity.findMany({
       where: {
         system_id: filter.system_id,
         timestamp: {
@@ -26,8 +26,8 @@ export const systemKillsQueries = {
   },
 
   // Get latest kills for a specific system
-  systemLatestKills: async (_: any, { system_id }: any) => {
-    const latestKill = await prisma.systemKills.findFirst({
+  systemLatestActivity: async (_: any, { system_id }: any) => {
+    const latestKill = await prisma.systemActivity.findFirst({
       where: {
         system_id,
       },
@@ -43,7 +43,7 @@ export const systemKillsQueries = {
   topActiveSystems: async (_: any, { limit = 10 }: any) => {
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-    const topSystems = await prisma.systemKills.groupBy({
+    const topSystems = await prisma.systemActivity.groupBy({
       by: ['system_id'],
       where: {
         timestamp: {
@@ -75,7 +75,7 @@ export const systemKillsQueries = {
       },
     });
 
-    const latestKills = await prisma.systemKills.findMany({
+    const latestKills = await prisma.systemActivity.findMany({
       where: {
         system_id: { in: systemIds },
       },

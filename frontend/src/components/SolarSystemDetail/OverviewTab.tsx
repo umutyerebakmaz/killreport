@@ -3,7 +3,7 @@
 import SystemActivityChart, {
   ActivityRange,
 } from '@/components/SystemActivityChart/SystemActivityChart';
-import { useSystemKillsHistoryQuery } from '@/generated/graphql';
+import { useSystemActivityHistoryQuery } from '@/generated/graphql';
 import { useState } from 'react';
 import StarCard, { StarSummary } from './StarCard';
 import SystemTechnicalDetails from './SystemTechnicalDetails';
@@ -27,7 +27,7 @@ export default function OverviewTab({
 }: OverviewTabProps) {
   const [range, setRange] = useState<ActivityRange>('24h');
 
-  const { data, loading, error } = useSystemKillsHistoryQuery({
+  const { data, loading, error } = useSystemActivityHistoryQuery({
     variables: {
       filter: { system_id: systemId, hours: range === '24h' ? 24 : 168 },
     },
@@ -47,7 +47,7 @@ export default function OverviewTab({
           </div>
         ) : (
           <SystemActivityChart
-            snapshots={data?.systemKillsHistory ?? []}
+            snapshots={data?.systemActivityHistory ?? []}
             loading={loading}
             range={range}
             onRangeChange={setRange}

@@ -1,9 +1,0 @@
-query SystemKillsHistory($filter: SystemKillsFilter!) {
-  systemKillsHistory(filter: $filter) {
-    id
-    ship_kills
-    pod_kills
-    npc_kills
-    timestamp
-  }
-}
