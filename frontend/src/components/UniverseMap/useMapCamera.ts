@@ -32,7 +32,8 @@ export function useMapCamera(scope: MapScope, fit: MapCamera | null) {
     if (!fromUrl) return;
     if (
       lastWritten.current &&
-      cameraQuery(scope, fromUrl) === cameraQuery(scope, lastWritten.current)
+      cameraQuery(scope, fromUrl, null) ===
+        cameraQuery(scope, lastWritten.current, null)
     ) {
       return;
     }
@@ -46,7 +47,7 @@ export function useMapCamera(scope: MapScope, fit: MapCamera | null) {
       if (timer.current) clearTimeout(timer.current);
       timer.current = setTimeout(() => {
         lastWritten.current = next;
-        router.replace(`?${cameraQuery(scope, next)}`, { scroll: false });
+        router.replace(`?${cameraQuery(scope, next, null)}`, { scroll: false });
       }, URL_DEBOUNCE_MS);
     },
     [router, scope],

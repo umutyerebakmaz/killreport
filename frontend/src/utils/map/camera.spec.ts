@@ -8,6 +8,8 @@ import {
   fitZoom,
   panCamera,
   parseCamera,
+  parseFocus,
+  parseFraming,
   parseScope,
   scopeForRegionId,
   zoomCameraAt,
@@ -119,11 +121,11 @@ describe('parseCamera', () => {
 
 describe('cameraQuery', () => {
   it('rounds the target to the same 1e9 m grid as the nodes', () => {
-    const query = cameraQuery(MapScope.NewEden, {
-      x: -129550000000123,
-      z: 43236000000987,
-      zoom: -50.0383,
-    });
+    const query = cameraQuery(
+      MapScope.NewEden,
+      { x: -129550000000123, z: 43236000000987, zoom: -50.0383 },
+      null,
+    );
     const params = new URLSearchParams(query);
     expect(params.get('x')).toBe('-129550000000000');
     expect(params.get('z')).toBe('43236000000000');
@@ -131,18 +133,18 @@ describe('cameraQuery', () => {
 
   it('writes the zoom to two decimals', () => {
     const params = new URLSearchParams(
-      cameraQuery(MapScope.Pochven, { x: 0, z: 0, zoom: -50.0383 }),
+      cameraQuery(MapScope.Pochven, { x: 0, z: 0, zoom: -50.0383 }, null),
     );
     expect(params.get('zoom')).toBe('-50.04');
     expect(params.get('scope')).toBe('POCHVEN');
   });
 
   it('never writes exponential notation, which would not parse back the same', () => {
-    const query = cameraQuery(MapScope.NewEden, {
-      x: -5.08743946e17,
-      z: 4.7286e17,
-      zoom: -50,
-    });
+    const query = cameraQuery(
+      MapScope.NewEden,
+      { x: -5.08743946e17, z: 4.7286e17, zoom: -50 },
+      null,
+    );
     expect(query).not.toContain('e+');
     expect(parseCamera(new URLSearchParams(query))).toEqual({
       x: -508743946000000000,
@@ -154,7 +156,9 @@ describe('cameraQuery', () => {
   it('round-trips a camera it wrote', () => {
     const camera = { x: 1e9, z: -2e9, zoom: -37.5 };
     expect(
-      parseCamera(new URLSearchParams(cameraQuery(MapScope.Wormhole, camera))),
+      parseCamera(
+        new URLSearchParams(cameraQuery(MapScope.Wormhole, camera, null)),
+      ),
     ).toEqual(camera);
   });
 });
@@ -289,5 +293,109 @@ describe('scopeForRegionId', () => {
     expect(scopeForRegionId(19000001)).toBeNull(); // GPMR-01
     expect(scopeForRegionId(10000000)).toBeNull(); // below the k-space band
     expect(scopeForRegionId(0)).toBeNull();
+  });
+});
+
+describe('parseFocus', () => {
+  it('reads the selected system id', () => {
+    expect(parseFocus(new URLSearchParams('focus=30000142'))).toBe(30000142);
+  });
+
+  it('is null when the parameter is absent', () => {
+    expect(parseFocus(new URLSearchParams('scope=NEW_EDEN'))).toBeNull();
+  });
+
+  // The map is not a validator: anything that is not a plain positive integer
+  // is ignored rather than rendered as a NaN selection.
+  it('rejects what is not a positive integer', () => {
+    expect(parseFocus(new URLSearchParams('focus=Jita'))).toBeNull();
+    expect(parseFocus(new URLSearchParams('focus=-30000142'))).toBeNull();
+    expect(parseFocus(new URLSearchParams('focus=30000142.5'))).toBeNull();
+    expect(parseFocus(new URLSearchParams('focus='))).toBeNull();
+    expect(parseFocus(new URLSearchParams('focus=0'))).toBeNull();
+  });
+});
+
+describe('parseFraming', () => {
+  it('reads a focus as a system framing', () => {
+    expect(parseFraming(new URLSearchParams('focus=30000142'))).toEqual({
+      kind: 'system',
+      id: 30000142,
+    });
+  });
+
+  it('reads a constellation and a region', () => {
+    expect(parseFraming(new URLSearchParams('constellation=20000020'))).toEqual(
+      {
+        kind: 'constellation',
+        id: 20000020,
+      },
+    );
+    expect(parseFraming(new URLSearchParams('region=10000002'))).toEqual({
+      kind: 'region',
+      id: 10000002,
+    });
+  });
+
+  // A URL carrying all three was typed by hand. The order is most specific
+  // first, which is the least surprising answer to a question nobody meant to
+  // ask.
+  it('takes the most specific parameter when more than one is present', () => {
+    expect(
+      parseFraming(
+        new URLSearchParams(
+          'focus=30000142&constellation=20000020&region=10000002',
+        ),
+      ),
+    ).toEqual({ kind: 'system', id: 30000142 });
+
+    expect(
+      parseFraming(
+        new URLSearchParams('constellation=20000020&region=10000002'),
+      ),
+    ).toEqual({ kind: 'constellation', id: 20000020 });
+  });
+
+  it('falls through a parameter it cannot read', () => {
+    expect(
+      parseFraming(new URLSearchParams('focus=nope&region=10000002')),
+    ).toEqual({ kind: 'region', id: 10000002 });
+  });
+
+  it('is null when the URL asks for nothing', () => {
+    expect(parseFraming(new URLSearchParams('scope=POCHVEN'))).toBeNull();
+  });
+});
+
+describe('cameraQuery with a focus', () => {
+  const CAMERA = { x: 0, z: 0, zoom: -50 };
+
+  it('writes the focus it is given', () => {
+    const params = new URLSearchParams(
+      cameraQuery(MapScope.NewEden, CAMERA, 30000142),
+    );
+    expect(params.get('focus')).toBe('30000142');
+  });
+
+  // Not `focus=`, not `focus=null`: absent. This is also what makes clicking
+  // empty space clear it, with no second code path.
+  it('writes no focus parameter at all when nothing is selected', () => {
+    expect(cameraQuery(MapScope.NewEden, CAMERA, null)).not.toContain('focus');
+  });
+
+  // Phase 1 and 2 shipped links in this exact shape and they have to go on
+  // meaning the same frame.
+  it('leaves the phase 1-2 parameter order and format untouched', () => {
+    expect(cameraQuery(MapScope.NewEden, CAMERA, null)).toBe(
+      'scope=NEW_EDEN&x=0&z=0&zoom=-50.00',
+    );
+    expect(cameraQuery(MapScope.NewEden, CAMERA, 30000142)).toBe(
+      'scope=NEW_EDEN&x=0&z=0&zoom=-50.00&focus=30000142',
+    );
+  });
+
+  it('round-trips a focus it wrote', () => {
+    const query = cameraQuery(MapScope.Pochven, CAMERA, 30045329);
+    expect(parseFocus(new URLSearchParams(query))).toBe(30045329);
   });
 });

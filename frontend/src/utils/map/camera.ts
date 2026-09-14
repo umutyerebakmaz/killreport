@@ -189,20 +189,79 @@ export function parseCamera(params: URLSearchParams): MapCamera | null {
   return camera;
 }
 
+/** A system id out of the URL, or null. Ids are positive integers; nothing else is one. */
+function parseId(raw: string | null): number | null {
+  if (raw === null) return null;
+  const id = Number(raw);
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
+
+/**
+ * The selected system. This one is state — whether the popup is open — which is
+ * why it is written back to the URL and `region`/`constellation` are not.
+ */
+export function parseFocus(params: URLSearchParams): number | null {
+  return parseId(params.get('focus'));
+}
+
+/** What the URL asks the camera to look at. */
+export type Framing =
+  | { kind: 'system'; id: number }
+  | { kind: 'constellation'; id: number }
+  | { kind: 'region'; id: number };
+
+/**
+ * Most specific first. A URL carrying more than one of these was written by
+ * hand, and a map link has no reason to show an error message: the order
+ * resolves it silently.
+ *
+ * An explicit camera in the URL beats all three, and that is settled by the
+ * caller — `useMapCamera` only falls back to a framing when the URL carries no
+ * x/z/zoom. See UniverseMap.tsx.
+ */
+export function parseFraming(params: URLSearchParams): Framing | null {
+  const focus = parseFocus(params);
+  if (focus !== null) return { kind: 'system', id: focus };
+
+  const constellation = parseId(params.get('constellation'));
+  if (constellation !== null)
+    return { kind: 'constellation', id: constellation };
+
+  const region = parseId(params.get('region'));
+  if (region !== null) return { kind: 'region', id: region };
+
+  return null;
+}
+
 function toGrid(value: number): number {
   return Math.round(value / CAMERA_GRID_METRES) * CAMERA_GRID_METRES;
 }
 
 /**
  * The canonical serialisation. useMapCamera also uses it to tell its own writes
- * apart from someone else's, so it has to be a pure function of the camera.
+ * apart from someone else's, so it has to be a pure function of its arguments.
+ *
+ * `focus` is the third argument and it is required, not defaulted: a camera
+ * write that forgot it would erase the selection from the URL, and the camera
+ * is written on every pan. The compiler is what keeps that from happening
+ * again.
+ *
+ * `region` and `constellation` are deliberately never written. They are
+ * instructions — "set the map up here" — not state, and keeping them would
+ * leave a URL still saying "look at this region" after the user has panned
+ * somewhere else.
  */
-export function cameraQuery(scope: MapScope, camera: MapCamera): string {
+export function cameraQuery(
+  scope: MapScope,
+  camera: MapCamera,
+  focus: number | null,
+): string {
   const params = new URLSearchParams();
   params.set('scope', scope);
   params.set('x', String(toGrid(camera.x)));
   params.set('z', String(toGrid(camera.z)));
   params.set('zoom', camera.zoom.toFixed(2));
+  if (focus !== null) params.set('focus', String(focus));
   return params.toString();
 }
 
