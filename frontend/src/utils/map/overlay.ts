@@ -11,8 +11,12 @@ export interface OverlayBox {
  *
  * `centred` is for something the anchor is the subject of. There is no flip —
  * there is no other side to go to — so it clamps against both edges instead.
+ *
+ * `below` is the same subject relationship without sitting on top of it: centred
+ * across, clear underneath, and flipping above when the bottom edge would be
+ * crossed. It keeps the anchor visible, which `centred` does not.
  */
-export type OverlayPlacement = 'beside' | 'centred';
+export type OverlayPlacement = 'beside' | 'centred' | 'below';
 
 function clampAxis(value: number, extent: number, viewport: number): number {
   // The upper bound first, then zero: for a viewport too small to hold the
@@ -31,10 +35,13 @@ function clampAxis(value: number, extent: number, viewport: number): number {
  * This is the hover tip, which chases the cursor.
  *
  * `centred` puts the overlay's own centre on the anchor and ignores `offset`.
- * This is the system popup: the click already said where to look, and opening
- * the panel there rather than beside it saves the eye the journey. Near an edge
- * it slides inside rather than flipping, because a flip would move it off the
- * thing it is about.
+ * Near an edge it slides inside rather than flipping, because a flip would move
+ * it off the thing it is about.
+ *
+ * `below` is what the system popup uses: centred across the anchor and `offset`
+ * clear beneath it, so the click's own target stays visible under the panel it
+ * opened. The caller passes the anchor's own radius plus a gap as `offset`, so a
+ * system drawn as a disc is cleared by the disc rather than by a constant.
  *
  * One function for both, because it is the same decision made two ways, and it
  * IS a decision — so it belongs in the tested layer rather than in two
@@ -67,6 +74,21 @@ export function clampOverlay({
         overlayHeight,
         viewportHeight,
       ),
+    };
+  }
+
+  if (placement === 'below') {
+    // Vertically it flips rather than clamping. Sliding a panel up into the
+    // viewport would put it back over the anchor, which is the one thing this
+    // placement exists to avoid; going above keeps the anchor clear.
+    let belowTop = anchorY + offset;
+    if (belowTop + overlayHeight > viewportHeight) {
+      belowTop = anchorY - offset - overlayHeight;
+    }
+
+    return {
+      left: clampAxis(anchorX - overlayWidth / 2, overlayWidth, viewportWidth),
+      top: Math.max(belowTop, 0),
     };
   }
 

@@ -97,3 +97,36 @@ describe('clampOverlay, centred on the anchor', () => {
     ).toEqual({ left: 0, top: 0 });
   });
 });
+
+describe('clampOverlay, below the anchor', () => {
+  function below(anchorX: number, anchorY: number, offset = 12) {
+    return clampOverlay({
+      anchorX,
+      anchorY,
+      ...SIZE,
+      ...VIEWPORT,
+      offset,
+      placement: 'below',
+    });
+  }
+
+  // Centred across, clear beneath: the system that was clicked stays visible.
+  it('centres across the anchor and opens under it', () => {
+    expect(below(400, 300)).toEqual({ left: 300, top: 312 });
+  });
+
+  it('takes the offset as the distance to clear, so a big disc pushes further', () => {
+    expect(below(400, 300, 60).top).toBe(360);
+  });
+
+  // A slide would put the panel back over the anchor, which is the one thing
+  // this placement exists to prevent. It flips instead.
+  it('flips above rather than sliding back over the anchor', () => {
+    expect(below(400, 550).top).toBe(550 - 12 - 100);
+  });
+
+  it('still clamps sideways, so a corner does not hang it off the edge', () => {
+    expect(below(790, 300).left).toBe(600);
+    expect(below(10, 300).left).toBe(0);
+  });
+});

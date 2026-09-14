@@ -7,6 +7,9 @@ import { formatSecurityStatus, getSecurityColor } from '@/utils/security';
 import Link from 'next/link';
 import { useEffect } from 'react';
 
+/** How far the panel's top edge clears the system's own disc. */
+const POPUP_GAP_PX = 12;
+
 const POPUP_WIDTH_PX = 280;
 const POPUP_HEIGHT_PX = 230;
 
@@ -67,6 +70,7 @@ export default function SystemPopup({
   systemId,
   screenX,
   screenY,
+  anchorRadius,
   viewportWidth,
   viewportHeight,
   onClose,
@@ -74,6 +78,8 @@ export default function SystemPopup({
   systemId: number;
   screenX: number;
   screenY: number;
+  /** The system's drawn radius in pixels, which the panel opens clear of. */
+  anchorRadius: number;
   viewportWidth: number;
   viewportHeight: number;
   onClose: () => void;
@@ -90,10 +96,12 @@ export default function SystemPopup({
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [onClose]);
 
-  // Centred on the system rather than beside it. The click already said where to
-  // look, so opening the panel there costs the eye no journey — and unlike the
-  // hover tip there is no cursor underneath for it to hide. Near an edge it
-  // slides inside instead of flipping, which would move it off its own subject.
+  // Centred across the system and clear beneath it. The click already said where
+  // to look, so a panel beside it cost the eye a journey — but a panel on top of
+  // it hid the thing it was about. `anchorRadius` is the disc's own size, not a
+  // constant: the dots grow with the camera and reach tens of pixels at the
+  // interior zooms, where a fixed offset would put the panel back over the
+  // system.
   const { left, top } = clampOverlay({
     anchorX: screenX,
     anchorY: screenY,
@@ -101,8 +109,8 @@ export default function SystemPopup({
     overlayHeight: POPUP_HEIGHT_PX,
     viewportWidth,
     viewportHeight,
-    offset: 0,
-    placement: 'centred',
+    offset: anchorRadius + POPUP_GAP_PX,
+    placement: 'below',
   });
 
   const details = data?.mapSystemDetails;

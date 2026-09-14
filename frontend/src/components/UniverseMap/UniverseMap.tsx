@@ -18,6 +18,7 @@ import { framingFor } from '@/utils/map/framing';
 import { labelCandidates, placeLabels } from '@/utils/map/labels';
 import { layerVisibility, lodBucket, visibleLabelTiers } from '@/utils/map/lod';
 import { boundsCenter, nearestNode, originFor } from '@/utils/map/origin';
+import { systemFloorPx, systemRadiusPx } from '@/utils/map/marks';
 import { pickSystem, type PickTarget } from '@/utils/map/pick';
 import { gateNeighbours } from '@/utils/map/topology';
 import { isWebgl2Available } from '@/utils/map/webgl';
@@ -525,11 +526,18 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
         />
       )}
 
-      {selectedNode && transform && (
+      {selectedNode && transform && camera && (
         <SystemPopup
           systemId={selectedNode.systemId}
           screenX={selectedNode.x * transform.scaleX + transform.x}
           screenY={selectedNode.z * transform.scaleY + transform.y}
+          // The disc the panel has to clear. Same rule the labels use, so the
+          // two never disagree about how big a system is drawn.
+          anchorRadius={systemRadiusPx(
+            selectedNode.radius,
+            zoomToScale(camera.zoom),
+            systemFloorPx(camera.zoom),
+          )}
           viewportWidth={size.width}
           viewportHeight={size.height}
           onClose={() => setSelected(null)}
