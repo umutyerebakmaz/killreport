@@ -11,6 +11,8 @@ vi.mock('next/navigation', () => ({
 }));
 
 let labelQueries: { kind: string; skip: boolean }[] = [];
+/** Which system the popup asked about, which is what picking is judged on. */
+let detailsQueries: number[] = [];
 
 type QueryResult = {
   data?: unknown;
@@ -37,6 +39,27 @@ vi.mock('@/generated/graphql', () => ({
   }) => {
     labelQueries.push({ kind: options.variables.kind, skip: !!options.skip });
     return { data: { mapLabels: [] } };
+  },
+  useMapSystemDetailsQuery: (options: { variables: { systemId: number } }) => {
+    detailsQueries.push(options.variables.systemId);
+    return {
+      loading: false,
+      data: {
+        mapSystemDetails: {
+          systemId: options.variables.systemId,
+          name: 'Jita',
+          securityStatus: 0.94,
+          constellationName: 'Kimotoro',
+          regionName: 'The Forge',
+          gateCount: 7,
+          shipKills: 4,
+          podKills: 8,
+          npcKills: 77,
+          shipJumps: 1745,
+          snapshotAt: '2026-09-14T09:00:00.000Z',
+        },
+      },
+    };
   },
 }));
 
@@ -154,6 +177,7 @@ beforeEach(() => {
   createScene.mockResolvedValue(scene);
   searchParams = new URLSearchParams('');
   labelQueries = [];
+  detailsQueries = [];
 });
 
 /** The camera the component autofits to, once the renderer has reported a size. */
@@ -301,5 +325,119 @@ describe('UniverseMap', () => {
 
     const constellation = labelQueries.find((q) => q.kind === 'CONSTELLATION');
     expect(constellation?.skip).toBe(false);
+  });
+  // Picking, end to end. The pure function has its own spec and so does the
+  // hook; what only this test can check is that the two are wired to the same
+  // projection the camera draws with — an off-by-one-axis error there is
+  // invisible to both of them.
+  describe('picking', () => {
+    /** Where the single node lands on screen at the autofit camera. */
+    function jitaOnScreen() {
+      const fit = fitCamera(
+        GEOMETRY.mapGeometry.bounds,
+        VIEWPORT.width,
+        VIEWPORT.height,
+      );
+      const t = cameraTransform(fit, VIEWPORT.width, VIEWPORT.height);
+      const node = GEOMETRY.mapGeometry.nodes[0];
+      return {
+        x: node.x * t.scaleX + t.x,
+        y: node.z * t.scaleY + t.y,
+      };
+    }
+
+    /** A click: down and up in the same place, inside the move tolerance. */
+    function clickAt(canvas: HTMLCanvasElement, x: number, y: number) {
+      act(() => {
+        canvas.dispatchEvent(
+          new PointerEvent('pointerdown', {
+            clientX: x,
+            clientY: y,
+            bubbles: true,
+          }),
+        );
+        canvas.dispatchEvent(
+          new PointerEvent('pointerup', {
+            clientX: x,
+            clientY: y,
+            bubbles: true,
+          }),
+        );
+      });
+    }
+
+    async function mounted() {
+      render(<UniverseMap scope={MapScope.NewEden} />);
+      await waitFor(() => expect(createScene).toHaveBeenCalledTimes(1));
+      // jsdom measures the host as 0x0; the renderer's size is what the
+      // component centres on, and it arrives with the scene.
+      await waitFor(() => expect(scene.world.position.set).toHaveBeenCalled());
+      return scene.app.canvas;
+    }
+
+    it('opens the clicked system, not a neighbour', async () => {
+      const canvas = await mounted();
+      const at = jitaOnScreen();
+
+      clickAt(canvas, at.x, at.y);
+
+      expect(
+        await screen.findByText('Kimotoro · The Forge'),
+      ).toBeInTheDocument();
+      // The id the popup asked about is the proof the hit test agreed with the
+      // projection: a flipped z axis would have missed the node entirely.
+      expect(detailsQueries).toContain(30000142);
+    });
+
+    it('closes the popup when the click lands on empty space', async () => {
+      const canvas = await mounted();
+      const at = jitaOnScreen();
+
+      clickAt(canvas, at.x, at.y);
+      await screen.findByText('Kimotoro · The Forge');
+
+      // 200 px away is far outside the 6 px pick radius.
+      clickAt(canvas, at.x + 200, at.y + 200);
+
+      await waitFor(() =>
+        expect(
+          screen.queryByText('Kimotoro · The Forge'),
+        ).not.toBeInTheDocument(),
+      );
+    });
+
+    it('does not open a popup when a drag ends on a system', async () => {
+      // The move tolerance is what keeps every pan from opening a panel.
+      const canvas = await mounted();
+      const at = jitaOnScreen();
+
+      act(() => {
+        canvas.dispatchEvent(
+          new PointerEvent('pointerdown', {
+            clientX: at.x - 60,
+            clientY: at.y,
+            bubbles: true,
+          }),
+        );
+        canvas.dispatchEvent(
+          new PointerEvent('pointermove', {
+            clientX: at.x,
+            clientY: at.y,
+            bubbles: true,
+          }),
+        );
+        canvas.dispatchEvent(
+          new PointerEvent('pointerup', {
+            clientX: at.x,
+            clientY: at.y,
+            bubbles: true,
+          }),
+        );
+      });
+
+      expect(
+        screen.queryByText('Kimotoro · The Forge'),
+      ).not.toBeInTheDocument();
+    });
   });
 });

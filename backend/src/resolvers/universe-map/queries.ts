@@ -7,6 +7,7 @@ import {
   getMapCelestials,
   getMapGeometry,
   getMapLabels,
+  getMapSystemDetails,
   type MapCelestialKind as ServiceCelestialKind,
   type MapLabelKind as ServiceLabelKind,
 } from '@services/universe';
@@ -62,4 +63,9 @@ export const universeMapQueries: QueryResolvers = {
     const labels = await getMapLabels(scope, kind);
     return labels.map((l) => ({ ...l, kind: LABEL_KIND[l.kind] }));
   },
+
+  // No conversion and no kind mapping: the service's shape is the schema's
+  // type, field for field, and there is no enum field to re-stamp the way
+  // mapGeometry's scope is.
+  mapSystemDetails: (_, { systemId }) => getMapSystemDetails(systemId),
 };
