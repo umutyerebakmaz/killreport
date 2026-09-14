@@ -23,11 +23,15 @@ export const LABEL_FONT: Record<LabelTier, string> = {
  * Region is uppercase and letter-spaced because that is what makes a name read
  * as a region rather than as a big system.
  *
- * The weight runs the other way to the size, and deliberately. A system name is
- * 8 px, where weight *is* legibility, so it stays at the 600 every entity name
- * on the site is set in (`.system-name` is `font-semibold`). The tiers above it
- * are large enough not to need it and lighten as they grow, which is how a map
- * sets an area name against a point name: airy over a region, solid on a dot.
+ * The weight follows the size — 700 / 600 / 500 against 16 / 12 / 8 — so the two
+ * say the same thing rather than pulling against each other. The opposite was
+ * tried first, on the cartographic argument that an area name should be airy
+ * where a point name is solid, and it was rejected on sight: a heavy 8 px system
+ * name under a light 16 px region name reads as though the small one matters
+ * more. Weight is a hierarchy signal before it is a legibility one.
+ *
+ * 500 is the floor for the system tier rather than 400: at 8 px a Regular face
+ * has nothing left to lose.
  *
  * 16 / 12 / 8 rather than the 14 / 12 / 11 this shipped with: the old spread was
  * two pixels across three tiers and read as one size at a glance. A clean four
@@ -55,21 +59,21 @@ const TIER_STYLE: Record<
 > = {
   region: {
     fontSize: 16,
-    fontWeight: '400',
+    fontWeight: '700',
     letterSpacing: 3,
     alpha: 1,
     uppercase: true,
   },
   constellation: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '600',
     letterSpacing: 1,
     alpha: 1,
     uppercase: false,
   },
   system: {
     fontSize: 8,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0,
     alpha: 1,
     uppercase: false,
