@@ -724,6 +724,27 @@ git commit -m "feat(frontend): turn a map url parameter into a camera"
 
 İkinci parametrenin adı `fit`'ten **`fallback`**'e dönüyor. Hook'un sözleşmesi zaten "URL'de kamera yoksa sana verdiğim şey"di; Task 5'ten sonra oraya `framing ?? fit` geliyor ve `fit` adı yalan söylemeye başlıyor.
 
+**Uygulamada plandan sapılan yer, ve sebebi.** Plan URL'i tek bir efektte
+okuyordu ve `onCameraChange`/`onFocusChange` güncel değerleri ayna ref'lerinden
+alıyordu. İkisi de değişti:
+
+- **Efekt ikiye bölündü.** `react-hooks/set-state-in-effect` korumasız duran
+  `setState`'i bildiriyor. Kameranınki zaten iki erken dönüşün arkasında, ama
+  focus'unki olamaz: `?focus=` linki x/z/zoom taşımıyor, yani kameranın erken
+  dönüşünün arkasında kalsaydı seçim hiç state'e ulaşmazdı. `main` bu kuralı
+  tetiklemiyordu çünkü tek state'li bir dosyada analiz oraya ulaşmıyor — çağrı
+  aynı çağrıydı.
+- **Focus efektinde tek satırlık `eslint-disable`**, gerekçesi dosyada. `focus`'u
+  bağımlılığa koyup karşılaştırmak denendi ve **yanlış**: `onFocusChange` URL'i
+  yazdıktan sonra router onu işleyene kadar geçen pencerede bayat `searchParams`
+  kullanıcının az önce yaptığı seçimi geri alıyor. Beş test bunu yakaladı.
+- **Ayna ref'leri kalktı**, iki callback düz bağımlılık alıyor. `useMapPointer`
+  zaten `onCameraChange`'i ve `pick`'i ref'te tutuyor
+  (`useMapPointer.ts:72-84`), yani kimlik değişmesi bedava.
+- **`setCamera` fonksiyonel güncelleme** kullanıyor: `parseCamera` her çağrıda
+  yeni nesne üretiyor, yani düz atama eşitlikte bail-out edemiyor ve yalnız
+  `focus` değişen bir URL'de kamerayı boşuna yeniden render ediyordu.
+
 Bir focus yazımı **debounce'suz**. Pan sürekli bir olay akışı ve 250 ms onu tarih kaydı yağmurundan koruyor; tıklama tek olay, ve popup'ın URL'e girmesi için çeyrek saniye beklemek arada basılan bir geri tuşuna onu kaybettirir.
 
 - [ ] **Step 1: Testleri yaz**
@@ -946,16 +967,6 @@ export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
   // user has moved to.
   const effective = camera ?? fallback;
 
-  // Mirrored into refs so the two callbacks below can read the current values
-  // without taking them as dependencies — a new onCameraChange identity on
-  // every selection would churn the pointer hook for nothing.
-  const effectiveCamera = useRef(effective);
-  const currentFocus = useRef(focus);
-  useEffect(() => {
-    effectiveCamera.current = effective;
-    currentFocus.current = focus;
-  }, [effective, focus]);
-
   const write = useCallback(
     (next: WrittenUrl, immediate: boolean) => {
       if (timer.current) clearTimeout(timer.current);
@@ -982,35 +993,61 @@ export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
   // Telling its own writes apart is a comparison of one pure function's output
   // against itself, which is why the focus came along for free when cameraQuery
   // took a third argument.
+  //
+  // The camera is applied through a functional update rather than `setCamera
+  // (fromUrl)`: parseCamera allocates a fresh object every call, so a plain set
+  // can never bail out on equality and every URL change would re-render whether
+  // the frame moved or not. Returning `current` when the two agree is what makes
+  // the no-op actually free — and is what react-hooks' set-state-in-effect rule
+  // is asking for.
   useEffect(() => {
-    const urlCamera = parseCamera(searchParams);
-    const urlFocus = parseFocus(searchParams);
+    const fromUrl = parseCamera(searchParams);
+    if (!fromUrl) return;
 
+    const written = lastWritten.current;
     if (
-      lastWritten.current &&
-      urlCamera &&
-      cameraQuery(scope, urlCamera, urlFocus) ===
-        cameraQuery(
-          scope,
-          lastWritten.current.camera,
-          lastWritten.current.focus,
-        )
+      written &&
+      cameraQuery(scope, fromUrl, parseFocus(searchParams)) ===
+        cameraQuery(scope, written.camera, written.focus)
     ) {
       return;
     }
 
-    // A URL with no camera leaves the current one alone — that is a `?region=`
-    // link, and the framing reaches the hook as the fallback instead.
-    if (urlCamera) setCamera(urlCamera);
-    setFocus(urlFocus);
+    setCamera((current) =>
+      current &&
+      current.x === fromUrl.x &&
+      current.z === fromUrl.z &&
+      current.zoom === fromUrl.zoom
+        ? current
+        : fromUrl,
+    );
   }, [searchParams, scope]);
+
+  // A focus is a number, so setting it to the value it already holds costs
+  // nothing. Its own effect rather than the camera's: a `?focus=` link carries
+  // no x/z/zoom, and behind that effect's early return the selection would
+  // never reach state at all.
+  //
+  // Deliberately unguarded, and `focus` is deliberately not a dependency. The
+  // URL is an external store and this effect is the subscription to it — the
+  // use the rule's own documentation allows, which it cannot recognise here
+  // because `searchParams` reaches the hook as a value rather than through a
+  // callback. Comparing against the current focus is what a guard would mean,
+  // and it would be wrong: between `onFocusChange` writing the URL and the
+  // router committing it, the stale searchParams would revert the selection the
+  // user just made. With `[searchParams]` alone the effect simply does not run
+  // in that window, and the write path is what keeps the two in agreement.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFocus(parseFocus(searchParams));
+  }, [searchParams]);
 
   const onCameraChange = useCallback(
     (next: MapCamera) => {
       setCamera(next);
-      write({ camera: next, focus: currentFocus.current }, false);
+      write({ camera: next, focus }, false);
     },
-    [write],
+    [write, focus],
   );
 
   const onFocusChange = useCallback(
@@ -1018,10 +1055,9 @@ export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
       setFocus(next);
       // Before the geometry lands there is no frame to write the selection
       // against. The state still moves, so the popup opens either way.
-      const against = effectiveCamera.current;
-      if (against) write({ camera: against, focus: next }, true);
+      if (effective) write({ camera: effective, focus: next }, true);
     },
-    [write],
+    [write, effective],
   );
 
   useEffect(
@@ -1273,7 +1309,7 @@ Mevcut `const { camera, onCameraChange } = useMapCamera(scope, fit);` satırı b
 const limits = fit ? zoomLimits(fit.zoom) : null;
 ```
 
-Başka hiçbir şey değişmiyor: `pick.onSelect` zaten `setSelected(...)` çağırıyor, `SystemPopup`'ın `onClose`'u zaten `setSelected(null)`, ve ikisi de artık hook'un setter'ına gidiyor.
+`pick.onSelect` zaten `setSelected(...)` çağırıyor, `SystemPopup`'ın `onClose`'u zaten `setSelected(null)`, ve ikisi de artık hook'un setter'ına gidiyor. Tek ek: `pick` memo'sunun bağımlılık dizisine `setSelected` giriyor — `useState`'in setter'ı lint için sabitti, `useCallback`'inki değil.
 
 - [ ] **Step 4: Testin geçtiğini gör**
 
