@@ -11,11 +11,21 @@ const { redis, prisma } = vi.hoisted(() => ({
 vi.mock('@services/redis', () => ({ default: redis, redis }));
 vi.mock('@services/prisma', () => ({ default: prisma, prisma }));
 
+import { Prisma } from '@generated/prisma/client';
 import {
   getMapLabels,
   labelsCacheKey,
   LABELS_CACHE_TTL_SECONDS,
 } from './map-labels.service';
+
+/**
+ * The SQL the service actually handed Prisma. A `Prisma.Sql` flattens its
+ * nested fragments into `.sql`, so the scene predicate and the gateless filter
+ * are visible in the text even though they arrive as separate objects.
+ */
+function lastQueryText(): string {
+  return (prisma.$queryRaw.mock.calls[0][0] as Prisma.Sql).sql;
+}
 
 beforeEach(() => {
   redis.get.mockReset();
@@ -106,6 +116,40 @@ describe('getMapLabels', () => {
     prisma.$queryRaw.mockResolvedValue([]);
     await getMapLabels('POCHVEN', 'REGION');
     expect(redis.setex).toHaveBeenCalledTimes(1);
+  });
+
+  it('carries the gateless filter into NEW_EDEN and leaves it out elsewhere', async () => {
+    // The service's own docstring is the reason this is pinned: NEW_EDEN drops
+    // 217 gateless Jove systems, and a label query that skipped the filter
+    // would shift every region centroid away from what the geometry draws.
+    // Wormhole systems have no gates at all, so the same clause would empty
+    // that scene entirely.
+    prisma.$queryRaw.mockResolvedValue([]);
+
+    await getMapLabels('NEW_EDEN', 'REGION');
+    expect(lastQueryText()).toContain(
+      'EXISTS (SELECT 1 FROM stargates g WHERE g.solar_system_id = s.system_id)',
+    );
+
+    prisma.$queryRaw.mockClear();
+    await getMapLabels('WORMHOLE', 'REGION');
+    expect(lastQueryText()).not.toContain('stargates');
+  });
+
+  it('averages member positions for a region and reads the stored one for a constellation', async () => {
+    // A region has no position of its own, so the centroid is computed. A
+    // constellation does, measured to sit within 0.23 ly of its members'
+    // centroid, so averaging it would be work for nothing.
+    prisma.$queryRaw.mockResolvedValue([]);
+
+    await getMapLabels('NEW_EDEN', 'REGION');
+    expect(lastQueryText()).toContain('AVG(s.position_x)');
+    expect(lastQueryText()).toContain('AVG(s.position_z)');
+
+    prisma.$queryRaw.mockClear();
+    await getMapLabels('NEW_EDEN', 'CONSTELLATION');
+    expect(lastQueryText()).not.toContain('AVG');
+    expect(lastQueryText()).toContain('c.position_x AS x');
   });
 
   it('runs one query, not one per row', async () => {
