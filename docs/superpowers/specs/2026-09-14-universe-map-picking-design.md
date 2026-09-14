@@ -48,9 +48,11 @@ scaleX + tx`, `screenY = z * scaleY + ty`. **`scaleY` negatiftir** ve bu
 haritanın +z-yukarı sözleşmesidir; yanlış kopyalanırsa sessizce ters döner. Aynı
 uyarı `utils/map/labels.ts`'te de yazılı.
 
-Sıra, `labelCandidates`'ın sırası: **önce viewport kırpması, sonra en yakını.**
-Kırpma O(n) ve ucuz; en yakını arama yalnız ekranda kalan düğümler üzerinde
-koşuyor. Beraberlik olamaz çünkü en küçük kare mesafe kazanıyor.
+Ucuz eleme, **imlecin çevresinde eksen hizalı bir kutu** — viewport kırpması
+değil. İmleç tanım gereği viewport'un içinde, yani imleç kutusu viewport'un
+eleyeceği her düğümü ve fazlasını eliyor, eksen başına tek çıkarmayla. İki
+ekseni de geçen düğüm kare mesafeyi ödüyor. Beraberlikte dizideki ilk düğüm
+kazanıyor (`>=` karşılaştırması), böylece sonuç dizinin sırasına bağlı kalmıyor.
 
 ### Tıklanabilir yarıçap
 
