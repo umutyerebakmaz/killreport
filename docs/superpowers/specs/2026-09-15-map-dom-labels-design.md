@@ -154,9 +154,15 @@ max(
 
 `LabelSource.radius` opsiyonel alanı zaten duruyor (`labels.ts:82`); bölge kademesinde
 onu dolduran backend değil, `systemId`'yi `mapGeometry` düğüm haritasında arayan
-istemci. Takımyıldızda
-`radius` yok; `?? 0` ile bugünkü satır yüksekliği kaldırması aynen kalıyor. Kural
-sayısı artmıyor, azalıyor.
+istemci.
+
+Koşul kademeye değil **veriye** bağlanıyor: `radius === undefined` ise altında
+çizili bir işaret yoktur ve kaldırma bir satır yüksekliğidir. `?? 0` ile
+yazılamaz — `systemRadiusPx(0, …)` sıfır değil taban yarıçapını döndürür
+(`marks.ts:60`), bu da takımyıldız kaldırmasını sessizce 14'ten 15.5'e taşırdı.
+Takımyıldız `radius` göndermiyor, yani bugünkü davranışı birebir koruyor; yarıçapı
+0 gelen sistem (gök cismi olmayan, `COALESCE(extent.radius, 0)`) bugünkü gibi
+tabana düşüyor. Kural sayısı artmıyor, azalıyor.
 
 Kabul edilen yan etki: sistem-ismi zoom'unda medoid sisteminin kendi adı, bölge
 adıyla aynı yeri isteyip kademe önceliği gereği kaybedecek. Bir sistem adını bölge
