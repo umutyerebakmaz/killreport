@@ -36,9 +36,9 @@ export const solarSystemFields: SolarSystemResolvers = {
   },
 
   // Get latest kills for this system
-  latestKills: async (parent) => {
+  latestActivity: async (parent) => {
     const prismaParent = parent as any;
-    const latestKill = await prisma.systemKills.findFirst({
+    const latest = await prisma.systemActivity.findFirst({
       where: {
         system_id: prismaParent.id,
       },
@@ -46,6 +46,6 @@ export const solarSystemFields: SolarSystemResolvers = {
         timestamp: 'desc',
       },
     });
-    return latestKill as any;
+    return latest as any;
   },
 };

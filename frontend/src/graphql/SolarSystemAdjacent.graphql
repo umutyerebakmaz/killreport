@@ -18,7 +18,7 @@ query SolarSystemAdjacent($id: Int!) {
               name
             }
           }
-          latestKills {
+          latestActivity {
             ship_kills
             pod_kills
             npc_kills

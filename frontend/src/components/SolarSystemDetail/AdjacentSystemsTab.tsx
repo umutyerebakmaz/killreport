@@ -122,10 +122,10 @@ export default function AdjacentSystemsTab({
                   )}
                 </td>
                 <td className="px-4 py-3 text-right text-gray-300">
-                  {system.latestKills?.ship_kills ?? 0}
+                  {system.latestActivity?.ship_kills ?? 0}
                 </td>
                 <td className="px-4 py-3 text-right text-gray-300">
-                  {system.latestKills?.pod_kills ?? 0}
+                  {system.latestActivity?.pod_kills ?? 0}
                 </td>
               </tr>
             );
