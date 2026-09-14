@@ -71,7 +71,7 @@ export const COORDINATE_GRID_METRES = 1e9;
  * to draw, and a scope that returns an empty scene is a trap. They are written
  * down here so the next reader does not have to measure them again.
  */
-function scopePredicate(scope: MapScope): Prisma.Sql {
+export function scopePredicate(scope: MapScope): Prisma.Sql {
   switch (scope) {
     case 'NEW_EDEN':
       // Zarzakh (30000000+ id 30100000, region 10001000 Yasna Zakh) falls
@@ -92,7 +92,7 @@ function scopePredicate(scope: MapScope): Prisma.Sql {
  * cloud and stretch the autofit. The other two scenes keep everything: wormhole
  * systems have no gates at all, so the same filter would empty the scene.
  */
-function gatelessFilter(scope: MapScope): Prisma.Sql {
+export function gatelessFilter(scope: MapScope): Prisma.Sql {
   return scope === 'NEW_EDEN'
     ? Prisma.sql`AND EXISTS (SELECT 1 FROM stargates g WHERE g.solar_system_id = s.system_id)`
     : Prisma.sql``;

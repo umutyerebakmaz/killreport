@@ -74,3 +74,44 @@ export function layerVisibility(bucket: LodBucket): LayerVisibility {
     fine: showsMoonsAndBelts(bucket),
   };
 }
+
+/**
+ * Label thresholds, measured 2026-09-14 against the production database.
+ *
+ * Each is the zoom at which that tier's median nearest-neighbour distance
+ * reaches 60 px — the separation a name needs to read. The distances are
+ * 7.4114e16 m between regions, 1.3129e16 between constellations and 3.4944e15
+ * between systems, which puts the three about two levels apart without anyone
+ * choosing that.
+ *
+ * All three sit inside the galaxy bucket, which is why label visibility is
+ * derived from the zoom directly instead of from a LodBucket.
+ *
+ * The 60 px is a judgement, not a measurement: the distances were measured, the
+ * readable separation was chosen. It is one constant, and it is meant to be
+ * tuned by looking.
+ */
+export const REGION_LABEL_ZOOM = -50.13;
+export const CONSTELLATION_LABEL_ZOOM = -47.64;
+export const SYSTEM_LABEL_ZOOM = -45.73;
+
+export type LabelTier = 'region' | 'constellation' | 'system';
+
+/**
+ * Which tiers are on screen, coarsest first.
+ *
+ * Tiers accumulate: opening one does not close the one beneath it. A map keeps
+ * the country name while showing cities, and the viewport clip does most of the
+ * thinning on its own — by the constellation threshold the screen covers a small
+ * enough area that only one or two region centroids remain inside it.
+ *
+ * The order is also the collision priority. The coarsest tier is placed first,
+ * so what gets sacrificed in a crowd is always the finest.
+ */
+export function visibleLabelTiers(zoom: number): LabelTier[] {
+  const tiers: LabelTier[] = [];
+  if (zoom >= REGION_LABEL_ZOOM) tiers.push('region');
+  if (zoom >= CONSTELLATION_LABEL_ZOOM) tiers.push('constellation');
+  if (zoom >= SYSTEM_LABEL_ZOOM) tiers.push('system');
+  return tiers;
+}
