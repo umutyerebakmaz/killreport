@@ -70,6 +70,10 @@ export const COORDINATE_GRID_METRES = 1e9;
  * The last three get no scene and no enum member: there is nothing inside them
  * to draw, and a scope that returns an empty scene is a trap. They are written
  * down here so the next reader does not have to measure them again.
+ *
+ * The frontend mirrors these bands in `scopeForRegionId`
+ * (`frontend/src/utils/map/camera.ts`) to build a /map link without a round
+ * trip. A new band moves both.
  */
 export function scopePredicate(scope: MapScope): Prisma.Sql {
   switch (scope) {

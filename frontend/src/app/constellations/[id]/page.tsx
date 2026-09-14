@@ -8,6 +8,7 @@ import RegionMap from '@/components/RegionMap/RegionMap';
 import SovereigntyLogo from '@/components/Sovereignty/SovereigntyLogo';
 import { useConstellationQuery } from '@/generated/graphql';
 import { useTabList } from '@/hooks/useTabList';
+import { scopeForRegionId } from '@/utils/map/camera';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { use, useCallback, useState } from 'react';
@@ -124,6 +125,21 @@ export default function ConstellationDetailPage({
     solarSystems: `Solar Systems (${constellation.solarSystemCount})`,
   };
 
+  // The constellation's own id names the framing; the scope has to come from
+  // its region, because a constellation id carries no scope signal — Pochven's
+  // three sit at 20000787-20000789, inside the ordinary k-space band.
+  const mapScope = constellation.region
+    ? scopeForRegionId(constellation.region.id)
+    : null;
+  const constellationMap = (
+    <ConstellationMap
+      constellationId={constellation.id}
+      constellationName={constellation.name}
+      size={256}
+      className="w-full h-full"
+    />
+  );
+
   return (
     <div>
       {/* Constellation detail card */}
@@ -131,12 +147,17 @@ export default function ConstellationDetailPage({
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-start gap-6">
             <div className="flex items-center justify-center w-24 h-24 sm:w-64 sm:h-64 shrink-0">
-              <ConstellationMap
-                constellationId={constellation.id}
-                constellationName={constellation.name}
-                size={256}
-                className="w-full h-full"
-              />
+              {mapScope ? (
+                <Link
+                  href={`/map?scope=${mapScope}&constellation=${constellation.id}`}
+                  className="w-full h-full"
+                  title={`See ${constellation.name} on the universe map`}
+                >
+                  {constellationMap}
+                </Link>
+              ) : (
+                constellationMap
+              )}
             </div>
             <div>
               <h1 className="text-4xl font-bold text-white">

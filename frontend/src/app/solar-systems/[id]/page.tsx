@@ -21,6 +21,7 @@ import SolarSystemMap from '@/components/SolarSystemMap/SolarSystemMap';
 import { useSolarSystemQuery } from '@/generated/graphql';
 import { useTabList } from '@/hooks/useTabList';
 import { formatTimeAgo } from '@/utils/date';
+import { scopeForRegionId } from '@/utils/map/camera';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { use, useCallback, useState } from 'react';
@@ -151,6 +152,21 @@ export default function SolarSystemDetailPage({
     }
   };
 
+  // Two hops for the scope: the system's own id cannot give it. Pochven's 27
+  // systems sit at 30000021-30045329, inside the k-space band, because CCP
+  // converted them from existing systems and they kept their ids.
+  const mapScope = system.constellation?.region
+    ? scopeForRegionId(system.constellation.region.id)
+    : null;
+  const solarSystemMap = (
+    <SolarSystemMap
+      systemId={system.id}
+      systemName={system.name}
+      size={256}
+      className="w-full h-full"
+    />
+  );
+
   return (
     <div>
       <div className="card p-6 flex flex-col">
@@ -158,12 +174,17 @@ export default function SolarSystemDetailPage({
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-start gap-6">
             <div className="flex items-center justify-center w-24 h-24 sm:w-64 sm:h-64 shrink-0">
-              <SolarSystemMap
-                systemId={system.id}
-                systemName={system.name}
-                size={256}
-                className="w-full h-full"
-              />
+              {mapScope ? (
+                <Link
+                  href={`/map?scope=${mapScope}&focus=${system.id}`}
+                  className="w-full h-full"
+                  title={`See ${system.name} on the universe map`}
+                >
+                  {solarSystemMap}
+                </Link>
+              ) : (
+                solarSystemMap
+              )}
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-3">
