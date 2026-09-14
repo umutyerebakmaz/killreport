@@ -1,8 +1,14 @@
-import { MapCelestialKind, QueryResolvers } from '@generated-types';
+import {
+  MapCelestialKind,
+  MapLabelKind,
+  QueryResolvers,
+} from '@generated-types';
 import {
   getMapCelestials,
   getMapGeometry,
+  getMapLabels,
   type MapCelestialKind as ServiceCelestialKind,
+  type MapLabelKind as ServiceLabelKind,
 } from '@services/universe';
 
 /**
@@ -19,6 +25,17 @@ const CELESTIAL_KIND: Record<ServiceCelestialKind, MapCelestialKind> = {
   BELT: MapCelestialKind.Belt,
   STATION: MapCelestialKind.Station,
   GATE: MapCelestialKind.Gate,
+};
+
+/**
+ * Same asymmetry as CELESTIAL_KIND above: the service speaks string literals,
+ * the schema speaks an enum, and TypeScript's string enums are nominal. An
+ * exhaustive Record converts without a cast — add a tier to the service and
+ * this stops compiling, which is exactly what a cast would have hidden.
+ */
+const LABEL_KIND: Record<ServiceLabelKind, MapLabelKind> = {
+  REGION: MapLabelKind.Region,
+  CONSTELLATION: MapLabelKind.Constellation,
 };
 
 /**
@@ -39,5 +56,10 @@ export const universeMapQueries: QueryResolvers = {
   mapCelestials: async (_, { systemIds }) => {
     const celestials = await getMapCelestials(systemIds);
     return celestials.map((c) => ({ ...c, kind: CELESTIAL_KIND[c.kind] }));
+  },
+
+  mapLabels: async (_, { scope, kind }) => {
+    const labels = await getMapLabels(scope, kind);
+    return labels.map((l) => ({ ...l, kind: LABEL_KIND[l.kind] }));
   },
 };

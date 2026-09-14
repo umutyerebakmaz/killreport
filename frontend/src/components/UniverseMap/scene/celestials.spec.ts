@@ -21,6 +21,7 @@ function fakeScene(): MapScene {
     systems: new Container(),
     celestials: new Container(),
     dot: Texture.EMPTY,
+    labels: new Container(),
     destroy: () => {},
   };
 }

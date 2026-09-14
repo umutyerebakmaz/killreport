@@ -76,6 +76,26 @@ type MapCelestial {
   destinationSystemId: Int
 }
 
+"Bir etiketin kademesi. Sistem adları mapGeometry'den geldiği için burada yok."
+enum MapLabelKind {
+  REGION
+  CONSTELLATION
+}
+
+"""
+Haritada bir isim. Koordinat **galaktik metre**, düğümlerle aynı uzayda.
+Bölgede konum yok ve sahnenin çizdiği sistemlerin ortalamasından hesaplanıyor;
+takımyıldızda constellations.position_x/z doğrudan kullanılıyor.
+"""
+type MapLabel {
+  "Bölgede region_id, takımyıldızda constellation_id. Bantlar çakışmıyor ama tek anahtar isteyen bir tüketici kind ile birlikte anahtarlamalı."
+  id: Int!
+  name: String!
+  kind: MapLabelKind!
+  x: Float!
+  z: Float!
+}
+
 extend type Query {
   """
   Statik evren verisi. Servis Redis'te 86400 s tutuyor, ama API'den görünen
@@ -90,4 +110,10 @@ extend type Query {
   Önbellek sistem başına, 86400 s.
   """
   mapCelestials(systemIds: [Int!]!): [MapCelestial!]!
+
+  """
+  Verilen sahnenin bir kademesinin adları. Statik evren verisi; servis Redis'te
+  86400 s tutuyor, API'den görünen tazelik response cache'in STATIC_GAME_DATA'sı.
+  """
+  mapLabels(scope: MapScope! = NEW_EDEN, kind: MapLabelKind!): [MapLabel!]!
 }
