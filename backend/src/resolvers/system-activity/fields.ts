@@ -1,10 +1,10 @@
-import { SystemKillsResolvers } from '@generated-types';
+import { SystemActivityResolvers } from '@generated-types';
 
 /**
- * SystemKills Field Resolvers
- * Handles field transformations for SystemKills type
+ * SystemActivity Field Resolvers
+ * Handles field transformations for SystemActivity type
  */
-export const systemKillsFields: SystemKillsResolvers = {
+export const systemActivityFields: SystemActivityResolvers = {
   // GraphQL automatically serializes Date objects to ISO strings
   // Just ensure we return a valid Date object
   timestamp: (parent) => {

@@ -12,7 +12,7 @@ query SolarSystems($filter: SolarSystemFilter) {
           name
         }
       }
-      latestKills {
+      latestActivity {
         ship_kills
         pod_kills
         npc_kills

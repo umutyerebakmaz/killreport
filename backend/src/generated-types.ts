@@ -1088,9 +1088,9 @@ export type Query = {
   sovereigntyStructures: Array<SovereigntyStructureInfo>;
   /** Structures whose vulnerability window opens within the next N hours (default 24), soonest first. */
   sovereigntyUpcomingTimers: Array<SovereigntyStructureInfo>;
-  systemKillsHistory: Array<SystemKills>;
-  systemLatestKills?: Maybe<SystemKills>;
-  topActiveSystems: Array<SystemKillsStats>;
+  systemActivityHistory: Array<SystemActivity>;
+  systemLatestActivity?: Maybe<SystemActivity>;
+  topActiveSystems: Array<SystemActivityStats>;
   /** Top alliances by kill count over the window named by filter.period. */
   topAlliances: Array<TopAlliance>;
   /**
@@ -1423,12 +1423,12 @@ export type QuerySovereigntyUpcomingTimersArgs = {
 };
 
 
-export type QuerySystemKillsHistoryArgs = {
-  filter: SystemKillsFilter;
+export type QuerySystemActivityHistoryArgs = {
+  filter: SystemActivityFilter;
 };
 
 
-export type QuerySystemLatestKillsArgs = {
+export type QuerySystemLatestActivityArgs = {
   system_id: Scalars['Int']['input'];
 };
 
@@ -1608,7 +1608,7 @@ export type SolarSystem = {
   constellation?: Maybe<Constellation>;
   counts: SolarSystemCounts;
   id: Scalars['Int']['output'];
-  latestKills?: Maybe<SystemKills>;
+  latestActivity?: Maybe<SystemActivity>;
   name: Scalars['String']['output'];
   planets: Array<Planet>;
   position?: Maybe<Position>;
@@ -2037,24 +2037,25 @@ export type SyncMyKillmailsPayload = {
   syncedCount: Scalars['Int']['output'];
 };
 
-export type SystemKills = {
-  __typename?: 'SystemKills';
+export type SystemActivity = {
+  __typename?: 'SystemActivity';
   id: Scalars['Int']['output'];
   npc_kills: Scalars['Int']['output'];
   pod_kills: Scalars['Int']['output'];
+  ship_jumps?: Maybe<Scalars['Int']['output']>;
   ship_kills: Scalars['Int']['output'];
   solar_system?: Maybe<SolarSystem>;
   system_id: Scalars['Int']['output'];
   timestamp: Scalars['String']['output'];
 };
 
-export type SystemKillsFilter = {
+export type SystemActivityFilter = {
   hours?: InputMaybe<Scalars['Int']['input']>;
   system_id: Scalars['Int']['input'];
 };
 
-export type SystemKillsStats = {
-  __typename?: 'SystemKillsStats';
+export type SystemActivityStats = {
+  __typename?: 'SystemActivityStats';
   latest_npc_kills?: Maybe<Scalars['Int']['output']>;
   latest_pod_kills?: Maybe<Scalars['Int']['output']>;
   latest_ship_kills?: Maybe<Scalars['Int']['output']>;
@@ -2467,9 +2468,9 @@ export type ResolversTypes = {
   Subscription: ResolverTypeWrapper<Record<PropertyKey, never>>;
   SyncMyKillmailsInput: SyncMyKillmailsInput;
   SyncMyKillmailsPayload: ResolverTypeWrapper<SyncMyKillmailsPayload>;
-  SystemKills: ResolverTypeWrapper<SystemKills>;
-  SystemKillsFilter: SystemKillsFilter;
-  SystemKillsStats: ResolverTypeWrapper<SystemKillsStats>;
+  SystemActivity: ResolverTypeWrapper<SystemActivity>;
+  SystemActivityFilter: SystemActivityFilter;
+  SystemActivityStats: ResolverTypeWrapper<SystemActivityStats>;
   TerritoryChange: ResolverTypeWrapper<TerritoryChange>;
   TopAlliance: ResolverTypeWrapper<TopAlliance>;
   TopCorporation: ResolverTypeWrapper<TopCorporation>;
@@ -2616,9 +2617,9 @@ export type ResolversParentTypes = {
   Subscription: Record<PropertyKey, never>;
   SyncMyKillmailsInput: SyncMyKillmailsInput;
   SyncMyKillmailsPayload: SyncMyKillmailsPayload;
-  SystemKills: SystemKills;
-  SystemKillsFilter: SystemKillsFilter;
-  SystemKillsStats: SystemKillsStats;
+  SystemActivity: SystemActivity;
+  SystemActivityFilter: SystemActivityFilter;
+  SystemActivityStats: SystemActivityStats;
   TerritoryChange: TerritoryChange;
   TopAlliance: TopAlliance;
   TopCorporation: TopCorporation;
@@ -3232,9 +3233,9 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   sovereigntyOverview?: Resolver<ResolversTypes['SovereigntyOverview'], ParentType, ContextType>;
   sovereigntyStructures?: Resolver<Array<ResolversTypes['SovereigntyStructureInfo']>, ParentType, ContextType, Partial<QuerySovereigntyStructuresArgs>>;
   sovereigntyUpcomingTimers?: Resolver<Array<ResolversTypes['SovereigntyStructureInfo']>, ParentType, ContextType, Partial<QuerySovereigntyUpcomingTimersArgs>>;
-  systemKillsHistory?: Resolver<Array<ResolversTypes['SystemKills']>, ParentType, ContextType, RequireFields<QuerySystemKillsHistoryArgs, 'filter'>>;
-  systemLatestKills?: Resolver<Maybe<ResolversTypes['SystemKills']>, ParentType, ContextType, RequireFields<QuerySystemLatestKillsArgs, 'system_id'>>;
-  topActiveSystems?: Resolver<Array<ResolversTypes['SystemKillsStats']>, ParentType, ContextType, Partial<QueryTopActiveSystemsArgs>>;
+  systemActivityHistory?: Resolver<Array<ResolversTypes['SystemActivity']>, ParentType, ContextType, RequireFields<QuerySystemActivityHistoryArgs, 'filter'>>;
+  systemLatestActivity?: Resolver<Maybe<ResolversTypes['SystemActivity']>, ParentType, ContextType, RequireFields<QuerySystemLatestActivityArgs, 'system_id'>>;
+  topActiveSystems?: Resolver<Array<ResolversTypes['SystemActivityStats']>, ParentType, ContextType, Partial<QueryTopActiveSystemsArgs>>;
   topAlliances?: Resolver<Array<ResolversTypes['TopAlliance']>, ParentType, ContextType, Partial<QueryTopAlliancesArgs>>;
   topAttackerShips?: Resolver<Array<ResolversTypes['TopShip']>, ParentType, ContextType, Partial<QueryTopAttackerShipsArgs>>;
   topCorporations?: Resolver<Array<ResolversTypes['TopCorporation']>, ParentType, ContextType, Partial<QueryTopCorporationsArgs>>;
@@ -3319,7 +3320,7 @@ export type SolarSystemResolvers<ContextType = any, ParentType extends Resolvers
   constellation?: Resolver<Maybe<ResolversTypes['Constellation']>, ParentType, ContextType>;
   counts?: Resolver<ResolversTypes['SolarSystemCounts'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  latestKills?: Resolver<Maybe<ResolversTypes['SystemKills']>, ParentType, ContextType>;
+  latestActivity?: Resolver<Maybe<ResolversTypes['SystemActivity']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   planets?: Resolver<Array<ResolversTypes['Planet']>, ParentType, ContextType>;
   position?: Resolver<Maybe<ResolversTypes['Position']>, ParentType, ContextType>;
@@ -3579,17 +3580,18 @@ export type SyncMyKillmailsPayloadResolvers<ContextType = any, ParentType extend
   syncedCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
-export type SystemKillsResolvers<ContextType = any, ParentType extends ResolversParentTypes['SystemKills'] = ResolversParentTypes['SystemKills']> = {
+export type SystemActivityResolvers<ContextType = any, ParentType extends ResolversParentTypes['SystemActivity'] = ResolversParentTypes['SystemActivity']> = {
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   npc_kills?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   pod_kills?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  ship_jumps?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   ship_kills?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   solar_system?: Resolver<Maybe<ResolversTypes['SolarSystem']>, ParentType, ContextType>;
   system_id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   timestamp?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
-export type SystemKillsStatsResolvers<ContextType = any, ParentType extends ResolversParentTypes['SystemKillsStats'] = ResolversParentTypes['SystemKillsStats']> = {
+export type SystemActivityStatsResolvers<ContextType = any, ParentType extends ResolversParentTypes['SystemActivityStats'] = ResolversParentTypes['SystemActivityStats']> = {
   latest_npc_kills?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   latest_pod_kills?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   latest_ship_kills?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
@@ -3816,8 +3818,8 @@ export type Resolvers<ContextType = any> = {
   Station?: StationResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
   SyncMyKillmailsPayload?: SyncMyKillmailsPayloadResolvers<ContextType>;
-  SystemKills?: SystemKillsResolvers<ContextType>;
-  SystemKillsStats?: SystemKillsStatsResolvers<ContextType>;
+  SystemActivity?: SystemActivityResolvers<ContextType>;
+  SystemActivityStats?: SystemActivityStatsResolvers<ContextType>;
   TerritoryChange?: TerritoryChangeResolvers<ContextType>;
   TopAlliance?: TopAllianceResolvers<ContextType>;
   TopCorporation?: TopCorporationResolvers<ContextType>;

@@ -27,7 +27,7 @@ interface SolarSystemCardProps {
         name: string;
       } | null;
     } | null;
-    latestKills?: {
+    latestActivity?: {
       ship_kills: number;
       pod_kills: number;
       npc_kills: number;
@@ -123,17 +123,17 @@ export default function SolarSystemCard({
       </div>
 
       {/* Kill statistics and timestamp at the bottom */}
-      {system.latestKills && (
+      {system.latestActivity && (
         <div className="pt-3 mt-3 border-t border-white/10">
           <div className="flex items-center justify-between text-sm">
             <Tooltip content="Kill statistics in last hour">
               <span className="text-gray-400">
-                {formatKillStats(system.latestKills)}
+                {formatKillStats(system.latestActivity)}
               </span>
             </Tooltip>
             <Tooltip content="Last update time">
               <span className="text-xs text-gray-500">
-                {formatTimeAgo(system.latestKills.timestamp)}
+                {formatTimeAgo(system.latestActivity.timestamp)}
               </span>
             </Tooltip>
           </div>

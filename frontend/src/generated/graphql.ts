@@ -1089,9 +1089,9 @@ export type Query = {
   sovereigntyStructures: Array<SovereigntyStructureInfo>;
   /** Structures whose vulnerability window opens within the next N hours (default 24), soonest first. */
   sovereigntyUpcomingTimers: Array<SovereigntyStructureInfo>;
-  systemKillsHistory: Array<SystemKills>;
-  systemLatestKills?: Maybe<SystemKills>;
-  topActiveSystems: Array<SystemKillsStats>;
+  systemActivityHistory: Array<SystemActivity>;
+  systemLatestActivity?: Maybe<SystemActivity>;
+  topActiveSystems: Array<SystemActivityStats>;
   /** Top alliances by kill count over the window named by filter.period. */
   topAlliances: Array<TopAlliance>;
   /**
@@ -1424,12 +1424,12 @@ export type QuerySovereigntyUpcomingTimersArgs = {
 };
 
 
-export type QuerySystemKillsHistoryArgs = {
-  filter: SystemKillsFilter;
+export type QuerySystemActivityHistoryArgs = {
+  filter: SystemActivityFilter;
 };
 
 
-export type QuerySystemLatestKillsArgs = {
+export type QuerySystemLatestActivityArgs = {
   system_id: Scalars['Int']['input'];
 };
 
@@ -1609,7 +1609,7 @@ export type SolarSystem = {
   constellation?: Maybe<Constellation>;
   counts: SolarSystemCounts;
   id: Scalars['Int']['output'];
-  latestKills?: Maybe<SystemKills>;
+  latestActivity?: Maybe<SystemActivity>;
   name: Scalars['String']['output'];
   planets: Array<Planet>;
   position?: Maybe<Position>;
@@ -2038,24 +2038,25 @@ export type SyncMyKillmailsPayload = {
   syncedCount: Scalars['Int']['output'];
 };
 
-export type SystemKills = {
-  __typename?: 'SystemKills';
+export type SystemActivity = {
+  __typename?: 'SystemActivity';
   id: Scalars['Int']['output'];
   npc_kills: Scalars['Int']['output'];
   pod_kills: Scalars['Int']['output'];
+  ship_jumps?: Maybe<Scalars['Int']['output']>;
   ship_kills: Scalars['Int']['output'];
   solar_system?: Maybe<SolarSystem>;
   system_id: Scalars['Int']['output'];
   timestamp: Scalars['String']['output'];
 };
 
-export type SystemKillsFilter = {
+export type SystemActivityFilter = {
   hours?: InputMaybe<Scalars['Int']['input']>;
   system_id: Scalars['Int']['input'];
 };
 
-export type SystemKillsStats = {
-  __typename?: 'SystemKillsStats';
+export type SystemActivityStats = {
+  __typename?: 'SystemActivityStats';
   latest_npc_kills?: Maybe<Scalars['Int']['output']>;
   latest_pod_kills?: Maybe<Scalars['Int']['output']>;
   latest_ship_kills?: Maybe<Scalars['Int']['output']>;
@@ -2423,7 +2424,7 @@ export type ConstellationQueryVariables = Exact<{
 }>;
 
 
-export type ConstellationQuery = { __typename?: 'Query', constellation?: { __typename?: 'Constellation', id: number, name: string, solarSystemCount: number, sovereignty?: { __typename?: 'SovereigntyHolder', ownerType: SovereigntyOwnerType, ownerId: number, ownerName?: string | null, allianceTicker?: string | null, systemCount: number } | null, region?: { __typename?: 'Region', id: number, name: string } | null, solarSystems: Array<{ __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, security_class?: string | null, latestKills?: { __typename?: 'SystemKills', ship_kills: number, pod_kills: number, npc_kills: number, timestamp: string } | null }> } | null };
+export type ConstellationQuery = { __typename?: 'Query', constellation?: { __typename?: 'Constellation', id: number, name: string, solarSystemCount: number, sovereignty?: { __typename?: 'SovereigntyHolder', ownerType: SovereigntyOwnerType, ownerId: number, ownerName?: string | null, allianceTicker?: string | null, systemCount: number } | null, region?: { __typename?: 'Region', id: number, name: string } | null, solarSystems: Array<{ __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, security_class?: string | null, latestActivity?: { __typename?: 'SystemActivity', ship_kills: number, pod_kills: number, npc_kills: number, timestamp: string } | null }> } | null };
 
 export type CorporationQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -2685,14 +2686,14 @@ export type SolarSystemQueryVariables = Exact<{
 }>;
 
 
-export type SolarSystemQuery = { __typename?: 'Query', solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, security_class?: string | null, star_id?: number | null, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null, latestKills?: { __typename?: 'SystemKills', ship_kills: number, pod_kills: number, npc_kills: number, timestamp: string } | null, star?: { __typename?: 'Star', id: number, name?: string | null, spectralClass?: string | null, temperature?: number | null, radius?: number | null, type?: { __typename?: 'Type', id: number, name: string } | null } | null, counts: { __typename?: 'SolarSystemCounts', stargates: number, planets: number, moons: number, asteroidBelts: number, stations: number, sovereigntyStructures: number } } | null };
+export type SolarSystemQuery = { __typename?: 'Query', solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, security_class?: string | null, star_id?: number | null, position?: { __typename?: 'Position', x: number, y: number, z: number } | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null, latestActivity?: { __typename?: 'SystemActivity', ship_kills: number, pod_kills: number, npc_kills: number, timestamp: string } | null, star?: { __typename?: 'Star', id: number, name?: string | null, spectralClass?: string | null, temperature?: number | null, radius?: number | null, type?: { __typename?: 'Type', id: number, name: string } | null } | null, counts: { __typename?: 'SolarSystemCounts', stargates: number, planets: number, moons: number, asteroidBelts: number, stations: number, sovereigntyStructures: number } } | null };
 
 export type SolarSystemAdjacentQueryVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
 
 
-export type SolarSystemAdjacentQuery = { __typename?: 'Query', solarSystem?: { __typename?: 'SolarSystem', id: number, stargates: Array<{ __typename?: 'Stargate', id: number, name?: string | null, destination?: { __typename?: 'StargateDestination', destinationSystemId?: number | null, system?: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null, latestKills?: { __typename?: 'SystemKills', ship_kills: number, pod_kills: number, npc_kills: number } | null } | null } | null }> } | null };
+export type SolarSystemAdjacentQuery = { __typename?: 'Query', solarSystem?: { __typename?: 'SolarSystem', id: number, stargates: Array<{ __typename?: 'Stargate', id: number, name?: string | null, destination?: { __typename?: 'StargateDestination', destinationSystemId?: number | null, system?: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null, latestActivity?: { __typename?: 'SystemActivity', ship_kills: number, pod_kills: number, npc_kills: number } | null } | null } | null }> } | null };
 
 export type SolarSystemOrbitalBodiesQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -2727,7 +2728,7 @@ export type SolarSystemsQueryVariables = Exact<{
 }>;
 
 
-export type SolarSystemsQuery = { __typename?: 'Query', solarSystems: { __typename?: 'SolarSystemsResponse', items: Array<{ __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null, latestKills?: { __typename?: 'SystemKills', ship_kills: number, pod_kills: number, npc_kills: number, timestamp: string } | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type SolarSystemsQuery = { __typename?: 'Query', solarSystems: { __typename?: 'SolarSystemsResponse', items: Array<{ __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null, latestActivity?: { __typename?: 'SystemActivity', ship_kills: number, pod_kills: number, npc_kills: number, timestamp: string } | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type SovereigntyDashboardQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2757,12 +2758,12 @@ export type SovereigntyStructuresPageQueryVariables = Exact<{ [key: string]: nev
 
 export type SovereigntyStructuresPageQuery = { __typename?: 'Query', sovereigntyUpcomingTimers: Array<{ __typename?: 'SovereigntyStructureInfo', structureId: string, solarSystemId: number, solarSystemName?: string | null, regionId?: number | null, regionName?: string | null, allianceId: number, allianceName?: string | null, allianceTicker?: string | null, structureTypeId: number, structureTypeName: string, occupancyLevel?: number | null, vulnerableStartTime?: string | null, vulnerableEndTime?: string | null }>, sovereigntyStructures: Array<{ __typename?: 'SovereigntyStructureInfo', structureId: string, solarSystemId: number, solarSystemName?: string | null, regionId?: number | null, regionName?: string | null, allianceId: number, allianceName?: string | null, allianceTicker?: string | null, structureTypeId: number, structureTypeName: string, occupancyLevel?: number | null, vulnerableStartTime?: string | null, vulnerableEndTime?: string | null, lastSeen: string }> };
 
-export type SystemKillsHistoryQueryVariables = Exact<{
-  filter: SystemKillsFilter;
+export type SystemActivityHistoryQueryVariables = Exact<{
+  filter: SystemActivityFilter;
 }>;
 
 
-export type SystemKillsHistoryQuery = { __typename?: 'Query', systemKillsHistory: Array<{ __typename?: 'SystemKills', id: number, ship_kills: number, pod_kills: number, npc_kills: number, timestamp: string }> };
+export type SystemActivityHistoryQuery = { __typename?: 'Query', systemActivityHistory: Array<{ __typename?: 'SystemActivity', id: number, ship_kills: number, pod_kills: number, npc_kills: number, timestamp: string }> };
 
 export type TopAlliancesQueryVariables = Exact<{
   filter?: InputMaybe<TopFilter>;
@@ -4140,7 +4141,7 @@ export const ConstellationDocument = gql`
       name
       securityStatus
       security_class
-      latestKills {
+      latestActivity {
         ship_kills
         pod_kills
         npc_kills
@@ -6892,7 +6893,7 @@ export const SolarSystemDocument = gql`
         name
       }
     }
-    latestKills {
+    latestActivity {
       ship_kills
       pod_kills
       npc_kills
@@ -6977,7 +6978,7 @@ export const SolarSystemAdjacentDocument = gql`
               name
             }
           }
-          latestKills {
+          latestActivity {
             ship_kills
             pod_kills
             npc_kills
@@ -7280,7 +7281,7 @@ export const SolarSystemsDocument = gql`
           name
         }
       }
-      latestKills {
+      latestActivity {
         ship_kills
         pod_kills
         npc_kills
@@ -7679,9 +7680,9 @@ export type SovereigntyStructuresPageQueryHookResult = ReturnType<typeof useSove
 export type SovereigntyStructuresPageLazyQueryHookResult = ReturnType<typeof useSovereigntyStructuresPageLazyQuery>;
 export type SovereigntyStructuresPageSuspenseQueryHookResult = ReturnType<typeof useSovereigntyStructuresPageSuspenseQuery>;
 export type SovereigntyStructuresPageQueryResult = Apollo.QueryResult<SovereigntyStructuresPageQuery, SovereigntyStructuresPageQueryVariables>;
-export const SystemKillsHistoryDocument = gql`
-    query SystemKillsHistory($filter: SystemKillsFilter!) {
-  systemKillsHistory(filter: $filter) {
+export const SystemActivityHistoryDocument = gql`
+    query SystemActivityHistory($filter: SystemActivityFilter!) {
+  systemActivityHistory(filter: $filter) {
     id
     ship_kills
     pod_kills
@@ -7692,40 +7693,40 @@ export const SystemKillsHistoryDocument = gql`
     `;
 
 /**
- * __useSystemKillsHistoryQuery__
+ * __useSystemActivityHistoryQuery__
  *
- * To run a query within a React component, call `useSystemKillsHistoryQuery` and pass it any options that fit your needs.
- * When your component renders, `useSystemKillsHistoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useSystemActivityHistoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSystemActivityHistoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useSystemKillsHistoryQuery({
+ * const { data, loading, error } = useSystemActivityHistoryQuery({
  *   variables: {
  *      filter: // value for 'filter'
  *   },
  * });
  */
-export function useSystemKillsHistoryQuery(baseOptions: Apollo.QueryHookOptions<SystemKillsHistoryQuery, SystemKillsHistoryQueryVariables> & ({ variables: SystemKillsHistoryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function useSystemActivityHistoryQuery(baseOptions: Apollo.QueryHookOptions<SystemActivityHistoryQuery, SystemActivityHistoryQueryVariables> & ({ variables: SystemActivityHistoryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<SystemKillsHistoryQuery, SystemKillsHistoryQueryVariables>(SystemKillsHistoryDocument, options);
+        return Apollo.useQuery<SystemActivityHistoryQuery, SystemActivityHistoryQueryVariables>(SystemActivityHistoryDocument, options);
       }
-export function useSystemKillsHistoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SystemKillsHistoryQuery, SystemKillsHistoryQueryVariables>) {
+export function useSystemActivityHistoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SystemActivityHistoryQuery, SystemActivityHistoryQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<SystemKillsHistoryQuery, SystemKillsHistoryQueryVariables>(SystemKillsHistoryDocument, options);
+          return Apollo.useLazyQuery<SystemActivityHistoryQuery, SystemActivityHistoryQueryVariables>(SystemActivityHistoryDocument, options);
         }
 // @ts-ignore
-export function useSystemKillsHistorySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SystemKillsHistoryQuery, SystemKillsHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<SystemKillsHistoryQuery, SystemKillsHistoryQueryVariables>;
-export function useSystemKillsHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SystemKillsHistoryQuery, SystemKillsHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<SystemKillsHistoryQuery | undefined, SystemKillsHistoryQueryVariables>;
-export function useSystemKillsHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SystemKillsHistoryQuery, SystemKillsHistoryQueryVariables>) {
+export function useSystemActivityHistorySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SystemActivityHistoryQuery, SystemActivityHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<SystemActivityHistoryQuery, SystemActivityHistoryQueryVariables>;
+export function useSystemActivityHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SystemActivityHistoryQuery, SystemActivityHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<SystemActivityHistoryQuery | undefined, SystemActivityHistoryQueryVariables>;
+export function useSystemActivityHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SystemActivityHistoryQuery, SystemActivityHistoryQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<SystemKillsHistoryQuery, SystemKillsHistoryQueryVariables>(SystemKillsHistoryDocument, options);
+          return Apollo.useSuspenseQuery<SystemActivityHistoryQuery, SystemActivityHistoryQueryVariables>(SystemActivityHistoryDocument, options);
         }
-export type SystemKillsHistoryQueryHookResult = ReturnType<typeof useSystemKillsHistoryQuery>;
-export type SystemKillsHistoryLazyQueryHookResult = ReturnType<typeof useSystemKillsHistoryLazyQuery>;
-export type SystemKillsHistorySuspenseQueryHookResult = ReturnType<typeof useSystemKillsHistorySuspenseQuery>;
-export type SystemKillsHistoryQueryResult = Apollo.QueryResult<SystemKillsHistoryQuery, SystemKillsHistoryQueryVariables>;
+export type SystemActivityHistoryQueryHookResult = ReturnType<typeof useSystemActivityHistoryQuery>;
+export type SystemActivityHistoryLazyQueryHookResult = ReturnType<typeof useSystemActivityHistoryLazyQuery>;
+export type SystemActivityHistorySuspenseQueryHookResult = ReturnType<typeof useSystemActivityHistorySuspenseQuery>;
+export type SystemActivityHistoryQueryResult = Apollo.QueryResult<SystemActivityHistoryQuery, SystemActivityHistoryQueryVariables>;
 export const TopAlliancesDocument = gql`
     query TopAlliances($filter: TopFilter) {
   topAlliances(filter: $filter) {

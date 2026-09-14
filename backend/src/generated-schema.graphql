@@ -985,9 +985,9 @@ type Query {
   Structures whose vulnerability window opens within the next N hours (default 24), soonest first.
   """
   sovereigntyUpcomingTimers(hoursAhead: Int, limit: Int): [SovereigntyStructureInfo!]!
-  systemKillsHistory(filter: SystemKillsFilter!): [SystemKills!]!
-  systemLatestKills(system_id: Int!): SystemKills
-  topActiveSystems(limit: Int): [SystemKillsStats!]!
+  systemActivityHistory(filter: SystemActivityFilter!): [SystemActivity!]!
+  systemLatestActivity(system_id: Int!): SystemActivity
+  topActiveSystems(limit: Int): [SystemActivityStats!]!
 
   """Top alliances by kill count over the window named by filter.period."""
   topAlliances(filter: TopFilter): [TopAlliance!]!
@@ -1145,7 +1145,7 @@ type SolarSystem {
   constellation: Constellation
   counts: SolarSystemCounts!
   id: Int!
-  latestKills: SystemKills
+  latestActivity: SystemActivity
   name: String!
   planets: [Planet!]!
   position: Position
@@ -1596,22 +1596,23 @@ type SyncMyKillmailsPayload {
   syncedCount: Int!
 }
 
-type SystemKills {
+type SystemActivity {
   id: Int!
   npc_kills: Int!
   pod_kills: Int!
+  ship_jumps: Int
   ship_kills: Int!
   solar_system: SolarSystem
   system_id: Int!
   timestamp: String!
 }
 
-input SystemKillsFilter {
+input SystemActivityFilter {
   hours: Int
   system_id: Int!
 }
 
-type SystemKillsStats {
+type SystemActivityStats {
   latest_npc_kills: Int
   latest_pod_kills: Int
   latest_ship_kills: Int
