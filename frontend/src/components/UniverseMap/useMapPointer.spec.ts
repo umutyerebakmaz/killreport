@@ -1,7 +1,12 @@
 import { act, renderHook } from '@testing-library/react';
 import { zoomCameraAt, type MapCamera } from '@/utils/map/camera';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useMapPointer, type ZoomLimits } from './useMapPointer';
+import {
+  useMapPointer,
+  type MapPick,
+  type PointerPosition,
+  type ZoomLimits,
+} from './useMapPointer';
 
 const LIMITS: ZoomLimits = { minZoom: -10, maxZoom: 10 };
 
@@ -165,13 +170,13 @@ describe('useMapPointer', () => {
     );
   });
   describe('hover and click', () => {
-    let onHover: ReturnType<typeof vi.fn>;
-    let onSelect: ReturnType<typeof vi.fn>;
+    let onHover: ReturnType<typeof vi.fn<MapPick['onHover']>>;
+    let onSelect: ReturnType<typeof vi.fn<MapPick['onSelect']>>;
     let frames: FrameRequestCallback[];
 
     beforeEach(() => {
-      onHover = vi.fn();
-      onSelect = vi.fn();
+      onHover = vi.fn<(at: PointerPosition | null) => void>();
+      onSelect = vi.fn<(at: PointerPosition) => void>();
       frames = [];
       // Deterministic rAF: the hook coalesces moves into one frame, and a real
       // rAF would make "how many times was onHover called" depend on timing.
