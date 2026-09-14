@@ -144,6 +144,7 @@ import {
   fitZoom,
   zoomToScale,
 } from '@/utils/map/camera';
+import { SYSTEM_LABEL_ZOOM } from '@/utils/map/lod';
 import UniverseMap from './UniverseMap';
 import { buildCelestials } from './scene/celestials';
 import { buildSystems } from './scene/systems';
@@ -435,6 +436,127 @@ describe('UniverseMap', () => {
         );
       });
 
+      expect(
+        screen.queryByText('Kimotoro · The Forge'),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  // Three parameters resolved entirely on the client: mapGeometry's nodes carry
+  // systemId, constellationId and regionId and are already loaded.
+  describe('deep links', () => {
+    /** Two systems of The Forge and one of Domain, so a framing has extent. */
+    const LINKED = {
+      mapGeometry: {
+        scope: 'NEW_EDEN',
+        bounds: { minX: -1e17, maxX: 3e17, minZ: -2e17, maxZ: 2e17 },
+        nodes: [
+          {
+            systemId: 30000142,
+            name: 'Jita',
+            x: 3e17,
+            z: 2e17,
+            radius: 3.88e12,
+            securityStatus: 0.94,
+            constellationId: 20000020,
+            regionId: 10000002,
+          },
+          {
+            systemId: 30000144,
+            name: 'Perimeter',
+            x: 2e17,
+            z: 1e17,
+            radius: 3.88e12,
+            securityStatus: 1,
+            constellationId: 20000020,
+            regionId: 10000002,
+          },
+          {
+            systemId: 30002187,
+            name: 'Amarr',
+            x: -1e17,
+            z: -2e17,
+            radius: 3.88e12,
+            securityStatus: 1,
+            constellationId: 20000322,
+            regionId: 10000043,
+          },
+        ],
+        edges: [],
+      },
+    };
+
+    /** The Forge's two systems, which is what a region framing must hold. */
+    const FORGE_BOUNDS = { minX: 2e17, maxX: 3e17, minZ: 1e17, maxZ: 2e17 };
+
+    beforeEach(() => {
+      useMapGeometryQuery.mockReturnValue({ data: LINKED, loading: false });
+    });
+
+    async function mountedWith(query: string) {
+      searchParams = new URLSearchParams(query);
+      render(<UniverseMap scope={MapScope.NewEden} />);
+      await waitFor(() => expect(createScene).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(scene.world.position.set).toHaveBeenCalled());
+    }
+
+    /** What the scene's transform must be for a camera, as one assertion. */
+    function expectCamera(expected: { x: number; z: number; zoom: number }) {
+      const t = cameraTransform(expected, VIEWPORT.width, VIEWPORT.height);
+      expect(scene.world.scale.set).toHaveBeenLastCalledWith(
+        t.scaleX,
+        t.scaleY,
+      );
+      expect(scene.world.position.set).toHaveBeenLastCalledWith(t.x, t.y);
+    }
+
+    it('opens the popup for a system named by ?focus=', async () => {
+      await mountedWith('focus=30000142');
+
+      expect(
+        await screen.findByText('Kimotoro · The Forge'),
+      ).toBeInTheDocument();
+      expect(detailsQueries).toContain(30000142);
+    });
+
+    it('centres the camera on that system rather than framing its neighbours', async () => {
+      await mountedWith('focus=30000142');
+      expectCamera({ x: 3e17, z: 2e17, zoom: SYSTEM_LABEL_ZOOM });
+    });
+
+    it('frames a region to its own systems, and opens no popup', async () => {
+      await mountedWith('region=10000002');
+
+      expectCamera(fitCamera(FORGE_BOUNDS, VIEWPORT.width, VIEWPORT.height));
+      expect(
+        screen.queryByText('Kimotoro · The Forge'),
+      ).not.toBeInTheDocument();
+    });
+
+    it('frames a constellation the same way', async () => {
+      await mountedWith('constellation=20000020');
+      expectCamera(fitCamera(FORGE_BOUNDS, VIEWPORT.width, VIEWPORT.height));
+    });
+
+    // The back button: returning from "Open the system" carries both, and
+    // re-centring would steal the frame the user left.
+    it('keeps an explicit camera that arrives together with a focus', async () => {
+      await mountedWith('x=0&z=0&zoom=-48&focus=30000142');
+
+      expectCamera({ x: 0, z: 0, zoom: -48 });
+      expect(
+        await screen.findByText('Kimotoro · The Forge'),
+      ).toBeInTheDocument();
+    });
+
+    // The map is not a validator: an id from another scene is ignored, and the
+    // autofit is what is left.
+    it('ignores an id the loaded scene does not hold', async () => {
+      await mountedWith('focus=39999999');
+
+      expectCamera(
+        fitCamera(LINKED.mapGeometry.bounds, VIEWPORT.width, VIEWPORT.height),
+      );
       expect(
         screen.queryByText('Kimotoro · The Forge'),
       ).not.toBeInTheDocument();
