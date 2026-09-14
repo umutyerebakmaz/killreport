@@ -9,7 +9,7 @@ function clamp(anchorX: number, anchorY: number, offset = 12) {
   return clampOverlay({ anchorX, anchorY, ...SIZE, ...VIEWPORT, offset });
 }
 
-describe('clampOverlay', () => {
+describe('clampOverlay, beside the anchor', () => {
   it('opens down and to the right of the anchor', () => {
     expect(clamp(100, 100)).toEqual({ left: 112, top: 112 });
   });
@@ -37,6 +37,62 @@ describe('clampOverlay', () => {
         overlayHeight: 700,
         ...VIEWPORT,
         offset: 12,
+      }),
+    ).toEqual({ left: 0, top: 0 });
+  });
+});
+
+describe('clampOverlay, centred on the anchor', () => {
+  function centred(anchorX: number, anchorY: number) {
+    return clampOverlay({
+      anchorX,
+      anchorY,
+      ...SIZE,
+      ...VIEWPORT,
+      offset: 12,
+      placement: 'centred',
+    });
+  }
+
+  // The popup opens over the system rather than beside it: the click said where
+  // to look, and putting the panel there means the eye does not have to travel.
+  it('puts the overlay centre on the anchor', () => {
+    expect(centred(400, 300)).toEqual({ left: 400 - 100, top: 300 - 50 });
+  });
+
+  it('ignores the offset, which only means anything beside an anchor', () => {
+    expect(centred(400, 300)).toEqual(
+      clampOverlay({
+        anchorX: 400,
+        anchorY: 300,
+        ...SIZE,
+        ...VIEWPORT,
+        offset: 999,
+        placement: 'centred',
+      }),
+    );
+  });
+
+  // No flip: there is no other side to go to. A clamp on both edges instead, so
+  // a system near a corner slides the panel inside rather than hanging it off.
+  it('slides inside the right and bottom edges', () => {
+    expect(centred(790, 590)).toEqual({ left: 600, top: 500 });
+  });
+
+  it('slides inside the left and top edges', () => {
+    expect(centred(10, 10)).toEqual({ left: 0, top: 0 });
+  });
+
+  it('pins to zero when the overlay is larger than the viewport', () => {
+    expect(
+      clampOverlay({
+        anchorX: 400,
+        anchorY: 300,
+        overlayWidth: 900,
+        overlayHeight: 700,
+        ...VIEWPORT,
+        offset: 12,
+        placement: 'centred',
       }),
     ).toEqual({ left: 0, top: 0 });
   });

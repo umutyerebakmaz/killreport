@@ -7,7 +7,6 @@ import { formatSecurityStatus, getSecurityColor } from '@/utils/security';
 import Link from 'next/link';
 import { useEffect } from 'react';
 
-const POPUP_OFFSET_PX = 14;
 const POPUP_WIDTH_PX = 280;
 const POPUP_HEIGHT_PX = 230;
 
@@ -91,6 +90,10 @@ export default function SystemPopup({
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [onClose]);
 
+  // Centred on the system rather than beside it. The click already said where to
+  // look, so opening the panel there costs the eye no journey — and unlike the
+  // hover tip there is no cursor underneath for it to hide. Near an edge it
+  // slides inside instead of flipping, which would move it off its own subject.
   const { left, top } = clampOverlay({
     anchorX: screenX,
     anchorY: screenY,
@@ -98,7 +101,8 @@ export default function SystemPopup({
     overlayHeight: POPUP_HEIGHT_PX,
     viewportWidth,
     viewportHeight,
-    offset: POPUP_OFFSET_PX,
+    offset: 0,
+    placement: 'centred',
   });
 
   const details = data?.mapSystemDetails;
