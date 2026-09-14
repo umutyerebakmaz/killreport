@@ -9,6 +9,7 @@ import {
   panCamera,
   parseCamera,
   parseScope,
+  scopeForRegionId,
   zoomCameraAt,
   zoomLimits,
   zoomToScale,
@@ -250,5 +251,43 @@ describe('zoomCameraAt', () => {
     const after = zoomCameraAt(c, 5, 100, 100, 1400, 900, limits);
     expect(after.x).toBeCloseTo(c.x, 6);
     expect(after.z).toBeCloseTo(c.z, 6);
+  });
+});
+
+describe('scopeForRegionId', () => {
+  it('puts the k-space band in NEW_EDEN', () => {
+    expect(scopeForRegionId(10000001)).toBe(MapScope.NewEden);
+    expect(scopeForRegionId(10000002)).toBe(MapScope.NewEden); // The Forge
+    expect(scopeForRegionId(10999999)).toBe(MapScope.NewEden);
+  });
+
+  // Cut out of the middle of that band, exactly as the service's predicate
+  // does: Pochven is a closed component and gets its own scene.
+  it('cuts Pochven out of the k-space band', () => {
+    expect(scopeForRegionId(10000070)).toBe(MapScope.Pochven);
+  });
+
+  it('puts the wormhole band in WORMHOLE', () => {
+    expect(scopeForRegionId(11000001)).toBe(MapScope.Wormhole);
+    expect(scopeForRegionId(11000033)).toBe(MapScope.Wormhole);
+    expect(scopeForRegionId(11999999)).toBe(MapScope.Wormhole);
+  });
+
+  // Zarzakh and Manifest sit at the top of the k-space band and belong to
+  // NEW_EDEN, which is where the service puts them too. Measured, not assumed.
+  it('keeps Zarzakh and Manifest in NEW_EDEN', () => {
+    expect(scopeForRegionId(10001000)).toBe(MapScope.NewEden); // Zarzakh
+    expect(scopeForRegionId(10001004)).toBe(MapScope.NewEden); // Manifest
+  });
+
+  // Null is "this region has no scene", not "unknown": the caller renders no
+  // link rather than one that opens an unrelated scene and ignores its
+  // parameter.
+  it('returns null for a region that has no scene at all', () => {
+    expect(scopeForRegionId(12000001)).toBeNull(); // abyssal
+    expect(scopeForRegionId(14000001)).toBeNull(); // proving
+    expect(scopeForRegionId(19000001)).toBeNull(); // GPMR-01
+    expect(scopeForRegionId(10000000)).toBeNull(); // below the k-space band
+    expect(scopeForRegionId(0)).toBeNull();
   });
 });

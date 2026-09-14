@@ -205,3 +205,29 @@ export function cameraQuery(scope: MapScope, camera: MapCamera): string {
   params.set('zoom', camera.zoom.toFixed(2));
   return params.toString();
 }
+
+/**
+ * Which scene a region belongs to.
+ *
+ * This mirrors the backend's own rule — `scopePredicate` in
+ * `backend/src/services/universe/universe-map.service.ts` — so a link can carry
+ * the right scope without a round trip. Two places now hold one rule: if CCP
+ * opens a new region band, both move together. The trade was taken deliberately
+ * to keep this slice free of the backend; the comment there points back here.
+ *
+ * Only a REGION id decides this. Pochven's 27 systems sit at 30000021-30045329
+ * and its 3 constellations at 20000787-20000789 — both inside the ordinary
+ * k-space bands, because CCP converted them from existing ones and they kept
+ * their ids. Measured 2026-09-14; a system or constellation id carries no scope
+ * signal at all.
+ *
+ * Null means the region has no scene: abyssal, proving and GPMR-01 hold zero
+ * celestials and the service gives them no MapScope member. A caller with null
+ * builds no link.
+ */
+export function scopeForRegionId(regionId: number): MapScope | null {
+  if (regionId === 10000070) return MapScope.Pochven;
+  if (regionId >= 10000001 && regionId <= 10999999) return MapScope.NewEden;
+  if (regionId >= 11000001 && regionId <= 11999999) return MapScope.Wormhole;
+  return null;
+}
