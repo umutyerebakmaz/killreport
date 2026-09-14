@@ -62,8 +62,8 @@ import {
   stationFields,
 } from './solar-system';
 import { sovereigntyQueries, sovereigntySubscriptions } from './sovereignty';
-import { systemKillsFields } from './system-kills/fields';
-import { systemKillsQueries } from './system-kills/queries';
+import { systemActivityFields } from './system-activity/fields';
+import { systemActivityQueries } from './system-activity/queries';
 import { typeFields, typeMutations, typeQueries } from './type';
 import { universeMapQueries } from './universe-map';
 import { userMutations, userQueries } from './user';
@@ -92,7 +92,7 @@ export const resolvers: Resolvers = {
     ...regionQueries,
     ...solarSystemQueries,
     ...sovereigntyQueries,
-    ...systemKillsQueries,
+    ...systemActivityQueries,
     ...cacheQueries,
     ...workerQueries,
     ...analyticsQueries,
@@ -138,7 +138,7 @@ export const resolvers: Resolvers = {
   Moon: moonFields,
   AsteroidBelt: asteroidBeltFields,
   Station: stationFields,
-  SystemKills: systemKillsFields,
+  SystemActivity: systemActivityFields,
   Killmail: killmailFields,
   Victim: victimFields,
   Attacker: attackerFields,

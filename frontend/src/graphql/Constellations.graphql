@@ -36,7 +36,7 @@ query Constellation($id: Int!) {
       name
       securityStatus
       security_class
-      latestKills {
+      latestActivity {
         ship_kills
         pod_kills
         npc_kills

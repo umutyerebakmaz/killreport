@@ -1,0 +1,19 @@
+model SystemActivity {
+  id         Int      @id @default(autoincrement())
+  system_id  Int
+  npc_kills  Int      @default(0)
+  pod_kills  Int      @default(0)
+  ship_kills Int      @default(0)
+  // Nullable, unlike the three kills columns: the rows written before this
+  // column existed have no jump data, and a zero default would have claimed
+  // every one of those hours had no traffic. See utils/system-activity.ts.
+  ship_jumps Int?
+  timestamp  DateTime @default(now())
+
+  solar_system SolarSystem @relation(fields: [system_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([system_id, timestamp])
+  @@index([system_id, timestamp]) // 24-hour and 7-day graph queries
+  @@index([ship_kills])
+  @@map("system_activity")
+}

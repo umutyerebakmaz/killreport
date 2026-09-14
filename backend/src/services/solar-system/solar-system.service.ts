@@ -77,4 +77,49 @@ export class SolarSystemService {
       return response.data;
     });
   }
+
+  /**
+   * Get the number of ship jumps per solar system within the last hour
+   *
+   * ESI Route: GET /universe/system_jumps/
+   *
+   * @description
+   * The traffic counterpart of `getSystemKills`, on the same hourly cadence and
+   * with the same shape of response. The two are fetched together by
+   * `worker-system-activity.ts` and merged into one row per system per hour.
+   *
+   * Important Notes:
+   * - Only systems with jumps are included in the response, and that is a
+   *   different set of systems from the one `getSystemKills` returns
+   * - Data is cached for 1 hour on ESI side
+   *
+   * @returns {Promise<Array>} Array of system jump counts
+   * @returns {number} return[].system_id - Solar system ID
+   * @returns {number} return[].ship_jumps - Number of ships that jumped in
+   *
+   * @example
+   * const jumps = await SolarSystemService.getSystemJumps();
+   * // Returns: [
+   * //   { ship_jumps: 18, system_id: 30000870 },
+   * //   { ship_jumps: 61, system_id: 30000167 },
+   * //   ...
+   * // ]
+   *
+   * @see https://developers.eveonline.com/api-explorer#/operations/GetUniverseSystemJumps
+   */
+  static async getSystemJumps() {
+    return esiRateLimiter.execute(async () => {
+      const response = await axios.get(
+        `${ESI_BASE_URL}/universe/system_jumps`,
+        {
+          headers: {
+            'X-Compatibility-Date': '2025-12-16',
+            'Accept-Language': 'en',
+            'X-Tenant': 'tranquility',
+          },
+        },
+      );
+      return response.data;
+    });
+  }
 }

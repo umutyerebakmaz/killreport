@@ -10,7 +10,7 @@ model SolarSystem {
   position_z       Float?
   constellation    Constellation? @relation(fields: [constellation_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
-  system_kills      SystemKills[]
+  system_activity   SystemActivity[]
   star              Star?
   stargates         Stargate[]     @relation("StargateSystem")
   inbound_stargates Stargate[]     @relation("StargateDestination")
