@@ -60,26 +60,16 @@ describe('gate and celestial colours', () => {
 });
 
 describe('LABEL_TINT', () => {
-  // The design fixes the order, not the values: the background tier recedes and
-  // the foreground one is the app's own body text. Asserting the order rather
-  // than the numbers leaves all three free to be tuned by looking.
-  it('recedes from the foreground tier to the background one', () => {
-    const luminance = (tint: number) =>
-      0.2126 * ((tint >> 16) & 0xff) +
-      0.7152 * ((tint >> 8) & 0xff) +
-      0.0722 * (tint & 0xff);
-
-    expect(luminance(LABEL_TINT.system)).toBeGreaterThan(
-      luminance(LABEL_TINT.constellation),
-    );
-    expect(luminance(LABEL_TINT.constellation)).toBeGreaterThan(
-      luminance(LABEL_TINT.region),
-    );
+  // Three tones were tried and reverted: over the galaxy there is no surface
+  // behind a name, so a receding tone read as washed out rather than quieter.
+  // The tier hierarchy is carried by size now, and this locks the tiers to one
+  // colour so a future tint lands on all three or on none.
+  it('is one colour for every tier', () => {
+    expect(LABEL_TINT.region).toBe(LABEL_TINT.constellation);
+    expect(LABEL_TINT.constellation).toBe(LABEL_TINT.system);
   });
 
-  // gray-200 is what .system-name is set in; the map agreeing with the rest of
-  // the site is the whole point of taking the tones from globals.css.
-  it("uses the app's own gray-200 for a system name", () => {
-    expect(LABEL_TINT.system).toBe(0xe5e7eb);
+  it('is white, which is the brightest a tint can leave the atlas', () => {
+    expect(LABEL_TINT.system).toBe(0xffffff);
   });
 });

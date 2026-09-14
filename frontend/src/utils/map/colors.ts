@@ -59,24 +59,24 @@ export const CELESTIAL_TINT: Record<MapCelestialKind, number> = {
 };
 
 /**
- * The label tiers, in the app's own text tones.
+ * The label tiers. One colour, white, for all three.
  *
- * Taken from `globals.css`'s palette rather than chosen here: gray-200 is what
- * `.system-name` and every other entity name on the site is set in, and the two
- * steps above it are the same ramp receding. Tailwind 4 states them in OKLCH; a
- * Pixi tint needs an sRGB number, so these are the converted values —
- * gray-200 oklch(92.8% 0.006 264.531), gray-400 oklch(70.7% 0.022 261.325),
- * gray-500 oklch(55.1% 0.027 264.364).
+ * The app's own text tones were tried first — gray-500, gray-400, gray-200 from
+ * `globals.css`, the last being what `.system-name` is set in — on the reasoning
+ * that the background tier should recede. On the map they were simply hard to
+ * read: a name over the galaxy has no surface behind it, so a tone that reads as
+ * "quieter" against a card reads as "washed out" against black. Reverted
+ * 2026-09-15 after looking.
  *
- * Grey rather than three hues on purpose: the dots already carry a strong
- * red-to-cyan ramp for security, and a coloured name beside a coloured dot puts
- * two unrelated meanings in the same channel.
+ * The hierarchy is carried by size instead — 18 / 13 / 11, with region
+ * uppercased and letter-spaced — which is a difference that survives being read
+ * at a glance where a difference of tone did not.
  *
- * Free at runtime — the atlases are installed with `dynamicFill`, so a tint
- * costs no second atlas.
+ * Kept as a record rather than collapsed to one constant: the tiers are what
+ * a hovered group will tint, and that is where a second colour earns its place.
  */
 export const LABEL_TINT: Record<LabelTier, number> = {
-  region: 0x6a7282,
-  constellation: 0x99a1af,
-  system: 0xe5e7eb,
+  region: 0xffffff,
+  constellation: 0xffffff,
+  system: 0xffffff,
 };

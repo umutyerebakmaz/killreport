@@ -28,10 +28,11 @@ export const LABEL_FONT: Record<LabelTier, string> = {
  * as a region rather than as a big system.
  *
  * 18 / 13 / 11 rather than the 14 / 12 / 11 this shipped with: the old spread
- * was two pixels across three tiers and read as one size at a glance. Most of
- * the hierarchy now comes from `LABEL_TINT`, and the alphas relaxed to match —
- * region was 0.45, which with a real tone underneath it went past recession and
- * into invisible.
+ * was two pixels across three tiers and read as one size at a glance. Size is
+ * now the whole of the hierarchy — the alphas were 0.45 / 0.7 / 1 and the tints
+ * were three greys, and both were tried and reverted for the same reason: over
+ * the galaxy there is nothing behind a name, so anything that dims it makes it
+ * unreadable rather than quiet.
  *
  * These numbers are coupled to the collision boxes: changing a fontSize or a
  * letterSpacing here means updating `LABEL_CHAR_WIDTH` and `LABEL_LINE_HEIGHT`
@@ -41,11 +42,11 @@ const TIER_STYLE: Record<
   LabelTier,
   { fontSize: number; letterSpacing: number; alpha: number; uppercase: boolean }
 > = {
-  region: { fontSize: 18, letterSpacing: 3, alpha: 0.7, uppercase: true },
+  region: { fontSize: 18, letterSpacing: 3, alpha: 1, uppercase: true },
   constellation: {
     fontSize: 13,
     letterSpacing: 1,
-    alpha: 0.85,
+    alpha: 1,
     uppercase: false,
   },
   system: { fontSize: 11, letterSpacing: 0, alpha: 1, uppercase: false },
