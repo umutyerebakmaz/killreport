@@ -71,6 +71,10 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // its reference in state carries none of the mutation risk `scene` itself
   // does.
   const [canvas, setCanvas] = useState<SceneCanvas | null>(null);
+  // Separate from `sceneReady`: the scene itself must not wait on a webfont
+  // download, only the label effect below should. See the scene-creation
+  // effect for how the two are decoupled.
+  const [fontsReady, setFontsReady] = useState(false);
   const systemSprites = useRef<SystemSprites | null>(null);
   const celestialSprites = useRef<CelestialSprites | null>(null);
   // The camera's linear scale, mirrored into a ref so the build effects can
@@ -149,27 +153,34 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     let live = true;
     let created: MapScene | null = null;
 
-    createScene(host).then(async (built) => {
+    createScene(host).then((built) => {
       if (!live) {
         built.destroy();
         return;
       }
       created = built;
       scene.current = built;
-      // Generated once per session; the guard inside makes a second call free.
-      // Awaited rather than fired-and-forgotten: it awaits the real Shentox
-      // face before rasterising, and a floating promise here would let labels
-      // race the font load again.
-      await installLabelFonts();
-      // The unmount cleanup may have already destroyed `built` while the
-      // await above was pending — nothing left to make ready.
-      if (!live) return;
+      // Set immediately: 5,241 dots, 6,959 gate lines and the pan/zoom wiring
+      // have nothing to do with typography, and must not wait on a webfont
+      // download.
       setSceneReady(true);
       setCanvas(built.app.canvas);
       setSize({
         width: built.app.renderer.width,
         height: built.app.renderer.height,
       });
+      // Generated once per session; the guard inside makes a second call free.
+      // Fired here without blocking the lines above: `fontsReady` is what the
+      // label effect waits on instead, so names appear a moment after the
+      // dots and lines do — legible before it is labelled, not blank until
+      // it is. `.catch` only exists to keep the promise from going unhandled;
+      // `installLabelFonts` itself already falls back to whatever face is
+      // resolved for 'Shentox' if the load fails.
+      installLabelFonts()
+        .then(() => {
+          if (live) setFontsReady(true);
+        })
+        .catch(() => {});
     });
 
     return () => {
@@ -177,6 +188,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       created?.destroy();
       scene.current = null;
       setSceneReady(false);
+      setFontsReady(false);
       setCanvas(null);
       systemSprites.current = null;
       celestialSprites.current = null;
@@ -235,7 +247,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // counter-scale whenever label data arrived.
   useEffect(() => {
     const s = scene.current;
-    if (!s || !sceneReady || !camera || !size.width) return;
+    if (!s || !sceneReady || !fontsReady || !camera || !size.width) return;
 
     const tiers = visibleLabelTiers(camera.zoom);
     if (tiers.length === 0) {
@@ -258,6 +270,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     drawLabels(s, placeLabels(candidates));
   }, [
     sceneReady,
+    fontsReady,
     camera,
     size.width,
     size.height,

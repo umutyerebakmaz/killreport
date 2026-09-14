@@ -61,7 +61,9 @@ vi.mock('./scene/celestials', () => ({
   setFineVisible: vi.fn(),
 }));
 vi.mock('./scene/labels', () => ({
-  installLabelFonts: vi.fn(),
+  // Resolved, not bare `vi.fn()`: the real function is async and the
+  // scene-creation effect calls `.then()` on its return value directly.
+  installLabelFonts: vi.fn().mockResolvedValue(undefined),
   drawLabels: vi.fn(),
 }));
 
