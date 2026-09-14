@@ -50,10 +50,16 @@ describe('labelCandidates', () => {
       height: H,
     });
 
-    // At the galaxy fit the dot is at its floor, so the system tier's clearance
-    // rule does not yet exceed its line height and all three still agree.
+    // The two centroid tiers lift by exactly their line height. The system tier
+    // takes the larger of that and the room its dot needs, so it is allowed to
+    // sit higher — never lower.
     for (const c of candidates) {
-      expect(c.screenY).toBeCloseTo(450 - LABEL_LINE_HEIGHT[c.tier], 6);
+      const lift = 450 - c.screenY;
+      if (c.tier === 'system') {
+        expect(lift).toBeGreaterThanOrEqual(LABEL_LINE_HEIGHT.system);
+      } else {
+        expect(lift).toBeCloseTo(LABEL_LINE_HEIGHT[c.tier], 6);
+      }
     }
 
     // And the lift really does differ per tier, which is why a filter working
@@ -334,11 +340,13 @@ describe('a system name clearing its own dot', () => {
     );
   });
 
-  // The rule is a floor on the lift, not a replacement for it: at the galaxy
-  // view the line height is still the larger of the two and nothing moves.
-  it('leaves the galaxy view exactly where it was', () => {
-    const c = systemAt(-50, 3.8809e12);
-    expect(c.screenY).toBeCloseTo(450 - LABEL_LINE_HEIGHT.system, 6);
+  // The rule is a floor on the lift, never a reduction of it. At the galaxy view
+  // the dot is at its own floor, so the two terms are within a pixel of each
+  // other and the label sits where the line height alone would have put it.
+  it('does not move the galaxy view perceptibly', () => {
+    const lift = 450 - systemAt(-50, 3.8809e12).screenY;
+    expect(lift).toBeGreaterThanOrEqual(LABEL_LINE_HEIGHT.system);
+    expect(lift).toBeLessThan(LABEL_LINE_HEIGHT.system + 1);
   });
 
   it('rises monotonically as the camera comes in', () => {

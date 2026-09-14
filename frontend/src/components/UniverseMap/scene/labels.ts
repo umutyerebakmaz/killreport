@@ -27,8 +27,11 @@ export const LABEL_FONT: Record<LabelTier, string> = {
  * Region is uppercase and letter-spaced because that is what makes a name read
  * as a region rather than as a big system.
  *
- * 18 / 13 / 11 rather than the 14 / 12 / 11 this shipped with: the old spread
- * was two pixels across three tiers and read as one size at a glance. Size is
+ * 16 / 12 / 8 rather than the 14 / 12 / 11 this shipped with: the old spread was
+ * two pixels across three tiers and read as one size at a glance. A clean four
+ * pixel step separates them, and taking the system tier down rather than the
+ * others up is what buys room — it is the crowded tier, and a shorter name
+ * clears its neighbours sooner. Size is
  * now the whole of the hierarchy — the alphas were 0.45 / 0.7 / 1 and the tints
  * were three greys, and both were tried and reverted for the same reason: over
  * the galaxy there is nothing behind a name, so anything that dims it makes it
@@ -42,14 +45,14 @@ const TIER_STYLE: Record<
   LabelTier,
   { fontSize: number; letterSpacing: number; alpha: number; uppercase: boolean }
 > = {
-  region: { fontSize: 18, letterSpacing: 3, alpha: 1, uppercase: true },
+  region: { fontSize: 16, letterSpacing: 3, alpha: 1, uppercase: true },
   constellation: {
-    fontSize: 13,
+    fontSize: 12,
     letterSpacing: 1,
     alpha: 1,
     uppercase: false,
   },
-  system: { fontSize: 11, letterSpacing: 0, alpha: 1, uppercase: false },
+  system: { fontSize: 8, letterSpacing: 0, alpha: 1, uppercase: false },
 };
 
 let installed = false;

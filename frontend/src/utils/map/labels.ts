@@ -16,9 +16,12 @@ export const MAX_VISIBLE_LABELS = 300;
  * Measured 2026-09-15, not estimated: every name the scene can draw, weighed
  * against Shentox-SemiBold's own advance widths straight out of the TTF.
  *
- *   region          70 names, uppercased   0.5438 em   18 × 0.5438 + 3 = 12.79
- *   constellation  799 names               0.5149 em   13 × 0.5149 + 1 =  7.69
- *   system       5,485 names               0.5193 em   11 × 0.5193 + 0 =  5.71
+ *   region          70 names, uppercased   0.5438 em   16 × 0.5438 + 3 = 11.70
+ *   constellation  799 names               0.5149 em   12 × 0.5149 + 1 =  7.18
+ *   system       5,485 names               0.5193 em    8 × 0.5193 + 0 =  4.15
+ *
+ * The em figures are the measurement and do not move with the font size; only
+ * the multiplication does, so a tier can be resized by redoing one line here.
  *
  * A generic alphabet mean was what these used to be derived from, and it is
  * wrong for this data: EVE names are thick with digits and hyphens, which pulls
@@ -35,19 +38,24 @@ export const MAX_VISIBLE_LABELS = 300;
  * background and largest, system is foreground and smallest.
  */
 export const LABEL_CHAR_WIDTH: Record<LabelTier, number> = {
-  region: 12.79,
-  constellation: 7.69,
-  system: 5.71,
+  region: 11.7,
+  constellation: 7.18,
+  system: 4.15,
 };
 
 /**
  * Line height in pixels, per tier. Two jobs: it is the collision box's height,
- * and it is how far above the dot the name sits — see `labelCandidates`.
+ * and it is the minimum lift above the dot — see `labelCandidates`, where the
+ * system tier takes the larger of this and the room its own disc needs.
+ *
+ * 1.15x the font size, rounded: Shentox's ascender and descender together are
+ * about 1.2 em, so a box at the font size alone would clip a descender out of
+ * the collision test and let two names touch.
  */
 export const LABEL_LINE_HEIGHT: Record<LabelTier, number> = {
-  region: 21,
+  region: 18,
   constellation: 14,
-  system: 11,
+  system: 9,
 };
 
 /**
