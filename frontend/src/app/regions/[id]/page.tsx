@@ -9,6 +9,8 @@ import RegionMap from '@/components/RegionMap/RegionMap';
 import SovereigntyLogo from '@/components/Sovereignty/SovereigntyLogo';
 import { useRegionQuery } from '@/generated/graphql';
 import { useTabList } from '@/hooks/useTabList';
+import { scopeForRegionId } from '@/utils/map/camera';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { use, useCallback, useState } from 'react';
 
@@ -119,6 +121,18 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
     constellations: `Constellations (${region.constellationCount})`,
   };
 
+  // Null for abyssal, proving and GPMR-01: they have no scene, so they get no
+  // link rather than one that opens NEW_EDEN and ignores its parameter.
+  const mapScope = scopeForRegionId(region.id);
+  const regionMap = (
+    <RegionMap
+      regionId={region.id}
+      regionName={region.name}
+      size={256}
+      className="w-full h-full"
+    />
+  );
+
   return (
     <div>
       {/* Region detail card */}
@@ -126,12 +140,17 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex items-start gap-6">
             <div className="flex items-center justify-center w-24 h-24 sm:w-64 sm:h-64 shrink-0">
-              <RegionMap
-                regionId={region.id}
-                regionName={region.name}
-                size={256}
-                className="w-full h-full"
-              />
+              {mapScope ? (
+                <Link
+                  href={`/map?scope=${mapScope}&region=${region.id}`}
+                  className="w-full h-full"
+                  title={`See ${region.name} on the universe map`}
+                >
+                  {regionMap}
+                </Link>
+              ) : (
+                regionMap
+              )}
             </div>
             <div>
               <h1 className="text-4xl font-bold text-white">{region.name}</h1>
