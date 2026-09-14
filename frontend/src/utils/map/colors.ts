@@ -1,4 +1,5 @@
 import { MapCelestialKind } from '@/generated/graphql';
+import type { LabelTier } from './lod';
 
 /**
  * EVE's security ramp, 0.0 to 1.0, one entry per tenth. Byte for byte the array
@@ -55,4 +56,27 @@ export const CELESTIAL_TINT: Record<MapCelestialKind, number> = {
   GATE: 0x4cc94c,
   MOON: 0x64748b,
   BELT: 0xa16207,
+};
+
+/**
+ * The label tiers, in the app's own text tones.
+ *
+ * Taken from `globals.css`'s palette rather than chosen here: gray-200 is what
+ * `.system-name` and every other entity name on the site is set in, and the two
+ * steps above it are the same ramp receding. Tailwind 4 states them in OKLCH; a
+ * Pixi tint needs an sRGB number, so these are the converted values —
+ * gray-200 oklch(92.8% 0.006 264.531), gray-400 oklch(70.7% 0.022 261.325),
+ * gray-500 oklch(55.1% 0.027 264.364).
+ *
+ * Grey rather than three hues on purpose: the dots already carry a strong
+ * red-to-cyan ramp for security, and a coloured name beside a coloured dot puts
+ * two unrelated meanings in the same channel.
+ *
+ * Free at runtime — the atlases are installed with `dynamicFill`, so a tint
+ * costs no second atlas.
+ */
+export const LABEL_TINT: Record<LabelTier, number> = {
+  region: 0x6a7282,
+  constellation: 0x99a1af,
+  system: 0xe5e7eb,
 };

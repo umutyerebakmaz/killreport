@@ -1,3 +1,4 @@
+import { LABEL_TINT } from '@/utils/map/colors';
 import type { LabelCandidate } from '@/utils/map/labels';
 import type { LabelTier } from '@/utils/map/lod';
 import { BitmapFont, BitmapFontManager, BitmapText } from 'pixi.js';
@@ -17,6 +18,12 @@ export const LABEL_FONT: Record<LabelTier, string> = {
  * Region is uppercase and letter-spaced because that is what makes a name read
  * as a region rather than as a big system.
  *
+ * 18 / 13 / 11 rather than the 14 / 12 / 11 this shipped with: the old spread
+ * was two pixels across three tiers and read as one size at a glance. Most of
+ * the hierarchy now comes from `LABEL_TINT`, and the alphas relaxed to match —
+ * region was 0.45, which with a real tone underneath it went past recession and
+ * into invisible.
+ *
  * These numbers are coupled to the collision boxes: changing a fontSize or a
  * letterSpacing here means updating `LABEL_CHAR_WIDTH` and `LABEL_LINE_HEIGHT`
  * in `utils/map/labels.ts` to match, or the filter reserves the wrong space.
@@ -25,11 +32,11 @@ const TIER_STYLE: Record<
   LabelTier,
   { fontSize: number; letterSpacing: number; alpha: number; uppercase: boolean }
 > = {
-  region: { fontSize: 14, letterSpacing: 3, alpha: 0.45, uppercase: true },
+  region: { fontSize: 18, letterSpacing: 3, alpha: 0.7, uppercase: true },
   constellation: {
-    fontSize: 12,
+    fontSize: 13,
     letterSpacing: 1,
-    alpha: 0.7,
+    alpha: 0.85,
     uppercase: false,
   },
   system: { fontSize: 11, letterSpacing: 0, alpha: 1, uppercase: false },
@@ -159,6 +166,7 @@ export function drawLabels(scene: MapScene, placed: LabelCandidate[]): void {
       });
       text.anchor.set(0.5);
       text.alpha = style.alpha;
+      text.tint = LABEL_TINT[candidate.tier];
       pool.set(candidate.key, text);
       scene.labels.addChild(text);
     }

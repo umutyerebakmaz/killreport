@@ -92,7 +92,7 @@ describe('labelCandidates', () => {
   it('keeps a label near the bottom edge whose text is still on screen', () => {
     // The dot sits 12 px below the canvas, so its own box is clear of the
     // viewport and an unshifted clip would drop the name. The name is drawn a
-    // line height (16 px) above the dot, which puts its centre back on screen.
+    // line height above the dot, which puts its centre back on screen.
     const below = (H + 12 - transform.y) / transform.scaleY;
     const candidates = labelCandidates({
       tiers: ['region'],

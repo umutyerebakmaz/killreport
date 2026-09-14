@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   CELESTIAL_TINT,
   GATE_ALPHA,
+  LABEL_TINT,
   GATE_TINT,
   hexToTint,
   SECURITY_RAMP,
@@ -55,5 +56,30 @@ describe('gate and celestial colours', () => {
     expect(CELESTIAL_TINT[MapCelestialKind.Gate]).toBe(0x4cc94c);
     expect(CELESTIAL_TINT[MapCelestialKind.Moon]).toBe(0x64748b);
     expect(CELESTIAL_TINT[MapCelestialKind.Belt]).toBe(0xa16207);
+  });
+});
+
+describe('LABEL_TINT', () => {
+  // The design fixes the order, not the values: the background tier recedes and
+  // the foreground one is the app's own body text. Asserting the order rather
+  // than the numbers leaves all three free to be tuned by looking.
+  it('recedes from the foreground tier to the background one', () => {
+    const luminance = (tint: number) =>
+      0.2126 * ((tint >> 16) & 0xff) +
+      0.7152 * ((tint >> 8) & 0xff) +
+      0.0722 * (tint & 0xff);
+
+    expect(luminance(LABEL_TINT.system)).toBeGreaterThan(
+      luminance(LABEL_TINT.constellation),
+    );
+    expect(luminance(LABEL_TINT.constellation)).toBeGreaterThan(
+      luminance(LABEL_TINT.region),
+    );
+  });
+
+  // gray-200 is what .system-name is set in; the map agreeing with the rest of
+  // the site is the whole point of taking the tones from globals.css.
+  it("uses the app's own gray-200 for a system name", () => {
+    expect(LABEL_TINT.system).toBe(0xe5e7eb);
   });
 });
