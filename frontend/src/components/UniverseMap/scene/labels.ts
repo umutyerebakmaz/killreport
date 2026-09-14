@@ -1,17 +1,13 @@
 import { LABEL_TINT } from '@/utils/map/colors';
 import type { LabelCandidate } from '@/utils/map/labels';
 import type { LabelTier } from '@/utils/map/lod';
-import { BitmapFont, BitmapFontManager, BitmapText } from 'pixi.js';
+import {
+  BitmapFont,
+  BitmapFontManager,
+  BitmapText,
+  type TextStyleFontWeight,
+} from 'pixi.js';
 import { renderResolution, type MapScene } from './createScene';
-
-/**
- * The weight every entity name on the site is set in — `.system-name` and its
- * siblings in `globals.css` are `font-semibold`. The map was rasterising at the
- * browser default of 400 instead, so its labels were Shentox-Regular while the
- * rest of the app was Shentox-SemiBold: thinner, and at label sizes under
- * grayscale antialiasing that reads as washed out rather than merely lighter.
- */
-const LABEL_FONT_WEIGHT = '600';
 
 export const LABEL_FONT: Record<LabelTier, string> = {
   region: 'MapLabelRegion',
@@ -26,6 +22,12 @@ export const LABEL_FONT: Record<LabelTier, string> = {
  *
  * Region is uppercase and letter-spaced because that is what makes a name read
  * as a region rather than as a big system.
+ *
+ * The weight runs the other way to the size, and deliberately. A system name is
+ * 8 px, where weight *is* legibility, so it stays at the 600 every entity name
+ * on the site is set in (`.system-name` is `font-semibold`). The tiers above it
+ * are large enough not to need it and lighten as they grow, which is how a map
+ * sets an area name against a point name: airy over a region, solid on a dot.
  *
  * 16 / 12 / 8 rather than the 14 / 12 / 11 this shipped with: the old spread was
  * two pixels across three tiers and read as one size at a glance. A clean four
@@ -43,16 +45,35 @@ export const LABEL_FONT: Record<LabelTier, string> = {
  */
 const TIER_STYLE: Record<
   LabelTier,
-  { fontSize: number; letterSpacing: number; alpha: number; uppercase: boolean }
+  {
+    fontSize: number;
+    fontWeight: TextStyleFontWeight;
+    letterSpacing: number;
+    alpha: number;
+    uppercase: boolean;
+  }
 > = {
-  region: { fontSize: 16, letterSpacing: 3, alpha: 1, uppercase: true },
+  region: {
+    fontSize: 16,
+    fontWeight: '400',
+    letterSpacing: 3,
+    alpha: 1,
+    uppercase: true,
+  },
   constellation: {
     fontSize: 12,
+    fontWeight: '500',
     letterSpacing: 1,
     alpha: 1,
     uppercase: false,
   },
-  system: { fontSize: 8, letterSpacing: 0, alpha: 1, uppercase: false },
+  system: {
+    fontSize: 8,
+    fontWeight: '600',
+    letterSpacing: 0,
+    alpha: 1,
+    uppercase: false,
+  },
 };
 
 let installed = false;
@@ -79,19 +100,18 @@ async function ensureShentoxLoaded(): Promise<void> {
   const fonts = typeof document !== 'undefined' ? document.fonts : undefined;
   if (!fonts) return;
 
-  const sizes = new Set(
-    Object.values(TIER_STYLE).map((style) => style.fontSize),
+  // One request per tier, weight included. `8px Shentox` asks for weight 400, so
+  // requesting by size alone would let a 600 atlas rasterise before SemiBold had
+  // been fetched — the exact fallback this function exists to prevent. The three
+  // tiers are three different faces now, so all three have to be asked for.
+  const faces = new Set(
+    Object.values(TIER_STYLE).map(
+      (style) => `${style.fontWeight} ${style.fontSize}px Shentox`,
+    ),
   );
 
   try {
-    // The weight belongs in the request. `18px Shentox` asks for weight 400, so
-    // rasterising at 600 against it would install the atlas before SemiBold had
-    // been fetched — the exact fallback this function exists to prevent.
-    await Promise.all(
-      [...sizes].map((size) =>
-        fonts.load(`${LABEL_FONT_WEIGHT} ${size}px Shentox`),
-      ),
-    );
+    await Promise.all([...faces].map((face) => fonts.load(face)));
     await fonts.ready;
   } catch {
     // A rejected load (a missing file, a blocked request) should not stop the
@@ -122,7 +142,7 @@ export async function installLabelFonts(): Promise<void> {
       style: {
         fontFamily: 'Shentox, sans-serif',
         fontSize: style.fontSize,
-        fontWeight: LABEL_FONT_WEIGHT,
+        fontWeight: style.fontWeight,
         // White, because dynamicFill below needs it: it is what lets a tier be
         // tinted at runtime instead of costing another atlas.
         fill: 0xffffff,

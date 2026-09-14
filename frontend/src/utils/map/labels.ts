@@ -14,11 +14,14 @@ export const MAX_VISIBLE_LABELS = 300;
  * from `TIER_STYLE` in `scene/labels.ts`.
  *
  * Measured 2026-09-15, not estimated: every name the scene can draw, weighed
- * against Shentox-SemiBold's own advance widths straight out of the TTF.
+ * against its own tier's Shentox file straight out of the TTF.
  *
- *   region          70 names, uppercased   0.5438 em   16 × 0.5438 + 3 = 11.70
- *   constellation  799 names               0.5149 em   12 × 0.5149 + 1 =  7.18
- *   system       5,485 names               0.5193 em    8 × 0.5193 + 0 =  4.15
+ *   region          70 names, uppercased   400   0.5397 em   16 × … + 3 = 11.64
+ *   constellation  799 names               500   0.5126 em   12 × … + 1 =  7.15
+ *   system       5,485 names               600   0.5193 em    8 × … + 0 =  4.15
+ *
+ * Each against its own weight's file, because the advances differ between them:
+ * Shentox-Regular's uppercase mean is 0.5397 em where SemiBold's is 0.5433.
  *
  * The em figures are the measurement and do not move with the font size; only
  * the multiplication does, so a tier can be resized by redoing one line here.
@@ -38,8 +41,8 @@ export const MAX_VISIBLE_LABELS = 300;
  * background and largest, system is foreground and smallest.
  */
 export const LABEL_CHAR_WIDTH: Record<LabelTier, number> = {
-  region: 11.7,
-  constellation: 7.18,
+  region: 11.64,
+  constellation: 7.15,
   system: 4.15,
 };
 
