@@ -3,25 +3,21 @@
 import {
   MapLabelKind,
   useMapLabelsQuery,
+  type MapLabelsQuery,
   type MapScope,
 } from '@/generated/graphql';
 import { CONSTELLATION_LABEL_ZOOM } from '@/utils/map/lod';
-
-export interface MapLabelData {
-  id: number;
-  name: string;
-  kind: string;
-  x: number;
-  z: number;
-}
 
 /**
  * Stable identity for "no rows yet" — loading, skipped, or errored all fall
  * back to this same array. Without it, `data?.mapLabels ?? []` mints a new
  * array on every render while `data` is undefined, which would re-trigger any
  * effect that depends on the returned arrays.
+ *
+ * Typed from the generated query rather than a hand-written interface, so the
+ * fallback and the real rows are the same type by construction.
  */
-const EMPTY: MapLabelData[] = [];
+const EMPTY: MapLabelsQuery['mapLabels'] = [];
 
 /**
  * The two label tiers that need fetching, staged by zoom.
