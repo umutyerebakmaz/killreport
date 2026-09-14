@@ -90,9 +90,16 @@ düzeni devralıyor, yoksa ilk pikselden sonra donan drag hatası geri gelir.
   temizlenir.
 - **`Escape` popup'ı kapatır ve odağı tuvale döndürür.**
 
-Popup'ın kendi içindeki pointer event'leri `stopPropagation` yapıyor. Yoksa panel
-üstünde başlayan bir sürükleme haritayı kaydırır — popup tuvalin kardeşi, çocuğu
-değil, ama dinleyiciler tuvalde olduğu için olay yine de yukarı çıkar.
+**`stopPropagation` gerekmiyor, ve bu faz 1-2'den devralınan gerekliliğin
+düzeltilmesi.** O belge "panel üstünde başlayan sürükleme haritayı kaydırır"
+diyordu ve deck.gl'de doğruydu: popup deck.gl'in React child callback'inin
+_içinde_, yani controller'ı taşıyan elemanın içinde render ediliyordu. Pixi'de
+popup tuvalin **kardeşi** ve pan/zoom/tıklama dinleyicileri tuvalin **kendi
+üstünde** (`useMapPointer`). Panel'deki bir `pointerdown` panel → host → body
+diye çıkıyor, tuvale hiç uğramıyor — kardeş elemanlar birbirinin olaylarını
+almaz. `stopPropagation` çağıran handler'lar ölü kod olurdu, o yüzden yok.
+Dinleyiciler bir gün host elemanına taşınırsa geri gelirler; bileşenin başındaki
+yorum bunu söylüyor.
 
 Aynı anda **tek popup**. Hover ipucu ile popup birlikte durabilir; ipucu imleci
 takip ettiği için popup'ın altına girmez.
