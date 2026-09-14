@@ -34,6 +34,44 @@ const TIER_STYLE: Record<
 let installed = false;
 
 /**
+ * Waits for the real Shentox face before anything rasterises against it.
+ *
+ * Shentox is a webfont, loaded asynchronously by `@font-face` in
+ * `app/fonts.css`. `BitmapFont.install` rasterises synchronously, so calling
+ * it before the face is ready bakes the `sans-serif` fallback into the atlas
+ * — and because the atlas is cached globally under the font's name, the wrong
+ * typeface then persists for the rest of the session. `document.fonts.ready`
+ * alone is not enough: it can resolve before anything has ever requested the
+ * font. `load()` is what actually requests it, one call per size this module
+ * is about to rasterise, taken from `TIER_STYLE` rather than a second
+ * hardcoded list.
+ *
+ * Defensive rather than throwing: jsdom's `document.fonts` is a partial
+ * implementation, and some environments have none at all. Either way the
+ * caller should still get an installed font, just possibly against whatever
+ * face is available yet.
+ */
+async function ensureShentoxLoaded(): Promise<void> {
+  const fonts = typeof document !== 'undefined' ? document.fonts : undefined;
+  if (!fonts) return;
+
+  const sizes = new Set(
+    Object.values(TIER_STYLE).map((style) => style.fontSize),
+  );
+
+  try {
+    await Promise.all(
+      [...sizes].map((size) => fonts.load(`${size}px Shentox`)),
+    );
+    await fonts.ready;
+  } catch {
+    // A rejected load (a missing file, a blocked request) should not stop the
+    // map from getting labels at all — it falls through to installing
+    // against whatever font is currently resolved for 'Shentox'.
+  }
+}
+
+/**
  * Three bitmap fonts, one per tier, generated once.
  *
  * BitmapText draws quads from a shared atlas; plain Text rasterises a texture
@@ -43,8 +81,10 @@ let installed = false;
  * few pixels, and scaling a 14 px atlas down to 11 px is visibly softer than
  * rasterising at 11. Three atlases of ASCII are small.
  */
-export function installLabelFonts(): void {
+export async function installLabelFonts(): Promise<void> {
   if (installed) return;
+
+  await ensureShentoxLoaded();
 
   for (const tier of ['region', 'constellation', 'system'] as const) {
     const style = TIER_STYLE[tier];
@@ -73,6 +113,9 @@ export function installLabelFonts(): void {
     });
   }
 
+  // Set only after every install above has actually happened: a failed or
+  // interrupted first attempt must not latch this true and skip the retry a
+  // second call would otherwise make.
   installed = true;
 }
 

@@ -149,7 +149,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     let live = true;
     let created: MapScene | null = null;
 
-    createScene(host).then((built) => {
+    createScene(host).then(async (built) => {
       if (!live) {
         built.destroy();
         return;
@@ -157,7 +157,13 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       created = built;
       scene.current = built;
       // Generated once per session; the guard inside makes a second call free.
-      installLabelFonts();
+      // Awaited rather than fired-and-forgotten: it awaits the real Shentox
+      // face before rasterising, and a floating promise here would let labels
+      // race the font load again.
+      await installLabelFonts();
+      // The unmount cleanup may have already destroyed `built` while the
+      // await above was pending — nothing left to make ready.
+      if (!live) return;
       setSceneReady(true);
       setCanvas(built.app.canvas);
       setSize({
