@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   labelCandidates,
   LABEL_CHAR_WIDTH,
+  LABEL_LINE_HEIGHT,
   MAX_VISIBLE_LABELS,
   placeLabels,
   type LabelCandidate,
@@ -29,7 +30,31 @@ describe('labelCandidates', () => {
     });
 
     expect(c.screenX).toBeCloseTo(700, 6);
-    expect(c.screenY).toBeCloseTo(450, 6);
+    // 450 is where the dot is; the name sits one line height above it.
+    expect(c.screenY).toBeCloseTo(450 - LABEL_LINE_HEIGHT.region, 6);
+  });
+
+  it('lifts the text one line height above the projected position, per tier', () => {
+    // The coordinates a candidate carries are where the GLYPHS are, not where
+    // the dot is. The filter, the viewport clip and later picking all read
+    // them, so the lift has to be in them rather than applied at draw time.
+    const candidates = labelCandidates({
+      tiers: ['region', 'constellation', 'system'],
+      regions: [source(1, 'R', 0, 0)],
+      constellations: [source(2, 'C', 3e16, 0)],
+      systems: [source(3, 'S', 6e16, 0)],
+      transform,
+      width: W,
+      height: H,
+    });
+
+    for (const c of candidates) {
+      expect(c.screenY).toBeCloseTo(450 - LABEL_LINE_HEIGHT[c.tier], 6);
+    }
+
+    // And the lift really does differ per tier, which is why a filter working
+    // on unshifted anchors would clear cross-tier pairs that then overlap.
+    expect(new Set(candidates.map((c) => c.screenY)).size).toBe(3);
   });
 
   it('puts a larger z higher on screen, not lower', () => {
@@ -46,7 +71,7 @@ describe('labelCandidates', () => {
       height: H,
     });
 
-    expect(c.screenY).toBeCloseTo(449, 6);
+    expect(c.screenY).toBeCloseTo(449 - LABEL_LINE_HEIGHT.region, 6);
   });
 
   it('drops candidates outside the viewport before anything else runs', () => {
@@ -62,6 +87,47 @@ describe('labelCandidates', () => {
     });
 
     expect(candidates.map((c) => c.name)).toEqual(['In']);
+  });
+
+  it('keeps a label near the bottom edge whose text is still on screen', () => {
+    // The dot sits 12 px below the canvas, so its own box is clear of the
+    // viewport and an unshifted clip would drop the name. The name is drawn a
+    // line height (16 px) above the dot, which puts its centre back on screen.
+    const below = (H + 12 - transform.y) / transform.scaleY;
+    const candidates = labelCandidates({
+      tiers: ['region'],
+      regions: [source(1, 'Low', 0, below)],
+      constellations: [],
+      systems: [],
+      transform,
+      width: W,
+      height: H,
+    });
+
+    expect(candidates.map((c) => c.name)).toEqual(['Low']);
+    expect(candidates[0].screenY).toBeCloseTo(
+      H + 12 - LABEL_LINE_HEIGHT.region,
+      6,
+    );
+    // And the dot's own unshifted box really was off screen.
+    expect(H + 12 - candidates[0].halfHeight).toBeGreaterThan(H);
+  });
+
+  it('drops a label whose text has been lifted off the top edge', () => {
+    // The mirror of the case above: the dot is 4 px inside the canvas, but the
+    // lift puts the whole box above y = 0, so nothing would be readable.
+    const high = (0 + 4 - transform.y) / transform.scaleY;
+    const candidates = labelCandidates({
+      tiers: ['region'],
+      regions: [source(1, 'High', 0, high)],
+      constellations: [],
+      systems: [],
+      transform,
+      width: W,
+      height: H,
+    });
+
+    expect(candidates).toEqual([]);
   });
 
   it('includes only the tiers it was given', () => {
@@ -190,7 +256,10 @@ describe('placeLabels', () => {
       box(`L${i}`, 'system', (i % 20) * 200, Math.floor(i / 20) * 200),
     );
 
-    expect(placeLabels(many).length).toBeLessThanOrEqual(MAX_VISIBLE_LABELS);
+    // toBe, not toBeLessThanOrEqual: the grid is 20x20 at 200 px pitch with
+    // 40x12 boxes, so nothing overlaps and the cap is the only thing that can
+    // stop it. An assertion that merely bounded it would pass on zero.
+    expect(placeLabels(many)).toHaveLength(MAX_VISIBLE_LABELS);
     expect(MAX_VISIBLE_LABELS).toBe(300);
   });
 

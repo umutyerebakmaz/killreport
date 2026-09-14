@@ -1,4 +1,4 @@
-import { LABEL_LINE_HEIGHT, type LabelCandidate } from '@/utils/map/labels';
+import type { LabelCandidate } from '@/utils/map/labels';
 import type { LabelTier } from '@/utils/map/lod';
 import { BitmapFont, BitmapFontManager, BitmapText } from 'pixi.js';
 import type { MapScene } from './createScene';
@@ -16,6 +16,10 @@ export const LABEL_FONT: Record<LabelTier, string> = {
  *
  * Region is uppercase and letter-spaced because that is what makes a name read
  * as a region rather than as a big system.
+ *
+ * These numbers are coupled to the collision boxes: changing a fontSize or a
+ * letterSpacing here means updating `LABEL_CHAR_WIDTH` and `LABEL_LINE_HEIGHT`
+ * in `utils/map/labels.ts` to match, or the filter reserves the wrong space.
  */
 const TIER_STYLE: Record<
   LabelTier,
@@ -155,12 +159,10 @@ export function drawLabels(scene: MapScene, placed: LabelCandidate[]): void {
       scene.labels.addChild(text);
     }
 
-    // Nudged above the dot rather than centred on it, so the name does not sit
-    // on the mark it belongs to.
-    text.position.set(
-      candidate.screenX,
-      candidate.screenY - LABEL_LINE_HEIGHT[candidate.tier],
-    );
+    // Straight to the candidate's own coordinates. The lift above the dot is
+    // already in them — labelCandidates applies it, so the collision filter
+    // and the viewport clip see the box the glyphs actually occupy.
+    text.position.set(candidate.screenX, candidate.screenY);
     text.visible = true;
   }
 
