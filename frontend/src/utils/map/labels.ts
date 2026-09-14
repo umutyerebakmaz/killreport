@@ -66,8 +66,14 @@ export const LABEL_LINE_HEIGHT: Record<LabelTier, number> = {
  *
  * Only the system tier needs it: a region or constellation name sits on a
  * centroid, which has nothing drawn at it.
+ *
+ * Raised from 3 to 7 by eye. At 3 the name cleared the disc arithmetically but
+ * still read as attached to it; the gap is what makes the two separate things.
+ * Because the clearance term is what wins at every zoom, this constant is
+ * exactly how far above its dot a system name sits — change it and they all
+ * move together.
  */
-export const LABEL_DOT_GAP_PX = 3;
+export const LABEL_DOT_GAP_PX = 7;
 
 export interface LabelSource {
   id: number;

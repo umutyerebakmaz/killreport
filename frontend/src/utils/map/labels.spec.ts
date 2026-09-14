@@ -340,13 +340,18 @@ describe('a system name clearing its own dot', () => {
     );
   });
 
-  // The rule is a floor on the lift, never a reduction of it. At the galaxy view
-  // the dot is at its own floor, so the two terms are within a pixel of each
-  // other and the label sits where the line height alone would have put it.
-  it('does not move the galaxy view perceptibly', () => {
+  // The line height is a floor on the lift, never a reduction of it. With the
+  // gap at 7 the clearance term is what binds at every zoom, so the lift at the
+  // galaxy view is exactly half a line plus the dot's floor plus the gap — and
+  // that is the arithmetic a change to any of the three has to move.
+  it('is the clearance term, and never less than the line height', () => {
     const lift = 450 - systemAt(-50, 3.8809e12).screenY;
+
     expect(lift).toBeGreaterThanOrEqual(LABEL_LINE_HEIGHT.system);
-    expect(lift).toBeLessThan(LABEL_LINE_HEIGHT.system + 1);
+    expect(lift).toBeCloseTo(
+      LABEL_LINE_HEIGHT.system / 2 + systemFloorPx(-50) + LABEL_DOT_GAP_PX,
+      6,
+    );
   });
 
   it('rises monotonically as the camera comes in', () => {
