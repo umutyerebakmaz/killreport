@@ -13,7 +13,8 @@ import {
   zoomToScale,
 } from '@/utils/map/camera';
 import { edgeSegments, localEdges } from '@/utils/map/edges';
-import { layerVisibility, lodBucket } from '@/utils/map/lod';
+import { labelCandidates, placeLabels } from '@/utils/map/labels';
+import { layerVisibility, lodBucket, visibleLabelTiers } from '@/utils/map/lod';
 import { boundsCenter, nearestNode, originFor } from '@/utils/map/origin';
 import { gateNeighbours } from '@/utils/map/topology';
 import { isWebgl2Available } from '@/utils/map/webgl';
@@ -26,6 +27,7 @@ import {
 } from './scene/celestials';
 import { createScene, type MapScene } from './scene/createScene';
 import { drawEdges } from './scene/edges';
+import { drawLabels, installLabelFonts } from './scene/labels';
 import {
   buildSystems,
   scaleSystems,
@@ -33,6 +35,7 @@ import {
 } from './scene/systems';
 import { useMapCamera } from './useMapCamera';
 import { useMapCelestials } from './useMapCelestials';
+import { useMapLabels } from './useMapLabels';
 import { useMapPointer, type SceneCanvas } from './useMapPointer';
 
 function MapMessage({ children }: { children: React.ReactNode }) {
@@ -68,6 +71,10 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // its reference in state carries none of the mutation risk `scene` itself
   // does.
   const [canvas, setCanvas] = useState<SceneCanvas | null>(null);
+  // Separate from `sceneReady`: the scene itself must not wait on a webfont
+  // download, only the label effect below should. See the scene-creation
+  // effect for how the two are decoupled.
+  const [fontsReady, setFontsReady] = useState(false);
   const systemSprites = useRef<SystemSprites | null>(null);
   const celestialSprites = useRef<CelestialSprites | null>(null);
   // The camera's linear scale, mirrored into a ref so the build effects can
@@ -123,6 +130,22 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   );
   const celestials = useMapCelestials(celestialSystemIds);
 
+  const { regions, constellations } = useMapLabels(scope, camera?.zoom ?? null);
+
+  // Hoisted out of the label effect below: it would otherwise re-map all
+  // 5,241 nodes into LabelSource objects on every camera change (every
+  // pointermove of a drag), rather than once per geometry load.
+  const labelSystems = useMemo(
+    () =>
+      (geometry?.nodes ?? []).map((node) => ({
+        id: node.systemId,
+        name: node.name,
+        x: node.x,
+        z: node.z,
+      })),
+    [geometry],
+  );
+
   // The scene outlives every render; React only builds it, feeds it and tears
   // it down. Mount and unmount, once.
   useEffect(() => {
@@ -137,12 +160,27 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       }
       created = built;
       scene.current = built;
+      // Set immediately: 5,241 dots, 6,959 gate lines and the pan/zoom wiring
+      // have nothing to do with typography, and must not wait on a webfont
+      // download.
       setSceneReady(true);
       setCanvas(built.app.canvas);
       setSize({
         width: built.app.renderer.width,
         height: built.app.renderer.height,
       });
+      // Generated once per session; the guard inside makes a second call free.
+      // Fired here without blocking the lines above: `fontsReady` is what the
+      // label effect waits on instead, so names appear a moment after the
+      // dots and lines do — legible before it is labelled, not blank until
+      // it is. `.catch` only exists to keep the promise from going unhandled;
+      // `installLabelFonts` itself already falls back to whatever face is
+      // resolved for 'Shentox' if the load fails.
+      installLabelFonts()
+        .then(() => {
+          if (live) setFontsReady(true);
+        })
+        .catch(() => {});
     });
 
     return () => {
@@ -150,6 +188,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       created?.destroy();
       scene.current = null;
       setSceneReady(false);
+      setFontsReady(false);
       setCanvas(null);
       systemSprites.current = null;
       celestialSprites.current = null;
@@ -201,6 +240,44 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     scene.current.world.scale.set(t.scaleX, t.scaleY);
     scene.current.world.position.set(t.x, t.y);
   }, [sceneReady, camera, size.width, size.height]);
+
+  // Labels live in screen space, so they re-place on every camera change rather
+  // than on a bucket change. Their own effect: the dependencies differ from the
+  // camera effect's, and folding them in would re-run the 5,241-sprite
+  // counter-scale whenever label data arrived.
+  useEffect(() => {
+    const s = scene.current;
+    if (!s || !sceneReady || !fontsReady || !camera || !size.width) return;
+
+    const tiers = visibleLabelTiers(camera.zoom);
+    if (tiers.length === 0) {
+      drawLabels(s, []);
+      return;
+    }
+
+    const candidates = labelCandidates({
+      tiers,
+      regions,
+      constellations,
+      // System names ride in the geometry that is already loaded; this tier
+      // costs no request at all.
+      systems: labelSystems,
+      transform: cameraTransform(camera, size.width, size.height),
+      width: size.width,
+      height: size.height,
+    });
+
+    drawLabels(s, placeLabels(candidates));
+  }, [
+    sceneReady,
+    fontsReady,
+    camera,
+    size.width,
+    size.height,
+    labelSystems,
+    regions,
+    constellations,
+  ]);
 
   // The galaxy: 5,241 sprites and the full 6,959-segment mesh, built once per
   // scene. The mesh is scene-centre-local, where float32's step is 0.22 px.

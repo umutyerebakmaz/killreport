@@ -11,6 +11,7 @@ export interface MapScene {
   systems: Container;
   celestials: Container;
   dot: Texture;
+  labels: Container;
   destroy(): void;
 }
 
@@ -33,6 +34,13 @@ export async function createScene(host: HTMLElement): Promise<MapScene> {
 
   const world = new Container();
   app.stage.addChild(world);
+
+  // On the stage, not in world: world's y scale is negative, so a BitmapText
+  // inside it would render mirrored. Screen space also keeps the type at a
+  // constant pixel size with no counter-scale, and the collision filter already
+  // works in screen coordinates. Added after world, so names draw over dots.
+  const labels = new Container();
+  app.stage.addChild(labels);
 
   const edgesGalaxy = new Graphics();
   const edgesLocal = new Graphics();
@@ -64,6 +72,7 @@ export async function createScene(host: HTMLElement): Promise<MapScene> {
     systems,
     celestials,
     dot,
+    labels,
     // `app.destroy`'s texture pass only reaches textures a sprite in the
     // display tree still references. A scene torn down before any sprite is
     // built — an unmount racing `createScene`'s own init — never attaches

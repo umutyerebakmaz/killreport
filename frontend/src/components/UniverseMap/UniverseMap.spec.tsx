@@ -4,10 +4,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const webgl = vi.fn(() => true);
 vi.mock('@/utils/map/webgl', () => ({ isWebgl2Available: () => webgl() }));
 
+let searchParams = new URLSearchParams('');
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: vi.fn() }),
-  useSearchParams: () => new URLSearchParams(''),
+  useSearchParams: () => searchParams,
 }));
+
+let labelQueries: { kind: string; skip: boolean }[] = [];
 
 type QueryResult = {
   data?: unknown;
@@ -25,8 +28,16 @@ vi.mock('@/generated/graphql', () => ({
     Station: 'STATION',
     Gate: 'GATE',
   },
+  MapLabelKind: { Region: 'REGION', Constellation: 'CONSTELLATION' },
   useMapGeometryQuery: () => useMapGeometryQuery(),
   useMapCelestialsQuery: () => ({ data: { mapCelestials: [] } }),
+  useMapLabelsQuery: (options: {
+    variables: { kind: string };
+    skip?: boolean;
+  }) => {
+    labelQueries.push({ kind: options.variables.kind, skip: !!options.skip });
+    return { data: { mapLabels: [] } };
+  },
 }));
 
 // The scene is a WebGL object; jsdom has no GPU and what it draws is verified
@@ -48,6 +59,12 @@ vi.mock('./scene/celestials', () => ({
   buildCelestials: vi.fn(),
   scaleCelestials: vi.fn(),
   setFineVisible: vi.fn(),
+}));
+vi.mock('./scene/labels', () => ({
+  // Resolved, not bare `vi.fn()`: the real function is async and the
+  // scene-creation effect calls `.then()` on its return value directly.
+  installLabelFonts: vi.fn().mockResolvedValue(undefined),
+  drawLabels: vi.fn(),
 }));
 
 /** The canvas is a real element: `useMapPointer` binds listeners to it. */
@@ -135,6 +152,8 @@ beforeEach(() => {
   useMapGeometryQuery.mockReturnValue({ data: GEOMETRY, loading: false });
   scene = fakeScene();
   createScene.mockResolvedValue(scene);
+  searchParams = new URLSearchParams('');
+  labelQueries = [];
 });
 
 /** The camera the component autofits to, once the renderer has reported a size. */
@@ -255,5 +274,32 @@ describe('UniverseMap', () => {
 
     unmount();
     expect(scene.destroy).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not fetch constellation names before their zoom is reached', () => {
+    // The staged-fetch rule: 31 KB that is not shown is not downloaded. Someone
+    // who opens the map and only looks never pays for it.
+    searchParams = new URLSearchParams('x=0&z=0&zoom=-50');
+    render(<UniverseMap scope={MapScope.NewEden} />);
+
+    const constellation = labelQueries.find((q) => q.kind === 'CONSTELLATION');
+    expect(constellation?.skip).toBe(true);
+  });
+
+  it('always fetches region names, which are 3 KB and wanted on the first frame', () => {
+    searchParams = new URLSearchParams('x=0&z=0&zoom=-50');
+    render(<UniverseMap scope={MapScope.NewEden} />);
+
+    const region = labelQueries.find((q) => q.kind === 'REGION');
+    expect(region?.skip).toBe(false);
+  });
+
+  it('fetches constellation names once past their threshold', () => {
+    // -47.64 is the threshold; -47 is above it.
+    searchParams = new URLSearchParams('x=0&z=0&zoom=-47');
+    render(<UniverseMap scope={MapScope.NewEden} />);
+
+    const constellation = labelQueries.find((q) => q.kind === 'CONSTELLATION');
+    expect(constellation?.skip).toBe(false);
   });
 });

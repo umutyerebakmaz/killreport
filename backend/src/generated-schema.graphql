@@ -680,6 +680,30 @@ type MapGeometry {
 }
 
 """
+Haritada bir isim. Koordinat **galaktik metre**, düğümlerle aynı uzayda.
+Bölgede konum yok ve sahnenin çizdiği sistemlerin ortalamasından hesaplanıyor;
+takımyıldızda constellations.position_x/z doğrudan kullanılıyor.
+"""
+type MapLabel {
+  """
+  Bölgede region_id, takımyıldızda constellation_id. Bantlar çakışmıyor ama tek anahtar isteyen bir tüketici kind ile birlikte anahtarlamalı.
+  """
+  id: Int!
+  kind: MapLabelKind!
+  name: String!
+  x: Float!
+  z: Float!
+}
+
+"""
+Bir etiketin kademesi. Sistem adları mapGeometry'den geldiği için burada yok.
+"""
+enum MapLabelKind {
+  CONSTELLATION
+  REGION
+}
+
+"""
 Bir sistem, galaktik konumunda. Koordinatlar 1e9 m'ye yuvarlanmış ve asla ham GPU'ya gitmez.
 """
 type MapNode {
@@ -887,6 +911,12 @@ type Query {
   haritaya önbellek temizlenmeden gelmez.
   """
   mapGeometry(scope: MapScope! = NEW_EDEN): MapGeometry!
+
+  """
+  Verilen sahnenin bir kademesinin adları. Statik evren verisi; servis Redis'te
+  86400 s tutuyor, API'den görünen tazelik response cache'in STATIC_GAME_DATA'sı.
+  """
+  mapLabels(kind: MapLabelKind!, scope: MapScope! = NEW_EDEN): [MapLabel!]!
 
   """Mevcut authenticated kullanıcının bilgilerini döner"""
   me: User

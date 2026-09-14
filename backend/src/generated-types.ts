@@ -753,6 +753,27 @@ export type MapGeometry = {
   scope: MapScope;
 };
 
+/**
+ * Haritada bir isim. Koordinat **galaktik metre**, düğümlerle aynı uzayda.
+ * Bölgede konum yok ve sahnenin çizdiği sistemlerin ortalamasından hesaplanıyor;
+ * takımyıldızda constellations.position_x/z doğrudan kullanılıyor.
+ */
+export type MapLabel = {
+  __typename?: 'MapLabel';
+  /** Bölgede region_id, takımyıldızda constellation_id. Bantlar çakışmıyor ama tek anahtar isteyen bir tüketici kind ile birlikte anahtarlamalı. */
+  id: Scalars['Int']['output'];
+  kind: MapLabelKind;
+  name: Scalars['String']['output'];
+  x: Scalars['Float']['output'];
+  z: Scalars['Float']['output'];
+};
+
+/** Bir etiketin kademesi. Sistem adları mapGeometry'den geldiği için burada yok. */
+export enum MapLabelKind {
+  Constellation = 'CONSTELLATION',
+  Region = 'REGION'
+}
+
 /** Bir sistem, galaktik konumunda. Koordinatlar 1e9 m'ye yuvarlanmış ve asla ham GPU'ya gitmez. */
 export type MapNode = {
   __typename?: 'MapNode';
@@ -1028,6 +1049,11 @@ export type Query = {
    * haritaya önbellek temizlenmeden gelmez.
    */
   mapGeometry: MapGeometry;
+  /**
+   * Verilen sahnenin bir kademesinin adları. Statik evren verisi; servis Redis'te
+   * 86400 s tutuyor, API'den görünen tazelik response cache'in STATIC_GAME_DATA'sı.
+   */
+  mapLabels: Array<MapLabel>;
   /** Mevcut authenticated kullanıcının bilgilerini döner */
   me?: Maybe<User>;
   /** Alliances ranked by campaigns currently attacking (most aggressive first). */
@@ -1309,6 +1335,12 @@ export type QueryMapCelestialsArgs = {
 
 
 export type QueryMapGeometryArgs = {
+  scope?: MapScope;
+};
+
+
+export type QueryMapLabelsArgs = {
+  kind: MapLabelKind;
   scope?: MapScope;
 };
 
@@ -2371,6 +2403,8 @@ export type ResolversTypes = {
   MapCelestialKind: MapCelestialKind;
   MapEdge: ResolverTypeWrapper<MapEdge>;
   MapGeometry: ResolverTypeWrapper<MapGeometry>;
+  MapLabel: ResolverTypeWrapper<MapLabel>;
+  MapLabelKind: MapLabelKind;
   MapNode: ResolverTypeWrapper<MapNode>;
   MapScope: MapScope;
   Moon: ResolverTypeWrapper<Moon>;
@@ -2524,6 +2558,7 @@ export type ResolversParentTypes = {
   MapCelestial: MapCelestial;
   MapEdge: MapEdge;
   MapGeometry: MapGeometry;
+  MapLabel: MapLabel;
   MapNode: MapNode;
   Moon: Moon;
   Mutation: Record<PropertyKey, never>;
@@ -3052,6 +3087,14 @@ export type MapGeometryResolvers<ContextType = any, ParentType extends Resolvers
   scope?: Resolver<ResolversTypes['MapScope'], ParentType, ContextType>;
 };
 
+export type MapLabelResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapLabel'] = ResolversParentTypes['MapLabel']> = {
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  kind?: Resolver<ResolversTypes['MapLabelKind'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  x?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  z?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+};
+
 export type MapNodeResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapNode'] = ResolversParentTypes['MapNode']> = {
   constellationId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -3169,6 +3212,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   killmailsDateCounts?: Resolver<Array<ResolversTypes['KillmailDateCount']>, ParentType, ContextType, Partial<QueryKillmailsDateCountsArgs>>;
   mapCelestials?: Resolver<Array<ResolversTypes['MapCelestial']>, ParentType, ContextType, RequireFields<QueryMapCelestialsArgs, 'systemIds'>>;
   mapGeometry?: Resolver<ResolversTypes['MapGeometry'], ParentType, ContextType, RequireFields<QueryMapGeometryArgs, 'scope'>>;
+  mapLabels?: Resolver<Array<ResolversTypes['MapLabel']>, ParentType, ContextType, RequireFields<QueryMapLabelsArgs, 'kind' | 'scope'>>;
   me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   mostAggressiveAlliances?: Resolver<Array<ResolversTypes['AllianceActivityRank']>, ParentType, ContextType, Partial<QueryMostAggressiveAlliancesArgs>>;
   mostDefensiveAlliances?: Resolver<Array<ResolversTypes['AllianceActivityRank']>, ParentType, ContextType, Partial<QueryMostDefensiveAlliancesArgs>>;
@@ -3727,6 +3771,7 @@ export type Resolvers<ContextType = any> = {
   MapCelestial?: MapCelestialResolvers<ContextType>;
   MapEdge?: MapEdgeResolvers<ContextType>;
   MapGeometry?: MapGeometryResolvers<ContextType>;
+  MapLabel?: MapLabelResolvers<ContextType>;
   MapNode?: MapNodeResolvers<ContextType>;
   Moon?: MoonResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
