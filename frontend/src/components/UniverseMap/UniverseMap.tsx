@@ -9,16 +9,19 @@ import {
 import {
   cameraTransform,
   fitCamera,
+  parseFraming,
   zoomLimits,
   zoomToScale,
 } from '@/utils/map/camera';
 import { edgeSegments, localEdges } from '@/utils/map/edges';
+import { framingFor } from '@/utils/map/framing';
 import { labelCandidates, placeLabels } from '@/utils/map/labels';
 import { layerVisibility, lodBucket, visibleLabelTiers } from '@/utils/map/lod';
 import { boundsCenter, nearestNode, originFor } from '@/utils/map/origin';
 import { pickSystem, type PickTarget } from '@/utils/map/pick';
 import { gateNeighbours } from '@/utils/map/topology';
 import { isWebgl2Available } from '@/utils/map/webgl';
+import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   buildCelestials,
@@ -91,11 +94,6 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // The hovered system is held as a full PickTarget: the tip follows the
   // cursor, so its position is refreshed by the next hover anyway.
   const [hovered, setHovered] = useState<PickTarget | null>(null);
-  // The selected one is held as an ID only. The popup is anchored to its dot
-  // and follows the camera, so its screen position has to be recomputed every
-  // render — a frozen screenX would tear the popup off its system on the first
-  // pan.
-  const [selected, setSelected] = useState<number | null>(null);
 
   // Static universe data behind a 24 hour Redis key and a STATIC_GAME_DATA
   // response cache: cache-first is overridden here at the call site rather than
@@ -115,7 +113,39 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       geometry ? fitCamera(geometry.bounds, size.width, size.height) : null,
     [geometry, size.width, size.height],
   );
-  const { camera, onCameraChange } = useMapCamera(scope, fit);
+
+  const searchParams = useSearchParams();
+
+  // Where the URL says to look. Resolved against the loaded scene on the
+  // client — every node carries its three ids — so none of this costs a query.
+  // Memoised because `framingFor` filters all 5,241 nodes, and it is an
+  // argument to a hook that runs on every render.
+  const framing = useMemo(
+    () =>
+      framingFor(
+        parseFraming(searchParams),
+        geometry?.nodes ?? [],
+        size.width,
+        size.height,
+      ),
+    [searchParams, geometry, size.width, size.height],
+  );
+
+  // `framing ?? fit` rather than a new branch inside the hook: the hook already
+  // returns "the camera to use when the URL carries none", and a framing is
+  // exactly that. An explicit x/z/zoom in the URL still wins over both, which
+  // is what makes the back button whole.
+  //
+  // The selection is held as an ID only, and by the hook rather than here: the
+  // popup is anchored to its dot and follows the camera, so its screen position
+  // is recomputed every render — a frozen screenX would tear the popup off its
+  // system on the first pan.
+  const {
+    camera,
+    onCameraChange,
+    focus: selected,
+    onFocusChange: setSelected,
+  } = useMapCamera(scope, framing ?? fit);
 
   const bucket = camera ? lodBucket(camera.zoom) : 'galaxy';
 
@@ -380,6 +410,10 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
 
   // Pan and zoom: the listeners bind once per canvas and read the latest
   // camera through a ref, in useMapPointer.ts — see that file for why.
+  //
+  // From the galaxy autofit, never from `framing`. zoomLimits puts the floor at
+  // fit - 2; a `?focus=` link arrives at SYSTEM_LABEL_ZOOM, and a floor two
+  // levels under *that* would forbid zooming back out to the galaxy at all.
   const limits = fit ? zoomLimits(fit.zoom) : null;
 
   // Rebuilt whenever the camera or the viewport moves, which is correct: the
@@ -406,7 +440,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
         setSelected(target ? target.node.systemId : null);
       },
     };
-  }, [camera, size.width, size.height, pickNodes]);
+  }, [camera, size.width, size.height, pickNodes, setSelected]);
 
   useMapPointer(canvas, camera, limits, onCameraChange, pick);
 
