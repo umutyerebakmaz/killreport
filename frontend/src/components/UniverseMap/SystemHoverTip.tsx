@@ -3,8 +3,8 @@
 import { clampOverlay } from '@/utils/map/overlay';
 import { formatSecurityStatus, getSecurityColor } from '@/utils/security';
 
-/** Enough to clear the cursor without drifting away from the dot. */
-const TIP_OFFSET_PX = 12;
+/** How far the tip's top edge clears the system's own disc. */
+const TIP_GAP_PX = 12;
 
 /**
  * Estimated rather than measured: the tip is one short line, and giving
@@ -28,6 +28,7 @@ export default function SystemHoverTip({
   securityStatus,
   screenX,
   screenY,
+  anchorRadius,
   viewportWidth,
   viewportHeight,
 }: {
@@ -35,6 +36,8 @@ export default function SystemHoverTip({
   securityStatus: number | null;
   screenX: number;
   screenY: number;
+  /** The system's drawn radius in pixels, which the tip opens clear of. */
+  anchorRadius: number;
   viewportWidth: number;
   viewportHeight: number;
 }) {
@@ -45,14 +48,15 @@ export default function SystemHoverTip({
     overlayHeight: TIP_HEIGHT_PX,
     viewportWidth,
     viewportHeight,
-    offset: TIP_OFFSET_PX,
+    offset: anchorRadius + TIP_GAP_PX,
   });
 
   return (
     <div
-      // pointer-events-none is load-bearing: the tip follows the cursor, so
-      // without it every hover would put an element under the pointer and the
-      // canvas would stop receiving the moves that placed it there.
+      // pointer-events-none is load-bearing: the tip sits just under the dot
+      // the cursor is on, so without it a hover would put an element under the
+      // pointer and the canvas would stop receiving the moves that placed it
+      // there.
       className="absolute z-10 flex items-center px-2 py-1 text-xs float gap-x-2 pointer-events-none"
       style={{ left, top }}
     >

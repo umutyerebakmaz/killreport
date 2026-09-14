@@ -515,12 +515,17 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     >
       {/* No tip over the selected system: the popup already says its name, and
           larger. */}
-      {hovered && hovered.node.systemId !== selected && (
+      {hovered && camera && hovered.node.systemId !== selected && (
         <SystemHoverTip
           name={hovered.node.name}
           securityStatus={hovered.node.securityStatus}
           screenX={hovered.screenX}
           screenY={hovered.screenY}
+          anchorRadius={systemRadiusPx(
+            hovered.node.radius,
+            zoomToScale(camera.zoom),
+            systemFloorPx(camera.zoom),
+          )}
           viewportWidth={size.width}
           viewportHeight={size.height}
         />

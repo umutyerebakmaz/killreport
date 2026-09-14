@@ -96,12 +96,10 @@ export default function SystemPopup({
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [onClose]);
 
-  // Centred across the system and clear beneath it. The click already said where
-  // to look, so a panel beside it cost the eye a journey — but a panel on top of
-  // it hid the thing it was about. `anchorRadius` is the disc's own size, not a
-  // constant: the dots grow with the camera and reach tens of pixels at the
-  // interior zooms, where a fixed offset would put the panel back over the
-  // system.
+  // `anchorRadius` is the disc's own size, not a constant: the dots grow with
+  // the camera and reach tens of pixels at the interior zooms, where a fixed
+  // offset would put the panel back over the system. See clampOverlay for the
+  // placement itself.
   const { left, top } = clampOverlay({
     anchorX: screenX,
     anchorY: screenY,
@@ -110,7 +108,6 @@ export default function SystemPopup({
     viewportWidth,
     viewportHeight,
     offset: anchorRadius + POPUP_GAP_PX,
-    placement: 'below',
   });
 
   const details = data?.mapSystemDetails;

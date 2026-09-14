@@ -13,6 +13,7 @@ describe('SystemHoverTip', () => {
         securityStatus={0.94}
         screenX={100}
         screenY={100}
+        anchorRadius={1.5}
         {...VIEWPORT}
       />,
     );
@@ -21,20 +22,23 @@ describe('SystemHoverTip', () => {
     expect(screen.getByText('0.9')).toBeInTheDocument();
   });
 
-  it('is positioned down and to the right of the dot', () => {
+  it('is centred across the dot and sits clear beneath it', () => {
     const { container } = render(
       <SystemHoverTip
         name="Jita"
         securityStatus={0.94}
         screenX={100}
         screenY={100}
+        anchorRadius={1.5}
         {...VIEWPORT}
       />,
     );
 
+    // Centred: 100 - 140/2. Below: 100 + the dot's 1.5 px radius + the 12 px
+    // gap, so the system the tip names is not hidden by it.
     const tip = container.firstElementChild as HTMLElement;
-    expect(tip.style.left).toBe('112px');
-    expect(tip.style.top).toBe('112px');
+    expect(tip.style.left).toBe('30px');
+    expect(tip.style.top).toBe('113.5px');
   });
 
   it('does not take pointer events, so it cannot block a drag', () => {
@@ -44,6 +48,7 @@ describe('SystemHoverTip', () => {
         securityStatus={0.94}
         screenX={100}
         screenY={100}
+        anchorRadius={1.5}
         {...VIEWPORT}
       />,
     );
@@ -58,6 +63,7 @@ describe('SystemHoverTip', () => {
         securityStatus={-0.99}
         screenX={10}
         screenY={10}
+        anchorRadius={1.5}
         {...VIEWPORT}
       />,
     );
