@@ -1,4 +1,5 @@
 import type { CameraTransform } from './camera';
+import { systemFloorPx, systemRadiusPx } from './marks';
 import type { LabelTier } from './lod';
 
 /** The cap the design sets on how many names may be on screen at once. */
@@ -49,11 +50,24 @@ export const LABEL_LINE_HEIGHT: Record<LabelTier, number> = {
   system: 11,
 };
 
+/**
+ * How far a system name is held clear of its own dot, in pixels.
+ *
+ * Only the system tier needs it: a region or constellation name sits on a
+ * centroid, which has nothing drawn at it.
+ */
+export const LABEL_DOT_GAP_PX = 3;
+
 export interface LabelSource {
   id: number;
   name: string;
   x: number;
   z: number;
+  /**
+   * The system's own radius in metres, for the system tier. Absent for the two
+   * centroid tiers, which have no mark under them to clear.
+   */
+  radius?: number;
 }
 
 export interface LabelCandidate {
@@ -120,10 +134,29 @@ export function labelCandidates({
     const charWidth = LABEL_CHAR_WIDTH[tier];
     const lineHeight = LABEL_LINE_HEIGHT[tier];
     const halfHeight = lineHeight / 2;
+    // `scaleX` is the camera's linear scale — see cameraTransform — so the dot
+    // size the system tier has to clear is recoverable here without the caller
+    // passing the zoom a second time.
+    const floorPx = systemFloorPx(Math.log2(transform.scaleX));
 
     for (const source of byTier[tier]) {
+      // A line height is the whole lift for a centroid tier. For a system it is
+      // a minimum: the dots grow with the camera, and a fixed lift put the
+      // glyphs inside the disc the moment it passed half a line height. Taking
+      // the larger of the two keeps the galaxy view exactly where it was and
+      // lets the name rise with the mark from there.
+      const lift =
+        tier === 'system'
+          ? Math.max(
+              lineHeight,
+              halfHeight +
+                systemRadiusPx(source.radius ?? 0, transform.scaleX, floorPx) +
+                LABEL_DOT_GAP_PX,
+            )
+          : lineHeight;
+
       const screenX = source.x * transform.scaleX + transform.x;
-      const screenY = source.z * transform.scaleY + transform.y - lineHeight;
+      const screenY = source.z * transform.scaleY + transform.y - lift;
       const halfWidth = (source.name.length * charWidth) / 2;
 
       // Clipped before anything else runs: the filter is O(n*k) and n is what

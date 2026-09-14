@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { systemFloorPx, systemRadiusPx } from './marks';
 import {
   labelCandidates,
   LABEL_CHAR_WIDTH,
+  LABEL_DOT_GAP_PX,
   LABEL_LINE_HEIGHT,
   MAX_VISIBLE_LABELS,
   placeLabels,
@@ -48,6 +50,8 @@ describe('labelCandidates', () => {
       height: H,
     });
 
+    // At the galaxy fit the dot is at its floor, so the system tier's clearance
+    // rule does not yet exceed its line height and all three still agree.
     for (const c of candidates) {
       expect(c.screenY).toBeCloseTo(450 - LABEL_LINE_HEIGHT[c.tier], 6);
     }
@@ -271,5 +275,78 @@ describe('placeLabels', () => {
     const input = [box('A', 'region', 100, 100), box('B', 'region', 105, 100)];
     placeLabels(input);
     expect(input).toHaveLength(2);
+  });
+});
+
+describe('a system name clearing its own dot', () => {
+  /** A camera deep enough that the dot has grown past its floor. */
+  const deep = (zoom: number) => ({
+    scaleX: 2 ** zoom,
+    scaleY: -(2 ** zoom),
+    x: 700,
+    y: 450,
+  });
+
+  function systemAt(zoom: number, radius: number) {
+    const [c] = labelCandidates({
+      tiers: ['system'],
+      regions: [],
+      constellations: [],
+      systems: [{ id: 3, name: 'Jita', x: 0, z: 0, radius }],
+      transform: deep(zoom),
+      width: W,
+      height: H,
+    });
+    return c;
+  }
+
+  /** How far the glyph box's bottom edge sits above the dot's own edge. */
+  function clearance(c: LabelCandidate, zoom: number, radius: number) {
+    const dot = systemRadiusPx(radius, 2 ** zoom, systemFloorPx(zoom));
+    const bottomEdge = c.screenY + c.halfHeight;
+    return 450 - dot - bottomEdge;
+  }
+
+  // The dots grow with the camera now, and a lift fixed at one line height put
+  // the glyphs inside the disc as soon as it passed 5.5 px.
+  it('keeps the gap as the dot grows under it', () => {
+    for (const zoom of [-45.73, -42, -40, -38]) {
+      const c = systemAt(zoom, 3.8809e12);
+      expect(clearance(c, zoom, 3.8809e12)).toBeGreaterThanOrEqual(
+        LABEL_DOT_GAP_PX - 1e-9,
+      );
+    }
+  });
+
+  // Past the cap the disc is the system's own radius, not the floor, and the
+  // name has to clear that too. At INTERIOR_ZOOM the median system is 49.85 px
+  // across — the figure lod.ts derives that threshold from.
+  it('clears a disc far larger than the floor', () => {
+    const zoom = -36.18;
+    const radius = 3.8809e12;
+    const c = systemAt(zoom, radius);
+    expect(systemRadiusPx(radius, 2 ** zoom, systemFloorPx(zoom))).toBeCloseTo(
+      49.85,
+      1,
+    );
+    expect(clearance(c, zoom, radius)).toBeGreaterThanOrEqual(
+      LABEL_DOT_GAP_PX - 1e-9,
+    );
+  });
+
+  // The rule is a floor on the lift, not a replacement for it: at the galaxy
+  // view the line height is still the larger of the two and nothing moves.
+  it('leaves the galaxy view exactly where it was', () => {
+    const c = systemAt(-50, 3.8809e12);
+    expect(c.screenY).toBeCloseTo(450 - LABEL_LINE_HEIGHT.system, 6);
+  });
+
+  it('rises monotonically as the camera comes in', () => {
+    let previousLift = 0;
+    for (let zoom = -50; zoom <= -36; zoom += 0.5) {
+      const lift = 450 - systemAt(zoom, 3.8809e12).screenY;
+      expect(lift).toBeGreaterThanOrEqual(previousLift);
+      previousLift = lift;
+    }
   });
 });

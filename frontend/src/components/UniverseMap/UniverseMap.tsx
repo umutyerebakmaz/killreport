@@ -184,6 +184,9 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
         name: node.name,
         x: node.x,
         z: node.z,
+        // The label is held clear of the dot, and past the zoom ramp's cap the
+        // dot is this radius rather than the floor.
+        radius: node.radius,
       })),
     [geometry],
   );
