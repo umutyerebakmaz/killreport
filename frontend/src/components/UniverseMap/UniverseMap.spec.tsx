@@ -424,6 +424,34 @@ describe('UniverseMap', () => {
       return createScene.mock.calls[0][0];
     }
 
+    it('lights a system from the dot, with no name in play', async () => {
+      // The finest tier rides the hit test that already drives the hover tip,
+      // so it works where no name is drawn — which is most of the map, since
+      // system names open late and are thinned by the collision filter.
+      const host = await mounted();
+      const at = jitaOnScreen();
+
+      const before = drawHighlight.mock.calls.length;
+      act(() => {
+        host.dispatchEvent(
+          new PointerEvent('pointermove', {
+            clientX: at.x,
+            clientY: at.y,
+            bubbles: true,
+          }),
+        );
+      });
+
+      await waitFor(() =>
+        expect(drawHighlight.mock.calls.length).toBeGreaterThan(before),
+      );
+      expect(drawHighlight).toHaveBeenLastCalledWith(
+        scene.edgesHighlight,
+        expect.any(Array),
+        expect.anything(),
+      );
+    });
+
     it('lights a constellation from its own name, one tier down', async () => {
       const host = await mounted();
       const name = document.createElement('span');

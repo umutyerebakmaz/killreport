@@ -12,6 +12,7 @@ function segment(
     to,
     regions: crossing ? [10000001, 10000002] : [10000001, 10000001],
     constellations: crossing ? [20000001, 20000002] : [20000001, 20000001],
+    systems: [1, 2] as [number, number],
   };
 }
 

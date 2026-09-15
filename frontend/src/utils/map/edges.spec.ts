@@ -1,6 +1,13 @@
 import type { MapEdge, MapNode } from '@/generated/graphql';
 import { describe, expect, it } from 'vitest';
-import { areaSegments, crossesRegion, edgeSegments, localEdges } from './edges';
+import {
+  areaSegments,
+  crossesRegion,
+  edgeSegments,
+  highlightSegments,
+  localEdges,
+  systemSegments,
+} from './edges';
 
 function node(
   systemId: number,
@@ -37,6 +44,7 @@ describe('edgeSegments', () => {
         to: [-5e16, 5e16],
         regions: [10000001, 10000001],
         constellations: [20000001, 20000001],
+        systems: [1, 2],
       },
     ]);
   });
@@ -104,6 +112,7 @@ describe('edgeSegments with loaded gates', () => {
         to: [1e16, 0],
         regions: [10000001, 10000001],
         constellations: [20000001, 20000001],
+        systems: [1, 2],
       },
     ]);
   });
@@ -188,6 +197,7 @@ describe('crossesRegion', () => {
     to: [1, 1] as [number, number],
     regions: [a, b] as [number, number],
     constellations: [20000001, 20000001] as [number, number],
+    systems: [1, 2] as [number, number],
   });
 
   it('is true for the 370 pairs whose ends are in different regions', () => {
@@ -207,6 +217,7 @@ describe('areaSegments', () => {
     to: [1, 1] as [number, number],
     regions: [10000001, 10000001] as [number, number],
     constellations: [20000001, 20000001] as [number, number],
+    systems: [1, 2] as [number, number],
   };
   const leavingRegion = {
     ...base,
@@ -254,5 +265,64 @@ describe('areaSegments', () => {
 
   it('returns nothing for an area with no edges on this map', () => {
     expect(areaSegments([base], region(10009999))).toEqual([]);
+  });
+});
+
+describe('systemSegments', () => {
+  const segment = (a: number, b: number) => ({
+    from: [0, 0] as [number, number],
+    to: [1, 1] as [number, number],
+    regions: [10000001, 10000001] as [number, number],
+    constellations: [20000001, 20000001] as [number, number],
+    systems: [a, b] as [number, number],
+  });
+
+  const out = segment(1, 2);
+  const back = segment(3, 1);
+  const elsewhere = segment(4, 5);
+
+  it('keeps an edge at either end, not only the one it is named from', () => {
+    // The opposite half of the area rule. Every gate LEAVES its system, so a
+    // "both ends" test here would light nothing at all.
+    expect(systemSegments([out, back, elsewhere], 1)).toEqual([out, back]);
+  });
+
+  it('gives a dead end its one line', () => {
+    // 720 of the 5,268 systems have a single gate.
+    expect(systemSegments([out, elsewhere], 2)).toEqual([out]);
+  });
+
+  it('returns nothing for a system with no gates on this map', () => {
+    expect(systemSegments([out], 999)).toEqual([]);
+  });
+});
+
+describe('highlightSegments', () => {
+  const inside = {
+    from: [0, 0] as [number, number],
+    to: [1, 1] as [number, number],
+    regions: [10000001, 10000001] as [number, number],
+    constellations: [20000001, 20000001] as [number, number],
+    systems: [1, 2] as [number, number],
+  };
+  const leaving = {
+    ...inside,
+    regions: [10000001, 10000002] as [number, number],
+    constellations: [20000001, 20000002] as [number, number],
+    systems: [2, 3] as [number, number],
+  };
+
+  it('fills an area by what its boundary encloses', () => {
+    expect(
+      highlightSegments([inside, leaving], { tier: 'region', id: 10000001 }),
+    ).toEqual([inside]);
+  });
+
+  it('radiates from a system by what touches it', () => {
+    // The same segment that the area rule drops — it leaves region 10000001 —
+    // is exactly what system 2's highlight must keep.
+    expect(
+      highlightSegments([inside, leaving], { tier: 'system', id: 2 }),
+    ).toEqual([inside, leaving]);
   });
 });
