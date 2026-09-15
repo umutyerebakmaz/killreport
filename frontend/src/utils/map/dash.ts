@@ -1,4 +1,4 @@
-import type { EdgeSegment } from './edges';
+import { crossesRegion, type EdgeSegment } from './edges';
 
 /**
  * The dash cell — one dash plus one gap — in world metres.
@@ -87,7 +87,7 @@ export function splitDashed(segments: EdgeSegment[]): {
   const dashed: EdgeSegment[] = [];
 
   for (const segment of segments) {
-    if (segment.crossesRegion) dashed.push(...dashSegment(segment));
+    if (crossesRegion(segment)) dashed.push(...dashSegment(segment));
     else solid.push(segment);
   }
 

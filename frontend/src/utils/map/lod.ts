@@ -58,6 +58,13 @@ export function showsMoonsAndBelts(bucket: LodBucket): boolean {
  */
 export interface LayerVisibility {
   edgesGalaxy: boolean;
+  /**
+   * The hovered region's own mesh, drawn over the galaxy one. It follows
+   * `edgesGalaxy` exactly: region names stay on screen well past the zoom
+   * where the galaxy mesh gives way to the local one, and a highlight of a
+   * mesh that is no longer drawn would be lit lines over nothing.
+   */
+  edgesHighlight: boolean;
   edgesLocal: boolean;
   systems: boolean;
   celestials: boolean;
@@ -68,6 +75,7 @@ export function layerVisibility(bucket: LodBucket): LayerVisibility {
   const interiors = streamsInteriors(bucket);
   return {
     edgesGalaxy: !interiors,
+    edgesHighlight: !interiors,
     edgesLocal: interiors,
     systems: true,
     celestials: interiors,
