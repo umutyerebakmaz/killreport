@@ -12,7 +12,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "kill": "fuser -ks -n tcp ${PORT:-3000} || true",
+    "kill": "sh ../scripts/kill-port.sh ${PORT:-3000}",
     "codegen": "graphql-codegen",
     "codegen:watch": "graphql-codegen --watch",
     "remove:all": "rm -rf .next node_modules yarn.lock"

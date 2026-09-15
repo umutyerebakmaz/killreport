@@ -254,6 +254,22 @@ first one's processes.
 Never kill by process name. `pkill -f 'next.*dev'` and `pkill node` reach every
 project on the machine, not just this one.
 
+Both scripts delegate the actual killing to `scripts/kill-port.sh`, which picks
+its tool by platform because **each tool is broken on the other one**, and both
+failures are silent — the port stays held and the script exits 0, so you go
+looking for the process by name, which is the one thing the rule above forbids:
+
+- **Linux: use `fuser`, not `lsof`.** `next-server` renames itself, the kernel
+  truncates `/proc/PID/comm` to 15 characters leaving `next-server (v1` with an
+  unbalanced paren, and lsof 4.93.2 parses `/proc/PID/stat` by matching that
+  paren. Failing, it drops the process from its output entirely.
+- **macOS: use `lsof`, not `fuser`.** BSD fuser has no `-k` and no `-s`. It
+  answers `Unknown option: k` and exits 0. macOS lsof never reads `/proc`, so
+  the truncation bug cannot reach it.
+
+Checking one platform is how this gets broken: the move to `fuser` (087e0214)
+and the move back (#215) were each correct on the machine they were tested on.
+
 Redis needs the same treatment. Keys carry no project prefix, and the
 response-cache `invalidate` runs a `KEYS` pattern scan across the whole database
 (`backend/src/plugins/response-cache.plugin.ts`), so it can delete another
