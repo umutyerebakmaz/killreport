@@ -6,6 +6,7 @@
 @import './inputs.css';
 @import './tables.css';
 @import './cards.css';
+@import './map.css';
 
 @theme {
   /* Typography */

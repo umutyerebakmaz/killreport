@@ -6,10 +6,9 @@ export const DOT_TEXTURE_RADIUS = 32;
 /**
  * The backing-store scale, capped at 2.
  *
- * One function rather than a constant read twice: the renderer and the label
- * atlas must agree, and on a 3x phone an uncapped atlas against a capped canvas
- * is the same minification the cap was added to remove. A 3x backing store costs
- * 2.25x the fragments for a difference nobody can see.
+ * A 3x phone costs 2.25x the fragments for a difference nobody can see, and
+ * every mark on this map is a minified texture, so the cap buys back fill rate
+ * where nothing is gained by spending it.
  */
 export function renderResolution(): number {
   return Math.min(window.devicePixelRatio || 1, 2);
@@ -23,7 +22,6 @@ export interface MapScene {
   systems: Container;
   celestials: Container;
   dot: Texture;
-  labels: Container;
   destroy(): void;
 }
 
@@ -47,10 +45,8 @@ export async function createScene(host: HTMLElement): Promise<MapScene> {
     antialias: true,
     // Pixi defaults `resolution` to 1 and `autoDensity` to false, which on a
     // HiDPI screen draws the whole canvas at CSS size and lets the browser
-    // upscale it. Labels suffered twice over: the bitmap atlas is rasterised at
-    // devicePixelRatio, so a glyph was minified into a 1x canvas and then
-    // magnified back out by the compositor — two resamplings, and the reason the
-    // names read as mud rather than type.
+    // upscale it — so every dot and gate line is drawn at half the detail the
+    // display can show and then magnified back out by the compositor.
     //
     // Capped at 2: a 3x phone costs 2.25x the fragments for a difference no one
     // can see. `autoDensity` is what keeps the CSS size of the canvas where the
@@ -73,13 +69,6 @@ export async function createScene(host: HTMLElement): Promise<MapScene> {
 
   const world = new Container();
   app.stage.addChild(world);
-
-  // On the stage, not in world: world's y scale is negative, so a BitmapText
-  // inside it would render mirrored. Screen space also keeps the type at a
-  // constant pixel size with no counter-scale, and the collision filter already
-  // works in screen coordinates. Added after world, so names draw over dots.
-  const labels = new Container();
-  app.stage.addChild(labels);
 
   const edgesGalaxy = new Graphics();
   const edgesLocal = new Graphics();
@@ -111,7 +100,6 @@ export async function createScene(host: HTMLElement): Promise<MapScene> {
     systems,
     celestials,
     dot,
-    labels,
     // `app.destroy`'s texture pass only reaches textures a sprite in the
     // display tree still references. A scene torn down before any sprite is
     // built — an unmount racing `createScene`'s own init — never attaches

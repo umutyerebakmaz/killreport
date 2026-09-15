@@ -25,12 +25,14 @@ function wheelEvent(deltaY: number, x: number, y: number): WheelEvent {
 }
 
 describe('useMapPointer', () => {
-  let canvas: HTMLCanvasElement;
+  let host: HTMLDivElement;
   let onCameraChange: ReturnType<typeof vi.fn<(next: MapCamera) => void>>;
 
   beforeEach(() => {
-    canvas = document.createElement('canvas');
-    canvas.getBoundingClientRect = vi.fn(
+    // A div, not a canvas: the listeners are bound to the HOST. The canvas
+    // fills it, so the rectangle a hit test works in is the same either way.
+    host = document.createElement('div');
+    host.getBoundingClientRect = vi.fn(
       () =>
         ({
           left: 0,
@@ -51,16 +53,16 @@ describe('useMapPointer', () => {
     const initial: MapCamera = { x: 0, z: 0, zoom: 0 };
     const { rerender } = renderHook(
       ({ camera }: { camera: MapCamera }) =>
-        useMapPointer(canvas, camera, LIMITS, onCameraChange),
+        useMapPointer(host, camera, LIMITS, onCameraChange),
       { initialProps: { camera: initial } },
     );
 
     act(() => {
-      canvas.dispatchEvent(pointerEvent('pointerdown', 100, 100));
+      host.dispatchEvent(pointerEvent('pointerdown', 100, 100));
     });
 
     act(() => {
-      canvas.dispatchEvent(pointerEvent('pointermove', 110, 100));
+      host.dispatchEvent(pointerEvent('pointermove', 110, 100));
     });
     expect(onCameraChange).toHaveBeenCalledTimes(1);
     // The real component's camera state updates and re-renders in response to
@@ -69,13 +71,13 @@ describe('useMapPointer', () => {
     rerender({ camera: onCameraChange.mock.calls[0][0] });
 
     act(() => {
-      canvas.dispatchEvent(pointerEvent('pointermove', 120, 100));
+      host.dispatchEvent(pointerEvent('pointermove', 120, 100));
     });
     expect(onCameraChange).toHaveBeenCalledTimes(2);
     rerender({ camera: onCameraChange.mock.calls[1][0] });
 
     act(() => {
-      canvas.dispatchEvent(pointerEvent('pointermove', 130, 100));
+      host.dispatchEvent(pointerEvent('pointermove', 130, 100));
     });
     expect(onCameraChange).toHaveBeenCalledTimes(3);
 
@@ -87,12 +89,12 @@ describe('useMapPointer', () => {
   it('does nothing on a move with no prior pointerdown', () => {
     renderHook(
       ({ camera }: { camera: MapCamera }) =>
-        useMapPointer(canvas, camera, LIMITS, onCameraChange),
+        useMapPointer(host, camera, LIMITS, onCameraChange),
       { initialProps: { camera: { x: 0, z: 0, zoom: 0 } } },
     );
 
     act(() => {
-      canvas.dispatchEvent(pointerEvent('pointermove', 110, 100));
+      host.dispatchEvent(pointerEvent('pointermove', 110, 100));
     });
 
     expect(onCameraChange).not.toHaveBeenCalled();
@@ -101,14 +103,14 @@ describe('useMapPointer', () => {
   it('ends the drag on pointerup', () => {
     renderHook(
       ({ camera }: { camera: MapCamera }) =>
-        useMapPointer(canvas, camera, LIMITS, onCameraChange),
+        useMapPointer(host, camera, LIMITS, onCameraChange),
       { initialProps: { camera: { x: 0, z: 0, zoom: 0 } } },
     );
 
     act(() => {
-      canvas.dispatchEvent(pointerEvent('pointerdown', 100, 100));
-      canvas.dispatchEvent(pointerEvent('pointerup', 100, 100));
-      canvas.dispatchEvent(pointerEvent('pointermove', 110, 100));
+      host.dispatchEvent(pointerEvent('pointerdown', 100, 100));
+      host.dispatchEvent(pointerEvent('pointerup', 100, 100));
+      host.dispatchEvent(pointerEvent('pointermove', 110, 100));
     });
 
     expect(onCameraChange).not.toHaveBeenCalled();
@@ -117,14 +119,14 @@ describe('useMapPointer', () => {
   it('ends the drag on pointerleave', () => {
     renderHook(
       ({ camera }: { camera: MapCamera }) =>
-        useMapPointer(canvas, camera, LIMITS, onCameraChange),
+        useMapPointer(host, camera, LIMITS, onCameraChange),
       { initialProps: { camera: { x: 0, z: 0, zoom: 0 } } },
     );
 
     act(() => {
-      canvas.dispatchEvent(pointerEvent('pointerdown', 100, 100));
-      canvas.dispatchEvent(pointerEvent('pointerleave', 100, 100));
-      canvas.dispatchEvent(pointerEvent('pointermove', 110, 100));
+      host.dispatchEvent(pointerEvent('pointerdown', 100, 100));
+      host.dispatchEvent(pointerEvent('pointerleave', 100, 100));
+      host.dispatchEvent(pointerEvent('pointermove', 110, 100));
     });
 
     expect(onCameraChange).not.toHaveBeenCalled();
@@ -134,12 +136,12 @@ describe('useMapPointer', () => {
     const initial: MapCamera = { x: 0, z: 0, zoom: 9.5 };
     renderHook(
       ({ camera }: { camera: MapCamera }) =>
-        useMapPointer(canvas, camera, LIMITS, onCameraChange),
+        useMapPointer(host, camera, LIMITS, onCameraChange),
       { initialProps: { camera: initial } },
     );
 
     act(() => {
-      canvas.dispatchEvent(wheelEvent(-3000, 300, 200));
+      host.dispatchEvent(wheelEvent(-3000, 300, 200));
     });
 
     expect(onCameraChange).toHaveBeenCalledTimes(1);
@@ -148,11 +150,35 @@ describe('useMapPointer', () => {
     expect(onCameraChange.mock.calls[0][0].zoom).toBe(LIMITS.maxZoom);
   });
 
+  it('binds every listener to the host, never to the canvas', () => {
+    // The label overlay sits ABOVE the canvas and its system names take
+    // pointer events, so a press or a wheel that lands on a name never
+    // reaches the canvas at all. Bound to the host, every one of those events
+    // is back in reach, because they bubble out of the label to it.
+    const canvas = document.createElement('canvas');
+    host.appendChild(canvas);
+    const hostSpy = vi.spyOn(host, 'addEventListener');
+    const canvasSpy = vi.spyOn(canvas, 'addEventListener');
+
+    renderHook(() =>
+      useMapPointer(host, { x: 0, z: 0, zoom: 0 }, LIMITS, onCameraChange),
+    );
+
+    expect(hostSpy.mock.calls.map((call) => call[0])).toEqual([
+      'pointerdown',
+      'pointerup',
+      'pointerleave',
+      'pointermove',
+      'wheel',
+    ]);
+    expect(canvasSpy).not.toHaveBeenCalled();
+  });
+
   it('removes every listener on unmount', () => {
-    const removeSpy = vi.spyOn(canvas, 'removeEventListener');
+    const removeSpy = vi.spyOn(host, 'removeEventListener');
     const { unmount } = renderHook(
       ({ camera }: { camera: MapCamera }) =>
-        useMapPointer(canvas, camera, LIMITS, onCameraChange),
+        useMapPointer(host, camera, LIMITS, onCameraChange),
       { initialProps: { camera: { x: 0, z: 0, zoom: 0 } } },
     );
 
@@ -171,12 +197,16 @@ describe('useMapPointer', () => {
   });
   describe('hover and click', () => {
     let onHover: ReturnType<typeof vi.fn<MapPick['onHover']>>;
+    let onHoverSystem: ReturnType<typeof vi.fn<MapPick['onHoverSystem']>>;
     let onSelect: ReturnType<typeof vi.fn<MapPick['onSelect']>>;
+    let onSelectSystem: ReturnType<typeof vi.fn<MapPick['onSelectSystem']>>;
     let frames: FrameRequestCallback[];
 
     beforeEach(() => {
       onHover = vi.fn<(at: PointerPosition | null) => void>();
+      onHoverSystem = vi.fn<(systemId: number) => void>();
       onSelect = vi.fn<(at: PointerPosition) => void>();
+      onSelectSystem = vi.fn<(systemId: number) => void>();
       frames = [];
       // Deterministic rAF: the hook coalesces moves into one frame, and a real
       // rAF would make "how many times was onHover called" depend on timing.
@@ -201,9 +231,11 @@ describe('useMapPointer', () => {
 
     function mount() {
       return renderHook(() =>
-        useMapPointer(canvas, { x: 0, z: 0, zoom: 0 }, LIMITS, onCameraChange, {
+        useMapPointer(host, { x: 0, z: 0, zoom: 0 }, LIMITS, onCameraChange, {
           onHover,
+          onHoverSystem,
           onSelect,
+          onSelectSystem,
         }),
       );
     }
@@ -212,9 +244,9 @@ describe('useMapPointer', () => {
       mount();
 
       act(() => {
-        canvas.dispatchEvent(pointerEvent('pointermove', 10, 20));
-        canvas.dispatchEvent(pointerEvent('pointermove', 11, 21));
-        canvas.dispatchEvent(pointerEvent('pointermove', 12, 22));
+        host.dispatchEvent(pointerEvent('pointermove', 10, 20));
+        host.dispatchEvent(pointerEvent('pointermove', 11, 21));
+        host.dispatchEvent(pointerEvent('pointermove', 12, 22));
       });
       expect(onHover).not.toHaveBeenCalled();
 
@@ -229,23 +261,23 @@ describe('useMapPointer', () => {
       mount();
 
       act(() => {
-        canvas.dispatchEvent(pointerEvent('pointerdown', 100, 100));
+        host.dispatchEvent(pointerEvent('pointerdown', 100, 100));
       });
       expect(onHover).toHaveBeenCalledWith(null);
 
       onHover.mockClear();
       act(() => {
-        canvas.dispatchEvent(pointerEvent('pointermove', 140, 100));
+        host.dispatchEvent(pointerEvent('pointermove', 140, 100));
         flushFrame();
       });
       // A drag pans; it does not light up every system it passes over.
       expect(onHover).not.toHaveBeenCalledWith({ x: 140, y: 100 });
     });
 
-    it('clears the hover when the pointer leaves the canvas', () => {
+    it('clears the hover when the pointer leaves the map', () => {
       mount();
       act(() => {
-        canvas.dispatchEvent(pointerEvent('pointerleave', 0, 0));
+        host.dispatchEvent(pointerEvent('pointerleave', 0, 0));
       });
       expect(onHover).toHaveBeenCalledWith(null);
     });
@@ -254,9 +286,9 @@ describe('useMapPointer', () => {
       mount();
 
       act(() => {
-        canvas.dispatchEvent(pointerEvent('pointerdown', 200, 150));
-        canvas.dispatchEvent(pointerEvent('pointermove', 202, 151));
-        canvas.dispatchEvent(pointerEvent('pointerup', 202, 151));
+        host.dispatchEvent(pointerEvent('pointerdown', 200, 150));
+        host.dispatchEvent(pointerEvent('pointermove', 202, 151));
+        host.dispatchEvent(pointerEvent('pointerup', 202, 151));
       });
 
       expect(onSelect).toHaveBeenCalledOnce();
@@ -268,9 +300,9 @@ describe('useMapPointer', () => {
       mount();
 
       act(() => {
-        canvas.dispatchEvent(pointerEvent('pointerdown', 200, 150));
-        canvas.dispatchEvent(pointerEvent('pointermove', 260, 150));
-        canvas.dispatchEvent(pointerEvent('pointerup', 260, 150));
+        host.dispatchEvent(pointerEvent('pointerdown', 200, 150));
+        host.dispatchEvent(pointerEvent('pointermove', 260, 150));
+        host.dispatchEvent(pointerEvent('pointerup', 260, 150));
       });
 
       expect(onSelect).not.toHaveBeenCalled();
@@ -281,11 +313,11 @@ describe('useMapPointer', () => {
       mount();
 
       act(() => {
-        canvas.dispatchEvent(pointerEvent('pointerdown', 200, 150));
+        host.dispatchEvent(pointerEvent('pointerdown', 200, 150));
         for (let i = 1; i <= 10; i++) {
-          canvas.dispatchEvent(pointerEvent('pointermove', 200 + i, 150));
+          host.dispatchEvent(pointerEvent('pointermove', 200 + i, 150));
         }
-        canvas.dispatchEvent(pointerEvent('pointerup', 210, 150));
+        host.dispatchEvent(pointerEvent('pointerup', 210, 150));
       });
 
       expect(onSelect).not.toHaveBeenCalled();
@@ -295,16 +327,249 @@ describe('useMapPointer', () => {
       // The four-argument call is what the existing tests and any caller that
       // does not care about picking use.
       renderHook(() =>
-        useMapPointer(canvas, { x: 0, z: 0, zoom: 0 }, LIMITS, onCameraChange),
+        useMapPointer(host, { x: 0, z: 0, zoom: 0 }, LIMITS, onCameraChange),
       );
 
       act(() => {
-        canvas.dispatchEvent(pointerEvent('pointerdown', 10, 10));
-        canvas.dispatchEvent(pointerEvent('pointerup', 10, 10));
+        host.dispatchEvent(pointerEvent('pointerdown', 10, 10));
+        host.dispatchEvent(pointerEvent('pointerup', 10, 10));
         flushFrame();
       });
 
       expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    describe('label targets', () => {
+      /**
+       * A system name as `labelLayer` stamps it. A child of the host, because
+       * the overlay is: that is what puts its events in reach of the
+       * listeners.
+       */
+      function label(systemId?: number) {
+        const el = document.createElement('span');
+        if (systemId !== undefined) el.dataset.mapSystem = String(systemId);
+        host.appendChild(el);
+        return el;
+      }
+
+      it('selects by id when the pointer goes up on a name', () => {
+        const name = label(30000142);
+        mount();
+
+        act(() => {
+          name.dispatchEvent(pointerEvent('pointerdown', 10, 10));
+          name.dispatchEvent(pointerEvent('pointerup', 10, 10));
+        });
+
+        expect(onSelectSystem).toHaveBeenCalledWith(30000142);
+        // Not both: the shortcut answers WHAT was hit, so the hit test that
+        // would have answered the same question never runs.
+        expect(onSelect).not.toHaveBeenCalled();
+      });
+
+      it('pans on a drag that starts on a name', () => {
+        const name = label(30000142);
+        mount();
+
+        act(() => {
+          name.dispatchEvent(pointerEvent('pointerdown', 10, 10));
+          name.dispatchEvent(pointerEvent('pointermove', 60, 10));
+        });
+
+        expect(onCameraChange).toHaveBeenCalled();
+      });
+
+      it('zooms on a wheel over a name', () => {
+        const name = label(30000142);
+        mount();
+
+        act(() => {
+          name.dispatchEvent(wheelEvent(-300, 300, 200));
+        });
+
+        expect(onCameraChange).toHaveBeenCalledTimes(1);
+      });
+
+      it('reports a hover over a name by id, not by coordinate', () => {
+        const name = label(30000142);
+        mount();
+
+        act(() => {
+          name.dispatchEvent(pointerEvent('pointermove', 10, 10));
+          flushFrame();
+        });
+
+        expect(onHoverSystem).toHaveBeenCalledWith(30000142);
+        expect(onHover).not.toHaveBeenCalled();
+      });
+
+      it('reports one hover per frame across a label and the canvas', () => {
+        // The two paths share the single frame the coordinate hover always
+        // had, so crossing from a name onto empty space cannot report twice
+        // for one frame — and what is reported is where the pointer ENDED.
+        const name = label(30000142);
+        mount();
+
+        act(() => {
+          name.dispatchEvent(pointerEvent('pointermove', 10, 10));
+          host.dispatchEvent(pointerEvent('pointermove', 12, 22));
+          flushFrame();
+        });
+
+        expect(onHoverSystem).not.toHaveBeenCalled();
+        expect(onHover).toHaveBeenCalledTimes(1);
+        expect(onHover).toHaveBeenCalledWith({ x: 12, y: 22 });
+      });
+
+      it('falls through to the hit test for a name that carries no id', () => {
+        // A region or constellation name: the layer stamps `data-map-system`
+        // on the system tier alone, and nothing else is selectable.
+        const name = label();
+        mount();
+
+        act(() => {
+          name.dispatchEvent(pointerEvent('pointerdown', 10, 10));
+          name.dispatchEvent(pointerEvent('pointerup', 10, 10));
+        });
+
+        expect(onSelectSystem).not.toHaveBeenCalled();
+        expect(onSelect).toHaveBeenCalledWith({ x: 10, y: 10 });
+      });
+
+      it('holds the shortcut to the same drag tolerance as the hit test', () => {
+        // One tolerance rule, not two: a drag that ends on a name is a pan,
+        // exactly as a drag that ends on empty space is.
+        const name = label(30000142);
+        mount();
+
+        act(() => {
+          name.dispatchEvent(pointerEvent('pointerdown', 200, 150));
+          name.dispatchEvent(pointerEvent('pointermove', 260, 150));
+          name.dispatchEvent(pointerEvent('pointerup', 260, 150));
+        });
+
+        expect(onSelectSystem).not.toHaveBeenCalled();
+        expect(onSelect).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('overlay panels', () => {
+      /** SystemPopup: a child of the host, and not part of the map. */
+      function panel() {
+        const el = document.createElement('div');
+        el.dataset.mapOverlay = '';
+        const inside = document.createElement('span');
+        el.appendChild(inside);
+        host.appendChild(el);
+        return inside;
+      }
+
+      it('does not pan on a drag that starts on a panel', () => {
+        const inside = panel();
+        mount();
+
+        act(() => {
+          inside.dispatchEvent(pointerEvent('pointerdown', 10, 10));
+          inside.dispatchEvent(pointerEvent('pointermove', 60, 10));
+        });
+
+        expect(onCameraChange).not.toHaveBeenCalled();
+      });
+
+      it('does not read a click on a panel as a click on the map', () => {
+        // Which would hit-test the panel's own pixels, find nothing there and
+        // close the very panel that was clicked.
+        const inside = panel();
+        mount();
+
+        act(() => {
+          inside.dispatchEvent(pointerEvent('pointerdown', 10, 10));
+          inside.dispatchEvent(pointerEvent('pointerup', 10, 10));
+        });
+
+        expect(onSelect).not.toHaveBeenCalled();
+        expect(onSelectSystem).not.toHaveBeenCalled();
+      });
+
+      it('does not zoom on a wheel over a panel', () => {
+        const inside = panel();
+        mount();
+
+        act(() => {
+          inside.dispatchEvent(wheelEvent(-300, 300, 200));
+        });
+
+        expect(onCameraChange).not.toHaveBeenCalled();
+      });
+
+      it('does not hit-test a hover that rests on a panel', () => {
+        // The panel covers the map, so hit-testing its own pixels lights up
+        // whatever dot happens to sit underneath, renders a hover tip behind
+        // the panel and gives the host a pointer cursor over it.
+        const inside = panel();
+        mount();
+
+        act(() => {
+          inside.dispatchEvent(pointerEvent('pointermove', 10, 10));
+          flushFrame();
+        });
+
+        expect(onHover).not.toHaveBeenCalledWith({ x: 10, y: 10 });
+        expect(onHoverSystem).not.toHaveBeenCalled();
+      });
+
+      it('clears a hover already up when the pointer crosses onto a panel', () => {
+        // A bare return would leave the last tip on screen and the host's
+        // pointer cursor with it. The canvas used to fire pointerleave here.
+        const inside = panel();
+        mount();
+
+        act(() => {
+          host.dispatchEvent(pointerEvent('pointermove', 10, 20));
+          flushFrame();
+        });
+        expect(onHover).toHaveBeenCalledWith({ x: 10, y: 20 });
+
+        onHover.mockClear();
+        act(() => {
+          inside.dispatchEvent(pointerEvent('pointermove', 12, 22));
+          flushFrame();
+        });
+
+        expect(onHover).toHaveBeenCalledWith(null);
+      });
+
+      it('clears a hover already up when a panel is pressed', () => {
+        const inside = panel();
+        mount();
+
+        act(() => {
+          host.dispatchEvent(pointerEvent('pointermove', 10, 20));
+          flushFrame();
+        });
+        onHover.mockClear();
+
+        act(() => {
+          inside.dispatchEvent(pointerEvent('pointerdown', 12, 22));
+        });
+
+        expect(onHover).toHaveBeenCalledWith(null);
+      });
+
+      it('keeps panning a drag that crosses a panel', () => {
+        // The guard is on the press, not on the move: a pan started on the
+        // map must not stall — or jump — when the pointer passes over a
+        // panel.
+        const inside = panel();
+        mount();
+
+        act(() => {
+          host.dispatchEvent(pointerEvent('pointerdown', 10, 10));
+          inside.dispatchEvent(pointerEvent('pointermove', 60, 10));
+        });
+
+        expect(onCameraChange).toHaveBeenCalledTimes(1);
+      });
     });
   });
 });

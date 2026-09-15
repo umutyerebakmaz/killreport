@@ -17,13 +17,20 @@ import { edgeSegments, localEdges } from '@/utils/map/edges';
 import { framingFor } from '@/utils/map/framing';
 import { labelCandidates, placeLabels } from '@/utils/map/labels';
 import { layerVisibility, lodBucket, visibleLabelTiers } from '@/utils/map/lod';
+import { createLabelMeasurer, whenLabelFontsReady } from '@/utils/map/measure';
 import { boundsCenter, nearestNode, originFor } from '@/utils/map/origin';
 import { systemFloorPx, systemRadiusPx } from '@/utils/map/marks';
-import { pickSystem, type PickTarget } from '@/utils/map/pick';
+import { pickById, pickSystem, type PickTarget } from '@/utils/map/pick';
 import { gateNeighbours } from '@/utils/map/topology';
 import { isWebgl2Available } from '@/utils/map/webgl';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  createLabelLayer,
+  destroyLabelLayer,
+  drawLabels,
+  type LabelLayer,
+} from './labels/labelLayer';
 import {
   buildCelestials,
   scaleCelestials,
@@ -32,7 +39,6 @@ import {
 } from './scene/celestials';
 import { createScene, type MapScene } from './scene/createScene';
 import { drawEdges } from './scene/edges';
-import { drawLabels, installLabelFonts } from './scene/labels';
 import {
   buildSystems,
   scaleSystems,
@@ -43,7 +49,7 @@ import SystemPopup from './SystemPopup';
 import { useMapCamera } from './useMapCamera';
 import { useMapCelestials } from './useMapCelestials';
 import { useMapLabels } from './useMapLabels';
-import { useMapPointer, type MapPick, type SceneCanvas } from './useMapPointer';
+import { useMapPointer, type MapPick } from './useMapPointer';
 
 function MapMessage({ children }: { children: React.ReactNode }) {
   return (
@@ -71,13 +77,12 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // something", so effects can still key off it.
   const scene = useRef<MapScene | null>(null);
   const [sceneReady, setSceneReady] = useState(false);
-  // `useMapPointer` is called from the render body, and reading `scene
-  // .current` there — even just to hand its `.app.canvas` to a hook — is a
-  // ref access during render, which is its own lint rule. The canvas itself
-  // is a plain DOM node no code here ever assigns properties on, so holding
-  // its reference in state carries none of the mutation risk `scene` itself
-  // does.
-  const [canvas, setCanvas] = useState<SceneCanvas | null>(null);
+  // The overlay the names are written into. A ref for the same reason `scene`
+  // is one: it is a long-lived mutable DOM object that no render reads.
+  const labelLayer = useRef<LabelLayer | null>(null);
+  // The keys placed last frame. A ref rather than state: it is read and written
+  // inside the label effect and must never itself trigger a render.
+  const stickyLabels = useRef<Set<string>>(new Set());
   // Separate from `sceneReady`: the scene itself must not wait on a webfont
   // download, only the label effect below should. See the scene-creation
   // effect for how the two are decoupled.
@@ -192,6 +197,47 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     [geometry],
   );
 
+  // The medoid's drawn radius, looked up rather than fetched: the region
+  // label's clearance then uses the very number the renderer uses for that
+  // dot.
+  const radiusBySystem = useMemo(
+    () =>
+      new Map(
+        (geometry?.nodes ?? []).map((node) => [node.systemId, node.radius]),
+      ),
+    [geometry],
+  );
+
+  const regionSources = useMemo(
+    () =>
+      regions.map((label) => ({
+        id: label.id,
+        name: label.name,
+        x: label.x,
+        z: label.z,
+        radius:
+          label.systemId == null
+            ? undefined
+            : radiusBySystem.get(label.systemId),
+        bounds: label.bounds ?? undefined,
+      })),
+    [regions, radiusBySystem],
+  );
+
+  // Stripped of `kind`, `systemId` and `bounds`: the constellation tier is
+  // always a centroid name today (Task 6 has the backend return both as null
+  // for this kind), so there is nothing there for `LabelSource` to carry.
+  const constellationSources = useMemo(
+    () =>
+      constellations.map((label) => ({
+        id: label.id,
+        name: label.name,
+        x: label.x,
+        z: label.z,
+      })),
+    [constellations],
+  );
+
   // What pickSystem needs, which is what labelSystems needs plus the radius and
   // the security. Memoised for the same reason: without it every render remaps
   // all 5,241 nodes, including the many that have nothing to do with the
@@ -208,6 +254,27 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       })),
     [geometry],
   );
+
+  // Built once the face is loaded, because a measurer created earlier would
+  // measure the fallback font. Null when the browser has no 2d context: the map
+  // then draws no labels at all rather than guessing their width.
+  const measure = useMemo(
+    () => (fontsReady ? createLabelMeasurer() : null),
+    [fontsReady],
+  );
+
+  // Reported from an effect rather than from the memo above. A memo is not the
+  // place for a side effect: StrictMode invokes it twice, so the warning
+  // appeared twice, and it was tied to when the memo happened to recompute
+  // rather than to the browser having said no. Keyed on the fact itself, so it
+  // is logged once per time that fact holds.
+  useEffect(() => {
+    if (fontsReady && measure === null) {
+      console.warn(
+        'Map labels are off: this browser gave no 2d canvas context.',
+      );
+    }
+  }, [fontsReady, measure]);
 
   // The scene outlives every render; React only builds it, feeds it and tears
   // it down. Mount and unmount, once.
@@ -227,7 +294,6 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       // have nothing to do with typography, and must not wait on a webfont
       // download.
       setSceneReady(true);
-      setCanvas(built.app.canvas);
       // `app.screen`, not `renderer.width`: the renderer reports physical pixels
       // — CSS size times the resolution — while the camera, the pointer and the
       // label placement all work in CSS pixels. On a HiDPI screen the two differ
@@ -237,14 +303,14 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
         width: built.app.screen.width,
         height: built.app.screen.height,
       });
-      // Generated once per session; the guard inside makes a second call free.
-      // Fired here without blocking the lines above: `fontsReady` is what the
-      // label effect waits on instead, so names appear a moment after the
-      // dots and lines do — legible before it is labelled, not blank until
-      // it is. `.catch` only exists to keep the promise from going unhandled;
-      // `installLabelFonts` itself already falls back to whatever face is
-      // resolved for 'Shentox' if the load fails.
-      installLabelFonts()
+      // Requested once per scene. Fired here without blocking the lines above:
+      // `fontsReady` is what the label effect waits on instead, so names appear
+      // a moment after the dots and lines do — legible before it is labelled,
+      // not blank until it is. What is awaited is the face the measurer will
+      // measure against, not an atlas. `.catch` only exists to keep the promise
+      // from going unhandled; `whenLabelFontsReady` itself already falls
+      // through to whatever face is resolved for 'Shentox' if the load fails.
+      whenLabelFontsReady()
         .then(() => {
           if (live) setFontsReady(true);
         })
@@ -257,11 +323,22 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       scene.current = null;
       setSceneReady(false);
       setFontsReady(false);
-      setCanvas(null);
       systemSprites.current = null;
       celestialSprites.current = null;
     };
   }, [webgl, host]);
+
+  // The label overlay belongs to the host, not to the scene: it survives a
+  // renderer rebuild and has nothing to tear down on the GPU.
+  useEffect(() => {
+    if (!host) return;
+    const layer = createLabelLayer(host);
+    labelLayer.current = layer;
+    return () => {
+      destroyLabelLayer(layer);
+      labelLayer.current = null;
+    };
+  }, [host]);
 
   // The viewport, kept in step with the host. deck.gl reported its own size
   // through `onResize`; Pixi's `resizeTo: host` keeps the canvas itself correct
@@ -314,37 +391,41 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // camera effect's, and folding them in would re-run the 5,241-sprite
   // counter-scale whenever label data arrived.
   useEffect(() => {
-    const s = scene.current;
-    if (!s || !sceneReady || !fontsReady || !camera || !size.width) return;
+    const layer = labelLayer.current;
+    if (!layer || !measure || !camera || !size.width) return;
 
     const tiers = visibleLabelTiers(camera.zoom);
     if (tiers.length === 0) {
-      drawLabels(s, []);
+      drawLabels(layer, []);
+      stickyLabels.current = new Set();
       return;
     }
 
     const candidates = labelCandidates({
       tiers,
-      regions,
-      constellations,
+      regions: regionSources,
+      constellations: constellationSources,
       // System names ride in the geometry that is already loaded; this tier
       // costs no request at all.
       systems: labelSystems,
+      measure,
       transform: cameraTransform(camera, size.width, size.height),
       width: size.width,
       height: size.height,
     });
 
-    drawLabels(s, placeLabels(candidates));
+    const placed = placeLabels(candidates, stickyLabels.current);
+    stickyLabels.current = new Set(placed.map((candidate) => candidate.key));
+    drawLabels(layer, placed);
   }, [
-    sceneReady,
-    fontsReady,
+    host,
+    measure,
     camera,
     size.width,
     size.height,
     labelSystems,
-    regions,
-    constellations,
+    regionSources,
+    constellationSources,
   ]);
 
   // The galaxy: 5,241 sprites and the full 6,959-segment mesh, built once per
@@ -417,8 +498,9 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     }
   }, [sceneReady, bucket, celestials]);
 
-  // Pan and zoom: the listeners bind once per canvas and read the latest
-  // camera through a ref, in useMapPointer.ts — see that file for why.
+  // Pan and zoom: the listeners bind once per host and read the latest camera
+  // through a ref, in useMapPointer.ts — see that file for why the host and
+  // not the canvas.
   //
   // From the galaxy autofit, never from `framing`. zoomLimits puts the floor at
   // fit - 2; a `?focus=` link arrives at SYSTEM_LABEL_ZOOM, and a floor two
@@ -429,29 +511,42 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // projection these close over has changed. useMapPointer holds them in a ref,
   // so a new identity does not rebind the five listeners.
   const pick = useMemo<MapPick>(() => {
-    const at = (pointerX: number, pointerY: number) =>
+    const projection =
       camera && size.width
+        ? cameraTransform(camera, size.width, size.height)
+        : null;
+
+    const at = (pointerX: number, pointerY: number) =>
+      projection
         ? pickSystem({
             nodes: pickNodes,
-            transform: cameraTransform(camera, size.width, size.height),
+            transform: projection,
             pointerX,
             pointerY,
             cameraScale: cameraScale.current,
           })
         : null;
 
+    // A name says WHICH system without a hit test, so only where its dot is
+    // still has to be worked out — which is what anchors the tip to the dot
+    // rather than to the name.
+    const byId = (systemId: number) =>
+      projection ? pickById(pickNodes, systemId, projection) : null;
+
     return {
       onHover: (pointer) =>
         setHovered(pointer ? at(pointer.x, pointer.y) : null),
+      onHoverSystem: (systemId) => setHovered(byId(systemId)),
       // Clicking empty space closes the popup.
       onSelect: (pointer) => {
         const target = at(pointer.x, pointer.y);
         setSelected(target ? target.node.systemId : null);
       },
+      onSelectSystem: (systemId) => setSelected(systemId),
     };
   }, [camera, size.width, size.height, pickNodes, setSelected]);
 
-  useMapPointer(canvas, camera, limits, onCameraChange, pick);
+  useMapPointer(host, camera, limits, onCameraChange, pick);
 
   // Stable, so React attaches it once rather than detaching and re-attaching on
   // every render — which with `setHost` in it would tear the scene down and
@@ -504,11 +599,10 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   return (
     <div
       ref={attachHost}
-      // The cursor on the host rather than written to `canvas.style`: the
-      // canvas is held in state, and assigning to a state value's properties
-      // is what react-hooks' immutability rule exists to catch — the same rule
-      // that decided `scene` had to be a ref, above. `cursor` inherits, so the
-      // class on the host reaches the canvas filling it.
+      // The cursor on the host rather than written to the canvas's own style:
+      // the canvas belongs to the scene, which is a ref no render may read,
+      // and `cursor` inherits anyway — so the class here reaches the canvas
+      // filling it and the labels above it alike.
       className={`relative w-full h-full bg-ground ${
         hovered ? 'cursor-pointer' : ''
       }`}

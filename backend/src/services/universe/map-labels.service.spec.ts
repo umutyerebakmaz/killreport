@@ -40,10 +40,10 @@ describe('labelsCacheKey', () => {
     // to New Eden, and a key without the kind would serve 114 regions where
     // 1,184 constellations were asked for.
     expect(labelsCacheKey('NEW_EDEN', 'REGION')).toBe(
-      'map:labels:NEW_EDEN:REGION',
+      'map:labels:v2:NEW_EDEN:REGION',
     );
     expect(labelsCacheKey('POCHVEN', 'CONSTELLATION')).toBe(
-      'map:labels:POCHVEN:CONSTELLATION',
+      'map:labels:v2:POCHVEN:CONSTELLATION',
     );
   });
 
@@ -83,10 +83,12 @@ describe('getMapLabels', () => {
         kind: 'CONSTELLATION',
         x: 1.5e17,
         z: -2.5e17,
+        systemId: null,
+        bounds: null,
       },
     ]);
     expect(redis.setex).toHaveBeenCalledWith(
-      'map:labels:NEW_EDEN:CONSTELLATION',
+      'map:labels:v2:NEW_EDEN:CONSTELLATION',
       LABELS_CACHE_TTL_SECONDS,
       expect.any(String),
     );
@@ -136,20 +138,89 @@ describe('getMapLabels', () => {
     expect(lastQueryText()).not.toContain('stargates');
   });
 
-  it('averages member positions for a region and reads the stored one for a constellation', async () => {
-    // A region has no position of its own, so the centroid is computed. A
-    // constellation does, measured to sit within 0.23 ly of its members'
-    // centroid, so averaging it would be work for nothing.
+  it('reads the stored position for a constellation, not an average', async () => {
+    // A constellation has a position of its own, measured to sit within 0.23
+    // ly of its members' centroid, so averaging it would be work for nothing.
     prisma.$queryRaw.mockResolvedValue([]);
 
-    await getMapLabels('NEW_EDEN', 'REGION');
-    expect(lastQueryText()).toContain('AVG(s.position_x)');
-    expect(lastQueryText()).toContain('AVG(s.position_z)');
-
-    prisma.$queryRaw.mockClear();
     await getMapLabels('NEW_EDEN', 'CONSTELLATION');
     expect(lastQueryText()).not.toContain('AVG');
     expect(lastQueryText()).toContain('c.position_x AS x');
+  });
+
+  it('derives an extent and a medoid for a region, never an average', async () => {
+    prisma.$queryRaw.mockResolvedValue([]);
+    await getMapLabels('NEW_EDEN', 'REGION');
+
+    const sql = lastQueryText();
+    expect(sql).toContain('MIN(x)');
+    expect(sql).toContain('MAX(x)');
+    expect(sql).toContain('MIN(z)');
+    expect(sql).toContain('MAX(z)');
+    expect(sql).toContain('DISTINCT ON (a.region_id)');
+    expect(sql).not.toContain('AVG');
+  });
+
+  it('left-joins, so a one-system region still gets a medoid', async () => {
+    prisma.$queryRaw.mockResolvedValue([]);
+    await getMapLabels('NEW_EDEN', 'REGION');
+
+    const sql = lastQueryText();
+    expect(sql).toContain('LEFT JOIN scene b');
+    expect(sql).toContain('COALESCE(SUM(');
+  });
+
+  it('breaks a tied medoid on the system id, so the anchor is deterministic', async () => {
+    // For a two-system region the tie is guaranteed, not theoretical:
+    // power(a.x - b.x, 2) and power(b.x - a.x, 2) are bit-identical, so both
+    // systems compute the same single-term sum and DISTINCT ON keeps whichever
+    // the plan emits first. The anchor is cached for 24 h, so without the
+    // tie-breaker the region name jumps between two stars on each rebuild.
+    prisma.$queryRaw.mockResolvedValue([]);
+    await getMapLabels('NEW_EDEN', 'REGION');
+
+    expect(lastQueryText()).toMatch(
+      /ORDER BY a\.region_id,\s*COALESCE\(SUM\([^\n]*\)\), 0\),\s*a\.system_id/,
+    );
+  });
+
+  it('maps a region row onto systemId and bounds', async () => {
+    prisma.$queryRaw.mockResolvedValue([
+      {
+        id: 10000002,
+        name: 'The Forge',
+        system_id: 30000142,
+        x: 1,
+        z: 2,
+        min_x: -10,
+        max_x: 10,
+        min_z: -20,
+        max_z: 20,
+      },
+    ]);
+
+    const [label] = await getMapLabels('NEW_EDEN', 'REGION');
+
+    expect(label).toEqual({
+      id: 10000002,
+      name: 'The Forge',
+      kind: 'REGION',
+      x: 1,
+      z: 2,
+      systemId: 30000142,
+      bounds: { minX: -10, maxX: 10, minZ: -20, maxZ: 20 },
+    });
+  });
+
+  it('leaves systemId and bounds null on a constellation row', async () => {
+    prisma.$queryRaw.mockResolvedValue([
+      { id: 20000020, name: 'Kimotoro', x: 1, z: 2 },
+    ]);
+
+    const [label] = await getMapLabels('NEW_EDEN', 'CONSTELLATION');
+
+    expect(label.systemId).toBeNull();
+    expect(label.bounds).toBeNull();
   });
 
   it('runs one query, not one per row', async () => {

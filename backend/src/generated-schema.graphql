@@ -681,16 +681,26 @@ type MapGeometry {
 
 """
 Haritada bir isim. Koordinat **galaktik metre**, düğümlerle aynı uzayda.
-Bölgede konum yok ve sahnenin çizdiği sistemlerin ortalamasından hesaplanıyor;
+Bölgede konum yok ve sahnenin çizdiği sistemlerin medoidinden hesaplanıyor;
 takımyıldızda constellations.position_x/z doğrudan kullanılıyor.
 """
 type MapLabel {
+  """
+  Yalnızca REGION: bölgenin çizilen sistemlerinin sınırları. İsmin görünürlük eşiği buradan.
+  """
+  bounds: MapBounds
+
   """
   Bölgede region_id, takımyıldızda constellation_id. Bantlar çakışmıyor ama tek anahtar isteyen bir tüketici kind ile birlikte anahtarlamalı.
   """
   id: Int!
   kind: MapLabelKind!
   name: String!
+
+  """
+  Yalnızca REGION: ismin çapalandığı medoid sistemi. Yarıçapı istemci mapGeometry'den okur.
+  """
+  systemId: Int
   x: Float!
   z: Float!
 }

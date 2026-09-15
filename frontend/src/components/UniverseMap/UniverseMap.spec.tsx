@@ -83,14 +83,23 @@ vi.mock('./scene/celestials', () => ({
   scaleCelestials: vi.fn(),
   setFineVisible: vi.fn(),
 }));
-vi.mock('./scene/labels', () => ({
-  // Resolved, not bare `vi.fn()`: the real function is async and the
-  // scene-creation effect calls `.then()` on its return value directly.
-  installLabelFonts: vi.fn().mockResolvedValue(undefined),
+// Mocked wholesale — jsdom lays nothing out, so what the overlay draws is
+// verified by eye. The create and destroy halves get `vi.fn()` handles anyway:
+// the host-keyed effect and its teardown are otherwise covered by `tsc` alone,
+// and that unwatched band is where the pinned-to-the-edge region names and the
+// missing first-appearance fade both lived.
+const createLabelLayer = vi.fn((host: HTMLElement) => ({
+  root: host,
+  pool: new Map<string, HTMLSpanElement>(),
+}));
+const destroyLabelLayer = vi.fn();
+vi.mock('./labels/labelLayer', () => ({
+  createLabelLayer: (host: HTMLElement) => createLabelLayer(host),
+  destroyLabelLayer: (layer: unknown) => destroyLabelLayer(layer),
   drawLabels: vi.fn(),
 }));
 
-/** The canvas is a real element: `useMapPointer` binds listeners to it. */
+/** A real canvas element, as the component's `resizeTo: host` scene has. */
 type FakeScene = ReturnType<typeof fakeScene>;
 function fakeScene() {
   return {
@@ -312,6 +321,25 @@ describe('UniverseMap', () => {
     expect(scene.destroy).toHaveBeenCalledTimes(1);
   });
 
+  it('builds the label overlay once and tears it down with the map', async () => {
+    // The overlay belongs to the HOST, not to the scene, so it has its own
+    // effect with its own teardown. One layer per host: a second create would
+    // leave the first root in the document, and a missing destroy would leave
+    // one behind on every navigation away from /map.
+    const { unmount } = render(<UniverseMap scope={MapScope.NewEden} />);
+    await waitFor(() => expect(createLabelLayer).toHaveBeenCalledTimes(1));
+    expect(destroyLabelLayer).not.toHaveBeenCalled();
+
+    unmount();
+
+    expect(createLabelLayer).toHaveBeenCalledTimes(1);
+    expect(destroyLabelLayer).toHaveBeenCalledTimes(1);
+    // The layer that was torn down is the one that was built.
+    expect(destroyLabelLayer.mock.calls[0][0]).toBe(
+      createLabelLayer.mock.results[0].value,
+    );
+  });
+
   it('does not fetch constellation names before their zoom is reached', () => {
     // The staged-fetch rule: 31 KB that is not shown is not downloaded. Someone
     // who opens the map and only looks never pays for it.
@@ -359,16 +387,16 @@ describe('UniverseMap', () => {
     }
 
     /** A click: down and up in the same place, inside the move tolerance. */
-    function clickAt(canvas: HTMLCanvasElement, x: number, y: number) {
+    function clickAt(host: HTMLElement, x: number, y: number) {
       act(() => {
-        canvas.dispatchEvent(
+        host.dispatchEvent(
           new PointerEvent('pointerdown', {
             clientX: x,
             clientY: y,
             bubbles: true,
           }),
         );
-        canvas.dispatchEvent(
+        host.dispatchEvent(
           new PointerEvent('pointerup', {
             clientX: x,
             clientY: y,
@@ -384,14 +412,17 @@ describe('UniverseMap', () => {
       // jsdom measures the host as 0x0; the renderer's size is what the
       // component centres on, and it arrives with the scene.
       await waitFor(() => expect(scene.world.position.set).toHaveBeenCalled());
-      return scene.app.canvas;
+      // The host the scene was built on, which is also what the pointer
+      // listeners are bound to — the label overlay sits above the canvas, so
+      // a name would otherwise swallow them.
+      return createScene.mock.calls[0][0];
     }
 
     it('opens the clicked system, not a neighbour', async () => {
-      const canvas = await mounted();
+      const host = await mounted();
       const at = jitaOnScreen();
 
-      clickAt(canvas, at.x, at.y);
+      clickAt(host, at.x, at.y);
 
       expect(
         await screen.findByText('Kimotoro · The Forge'),
@@ -401,15 +432,48 @@ describe('UniverseMap', () => {
       expect(detailsQueries).toContain(30000142);
     });
 
-    it('closes the popup when the click lands on empty space', async () => {
-      const canvas = await mounted();
+    it('opens the system a name was clicked on, id first', async () => {
+      const host = await mounted();
+      // What `labelLayer` stamps on a system name. A child of the host, as the
+      // overlay's own elements are.
+      const name = document.createElement('span');
+      name.dataset.mapSystem = '30000142';
+      host.appendChild(name);
+
+      // Top left, which is nowhere near the dot: the id is what selects here,
+      // and a hit test at these coordinates would have found nothing.
+      clickAt(name, 5, 5);
+
+      expect(
+        await screen.findByText('Kimotoro · The Forge'),
+      ).toBeInTheDocument();
+      expect(detailsQueries).toContain(30000142);
+    });
+
+    it('leaves the panel open when the panel itself is clicked', async () => {
+      // The listeners are on the host and the panel is a child of it, so
+      // without `data-map-overlay` a click meant for the panel is hit-tested
+      // as a click on the map, finds nothing, and closes it.
+      const host = await mounted();
       const at = jitaOnScreen();
 
-      clickAt(canvas, at.x, at.y);
+      clickAt(host, at.x, at.y);
+      const line = await screen.findByText('Kimotoro · The Forge');
+
+      clickAt(line, at.x + 200, at.y + 200);
+
+      expect(screen.getByText('Kimotoro · The Forge')).toBeInTheDocument();
+    });
+
+    it('closes the popup when the click lands on empty space', async () => {
+      const host = await mounted();
+      const at = jitaOnScreen();
+
+      clickAt(host, at.x, at.y);
       await screen.findByText('Kimotoro · The Forge');
 
       // 200 px away is far outside the 6 px pick radius.
-      clickAt(canvas, at.x + 200, at.y + 200);
+      clickAt(host, at.x + 200, at.y + 200);
 
       await waitFor(() =>
         expect(
@@ -420,25 +484,25 @@ describe('UniverseMap', () => {
 
     it('does not open a popup when a drag ends on a system', async () => {
       // The move tolerance is what keeps every pan from opening a panel.
-      const canvas = await mounted();
+      const host = await mounted();
       const at = jitaOnScreen();
 
       act(() => {
-        canvas.dispatchEvent(
+        host.dispatchEvent(
           new PointerEvent('pointerdown', {
             clientX: at.x - 60,
             clientY: at.y,
             bubbles: true,
           }),
         );
-        canvas.dispatchEvent(
+        host.dispatchEvent(
           new PointerEvent('pointermove', {
             clientX: at.x,
             clientY: at.y,
             bubbles: true,
           }),
         );
-        canvas.dispatchEvent(
+        host.dispatchEvent(
           new PointerEvent('pointerup', {
             clientX: at.x,
             clientY: at.y,

@@ -756,15 +756,19 @@ export type MapGeometry = {
 
 /**
  * Haritada bir isim. Koordinat **galaktik metre**, düğümlerle aynı uzayda.
- * Bölgede konum yok ve sahnenin çizdiği sistemlerin ortalamasından hesaplanıyor;
+ * Bölgede konum yok ve sahnenin çizdiği sistemlerin medoidinden hesaplanıyor;
  * takımyıldızda constellations.position_x/z doğrudan kullanılıyor.
  */
 export type MapLabel = {
   __typename?: 'MapLabel';
+  /** Yalnızca REGION: bölgenin çizilen sistemlerinin sınırları. İsmin görünürlük eşiği buradan. */
+  bounds?: Maybe<MapBounds>;
   /** Bölgede region_id, takımyıldızda constellation_id. Bantlar çakışmıyor ama tek anahtar isteyen bir tüketici kind ile birlikte anahtarlamalı. */
   id: Scalars['Int']['output'];
   kind: MapLabelKind;
   name: Scalars['String']['output'];
+  /** Yalnızca REGION: ismin çapalandığı medoid sistemi. Yarıçapı istemci mapGeometry'den okur. */
+  systemId?: Maybe<Scalars['Int']['output']>;
   x: Scalars['Float']['output'];
   z: Scalars['Float']['output'];
 };
@@ -2586,7 +2590,7 @@ export type MapLabelsQueryVariables = Exact<{
 }>;
 
 
-export type MapLabelsQuery = { __typename?: 'Query', mapLabels: Array<{ __typename?: 'MapLabel', id: number, name: string, kind: MapLabelKind, x: number, z: number }> };
+export type MapLabelsQuery = { __typename?: 'Query', mapLabels: Array<{ __typename?: 'MapLabel', id: number, name: string, kind: MapLabelKind, x: number, z: number, systemId?: number | null, bounds?: { __typename?: 'MapBounds', minX: number, maxX: number, minZ: number, maxZ: number } | null }> };
 
 export type MapSystemDetailsQueryVariables = Exact<{
   systemId: Scalars['Int']['input'];
@@ -5857,6 +5861,13 @@ export const MapLabelsDocument = gql`
     kind
     x
     z
+    systemId
+    bounds {
+      minX
+      maxX
+      minZ
+      maxZ
+    }
   }
 }
     `;
