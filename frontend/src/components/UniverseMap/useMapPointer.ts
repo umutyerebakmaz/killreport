@@ -1,6 +1,7 @@
 'use client';
 
 import { panCamera, zoomCameraAt, type MapCamera } from '@/utils/map/camera';
+import type { MapArea } from '@/utils/map/edges';
 import { useEffect, useRef } from 'react';
 
 export type ZoomLimits = { minZoom: number; maxZoom: number };
@@ -32,6 +33,12 @@ export interface MapPick {
   onSelect: (at: PointerPosition) => void;
   /** A label was clicked. */
   onSelectSystem: (systemId: number) => void;
+  /**
+   * An area name — a region's or a constellation's — is under the pointer, or
+   * null for none. Hover rather than click: the highlight answers "which lines
+   * are this area's", a question that wants no dismissing.
+   */
+  onHoverArea: (area: MapArea | null) => void;
 }
 
 /**
@@ -109,11 +116,27 @@ export function useMapPointer(
     // at that rate is not.
     let hoverAt: PointerPosition | null = null;
     let hoverSystemId: number | null = null;
+    let hoverArea: MapArea | null = null;
     let hoverFrame: number | null = null;
 
     const hostPosition = (e: PointerEvent): PointerPosition => {
       const rect = host.getBoundingClientRect();
       return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    };
+
+    /** The id a stamped label carries, for either tier's stamp. */
+    const labelId = (
+      e: Event,
+      selector: string,
+      key: 'mapSystem' | 'mapRegion' | 'mapConstellation',
+    ): number | null => {
+      const target = e.target;
+      if (!(target instanceof Element)) return null;
+      const label = target.closest(selector);
+      const raw = label instanceof HTMLElement ? label.dataset[key] : undefined;
+      if (!raw) return null;
+      const id = Number(raw);
+      return Number.isFinite(id) ? id : null;
     };
 
     /**
@@ -123,15 +146,25 @@ export function useMapPointer(
      * answers WHAT was hit, and everything about WHETHER it counts as a click
      * is left to the handlers below, unchanged.
      */
-    const labelSystemId = (e: Event): number | null => {
-      const target = e.target;
-      if (!(target instanceof Element)) return null;
-      const label = target.closest('[data-map-system]');
-      const raw =
-        label instanceof HTMLElement ? label.dataset.mapSystem : undefined;
-      if (!raw) return null;
-      const id = Number(raw);
-      return Number.isFinite(id) ? id : null;
+    const labelSystemId = (e: Event): number | null =>
+      labelId(e, '[data-map-system]', 'mapSystem');
+
+    /**
+     * The area a name stands for, or null. Region first: the two stamps are on
+     * different elements, so the order only decides which is asked about
+     * first, and the coarser tier is the cheaper miss.
+     */
+    const labelArea = (e: Event): MapArea | null => {
+      const regionId = labelId(e, '[data-map-region]', 'mapRegion');
+      if (regionId !== null) return { tier: 'region', id: regionId };
+      const constellationId = labelId(
+        e,
+        '[data-map-constellation]',
+        'mapConstellation',
+      );
+      return constellationId === null
+        ? null
+        : { tier: 'constellation', id: constellationId };
     };
 
     /**
@@ -149,27 +182,53 @@ export function useMapPointer(
       e.target instanceof Element &&
       e.target.closest('[data-map-overlay]') !== null;
 
-    // One frame for both kinds of hover, so crossing between a label and the
-    // canvas cannot queue two reports for a single frame.
+    // One frame for all three kinds of hover, so crossing between a label and
+    // the canvas cannot queue two reports for a single frame.
     const scheduleHoverFrame = () => {
       if (hoverFrame !== null) return;
       hoverFrame = requestAnimationFrame(() => {
         hoverFrame = null;
-        if (hoverSystemId !== null)
+        // Reported every frame rather than only on a change: the caller's
+        // setState bails out on an unchanged value, and one unconditional call
+        // is what keeps "where the pointer ended" the whole answer.
+        pickRef.current?.onHoverArea(hoverArea);
+        if (hoverArea !== null) {
+          // A name is drawn over the map, not part of it: while the pointer
+          // rests on one there is no system under it to tip.
+          pickRef.current?.onHover(null);
+        } else if (hoverSystemId !== null) {
           pickRef.current?.onHoverSystem(hoverSystemId);
-        else if (hoverAt) pickRef.current?.onHover(hoverAt);
+        } else if (hoverAt) {
+          pickRef.current?.onHover(hoverAt);
+        }
       });
     };
 
     const scheduleHover = (at: PointerPosition) => {
       hoverAt = at;
       hoverSystemId = null;
+      hoverArea = null;
       scheduleHoverFrame();
     };
 
     const scheduleHoverSystem = (systemId: number) => {
       hoverAt = null;
       hoverSystemId = systemId;
+      hoverArea = null;
+      scheduleHoverFrame();
+    };
+
+    const scheduleHoverArea = (area: MapArea) => {
+      hoverAt = null;
+      hoverSystemId = null;
+      // The same area keeps the same object. The caller holds this in state and
+      // rebuilds the highlight from it, so minting a fresh object on every
+      // pointermove across one name would redraw that area's mesh dozens of
+      // times a second for an answer that never changed. Every other hover
+      // report is a primitive and got this for free.
+      if (hoverArea?.tier !== area.tier || hoverArea.id !== area.id) {
+        hoverArea = area;
+      }
       scheduleHoverFrame();
     };
 
@@ -180,7 +239,9 @@ export function useMapPointer(
       }
       hoverAt = null;
       hoverSystemId = null;
+      hoverArea = null;
       pickRef.current?.onHover(null);
+      pickRef.current?.onHoverArea(null);
     };
 
     const down = (e: PointerEvent) => {
@@ -233,6 +294,11 @@ export function useMapPointer(
         // crossing the panel would stall and then jump.
         if (fromOverlay(e)) {
           cancelHover();
+          return;
+        }
+        const area = labelArea(e);
+        if (area !== null) {
+          scheduleHoverArea(area);
           return;
         }
         const id = labelSystemId(e);

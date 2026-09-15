@@ -1,11 +1,21 @@
-import { GATE_ALPHA, GATE_TINT } from '@/utils/map/colors';
+import {
+  GATE_ALPHA,
+  GATE_TINT,
+  HIGHLIGHT_ALPHA,
+  HIGHLIGHT_TINT,
+} from '@/utils/map/colors';
 import { splitDashed } from '@/utils/map/dash';
 import type { EdgeSegment } from '@/utils/map/edges';
 import type { MapOrigin } from '@/utils/map/origin';
 import type { Graphics } from 'pixi.js';
 
-/** One stroke's worth of path, laid down and closed with the shared style. */
-function strokeAll(target: Graphics, segments: EdgeSegment[]): void {
+/** One stroke's worth of path, laid down and closed with one style. */
+function strokeAll(
+  target: Graphics,
+  segments: EdgeSegment[],
+  color: number,
+  alpha: number,
+): void {
   if (segments.length === 0) return;
 
   for (const segment of segments) {
@@ -13,12 +23,7 @@ function strokeAll(target: Graphics, segments: EdgeSegment[]): void {
     target.lineTo(segment.to[0], segment.to[1]);
   }
 
-  target.stroke({
-    width: 1,
-    pixelLine: true,
-    color: GATE_TINT,
-    alpha: GATE_ALPHA,
-  });
+  target.stroke({ width: 1, pixelLine: true, color, alpha });
 }
 
 /**
@@ -48,6 +53,35 @@ export function drawEdges(
   target.position.set(origin.x, origin.z);
 
   const { solid, dashed } = splitDashed(segments);
-  strokeAll(target, solid);
-  strokeAll(target, dashed);
+  strokeAll(target, solid, GATE_TINT, GATE_ALPHA);
+  strokeAll(target, dashed, GATE_TINT, GATE_ALPHA);
+}
+
+/**
+ * The hovered region's own mesh, lifted out of the galaxy one it is drawn over.
+ *
+ * Its own Graphics rather than a third stroke on the galaxy mesh: a hover
+ * changes several times a second, and rebuilding 14,400 segments for each one
+ * would throw away the build-once property `drawEdges` exists to hold. What is
+ * rebuilt here is one region's edges — 99 on average and 260 at the busiest,
+ * which is a fiftieth of the mesh.
+ *
+ * `regionSegments` has already dropped the edges that leave the region, so
+ * nothing this draws is dashed; it goes through `splitDashed` anyway rather
+ * than assuming that, because the day the filter changes is the day an
+ * unsplit crossing would be drawn solid and lit with no test to catch it.
+ *
+ * An empty list clears, which is how a pointer leaving a name is drawn.
+ */
+export function drawHighlight(
+  target: Graphics,
+  segments: EdgeSegment[],
+  origin: MapOrigin,
+): void {
+  target.clear();
+  target.position.set(origin.x, origin.z);
+
+  const { solid, dashed } = splitDashed(segments);
+  strokeAll(target, solid, HIGHLIGHT_TINT, HIGHLIGHT_ALPHA);
+  strokeAll(target, dashed, HIGHLIGHT_TINT, HIGHLIGHT_ALPHA);
 }

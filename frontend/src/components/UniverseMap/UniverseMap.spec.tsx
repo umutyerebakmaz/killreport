@@ -77,7 +77,11 @@ vi.mock('./scene/systems', () => ({
   buildSystems: vi.fn(),
   scaleSystems: vi.fn(),
 }));
-vi.mock('./scene/edges', () => ({ drawEdges: vi.fn() }));
+const drawHighlight = vi.fn();
+vi.mock('./scene/edges', () => ({
+  drawEdges: vi.fn(),
+  drawHighlight: (...args: unknown[]) => drawHighlight(...args),
+}));
 vi.mock('./scene/celestials', () => ({
   buildCelestials: vi.fn(),
   scaleCelestials: vi.fn(),
@@ -117,6 +121,7 @@ function fakeScene() {
     },
     world: { scale: { set: vi.fn() }, position: { set: vi.fn() } },
     edgesGalaxy: { visible: true, clear: vi.fn() },
+    edgesHighlight: { visible: true, clear: vi.fn() },
     edgesLocal: { visible: true, clear: vi.fn() },
     systems: { visible: true },
     celestials: { visible: true },
@@ -199,6 +204,7 @@ beforeEach(() => {
   searchParams = new URLSearchParams('');
   labelQueries = [];
   detailsQueries = [];
+  drawHighlight.mockClear();
 });
 
 /** The camera the component autofits to, once the renderer has reported a size. */
@@ -417,6 +423,75 @@ describe('UniverseMap', () => {
       // a name would otherwise swallow them.
       return createScene.mock.calls[0][0];
     }
+
+    it('lights a constellation from its own name, one tier down', async () => {
+      const host = await mounted();
+      const name = document.createElement('span');
+      name.dataset.mapConstellation = '20000020';
+      host.appendChild(name);
+
+      const before = drawHighlight.mock.calls.length;
+      act(() => {
+        name.dispatchEvent(
+          new PointerEvent('pointermove', {
+            clientX: 10,
+            clientY: 10,
+            bubbles: true,
+          }),
+        );
+      });
+
+      await waitFor(() =>
+        expect(drawHighlight.mock.calls.length).toBeGreaterThan(before),
+      );
+      expect(drawHighlight).toHaveBeenLastCalledWith(
+        scene.edgesHighlight,
+        expect.any(Array),
+        expect.anything(),
+      );
+    });
+
+    it('lights a region when the pointer rests on its name, and clears it after', async () => {
+      // The wiring, which is the band neither the pure filter in edges.ts nor
+      // the pointer hook's own spec covers: a stamped name reaching the lit
+      // mesh, and the pointer leaving the map emptying it again.
+      const host = await mounted();
+      const name = document.createElement('span');
+      name.dataset.mapRegion = '10000002';
+      host.appendChild(name);
+
+      const before = drawHighlight.mock.calls.length;
+      act(() => {
+        name.dispatchEvent(
+          new PointerEvent('pointermove', {
+            clientX: 10,
+            clientY: 10,
+            bubbles: true,
+          }),
+        );
+      });
+      await waitFor(() =>
+        expect(drawHighlight.mock.calls.length).toBeGreaterThan(before),
+      );
+      expect(drawHighlight).toHaveBeenLastCalledWith(
+        scene.edgesHighlight,
+        expect.any(Array),
+        expect.anything(),
+      );
+
+      drawHighlight.mockClear();
+      // No `bubbles`: pointerleave does not bubble, in jsdom or in a browser.
+      act(() => {
+        host.dispatchEvent(new PointerEvent('pointerleave'));
+      });
+      await waitFor(() =>
+        expect(drawHighlight).toHaveBeenLastCalledWith(
+          scene.edgesHighlight,
+          [],
+          expect.anything(),
+        ),
+      );
+    });
 
     it('opens the clicked system, not a neighbour', async () => {
       const host = await mounted();

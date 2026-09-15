@@ -107,6 +107,7 @@ describe('layerVisibility', () => {
   it('draws the galaxy edge mesh and the systems, and nothing else, at galaxy zoom', () => {
     expect(layerVisibility('galaxy')).toEqual({
       edgesGalaxy: true,
+      edgesHighlight: true,
       edgesLocal: false,
       systems: true,
       celestials: false,
@@ -124,6 +125,9 @@ describe('layerVisibility', () => {
     // this far in. The local mesh is rebuilt around the focused system instead.
     const v = layerVisibility('interior');
     expect(v.edgesGalaxy).toBe(false);
+    // With it: a region highlight is a highlight OF the galaxy mesh, so it
+    // cannot outlive the mesh it draws over.
+    expect(v.edgesHighlight).toBe(false);
     expect(v.edgesLocal).toBe(true);
     expect(v.celestials).toBe(true);
     expect(v.fine).toBe(false);
