@@ -7,7 +7,9 @@ import { formatSecurityStatus, getSecurityColor } from '@/utils/security';
 import Link from 'next/link';
 import { useEffect } from 'react';
 
-const POPUP_OFFSET_PX = 14;
+/** How far the panel's top edge clears the system's own disc. */
+const POPUP_GAP_PX = 12;
+
 const POPUP_WIDTH_PX = 280;
 const POPUP_HEIGHT_PX = 230;
 
@@ -68,6 +70,7 @@ export default function SystemPopup({
   systemId,
   screenX,
   screenY,
+  anchorRadius,
   viewportWidth,
   viewportHeight,
   onClose,
@@ -75,6 +78,8 @@ export default function SystemPopup({
   systemId: number;
   screenX: number;
   screenY: number;
+  /** The system's drawn radius in pixels, which the panel opens clear of. */
+  anchorRadius: number;
   viewportWidth: number;
   viewportHeight: number;
   onClose: () => void;
@@ -91,6 +96,10 @@ export default function SystemPopup({
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [onClose]);
 
+  // `anchorRadius` is the disc's own size, not a constant: the dots grow with
+  // the camera and reach tens of pixels at the interior zooms, where a fixed
+  // offset would put the panel back over the system. See clampOverlay for the
+  // placement itself.
   const { left, top } = clampOverlay({
     anchorX: screenX,
     anchorY: screenY,
@@ -98,7 +107,7 @@ export default function SystemPopup({
     overlayHeight: POPUP_HEIGHT_PX,
     viewportWidth,
     viewportHeight,
-    offset: POPUP_OFFSET_PX,
+    offset: anchorRadius + POPUP_GAP_PX,
   });
 
   const details = data?.mapSystemDetails;

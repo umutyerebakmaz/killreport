@@ -96,7 +96,15 @@ function fakeScene() {
   return {
     app: {
       canvas: document.createElement('canvas'),
-      renderer: { width: VIEWPORT.width, height: VIEWPORT.height },
+      // The renderer reports PHYSICAL pixels — CSS size times the resolution.
+      // `screen` is the CSS-pixel rectangle, and that is what the camera centres
+      // on and what the pointer reports. The two differ here on purpose: reading
+      // the wrong one doubles the viewport and every assertion below fails.
+      renderer: {
+        width: VIEWPORT.width * FAKE_RESOLUTION,
+        height: VIEWPORT.height * FAKE_RESOLUTION,
+      },
+      screen: { width: VIEWPORT.width, height: VIEWPORT.height },
     },
     world: { scale: { set: vi.fn() }, position: { set: vi.fn() } },
     edgesGalaxy: { visible: true, clear: vi.fn() },
@@ -110,6 +118,9 @@ function fakeScene() {
 
 /** jsdom measures every element as 0x0, so the size comes from the renderer. */
 const VIEWPORT = { width: 1400, height: 900 };
+
+/** A HiDPI screen, which is where reading physical pixels goes wrong. */
+const FAKE_RESOLUTION = 2;
 
 // jsdom has no ResizeObserver. vitest.setup.ts installs an inert stub for the
 // components that merely construct one; this file needs to drive it, so it

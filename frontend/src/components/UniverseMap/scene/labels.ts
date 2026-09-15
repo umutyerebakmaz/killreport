@@ -1,7 +1,13 @@
+import { LABEL_TINT } from '@/utils/map/colors';
 import type { LabelCandidate } from '@/utils/map/labels';
 import type { LabelTier } from '@/utils/map/lod';
-import { BitmapFont, BitmapFontManager, BitmapText } from 'pixi.js';
-import type { MapScene } from './createScene';
+import {
+  BitmapFont,
+  BitmapFontManager,
+  BitmapText,
+  type TextStyleFontWeight,
+} from 'pixi.js';
+import { renderResolution, type MapScene } from './createScene';
 
 export const LABEL_FONT: Record<LabelTier, string> = {
   region: 'MapLabelRegion',
@@ -17,22 +23,61 @@ export const LABEL_FONT: Record<LabelTier, string> = {
  * Region is uppercase and letter-spaced because that is what makes a name read
  * as a region rather than as a big system.
  *
+ * The weight follows the size — 700 / 600 / 500 against 16 / 12 / 8 — so the two
+ * say the same thing rather than pulling against each other. The opposite was
+ * tried first, on the cartographic argument that an area name should be airy
+ * where a point name is solid, and it was rejected on sight: a heavy 8 px system
+ * name under a light 16 px region name reads as though the small one matters
+ * more. Weight is a hierarchy signal before it is a legibility one.
+ *
+ * 500 is the floor for the system tier rather than 400: at 8 px a Regular face
+ * has nothing left to lose.
+ *
+ * 16 / 12 / 8 rather than the 14 / 12 / 11 this shipped with: the old spread was
+ * two pixels across three tiers and read as one size at a glance. A clean four
+ * pixel step separates them, and taking the system tier down rather than the
+ * others up is what buys room — it is the crowded tier, and a shorter name
+ * clears its neighbours sooner. Size and weight are now the whole of the
+ * hierarchy — the alphas were 0.45 / 0.7 / 1 and the tints were three greys, and
+ * both were tried and reverted for the same reason: over the galaxy there is
+ * nothing behind a name, so anything that dims it makes it unreadable rather
+ * than quiet.
+ *
  * These numbers are coupled to the collision boxes: changing a fontSize or a
  * letterSpacing here means updating `LABEL_CHAR_WIDTH` and `LABEL_LINE_HEIGHT`
  * in `utils/map/labels.ts` to match, or the filter reserves the wrong space.
  */
 const TIER_STYLE: Record<
   LabelTier,
-  { fontSize: number; letterSpacing: number; alpha: number; uppercase: boolean }
+  {
+    fontSize: number;
+    fontWeight: TextStyleFontWeight;
+    letterSpacing: number;
+    alpha: number;
+    uppercase: boolean;
+  }
 > = {
-  region: { fontSize: 14, letterSpacing: 3, alpha: 0.45, uppercase: true },
+  region: {
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 3,
+    alpha: 1,
+    uppercase: true,
+  },
   constellation: {
     fontSize: 12,
+    fontWeight: '600',
     letterSpacing: 1,
-    alpha: 0.7,
+    alpha: 1,
     uppercase: false,
   },
-  system: { fontSize: 11, letterSpacing: 0, alpha: 1, uppercase: false },
+  system: {
+    fontSize: 8,
+    fontWeight: '500',
+    letterSpacing: 0,
+    alpha: 1,
+    uppercase: false,
+  },
 };
 
 let installed = false;
@@ -59,14 +104,18 @@ async function ensureShentoxLoaded(): Promise<void> {
   const fonts = typeof document !== 'undefined' ? document.fonts : undefined;
   if (!fonts) return;
 
-  const sizes = new Set(
-    Object.values(TIER_STYLE).map((style) => style.fontSize),
+  // One request per tier, weight included. `8px Shentox` asks for weight 400, so
+  // requesting by size alone would let a 600 atlas rasterise before SemiBold had
+  // been fetched — the exact fallback this function exists to prevent. The three
+  // tiers are three different faces now, so all three have to be asked for.
+  const faces = new Set(
+    Object.values(TIER_STYLE).map(
+      (style) => `${style.fontWeight} ${style.fontSize}px Shentox`,
+    ),
   );
 
   try {
-    await Promise.all(
-      [...sizes].map((size) => fonts.load(`${size}px Shentox`)),
-    );
+    await Promise.all([...faces].map((face) => fonts.load(face)));
     await fonts.ready;
   } catch {
     // A rejected load (a missing file, a blocked request) should not stop the
@@ -97,6 +146,7 @@ export async function installLabelFonts(): Promise<void> {
       style: {
         fontFamily: 'Shentox, sans-serif',
         fontSize: style.fontSize,
+        fontWeight: style.fontWeight,
         // White, because dynamicFill below needs it: it is what lets a tier be
         // tinted at runtime instead of costing another atlas.
         fill: 0xffffff,
@@ -107,10 +157,19 @@ export async function installLabelFonts(): Promise<void> {
       chars: BitmapFontManager.ASCII,
       // Managed by the font, not the BitmapText — passing resolution to an
       // instance is ignored and logs a warning.
-      resolution: window.devicePixelRatio || 1,
-      // Kerning metadata costs memory and install time and buys nothing at
-      // label sizes.
-      skipKerning: true,
+      //
+      // The renderer's own resolution, not the raw ratio: an atlas rasterised
+      // finer than the canvas it draws into is minified on every glyph, which is
+      // the softness this whole change exists to remove.
+      resolution: renderResolution(),
+      // Kerning on. It was skipped as costing memory and install time for
+      // nothing, which was asserted rather than measured and is wrong: without
+      // it every pair sits at its raw advance, so `AV`, `To` and `Ya` stand
+      // apart and a name takes more room than it should. That looseness is the
+      // most visible difference between these labels and the same name set in
+      // DOM text anywhere else on the site. The cost is one pass over the
+      // character list at install time, three times per session.
+      skipKerning: false,
       // Runtime tinting without a new atlas per colour. Phase 4's colour
       // registry will want this; enabling it now costs nothing.
       dynamicFill: true,
@@ -155,14 +214,26 @@ export function drawLabels(scene: MapScene, placed: LabelCandidate[]): void {
       });
       text.anchor.set(0.5);
       text.alpha = style.alpha;
+      text.tint = LABEL_TINT[candidate.tier];
       pool.set(candidate.key, text);
       scene.labels.addChild(text);
     }
 
-    // Straight to the candidate's own coordinates. The lift above the dot is
-    // already in them — labelCandidates applies it, so the collision filter
-    // and the viewport clip see the box the glyphs actually occupy.
-    text.position.set(candidate.screenX, candidate.screenY);
+    // The candidate's own coordinates, rounded to a whole CSS pixel. The lift
+    // above the dot is already in them — labelCandidates applies it, so the
+    // collision filter and the viewport clip see the box the glyphs actually
+    // occupy.
+    //
+    // The rounding is what keeps the atlas sampling 1:1. A glyph quad landing on
+    // a fractional coordinate is resampled across two texels whatever the
+    // canvas resolution, and at label sizes that is the difference between type
+    // and a smudge. Whole CSS pixels rather than device pixels, so the grid
+    // holds at any integer resolution; the shift is at most half a pixel and the
+    // collision boxes are built with padding far larger than that.
+    text.position.set(
+      Math.round(candidate.screenX),
+      Math.round(candidate.screenY),
+    );
     text.visible = true;
   }
 

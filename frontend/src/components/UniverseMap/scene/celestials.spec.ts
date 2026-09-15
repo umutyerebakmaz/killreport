@@ -1,5 +1,9 @@
 import { MapCelestialKind, type MapCelestial } from '@/generated/graphql';
-import { CELESTIAL_RADIUS_PX, spriteScale } from '@/utils/map/marks';
+import {
+  CELESTIAL_RADIUS_PX,
+  spriteScale,
+  systemFloorPx,
+} from '@/utils/map/marks';
 import { Container, Texture } from 'pixi.js';
 import { describe, expect, it } from 'vitest';
 import { buildCelestials } from './celestials';
@@ -105,10 +109,16 @@ describe('buildSystems', () => {
       cameraScale,
     );
 
-    // The 1.5 px floor, counter-scaled: a sprite left at Pixi's default 1
-    // would be DOT_TEXTURE_RADIUS world metres and invisible at every zoom.
+    // The floor for this zoom, counter-scaled: a sprite left at Pixi's default 1
+    // would be DOT_TEXTURE_RADIUS world metres and invisible at every zoom. The
+    // floor comes from systemFloorPx rather than a literal, because it now rises
+    // with the camera instead of sitting at 1.5 everywhere.
     expect(built.sprites[0].scale.x).toBeCloseTo(
-      spriteScale(1.5, DOT_TEXTURE_RADIUS, cameraScale),
+      spriteScale(
+        systemFloorPx(Math.log2(cameraScale)),
+        DOT_TEXTURE_RADIUS,
+        cameraScale,
+      ),
       20,
     );
     expect(built.sprites[0].scale.x).not.toBe(1);

@@ -73,11 +73,17 @@ describe('MapPage', () => {
     );
   });
 
-  it('cancels the main padding so the canvas fills the viewport', async () => {
+  // jsdom applies no stylesheet, so what can be checked here is the contract
+  // rather than the result: globals.css keys `main:has(> [data-full-bleed])` off
+  // this attribute to drop the padding and the 120rem max-width, and the map is
+  // letterboxed on a screen wider than 1920px without it. The rendering itself
+  // is verified by looking.
+  it('asks main for the whole viewport', async () => {
     render(<MapPage />);
     const canvas = await screen.findByTestId('universe-map');
     const wrapper = canvas.parentElement as HTMLElement;
 
-    expect(wrapper).toHaveClass('-mx-6', '-my-8', 'h-[calc(100%+4rem)]');
+    expect(wrapper).toHaveAttribute('data-full-bleed');
+    expect(wrapper).toHaveClass('h-full');
   });
 });
