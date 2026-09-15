@@ -32,7 +32,7 @@ describe('edgeSegments', () => {
 
   it('resolves both endpoints into origin-local metres', () => {
     expect(edgeSegments(edges, nodes, origin)).toEqual([
-      { from: [5e16, -5e16], to: [-5e16, 5e16] },
+      { from: [5e16, -5e16], to: [-5e16, 5e16], crossesRegion: false },
     ]);
   });
 
@@ -45,6 +45,32 @@ describe('edgeSegments', () => {
 
   it('returns an empty list for a scene with no gates, like WORMHOLE', () => {
     expect(edgeSegments([], nodes, origin)).toEqual([]);
+  });
+
+  it('marks an edge whose ends are in different regions', () => {
+    // 370 of the 6,989 gate pairs cross a region boundary. The flag is what
+    // the mesh strokes as a dashed line rather than a solid one.
+    const across = [
+      node(1, 1.5e17, -2.5e17),
+      node(2, 0.5e17, -1.5e17, { regionId: 10000002 }),
+    ];
+
+    expect(edgeSegments(edges, across, origin)[0].crossesRegion).toBe(true);
+  });
+
+  it('leaves an edge inside one region unmarked', () => {
+    expect(edgeSegments(edges, nodes, origin)[0].crossesRegion).toBe(false);
+  });
+
+  it('does not mark a constellation boundary inside one region', () => {
+    // 915 pairs change constellation without leaving the region. They were
+    // the dashed set once; they are ordinary jumps now.
+    const across = [
+      node(1, 1.5e17, -2.5e17),
+      node(2, 0.5e17, -1.5e17, { constellationId: 20000002 }),
+    ];
+
+    expect(edgeSegments(edges, across, origin)[0].crossesRegion).toBe(false);
   });
 });
 
@@ -70,7 +96,7 @@ describe('edgeSegments with loaded gates', () => {
 
   it('leaves both ends at the system centres when no interior is loaded', () => {
     expect(edgeSegments(gateEdges, gateNodes, gateOrigin)).toEqual([
-      { from: [0, 0], to: [1e16, 0] },
+      { from: [0, 0], to: [1e16, 0], crossesRegion: false },
     ]);
   });
 
