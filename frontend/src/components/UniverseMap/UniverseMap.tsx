@@ -378,13 +378,25 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       scaleCelestials(celestialSprites.current, scale);
   }, [camera]);
 
+  // One projection per camera or viewport change, and the only one. Four
+  // places want the same matrix — the world's own transform, label placement,
+  // the hit tests and the popup's anchor — and computing it four times from
+  // the same three inputs was four chances for them to disagree about where a
+  // system is. `null` until the host has been measured.
+  const transform = useMemo(
+    () =>
+      camera && size.width
+        ? cameraTransform(camera, size.width, size.height)
+        : null,
+    [camera, size.width, size.height],
+  );
+
   // The transform is one object write.
   useEffect(() => {
-    if (!scene.current || !camera || !size.width) return;
-    const t = cameraTransform(camera, size.width, size.height);
-    scene.current.world.scale.set(t.scaleX, t.scaleY);
-    scene.current.world.position.set(t.x, t.y);
-  }, [sceneReady, camera, size.width, size.height]);
+    if (!scene.current || !transform) return;
+    scene.current.world.scale.set(transform.scaleX, transform.scaleY);
+    scene.current.world.position.set(transform.x, transform.y);
+  }, [sceneReady, transform]);
 
   // Labels live in screen space, so they re-place on every camera change rather
   // than on a bucket change. Their own effect: the dependencies differ from the
@@ -392,7 +404,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // counter-scale whenever label data arrived.
   useEffect(() => {
     const layer = labelLayer.current;
-    if (!layer || !measure || !camera || !size.width) return;
+    if (!layer || !measure || !camera || !transform) return;
 
     const tiers = visibleLabelTiers(camera.zoom);
     if (tiers.length === 0) {
@@ -409,7 +421,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       // costs no request at all.
       systems: labelSystems,
       measure,
-      transform: cameraTransform(camera, size.width, size.height),
+      transform,
       width: size.width,
       height: size.height,
     });
@@ -421,6 +433,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     host,
     measure,
     camera,
+    transform,
     size.width,
     size.height,
     labelSystems,
@@ -511,16 +524,11 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // projection these close over has changed. useMapPointer holds them in a ref,
   // so a new identity does not rebind the five listeners.
   const pick = useMemo<MapPick>(() => {
-    const projection =
-      camera && size.width
-        ? cameraTransform(camera, size.width, size.height)
-        : null;
-
     const at = (pointerX: number, pointerY: number) =>
-      projection
+      transform
         ? pickSystem({
             nodes: pickNodes,
-            transform: projection,
+            transform,
             pointerX,
             pointerY,
             cameraScale: cameraScale.current,
@@ -531,7 +539,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     // still has to be worked out — which is what anchors the tip to the dot
     // rather than to the name.
     const byId = (systemId: number) =>
-      projection ? pickById(pickNodes, systemId, projection) : null;
+      transform ? pickById(pickNodes, systemId, transform) : null;
 
     return {
       onHover: (pointer) =>
@@ -544,7 +552,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       },
       onSelectSystem: (systemId) => setSelected(systemId),
     };
-  }, [camera, size.width, size.height, pickNodes, setSelected]);
+  }, [transform, pickNodes, setSelected]);
 
   useMapPointer(host, camera, limits, onCameraChange, pick);
 
@@ -589,13 +597,6 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   const selectedNode = selected
     ? (geometry.nodes.find((node) => node.systemId === selected) ?? null)
     : null;
-  // Recomputed every render rather than remembered from the click: the popup is
-  // anchored to its system, so it has to travel with the camera.
-  const transform =
-    camera && size.width
-      ? cameraTransform(camera, size.width, size.height)
-      : null;
-
   return (
     <div
       ref={attachHost}
