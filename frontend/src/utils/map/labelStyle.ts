@@ -64,8 +64,15 @@ export const LABEL_TIER_STYLE: Record<LabelTier, LabelTierStyle> = {
  * same reason they do, only more so: the family IS a metric. Change the stack
  * in one place and the collision boxes silently describe a different face,
  * with the drawn text still fitting its own.
+ *
+ * The name is exported on its own because `document.fonts.load` wants a bare
+ * family with no fallback, so the loader cannot use the stack and used to spell
+ * the face out a second time.
  */
-export const LABEL_FONT_FAMILY = 'Shentox, sans-serif';
+export const LABEL_FONT_NAME = 'Shentox';
+
+/** The stack the measurer and the elements are set from. */
+export const LABEL_FONT_FAMILY = `${LABEL_FONT_NAME}, sans-serif`;
 
 /**
  * Shentox's ascender and descender together are about 1.2 em, so a collision
