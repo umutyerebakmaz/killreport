@@ -691,6 +691,36 @@ describe('viewport clamping', () => {
     expect(candidates).toEqual([]);
   });
 
+  it('keeps the anchor inside a sliver narrower than the name', () => {
+    // The other half of the clamp, and the case C1's guard deliberately left
+    // alone: the box DOES intersect the viewport, but the part on screen is
+    // narrower than the name. Inset by halfWidth the range collapses, and
+    // falling back to `low` puts the centre outside the sliver — the name
+    // drawn beside its own area rather than over it.
+    const sliver = { ...transform, x: -68.82 };
+    const boxRight = bounds.maxX * sliver.scaleX + sliver.x;
+    expect(boxRight).toBeGreaterThan(0);
+    expect(boxRight).toBeLessThan(20.1);
+
+    const [c] = labelCandidates({
+      tiers: ['region'],
+      regions: [{ id: 1, name: 'R', x: 0, z: 0, bounds }],
+      constellations: [],
+      systems: [],
+      measure: () => 80,
+      transform: sliver,
+      width: W,
+      height: H,
+    });
+
+    expect(c).toBeDefined();
+    // Wider than the sliver, so it has to overhang — but the anchor itself
+    // stays over the visible part.
+    expect(c.halfWidth * 2).toBeGreaterThan(boxRight);
+    expect(c.screenX).toBeGreaterThanOrEqual(0);
+    expect(c.screenX).toBeLessThanOrEqual(boxRight);
+  });
+
   it('keeps a region whose box still overlaps the viewport by a sliver', () => {
     // The boundary the guard must not overshoot: 38.8 px of this region is on
     // screen, so it is still this viewport's name to draw.
