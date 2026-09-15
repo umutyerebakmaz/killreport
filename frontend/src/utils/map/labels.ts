@@ -1,65 +1,11 @@
 import type { CameraTransform } from './camera';
+import { labelLineHeight } from './labelStyle';
+import type { LabelMeasure } from './measure';
 import { systemFloorPx, systemRadiusPx } from './marks';
 import type { LabelTier } from './lod';
 
 /** The cap the design sets on how many names may be on screen at once. */
 export const MAX_VISIBLE_LABELS = 300;
-
-/**
- * Mean character width in pixels, per tier.
- *
- * The collision box needs the text's width, and a BitmapText only knows its own
- * width once it exists — which a pure function cannot make. Each constant is the
- * tier's mean glyph advance at its font size plus its letterSpacing, both taken
- * from `TIER_STYLE` in `scene/labels.ts`.
- *
- * Measured 2026-09-15, not estimated: every name the scene can draw, weighed
- * against its own tier's Shentox file straight out of the TTF.
- *
- *   region          70 names, uppercased   700   0.5453 em   16 × … + 3 = 11.72
- *   constellation  799 names               600   0.5149 em   12 × … + 1 =  7.18
- *   system       5,485 names               500   0.5172 em    8 × … + 0 =  4.14
- *
- * Each against its own weight's file, because the advances differ between them:
- * Shentox-Bold's uppercase mean is 0.5453 em where Regular's is 0.5397.
- *
- * The em figures are the measurement and do not move with the font size; only
- * the multiplication does, so a tier can be resized by redoing one line here.
- *
- * A generic alphabet mean was what these used to be derived from, and it is
- * wrong for this data: EVE names are thick with digits and hyphens, which pulls
- * the mean well off the letter-only figure. The error is still not bounded — a
- * string of all `I`s is far narrower and one of all `W`s far wider — but it is
- * now centred on the names that actually exist. Kerning makes real strings a
- * shade narrower than this, which errs the safe way for a filter whose job is
- * "do not overlap".
- *
- * If exact measurement is ever needed, scene/ can measure and pass halfWidth in;
- * the interface already takes it.
- *
- * The tiers differ in size because the design gives each a role: region is
- * background and largest, system is foreground and smallest.
- */
-export const LABEL_CHAR_WIDTH: Record<LabelTier, number> = {
-  region: 11.72,
-  constellation: 7.18,
-  system: 4.14,
-};
-
-/**
- * Line height in pixels, per tier. Two jobs: it is the collision box's height,
- * and it is the minimum lift above the dot — see `labelCandidates`, where the
- * system tier takes the larger of this and the room its own disc needs.
- *
- * 1.15x the font size, rounded: Shentox's ascender and descender together are
- * about 1.2 em, so a box at the font size alone would clip a descender out of
- * the collision test and let two names touch.
- */
-export const LABEL_LINE_HEIGHT: Record<LabelTier, number> = {
-  region: 18,
-  constellation: 14,
-  system: 9,
-};
 
 /**
  * How far a system name is held clear of its own dot, in pixels.
@@ -75,17 +21,43 @@ export const LABEL_LINE_HEIGHT: Record<LabelTier, number> = {
  */
 export const LABEL_DOT_GAP_PX = 7;
 
+export interface LabelBounds {
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+}
+
 export interface LabelSource {
   id: number;
   name: string;
   x: number;
   z: number;
   /**
-   * The system's own radius in metres, for the system tier. Absent for the two
-   * centroid tiers, which have no mark under them to clear.
+   * The system's own radius in metres, for a name with a mark under it. Absent
+   * for a source with nothing drawn at its anchor.
    */
   radius?: number;
+  /**
+   * The area this name covers, for an area name. Absent for a point name, whose
+   * anchor is the thing itself.
+   */
+  bounds?: LabelBounds;
 }
+
+/**
+ * How much of its own name a region must be able to cover before it is named,
+ * as a fraction of the name's width.
+ *
+ * A strict "the name must fit" rule would name nothing: at REGION_LABEL_ZOOM a
+ * region spans about the 60 px that separates it from its neighbour, while
+ * "Sinq Laison" sets 129 px wide. At 0.8 a region is named once it is nearly as
+ * wide as its own name, which is what makes big regions open before small ones
+ * instead of all of them opening at one zoom.
+ *
+ * A judgement, not a measurement. Tune by looking.
+ */
+export const REGION_FIT_RATIO = 0.8;
 
 export interface LabelCandidate {
   key: string;
@@ -96,6 +68,12 @@ export interface LabelCandidate {
   screenY: number;
   halfWidth: number;
   halfHeight: number;
+  /**
+   * The system this name can select, for the layer's `data-map-system` stamp.
+   * Only the system tier has one: a region name selecting whichever star its
+   * anchor happens to sit on would be a lie about what was clicked.
+   */
+  systemId?: number;
 }
 
 const TIER_SOURCES = ['region', 'constellation', 'system'] as const;
@@ -125,6 +103,7 @@ export function labelCandidates({
   regions,
   constellations,
   systems,
+  measure,
   transform,
   width,
   height,
@@ -133,6 +112,7 @@ export function labelCandidates({
   regions: LabelSource[];
   constellations: LabelSource[];
   systems: LabelSource[];
+  measure: LabelMeasure;
   transform: CameraTransform;
   width: number;
   height: number;
@@ -148,8 +128,7 @@ export function labelCandidates({
   for (const tier of TIER_SOURCES) {
     if (!tiers.includes(tier)) continue;
 
-    const charWidth = LABEL_CHAR_WIDTH[tier];
-    const lineHeight = LABEL_LINE_HEIGHT[tier];
+    const lineHeight = labelLineHeight(tier);
     const halfHeight = lineHeight / 2;
     // `scaleX` is the camera's linear scale — see cameraTransform — so the dot
     // size the system tier has to clear is recoverable here without the caller
@@ -157,24 +136,74 @@ export function labelCandidates({
     const floorPx = systemFloorPx(Math.log2(transform.scaleX));
 
     for (const source of byTier[tier]) {
-      // A line height is the whole lift for a centroid tier. For a system it is
-      // a minimum: the dots grow with the camera, and a fixed lift put the
-      // glyphs inside the disc the moment it passed half a line height. Taking
-      // the larger of the two keeps the galaxy view exactly where it was and
-      // lets the name rise with the mark from there.
+      // The lift depends on the DATA, not on the tier: a source with a radius has
+      // a mark drawn under it and the name has to clear the disc; one without has
+      // nothing there and a line height is the whole lift.
+      //
+      // `?? 0` would be wrong here. systemRadiusPx floors at `floorPx`, so a
+      // missing radius read as 0 still returns 1.5-6 px and would quietly push the
+      // centroid tiers up by that much.
       const lift =
-        tier === 'system'
-          ? Math.max(
+        source.radius === undefined
+          ? lineHeight
+          : Math.max(
               lineHeight,
               halfHeight +
-                systemRadiusPx(source.radius ?? 0, transform.scaleX, floorPx) +
+                systemRadiusPx(source.radius, transform.scaleX, floorPx) +
                 LABEL_DOT_GAP_PX,
-            )
-          : lineHeight;
+            );
 
-      const screenX = source.x * transform.scaleX + transform.x;
-      const screenY = source.z * transform.scaleY + transform.y - lift;
-      const halfWidth = (source.name.length * charWidth) / 2;
+      const textWidth = measure(tier, source.name);
+      const halfWidth = textWidth / 2;
+
+      let screenX = source.x * transform.scaleX + transform.x;
+      let screenY = source.z * transform.scaleY + transform.y - lift;
+
+      if (source.bounds) {
+        // An area name earns its place from the area, not from the zoom: it
+        // appears when the region can nearly cover its own name, and stays
+        // hidden while it would spill across its neighbours.
+        const boxLeft = source.bounds.minX * transform.scaleX + transform.x;
+        const boxRight = source.bounds.maxX * transform.scaleX + transform.x;
+        if (boxRight - boxLeft < REGION_FIT_RATIO * textWidth) continue;
+
+        // scaleY is negative, so maxZ projects to the SMALLER screen y.
+        const boxTop = source.bounds.maxZ * transform.scaleY + transform.y;
+        const boxBottom = source.bounds.minZ * transform.scaleY + transform.y;
+
+        // A name belongs to the part of its area that is on screen; when none
+        // of it is, the name is not this viewport's to draw. Without this the
+        // collapsed clamp below pins it to the near edge — and `low` is inside
+        // the viewport on the left and the top, so a region off to the left
+        // would have its name glued to x = halfWidth and one above it to
+        // y = halfHeight. Tiers accumulate, so at constellation or system zoom
+        // that is a column of region names down the left edge and a row along
+        // the top, each winning its collisions on coarsest-tier priority and
+        // eating the MAX_VISIBLE_LABELS budget.
+        if (
+          boxRight < 0 ||
+          boxLeft > width ||
+          boxBottom < 0 ||
+          boxTop > height
+        ) {
+          continue;
+        }
+
+        // Clamped into whatever of the area is on screen, so panning past the
+        // centre slides the name along the edge instead of dropping it.
+        // Clamping rather than re-centring on the intersection: a clamp is
+        // monotone, so the name slides where a re-centre would jump.
+        screenX = clamp(
+          screenX,
+          Math.max(boxLeft, 0) + halfWidth,
+          Math.min(boxRight, width) - halfWidth,
+        );
+        screenY = clamp(
+          screenY,
+          Math.max(boxTop, 0) + halfHeight,
+          Math.min(boxBottom, height) - halfHeight,
+        );
+      }
 
       // Clipped before anything else runs: the filter is O(n*k) and n is what
       // the viewport leaves, not what the scene holds.
@@ -195,6 +224,7 @@ export function labelCandidates({
         screenY,
         halfWidth,
         halfHeight,
+        systemId: tier === 'system' ? source.id : undefined,
       });
     }
   }
@@ -211,22 +241,56 @@ function overlaps(a: LabelCandidate, b: LabelCandidate): boolean {
   );
 }
 
+/** Shared empty set, so the default argument mints nothing per frame. */
+const EMPTY_STICKY: ReadonlySet<string> = new Set();
+
 /**
- * Greedy, single pass, in the order given.
+ * Greedy, in the order given, with the previous frame's survivors going first.
  *
- * O(n*k) with k the number already placed. k is capped at 300 and the viewport
- * clip has already cut n, so the worst case is nothing in a frame.
+ * O(n*k) with k the number already placed. k is capped at MAX_VISIBLE_LABELS and
+ * the viewport clip has already cut n, so the worst case is nothing in a frame.
+ *
+ * `sticky` is what stops the flicker. Placement is recomputed from scratch on
+ * every camera change, so two names whose boxes nearly tie were resolved
+ * differently from one frame to the next and blinked against each other. Giving
+ * the ones already on screen the first pass makes the tie resolve the same way
+ * it resolved last time — and a candidate that has left the viewport or its
+ * tier simply is not in the list any more, so the set needs no expiry of its
+ * own.
+ *
+ * Within each pass the tier order is untouched: a sticky system name still
+ * yields to a sticky region name.
  *
  * The input is not mutated; the caller keeps its candidate list.
  */
-export function placeLabels(candidates: LabelCandidate[]): LabelCandidate[] {
+export function placeLabels(
+  candidates: LabelCandidate[],
+  sticky: ReadonlySet<string> = EMPTY_STICKY,
+): LabelCandidate[] {
   const placed: LabelCandidate[] = [];
 
-  for (const candidate of candidates) {
-    if (placed.length >= MAX_VISIBLE_LABELS) break;
-    if (placed.some((other) => overlaps(candidate, other))) continue;
+  const consider = (candidate: LabelCandidate) => {
+    if (placed.length >= MAX_VISIBLE_LABELS) return;
+    if (placed.some((other) => overlaps(candidate, other))) return;
     placed.push(candidate);
+  };
+
+  for (const candidate of candidates) {
+    if (sticky.has(candidate.key)) consider(candidate);
+  }
+  for (const candidate of candidates) {
+    if (!sticky.has(candidate.key)) consider(candidate);
   }
 
   return placed;
+}
+
+/**
+ * Clamped into [low, high], and pinned to `low` when the range has collapsed —
+ * a box narrower than the name it holds has no valid position, and the near
+ * edge is a better answer than an inverted one.
+ */
+function clamp(value: number, low: number, high: number): number {
+  if (high < low) return low;
+  return Math.min(Math.max(value, low), high);
 }

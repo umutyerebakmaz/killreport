@@ -755,15 +755,19 @@ export type MapGeometry = {
 
 /**
  * Haritada bir isim. Koordinat **galaktik metre**, düğümlerle aynı uzayda.
- * Bölgede konum yok ve sahnenin çizdiği sistemlerin ortalamasından hesaplanıyor;
+ * Bölgede konum yok ve sahnenin çizdiği sistemlerin medoidinden hesaplanıyor;
  * takımyıldızda constellations.position_x/z doğrudan kullanılıyor.
  */
 export type MapLabel = {
   __typename?: 'MapLabel';
+  /** Yalnızca REGION: bölgenin çizilen sistemlerinin sınırları. İsmin görünürlük eşiği buradan. */
+  bounds?: Maybe<MapBounds>;
   /** Bölgede region_id, takımyıldızda constellation_id. Bantlar çakışmıyor ama tek anahtar isteyen bir tüketici kind ile birlikte anahtarlamalı. */
   id: Scalars['Int']['output'];
   kind: MapLabelKind;
   name: Scalars['String']['output'];
+  /** Yalnızca REGION: ismin çapalandığı medoid sistemi. Yarıçapı istemci mapGeometry'den okur. */
+  systemId?: Maybe<Scalars['Int']['output']>;
   x: Scalars['Float']['output'];
   z: Scalars['Float']['output'];
 };
@@ -3133,9 +3137,11 @@ export type MapGeometryResolvers<ContextType = any, ParentType extends Resolvers
 };
 
 export type MapLabelResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapLabel'] = ResolversParentTypes['MapLabel']> = {
+  bounds?: Resolver<Maybe<ResolversTypes['MapBounds']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   kind?: Resolver<ResolversTypes['MapLabelKind'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  systemId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   x?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   z?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
 };

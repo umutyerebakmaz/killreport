@@ -7,5 +7,12 @@ query MapLabels($scope: MapScope!, $kind: MapLabelKind!) {
     kind
     x
     z
+    systemId
+    bounds {
+      minX
+      maxX
+      minZ
+      maxZ
+    }
   }
 }

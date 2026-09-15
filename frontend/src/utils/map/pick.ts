@@ -115,3 +115,28 @@ export function pickSystem({
 
   return best;
 }
+
+/**
+ * The same PickTarget a hit test would produce, for a system already known by
+ * id — a label click, where WHAT was clicked is not in doubt and only its
+ * position still has to be computed.
+ *
+ * Linear over the node list, and deliberately not indexed: it runs on a click
+ * or on a hover frame, never per raw pointermove. `onHoverSystem` calls it for
+ * every hover frame spent over a name, which the hook has already coalesced to
+ * one per frame.
+ */
+export function pickById(
+  nodes: PickNode[],
+  systemId: number,
+  transform: CameraTransform,
+): PickTarget | null {
+  const node = nodes.find((candidate) => candidate.systemId === systemId);
+  if (!node) return null;
+
+  return {
+    node,
+    screenX: node.x * transform.scaleX + transform.x,
+    screenY: node.z * transform.scaleY + transform.y,
+  };
+}

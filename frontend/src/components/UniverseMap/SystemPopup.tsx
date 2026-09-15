@@ -57,14 +57,19 @@ function SkeletonBox() {
  * Two things it must do: stay inside the viewport, and close on Escape.
  *
  * The phase 1-2 design named a third — stop its own pointer events, or a drag
- * starting on the panel pans the map — and that requirement does not survive
- * the move off deck.gl. There the popup was rendered INSIDE deck.gl's React
- * child callback, so its events bubbled through the element holding the
- * controller. Here the panel is a SIBLING of the canvas, and the pan, zoom and
- * click listeners are on the canvas itself (`useMapPointer`): a pointerdown on
- * this panel goes panel -> host -> body and never visits the canvas at all.
- * Handlers calling stopPropagation would have been dead code, so there are
- * none. If the listeners ever move up to the host element, they come back.
+ * starting on the panel pans the map — and it is back. It lapsed while the
+ * pan, zoom and click listeners were on the canvas, a SIBLING of this panel
+ * that its events never visited; the DOM label overlay moved them up to the
+ * host, and this panel is a child of that host.
+ *
+ * `data-map-overlay` rather than a stopPropagation handler, because there is
+ * nowhere to put one that works. React delegates to the root container, an
+ * ANCESTOR of the host, so an `onPointerDown` here runs only after the host's
+ * own listener already has. A native listener on this div would be early
+ * enough, but stopping the event there also stops it reaching that root —
+ * which is where React reads the click the link below needs. So the press and
+ * the wheel are declined by `useMapPointer` instead, and every click is left
+ * alone.
  */
 export default function SystemPopup({
   systemId,
@@ -114,6 +119,7 @@ export default function SystemPopup({
 
   return (
     <div
+      data-map-overlay
       className="absolute z-20 p-3 float"
       style={{ left, top, width: POPUP_WIDTH_PX }}
     >

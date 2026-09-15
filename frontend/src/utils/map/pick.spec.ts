@@ -4,6 +4,7 @@ import { cameraTransform, type MapCamera } from './camera';
 import { systemFloorPx, systemRadiusPx } from './marks';
 import {
   MIN_PICK_RADIUS_PX,
+  pickById,
   pickRadiusPx,
   pickSystem,
   type PickNode,
@@ -107,5 +108,31 @@ describe('pickSystem', () => {
 
   it('returns null for an empty scene', () => {
     expect(pick([], WIDTH / 2, HEIGHT / 2)).toBeNull();
+  });
+});
+
+describe('pickById', () => {
+  const nodes = [
+    {
+      systemId: 30000142,
+      name: 'Jita',
+      x: 1e16,
+      z: 2e16,
+      radius: 0,
+      securityStatus: 0.94,
+    },
+  ];
+  const transform = { scaleX: 2 ** -50, scaleY: -(2 ** -50), x: 700, y: 450 };
+
+  it('finds the node by id, in the shape pickSystem returns', () => {
+    const target = pickById(nodes, 30000142, transform)!;
+
+    expect(target.node.name).toBe('Jita');
+    expect(target.screenX).toBeCloseTo(1e16 * transform.scaleX + 700, 6);
+    expect(target.screenY).toBeCloseTo(2e16 * transform.scaleY + 450, 6);
+  });
+
+  it('is null for an id the scene does not carry', () => {
+    expect(pickById(nodes, 1, transform)).toBeNull();
   });
 });

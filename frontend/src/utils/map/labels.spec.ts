@@ -1,14 +1,21 @@
 import { describe, expect, it } from 'vitest';
+import { labelLineHeight } from './labelStyle';
+import type { LabelMeasure } from './measure';
 import { systemFloorPx, systemRadiusPx } from './marks';
 import {
   labelCandidates,
-  LABEL_CHAR_WIDTH,
   LABEL_DOT_GAP_PX,
-  LABEL_LINE_HEIGHT,
   MAX_VISIBLE_LABELS,
   placeLabels,
   type LabelCandidate,
 } from './labels';
+
+/**
+ * A fake measurer that counts 4 px per character. jsdom has no real
+ * `measureText`, and even with one it would not be the subject here: what these
+ * tests are about is how the measurement is used.
+ */
+const measure: LabelMeasure = (_tier, name) => name.length * 4;
 
 // A camera at the galaxy fit on a 1400x900 canvas, centred on the origin.
 const transform = { scaleX: 2 ** -50, scaleY: -(2 ** -50), x: 700, y: 450 };
@@ -26,6 +33,7 @@ describe('labelCandidates', () => {
       regions: [source(1, 'The Forge', 0, 0)],
       constellations: [],
       systems: [],
+      measure,
       transform,
       width: W,
       height: H,
@@ -33,7 +41,7 @@ describe('labelCandidates', () => {
 
     expect(c.screenX).toBeCloseTo(700, 6);
     // 450 is where the dot is; the name sits one line height above it.
-    expect(c.screenY).toBeCloseTo(450 - LABEL_LINE_HEIGHT.region, 6);
+    expect(c.screenY).toBeCloseTo(450 - labelLineHeight('region'), 6);
   });
 
   it('lifts the text one line height above the projected position, per tier', () => {
@@ -45,6 +53,7 @@ describe('labelCandidates', () => {
       regions: [source(1, 'R', 0, 0)],
       constellations: [source(2, 'C', 3e16, 0)],
       systems: [source(3, 'S', 6e16, 0)],
+      measure,
       transform,
       width: W,
       height: H,
@@ -56,9 +65,9 @@ describe('labelCandidates', () => {
     for (const c of candidates) {
       const lift = 450 - c.screenY;
       if (c.tier === 'system') {
-        expect(lift).toBeGreaterThanOrEqual(LABEL_LINE_HEIGHT.system);
+        expect(lift).toBeGreaterThanOrEqual(labelLineHeight('system'));
       } else {
-        expect(lift).toBeCloseTo(LABEL_LINE_HEIGHT[c.tier], 6);
+        expect(lift).toBeCloseTo(labelLineHeight(c.tier), 6);
       }
     }
 
@@ -76,12 +85,13 @@ describe('labelCandidates', () => {
       regions: [source(1, 'A', 0, above)],
       constellations: [],
       systems: [],
+      measure,
       transform,
       width: W,
       height: H,
     });
 
-    expect(c.screenY).toBeCloseTo(449 - LABEL_LINE_HEIGHT.region, 6);
+    expect(c.screenY).toBeCloseTo(449 - labelLineHeight('region'), 6);
   });
 
   it('drops candidates outside the viewport before anything else runs', () => {
@@ -91,6 +101,7 @@ describe('labelCandidates', () => {
       regions: [source(1, 'In', 0, 0), source(2, 'Out', offscreen, 0)],
       constellations: [],
       systems: [],
+      measure,
       transform,
       width: W,
       height: H,
@@ -109,6 +120,7 @@ describe('labelCandidates', () => {
       regions: [source(1, 'Low', 0, below)],
       constellations: [],
       systems: [],
+      measure,
       transform,
       width: W,
       height: H,
@@ -116,7 +128,7 @@ describe('labelCandidates', () => {
 
     expect(candidates.map((c) => c.name)).toEqual(['Low']);
     expect(candidates[0].screenY).toBeCloseTo(
-      H + 12 - LABEL_LINE_HEIGHT.region,
+      H + 12 - labelLineHeight('region'),
       6,
     );
     // And the dot's own unshifted box really was off screen.
@@ -132,6 +144,7 @@ describe('labelCandidates', () => {
       regions: [source(1, 'High', 0, high)],
       constellations: [],
       systems: [],
+      measure,
       transform,
       width: W,
       height: H,
@@ -146,6 +159,7 @@ describe('labelCandidates', () => {
       regions: [source(1, 'R', 0, 0)],
       constellations: [source(2, 'C', 0, 0)],
       systems: [source(3, 'S', 0, 0)],
+      measure,
       transform,
       width: W,
       height: H,
@@ -161,6 +175,7 @@ describe('labelCandidates', () => {
       regions: [source(1, 'R', 0, 0)],
       constellations: [source(2, 'C', 3e16, 0)],
       systems: [source(3, 'S', 6e16, 0)],
+      measure,
       transform,
       width: W,
       height: H,
@@ -179,12 +194,14 @@ describe('labelCandidates', () => {
       regions: [source(1, 'Jita', 0, 0)],
       constellations: [],
       systems: [],
+      measure,
       transform,
       width: W,
       height: H,
     });
 
-    expect(c.halfWidth).toBeCloseTo((4 * LABEL_CHAR_WIDTH.region) / 2, 6);
+    // 'Jita' is 4 chars; the fake measurer counts 4 px per char.
+    expect(c.halfWidth).toBeCloseTo((4 * 4) / 2, 6);
   });
 
   it('gives every candidate a key that is unique across tiers', () => {
@@ -195,12 +212,34 @@ describe('labelCandidates', () => {
       regions: [source(42, 'R', 0, 0)],
       constellations: [source(42, 'C', 2e16, 0)],
       systems: [],
+      measure,
       transform,
       width: W,
       height: H,
     });
 
     expect(new Set(candidates.map((c) => c.key)).size).toBe(2);
+  });
+
+  it('carries a selectable system id on the system tier alone', () => {
+    // The layer stamps `data-map-system` from this, and picking reads it. A
+    // region name is anchored to a centroid, so a system id on one would make a
+    // click select whichever star that centroid happens to sit near.
+    const candidates = labelCandidates({
+      tiers: ['region', 'constellation', 'system'],
+      regions: [source(1, 'R', 0, 0)],
+      constellations: [source(2, 'C', 3e16, 0)],
+      systems: [source(30000142, 'S', 6e16, 0)],
+      measure,
+      transform,
+      width: W,
+      height: H,
+    });
+
+    const byTier = new Map(candidates.map((c) => [c.tier, c.systemId]));
+    expect(byTier.get('system')).toBe(30000142);
+    expect(byTier.get('region')).toBeUndefined();
+    expect(byTier.get('constellation')).toBeUndefined();
   });
 });
 
@@ -282,6 +321,71 @@ describe('placeLabels', () => {
     placeLabels(input);
     expect(input).toHaveLength(2);
   });
+
+  it('keeps the one already on screen when a collision ties', () => {
+    // Two names at the same point: in list order A wins.
+    const a: LabelCandidate = {
+      key: 'system:1',
+      name: 'A',
+      tier: 'system',
+      screenX: 100,
+      screenY: 100,
+      halfWidth: 20,
+      halfHeight: 5,
+    };
+    const b: LabelCandidate = { ...a, key: 'system:2', name: 'B' };
+
+    expect(placeLabels([a, b]).map((c) => c.key)).toEqual(['system:1']);
+
+    // If B was placed on the previous frame, B is the one that stays.
+    expect(
+      placeLabels([a, b], new Set(['system:2'])).map((c) => c.key),
+    ).toEqual(['system:2']);
+  });
+
+  it('ignores a sticky key that is no longer a candidate', () => {
+    const a: LabelCandidate = {
+      key: 'system:1',
+      name: 'A',
+      tier: 'system',
+      screenX: 100,
+      screenY: 100,
+      halfWidth: 20,
+      halfHeight: 5,
+    };
+
+    expect(placeLabels([a], new Set(['system:99'])).map((c) => c.key)).toEqual([
+      'system:1',
+    ]);
+  });
+
+  it('keeps the tier order among the sticky candidates too', () => {
+    const region: LabelCandidate = {
+      key: 'region:1',
+      name: 'R',
+      tier: 'region',
+      screenX: 100,
+      screenY: 100,
+      halfWidth: 20,
+      halfHeight: 9,
+    };
+    const system: LabelCandidate = {
+      key: 'system:1',
+      name: 'S',
+      tier: 'system',
+      screenX: 100,
+      screenY: 100,
+      halfWidth: 20,
+      halfHeight: 5,
+    };
+
+    const placed = placeLabels(
+      [region, system],
+      new Set(['region:1', 'system:1']),
+    );
+
+    expect(placed.map((c) => c.key)).toEqual(['region:1']);
+  });
 });
 
 describe('a system name clearing its own dot', () => {
@@ -299,6 +403,7 @@ describe('a system name clearing its own dot', () => {
       regions: [],
       constellations: [],
       systems: [{ id: 3, name: 'Jita', x: 0, z: 0, radius }],
+      measure,
       transform: deep(zoom),
       width: W,
       height: H,
@@ -347,9 +452,9 @@ describe('a system name clearing its own dot', () => {
   it('is the clearance term, and never less than the line height', () => {
     const lift = 450 - systemAt(-50, 3.8809e12).screenY;
 
-    expect(lift).toBeGreaterThanOrEqual(LABEL_LINE_HEIGHT.system);
+    expect(lift).toBeGreaterThanOrEqual(labelLineHeight('system'));
     expect(lift).toBeCloseTo(
-      LABEL_LINE_HEIGHT.system / 2 + systemFloorPx(-50) + LABEL_DOT_GAP_PX,
+      labelLineHeight('system') / 2 + systemFloorPx(-50) + LABEL_DOT_GAP_PX,
       6,
     );
   });
@@ -361,5 +466,248 @@ describe('a system name clearing its own dot', () => {
       expect(lift).toBeGreaterThanOrEqual(previousLift);
       previousLift = lift;
     }
+  });
+});
+
+describe('the lift', () => {
+  it('lifts a name with no mark under it by a full line height', () => {
+    const [c] = labelCandidates({
+      tiers: ['constellation'],
+      regions: [],
+      constellations: [{ id: 1, name: 'Kimotoro', x: 0, z: 0 }],
+      systems: [],
+      measure,
+      transform,
+      width: W,
+      height: H,
+    });
+
+    expect(c.screenY).toBeCloseTo(450 - labelLineHeight('constellation'), 6);
+  });
+
+  it('clears both the disc and the gap when the source has a radius', () => {
+    const radius = 4e15;
+    const [c] = labelCandidates({
+      tiers: ['system'],
+      regions: [],
+      constellations: [],
+      systems: [{ id: 30000142, name: 'Jita', x: 0, z: 0, radius }],
+      measure,
+      transform,
+      width: W,
+      height: H,
+    });
+
+    const lineHeight = labelLineHeight('system');
+    const floorPx = systemFloorPx(Math.log2(transform.scaleX));
+    const expected = Math.max(
+      lineHeight,
+      lineHeight / 2 +
+        systemRadiusPx(radius, transform.scaleX, floorPx) +
+        LABEL_DOT_GAP_PX,
+    );
+
+    expect(c.screenY).toBeCloseTo(450 - expected, 6);
+  });
+
+  it('falls to the dot floor for a zero-radius system, not to the line height', () => {
+    const [c] = labelCandidates({
+      tiers: ['system'],
+      regions: [],
+      constellations: [],
+      systems: [{ id: 30000001, name: 'Tanoo', x: 0, z: 0, radius: 0 }],
+      measure,
+      transform,
+      width: W,
+      height: H,
+    });
+
+    const lineHeight = labelLineHeight('system');
+    const floorPx = systemFloorPx(Math.log2(transform.scaleX));
+    const expected = Math.max(
+      lineHeight,
+      lineHeight / 2 + floorPx + LABEL_DOT_GAP_PX,
+    );
+
+    expect(c.screenY).toBeCloseTo(450 - expected, 6);
+  });
+
+  it('takes the width from the measurer, not from the name length', () => {
+    const wide: LabelMeasure = () => 100;
+    const [c] = labelCandidates({
+      tiers: ['system'],
+      regions: [],
+      constellations: [],
+      systems: [{ id: 1, name: 'I', x: 0, z: 0, radius: 0 }],
+      measure: wide,
+      transform,
+      width: W,
+      height: H,
+    });
+
+    expect(c.halfWidth).toBe(50);
+  });
+});
+
+describe('the region extent rule', () => {
+  const bounds = { minX: -1e16, maxX: 1e16, minZ: -1e16, maxZ: 1e16 };
+
+  it('does not draw a region name the region cannot nearly cover', () => {
+    // The measurer calls the name 1000 px; the region is far narrower than
+    // that at this transform.
+    const huge: LabelMeasure = () => 1000;
+
+    const candidates = labelCandidates({
+      tiers: ['region'],
+      regions: [{ id: 1, name: 'The Forge', x: 0, z: 0, bounds }],
+      constellations: [],
+      systems: [],
+      measure: huge,
+      transform,
+      width: W,
+      height: H,
+    });
+
+    expect(candidates).toEqual([]);
+  });
+
+  it('draws it once the region is wide enough', () => {
+    const small: LabelMeasure = () => 4;
+
+    const candidates = labelCandidates({
+      tiers: ['region'],
+      regions: [{ id: 1, name: 'The Forge', x: 0, z: 0, bounds }],
+      constellations: [],
+      systems: [],
+      measure: small,
+      transform,
+      width: W,
+      height: H,
+    });
+
+    expect(candidates).toHaveLength(1);
+  });
+
+  it('does not apply the rule to a source with no bounds', () => {
+    const huge: LabelMeasure = () => 1000;
+
+    const candidates = labelCandidates({
+      tiers: ['constellation'],
+      regions: [],
+      constellations: [{ id: 1, name: 'Kimotoro', x: 0, z: 0 }],
+      systems: [],
+      measure: huge,
+      transform,
+      width: W,
+      height: H,
+    });
+
+    expect(candidates).toHaveLength(1);
+  });
+});
+
+describe('viewport clamping', () => {
+  const bounds = { minX: -1e17, maxX: 1e17, minZ: -1e17, maxZ: 1e17 };
+
+  it('keeps the name of an off-centre region in the part that is on screen', () => {
+    // The centre is off to the left while the box still intersects the
+    // screen. -5000 put the box itself entirely off screen too, so it did not
+    // set up the case this describes.
+    const offscreen = { ...transform, x: -50 };
+
+    const [c] = labelCandidates({
+      tiers: ['region'],
+      regions: [{ id: 1, name: 'R', x: 0, z: 0, bounds }],
+      constellations: [],
+      systems: [],
+      measure: () => 20,
+      transform: offscreen,
+      width: W,
+      height: H,
+    });
+
+    expect(c).toBeDefined();
+    expect(c.screenX).toBeGreaterThanOrEqual(c.halfWidth);
+    expect(c.screenX).toBeLessThanOrEqual(W - c.halfWidth);
+  });
+
+  it('leaves the position alone while the centre is on screen', () => {
+    const [c] = labelCandidates({
+      tiers: ['region'],
+      regions: [{ id: 1, name: 'R', x: 0, z: 0, bounds }],
+      constellations: [],
+      systems: [],
+      measure: () => 20,
+      transform,
+      width: W,
+      height: H,
+    });
+
+    expect(c.screenX).toBeCloseTo(700, 6);
+  });
+
+  it('drops a region lying entirely off the left edge instead of pinning its name there', () => {
+    // The clamp below only makes sense for a box that still intersects the
+    // viewport. With the whole region to the LEFT the range collapses and the
+    // clamp falls back to `low` — which on this side is the inside-the-viewport
+    // value, so the name would be glued to x = halfWidth.
+    const offLeft = { ...transform, x: -500 };
+    const boxRight = bounds.maxX * offLeft.scaleX + offLeft.x;
+    expect(boxRight).toBeLessThan(0);
+
+    const candidates = labelCandidates({
+      tiers: ['region'],
+      regions: [{ id: 1, name: 'R', x: 0, z: 0, bounds }],
+      constellations: [],
+      systems: [],
+      measure: () => 20,
+      transform: offLeft,
+      width: W,
+      height: H,
+    });
+
+    expect(candidates).toEqual([]);
+  });
+
+  it('drops a region lying entirely above the top edge instead of pinning its name there', () => {
+    // The other side that misbehaves: scaleY is negative, so a region wholly
+    // above the viewport has both boxTop and boxBottom below zero, the vertical
+    // range collapses, and `low` is again inside the viewport.
+    const offTop = { ...transform, y: -500 };
+    const boxBottom = bounds.minZ * offTop.scaleY + offTop.y;
+    expect(boxBottom).toBeLessThan(0);
+
+    const candidates = labelCandidates({
+      tiers: ['region'],
+      regions: [{ id: 1, name: 'R', x: 0, z: 0, bounds }],
+      constellations: [],
+      systems: [],
+      measure: () => 20,
+      transform: offTop,
+      width: W,
+      height: H,
+    });
+
+    expect(candidates).toEqual([]);
+  });
+
+  it('keeps a region whose box still overlaps the viewport by a sliver', () => {
+    // The boundary the guard must not overshoot: 38.8 px of this region is on
+    // screen, so it is still this viewport's name to draw.
+    const barely = { ...transform, x: -50 };
+
+    const [c] = labelCandidates({
+      tiers: ['region'],
+      regions: [{ id: 1, name: 'R', x: 0, z: 0, bounds }],
+      constellations: [],
+      systems: [],
+      measure: () => 20,
+      transform: barely,
+      width: W,
+      height: H,
+    });
+
+    expect(c).toBeDefined();
+    expect(c.screenX).toBeGreaterThanOrEqual(c.halfWidth);
   });
 });

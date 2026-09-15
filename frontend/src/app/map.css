@@ -1,0 +1,51 @@
+/* The label overlay sits above the Pixi canvas and below the hover tip and the
+   popup, which are React nodes in the same host. It owns colour, halo and
+   transition and nothing else: every metric — family, size, weight, letter
+   spacing and the line height the collision box is built from — is written from
+   utils/map/labelStyle.ts, so the measurer and the text agree. The family is in
+   that list because it is a metric too: a different face measures differently. */
+.map-labels {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  /* Above the canvas by intent rather than by accident. Without this the layer
+     only wins because Pixi leaves the canvas `position: static`; it stays below
+     the hover tip's z-10 and the popup's z-20. */
+  z-index: 1;
+  /* Transparent as a sheet: the gaps between names must reach the canvas, which
+     is where panning and zooming are bound. Only a system name opts back in. */
+  pointer-events: none;
+}
+
+.map-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  white-space: nowrap;
+  color: #fff;
+  /* Over the galaxy there is nothing behind a name, so the halo is what keeps
+     one legible where it crosses a gate line or a dot. */
+  text-shadow: 0 0 3px rgb(0 0 0 / 0.9);
+  opacity: 0;
+  /* Visibility transitions discretely: it flips at the START coming in, so a
+     name is present for the whole fade in, and at the END going out, so it
+     stays present for the whole fade out. What that buys is that a name which
+     has finished fading out cannot catch a click — a name still on its way to
+     zero can, and whether that is right is the user's call, not this file's. */
+  transition:
+    opacity 150ms ease-out,
+    visibility 150ms;
+}
+
+.map-label.is-visible {
+  opacity: 1;
+}
+
+.map-label:not(.is-visible) {
+  visibility: hidden;
+}
+
+.map-label--system {
+  pointer-events: auto;
+  cursor: pointer;
+}
