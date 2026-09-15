@@ -13,6 +13,7 @@ describe('SystemHoverTip', () => {
         securityStatus={0.94}
         screenX={100}
         screenY={100}
+        anchorRadius={1.5}
         {...VIEWPORT}
       />,
     );
@@ -21,20 +22,44 @@ describe('SystemHoverTip', () => {
     expect(screen.getByText('0.9')).toBeInTheDocument();
   });
 
-  it('is positioned down and to the right of the dot', () => {
+  it('is centred across the dot and sits clear above it', () => {
     const { container } = render(
       <SystemHoverTip
         name="Jita"
         securityStatus={0.94}
         screenX={100}
         screenY={100}
+        anchorRadius={1.5}
+        {...VIEWPORT}
+      />,
+    );
+
+    // `left` is the dot's own x, and the class centres the real box on it — the
+    // width here is a guess, so placing a left edge from it would sit the tip
+    // off-centre by half the error. Above: 100 - the dot's 1.5 px radius - the
+    // 12 px gap - the 24 px height, so the system the tip names stays visible.
+    const tip = container.firstElementChild as HTMLElement;
+    expect(tip.style.left).toBe('100px');
+    expect(tip.style.top).toBe('62.5px');
+    expect(tip).toHaveClass('-translate-x-1/2');
+  });
+
+  // Away from an edge the clamp must not move it: the tip's centre is the dot.
+  it('sits on the dot rather than near it', () => {
+    const { container } = render(
+      <SystemHoverTip
+        name="Jita"
+        securityStatus={0.94}
+        screenX={412}
+        screenY={300}
+        anchorRadius={6}
         {...VIEWPORT}
       />,
     );
 
     const tip = container.firstElementChild as HTMLElement;
-    expect(tip.style.left).toBe('112px');
-    expect(tip.style.top).toBe('112px');
+    expect(tip.style.left).toBe('412px');
+    expect(tip.style.top).toBe('258px');
   });
 
   it('does not take pointer events, so it cannot block a drag', () => {
@@ -44,6 +69,7 @@ describe('SystemHoverTip', () => {
         securityStatus={0.94}
         screenX={100}
         screenY={100}
+        anchorRadius={1.5}
         {...VIEWPORT}
       />,
     );
@@ -58,6 +84,7 @@ describe('SystemHoverTip', () => {
         securityStatus={-0.99}
         screenX={10}
         screenY={10}
+        anchorRadius={1.5}
         {...VIEWPORT}
       />,
     );

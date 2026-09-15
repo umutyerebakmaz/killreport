@@ -18,6 +18,7 @@ import { framingFor } from '@/utils/map/framing';
 import { labelCandidates, placeLabels } from '@/utils/map/labels';
 import { layerVisibility, lodBucket, visibleLabelTiers } from '@/utils/map/lod';
 import { boundsCenter, nearestNode, originFor } from '@/utils/map/origin';
+import { systemFloorPx, systemRadiusPx } from '@/utils/map/marks';
 import { pickSystem, type PickTarget } from '@/utils/map/pick';
 import { gateNeighbours } from '@/utils/map/topology';
 import { isWebgl2Available } from '@/utils/map/webgl';
@@ -184,6 +185,9 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
         name: node.name,
         x: node.x,
         z: node.z,
+        // The label is held clear of the dot, and past the zoom ramp's cap the
+        // dot is this radius rather than the floor.
+        radius: node.radius,
       })),
     [geometry],
   );
@@ -224,9 +228,14 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       // download.
       setSceneReady(true);
       setCanvas(built.app.canvas);
+      // `app.screen`, not `renderer.width`: the renderer reports physical pixels
+      // — CSS size times the resolution — while the camera, the pointer and the
+      // label placement all work in CSS pixels. On a HiDPI screen the two differ
+      // by the device pixel ratio, and reading the wrong one would fit the map
+      // to a viewport twice the real size and put every hit test out by half.
       setSize({
-        width: built.app.renderer.width,
-        height: built.app.renderer.height,
+        width: built.app.screen.width,
+        height: built.app.screen.height,
       });
       // Generated once per session; the guard inside makes a second call free.
       // Fired here without blocking the lines above: `fontsReady` is what the
@@ -506,22 +515,34 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     >
       {/* No tip over the selected system: the popup already says its name, and
           larger. */}
-      {hovered && hovered.node.systemId !== selected && (
+      {hovered && camera && hovered.node.systemId !== selected && (
         <SystemHoverTip
           name={hovered.node.name}
           securityStatus={hovered.node.securityStatus}
           screenX={hovered.screenX}
           screenY={hovered.screenY}
+          anchorRadius={systemRadiusPx(
+            hovered.node.radius,
+            zoomToScale(camera.zoom),
+            systemFloorPx(camera.zoom),
+          )}
           viewportWidth={size.width}
           viewportHeight={size.height}
         />
       )}
 
-      {selectedNode && transform && (
+      {selectedNode && transform && camera && (
         <SystemPopup
           systemId={selectedNode.systemId}
           screenX={selectedNode.x * transform.scaleX + transform.x}
           screenY={selectedNode.z * transform.scaleY + transform.y}
+          // The disc the panel has to clear. Same rule the labels use, so the
+          // two never disagree about how big a system is drawn.
+          anchorRadius={systemRadiusPx(
+            selectedNode.radius,
+            zoomToScale(camera.zoom),
+            systemFloorPx(camera.zoom),
+          )}
           viewportWidth={size.width}
           viewportHeight={size.height}
           onClose={() => setSelected(null)}

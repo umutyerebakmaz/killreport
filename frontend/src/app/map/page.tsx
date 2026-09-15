@@ -26,22 +26,22 @@ function MapContent() {
   // /map?scope=POCHVEN link would otherwise be swallowed. That was #201.
   const scope = parseScope(searchParams);
 
-  // The map is the only page that wants the whole viewport. Rather than change
-  // the header's height for every other page, it cancels main's own padding:
-  // main is a flex-1 child of a full-height column, so 100% of its content box
-  // plus the 4rem of vertical padding taken back is exactly what is left over
-  // between header and footer.
+  // `data-full-bleed` takes main's padding and its 120rem max-width off for this
+  // page alone — the rule is in globals.css, next to the reasoning. Without it
+  // the map is letterboxed on any screen wider than 1920px, and the negative
+  // margins that used to stand in for it had to mirror main's four padding
+  // steps by hand.
   //
-  // The min-height is the floor under that, and it is what keeps the map from
-  // arriving short. body is 100% tall and a flex column, so main as flex-1 gets
-  // whatever the header and footer leave — and the footer is tall (pt-16 rising
-  // to lg:pt-32 over a four-column grid). Every other page pushes main past that
-  // allocation with its own content; the map cannot, because its height is a
-  // percentage of the squeezed value. 4.75rem is the header: the nav's p-6 (3rem)
-  // plus its size-7 icon (1.75rem). svh rather than vh so a mobile URL bar
-  // collapsing does not change the floor mid-scroll.
+  // The min-height is the floor that keeps the map from arriving short. body is
+  // 100% tall and a flex column, so main as flex-1 gets whatever the header and
+  // footer leave — and the footer is tall (pt-16 rising to lg:pt-32 over a
+  // four-column grid). Every other page pushes main past that allocation with
+  // its own content; the map cannot, because its height is a percentage of the
+  // squeezed value. 4.75rem is the header: the nav's p-6 (3rem) plus its size-7
+  // icon (1.75rem). svh rather than vh so a mobile URL bar collapsing does not
+  // change the floor mid-scroll.
   return (
-    <div className="-mx-6 -my-8 h-[calc(100%+4rem)] min-h-[calc(100svh-4.75rem)] lg:-mx-8 xl:-mx-12 2xl:-mx-16">
+    <div data-full-bleed className="h-full min-h-[calc(100svh-4.75rem)]">
       <UniverseMap scope={scope} />
     </div>
   );
