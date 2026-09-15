@@ -3,6 +3,18 @@ import { Application, Container, Graphics, Texture } from 'pixi.js';
 /** The texture is drawn once at this radius; every mark counter-scales from it. */
 export const DOT_TEXTURE_RADIUS = 32;
 
+/**
+ * The backing-store scale, capped at 2.
+ *
+ * One function rather than a constant read twice: the renderer and the label
+ * atlas must agree, and on a 3x phone an uncapped atlas against a capped canvas
+ * is the same minification the cap was added to remove. A 3x backing store costs
+ * 2.25x the fragments for a difference nobody can see.
+ */
+export function renderResolution(): number {
+  return Math.min(window.devicePixelRatio || 1, 2);
+}
+
 export interface MapScene {
   app: Application;
   world: Container;
@@ -29,7 +41,34 @@ export async function createScene(host: HTMLElement): Promise<MapScene> {
   // `bg-ground`, and the canvas covers it. Painting the canvas would restate
   // that colour in a second place, where it can only drift from the
   // `--color-ground` token the rest of the page is built on.
-  await app.init({ backgroundAlpha: 0, resizeTo: host, antialias: true });
+  await app.init({
+    backgroundAlpha: 0,
+    resizeTo: host,
+    antialias: true,
+    // Pixi defaults `resolution` to 1 and `autoDensity` to false, which on a
+    // HiDPI screen draws the whole canvas at CSS size and lets the browser
+    // upscale it. Labels suffered twice over: the bitmap atlas is rasterised at
+    // devicePixelRatio, so a glyph was minified into a 1x canvas and then
+    // magnified back out by the compositor — two resamplings, and the reason the
+    // names read as mud rather than type.
+    //
+    // Capped at 2: a 3x phone costs 2.25x the fragments for a difference no one
+    // can see. `autoDensity` is what keeps the CSS size of the canvas where the
+    // layout put it while the backing store grows.
+    autoDensity: true,
+    resolution: renderResolution(),
+    // Nothing here uses Pixi's event system: `useMapPointer` binds native
+    // listeners to the canvas and `pickSystem` does the hit testing in screen
+    // space, because a counter-scaled sprite would need 5,241 hitAreas rewritten
+    // at every zoom. Leaving the federated events on would walk the scene graph
+    // on every pointermove for results nothing reads.
+    eventFeatures: {
+      move: false,
+      globalMove: false,
+      click: false,
+      wheel: false,
+    },
+  });
   host.appendChild(app.canvas);
 
   const world = new Container();

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   CELESTIAL_TINT,
   GATE_ALPHA,
+  LABEL_TINT,
   GATE_TINT,
   hexToTint,
   SECURITY_RAMP,
@@ -55,5 +56,20 @@ describe('gate and celestial colours', () => {
     expect(CELESTIAL_TINT[MapCelestialKind.Gate]).toBe(0x4cc94c);
     expect(CELESTIAL_TINT[MapCelestialKind.Moon]).toBe(0x64748b);
     expect(CELESTIAL_TINT[MapCelestialKind.Belt]).toBe(0xa16207);
+  });
+});
+
+describe('LABEL_TINT', () => {
+  // Three tones were tried and reverted: over the galaxy there is no surface
+  // behind a name, so a receding tone read as washed out rather than quieter.
+  // The tier hierarchy is carried by size now, and this locks the tiers to one
+  // colour so a future tint lands on all three or on none.
+  it('is one colour for every tier', () => {
+    expect(LABEL_TINT.region).toBe(LABEL_TINT.constellation);
+    expect(LABEL_TINT.constellation).toBe(LABEL_TINT.system);
+  });
+
+  it('is white, which is the brightest a tint can leave the atlas', () => {
+    expect(LABEL_TINT.system).toBe(0xffffff);
   });
 });

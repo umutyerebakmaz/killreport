@@ -41,6 +41,29 @@ html {
   color-scheme: dark;
 }
 
+/*
+ * The full-bleed escape hatch, for the map.
+ *
+ * `main` is `mx-auto max-w-480` — 120rem — so past 1920px it centres and leaves
+ * a gutter either side, and it carries the horizontal padding every other page
+ * wants. The map is the only page that wants the whole viewport, and it used to
+ * buy that with four negative margins mirroring main's four padding steps: a
+ * duplication that silently breaks the day one of them moves, and one that
+ * could cancel the padding but never the max-width.
+ *
+ * Opening the container is the other direction, and it has no arithmetic to
+ * keep in sync. `calc(50% - 50vw)` was the alternative and is worse: `100vw`
+ * counts the scrollbar gutter, so the page would gain a horizontal overflow of
+ * whatever the scrollbar measures.
+ *
+ * The child combinator is deliberate — `:has(> …)` asks about one element
+ * rather than the whole subtree.
+ */
+main:has(> [data-full-bleed]) {
+  max-width: none;
+  padding: 0;
+}
+
 body {
   font-weight: 400;
 }

@@ -50,6 +50,7 @@ function renderPopup(onClose = vi.fn()) {
       systemId={30000142}
       screenX={100}
       screenY={100}
+      anchorRadius={1.5}
       onClose={onClose}
       {...VIEWPORT}
     />,

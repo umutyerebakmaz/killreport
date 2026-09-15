@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { systemFloorPx, systemRadiusPx } from './marks';
 import {
   labelCandidates,
   LABEL_CHAR_WIDTH,
+  LABEL_DOT_GAP_PX,
   LABEL_LINE_HEIGHT,
   MAX_VISIBLE_LABELS,
   placeLabels,
@@ -48,8 +50,16 @@ describe('labelCandidates', () => {
       height: H,
     });
 
+    // The two centroid tiers lift by exactly their line height. The system tier
+    // takes the larger of that and the room its dot needs, so it is allowed to
+    // sit higher — never lower.
     for (const c of candidates) {
-      expect(c.screenY).toBeCloseTo(450 - LABEL_LINE_HEIGHT[c.tier], 6);
+      const lift = 450 - c.screenY;
+      if (c.tier === 'system') {
+        expect(lift).toBeGreaterThanOrEqual(LABEL_LINE_HEIGHT.system);
+      } else {
+        expect(lift).toBeCloseTo(LABEL_LINE_HEIGHT[c.tier], 6);
+      }
     }
 
     // And the lift really does differ per tier, which is why a filter working
@@ -92,7 +102,7 @@ describe('labelCandidates', () => {
   it('keeps a label near the bottom edge whose text is still on screen', () => {
     // The dot sits 12 px below the canvas, so its own box is clear of the
     // viewport and an unshifted clip would drop the name. The name is drawn a
-    // line height (16 px) above the dot, which puts its centre back on screen.
+    // line height above the dot, which puts its centre back on screen.
     const below = (H + 12 - transform.y) / transform.scaleY;
     const candidates = labelCandidates({
       tiers: ['region'],
@@ -271,5 +281,85 @@ describe('placeLabels', () => {
     const input = [box('A', 'region', 100, 100), box('B', 'region', 105, 100)];
     placeLabels(input);
     expect(input).toHaveLength(2);
+  });
+});
+
+describe('a system name clearing its own dot', () => {
+  /** A camera deep enough that the dot has grown past its floor. */
+  const deep = (zoom: number) => ({
+    scaleX: 2 ** zoom,
+    scaleY: -(2 ** zoom),
+    x: 700,
+    y: 450,
+  });
+
+  function systemAt(zoom: number, radius: number) {
+    const [c] = labelCandidates({
+      tiers: ['system'],
+      regions: [],
+      constellations: [],
+      systems: [{ id: 3, name: 'Jita', x: 0, z: 0, radius }],
+      transform: deep(zoom),
+      width: W,
+      height: H,
+    });
+    return c;
+  }
+
+  /** How far the glyph box's bottom edge sits above the dot's own edge. */
+  function clearance(c: LabelCandidate, zoom: number, radius: number) {
+    const dot = systemRadiusPx(radius, 2 ** zoom, systemFloorPx(zoom));
+    const bottomEdge = c.screenY + c.halfHeight;
+    return 450 - dot - bottomEdge;
+  }
+
+  // The dots grow with the camera now, and a lift fixed at one line height put
+  // the glyphs inside the disc as soon as it passed 5.5 px.
+  it('keeps the gap as the dot grows under it', () => {
+    for (const zoom of [-45.73, -42, -40, -38]) {
+      const c = systemAt(zoom, 3.8809e12);
+      expect(clearance(c, zoom, 3.8809e12)).toBeGreaterThanOrEqual(
+        LABEL_DOT_GAP_PX - 1e-9,
+      );
+    }
+  });
+
+  // Past the cap the disc is the system's own radius, not the floor, and the
+  // name has to clear that too. At INTERIOR_ZOOM the median system is 49.85 px
+  // across — the figure lod.ts derives that threshold from.
+  it('clears a disc far larger than the floor', () => {
+    const zoom = -36.18;
+    const radius = 3.8809e12;
+    const c = systemAt(zoom, radius);
+    expect(systemRadiusPx(radius, 2 ** zoom, systemFloorPx(zoom))).toBeCloseTo(
+      49.85,
+      1,
+    );
+    expect(clearance(c, zoom, radius)).toBeGreaterThanOrEqual(
+      LABEL_DOT_GAP_PX - 1e-9,
+    );
+  });
+
+  // The line height is a floor on the lift, never a reduction of it. With the
+  // gap at 7 the clearance term is what binds at every zoom, so the lift at the
+  // galaxy view is exactly half a line plus the dot's floor plus the gap — and
+  // that is the arithmetic a change to any of the three has to move.
+  it('is the clearance term, and never less than the line height', () => {
+    const lift = 450 - systemAt(-50, 3.8809e12).screenY;
+
+    expect(lift).toBeGreaterThanOrEqual(LABEL_LINE_HEIGHT.system);
+    expect(lift).toBeCloseTo(
+      LABEL_LINE_HEIGHT.system / 2 + systemFloorPx(-50) + LABEL_DOT_GAP_PX,
+      6,
+    );
+  });
+
+  it('rises monotonically as the camera comes in', () => {
+    let previousLift = 0;
+    for (let zoom = -50; zoom <= -36; zoom += 0.5) {
+      const lift = 450 - systemAt(zoom, 3.8809e12).screenY;
+      expect(lift).toBeGreaterThanOrEqual(previousLift);
+      previousLift = lift;
+    }
   });
 });

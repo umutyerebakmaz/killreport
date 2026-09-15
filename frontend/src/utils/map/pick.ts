@@ -1,5 +1,5 @@
 import type { CameraTransform } from './camera';
-import { systemRadiusPx } from './marks';
+import { systemFloorPx, systemRadiusPx } from './marks';
 
 /**
  * The smallest clickable radius, in pixels.
@@ -16,9 +16,25 @@ import { systemRadiusPx } from './marks';
  */
 export const MIN_PICK_RADIUS_PX = 6;
 
-/** Whatever the dot actually occupies on screen, floored so it can be hit. */
-export function pickRadiusPx(worldRadius: number, cameraScale: number): number {
-  return Math.max(systemRadiusPx(worldRadius, cameraScale), MIN_PICK_RADIUS_PX);
+/**
+ * Whatever the dot actually occupies on screen, floored so it can be hit.
+ *
+ * Built from the drawn radius rather than from the data alone, so the target can
+ * never be smaller than the mark: SYSTEM_MAX_FLOOR_PX is 6 and so is this floor,
+ * which means they meet exactly where the zoom ramp stops. Raising the drawn cap
+ * without raising this one would put a dot on screen larger than its own
+ * clickable area, and the expression below is what keeps that from being
+ * possible rather than merely unlikely.
+ */
+export function pickRadiusPx(
+  worldRadius: number,
+  cameraScale: number,
+  floorPx: number,
+): number {
+  return Math.max(
+    systemRadiusPx(worldRadius, cameraScale, floorPx),
+    MIN_PICK_RADIUS_PX,
+  );
 }
 
 /** What picking needs from a node: where it is, how big, and what to show. */
@@ -72,8 +88,12 @@ export function pickSystem({
   let best: PickTarget | null = null;
   let bestDistance = Infinity;
 
+  // One value for the whole scan, exactly as in scaleSystems: the floor depends
+  // on the zoom alone, not on the node.
+  const floorPx = systemFloorPx(Math.log2(cameraScale));
+
   for (const node of nodes) {
-    const radius = pickRadiusPx(node.radius, cameraScale);
+    const radius = pickRadiusPx(node.radius, cameraScale, floorPx);
 
     const screenX = node.x * transform.scaleX + transform.x;
     const dx = screenX - pointerX;
