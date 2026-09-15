@@ -1,20 +1,66 @@
 import type { MapCelestial, MapEdge, MapNode } from '@/generated/graphql';
+import type { LabelTier } from '@/utils/map/lod';
 import { toLocal, type MapOrigin } from '@/utils/map/origin';
 
 export interface EdgeSegment {
   from: [number, number];
   to: [number, number];
   /**
-   * Whether the two systems sit in different regions. Decided here, on the
-   * `regionId` every node already carries, because this is the only place that
-   * holds both ends of an edge at once — and it costs the mesh nothing, so the
-   * focused neighbourhood gets the same answer as the galaxy.
+   * The region at each end, in the order the edge names them. Read here, from
+   * the `regionId` every node already carries, because this is the only place
+   * that holds both ends of an edge at once — and it costs the mesh nothing,
+   * so the focused neighbourhood gets the same answer as the galaxy.
    *
-   * The region boundary rather than the constellation one: 370 of the 6,989
-   * gate pairs cross it against 1,285 for a constellation, and a mark that
-   * lands on a fifth of the mesh is texture rather than a border.
+   * The pair rather than a `crossesRegion` boolean, which is what this was:
+   * the dashes only need to know whether the two differ, but the hover
+   * highlight needs to know WHICH region an edge belongs to, and one field
+   * that answers both cannot fall out of step with itself.
    */
-  crossesRegion: boolean;
+  regions: [number, number];
+  /** The same at the finer tier, for the constellation highlight. */
+  constellations: [number, number];
+}
+
+/** The two label tiers that stand for an area a highlight can fill. */
+export type MapAreaTier = Exclude<LabelTier, 'system'>;
+
+export interface MapArea {
+  tier: MapAreaTier;
+  id: number;
+}
+
+/**
+ * Whether an edge leaves its region, which is what the mesh draws as dashes.
+ *
+ * The region boundary rather than the constellation one: 370 of the 6,989 gate
+ * pairs cross it against 1,285 for a constellation, and a mark that lands on a
+ * fifth of the mesh is texture rather than a border.
+ */
+export function crossesRegion(segment: EdgeSegment): boolean {
+  return segment.regions[0] !== segment.regions[1];
+}
+
+/**
+ * The edges between the systems of one area — both ends inside it.
+ *
+ * An edge that leaves the area is dropped rather than half-claimed. Half of it
+ * belongs to the neighbour, and a lit line running out of the highlighted area
+ * would blur the shape the highlight exists to show; leaving the border unlit
+ * is what outlines the area instead.
+ *
+ * One function for both tiers rather than one each: the rule is the same
+ * sentence at either scale, and two copies of it would be two places for the
+ * "both ends" half to be forgotten.
+ */
+export function areaSegments(
+  segments: EdgeSegment[],
+  area: MapArea,
+): EdgeSegment[] {
+  return segments.filter((segment) => {
+    const [from, to] =
+      area.tier === 'region' ? segment.regions : segment.constellations;
+    return from === area.id && to === area.id;
+  });
 }
 
 /**
@@ -69,7 +115,8 @@ export function edgeSegments(
     segments.push({
       from: endpoint(from, edge.to),
       to: endpoint(to, edge.from),
-      crossesRegion: from.regionId !== to.regionId,
+      regions: [from.regionId, to.regionId],
+      constellations: [from.constellationId, to.constellationId],
     });
   }
 

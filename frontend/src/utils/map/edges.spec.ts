@@ -1,6 +1,6 @@
 import type { MapEdge, MapNode } from '@/generated/graphql';
 import { describe, expect, it } from 'vitest';
-import { edgeSegments, localEdges } from './edges';
+import { areaSegments, crossesRegion, edgeSegments, localEdges } from './edges';
 
 function node(
   systemId: number,
@@ -32,7 +32,12 @@ describe('edgeSegments', () => {
 
   it('resolves both endpoints into origin-local metres', () => {
     expect(edgeSegments(edges, nodes, origin)).toEqual([
-      { from: [5e16, -5e16], to: [-5e16, 5e16], crossesRegion: false },
+      {
+        from: [5e16, -5e16],
+        to: [-5e16, 5e16],
+        regions: [10000001, 10000001],
+        constellations: [20000001, 20000001],
+      },
     ]);
   });
 
@@ -47,30 +52,28 @@ describe('edgeSegments', () => {
     expect(edgeSegments([], nodes, origin)).toEqual([]);
   });
 
-  it('marks an edge whose ends are in different regions', () => {
-    // 370 of the 6,989 gate pairs cross a region boundary. The flag is what
-    // the mesh strokes as a dashed line rather than a solid one.
-    const across = [
-      node(1, 1.5e17, -2.5e17),
-      node(2, 0.5e17, -1.5e17, { regionId: 10000002 }),
-    ];
-
-    expect(edgeSegments(edges, across, origin)[0].crossesRegion).toBe(true);
-  });
-
-  it('leaves an edge inside one region unmarked', () => {
-    expect(edgeSegments(edges, nodes, origin)[0].crossesRegion).toBe(false);
-  });
-
-  it('does not mark a constellation boundary inside one region', () => {
-    // 915 pairs change constellation without leaving the region. They were
-    // the dashed set once; they are ordinary jumps now.
+  it('carries the constellation at each end too, for the finer highlight', () => {
     const across = [
       node(1, 1.5e17, -2.5e17),
       node(2, 0.5e17, -1.5e17, { constellationId: 20000002 }),
     ];
 
-    expect(edgeSegments(edges, across, origin)[0].crossesRegion).toBe(false);
+    expect(edgeSegments(edges, across, origin)[0].constellations).toEqual([
+      20000001, 20000002,
+    ]);
+  });
+
+  it('carries the region at each end, in the order the edge names them', () => {
+    // Both ends, not a boolean: the dashes need to know whether they differ
+    // and the hover highlight needs to know which two they are.
+    const across = [
+      node(1, 1.5e17, -2.5e17),
+      node(2, 0.5e17, -1.5e17, { regionId: 10000002 }),
+    ];
+
+    expect(edgeSegments(edges, across, origin)[0].regions).toEqual([
+      10000001, 10000002,
+    ]);
   });
 });
 
@@ -96,7 +99,12 @@ describe('edgeSegments with loaded gates', () => {
 
   it('leaves both ends at the system centres when no interior is loaded', () => {
     expect(edgeSegments(gateEdges, gateNodes, gateOrigin)).toEqual([
-      { from: [0, 0], to: [1e16, 0], crossesRegion: false },
+      {
+        from: [0, 0],
+        to: [1e16, 0],
+        regions: [10000001, 10000001],
+        constellations: [20000001, 20000001],
+      },
     ]);
   });
 
@@ -171,5 +179,80 @@ describe('localEdges', () => {
 
   it('does not care about the order of the ids', () => {
     expect(localEdges(edges, [3, 2])).toEqual([{ from: 2, to: 3 }]);
+  });
+});
+
+describe('crossesRegion', () => {
+  const segment = (a: number, b: number) => ({
+    from: [0, 0] as [number, number],
+    to: [1, 1] as [number, number],
+    regions: [a, b] as [number, number],
+    constellations: [20000001, 20000001] as [number, number],
+  });
+
+  it('is true for the 370 pairs whose ends are in different regions', () => {
+    expect(crossesRegion(segment(10000001, 10000002))).toBe(true);
+  });
+
+  it('is false inside one region, constellation boundary or not', () => {
+    // 915 pairs change constellation without leaving the region. They are
+    // ordinary jumps: only the region boundary is drawn.
+    expect(crossesRegion(segment(10000001, 10000001))).toBe(false);
+  });
+});
+
+describe('areaSegments', () => {
+  const base = {
+    from: [0, 0] as [number, number],
+    to: [1, 1] as [number, number],
+    regions: [10000001, 10000001] as [number, number],
+    constellations: [20000001, 20000001] as [number, number],
+  };
+  const leavingRegion = {
+    ...base,
+    regions: [10000001, 10000002] as [number, number],
+    constellations: [20000001, 20000002] as [number, number],
+  };
+  const nextConstellation = {
+    ...base,
+    constellations: [20000002, 20000002] as [number, number],
+  };
+
+  const region = (id: number) => ({ tier: 'region' as const, id });
+  const constellation = (id: number) => ({
+    tier: 'constellation' as const,
+    id,
+  });
+
+  it('keeps the edges between the systems of one region', () => {
+    expect(areaSegments([base, leavingRegion], region(10000001))).toEqual([
+      base,
+    ]);
+  });
+
+  it('keeps the edges between the systems of one constellation', () => {
+    expect(
+      areaSegments([base, nextConstellation], constellation(20000001)),
+    ).toEqual([base]);
+  });
+
+  it('reads the tier it is asked about, not the one it happens to match', () => {
+    // The two ids come from different namespaces, so a filter that ignored the
+    // tier would still look right on this data until a region and a
+    // constellation happened to share a number.
+    expect(areaSegments([base], constellation(10000001))).toEqual([]);
+    expect(areaSegments([base], region(20000001))).toEqual([]);
+  });
+
+  it('drops an edge that leaves the area at either tier', () => {
+    // Half of it belongs to the neighbour, and a lit line running out of the
+    // highlighted area would blur the shape the highlight exists to show. The
+    // border stays unlit, which is what outlines the area.
+    expect(areaSegments([leavingRegion], region(10000001))).toEqual([]);
+    expect(areaSegments([leavingRegion], constellation(20000001))).toEqual([]);
+  });
+
+  it('returns nothing for an area with no edges on this map', () => {
+    expect(areaSegments([base], region(10009999))).toEqual([]);
   });
 });

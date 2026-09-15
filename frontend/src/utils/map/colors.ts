@@ -43,6 +43,59 @@ export const GATE_TINT = 0x94a3b8;
 export const GATE_ALPHA = 140 / 255;
 
 /**
+ * The page behind the canvas — `--color-ground`, which is Tailwind's gray-950.
+ * Named here because the gate line is drawn at 0.55 alpha, so what a reader
+ * actually sees is this blended with GATE_TINT, and the highlight below is
+ * defined relative to what is seen.
+ */
+export const GROUND_TINT = 0x030712;
+
+/**
+ * How much lighter a hovered region's lines are than the same lines were a
+ * moment earlier, as a fraction of the distance to white.
+ *
+ * The first version of this was plain white at full alpha, which is a 100%
+ * lift and read as a different material rather than the same lines lit. 0.4 is
+ * the middle of the 30-50% band that replaced it: the region separates at a
+ * glance and still belongs to the map.
+ *
+ * A judgement, not a measurement. Tune by looking.
+ */
+export const HIGHLIGHT_LIFT = 0.4;
+
+/** Per channel, `amount` of the way from one tint to the other. */
+export function mixTint(from: number, to: number, amount: number): number {
+  let mixed = 0;
+  for (const shift of [16, 8, 0]) {
+    const a = (from >> shift) & 0xff;
+    const b = (to >> shift) & 0xff;
+    mixed |= Math.round(a + (b - a) * amount) << shift;
+  }
+  return mixed >>> 0;
+}
+
+/**
+ * The gate line as it reads on the page: GATE_TINT already composited over the
+ * ground at GATE_ALPHA. Lifting from here rather than from GATE_TINT is what
+ * makes HIGHLIGHT_LIFT mean what it says — the raw tint is a colour nothing on
+ * screen is.
+ */
+export const GATE_ON_GROUND = mixTint(GROUND_TINT, GATE_TINT, GATE_ALPHA);
+
+/**
+ * Derived rather than written as a hex, so the lift stays a lift if the gate
+ * line's own colour or alpha is ever retuned.
+ *
+ * At 0.4 this lands on #989EA7, a few steps from GATE_TINT itself — so the
+ * highlight is very nearly the gate colour with its veil taken off, and no
+ * second colour enters the palette.
+ */
+export const HIGHLIGHT_TINT = mixTint(GATE_ON_GROUND, 0xffffff, HIGHLIGHT_LIFT);
+
+/** Opaque: the lift is carried by the colour, so the alpha has nothing to say. */
+export const HIGHLIGHT_ALPHA = 1;
+
+/**
  * Phase 2's palette, unchanged. Three are inherited from the shipped SVGs —
  * star #FFF4EA and planet #9CA3AF from solar-system-map-svg.ts, gate #4CC94C
  * from star-map-svg.ts — and three were chosen because those SVGs draw no

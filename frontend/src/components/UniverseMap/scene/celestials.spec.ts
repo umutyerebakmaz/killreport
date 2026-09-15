@@ -21,6 +21,7 @@ function fakeScene(): MapScene {
     app: null as unknown as MapScene['app'],
     world: new Container(),
     edgesGalaxy: null as unknown as MapScene['edgesGalaxy'],
+    edgesHighlight: null as unknown as MapScene['edgesHighlight'],
     edgesLocal: null as unknown as MapScene['edgesLocal'],
     systems: new Container(),
     celestials: new Container(),

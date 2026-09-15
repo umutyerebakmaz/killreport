@@ -26,6 +26,10 @@
   /* Over the galaxy there is nothing behind a name, so the halo is what keeps
      one legible where it crosses a gate line or a dot. */
   text-shadow: 0 0 3px rgb(0 0 0 / 0.9);
+  /* A name is a mark on the map, not prose. Without this a drag that starts on
+     one selects its text instead of panning, and the pointer arrives as an
+     I-beam offering to do it. */
+  user-select: none;
   opacity: 0;
   /* Visibility transitions discretely: it flips at the START coming in, so a
      name is present for the whole fade in, and at the END going out, so it
@@ -46,6 +50,17 @@
 }
 
 .map-label--system {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* An area name takes pointer events so hovering it can light that area's own
+   gate lines. The same hand a system name shows: the argument for leaving it
+   off was that a hover promises no click, but what the reader compares it
+   against is the other names, and a name that takes the pointer differently
+   from its neighbours reads as broken. */
+.map-label--region,
+.map-label--constellation {
   pointer-events: auto;
   cursor: pointer;
 }

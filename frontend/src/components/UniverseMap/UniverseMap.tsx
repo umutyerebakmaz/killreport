@@ -13,7 +13,12 @@ import {
   zoomLimits,
   zoomToScale,
 } from '@/utils/map/camera';
-import { edgeSegments, localEdges } from '@/utils/map/edges';
+import {
+  areaSegments,
+  edgeSegments,
+  localEdges,
+  type MapArea,
+} from '@/utils/map/edges';
 import { framingFor } from '@/utils/map/framing';
 import { labelCandidates, placeLabels } from '@/utils/map/labels';
 import { layerVisibility, lodBucket, visibleLabelTiers } from '@/utils/map/lod';
@@ -38,7 +43,7 @@ import {
   type CelestialSprites,
 } from './scene/celestials';
 import { createScene, type MapScene } from './scene/createScene';
-import { drawEdges } from './scene/edges';
+import { drawEdges, drawHighlight } from './scene/edges';
 import {
   buildSystems,
   scaleSystems,
@@ -100,6 +105,13 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // The hovered system is held as a full PickTarget: the tip follows the
   // cursor, so its position is refreshed by the next hover anyway.
   const [hovered, setHovered] = useState<PickTarget | null>(null);
+
+  // The area — a region or a constellation — whose name the pointer is resting
+  // on, or null. A hover, so it is never anything to dismiss: the map returns
+  // to itself when the pointer moves off the name. `useMapPointer` hands back
+  // the same object while the pointer stays on one name, which is what keeps
+  // the effect below from redrawing on every move.
+  const [highlighted, setHighlighted] = useState<MapArea | null>(null);
 
   // Static universe data behind a 24 hour Redis key and a STATIC_GAME_DATA
   // response cache: cache-first is overridden here at the call site rather than
@@ -453,20 +465,48 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // and never run again: a permanently blank map. `scene.current` is always
   // set synchronously before `setSceneReady(true)` is called, so by the time
   // this effect re-runs in response to the flag, the ref is never stale.
+  //
+  // The segments are memoised rather than resolved inside the effect because
+  // the highlight below filters the same list: recomputing 6,989 endpoint
+  // pairs on every pointer move across a region name would undo the point of
+  // holding the mesh still.
+  const galaxyMesh = useMemo(() => {
+    if (!geometry) return null;
+    const origin = boundsCenter(geometry.bounds);
+    return {
+      origin,
+      segments: edgeSegments(geometry.edges, geometry.nodes, origin),
+    };
+  }, [geometry]);
+
   useEffect(() => {
-    if (!scene.current || !geometry) return;
+    if (!scene.current || !geometry || !galaxyMesh) return;
     systemSprites.current = buildSystems(
       scene.current,
       geometry.nodes,
       cameraScale.current,
     );
-    const centre = boundsCenter(geometry.bounds);
     drawEdges(
       scene.current.edgesGalaxy,
-      edgeSegments(geometry.edges, geometry.nodes, centre),
-      centre,
+      galaxyMesh.segments,
+      galaxyMesh.origin,
     );
-  }, [sceneReady, geometry]);
+  }, [sceneReady, geometry, galaxyMesh]);
+
+  // The hovered area's own mesh, lifted, over the galaxy one. Rebuilt on every
+  // change of the hovered area and on nothing else: a region is 99 edges on
+  // average and 260 at the busiest, a constellation 7.5 and 19, against the
+  // 14,400 segments the galaxy mesh holds still.
+  useEffect(() => {
+    if (!scene.current || !galaxyMesh) return;
+    drawHighlight(
+      scene.current.edgesHighlight,
+      highlighted === null
+        ? []
+        : areaSegments(galaxyMesh.segments, highlighted),
+      galaxyMesh.origin,
+    );
+  }, [sceneReady, galaxyMesh, highlighted]);
 
   // The focused neighbourhood: at most 9 systems, so the mesh is small and its
   // vertices are focus-local rather than scene-local.
@@ -503,6 +543,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     if (!scene.current) return;
     const v = layerVisibility(bucket);
     scene.current.edgesGalaxy.visible = v.edgesGalaxy;
+    scene.current.edgesHighlight.visible = v.edgesHighlight;
     scene.current.edgesLocal.visible = v.edgesLocal;
     scene.current.systems.visible = v.systems;
     scene.current.celestials.visible = v.celestials;
@@ -551,6 +592,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
         setSelected(target ? target.node.systemId : null);
       },
       onSelectSystem: (systemId) => setSelected(systemId),
+      onHoverArea: setHighlighted,
     };
   }, [transform, pickNodes, setSelected]);
 

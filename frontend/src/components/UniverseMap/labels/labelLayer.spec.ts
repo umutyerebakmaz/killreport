@@ -46,6 +46,39 @@ describe('drawLabels', () => {
     );
   });
 
+  it('stamps the region id onto a region name, and only onto one', () => {
+    drawLabels(layer, [
+      candidate({
+        key: 'region:10000002',
+        tier: 'region',
+        name: 'The Forge',
+        systemId: undefined,
+        regionId: 10000002,
+      }),
+      candidate(),
+    ]);
+
+    const [region, system] = [...layer.root.querySelectorAll('span')];
+    expect(region.dataset.mapRegion).toBe('10000002');
+    expect(system.dataset.mapRegion).toBeUndefined();
+  });
+
+  it('stamps the constellation id onto a constellation name', () => {
+    drawLabels(layer, [
+      candidate({
+        key: 'constellation:20000020',
+        tier: 'constellation',
+        name: 'Kimotoro',
+        systemId: undefined,
+        constellationId: 20000020,
+      }),
+    ]);
+
+    const el = layer.root.querySelector('span')!;
+    expect(el.dataset.mapConstellation).toBe('20000020');
+    expect(el.dataset.mapRegion).toBeUndefined();
+  });
+
   it('uppercases a region name', () => {
     drawLabels(layer, [
       candidate({

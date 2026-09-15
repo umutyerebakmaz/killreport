@@ -18,6 +18,7 @@ export interface MapScene {
   app: Application;
   world: Container;
   edgesGalaxy: Graphics;
+  edgesHighlight: Graphics;
   edgesLocal: Graphics;
   systems: Container;
   celestials: Container;
@@ -31,7 +32,8 @@ export interface MapScene {
  * root container's transform.
  *
  * Child order is draw order: gates under systems, so a dot is never hidden by
- * a line.
+ * a line — and the hovered region's mesh over the galaxy one but still under
+ * the systems, so the highlight covers the grey without ever covering a dot.
  */
 export async function createScene(host: HTMLElement): Promise<MapScene> {
   const app = new Application();
@@ -71,10 +73,11 @@ export async function createScene(host: HTMLElement): Promise<MapScene> {
   app.stage.addChild(world);
 
   const edgesGalaxy = new Graphics();
+  const edgesHighlight = new Graphics();
   const edgesLocal = new Graphics();
   const systems = new Container();
   const celestials = new Container();
-  world.addChild(edgesGalaxy, edgesLocal, systems, celestials);
+  world.addChild(edgesGalaxy, edgesHighlight, edgesLocal, systems, celestials);
 
   // A 64 px disc minified to the 1.5 px floor is a 21x reduction, and a single
   // mip level sampled that far down is what aliasing looks like: deck.gl's
@@ -96,6 +99,7 @@ export async function createScene(host: HTMLElement): Promise<MapScene> {
     app,
     world,
     edgesGalaxy,
+    edgesHighlight,
     edgesLocal,
     systems,
     celestials,

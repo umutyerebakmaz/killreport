@@ -5,9 +5,14 @@ import type { EdgeSegment } from './edges';
 function segment(
   from: [number, number],
   to: [number, number],
-  crossesRegion = true,
+  crossing = true,
 ): EdgeSegment {
-  return { from, to, crossesRegion };
+  return {
+    from,
+    to,
+    regions: crossing ? [10000001, 10000002] : [10000001, 10000001],
+    constellations: crossing ? [20000001, 20000002] : [20000001, 20000001],
+  };
 }
 
 /** The length a run of pieces covers, gaps excluded. */
@@ -67,7 +72,7 @@ describe('dashSegment', () => {
   it('carries the crossing flag onto every piece', () => {
     expect(
       dashSegment(segment([0, 0], [DASH_CELL_M * 3, 0])).every(
-        (p) => p.crossesRegion,
+        (p) => p.regions[0] !== p.regions[1],
       ),
     ).toBe(true);
   });
