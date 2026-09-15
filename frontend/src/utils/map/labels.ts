@@ -193,15 +193,17 @@ export function labelCandidates({
         // centre slides the name along the edge instead of dropping it.
         // Clamping rather than re-centring on the intersection: a clamp is
         // monotone, so the name slides where a re-centre would jump.
-        screenX = clamp(
+        screenX = clampAnchor(
           screenX,
-          Math.max(boxLeft, 0) + halfWidth,
-          Math.min(boxRight, width) - halfWidth,
+          Math.max(boxLeft, 0),
+          Math.min(boxRight, width),
+          halfWidth,
         );
-        screenY = clamp(
+        screenY = clampAnchor(
           screenY,
-          Math.max(boxTop, 0) + halfHeight,
-          Math.min(boxBottom, height) - halfHeight,
+          Math.max(boxTop, 0),
+          Math.min(boxBottom, height),
+          halfHeight,
         );
       }
 
@@ -291,6 +293,28 @@ export function placeLabels(
  * edge is a better answer than an inverted one.
  */
 function clamp(value: number, low: number, high: number): number {
-  if (high < low) return low;
   return Math.min(Math.max(value, low), high);
+}
+
+/**
+ * Puts the anchor in the part of `[low, high]` that can hold a label reaching
+ * `half` either side of it.
+ *
+ * When `[low, high]` is too narrow to hold one — the visible sliver of an area
+ * is narrower than its name — the name cannot sit inside it whatever we do, so
+ * the anchor is clamped into the sliver itself and the name overhangs it
+ * evenly. Insetting anyway would collapse the range and leave the anchor `half`
+ * past the near edge, drawing the name beside its own area rather than over it.
+ *
+ * `low <= high` always: the caller has already dropped a box that does not
+ * intersect the viewport, so both clamps below are well ordered.
+ */
+function clampAnchor(
+  value: number,
+  low: number,
+  high: number,
+  half: number,
+): number {
+  if (high - low < half * 2) return clamp(value, low, high);
+  return clamp(value, low + half, high - half);
 }
