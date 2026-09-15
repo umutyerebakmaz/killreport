@@ -1,5 +1,4 @@
 import { MapCelestialKind } from '@/generated/graphql';
-import type { LabelTier } from './lod';
 
 /**
  * EVE's security ramp, 0.0 to 1.0, one entry per tenth. Byte for byte the array
@@ -56,27 +55,4 @@ export const CELESTIAL_TINT: Record<MapCelestialKind, number> = {
   GATE: 0x4cc94c,
   MOON: 0x64748b,
   BELT: 0xa16207,
-};
-
-/**
- * The label tiers. One colour, white, for all three.
- *
- * The app's own text tones were tried first — gray-500, gray-400, gray-200 from
- * `globals.css`, the last being what `.system-name` is set in — on the reasoning
- * that the background tier should recede. On the map they were simply hard to
- * read: a name over the galaxy has no surface behind it, so a tone that reads as
- * "quieter" against a card reads as "washed out" against black. Reverted
- * 2026-09-15 after looking.
- *
- * The hierarchy is carried by size instead — 16 / 12 / 8, with region
- * uppercased and letter-spaced — which is a difference that survives being read
- * at a glance where a difference of tone did not.
- *
- * Kept as a record rather than collapsed to one constant: the tiers are what
- * a hovered group will tint, and that is where a second colour earns its place.
- */
-export const LABEL_TINT: Record<LabelTier, number> = {
-  region: 0xffffff,
-  constellation: 0xffffff,
-  system: 0xffffff,
 };
