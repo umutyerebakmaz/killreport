@@ -241,6 +241,45 @@ describe('labelCandidates', () => {
     expect(byTier.get('region')).toBeUndefined();
     expect(byTier.get('constellation')).toBeUndefined();
   });
+
+  it('carries a region id on the region tier and nowhere else', () => {
+    // The twin of the stamp above, one tier up: the hover highlight reads it
+    // to light that region's mesh. A constellation name carrying one would
+    // light up more of the map than the name covers.
+    const candidates = labelCandidates({
+      tiers: ['region', 'constellation', 'system'],
+      regions: [source(10000002, 'R', 0, 0)],
+      constellations: [source(20000020, 'C', 3e16, 0)],
+      systems: [source(30000142, 'S', 6e16, 0)],
+      measure,
+      transform,
+      width: W,
+      height: H,
+    });
+
+    const byTier = new Map(candidates.map((c) => [c.tier, c.regionId]));
+    expect(byTier.get('region')).toBe(10000002);
+    expect(byTier.get('constellation')).toBeUndefined();
+    expect(byTier.get('system')).toBeUndefined();
+  });
+
+  it('carries a constellation id on the constellation tier and nowhere else', () => {
+    const candidates = labelCandidates({
+      tiers: ['region', 'constellation', 'system'],
+      regions: [source(10000002, 'R', 0, 0)],
+      constellations: [source(20000020, 'C', 3e16, 0)],
+      systems: [source(30000142, 'S', 6e16, 0)],
+      measure,
+      transform,
+      width: W,
+      height: H,
+    });
+
+    const byTier = new Map(candidates.map((c) => [c.tier, c.constellationId]));
+    expect(byTier.get('constellation')).toBe(20000020);
+    expect(byTier.get('region')).toBeUndefined();
+    expect(byTier.get('system')).toBeUndefined();
+  });
 });
 
 describe('placeLabels', () => {

@@ -80,6 +80,15 @@ export function drawLabels(layer: LabelLayer, placed: LabelCandidate[]): void {
       if (candidate.systemId !== undefined) {
         el.dataset.mapSystem = String(candidate.systemId);
       }
+      // The same stamp at the two area tiers: useMapPointer reads whichever is
+      // there to light that area's own mesh while the pointer rests on its
+      // name.
+      if (candidate.regionId !== undefined) {
+        el.dataset.mapRegion = String(candidate.regionId);
+      }
+      if (candidate.constellationId !== undefined) {
+        el.dataset.mapConstellation = String(candidate.constellationId);
+      }
       layer.pool.set(candidate.key, el);
       layer.root.appendChild(el);
       appended = true;

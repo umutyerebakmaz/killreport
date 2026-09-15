@@ -1,3 +1,4 @@
+import type { MapArea } from '@/utils/map/edges';
 import { act, renderHook } from '@testing-library/react';
 import { zoomCameraAt, type MapCamera } from '@/utils/map/camera';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -200,6 +201,7 @@ describe('useMapPointer', () => {
     let onHoverSystem: ReturnType<typeof vi.fn<MapPick['onHoverSystem']>>;
     let onSelect: ReturnType<typeof vi.fn<MapPick['onSelect']>>;
     let onSelectSystem: ReturnType<typeof vi.fn<MapPick['onSelectSystem']>>;
+    let onHoverArea: ReturnType<typeof vi.fn<MapPick['onHoverArea']>>;
     let frames: FrameRequestCallback[];
 
     beforeEach(() => {
@@ -207,6 +209,7 @@ describe('useMapPointer', () => {
       onHoverSystem = vi.fn<(systemId: number) => void>();
       onSelect = vi.fn<(at: PointerPosition) => void>();
       onSelectSystem = vi.fn<(systemId: number) => void>();
+      onHoverArea = vi.fn<(area: MapArea | null) => void>();
       frames = [];
       // Deterministic rAF: the hook coalesces moves into one frame, and a real
       // rAF would make "how many times was onHover called" depend on timing.
@@ -236,6 +239,7 @@ describe('useMapPointer', () => {
           onHoverSystem,
           onSelect,
           onSelectSystem,
+          onHoverArea,
         }),
       );
     }
@@ -351,6 +355,181 @@ describe('useMapPointer', () => {
         host.appendChild(el);
         return el;
       }
+
+      /** An area name as `labelLayer` stamps it: the system tier's twin. */
+      function regionLabel(regionId: number) {
+        const el = document.createElement('span');
+        el.dataset.mapRegion = String(regionId);
+        host.appendChild(el);
+        return el;
+      }
+
+      function constellationLabel(constellationId: number) {
+        const el = document.createElement('span');
+        el.dataset.mapConstellation = String(constellationId);
+        host.appendChild(el);
+        return el;
+      }
+
+      it('reports a hover over a constellation name at its own tier', () => {
+        const name = constellationLabel(20000020);
+        mount();
+
+        act(() => {
+          name.dispatchEvent(pointerEvent('pointermove', 10, 10));
+          flushFrame();
+        });
+
+        expect(onHoverArea).toHaveBeenCalledWith({
+          tier: 'constellation',
+          id: 20000020,
+        });
+      });
+
+      it('swaps tiers when the pointer crosses from one name to the other', () => {
+        const region = regionLabel(10000002);
+        const constellation = constellationLabel(20000020);
+        mount();
+
+        act(() => {
+          region.dispatchEvent(pointerEvent('pointermove', 10, 10));
+          flushFrame();
+        });
+        act(() => {
+          constellation.dispatchEvent(pointerEvent('pointermove', 30, 10));
+          flushFrame();
+        });
+
+        expect(onHoverArea).toHaveBeenLastCalledWith({
+          tier: 'constellation',
+          id: 20000020,
+        });
+      });
+
+      it('hands back the same object while the pointer rests on one name', () => {
+        // The caller holds this in state and rebuilds a mesh from it. A fresh
+        // object per move would redraw that area dozens of times a second for
+        // an answer that never changed.
+        const name = constellationLabel(20000020);
+        mount();
+
+        act(() => {
+          name.dispatchEvent(pointerEvent('pointermove', 10, 10));
+          flushFrame();
+        });
+        act(() => {
+          name.dispatchEvent(pointerEvent('pointermove', 11, 11));
+          flushFrame();
+        });
+
+        const [first, second] = onHoverArea.mock.calls;
+        expect(second[0]).toBe(first[0]);
+      });
+
+      it('reports a hover over a region name by id', () => {
+        const name = regionLabel(10000002);
+        mount();
+
+        act(() => {
+          name.dispatchEvent(pointerEvent('pointermove', 10, 10));
+          flushFrame();
+        });
+
+        expect(onHoverArea).toHaveBeenCalledWith({
+          tier: 'region',
+          id: 10000002,
+        });
+        expect(onHoverSystem).not.toHaveBeenCalled();
+      });
+
+      it('clears the system hover while the pointer rests on a region name', () => {
+        // A name is drawn OVER the map, not part of it. Without this the tip
+        // for whatever the pointer last crossed stays up behind the name.
+        const name = regionLabel(10000002);
+        mount();
+
+        act(() => {
+          host.dispatchEvent(pointerEvent('pointermove', 12, 22));
+          flushFrame();
+        });
+        onHover.mockClear();
+
+        act(() => {
+          name.dispatchEvent(pointerEvent('pointermove', 10, 10));
+          flushFrame();
+        });
+
+        expect(onHover).toHaveBeenCalledWith(null);
+      });
+
+      it('drops the highlight when the pointer leaves the name', () => {
+        const name = regionLabel(10000002);
+        mount();
+
+        act(() => {
+          name.dispatchEvent(pointerEvent('pointermove', 10, 10));
+          flushFrame();
+        });
+        onHoverArea.mockClear();
+
+        act(() => {
+          host.dispatchEvent(pointerEvent('pointermove', 12, 22));
+          flushFrame();
+        });
+
+        expect(onHoverArea).toHaveBeenCalledWith(null);
+      });
+
+      it('drops the highlight when the pointer leaves the map', () => {
+        const name = regionLabel(10000002);
+        mount();
+
+        act(() => {
+          name.dispatchEvent(pointerEvent('pointermove', 10, 10));
+          flushFrame();
+        });
+        onHoverArea.mockClear();
+
+        act(() => {
+          host.dispatchEvent(new PointerEvent('pointerleave'));
+        });
+
+        expect(onHoverArea).toHaveBeenCalledWith(null);
+      });
+
+      it('reports one hover per frame across a region name and the canvas', () => {
+        // The third path shares the single frame the other two do, so crossing
+        // from a name onto empty space still reports once, for where the
+        // pointer ENDED.
+        const name = regionLabel(10000002);
+        mount();
+
+        act(() => {
+          name.dispatchEvent(pointerEvent('pointermove', 10, 10));
+          host.dispatchEvent(pointerEvent('pointermove', 12, 22));
+          flushFrame();
+        });
+
+        expect(onHoverArea).toHaveBeenCalledTimes(1);
+        expect(onHoverArea).toHaveBeenCalledWith(null);
+        expect(onHover).toHaveBeenCalledWith({ x: 12, y: 22 });
+      });
+
+      it('leaves a click on a region name to the hit test', () => {
+        // The highlight is a hover, not a selection: a region name carries no
+        // `data-map-system`, so a press on one still picks whatever is under
+        // the pointer.
+        const name = regionLabel(10000002);
+        mount();
+
+        act(() => {
+          name.dispatchEvent(pointerEvent('pointerdown', 10, 10));
+          name.dispatchEvent(pointerEvent('pointerup', 10, 10));
+        });
+
+        expect(onSelectSystem).not.toHaveBeenCalled();
+        expect(onSelect).toHaveBeenCalledWith({ x: 10, y: 10 });
+      });
 
       it('selects by id when the pointer goes up on a name', () => {
         const name = label(30000142);

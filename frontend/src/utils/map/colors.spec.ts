@@ -3,8 +3,12 @@ import { describe, expect, it } from 'vitest';
 import {
   CELESTIAL_TINT,
   GATE_ALPHA,
+  GATE_ON_GROUND,
   GATE_TINT,
   hexToTint,
+  HIGHLIGHT_LIFT,
+  HIGHLIGHT_TINT,
+  mixTint,
   SECURITY_RAMP,
   securityTint,
 } from './colors';
@@ -55,5 +59,45 @@ describe('gate and celestial colours', () => {
     expect(CELESTIAL_TINT[MapCelestialKind.Gate]).toBe(0x4cc94c);
     expect(CELESTIAL_TINT[MapCelestialKind.Moon]).toBe(0x64748b);
     expect(CELESTIAL_TINT[MapCelestialKind.Belt]).toBe(0xa16207);
+  });
+});
+
+describe('mixTint', () => {
+  it('returns each end at the ends', () => {
+    expect(mixTint(0x000000, 0xffffff, 0)).toBe(0x000000);
+    expect(mixTint(0x000000, 0xffffff, 1)).toBe(0xffffff);
+  });
+
+  it('mixes each channel on its own, not the packed number', () => {
+    // 0xFF0000 to 0x0000FF halfway is 0x800080, not the average of the two
+    // integers — which is what a single lerp over the packed value would give.
+    expect(mixTint(0xff0000, 0x0000ff, 0.5)).toBe(0x800080);
+  });
+
+  it('keeps a channel that does not move', () => {
+    expect(mixTint(0x102030, 0x10a030, 0.5)).toBe(0x106030);
+  });
+});
+
+describe('the region highlight', () => {
+  it('lifts the gate line by HIGHLIGHT_LIFT from how it reads on the page', () => {
+    // Not from GATE_TINT: the line is drawn at 0.55 over the ground, so the
+    // raw tint is a colour nothing on screen actually is, and lifting from it
+    // would overshoot.
+    expect(GATE_ON_GROUND).toBe(0x535d6d);
+    expect(HIGHLIGHT_TINT).toBe(mixTint(0x535d6d, 0xffffff, HIGHLIGHT_LIFT));
+  });
+
+  it('stays inside the 30-50% band the lift was tuned to', () => {
+    expect(HIGHLIGHT_LIFT).toBeGreaterThanOrEqual(0.3);
+    expect(HIGHLIGHT_LIFT).toBeLessThanOrEqual(0.5);
+  });
+
+  it('is lighter than the line it replaces on every channel', () => {
+    for (const shift of [16, 8, 0]) {
+      expect((HIGHLIGHT_TINT >> shift) & 0xff).toBeGreaterThan(
+        (GATE_ON_GROUND >> shift) & 0xff,
+      );
+    }
   });
 });

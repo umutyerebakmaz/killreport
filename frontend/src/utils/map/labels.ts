@@ -74,6 +74,13 @@ export interface LabelCandidate {
    * anchor happens to sit on would be a lie about what was clicked.
    */
   systemId?: number;
+  /**
+   * The area this name can highlight, for the layer's `data-map-region` and
+   * `data-map-constellation` stamps. The system tier's twin, one per area
+   * tier: a name lights the area it actually names and nothing wider.
+   */
+  regionId?: number;
+  constellationId?: number;
 }
 
 const TIER_SOURCES = ['region', 'constellation', 'system'] as const;
@@ -227,6 +234,8 @@ export function labelCandidates({
         halfWidth,
         halfHeight,
         systemId: tier === 'system' ? source.id : undefined,
+        regionId: tier === 'region' ? source.id : undefined,
+        constellationId: tier === 'constellation' ? source.id : undefined,
       });
     }
   }
