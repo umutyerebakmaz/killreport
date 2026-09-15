@@ -41,7 +41,20 @@
     visibility 150ms;
 }
 
+/* A step under full white, so the names read as marks on the map rather than
+   as text laid over it — and so the hovered one has somewhere to go. Both
+   numbers are small on purpose: the lift has to be noticed without being
+   announced, the same bargain HIGHLIGHT_LIFT makes for the lines. The 150 ms
+   opacity transition above carries it, so the brightening is not a step. */
 .map-label.is-visible {
+  opacity: 0.82;
+}
+
+/* Reached through :hover rather than a class the layer writes: every tier that
+   can be hovered already takes pointer events, and a name under the pointer is
+   exactly what CSS is answering. Restricted to `.is-visible` so a name on its
+   way out cannot be pulled back to full by a pointer it drifts under. */
+.map-label.is-visible:hover {
   opacity: 1;
 }
 
