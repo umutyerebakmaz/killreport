@@ -4,6 +4,17 @@ import { toLocal, type MapOrigin } from '@/utils/map/origin';
 export interface EdgeSegment {
   from: [number, number];
   to: [number, number];
+  /**
+   * Whether the two systems sit in different regions. Decided here, on the
+   * `regionId` every node already carries, because this is the only place that
+   * holds both ends of an edge at once — and it costs the mesh nothing, so the
+   * focused neighbourhood gets the same answer as the galaxy.
+   *
+   * The region boundary rather than the constellation one: 370 of the 6,989
+   * gate pairs cross it against 1,285 for a constellation, and a mark that
+   * lands on a fifth of the mesh is texture rather than a border.
+   */
+  crossesRegion: boolean;
 }
 
 /**
@@ -58,6 +69,7 @@ export function edgeSegments(
     segments.push({
       from: endpoint(from, edge.to),
       to: endpoint(to, edge.from),
+      crossesRegion: from.regionId !== to.regionId,
     });
   }
 
