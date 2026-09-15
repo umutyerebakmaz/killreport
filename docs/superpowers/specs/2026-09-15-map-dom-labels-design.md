@@ -353,7 +353,6 @@ başlayan sürükleme haritayı kaydırıyor mu.
 - Takımyıldız kademesi için extent.
 - İsmin klavyeyle erişilebilir olması: `tabindex`, `role`, erişilebilir ad ve
   keydown yolu. Yukarıdaki `Amaç` ile aynı gerekçe — bunlar klavye fazının işi.
-
 - Bağlantı çizgisi (leader line).
 - Pixi'nin kendisinin değiştirilmesi; three.js değerlendirildi ve elendi —
   etiketler ekran uzayında sabit puntoyla çizildiği için SDF metnin çözdüğü sorun
