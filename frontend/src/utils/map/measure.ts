@@ -1,4 +1,9 @@
-import { LABEL_TIER_STYLE, labelFontString, labelText } from './labelStyle';
+import {
+  LABEL_FONT_NAME,
+  LABEL_TIER_STYLE,
+  labelFontString,
+  labelText,
+} from './labelStyle';
 import type { LabelTier } from './lod';
 
 /** What the measurer needs from a canvas 2d context, and nothing more. */
@@ -82,12 +87,12 @@ export async function whenLabelFontsReady(): Promise<void> {
   const fonts = typeof document !== 'undefined' ? document.fonts : undefined;
   if (!fonts) return;
 
-  // One request per tier, weight included. `8px Shentox` asks for weight 400, so
-  // requesting by size alone would let a 600 measurement run before SemiBold had
-  // been fetched — the exact fallback this function exists to prevent.
+  // One request per tier, weight included: a request by size alone asks for
+  // weight 400, which would let a 600 measurement run before SemiBold had been
+  // fetched — the exact fallback this function exists to prevent.
   const faces = new Set(
     Object.values(LABEL_TIER_STYLE).map(
-      (style) => `${style.fontWeight} ${style.fontSize}px Shentox`,
+      (style) => `${style.fontWeight} ${style.fontSize}px ${LABEL_FONT_NAME}`,
     ),
   );
 

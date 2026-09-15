@@ -10,6 +10,14 @@ export interface LabelLayer {
   /** The absolutely positioned overlay, a sibling of the Pixi canvas. */
   root: HTMLDivElement;
   /** Keyed on `LabelCandidate.key`; a key's text never changes. */
+  /**
+   * Keyed `tier:id`, and never evicted: a name that leaves the viewport keeps
+   * its element so that coming back is a class change rather than a rebuild.
+   * The ceiling is one span per name ever shown — about 5,241 systems plus the
+   * regions and constellations after a full tour of the galaxy — all of them
+   * `visibility: hidden` and so never painted. Eviction would buy back memory
+   * nobody is short of and cost the re-entry it exists to make free.
+   */
   pool: Map<string, HTMLSpanElement>;
 }
 
