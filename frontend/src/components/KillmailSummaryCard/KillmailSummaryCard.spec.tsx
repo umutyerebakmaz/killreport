@@ -36,7 +36,7 @@ const props = {
   destroyedValue: 5_000_000,
   droppedValue: 2_000_000,
   totalValue: 7_000_000,
-} as any;
+};
 
 describe('KillmailSummaryCard', () => {
   beforeEach(() => {

@@ -10,7 +10,13 @@ interface AttackerProps {
   totalDamage: number;
   isFinalBlow?: boolean;
   isTopDamage?: boolean;
-  killmail: NonNullable<KillmailQuery['killmail']>;
+  /**
+   * Only `solo` and `npc` are read here, and both are facts about the
+   * killmail rather than about this attacker — which is why the badges they
+   * drive repeat identically on every row. Asking for the whole killmail
+   * said this row depended on far more than it does.
+   */
+  killmail: Pick<NonNullable<KillmailQuery['killmail']>, 'solo' | 'npc'>;
 }
 
 export default function AttackerRow({

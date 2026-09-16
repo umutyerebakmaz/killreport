@@ -1,24 +1,26 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
+import { KillmailQuery } from '@/generated/graphql';
 import AttackerRow from './AttackerRow';
 
-const killmail = { solo: false, npc: false } as any;
+type Attacker = NonNullable<KillmailQuery['killmail']>['attackers'][0];
 
-const attacker = (overrides: Record<string, unknown> = {}) =>
-  ({
-    damageDone: 1234,
-    finalBlow: false,
-    securityStatus: 0.5,
-    character: { id: 1, name: 'Pilot One' },
-    corporation: { id: 2, name: 'Corp Two' },
-    alliance: { id: 3, name: 'Alliance Three' },
-    shipType: { id: 587, name: 'Rifter', dogmaAttributes: [] },
-    weaponType: { id: 2456, name: 'Rocket Launcher' },
-    ...overrides,
-  }) as any;
+const killmail = { solo: false, npc: false };
 
-const renderRow = (a: any, flags: Record<string, boolean> = {}) =>
+const attacker = (overrides: Partial<Attacker> = {}): Attacker => ({
+  damageDone: 1234,
+  finalBlow: false,
+  securityStatus: 0.5,
+  character: { id: 1, name: 'Pilot One' },
+  corporation: { id: 2, name: 'Corp Two' },
+  alliance: { id: 3, name: 'Alliance Three' },
+  shipType: { id: 587, name: 'Rifter', dogmaAttributes: [] },
+  weaponType: { id: 2456, name: 'Rocket Launcher' },
+  ...overrides,
+});
+
+const renderRow = (a: Attacker, flags: Record<string, boolean> = {}) =>
   render(
     <AttackerRow
       attacker={a}
