@@ -4,7 +4,16 @@ import {
   getItemName,
   isBlueprint,
 } from '@/utils/itemImageUrl';
+import Tooltip from '../Tooltip/Tooltip';
 import { FittingView } from './types';
+
+/**
+ * Full figures with thousands separators, the way the client writes them —
+ * `formatISK` abbreviates to `84.00M`, which is right on a tile or in a
+ * column but throws away what the tooltip exists to show.
+ */
+const full = (value: number) =>
+  value.toLocaleString('de-DE', { maximumFractionDigits: 2 });
 
 interface FittingItemProps {
   item: {
@@ -98,26 +107,45 @@ export default function FittingItem({
      * destroyed entry and a dropped entry, so a tile showing "1" would be
      * every tile on most fits, and the game omits it too.
      */
+    const volume = item.itemType.volume ?? null;
+
     return (
-      <div
-        key={`${keyPrefix}-${item.itemType.id}-${index}`}
-        className={`relative transition-colors size-16 ${bgColor}`}
-        title={`${itemName} — ${formatISK(price * totalQty)}`}
+      <Tooltip
+        content={
+          <div className="space-y-0.5">
+            <div className="font-bold text-white">
+              {totalQty}x {itemName}
+            </div>
+            <div className="text-gray-400">
+              Est. {full(price * totalQty)} ISK ({full(price)} ISK per unit)
+            </div>
+            {volume !== null && (
+              <div className="text-gray-400">
+                {full(volume * totalQty)} m3 ({full(volume)} m3 per unit)
+              </div>
+            )}
+          </div>
+        }
       >
-        <img
-          src={getItemImageUrl(item.itemType, item.singleton, 64)}
-          alt={itemName}
-          width={64}
-          height={64}
-          loading="lazy"
-          decoding="async"
-        />
-        {totalQty > 1 && (
-          <span className="absolute bottom-0 right-0 px-1 text-xs font-semibold text-white bg-black/70">
-            {totalQty}
-          </span>
-        )}
-      </div>
+        <div
+          key={`${keyPrefix}-${item.itemType.id}-${index}`}
+          className={`relative transition-colors size-16 ${bgColor}`}
+        >
+          <img
+            src={getItemImageUrl(item.itemType, item.singleton, 64)}
+            alt={itemName}
+            width={64}
+            height={64}
+            loading="lazy"
+            decoding="async"
+          />
+          {totalQty > 1 && (
+            <span className="absolute bottom-0 right-0 px-1 text-xs font-semibold text-white bg-black/70">
+              {totalQty}
+            </span>
+          )}
+        </div>
+      </Tooltip>
     );
   }
 
