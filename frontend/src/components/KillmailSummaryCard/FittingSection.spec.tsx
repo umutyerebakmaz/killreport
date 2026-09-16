@@ -18,6 +18,7 @@ describe('FittingSection', () => {
         items={[item(1, 'Gatling'), item(2, 'Salvager')]}
         keyPrefix="high"
         view="grid"
+        scope="all"
       />,
     );
 
@@ -35,6 +36,7 @@ describe('FittingSection', () => {
         items={[item(1, 'Gatling')]}
         keyPrefix="high"
         view="table"
+        scope="all"
       />,
     );
 
@@ -44,7 +46,13 @@ describe('FittingSection', () => {
 
   it('renders nothing when it has no items', () => {
     const { container } = render(
-      <FittingSection title="Rigs" items={[]} keyPrefix="rig" view="grid" />,
+      <FittingSection
+        title="Rigs"
+        items={[]}
+        keyPrefix="rig"
+        view="grid"
+        scope="all"
+      />,
     );
 
     expect(container).toBeEmptyDOMElement();
