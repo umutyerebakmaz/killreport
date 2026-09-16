@@ -13,7 +13,11 @@
   font-size: 0.875rem;
   line-height: 1.25rem;
   color: rgb(209, 213, 219);
-  background-color: rgb(0, 0, 0);
+  /* Black at 90%, not `.float`'s glass — cards.css lists Tooltip among the
+     floating layer's consumers, but glass was tried here and rejected: the
+     surface tint read as grey rather than as a tooltip. Black keeps it
+     reading as one, and the 10% lets the page show it is floating. */
+  background-color: rgb(0 0 0 / 0.9);
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow:
     0 10px 15px -3px rgb(0 0 0 / 0.1),
