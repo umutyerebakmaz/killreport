@@ -122,12 +122,17 @@ export default function FittingItem({
             <div className="font-bold text-gray-100">
               {totalQty} x {itemName}
             </div>
+            {/* The per-unit figure only earns its place when there is more
+                than one: at a count of 1 it repeats the total word for
+                word. */}
             <div className="text-gray-400">
-              Est. {full(price * totalQty)} ISK ({full(price)} ISK per unit)
+              Est. {full(price * totalQty)} ISK
+              {totalQty > 1 && ` (${full(price)} ISK per unit)`}
             </div>
             {volume !== null && (
               <div className="text-gray-400">
-                {full(volume * totalQty)} m3 ({full(volume)} m3 per unit)
+                {full(volume * totalQty)} m3
+                {totalQty > 1 && ` (${full(volume)} m3 per unit)`}
               </div>
             )}
           </div>

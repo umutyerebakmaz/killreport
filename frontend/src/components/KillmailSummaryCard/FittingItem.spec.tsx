@@ -52,6 +52,23 @@ describe('FittingItem', () => {
     expect(screen.getByText('20 m3 (5 m3 per unit)')).toBeInTheDocument();
   });
 
+  it('leaves the per-unit figures out when there is only one', async () => {
+    render(
+      <FittingItem
+        item={{ ...item, quantityDestroyed: 1 }}
+        keyPrefix="mid"
+        index={0}
+        view="grid"
+      />,
+    );
+
+    await userEvent.hover(screen.getByAltText('Warp Disruptor II'));
+
+    expect(screen.getByText('Est. 21.000.000 ISK')).toBeInTheDocument();
+    expect(screen.getByText('5 m3')).toBeInTheDocument();
+    expect(screen.queryByText(/per unit/)).toBeNull();
+  });
+
   it('leaves the volume line out when the type has none', async () => {
     render(
       <FittingItem
