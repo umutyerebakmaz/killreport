@@ -12,6 +12,7 @@ import {
   ArrowTopRightOnSquareIcon,
   CheckIcon,
 } from '@heroicons/react/24/outline';
+import Image from 'next/image';
 import { use, useState } from 'react';
 
 export default function KillmailDetailPage({
@@ -89,13 +90,12 @@ export default function KillmailDetailPage({
                     {victim?.character?.id ? (
                       <Tooltip content="Show Victim Info" position="top">
                         <a href={`/characters/${victim.character?.id}`}>
-                          <img
+                          <Image
                             src={`https://images.evetech.net/characters/${victim.character?.id}/portrait?size=128`}
                             alt={victim.character?.name || 'Character'}
                             width={96}
                             height={96}
                             className="shadow-md shrink-0"
-                            loading="lazy"
                           />
                         </a>
                       </Tooltip>
@@ -108,13 +108,12 @@ export default function KillmailDetailPage({
                           className="flex items-center justify-center bg-surface-inset shrink-0"
                           style={{ width: 96, height: 96 }}
                         >
-                          <img
+                          <Image
                             src={`https://images.evetech.net/types/${victim.shipType.id}/render?size=128`}
                             alt={victim.shipType.name || 'Structure'}
                             width={96}
                             height={96}
                             className="shadow-md shrink-0"
-                            loading="lazy"
                           />
                         </div>
                       </Tooltip>
@@ -124,26 +123,24 @@ export default function KillmailDetailPage({
                       {/* Corporation Portrait */}
                       {victim?.corporation?.id && (
                         <a href={`/corporations/${victim.corporation?.id}`}>
-                          <img
+                          <Image
                             src={`https://images.evetech.net/corporations/${victim.corporation?.id}/logo?size=128`}
                             alt={victim.corporation?.name || 'Corporation'}
                             width={48}
                             height={48}
                             className="shadow-sm"
-                            loading="lazy"
                           />
                         </a>
                       )}
                       {/* Alliance Portrait */}
                       {victim?.alliance?.id && (
                         <a href={`/alliances/${victim.alliance?.id}`}>
-                          <img
+                          <Image
                             src={`https://images.evetech.net/alliances/${victim.alliance?.id}/logo?size=128`}
                             alt={victim.alliance?.name || 'Alliance'}
                             width={48}
                             height={48}
                             className="shadow-sm"
-                            loading="lazy"
                           />
                         </a>
                       )}
