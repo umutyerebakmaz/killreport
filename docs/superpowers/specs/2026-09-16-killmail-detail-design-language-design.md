@@ -483,6 +483,23 @@ rozet her satırda tekrar ediyor. Bu da bir gürültü kaynağı, ama giderilmes
 ve bu PR'ın taşıdığı karar sayısını aşıyor. Rozetler bu işte olduğu yerde
 kalıp yalnızca `.tag` giyiyor.
 
+**Distance alanı (en yakın gök cismi) kendi PR'ında.** Fizibilitesi bu oturumda
+ölçüldü, sonuç: ucuz. Veriler yerinde — 95.648 / 95.781 kurbanın konumu var
+(%99,86; 133 eksik) ve beş gök cismi tablosunun tamamı koordinatlı (~473.000
+satır: 344k ay, 68k gezegen, 41k asteroit kuşağı, 14k yıldız geçidi, 5k
+istasyon). Beşinde de `solar_system_id` indeksi var, sorgu beş Index Scan artı
+~58 satırlık bir sıralama: **0,248 ms** ortalama sistemde, **0,3 ms** en
+kalabalık sistemde (Aulbres, 158 gök cismi). Killmail'in konumu değişmediği ve
+gök cisimleri statik olduğu için sonuç statik TTL'e (86400) uygun.
+
+Yine de kendi işi: GraphQL şemasına alan, `redis.get` → `$queryRaw` →
+`redis.setex` biçiminde bir okuma servisi, backend ve frontend codegen. Kendi
+spec'inde çözülecek üç tasarım noktası: birim eşiği (km ↔ AU; mesafeler 6 km
+ile milyonlarca km arasında geziniyor), konumu olmayan 133 killmail'de satırın
+hiç çizilmemesi, ve yıldızın hesaba katılıp katılmayacağı — `stars` tablosunda
+`position_*` sütunu yok, çünkü ESI vermiyor: yıldız tanım gereği sistemin
+merkezinde.
+
 Ayrıca bu işe katılmayanlar:
 
 - `AttackersCard` (273 satır) ve `KillmailSummaryCard` (367 satır) bölünmeyi
