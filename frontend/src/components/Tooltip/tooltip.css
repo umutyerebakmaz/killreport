@@ -13,8 +13,11 @@
   font-size: 0.875rem;
   line-height: 1.25rem;
   color: rgb(209, 213, 219);
-  background-color: rgb(0, 0, 0);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  /* The ground, the border and the blur come from `.float`, which the
+     element also carries. cards.css already named Tooltip as one of the
+     floating layer's consumers; it just wasn't one — this file drew an
+     opaque black box instead, so a tooltip was the only thing above the
+     page that did not read as glass. */
   box-shadow:
     0 10px 15px -3px rgb(0 0 0 / 0.1),
     0 4px 6px -4px rgb(0 0 0 / 0.1);
