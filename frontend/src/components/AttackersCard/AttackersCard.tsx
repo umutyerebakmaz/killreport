@@ -122,8 +122,8 @@ export default function AttackersCard({
 
   return (
     <div>
-      <div className="flex justify-end px-4 py-2 border-b border-white/10 bg-surface hover:bg-surface-inset">
-        <span className="text-lg font-semibold text-gray-300">
+      <div className="flex justify-end card-header">
+        <span className="text-lg font-semibold text-gray-100">
           {killmail.attackerCount} ATTACKERS
         </span>
       </div>
@@ -167,7 +167,7 @@ export default function AttackersCard({
       {/* Involved Alliances and Corps */}
       {(allianceArray.length > 0 || independentCorpsArray.length > 0) && (
         <div className="mt-6">
-          <h3 className="mb-3 text-sm font-semibold text-gray-300">
+          <h3 className="mb-3 text-sm font-semibold text-gray-400">
             Involved Alliances and Corps
           </h3>
           <div className="divide-y divide-white/5">
@@ -183,7 +183,7 @@ export default function AttackersCard({
                   {/* Alliance Row */}
                   <div
                     onClick={() => toggleAlliance(alliance.id)}
-                    className="flex items-center gap-2 px-3 py-2 transition-colors duration-100 cursor-pointer bg-surface hover:bg-surface-inset"
+                    className="flex items-center gap-2 cursor-pointer card-row bg-surface"
                   >
                     {isExpanded ? (
                       <ChevronDownIcon className="w-4 h-4 text-gray-400" />
@@ -199,7 +199,7 @@ export default function AttackersCard({
                     />
                     <Link
                       href={`/alliances/${alliance.id}`}
-                      className="flex-1 text-base text-gray-300 hover:text-blue-400"
+                      className="flex-1 text-base text-gray-100 hover:text-cyan-400"
                       prefetch={false}
                       onClick={(e) => e.stopPropagation()}
                     >
@@ -217,7 +217,7 @@ export default function AttackersCard({
                         <Link
                           key={`corp-${corp.id}`}
                           href={`/corporations/${corp.id}`}
-                          className="flex items-center gap-2 px-3 py-1.5 transition-colors duration-100 bg-surface hover:bg-surface-inset"
+                          className="flex items-center gap-2 py-1.5 card-row bg-surface"
                           prefetch={false}
                         >
                           <img
@@ -227,7 +227,7 @@ export default function AttackersCard({
                             height={32}
                             loading="lazy"
                           />
-                          <span className="flex-1 text-base text-gray-300">
+                          <span className="flex-1 text-base text-gray-100">
                             {corp.name}
                           </span>
                           <span className="px-1.5 py-0.5 text-xs font-medium text-gray-500">
@@ -246,7 +246,7 @@ export default function AttackersCard({
               <Link
                 key={`independent-corp-${corp.id}`}
                 href={`/corporations/${corp.id}`}
-                className="flex items-center gap-2 px-3 py-2 transition-colors duration-100 bg-surface hover:bg-surface-inset"
+                className="flex items-center gap-2 card-row bg-surface"
                 prefetch={false}
               >
                 <div className="w-4" /> {/* Spacer for alignment */}
@@ -257,7 +257,7 @@ export default function AttackersCard({
                   height={32}
                   loading="lazy"
                 />
-                <span className="flex-1 text-base text-gray-300">
+                <span className="flex-1 text-base text-gray-100">
                   {corp.name}
                 </span>
                 <span className="px-2 py-0.5 text-xs font-medium text-gray-400">
