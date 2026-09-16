@@ -19,6 +19,12 @@ export interface EdgeSegment {
   regions: [number, number];
   /** The same at the finer tier, for the constellation highlight. */
   constellations: [number, number];
+  /**
+   * The systems the edge runs between. Copied straight off the `MapEdge`,
+   * which names them, so that the finest highlight can ask the same question
+   * of a segment that the two coarser ones do.
+   */
+  systems: [number, number];
 }
 
 /** The two label tiers that stand for an area a highlight can fill. */
@@ -28,6 +34,9 @@ export interface MapArea {
   tier: MapAreaTier;
   id: number;
 }
+
+/** What one name stands for: an area to fill, or a system to radiate from. */
+export type MapHighlight = MapArea | { tier: 'system'; id: number };
 
 /**
  * Whether an edge leaves its region, which is what the mesh draws as dashes.
@@ -61,6 +70,38 @@ export function areaSegments(
       area.tier === 'region' ? segment.regions : segment.constellations;
     return from === area.id && to === area.id;
   });
+}
+
+/**
+ * The gates of one system — EITHER end at it.
+ *
+ * The opposite half of the area rule, and deliberately not folded into it. An
+ * area is a place with an inside, so its highlight is what the boundary
+ * encloses; a system is a point, so every one of its edges leaves it and a
+ * "both ends" rule would light nothing at all. The two say different things as
+ * well: an area's highlight is "this is the shape of it", a system's is "this
+ * is where you can go".
+ *
+ * 5,268 systems average 2.65 gates, at most 8, and 720 of them have one.
+ */
+export function systemSegments(
+  segments: EdgeSegment[],
+  systemId: number,
+): EdgeSegment[] {
+  return segments.filter(
+    (segment) =>
+      segment.systems[0] === systemId || segment.systems[1] === systemId,
+  );
+}
+
+/** The lines one hovered name stands for, by whichever rule its tier uses. */
+export function highlightSegments(
+  segments: EdgeSegment[],
+  target: MapHighlight,
+): EdgeSegment[] {
+  return target.tier === 'system'
+    ? systemSegments(segments, target.id)
+    : areaSegments(segments, target);
 }
 
 /**
@@ -117,6 +158,7 @@ export function edgeSegments(
       to: endpoint(to, edge.from),
       regions: [from.regionId, to.regionId],
       constellations: [from.constellationId, to.constellationId],
+      systems: [edge.from, edge.to],
     });
   }
 
