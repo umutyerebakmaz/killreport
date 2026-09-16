@@ -677,8 +677,9 @@ konumlanan sıradan bir React bileşeni olması — aynen geçerli.
   bakılarak seçilmişti. Gözle ayarlanacak, ve yanındaki yorumun dediği gibi
   `LABEL_CHAR_WIDTH` da birlikte güncellenmeli.
 - **Görsel dil** — parlama, derinlik, hareket. Dört muamele gerçek veri üzerinde
-  denendi ve kullanıcı şimdilik bugünkü görünümü seçti; probe `spike/pixi-universe-map`
-  dalında duruyor.
+  denendi ve kullanıcı şimdilik bugünkü görünümü seçti; probe
+  `probe/pixi-universe-map` tag'inde duruyor (dalı 2026-09-16'da kaldırıldı,
+  commit tag'le sabitlendi).
 
 ### İki kural, sonraki fazların devraldığı
 

@@ -77,7 +77,8 @@ Spike sırasında ikisi eklendi ve bunlar tek başlarına geçişi haklı çıka
 
 ## Ölçülmüş bulgular (spike, 2026-09-13)
 
-Spike atılacak koddu; dalı `spike/pixi-universe-map`. Ölçümler:
+Spike atılacak koddu; dalı `spike/pixi-universe-map`'ti ve 2026-09-16'da
+kaldırıldı. Commit `probe/pixi-universe-map` tag'inde duruyor. Ölçümler:
 
 | Büyüklük                                     | Değer                        | Nasıl                              |
 | -------------------------------------------- | ---------------------------- | ---------------------------------- |
