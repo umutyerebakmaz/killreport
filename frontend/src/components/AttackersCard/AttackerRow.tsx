@@ -215,10 +215,17 @@ export default function AttackerRow({
               that used to sit under this were saying, in pictures, what the
               organisation line already says in words. */}
           <div className="flex flex-col items-end text-sm gap-y-1">
-            <span className="text-destroyed">
-              {attacker.damageDone.toLocaleString()}
-            </span>
-            <span className="text-gray-400">{damagePercentage}%</span>
+            {/* A logi or ECM pilot on the killmail did no damage, and a
+                column reading "0 / 0.0%" is a line of noise saying nothing.
+                The row still shows who they were and what they flew. */}
+            {attacker.damageDone > 0 && (
+              <>
+                <span className="text-destroyed">
+                  {attacker.damageDone.toLocaleString()}
+                </span>
+                <span className="text-gray-400">{damagePercentage}%</span>
+              </>
+            )}
 
             {/* Plain text rather than `.tag`: a badge's ground and padding
                 made two more boxes in a column that already has a figure and

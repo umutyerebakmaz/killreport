@@ -52,6 +52,15 @@ describe('AttackerRow', () => {
     expect(screen.queryByText(/DMG/)).toBeNull();
   });
 
+  it('prints nothing at all for an attacker who did no damage', () => {
+    renderRow(attacker({ damageDone: 0 }));
+
+    expect(screen.queryByText('0')).toBeNull();
+    expect(screen.queryByText('0.0%')).toBeNull();
+    // The pilot is still named — only the empty figures go.
+    expect(screen.getByText('Alliance Three')).toBeInTheDocument();
+  });
+
   it('drops the alliance and corporation logos', () => {
     const { container } = renderRow(attacker());
 
