@@ -1,10 +1,13 @@
 import FittingItem from './FittingItem';
+import { FittingScope, FittingView } from './types';
 
 interface FittingSectionProps {
   title: string;
   items: any[];
   keyPrefix: string;
   hasCharges?: boolean;
+  view: FittingView;
+  scope: FittingScope;
 }
 
 const groupItems = (items: any[]) => {
@@ -65,6 +68,8 @@ export default function FittingSection({
   items,
   keyPrefix,
   hasCharges = false,
+  view,
+  scope,
 }: FittingSectionProps) {
   if (!items || items.length === 0) {
     return null;
@@ -85,19 +90,47 @@ export default function FittingSection({
     modules.push(...items);
   }
 
-  const groupedModules = groupItems(modules);
-  const groupedCharges = hasCharges ? groupItems(charges) : [];
+  // The filter is a predicate applied AFTER grouping: groupItems already
+  // splits one item into a destroyed entry and a dropped entry, so asking
+  // each entry which it is costs nothing and is exact.
+  const keep = (entry: {
+    quantityDestroyed: number;
+    quantityDropped: number;
+  }) =>
+    scope === 'all' ||
+    (scope === 'destroyed' && entry.quantityDestroyed > 0) ||
+    (scope === 'dropped' && entry.quantityDropped > 0);
+
+  const groupedModules = groupItems(modules).filter(keep);
+  const groupedCharges = hasCharges ? groupItems(charges).filter(keep) : [];
+
+  // The early return above fires when the section was given no items at all.
+  // A section can also end up empty because everything it holds filtered out,
+  // and a heading with nothing under it is worse than no heading.
+  if (groupedModules.length === 0 && groupedCharges.length === 0) {
+    return null;
+  }
+
+  // Grid view packs tiles left to right and wraps, the way the client's
+  // inventory does; table view keeps one item per line.
+  const listClass =
+    view === 'grid'
+      ? 'flex flex-wrap gap-1 p-2'
+      : 'flex flex-col divide-y divide-white/10';
 
   return (
-    <div className="border-b fitting-section border-white/10">
-      <h3 className="py-2 pl-2 font-bold text-gray-400 uppercase">{title}</h3>
-      <div className="flex flex-col divide-y divide-white/10">
+    <div className="card">
+      <div className="card-header">
+        <h3 className="font-bold text-gray-100 uppercase">{title}</h3>
+      </div>
+      <div className={listClass}>
         {groupedModules.map((item, index) => (
           <FittingItem
             key={`${keyPrefix}-module-${item.itemType.id}-${index}`}
             item={item}
             keyPrefix={`${keyPrefix}-module`}
             index={index}
+            view={view}
           />
         ))}
 
@@ -108,6 +141,7 @@ export default function FittingSection({
             keyPrefix={`${keyPrefix}-charge`}
             index={index}
             isCharge={true}
+            view={view}
           />
         ))}
       </div>

@@ -10,7 +10,13 @@ interface AttackerProps {
   totalDamage: number;
   isFinalBlow?: boolean;
   isTopDamage?: boolean;
-  killmail: NonNullable<KillmailQuery['killmail']>;
+  /**
+   * Only `solo` and `npc` are read here, and both are facts about the
+   * killmail rather than about this attacker — which is why the badges they
+   * drive repeat identically on every row. Asking for the whole killmail
+   * said this row depended on far more than it does.
+   */
+  killmail: Pick<NonNullable<KillmailQuery['killmail']>, 'solo' | 'npc'>;
 }
 
 export default function AttackerRow({
@@ -32,50 +38,58 @@ export default function AttackerRow({
   return (
     <div className="p-3 transition-colors duration-100 bg-surface hover:bg-surface-inset">
       <div className="flex">
-        {/* Character/Corporation Image */}
-        {attacker.character?.id ? (
-          <div className="relative shrink-0">
+        {/*
+         * One positioning context for the whole portrait slot, whichever of
+         * the three images fills it. Each branch used to write its own
+         * `relative`, so the security status could only ever be drawn on a
+         * character — and there was nowhere to hang the badges.
+         */}
+        <div className="relative shrink-0">
+          {attacker.character?.id ? (
             <img
               src={`https://images.evetech.net/characters/${attacker.character?.id}/portrait?size=128`}
               alt={attacker.character?.name || 'Character'}
-              width={96}
-              height={96}
+              width={64}
+              height={64}
               loading="lazy"
             />
-            {/* Security Status - Bottom Left */}
-            {attacker.securityStatus !== null &&
-              attacker.securityStatus !== undefined && (
-                <div className="absolute bottom-0 left-0 px-1.5 py-0.5 text-xs font-semibold bg-black/70 backdrop-blur-sm">
-                  <span
-                    className={
-                      attacker.securityStatus >= 0
-                        ? 'text-green-500'
-                        : 'text-red-500'
-                    }
-                  >
-                    {attacker.securityStatus.toFixed(1)}
-                  </span>
-                </div>
-              )}
-          </div>
-        ) : attacker.corporation?.id ? (
-          <div className="relative shrink-0">
+          ) : attacker.corporation?.id ? (
             <img
               src={`https://images.evetech.net/corporations/${attacker.corporation?.id}/logo?size=128`}
               alt={attacker.corporation?.name || 'Corporation'}
-              width={96}
-              height={96}
+              width={64}
+              height={64}
               loading="lazy"
             />
-          </div>
-        ) : (
-          <div
-            className="relative flex items-center justify-center shadow-md shrink-0 bg-surface-inset"
-            style={{ width: 96, height: 96 }}
-          >
-            <span className="text-2xl font-bold text-red-500">NPC</span>
-          </div>
-        )}
+          ) : (
+            /* An NPC with neither a character nor a corporation: its ship is
+               the only image the killmail query carries — there is no faction
+               field on the attacker. */
+            <img
+              src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=128`}
+              alt={attacker.shipType?.name || 'NPC ship'}
+              width={64}
+              height={64}
+              loading="lazy"
+            />
+          )}
+
+          {/* Security Status - Bottom Left */}
+          {attacker.securityStatus !== null &&
+            attacker.securityStatus !== undefined && (
+              <div className="absolute bottom-0 left-0 px-1.5 py-0.5 text-xs font-semibold bg-black/70 backdrop-blur-sm">
+                <span
+                  className={
+                    attacker.securityStatus >= 0
+                      ? 'text-dropped'
+                      : 'text-destroyed'
+                  }
+                >
+                  {attacker.securityStatus.toFixed(1)}
+                </span>
+              </div>
+            )}
+        </div>
 
         <div className="flex flex-col pr-4 shrink-0">
           <Tooltip content={attacker.shipType?.name || 'Unknown Ship'}>
@@ -91,15 +105,15 @@ export default function AttackerRow({
                 )}
               {attacker.shipType?.id ? (
                 <img
-                  src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=128`}
+                  src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=64`}
                   alt={attacker.shipType?.name || 'Ship'}
-                  width={48}
-                  height={48}
+                  width={32}
+                  height={32}
                   loading="lazy"
                 />
               ) : (
-                <div className="flex items-center justify-center shadow-md size-12">
-                  <QuestionMarkCircleIcon className="w-8 h-8 text-gray-400" />
+                <div className="flex items-center justify-center shadow-md size-8">
+                  <QuestionMarkCircleIcon className="text-gray-400 size-4" />
                 </div>
               )}
             </div>
@@ -107,25 +121,25 @@ export default function AttackerRow({
           <Tooltip content={attacker.weaponType?.name || 'Unknown Weapon'}>
             {attacker.weaponType?.id ? (
               <img
-                src={`https://images.evetech.net/types/${attacker.weaponType?.id}/icon?size=128`}
+                src={`https://images.evetech.net/types/${attacker.weaponType?.id}/icon?size=64`}
                 alt={attacker.weaponType?.name || 'Weapon'}
-                width={48}
-                height={48}
+                width={32}
+                height={32}
                 className="bg-white/5"
                 loading="lazy"
               />
             ) : attacker.shipType?.id ? (
               <img
-                src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=128`}
+                src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=64`}
                 alt={attacker.shipType?.name || 'Ship'}
-                width={48}
-                height={48}
+                width={32}
+                height={32}
                 className="bg-white/5"
                 loading="lazy"
               />
             ) : (
-              <div className="flex items-center justify-center w-12 h-12 bg-gray-800 shadow-md">
-                <QuestionMarkCircleIcon className="w-8 h-8 text-gray-500" />
+              <div className="flex items-center justify-center shadow-md size-8 bg-surface-inset">
+                <QuestionMarkCircleIcon className="text-gray-400 size-4" />
               </div>
             )}
           </Tooltip>
@@ -134,135 +148,99 @@ export default function AttackerRow({
         <div className="flex justify-between w-full">
           {/* Character Name, Corporation, Alliance */}
           <div className="flex flex-col leading-tight space-y-0.5">
-            {/* Badges for Final Blow, Top Damage, Solo, and NPC */}
+            {/* SOLO and NPC stay here: unlike the two above they are facts
+                about the killmail, not about this attacker. */}
             <div className="flex gap-2 mb-1">
-              {isFinalBlow && !isSolo && (
-                <span className="px-2 py-0.5 text-xs font-medium text-red-400 rounded bg-red-400/10">
-                  FINAL BLOW
-                </span>
-              )}
-              {isTopDamage && !isSolo && (
-                <span className="px-2 py-0.5 text-xs font-medium text-orange-400 rounded bg-orange-400/10">
-                  TOP DAMAGE
-                </span>
-              )}
               {isSolo && (
-                <span className="px-2 py-0.5 font-medium text-green-600 rounded bg-green-600/10">
-                  SOLO
-                </span>
+                <span className="tag text-dropped bg-dropped/10">SOLO</span>
               )}
               {isNpcAttackers && (
-                <span className="px-2 py-0.5 text-xs font-medium text-red-400 rounded bg-red-400/10">
-                  NPC
-                </span>
+                <span className="tag text-destroyed bg-destroyed/10">NPC</span>
               )}
             </div>
 
             {attacker.character?.id ? (
-              <>
-                {/* Ship Name */}
-                {attacker.shipType?.name && (
-                  <div className="text-base text-orange-400">
-                    {attacker.shipType.name}
-                  </div>
-                )}
-                <Tooltip content="Show Character Info">
-                  <Link
-                    href={`/characters/${attacker.character?.id}`}
-                    className="font-medium text-gray-400 hover:text-blue-400"
-                    prefetch={false}
-                  >
-                    {attacker.character?.name || 'Unknown'}
-                  </Link>
-                </Tooltip>
-                {attacker.corporation?.id && (
-                  <Tooltip content="Show Corporation Info">
-                    <Link
-                      href={`/corporations/${attacker.corporation?.id}`}
-                      className="text-sm text-gray-400 hover:text-blue-400"
-                      prefetch={false}
-                    >
-                      {attacker.corporation?.name || 'Unknown'}
-                    </Link>
-                  </Tooltip>
-                )}
-              </>
-            ) : (
-              <>
-                {/* NPC attacker: Show ship type name and corporation */}
-                {attacker.shipType?.name && (
-                  <div className="text-base text-orange-400">
-                    {attacker.shipType.name}
-                  </div>
-                )}
-                {attacker.corporation?.id && (
-                  <Tooltip content="Show Corporation Info">
-                    <Link
-                      href={`/corporations/${attacker.corporation.id}`}
-                      className="text-sm text-gray-400 hover:text-blue-400"
-                      prefetch={false}
-                    >
-                      {attacker.corporation?.name || 'Unknown'}
-                    </Link>
-                  </Tooltip>
-                )}
-              </>
-            )}
-
-            {attacker.alliance?.id && (
-              <Tooltip content="Show Alliance Info">
+              /* No ship name here: the ship is already in the slot beside the
+                 portrait, with its name in that slot's tooltip. Printing it
+                 again put a second line of orange above every pilot. */
+              <Tooltip content="Show Character Info">
                 <Link
-                  href={`/alliances/${attacker.alliance?.id}`}
-                  className="text-sm text-gray-400 hover:text-blue-400"
+                  href={`/characters/${attacker.character?.id}`}
+                  className="font-medium text-gray-400 hover:text-cyan-400"
                   prefetch={false}
                 >
-                  {attacker.alliance?.name || 'Unknown'}
+                  {attacker.character?.name || 'Unknown'}
                 </Link>
               </Tooltip>
+            ) : (
+              /* An NPC has no pilot to name, so the ship type is the only
+                 label this row can carry. */
+              attacker.shipType?.name && (
+                <div className="text-base text-orange-400">
+                  {attacker.shipType.name}
+                </div>
+              )
             )}
+
+            {/*
+             * One organisation line, not two. The row used to print the
+             * corporation and the alliance under each other; the alliance is
+             * the one that places a pilot, so it wins, and the corporation is
+             * what is left to say when there is no alliance.
+             */}
+            {attacker.alliance?.id ? (
+              <Tooltip content="Show Alliance Info">
+                <Link
+                  href={`/alliances/${attacker.alliance.id}`}
+                  className="text-sm text-gray-400 hover:text-cyan-400"
+                  prefetch={false}
+                >
+                  {attacker.alliance.name || 'Unknown'}
+                </Link>
+              </Tooltip>
+            ) : attacker.corporation?.id ? (
+              <Tooltip content="Show Corporation Info">
+                <Link
+                  href={`/corporations/${attacker.corporation.id}`}
+                  className="text-sm text-gray-400 hover:text-cyan-400"
+                  prefetch={false}
+                >
+                  {attacker.corporation.name || 'Unknown'}
+                </Link>
+              </Tooltip>
+            ) : null}
           </div>
 
-          {/* Damage, Damage Percentage */}
-          <div className="flex flex-col items-end justify-between text-sm gap-y-1">
-            <div className="flex flex-col items-end">
-              <span className="text-red-400">
-                {attacker.damageDone.toLocaleString()} DMG
-              </span>
-              <span className="text-gray-400">{damagePercentage}%</span>
-            </div>
+          {/* Damage, Damage Percentage. The corporation and alliance logos
+              that used to sit under this were saying, in pictures, what the
+              organisation line already says in words. */}
+          <div className="flex flex-col items-end text-sm gap-y-1">
+            {/* A logi or ECM pilot on the killmail did no damage, and a
+                column reading "0 / 0.0%" is a line of noise saying nothing.
+                The row still shows who they were and what they flew. */}
+            {attacker.damageDone > 0 && (
+              <>
+                <span className="text-destroyed">
+                  {attacker.damageDone.toLocaleString()}
+                </span>
+                <span className="text-gray-400">{damagePercentage}%</span>
+              </>
+            )}
 
-            {/* Alliance & Corporation Logos - Bottom Right */}
-            <div className="flex">
-              {/* Corporation Logo */}
-              {attacker.corporation?.id && (
-                <Tooltip
-                  content={`Corporation: ${
-                    attacker.corporation?.name || 'Unknown'
-                  }`}
-                >
-                  <img
-                    src={`https://images.evetech.net/corporations/${attacker.corporation?.id}/logo?size=64`}
-                    alt={attacker.corporation?.name || 'Corporation'}
-                    width={32}
-                    height={32}
-                    loading="lazy"
-                  />
-                </Tooltip>
+            {/* Plain text rather than `.tag`: a badge's ground and padding
+                made two more boxes in a column that already has a figure and
+                a percentage. Both can be true of one attacker, so they sit
+                side by side. */}
+            <div className="flex gap-2">
+              {isFinalBlow && !isSolo && (
+                <span className="text-xs font-light text-destroyed whitespace-nowrap">
+                  FINAL BLOW
+                </span>
               )}
-
-              {/* Alliance Logo */}
-              {attacker.alliance?.id && (
-                <Tooltip
-                  content={`Alliance: ${attacker.alliance?.name || 'Unknown'}`}
-                >
-                  <img
-                    src={`https://images.evetech.net/alliances/${attacker.alliance?.id}/logo?size=64`}
-                    alt={attacker.alliance?.name || 'Alliance'}
-                    width={32}
-                    height={32}
-                    loading="lazy"
-                  />
-                </Tooltip>
+              {isTopDamage && !isSolo && (
+                <span className="text-xs font-light text-orange-400 whitespace-nowrap">
+                  TOP DAMAGE
+                </span>
               )}
             </div>
           </div>

@@ -148,4 +148,24 @@
   .chip {
     @apply inline-flex items-center gap-2 py-1 pl-2 pr-1 text-sm text-white bg-surface-inset;
   }
+
+  /*
+   * A status badge: SOLO and NPC on an attacker row, WAR KILL on the killmail
+   * page. It started as five copies — FINAL BLOW and TOP DAMAGE were badges
+   * too — and four of them carried a radius, the only thing on the page that
+   * takes one being .float. The SOLO copy had also dropped text-xs, so it
+   * printed larger than the three beside it.
+   *
+   * Those two left afterwards: they moved under the damage figure and became
+   * plain text, because a ground and padding made two more boxes in a column
+   * that already had a figure and a percentage. The three that remain all
+   * mark a fact about the killmail, which is what this shape is now for.
+   *
+   * It carries no colour of its own: the caller supplies the meaning, as
+   * `tag text-destroyed bg-destroyed/10`. Not .chip — that one is a filter
+   * chip holding its own remove button.
+   */
+  .tag {
+    @apply inline-flex items-center px-2 py-0.5 text-xs font-medium;
+  }
 }

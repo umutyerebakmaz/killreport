@@ -1,14 +1,24 @@
-import type { Fitting } from '@/generated/graphql';
+import type { KillmailQuery } from '@/generated/graphql';
 import ImplantSlot from './ImplantSlot';
 import ServiceSlot from './ServiceSlot';
 import Slot from './Slot';
+
+/**
+ * The fitting as the killmail document selects it, not the schema's `Fitting`.
+ * The two are different shapes — the schema type carries fields this query
+ * never asks for — and the only caller had been reconciling them with a cast
+ * to `any`, which silenced the mismatch rather than describing it.
+ */
+type KillmailFitting = NonNullable<
+  NonNullable<KillmailQuery['killmail']>['fitting']
+>;
 
 interface FitScreenProps {
   shipType?: {
     id: number;
     name: string;
   };
-  fitting?: Fitting | null;
+  fitting?: KillmailFitting | null;
 }
 
 export default function FitScreen({ shipType, fitting }: FitScreenProps) {
