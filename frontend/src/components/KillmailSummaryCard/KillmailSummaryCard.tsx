@@ -4,11 +4,12 @@ import { useTabList } from '@/hooks/useTabList';
 import { formatISK } from '@/utils/formatISK';
 import { isBlueprint } from '@/utils/itemImageUrl';
 import { getShipTier } from '@/utils/shipTier';
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
+import RadioGroup from '../RadioGroup/RadioGroup';
 import ShipTierBadge from '../ShipTierBadge/ShipTierBadge';
 import SummaryRow from '../ui/SummaryRow';
 import FittingSection from './FittingSection';
-import { FittingScope } from './types';
+import { FittingScope, FittingView } from './types';
 
 /**
  * One panel whose content swaps, so every tab points at the same id — a
@@ -25,6 +26,49 @@ const TABS: { scope: FittingScope; label: string }[] = [
 
 /** Same order as TABS, derived rather than declared again. */
 const TAB_SCOPES: FittingScope[] = TABS.map((tab) => tab.scope);
+
+/** A view preference outlives one killmail, so it is kept in the browser.
+ *  snake_case to match the keys the app already writes (`eve_access_token`). */
+const VIEW_STORAGE_KEY = 'killmail_fitting_view';
+
+const VIEW_OPTIONS: { value: FittingView; label: string }[] = [
+  { value: 'grid', label: 'Grid' },
+  { value: 'table', label: 'Table' },
+];
+
+/*
+ * localStorage read as an external store rather than copied into state inside
+ * an effect. Two reasons: an effect that calls setState on mount is a
+ * cascading render (and ESLint says so), and useSyncExternalStore is the API
+ * React added for exactly this — a mutable source outside React that has to
+ * render something definite on the server.
+ *
+ * `window` fires `storage` only for other tabs, so same-tab writes notify the
+ * subscribers here by hand.
+ */
+const viewListeners = new Set<() => void>();
+
+const subscribeToView = (onStoreChange: () => void) => {
+  viewListeners.add(onStoreChange);
+  window.addEventListener('storage', onStoreChange);
+  return () => {
+    viewListeners.delete(onStoreChange);
+    window.removeEventListener('storage', onStoreChange);
+  };
+};
+
+/** Anything that is not the stored 'table' means grid, including a cleared
+ *  or unreadable store. */
+const readStoredView = (): FittingView =>
+  localStorage.getItem(VIEW_STORAGE_KEY) === 'table' ? 'table' : 'grid';
+
+/** The server has no store, so it always renders the default. */
+const readServerView = (): FittingView => 'grid';
+
+const writeStoredView = (next: FittingView) => {
+  localStorage.setItem(VIEW_STORAGE_KEY, next);
+  viewListeners.forEach((notify) => notify());
+};
 
 // Special handling for Capsule ship price
 const getShipPrice = (shipType: any) => {
@@ -64,9 +108,15 @@ export default function KillmailSummaryCard({
   const { onKeyDown } = useTabList(TAB_SCOPES, scope, setScope);
   const tabId = (value: FittingScope) => `killmail-fitting-tab-${value}`;
 
+  const view = useSyncExternalStore(
+    subscribeToView,
+    readStoredView,
+    readServerView,
+  );
+
   return (
     <div className="card">
-      <div className="card-band">
+      <div className="justify-between card-band">
         <div role="tablist" aria-label="Fitting items" className="flex gap-1">
           {TABS.map((tab) => (
             <button
@@ -84,6 +134,16 @@ export default function KillmailSummaryCard({
             </button>
           ))}
         </div>
+
+        {/* A RadioGroup rather than a second tablist: the band already holds
+            one, and a screen reader would announce two sets of tabs where
+            this is a preference, not navigation. */}
+        <RadioGroup
+          name="killmail-fitting-view"
+          options={VIEW_OPTIONS}
+          value={view}
+          onChange={writeStoredView}
+        />
       </div>
 
       <div role="tabpanel" id={PANEL_ID} aria-labelledby={tabId(scope)}>
@@ -142,7 +202,7 @@ export default function KillmailSummaryCard({
         {fitting?.highSlots &&
           fitting.highSlots.slots.some((slot: any) => slot.module) && (
             <FittingSection
-              view="grid"
+              view={view}
               scope={scope}
               title="High Slots"
               items={fitting.highSlots.slots
@@ -157,7 +217,7 @@ export default function KillmailSummaryCard({
         {fitting?.midSlots &&
           fitting.midSlots.slots.some((slot: any) => slot.module) && (
             <FittingSection
-              view="grid"
+              view={view}
               scope={scope}
               title="Mid Slots"
               items={fitting.midSlots.slots
@@ -172,7 +232,7 @@ export default function KillmailSummaryCard({
         {fitting?.lowSlots &&
           fitting.lowSlots.slots.some((slot: any) => slot.module) && (
             <FittingSection
-              view="grid"
+              view={view}
               scope={scope}
               title="Low Slots"
               items={fitting.lowSlots.slots
@@ -186,7 +246,7 @@ export default function KillmailSummaryCard({
         {/* Rigs */}
         {fitting?.rigs && fitting.rigs.slots.length > 0 && (
           <FittingSection
-            view="grid"
+            view={view}
             scope={scope}
             title="Rigs"
             items={fitting.rigs.slots
@@ -200,7 +260,7 @@ export default function KillmailSummaryCard({
         {/* Subsystems */}
         {fitting?.subsystems && fitting.subsystems.slots.length > 0 && (
           <FittingSection
-            view="grid"
+            view={view}
             scope={scope}
             title="Subsystems"
             items={fitting.subsystems.slots
@@ -216,7 +276,7 @@ export default function KillmailSummaryCard({
           fitting?.serviceSlots &&
           fitting.serviceSlots.slots.some((slot: any) => slot.module) && (
             <FittingSection
-              view="grid"
+              view={view}
               scope={scope}
               title="Service Slots"
               items={fitting.serviceSlots.slots
@@ -230,7 +290,7 @@ export default function KillmailSummaryCard({
         {/* Implants (array version) */}
         {fitting?.implants && fitting.implants.length > 0 && (
           <FittingSection
-            view="grid"
+            view={view}
             scope={scope}
             title="Implants"
             items={fitting.implants}
@@ -242,7 +302,7 @@ export default function KillmailSummaryCard({
         {/* Drone Bay */}
         {fitting?.droneBay && fitting.droneBay.length > 0 && (
           <FittingSection
-            view="grid"
+            view={view}
             scope={scope}
             title="Drone Bay"
             items={fitting.droneBay}
@@ -256,7 +316,7 @@ export default function KillmailSummaryCard({
           fitting.implants.slots &&
           fitting.implants.slots.some((slot: any) => slot.module) && (
             <FittingSection
-              view="grid"
+              view={view}
               scope={scope}
               title="Implants"
               items={fitting.implants.slots
@@ -270,7 +330,7 @@ export default function KillmailSummaryCard({
         {/* Cargo */}
         {fitting?.cargo && fitting.cargo.length > 0 && (
           <FittingSection
-            view="grid"
+            view={view}
             scope={scope}
             title="Cargo"
             items={fitting.cargo}
@@ -282,7 +342,7 @@ export default function KillmailSummaryCard({
         {/* Fuel Bay */}
         {fitting?.fuelBay && fitting.fuelBay.length > 0 && (
           <FittingSection
-            view="grid"
+            view={view}
             scope={scope}
             title="Fuel Bay"
             items={fitting.fuelBay}
@@ -294,7 +354,7 @@ export default function KillmailSummaryCard({
         {/* Mining Hold */}
         {fitting?.oreHold && fitting.oreHold.length > 0 && (
           <FittingSection
-            view="grid"
+            view={view}
             scope={scope}
             title="Mining Hold"
             items={fitting.oreHold}
@@ -306,7 +366,7 @@ export default function KillmailSummaryCard({
         {/* Fleet Hangar */}
         {fitting?.fleetHangar && fitting.fleetHangar.length > 0 && (
           <FittingSection
-            view="grid"
+            view={view}
             scope={scope}
             title="Fleet Hangar"
             items={fitting.fleetHangar}
@@ -319,7 +379,7 @@ export default function KillmailSummaryCard({
         {fitting?.infrastructureHangar &&
           fitting.infrastructureHangar.length > 0 && (
             <FittingSection
-              view="grid"
+              view={view}
               scope={scope}
               title="Infrastructure Hangar"
               items={fitting.infrastructureHangar}
@@ -331,7 +391,7 @@ export default function KillmailSummaryCard({
         {/* Gas Hold */}
         {fitting?.gasHold && fitting.gasHold.length > 0 && (
           <FittingSection
-            view="grid"
+            view={view}
             scope={scope}
             title="Gas Hold"
             items={fitting.gasHold}
@@ -343,7 +403,7 @@ export default function KillmailSummaryCard({
         {/* Mineral Hold */}
         {fitting?.mineralHold && fitting.mineralHold.length > 0 && (
           <FittingSection
-            view="grid"
+            view={view}
             scope={scope}
             title="Mineral Hold"
             items={fitting.mineralHold}
@@ -355,7 +415,7 @@ export default function KillmailSummaryCard({
         {/* Salvage Hold */}
         {fitting?.salvageHold && fitting.salvageHold.length > 0 && (
           <FittingSection
-            view="grid"
+            view={view}
             scope={scope}
             title="Salvage Hold"
             items={fitting.salvageHold}
@@ -368,7 +428,7 @@ export default function KillmailSummaryCard({
         {fitting?.planetaryCommoditiesHold &&
           fitting.planetaryCommoditiesHold.length > 0 && (
             <FittingSection
-              view="grid"
+              view={view}
               scope={scope}
               title="Planetary Commodities Hold"
               items={fitting.planetaryCommoditiesHold}
@@ -380,7 +440,7 @@ export default function KillmailSummaryCard({
         {/* Ice Hold */}
         {fitting?.iceHold && fitting.iceHold.length > 0 && (
           <FittingSection
-            view="grid"
+            view={view}
             scope={scope}
             title="Ice Hold"
             items={fitting.iceHold}
@@ -393,7 +453,7 @@ export default function KillmailSummaryCard({
         {fitting?.infrastructureHold &&
           fitting.infrastructureHold.length > 0 && (
             <FittingSection
-              view="grid"
+              view={view}
               scope={scope}
               title="Infrastructure Hold"
               items={fitting.infrastructureHold}
@@ -405,7 +465,7 @@ export default function KillmailSummaryCard({
         {/* Fighter Bay */}
         {fitting?.fighterBay && fitting.fighterBay.length > 0 && (
           <FittingSection
-            view="grid"
+            view={view}
             scope={scope}
             title="Fighter Bay"
             items={fitting.fighterBay}
@@ -419,7 +479,7 @@ export default function KillmailSummaryCard({
           fitting?.structureFuel &&
           fitting.structureFuel.length > 0 && (
             <FittingSection
-              view="grid"
+              view={view}
               scope={scope}
               title="Structure Fuel"
               items={fitting.structureFuel}
@@ -431,7 +491,7 @@ export default function KillmailSummaryCard({
         {/* Core Room */}
         {isStructure && fitting?.coreRoom && fitting.coreRoom.length > 0 && (
           <FittingSection
-            view="grid"
+            view={view}
             scope={scope}
             title="Core Room"
             items={fitting.coreRoom}
