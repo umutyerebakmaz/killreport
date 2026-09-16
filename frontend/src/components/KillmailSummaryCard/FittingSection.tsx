@@ -1,10 +1,12 @@
 import FittingItem from './FittingItem';
+import { FittingView } from './types';
 
 interface FittingSectionProps {
   title: string;
   items: any[];
   keyPrefix: string;
   hasCharges?: boolean;
+  view: FittingView;
 }
 
 const groupItems = (items: any[]) => {
@@ -65,6 +67,7 @@ export default function FittingSection({
   items,
   keyPrefix,
   hasCharges = false,
+  view,
 }: FittingSectionProps) {
   if (!items || items.length === 0) {
     return null;
@@ -88,16 +91,24 @@ export default function FittingSection({
   const groupedModules = groupItems(modules);
   const groupedCharges = hasCharges ? groupItems(charges) : [];
 
+  // `gap-px` is the grid's answer to `divide-y`: a hairline between cells,
+  // drawn by letting the card's own surface through.
+  const listClass =
+    view === 'grid'
+      ? 'grid grid-cols-1 gap-px sm:grid-cols-2 2xl:grid-cols-3'
+      : 'flex flex-col divide-y divide-white/10';
+
   return (
-    <div className="border-b fitting-section border-white/10">
+    <div className="border-b border-white/10">
       <h3 className="py-2 pl-2 font-bold text-gray-400 uppercase">{title}</h3>
-      <div className="flex flex-col divide-y divide-white/10">
+      <div className={listClass}>
         {groupedModules.map((item, index) => (
           <FittingItem
             key={`${keyPrefix}-module-${item.itemType.id}-${index}`}
             item={item}
             keyPrefix={`${keyPrefix}-module`}
             index={index}
+            view={view}
           />
         ))}
 
@@ -108,6 +119,7 @@ export default function FittingSection({
             keyPrefix={`${keyPrefix}-charge`}
             index={index}
             isCharge={true}
+            view={view}
           />
         ))}
       </div>

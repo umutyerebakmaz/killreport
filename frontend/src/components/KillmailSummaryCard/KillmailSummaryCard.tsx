@@ -39,12 +39,12 @@ export default function KillmailSummaryCard({
   totalValue,
 }: KillmailSummaryCardProps) {
   return (
-    <div className="border bg-surface border-white/10">
+    <div className="card">
       {/* Ship */}
       {victim?.shipType && (
         <div className="border-b border-white/10">
           <h3 className="py-2 pl-2 font-bold text-gray-400 uppercase">Ship</h3>
-          <div className="flex items-center gap-3 px-2 py-2 hover:bg-red-700/50 bg-red-700/40">
+          <div className="flex items-center gap-3 px-2 py-2 transition-colors hover:bg-destroyed/30 bg-destroyed/20">
             <div className="relative shrink-0">
               {getShipTier(victim.shipType.dogmaAttributes) && (
                 <div className="absolute top-0 left-0 z-20">
@@ -92,6 +92,7 @@ export default function KillmailSummaryCard({
       {fitting?.highSlots &&
         fitting.highSlots.slots.some((slot: any) => slot.module) && (
           <FittingSection
+            view="grid"
             title="High Slots"
             items={fitting.highSlots.slots
               .filter((slot: any) => slot.module)
@@ -105,6 +106,7 @@ export default function KillmailSummaryCard({
       {fitting?.midSlots &&
         fitting.midSlots.slots.some((slot: any) => slot.module) && (
           <FittingSection
+            view="grid"
             title="Mid Slots"
             items={fitting.midSlots.slots
               .filter((slot: any) => slot.module)
@@ -118,6 +120,7 @@ export default function KillmailSummaryCard({
       {fitting?.lowSlots &&
         fitting.lowSlots.slots.some((slot: any) => slot.module) && (
           <FittingSection
+            view="grid"
             title="Low Slots"
             items={fitting.lowSlots.slots
               .filter((slot: any) => slot.module)
@@ -130,6 +133,7 @@ export default function KillmailSummaryCard({
       {/* Rigs */}
       {fitting?.rigs && fitting.rigs.slots.length > 0 && (
         <FittingSection
+          view="grid"
           title="Rigs"
           items={fitting.rigs.slots
             .filter((slot: any) => slot.module)
@@ -142,6 +146,7 @@ export default function KillmailSummaryCard({
       {/* Subsystems */}
       {fitting?.subsystems && fitting.subsystems.slots.length > 0 && (
         <FittingSection
+          view="grid"
           title="Subsystems"
           items={fitting.subsystems.slots
             .filter((slot: any) => slot.module)
@@ -156,6 +161,7 @@ export default function KillmailSummaryCard({
         fitting?.serviceSlots &&
         fitting.serviceSlots.slots.some((slot: any) => slot.module) && (
           <FittingSection
+            view="grid"
             title="Service Slots"
             items={fitting.serviceSlots.slots
               .filter((slot: any) => slot.module)
@@ -168,6 +174,7 @@ export default function KillmailSummaryCard({
       {/* Implants (array version) */}
       {fitting?.implants && fitting.implants.length > 0 && (
         <FittingSection
+          view="grid"
           title="Implants"
           items={fitting.implants}
           keyPrefix="implant"
@@ -178,6 +185,7 @@ export default function KillmailSummaryCard({
       {/* Drone Bay */}
       {fitting?.droneBay && fitting.droneBay.length > 0 && (
         <FittingSection
+          view="grid"
           title="Drone Bay"
           items={fitting.droneBay}
           keyPrefix="drone"
@@ -190,6 +198,7 @@ export default function KillmailSummaryCard({
         fitting.implants.slots &&
         fitting.implants.slots.some((slot: any) => slot.module) && (
           <FittingSection
+            view="grid"
             title="Implants"
             items={fitting.implants.slots
               .filter((slot: any) => slot.module)
@@ -202,6 +211,7 @@ export default function KillmailSummaryCard({
       {/* Cargo */}
       {fitting?.cargo && fitting.cargo.length > 0 && (
         <FittingSection
+          view="grid"
           title="Cargo"
           items={fitting.cargo}
           keyPrefix="cargo"
@@ -212,6 +222,7 @@ export default function KillmailSummaryCard({
       {/* Fuel Bay */}
       {fitting?.fuelBay && fitting.fuelBay.length > 0 && (
         <FittingSection
+          view="grid"
           title="Fuel Bay"
           items={fitting.fuelBay}
           keyPrefix="fuel-bay"
@@ -222,6 +233,7 @@ export default function KillmailSummaryCard({
       {/* Mining Hold */}
       {fitting?.oreHold && fitting.oreHold.length > 0 && (
         <FittingSection
+          view="grid"
           title="Mining Hold"
           items={fitting.oreHold}
           keyPrefix="ore-hold"
@@ -232,6 +244,7 @@ export default function KillmailSummaryCard({
       {/* Fleet Hangar */}
       {fitting?.fleetHangar && fitting.fleetHangar.length > 0 && (
         <FittingSection
+          view="grid"
           title="Fleet Hangar"
           items={fitting.fleetHangar}
           keyPrefix="fleet-hangar"
@@ -243,6 +256,7 @@ export default function KillmailSummaryCard({
       {fitting?.infrastructureHangar &&
         fitting.infrastructureHangar.length > 0 && (
           <FittingSection
+            view="grid"
             title="Infrastructure Hangar"
             items={fitting.infrastructureHangar}
             keyPrefix="infrastructure-hangar"
@@ -253,6 +267,7 @@ export default function KillmailSummaryCard({
       {/* Gas Hold */}
       {fitting?.gasHold && fitting.gasHold.length > 0 && (
         <FittingSection
+          view="grid"
           title="Gas Hold"
           items={fitting.gasHold}
           keyPrefix="gas-hold"
@@ -263,6 +278,7 @@ export default function KillmailSummaryCard({
       {/* Mineral Hold */}
       {fitting?.mineralHold && fitting.mineralHold.length > 0 && (
         <FittingSection
+          view="grid"
           title="Mineral Hold"
           items={fitting.mineralHold}
           keyPrefix="mineral-hold"
@@ -273,6 +289,7 @@ export default function KillmailSummaryCard({
       {/* Salvage Hold */}
       {fitting?.salvageHold && fitting.salvageHold.length > 0 && (
         <FittingSection
+          view="grid"
           title="Salvage Hold"
           items={fitting.salvageHold}
           keyPrefix="salvage-hold"
@@ -284,6 +301,7 @@ export default function KillmailSummaryCard({
       {fitting?.planetaryCommoditiesHold &&
         fitting.planetaryCommoditiesHold.length > 0 && (
           <FittingSection
+            view="grid"
             title="Planetary Commodities Hold"
             items={fitting.planetaryCommoditiesHold}
             keyPrefix="planetary-commodities"
@@ -294,6 +312,7 @@ export default function KillmailSummaryCard({
       {/* Ice Hold */}
       {fitting?.iceHold && fitting.iceHold.length > 0 && (
         <FittingSection
+          view="grid"
           title="Ice Hold"
           items={fitting.iceHold}
           keyPrefix="ice-hold"
@@ -304,6 +323,7 @@ export default function KillmailSummaryCard({
       {/* Infrastructure Hold */}
       {fitting?.infrastructureHold && fitting.infrastructureHold.length > 0 && (
         <FittingSection
+          view="grid"
           title="Infrastructure Hold"
           items={fitting.infrastructureHold}
           keyPrefix="infrastructure-hold"
@@ -314,6 +334,7 @@ export default function KillmailSummaryCard({
       {/* Fighter Bay */}
       {fitting?.fighterBay && fitting.fighterBay.length > 0 && (
         <FittingSection
+          view="grid"
           title="Fighter Bay"
           items={fitting.fighterBay}
           keyPrefix="fighter"
@@ -326,6 +347,7 @@ export default function KillmailSummaryCard({
         fitting?.structureFuel &&
         fitting.structureFuel.length > 0 && (
           <FittingSection
+            view="grid"
             title="Structure Fuel"
             items={fitting.structureFuel}
             keyPrefix="fuel"
@@ -336,6 +358,7 @@ export default function KillmailSummaryCard({
       {/* Core Room */}
       {isStructure && fitting?.coreRoom && fitting.coreRoom.length > 0 && (
         <FittingSection
+          view="grid"
           title="Core Room"
           items={fitting.coreRoom}
           keyPrefix="core"
