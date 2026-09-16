@@ -45,7 +45,7 @@ describe('FittingItem', () => {
 
     await userEvent.hover(screen.getByAltText('Warp Disruptor II'));
 
-    expect(screen.getByText('4x Warp Disruptor II')).toBeInTheDocument();
+    expect(screen.getByText('4 x Warp Disruptor II')).toBeInTheDocument();
     expect(
       screen.getByText('Est. 84.000.000 ISK (21.000.000 ISK per unit)'),
     ).toBeInTheDocument();
@@ -64,7 +64,7 @@ describe('FittingItem', () => {
 
     await userEvent.hover(screen.getByAltText('Warp Disruptor II'));
 
-    expect(screen.getByText('4x Warp Disruptor II')).toBeInTheDocument();
+    expect(screen.getByText('4 x Warp Disruptor II')).toBeInTheDocument();
     expect(screen.queryByText(/m3/)).toBeNull();
   });
 });

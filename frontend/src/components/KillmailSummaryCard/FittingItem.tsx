@@ -99,9 +99,10 @@ export default function FittingItem({
      * right. The type icons are transparent PNGs, so the destroyed or dropped
      * ground shows through the art rather than sitting beside it.
      *
-     * Neither the name nor the ISK is printed. A tile is 64px wide and both
-     * are longer than that, so they travel in the title — which is also what
-     * the client does. The table view is where they are read.
+     * Neither the name nor the ISK is printed on the tile. A tile is 64px
+     * wide and both are longer than that, so they live in the tooltip, which
+     * is where the client puts them too. The table view is where they can be
+     * read without hovering.
      *
      * The count is left off when it is 1: groupItems splits an item into a
      * destroyed entry and a dropped entry, so a tile showing "1" would be
@@ -116,8 +117,10 @@ export default function FittingItem({
           // this one is three lines of figures rather than a bare label, and
           // it is the only place the full ISK and volume are readable.
           <div className="space-y-0.5 text-base">
-            <div className="font-bold text-white">
-              {totalQty}x {itemName}
+            {/* gray-100 rather than pure white: the same step the app gives
+                a prominent value elsewhere (SummaryRow, .map-card-name). */}
+            <div className="font-bold text-gray-100">
+              {totalQty} x {itemName}
             </div>
             <div className="text-gray-400">
               Est. {full(price * totalQty)} ISK ({full(price)} ISK per unit)
