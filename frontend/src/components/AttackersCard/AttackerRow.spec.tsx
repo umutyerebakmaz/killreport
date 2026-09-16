@@ -59,19 +59,17 @@ describe('AttackerRow', () => {
     expect(container.querySelector('img[src*="/corporations/"]')).toBeNull();
   });
 
-  it('puts the final blow badge inside the portrait slot', () => {
+  it('puts the final blow badge under the damage figure, not on the portrait', () => {
     renderRow(attacker(), { isFinalBlow: true });
 
     const badge = screen.getByText('FINAL BLOW');
     expect(badge).toHaveClass('tag');
+    expect(badge).toHaveClass('font-light');
 
-    // Asking which `.relative` is fragile — the ship tier wrapper is one too.
-    // Ask instead whether the badge's positioning context holds the portrait.
-    // `slot` is checked on its own line: with optional chaining alone a badge
-    // that has no positioning context at all yields `undefined`, and
-    // `expect(undefined).not.toBeNull()` passes.
-    const slot = badge.closest('.relative');
-    expect(slot).not.toBeNull();
-    expect(slot?.querySelector('img[src*="/characters/"]')).not.toBeNull();
+    // It shares a container with the damage figure rather than with the
+    // portrait, which is what "bottom right of the row" means here.
+    const column = badge.closest('div')?.parentElement;
+    expect(column?.textContent).toContain('1,234');
+    expect(badge.closest('.relative')).toBeNull();
   });
 });

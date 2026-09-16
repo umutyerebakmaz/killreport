@@ -74,27 +74,6 @@ export default function AttackerRow({
             />
           )}
 
-          {/*
-           * FINAL BLOW and TOP DAMAGE ride on the portrait rather than in the
-           * name block: they are facts about this attacker, and the portrait
-           * is where the eye already is. Both can be true at once, so they
-           * stack. Each label is wider than the 64px portrait and deliberately
-           * overhangs it — whitespace-nowrap keeps a ribbon from wrapping into
-           * two lines.
-           */}
-          <div className="absolute z-10 flex flex-col items-center -translate-x-1/2 gap-0.5 top-1 left-1/2">
-            {isFinalBlow && !isSolo && (
-              <span className="tag text-destroyed bg-destroyed/10 whitespace-nowrap">
-                FINAL BLOW
-              </span>
-            )}
-            {isTopDamage && !isSolo && (
-              <span className="tag text-orange-400 bg-orange-400/10 whitespace-nowrap">
-                TOP DAMAGE
-              </span>
-            )}
-          </div>
-
           {/* Security Status - Bottom Left */}
           {attacker.securityStatus !== null &&
             attacker.securityStatus !== undefined && (
@@ -240,6 +219,22 @@ export default function AttackerRow({
               {attacker.damageDone.toLocaleString()}
             </span>
             <span className="text-gray-400">{damagePercentage}%</span>
+
+            {/* Both can be true of one attacker, so they sit side by side
+                under the damage figure. `font-light` overrides .tag's
+                font-medium — a utility outranks a component class. */}
+            <div className="flex gap-1">
+              {isFinalBlow && !isSolo && (
+                <span className="font-light tag text-destroyed bg-destroyed/10 whitespace-nowrap">
+                  FINAL BLOW
+                </span>
+              )}
+              {isTopDamage && !isSolo && (
+                <span className="font-light tag text-orange-400 bg-orange-400/10 whitespace-nowrap">
+                  TOP DAMAGE
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
