@@ -50,8 +50,8 @@ describe('KillmailSummaryCard', () => {
       'aria-selected',
       'true',
     );
-    expect(screen.getByText('Gatling')).toBeInTheDocument();
-    expect(screen.getByText('Salvager')).toBeInTheDocument();
+    expect(screen.getByAltText('Gatling')).toBeInTheDocument();
+    expect(screen.getByAltText('Salvager')).toBeInTheDocument();
   });
 
   it('shows only destroyed items on the Destroyed tab, ship included', async () => {
@@ -59,8 +59,8 @@ describe('KillmailSummaryCard', () => {
 
     await userEvent.click(screen.getByRole('tab', { name: 'Destroyed' }));
 
-    expect(screen.getByText('Gatling')).toBeInTheDocument();
-    expect(screen.queryByText('Salvager')).toBeNull();
+    expect(screen.getByAltText('Gatling')).toBeInTheDocument();
+    expect(screen.queryByAltText('Salvager')).toBeNull();
     expect(screen.getByText('Rifter')).toBeInTheDocument();
   });
 
@@ -69,8 +69,8 @@ describe('KillmailSummaryCard', () => {
 
     await userEvent.click(screen.getByRole('tab', { name: 'Dropped' }));
 
-    expect(screen.getByText('Salvager')).toBeInTheDocument();
-    expect(screen.queryByText('Gatling')).toBeNull();
+    expect(screen.getByAltText('Salvager')).toBeInTheDocument();
+    expect(screen.queryByAltText('Gatling')).toBeNull();
     expect(screen.queryByText('Rifter')).toBeNull();
   });
 
@@ -88,26 +88,28 @@ describe('KillmailSummaryCard', () => {
   });
 
   it('starts in grid view', () => {
-    const { container } = render(<KillmailSummaryCard {...props} />);
+    render(<KillmailSummaryCard {...props} />);
 
-    expect(container.querySelector('.grid')).not.toBeNull();
+    // Tiles: the name is in the image, not in the text.
+    expect(screen.getByAltText('Gatling')).toBeInTheDocument();
+    expect(screen.queryByText('Gatling')).toBeNull();
   });
 
   it('remembers the table view', async () => {
-    const { container } = render(<KillmailSummaryCard {...props} />);
+    render(<KillmailSummaryCard {...props} />);
 
     await userEvent.click(screen.getByRole('radio', { name: 'Table' }));
 
-    expect(container.querySelector('.grid')).toBeNull();
+    expect(screen.getByText('Gatling')).toBeInTheDocument();
     expect(localStorage.getItem('killmail_fitting_view')).toBe('table');
   });
 
   it('opens in the remembered view', () => {
     localStorage.setItem('killmail_fitting_view', 'table');
 
-    const { container } = render(<KillmailSummaryCard {...props} />);
+    render(<KillmailSummaryCard {...props} />);
 
-    expect(container.querySelector('.grid')).toBeNull();
+    expect(screen.getByText('Gatling')).toBeInTheDocument();
   });
 
   it('keeps the filter and the view independent', async () => {

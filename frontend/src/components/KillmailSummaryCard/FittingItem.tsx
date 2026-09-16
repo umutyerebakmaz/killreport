@@ -78,6 +78,48 @@ export default function FittingItem({
   const priceWidth = view === 'grid' ? 'w-20' : 'w-40';
   const quantityWidth = view === 'grid' ? 'w-10' : 'w-16';
   const itemName = getItemName(item.itemType, item.singleton);
+  const price = getItemPrice(
+    item.itemType,
+    item.singleton,
+    item.itemType.jitaPrice,
+  );
+
+  if (view === 'grid') {
+    /*
+     * The game's inventory tile: a 64px icon with its count in the bottom
+     * right. The type icons are transparent PNGs, so the destroyed or dropped
+     * ground shows through the art rather than sitting beside it.
+     *
+     * Neither the name nor the ISK is printed. A tile is 64px wide and both
+     * are longer than that, so they travel in the title — which is also what
+     * the client does. The table view is where they are read.
+     *
+     * The count is left off when it is 1: groupItems splits an item into a
+     * destroyed entry and a dropped entry, so a tile showing "1" would be
+     * every tile on most fits, and the game omits it too.
+     */
+    return (
+      <div
+        key={`${keyPrefix}-${item.itemType.id}-${index}`}
+        className={`relative transition-colors size-16 ${bgColor}`}
+        title={`${itemName} — ${formatISK(price * totalQty)}`}
+      >
+        <img
+          src={getItemImageUrl(item.itemType, item.singleton, 64)}
+          alt={itemName}
+          width={64}
+          height={64}
+          loading="lazy"
+          decoding="async"
+        />
+        {totalQty > 1 && (
+          <span className="absolute bottom-0 right-0 px-1 text-xs font-semibold text-white bg-black/70">
+            {totalQty}
+          </span>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div

@@ -111,11 +111,11 @@ export default function FittingSection({
     return null;
   }
 
-  // `gap-px` is the grid's answer to `divide-y`: a hairline between cells,
-  // drawn by letting the card's own surface through.
+  // Grid view packs tiles left to right and wraps, the way the client's
+  // inventory does; table view keeps one item per line.
   const listClass =
     view === 'grid'
-      ? 'grid grid-cols-1 gap-px sm:grid-cols-2 2xl:grid-cols-3'
+      ? 'flex flex-wrap gap-1 p-2'
       : 'flex flex-col divide-y divide-white/10';
 
   return (

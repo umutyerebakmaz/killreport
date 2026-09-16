@@ -11,7 +11,7 @@ const item = (id: number, name: string) => ({
 });
 
 describe('FittingSection', () => {
-  it('is a card of its own, flowing its items across a grid in grid view', () => {
+  it('renders its items as inventory tiles in grid view', () => {
     const { container } = render(
       <FittingSection
         title="High Slots"
@@ -23,14 +23,15 @@ describe('FittingSection', () => {
     );
 
     expect(container.querySelector('.card')).not.toBeNull();
-    const list = container.querySelector('.grid');
-    expect(list).not.toBeNull();
-    expect(list).toHaveClass('2xl:grid-cols-3');
-    expect(screen.getByText('Gatling')).toBeInTheDocument();
-    expect(screen.getByText('Salvager')).toBeInTheDocument();
+    expect(container.querySelector('.flex-wrap')).not.toBeNull();
+
+    // A tile carries the name in its alt and title, not as text: 64px is
+    // narrower than any module name.
+    expect(screen.getByAltText('Gatling')).toBeInTheDocument();
+    expect(screen.queryByText('Gatling')).toBeNull();
   });
 
-  it('keeps the stacked rows in table view', () => {
+  it('keeps the named rows in table view', () => {
     const { container } = render(
       <FittingSection
         title="High Slots"
@@ -41,8 +42,9 @@ describe('FittingSection', () => {
       />,
     );
 
-    expect(container.querySelector('.grid')).toBeNull();
+    expect(container.querySelector('.flex-wrap')).toBeNull();
     expect(container.querySelector('.divide-y')).not.toBeNull();
+    expect(screen.getByText('Gatling')).toBeInTheDocument();
     expect(container.querySelector('.w-40')).not.toBeNull();
   });
 
