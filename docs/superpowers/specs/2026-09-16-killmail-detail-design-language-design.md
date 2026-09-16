@@ -15,9 +15,11 @@ Bu sayfa ise yüzeylerini elle çiziyor, rengini doğrudan Tailwind paletinden
 seçiyor ve bir yerde artık var olmayan bir sınıf kullanıyor. Bu iş o dört
 ağacı dile hizalar.
 
-**Yerleşim değişmiyor.** Üç kolonluk grid, kartların sırası, mobil davranış ve
-sayfadaki metinlerin hiçbiri bu işin konusu değil. Değişen yalnızca yüzey,
-renk, boşluk ve söz dağarcığı.
+**Yerleşim değişmiyor.** Üç kolonluk grid, kolon genişlikleri, kartların
+sırası, mobil davranış ve sayfadaki metinlerin hiçbiri bu işin konusu değil.
+Değişen yalnızca yüzey, renk, boşluk ve söz dağarcığı. Tek istisna bir yüzey
+sınırı: FitScreen ile kurban özeti ayrı kartlara bölünüyor (2. karar,
+_Kart sınırı_ bölümü) — grid aynı kalıyor, kartın sınırı düzeliyor.
 
 ## Bugünkü durum
 
@@ -51,22 +53,32 @@ yansıması yok, dolayısıyla dördü tek bütün olarak revize edilebilir.
 
 ## Kararlar
 
-1. **Kapsam yalnızca dil.** Yerleşim, bilgi hiyerarşisi ve metinler
-   değişmiyor; sayfada yeni bir metin belirmiyor.
-2. **Kartlar başlıksız kalıyor.** Bugün başlığı olmayan bir kart başlık
+1. **Kapsam yalnızca dil.** Bilgi hiyerarşisi ve metinler değişmiyor; sayfada
+   yeni bir metin belirmiyor. Kolonların sırası ve genişlikleri de aynı. Tek
+   istisna aşağıdaki 2. karar: bir yüzey sınırı düzeliyor, yerleşim değil.
+2. **FitScreen ile kurban özeti iki ayrı kart oluyor.** Bugün ikisi tek bir
+   `.card`'ın (`page.tsx:75-76`) içindeki `grid ... gap-6`'da duruyor, yani
+   aralarındaki boşluk o kartın kendi `bg-surface`'ini gösteriyor ve ikisi tek
+   parça gibi okunuyor. `cards.css` bu ayrımı `.tab-shell` yorumunda zaten
+   adlandırıyor: `.card` metin ve kontrol tutan **yaprak** yüzey için,
+   kendi yüzeylerini tutan **çerçeve** için değil. Bugünkü kart bir çerçeve
+   ama yaprak kıyafeti giymiş. İkiye bölününce aradaki `gap-6` `bg-ground`'u
+   gösterir — `body` `bg-ground` (`layout.tsx:24`) ve `main`'in kendi zemini
+   yok, o yüzden araya ayrıca bir zemin konmuyor.
+3. **Kartlar başlıksız kalıyor.** Bugün başlığı olmayan bir kart başlık
    kazanmıyor. Zaten var olan başlıklar (`N ATTACKERS`, `Ship`, fitting bölüm
    adları) metinleriyle kalıyor, yalnızca dile hizalanıyor.
-3. **Anlam renkleri jeton oluyor.** `globals.css`'teki `@theme` bloğuna üç
+4. **Anlam renkleri jeton oluyor.** `globals.css`'teki `@theme` bloğuna üç
    jeton eklenir; aynı anlam tek bir değerde toplanır.
-4. **Hasar da `destroyed` jetonunu kullanır.** Ayrı bir `--color-damage` aynı
+5. **Hasar da `destroyed` jetonunu kullanır.** Ayrı bir `--color-damage` aynı
    değerin ikinci adı olurdu; tek kırmızı, tek anlam: "bu taraf yok edildi".
-5. **`SummaryRow` paylaşılan bir bileşen.** İki tüketicisi var, o yüzden
+6. **`SummaryRow` paylaşılan bir bileşen.** İki tüketicisi var, o yüzden
    `ui/` rafına giriyor — sayfa-yerel bir yardımcı değil.
-6. **`cards.css` yalnızca `.tag` ile büyüyor.** Söz dağarcığına yeni sınıf
+7. **`cards.css` yalnızca `.tag` ile büyüyor.** Söz dağarcığına yeni sınıf
    eklemenin çıtası `cards.css`'in kendi yorumlarında yazılı ("bu dize altı
    kopyada vardı"); 5 kopyalık rozet bu çıtayı geçiyor, 10 kopyalık
    etiket/değer satırı ise bir React bileşeni olarak daha iyi karşılanıyor.
-7. **`FitScreen`'in yuvalarına dokunulmuyor.** `bg-white/5` zemin olarak
+8. **`FitScreen`'in yuvalarına dokunulmuyor.** `bg-white/5` zemin olarak
    dilin dışında ama `.button-ghost` ve `.menu-row`'da meşru bir vurgu tonu;
    FitScreen kendi içinde tutarlı ve sayfanın en çok bakılan parçası.
 
@@ -112,6 +124,41 @@ Solda etiket (`text-gray-400`), sağda değer (`text-gray-100`), arada
 `ui/` rafının kalıbına uyar: `Card`, `SectionTitle`, `RankNumber` gibi tek
 işli, iş mantığı taşımayan bir primitive.
 
+## Kart sınırı
+
+Bugün (`page.tsx:75-79`) dıştaki `.card` bir çerçeve ama yaprak kılığında, ve
+onun içinde tanımsız `victim-card` sarmalayıcısı duruyor:
+
+```tsx
+<div className="flex flex-col gap-6 p-6 card">
+  <div className="victim-card">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="lg:col-span-2">…FitScreen…</div>
+      <div className="lg:col-span-1">…özet…</div>
+    </div>
+  </div>
+</div>
+```
+
+Sonrası — grid dışarı çıkıyor, iki dal kendi kartını giyiyor, sarmalayıcılar
+gidiyor:
+
+```tsx
+<div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+  <div className="card card-body lg:col-span-2">…FitScreen…</div>
+  <div className="card card-body lg:col-span-1">…özet…</div>
+</div>
+```
+
+Kolon genişlikleri (2/3 + 1/3), sıra ve `gap-6` aynı; değişen tek şey
+boşluğun altında ne olduğu. Grid'in kendi zemini olmadığı için boşluk
+`bg-ground`'u gösterir ve iki kart ayrı okunur. Grid varsayılan olarak
+`stretch` hizaladığından iki kart aynı yüksekliğe gelir.
+
+`isStructure` dalının fazladan alt dolgusu (`pb-24`, bugün `px-6 pt-6 pb-24`)
+artık yalnızca FitScreen kartına ait — özet kartını ilgilendirmiyordu, tek
+kart olduğu için ona da uygulanıyordu.
+
 ## Altı kural
 
 Dört ağaç bu kurallarla hizalanır:
@@ -132,26 +179,29 @@ ikisi de skalaya girer.
 
 ## Dosya dosya
 
-| Dosya                      | Değişiklik                                                                                                                                                     |
-| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `globals.css`              | Üç anlam jetonu                                                                                                                                                |
-| `cards.css`                | `.tag`                                                                                                                                                         |
-| `ui/SummaryRow.tsx`        | Yeni, ~15 satır                                                                                                                                                |
-| `ui/SummaryRow.spec.tsx`   | Yeni; `ui/Card.spec.tsx`'in kalıbı                                                                                                                             |
-| `page.tsx`                 | 7 satır → `SummaryRow`; kural 6; `bg-gray-800/50` → `bg-surface-inset`; 3× cyan; ISK jetonları; WAR KILL → `.tag`; ölü `victim-card` kalkar. ~362 → ~300 satır |
-| `AttackersCard.tsx`        | Başlık barı `.card-header` olur, metni aynı kalır, anlamsız `hover:bg-surface-inset` gider; 3 el yazısı `.card-row`                                            |
-| `AttackerRow.tsx`          | 4 rozet → `.tag`; `bg-gray-800` → `bg-surface-inset`; el yazısı `.card-row`; 4× cyan                                                                           |
-| `FeaturedAttackerCard.tsx` | `text-md` → `text-base`; `inset-ring inset-ring-white/10` → `.card`'ın `border border-white/10`'u (içerik 1px kayar)                                           |
-| `KillmailSummaryCard.tsx`  | `:42` el yazısı `.card` → `card`; 3 satır → `SummaryRow`                                                                                                       |
-| `FittingItem.tsx`          | `bg-red-700/40` → `bg-destroyed/20`, hover `/30`; yeşil aynısı. Tonun gözle görülür değiştiği tek yer                                                          |
-| `FittingSection.tsx`       | Değer/etiket skalası                                                                                                                                           |
-| `FitScreen/*`              | İki `text-gray-500` skalaya girer, başka dokunuş yok                                                                                                           |
+| Dosya                      | Değişiklik                                                                                                                                                                                                  |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `globals.css`              | Üç anlam jetonu                                                                                                                                                                                             |
+| `cards.css`                | `.tag`                                                                                                                                                                                                      |
+| `ui/SummaryRow.tsx`        | Yeni, ~15 satır                                                                                                                                                                                             |
+| `ui/SummaryRow.spec.tsx`   | Yeni; `ui/Card.spec.tsx`'in kalıbı                                                                                                                                                                          |
+| `page.tsx`                 | Tek kart ikiye bölünür (bkz. _Kart sınırı_); 7 satır → `SummaryRow`; kural 6; `bg-gray-800/50` → `bg-surface-inset`; 3× cyan; ISK jetonları; WAR KILL → `.tag`; ölü `victim-card` kalkar. ~362 → ~295 satır |
+| `AttackersCard.tsx`        | Başlık barı `.card-header` olur, metni aynı kalır, anlamsız `hover:bg-surface-inset` gider; 3 el yazısı `.card-row`                                                                                         |
+| `AttackerRow.tsx`          | 4 rozet → `.tag`; `bg-gray-800` → `bg-surface-inset`; el yazısı `.card-row`; 4× cyan                                                                                                                        |
+| `FeaturedAttackerCard.tsx` | `text-md` → `text-base`; `inset-ring inset-ring-white/10` → `.card`'ın `border border-white/10`'u (içerik 1px kayar)                                                                                        |
+| `KillmailSummaryCard.tsx`  | `:42` el yazısı `.card` → `card`; 3 satır → `SummaryRow`                                                                                                                                                    |
+| `FittingItem.tsx`          | `bg-red-700/40` → `bg-destroyed/20`, hover `/30`; yeşil aynısı. Tonun gözle görülür değiştiği tek yer                                                                                                       |
+| `FittingSection.tsx`       | Değer/etiket skalası                                                                                                                                                                                        |
+| `FitScreen/*`              | İki `text-gray-500` skalaya girer, başka dokunuş yok                                                                                                                                                        |
 
 ### Boşluk uyarısı
 
 Kural 1 gereği kart içi dolgu `.card-body`'ye geçiyor ve o `p-4`. Sayfa bugün
-kendi `p-6`'sını yazıyor, yani kartların iç boşluğu bir adım daralıyor. Gözle
-bakıldıktan sonra geri istenirse bir sınıfla geri gelir.
+kendi `p-6`'sını yazıyor, yani kartların iç boşluğu bir adım daralıyor. Kart
+sınırı bölünmesiyle birlikte bu, FitScreen ile özet arasındaki toplam mesafeyi
+artırıyor: bugün tek kartın içinde `p-6` + `gap-6` + `p-6` var; sonrasında iki
+ayrı `p-4`, aralarında zemin gören `gap-6` ve iki kenarlık olacak. Gözle
+bakıldıktan sonra dolgu geri istenirse bir sınıfla geri gelir.
 
 ## Kapsam dışı
 
