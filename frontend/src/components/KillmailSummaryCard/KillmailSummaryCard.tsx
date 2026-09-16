@@ -115,8 +115,15 @@ export default function KillmailSummaryCard({
   );
 
   return (
-    <div className="card">
-      <div className="justify-between card-band">
+    /*
+     * A frame, not a leaf. Every group below carries its own `.card`, so this
+     * wrapper stays on the page ground — the same shape the solar system,
+     * character, alliance and corporation pages use for a tab bar over panels
+     * that hold their own surfaces. Inside a card the groups would share its
+     * surface and read as one stack, which is what they used to do.
+     */
+    <div className="space-y-2 tab-shell">
+      <div className="flex items-center justify-between gap-4 mb-3">
         <div role="tablist" aria-label="Fitting items" className="flex gap-1">
           {TABS.map((tab) => (
             <button
@@ -146,15 +153,20 @@ export default function KillmailSummaryCard({
         />
       </div>
 
-      <div role="tabpanel" id={PANEL_ID} aria-labelledby={tabId(scope)}>
+      <div
+        role="tabpanel"
+        id={PANEL_ID}
+        aria-labelledby={tabId(scope)}
+        className="space-y-2"
+      >
         {/* Ship. A hull is always destroyed and never drops, so the Dropped
           view would be lying if it kept this block. */}
         {victim?.shipType && scope !== 'dropped' && (
-          <div className="border-b border-white/10">
+          <div className="card">
             <h3 className="py-2 pl-2 font-bold text-gray-400 uppercase">
               Ship
             </h3>
-            <div className="flex items-center gap-3 px-2 py-2 transition-colors hover:bg-destroyed/30 bg-destroyed/20">
+            <div className="flex items-center gap-3 px-2 py-2 transition-colors hover:bg-destroyed-fill/50 bg-destroyed-fill/40">
               <div className="relative shrink-0">
                 {getShipTier(victim.shipType.dogmaAttributes) && (
                   <div className="absolute top-0 left-0 z-20">
@@ -503,7 +515,7 @@ export default function KillmailSummaryCard({
 
       {/* Value Summary. Outside the tab panel on purpose: these are the
           killmail's totals, not the view's. */}
-      <div className="px-2 py-2 space-y-1">
+      <div className="px-2 py-2 space-y-1 card">
         <SummaryRow label="Destroyed">
           <span className="text-destroyed tabular-nums">
             {formatISK(destroyedValue)}

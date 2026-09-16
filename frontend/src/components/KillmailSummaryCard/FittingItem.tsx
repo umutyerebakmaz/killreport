@@ -67,9 +67,9 @@ export default function FittingItem({
   const isDestroyed = item.quantityDestroyed > 0;
   const isDropped = item.quantityDropped > 0;
   const bgColor = isDestroyed
-    ? 'hover:bg-destroyed/30 bg-destroyed/20'
+    ? 'hover:bg-destroyed-fill/50 bg-destroyed-fill/40'
     : isDropped
-      ? 'hover:bg-dropped/30 bg-dropped/20'
+      ? 'hover:bg-dropped-fill/50 bg-dropped-fill/40'
       : '';
 
   // formatISK never prints more than eight characters — `999.99B` is the

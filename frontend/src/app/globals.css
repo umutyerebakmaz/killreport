@@ -23,13 +23,19 @@
      pockets today: cyan, indigo and blue. */
   --color-accent: var(--color-cyan-600);
 
-  /* Meaning. One value per meaning: the killmail page wrote each of these
-     twice — a destroyed item was text-red-400 in one place and bg-red-700/40
-     in another, for the same fact. Damage uses `destroyed` too; a separate
-     --color-damage would be a second name for the same value. */
+  /* Meaning. Damage uses `destroyed` too — a separate --color-damage would
+     be a second name for the same value. */
   --color-destroyed: var(--color-red-400);
   --color-dropped: var(--color-green-400);
   --color-isk: var(--color-yellow-400);
+
+  /* The same two meanings as a ground rather than as ink, and deliberately
+     a deeper step: 400 reads on a dark surface because it is light, and a
+     light hue behind a whole row washes it out. These are the tones the
+     fitting rows already used; they are named here so the pair travels
+     together, not to change them. */
+  --color-destroyed-fill: var(--color-red-700);
+  --color-dropped-fill: var(--color-green-700);
 }
 
 html,

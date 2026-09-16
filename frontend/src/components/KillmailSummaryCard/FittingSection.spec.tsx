@@ -11,7 +11,7 @@ const item = (id: number, name: string) => ({
 });
 
 describe('FittingSection', () => {
-  it('lays the items out in a grid in grid view', () => {
+  it('is a card of its own, flowing its items across a grid in grid view', () => {
     const { container } = render(
       <FittingSection
         title="High Slots"
@@ -22,6 +22,7 @@ describe('FittingSection', () => {
       />,
     );
 
+    expect(container.querySelector('.card')).not.toBeNull();
     const list = container.querySelector('.grid');
     expect(list).not.toBeNull();
     expect(list).toHaveClass('2xl:grid-cols-3');
@@ -42,6 +43,7 @@ describe('FittingSection', () => {
 
     expect(container.querySelector('.grid')).toBeNull();
     expect(container.querySelector('.divide-y')).not.toBeNull();
+    expect(container.querySelector('.w-40')).not.toBeNull();
   });
 
   it('renders nothing when it has no items', () => {

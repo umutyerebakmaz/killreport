@@ -119,7 +119,7 @@ export default function FittingSection({
       : 'flex flex-col divide-y divide-white/10';
 
   return (
-    <div className="border-b border-white/10">
+    <div className="card">
       <h3 className="py-2 pl-2 font-bold text-gray-400 uppercase">{title}</h3>
       <div className={listClass}>
         {groupedModules.map((item, index) => (
