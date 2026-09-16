@@ -59,12 +59,13 @@ describe('AttackerRow', () => {
     expect(container.querySelector('img[src*="/corporations/"]')).toBeNull();
   });
 
-  it('puts the final blow badge under the damage figure, not on the portrait', () => {
+  it('puts the final blow mark under the damage figure, not on the portrait', () => {
     renderRow(attacker(), { isFinalBlow: true });
 
     const badge = screen.getByText('FINAL BLOW');
-    expect(badge).toHaveClass('tag');
+    // Plain text, not a badge: no ground, no padding.
     expect(badge).toHaveClass('font-light');
+    expect(badge).not.toHaveClass('tag');
 
     // It shares a container with the damage figure rather than with the
     // portrait, which is what "bottom right of the row" means here.

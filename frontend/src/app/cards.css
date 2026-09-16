@@ -150,11 +150,16 @@
   }
 
   /*
-   * A status badge: FINAL BLOW, TOP DAMAGE, SOLO and NPC on an attacker row,
-   * WAR KILL on the killmail page. Five copies, and four of them carried a
-   * radius — the only thing on the page that takes one is .float. The SOLO
-   * copy had also dropped text-xs, so it printed larger than the three
-   * badges beside it.
+   * A status badge: SOLO and NPC on an attacker row, WAR KILL on the killmail
+   * page. It started as five copies — FINAL BLOW and TOP DAMAGE were badges
+   * too — and four of them carried a radius, the only thing on the page that
+   * takes one being .float. The SOLO copy had also dropped text-xs, so it
+   * printed larger than the three beside it.
+   *
+   * Those two left afterwards: they moved under the damage figure and became
+   * plain text, because a ground and padding made two more boxes in a column
+   * that already had a figure and a percentage. The three that remain all
+   * mark a fact about the killmail, which is what this shape is now for.
    *
    * It carries no colour of its own: the caller supplies the meaning, as
    * `tag text-destroyed bg-destroyed/10`. Not .chip — that one is a filter

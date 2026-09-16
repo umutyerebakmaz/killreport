@@ -220,17 +220,18 @@ export default function AttackerRow({
             </span>
             <span className="text-gray-400">{damagePercentage}%</span>
 
-            {/* Both can be true of one attacker, so they sit side by side
-                under the damage figure. `font-light` overrides .tag's
-                font-medium — a utility outranks a component class. */}
-            <div className="flex gap-1">
+            {/* Plain text rather than `.tag`: a badge's ground and padding
+                made two more boxes in a column that already has a figure and
+                a percentage. Both can be true of one attacker, so they sit
+                side by side. */}
+            <div className="flex gap-2">
               {isFinalBlow && !isSolo && (
-                <span className="font-light tag text-destroyed bg-destroyed/10 whitespace-nowrap">
+                <span className="text-xs font-light text-destroyed whitespace-nowrap">
                   FINAL BLOW
                 </span>
               )}
               {isTopDamage && !isSolo && (
-                <span className="font-light tag text-orange-400 bg-orange-400/10 whitespace-nowrap">
+                <span className="text-xs font-light text-orange-400 whitespace-nowrap">
                   TOP DAMAGE
                 </span>
               )}
