@@ -603,20 +603,27 @@ etiket yoğunluğu.
 
 Her faz kendi PR'ı ve kendi incelemesi.
 
-> **Durum, 2026-09-14.** Bu bölüm belgenin geri kalanından daha sonra yazıldı ve
-> nerede kalındığının **tek güncel kaydı** budur. Aşağıdaki faz 3 ve faz 4
+> **Durum, 2026-09-16.** Bu bölüm belgenin geri kalanından daha sonra yazıldı ve
+> nerede kalındığının **tek güncel kaydı** budur. Issue #176 2026-09-16'da
+> tamamlandı sayılıp kapatıldı: başlığının vaat ettiği şey — galaksiden gezegene
+> tek sahne, tek sürekli zoom — teslim edildi. Kalan iş iki issue'ya taşındı:
+> faz 4 **#219**, faz 3'ün artıkları **#220**. Aşağıdaki faz 3 ve faz 4
 > açıklamaları ise yazıldıkları hâliyle duruyor ve **bir kısmı geçersizdir**;
 > hangi kısmı olduğu aşağıda yazılı.
 
-| Faz | İçerik                                                                                                                                            | Durum                                          |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| 1   | Şema + servis + `mapGeometry`, üç sahne, kayan orijin, kamera ve scope URL'de, `/map`                                                             | **Bitti** — #202                               |
-| 2   | `mapCelestials`, sistem başına önbellek, LOD eşikleri, sistem içleri, gate uçlarının çapalanması                                                  | **Bitti** — #203                               |
-| —   | **Renderer deck.gl 9.4 → PixiJS 8.** Faz değil: faz 1-2'nin frontend'ini "`/map` `main`'deki gibi görünsün ve davransın" kriteriyle yeniden yazdı | **Bitti** — #204                               |
-| —   | Harita yüksekliği: uzun footer `main`'i sıkıştırıyordu, haritanın yüzde yüksekliği onunla çöküyordu                                               | **Bitti** — #205                               |
-| —   | Etiketler: bölge, takımyıldız ve sistem adları; zoom'la açılan ve **biriken** üç kademe                                                           | **Bitti** — #206                               |
-| 3   | Picking, popup, `?focus=`, klavye, mevcut sayfalardan girişler                                                                                    | Üçe bölündü: **3a bitti**, 3b ve 3c başlanmadı |
-| 4   | Base katmanlar, aktivite, sunucuda territory, sahip logoları                                                                                      | Başlanmadı                                     |
+| Faz | İçerik                                                                                                                                            | Durum                                      |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| 1   | Şema + servis + `mapGeometry`, üç sahne, kayan orijin, kamera ve scope URL'de, `/map`                                                             | **Bitti** — #202                           |
+| 2   | `mapCelestials`, sistem başına önbellek, LOD eşikleri, sistem içleri, gate uçlarının çapalanması                                                  | **Bitti** — #203                           |
+| —   | **Renderer deck.gl 9.4 → PixiJS 8.** Faz değil: faz 1-2'nin frontend'ini "`/map` `main`'deki gibi görünsün ve davransın" kriteriyle yeniden yazdı | **Bitti** — #204                           |
+| —   | Harita yüksekliği: uzun footer `main`'i sıkıştırıyordu, haritanın yüzde yüksekliği onunla çöküyordu                                               | **Bitti** — #205                           |
+| —   | Etiketler: bölge, takımyıldız ve sistem adları; zoom'la açılan ve **biriken** üç kademe                                                           | **Bitti** — #206                           |
+| —   | Etiketler Pixi `BitmapText`'ten havuzlanmış DOM katmanına taşındı; üç font atlası ve onunla gelen her şey silindi                                 | **Bitti** — f50b077d                       |
+| —   | Okunabilirlik: piksel oranı, noktaların büyümesi, etiket hiyerarşisi, overlay yerleşimi                                                           | **Bitti** — #211                           |
+| —   | Alan adı alanının ekranda kalan parçasının üstünde duruyor; projeksiyon tek yerde hesaplanıyor                                                    | **Bitti** — #213, #214                     |
+| —   | Bölgesinden çıkan geçit kesikli; imleç bir sistemin ya da bir alan adının üstündeyken o alanın kendi gate hatları parlıyor                        | **Bitti** — #216, #217, #218               |
+| 3   | Picking, popup, `?focus=`, klavye, mevcut sayfalardan girişler                                                                                    | 3a ve 3b'nin yarısı bitti; kalanı **#220** |
+| 4   | Base katmanlar, aktivite, sunucuda territory, sahip logoları                                                                                      | Başlanmadı — **#219**                      |
 
 ### Faz 3 üçe bölündü
 
@@ -625,19 +632,22 @@ Beş işi tek dilime sıkıştırmak ikisini de kötü yapardı. Bağımlılık 
 | Dilim  | Ne                                                                                                                                                                           | Neye bağlı                                            |
 | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
 | **3a** | İmlecin altındaki sistem, hover ipucu, tıklamada popup — **bitti**, kendi spec'i: [`2026-09-14-universe-map-picking-design.md`](./2026-09-14-universe-map-picking-design.md) | —                                                     |
-| **3b** | `?focus=30000142`, ve bölge/takımyıldız/sistem sayfalarından "haritada göster" girişleri                                                                                     | 3a — var olmayan bir odak durumuna bağlantı verilemez |
-| **3c** | Klavyeyle pan, zoom ve sistemler arası gezinme                                                                                                                               | 3a                                                    |
+| **3b** | `?focus=30000142` **bitti** (#210); bölge/takımyıldız/sistem sayfalarından "haritada göster" girişleri hâlâ yok — #220                                                       | 3a — var olmayan bir odak durumuna bağlantı verilemez |
+| **3c** | Klavyeyle pan, zoom ve sistemler arası gezinme — #220                                                                                                                        | 3a                                                    |
 
-**Başlangıç 3a.** Haritayı kullanışlı yapan o, ve diğer ikisi onun tanımladığı
-"seçili sistem" kavramının üstüne kuruluyor.
+**Başlangıç 3a'ydı.** Haritayı kullanışlı yapan o, ve diğer ikisi onun
+tanımladığı "seçili sistem" kavramının üstüne kuruluyor. 3b'nin `?focus=` yarısı
+onun hemen ardından geldi; giriş bağlantıları ve klavye #220'de bekliyor.
 
 ### Bu belgenin faz 3 ve 4 metni deck.gl şeklinde ve o kısmı geçersiz
 
 Yukarıdaki _Picking_ ve _Popup_ paragrafları `pickable: true`,
 `pickingRadius: 4` ve deck.gl'in React child callback'iyle
 `viewport.project(...)` diyor. **Bunların hiçbiri artık yok.** Faz 3, etiketler
-diliminin yaptığı gibi Pixi için yeniden tasarlanacak — Pixi'de GPU picking
-bedava gelmiyor.
+diliminin yaptığı gibi Pixi için yeniden tasarlandı — Pixi'de GPU picking bedava
+gelmediği için 3a kendi spec'ini yazdı. Faz 4'ün katman yığını da aynı yoldan
+geçecek: _Katman yığını_ tablosundaki `ScatterplotLayer`, `PolygonLayer` ve
+`IconLayer` deck.gl'in sözlüğü, bizimki değil.
 
 Geçersiz olan yalnızca _nasıl_ yapılacağı. _Ne_ yapılacağı — imlecin altındaki
 sistemi bilmek, hover'da tek satır, tıklamada popup, popup'ın tuvale değil üste
@@ -656,6 +666,8 @@ konumlanan sıradan bir React bileşeni olması — aynen geçerli.
   yazdığından ayırma. 3b bunu devralıyor.
 
 ### Faz 4 öncesi kapanmamış küçük işler
+
+İlk ikisi #220'ye alındı; üçüncüsü kimsenin işi değil, bir kayıt.
 
 - **Gezegen adları** — dördüncü etiket kademesi. Verisi `mapCelestials`'ta hazır
   (`name`), yani payload'ı sıfır. Sistem içi ayrı bir görsel bağlam olduğu için
