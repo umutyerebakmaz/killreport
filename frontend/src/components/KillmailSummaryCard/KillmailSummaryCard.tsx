@@ -178,9 +178,9 @@ export default function KillmailSummaryCard({
             view would be lying if it kept this block. */}
         {victim?.shipType && scope !== 'dropped' && (
           <div className="card col-span-full">
-            <h3 className="py-2 pl-2 font-bold text-gray-400 uppercase">
-              Ship
-            </h3>
+            <div className="card-header">
+              <h3 className="font-bold text-gray-100 uppercase">Ship</h3>
+            </div>
             <div className="flex items-center gap-3 px-2 py-2 transition-colors hover:bg-destroyed-fill/50 bg-destroyed-fill/40">
               <div className="relative shrink-0">
                 {getShipTier(victim.shipType.dogmaAttributes) && (

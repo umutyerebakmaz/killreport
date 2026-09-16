@@ -120,7 +120,9 @@ export default function FittingSection({
 
   return (
     <div className="card">
-      <h3 className="py-2 pl-2 font-bold text-gray-400 uppercase">{title}</h3>
+      <div className="card-header">
+        <h3 className="font-bold text-gray-100 uppercase">{title}</h3>
+      </div>
       <div className={listClass}>
         {groupedModules.map((item, index) => (
           <FittingItem
