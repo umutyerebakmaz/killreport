@@ -321,7 +321,7 @@ export default function KillmailDetailPage({
                   </button>
                 </div>
               </div>
-              <FitScreen shipType={victim?.shipType} fitting={fitting as any} />
+              <FitScreen shipType={victim?.shipType} fitting={fitting} />
             </div>
           </div>
 
