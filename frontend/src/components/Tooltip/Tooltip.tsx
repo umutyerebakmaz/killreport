@@ -80,7 +80,7 @@ export default function Tooltip({
         createPortal(
           <div
             ref={tooltipRef}
-            className={`tooltip float ${wrapText ? 'tooltip-wrap' : ''}`}
+            className={`tooltip ${wrapText ? 'tooltip-wrap' : ''}`}
             style={{
               top: `${tooltipPos.top}px`,
               left: `${tooltipPos.left}px`,
