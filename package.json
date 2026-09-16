@@ -1,6 +1,6 @@
 {
   "name": "killreport",
-  "packageManager": "yarn@4.10.3",
+  "packageManager": "yarn@4.18.0",
   "private": true,
   "workspaces": [
     "frontend",
