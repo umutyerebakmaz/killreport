@@ -181,25 +181,21 @@ export default function AttackerRow({
             </div>
 
             {attacker.character?.id ? (
-              <>
-                {/* Ship Name */}
-                {attacker.shipType?.name && (
-                  <div className="text-base text-orange-400">
-                    {attacker.shipType.name}
-                  </div>
-                )}
-                <Tooltip content="Show Character Info">
-                  <Link
-                    href={`/characters/${attacker.character?.id}`}
-                    className="font-medium text-gray-400 hover:text-cyan-400"
-                    prefetch={false}
-                  >
-                    {attacker.character?.name || 'Unknown'}
-                  </Link>
-                </Tooltip>
-              </>
+              /* No ship name here: the ship is already in the slot beside the
+                 portrait, with its name in that slot's tooltip. Printing it
+                 again put a second line of orange above every pilot. */
+              <Tooltip content="Show Character Info">
+                <Link
+                  href={`/characters/${attacker.character?.id}`}
+                  className="font-medium text-gray-400 hover:text-cyan-400"
+                  prefetch={false}
+                >
+                  {attacker.character?.name || 'Unknown'}
+                </Link>
+              </Tooltip>
             ) : (
-              /* NPC attacker: the ship type name stands in for a pilot. */
+              /* An NPC has no pilot to name, so the ship type is the only
+                 label this row can carry. */
               attacker.shipType?.name && (
                 <div className="text-base text-orange-400">
                   {attacker.shipType.name}
