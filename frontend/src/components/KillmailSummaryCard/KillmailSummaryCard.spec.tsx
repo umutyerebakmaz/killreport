@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ComponentProps } from 'react';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import KillmailSummaryCard from './KillmailSummaryCard';
@@ -36,7 +37,10 @@ const props = {
   destroyedValue: 5_000_000,
   droppedValue: 2_000_000,
   totalValue: 7_000_000,
-};
+  // A stand-in for the query's full victim and fitting shapes, carrying only
+  // the fields these tests exercise. Through `unknown` rather than `any`: the
+  // cast is the fixture admitting it is partial, not a hole in the types.
+} as unknown as ComponentProps<typeof KillmailSummaryCard>;
 
 describe('KillmailSummaryCard', () => {
   beforeEach(() => {

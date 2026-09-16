@@ -1,5 +1,6 @@
 'use client';
 
+import type { KillmailQuery } from '@/generated/graphql';
 import { useTabList } from '@/hooks/useTabList';
 import { formatISK } from '@/utils/formatISK';
 import { isBlueprint } from '@/utils/itemImageUrl';
@@ -87,9 +88,14 @@ const getShipPrice = (shipType: any) => {
   return jitaPrice?.sell || jitaPrice?.average || 0;
 };
 
+type Killmail = NonNullable<KillmailQuery['killmail']>;
+
 interface KillmailSummaryCardProps {
-  victim: any;
-  fitting: any;
+  /* Typed from the document rather than the schema: the two are different
+     shapes, and `any` here was what forced every slot callback below to
+     annotate its parameter by hand. */
+  victim: Killmail['victim'];
+  fitting: Killmail['fitting'];
   isStructure: boolean;
   destroyedValue: number;
   droppedValue: number;
@@ -227,14 +233,14 @@ export default function KillmailSummaryCard({
 
         {/* High Slots */}
         {fitting?.highSlots &&
-          fitting.highSlots.slots.some((slot: any) => slot.module) && (
+          fitting.highSlots.slots.some((slot) => slot.module) && (
             <FittingSection
               view={view}
               scope={scope}
               title="High Slots"
               items={fitting.highSlots.slots
-                .filter((slot: any) => slot.module)
-                .map((slot: any) => slot.module)}
+                .filter((slot) => slot.module)
+                .map((slot) => slot.module)}
               keyPrefix="high"
               hasCharges={true}
             />
@@ -242,14 +248,14 @@ export default function KillmailSummaryCard({
 
         {/* Mid Slots */}
         {fitting?.midSlots &&
-          fitting.midSlots.slots.some((slot: any) => slot.module) && (
+          fitting.midSlots.slots.some((slot) => slot.module) && (
             <FittingSection
               view={view}
               scope={scope}
               title="Mid Slots"
               items={fitting.midSlots.slots
-                .filter((slot: any) => slot.module)
-                .map((slot: any) => slot.module)}
+                .filter((slot) => slot.module)
+                .map((slot) => slot.module)}
               keyPrefix="mid"
               hasCharges={true}
             />
@@ -257,14 +263,14 @@ export default function KillmailSummaryCard({
 
         {/* Low Slots */}
         {fitting?.lowSlots &&
-          fitting.lowSlots.slots.some((slot: any) => slot.module) && (
+          fitting.lowSlots.slots.some((slot) => slot.module) && (
             <FittingSection
               view={view}
               scope={scope}
               title="Low Slots"
               items={fitting.lowSlots.slots
-                .filter((slot: any) => slot.module)
-                .map((slot: any) => slot.module)}
+                .filter((slot) => slot.module)
+                .map((slot) => slot.module)}
               keyPrefix="low"
               hasCharges={false}
             />
@@ -277,8 +283,8 @@ export default function KillmailSummaryCard({
             scope={scope}
             title="Rigs"
             items={fitting.rigs.slots
-              .filter((slot: any) => slot.module)
-              .map((slot: any) => slot.module)}
+              .filter((slot) => slot.module)
+              .map((slot) => slot.module)}
             keyPrefix="rig"
             hasCharges={false}
           />
@@ -291,8 +297,8 @@ export default function KillmailSummaryCard({
             scope={scope}
             title="Subsystems"
             items={fitting.subsystems.slots
-              .filter((slot: any) => slot.module)
-              .map((slot: any) => slot.module)}
+              .filter((slot) => slot.module)
+              .map((slot) => slot.module)}
             keyPrefix="subsystem"
             hasCharges={false}
           />
@@ -301,30 +307,18 @@ export default function KillmailSummaryCard({
         {/* Service Slots */}
         {isStructure &&
           fitting?.serviceSlots &&
-          fitting.serviceSlots.slots.some((slot: any) => slot.module) && (
+          fitting.serviceSlots.slots.some((slot) => slot.module) && (
             <FittingSection
               view={view}
               scope={scope}
               title="Service Slots"
               items={fitting.serviceSlots.slots
-                .filter((slot: any) => slot.module)
-                .map((slot: any) => slot.module)}
+                .filter((slot) => slot.module)
+                .map((slot) => slot.module)}
               keyPrefix="service"
               hasCharges={false}
             />
           )}
-
-        {/* Implants (array version) */}
-        {fitting?.implants && fitting.implants.length > 0 && (
-          <FittingSection
-            view={view}
-            scope={scope}
-            title="Implants"
-            items={fitting.implants}
-            keyPrefix="implant"
-            hasCharges={false}
-          />
-        )}
 
         {/* Drone Bay */}
         {fitting?.droneBay && fitting.droneBay.length > 0 && (
@@ -338,17 +332,21 @@ export default function KillmailSummaryCard({
           />
         )}
 
-        {/* Implants (slot version) */}
+        {/* Implants. There used to be a second block above this one that
+            read `fitting.implants.length`, but `implants` is a SlotGroup —
+            an object, never an array — so that length was always undefined
+            and the block never rendered once. Typing this component's props
+            from the query is what surfaced it. */}
         {fitting?.implants &&
           fitting.implants.slots &&
-          fitting.implants.slots.some((slot: any) => slot.module) && (
+          fitting.implants.slots.some((slot) => slot.module) && (
             <FittingSection
               view={view}
               scope={scope}
               title="Implants"
               items={fitting.implants.slots
-                .filter((slot: any) => slot.module)
-                .map((slot: any) => slot.module)}
+                .filter((slot) => slot.module)
+                .map((slot) => slot.module)}
               keyPrefix="implant-slot"
               hasCharges={false}
             />
