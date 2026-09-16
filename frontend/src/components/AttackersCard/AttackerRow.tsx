@@ -32,50 +32,58 @@ export default function AttackerRow({
   return (
     <div className="p-3 transition-colors duration-100 bg-surface hover:bg-surface-inset">
       <div className="flex">
-        {/* Character/Corporation Image */}
-        {attacker.character?.id ? (
-          <div className="relative shrink-0">
+        {/*
+         * One positioning context for the whole portrait slot, whichever of
+         * the three images fills it. Each branch used to write its own
+         * `relative`, so the security status could only ever be drawn on a
+         * character — and there was nowhere to hang the badges.
+         */}
+        <div className="relative shrink-0">
+          {attacker.character?.id ? (
             <img
               src={`https://images.evetech.net/characters/${attacker.character?.id}/portrait?size=128`}
               alt={attacker.character?.name || 'Character'}
-              width={96}
-              height={96}
+              width={64}
+              height={64}
               loading="lazy"
             />
-            {/* Security Status - Bottom Left */}
-            {attacker.securityStatus !== null &&
-              attacker.securityStatus !== undefined && (
-                <div className="absolute bottom-0 left-0 px-1.5 py-0.5 text-xs font-semibold bg-black/70 backdrop-blur-sm">
-                  <span
-                    className={
-                      attacker.securityStatus >= 0
-                        ? 'text-green-500'
-                        : 'text-red-500'
-                    }
-                  >
-                    {attacker.securityStatus.toFixed(1)}
-                  </span>
-                </div>
-              )}
-          </div>
-        ) : attacker.corporation?.id ? (
-          <div className="relative shrink-0">
+          ) : attacker.corporation?.id ? (
             <img
               src={`https://images.evetech.net/corporations/${attacker.corporation?.id}/logo?size=128`}
               alt={attacker.corporation?.name || 'Corporation'}
-              width={96}
-              height={96}
+              width={64}
+              height={64}
               loading="lazy"
             />
-          </div>
-        ) : (
-          <div
-            className="relative flex items-center justify-center shadow-md shrink-0 bg-surface-inset"
-            style={{ width: 96, height: 96 }}
-          >
-            <span className="text-2xl font-bold text-red-500">NPC</span>
-          </div>
-        )}
+          ) : (
+            /* An NPC with neither a character nor a corporation: its ship is
+               the only image the killmail query carries — there is no faction
+               field on the attacker. */
+            <img
+              src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=128`}
+              alt={attacker.shipType?.name || 'NPC ship'}
+              width={64}
+              height={64}
+              loading="lazy"
+            />
+          )}
+
+          {/* Security Status - Bottom Left */}
+          {attacker.securityStatus !== null &&
+            attacker.securityStatus !== undefined && (
+              <div className="absolute bottom-0 left-0 px-1.5 py-0.5 text-xs font-semibold bg-black/70 backdrop-blur-sm">
+                <span
+                  className={
+                    attacker.securityStatus >= 0
+                      ? 'text-dropped'
+                      : 'text-destroyed'
+                  }
+                >
+                  {attacker.securityStatus.toFixed(1)}
+                </span>
+              </div>
+            )}
+        </div>
 
         <div className="flex flex-col pr-4 shrink-0">
           <Tooltip content={attacker.shipType?.name || 'Unknown Ship'}>
@@ -91,15 +99,15 @@ export default function AttackerRow({
                 )}
               {attacker.shipType?.id ? (
                 <img
-                  src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=128`}
+                  src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=64`}
                   alt={attacker.shipType?.name || 'Ship'}
-                  width={48}
-                  height={48}
+                  width={32}
+                  height={32}
                   loading="lazy"
                 />
               ) : (
-                <div className="flex items-center justify-center shadow-md size-12">
-                  <QuestionMarkCircleIcon className="w-8 h-8 text-gray-400" />
+                <div className="flex items-center justify-center shadow-md size-8">
+                  <QuestionMarkCircleIcon className="text-gray-400 size-4" />
                 </div>
               )}
             </div>
@@ -107,25 +115,25 @@ export default function AttackerRow({
           <Tooltip content={attacker.weaponType?.name || 'Unknown Weapon'}>
             {attacker.weaponType?.id ? (
               <img
-                src={`https://images.evetech.net/types/${attacker.weaponType?.id}/icon?size=128`}
+                src={`https://images.evetech.net/types/${attacker.weaponType?.id}/icon?size=64`}
                 alt={attacker.weaponType?.name || 'Weapon'}
-                width={48}
-                height={48}
+                width={32}
+                height={32}
                 className="bg-white/5"
                 loading="lazy"
               />
             ) : attacker.shipType?.id ? (
               <img
-                src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=128`}
+                src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=64`}
                 alt={attacker.shipType?.name || 'Ship'}
-                width={48}
-                height={48}
+                width={32}
+                height={32}
                 className="bg-white/5"
                 loading="lazy"
               />
             ) : (
-              <div className="flex items-center justify-center w-12 h-12 bg-gray-800 shadow-md">
-                <QuestionMarkCircleIcon className="w-8 h-8 text-gray-500" />
+              <div className="flex items-center justify-center shadow-md size-8 bg-surface-inset">
+                <QuestionMarkCircleIcon className="text-gray-400 size-4" />
               </div>
             )}
           </Tooltip>
