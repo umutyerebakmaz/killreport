@@ -329,7 +329,7 @@ export default function KillmailDetailPage({
                       </div>
                       {km.isWarRelated && (
                         <div className="pt-2">
-                          <span className="inline-block px-2 py-0.5 text-xs font-semibold text-orange-400 border bg-orange-400/10 border-orange-400/20">
+                          <span className="tag text-orange-400 bg-orange-400/10">
                             WAR KILL — sovereignty campaign
                           </span>
                         </div>

@@ -137,24 +137,20 @@ export default function AttackerRow({
             {/* Badges for Final Blow, Top Damage, Solo, and NPC */}
             <div className="flex gap-2 mb-1">
               {isFinalBlow && !isSolo && (
-                <span className="px-2 py-0.5 text-xs font-medium text-red-400 rounded bg-red-400/10">
+                <span className="tag text-destroyed bg-destroyed/10">
                   FINAL BLOW
                 </span>
               )}
               {isTopDamage && !isSolo && (
-                <span className="px-2 py-0.5 text-xs font-medium text-orange-400 rounded bg-orange-400/10">
+                <span className="tag text-orange-400 bg-orange-400/10">
                   TOP DAMAGE
                 </span>
               )}
               {isSolo && (
-                <span className="px-2 py-0.5 font-medium text-green-600 rounded bg-green-600/10">
-                  SOLO
-                </span>
+                <span className="tag text-dropped bg-dropped/10">SOLO</span>
               )}
               {isNpcAttackers && (
-                <span className="px-2 py-0.5 text-xs font-medium text-red-400 rounded bg-red-400/10">
-                  NPC
-                </span>
+                <span className="tag text-destroyed bg-destroyed/10">NPC</span>
               )}
             </div>
 
