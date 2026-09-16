@@ -116,7 +116,7 @@ export default function FittingItem({
           // One step up from the 14px every tooltip gets from tooltip.css:
           // this one is three lines of figures rather than a bare label, and
           // it is the only place the full ISK and volume are readable.
-          <div className="space-y-0.5 text-base">
+          <div className="space-y-1 text-base">
             {/* gray-100 rather than pure white: the same step the app gives
                 a prominent value elsewhere (SummaryRow, .map-card-name). */}
             <div className="font-bold text-gray-100">
