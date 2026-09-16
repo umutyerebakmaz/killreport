@@ -112,7 +112,10 @@ export default function FittingItem({
     return (
       <Tooltip
         content={
-          <div className="space-y-0.5">
+          // One step up from the 14px every tooltip gets from tooltip.css:
+          // this one is three lines of figures rather than a bare label, and
+          // it is the only place the full ISK and volume are readable.
+          <div className="space-y-0.5 text-base">
             <div className="font-bold text-white">
               {totalQty}x {itemName}
             </div>
