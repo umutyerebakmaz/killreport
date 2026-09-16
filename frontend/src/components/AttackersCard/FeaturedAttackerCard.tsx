@@ -19,7 +19,7 @@ export default function FeaturedAttackerCard({
       ? ((attacker.damageDone / totalDamage) * 100).toFixed(1)
       : '0.0';
   return (
-    <div className="p-4 inset-ring inset-ring-white/10">
+    <div className="p-4 card">
       {/* Label */}
       <div className="px-3 py-1 text-sm font-medium text-center">{label}</div>
 
@@ -71,7 +71,7 @@ export default function FeaturedAttackerCard({
       <div className="pt-1 pb-4">
         <Link
           href={`/characters/${attacker.character?.id}`}
-          className="block font-medium text-gray-400 hover:text-blue-400"
+          className="block font-medium text-gray-400 hover:text-cyan-400"
           prefetch={false}
         >
           {attacker?.character?.name}
@@ -109,8 +109,8 @@ export default function FeaturedAttackerCard({
       )}
 
       <div className="pt-4 mt-2 text-right border-t border-white/10">
-        <div className="font-semibold text-red-400 text-md">
-          {attacker.damageDone.toLocaleString()} DMG
+        <div className="font-semibold text-destroyed">
+          {attacker.damageDone.toLocaleString()}
         </div>
         <div className="text-sm text-gray-400">{damagePercentage}%</div>
       </div>

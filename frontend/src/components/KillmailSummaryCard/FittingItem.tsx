@@ -4,6 +4,16 @@ import {
   getItemName,
   isBlueprint,
 } from '@/utils/itemImageUrl';
+import Tooltip from '../Tooltip/Tooltip';
+import { FittingView } from './types';
+
+/**
+ * Full figures with thousands separators, the way the client writes them —
+ * `formatISK` abbreviates to `84.00M`, which is right on a tile or in a
+ * column but throws away what the tooltip exists to show.
+ */
+const full = (value: number) =>
+  value.toLocaleString('de-DE', { maximumFractionDigits: 2 });
 
 interface FittingItemProps {
   item: {
@@ -15,6 +25,9 @@ interface FittingItemProps {
   keyPrefix: string;
   index: number;
   isCharge?: boolean;
+  /** Grid cells are ~400px wide, table rows ~1200px, so the fixed columns
+   *  are sized per view rather than once. */
+  view: FittingView;
 }
 
 const getItemPrice = (itemType: any, singleton: number = 1, jitaPrice: any) => {
@@ -28,23 +41,27 @@ const getItemPrice = (itemType: any, singleton: number = 1, jitaPrice: any) => {
   return jitaPrice?.sell || jitaPrice?.average || 0;
 };
 
-const renderQuantity = (destroyed: number, dropped: number) => {
+const renderQuantity = (
+  destroyed: number,
+  dropped: number,
+  widthClass: string,
+) => {
   const hasDestroyed = destroyed > 0;
   const hasDropped = dropped > 0;
 
   if (hasDestroyed && hasDropped) {
     return (
-      <div className="flex flex-col w-16 leading-tight">
+      <div className={`flex flex-col ${widthClass} leading-tight`}>
         <span>{destroyed}</span>
         <span>{dropped}</span>
       </div>
     );
   } else if (hasDestroyed) {
-    return <div className="w-16">{destroyed}</div>;
+    return <div className={widthClass}>{destroyed}</div>;
   } else if (hasDropped) {
-    return <div className="w-16">{dropped}</div>;
+    return <div className={widthClass}>{dropped}</div>;
   } else {
-    return <div className="w-16">1</div>;
+    return <div className={widthClass}>1</div>;
   }
 };
 
@@ -53,15 +70,98 @@ export default function FittingItem({
   keyPrefix,
   index,
   isCharge = false,
+  view,
 }: FittingItemProps) {
   const totalQty = item.quantityDestroyed + item.quantityDropped || 1;
   const isDestroyed = item.quantityDestroyed > 0;
   const isDropped = item.quantityDropped > 0;
   const bgColor = isDestroyed
-    ? 'hover:bg-red-700/50 bg-red-700/40'
+    ? 'hover:bg-destroyed-fill/50 bg-destroyed-fill/40'
     : isDropped
-      ? 'hover:bg-green-700/50 bg-green-700/40'
+      ? 'hover:bg-dropped-fill/50 bg-dropped-fill/40'
       : '';
+
+  // formatISK never prints more than eight characters — `999.99B` is the
+  // widest it goes — so 160px is twice what the column needs. The table view
+  // keeps it anyway: that width is part of what "classic" means here.
+  const priceWidth = view === 'grid' ? 'w-20' : 'w-40';
+  const quantityWidth = view === 'grid' ? 'w-10' : 'w-16';
+  const itemName = getItemName(item.itemType, item.singleton);
+  const price = getItemPrice(
+    item.itemType,
+    item.singleton,
+    item.itemType.jitaPrice,
+  );
+
+  if (view === 'grid') {
+    /*
+     * The game's inventory tile: a 64px icon with its count in the bottom
+     * right. The type icons are transparent PNGs, so the destroyed or dropped
+     * ground shows through the art rather than sitting beside it.
+     *
+     * Neither the name nor the ISK is printed on the tile. A tile is 64px
+     * wide and both are longer than that, so they live in the tooltip, which
+     * is where the client puts them too. The table view is where they can be
+     * read without hovering.
+     *
+     * The count is left off when it is 1: groupItems splits an item into a
+     * destroyed entry and a dropped entry, so a tile showing "1" would be
+     * every tile on most fits, and the game omits it too.
+     */
+    const volume = item.itemType.volume ?? null;
+
+    return (
+      <Tooltip
+        content={
+          // One step up from the 14px every tooltip gets from tooltip.css:
+          // this one is three lines of figures rather than a bare label, and
+          // it is the only place the full ISK and volume are readable.
+          <div className="space-y-1 text-base">
+            {/* gray-100 rather than pure white: the same step the app gives
+                a prominent value elsewhere (SummaryRow, .map-card-name). */}
+            <div className="font-bold text-gray-100">
+              {totalQty} x {itemName}
+            </div>
+            {/* The per-unit figure only earns its place when there is more
+                than one: at a count of 1 it repeats the total word for
+                word. */}
+            <div className="text-gray-400">
+              Est. {full(price * totalQty)} ISK
+              {totalQty > 1 && ` (${full(price)} ISK per unit)`}
+            </div>
+            {volume !== null && (
+              <div className="text-gray-400">
+                {full(volume * totalQty)} m³
+                {totalQty > 1 && ` (${full(volume)} m³ per unit)`}
+              </div>
+            )}
+          </div>
+        }
+      >
+        <div
+          key={`${keyPrefix}-${item.itemType.id}-${index}`}
+          className={`relative transition-colors size-16 ${bgColor}`}
+        >
+          <img
+            src={getItemImageUrl(item.itemType, item.singleton, 64)}
+            alt={itemName}
+            width={64}
+            height={64}
+            loading="lazy"
+            decoding="async"
+          />
+          {/* Solid black, not a tint: the count sits on top of item art that
+              is a different colour on every tile, and anything translucent
+              lets the art through and makes the digits swim. */}
+          {totalQty > 1 && (
+            <span className="absolute bottom-0 right-0 px-1 text-xs font-semibold text-white bg-black">
+              {totalQty}
+            </span>
+          )}
+        </div>
+      </Tooltip>
+    );
+  }
 
   return (
     <div
@@ -70,19 +170,25 @@ export default function FittingItem({
     >
       <img
         src={getItemImageUrl(item.itemType, item.singleton, 64)}
-        alt={getItemName(item.itemType, item.singleton)}
+        alt={itemName}
         className="bg-white/5 size-8 border-white/10"
         loading="lazy"
         decoding="async"
       />
       <div className="flex-1 min-w-0 pl-2">
-        <div className="truncate">
-          {getItemName(item.itemType, item.singleton)}
+        {/* The cell is narrow enough to clip a long module name, so the full
+            one lives in the title. */}
+        <div className="truncate" title={itemName}>
+          {itemName}
         </div>
       </div>
       <div className="flex items-center gap-4 text-right">
-        {renderQuantity(item.quantityDestroyed, item.quantityDropped)}
-        <div className="w-40 pr-2 tabular-nums">
+        {renderQuantity(
+          item.quantityDestroyed,
+          item.quantityDropped,
+          quantityWidth,
+        )}
+        <div className={`${priceWidth} pr-2 tabular-nums`}>
           {formatISK(
             getItemPrice(
               item.itemType,

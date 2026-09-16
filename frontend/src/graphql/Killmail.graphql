@@ -104,6 +104,7 @@ query Killmail($id: ID!) {
             itemType {
               id
               name
+              volume
               jitaPrice {
                 buy
                 sell
@@ -120,6 +121,7 @@ query Killmail($id: ID!) {
               itemType {
                 id
                 name
+                volume
                 jitaPrice {
                   buy
                   sell
@@ -148,6 +150,7 @@ query Killmail($id: ID!) {
             itemType {
               id
               name
+              volume
               jitaPrice {
                 buy
                 sell
@@ -164,6 +167,7 @@ query Killmail($id: ID!) {
               itemType {
                 id
                 name
+                volume
                 jitaPrice {
                   buy
                   sell
@@ -189,6 +193,7 @@ query Killmail($id: ID!) {
             itemType {
               id
               name
+              volume
               jitaPrice {
                 buy
                 sell
@@ -205,6 +210,7 @@ query Killmail($id: ID!) {
               itemType {
                 id
                 name
+                volume
                 jitaPrice {
                   buy
                   sell
@@ -230,6 +236,7 @@ query Killmail($id: ID!) {
             itemType {
               id
               name
+              volume
               jitaPrice {
                 buy
                 sell
@@ -257,6 +264,7 @@ query Killmail($id: ID!) {
             itemType {
               id
               name
+              volume
               jitaPrice {
                 buy
                 sell
@@ -284,6 +292,7 @@ query Killmail($id: ID!) {
             itemType {
               id
               name
+              volume
               jitaPrice {
                 buy
                 sell
@@ -310,6 +319,7 @@ query Killmail($id: ID!) {
             itemType {
               id
               name
+              volume
               jitaPrice {
                 buy
                 sell
@@ -333,6 +343,7 @@ query Killmail($id: ID!) {
         itemType {
           id
           name
+          volume
           jitaPrice {
             buy
             sell
@@ -354,6 +365,7 @@ query Killmail($id: ID!) {
         itemType {
           id
           name
+          volume
           jitaPrice {
             buy
             sell
@@ -375,6 +387,7 @@ query Killmail($id: ID!) {
         itemType {
           id
           name
+          volume
           jitaPrice {
             buy
             sell
@@ -396,6 +409,7 @@ query Killmail($id: ID!) {
         itemType {
           id
           name
+          volume
           jitaPrice {
             buy
             sell
@@ -417,6 +431,7 @@ query Killmail($id: ID!) {
         itemType {
           id
           name
+          volume
           jitaPrice {
             buy
             sell
@@ -438,6 +453,7 @@ query Killmail($id: ID!) {
         itemType {
           id
           name
+          volume
           jitaPrice {
             buy
             sell
@@ -459,6 +475,7 @@ query Killmail($id: ID!) {
         itemType {
           id
           name
+          volume
           jitaPrice {
             buy
             sell
@@ -480,6 +497,7 @@ query Killmail($id: ID!) {
         itemType {
           id
           name
+          volume
           jitaPrice {
             buy
             sell
@@ -501,6 +519,7 @@ query Killmail($id: ID!) {
         itemType {
           id
           name
+          volume
           jitaPrice {
             buy
             sell
@@ -522,6 +541,7 @@ query Killmail($id: ID!) {
         itemType {
           id
           name
+          volume
           jitaPrice {
             buy
             sell
@@ -543,6 +563,7 @@ query Killmail($id: ID!) {
         itemType {
           id
           name
+          volume
           jitaPrice {
             buy
             sell
@@ -564,6 +585,7 @@ query Killmail($id: ID!) {
         itemType {
           id
           name
+          volume
           jitaPrice {
             buy
             sell
@@ -585,6 +607,7 @@ query Killmail($id: ID!) {
         itemType {
           id
           name
+          volume
           jitaPrice {
             buy
             sell
@@ -606,6 +629,7 @@ query Killmail($id: ID!) {
         itemType {
           id
           name
+          volume
           jitaPrice {
             buy
             sell
@@ -627,6 +651,7 @@ query Killmail($id: ID!) {
         itemType {
           id
           name
+          volume
           jitaPrice {
             buy
             sell
