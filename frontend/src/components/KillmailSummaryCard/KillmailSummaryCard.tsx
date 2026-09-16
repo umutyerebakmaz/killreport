@@ -153,16 +153,31 @@ export default function KillmailSummaryCard({
         />
       </div>
 
+      {/*
+       * Grid view puts the groups side by side — High Slots beside Mid Slots
+       * beside Low Slots — and each group wraps its tiles inside its own card.
+       * Three across is comfortable here in a way it never was for text rows:
+       * a tile is 64px, so a ~260px column still fits three of them, where a
+       * named row needed 400px to stay readable.
+       *
+       * `items-start` lets a short group (Rigs, three tiles) end where it ends
+       * instead of stretching to the height of a long one (Cargo).
+       */}
       <div
         role="tabpanel"
         id={PANEL_ID}
         aria-labelledby={tabId(scope)}
-        className="space-y-2"
+        className={
+          view === 'grid'
+            ? 'grid items-start grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3'
+            : 'space-y-2'
+        }
       >
-        {/* Ship. A hull is always destroyed and never drops, so the Dropped
-          view would be lying if it kept this block. */}
+        {/* Ship spans the whole row — the hull is the headline, not one group
+            among many. It is always destroyed and never drops, so the Dropped
+            view would be lying if it kept this block. */}
         {victim?.shipType && scope !== 'dropped' && (
-          <div className="card">
+          <div className="card col-span-full">
             <h3 className="py-2 pl-2 font-bold text-gray-400 uppercase">
               Ship
             </h3>

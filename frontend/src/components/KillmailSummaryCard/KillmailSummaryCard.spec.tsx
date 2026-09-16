@@ -95,6 +95,18 @@ describe('KillmailSummaryCard', () => {
     expect(screen.queryByText('Gatling')).toBeNull();
   });
 
+  it('puts the groups side by side in grid view and stacks them in table view', async () => {
+    render(<KillmailSummaryCard {...props} />);
+
+    const panel = screen.getByRole('tabpanel');
+    expect(panel).toHaveClass('grid');
+    expect(panel).toHaveClass('xl:grid-cols-3');
+
+    await userEvent.click(screen.getByRole('radio', { name: 'Table' }));
+
+    expect(screen.getByRole('tabpanel')).not.toHaveClass('grid');
+  });
+
   it('remembers the table view', async () => {
     render(<KillmailSummaryCard {...props} />);
 
