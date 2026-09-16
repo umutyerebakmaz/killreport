@@ -15,11 +15,22 @@ Bu sayfa ise yüzeylerini elle çiziyor, rengini doğrudan Tailwind paletinden
 seçiyor ve bir yerde artık var olmayan bir sınıf kullanıyor. Bu iş o dört
 ağacı dile hizalar.
 
-**Yerleşim değişmiyor.** Üç kolonluk grid, kolon genişlikleri, kartların
-sırası, mobil davranış ve sayfadaki metinlerin hiçbiri bu işin konusu değil.
-Değişen yalnızca yüzey, renk, boşluk ve söz dağarcığı. Tek istisna bir yüzey
-sınırı: FitScreen ile kurban özeti ayrı kartlara bölünüyor (2. karar,
-_Kart sınırı_ bölümü) — grid aynı kalıyor, kartın sınırı düzeliyor.
+İş iki katmanlı. **Sayfanın tamamında** yapılan şey yalnızca dil hizalaması:
+üç kolonluk grid, kolon genişlikleri, kartların sırası, mobil davranış ve
+metinler değişmiyor. **`KillmailSummaryCard` ile `AttackersCard`'da** bunun
+üstüne üç somut değişiklik biniyor:
+
+- `KillmailSummaryCard`'ın bölümleri soldan sağa grid'e geçiyor — bugünkü tam
+  genişlik satır düzeninde satır başına ~760px boş piksel var (_Bölüm içi
+  grid_).
+- Aynı karta patlayan/düşen filtresi ekleniyor, `MostValuableCarousel`'ın
+  sekme kalıbıyla (_Patlayan/düşen filtresi_).
+- `AttackerRow`'un görselleri 96/48 yerine 64/32 ölçüsüne geçiyor ve NPC
+  yuvasındaki "NPC" yazısı yerini geminin render'ına bırakıyor
+  (_AttackersCard görselleri_).
+
+Bir de bir yüzey sınırı düzeliyor: FitScreen ile kurban özeti ayrı kartlara
+bölünüyor (2. karar, _Kart sınırı_).
 
 ## Bugünkü durum
 
@@ -46,16 +57,18 @@ yansıması yok, dolayısıyla dördü tek bütün olarak revize edilebilir.
 - Durum rozeti: `AttackerRow.tsx:140,145,150,155` ve `page.tsx`'in WAR KILL
   rozeti — 5 kopya, 5 farklı değer.
 - `.card-row`'un dizesi elle: 5 kopya.
-- İki ölü sınıf, ikisi de `cards.css`'te belgelenen `transition-color`
+- Üç ölü sınıf, üçü de `cards.css`'te belgelenen `transition-color`
   vakasının aynı türü: `text-md` (`FeaturedAttackerCard.tsx:112`) Tailwind'de
-  yok, `victim-card` (`page.tsx:79`) ise hiçbir CSS dosyasında tanımlı değil.
-  İkisi de sessizce hiçbir şey yapmıyor.
+  yok; `victim-card` (`page.tsx:79`) ve `fitting-section`
+  (`FittingSection.tsx:92`) hiçbir CSS dosyasında tanımlı değil. Üçü de
+  sessizce hiçbir şey yapmıyor.
 
 ## Kararlar
 
-1. **Kapsam yalnızca dil.** Bilgi hiyerarşisi ve metinler değişmiyor; sayfada
-   yeni bir metin belirmiyor. Kolonların sırası ve genişlikleri de aynı. Tek
-   istisna aşağıdaki 2. karar: bir yüzey sınırı düzeliyor, yerleşim değil.
+1. **Sayfanın geneli için kapsam yalnızca dil.** Kolonların sırası ve
+   genişlikleri aynı, yeni metin belirmiyor. `KillmailSummaryCard` ve
+   `AttackerRow` bu kuralın dışında: onlarda bilgi düzeni de değişiyor
+   (10, 11 ve 12. kararlar).
 2. **FitScreen ile kurban özeti iki ayrı kart oluyor.** Bugün ikisi tek bir
    `.card`'ın (`page.tsx:75-76`) içindeki `grid ... gap-6`'da duruyor, yani
    aralarındaki boşluk o kartın kendi `bg-surface`'ini gösteriyor ve ikisi tek
@@ -86,6 +99,15 @@ yansıması yok, dolayısıyla dördü tek bütün olarak revize edilebilir.
 9. **`FitScreen`'in yuvalarına dokunulmuyor.** `bg-white/5` zemin olarak
    dilin dışında ama `.button-ghost` ve `.menu-row`'da meşru bir vurgu tonu;
    FitScreen kendi içinde tutarlı ve sayfanın en çok bakılan parçası.
+10. **`KillmailSummaryCard`'ın bölümleri grid oluyor.** Her bölüm tam
+    genişlikte kalır, içindeki kalemler soldan sağa akar. Bölümlerin kendisi
+    yan yana dizilmiyor — kalem sayıları çok farklı (Rig 3, Cargo 40) ve
+    kolonlar tırtıklı biterdi.
+11. **Aynı karta patlayan/düşen filtresi giriyor.** Sekme kalıbı
+    `MostValuableCarousel`'dan birebir alınır; yeni bir etkileşim icat
+    edilmiyor.
+12. **`AttackerRow` görselleri 64/32 ölçüsüne geçiyor** ve NPC yuvası
+    geminin render'ını gösteriyor.
 
 ## Paylaşılan katman
 
@@ -105,9 +127,12 @@ Tailwind v4 bu jetonlardan `text-destroyed`, `bg-destroyed/20`,
 ### `cards.css` — `.tag`
 
 ```css
-/* Bir durum rozeti: FINAL BLOW, TOP DAMAGE, NPC, WAR KILL. Beş kopyada
-   vardı ve dördü yarıçap taşıyordu; sayfada yarıçap alan tek şey .float.
-   Rengi kendisi taşımaz — çağıran anlam jetonunu verir. */
+/* Bir durum rozeti: FINAL BLOW, TOP DAMAGE, SOLO, NPC (AttackerRow) ve
+   WAR KILL (page.tsx). Beş kopyada vardı, dördü yarıçap taşıyordu ve
+   sayfada yarıçap alan tek şey .float. SOLO kopyası text-xs'i de
+   düşürmüştü, yani bugün komşularından büyük yazılıyor; tek sınıfa
+   çıkınca o da hizalanır. Rengi kendisi taşımaz — çağıran anlam
+   jetonunu verir. */
 .tag {
   @apply inline-flex items-center px-2 py-0.5 text-xs font-medium;
 }
@@ -196,22 +221,135 @@ Sayfadaki başka hiçbir yer `.card-body` istemiyor zaten: `AttackersCard` ve
 `KillmailSummaryCard` birer liste kartı, yani dolguyu kart değil `.card-row`
 ve bölüm satırları taşıyor.
 
+## Bölüm içi grid
+
+Bugünkü düzende her kalem tam genişlikte bir satır. Kart sol kolonda, 1920px
+ekranda **~1200px** geniş. Satırın sabit parçaları: 32 ikon + 8 + adet 64 +
+fiyat 160 + boşluklar = **304px**; kalan ~900px `flex-1` ile isme gidiyor ve
+"Warp Disruptor II" oraya ~130px kaplıyor. Yani **satır başına ~760px boş
+piksel**, satırın üçte ikisi. 25-40 kalemlik bir fit'te görülen şey bu.
+
+Sabit kolonlar da fazla: `formatISK` en uzun hâlde `999.99B` üretiyor, yani
+7-8 karakter (~70px), ama fiyat kolonu `w-40` — 160px.
+
+Hücre:
+
+```
+▣  Warp Disruptor II            1    4.44M
+32  flex-1 truncate + title   adet   w-20 sağa yaslı
+```
+
+Sabit parçalar ~150px'e iniyor: fiyat `w-40` → `w-20`, adet bloğu `w-16` →
+içeriğine göre, ikon `size-8` aynı.
+
+Grid: `grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3`. Hücre genişlikleri —
+1920px'te 3 kolon ≈ 400px, 1536px'te 3 kolon ≈ 312px, 1280px'te 2 kolon ≈
+398px, mobilde tek kolon. `truncate` uzun isimleri keser, `title` tam adı
+taşır. Kırılma noktaları gözle bakıldıktan sonra tek satırda ayarlanır.
+
+Yıkıldı/düştü rengi artık satırın değil hücrenin: her hücre kendi tonunu
+taşır (`bg-destroyed/20` / `bg-dropped/20`), düzen envanter gibi okunur.
+
+**Ship bölümü grid'e girmiyor.** Tek kalem olduğu için 3 kolonluk grid'de
+üçte ikisi boş kalırdı — düzeltilmeye çalışılan şeyin ta kendisi. Kartın
+başlığı gibi tam genişlikte, 64px render'ı ve tier rozetiyle kalıyor.
+
+Bölüm başlıkları (`HIGH SLOTS`, `MID SLOTS` …) ve bölümler arası `border-b`
+yerinde. `FittingSection.tsx:92`'deki ölü `fitting-section` sınıfı kalkıyor —
+`text-md` ve `victim-card` ile aynı tür, hiçbir CSS dosyasında tanımlı değil.
+
+## Patlayan/düşen filtresi
+
+```
+┌─ card-band ──────────────────────────────┐
+│ [ All ] [ Destroyed ] [ Dropped ]        │  role="tablist"
+├──────────────────────────────────────────┤
+│ SHIP                                     │  role="tabpanel"
+│ ▣ Rifter  Frigate            1    0.65M  │
+│ HIGH SLOTS                               │
+│ ▣ 125mm Gatling 1 2.1M │ ▣ Small … │ …   │
+└──────────────────────────────────────────┘
+```
+
+Kalıp `MostValuableCarousel`'dan birebir: `TABS` sabiti (`scope`, `label`,
+`emptyText`), `role="tablist"` + `aria-label`, her sekme
+`button button-secondary button-sm` giyip `aria-selected` / `aria-controls` /
+`tabIndex` taşır, ok tuşları `hooks/useTabList.ts` ile — o hook zaten var ve
+kendi spec dosyası var. Panel **tek** bir `role="tabpanel"`: sekme başına ayrı
+id verilse etkin olmayan sekmelerin `aria-controls`'u DOM'da olmayan bir
+elemanı gösterirdi (`MostValuableCarousel.tsx:22-25`'teki gerekçe).
+
+Tek sapma yerleşimde: `MostValuableCarousel` bir kartın içinde değil,
+sekmelerini `SectionTitle`'ın altına koyuyor. Bu şerit kartın içinde, o yüzden
+`.card-band` — `cards.css` onu zaten "gövdenin üstündeki kontrol şeridi,
+kartın kendi yüzeyini korur" diye tanımlıyor.
+
+Filtre `FittingSection`'daki `groupItems`'ın **sonrasında** bir yüklem:
+o fonksiyon her kalemi zaten patlayan ve/veya düşen kayıtlara bölüyor, yani
+süzme ucuz ve birebir doğru. Kalemi kalmayan bölüm hiç çizilmiyor
+(`FittingSection` boş listede zaten `null` dönüyor).
+
+Sekme etiketlerinde sayı yok — `MostValuableCarousel` da koymuyor.
+
+İki davranış kararı:
+
+- **Ship bloğu filtreye uyar.** Gövde her zaman patlar, hiç düşmez; "Dropped"
+  sekmesinde gizlenir. Aksi hâlde o görünüm patlamış bir kalem gösterir ve
+  sekme yalan söyler. Varsayılan sekme "All", yani kartın normal hâli
+  değişmiyor.
+- **Alttaki Destroyed / Dropped / Total ISK satırları filtrelenmez.** Onlar
+  killmail'in toplamı, görünümün değil.
+
+`KillmailSummaryCard` durum tuttuğu için dosyanın başına `'use client'`
+giriyor (CLAUDE.md: hook veya state kullanan her bileşen).
+
+## AttackersCard görselleri
+
+Bugünkü ölçü 96/48 üzerine kurulu: iki tane 48 üst üste gelip 96'lık portreyle
+aynı yüksekliği tutuyor. 64/32 aynı ilişkiyi korur — iki 32, 64 eder.
+
+| Yuva                        | Bugün                      | Sonra                    | Kaynak                   |
+| --------------------------- | -------------------------- | ------------------------ | ------------------------ |
+| Portre / kurum logosu / NPC | 96                         | 64                       | `?size=128` (2×, aynı)   |
+| Gemi render                 | 48                         | 32                       | `?size=128` → `?size=64` |
+| Silah ikonu                 | 48                         | 32                       | `?size=128` → `?size=64` |
+| Bilinmiyor kutusu           | `size-12` + `w-8 h-8` ikon | `size-8` + `size-4` ikon | —                        |
+
+NPC yuvası (`AttackerRow.tsx:73-79`) bugün 96×96 bir kutuda
+`text-2xl font-bold text-red-500">NPC</span>` yazıyor; yerine `shipType`'ın
+render'ı 64px'te geliyor. Bu, satırın **NPC rozetiyle** karıştırılmamalı
+(`AttackerRow.tsx:153-157`): o bir `.tag` ve yerinde kalıyor. Kalkan şey
+portre yuvasındaki iri yazı. Bu yuva karakteri de kurumu da olmayan saldıran için
+çiziliyor ve `Killmail.graphql`'deki attacker bloğunda `faction` yok — yani
+elde başka görsel zaten yok.
+
+Yan etki: aynı render hemen sağındaki 32'lik gemi yuvasında da var, yani NPC
+satırı gemisini iki ölçüde iki kez gösterir. 64'lük yuva "kim", 32'lik "hangi
+gemi" ve NPC'de ikisi aynı şey olduğu için kabul ediliyor. Gözle bakıldıktan
+sonra fazla gelirse alternatif tek satır: NPC satırında 32'lik gemi yuvasını
+atlayıp yalnızca silahı bırakmak.
+
+Güvenlik durumu rozeti (`absolute bottom-0 left-0 ... text-xs`) 96 yerine 64px
+portrenin üstünde duracak; `text-xs` artı dolgu ~20px, yani portrenin üçte
+biri. Dar ama okunur; gözle bakılacak yerlerden biri.
+
 ## Dosya dosya
 
-| Dosya                      | Değişiklik                                                                                                                                                                                                                   |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `globals.css`              | Üç anlam jetonu                                                                                                                                                                                                              |
-| `cards.css`                | `.tag`                                                                                                                                                                                                                       |
-| `ui/SummaryRow.tsx`        | Yeni, ~15 satır                                                                                                                                                                                                              |
-| `ui/SummaryRow.spec.tsx`   | Yeni; `ui/Card.spec.tsx`'in kalıbı                                                                                                                                                                                           |
-| `page.tsx`                 | Tek kart ikiye bölünür, `p-2` + `gap-2` (bkz. _Kart sınırı_); 7 satır → `SummaryRow`; kural 6; `bg-gray-800/50` → `bg-surface-inset`; 3× cyan; ISK jetonları; WAR KILL → `.tag`; ölü `victim-card` kalkar. ~362 → ~295 satır |
-| `AttackersCard.tsx`        | Başlık barı `.card-header` olur, metni aynı kalır, anlamsız `hover:bg-surface-inset` gider; 3 el yazısı `.card-row`                                                                                                          |
-| `AttackerRow.tsx`          | 4 rozet → `.tag`; `bg-gray-800` → `bg-surface-inset`; el yazısı `.card-row`; 4× cyan                                                                                                                                         |
-| `FeaturedAttackerCard.tsx` | `text-md` → `text-base`; `inset-ring inset-ring-white/10` → `.card`'ın `border border-white/10`'u (içerik 1px kayar)                                                                                                         |
-| `KillmailSummaryCard.tsx`  | `:42` el yazısı `.card` → `card`; 3 satır → `SummaryRow`                                                                                                                                                                     |
-| `FittingItem.tsx`          | `bg-red-700/40` → `bg-destroyed/20`, hover `/30`; yeşil aynısı. Tonun gözle görülür değiştiği tek yer                                                                                                                        |
-| `FittingSection.tsx`       | Değer/etiket skalası                                                                                                                                                                                                         |
-| `FitScreen/*`              | İki `text-gray-500` skalaya girer, başka dokunuş yok                                                                                                                                                                         |
+| Dosya                          | Değişiklik                                                                                                                                                                                                                   |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `globals.css`                  | Üç anlam jetonu                                                                                                                                                                                                              |
+| `cards.css`                    | `.tag`                                                                                                                                                                                                                       |
+| `ui/SummaryRow.tsx`            | Yeni, ~15 satır                                                                                                                                                                                                              |
+| `ui/SummaryRow.spec.tsx`       | Yeni; `ui/Card.spec.tsx`'in kalıbı                                                                                                                                                                                           |
+| `page.tsx`                     | Tek kart ikiye bölünür, `p-2` + `gap-2` (bkz. _Kart sınırı_); 7 satır → `SummaryRow`; kural 6; `bg-gray-800/50` → `bg-surface-inset`; 3× cyan; ISK jetonları; WAR KILL → `.tag`; ölü `victim-card` kalkar. ~362 → ~295 satır |
+| `AttackersCard.tsx`            | Başlık barı `.card-header` olur, metni aynı kalır, anlamsız `hover:bg-surface-inset` gider; 3 el yazısı `.card-row`                                                                                                          |
+| `AttackerRow.tsx`              | Görseller 64/32 ölçüsüne, NPC yuvası gemi render'ına (bkz. _AttackersCard görselleri_); 4 rozet → `.tag`; `bg-gray-800` → `bg-surface-inset`; el yazısı `.card-row`; 4× cyan                                                 |
+| `FeaturedAttackerCard.tsx`     | `text-md` → `text-base`; `inset-ring inset-ring-white/10` → `.card`'ın `border border-white/10`'u (içerik 1px kayar)                                                                                                         |
+| `KillmailSummaryCard.tsx`      | `'use client'`; sekme durumu + `.card-band` tablist (bkz. _Patlayan/düşen filtresi_); `:42` el yazısı `.card` → `card`; 3 satır → `SummaryRow`                                                                               |
+| `KillmailSummaryCard.spec.tsx` | Yeni; sekme davranışı ve süzmenin testi                                                                                                                                                                                      |
+| `FittingItem.tsx`              | Satır → grid hücresi: fiyat `w-40` → `w-20`, `title` özniteliği; `bg-red-700/40` → `bg-destroyed/20`, hover `/30`; yeşil aynısı. Tonun gözle görülür değiştiği tek yer                                                       |
+| `FittingSection.tsx`           | `flex flex-col divide-y` → `grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3`; filtre yüklemi; ölü `fitting-section` kalkar; değer/etiket skalası                                                                                  |
+| `FitScreen/*`                  | İki `text-gray-500` skalaya girer, başka dokunuş yok                                                                                                                                                                         |
 
 ### Boşluk uyarısı
 
@@ -244,8 +382,19 @@ Ayrıca bu işe katılmayanlar:
 
 ## Doğrulama
 
-Bu iş çoğunlukla sınıf dizesi, ama bir bileşen ekliyor ve TSX yapısına
-dokunuyor — `typecheck` ve `test` gerçekten iş görüyor.
+Bu iş artık yalnızca sınıf dizesi değil: iki bileşen ekliyor, bir bileşene
+durum ve klavyeyle gezinme koyuyor, bir bölümün düzenini değiştiriyor. Yani
+`test` ve `typecheck` asıl güvenceyi veren yer.
+
+Yazılacak testler:
+
+- `ui/SummaryRow.spec.tsx` — etiket ve değer doğru yerde, `ui/Card.spec.tsx`
+  kalıbında.
+- `KillmailSummaryCard.spec.tsx` — üç sekme çizilir; "Destroyed" seçiliyken
+  yalnızca patlayan kalemler kalır ve Ship bloğu görünür; "Dropped" seçiliyken
+  Ship gizlenir; kalemi kalmayan bölüm hiç çizilmez; alttaki üç ISK satırı
+  sekmeden etkilenmez. `useTabList`'in kendi spec'i zaten var, ok tuşları
+  orada kapsanıyor.
 
 ```bash
 yarn workspace frontend typecheck     # tsc --noEmit
@@ -266,6 +415,6 @@ sayfaya bakılacağı ve neyin değişmiş olması gerektiği yazılır.
 
 ## PR şekli
 
-Tek PR. Dokunulan 13 dosyanın tamamı tek bir sayfanın parçası ve üç bileşen
+Tek PR. Dokunulan 15 dosyanın tamamı tek bir sayfanın parçası ve üç bileşen
 ağacı yalnızca bu sayfadan kullanılıyor; bölmek incelemeyi kolaylaştırmaz,
 yarım geçmiş bir dil bırakır.
