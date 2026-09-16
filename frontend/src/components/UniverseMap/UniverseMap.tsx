@@ -14,10 +14,11 @@ import {
   zoomToScale,
 } from '@/utils/map/camera';
 import {
-  areaSegments,
   edgeSegments,
+  highlightSegments,
   localEdges,
   type MapArea,
+  type MapHighlight,
 } from '@/utils/map/edges';
 import { framingFor } from '@/utils/map/framing';
 import { labelCandidates, placeLabels } from '@/utils/map/labels';
@@ -493,20 +494,39 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     );
   }, [sceneReady, geometry, galaxyMesh]);
 
-  // The hovered area's own mesh, lifted, over the galaxy one. Rebuilt on every
-  // change of the hovered area and on nothing else: a region is 99 edges on
-  // average and 260 at the busiest, a constellation 7.5 and 19, against the
-  // 14,400 segments the galaxy mesh holds still.
+  // What the pointer is resting on, at whichever tier it found something.
+  //
+  // The three sources already exclude one another: an area name sets
+  // `highlighted` and clears `hovered` on its way in, and `hovered` is set by
+  // the system name and by the hit test over the dot alike — so the finest
+  // tier needs no state and no pointer path of its own, only this read.
+  //
+  // Keyed on `hovered.node.systemId` and not on `hovered`, which is a fresh
+  // PickTarget on every report: the hit test runs on every pointermove across
+  // the map, so depending on the object would redraw the highlight on each one
+  // for an answer that had not changed.
+  const hoveredSystemId = hovered?.node.systemId ?? null;
+  const highlight = useMemo<MapHighlight | null>(() => {
+    if (highlighted) return highlighted;
+    return hoveredSystemId === null
+      ? null
+      : { tier: 'system', id: hoveredSystemId };
+  }, [highlighted, hoveredSystemId]);
+
+  // That mesh, lifted, over the galaxy one. Rebuilt on every change of the
+  // hovered thing and on nothing else: a region is 99 edges on average and 260
+  // at the busiest, a constellation 7.5 and 19, a system 2.65 and 8, against
+  // the 14,400 segments the galaxy mesh holds still.
   useEffect(() => {
     if (!scene.current || !galaxyMesh) return;
     drawHighlight(
       scene.current.edgesHighlight,
-      highlighted === null
+      highlight === null
         ? []
-        : areaSegments(galaxyMesh.segments, highlighted),
+        : highlightSegments(galaxyMesh.segments, highlight),
       galaxyMesh.origin,
     );
-  }, [sceneReady, galaxyMesh, highlighted]);
+  }, [sceneReady, galaxyMesh, highlight]);
 
   // The focused neighbourhood: at most 9 systems, so the mesh is small and its
   // vertices are focus-local rather than scene-local.
