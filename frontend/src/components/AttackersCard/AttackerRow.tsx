@@ -68,6 +68,27 @@ export default function AttackerRow({
             />
           )}
 
+          {/*
+           * FINAL BLOW and TOP DAMAGE ride on the portrait rather than in the
+           * name block: they are facts about this attacker, and the portrait
+           * is where the eye already is. Both can be true at once, so they
+           * stack. Each label is wider than the 64px portrait and deliberately
+           * overhangs it — whitespace-nowrap keeps a ribbon from wrapping into
+           * two lines.
+           */}
+          <div className="absolute z-10 flex flex-col items-center -translate-x-1/2 gap-0.5 top-1 left-1/2">
+            {isFinalBlow && !isSolo && (
+              <span className="tag text-destroyed bg-destroyed/10 whitespace-nowrap">
+                FINAL BLOW
+              </span>
+            )}
+            {isTopDamage && !isSolo && (
+              <span className="tag text-orange-400 bg-orange-400/10 whitespace-nowrap">
+                TOP DAMAGE
+              </span>
+            )}
+          </div>
+
           {/* Security Status - Bottom Left */}
           {attacker.securityStatus !== null &&
             attacker.securityStatus !== undefined && (
@@ -142,18 +163,9 @@ export default function AttackerRow({
         <div className="flex justify-between w-full">
           {/* Character Name, Corporation, Alliance */}
           <div className="flex flex-col leading-tight space-y-0.5">
-            {/* Badges for Final Blow, Top Damage, Solo, and NPC */}
+            {/* SOLO and NPC stay here: unlike the two above they are facts
+                about the killmail, not about this attacker. */}
             <div className="flex gap-2 mb-1">
-              {isFinalBlow && !isSolo && (
-                <span className="tag text-destroyed bg-destroyed/10">
-                  FINAL BLOW
-                </span>
-              )}
-              {isTopDamage && !isSolo && (
-                <span className="tag text-orange-400 bg-orange-400/10">
-                  TOP DAMAGE
-                </span>
-              )}
               {isSolo && (
                 <span className="tag text-dropped bg-dropped/10">SOLO</span>
               )}
@@ -173,102 +185,59 @@ export default function AttackerRow({
                 <Tooltip content="Show Character Info">
                   <Link
                     href={`/characters/${attacker.character?.id}`}
-                    className="font-medium text-gray-400 hover:text-blue-400"
+                    className="font-medium text-gray-400 hover:text-cyan-400"
                     prefetch={false}
                   >
                     {attacker.character?.name || 'Unknown'}
                   </Link>
                 </Tooltip>
-                {attacker.corporation?.id && (
-                  <Tooltip content="Show Corporation Info">
-                    <Link
-                      href={`/corporations/${attacker.corporation?.id}`}
-                      className="text-sm text-gray-400 hover:text-blue-400"
-                      prefetch={false}
-                    >
-                      {attacker.corporation?.name || 'Unknown'}
-                    </Link>
-                  </Tooltip>
-                )}
               </>
             ) : (
-              <>
-                {/* NPC attacker: Show ship type name and corporation */}
-                {attacker.shipType?.name && (
-                  <div className="text-base text-orange-400">
-                    {attacker.shipType.name}
-                  </div>
-                )}
-                {attacker.corporation?.id && (
-                  <Tooltip content="Show Corporation Info">
-                    <Link
-                      href={`/corporations/${attacker.corporation.id}`}
-                      className="text-sm text-gray-400 hover:text-blue-400"
-                      prefetch={false}
-                    >
-                      {attacker.corporation?.name || 'Unknown'}
-                    </Link>
-                  </Tooltip>
-                )}
-              </>
+              /* NPC attacker: the ship type name stands in for a pilot. */
+              attacker.shipType?.name && (
+                <div className="text-base text-orange-400">
+                  {attacker.shipType.name}
+                </div>
+              )
             )}
 
-            {attacker.alliance?.id && (
+            {/*
+             * One organisation line, not two. The row used to print the
+             * corporation and the alliance under each other; the alliance is
+             * the one that places a pilot, so it wins, and the corporation is
+             * what is left to say when there is no alliance.
+             */}
+            {attacker.alliance?.id ? (
               <Tooltip content="Show Alliance Info">
                 <Link
-                  href={`/alliances/${attacker.alliance?.id}`}
-                  className="text-sm text-gray-400 hover:text-blue-400"
+                  href={`/alliances/${attacker.alliance.id}`}
+                  className="text-sm text-gray-400 hover:text-cyan-400"
                   prefetch={false}
                 >
-                  {attacker.alliance?.name || 'Unknown'}
+                  {attacker.alliance.name || 'Unknown'}
                 </Link>
               </Tooltip>
-            )}
+            ) : attacker.corporation?.id ? (
+              <Tooltip content="Show Corporation Info">
+                <Link
+                  href={`/corporations/${attacker.corporation.id}`}
+                  className="text-sm text-gray-400 hover:text-cyan-400"
+                  prefetch={false}
+                >
+                  {attacker.corporation.name || 'Unknown'}
+                </Link>
+              </Tooltip>
+            ) : null}
           </div>
 
-          {/* Damage, Damage Percentage */}
-          <div className="flex flex-col items-end justify-between text-sm gap-y-1">
-            <div className="flex flex-col items-end">
-              <span className="text-red-400">
-                {attacker.damageDone.toLocaleString()} DMG
-              </span>
-              <span className="text-gray-400">{damagePercentage}%</span>
-            </div>
-
-            {/* Alliance & Corporation Logos - Bottom Right */}
-            <div className="flex">
-              {/* Corporation Logo */}
-              {attacker.corporation?.id && (
-                <Tooltip
-                  content={`Corporation: ${
-                    attacker.corporation?.name || 'Unknown'
-                  }`}
-                >
-                  <img
-                    src={`https://images.evetech.net/corporations/${attacker.corporation?.id}/logo?size=64`}
-                    alt={attacker.corporation?.name || 'Corporation'}
-                    width={32}
-                    height={32}
-                    loading="lazy"
-                  />
-                </Tooltip>
-              )}
-
-              {/* Alliance Logo */}
-              {attacker.alliance?.id && (
-                <Tooltip
-                  content={`Alliance: ${attacker.alliance?.name || 'Unknown'}`}
-                >
-                  <img
-                    src={`https://images.evetech.net/alliances/${attacker.alliance?.id}/logo?size=64`}
-                    alt={attacker.alliance?.name || 'Alliance'}
-                    width={32}
-                    height={32}
-                    loading="lazy"
-                  />
-                </Tooltip>
-              )}
-            </div>
+          {/* Damage, Damage Percentage. The corporation and alliance logos
+              that used to sit under this were saying, in pictures, what the
+              organisation line already says in words. */}
+          <div className="flex flex-col items-end text-sm gap-y-1">
+            <span className="text-destroyed">
+              {attacker.damageDone.toLocaleString()}
+            </span>
+            <span className="text-gray-400">{damagePercentage}%</span>
           </div>
         </div>
       </div>
