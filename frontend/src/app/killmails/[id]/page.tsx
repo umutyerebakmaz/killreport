@@ -5,6 +5,7 @@ import FitScreen from '@/components/FitScreen/FitScreen';
 import KillmailSummaryCard from '@/components/KillmailSummaryCard/KillmailSummaryCard';
 import { Loader } from '@/components/Loader/Loader';
 import Tooltip from '@/components/Tooltip/Tooltip';
+import SummaryRow from '@/components/ui/SummaryRow';
 import { useKillmailQuery } from '@/generated/graphql';
 import { formatISK } from '@/utils/formatISK';
 import {
@@ -66,278 +67,264 @@ export default function KillmailDetailPage({
     <>
       {/* Header */}
       <div className="flex flex-col gap-6 lg:grid lg:grid-cols-3">
-        {/* Left Column: FitScreen + Killmail Summary (2/3 width) */}
+        {/* Left Column: victim + fit, then the fitting card (2/3 width) */}
         <div className="space-y-6 lg:col-span-2">
-          {/* Fit + Victim */}
-          <div
-            className={
-              isStructure
-                ? 'flex flex-col gap-6 px-6 pt-6 pb-24 card'
-                : 'flex flex-col gap-6 p-6 card'
-            }
-          >
-            <div className="victim-card">
-              {/* Grid container: FitScreen (1/2) + Summary (1/2) */}
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                {/* FitScreen - Left (2/3) on desktop, full width on tablet */}
-                <div className="lg:col-span-2">
-                  <div className="flex items-center justify-between pb-2">
-                    <div className="flex items-center gap-2 pb-6">
-                      <a
-                        href={`https://zkillboard.com/kill/${km.id}/`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="button button-secondary button-sm"
+          {/*
+           * Two cards rather than one holding both: the gap between them shows
+           * the page ground, so the victim and the fit read as separate
+           * objects. The widths stay 1/3 + 2/3 and the 24px between their
+           * contents is unchanged — p-2 + gap-2 + p-2 spends the same budget,
+           * with 8px of it turned into ground.
+           */}
+          <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
+            {/* Victim summary — first, so the page reads from who to what */}
+            <div className="p-2 card lg:col-span-1">
+              <div className="space-y-3">
+                {/* Character, Corp, Alliance Images */}
+                {(victim?.character?.id ||
+                  victim?.corporation?.id ||
+                  victim?.alliance?.id) && (
+                  <div className="flex items-start overflow-hidden">
+                    {/* Character Portrait or Ship Render */}
+                    {victim?.character?.id ? (
+                      <Tooltip content="Show Victim Info" position="top">
+                        <a href={`/characters/${victim.character?.id}`}>
+                          <img
+                            src={`https://images.evetech.net/characters/${victim.character?.id}/portrait?size=128`}
+                            alt={victim.character?.name || 'Character'}
+                            width={96}
+                            height={96}
+                            className="shadow-md shrink-0"
+                            loading="lazy"
+                          />
+                        </a>
+                      </Tooltip>
+                    ) : victim?.shipType?.id ? (
+                      <Tooltip
+                        content={victim.shipType.name || 'Structure'}
+                        position="top"
                       >
-                        <ArrowTopRightOnSquareIcon className="w-4 h-4" />
-                        zKillboard
-                      </a>
-                      <a
-                        href={`https://kb.evetools.org/kill/${km.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="button button-secondary button-sm"
-                      >
-                        <ArrowTopRightOnSquareIcon className="w-4 h-4" />
-                        EVE Tools
-                      </a>
-                      <a
-                        href={`https://esi.evetech.net/killmails/${km.id}/${km.killmailHash}/`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="button button-secondary button-sm"
-                      >
-                        <ArrowTopRightOnSquareIcon className="w-4 h-4" />
-                        ESI Verified
-                      </a>
-                      <button
-                        onClick={handleShare}
-                        className="button button-secondary button-sm"
-                      >
-                        {copied ? (
-                          <>
-                            <CheckIcon className="w-4 h-4" />
-                            Copied!
-                          </>
-                        ) : (
-                          <>
-                            <ArrowTopRightOnSquareIcon className="w-4 h-4" />
-                            Share
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                  <FitScreen
-                    shipType={victim?.shipType}
-                    fitting={fitting as any}
-                  />
-                </div>
+                        <div
+                          className="flex items-center justify-center bg-surface-inset shrink-0"
+                          style={{ width: 96, height: 96 }}
+                        >
+                          <img
+                            src={`https://images.evetech.net/types/${victim.shipType.id}/render?size=128`}
+                            alt={victim.shipType.name || 'Structure'}
+                            width={96}
+                            height={96}
+                            className="shadow-md shrink-0"
+                            loading="lazy"
+                          />
+                        </div>
+                      </Tooltip>
+                    ) : null}
 
-                {/* Killmail Summary Card - Right (1/3) on desktop, full width on tablet */}
-                <div className="lg:col-span-1">
-                  <div className="space-y-3">
-                    {/* Character, Corp, Alliance Images */}
-                    {(victim?.character?.id ||
-                      victim?.corporation?.id ||
-                      victim?.alliance?.id) && (
-                      <div className="flex items-start overflow-hidden">
-                        {/* Character Portrait or Ship Render */}
-                        {victim?.character?.id ? (
-                          <Tooltip content="Show Victim Info" position="top">
-                            <a href={`/characters/${victim.character?.id}`}>
-                              <img
-                                src={`https://images.evetech.net/characters/${victim.character?.id}/portrait?size=128`}
-                                alt={victim.character?.name || 'Character'}
-                                width={96}
-                                height={96}
-                                className="shadow-md shrink-0"
-                                loading="lazy"
-                              />
-                            </a>
-                          </Tooltip>
-                        ) : victim?.shipType?.id ? (
-                          <Tooltip
-                            content={victim.shipType.name || 'Structure'}
-                            position="top"
+                    <div className="flex flex-col shrink-0">
+                      {/* Corporation Portrait */}
+                      {victim?.corporation?.id && (
+                        <a href={`/corporations/${victim.corporation?.id}`}>
+                          <img
+                            src={`https://images.evetech.net/corporations/${victim.corporation?.id}/logo?size=128`}
+                            alt={victim.corporation?.name || 'Corporation'}
+                            width={48}
+                            height={48}
+                            className="shadow-sm"
+                            loading="lazy"
+                          />
+                        </a>
+                      )}
+                      {/* Alliance Portrait */}
+                      {victim?.alliance?.id && (
+                        <a href={`/alliances/${victim.alliance?.id}`}>
+                          <img
+                            src={`https://images.evetech.net/alliances/${victim.alliance?.id}/logo?size=128`}
+                            alt={victim.alliance?.name || 'Alliance'}
+                            width={48}
+                            height={48}
+                            className="shadow-sm"
+                            loading="lazy"
+                          />
+                        </a>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col items-start justify-start flex-1 min-w-0 pl-4 overflow-hidden">
+                      {victim?.character?.id && (
+                        <a
+                          href={`/characters/${victim.character?.id}`}
+                          title={victim.character?.name || 'Character'}
+                          className="block w-full text-gray-400 truncate transition-colors hover:text-cyan-400"
+                        >
+                          {victim.character?.name}
+                        </a>
+                      )}
+
+                      {victim?.corporation?.id && (
+                        <Tooltip content="Show corporation info">
+                          <a
+                            href={`/corporations/${victim.corporation?.id}`}
+                            title={victim.corporation?.name || 'Corporation'}
+                            className="block w-full text-gray-400 truncate transition-colors hover:text-cyan-400"
                           >
-                            <div
-                              className="flex items-center justify-center bg-gray-800/50 shrink-0"
-                              style={{ width: 96, height: 96 }}
-                            >
-                              <img
-                                src={`https://images.evetech.net/types/${victim.shipType.id}/render?size=128`}
-                                alt={victim.shipType.name || 'Structure'}
-                                width={96}
-                                height={96}
-                                className="shadow-md shrink-0"
-                                loading="lazy"
-                              />
-                            </div>
-                          </Tooltip>
-                        ) : null}
+                            {victim.corporation?.name}
+                          </a>
+                        </Tooltip>
+                      )}
 
-                        <div className="flex flex-col shrink-0">
-                          {/* Corporation Portrait */}
-                          {victim?.corporation?.id && (
-                            <a href={`/corporations/${victim.corporation?.id}`}>
-                              <img
-                                src={`https://images.evetech.net/corporations/${victim.corporation?.id}/logo?size=128`}
-                                alt={victim.corporation?.name || 'Corporation'}
-                                width={48}
-                                height={48}
-                                className="shadow-sm"
-                                loading="lazy"
-                              />
-                            </a>
-                          )}
-                          {/* Alliance Portrait */}
-                          {victim?.alliance?.id && (
-                            <a href={`/alliances/${victim.alliance?.id}`}>
-                              <img
-                                src={`https://images.evetech.net/alliances/${victim.alliance?.id}/logo?size=128`}
-                                alt={victim.alliance?.name || 'Alliance'}
-                                width={48}
-                                height={48}
-                                className="shadow-sm"
-                                loading="lazy"
-                              />
-                            </a>
-                          )}
-                        </div>
-
-                        <div className="flex flex-col items-start justify-start flex-1 min-w-0 pl-4 overflow-hidden">
-                          {victim?.character?.id && (
-                            <a
-                              href={`/characters/${victim.character?.id}`}
-                              title={victim.character?.name || 'Character'}
-                              className="block w-full text-gray-400 truncate transition-colors hover:text-blue-400"
-                            >
-                              {victim.character?.name}
-                            </a>
-                          )}
-
-                          {victim?.corporation?.id && (
-                            <Tooltip content="Show corporation info">
-                              <a
-                                href={`/corporations/${victim.corporation?.id}`}
-                                title={
-                                  victim.corporation?.name || 'Corporation'
-                                }
-                                className="block w-full text-gray-400 truncate transition-colors hover:text-blue-400"
-                              >
-                                {victim.corporation?.name}
-                              </a>
-                            </Tooltip>
-                          )}
-
-                          {victim?.alliance?.id && (
-                            <Tooltip content="Show alliance info">
-                              <a
-                                href={`/alliances/${victim.alliance?.id}`}
-                                title={victim.alliance?.name || 'Alliance'}
-                                className="block w-full text-gray-400 truncate transition-colors hover:text-blue-400"
-                              >
-                                {victim.alliance?.name}
-                              </a>
-                            </Tooltip>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Ship</span>
-                      <span className="text-right">
-                        <span className="text-gray-400">
-                          {victim?.shipType?.name}
-                        </span>
-                        {victim?.shipType?.group && (
-                          <span className="text-gray-500">
-                            {' '}
-                            ({victim.shipType.group.name})
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">System</span>
-                      <span className="text-right">
-                        <span className="text-gray-400">
-                          {km.solarSystem?.name}
-                        </span>
-                        {km.solarSystem?.securityStatus !== undefined &&
-                          km.solarSystem.securityStatus !== null && (
-                            <span
-                              className={
-                                km.solarSystem.securityStatus >= 0.5
-                                  ? 'text-green-400'
-                                  : km.solarSystem.securityStatus > 0
-                                    ? 'text-yellow-400'
-                                    : 'text-red-400'
-                              }
-                            >
-                              {' '}
-                              ({km.solarSystem.securityStatus.toFixed(1)})
-                            </span>
-                          )}
-                        {km.solarSystem?.constellation?.region && (
-                          <span className="text-gray-500">
-                            {' '}
-                            / {km.solarSystem.constellation.region.name}
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Time</span>
-                      <span className="text-gray-400">
-                        {new Date(km.killmailTime).toLocaleString('en-US', {
-                          year: 'numeric',
-                          month: '2-digit',
-                          day: '2-digit',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Damage</span>
-                      <span className="text-red-400 tabular-nums">
-                        {victim?.damageTaken?.toLocaleString()}
-                      </span>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Destroyed</span>
-                        <span className="text-red-400 tabular-nums">
-                          {formatISK(destroyedValue)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Dropped</span>
-                        <span className="text-green-400 tabular-nums">
-                          {formatISK(droppedValue)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Total</span>
-                        <span className="font-bold text-yellow-400 tabular-nums">
-                          {formatISK(totalValue)}
-                        </span>
-                      </div>
-                      {km.isWarRelated && (
-                        <div className="pt-2">
-                          <span className="tag text-orange-400 bg-orange-400/10">
-                            WAR KILL — sovereignty campaign
-                          </span>
-                        </div>
+                      {victim?.alliance?.id && (
+                        <Tooltip content="Show alliance info">
+                          <a
+                            href={`/alliances/${victim.alliance?.id}`}
+                            title={victim.alliance?.name || 'Alliance'}
+                            className="block w-full text-gray-400 truncate transition-colors hover:text-cyan-400"
+                          >
+                            {victim.alliance?.name}
+                          </a>
+                        </Tooltip>
                       )}
                     </div>
                   </div>
+                )}
+
+                <SummaryRow label="Ship">
+                  {victim?.shipType?.name}
+                  {victim?.shipType?.group && (
+                    <span className="text-gray-500">
+                      {' '}
+                      ({victim.shipType.group.name})
+                    </span>
+                  )}
+                </SummaryRow>
+
+                <SummaryRow label="System">
+                  {km.solarSystem?.name}
+                  {/* EVE's own security colour code, not one of the meaning
+                      tokens — green/yellow/red here mean high/low/null sec. */}
+                  {km.solarSystem?.securityStatus !== undefined &&
+                    km.solarSystem.securityStatus !== null && (
+                      <span
+                        className={
+                          km.solarSystem.securityStatus >= 0.5
+                            ? 'text-green-400'
+                            : km.solarSystem.securityStatus > 0
+                              ? 'text-yellow-400'
+                              : 'text-red-400'
+                        }
+                      >
+                        {' '}
+                        ({km.solarSystem.securityStatus.toFixed(1)})
+                      </span>
+                    )}
+                  {km.solarSystem?.constellation?.region && (
+                    <span className="text-gray-500">
+                      {' '}
+                      / {km.solarSystem.constellation.region.name}
+                    </span>
+                  )}
+                </SummaryRow>
+
+                <SummaryRow label="Time">
+                  {new Date(km.killmailTime).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </SummaryRow>
+
+                <SummaryRow label="Damage">
+                  <span className="text-destroyed tabular-nums">
+                    {victim?.damageTaken?.toLocaleString()}
+                  </span>
+                </SummaryRow>
+
+                <div className="space-y-2">
+                  <SummaryRow label="Destroyed">
+                    <span className="text-destroyed tabular-nums">
+                      {formatISK(destroyedValue)}
+                    </span>
+                  </SummaryRow>
+                  <SummaryRow label="Dropped">
+                    <span className="text-dropped tabular-nums">
+                      {formatISK(droppedValue)}
+                    </span>
+                  </SummaryRow>
+                  <SummaryRow label="Total">
+                    <span className="font-bold text-isk tabular-nums">
+                      {formatISK(totalValue)}
+                    </span>
+                  </SummaryRow>
+                  {km.isWarRelated && (
+                    <div className="pt-2">
+                      <span className="tag text-orange-400 bg-orange-400/10">
+                        WAR KILL — sovereignty campaign
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
+            </div>
+
+            {/* Fit screen — second. The extra bottom padding a structure fit
+                needs belongs to this card alone; it used to be applied to the
+                summary too, because the two shared one card. */}
+            <div
+              className={
+                isStructure
+                  ? 'px-2 pt-2 pb-24 card lg:col-span-2'
+                  : 'p-2 card lg:col-span-2'
+              }
+            >
+              <div className="flex items-center justify-between pb-2">
+                <div className="flex items-center gap-2 pb-6">
+                  <a
+                    href={`https://zkillboard.com/kill/${km.id}/`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="button button-secondary button-sm"
+                  >
+                    <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                    zKillboard
+                  </a>
+                  <a
+                    href={`https://kb.evetools.org/kill/${km.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="button button-secondary button-sm"
+                  >
+                    <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                    EVE Tools
+                  </a>
+                  <a
+                    href={`https://esi.evetech.net/killmails/${km.id}/${km.killmailHash}/`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="button button-secondary button-sm"
+                  >
+                    <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                    ESI Verified
+                  </a>
+                  <button
+                    onClick={handleShare}
+                    className="button button-secondary button-sm"
+                  >
+                    {copied ? (
+                      <>
+                        <CheckIcon className="w-4 h-4" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                        Share
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+              <FitScreen shipType={victim?.shipType} fitting={fitting as any} />
             </div>
           </div>
 
