@@ -131,8 +131,8 @@ export default function FittingItem({
             </div>
             {volume !== null && (
               <div className="text-gray-400">
-                {full(volume * totalQty)} m3
-                {totalQty > 1 && ` (${full(volume)} m3 per unit)`}
+                {full(volume * totalQty)} m³
+                {totalQty > 1 && ` (${full(volume)} m³ per unit)`}
               </div>
             )}
           </div>

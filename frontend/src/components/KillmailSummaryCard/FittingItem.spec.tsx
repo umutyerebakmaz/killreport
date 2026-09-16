@@ -49,7 +49,7 @@ describe('FittingItem', () => {
     expect(
       screen.getByText('Est. 84.000.000 ISK (21.000.000 ISK per unit)'),
     ).toBeInTheDocument();
-    expect(screen.getByText('20 m3 (5 m3 per unit)')).toBeInTheDocument();
+    expect(screen.getByText('20 m³ (5 m³ per unit)')).toBeInTheDocument();
   });
 
   it('leaves the per-unit figures out when there is only one', async () => {
@@ -65,7 +65,7 @@ describe('FittingItem', () => {
     await userEvent.hover(screen.getByAltText('Warp Disruptor II'));
 
     expect(screen.getByText('Est. 21.000.000 ISK')).toBeInTheDocument();
-    expect(screen.getByText('5 m3')).toBeInTheDocument();
+    expect(screen.getByText('5 m³')).toBeInTheDocument();
     expect(screen.queryByText(/per unit/)).toBeNull();
   });
 
@@ -82,6 +82,6 @@ describe('FittingItem', () => {
     await userEvent.hover(screen.getByAltText('Warp Disruptor II'));
 
     expect(screen.getByText('4 x Warp Disruptor II')).toBeInTheDocument();
-    expect(screen.queryByText(/m3/)).toBeNull();
+    expect(screen.queryByText(/m³/)).toBeNull();
   });
 });
