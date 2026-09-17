@@ -4,7 +4,7 @@ import { Loader } from '@/components/Loader/Loader';
 import Card from '@/components/ui/Card';
 import RankNumber from '@/components/ui/RankNumber';
 import Tooltip from '@/components/Tooltip/Tooltip';
-import { getSecurityStatusColor } from '@/utils/securityStatus';
+import { getSecurityStatusBorderColor } from '@/utils/securityStatus';
 import Link from 'next/link';
 import { ReactNode } from 'react';
 import EveImage from '../ui/EveImage';
@@ -59,9 +59,20 @@ export default function TopCharacterCard({
       ) : (
         <div className="flex flex-col divide-y divide-white/5">
           {characters.map((character, index) => {
-            const secColor = getSecurityStatusColor(character.securityStatus);
+            const secBorder = getSecurityStatusBorderColor(
+              character.securityStatus,
+            );
             return (
-              <div key={character.id} className="card-row">
+              // Every row takes a stripe, an unresolved security status
+              // included, so the 4px never changes the indent from one row to
+              // the next. The stripe is the only place the status appears in
+              // this list now — the figure that sat after the name was read as
+              // noise. A band is four points wide, so the exact value is on
+              // the character's own page.
+              <div
+                key={character.id}
+                className={`card-row border-l-4 ${secBorder}`}
+              >
                 <div className="flex items-center gap-3">
                   {/* Rank */}
                   <RankNumber rank={index + 1} />
@@ -77,7 +88,7 @@ export default function TopCharacterCard({
 
                   {/* Info */}
                   <div className="flex items-center justify-between flex-1 min-w-0 gap-2">
-                    <div className="flex items-baseline min-w-0 gap-2 leading-tight">
+                    <div className="min-w-0 leading-tight">
                       <Tooltip
                         content="Show character info"
                         className="min-w-0"
@@ -90,16 +101,6 @@ export default function TopCharacterCard({
                           {character.name}
                         </Link>
                       </Tooltip>
-                      {/* The security figure used to sit on the portrait. At
-                          32px it covered half of it, so it reads as a value
-                          after the name instead. */}
-                      {character.securityStatus != null && (
-                        <span
-                          className={`text-base leading-tight tabular-nums shrink-0 ${secColor}`}
-                        >
-                          {character.securityStatus.toFixed(1)}
-                        </span>
-                      )}
                     </div>
 
                     {/* Kill Count */}

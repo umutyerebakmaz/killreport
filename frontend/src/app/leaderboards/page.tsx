@@ -6,7 +6,7 @@ import Card from '@/components/ui/Card';
 import RankNumber from '@/components/ui/RankNumber';
 import Tooltip from '@/components/Tooltip/Tooltip';
 import { LeaderboardPeriod, useTopPilotsQuery } from '@/generated/graphql';
-import { getSecurityStatusColor } from '@/utils/securityStatus';
+import { getSecurityStatusBorderColor } from '@/utils/securityStatus';
 import {
   CalendarDaysIcon,
   ChevronLeftIcon,
@@ -76,9 +76,9 @@ function PilotList({
     <div className="flex flex-col divide-y divide-white/5">
       {pilots.map((pilot) => {
         const char = pilot.character;
-        const secColor = getSecurityStatusColor(char?.securityStatus);
+        const secBorder = getSecurityStatusBorderColor(char?.securityStatus);
         return (
-          <div key={pilot.rank} className="card-row">
+          <div key={pilot.rank} className={`card-row border-l-4 ${secBorder}`}>
             <div className="flex items-center gap-3">
               {/* Rank */}
               <RankNumber rank={pilot.rank} />
@@ -94,7 +94,7 @@ function PilotList({
 
               {/* Info */}
               <div className="flex justify-between w-full min-w-0">
-                <div className="flex items-baseline min-w-0 gap-2 overflow-hidden">
+                <div className="min-w-0 overflow-hidden">
                   {char ? (
                     <Tooltip
                       content="Show Character Info"
@@ -111,13 +111,6 @@ function PilotList({
                   ) : (
                     <span className="italic font-medium text-ink-faint">
                       Unknown Pilot
-                    </span>
-                  )}
-                  {char?.securityStatus != null && (
-                    <span
-                      className={`text-base tabular-nums shrink-0 ${secColor}`}
-                    >
-                      {char.securityStatus.toFixed(1)}
                     </span>
                   )}
                 </div>
