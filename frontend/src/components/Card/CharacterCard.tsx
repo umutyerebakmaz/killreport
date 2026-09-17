@@ -26,7 +26,7 @@ export default function CharacterCard({ character }: CharacterCardProps) {
         <div className="flex flex-col items-center gap-4">
           <div className="relative w-24 h-24">
             {!imageLoaded && (
-              <div className="absolute inset-0 animate-pulse bg-gray-800/50">
+              <div className="absolute inset-0 animate-pulse bg-surface-inset/50">
                 <div className="flex items-center justify-center w-full h-full">
                   <UserIcon className="w-12 h-12 text-gray-700" />
                 </div>
@@ -52,7 +52,7 @@ export default function CharacterCard({ character }: CharacterCardProps) {
           </Link>
 
           <div className="flex flex-col items-center w-full gap-2 min-h-11">
-            {/* Corporation */}
+            {/* Corporation — green-400 is the affiliation-label colour here, not dropped's */}
             <div className="h-5">
               {character.corporation && (
                 <Tooltip content="Corporation" position="top">
@@ -69,7 +69,7 @@ export default function CharacterCard({ character }: CharacterCardProps) {
               )}
             </div>
 
-            {/* Alliance */}
+            {/* Alliance name, not isk's — same affiliation-label colour scheme as Corporation above */}
             <div className="h-5">
               {character.alliance && (
                 <Tooltip content="Alliance" position="top">

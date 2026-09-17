@@ -67,7 +67,9 @@ function KillmailToastItem({
         transitionDelay: `${index * 50}ms`,
       }}
     >
-      <div className="relative flex items-start gap-3 p-3 border shadow-xl bg-gray-900/95 backdrop-blur-md border-red-500/30 hover:border-red-500/50 transition-colors min-w-[320px] max-w-95">
+      {/* destroyed's meaning, but red-500 — a step outside this sweep's
+          red/green/yellow-400 scope */}
+      <div className="relative flex items-start gap-3 p-3 border shadow-xl bg-surface/95 backdrop-blur-md border-red-500/30 hover:border-red-500/50 transition-colors min-w-[320px] max-w-95">
         {/* Ship Image */}
         <div className="relative shrink-0">
           {toast.victimShipTypeId ? (
@@ -76,14 +78,14 @@ function KillmailToastItem({
               id={toast.victimShipTypeId}
               name={toast.victimShipName || 'Ship'}
               size={56}
-              className="object-cover bg-gray-800 border border-gray-700 w-14 h-14"
+              className="object-cover bg-surface-inset border border-white/10 w-14 h-14"
             />
           ) : (
-            <div className="flex items-center justify-center bg-gray-800 border border-gray-700 w-14 h-14">
+            <div className="flex items-center justify-center bg-surface-inset border border-white/10 w-14 h-14">
               <span className="text-2xl">💀</span>
             </div>
           )}
-          {/* Kill indicator */}
+          {/* Kill indicator — destroyed's meaning, but red-500, same as above */}
           <div className="absolute w-3 h-3 bg-red-500 rounded-full -top-1 -right-1 animate-pulse" />
         </div>
 
@@ -91,13 +93,13 @@ function KillmailToastItem({
         <div className="flex-1 min-w-0">
           {/* Victim */}
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-red-400 truncate">
+            <span className="text-sm font-medium text-destroyed truncate">
               {toast.victimName || 'Unknown Pilot'}
             </span>
           </div>
 
           {/* Ship */}
-          <div className="text-xs text-gray-400 truncate">
+          <div className="text-xs text-ink-muted truncate">
             lost a{' '}
             <span className="font-medium text-gray-200">
               {toast.victimShipName || 'Unknown Ship'}
@@ -105,7 +107,7 @@ function KillmailToastItem({
           </div>
 
           {/* Attacker & System */}
-          <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+          <div className="flex items-center gap-2 mt-1 text-xs text-ink-faint">
             {toast.attackerName && (
               <>
                 <span className="truncate">by {toast.attackerName}</span>
@@ -120,7 +122,7 @@ function KillmailToastItem({
           {/* Value & Time */}
           <div className="flex items-center gap-2 mt-1">
             {toast.totalValue && (
-              <span className="text-xs font-semibold text-yellow-500 tabular-nums">
+              <span className="text-xs font-medium text-isk tabular-nums">
                 {formatISK(toast.totalValue)}
               </span>
             )}
@@ -167,7 +169,7 @@ export default function KillmailToastContainer({
       {/* More indicator */}
       {toasts.length > 5 && (
         <div className="text-center pointer-events-auto">
-          <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium text-gray-400 border border-gray-700 bg-gray-800/80">
+          <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium text-ink-muted border border-white/10 bg-surface-inset/80">
             +{toasts.length - 5} more kills
           </span>
         </div>

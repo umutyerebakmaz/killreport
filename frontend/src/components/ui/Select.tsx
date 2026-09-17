@@ -104,7 +104,7 @@ export default function Select({
     <Listbox value={value} onChange={onChange} disabled={disabled}>
       <ListboxButton
         aria-label={ariaLabel}
-        className={`group grid cursor-pointer grid-cols-1 border py-2.5 pr-2 pl-4 text-left text-sm font-medium text-white transition-colors bg-surface border-white/10 hover:bg-surface-inset hover:border-white/20 focus:outline-none focus-visible:outline-1 focus-visible:outline-accent data-disabled:cursor-not-allowed data-disabled:text-gray-500 data-disabled:opacity-50 data-disabled:hover:bg-surface data-disabled:hover:border-white/10 ${className}`}
+        className={`group grid cursor-pointer grid-cols-1 border py-2.5 pr-2 pl-4 text-left text-sm font-medium text-white transition-colors bg-surface border-white/10 hover:bg-surface-inset hover:border-white/20 focus:outline-none data-disabled:cursor-not-allowed data-disabled:text-ink-faint data-disabled:opacity-50 data-disabled:hover:bg-surface data-disabled:hover:border-white/10 ${className}`}
       >
         <span className="flex items-center col-start-1 row-start-1 gap-2 pr-6">
           {selected && hasLeading && <Leading option={selected} />}
@@ -118,7 +118,7 @@ export default function Select({
         </span>
         <ChevronUpDownIcon
           aria-hidden="true"
-          className="self-center col-start-1 row-start-1 text-gray-400 size-5 justify-self-end sm:size-4"
+          className="self-center col-start-1 row-start-1 text-ink-muted size-5 justify-self-end sm:size-4"
         />
       </ListboxButton>
 
@@ -135,11 +135,11 @@ export default function Select({
             key={option.value}
             value={option.value}
             disabled={option.disabled}
-            className="relative py-2 pl-8 pr-4 text-gray-200 transition-colors cursor-pointer select-none group data-focus:bg-white/5 data-focus:text-white data-focus:outline-hidden data-disabled:cursor-not-allowed data-disabled:text-gray-500 data-disabled:opacity-50"
+            className="relative py-2 pl-8 pr-4 text-gray-200 transition-colors cursor-pointer select-none group data-focus:bg-white/5 data-focus:text-white data-focus:outline-hidden data-disabled:cursor-not-allowed data-disabled:text-ink-faint data-disabled:opacity-50"
           >
             <span className="flex items-center gap-2">
               {hasLeading && <Leading option={option} />}
-              <span className="block truncate group-data-selected:font-semibold group-data-selected:text-white">
+              <span className="block truncate group-data-selected:font-medium group-data-selected:text-white">
                 {option.label}
               </span>
             </span>

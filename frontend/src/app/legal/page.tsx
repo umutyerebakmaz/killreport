@@ -20,21 +20,19 @@ export default function LegalPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <Link
               href="/terms"
-              className="p-4 transition-colors border rounded bg-surface-inset border-white/10 hover:border-cyan-500"
+              className="p-4 transition-colors border rounded bg-surface-inset border-white/10 hover:border-accent-hover"
             >
-              <h3 className="mb-2 font-semibold text-white">
-                Terms of Service
-              </h3>
-              <p className="text-sm text-gray-400">
+              <h3 className="mb-2 font-medium text-white">Terms of Service</h3>
+              <p className="text-sm text-ink-muted">
                 Usage rules, acceptable conduct, and service limitations
               </p>
             </Link>
             <Link
               href="/privacy"
-              className="p-4 transition-colors border rounded bg-surface-inset border-white/10 hover:border-cyan-500"
+              className="p-4 transition-colors border rounded bg-surface-inset border-white/10 hover:border-accent-hover"
             >
-              <h3 className="mb-2 font-semibold text-white">Privacy Policy</h3>
-              <p className="text-sm text-gray-400">
+              <h3 className="mb-2 font-medium text-white">Privacy Policy</h3>
+              <p className="text-sm text-ink-muted">
                 Data collection, usage, storage, and your privacy rights
               </p>
             </Link>
@@ -43,7 +41,7 @@ export default function LegalPage() {
 
         {/* EVE Online & CCP Games */}
         <section className="mb-12">
-          <h2 className="mb-6 text-2xl font-semibold text-white">
+          <h2 className="mb-6 text-2xl font-medium text-white">
             EVE Online & CCP Games
           </h2>
           <div className="space-y-4 text-gray-300">
@@ -70,7 +68,7 @@ export default function LegalPage() {
 
         {/* Data Processing Pipeline */}
         <section className="mb-12">
-          <h2 className="mb-6 text-2xl font-semibold text-white">
+          <h2 className="mb-6 text-2xl font-medium text-white">
             How Killreport Works: Our Data Pipeline
           </h2>
           <div className="space-y-4 text-gray-300">
@@ -79,21 +77,21 @@ export default function LegalPage() {
               how we process EVE Online killmail information:
             </p>
             <div className="pt-4 space-y-3">
-              <div className="pl-4 border-l-2 border-cyan-500">
-                <h3 className="mb-2 font-semibold text-white">
+              <div className="pl-4 border-l-2 border-accent-hover">
+                <h3 className="mb-2 font-medium text-white">
                   1. Data Ingestion via zKillboard
                 </h3>
                 <p className="text-sm">
                   We subscribe to zKillboard&apos;s Redis queue, which provides
                   us real-time killmail events. However, we only receive minimal
                   identifiers: the{' '}
-                  <span className="text-cyan-400">killmailID</span> and{' '}
-                  <span className="text-cyan-400">killmailHash</span>. This is
-                  raw, unannotated data—just numbers with no context.
+                  <span className="text-accent-link">killmailID</span> and{' '}
+                  <span className="text-accent-link">killmailHash</span>. This
+                  is raw, unannotated data—just numbers with no context.
                 </p>
               </div>
-              <div className="pl-4 border-l-2 border-cyan-500">
-                <h3 className="mb-2 font-semibold text-white">
+              <div className="pl-4 border-l-2 border-accent-hover">
+                <h3 className="mb-2 font-medium text-white">
                   2. Data Enrichment via CCP ESI
                 </h3>
                 <p className="text-sm">
@@ -105,8 +103,8 @@ export default function LegalPage() {
                   events with full context from CCP&apos;s authoritative source.
                 </p>
               </div>
-              <div className="pl-4 border-l-2 border-cyan-500">
-                <h3 className="mb-2 font-semibold text-white">
+              <div className="pl-4 border-l-2 border-accent-hover">
+                <h3 className="mb-2 font-medium text-white">
                   3. Processing & Indexing
                 </h3>
                 <p className="text-sm">
@@ -117,8 +115,8 @@ export default function LegalPage() {
                   by creating data.
                 </p>
               </div>
-              <div className="pl-4 border-l-2 border-cyan-500">
-                <h3 className="mb-2 font-semibold text-white">
+              <div className="pl-4 border-l-2 border-accent-hover">
+                <h3 className="mb-2 font-medium text-white">
                   4. Display & User Access
                 </h3>
                 <p className="text-sm">
@@ -130,7 +128,7 @@ export default function LegalPage() {
               </div>
             </div>
             <p className="pt-4 mt-4 text-sm border-t border-white/10">
-              <span className="font-semibold text-cyan-400">Key Point:</span>{' '}
+              <span className="font-medium text-accent-link">Key Point:</span>{' '}
               Killreport is an analysis and presentation layer. We don&apos;t
               create killmail data—CCP Games does through EVE Online&apos;s
               combat system. zKillboard notifies us of events, and CCP ESI
@@ -141,7 +139,7 @@ export default function LegalPage() {
 
         {/* Contact */}
         <section className="mb-12">
-          <h2 className="mb-6 text-2xl font-semibold text-white">
+          <h2 className="mb-6 text-2xl font-medium text-white">
             Questions or Concerns?
           </h2>
           <div className="space-y-4 text-gray-300">
@@ -151,7 +149,7 @@ export default function LegalPage() {
             </p>
             <div className="space-y-3">
               <div className="p-4 border rounded bg-surface-inset border-white/10">
-                <h3 className="font-semibold text-white mb-2">
+                <h3 className="font-medium text-white mb-2">
                   Regarding Your EVE Online Data
                 </h3>
                 <p className="text-sm mb-2">
@@ -160,13 +158,13 @@ export default function LegalPage() {
                 </p>
                 <a
                   href="mailto:legal@ccpgames.com"
-                  className="text-cyan-400 hover:underline text-sm"
+                  className="text-accent-link hover:underline text-sm"
                 >
                   legal@ccpgames.com
                 </a>
               </div>
               <div className="p-4 border rounded bg-surface-inset border-white/10">
-                <h3 className="font-semibold text-white mb-2">
+                <h3 className="font-medium text-white mb-2">
                   Regarding Killreport
                 </h3>
                 <p className="text-sm mb-2">
@@ -179,7 +177,7 @@ export default function LegalPage() {
                       href="https://discord.gg/hGugfm4n"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-cyan-400 hover:underline"
+                      className="text-accent-link hover:underline"
                     >
                       Discord Community
                     </a>
@@ -189,7 +187,7 @@ export default function LegalPage() {
                       href="https://github.com/umutyerebakmaz/killreport"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-cyan-400 hover:underline"
+                      className="text-accent-link hover:underline"
                     >
                       GitHub Repository
                     </a>
@@ -201,18 +199,20 @@ export default function LegalPage() {
         </section>
 
         <div className="pt-8 mt-12 border-t border-white/10">
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-ink-muted">
             All EVE related materials are property of{' '}
             <a
               href="https://www.ccpgames.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-cyan-400 hover:underline"
+              className="text-accent-link hover:underline"
             >
               CCP Games
             </a>
           </p>
-          <p className="text-xs text-gray-500 mt-2">Last Updated: March 2026</p>
+          <p className="text-xs text-ink-faint mt-2">
+            Last Updated: March 2026
+          </p>
         </div>
       </div>
     </div>

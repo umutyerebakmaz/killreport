@@ -198,7 +198,7 @@ export default function MostValuableCarousel({
             ))}
           </div>
         ) : killmails.length === 0 ? (
-          <div className="flex items-center justify-center h-64 text-gray-500">
+          <div className="flex items-center justify-center h-64 text-ink-faint">
             <p className="text-sm font-medium">{activeTab.emptyText}</p>
           </div>
         ) : (

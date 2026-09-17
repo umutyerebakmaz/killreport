@@ -33,7 +33,7 @@ export default function ImplantSlot({ slots }: ImplantSlotProps) {
               </Tooltip>
             ) : (
               <Tooltip content={`Empty Implant Slot ${slotNumber}`}>
-                <div className="relative flex items-center justify-center px-2 overflow-visible text-lg text-gray-400 border size-12 bg-white/5 border-white/10">
+                <div className="relative flex items-center justify-center px-2 overflow-visible text-lg text-ink-muted border size-12 bg-white/5 border-white/10">
                   {slotNumber}
                 </div>
               </Tooltip>

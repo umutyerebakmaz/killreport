@@ -2823,7 +2823,7 @@ export type TopAlliancesQueryVariables = Exact<{
 }>;
 
 
-export type TopAlliancesQuery = { __typename?: 'Query', topAlliances: Array<{ __typename?: 'TopAlliance', rank: number, killCount: number, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null }> };
+export type TopAlliancesQuery = { __typename?: 'Query', topAlliances: Array<{ __typename?: 'TopAlliance', rank: number, killCount: number, alliance?: { __typename?: 'Alliance', id: number, name: string } | null }> };
 
 export type TopAttackerShipsQueryVariables = Exact<{
   filter?: InputMaybe<TopFilter>;
@@ -2837,7 +2837,7 @@ export type TopCorporationsQueryVariables = Exact<{
 }>;
 
 
-export type TopCorporationsQuery = { __typename?: 'Query', topCorporations: Array<{ __typename?: 'TopCorporation', rank: number, killCount: number, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null }> };
+export type TopCorporationsQuery = { __typename?: 'Query', topCorporations: Array<{ __typename?: 'TopCorporation', rank: number, killCount: number, corporation?: { __typename?: 'Corporation', id: number, name: string } | null }> };
 
 export type TopDestroyedShipsQueryVariables = Exact<{
   filter?: InputMaybe<TopFilter>;
@@ -7873,7 +7873,6 @@ export const TopAlliancesDocument = gql`
     alliance {
       id
       name
-      ticker
     }
   }
 }
@@ -7974,7 +7973,6 @@ export const TopCorporationsDocument = gql`
     corporation {
       id
       name
-      ticker
     }
   }
 }

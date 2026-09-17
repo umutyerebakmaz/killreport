@@ -59,7 +59,7 @@ import { useMapPointer, type MapPick } from './useMapPointer';
 
 function MapMessage({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-center h-full p-8 text-center text-gray-400">
+    <div className="flex items-center justify-center h-full p-8 text-center text-ink-muted">
       {children}
     </div>
   );
@@ -322,7 +322,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       // not blank until it is. What is awaited is the face the measurer will
       // measure against, not an atlas. `.catch` only exists to keep the promise
       // from going unhandled; `whenLabelFontsReady` itself already falls
-      // through to whatever face is resolved for 'Shentox' if the load fails.
+      // through to whatever face resolves for LABEL_FONT_NAME if the load fails.
       whenLabelFontsReady()
         .then(() => {
           if (live) setFontsReady(true);

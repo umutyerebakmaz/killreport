@@ -57,7 +57,7 @@ function RegionsContent() {
   }, [currentPage, orderBy, searchTerm]);
 
   if (error)
-    return <div className="p-8 text-red-500">Error: {error.message}</div>;
+    return <div className="p-8 text-danger">Error: {error.message}</div>;
 
   const regions = data?.regions.items || [];
   const pageInfo = data?.regions.pageInfo;
@@ -88,7 +88,7 @@ function RegionsContent() {
             <Loader size="lg" text="Loading regions..." />
           </div>
         ) : regions.length === 0 ? (
-          <div className="px-6 py-12 text-center text-gray-400 border border-white/10 bg-surface">
+          <div className="px-6 py-12 text-center text-ink-muted border border-white/10 bg-surface">
             No regions found
           </div>
         ) : (

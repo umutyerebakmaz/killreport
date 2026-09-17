@@ -105,13 +105,13 @@ export default function KillmailCard({
             </div>
           </Tooltip>
           {km.totalValue && (
-            <div className="text-lg font-bold text-yellow-400 tabular-nums">
+            <div className="text-lg font-bold text-isk tabular-nums">
               {formatISK(km.totalValue)}
             </div>
           )}
         </div>
 
-        <div className="font-semibold text-orange-400 truncate">
+        <div className="font-medium text-orange-400 truncate">
           {km.victim?.shipType?.name || 'Unknown Ship'}
         </div>
 
@@ -139,7 +139,7 @@ export default function KillmailCard({
               <>
                 {/* The separator belongs to neither name, so it takes neither
                     colour. */}
-                <span className="text-gray-400">{' · '}</span>
+                <span className="text-ink-muted">{' · '}</span>
                 <span className="font-medium text-blue-400">
                   {km.solarSystem.constellation.region.name}
                 </span>
@@ -168,10 +168,10 @@ export default function KillmailCard({
                 {km.victim.character.name}
               </div>
             ) : (
-              <div className="text-gray-400">Unknown Pilot</div>
+              <div className="text-ink-muted">Unknown Pilot</div>
             )}
             {km.victim?.corporation && (
-              <div className="text-sm text-gray-400 truncate">
+              <div className="text-sm text-ink-muted truncate">
                 {km.victim.corporation.name}
               </div>
             )}

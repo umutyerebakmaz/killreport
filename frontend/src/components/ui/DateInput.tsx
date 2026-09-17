@@ -78,14 +78,14 @@ export default function DateInput({
         <span
           id={valueId}
           className={`col-start-1 row-start-1 pr-6 truncate ${
-            value ? '' : 'text-gray-400'
+            value ? '' : 'text-ink-muted'
           }`}
         >
           {value ? formatDateLabel(value) : 'Select date'}
         </span>
         <CalendarIcon
           aria-hidden="true"
-          className="self-center col-start-1 row-start-1 text-gray-400 size-5 justify-self-end sm:size-4"
+          className="self-center col-start-1 row-start-1 text-ink-muted size-5 justify-self-end sm:size-4"
         />
       </PopoverButton>
 

@@ -20,8 +20,8 @@ export default function WeeklyTopCharCard() {
     <div className="flex flex-col border bg-surface hover:bg-surface-inset">
       {/* Header */}
       <div className="flex items-center gap-2 p-4 border-b border-white/10">
-        <CalendarDaysIcon className="w-4 h-4 text-cyan-400 shrink-0" />
-        <h3 className="text-sm font-semibold text-white">Weekly Top 10</h3>
+        <CalendarDaysIcon className="w-4 h-4 text-accent-link shrink-0" />
+        <h3 className="text-sm font-medium text-white">Weekly Top 10</h3>
       </div>
 
       {/* Pilots List */}
@@ -30,7 +30,7 @@ export default function WeeklyTopCharCard() {
           <Loader size="md" />
         </div>
       ) : pilots.length === 0 ? (
-        <div className="p-4 text-xs text-center text-gray-500">
+        <div className="p-4 text-xs text-center text-ink-faint">
           No data available
         </div>
       ) : (
@@ -54,7 +54,7 @@ export default function WeeklyTopCharCard() {
                       size={40}
                     />
                     {char?.securityStatus != null && (
-                      <div className="absolute bottom-0 left-0 px-1 py-0 text-xs font-semibold bg-black/70 backdrop-blur-sm">
+                      <div className="absolute bottom-0 left-0 px-1 py-0 text-xs font-medium bg-black/70 backdrop-blur-sm">
                         <span className={secColor}>
                           {char.securityStatus.toFixed(1)}
                         </span>
@@ -78,20 +78,23 @@ export default function WeeklyTopCharCard() {
                         </Link>
                       </Tooltip>
                     ) : (
-                      <span className="text-xs italic font-medium text-gray-500">
+                      <span className="text-xs italic font-medium text-ink-faint">
                         Unknown
                       </span>
                     )}
                     {char?.corporation && (
-                      <span className="text-xs text-gray-500 truncate">
+                      <span className="text-xs text-ink-faint truncate">
                         {char.corporation.name}
                       </span>
                     )}
                   </div>
 
-                  {/* Kill Count */}
+                  {/* Kill Count — a tally, not a killmail's damage; every sibling
+                      Top*Card renders the same label in text-ink-muted, so this
+                      red looks like a pre-existing inconsistency rather than
+                      destroyed's meaning. Left alone rather than guessed. */}
                   <div className="shrink-0">
-                    <span className="text-xs font-semibold text-red-400 tabular-nums">
+                    <span className="text-xs font-medium text-red-400 tabular-nums">
                       {pilot.killCount}
                     </span>
                   </div>

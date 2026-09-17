@@ -23,9 +23,11 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
   const memberGrowthRate7d =
     corporation.metrics?.memberCountGrowthRate7d ?? null;
 
-  // Delta rengi belirle
+  // Delta rengi belirle (currently unused — see MemberDeltaBadge for the live
+  // version of this same pattern; this Card is also bg-surface, where EVE's
+  // red measures 3.93:1, accepted per the spec).
   const deltaColor =
-    memberDelta7d && memberDelta7d >= 0 ? 'text-green-400' : 'text-red-400';
+    memberDelta7d && memberDelta7d >= 0 ? 'text-success' : 'text-red-400';
 
   // Tooltip içeriği
   const tooltipContent =
@@ -56,7 +58,7 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
         <div className="flex flex-col items-center gap-4">
           <div className="relative w-32 h-32">
             {!imageLoaded && (
-              <div className="absolute inset-0 animate-pulse bg-gray-800/50">
+              <div className="absolute inset-0 animate-pulse bg-surface-inset/50">
                 <div className="flex items-center justify-center w-full h-full">
                   <BuildingOffice2Icon className="w-12 h-12 text-gray-700" />
                 </div>
@@ -86,7 +88,7 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
             <div className="corporation-ticker">[{corporation.ticker}]</div>
           </Tooltip>
 
-          {/* Alliance */}
+          {/* Alliance name, not isk's — the affiliation-label colour, same as CharacterCard's */}
           <div className="flex flex-col items-center w-full gap-2 min-h-5">
             <div className="h-5">
               {corporation.alliance && (
@@ -118,7 +120,7 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
           <div className="date-founded-section">
             {/* Founded date */}
             <Tooltip content="Date Founded" position="top">
-              <div className="text-xs text-gray-400">{foundedDate}</div>
+              <div className="text-xs text-ink-muted">{foundedDate}</div>
             </Tooltip>
           </div>
         </div>

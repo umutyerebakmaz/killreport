@@ -11,8 +11,10 @@ export default function MemberDeltaBadge({
   memberGrowthRate,
 }: MemberDeltaBadgeProps) {
   // Delta rengi belirle
+  // Every caller renders this inside a .card (bg-surface): EVE's red measures
+  // 3.93:1 there, under the 4.5 body-text floor, accepted per the spec.
   const deltaColor =
-    memberDelta && memberDelta >= 0 ? 'text-green-400' : 'text-red-400';
+    memberDelta && memberDelta >= 0 ? 'text-success' : 'text-red-400';
   // Tooltip içeriği
   const tooltipContent =
     memberDelta !== null
@@ -29,12 +31,12 @@ export default function MemberDeltaBadge({
       <div className="flex items-center gap-2">
         <ArrowTrendingUpIcon
           className={`w-5 h-5 ${
-            memberDelta !== null ? deltaColor : 'text-gray-500'
+            memberDelta !== null ? deltaColor : 'text-ink-faint'
           }`}
         />
         <span
           className={`text-sm font-medium ${
-            memberDelta !== null ? deltaColor : 'text-gray-500'
+            memberDelta !== null ? deltaColor : 'text-ink-faint'
           }`}
         >
           {memberDelta !== null ? (

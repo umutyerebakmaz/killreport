@@ -13,10 +13,10 @@ import { useEffect, useRef, useState } from 'react';
 // inside an icon that small blur into a smudge. The labels carry the alphabet,
 // the icon carries the direction.
 const ASC = (
-  <BarsArrowUpIcon aria-hidden="true" className="size-4 text-gray-400" />
+  <BarsArrowUpIcon aria-hidden="true" className="size-4 text-ink-muted" />
 );
 const DESC = (
-  <BarsArrowDownIcon aria-hidden="true" className="size-4 text-gray-400" />
+  <BarsArrowDownIcon aria-hidden="true" className="size-4 text-ink-muted" />
 );
 
 const ORDER_BY_OPTIONS = [

@@ -26,7 +26,7 @@ export default function CorporationsTable({
 
   if (corporations.length === 0) {
     return (
-      <div className="py-12 text-center text-gray-400">
+      <div className="py-12 text-center text-ink-muted">
         No corporation found
       </div>
     );
@@ -57,12 +57,13 @@ export default function CorporationsTable({
                   <Link
                     href={`/corporations/${corp.id}`}
                     prefetch={false}
-                    className="text-gray-400 hover:text-blue-400"
+                    className="text-ink-muted hover:text-blue-400"
                   >
                     {corp.name}
                   </Link>
                 </div>
               </td>
+              {/* corp.ticker, not isk's — a ticker label, same as the other ticker sites */}
               <td className="px-6 py-4 text-sm text-yellow-400 whitespace-nowrap">
                 [{corp.ticker}]
               </td>
@@ -74,12 +75,12 @@ export default function CorporationsTable({
                   <Link
                     href={`/characters/${corp.ceo.id}`}
                     prefetch={false}
-                    className="text-gray-400 hover:text-blue-400"
+                    className="text-ink-muted hover:text-blue-400"
                   >
                     {corp.ceo.name}
                   </Link>
                 ) : (
-                  <span className="text-gray-500">N/A</span>
+                  <span className="text-ink-faint">N/A</span>
                 )}
               </td>
             </tr>

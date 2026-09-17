@@ -124,7 +124,7 @@ export default function AttackersCard({
   return (
     <div>
       <div className="flex justify-end card-header">
-        <span className="text-lg font-semibold text-gray-100">
+        <span className="text-lg font-medium text-white">
           {killmail.attackerCount} ATTACKERS
         </span>
       </div>
@@ -168,7 +168,7 @@ export default function AttackersCard({
       {/* Involved Alliances and Corps */}
       {(allianceArray.length > 0 || independentCorpsArray.length > 0) && (
         <div className="mt-6">
-          <h3 className="mb-3 text-sm font-semibold text-gray-400">
+          <h3 className="mb-3 text-sm font-medium text-ink-muted">
             Involved Alliances and Corps
           </h3>
           <div className="divide-y divide-white/5">
@@ -187,9 +187,9 @@ export default function AttackersCard({
                     className="flex items-center gap-2 cursor-pointer card-row bg-surface"
                   >
                     {isExpanded ? (
-                      <ChevronDownIcon className="w-4 h-4 text-gray-400" />
+                      <ChevronDownIcon className="w-4 h-4 text-ink-muted" />
                     ) : (
-                      <ChevronRightIcon className="w-4 h-4 text-gray-400" />
+                      <ChevronRightIcon className="w-4 h-4 text-ink-muted" />
                     )}
                     <EveImage
                       kind="alliance"
@@ -199,13 +199,13 @@ export default function AttackersCard({
                     />
                     <Link
                       href={`/alliances/${alliance.id}`}
-                      className="flex-1 text-base text-gray-100 hover:text-cyan-400"
+                      className="flex-1 text-base text-gray-100 hover:text-accent-link"
                       prefetch={false}
                       onClick={(e) => e.stopPropagation()}
                     >
                       {alliance.name}
                     </Link>
-                    <span className="px-2 py-0.5 text-xs font-medium text-gray-400">
+                    <span className="px-2 py-0.5 text-xs font-medium text-ink-muted">
                       {alliance.totalCount}
                     </span>
                   </div>
@@ -229,7 +229,7 @@ export default function AttackersCard({
                           <span className="flex-1 text-base text-gray-100">
                             {corp.name}
                           </span>
-                          <span className="px-1.5 py-0.5 text-xs font-medium text-gray-500">
+                          <span className="px-1.5 py-0.5 text-xs font-medium text-ink-faint">
                             {corp.count}
                           </span>
                         </Link>
@@ -258,7 +258,7 @@ export default function AttackersCard({
                 <span className="flex-1 text-base text-gray-100">
                   {corp.name}
                 </span>
-                <span className="px-2 py-0.5 text-xs font-medium text-gray-400">
+                <span className="px-2 py-0.5 text-xs font-medium text-ink-muted">
                   {corp.count}
                 </span>
               </Link>

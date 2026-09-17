@@ -20,7 +20,7 @@ export default function TermsPage() {
 
         {/* Acceptable Use */}
         <section className="mb-12">
-          <h2 className="mb-6 text-2xl font-semibold text-white">
+          <h2 className="mb-6 text-2xl font-medium text-white">
             Acceptable Use
           </h2>
           <p className="mb-4 text-gray-300">
@@ -44,7 +44,7 @@ export default function TermsPage() {
 
         {/* Prohibited Conduct */}
         <section className="mb-12">
-          <h2 className="mb-6 text-2xl font-semibold text-white">
+          <h2 className="mb-6 text-2xl font-medium text-white">
             Prohibited Conduct
           </h2>
           <p className="mb-4 text-gray-300">
@@ -52,32 +52,32 @@ export default function TermsPage() {
           </p>
           <ul className="ml-2 space-y-3 text-gray-300 list-disc list-inside">
             <li>
-              <span className="font-semibold">Service Disruption:</span>{' '}
-              Attempts to compromise service availability or functionality
-              through DDoS attacks, exploitation, or other malicious means
+              <span className="font-medium">Service Disruption:</span> Attempts
+              to compromise service availability or functionality through DDoS
+              attacks, exploitation, or other malicious means
             </li>
             <li>
-              <span className="font-semibold">API Exploitation:</span> Automated
+              <span className="font-medium">API Exploitation:</span> Automated
               excessive requests, deliberately overloading our systems, or
               bypassing rate limits
             </li>
             <li>
-              <span className="font-semibold">Malicious Scraping:</span>{' '}
+              <span className="font-medium">Malicious Scraping:</span>{' '}
               Unauthorized extraction of data through non-API means or
               circumventing our APIs
             </li>
             <li>
-              <span className="font-semibold">Spam & Advertising:</span>{' '}
+              <span className="font-medium">Spam & Advertising:</span>{' '}
               Unsolicited commercial content, spam, or promotional material on
               our platform
             </li>
             <li>
-              <span className="font-semibold">Account Violations:</span> Sharing
+              <span className="font-medium">Account Violations:</span> Sharing
               credentials, botting, multi-accounting without authorization, or
               impersonation
             </li>
             <li>
-              <span className="font-semibold">Harassment & Abuse:</span> Hateful
+              <span className="font-medium">Harassment & Abuse:</span> Hateful
               conduct, discrimination, threats, or abusive behavior toward other
               users
             </li>
@@ -86,7 +86,7 @@ export default function TermsPage() {
 
         {/* Community Guidelines */}
         <section className="mb-12">
-          <h2 className="mb-6 text-2xl font-semibold text-white">
+          <h2 className="mb-6 text-2xl font-medium text-white">
             Community Guidelines
           </h2>
           <p className="mb-4 text-gray-300">
@@ -96,9 +96,7 @@ export default function TermsPage() {
 
           <div className="space-y-6">
             <div>
-              <h3 className="font-semibold text-white mb-3">
-                What We Encourage
-              </h3>
+              <h3 className="font-medium text-white mb-3">What We Encourage</h3>
               <ul className="ml-4 space-y-2 text-gray-300 text-sm">
                 <li>
                   ✓ Constructive discussion about killmails, tactics, and PvP
@@ -116,7 +114,7 @@ export default function TermsPage() {
             </div>
 
             <div>
-              <h3 className="font-semibold text-white mb-3">
+              <h3 className="font-medium text-white mb-3">
                 What We Don't Allow
               </h3>
               <ul className="ml-4 space-y-2 text-gray-300 text-sm">
@@ -133,7 +131,7 @@ export default function TermsPage() {
             </div>
 
             <div className="bg-surface-inset border border-white/10 p-4 rounded">
-              <h4 className="font-semibold text-white mb-2">Enforcement</h4>
+              <h4 className="font-medium text-white mb-2">Enforcement</h4>
               <p className="text-sm text-gray-300">
                 We reserve the right to remove, edit, or restrict content that
                 violates these guidelines. Repeated violations may result in
@@ -147,12 +145,12 @@ export default function TermsPage() {
 
         {/* Limitations & Disclaimers */}
         <section className="mb-12">
-          <h2 className="mb-6 text-2xl font-semibold text-white">
+          <h2 className="mb-6 text-2xl font-medium text-white">
             Limitations & Disclaimers
           </h2>
           <div className="space-y-4 text-gray-300">
             <p>
-              <span className="font-semibold text-orange-400">
+              <span className="font-medium text-orange-400">
                 AS-IS Service:
               </span>{' '}
               Killreport is provided as-is for informational and analytical
@@ -172,7 +170,7 @@ export default function TermsPage() {
             </ul>
 
             <p className="pt-4">
-              <span className="font-semibold text-orange-400">
+              <span className="font-medium text-orange-400">
                 Limitation of Liability:
               </span>{' '}
               You use this service at your own risk. To the maximum extent
@@ -183,7 +181,7 @@ export default function TermsPage() {
             </p>
 
             <p>
-              <span className="font-semibold text-orange-400">
+              <span className="font-medium text-orange-400">
                 No Financial Advice:
               </span>{' '}
               Killreport provides data for informational purposes only. We do
@@ -196,7 +194,7 @@ export default function TermsPage() {
 
         {/* Changes to Terms */}
         <section className="mb-12">
-          <h2 className="mb-6 text-2xl font-semibold text-white">
+          <h2 className="mb-6 text-2xl font-medium text-white">
             Changes to These Terms
           </h2>
           <p className="text-gray-300">
@@ -206,12 +204,14 @@ export default function TermsPage() {
             the posting of updated Terms constitutes your acceptance of those
             changes.
           </p>
-          <p className="mt-4 text-sm text-gray-400">Last Updated: March 2026</p>
+          <p className="mt-4 text-sm text-ink-muted">
+            Last Updated: March 2026
+          </p>
         </section>
 
         {/* Contact */}
         <section className="mb-12">
-          <h2 className="mb-6 text-2xl font-semibold text-white">
+          <h2 className="mb-6 text-2xl font-medium text-white">
             Questions About These Terms?
           </h2>
           <div className="space-y-4 text-gray-300">
@@ -225,7 +225,7 @@ export default function TermsPage() {
                   href="https://discord.gg/hGugfm4n"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-cyan-400 hover:underline"
+                  className="text-accent-link hover:underline"
                 >
                   Join our Discord community for support
                 </a>
@@ -235,7 +235,7 @@ export default function TermsPage() {
                   href="https://github.com/umutyerebakmaz/killreport"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-cyan-400 hover:underline"
+                  className="text-accent-link hover:underline"
                 >
                   Open an issue on GitHub
                 </a>
@@ -245,7 +245,7 @@ export default function TermsPage() {
         </section>
 
         <div className="border-t border-white/10 pt-8 mt-12">
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-ink-muted">
             These Terms of Service are designed to ensure Killreport remains a
             safe and respectful community while complying with legal
             requirements and EVE Online policies.

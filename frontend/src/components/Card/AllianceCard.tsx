@@ -37,7 +37,7 @@ export default function AllianceCard({ alliance }: AllianceCardProps) {
         <div className="flex flex-col items-center gap-4">
           <div className="relative w-32 h-32">
             {!imageLoaded && (
-              <div className="absolute inset-0 animate-pulse bg-gray-800/50">
+              <div className="absolute inset-0 animate-pulse bg-surface-inset/50">
                 <div className="flex items-center justify-center w-full h-full">
                   <UsersIcon className="w-12 h-12 text-gray-700" />
                 </div>
@@ -83,7 +83,7 @@ export default function AllianceCard({ alliance }: AllianceCardProps) {
           {/* Founded date section */}
           <div className="date-founded-section">
             <Tooltip content="Date Founded" position="top">
-              <div className="text-xs text-gray-400">{foundedDate}</div>
+              <div className="text-xs text-ink-muted">{foundedDate}</div>
             </Tooltip>
           </div>
         </div>

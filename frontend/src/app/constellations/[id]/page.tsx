@@ -105,7 +105,7 @@ export default function ConstellationDetailPage({
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg text-red-600">Error: {error.message}</div>
+        <div className="text-lg text-danger">Error: {error.message}</div>
       </div>
     );
   }
@@ -169,7 +169,7 @@ export default function ConstellationDetailPage({
                 region page names its own parent the same way it names nothing.
               */}
               {constellation.region && (
-                <div className="flex items-center gap-2 mt-2 text-gray-400">
+                <div className="flex items-center gap-2 mt-2 text-ink-muted">
                   <RegionMap
                     regionId={constellation.region.id}
                     regionName={constellation.region.name}
@@ -179,7 +179,7 @@ export default function ConstellationDetailPage({
                   <Link
                     href={`/regions/${constellation.region.id}`}
                     prefetch={false}
-                    className="transition-colors text-gray-400 hover:text-blue-400"
+                    className="transition-colors text-ink-muted hover:text-blue-400"
                   >
                     {constellation.region.name}
                   </Link>
@@ -247,7 +247,7 @@ export default function ConstellationDetailPage({
                 ))}
               </div>
             ) : (
-              <div className="py-12 text-center text-gray-400">
+              <div className="py-12 text-center text-ink-muted">
                 No solar systems found
               </div>
             )}

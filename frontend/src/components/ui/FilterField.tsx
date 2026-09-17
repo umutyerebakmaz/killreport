@@ -28,7 +28,7 @@ export default function FilterField({
       <label
         htmlFor={htmlFor}
         id={htmlFor ? `${htmlFor}-label` : undefined}
-        className="block mb-2 text-xs font-medium text-gray-400"
+        className="block mb-2 text-xs font-medium text-ink-muted"
       >
         {label}
       </label>
@@ -36,7 +36,7 @@ export default function FilterField({
       {hint && (
         <p
           id={htmlFor ? `${htmlFor}-hint` : undefined}
-          className="mt-1 text-[11px] text-gray-500"
+          className="mt-1 text-[11px] text-ink-faint"
         >
           {hint}
         </p>

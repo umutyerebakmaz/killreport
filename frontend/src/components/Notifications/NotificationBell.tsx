@@ -14,7 +14,7 @@ import Link from 'next/link';
 const TYPE_DOT: Record<string, string> = {
   campaign_started: 'bg-orange-400',
   campaign_ended: 'bg-cyan-400',
-  territory_change: 'bg-yellow-400',
+  territory_change: 'bg-caution',
 };
 
 export default function NotificationBell() {
@@ -31,7 +31,7 @@ export default function NotificationBell() {
         >
           <PopoverButton
             onClick={() => unread > 0 && markAllRead()}
-            className="relative flex items-center text-gray-300 hover:text-white"
+            className="relative flex items-center text-gray-300 transition-colors hover:text-white focus:outline-none focus-visible:text-white"
             aria-label="Sovereignty alerts"
           >
             <BellIcon className="w-6 h-6" />
@@ -50,7 +50,7 @@ export default function NotificationBell() {
           >
             <div className="overflow-hidden float">
               <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-                <span className="font-semibold text-white">
+                <span className="font-medium text-white">
                   Sovereignty Alerts
                 </span>
                 {recent.length > 0 && (
@@ -77,11 +77,11 @@ export default function NotificationBell() {
                     >
                       <div className="flex items-start gap-2">
                         <span
-                          className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${TYPE_DOT[a.type] ?? 'bg-gray-400'}`}
+                          className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${TYPE_DOT[a.type] ?? 'bg-ink-muted'}`}
                         />
                         <div>
                           <div className="text-sm text-white">{a.message}</div>
-                          <div className="mt-0.5 text-xs text-gray-500">
+                          <div className="mt-0.5 text-xs text-ink-faint">
                             {formatTimeAgo(a.timestamp)}
                           </div>
                         </div>
@@ -90,7 +90,7 @@ export default function NotificationBell() {
                   </li>
                 ))}
                 {recent.length === 0 && (
-                  <li className="px-4 py-8 text-sm text-center text-gray-500">
+                  <li className="px-4 py-8 text-sm text-center text-ink-faint">
                     No sovereignty alerts yet.
                   </li>
                 )}

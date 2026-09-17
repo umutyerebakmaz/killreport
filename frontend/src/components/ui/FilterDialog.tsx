@@ -40,7 +40,7 @@ export default function FilterDialog({
       <div className="fixed inset-0 flex items-start justify-center p-4 overflow-y-auto sm:p-6">
         <DialogPanel className="float w-full max-w-3xl my-8">
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-            <DialogTitle className="text-lg font-semibold text-white">
+            <DialogTitle className="text-lg font-medium text-white">
               {title}
             </DialogTitle>
             <button

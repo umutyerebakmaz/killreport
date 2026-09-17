@@ -33,9 +33,9 @@ export default function TopShipsCard({
 }: TopShipsCardProps) {
   const header = (
     <div className="flex items-center justify-between gap-3">
-      <h3 className="text-lg font-semibold text-white">{title}</h3>
+      <h3 className="text-lg font-medium text-white">{title}</h3>
       {subtitle && (
-        <span className="text-xs text-gray-500 shrink-0">{subtitle}</span>
+        <span className="text-sm text-ink-muted shrink-0">{subtitle}</span>
       )}
     </div>
   );
@@ -53,7 +53,7 @@ export default function TopShipsCard({
   return (
     <Card header={header}>
       {ships.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 py-12 text-gray-500">
+        <div className="flex flex-col items-center justify-center gap-3 py-12 text-ink-faint">
           <p className="text-sm font-medium text-center">{emptyText}</p>
         </div>
       ) : (
@@ -79,8 +79,8 @@ export default function TopShipsCard({
                       kind="ship"
                       id={ship.id}
                       name={ship.name}
-                      size={64}
-                      className="size-16"
+                      size={32}
+                      className="size-8"
                     />
                   </div>
 
@@ -96,7 +96,7 @@ export default function TopShipsCard({
                     </Tooltip>
 
                     {/* Kill Count */}
-                    <span className="text-lg font-semibold text-gray-400 tabular-nums whitespace-nowrap shrink-0">
+                    <span className="text-base font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">
                       {ship.killCount}
                     </span>
                   </div>

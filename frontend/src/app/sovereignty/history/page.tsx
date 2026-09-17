@@ -23,19 +23,21 @@ const OUTCOME_LABELS: Record<string, string> = {
   abandoned: 'Abandoned',
 };
 
+// defender (cyan) / attacker (red) pair — not the danger meaning, same as
+// IskWarBar and ScoreBar.
 const OUTCOME_STYLES: Record<string, string> = {
   defender_won: 'text-cyan-400',
   attacker_won: 'text-red-400',
-  abandoned: 'text-gray-400',
+  abandoned: 'text-ink-muted',
 };
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="p-4 border border-white/10 bg-surface">
-      <div className="text-2xl font-semibold text-white">
+      <div className="text-2xl font-medium text-white">
         {typeof value === 'number' ? value.toLocaleString() : value}
       </div>
-      <div className="mt-1 text-sm text-gray-400">{label}</div>
+      <div className="mt-1 text-sm text-ink-muted">{label}</div>
     </div>
   );
 }
@@ -68,7 +70,7 @@ function HistoryContent() {
 
   if (loading) return <Loader fullHeight size="lg" text="Loading history..." />;
   if (error)
-    return <div className="p-8 text-red-400">Error: {error.message}</div>;
+    return <div className="p-8 text-danger">Error: {error.message}</div>;
 
   const stats = data?.sovereigntyOutcomeStats;
   const defenders = data?.topDefenders ?? [];
@@ -112,7 +114,7 @@ function HistoryContent() {
 
       {/* Top defenders */}
       <section className="mt-10">
-        <h3 className="text-xl font-semibold text-white">Top Defenders</h3>
+        <h3 className="text-xl font-medium text-white">Top Defenders</h3>
         <div className="mt-4 overflow-x-auto border border-white/10">
           <table className="table">
             <thead className="bg-surface-inset">
@@ -127,7 +129,7 @@ function HistoryContent() {
             <tbody className="divide-y divide-white/5">
               {defenders.map((d) => (
                 <tr key={d.allianceId} className="tr-row">
-                  <td className="td-cell text-gray-400 whitespace-nowrap">
+                  <td className="td-cell text-ink-muted whitespace-nowrap">
                     {d.rank}
                   </td>
                   <td className="td-cell whitespace-nowrap">
@@ -137,7 +139,7 @@ function HistoryContent() {
                       ticker={d.allianceTicker}
                     />
                   </td>
-                  <td className="td-cell font-semibold text-right text-cyan-400 whitespace-nowrap">
+                  <td className="td-cell font-medium text-right text-cyan-400 whitespace-nowrap">
                     {d.defensesWon}
                   </td>
                   <td className="td-cell text-right text-gray-300 whitespace-nowrap">
@@ -152,7 +154,7 @@ function HistoryContent() {
                 <tr>
                   <td
                     colSpan={5}
-                    className="px-4 py-8 text-center text-gray-500"
+                    className="px-4 py-8 text-center text-ink-faint"
                   >
                     No resolved defenses yet.
                   </td>
@@ -165,8 +167,9 @@ function HistoryContent() {
 
       {/* Campaign archive */}
       <section className="mt-10">
-        <h3 className="text-xl font-semibold text-white">
-          Campaign Archive <span className="text-gray-500">({totalCount})</span>
+        <h3 className="text-xl font-medium text-white">
+          Campaign Archive{' '}
+          <span className="text-ink-faint">({totalCount})</span>
         </h3>
         <div className="mt-4 overflow-x-auto border border-white/10">
           <table className="table">
@@ -189,7 +192,7 @@ function HistoryContent() {
                     <Link
                       href={`/solar-systems/${c.solarSystemId}`}
                       prefetch={false}
-                      className="text-gray-400 hover:text-blue-400"
+                      className="text-ink-muted hover:text-blue-400"
                     >
                       {c.solarSystemName ?? c.solarSystemId}
                     </Link>
@@ -208,7 +211,7 @@ function HistoryContent() {
                     />
                   </td>
                   <td
-                    className={`px-4 py-3 font-semibold whitespace-nowrap ${OUTCOME_STYLES[c.outcome ?? ''] ?? 'text-gray-300'}`}
+                    className={`px-4 py-3 font-medium whitespace-nowrap ${OUTCOME_STYLES[c.outcome ?? ''] ?? 'text-gray-300'}`}
                   >
                     {OUTCOME_LABELS[c.outcome ?? ''] ?? '—'}
                   </td>
@@ -221,6 +224,7 @@ function HistoryContent() {
                   <td className="td-cell text-right text-gray-300 whitespace-nowrap">
                     {c.durationHours != null ? `${c.durationHours}h` : '—'}
                   </td>
+                  {/* war-intensity stat, not the danger meaning */}
                   <td className="td-cell text-right whitespace-nowrap">
                     {c.iskDestroyed > 0 ? (
                       <span className="text-red-400">
@@ -236,7 +240,7 @@ function HistoryContent() {
                 <tr>
                   <td
                     colSpan={8}
-                    className="px-4 py-8 text-center text-gray-500"
+                    className="px-4 py-8 text-center text-ink-faint"
                   >
                     No resolved campaigns yet. They appear here once campaigns
                     end.
@@ -257,7 +261,7 @@ function HistoryContent() {
             >
               Prev
             </button>
-            <span className="text-gray-500">
+            <span className="text-ink-faint">
               Page {page + 1} of {totalPages}
             </span>
             <button

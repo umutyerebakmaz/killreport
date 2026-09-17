@@ -4,6 +4,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { NavPopover, NavPopoverLink } from './NavPopover';
 
+let pathname = '/';
+vi.mock('next/navigation', () => ({
+  usePathname: () => pathname,
+}));
+
 /**
  * jsdom implements no `matchMedia` at all, so hover-to-open is inert in the
  * tests that do not ask for it — which is what keeps the click cases below
@@ -18,11 +23,12 @@ function stubPointer({ canHover }: { canHover: boolean }) {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  pathname = '/';
 });
 
 function renderNavPopover() {
   render(
-    <NavPopover label="UNIVERSE">
+    <NavPopover label="UNIVERSE" match={['/map', '/regions']}>
       <NavPopoverLink
         href="/regions"
         label="REGIONS"
@@ -113,5 +119,28 @@ describe('NavPopover', () => {
     await user.hover(screen.getByRole('link', { name: /regions/i }));
 
     expect(screen.getByRole('link', { name: /regions/i })).toBeInTheDocument();
+  });
+
+  it('marks itself current while one of its own routes is open', () => {
+    pathname = '/regions/10000002';
+    const { button } = renderNavPopover();
+
+    expect(button).toHaveAttribute('data-current');
+  });
+
+  it('is not current on a route it does not own', () => {
+    pathname = '/alliances';
+    const { button } = renderNavPopover();
+
+    expect(button).not.toHaveAttribute('data-current');
+  });
+
+  it('never claims to be the current page itself, only the section', () => {
+    // The button is not a link to /regions — announcing aria-current="page"
+    // on it would tell a screen reader it is the page you are already on.
+    pathname = '/regions';
+    const { button } = renderNavPopover();
+
+    expect(button).not.toHaveAttribute('aria-current');
   });
 });

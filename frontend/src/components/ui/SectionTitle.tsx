@@ -21,9 +21,9 @@ export default function SectionTitle({
   return (
     <div className="flex items-start justify-between mb-4">
       <div>
-        <h2 className="text-lg font-semibold text-white">{children}</h2>
+        <h2 className="text-lg font-medium text-white">{children}</h2>
         {subtitle && (
-          <div className="mt-1 text-sm text-gray-400">{subtitle}</div>
+          <div className="mt-1 text-sm text-ink-muted">{subtitle}</div>
         )}
       </div>
       {actions}

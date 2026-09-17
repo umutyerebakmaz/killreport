@@ -242,7 +242,7 @@ export default function CorporationDetailPage({
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg text-red-600">Error: {error.message}</div>
+        <div className="text-lg text-danger">Error: {error.message}</div>
       </div>
     );
   }
@@ -413,21 +413,21 @@ export default function CorporationDetailPage({
             <h2 className="mb-4 text-2xl font-bold">Attributes</h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <span className="text-gray-400">Corporation Name</span>
-                <span className="ml-2 font-semibold">{corporation.name}</span>
+                <span className="text-ink-muted">Corporation Name</span>
+                <span className="ml-2 font-medium">{corporation.name}</span>
               </div>
               <div>
-                <span className="text-gray-400">Ticker</span>
-                <span className="ml-2 font-semibold">{corporation.ticker}</span>
+                <span className="text-ink-muted">Ticker</span>
+                <span className="ml-2 font-medium">{corporation.ticker}</span>
               </div>
               <div>
-                <span className="text-gray-400">CEO</span>
-                <span className="ml-2 font-semibold">
+                <span className="text-ink-muted">CEO</span>
+                <span className="ml-2 font-medium">
                   {corporation.ceo ? (
                     <Link
                       href={`/characters/${corporation.ceo.id}`}
                       prefetch={false}
-                      className="text-gray-400 hover:text-blue-400"
+                      className="text-ink-muted hover:text-blue-400"
                     >
                       {corporation.ceo.name}
                     </Link>
@@ -437,13 +437,13 @@ export default function CorporationDetailPage({
                 </span>
               </div>
               <div>
-                <span className="text-gray-400">Creator</span>
-                <span className="ml-2 font-semibold">
+                <span className="text-ink-muted">Creator</span>
+                <span className="ml-2 font-medium">
                   {corporation.creator ? (
                     <Link
                       href={`/characters/${corporation.creator.id}`}
                       prefetch={false}
-                      className="text-gray-400 hover:text-blue-400"
+                      className="text-ink-muted hover:text-blue-400"
                     >
                       {corporation.creator.name}
                     </Link>
@@ -453,48 +453,48 @@ export default function CorporationDetailPage({
                 </span>
               </div>
               <div>
-                <span className="text-gray-400">Member Count</span>
-                <span className="ml-2 font-semibold">
+                <span className="text-ink-muted">Member Count</span>
+                <span className="ml-2 font-medium">
                   {corporation.member_count?.toLocaleString() || 'N/A'}
                 </span>
               </div>
               <div>
-                <span className="text-gray-400">Tax Rate</span>
-                <span className="ml-2 font-semibold">
+                <span className="text-ink-muted">Tax Rate</span>
+                <span className="ml-2 font-medium">
                   {corporation.tax_rate
                     ? `${(corporation.tax_rate * 100).toFixed(1)}%`
                     : 'N/A'}
                 </span>
               </div>
               <div>
-                <span className="text-gray-400">Founded</span>
-                <span className="ml-2 font-semibold">{foundedDate}</span>
+                <span className="text-ink-muted">Founded</span>
+                <span className="ml-2 font-medium">{foundedDate}</span>
               </div>
               <div>
-                <span className="text-gray-400">Alliance</span>
-                <span className="ml-2 font-semibold">
+                <span className="text-ink-muted">Alliance</span>
+                <span className="ml-2 font-medium">
                   {corporation.alliance ? (
                     <Link
                       href={`/alliances/${corporation.alliance.id}`}
                       prefetch={false}
-                      className="text-gray-400 hover:text-blue-400"
+                      className="text-ink-muted hover:text-blue-400"
                     >
                       [{corporation.alliance.ticker}]{' '}
                       {corporation.alliance.name}
                     </Link>
                   ) : (
-                    <span className="text-gray-500">No Alliance</span>
+                    <span className="text-ink-faint">No Alliance</span>
                   )}
                 </span>
               </div>
               {corporation.url && (
                 <div className="col-span-2">
-                  <span className="text-gray-400">Website</span>
+                  <span className="text-ink-muted">Website</span>
                   <a
                     href={corporation.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="ml-2 font-semibold text-cyan-400 hover:text-cyan-300"
+                    className="ml-2 font-medium text-accent-link hover:text-accent-hover"
                   >
                     {corporation.url}
                   </a>

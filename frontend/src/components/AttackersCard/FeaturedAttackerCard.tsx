@@ -69,7 +69,7 @@ export default function FeaturedAttackerCard({
       <div className="pt-1 pb-4">
         <Link
           href={`/characters/${attacker.character?.id}`}
-          className="block font-medium text-gray-400 hover:text-cyan-400"
+          className="block font-medium text-ink-muted hover:text-accent-link"
           prefetch={false}
         >
           {attacker?.character?.name}
@@ -105,10 +105,10 @@ export default function FeaturedAttackerCard({
       )}
 
       <div className="pt-4 mt-2 text-right border-t border-white/10">
-        <div className="font-semibold text-destroyed">
+        <div className="font-medium text-destroyed">
           {attacker.damageDone.toLocaleString()}
         </div>
-        <div className="text-sm text-gray-400">{damagePercentage}%</div>
+        <div className="text-sm text-ink-muted">{damagePercentage}%</div>
       </div>
     </div>
   );
