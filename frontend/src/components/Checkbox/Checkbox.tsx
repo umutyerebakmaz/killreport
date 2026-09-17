@@ -50,7 +50,7 @@ export default function Checkbox({
       <div className="flex items-center text-sm/6">
         <label
           htmlFor={id}
-          className="text-xs font-medium text-gray-400 cursor-pointer"
+          className="text-xs font-medium text-ink-muted cursor-pointer"
         >
           {label}
         </label>

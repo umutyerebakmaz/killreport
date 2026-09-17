@@ -34,7 +34,7 @@ export default function TopShipsCard({
     <div className="flex items-center justify-between gap-3">
       <h3 className="text-lg font-semibold text-white">{title}</h3>
       {subtitle && (
-        <span className="text-xs text-gray-500 shrink-0">{subtitle}</span>
+        <span className="text-xs text-ink-faint shrink-0">{subtitle}</span>
       )}
     </div>
   );
@@ -52,7 +52,7 @@ export default function TopShipsCard({
   return (
     <Card header={header}>
       {ships.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 py-12 text-gray-500">
+        <div className="flex flex-col items-center justify-center gap-3 py-12 text-ink-faint">
           <p className="text-sm font-medium text-center">{emptyText}</p>
         </div>
       ) : (
@@ -101,7 +101,7 @@ export default function TopShipsCard({
                     </Tooltip>
 
                     {/* Kill Count */}
-                    <span className="text-lg font-semibold text-gray-400 tabular-nums whitespace-nowrap shrink-0">
+                    <span className="text-lg font-semibold text-ink-muted tabular-nums whitespace-nowrap shrink-0">
                       {ship.killCount}
                     </span>
                   </div>

@@ -32,7 +32,7 @@ function HotspotsContent() {
       {/* Treemap */}
       <section className="mt-6">
         <ConflictTreemap hotspots={hotspots} />
-        <p className="mt-2 text-xs text-gray-500">
+        <p className="mt-2 text-xs text-ink-faint">
           Rectangle size = intensity (active campaigns ×3 + war kills); redder =
           more war kills.
         </p>
@@ -58,7 +58,7 @@ function HotspotsContent() {
                     <Link
                       href={`/regions/${h.regionId}`}
                       prefetch={false}
-                      className="text-gray-400 hover:text-blue-400"
+                      className="text-ink-muted hover:text-blue-400"
                     >
                       {h.regionName ?? `#${h.regionId}`}
                     </Link>
@@ -91,7 +91,7 @@ function HotspotsContent() {
                 <tr>
                   <td
                     colSpan={5}
-                    className="px-4 py-8 text-center text-gray-500"
+                    className="px-4 py-8 text-center text-ink-faint"
                   >
                     No active conflicts right now.
                   </td>

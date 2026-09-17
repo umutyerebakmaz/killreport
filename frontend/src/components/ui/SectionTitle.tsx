@@ -23,7 +23,7 @@ export default function SectionTitle({
       <div>
         <h2 className="text-lg font-semibold text-white">{children}</h2>
         {subtitle && (
-          <div className="mt-1 text-sm text-gray-400">{subtitle}</div>
+          <div className="mt-1 text-sm text-ink-muted">{subtitle}</div>
         )}
       </div>
       {actions}

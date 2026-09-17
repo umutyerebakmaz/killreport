@@ -32,7 +32,7 @@ export default function ServiceSlot({ slots }: ServiceSlotProps) {
               </Tooltip>
             ) : (
               <Tooltip content={`Empty Service Slot ${slotNumber}`}>
-                <div className="relative flex items-center justify-center overflow-visible text-lg text-gray-400 border size-12 bg-white/5 border-white/10">
+                <div className="relative flex items-center justify-center overflow-visible text-lg text-ink-muted border size-12 bg-white/5 border-white/10">
                   {slotNumber}
                 </div>
               </Tooltip>

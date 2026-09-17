@@ -59,7 +59,7 @@ import { useMapPointer, type MapPick } from './useMapPointer';
 
 function MapMessage({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-center h-full p-8 text-center text-gray-400">
+    <div className="flex items-center justify-center h-full p-8 text-center text-ink-muted">
       {children}
     </div>
   );

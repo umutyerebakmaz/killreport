@@ -252,7 +252,7 @@ export default function Calendar({ value, onSelect, min, max }: CalendarProps) {
             <div
               key={label}
               role="columnheader"
-              className="py-1 text-xs text-center text-gray-500"
+              className="py-1 text-xs text-center text-ink-faint"
             >
               {label}
             </div>

@@ -29,12 +29,12 @@ export default function MemberDeltaBadge({
       <div className="flex items-center gap-2">
         <ArrowTrendingUpIcon
           className={`w-5 h-5 ${
-            memberDelta !== null ? deltaColor : 'text-gray-500'
+            memberDelta !== null ? deltaColor : 'text-ink-faint'
           }`}
         />
         <span
           className={`text-sm font-medium ${
-            memberDelta !== null ? deltaColor : 'text-gray-500'
+            memberDelta !== null ? deltaColor : 'text-ink-faint'
           }`}
         >
           {memberDelta !== null ? (

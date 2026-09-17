@@ -13,7 +13,7 @@ interface SystemTechnicalDetailsProps {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <>
-      <dt className="text-gray-400">{label}</dt>
+      <dt className="text-ink-muted">{label}</dt>
       <dd className="font-mono text-gray-200 break-all">{value}</dd>
     </>
   );

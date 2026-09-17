@@ -723,14 +723,14 @@ export default function KillmailFilterForm({
                                 <div className="font-semibold text-white truncate">
                                   {character.name}
                                 </div>
-                                <div className="text-sm text-gray-400">
+                                <div className="text-sm text-ink-muted">
                                   {character.corporation?.name && (
-                                    <div className="text-gray-400 truncate">
+                                    <div className="text-ink-muted truncate">
                                       {character.corporation.name}
                                     </div>
                                   )}
                                   {character.alliance?.name && (
-                                    <div className="text-gray-400 truncate">
+                                    <div className="text-ink-muted truncate">
                                       {character.alliance.name}
                                     </div>
                                   )}
@@ -749,7 +749,7 @@ export default function KillmailFilterForm({
                   !pilotLoading &&
                   pilotData?.characters?.items?.length === 0 && (
                     <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
-                      <div className="p-4 text-sm text-gray-400">
+                      <div className="p-4 text-sm text-ink-muted">
                         No pilots found for "{debouncedPilotSearch}"
                       </div>
                     </div>
@@ -862,7 +862,7 @@ export default function KillmailFilterForm({
                               <div className="font-semibold text-white truncate">
                                 {type.name}
                               </div>
-                              <div className="text-sm text-gray-400 truncate">
+                              <div className="text-sm text-ink-muted truncate">
                                 {type.group?.name || 'Unknown Group'}
                               </div>
                             </div>
@@ -878,7 +878,7 @@ export default function KillmailFilterForm({
                   !typeLoading &&
                   typeData?.types?.items?.length === 0 && (
                     <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
-                      <div className="p-4 text-sm text-gray-400">
+                      <div className="p-4 text-sm text-ink-muted">
                         No ships found for "{debouncedSearch}"
                       </div>
                     </div>
@@ -981,7 +981,7 @@ export default function KillmailFilterForm({
                               <div className="font-semibold text-white truncate">
                                 {group.name}
                               </div>
-                              <div className="text-sm text-gray-400 truncate">
+                              <div className="text-sm text-ink-muted truncate">
                                 {group.category?.name || 'Unknown Category'}
                               </div>
                             </div>
@@ -1002,7 +1002,7 @@ export default function KillmailFilterForm({
                   !groupLoading &&
                   groupData?.itemGroups?.items?.length === 0 && (
                     <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
-                      <div className="p-4 text-sm text-gray-400">
+                      <div className="p-4 text-sm text-ink-muted">
                         No ship groups found for "{debouncedGroupSearch}"
                       </div>
                     </div>
@@ -1013,7 +1013,7 @@ export default function KillmailFilterForm({
             {/* Ship Groups chips */}
             {shipGroupIds.length > 0 && (
               <div className="mt-3">
-                <div className="mb-2 text-xs font-medium text-gray-400">
+                <div className="mb-2 text-xs font-medium text-ink-muted">
                   Ship Groups
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1128,9 +1128,9 @@ export default function KillmailFilterForm({
                                     {system.securityStatus?.toFixed(1)}
                                   </span>
                                 </div>
-                                <div className="text-sm text-gray-400">
+                                <div className="text-sm text-ink-muted">
                                   {system.constellation?.region?.name && (
-                                    <div className="text-gray-400 truncate">
+                                    <div className="text-ink-muted truncate">
                                       {system.constellation.region.name} ›{' '}
                                       {system.constellation?.name}
                                     </div>
@@ -1150,7 +1150,7 @@ export default function KillmailFilterForm({
                   !solarSystemLoading &&
                   solarSystemData?.solarSystems?.items?.length === 0 && (
                     <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
-                      <div className="p-4 text-sm text-gray-400">
+                      <div className="p-4 text-sm text-ink-muted">
                         No solar systems found for "{debouncedSolarSystemSearch}
                         "
                       </div>
@@ -1162,7 +1162,7 @@ export default function KillmailFilterForm({
             {/* Solar System chip */}
             {systemId && (
               <div className="mt-3">
-                <div className="mb-2 text-xs font-medium text-gray-400">
+                <div className="mb-2 text-xs font-medium text-ink-muted">
                   Solar System
                 </div>
                 <span className="chip">
@@ -1250,7 +1250,7 @@ export default function KillmailFilterForm({
                                     {region.name}
                                   </span>
                                 </div>
-                                <div className="text-sm text-gray-400">
+                                <div className="text-sm text-ink-muted">
                                   {region.constellationCount} constellations ·{' '}
                                   {region.solarSystemCount} systems
                                 </div>
@@ -1268,7 +1268,7 @@ export default function KillmailFilterForm({
                   !regionLoading &&
                   regionsData?.regions?.items?.length === 0 && (
                     <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
-                      <div className="p-4 text-sm text-gray-400">
+                      <div className="p-4 text-sm text-ink-muted">
                         No regions found for "{debouncedRegionSearch}"
                       </div>
                     </div>
@@ -1279,7 +1279,7 @@ export default function KillmailFilterForm({
             {/* Region chip */}
             {regionId && (
               <div className="mt-3">
-                <div className="mb-2 text-xs font-medium text-gray-400">
+                <div className="mb-2 text-xs font-medium text-ink-muted">
                   Region
                 </div>
                 <span className="chip">
@@ -1363,9 +1363,9 @@ export default function KillmailFilterForm({
                                       {constellation.name}
                                     </span>
                                   </div>
-                                  <div className="text-sm text-gray-400">
+                                  <div className="text-sm text-ink-muted">
                                     {constellation.region?.name && (
-                                      <div className="text-gray-400 truncate">
+                                      <div className="text-ink-muted truncate">
                                         {constellation.region.name} ·{' '}
                                         {constellation.solarSystemCount} systems
                                       </div>
@@ -1386,7 +1386,7 @@ export default function KillmailFilterForm({
                   !constellationLoading &&
                   constellationData?.constellations?.items?.length === 0 && (
                     <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
-                      <div className="p-4 text-sm text-gray-400">
+                      <div className="p-4 text-sm text-ink-muted">
                         No constellations found for "
                         {debouncedConstellationSearch}"
                       </div>
@@ -1398,7 +1398,7 @@ export default function KillmailFilterForm({
             {/* Constellation chip */}
             {constellationId && (
               <div className="mt-3">
-                <div className="mb-2 text-xs font-medium text-gray-400">
+                <div className="mb-2 text-xs font-medium text-ink-muted">
                   Constellation
                 </div>
                 <span className="chip">

@@ -25,7 +25,7 @@ export default function LegalPage() {
               <h3 className="mb-2 font-semibold text-white">
                 Terms of Service
               </h3>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-ink-muted">
                 Usage rules, acceptable conduct, and service limitations
               </p>
             </Link>
@@ -34,7 +34,7 @@ export default function LegalPage() {
               className="p-4 transition-colors border rounded bg-surface-inset border-white/10 hover:border-cyan-500"
             >
               <h3 className="mb-2 font-semibold text-white">Privacy Policy</h3>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-ink-muted">
                 Data collection, usage, storage, and your privacy rights
               </p>
             </Link>
@@ -201,7 +201,7 @@ export default function LegalPage() {
         </section>
 
         <div className="pt-8 mt-12 border-t border-white/10">
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-ink-muted">
             All EVE related materials are property of{' '}
             <a
               href="https://www.ccpgames.com"
@@ -212,7 +212,9 @@ export default function LegalPage() {
               CCP Games
             </a>
           </p>
-          <p className="text-xs text-gray-500 mt-2">Last Updated: March 2026</p>
+          <p className="text-xs text-ink-faint mt-2">
+            Last Updated: March 2026
+          </p>
         </div>
       </div>
     </div>

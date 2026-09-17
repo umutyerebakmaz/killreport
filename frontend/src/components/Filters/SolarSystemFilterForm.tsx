@@ -26,7 +26,7 @@ import { useEffect, useRef, useState } from 'react';
 // row: white is the brightest mark in the palette and would pull more attention
 // than the bands it sits above.
 const SECURITY_OPTIONS = [
-  { value: 'all', label: 'All Security', swatch: 'bg-gray-500' },
+  { value: 'all', label: 'All Security', swatch: 'bg-ink-faint' },
   { value: 'highsec', label: 'High Sec', swatch: 'bg-green-500' },
   { value: 'lowsec', label: 'Low Sec', swatch: 'bg-yellow-500' },
   { value: 'nullsec', label: 'Null Sec', swatch: 'bg-red-500' },
@@ -38,10 +38,10 @@ const SECURITY_OPTIONS = [
 // inside an icon that small blur into a smudge. The labels carry the alphabet,
 // the icon carries the direction.
 const ASC = (
-  <BarsArrowUpIcon aria-hidden="true" className="size-4 text-gray-400" />
+  <BarsArrowUpIcon aria-hidden="true" className="size-4 text-ink-muted" />
 );
 const DESC = (
-  <BarsArrowDownIcon aria-hidden="true" className="size-4 text-gray-400" />
+  <BarsArrowDownIcon aria-hidden="true" className="size-4 text-ink-muted" />
 );
 
 const ORDER_BY_OPTIONS = [
@@ -458,9 +458,9 @@ export default function SolarSystemFilterForm({
                                     {system.securityStatus?.toFixed(1)}
                                   </span>
                                 </div>
-                                <div className="text-sm text-gray-400">
+                                <div className="text-sm text-ink-muted">
                                   {system.constellation?.region?.name && (
-                                    <div className="text-gray-400 truncate">
+                                    <div className="text-ink-muted truncate">
                                       {system.constellation.region.name} ›{' '}
                                       {system.constellation?.name}
                                     </div>
@@ -480,7 +480,7 @@ export default function SolarSystemFilterForm({
                   !solarSystemLoading &&
                   solarSystemData?.solarSystems?.items?.length === 0 && (
                     <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
-                      <div className="p-4 text-sm text-gray-400">
+                      <div className="p-4 text-sm text-ink-muted">
                         No solar systems found for "{debouncedSolarSystemSearch}
                         "
                       </div>
@@ -492,7 +492,7 @@ export default function SolarSystemFilterForm({
             {/* Solar System chip */}
             {selectedSystemName && (
               <div className="mt-3">
-                <div className="mb-2 text-xs font-medium text-gray-400">
+                <div className="mb-2 text-xs font-medium text-ink-muted">
                   Solar System
                 </div>
                 <span className="chip">
@@ -575,7 +575,7 @@ export default function SolarSystemFilterForm({
                               <div className="font-semibold text-white truncate">
                                 {region.name}
                               </div>
-                              <div className="text-sm text-gray-400">
+                              <div className="text-sm text-ink-muted">
                                 {region.constellationCount} constellations ·{' '}
                                 {region.solarSystemCount} systems
                               </div>
@@ -592,7 +592,7 @@ export default function SolarSystemFilterForm({
                   !regionLoading &&
                   regionsData?.regions?.items?.length === 0 && (
                     <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
-                      <div className="p-4 text-sm text-gray-400">
+                      <div className="p-4 text-sm text-ink-muted">
                         No regions found for &quot;{debouncedRegionSearch}&quot;
                       </div>
                     </div>
@@ -603,7 +603,7 @@ export default function SolarSystemFilterForm({
             {/* Region chip */}
             {selectedRegionId && (
               <div className="mt-3">
-                <div className="mb-2 text-xs font-medium text-gray-400">
+                <div className="mb-2 text-xs font-medium text-ink-muted">
                   Region
                 </div>
                 <span className="chip">
@@ -649,7 +649,7 @@ export default function SolarSystemFilterForm({
             {/* Constellation chip */}
             {selectedConstellationId && (
               <div className="mt-3">
-                <div className="mb-2 text-xs font-medium text-gray-400">
+                <div className="mb-2 text-xs font-medium text-ink-muted">
                   Constellation
                 </div>
                 <span className="chip">

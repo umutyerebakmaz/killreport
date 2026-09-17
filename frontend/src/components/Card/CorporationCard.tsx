@@ -119,7 +119,7 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
           <div className="date-founded-section">
             {/* Founded date */}
             <Tooltip content="Date Founded" position="top">
-              <div className="text-xs text-gray-400">{foundedDate}</div>
+              <div className="text-xs text-ink-muted">{foundedDate}</div>
             </Tooltip>
           </div>
         </div>

@@ -21,7 +21,7 @@ const CHANGE_STYLES: Record<string, string> = {
   captured: 'text-green-400',
   lost: 'text-red-400',
   transferred: 'text-yellow-400',
-  faction_change: 'text-gray-400',
+  faction_change: 'text-ink-muted',
 };
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
@@ -30,7 +30,7 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
       <div className="text-2xl font-semibold text-white">
         {typeof value === 'number' ? value.toLocaleString() : value}
       </div>
-      <div className="mt-1 text-sm text-gray-400">{label}</div>
+      <div className="mt-1 text-sm text-ink-muted">{label}</div>
     </div>
   );
 }
@@ -132,7 +132,7 @@ function SovereigntyContent() {
             <tbody className="divide-y divide-white/5">
               {rankings.map((r) => (
                 <tr key={r.allianceId} className="tr-row">
-                  <td className="td-cell text-gray-400 whitespace-nowrap">
+                  <td className="td-cell text-ink-muted whitespace-nowrap">
                     {r.rank}
                   </td>
                   <td className="td-cell whitespace-nowrap">
@@ -194,7 +194,7 @@ function SovereigntyContent() {
               </li>
             ))}
             {aggressive.length === 0 && (
-              <li className="px-4 py-6 text-sm text-center text-gray-500">
+              <li className="px-4 py-6 text-sm text-center text-ink-faint">
                 No attacking activity today.
               </li>
             )}
@@ -222,7 +222,7 @@ function SovereigntyContent() {
               </li>
             ))}
             {defensive.length === 0 && (
-              <li className="px-4 py-6 text-sm text-center text-gray-500">
+              <li className="px-4 py-6 text-sm text-center text-ink-faint">
                 No defending activity today.
               </li>
             )}
@@ -240,7 +240,7 @@ function SovereigntyContent() {
                   <Link
                     href={`/regions/${r.regionId}`}
                     prefetch={false}
-                    className="text-gray-400 hover:text-blue-400"
+                    className="text-ink-muted hover:text-blue-400"
                   >
                     {r.regionName ?? `#${r.regionId}`}
                   </Link>
@@ -257,7 +257,7 @@ function SovereigntyContent() {
               </li>
             ))}
             {hotRegions.length === 0 && (
-              <li className="px-4 py-6 text-sm text-center text-gray-500">
+              <li className="px-4 py-6 text-sm text-center text-ink-faint">
                 No active campaigns right now.
               </li>
             )}
@@ -269,7 +269,7 @@ function SovereigntyContent() {
       <section className="mt-10">
         <h3 className="text-xl font-semibold text-white">
           Active Campaigns{' '}
-          <span className="text-gray-500">({campaigns.length})</span>
+          <span className="text-ink-faint">({campaigns.length})</span>
         </h3>
         <div className="mt-4 overflow-x-auto border border-white/10">
           <table className="table">
@@ -303,14 +303,14 @@ function SovereigntyContent() {
                           : undefined
                       }
                     >
-                      <td className="td-cell text-gray-500 whitespace-nowrap">
+                      <td className="td-cell text-ink-faint whitespace-nowrap">
                         {hasDetail ? (expanded ? '▾' : '▸') : ''}
                       </td>
                       <td className="td-cell whitespace-nowrap">
                         <Link
                           href={`/solar-systems/${c.solarSystemId}`}
                           prefetch={false}
-                          className="text-gray-400 hover:text-blue-400"
+                          className="text-ink-muted hover:text-blue-400"
                           onClick={(e) => e.stopPropagation()}
                         >
                           {c.solarSystemName ?? c.solarSystemId}
@@ -351,7 +351,7 @@ function SovereigntyContent() {
                           <span className="text-gray-600">—</span>
                         )}
                       </td>
-                      <td className="td-cell text-sm text-right text-gray-400 whitespace-nowrap">
+                      <td className="td-cell text-sm text-right text-ink-muted whitespace-nowrap">
                         {formatRelativeTime(c.startTime)}
                       </td>
                     </tr>
@@ -360,7 +360,7 @@ function SovereigntyContent() {
                         <td colSpan={9} className="px-4 py-3">
                           {c.warKills > 0 && (
                             <div className="mb-4">
-                              <div className="mb-1 text-xs tracking-wider text-gray-400 uppercase">
+                              <div className="mb-1 text-xs tracking-wider text-ink-muted uppercase">
                                 ISK War
                               </div>
                               <IskWarBar
@@ -371,7 +371,7 @@ function SovereigntyContent() {
                           )}
                           {c.participants.length > 0 && (
                             <>
-                              <div className="text-xs tracking-wider text-gray-400 uppercase">
+                              <div className="text-xs tracking-wider text-ink-muted uppercase">
                                 Participants
                               </div>
                               <ul className="mt-2 space-y-1">
@@ -385,14 +385,14 @@ function SovereigntyContent() {
                                       name={p.allianceName}
                                       ticker={p.allianceTicker}
                                     />
-                                    <span className="text-gray-400">
+                                    <span className="text-ink-muted">
                                       {Math.round(p.score * 100)}%
                                     </span>
                                   </li>
                                 ))}
                               </ul>
                               {c.participants.length > 8 && (
-                                <div className="mt-1 text-xs text-gray-500">
+                                <div className="mt-1 text-xs text-ink-faint">
                                   +{c.participants.length - 8} more
                                 </div>
                               )}
@@ -408,7 +408,7 @@ function SovereigntyContent() {
                 <tr>
                   <td
                     colSpan={9}
-                    className="px-4 py-8 text-center text-gray-500"
+                    className="px-4 py-8 text-center text-ink-faint"
                   >
                     No active sovereignty campaigns right now.
                   </td>
@@ -442,7 +442,7 @@ function SovereigntyContent() {
                     <Link
                       href={`/solar-systems/${c.solarSystemId}`}
                       prefetch={false}
-                      className="text-gray-400 hover:text-blue-400"
+                      className="text-ink-muted hover:text-blue-400"
                     >
                       {c.solarSystemName ?? c.solarSystemId}
                     </Link>
@@ -461,7 +461,7 @@ function SovereigntyContent() {
                   <td className="td-cell whitespace-nowrap">
                     <AllianceLink id={c.newOwnerId} name={c.newOwnerName} />
                   </td>
-                  <td className="td-cell text-sm text-right text-gray-400 whitespace-nowrap">
+                  <td className="td-cell text-sm text-right text-ink-muted whitespace-nowrap">
                     {formatTimeAgo(c.detectedAt)}
                   </td>
                 </tr>
@@ -470,7 +470,7 @@ function SovereigntyContent() {
                 <tr>
                   <td
                     colSpan={5}
-                    className="px-4 py-8 text-center text-gray-500"
+                    className="px-4 py-8 text-center text-ink-faint"
                   >
                     No territory changes detected yet. Changes appear here once
                     the map worker observes an ownership shift.

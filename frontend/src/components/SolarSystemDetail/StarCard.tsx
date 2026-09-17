@@ -17,7 +17,7 @@ interface StarCardProps {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <>
-      <dt className="text-gray-400">{label}</dt>
+      <dt className="text-ink-muted">{label}</dt>
       <dd className="text-gray-200">{value}</dd>
     </>
   );
@@ -31,10 +31,10 @@ export default function StarCard({ star, starId }: StarCardProps) {
   if (!star?.name) {
     return (
       <div className="p-6 border bg-white/5 border-white/10">
-        <div className="text-xs tracking-wide text-gray-400 uppercase">
+        <div className="text-xs tracking-wide text-ink-muted uppercase">
           Star
         </div>
-        <div className="mt-2 italic text-gray-500">
+        <div className="mt-2 italic text-ink-faint">
           Star {star?.id ?? starId}
         </div>
       </div>
@@ -43,7 +43,7 @@ export default function StarCard({ star, starId }: StarCardProps) {
 
   return (
     <div className="p-6 border bg-white/5 border-white/10">
-      <div className="text-xs tracking-wide text-gray-400 uppercase">Star</div>
+      <div className="text-xs tracking-wide text-ink-muted uppercase">Star</div>
       <div className="mt-2 text-lg font-semibold text-gray-100">
         {star.name}
       </div>

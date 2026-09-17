@@ -22,7 +22,7 @@ function BodyLabel({
 }) {
   if (name) return <span className="text-gray-200">{name}</span>;
   return (
-    <span className="italic text-gray-500">
+    <span className="italic text-ink-faint">
       {kind} {id}
     </span>
   );
@@ -47,7 +47,7 @@ export default function OrbitalBodiesTab({ systemId }: OrbitalBodiesTabProps) {
 
   if (planets.length === 0) {
     return (
-      <div className="p-6 text-gray-400 border bg-white/5 border-white/10">
+      <div className="p-6 text-ink-muted border bg-white/5 border-white/10">
         This system has no planets.
       </div>
     );
@@ -73,7 +73,7 @@ export default function OrbitalBodiesTab({ systemId }: OrbitalBodiesTabProps) {
               }`}
             >
               <span className="flex items-center gap-3">
-                <span className="w-8 text-xs text-gray-500">
+                <span className="w-8 text-xs text-ink-faint">
                   {planet.orbitIndex ?? '—'}
                 </span>
                 <BodyLabel name={planet.name} id={planet.id} kind="Planet" />
@@ -83,7 +83,7 @@ export default function OrbitalBodiesTab({ systemId }: OrbitalBodiesTabProps) {
                   </span>
                 )}
               </span>
-              <span className="text-xs text-gray-500 whitespace-nowrap">
+              <span className="text-xs text-ink-faint whitespace-nowrap">
                 {moons.length} moons · {belts.length} belts
               </span>
             </summary>
@@ -91,11 +91,11 @@ export default function OrbitalBodiesTab({ systemId }: OrbitalBodiesTabProps) {
             {hasSatellites && (
               <div className="grid gap-6 px-6 pt-2 pb-6 border-t md:grid-cols-2 border-white/10">
                 <div>
-                  <h4 className="mt-4 mb-2 text-xs tracking-wide text-gray-400 uppercase">
+                  <h4 className="mt-4 mb-2 text-xs tracking-wide text-ink-muted uppercase">
                     Moons
                   </h4>
                   {moons.length === 0 ? (
-                    <p className="text-sm text-gray-500">No moons.</p>
+                    <p className="text-sm text-ink-faint">No moons.</p>
                   ) : (
                     <ul className="space-y-1 text-sm">
                       {moons.map((moon) => (
@@ -115,11 +115,11 @@ export default function OrbitalBodiesTab({ systemId }: OrbitalBodiesTabProps) {
                 </div>
 
                 <div>
-                  <h4 className="mt-4 mb-2 text-xs tracking-wide text-gray-400 uppercase">
+                  <h4 className="mt-4 mb-2 text-xs tracking-wide text-ink-muted uppercase">
                     Asteroid belts
                   </h4>
                   {belts.length === 0 ? (
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-ink-faint">
                       No asteroid belts around this planet.
                     </p>
                   ) : (

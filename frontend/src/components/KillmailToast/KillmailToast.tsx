@@ -107,7 +107,7 @@ function KillmailToastItem({
           </div>
 
           {/* Ship */}
-          <div className="text-xs text-gray-400 truncate">
+          <div className="text-xs text-ink-muted truncate">
             lost a{' '}
             <span className="font-medium text-gray-200">
               {toast.victimShipName || 'Unknown Ship'}
@@ -115,7 +115,7 @@ function KillmailToastItem({
           </div>
 
           {/* Attacker & System */}
-          <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+          <div className="flex items-center gap-2 mt-1 text-xs text-ink-faint">
             {toast.attackerName && (
               <>
                 <span className="truncate">by {toast.attackerName}</span>
@@ -177,7 +177,7 @@ export default function KillmailToastContainer({
       {/* More indicator */}
       {toasts.length > 5 && (
         <div className="text-center pointer-events-auto">
-          <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium text-gray-400 border border-gray-700 bg-gray-800/80">
+          <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium text-ink-muted border border-gray-700 bg-gray-800/80">
             +{toasts.length - 5} more kills
           </span>
         </div>

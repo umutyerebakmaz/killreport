@@ -37,7 +37,7 @@ export default function ConstellationCard({
               {constellation.name}
             </Link>
           </Tooltip>
-          <div className="text-base text-gray-500">
+          <div className="text-base text-ink-faint">
             {constellation.solarSystemCount}{' '}
             {constellation.solarSystemCount === 1 ? 'system' : 'systems'}
           </div>

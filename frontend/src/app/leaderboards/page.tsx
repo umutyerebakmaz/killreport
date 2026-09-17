@@ -65,7 +65,7 @@ function PilotList({
     );
   if (pilots.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-12 text-gray-500">
+      <div className="flex flex-col items-center justify-center gap-3 py-12 text-ink-faint">
         <TrophyIcon className="w-10 h-10 opacity-30" />
         <p className="text-sm font-medium text-center">{emptyText}</p>
       </div>
@@ -115,14 +115,14 @@ function PilotList({
                     >
                       <Link
                         href={`/characters/${char.id}?tab=killmails`}
-                        className="block font-medium text-gray-400 truncate hover:text-blue-400"
+                        className="block font-medium text-ink-muted truncate hover:text-blue-400"
                         prefetch={false}
                       >
                         {char.name}
                       </Link>
                     </Tooltip>
                   ) : (
-                    <span className="italic font-medium text-gray-500">
+                    <span className="italic font-medium text-ink-faint">
                       Unknown Pilot
                     </span>
                   )}
@@ -133,7 +133,7 @@ function PilotList({
                     >
                       <Link
                         href={`/corporations/${char.corporation.id}?tab=killmails`}
-                        className="block text-sm text-gray-400 truncate hover:text-blue-400"
+                        className="block text-sm text-ink-muted truncate hover:text-blue-400"
                         prefetch={false}
                       >
                         {char.corporation.name}
@@ -147,7 +147,7 @@ function PilotList({
                     >
                       <Link
                         href={`/alliances/${char.alliance.id}?tab=killmails`}
-                        className="block text-sm text-gray-400 truncate hover:text-blue-400"
+                        className="block text-sm text-ink-muted truncate hover:text-blue-400"
                         prefetch={false}
                       >
                         {char.alliance.name}
@@ -158,7 +158,7 @@ function PilotList({
 
                 {/* Kill count + logos */}
                 <div className="flex flex-col items-end justify-between pl-2 gap-y-1 shrink-0">
-                  <span className="text-lg font-semibold text-gray-400 tabular-nums whitespace-nowrap">
+                  <span className="text-lg font-semibold text-ink-muted tabular-nums whitespace-nowrap">
                     {pilot.killCount.toLocaleString()}
                   </span>
                   <div className="flex">
@@ -257,7 +257,7 @@ function DailyLeaderboard() {
           className="input-boxed px-2 py-1.5 text-xs flex-1 min-w-0"
           aria-label="Leaderboard date"
         />
-        <span className="hidden text-xs text-gray-400 sm:block shrink-0">
+        <span className="hidden text-xs text-ink-muted sm:block shrink-0">
           {displayDate}
         </span>
         <button
@@ -386,7 +386,7 @@ function Last90DaysLeaderboard() {
       {/* No stepper to show: this range is fixed. The band still carries it so
           this column's list starts level with the other three. */}
       <div className="card-band">
-        <span className="text-xs font-medium text-gray-400">{rangeLabel}</span>
+        <span className="text-xs font-medium text-ink-muted">{rangeLabel}</span>
       </div>
 
       <PilotList
@@ -484,7 +484,7 @@ function LeaderboardsContent() {
       <h1 className="sr-only">Leaderboards</h1>
 
       {/* Notice */}
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-ink-faint">
         Updated every 5 minutes. Ranked by kill count only.
       </p>
 

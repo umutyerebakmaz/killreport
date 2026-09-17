@@ -70,7 +70,7 @@ export const Loader: React.FC<LoaderProps> = ({
           />
         )}
         {text && (
-          <span className={`${textSizeClasses[size]} text-gray-400`}>
+          <span className={`${textSizeClasses[size]} text-ink-muted`}>
             {text}
           </span>
         )}

@@ -30,7 +30,7 @@ export default function SovereigntyTab({ systemId }: SovereigntyTabProps) {
   if (structures.length === 0 && campaigns.length === 0) {
     // The tab stays visible even when empty — it was explicitly requested.
     return (
-      <div className="p-6 text-gray-400 border bg-white/5 border-white/10">
+      <div className="p-6 text-ink-muted border bg-white/5 border-white/10">
         This system is not held under sovereignty.
       </div>
     );
@@ -41,7 +41,7 @@ export default function SovereigntyTab({ systemId }: SovereigntyTabProps) {
       {structures.length > 0 && (
         <div className="overflow-x-auto border bg-white/5 border-white/10">
           <table className="w-full text-sm">
-            <thead className="text-xs tracking-wide text-gray-400 uppercase border-b border-white/10">
+            <thead className="text-xs tracking-wide text-ink-muted uppercase border-b border-white/10">
               <tr>
                 <th className="px-4 py-3 text-left">Structure</th>
                 <th className="px-4 py-3 text-left">Owner</th>
@@ -65,17 +65,17 @@ export default function SovereigntyTab({ systemId }: SovereigntyTabProps) {
                       <Link
                         href={`/alliances/${structure.allianceId}`}
                         prefetch={false}
-                        className="text-gray-400 hover:text-blue-400"
+                        className="text-ink-muted hover:text-blue-400"
                       >
                         {structure.allianceName ?? structure.allianceId}
                         {structure.allianceTicker && (
-                          <span className="ml-1 text-gray-500">
+                          <span className="ml-1 text-ink-faint">
                             [{structure.allianceTicker}]
                           </span>
                         )}
                       </Link>
                     ) : (
-                      <span className="text-gray-500">—</span>
+                      <span className="text-ink-faint">—</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-right text-gray-300">
@@ -83,12 +83,12 @@ export default function SovereigntyTab({ systemId }: SovereigntyTabProps) {
                       ? structure.occupancyLevel.toFixed(1)
                       : '—'}
                   </td>
-                  <td className="px-4 py-3 text-gray-400">
+                  <td className="px-4 py-3 text-ink-muted">
                     {structure.vulnerableStartTime
                       ? formatKillmailDateTime(structure.vulnerableStartTime)
                       : '—'}
                   </td>
-                  <td className="px-4 py-3 text-gray-400">
+                  <td className="px-4 py-3 text-ink-muted">
                     {structure.vulnerableEndTime
                       ? formatKillmailDateTime(structure.vulnerableEndTime)
                       : '—'}
@@ -112,13 +112,13 @@ export default function SovereigntyTab({ systemId }: SovereigntyTabProps) {
                 className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/5 last:border-0 last:pb-0"
               >
                 <span className="text-gray-200">{campaign.eventType}</span>
-                <span className="text-sm text-gray-400">
+                <span className="text-sm text-ink-muted">
                   Defender:{' '}
                   {campaign.defenderId ? (
                     <Link
                       href={`/alliances/${campaign.defenderId}`}
                       prefetch={false}
-                      className="text-gray-400 hover:text-blue-400"
+                      className="text-ink-muted hover:text-blue-400"
                     >
                       {campaign.defenderName ?? campaign.defenderId}
                     </Link>
@@ -126,11 +126,11 @@ export default function SovereigntyTab({ systemId }: SovereigntyTabProps) {
                     '—'
                   )}
                 </span>
-                <span className="text-sm text-gray-400">
+                <span className="text-sm text-ink-muted">
                   {campaign.defenderScore ?? 0} vs{' '}
                   {campaign.attackersScore ?? 0}
                 </span>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-ink-faint">
                   {campaign.startTime
                     ? formatKillmailDateTime(campaign.startTime)
                     : '—'}

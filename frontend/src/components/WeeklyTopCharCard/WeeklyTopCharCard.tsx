@@ -29,7 +29,7 @@ export default function WeeklyTopCharCard() {
           <Loader size="md" />
         </div>
       ) : pilots.length === 0 ? (
-        <div className="p-4 text-xs text-center text-gray-500">
+        <div className="p-4 text-xs text-center text-ink-faint">
           No data available
         </div>
       ) : (
@@ -82,12 +82,12 @@ export default function WeeklyTopCharCard() {
                         </Link>
                       </Tooltip>
                     ) : (
-                      <span className="text-xs italic font-medium text-gray-500">
+                      <span className="text-xs italic font-medium text-ink-faint">
                         Unknown
                       </span>
                     )}
                     {char?.corporation && (
-                      <span className="text-xs text-gray-500 truncate">
+                      <span className="text-xs text-ink-faint truncate">
                         {char.corporation.name}
                       </span>
                     )}

@@ -22,7 +22,7 @@ const NAV_POPOVER_BUTTON = `group flex items-center gap-x-1 focus:outline-none f
 // Matches the drawer's chevron, which turns over the same 200ms. `data-open`
 // is on the button, so the icon reads it through the button's `group`.
 const NAV_POPOVER_CHEVRON =
-  'flex-none text-gray-500 size-5 transition-transform duration-200 group-data-open:rotate-180';
+  'flex-none text-ink-faint size-5 transition-transform duration-200 group-data-open:rotate-180';
 
 // The panel carries no background of its own — it is the hit area, and the
 // 12px offset below the button is `pt-3` rather than `mt-3` so the pointer
@@ -122,7 +122,7 @@ export function NavPopoverLink({
           {label}
           <span className="absolute inset-0" />
         </CloseButton>
-        <p className="mt-1 text-gray-400">{description}</p>
+        <p className="mt-1 text-ink-muted">{description}</p>
       </div>
     </div>
   );

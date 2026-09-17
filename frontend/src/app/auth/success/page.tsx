@@ -157,13 +157,13 @@ function AuthSuccessContent() {
 
             {/* Character info card with enhanced design */}
             <div className="p-5 mb-6 border shadow-inner bg-linear-to-br from-gray-900/60 to-gray-900/40 rounded-xl border-gray-700/50">
-              <p className="mb-2 text-sm font-medium text-gray-400">
+              <p className="mb-2 text-sm font-medium text-ink-muted">
                 Welcome back,
               </p>
               <p className="mb-2 text-2xl font-bold text-transparent bg-clip-text bg-linear-to-r from-amber-400 via-amber-500 to-amber-600">
                 {searchParams.get('character_name')}
               </p>
-              <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+              <div className="flex items-center justify-center gap-2 text-xs text-ink-faint">
                 <svg
                   className="w-3 h-3"
                   fill="currentColor"
@@ -181,7 +181,7 @@ function AuthSuccessContent() {
 
             {isLoading ? (
               <div className="space-y-4">
-                <p className="text-sm font-medium text-gray-400">
+                <p className="text-sm font-medium text-ink-muted">
                   Redirecting to killmails...
                 </p>
                 <div className="flex items-center justify-center space-x-2">
@@ -225,7 +225,7 @@ function AuthSuccessContent() {
 
         {/* Additional security info */}
         <div className="mt-6 text-center">
-          <div className="inline-flex items-center gap-2 text-xs text-gray-500">
+          <div className="inline-flex items-center gap-2 text-xs text-ink-faint">
             <svg
               className="w-3.5 h-3.5 text-green-500"
               fill="currentColor"

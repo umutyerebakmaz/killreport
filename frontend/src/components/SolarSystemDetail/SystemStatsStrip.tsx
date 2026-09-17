@@ -10,7 +10,7 @@ interface SystemStatsStripProps {
 function Box({ label, value }: { label: string; value: string }) {
   return (
     <div className="p-4 border bg-white/5 border-white/10">
-      <div className="text-xs tracking-wide text-gray-400 uppercase">
+      <div className="text-xs tracking-wide text-ink-muted uppercase">
         {label}
       </div>
       <div className="mt-1 text-2xl font-semibold text-gray-100">{value}</div>

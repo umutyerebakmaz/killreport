@@ -28,7 +28,7 @@ const POPUP_HEIGHT_PX = 230;
 function Box({ label, value }: { label: string; value: number | null }) {
   return (
     <div className="p-2 border bg-white/5 border-white/10">
-      <div className="text-[10px] tracking-wide text-gray-400 uppercase">
+      <div className="text-[10px] tracking-wide text-ink-muted uppercase">
         {label}
       </div>
       <div className="text-base font-semibold text-gray-100">
@@ -131,7 +131,7 @@ export default function SystemPopup({
           <SkeletonBox />
         </div>
       ) : error || !details ? (
-        <div className="text-xs text-gray-400">
+        <div className="text-xs text-ink-muted">
           Could not load this system right now.
         </div>
       ) : (
@@ -147,7 +147,7 @@ export default function SystemPopup({
             </span>
           </div>
 
-          <div className="mt-0.5 text-xs text-gray-400">
+          <div className="mt-0.5 text-xs text-ink-muted">
             {details.constellationName} · {details.regionName}
           </div>
 
@@ -162,7 +162,7 @@ export default function SystemPopup({
               is topology rather than an hourly measurement. The position is
               what scopes the line, so the line itself stays short. */}
           {details.snapshotAt && (
-            <div className="mt-1 text-[11px] font-light text-gray-500">
+            <div className="mt-1 text-[11px] font-light text-ink-faint">
               last 1 hour · ESI · {formatTimeAgo(details.snapshotAt)}
             </div>
           )}

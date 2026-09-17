@@ -54,7 +54,7 @@ const getCommitType = (message: string) => {
       color: 'text-purple-400',
       bg: 'bg-purple-500/10',
     };
-  return { type: 'chore', color: 'text-gray-400', bg: 'bg-gray-500/10' };
+  return { type: 'chore', color: 'text-ink-muted', bg: 'bg-ink-faint/10' };
 };
 
 const formatDate = (dateString: string) => {
@@ -182,7 +182,7 @@ export default function ChangelogPage() {
           <h2 className="mb-2 text-xl font-bold text-red-400">
             Failed to load changelog
           </h2>
-          <p className="text-gray-400">{error}</p>
+          <p className="text-ink-muted">{error}</p>
         </div>
       </div>
     );
@@ -201,7 +201,7 @@ export default function ChangelogPage() {
 
         {!data?.commits || data.commits.length === 0 ? (
           <div className="p-8 text-center border border-white/10 bg-surface">
-            <p className="text-gray-400">No recent commits available</p>
+            <p className="text-ink-muted">No recent commits available</p>
           </div>
         ) : (
           <div className="space-y-8">
@@ -238,7 +238,7 @@ export default function ChangelogPage() {
                                   href={commit.html_url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="font-mono text-xs text-gray-500 hover:text-gray-400"
+                                  className="font-mono text-xs text-ink-faint hover:text-ink-muted"
                                 >
                                   {commit.sha.substring(0, 7)}
                                 </a>
@@ -251,7 +251,7 @@ export default function ChangelogPage() {
                               >
                                 {firstLine}
                               </a>
-                              <div className="flex items-center gap-3 text-xs text-gray-400">
+                              <div className="flex items-center gap-3 text-xs text-ink-muted">
                                 <span className="flex items-center gap-1">
                                   <UserIcon className="w-3 h-3" />
                                   {commit.commit.author.name}
@@ -298,7 +298,7 @@ export default function ChangelogPage() {
                     <span className="px-3 py-1 text-sm font-semibold text-green-400 bg-green-500/20">
                       {release.tag_name}
                     </span>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-ink-faint">
                       {formatDate(release.published_at)}
                     </span>
                   </div>
@@ -322,7 +322,7 @@ export default function ChangelogPage() {
       )}
 
       {/* Footer Note */}
-      <p className="mt-12 text-sm text-center text-gray-400">
+      <p className="mt-12 text-sm text-center text-ink-muted">
         Data is fetched from{' '}
         <a
           href="https://github.com/umutyerebakmaz/killreport"

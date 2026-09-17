@@ -412,21 +412,21 @@ export default function CorporationDetailPage({
             <h2 className="mb-4 text-2xl font-bold">Attributes</h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <span className="text-gray-400">Corporation Name</span>
+                <span className="text-ink-muted">Corporation Name</span>
                 <span className="ml-2 font-semibold">{corporation.name}</span>
               </div>
               <div>
-                <span className="text-gray-400">Ticker</span>
+                <span className="text-ink-muted">Ticker</span>
                 <span className="ml-2 font-semibold">{corporation.ticker}</span>
               </div>
               <div>
-                <span className="text-gray-400">CEO</span>
+                <span className="text-ink-muted">CEO</span>
                 <span className="ml-2 font-semibold">
                   {corporation.ceo ? (
                     <Link
                       href={`/characters/${corporation.ceo.id}`}
                       prefetch={false}
-                      className="text-gray-400 hover:text-blue-400"
+                      className="text-ink-muted hover:text-blue-400"
                     >
                       {corporation.ceo.name}
                     </Link>
@@ -436,13 +436,13 @@ export default function CorporationDetailPage({
                 </span>
               </div>
               <div>
-                <span className="text-gray-400">Creator</span>
+                <span className="text-ink-muted">Creator</span>
                 <span className="ml-2 font-semibold">
                   {corporation.creator ? (
                     <Link
                       href={`/characters/${corporation.creator.id}`}
                       prefetch={false}
-                      className="text-gray-400 hover:text-blue-400"
+                      className="text-ink-muted hover:text-blue-400"
                     >
                       {corporation.creator.name}
                     </Link>
@@ -452,13 +452,13 @@ export default function CorporationDetailPage({
                 </span>
               </div>
               <div>
-                <span className="text-gray-400">Member Count</span>
+                <span className="text-ink-muted">Member Count</span>
                 <span className="ml-2 font-semibold">
                   {corporation.member_count?.toLocaleString() || 'N/A'}
                 </span>
               </div>
               <div>
-                <span className="text-gray-400">Tax Rate</span>
+                <span className="text-ink-muted">Tax Rate</span>
                 <span className="ml-2 font-semibold">
                   {corporation.tax_rate
                     ? `${(corporation.tax_rate * 100).toFixed(1)}%`
@@ -466,29 +466,29 @@ export default function CorporationDetailPage({
                 </span>
               </div>
               <div>
-                <span className="text-gray-400">Founded</span>
+                <span className="text-ink-muted">Founded</span>
                 <span className="ml-2 font-semibold">{foundedDate}</span>
               </div>
               <div>
-                <span className="text-gray-400">Alliance</span>
+                <span className="text-ink-muted">Alliance</span>
                 <span className="ml-2 font-semibold">
                   {corporation.alliance ? (
                     <Link
                       href={`/alliances/${corporation.alliance.id}`}
                       prefetch={false}
-                      className="text-gray-400 hover:text-blue-400"
+                      className="text-ink-muted hover:text-blue-400"
                     >
                       [{corporation.alliance.ticker}]{' '}
                       {corporation.alliance.name}
                     </Link>
                   ) : (
-                    <span className="text-gray-500">No Alliance</span>
+                    <span className="text-ink-faint">No Alliance</span>
                   )}
                 </span>
               </div>
               {corporation.url && (
                 <div className="col-span-2">
-                  <span className="text-gray-400">Website</span>
+                  <span className="text-ink-muted">Website</span>
                   <a
                     href={corporation.url}
                     target="_blank"

@@ -157,7 +157,7 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
               {region.description && (
                 <EveHtmlRenderer
                   html={region.description}
-                  className="max-w-2xl mt-2 text-gray-400"
+                  className="max-w-2xl mt-2 text-ink-muted"
                 />
               )}
             </div>
@@ -222,7 +222,7 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
                 ))}
               </div>
             ) : (
-              <div className="py-12 text-center text-gray-400">
+              <div className="py-12 text-center text-ink-muted">
                 No constellations found
               </div>
             )}

@@ -14,7 +14,7 @@ describe('SummaryRow', () => {
   it('keeps the label muted and the value prominent', () => {
     render(<SummaryRow label="System">Jita</SummaryRow>);
 
-    expect(screen.getByText('System')).toHaveClass('text-gray-400');
+    expect(screen.getByText('System')).toHaveClass('text-ink-muted');
     expect(screen.getByText('Jita')).toHaveClass('text-gray-100');
   });
 

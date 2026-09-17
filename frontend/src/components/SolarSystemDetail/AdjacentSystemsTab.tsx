@@ -32,7 +32,7 @@ export default function AdjacentSystemsTab({
   if (stargates.length === 0) {
     // Normal for wormhole space: Thera has no stargates at all.
     return (
-      <div className="p-6 text-gray-400 border bg-white/5 border-white/10">
+      <div className="p-6 text-ink-muted border bg-white/5 border-white/10">
         This system has no stargates.
       </div>
     );
@@ -46,7 +46,7 @@ export default function AdjacentSystemsTab({
 
   if (neighbours.length === 0) {
     return (
-      <div className="p-6 text-gray-400 border bg-white/5 border-white/10">
+      <div className="p-6 text-ink-muted border bg-white/5 border-white/10">
         This system has {stargates.length} stargates, but their destinations
         have not been resolved yet. Run <code>yarn queue:stargates</code> and{' '}
         <code>yarn worker:stargates</code>.
@@ -57,7 +57,7 @@ export default function AdjacentSystemsTab({
   return (
     <div className="overflow-x-auto border bg-white/5 border-white/10">
       <table className="w-full text-sm">
-        <thead className="text-xs tracking-wide text-gray-400 uppercase border-b border-white/10">
+        <thead className="text-xs tracking-wide text-ink-muted uppercase border-b border-white/10">
           <tr>
             <th className="px-4 py-3 text-left">System</th>
             <th className="px-4 py-3 text-left">Security</th>
@@ -86,7 +86,7 @@ export default function AdjacentSystemsTab({
                     <Link
                       href={`/solar-systems/${system.id}`}
                       prefetch={false}
-                      className="text-gray-400 hover:text-blue-400"
+                      className="text-ink-muted hover:text-blue-400"
                     >
                       {system.name}
                     </Link>
@@ -105,7 +105,7 @@ export default function AdjacentSystemsTab({
                       {system.constellation.name}
                     </Link>
                   ) : (
-                    <span className="text-gray-500">—</span>
+                    <span className="text-ink-faint">—</span>
                   )}
                 </td>
                 <td className="px-4 py-3">
@@ -118,7 +118,7 @@ export default function AdjacentSystemsTab({
                       {system.constellation.region.name}
                     </Link>
                   ) : (
-                    <span className="text-gray-500">—</span>
+                    <span className="text-ink-faint">—</span>
                   )}
                 </td>
                 <td className="px-4 py-3 text-right text-gray-300">

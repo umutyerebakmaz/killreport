@@ -45,7 +45,7 @@ function MapContent() {
         </Link>
       </div>
       <div className="flex items-center gap-3 mt-4">
-        <label htmlFor="region" className="text-sm text-gray-400">
+        <label htmlFor="region" className="text-sm text-ink-muted">
           Region
         </label>
         <Select
@@ -62,7 +62,7 @@ function MapContent() {
       <section className="mt-4 border border-white/10 bg-surface">
         <TerritoryMap points={filtered} />
       </section>
-      <p className="mt-2 text-xs text-gray-500">
+      <p className="mt-2 text-xs text-ink-faint">
         Each point is a sov-held system at its galactic position (light-years).
         Colored by the top controlling alliances; scroll to zoom, drag to pan,
         click a legend entry to isolate.

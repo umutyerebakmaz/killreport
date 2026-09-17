@@ -206,7 +206,9 @@ export default function TermsPage() {
             the posting of updated Terms constitutes your acceptance of those
             changes.
           </p>
-          <p className="mt-4 text-sm text-gray-400">Last Updated: March 2026</p>
+          <p className="mt-4 text-sm text-ink-muted">
+            Last Updated: March 2026
+          </p>
         </section>
 
         {/* Contact */}
@@ -245,7 +247,7 @@ export default function TermsPage() {
         </section>
 
         <div className="border-t border-white/10 pt-8 mt-12">
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-ink-muted">
             These Terms of Service are designed to ensure Killreport remains a
             safe and respectful community while complying with legal
             requirements and EVE Online policies.

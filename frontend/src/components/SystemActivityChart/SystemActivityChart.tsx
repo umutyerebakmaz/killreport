@@ -104,7 +104,7 @@ export default function SystemActivityChart({
         <div className="h-[320px] mt-4 bg-white/5 animate-pulse" />
       ) : snapshots.length === 0 ? (
         // An axis with no series reads as broken, so say nothing was recorded.
-        <div className="h-[320px] mt-4 flex items-center justify-center text-gray-500">
+        <div className="h-[320px] mt-4 flex items-center justify-center text-ink-faint">
           No kill activity recorded in this window
         </div>
       ) : (

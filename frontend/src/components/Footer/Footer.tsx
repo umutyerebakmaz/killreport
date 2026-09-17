@@ -75,7 +75,7 @@ export default function Footer() {
             <span className="text-2xl font-semibold tracking-tight text-gray-200">
               KILLREPORT
             </span>
-            <p className="text-gray-400 text-sm/6 text-balance">
+            <p className="text-ink-muted text-sm/6 text-balance">
               Real-time EVE Online killmail tracking and analytics. Track your
               kills, deaths, and PvP statistics with live updates from
               zKillboard and ESI.
@@ -85,7 +85,7 @@ export default function Footer() {
                 <a
                   key={item.name}
                   href={item.href}
-                  className="text-gray-400 hover:text-gray-300"
+                  className="text-ink-muted hover:text-gray-300"
                 >
                   <span className="sr-only">{item.name}</span>
                   <item.icon aria-hidden="true" className="size-6" />
@@ -102,7 +102,7 @@ export default function Footer() {
                     <li key={item.name}>
                       <Link
                         href={item.href}
-                        className="text-gray-400 text-sm/6 hover:text-gray-300"
+                        className="text-ink-muted text-sm/6 hover:text-gray-300"
                         prefetch={false}
                       >
                         {item.name}
@@ -123,14 +123,14 @@ export default function Footer() {
                           href={item.href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-gray-400 text-sm/6 hover:text-gray-300"
+                          className="text-ink-muted text-sm/6 hover:text-gray-300"
                         >
                           {item.name}
                         </a>
                       ) : (
                         <Link
                           href={item.href}
-                          className="text-gray-400 text-sm/6 hover:text-gray-300"
+                          className="text-ink-muted text-sm/6 hover:text-gray-300"
                           prefetch={false}
                         >
                           {item.name}
@@ -149,7 +149,7 @@ export default function Footer() {
                     <li key={item.name}>
                       <Link
                         href={item.href}
-                        className="text-gray-400 text-sm/6 hover:text-gray-300"
+                        className="text-ink-muted text-sm/6 hover:text-gray-300"
                         prefetch={false}
                       >
                         {item.name}
@@ -173,7 +173,7 @@ export default function Footer() {
                             ? 'noopener noreferrer'
                             : undefined
                         }
-                        className="text-gray-400 text-sm/6 hover:text-gray-300"
+                        className="text-ink-muted text-sm/6 hover:text-gray-300"
                       >
                         {item.name}
                       </a>
@@ -201,11 +201,11 @@ export default function Footer() {
                     </p>
                     {characterData?.character && (
                       <div className="space-y-1">
-                        <p className="text-gray-400 text-sm/3">
+                        <p className="text-ink-muted text-sm/3">
                           {characterData.character.corporation?.name}
                         </p>
                         {characterData.character.alliance?.name && (
-                          <p className="text-gray-400 text-sm/3">
+                          <p className="text-ink-muted text-sm/3">
                             {characterData.character.alliance.name}
                           </p>
                         )}
@@ -233,7 +233,7 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-row items-start justify-between gap-4 pt-8 mt-16 border-t border-white/10 sm:mt-20 lg:mt-24">
-          <p className="text-gray-400 text-sm/6">
+          <p className="text-ink-muted text-sm/6">
             &copy; {currentYear} Killreport, Inc. All rights reserved. All{' '}
             <a href="/legal" className="text-cyan-500 hover:underline">
               EVE related materials

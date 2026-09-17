@@ -71,7 +71,7 @@ export function ConflictTreemap({ hotspots }: { hotspots: Hotspot[] }) {
 
   if (hotspots.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-500 border border-white/10">
+      <div className="flex items-center justify-center h-64 text-ink-faint border border-white/10">
         No active conflicts to map yet.
       </div>
     );

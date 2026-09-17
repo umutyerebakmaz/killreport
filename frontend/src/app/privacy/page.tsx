@@ -13,7 +13,7 @@ export default function PrivacyPage() {
             information we collect, how we use it, and your rights regarding
             your data. We are committed to transparency and data protection.
           </p>
-          <p className="text-sm text-gray-400">Last Updated: March 2026</p>
+          <p className="text-sm text-ink-muted">Last Updated: March 2026</p>
         </section>
 
         {/* What Information We Collect */}
@@ -165,7 +165,7 @@ export default function PrivacyPage() {
               </div>
             </div>
 
-            <p className="text-sm text-gray-400 pt-4">
+            <p className="text-sm text-ink-muted pt-4">
               For a detailed technical explanation of our data pipeline, see our{' '}
               <a href="/legal" className="text-cyan-400 hover:underline">
                 Legal Information
@@ -229,7 +229,7 @@ export default function PrivacyPage() {
                 browser's storage, which you can clear at any time through your
                 browser settings.
               </p>
-              <p className="text-sm text-gray-400 mt-2">
+              <p className="text-sm text-ink-muted mt-2">
                 No Google Analytics, no tracking pixels, no third-party
                 telemetry.
               </p>
@@ -395,7 +395,7 @@ export default function PrivacyPage() {
         </section>
 
         <div className="border-t border-white/10 pt-8 mt-12">
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-ink-muted">
             We are committed to maintaining your trust through transparent and
             responsible data practices.
           </p>

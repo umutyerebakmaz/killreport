@@ -167,7 +167,7 @@ export default function AttackersCard({
       {/* Involved Alliances and Corps */}
       {(allianceArray.length > 0 || independentCorpsArray.length > 0) && (
         <div className="mt-6">
-          <h3 className="mb-3 text-sm font-semibold text-gray-400">
+          <h3 className="mb-3 text-sm font-semibold text-ink-muted">
             Involved Alliances and Corps
           </h3>
           <div className="divide-y divide-white/5">
@@ -186,9 +186,9 @@ export default function AttackersCard({
                     className="flex items-center gap-2 cursor-pointer card-row bg-surface"
                   >
                     {isExpanded ? (
-                      <ChevronDownIcon className="w-4 h-4 text-gray-400" />
+                      <ChevronDownIcon className="w-4 h-4 text-ink-muted" />
                     ) : (
-                      <ChevronRightIcon className="w-4 h-4 text-gray-400" />
+                      <ChevronRightIcon className="w-4 h-4 text-ink-muted" />
                     )}
                     <img
                       src={`https://images.evetech.net/Alliance/${alliance.id}_64.png`}
@@ -205,7 +205,7 @@ export default function AttackersCard({
                     >
                       {alliance.name}
                     </Link>
-                    <span className="px-2 py-0.5 text-xs font-medium text-gray-400">
+                    <span className="px-2 py-0.5 text-xs font-medium text-ink-muted">
                       {alliance.totalCount}
                     </span>
                   </div>
@@ -230,7 +230,7 @@ export default function AttackersCard({
                           <span className="flex-1 text-base text-gray-100">
                             {corp.name}
                           </span>
-                          <span className="px-1.5 py-0.5 text-xs font-medium text-gray-500">
+                          <span className="px-1.5 py-0.5 text-xs font-medium text-ink-faint">
                             {corp.count}
                           </span>
                         </Link>
@@ -260,7 +260,7 @@ export default function AttackersCard({
                 <span className="flex-1 text-base text-gray-100">
                   {corp.name}
                 </span>
-                <span className="px-2 py-0.5 text-xs font-medium text-gray-400">
+                <span className="px-2 py-0.5 text-xs font-medium text-ink-muted">
                   {corp.count}
                 </span>
               </Link>

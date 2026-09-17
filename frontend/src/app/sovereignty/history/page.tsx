@@ -26,7 +26,7 @@ const OUTCOME_LABELS: Record<string, string> = {
 const OUTCOME_STYLES: Record<string, string> = {
   defender_won: 'text-cyan-400',
   attacker_won: 'text-red-400',
-  abandoned: 'text-gray-400',
+  abandoned: 'text-ink-muted',
 };
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
@@ -35,7 +35,7 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
       <div className="text-2xl font-semibold text-white">
         {typeof value === 'number' ? value.toLocaleString() : value}
       </div>
-      <div className="mt-1 text-sm text-gray-400">{label}</div>
+      <div className="mt-1 text-sm text-ink-muted">{label}</div>
     </div>
   );
 }
@@ -127,7 +127,7 @@ function HistoryContent() {
             <tbody className="divide-y divide-white/5">
               {defenders.map((d) => (
                 <tr key={d.allianceId} className="tr-row">
-                  <td className="td-cell text-gray-400 whitespace-nowrap">
+                  <td className="td-cell text-ink-muted whitespace-nowrap">
                     {d.rank}
                   </td>
                   <td className="td-cell whitespace-nowrap">
@@ -152,7 +152,7 @@ function HistoryContent() {
                 <tr>
                   <td
                     colSpan={5}
-                    className="px-4 py-8 text-center text-gray-500"
+                    className="px-4 py-8 text-center text-ink-faint"
                   >
                     No resolved defenses yet.
                   </td>
@@ -166,7 +166,8 @@ function HistoryContent() {
       {/* Campaign archive */}
       <section className="mt-10">
         <h3 className="text-xl font-semibold text-white">
-          Campaign Archive <span className="text-gray-500">({totalCount})</span>
+          Campaign Archive{' '}
+          <span className="text-ink-faint">({totalCount})</span>
         </h3>
         <div className="mt-4 overflow-x-auto border border-white/10">
           <table className="table">
@@ -189,7 +190,7 @@ function HistoryContent() {
                     <Link
                       href={`/solar-systems/${c.solarSystemId}`}
                       prefetch={false}
-                      className="text-gray-400 hover:text-blue-400"
+                      className="text-ink-muted hover:text-blue-400"
                     >
                       {c.solarSystemName ?? c.solarSystemId}
                     </Link>
@@ -236,7 +237,7 @@ function HistoryContent() {
                 <tr>
                   <td
                     colSpan={8}
-                    className="px-4 py-8 text-center text-gray-500"
+                    className="px-4 py-8 text-center text-ink-faint"
                   >
                     No resolved campaigns yet. They appear here once campaigns
                     end.
@@ -257,7 +258,7 @@ function HistoryContent() {
             >
               Prev
             </button>
-            <span className="text-gray-500">
+            <span className="text-ink-faint">
               Page {page + 1} of {totalPages}
             </span>
             <button

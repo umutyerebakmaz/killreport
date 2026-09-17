@@ -41,7 +41,7 @@
   }
 
   .button-ghost {
-    @apply text-gray-400 hover:not-aria-selected:bg-white/5 hover:not-aria-selected:text-white;
+    @apply text-ink-muted hover:not-aria-selected:bg-white/5 hover:not-aria-selected:text-white;
   }
 
   .button-danger {

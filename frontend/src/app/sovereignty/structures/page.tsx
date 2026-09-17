@@ -13,7 +13,7 @@ function TypeBadge({ typeName }: { typeName: string }) {
       ? 'text-orange-400 bg-orange-400/10 border-orange-400/20'
       : typeName === 'TCU'
         ? 'text-purple-400 bg-purple-400/10 border-purple-400/20'
-        : 'text-gray-400 bg-gray-400/10 border-gray-400/20';
+        : 'text-ink-muted bg-ink-muted/10 border-ink-muted/20';
   return (
     <span
       className={`inline-block px-1.5 py-0.5 text-xs font-semibold border ${cls}`}
@@ -70,11 +70,11 @@ function SystemCell({
       <Link
         href={`/solar-systems/${id}`}
         prefetch={false}
-        className="text-gray-400 hover:text-blue-400"
+        className="text-ink-muted hover:text-blue-400"
       >
         {name ?? id}
       </Link>
-      <div className="text-xs text-gray-500">{regionName ?? '—'}</div>
+      <div className="text-xs text-ink-faint">{regionName ?? '—'}</div>
     </div>
   );
 }
@@ -106,7 +106,7 @@ function StructuresContent() {
       <section className="mt-8">
         <h3 className="text-xl font-semibold text-white">
           Next 24h Timers{' '}
-          <span className="text-gray-500">({timers.length})</span>
+          <span className="text-ink-faint">({timers.length})</span>
         </h3>
         <div className="mt-4 overflow-x-auto border border-white/10">
           <table className="table">
@@ -153,7 +153,7 @@ function StructuresContent() {
                 <tr>
                   <td
                     colSpan={5}
-                    className="px-4 py-8 text-center text-gray-500"
+                    className="px-4 py-8 text-center text-ink-faint"
                   >
                     No vulnerability windows opening in the next 24 hours.
                   </td>
@@ -168,7 +168,7 @@ function StructuresContent() {
       <section className="mt-10">
         <h3 className="text-xl font-semibold text-white">
           All Structures{' '}
-          <span className="text-gray-500">({structures.length})</span>
+          <span className="text-ink-faint">({structures.length})</span>
         </h3>
         <div className="mt-4 overflow-x-auto border border-white/10">
           <table className="table">
@@ -206,7 +206,7 @@ function StructuresContent() {
                       ? s.occupancyLevel.toFixed(1)
                       : '—'}
                   </td>
-                  <td className="td-cell text-sm text-gray-400 whitespace-nowrap">
+                  <td className="td-cell text-sm text-ink-muted whitespace-nowrap">
                     {s.vulnerableStartTime
                       ? `${formatRelativeTime(s.vulnerableStartTime, true)}`
                       : '—'}
@@ -217,7 +217,7 @@ function StructuresContent() {
                 <tr>
                   <td
                     colSpan={5}
-                    className="px-4 py-8 text-center text-gray-500"
+                    className="px-4 py-8 text-center text-ink-faint"
                   >
                     No tracked structures yet. They appear once the structures
                     worker runs.
