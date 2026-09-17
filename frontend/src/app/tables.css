@@ -47,6 +47,6 @@
    * lands on. It was py-3.5 back when this was text-base.
    */
   .th-cell {
-    @apply px-4 py-3 text-lg font-medium tracking-[0.15em] uppercase text-white;
+    @apply px-4 py-3 text-lg font-medium text-white;
   }
 }

@@ -46,10 +46,8 @@
      thing sitting on the page. */
   /* A ground of its own, one step up from the card, so the heading reads as
      the card's own title rather than as its first row. */
-  /* Caps + 0.15em tracking is EVE's own heading treatment, shared with
-     .th-cell. */
   .card-header {
-    @apply px-4 py-3 border-b bg-surface-inset border-white/10 tracking-[0.15em] uppercase;
+    @apply px-4 py-3 border-b bg-surface-inset border-white/10;
   }
 
   .card-body {
