@@ -41,6 +41,13 @@
   --color-dropped: var(--color-green-400);
   --color-isk: var(--color-yellow-400);
 
+  /* The other meanings red, green and yellow carry here. Same values as the
+     three above for now; named separately because they say different things
+     and either can move without dragging the other. */
+  --color-danger: var(--color-red-400);
+  --color-success: var(--color-green-400);
+  --color-caution: var(--color-yellow-400);
+
   /* The same two meanings as a ground rather than as ink, and deliberately
      a deeper step: 400 reads on a dark surface because it is light, and a
      light hue behind a whole row washes it out. These are the tones the
