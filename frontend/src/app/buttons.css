@@ -33,7 +33,7 @@
   /* --- Appearances --- */
 
   .button-primary {
-    @apply text-white bg-accent hover:bg-accent-hover;
+    @apply text-accent-ink bg-accent hover:bg-accent-hover;
   }
 
   .button-secondary {
@@ -60,7 +60,7 @@
    * On .button-primary or .button-ghost it is inert.
    */
   .button[aria-pressed='true'] {
-    @apply text-white bg-accent border-accent-hover/50;
+    @apply text-accent-ink bg-accent border-accent-hover/50;
   }
 
   .button[aria-pressed='true']:hover {
@@ -136,7 +136,7 @@
 
   /* The count bubble on a filter button. */
   .badge {
-    @apply inline-flex items-center justify-center w-5 h-5 ml-1 text-xs font-bold rounded-full text-cyan-700 bg-white;
+    @apply inline-flex items-center justify-center w-5 h-5 ml-1 text-xs font-bold rounded-full text-ground bg-white;
   }
 }
 
