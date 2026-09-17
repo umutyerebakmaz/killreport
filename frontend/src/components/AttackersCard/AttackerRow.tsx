@@ -73,7 +73,7 @@ export default function AttackerRow({
           ) : (
             /* Not even a ship: the same placeholder the two slots below use. */
             <div className="flex items-center justify-center shadow-md size-16">
-              <QuestionMarkCircleIcon className="text-gray-400 size-8" />
+              <QuestionMarkCircleIcon className="text-ink-muted size-8" />
             </div>
           )}
 
