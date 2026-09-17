@@ -71,13 +71,27 @@ const writeStoredView = (next: FittingView) => {
   viewListeners.forEach((notify) => notify());
 };
 
+type Killmail = NonNullable<KillmailQuery['killmail']>;
+
+/**
+ * The victim's hull as this document selects it, not the schema's `Type`.
+ * The query asks for `id`, `jitaPrice` and the `group.category` that
+ * `isBlueprint` reads; a wider type would promise fields that never arrive.
+ *
+ * `shipType` is non-null inside `Victim`, and the one call site sits behind a
+ * `victim?.shipType &&` guard, so the parameter takes the object rather than
+ * a nullable one — which is what the optional chaining inside was standing in
+ * for.
+ */
+type VictimShipType = NonNullable<Killmail['victim']>['shipType'];
+
 // Special handling for Capsule ship price
-const getShipPrice = (shipType: any) => {
+const getShipPrice = (shipType: VictimShipType) => {
   // Capsule (type_id: 670) has fixed value of 10 ISK
-  if (shipType?.id === 670) {
+  if (shipType.id === 670) {
     return 10;
   }
-  const jitaPrice = shipType?.jitaPrice;
+  const jitaPrice = shipType.jitaPrice;
   const blueprint = isBlueprint(shipType);
   const isCopy = blueprint && 2 === 2; // Ships are never copies
 
@@ -87,8 +101,6 @@ const getShipPrice = (shipType: any) => {
 
   return jitaPrice?.sell || jitaPrice?.average || 0;
 };
-
-type Killmail = NonNullable<KillmailQuery['killmail']>;
 
 interface KillmailSummaryCardProps {
   /* Typed from the document rather than the schema: the two are different
