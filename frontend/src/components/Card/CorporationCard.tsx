@@ -2,11 +2,11 @@ import Tooltip from '@/components/Tooltip/Tooltip';
 import Card from '@/components/ui/Card';
 import { CorporationsQuery } from '@/generated/graphql';
 import { BuildingOffice2Icon } from '@heroicons/react/24/outline';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import MemberDeltaBadge from '../MemberDeltaBadge/MemberDeltaBadge';
 import TotalMemberBadge from '../TotalMemberBadge/TotalMemberBadge';
+import EveImage from '../ui/EveImage';
 
 // useCorporationsQuery'nin döndüğü Corporation type'ını extract et
 type Corporation = CorporationsQuery['corporations']['items'][number];
@@ -62,16 +62,15 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
                 </div>
               </div>
             )}
-            <Image
-              src={`https://images.evetech.net/corporations/${corporation.id}/logo?size=128`}
-              alt={corporation.name}
-              width={128}
-              height={128}
+            <EveImage
+              kind="corporation"
+              id={corporation.id}
+              name={corporation.name}
+              size={128}
               className={`transition-opacity duration-300 ${
                 imageLoaded ? 'opacity-100' : 'opacity-0'
               }`}
               onLoad={() => setImageLoaded(true)}
-              unoptimized
             />
           </div>
           <Link

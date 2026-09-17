@@ -7,6 +7,7 @@ import {
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { useState } from 'react';
+import EveImage from '../ui/EveImage';
 
 interface AttackersCardProps {
   attackers: NonNullable<KillmailQuery['killmail']>['attackers'];
@@ -190,12 +191,11 @@ export default function AttackersCard({
                     ) : (
                       <ChevronRightIcon className="w-4 h-4 text-ink-muted" />
                     )}
-                    <img
-                      src={`https://images.evetech.net/Alliance/${alliance.id}_64.png`}
-                      alt={alliance.name}
-                      width={32}
-                      height={32}
-                      loading="lazy"
+                    <EveImage
+                      kind="alliance"
+                      id={alliance.id}
+                      name={alliance.name}
+                      size={32}
                     />
                     <Link
                       href={`/alliances/${alliance.id}`}
@@ -220,12 +220,11 @@ export default function AttackersCard({
                           className="flex items-center gap-2 py-1.5 card-row bg-surface"
                           prefetch={false}
                         >
-                          <img
-                            src={`https://images.evetech.net/corporations/${corp.id}/logo?size=64`}
-                            alt={corp.name}
-                            width={32}
-                            height={32}
-                            loading="lazy"
+                          <EveImage
+                            kind="corporation"
+                            id={corp.id}
+                            name={corp.name}
+                            size={32}
                           />
                           <span className="flex-1 text-base text-gray-100">
                             {corp.name}
@@ -250,12 +249,11 @@ export default function AttackersCard({
                 prefetch={false}
               >
                 <div className="w-4" /> {/* Spacer for alignment */}
-                <img
-                  src={`https://images.evetech.net/corporations/${corp.id}/logo?size=64`}
-                  alt={corp.name}
-                  width={32}
-                  height={32}
-                  loading="lazy"
+                <EveImage
+                  kind="corporation"
+                  id={corp.id}
+                  name={corp.name}
+                  size={32}
                 />
                 <span className="flex-1 text-base text-gray-100">
                   {corp.name}

@@ -16,6 +16,7 @@ import {
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { Suspense, useState } from 'react';
+import EveImage from '@/components/ui/EveImage';
 
 function toDateString(d: Date): string {
   return d.toISOString().split('T')[0];
@@ -84,17 +85,12 @@ function PilotList({
 
               {/* Portrait */}
               <div className="relative shrink-0">
-                <img
-                  src={
-                    char
-                      ? `https://images.evetech.net/characters/${char.id}/portrait?size=128`
-                      : `https://images.evetech.net/characters/0/portrait?size=128`
-                  }
-                  alt={char?.name ?? 'Unknown'}
-                  width={64}
-                  height={64}
+                <EveImage
+                  kind="character"
+                  id={char?.id ?? 0}
+                  name={char?.name ?? 'Unknown'}
+                  size={64}
                   className="shadow-md"
-                  loading="lazy"
                 />
                 {char?.securityStatus != null && (
                   <div className="absolute bottom-0 left-0 px-1.5 py-0.5 text-xs font-semibold bg-black/70 backdrop-blur-sm">
@@ -166,23 +162,21 @@ function PilotList({
                       <Tooltip
                         content={`Corporation: ${char.corporation.name}`}
                       >
-                        <img
-                          src={`https://images.evetech.net/corporations/${char.corporation.id}/logo?size=64`}
-                          alt={char.corporation.name}
-                          width={32}
-                          height={32}
-                          loading="lazy"
+                        <EveImage
+                          kind="corporation"
+                          id={char.corporation.id}
+                          name={char.corporation.name}
+                          size={32}
                         />
                       </Tooltip>
                     )}
                     {char?.alliance && (
                       <Tooltip content={`Alliance: ${char.alliance.name}`}>
-                        <img
-                          src={`https://images.evetech.net/alliances/${char.alliance.id}/logo?size=64`}
-                          alt={char.alliance.name}
-                          width={32}
-                          height={32}
-                          loading="lazy"
+                        <EveImage
+                          kind="alliance"
+                          id={char.alliance.id}
+                          name={char.alliance.name}
+                          size={32}
                         />
                       </Tooltip>
                     )}

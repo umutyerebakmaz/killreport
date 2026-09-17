@@ -1,6 +1,7 @@
 import { CorporationCharactersQuery } from '@/generated/graphql';
 import Link from 'next/link';
 import Loader from '../Loader';
+import EveImage from '../ui/EveImage';
 
 // Extract the Character type from the GraphQL query result
 export type Character = NonNullable<
@@ -39,11 +40,11 @@ export default function CharactersTable({
             <tr key={char.id} className="tr-row">
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center gap-3">
-                  <img
-                    src={`https://images.evetech.net/Character/${char.id}_64.png`}
-                    alt={char.name}
-                    width={48}
-                    height={48}
+                  <EveImage
+                    kind="character"
+                    id={char.id}
+                    name={char.name}
+                    size={48}
                   />
                   <Link
                     href={`/characters/${char.id}`}

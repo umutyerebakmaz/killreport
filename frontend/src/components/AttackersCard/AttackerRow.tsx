@@ -2,6 +2,7 @@ import { KillmailQuery } from '@/generated/graphql';
 import { getShipTier } from '@/utils/shipTier';
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
+import EveImage from '../ui/EveImage';
 import ShipTierBadge from '../ShipTierBadge/ShipTierBadge';
 import Tooltip from '../Tooltip/Tooltip';
 
@@ -46,32 +47,34 @@ export default function AttackerRow({
          */}
         <div className="relative shrink-0">
           {attacker.character?.id ? (
-            <img
-              src={`https://images.evetech.net/characters/${attacker.character?.id}/portrait?size=128`}
-              alt={attacker.character?.name || 'Character'}
-              width={64}
-              height={64}
-              loading="lazy"
+            <EveImage
+              kind="character"
+              id={attacker.character.id}
+              name={attacker.character.name || 'Character'}
+              size={64}
             />
           ) : attacker.corporation?.id ? (
-            <img
-              src={`https://images.evetech.net/corporations/${attacker.corporation?.id}/logo?size=128`}
-              alt={attacker.corporation?.name || 'Corporation'}
-              width={64}
-              height={64}
-              loading="lazy"
+            <EveImage
+              kind="corporation"
+              id={attacker.corporation.id}
+              name={attacker.corporation.name || 'Corporation'}
+              size={64}
             />
-          ) : (
+          ) : attacker.shipType?.id ? (
             /* An NPC with neither a character nor a corporation: its ship is
                the only image the killmail query carries — there is no faction
                field on the attacker. */
-            <img
-              src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=128`}
-              alt={attacker.shipType?.name || 'NPC ship'}
-              width={64}
-              height={64}
-              loading="lazy"
+            <EveImage
+              kind="ship"
+              id={attacker.shipType.id}
+              name={attacker.shipType.name || 'NPC ship'}
+              size={64}
             />
+          ) : (
+            /* Not even a ship: the same placeholder the two slots below use. */
+            <div className="flex items-center justify-center shadow-md size-16">
+              <QuestionMarkCircleIcon className="text-gray-400 size-8" />
+            </div>
           )}
 
           {/* Security Status - Bottom Left */}
@@ -104,12 +107,11 @@ export default function AttackerRow({
                   </div>
                 )}
               {attacker.shipType?.id ? (
-                <img
-                  src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=64`}
-                  alt={attacker.shipType?.name || 'Ship'}
-                  width={32}
-                  height={32}
-                  loading="lazy"
+                <EveImage
+                  kind="ship"
+                  id={attacker.shipType.id}
+                  name={attacker.shipType.name || 'Ship'}
+                  size={32}
                 />
               ) : (
                 <div className="flex items-center justify-center shadow-md size-8">
@@ -120,22 +122,20 @@ export default function AttackerRow({
           </Tooltip>
           <Tooltip content={attacker.weaponType?.name || 'Unknown Weapon'}>
             {attacker.weaponType?.id ? (
-              <img
-                src={`https://images.evetech.net/types/${attacker.weaponType?.id}/icon?size=64`}
-                alt={attacker.weaponType?.name || 'Weapon'}
-                width={32}
-                height={32}
+              <EveImage
+                kind="type"
+                id={attacker.weaponType.id}
+                name={attacker.weaponType.name || 'Weapon'}
+                size={32}
                 className="bg-white/5"
-                loading="lazy"
               />
             ) : attacker.shipType?.id ? (
-              <img
-                src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=64`}
-                alt={attacker.shipType?.name || 'Ship'}
-                width={32}
-                height={32}
+              <EveImage
+                kind="ship"
+                id={attacker.shipType.id}
+                name={attacker.shipType.name || 'Ship'}
+                size={32}
                 className="bg-white/5"
-                loading="lazy"
               />
             ) : (
               <div className="flex items-center justify-center shadow-md size-8 bg-surface-inset">

@@ -6,6 +6,7 @@ import RankNumber from '@/components/ui/RankNumber';
 import Tooltip from '@/components/Tooltip/Tooltip';
 import Link from 'next/link';
 import { ReactNode } from 'react';
+import EveImage from '../ui/EveImage';
 
 export interface TopCorporation {
   id: number;
@@ -65,12 +66,11 @@ export default function TopCorporationCard({
 
                   {/* Logo */}
                   <div className="relative shrink-0">
-                    <img
-                      src={`https://images.evetech.net/corporations/${corporation.id}/logo?size=128`}
-                      alt={corporation.name}
-                      width={64}
-                      height={64}
-                      loading="lazy"
+                    <EveImage
+                      kind="corporation"
+                      id={corporation.id}
+                      name={corporation.name}
+                      size={64}
                     />
                   </div>
 

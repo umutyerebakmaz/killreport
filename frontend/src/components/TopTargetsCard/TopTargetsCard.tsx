@@ -6,6 +6,8 @@ import RankNumber from '@/components/ui/RankNumber';
 import Tooltip from '@/components/Tooltip/Tooltip';
 import Link from 'next/link';
 import { ReactNode } from 'react';
+import type { EveImageKind } from '@/utils/eveImageUrl';
+import EveImage from '../ui/EveImage';
 
 export interface TopTarget {
   id: number;
@@ -13,13 +15,19 @@ export interface TopTarget {
   count: number;
 }
 
+/** The three kinds a target can be — derived so the two lists cannot drift. */
+type TargetType = Extract<
+  EveImageKind,
+  'alliance' | 'corporation' | 'character'
+>;
+
 export interface TopTargetsCardProps {
   title: string;
   subtitle?: ReactNode;
   targets: TopTarget[];
   loading?: boolean;
   emptyText?: string;
-  targetType: 'alliance' | 'corporation' | 'character';
+  targetType: TargetType;
   linkPrefix: string; // e.g., "/alliances", "/corporations", "/characters"
 }
 
@@ -32,20 +40,6 @@ export default function TopTargetsCard({
   targetType,
   linkPrefix,
 }: TopTargetsCardProps) {
-  // Get image URL based on target type
-  const getImageUrl = (id: number, type: typeof targetType): string => {
-    switch (type) {
-      case 'alliance':
-        return `https://images.evetech.net/alliances/${id}/logo?size=128`;
-      case 'corporation':
-        return `https://images.evetech.net/corporations/${id}/logo?size=128`;
-      case 'character':
-        return `https://images.evetech.net/characters/${id}/portrait?size=128`;
-      default:
-        return '';
-    }
-  };
-
   const header = (
     <div className="flex items-center justify-between gap-3">
       <h3 className="text-lg font-semibold text-white">{title}</h3>
@@ -81,12 +75,11 @@ export default function TopTargetsCard({
 
                 {/* Logo/Portrait */}
                 <div className="relative shrink-0">
-                  <img
-                    src={getImageUrl(target.id, targetType)}
-                    alt={target.name}
-                    width={64}
-                    height={64}
-                    loading="lazy"
+                  <EveImage
+                    kind={targetType}
+                    id={target.id}
+                    name={target.name}
+                    size={64}
                   />
                 </div>
 

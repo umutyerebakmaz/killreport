@@ -12,8 +12,8 @@ import {
   ArrowTopRightOnSquareIcon,
   CheckIcon,
 } from '@heroicons/react/24/outline';
-import Image from 'next/image';
 import { use, useState } from 'react';
+import EveImage from '@/components/ui/EveImage';
 
 export default function KillmailDetailPage({
   params,
@@ -77,7 +77,7 @@ export default function KillmailDetailPage({
            * contents is unchanged — p-2 + gap-2 + p-2 spends the same budget,
            * with 8px of it turned into ground.
            */}
-          <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             {/* Victim summary — first, so the page reads from who to what */}
             <div className="p-2 card lg:col-span-1">
               <div className="space-y-3">
@@ -90,11 +90,11 @@ export default function KillmailDetailPage({
                     {victim?.character?.id ? (
                       <Tooltip content="Show Victim Info" position="top">
                         <a href={`/characters/${victim.character?.id}`}>
-                          <Image
-                            src={`https://images.evetech.net/characters/${victim.character?.id}/portrait?size=128`}
-                            alt={victim.character?.name || 'Character'}
-                            width={96}
-                            height={96}
+                          <EveImage
+                            kind="character"
+                            id={victim.character.id}
+                            name={victim.character.name || 'Character'}
+                            size={96}
                             className="shadow-md shrink-0"
                           />
                         </a>
@@ -108,11 +108,11 @@ export default function KillmailDetailPage({
                           className="flex items-center justify-center bg-surface-inset shrink-0"
                           style={{ width: 96, height: 96 }}
                         >
-                          <Image
-                            src={`https://images.evetech.net/types/${victim.shipType.id}/render?size=128`}
-                            alt={victim.shipType.name || 'Structure'}
-                            width={96}
-                            height={96}
+                          <EveImage
+                            kind="ship"
+                            id={victim.shipType.id}
+                            name={victim.shipType.name || 'Structure'}
+                            size={96}
                             className="shadow-md shrink-0"
                           />
                         </div>
@@ -123,11 +123,11 @@ export default function KillmailDetailPage({
                       {/* Corporation Portrait */}
                       {victim?.corporation?.id && (
                         <a href={`/corporations/${victim.corporation?.id}`}>
-                          <Image
-                            src={`https://images.evetech.net/corporations/${victim.corporation?.id}/logo?size=128`}
-                            alt={victim.corporation?.name || 'Corporation'}
-                            width={48}
-                            height={48}
+                          <EveImage
+                            kind="corporation"
+                            id={victim.corporation.id}
+                            name={victim.corporation.name || 'Corporation'}
+                            size={48}
                             className="shadow-sm"
                           />
                         </a>
@@ -135,11 +135,11 @@ export default function KillmailDetailPage({
                       {/* Alliance Portrait */}
                       {victim?.alliance?.id && (
                         <a href={`/alliances/${victim.alliance?.id}`}>
-                          <Image
-                            src={`https://images.evetech.net/alliances/${victim.alliance?.id}/logo?size=128`}
-                            alt={victim.alliance?.name || 'Alliance'}
-                            width={48}
-                            height={48}
+                          <EveImage
+                            kind="alliance"
+                            id={victim.alliance.id}
+                            name={victim.alliance.name || 'Alliance'}
+                            size={48}
                             className="shadow-sm"
                           />
                         </a>

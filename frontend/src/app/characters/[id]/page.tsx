@@ -22,6 +22,7 @@ import { getSecurityStatusColor } from '@/utils/securityStatus';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { use, useCallback, useEffect, useMemo, useState } from 'react';
+import EveImage from '@/components/ui/EveImage';
 
 interface CharacterDetailPageProps {
   params: Promise<{ id: string }>;
@@ -223,11 +224,11 @@ export default function CharacterDetailPage({
       <div className="card p-6 flex flex-col">
         {/* Portrait and Character Name */}
         <div className="flex items-center justify-center">
-          <img
-            src={`https://images.evetech.net/characters/${character.id}/portrait?size=256`}
-            alt={character.name}
-            width={128}
-            height={128}
+          <EveImage
+            kind="character"
+            id={character.id}
+            name={character.name}
+            size={128}
             className="shadow-md"
           />
 
@@ -240,13 +241,12 @@ export default function CharacterDetailPage({
                   character.corporation?.name || 'Unknown'
                 }`}
               >
-                <img
-                  src={`https://images.evetech.net/corporations/${character.corporation?.id}/logo?size=128`}
-                  alt={character.corporation?.name || 'Corporation'}
-                  width={64}
-                  height={64}
+                <EveImage
+                  kind="corporation"
+                  id={character.corporation?.id ?? 0}
+                  name={character.corporation?.name || 'Corporation'}
+                  size={64}
                   className="shadow-md"
-                  loading="lazy"
                 />
               </Tooltip>
             )}
@@ -256,13 +256,12 @@ export default function CharacterDetailPage({
               <Tooltip
                 content={`Alliance: ${character.alliance?.name || 'Unknown'}`}
               >
-                <img
-                  src={`https://images.evetech.net/alliances/${character.alliance?.id}/logo?size=128`}
-                  alt={character.alliance?.name || 'Alliance'}
-                  width={64}
-                  height={64}
+                <EveImage
+                  kind="alliance"
+                  id={character.alliance?.id ?? 0}
+                  name={character.alliance?.name || 'Alliance'}
+                  size={64}
                   className="shadow-md"
-                  loading="lazy"
                 />
               </Tooltip>
             )}

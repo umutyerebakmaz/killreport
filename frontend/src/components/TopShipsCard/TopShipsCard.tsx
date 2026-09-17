@@ -7,6 +7,7 @@ import ShipTierBadge from '@/components/ShipTierBadge/ShipTierBadge';
 import Tooltip from '@/components/Tooltip/Tooltip';
 import { getShipTier } from '@/utils/shipTier';
 import { ReactNode } from 'react';
+import EveImage from '../ui/EveImage';
 
 export interface TopShip {
   id: number;
@@ -74,18 +75,12 @@ export default function TopShipsCard({
                         <ShipTierBadge tier={shipTier} className="size-4" />
                       </div>
                     )}
-                    <img
-                      src={`https://images.evetech.net/types/${ship.id}/render?size=128`}
-                      alt={ship.name}
+                    <EveImage
+                      kind="ship"
+                      id={ship.id}
+                      name={ship.name}
+                      size={64}
                       className="size-16"
-                      loading="lazy"
-                      onError={(e) => {
-                        // Fallback to icon if render fails (e.g., for some faction ships)
-                        const target = e.target as HTMLImageElement;
-                        if (target.src.includes('/render?')) {
-                          target.src = `https://images.evetech.net/types/${ship.id}/icon?size=128`;
-                        }
-                      }}
                     />
                   </div>
 

@@ -28,6 +28,7 @@ import { useTabList } from '@/hooks/useTabList';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { use, useCallback, useEffect, useMemo, useState } from 'react';
+import EveImage from '@/components/ui/EveImage';
 
 interface AllianceDetailPageProps {
   params: Promise<{ id: string }>;
@@ -331,11 +332,11 @@ export default function AllianceDetailPage({
         {/* Logo and Alliance Name */}
         <div className="flex flex-row items-center justify-between">
           <div className="flex items-center justify-center gap-6">
-            <img
-              src={`https://images.evetech.net/Alliance/${alliance.id}_128.png`}
-              alt={alliance.name}
-              width={128}
-              height={128}
+            <EveImage
+              kind="alliance"
+              id={alliance.id}
+              name={alliance.name}
+              size={128}
               className="shadow-md"
             />
             <div className="flex-1">

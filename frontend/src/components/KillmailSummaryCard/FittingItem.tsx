@@ -1,11 +1,8 @@
 import { formatISK } from '@/utils/formatISK';
-import {
-  getItemImageUrl,
-  getItemName,
-  isBlueprint,
-} from '@/utils/itemImageUrl';
+import { getItemName, isBlueprint } from '@/utils/itemType';
 import Tooltip from '../Tooltip/Tooltip';
 import { FittingView } from './types';
+import EveImage from '../ui/EveImage';
 
 /**
  * Full figures with thousands separators, the way the client writes them —
@@ -142,13 +139,13 @@ export default function FittingItem({
           key={`${keyPrefix}-${item.itemType.id}-${index}`}
           className={`relative transition-colors size-16 ${bgColor}`}
         >
-          <img
-            src={getItemImageUrl(item.itemType, item.singleton, 64)}
-            alt={itemName}
-            width={64}
-            height={64}
-            loading="lazy"
-            decoding="async"
+          <EveImage
+            kind="type"
+            id={item.itemType.id}
+            name={itemName}
+            size={64}
+            singleton={item.singleton}
+            blueprint={isBlueprint(item.itemType)}
           />
           {/* Solid black, not a tint: the count sits on top of item art that
               is a different colour on every tile, and anything translucent
@@ -168,12 +165,14 @@ export default function FittingItem({
       key={`${keyPrefix}-${item.itemType.id}-${index}`}
       className={`transition-colors flex items-center ${bgColor}`}
     >
-      <img
-        src={getItemImageUrl(item.itemType, item.singleton, 64)}
-        alt={itemName}
+      <EveImage
+        kind="type"
+        id={item.itemType.id}
+        name={itemName}
+        size={32}
+        singleton={item.singleton}
+        blueprint={isBlueprint(item.itemType)}
         className="bg-white/5 size-8 border-white/10"
-        loading="lazy"
-        decoding="async"
       />
       <div className="flex-1 min-w-0 pl-2">
         {/* The cell is narrow enough to clip a long module name, so the full

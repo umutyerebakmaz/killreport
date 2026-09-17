@@ -1,5 +1,7 @@
-import { getItemImageUrl } from '@/utils/itemImageUrl';
+import { isBlueprint } from '@/utils/itemType';
 import Tooltip from '../Tooltip/Tooltip';
+import EveImage from '../ui/EveImage';
+import Image from 'next/image';
 
 interface SlotProps {
   slots: any[];
@@ -57,17 +59,25 @@ export default function Slot({
                     {/* top div */}
                     <Tooltip content={name}>
                       <div className="border shrink-0 border-white/10 bg-white/5">
-                        <img
-                          src={getItemImageUrl(
+                        <EveImage
+                          kind="type"
+                          id={
+                            module?.charge
+                              ? module.charge.itemType.id
+                              : module.itemType.id
+                          }
+                          name={name}
+                          size={48}
+                          singleton={
+                            module?.charge
+                              ? module.charge.singleton
+                              : module.singleton
+                          }
+                          blueprint={isBlueprint(
                             module?.charge
                               ? module.charge.itemType
                               : module.itemType,
-                            module?.charge
-                              ? module.charge.singleton
-                              : module.singleton,
-                            128,
                           )}
-                          alt={name}
                           className="z-10 size-12"
                           style={{ transform: `rotate(${-rotation}deg)` }}
                         />
@@ -78,13 +88,13 @@ export default function Slot({
                     {module.charge && (
                       <Tooltip content={module.itemType.name}>
                         <div className="border border-white/10 bg-white/5">
-                          <img
-                            src={getItemImageUrl(
-                              module.itemType,
-                              module.singleton,
-                              128,
-                            )}
-                            alt={module.itemType.name}
+                          <EveImage
+                            kind="type"
+                            id={module.itemType.id}
+                            name={module.itemType.name}
+                            size={48}
+                            singleton={module.singleton}
+                            blueprint={isBlueprint(module.itemType)}
                             className="size-12"
                             style={{ transform: `rotate(${-rotation}deg)` }}
                           />
@@ -98,10 +108,13 @@ export default function Slot({
                     <Tooltip content={`Empty ${slotTypeName} Slot`}>
                       <div className="w-12 h-12 shrink-0">
                         <div className="border border-white/10 bg-white/5">
-                          <img
+                          <Image
                             src={slotIcon}
                             alt={`${slotTypeName} Slot`}
+                            width={48}
+                            height={48}
                             className="z-10 w-12 h-12"
+                            unoptimized
                           />
                         </div>
                       </div>
