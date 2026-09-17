@@ -77,15 +77,21 @@
 
   /*
    * The floating layer: the nav popover, the notification panel, the mobile
-   * drawer, FilterDialog, Tooltip and the filter autocompletes. Glass is the
-   * layer signal — 80% of the surface plus a blur, so what is behind stays
-   * legible as behind rather than as gone.
+   * drawer, FilterDialog, Tooltip and the filter autocompletes. Its own
+   * ground, `popover`, darker than any of the three page steps — being darker
+   * than what it covers is the layer signal.
+   *
+   * It was glass before: surface at 80% plus a blur. The blur made what sat
+   * behind readable as behind, but it also meant the panel had no colour of
+   * its own — ~#262626 over the page ground, #2b2b2c over a card, so two
+   * popovers open on the same screen did not match. Opaque settles that, and
+   * it is the darker ground that now says the panel is above the page.
    *
    * Square, and no longer rounded: the panels that opened over the page were
    * sharp while the dialog alone was not, and the app is flat.
    */
   .float {
-    @apply border bg-surface/80 backdrop-blur-md border-white/10;
+    @apply border bg-popover border-white/10;
   }
 
   /* A list row that carries a <button> tag but is not visually a button.

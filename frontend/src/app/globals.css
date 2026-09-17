@@ -16,7 +16,7 @@
      the design system instead (spec, decision 8). */
   --font-sans: 'Shentox', ui-sans-serif, system-ui, sans-serif;
 
-  /* Depth — three steps, no more. The first two are EVE's own
+  /* Depth — three steps in the page. The first two are EVE's own
      (eveonline.com's page ground, and --pfg-background-dark); the third is
      derived, because a marketing site has no third step to copy. The step
      from ground to surface is 1.35:1, up from 1.13:1 when these were
@@ -24,6 +24,18 @@
   --color-ground: #101010; /* the page */
   --color-surface: #2b2b2c; /* cards, tables, panels */
   --color-surface-inset: #3d3d3e; /* a box inside a card */
+
+  /* Not a fourth step in that ramp — the ground of what floats OVER the page:
+     .float, and through it every popover, the notification panel, the mobile
+     drawer, FilterDialog, Tooltip and the filter autocompletes. It is darker
+     than all three, which is what separates the layer from the page rather
+     than placing it on top of the same ramp. Opaque on purpose: .float used
+     to be surface at 80% with a blur, so its real colour moved with whatever
+     sat behind it — ~#262626 over the page, #2b2b2c over a card. Being darker
+     also buys contrast back: ink-faint 4.96:1 → 5.65:1, ink-muted 5.00 → 7.42,
+     and destroyed clears the 4.5 body-text floor here (4.54:1) where it does
+     not on surface. */
+  --color-popover: #212121;
 
   /* Accent — EVE's own, from --sf-terms-button-color. It is a LIGHT accent,
      so what sits ON the fill is dark ink: white on it measures 1.93:1, and

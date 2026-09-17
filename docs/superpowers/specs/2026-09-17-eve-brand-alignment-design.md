@@ -314,7 +314,18 @@ markasını uygulamanın kimliği yapmak hizalama değil, taklit olur. CCP'nin
 - Boşluk ölçeği (madde 6), sayfa iskeleti (madde 7).
 - `edge` / `wash` alfa değerleri.
 - `sec-*` güvenlik skalası.
-- Gölgesizlik ve `.float` camı.
+- Gölgesizlik ve ~~`.float` camı~~.
+
+**Son iki madde dal gözden geçirilirken değişti.** `.float`'ın camı kalktı ve
+kendi zeminini aldı: `popover: #212121`, kullanıcının verdiği değer. Bu, sayfa
+rampasına eklenen dördüncü bir adım değil — sayfanın _üstünde_ duran katmanın
+zemini, üç adımın da altında bir ton. Cam, panelin kendi rengi olmaması
+demekti (sayfa üzerinde ~`#262626`, kart üzerinde `#2b2b2c`), yani aynı ekranda
+açık iki popover birbirini tutmuyordu. Koyu ve opak zemin bunu kapatıyor ve
+kontrastı da geri veriyor: `ink-faint` 4.96 → 5.65, `ink-muted` 5.00 → 7.42,
+`destroyed` bu zeminde 4.54 ile gövde metni eşiğini geçiyor. Gölgesizlik
+duruyor. Toast'lar (`AlertToast`, `KillmailToast`) `.float` kullanmıyor, kendi
+`bg-surface/95`'lerinde kaldılar.
 
 ## Dokunulan dosyalar
 
@@ -324,6 +335,8 @@ markasını uygulamanın kimliği yapmak hizalama değil, taklit olur. CCP'nin
 | `frontend/src/app/buttons.css` | `.button-primary` ve `[aria-pressed]` mürekkebi, `.badge` token adı  |
 | `frontend/src/app/tables.css`  | ~~`.th-cell` büyük harf + aralık~~ — geri alındı                     |
 | `frontend/src/app/cards.css`   | ~~`.card-header` büyük harf + aralık~~ — geri alındı                 |
+| `frontend/src/app/globals.css` | `popover` token'ı (sonradan eklendi)                                 |
+| `frontend/src/app/cards.css`   | `.float` opak `popover` zeminine geçti (sonradan eklendi)            |
 | `frontend/src/**/*.tsx`        | `font-semibold` → `font-medium` taraması (ayrı commit)               |
 | Design system artifact         | token'lar, Rogan, logo, EVE bölümü                                   |
 
