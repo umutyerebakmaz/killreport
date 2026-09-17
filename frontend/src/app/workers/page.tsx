@@ -333,7 +333,7 @@ function StatCard({ label, value, color }: any) {
     green: 'border-green-500/30 bg-green-500/10 text-green-400',
     yellow: 'border-yellow-500/30 bg-yellow-500/10 text-yellow-400',
     purple: 'border-purple-500/30 bg-purple-500/10 text-purple-400',
-    cyan: 'border-cyan-500/30 bg-cyan-500/10 text-cyan-400',
+    cyan: 'border-accent-hover/30 bg-accent-hover/10 text-accent-link',
     orange: 'border-orange-500/30 bg-orange-500/10 text-orange-400',
     pink: 'border-pink-500/30 bg-pink-500/10 text-pink-400',
     indigo: 'border-indigo-500/30 bg-indigo-500/10 text-indigo-400',

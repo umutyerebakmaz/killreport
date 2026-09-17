@@ -132,7 +132,7 @@
   }
 
   .map-card-name {
-    @apply font-semibold text-gray-100 truncate group-hover:text-cyan-400;
+    @apply font-semibold text-gray-100 truncate group-hover:text-accent-link;
   }
 
   /* A region's constellations over its solar systems, e.g. 7/12; a

@@ -151,7 +151,7 @@ export default function KillmailDetailPage({
                         <a
                           href={`/characters/${victim.character?.id}`}
                           title={victim.character?.name || 'Character'}
-                          className="block w-full text-ink-muted truncate transition-colors hover:text-cyan-400"
+                          className="block w-full text-ink-muted truncate transition-colors hover:text-accent-link"
                         >
                           {victim.character?.name}
                         </a>
@@ -162,7 +162,7 @@ export default function KillmailDetailPage({
                           <a
                             href={`/corporations/${victim.corporation?.id}`}
                             title={victim.corporation?.name || 'Corporation'}
-                            className="block w-full text-ink-muted truncate transition-colors hover:text-cyan-400"
+                            className="block w-full text-ink-muted truncate transition-colors hover:text-accent-link"
                           >
                             {victim.corporation?.name}
                           </a>
@@ -174,7 +174,7 @@ export default function KillmailDetailPage({
                           <a
                             href={`/alliances/${victim.alliance?.id}`}
                             title={victim.alliance?.name || 'Alliance'}
-                            className="block w-full text-ink-muted truncate transition-colors hover:text-cyan-400"
+                            className="block w-full text-ink-muted truncate transition-colors hover:text-accent-link"
                           >
                             {victim.alliance?.name}
                           </a>

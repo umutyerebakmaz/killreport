@@ -131,7 +131,7 @@ export default function PrivacyPage() {
             </p>
 
             <div className="space-y-3 pt-4">
-              <div className="border-l-2 border-cyan-500 pl-4">
+              <div className="border-l-2 border-accent-hover pl-4">
                 <h3 className="font-semibold text-white mb-2">
                   1. Data Ingestion
                 </h3>
@@ -139,7 +139,7 @@ export default function PrivacyPage() {
                   Real-time killmail notifications from zKillboard's Redis queue
                 </p>
               </div>
-              <div className="border-l-2 border-cyan-500 pl-4">
+              <div className="border-l-2 border-accent-hover pl-4">
                 <h3 className="font-semibold text-white mb-2">
                   2. Data Enrichment
                 </h3>
@@ -147,7 +147,7 @@ export default function PrivacyPage() {
                   Complete killmail data fetched from CCP Games' ESI API
                 </p>
               </div>
-              <div className="border-l-2 border-cyan-500 pl-4">
+              <div className="border-l-2 border-accent-hover pl-4">
                 <h3 className="font-semibold text-white mb-2">
                   3. Processing & Storage
                 </h3>
@@ -155,7 +155,7 @@ export default function PrivacyPage() {
                   Creating searchable indexes and aggregated statistics
                 </p>
               </div>
-              <div className="border-l-2 border-cyan-500 pl-4">
+              <div className="border-l-2 border-accent-hover pl-4">
                 <h3 className="font-semibold text-white mb-2">
                   4. Presentation
                 </h3>
@@ -167,7 +167,7 @@ export default function PrivacyPage() {
 
             <p className="text-sm text-ink-muted pt-4">
               For a detailed technical explanation of our data pipeline, see our{' '}
-              <a href="/legal" className="text-cyan-400 hover:underline">
+              <a href="/legal" className="text-accent-link hover:underline">
                 Legal Information
               </a>{' '}
               page.
@@ -192,20 +192,20 @@ export default function PrivacyPage() {
               </h3>
               <ul className="ml-4 space-y-2 text-sm text-gray-300 list-disc list-inside">
                 <li>
-                  <span className="text-cyan-400">eve_access_token</span> - Your
-                  ESI authentication token
+                  <span className="text-accent-link">eve_access_token</span> -
+                  Your ESI authentication token
                 </li>
                 <li>
-                  <span className="text-cyan-400">eve_refresh_token</span> -
+                  <span className="text-accent-link">eve_refresh_token</span> -
                   Token for automatic session renewal
                 </li>
                 <li>
-                  <span className="text-cyan-400">eve_token_expiry</span> - When
-                  your token expires
+                  <span className="text-accent-link">eve_token_expiry</span> -
+                  When your token expires
                 </li>
                 <li>
-                  <span className="text-cyan-400">eve_user</span> - Your cached
-                  character profile data
+                  <span className="text-accent-link">eve_user</span> - Your
+                  cached character profile data
                 </li>
               </ul>
             </div>
@@ -216,7 +216,7 @@ export default function PrivacyPage() {
               </h3>
               <ul className="ml-4 space-y-2 text-sm text-gray-300 list-disc list-inside">
                 <li>
-                  <span className="text-cyan-400">session_id</span> - Unique
+                  <span className="text-accent-link">session_id</span> - Unique
                   session identifier (cleared when you close your browser)
                 </li>
               </ul>
@@ -224,7 +224,9 @@ export default function PrivacyPage() {
 
             <div className="bg-surface-inset border border-white/10 p-4 rounded">
               <p className="text-sm text-gray-300 mb-2">
-                <span className="font-semibold text-cyan-400">Important:</span>{' '}
+                <span className="font-semibold text-accent-link">
+                  Important:
+                </span>{' '}
                 We do NOT use traditional cookies. All data is stored in your
                 browser's storage, which you can clear at any time through your
                 browser settings.
@@ -284,7 +286,7 @@ export default function PrivacyPage() {
               All EVE Online related data is owned by CCP Games. For detailed
               information about data ownership, licensing, and GDPR requests,
               please see our{' '}
-              <a href="/legal" className="text-cyan-400 hover:underline">
+              <a href="/legal" className="text-accent-link hover:underline">
                 Legal Information
               </a>{' '}
               page.
@@ -313,7 +315,7 @@ export default function PrivacyPage() {
               href="https://discord.gg/hGugfm4n"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-cyan-400 hover:underline"
+              className="text-accent-link hover:underline"
             >
               Discord
             </a>{' '}
@@ -322,7 +324,7 @@ export default function PrivacyPage() {
               href="https://github.com/umutyerebakmaz/killreport"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-cyan-400 hover:underline"
+              className="text-accent-link hover:underline"
             >
               GitHub
             </a>
@@ -375,7 +377,7 @@ export default function PrivacyPage() {
                   href="https://discord.gg/hGugfm4n"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-cyan-400 hover:underline"
+                  className="text-accent-link hover:underline"
                 >
                   Contact us on Discord
                 </a>
@@ -385,7 +387,7 @@ export default function PrivacyPage() {
                   href="https://github.com/umutyerebakmaz/killreport"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-cyan-400 hover:underline"
+                  className="text-accent-link hover:underline"
                 >
                   Open an issue on GitHub
                 </a>

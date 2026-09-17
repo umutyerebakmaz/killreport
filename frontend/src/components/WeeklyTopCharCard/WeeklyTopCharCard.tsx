@@ -19,7 +19,7 @@ export default function WeeklyTopCharCard() {
     <div className="flex flex-col border bg-surface hover:bg-surface-inset">
       {/* Header */}
       <div className="flex items-center gap-2 p-4 border-b border-white/10">
-        <CalendarDaysIcon className="w-4 h-4 text-cyan-400 shrink-0" />
+        <CalendarDaysIcon className="w-4 h-4 text-accent-link shrink-0" />
         <h3 className="text-sm font-semibold text-white">Weekly Top 10</h3>
       </div>
 

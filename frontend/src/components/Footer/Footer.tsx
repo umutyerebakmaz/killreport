@@ -188,7 +188,7 @@ export default function Footer() {
               In-Game Contact
             </h3>
             <div className="mt-6 space-y-4">
-              <div className="p-4 border bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border-cyan-500/30">
+              <div className="p-4 border bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border-accent-hover/30">
                 <div className="flex items-start gap-4 mb-4">
                   <img
                     src={`https://images.evetech.net/characters/${characterId}/portrait?size=128`}
@@ -235,13 +235,13 @@ export default function Footer() {
         <div className="flex flex-row items-start justify-between gap-4 pt-8 mt-16 border-t border-white/10 sm:mt-20 lg:mt-24">
           <p className="text-ink-muted text-sm/6">
             &copy; {currentYear} Killreport, Inc. All rights reserved. All{' '}
-            <a href="/legal" className="text-cyan-500 hover:underline">
+            <a href="/legal" className="text-accent-hover hover:underline">
               EVE related materials
             </a>{' '}
             are property of{' '}
             <a
               href="https://www.ccpgames.com"
-              className="text-cyan-500 hover:underline"
+              className="text-accent-hover hover:underline"
             >
               CCP Games
             </a>

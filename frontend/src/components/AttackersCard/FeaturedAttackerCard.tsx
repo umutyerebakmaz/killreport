@@ -71,7 +71,7 @@ export default function FeaturedAttackerCard({
       <div className="pt-1 pb-4">
         <Link
           href={`/characters/${attacker.character?.id}`}
-          className="block font-medium text-ink-muted hover:text-cyan-400"
+          className="block font-medium text-ink-muted hover:text-accent-link"
           prefetch={false}
         >
           {attacker?.character?.name}

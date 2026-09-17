@@ -166,7 +166,7 @@ export default function AttackerRow({
               <Tooltip content="Show Character Info">
                 <Link
                   href={`/characters/${attacker.character?.id}`}
-                  className="font-medium text-ink-muted hover:text-cyan-400"
+                  className="font-medium text-ink-muted hover:text-accent-link"
                   prefetch={false}
                 >
                   {attacker.character?.name || 'Unknown'}
@@ -192,7 +192,7 @@ export default function AttackerRow({
               <Tooltip content="Show Alliance Info">
                 <Link
                   href={`/alliances/${attacker.alliance.id}`}
-                  className="text-sm text-ink-muted hover:text-cyan-400"
+                  className="text-sm text-ink-muted hover:text-accent-link"
                   prefetch={false}
                 >
                   {attacker.alliance.name || 'Unknown'}
@@ -202,7 +202,7 @@ export default function AttackerRow({
               <Tooltip content="Show Corporation Info">
                 <Link
                   href={`/corporations/${attacker.corporation.id}`}
-                  className="text-sm text-ink-muted hover:text-cyan-400"
+                  className="text-sm text-ink-muted hover:text-accent-link"
                   prefetch={false}
                 >
                   {attacker.corporation.name || 'Unknown'}

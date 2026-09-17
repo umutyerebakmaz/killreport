@@ -13,7 +13,7 @@ import Link from 'next/link';
 
 const TYPE_DOT: Record<string, string> = {
   campaign_started: 'bg-orange-400',
-  campaign_ended: 'bg-cyan-400',
+  campaign_ended: 'bg-accent-link',
   territory_change: 'bg-yellow-400',
 };
 

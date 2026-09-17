@@ -78,7 +78,7 @@ export default function OrbitalBodiesTab({ systemId }: OrbitalBodiesTabProps) {
                 </span>
                 <BodyLabel name={planet.name} id={planet.id} kind="Planet" />
                 {planet.type?.name && (
-                  <span className="px-2 py-0.5 text-xs text-cyan-400 bg-cyan-400/10 border border-cyan-400/20">
+                  <span className="px-2 py-0.5 text-xs text-accent-link bg-accent-link/10 border border-accent-link/20">
                     {planet.type.name}
                   </span>
                 )}

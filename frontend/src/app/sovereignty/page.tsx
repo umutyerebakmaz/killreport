@@ -159,7 +159,7 @@ function SovereigntyContent() {
                   </td>
                   <td className="td-cell text-right whitespace-nowrap">
                     {r.campaignsDefending > 0 ? (
-                      <span className="text-cyan-400">
+                      <span className="text-accent-link">
                         {r.campaignsDefending}
                       </span>
                     ) : (
@@ -216,7 +216,7 @@ function SovereigntyContent() {
                   name={d.allianceName}
                   ticker={d.allianceTicker}
                 />
-                <span className="text-cyan-400">
+                <span className="text-accent-link">
                   {d.campaignsDefending} def
                 </span>
               </li>

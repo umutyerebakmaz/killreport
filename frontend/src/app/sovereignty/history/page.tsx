@@ -24,7 +24,7 @@ const OUTCOME_LABELS: Record<string, string> = {
 };
 
 const OUTCOME_STYLES: Record<string, string> = {
-  defender_won: 'text-cyan-400',
+  defender_won: 'text-accent-link',
   attacker_won: 'text-red-400',
   abandoned: 'text-ink-muted',
 };
@@ -53,7 +53,7 @@ function OutcomeBar({
   const pct = (n: number) => `${(n / total) * 100}%`;
   return (
     <div className="flex h-2 max-w-2xl overflow-hidden bg-surface-inset">
-      <div className="bg-cyan-500" style={{ width: pct(defenderWon) }} />
+      <div className="bg-accent-hover" style={{ width: pct(defenderWon) }} />
       <div className="bg-red-500" style={{ width: pct(attackerWon) }} />
       <div className="bg-gray-600" style={{ width: pct(abandoned) }} />
     </div>
@@ -137,7 +137,7 @@ function HistoryContent() {
                       ticker={d.allianceTicker}
                     />
                   </td>
-                  <td className="td-cell font-semibold text-right text-cyan-400 whitespace-nowrap">
+                  <td className="td-cell font-semibold text-right text-accent-link whitespace-nowrap">
                     {d.defensesWon}
                   </td>
                   <td className="td-cell text-right text-gray-300 whitespace-nowrap">

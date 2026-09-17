@@ -199,7 +199,7 @@ export default function AttackersCard({
                     />
                     <Link
                       href={`/alliances/${alliance.id}`}
-                      className="flex-1 text-base text-gray-100 hover:text-cyan-400"
+                      className="flex-1 text-base text-gray-100 hover:text-accent-link"
                       prefetch={false}
                       onClick={(e) => e.stopPropagation()}
                     >

@@ -493,7 +493,7 @@ export default function CorporationDetailPage({
                     href={corporation.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="ml-2 font-semibold text-cyan-400 hover:text-cyan-300"
+                    className="ml-2 font-semibold text-accent-link hover:text-cyan-300"
                   >
                     {corporation.url}
                   </a>

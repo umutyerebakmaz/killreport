@@ -227,7 +227,7 @@ export default function TermsPage() {
                   href="https://discord.gg/hGugfm4n"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-cyan-400 hover:underline"
+                  className="text-accent-link hover:underline"
                 >
                   Join our Discord community for support
                 </a>
@@ -237,7 +237,7 @@ export default function TermsPage() {
                   href="https://github.com/umutyerebakmaz/killreport"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-cyan-400 hover:underline"
+                  className="text-accent-link hover:underline"
                 >
                   Open an issue on GitHub
                 </a>

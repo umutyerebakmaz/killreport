@@ -66,7 +66,7 @@ export const Loader: React.FC<LoaderProps> = ({
         ) : (
           // Fallback spinner
           <div
-            className={`${sizeClasses[size]} border-cyan-500 rounded-full animate-spin border-t-transparent`}
+            className={`${sizeClasses[size]} border-accent-hover rounded-full animate-spin border-t-transparent`}
           />
         )}
         {text && (
