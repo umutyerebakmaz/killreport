@@ -66,6 +66,27 @@ describe('EveImage', () => {
     );
   });
 
+  it('swaps in fallbackClassName once the render has failed', () => {
+    render(
+      <EveImage
+        kind="ship"
+        id={587}
+        name="Rifter"
+        fill
+        className="object-cover"
+        fallbackClassName="object-contain p-10"
+      />,
+    );
+
+    expect(screen.getByAltText('Rifter')).toHaveClass('object-cover');
+
+    fireEvent.error(screen.getByAltText('Rifter'));
+
+    const img = screen.getByAltText('Rifter');
+    expect(img).toHaveClass('object-contain');
+    expect(img).not.toHaveClass('object-cover');
+  });
+
   it('draws a fill image without width and height', () => {
     render(<EveImage kind="ship" id={587} name="Rifter" fill />);
 

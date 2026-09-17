@@ -19,6 +19,13 @@ export type EveImageProps = {
   /** The entity's name; it is the alt text. */
   name: string;
   className?: string;
+  /**
+   * `ship` only: the class to draw with once the render has 404'd and the
+   * icon has taken its place. KillmailCard is the one caller that needs it —
+   * a render is a photograph and fills its card, an icon is a small square
+   * and has to sit inside one.
+   */
+  fallbackClassName?: string;
   /** Only the killmail page's victim hull sets this. */
   priority?: boolean;
   /** `type` only: 2 is a blueprint copy. */
@@ -41,6 +48,7 @@ export default function EveImage({
   id,
   name,
   className,
+  fallbackClassName,
   priority,
   singleton,
   blueprint,
@@ -55,19 +63,24 @@ export default function EveImage({
    */
   const [iconFor, setIconFor] = useState<number | null>(null);
 
+  const isFallback = kind === 'ship' && iconFor === id;
+
   const src = eveImageUrl({
     kind,
     id,
     size: fill ? FILL_SIZE : size,
     singleton,
     blueprint,
-    icon: kind === 'ship' && iconFor === id,
+    icon: isFallback,
   });
+
+  const drawnClassName =
+    isFallback && fallbackClassName ? fallbackClassName : className;
 
   /* Only a ship has somewhere to fall back to: a hull with no render still
      has an icon. Nothing else does, so nothing else listens. */
   const onError =
-    kind === 'ship' && iconFor !== id ? () => setIconFor(id) : undefined;
+    kind === 'ship' && !isFallback ? () => setIconFor(id) : undefined;
 
   if (fill) {
     return (
@@ -75,7 +88,7 @@ export default function EveImage({
         src={src}
         alt={name}
         fill
-        className={className}
+        className={drawnClassName}
         priority={priority}
         onError={onError}
         unoptimized
@@ -89,7 +102,7 @@ export default function EveImage({
       alt={name}
       width={size}
       height={size}
-      className={className}
+      className={drawnClassName}
       priority={priority}
       onError={onError}
       unoptimized

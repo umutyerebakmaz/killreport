@@ -1,4 +1,5 @@
 import type { KillmailQuery } from '@/generated/graphql';
+import EveImage from '../ui/EveImage';
 import ImplantSlot from './ImplantSlot';
 import ServiceSlot from './ServiceSlot';
 import Slot from './Slot';
@@ -45,16 +46,12 @@ export default function FitScreen({ shipType, fitting }: FitScreenProps) {
         <div className="fitting">
           <div className="hull">
             {shipType && (
-              <img
-                src={`https://images.evetech.net/types/${shipType.id}/render?size=512`}
-                alt={shipType.name}
+              <EveImage
+                kind="ship"
+                id={shipType.id}
+                name={shipType.name}
+                fill
                 className="hull-image"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  if (target.src.includes('/render?')) {
-                    target.src = `https://images.evetech.net/types/${shipType.id}/icon?size=512`;
-                  }
-                }}
               />
             )}
           </div>

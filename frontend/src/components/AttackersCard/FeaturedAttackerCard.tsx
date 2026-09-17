@@ -1,6 +1,7 @@
 import { KillmailQuery } from '@/generated/graphql';
 import Link from 'next/link';
 import Tooltip from '../Tooltip/Tooltip';
+import EveImage from '../ui/EveImage';
 
 interface FeaturedAttackerCardProps {
   attacker: NonNullable<KillmailQuery['killmail']>['attackers'][0];
@@ -82,12 +83,11 @@ export default function FeaturedAttackerCard({
       {attacker.shipType?.id && (
         <div className="flex gap-2">
           <Tooltip content={attacker.shipType?.name}>
-            <img
-              src={`https://images.evetech.net/types/${attacker.shipType?.id}/render?size=128`}
-              alt={attacker.shipType?.name || 'Ship'}
-              width={48}
-              height={48}
-              loading="lazy"
+            <EveImage
+              kind="ship"
+              id={attacker.shipType.id}
+              name={attacker.shipType.name || 'Ship'}
+              size={48}
             />
           </Tooltip>
         </div>

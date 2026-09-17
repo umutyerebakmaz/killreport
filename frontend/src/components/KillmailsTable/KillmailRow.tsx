@@ -10,6 +10,7 @@ import { getShipTier } from '@/utils/shipTier';
 import Link from 'next/link';
 import { getKillmailRowStyles } from './killmailRowStyles';
 import { KillmailRowProps } from './types';
+import EveImage from '../ui/EveImage';
 
 export default function KillmailRow({
   killmail: km,
@@ -80,18 +81,12 @@ export default function KillmailRow({
                     <ShipTierBadge tier={shipTier} />
                   </div>
                 )}
-                <img
-                  src={`https://images.evetech.net/types/${km.victim?.shipType?.id}/render?size=128`}
-                  alt={km.victim?.shipType?.name || 'Ship'}
+                <EveImage
+                  kind="ship"
+                  id={km.victim.shipType.id}
+                  name={km.victim.shipType.name || 'Ship'}
+                  size={64}
                   className="transition-opacity size-16 hover:opacity-80"
-                  loading="lazy"
-                  onError={(e) => {
-                    // Fallback to icon if render fails (e.g., for some faction ships)
-                    const target = e.target as HTMLImageElement;
-                    if (target.src.includes('/render?')) {
-                      target.src = `https://images.evetech.net/types/${km.victim?.shipType?.id}/icon?size=128`;
-                    }
-                  }}
                 />
               </Link>
             </Tooltip>
