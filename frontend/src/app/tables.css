@@ -8,13 +8,6 @@
   }
 
   /*
-   * Type identical to a .card-header's title, tracking included: the two sit
-   * side by side on /killmails, so any difference between them reads as an
-   * accident rather than as a hierarchy. The padding follows from the type —
-   * py-3 around a text-lg line box is 24 + 28 = 52, the height .card-header
-   * lands on. It was py-3.5 back when this was text-base.
-   */
-  /*
    * py-2, down from py-4 in three steps. Five of the six columns are
    * align-top, so the top padding is the whole visible gap between a row's
    * divider and its first line, and 16 there read as slack.
@@ -46,6 +39,13 @@
     @apply transition-colors bg-surface hover:bg-surface-inset;
   }
 
+  /*
+   * Type identical to a .card-header's title, tracking included: the two sit
+   * side by side on /killmails, so any difference between them reads as an
+   * accident rather than as a hierarchy. The padding follows from the type —
+   * py-3 around a text-lg line box is 24 + 28 = 52, the height .card-header
+   * lands on. It was py-3.5 back when this was text-base.
+   */
   .th-cell {
     @apply px-4 py-3 text-lg font-medium tracking-[0.15em] uppercase text-white;
   }
