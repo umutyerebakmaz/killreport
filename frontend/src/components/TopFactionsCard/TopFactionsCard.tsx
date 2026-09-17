@@ -31,7 +31,7 @@ export default function TopFactionsCard({
     <div className="flex items-center justify-between gap-3">
       <h3 className="text-lg font-medium text-white">{title}</h3>
       {subtitle && (
-        <span className="text-xs text-ink-faint shrink-0">{subtitle}</span>
+        <span className="text-sm text-ink-muted shrink-0">{subtitle}</span>
       )}
     </div>
   );
