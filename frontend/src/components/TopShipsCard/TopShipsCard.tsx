@@ -79,8 +79,8 @@ export default function TopShipsCard({
                       kind="ship"
                       id={ship.id}
                       name={ship.name}
-                      size={64}
-                      className="size-16"
+                      size={32}
+                      className="size-8"
                     />
                   </div>
 
@@ -96,7 +96,7 @@ export default function TopShipsCard({
                     </Tooltip>
 
                     {/* Kill Count */}
-                    <span className="text-lg font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">
+                    <span className="text-base font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">
                       {ship.killCount}
                     </span>
                   </div>

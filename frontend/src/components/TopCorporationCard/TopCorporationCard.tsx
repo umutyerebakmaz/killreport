@@ -70,13 +70,13 @@ export default function TopCorporationCard({
                       kind="corporation"
                       id={corporation.id}
                       name={corporation.name}
-                      size={64}
+                      size={32}
                     />
                   </div>
 
                   {/* Info */}
                   <div className="flex items-center justify-between flex-1 min-w-0 gap-2">
-                    <div className="flex flex-col min-w-0 gap-0.5 leading-tight">
+                    <div className="min-w-0 leading-tight">
                       <Tooltip
                         content="Show corporation info"
                         className="w-full! min-w-0"
@@ -89,15 +89,10 @@ export default function TopCorporationCard({
                           {corporation.name}
                         </Link>
                       </Tooltip>
-                      {corporation.ticker && (
-                        <span className="block text-sm leading-tight text-ink-faint truncate">
-                          [{corporation.ticker}]
-                        </span>
-                      )}
                     </div>
 
                     {/* Kill Count */}
-                    <span className="text-lg font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">
+                    <span className="text-base font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">
                       {corporation.killCount.toLocaleString()}
                     </span>
                   </div>

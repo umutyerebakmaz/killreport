@@ -13,17 +13,22 @@ export default function RankNumber({ rank }: RankNumberProps) {
   // the same x and the avatars beside them all start at the same one.
   //
   // The width is 2ch, not w-10. tabular-nums makes every digit exactly 1ch, so
-  // 2ch is the width of "10" in whatever font is loaded — no pixel guess to go
-  // stale when the face changes. w-10 was 40px against content that is now
-  // about 22px, and with the number flush right every one of those spare
-  // pixels sat between the card's edge and the rank.
+  // 2ch is the width of "10" in whatever font is loaded and at whatever size —
+  // no pixel guess to go stale when the face or the type scale changes. w-10
+  // was 40px against content a little over half that, and with the number
+  // flush right every one of those spare pixels sat between the card's edge
+  // and the rank.
+  //
+  // The figure is text-base, the size the name, the security value and the
+  // kill count beside it all settled on. It was text-lg, which made the rank
+  // the one thing in the row drawn a step larger than everything else.
   //
   // Every list that uses this asks for ten rows, so two digits is the whole
   // range. A three-digit rank would spill into the gap-3 beside it rather
   // than push anything — worth knowing before a caller raises its limit.
   return (
     <div className="flex items-center w-[2ch] shrink-0 justify-end">
-      <span className="text-lg font-medium text-ink-faint tabular-nums">
+      <span className="text-base font-medium text-ink-faint tabular-nums">
         {rank}
       </span>
     </div>

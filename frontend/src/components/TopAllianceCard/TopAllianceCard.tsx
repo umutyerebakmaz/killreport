@@ -70,13 +70,13 @@ export default function TopAllianceCard({
                       kind="alliance"
                       id={alliance.id}
                       name={alliance.name}
-                      size={64}
+                      size={32}
                     />
                   </div>
 
                   {/* Info */}
                   <div className="flex items-center justify-between flex-1 min-w-0 gap-2">
-                    <div className="flex flex-col min-w-0 gap-0.5 leading-tight">
+                    <div className="min-w-0 leading-tight">
                       <Tooltip
                         content="Show alliance info"
                         className="w-full! min-w-0"
@@ -89,15 +89,10 @@ export default function TopAllianceCard({
                           {alliance.name}
                         </Link>
                       </Tooltip>
-                      {alliance.ticker && (
-                        <span className="block text-sm leading-tight text-ink-faint truncate">
-                          &lt;{alliance.ticker}&gt;
-                        </span>
-                      )}
                     </div>
 
                     {/* Kill Count */}
-                    <span className="text-lg font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">
+                    <span className="text-base font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">
                       {alliance.killCount.toLocaleString()}
                     </span>
                   </div>

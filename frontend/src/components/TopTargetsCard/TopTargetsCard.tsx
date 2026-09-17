@@ -79,7 +79,7 @@ export default function TopTargetsCard({
                     kind={targetType}
                     id={target.id}
                     name={target.name}
-                    size={64}
+                    size={32}
                   />
                 </div>
 
@@ -99,7 +99,7 @@ export default function TopTargetsCard({
                   </Tooltip>
 
                   {/* Kill Count */}
-                  <span className="text-lg font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">
+                  <span className="text-base font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">
                     {target.count}
                   </span>
                 </div>

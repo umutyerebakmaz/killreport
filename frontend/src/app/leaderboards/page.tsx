@@ -84,30 +84,21 @@ function PilotList({
               <RankNumber rank={pilot.rank} />
 
               {/* Portrait */}
-              <div className="relative shrink-0">
-                <EveImage
-                  kind="character"
-                  id={char?.id ?? 0}
-                  name={char?.name ?? 'Unknown'}
-                  size={64}
-                  className="shadow-md"
-                />
-                {char?.securityStatus != null && (
-                  <div className="absolute bottom-0 left-0 px-1.5 py-0.5 text-xs font-medium bg-black/70 backdrop-blur-sm">
-                    <span className={secColor}>
-                      {char.securityStatus.toFixed(1)}
-                    </span>
-                  </div>
-                )}
-              </div>
+              <EveImage
+                kind="character"
+                id={char?.id ?? 0}
+                name={char?.name ?? 'Unknown'}
+                size={32}
+                className="shrink-0 shadow-md"
+              />
 
               {/* Info */}
               <div className="flex justify-between w-full min-w-0">
-                <div className="flex flex-col min-w-0 overflow-hidden">
+                <div className="flex items-baseline min-w-0 gap-2 overflow-hidden">
                   {char ? (
                     <Tooltip
                       content="Show Character Info"
-                      className="w-full! min-w-0 overflow-hidden"
+                      className="min-w-0 overflow-hidden"
                     >
                       <Link
                         href={`/characters/${char.id}?tab=killmails`}
@@ -122,41 +113,21 @@ function PilotList({
                       Unknown Pilot
                     </span>
                   )}
-                  {char?.corporation && (
-                    <Tooltip
-                      content="Show Corporation Info"
-                      className="w-full! min-w-0 overflow-hidden"
+                  {char?.securityStatus != null && (
+                    <span
+                      className={`text-base tabular-nums shrink-0 ${secColor}`}
                     >
-                      <Link
-                        href={`/corporations/${char.corporation.id}?tab=killmails`}
-                        className="block text-sm text-ink-muted truncate hover:text-blue-400"
-                        prefetch={false}
-                      >
-                        {char.corporation.name}
-                      </Link>
-                    </Tooltip>
-                  )}
-                  {char?.alliance && (
-                    <Tooltip
-                      content="Show Alliance Info"
-                      className="w-full! min-w-0 overflow-hidden"
-                    >
-                      <Link
-                        href={`/alliances/${char.alliance.id}?tab=killmails`}
-                        className="block text-sm text-ink-muted truncate hover:text-blue-400"
-                        prefetch={false}
-                      >
-                        {char.alliance.name}
-                      </Link>
-                    </Tooltip>
+                      {char.securityStatus.toFixed(1)}
+                    </span>
                   )}
                 </div>
 
                 {/* Kill count + logos */}
-                <div className="flex flex-col items-end justify-between pl-2 gap-y-1 shrink-0">
-                  <span className="text-lg font-medium text-ink-muted tabular-nums whitespace-nowrap">
-                    {pilot.killCount.toLocaleString()}
-                  </span>
+                {/* Stacked, this column was 64 tall — the count over two 32px
+                    crests — and it, not the portrait, is what held the row at
+                    80. Laid out in one line it is 32, the same as the portrait
+                    beside it, and the row comes to 48 like the Top* cards. */}
+                <div className="flex items-center pl-2 gap-2 shrink-0">
                   <div className="flex">
                     {char?.corporation && (
                       <Tooltip
@@ -181,6 +152,9 @@ function PilotList({
                       </Tooltip>
                     )}
                   </div>
+                  <span className="text-base font-medium text-ink-muted tabular-nums whitespace-nowrap">
+                    {pilot.killCount.toLocaleString()}
+                  </span>
                 </div>
               </div>
             </div>

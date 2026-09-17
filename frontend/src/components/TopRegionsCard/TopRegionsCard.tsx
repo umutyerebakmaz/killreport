@@ -63,7 +63,7 @@ export default function TopRegionsCard({
                 <RegionMap
                   regionId={region.id}
                   regionName={region.name}
-                  size={64}
+                  size={32}
                   className="shrink-0"
                 />
 
@@ -74,7 +74,7 @@ export default function TopRegionsCard({
                   >
                     {region.name}
                   </Link>
-                  <span className="text-lg font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">
+                  <span className="text-base font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">
                     {region.killCount}
                   </span>
                 </div>

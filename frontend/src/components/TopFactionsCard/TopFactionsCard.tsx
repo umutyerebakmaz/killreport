@@ -74,7 +74,7 @@ export default function TopFactionsCard({
                     kind="corporation"
                     id={faction.id}
                     name={faction.name}
-                    size={64}
+                    size={32}
                   />
                 </div>
 
@@ -82,7 +82,7 @@ export default function TopFactionsCard({
                   <span className="block min-w-0 font-medium text-orange-400 truncate">
                     {faction.name}
                   </span>
-                  <span className="text-lg font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">
+                  <span className="text-base font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">
                     {faction.killCount}
                   </span>
                 </div>
