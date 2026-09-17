@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "yarn kill && next dev --turbopack",
+    "dev": "yarn kill && next dev --turbopack -p ${PORT:-3000}",
     "build": "next build --turbopack",
     "build:check": "NEXT_DIST_DIR=.next-check next build --turbopack",
     "start": "next start",
