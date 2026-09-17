@@ -1,4 +1,5 @@
-import { getItemImageUrl } from '@/utils/itemImageUrl';
+import { legacyItemImageUrl } from '@/utils/eveImageUrl';
+import { isBlueprint } from '@/utils/itemType';
 import Tooltip from '../Tooltip/Tooltip';
 
 interface SlotProps {
@@ -58,7 +59,7 @@ export default function Slot({
                     <Tooltip content={name}>
                       <div className="border shrink-0 border-white/10 bg-white/5">
                         <img
-                          src={getItemImageUrl(
+                          src={legacyItemImageUrl(
                             module?.charge
                               ? module.charge.itemType
                               : module.itemType,
@@ -66,6 +67,11 @@ export default function Slot({
                               ? module.charge.singleton
                               : module.singleton,
                             128,
+                            isBlueprint(
+                              module?.charge
+                                ? module.charge.itemType
+                                : module.itemType,
+                            ),
                           )}
                           alt={name}
                           className="z-10 size-12"
@@ -79,10 +85,11 @@ export default function Slot({
                       <Tooltip content={module.itemType.name}>
                         <div className="border border-white/10 bg-white/5">
                           <img
-                            src={getItemImageUrl(
+                            src={legacyItemImageUrl(
                               module.itemType,
                               module.singleton,
                               128,
+                              isBlueprint(module.itemType),
                             )}
                             alt={module.itemType.name}
                             className="size-12"

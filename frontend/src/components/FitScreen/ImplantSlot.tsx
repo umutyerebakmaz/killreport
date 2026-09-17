@@ -1,4 +1,5 @@
-import { getItemImageUrl } from '@/utils/itemImageUrl';
+import { legacyItemImageUrl } from '@/utils/eveImageUrl';
+import { isBlueprint } from '@/utils/itemType';
 import Tooltip from '../Tooltip/Tooltip';
 
 interface ImplantSlotProps {
@@ -20,10 +21,11 @@ export default function ImplantSlot({ slots }: ImplantSlotProps) {
                   {/* Ring background */}
                   <div className="absolute inset-0 overflow-visible border border-white/10 size-12 bg-white/5"></div>
                   <img
-                    src={getItemImageUrl(
+                    src={legacyItemImageUrl(
                       module.itemType,
                       module.singleton,
                       128,
+                      isBlueprint(module.itemType),
                     )}
                     alt={module.itemType.name}
                     className="relative z-10 size-12"

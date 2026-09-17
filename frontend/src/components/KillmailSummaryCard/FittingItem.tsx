@@ -1,9 +1,6 @@
 import { formatISK } from '@/utils/formatISK';
-import {
-  getItemImageUrl,
-  getItemName,
-  isBlueprint,
-} from '@/utils/itemImageUrl';
+import { legacyItemImageUrl } from '@/utils/eveImageUrl';
+import { getItemName, isBlueprint } from '@/utils/itemType';
 import Tooltip from '../Tooltip/Tooltip';
 import { FittingView } from './types';
 
@@ -143,7 +140,12 @@ export default function FittingItem({
           className={`relative transition-colors size-16 ${bgColor}`}
         >
           <img
-            src={getItemImageUrl(item.itemType, item.singleton, 64)}
+            src={legacyItemImageUrl(
+              item.itemType,
+              item.singleton,
+              64,
+              isBlueprint(item.itemType),
+            )}
             alt={itemName}
             width={64}
             height={64}
@@ -169,7 +171,12 @@ export default function FittingItem({
       className={`transition-colors flex items-center ${bgColor}`}
     >
       <img
-        src={getItemImageUrl(item.itemType, item.singleton, 64)}
+        src={legacyItemImageUrl(
+          item.itemType,
+          item.singleton,
+          64,
+          isBlueprint(item.itemType),
+        )}
         alt={itemName}
         className="bg-white/5 size-8 border-white/10"
         loading="lazy"

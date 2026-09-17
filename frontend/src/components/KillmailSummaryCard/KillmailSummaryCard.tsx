@@ -3,7 +3,7 @@
 import type { KillmailQuery } from '@/generated/graphql';
 import { useTabList } from '@/hooks/useTabList';
 import { formatISK } from '@/utils/formatISK';
-import { isBlueprint } from '@/utils/itemImageUrl';
+import { isBlueprint } from '@/utils/itemType';
 import { getShipTier } from '@/utils/shipTier';
 import { useState, useSyncExternalStore } from 'react';
 import RadioGroup from '../RadioGroup/RadioGroup';
