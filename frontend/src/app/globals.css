@@ -23,6 +23,18 @@
      pockets today: cyan, indigo and blue. */
   --color-accent: var(--color-cyan-600);
 
+  /* The accent's neighbours, named so a sweep has something to sweep to.
+     accent-link is an entity name under the pointer; accent-hover is the
+     pointer state of an accent fill; accent-ink is what sits ON the fill. */
+  --color-accent-link: var(--color-cyan-400);
+  --color-accent-hover: var(--color-cyan-500);
+  --color-accent-ink: var(--color-cyan-700);
+
+  /* Ink. The two greys the app writes most — 251 and 115 times — as raw
+     palette steps. */
+  --color-ink-muted: var(--color-gray-400);
+  --color-ink-faint: var(--color-gray-500);
+
   /* Meaning. Damage uses `destroyed` too — a separate --color-damage would
      be a second name for the same value. */
   --color-destroyed: var(--color-red-400);
