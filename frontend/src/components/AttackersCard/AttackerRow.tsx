@@ -122,13 +122,12 @@ export default function AttackerRow({
           </Tooltip>
           <Tooltip content={attacker.weaponType?.name || 'Unknown Weapon'}>
             {attacker.weaponType?.id ? (
-              <img
-                src={`https://images.evetech.net/types/${attacker.weaponType?.id}/icon?size=64`}
-                alt={attacker.weaponType?.name || 'Weapon'}
-                width={32}
-                height={32}
+              <EveImage
+                kind="type"
+                id={attacker.weaponType.id}
+                name={attacker.weaponType.name || 'Weapon'}
+                size={32}
                 className="bg-white/5"
-                loading="lazy"
               />
             ) : attacker.shipType?.id ? (
               <EveImage

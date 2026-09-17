@@ -1,6 +1,6 @@
-import { legacyItemImageUrl } from '@/utils/eveImageUrl';
 import { isBlueprint } from '@/utils/itemType';
 import Tooltip from '../Tooltip/Tooltip';
+import EveImage from '../ui/EveImage';
 
 interface ImplantSlotProps {
   slots: any[];
@@ -20,14 +20,13 @@ export default function ImplantSlot({ slots }: ImplantSlotProps) {
                 <div className="relative overflow-visible size-12">
                   {/* Ring background */}
                   <div className="absolute inset-0 overflow-visible border border-white/10 size-12 bg-white/5"></div>
-                  <img
-                    src={legacyItemImageUrl(
-                      module.itemType,
-                      module.singleton,
-                      128,
-                      isBlueprint(module.itemType),
-                    )}
-                    alt={module.itemType.name}
+                  <EveImage
+                    kind="type"
+                    id={module.itemType.id}
+                    name={module.itemType.name}
+                    size={48}
+                    singleton={module.singleton}
+                    blueprint={isBlueprint(module.itemType)}
                     className="relative z-10 size-12"
                   />
                 </div>

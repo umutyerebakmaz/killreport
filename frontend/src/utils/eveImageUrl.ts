@@ -67,27 +67,3 @@ export const eveImageUrl = ({
       return `https://images.evetech.net/alliances/${id}/logo?size=${s}`;
   }
 };
-
-/**
- * Temporary: the six call sites that still build their own <img> src. Task 5
- * replaces all of them with <EveImage> and deletes this along with them.
- *
- * `size` here is the fetch size the old getItemImageUrl took, so it is halved
- * back into a drawn size before `eveImageUrl` doubles it again — which keeps
- * every one of those six URLs byte for byte what it is today.
- */
-export const legacyItemImageUrl = (
-  itemType: { id?: number | null } | null | undefined,
-  singleton: number = 1,
-  size: number = 64,
-  blueprint: boolean = false,
-): string => {
-  if (!itemType?.id) return '';
-  return eveImageUrl({
-    kind: 'type',
-    id: itemType.id,
-    size: size / 2,
-    singleton,
-    blueprint,
-  });
-};

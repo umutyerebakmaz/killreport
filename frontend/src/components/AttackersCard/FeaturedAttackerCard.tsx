@@ -94,12 +94,11 @@ export default function FeaturedAttackerCard({
       {attacker.weaponType?.id && (
         <div className="flex gap-2">
           <Tooltip content={attacker.weaponType?.name}>
-            <img
-              src={`https://images.evetech.net/types/${attacker.weaponType?.id}/icon?size=128`}
-              alt={attacker.weaponType?.name || 'Weapon'}
-              width={48}
-              height={48}
-              loading="lazy"
+            <EveImage
+              kind="type"
+              id={attacker.weaponType.id}
+              name={attacker.weaponType.name || 'Weapon'}
+              size={48}
             />
           </Tooltip>
         </div>

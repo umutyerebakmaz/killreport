@@ -844,14 +844,12 @@ export default function KillmailFilterForm({
                             className="menu-row group"
                           >
                             <div className="flex items-center justify-center flex-none size-16 bg-gray-700/50 group-hover:bg-gray-700">
-                              <img
-                                src={`https://images.evetech.net/types/${type.id}/icon?size=128`}
-                                alt={type.name}
+                              <EveImage
+                                kind="type"
+                                id={type.id}
+                                name={type.name}
+                                size={64}
                                 className="object-cover size-16"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).src =
-                                    '/images/default-ship.png';
-                                }}
                               />
                             </div>
                             <div className="flex-auto min-w-0 text-left">
@@ -886,14 +884,12 @@ export default function KillmailFilterForm({
             {shipTypeId && (
               <div className="flex flex-wrap items-center justify-between gap-3 mt-3">
                 <span className="chip">
-                  <img
-                    src={`https://images.evetech.net/types/${shipTypeId}/icon?size=64`}
-                    alt={shipTypeName}
+                  <EveImage
+                    kind="type"
+                    id={shipTypeId}
+                    name={shipTypeName}
+                    size={32}
                     className="object-cover size-8"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        '/images/default-ship.png';
-                    }}
                   />
                   <span className="font-semibold truncate">{shipTypeName}</span>
                   <button

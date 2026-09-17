@@ -2,7 +2,7 @@
 
 import { eveImageUrl, type EveImageKind } from '@/utils/eveImageUrl';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 
 /**
  * A `fill` image has no pixel box to derive a fetch size from, so it asks for
@@ -19,6 +19,8 @@ export type EveImageProps = {
   /** The entity's name; it is the alt text. */
   name: string;
   className?: string;
+  /** The fit screen counter-rotates its slot icons; nothing else sets this. */
+  style?: CSSProperties;
   /**
    * `ship` only: the class to draw with once the render has 404'd and the
    * icon has taken its place. KillmailCard is the one caller that needs it —
@@ -48,6 +50,7 @@ export default function EveImage({
   id,
   name,
   className,
+  style,
   fallbackClassName,
   priority,
   singleton,
@@ -89,6 +92,7 @@ export default function EveImage({
         alt={name}
         fill
         className={drawnClassName}
+        style={style}
         priority={priority}
         onError={onError}
         unoptimized
@@ -103,6 +107,7 @@ export default function EveImage({
       width={size}
       height={size}
       className={drawnClassName}
+      style={style}
       priority={priority}
       onError={onError}
       unoptimized
