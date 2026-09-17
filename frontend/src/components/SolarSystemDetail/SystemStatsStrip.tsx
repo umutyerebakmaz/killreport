@@ -13,7 +13,7 @@ function Box({ label, value }: { label: string; value: string }) {
       <div className="text-xs tracking-wide text-ink-muted uppercase">
         {label}
       </div>
-      <div className="mt-1 text-2xl font-semibold text-gray-100">{value}</div>
+      <div className="mt-1 text-2xl font-medium text-gray-100">{value}</div>
     </div>
   );
 }

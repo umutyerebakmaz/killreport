@@ -93,7 +93,7 @@ function PilotList({
                   className="shadow-md"
                 />
                 {char?.securityStatus != null && (
-                  <div className="absolute bottom-0 left-0 px-1.5 py-0.5 text-xs font-semibold bg-black/70 backdrop-blur-sm">
+                  <div className="absolute bottom-0 left-0 px-1.5 py-0.5 text-xs font-medium bg-black/70 backdrop-blur-sm">
                     <span className={secColor}>
                       {char.securityStatus.toFixed(1)}
                     </span>
@@ -154,7 +154,7 @@ function PilotList({
 
                 {/* Kill count + logos */}
                 <div className="flex flex-col items-end justify-between pl-2 gap-y-1 shrink-0">
-                  <span className="text-lg font-semibold text-ink-muted tabular-nums whitespace-nowrap">
+                  <span className="text-lg font-medium text-ink-muted tabular-nums whitespace-nowrap">
                     {pilot.killCount.toLocaleString()}
                   </span>
                   <div className="flex">
@@ -232,7 +232,7 @@ function DailyLeaderboard() {
       header={
         <div className="flex items-center gap-2">
           <TrophyIcon className="w-5 h-5 text-yellow-400 shrink-0" />
-          <h2 className="text-lg font-semibold text-white">Daily Top 100</h2>
+          <h2 className="text-lg font-medium text-white">Daily Top 100</h2>
         </div>
       }
     >
@@ -313,7 +313,7 @@ function WeeklyLeaderboard() {
       header={
         <div className="flex items-center gap-2">
           <CalendarDaysIcon className="w-5 h-5 text-gray-300 shrink-0" />
-          <h2 className="text-lg font-semibold text-white">Weekly Top 100</h2>
+          <h2 className="text-lg font-medium text-white">Weekly Top 100</h2>
         </div>
       }
     >
@@ -373,7 +373,7 @@ function Last90DaysLeaderboard() {
       header={
         <div className="flex items-center gap-2">
           <ClockIcon className="w-5 h-5 text-gray-300 shrink-0" />
-          <h2 className="text-lg font-semibold text-white">Last 90 Days</h2>
+          <h2 className="text-lg font-medium text-white">Last 90 Days</h2>
         </div>
       }
     >
@@ -438,7 +438,7 @@ function MonthlyLeaderboard() {
       header={
         <div className="flex items-center gap-2">
           <CalendarDaysIcon className="w-5 h-5 text-purple-400 shrink-0" />
-          <h2 className="text-lg font-semibold text-white">Monthly Top 100</h2>
+          <h2 className="text-lg font-medium text-white">Monthly Top 100</h2>
         </div>
       }
     >

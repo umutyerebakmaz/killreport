@@ -38,7 +38,7 @@ function ToastItem({
       className={`w-80 border bg-surface/95 backdrop-blur px-4 py-3 shadow-lg ${TYPE_STYLE[toast.type] ?? 'border-white/20'}`}
     >
       <div className="flex items-start justify-between gap-2">
-        <div className="text-xs font-semibold tracking-wider text-ink-muted uppercase">
+        <div className="text-xs font-medium tracking-wider text-ink-muted uppercase">
           {TYPE_LABEL[toast.type] ?? 'Sovereignty'}
         </div>
         <button

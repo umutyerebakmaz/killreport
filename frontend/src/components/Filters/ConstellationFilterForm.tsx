@@ -223,7 +223,7 @@ export default function ConstellationFilterForm({
                             />
                           </div>
                           <div className="flex-auto min-w-0 text-left">
-                            <div className="font-semibold text-white truncate">
+                            <div className="font-medium text-white truncate">
                               {item.name}
                             </div>
                             <div className="text-sm text-ink-muted">
@@ -253,7 +253,7 @@ export default function ConstellationFilterForm({
           {region && (
             <div className="mt-3">
               <span className="chip">
-                <span className="font-semibold truncate">
+                <span className="font-medium truncate">
                   {region.name || `Region ${region.id}`}
                 </span>
                 <button

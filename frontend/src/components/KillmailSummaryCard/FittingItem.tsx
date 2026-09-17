@@ -151,7 +151,7 @@ export default function FittingItem({
               is a different colour on every tile, and anything translucent
               lets the art through and makes the digits swim. */}
           {totalQty > 1 && (
-            <span className="absolute bottom-0 right-0 px-1 text-xs font-semibold text-white bg-black">
+            <span className="absolute bottom-0 right-0 px-1 text-xs font-medium text-white bg-black">
               {totalQty}
             </span>
           )}

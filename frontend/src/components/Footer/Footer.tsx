@@ -74,7 +74,7 @@ export default function Footer() {
       <div className="px-6 pt-16 pb-8 mx-auto sm:pt-24 lg:px-8 xl:px-12 2xl:px-16 lg:pt-32 max-w-[1920px]">
         <div className="xl:grid xl:grid-cols-4 xl:gap-8">
           <div className="space-y-8">
-            <span className="text-2xl font-semibold tracking-tight text-gray-200">
+            <span className="text-2xl font-medium tracking-tight text-gray-200">
               KILLREPORT
             </span>
             <p className="text-ink-muted text-sm/6 text-balance">
@@ -98,7 +98,7 @@ export default function Footer() {
           <div className="grid grid-cols-2 gap-8 mt-16 xl:col-span-2 xl:mt-0">
             <div className="md:grid md:grid-cols-2 md:gap-8">
               <div>
-                <h3 className="font-semibold text-white text-sm/6">Explore</h3>
+                <h3 className="font-medium text-white text-sm/6">Explore</h3>
                 <ul role="list" className="mt-6 space-y-4">
                   {navigation.explore.map((item) => (
                     <li key={item.name}>
@@ -114,9 +114,7 @@ export default function Footer() {
                 </ul>
               </div>
               <div className="mt-10 md:mt-0">
-                <h3 className="font-semibold text-white text-sm/6">
-                  Resources
-                </h3>
+                <h3 className="font-medium text-white text-sm/6">Resources</h3>
                 <ul role="list" className="mt-6 space-y-4">
                   {navigation.resources.map((item) => (
                     <li key={item.name}>
@@ -145,7 +143,7 @@ export default function Footer() {
             </div>
             <div className="md:grid md:grid-cols-2 md:gap-8">
               <div>
-                <h3 className="font-semibold text-white text-sm/6">Tools</h3>
+                <h3 className="font-medium text-white text-sm/6">Tools</h3>
                 <ul role="list" className="mt-6 space-y-4">
                   {navigation.tools.map((item) => (
                     <li key={item.name}>
@@ -161,7 +159,7 @@ export default function Footer() {
                 </ul>
               </div>
               <div className="mt-10 md:mt-0">
-                <h3 className="font-semibold text-white text-sm/6">Legal</h3>
+                <h3 className="font-medium text-white text-sm/6">Legal</h3>
                 <ul role="list" className="mt-6 space-y-4">
                   {navigation.legal.map((item) => (
                     <li key={item.name}>
@@ -186,7 +184,7 @@ export default function Footer() {
             </div>
           </div>
           <div className="mt-10 xl:mt-0">
-            <h3 className="font-semibold text-white text-sm/6">
+            <h3 className="font-medium text-white text-sm/6">
               In-Game Contact
             </h3>
             <div className="mt-6 space-y-4">
@@ -200,7 +198,7 @@ export default function Footer() {
                     className="w-16 h-16"
                   />
                   <div className="flex-1">
-                    <p className="mb-1 text-sm font-semibold text-gray-200">
+                    <p className="mb-1 text-sm font-medium text-gray-200">
                       {characterData?.character?.name || 'General XAN'}
                     </p>
                     {characterData?.character && (
@@ -225,7 +223,7 @@ export default function Footer() {
                 </p>
                 <Link
                   href={`/characters/${characterId}`}
-                  className="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold text-gray-300 transition-all bg-surface hover:bg-surface-inset hover:text-gray-100"
+                  className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium text-gray-300 transition-all bg-surface hover:bg-surface-inset hover:text-gray-100"
                   prefetch={false}
                 >
                   View Character

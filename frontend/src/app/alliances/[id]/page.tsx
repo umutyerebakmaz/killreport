@@ -398,7 +398,7 @@ export default function AllianceDetailPage({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <span className="text-ink-muted">Executor</span>
-                <span className="ml-2 font-semibold">
+                <span className="ml-2 font-medium">
                   {alliance.executor ? (
                     <Link
                       href={`/corporations/${alliance.executor.id}`}
@@ -414,11 +414,11 @@ export default function AllianceDetailPage({
               </div>
               <div>
                 <span className="text-ink-muted">Short Name</span>
-                <span className="ml-2 font-semibold">{alliance.ticker}</span>
+                <span className="ml-2 font-medium">{alliance.ticker}</span>
               </div>
               <div>
                 <span className="text-ink-muted">Created By Corporation</span>
-                <span className="ml-2 font-semibold">
+                <span className="ml-2 font-medium">
                   {alliance.createdByCorporation ? (
                     <Link
                       href={`/corporations/${alliance.createdByCorporation.id}`}
@@ -434,7 +434,7 @@ export default function AllianceDetailPage({
               </div>
               <div>
                 <span className="text-ink-muted">Created By</span>
-                <span className="ml-2 font-semibold">
+                <span className="ml-2 font-medium">
                   {alliance.createdBy ? (
                     <Link
                       href={`/characters/${alliance.createdBy.id}`}
@@ -450,7 +450,7 @@ export default function AllianceDetailPage({
               </div>
               <div>
                 <span className="text-ink-muted">Start Date:</span>
-                <span className="ml-2 font-semibold">
+                <span className="ml-2 font-medium">
                   {new Date(alliance.date_founded).toLocaleDateString()}
                 </span>
               </div>

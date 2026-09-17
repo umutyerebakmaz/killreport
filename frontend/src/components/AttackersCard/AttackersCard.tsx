@@ -124,7 +124,7 @@ export default function AttackersCard({
   return (
     <div>
       <div className="flex justify-end card-header">
-        <span className="text-lg font-semibold text-gray-100">
+        <span className="text-lg font-medium text-gray-100">
           {killmail.attackerCount} ATTACKERS
         </span>
       </div>
@@ -168,7 +168,7 @@ export default function AttackersCard({
       {/* Involved Alliances and Corps */}
       {(allianceArray.length > 0 || independentCorpsArray.length > 0) && (
         <div className="mt-6">
-          <h3 className="mb-3 text-sm font-semibold text-ink-muted">
+          <h3 className="mb-3 text-sm font-medium text-ink-muted">
             Involved Alliances and Corps
           </h3>
           <div className="divide-y divide-white/5">

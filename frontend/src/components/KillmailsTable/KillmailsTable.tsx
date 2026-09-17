@@ -52,7 +52,7 @@ export default function KillmailsTable({
             {/* Date Header. items-baseline, not items-center: the count is
                 text-sm next to a text-xl date, and centring the two boxes
                 leaves the smaller one floating off the date's baseline. */}
-            <h2 className="flex items-baseline gap-2 text-xl font-semibold">
+            <h2 className="flex items-baseline gap-2 text-xl font-medium">
               <span className="text-gray-200">{date}</span>
               <span className="text-sm font-normal text-ink-muted">
                 ({dayCount.toLocaleString()}{' '}

@@ -414,15 +414,15 @@ export default function CorporationDetailPage({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <span className="text-ink-muted">Corporation Name</span>
-                <span className="ml-2 font-semibold">{corporation.name}</span>
+                <span className="ml-2 font-medium">{corporation.name}</span>
               </div>
               <div>
                 <span className="text-ink-muted">Ticker</span>
-                <span className="ml-2 font-semibold">{corporation.ticker}</span>
+                <span className="ml-2 font-medium">{corporation.ticker}</span>
               </div>
               <div>
                 <span className="text-ink-muted">CEO</span>
-                <span className="ml-2 font-semibold">
+                <span className="ml-2 font-medium">
                   {corporation.ceo ? (
                     <Link
                       href={`/characters/${corporation.ceo.id}`}
@@ -438,7 +438,7 @@ export default function CorporationDetailPage({
               </div>
               <div>
                 <span className="text-ink-muted">Creator</span>
-                <span className="ml-2 font-semibold">
+                <span className="ml-2 font-medium">
                   {corporation.creator ? (
                     <Link
                       href={`/characters/${corporation.creator.id}`}
@@ -454,13 +454,13 @@ export default function CorporationDetailPage({
               </div>
               <div>
                 <span className="text-ink-muted">Member Count</span>
-                <span className="ml-2 font-semibold">
+                <span className="ml-2 font-medium">
                   {corporation.member_count?.toLocaleString() || 'N/A'}
                 </span>
               </div>
               <div>
                 <span className="text-ink-muted">Tax Rate</span>
-                <span className="ml-2 font-semibold">
+                <span className="ml-2 font-medium">
                   {corporation.tax_rate
                     ? `${(corporation.tax_rate * 100).toFixed(1)}%`
                     : 'N/A'}
@@ -468,11 +468,11 @@ export default function CorporationDetailPage({
               </div>
               <div>
                 <span className="text-ink-muted">Founded</span>
-                <span className="ml-2 font-semibold">{foundedDate}</span>
+                <span className="ml-2 font-medium">{foundedDate}</span>
               </div>
               <div>
                 <span className="text-ink-muted">Alliance</span>
-                <span className="ml-2 font-semibold">
+                <span className="ml-2 font-medium">
                   {corporation.alliance ? (
                     <Link
                       href={`/alliances/${corporation.alliance.id}`}
@@ -494,7 +494,7 @@ export default function CorporationDetailPage({
                     href={corporation.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="ml-2 font-semibold text-accent-link hover:text-cyan-300"
+                    className="ml-2 font-medium text-accent-link hover:text-cyan-300"
                   >
                     {corporation.url}
                   </a>

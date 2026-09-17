@@ -549,7 +549,7 @@ export default function KillmailSummaryCard({
           </span>
         </SummaryRow>
 
-        <SummaryRow label={<span className="font-semibold">Total Value</span>}>
+        <SummaryRow label={<span className="font-medium">Total Value</span>}>
           <span className="font-bold text-isk tabular-nums">
             {formatISK(totalValue)}
           </span>

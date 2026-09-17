@@ -16,7 +16,7 @@ function TypeBadge({ typeName }: { typeName: string }) {
         : 'text-ink-muted bg-ink-muted/10 border-ink-muted/20';
   return (
     <span
-      className={`inline-block px-1.5 py-0.5 text-xs font-semibold border ${cls}`}
+      className={`inline-block px-1.5 py-0.5 text-xs font-medium border ${cls}`}
     >
       {typeName}
     </span>
@@ -104,7 +104,7 @@ function StructuresContent() {
       </div>
       {/* Next 24h timers */}
       <section className="mt-8">
-        <h3 className="text-xl font-semibold text-white">
+        <h3 className="text-xl font-medium text-white">
           Next 24h Timers{' '}
           <span className="text-ink-faint">({timers.length})</span>
         </h3>
@@ -166,7 +166,7 @@ function StructuresContent() {
 
       {/* All structures */}
       <section className="mt-10">
-        <h3 className="text-xl font-semibold text-white">
+        <h3 className="text-xl font-medium text-white">
           All Structures{' '}
           <span className="text-ink-faint">({structures.length})</span>
         </h3>

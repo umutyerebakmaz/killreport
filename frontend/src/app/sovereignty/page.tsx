@@ -27,7 +27,7 @@ const CHANGE_STYLES: Record<string, string> = {
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="p-4 border border-white/10 bg-surface">
-      <div className="text-2xl font-semibold text-white">
+      <div className="text-2xl font-medium text-white">
         {typeof value === 'number' ? value.toLocaleString() : value}
       </div>
       <div className="mt-1 text-sm text-ink-muted">{label}</div>
@@ -114,7 +114,7 @@ function SovereigntyContent() {
 
       {/* Alliance territory rankings */}
       <section className="mt-10">
-        <h3 className="text-xl font-semibold text-white">
+        <h3 className="text-xl font-medium text-white">
           Alliance Territory Rankings
         </h3>
         <div className="mt-4 overflow-x-auto border border-white/10">
@@ -142,7 +142,7 @@ function SovereigntyContent() {
                       ticker={r.allianceTicker}
                     />
                   </td>
-                  <td className="td-cell font-semibold text-right text-white whitespace-nowrap">
+                  <td className="td-cell font-medium text-right text-white whitespace-nowrap">
                     {r.systemsControlled.toLocaleString()}
                   </td>
                   <td className="td-cell text-right text-gray-300 whitespace-nowrap">
@@ -176,7 +176,7 @@ function SovereigntyContent() {
       {/* Activity leaderboards + hottest regions */}
       <section className="grid grid-cols-1 gap-4 mt-10 lg:grid-cols-3">
         <div className="border border-white/10 bg-surface">
-          <h3 className="px-4 py-3 text-lg font-semibold text-white border-b border-white/10">
+          <h3 className="px-4 py-3 text-lg font-medium text-white border-b border-white/10">
             Most Aggressive
           </h3>
           <ul className="divide-y divide-white/5">
@@ -202,7 +202,7 @@ function SovereigntyContent() {
         </div>
 
         <div className="border border-white/10 bg-surface">
-          <h3 className="px-4 py-3 text-lg font-semibold text-white border-b border-white/10">
+          <h3 className="px-4 py-3 text-lg font-medium text-white border-b border-white/10">
             Most Defensive
           </h3>
           <ul className="divide-y divide-white/5">
@@ -230,7 +230,7 @@ function SovereigntyContent() {
         </div>
 
         <div className="border border-white/10 bg-surface">
-          <h3 className="px-4 py-3 text-lg font-semibold text-white border-b border-white/10">
+          <h3 className="px-4 py-3 text-lg font-medium text-white border-b border-white/10">
             Hottest Regions Right Now
           </h3>
           <ul className="px-4 py-2 space-y-2">
@@ -267,7 +267,7 @@ function SovereigntyContent() {
 
       {/* Active campaigns */}
       <section className="mt-10">
-        <h3 className="text-xl font-semibold text-white">
+        <h3 className="text-xl font-medium text-white">
           Active Campaigns{' '}
           <span className="text-ink-faint">({campaigns.length})</span>
         </h3>
@@ -421,7 +421,7 @@ function SovereigntyContent() {
 
       {/* Recent territory changes */}
       <section className="mt-10">
-        <h3 className="text-xl font-semibold text-white">
+        <h3 className="text-xl font-medium text-white">
           Recent Territory Changes
         </h3>
         <div className="mt-4 overflow-x-auto border border-white/10">
@@ -448,7 +448,7 @@ function SovereigntyContent() {
                     </Link>
                   </td>
                   <td
-                    className={`px-4 py-3 whitespace-nowrap font-semibold ${CHANGE_STYLES[c.changeType] ?? 'text-gray-300'}`}
+                    className={`px-4 py-3 whitespace-nowrap font-medium ${CHANGE_STYLES[c.changeType] ?? 'text-gray-300'}`}
                   >
                     {c.changeType}
                   </td>

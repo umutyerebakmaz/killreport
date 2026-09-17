@@ -32,7 +32,7 @@ export default function TopAllianceCard({
 }: TopAllianceCardProps) {
   const header = (
     <div className="flex items-center justify-between gap-3">
-      <h3 className="text-lg font-semibold text-white">{title}</h3>
+      <h3 className="text-lg font-medium text-white">{title}</h3>
       {subtitle && (
         <span className="text-xs text-ink-faint shrink-0">{subtitle}</span>
       )}
@@ -97,7 +97,7 @@ export default function TopAllianceCard({
                     </div>
 
                     {/* Kill Count */}
-                    <span className="text-lg font-semibold text-ink-muted tabular-nums whitespace-nowrap shrink-0">
+                    <span className="text-lg font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">
                       {alliance.killCount.toLocaleString()}
                     </span>
                   </div>

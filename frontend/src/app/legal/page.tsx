@@ -22,9 +22,7 @@ export default function LegalPage() {
               href="/terms"
               className="p-4 transition-colors border rounded bg-surface-inset border-white/10 hover:border-accent-hover"
             >
-              <h3 className="mb-2 font-semibold text-white">
-                Terms of Service
-              </h3>
+              <h3 className="mb-2 font-medium text-white">Terms of Service</h3>
               <p className="text-sm text-ink-muted">
                 Usage rules, acceptable conduct, and service limitations
               </p>
@@ -33,7 +31,7 @@ export default function LegalPage() {
               href="/privacy"
               className="p-4 transition-colors border rounded bg-surface-inset border-white/10 hover:border-accent-hover"
             >
-              <h3 className="mb-2 font-semibold text-white">Privacy Policy</h3>
+              <h3 className="mb-2 font-medium text-white">Privacy Policy</h3>
               <p className="text-sm text-ink-muted">
                 Data collection, usage, storage, and your privacy rights
               </p>
@@ -43,7 +41,7 @@ export default function LegalPage() {
 
         {/* EVE Online & CCP Games */}
         <section className="mb-12">
-          <h2 className="mb-6 text-2xl font-semibold text-white">
+          <h2 className="mb-6 text-2xl font-medium text-white">
             EVE Online & CCP Games
           </h2>
           <div className="space-y-4 text-gray-300">
@@ -70,7 +68,7 @@ export default function LegalPage() {
 
         {/* Data Processing Pipeline */}
         <section className="mb-12">
-          <h2 className="mb-6 text-2xl font-semibold text-white">
+          <h2 className="mb-6 text-2xl font-medium text-white">
             How Killreport Works: Our Data Pipeline
           </h2>
           <div className="space-y-4 text-gray-300">
@@ -80,7 +78,7 @@ export default function LegalPage() {
             </p>
             <div className="pt-4 space-y-3">
               <div className="pl-4 border-l-2 border-accent-hover">
-                <h3 className="mb-2 font-semibold text-white">
+                <h3 className="mb-2 font-medium text-white">
                   1. Data Ingestion via zKillboard
                 </h3>
                 <p className="text-sm">
@@ -93,7 +91,7 @@ export default function LegalPage() {
                 </p>
               </div>
               <div className="pl-4 border-l-2 border-accent-hover">
-                <h3 className="mb-2 font-semibold text-white">
+                <h3 className="mb-2 font-medium text-white">
                   2. Data Enrichment via CCP ESI
                 </h3>
                 <p className="text-sm">
@@ -106,7 +104,7 @@ export default function LegalPage() {
                 </p>
               </div>
               <div className="pl-4 border-l-2 border-accent-hover">
-                <h3 className="mb-2 font-semibold text-white">
+                <h3 className="mb-2 font-medium text-white">
                   3. Processing & Indexing
                 </h3>
                 <p className="text-sm">
@@ -118,7 +116,7 @@ export default function LegalPage() {
                 </p>
               </div>
               <div className="pl-4 border-l-2 border-accent-hover">
-                <h3 className="mb-2 font-semibold text-white">
+                <h3 className="mb-2 font-medium text-white">
                   4. Display & User Access
                 </h3>
                 <p className="text-sm">
@@ -130,7 +128,7 @@ export default function LegalPage() {
               </div>
             </div>
             <p className="pt-4 mt-4 text-sm border-t border-white/10">
-              <span className="font-semibold text-accent-link">Key Point:</span>{' '}
+              <span className="font-medium text-accent-link">Key Point:</span>{' '}
               Killreport is an analysis and presentation layer. We don&apos;t
               create killmail data—CCP Games does through EVE Online&apos;s
               combat system. zKillboard notifies us of events, and CCP ESI
@@ -141,7 +139,7 @@ export default function LegalPage() {
 
         {/* Contact */}
         <section className="mb-12">
-          <h2 className="mb-6 text-2xl font-semibold text-white">
+          <h2 className="mb-6 text-2xl font-medium text-white">
             Questions or Concerns?
           </h2>
           <div className="space-y-4 text-gray-300">
@@ -151,7 +149,7 @@ export default function LegalPage() {
             </p>
             <div className="space-y-3">
               <div className="p-4 border rounded bg-surface-inset border-white/10">
-                <h3 className="font-semibold text-white mb-2">
+                <h3 className="font-medium text-white mb-2">
                   Regarding Your EVE Online Data
                 </h3>
                 <p className="text-sm mb-2">
@@ -166,7 +164,7 @@ export default function LegalPage() {
                 </a>
               </div>
               <div className="p-4 border rounded bg-surface-inset border-white/10">
-                <h3 className="font-semibold text-white mb-2">
+                <h3 className="font-medium text-white mb-2">
                   Regarding Killreport
                 </h3>
                 <p className="text-sm mb-2">

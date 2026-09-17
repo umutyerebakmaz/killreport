@@ -718,7 +718,7 @@ export default function KillmailFilterForm({
                                 />
                               </div>
                               <div className="flex-auto min-w-0 text-left">
-                                <div className="font-semibold text-white truncate">
+                                <div className="font-medium text-white truncate">
                                   {character.name}
                                 </div>
                                 <div className="text-sm text-ink-muted">
@@ -766,9 +766,7 @@ export default function KillmailFilterForm({
                     size={32}
                     className="object-cover size-8"
                   />
-                  <span className="font-semibold truncate">
-                    {characterName}
-                  </span>
+                  <span className="font-medium truncate">{characterName}</span>
                   <button
                     type="button"
                     onClick={() => {
@@ -853,7 +851,7 @@ export default function KillmailFilterForm({
                               />
                             </div>
                             <div className="flex-auto min-w-0 text-left">
-                              <div className="font-semibold text-white truncate">
+                              <div className="font-medium text-white truncate">
                                 {type.name}
                               </div>
                               <div className="text-sm text-ink-muted truncate">
@@ -891,7 +889,7 @@ export default function KillmailFilterForm({
                     size={32}
                     className="object-cover size-8"
                   />
-                  <span className="font-semibold truncate">{shipTypeName}</span>
+                  <span className="font-medium truncate">{shipTypeName}</span>
                   <button
                     type="button"
                     onClick={() => {
@@ -970,7 +968,7 @@ export default function KillmailFilterForm({
                             className={`menu-row group ${shipGroupIds.includes(group.id) ? 'opacity-50 cursor-not-allowed' : ''}`}
                           >
                             <div className="flex-auto min-w-0 text-left">
-                              <div className="font-semibold text-white truncate">
+                              <div className="font-medium text-white truncate">
                                 {group.name}
                               </div>
                               <div className="text-sm text-ink-muted truncate">
@@ -1012,7 +1010,7 @@ export default function KillmailFilterForm({
                   <div className="flex flex-wrap items-center gap-2">
                     {shipGroupIds.map((groupId) => (
                       <span key={groupId} className="chip">
-                        <span className="font-semibold truncate">
+                        <span className="font-medium truncate">
                           {shipGroupNames.get(groupId) || `Group ${groupId}`}
                         </span>
                         <button
@@ -1111,11 +1109,11 @@ export default function KillmailFilterForm({
                             >
                               <div className="flex-auto min-w-0 text-left">
                                 <div className="flex items-center gap-2">
-                                  <span className="font-semibold text-white truncate">
+                                  <span className="font-medium text-white truncate">
                                     {system.name}
                                   </span>
                                   <span
-                                    className={`text-xs font-semibold ${securityColor}`}
+                                    className={`text-xs font-medium ${securityColor}`}
                                   >
                                     {system.securityStatus?.toFixed(1)}
                                   </span>
@@ -1158,7 +1156,7 @@ export default function KillmailFilterForm({
                   Solar System
                 </div>
                 <span className="chip">
-                  <span className="font-semibold truncate">
+                  <span className="font-medium truncate">
                     {solarSystemName || `System ${systemId}`}
                   </span>
                   <button
@@ -1238,7 +1236,7 @@ export default function KillmailFilterForm({
                             >
                               <div className="flex-auto min-w-0 text-left">
                                 <div className="flex items-center gap-2">
-                                  <span className="font-semibold text-white truncate">
+                                  <span className="font-medium text-white truncate">
                                     {region.name}
                                   </span>
                                 </div>
@@ -1275,7 +1273,7 @@ export default function KillmailFilterForm({
                   Region
                 </div>
                 <span className="chip">
-                  <span className="font-semibold truncate">
+                  <span className="font-medium truncate">
                     {regionName || `Region ${regionId}`}
                   </span>
                   <button
@@ -1351,7 +1349,7 @@ export default function KillmailFilterForm({
                               >
                                 <div className="flex-auto min-w-0 text-left">
                                   <div className="flex items-center gap-2">
-                                    <span className="font-semibold text-white truncate">
+                                    <span className="font-medium text-white truncate">
                                       {constellation.name}
                                     </span>
                                   </div>
@@ -1394,7 +1392,7 @@ export default function KillmailFilterForm({
                   Constellation
                 </div>
                 <span className="chip">
-                  <span className="font-semibold truncate">
+                  <span className="font-medium truncate">
                     {constellationName || `Constellation ${constellationId}`}
                   </span>
                   <button

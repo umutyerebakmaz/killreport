@@ -31,7 +31,7 @@ function Box({ label, value }: { label: string; value: number | null }) {
       <div className="text-[10px] tracking-wide text-ink-muted uppercase">
         {label}
       </div>
-      <div className="text-base font-semibold text-gray-100">
+      <div className="text-base font-medium text-gray-100">
         {value === null ? '—' : value.toLocaleString('en-US')}
       </div>
     </div>
@@ -137,7 +137,7 @@ export default function SystemPopup({
       ) : (
         <>
           <div className="flex items-baseline justify-between gap-x-3">
-            <span className="text-sm font-semibold text-gray-100">
+            <span className="text-sm font-medium text-gray-100">
               {details.name}
             </span>
             <span

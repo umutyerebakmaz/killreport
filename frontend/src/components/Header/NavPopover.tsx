@@ -12,8 +12,7 @@ import { ReactNode, useRef } from 'react';
 
 // The desktop nav needs ~1750px to lay out at full size, so it only appears at
 // xl and scales up in three steps instead of switching on at lg and overflowing.
-export const NAV_ITEM =
-  'font-semibold text-white text-sm min-[1800px]:text-base';
+export const NAV_ITEM = 'font-medium text-white text-sm min-[1800px]:text-base';
 // The ring is kept for keyboard focus and taken away for pointer focus: the
 // browser draws its own on a plain `:focus`, and the menu hands focus back to
 // the button every time it closes, so a pointer left one sitting on the nav.
@@ -117,7 +116,7 @@ export function NavPopoverLink({
         <CloseButton
           as={Link}
           href={href}
-          className="block font-semibold text-white"
+          className="block font-medium text-white"
         >
           {label}
           <span className="absolute inset-0" />

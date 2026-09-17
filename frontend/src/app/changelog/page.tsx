@@ -194,7 +194,7 @@ export default function ChangelogPage() {
 
       {/* Recent Commits */}
       <section className="mb-16">
-        <h2 className="flex items-center gap-2 mb-6 text-2xl font-semibold text-white">
+        <h2 className="flex items-center gap-2 mb-6 text-2xl font-medium text-white">
           <ClockIcon className="w-6 h-6 text-blue-400" />
           Recent Updates
         </h2>
@@ -210,7 +210,7 @@ export default function ChangelogPage() {
                 <div key={dateGroup}>
                   {/* Date Header */}
                   <div className="mb-3">
-                    <h3 className="text-lg font-semibold text-gray-300">
+                    <h3 className="text-lg font-medium text-gray-300">
                       {dateGroup}
                     </h3>
                   </div>
@@ -230,7 +230,7 @@ export default function ChangelogPage() {
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
                                 <span
-                                  className={`px-2 py-0.5 ${commitInfo.bg} ${commitInfo.color} text-xs font-semibold uppercase`}
+                                  className={`px-2 py-0.5 ${commitInfo.bg} ${commitInfo.color} text-xs font-medium uppercase`}
                                 >
                                   {commitInfo.type}
                                 </span>
@@ -282,7 +282,7 @@ export default function ChangelogPage() {
       {/* Releases Section */}
       {data?.releases && data.releases.length > 0 && (
         <section className="mb-16">
-          <h2 className="flex items-center gap-2 mb-6 text-2xl font-semibold text-white">
+          <h2 className="flex items-center gap-2 mb-6 text-2xl font-medium text-white">
             <CodeBracketIcon className="w-6 h-6 text-green-400" />
             Releases
           </h2>
@@ -295,7 +295,7 @@ export default function ChangelogPage() {
               >
                 <div className="mb-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="px-3 py-1 text-sm font-semibold text-green-400 bg-green-500/20">
+                    <span className="px-3 py-1 text-sm font-medium text-green-400 bg-green-500/20">
                       {release.tag_name}
                     </span>
                     <span className="text-sm text-ink-faint">

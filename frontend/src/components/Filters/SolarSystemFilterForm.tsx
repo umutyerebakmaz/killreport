@@ -449,11 +449,11 @@ export default function SolarSystemFilterForm({
                               </div>
                               <div className="flex-auto min-w-0 text-left">
                                 <div className="flex items-center gap-2">
-                                  <span className="font-semibold text-white truncate">
+                                  <span className="font-medium text-white truncate">
                                     {system.name}
                                   </span>
                                   <span
-                                    className={`text-xs font-semibold ${securityColor}`}
+                                    className={`text-xs font-medium ${securityColor}`}
                                   >
                                     {system.securityStatus?.toFixed(1)}
                                   </span>
@@ -496,7 +496,7 @@ export default function SolarSystemFilterForm({
                   Solar System
                 </div>
                 <span className="chip">
-                  <span className="font-semibold truncate">
+                  <span className="font-medium truncate">
                     {selectedSystemName}
                   </span>
                   <button
@@ -572,7 +572,7 @@ export default function SolarSystemFilterForm({
                               />
                             </div>
                             <div className="flex-auto min-w-0 text-left">
-                              <div className="font-semibold text-white truncate">
+                              <div className="font-medium text-white truncate">
                                 {region.name}
                               </div>
                               <div className="text-sm text-ink-muted">
@@ -607,7 +607,7 @@ export default function SolarSystemFilterForm({
                   Region
                 </div>
                 <span className="chip">
-                  <span className="font-semibold truncate">
+                  <span className="font-medium truncate">
                     {selectedRegionName || `Region ${selectedRegionId}`}
                   </span>
                   <button
@@ -653,7 +653,7 @@ export default function SolarSystemFilterForm({
                   Constellation
                 </div>
                 <span className="chip">
-                  <span className="font-semibold truncate">
+                  <span className="font-medium truncate">
                     {selectedConstellationName ||
                       `Constellation ${selectedConstellationId}`}
                   </span>

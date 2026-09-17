@@ -41,7 +41,7 @@ export default function TopCharacterCard({
 }: TopCharacterCardProps) {
   const header = (
     <div className="flex items-center justify-between gap-3">
-      <h3 className="text-lg font-semibold text-white">{title}</h3>
+      <h3 className="text-lg font-medium text-white">{title}</h3>
       {subtitle && (
         <span className="text-xs text-ink-faint shrink-0">{subtitle}</span>
       )}
@@ -83,7 +83,7 @@ export default function TopCharacterCard({
                       size={64}
                     />
                     {character.securityStatus != null && (
-                      <div className="absolute bottom-0 left-0 px-1 py-0 text-xs font-semibold bg-black/70 backdrop-blur-sm">
+                      <div className="absolute bottom-0 left-0 px-1 py-0 text-xs font-medium bg-black/70 backdrop-blur-sm">
                         <span className={secColor}>
                           {character.securityStatus.toFixed(1)}
                         </span>
@@ -137,7 +137,7 @@ export default function TopCharacterCard({
                     </div>
 
                     {/* Kill Count */}
-                    <span className="text-lg font-semibold text-ink-muted tabular-nums whitespace-nowrap shrink-0">
+                    <span className="text-lg font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">
                       {character.killCount}
                     </span>
                   </div>

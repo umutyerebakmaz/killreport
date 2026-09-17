@@ -82,7 +82,7 @@ function HotspotsContent() {
                       <span className="text-gray-600">—</span>
                     )}
                   </td>
-                  <td className="td-cell font-semibold text-right text-white whitespace-nowrap">
+                  <td className="td-cell font-medium text-right text-white whitespace-nowrap">
                     {h.intensityScore}
                   </td>
                 </tr>

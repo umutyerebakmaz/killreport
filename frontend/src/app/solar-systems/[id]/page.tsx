@@ -190,7 +190,7 @@ export default function SolarSystemDetailPage({
               <div className="flex flex-wrap items-center gap-3">
                 <h1 className="text-4xl font-bold text-white">{system.name}</h1>
                 {counts.sovereigntyStructures > 0 && (
-                  <span className="px-2 py-0.5 text-xs font-semibold text-amber-400 bg-amber-400/10 border border-amber-400/20">
+                  <span className="px-2 py-0.5 text-xs font-medium text-amber-400 bg-amber-400/10 border border-amber-400/20">
                     SOVEREIGNTY
                   </span>
                 )}

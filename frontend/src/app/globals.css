@@ -100,7 +100,7 @@ body {
 .character-name,
 .constellation-name,
 .system-name {
-  @apply flex items-center justify-center h-12 font-semibold text-center text-gray-200 text-base hover:text-accent-link line-clamp-2;
+  @apply flex items-center justify-center h-12 font-medium text-center text-gray-200 text-base hover:text-accent-link line-clamp-2;
 }
 
 .alliance-ticker {

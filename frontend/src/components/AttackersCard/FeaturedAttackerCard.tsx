@@ -105,7 +105,7 @@ export default function FeaturedAttackerCard({
       )}
 
       <div className="pt-4 mt-2 text-right border-t border-white/10">
-        <div className="font-semibold text-destroyed">
+        <div className="font-medium text-destroyed">
           {attacker.damageDone.toLocaleString()}
         </div>
         <div className="text-sm text-ink-muted">{damagePercentage}%</div>

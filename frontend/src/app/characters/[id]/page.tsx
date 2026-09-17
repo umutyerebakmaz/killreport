@@ -273,7 +273,7 @@ export default function CharacterDetailPage({
                 <div className="mt-2">
                   <EveHtmlRenderer
                     html={character.title}
-                    className="text-sm font-semibold"
+                    className="text-sm font-medium"
                   />
                 </div>
               </div>
@@ -323,7 +323,7 @@ export default function CharacterDetailPage({
             {character.securityStatus && (
               <div>
                 <span
-                  className={`text-sm font-semibold ${getSecurityStatusColor(character.securityStatus)}`}
+                  className={`text-sm font-medium ${getSecurityStatusColor(character.securityStatus)}`}
                 >
                   {character.securityStatus.toFixed(1)}
                 </span>

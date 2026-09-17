@@ -30,7 +30,7 @@ export default function ActiveUsersCounter() {
     <Tooltip
       content={
         <div className="min-w-70">
-          <div className="mb-1 font-semibold">Real-time Active Users</div>
+          <div className="mb-1 font-medium">Real-time Active Users</div>
           <div className="text-ink-muted">
             Live count of visitors currently browsing the site. Updates every 3
             seconds via WebSocket. Includes authenticated users and anonymous

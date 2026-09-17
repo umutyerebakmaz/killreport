@@ -23,7 +23,7 @@ export default function RankNumber({ rank }: RankNumberProps) {
   // than push anything — worth knowing before a caller raises its limit.
   return (
     <div className="flex items-center w-[2ch] shrink-0 justify-end">
-      <span className="text-lg font-semibold text-ink-faint tabular-nums">
+      <span className="text-lg font-medium text-ink-faint tabular-nums">
         {rank}
       </span>
     </div>

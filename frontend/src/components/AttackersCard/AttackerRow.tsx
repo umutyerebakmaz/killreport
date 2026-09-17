@@ -80,7 +80,7 @@ export default function AttackerRow({
           {/* Security Status - Bottom Left */}
           {attacker.securityStatus !== null &&
             attacker.securityStatus !== undefined && (
-              <div className="absolute bottom-0 left-0 px-1.5 py-0.5 text-xs font-semibold bg-black/70 backdrop-blur-sm">
+              <div className="absolute bottom-0 left-0 px-1.5 py-0.5 text-xs font-medium bg-black/70 backdrop-blur-sm">
                 <span
                   className={
                     attacker.securityStatus >= 0

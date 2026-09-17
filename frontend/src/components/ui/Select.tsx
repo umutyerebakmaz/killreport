@@ -139,7 +139,7 @@ export default function Select({
           >
             <span className="flex items-center gap-2">
               {hasLeading && <Leading option={option} />}
-              <span className="block truncate group-data-selected:font-semibold group-data-selected:text-white">
+              <span className="block truncate group-data-selected:font-medium group-data-selected:text-white">
                 {option.label}
               </span>
             </span>

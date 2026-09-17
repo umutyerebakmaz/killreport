@@ -111,7 +111,7 @@ export default function KillmailCard({
           )}
         </div>
 
-        <div className="font-semibold text-orange-400 truncate">
+        <div className="font-medium text-orange-400 truncate">
           {km.victim?.shipType?.name || 'Unknown Ship'}
         </div>
 

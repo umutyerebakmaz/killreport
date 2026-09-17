@@ -218,7 +218,7 @@ export default function AllianceGrowthChart({
   return (
     <div className="mt-6">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-lg font-semibold text-white">Growth Chart</h3>
+        <h3 className="text-lg font-medium text-white">Growth Chart</h3>
         <div className="flex gap-1">
           {(Object.keys(RANGE_LABELS) as RangeType[]).map((r) => (
             <button

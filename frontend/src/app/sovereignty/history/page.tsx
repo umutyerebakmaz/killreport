@@ -32,7 +32,7 @@ const OUTCOME_STYLES: Record<string, string> = {
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="p-4 border border-white/10 bg-surface">
-      <div className="text-2xl font-semibold text-white">
+      <div className="text-2xl font-medium text-white">
         {typeof value === 'number' ? value.toLocaleString() : value}
       </div>
       <div className="mt-1 text-sm text-ink-muted">{label}</div>
@@ -112,7 +112,7 @@ function HistoryContent() {
 
       {/* Top defenders */}
       <section className="mt-10">
-        <h3 className="text-xl font-semibold text-white">Top Defenders</h3>
+        <h3 className="text-xl font-medium text-white">Top Defenders</h3>
         <div className="mt-4 overflow-x-auto border border-white/10">
           <table className="table">
             <thead className="bg-surface-inset">
@@ -137,7 +137,7 @@ function HistoryContent() {
                       ticker={d.allianceTicker}
                     />
                   </td>
-                  <td className="td-cell font-semibold text-right text-cyan-400 whitespace-nowrap">
+                  <td className="td-cell font-medium text-right text-cyan-400 whitespace-nowrap">
                     {d.defensesWon}
                   </td>
                   <td className="td-cell text-right text-gray-300 whitespace-nowrap">
@@ -165,7 +165,7 @@ function HistoryContent() {
 
       {/* Campaign archive */}
       <section className="mt-10">
-        <h3 className="text-xl font-semibold text-white">
+        <h3 className="text-xl font-medium text-white">
           Campaign Archive{' '}
           <span className="text-ink-faint">({totalCount})</span>
         </h3>
@@ -209,7 +209,7 @@ function HistoryContent() {
                     />
                   </td>
                   <td
-                    className={`px-4 py-3 font-semibold whitespace-nowrap ${OUTCOME_STYLES[c.outcome ?? ''] ?? 'text-gray-300'}`}
+                    className={`px-4 py-3 font-medium whitespace-nowrap ${OUTCOME_STYLES[c.outcome ?? ''] ?? 'text-gray-300'}`}
                   >
                     {OUTCOME_LABELS[c.outcome ?? ''] ?? '—'}
                   </td>

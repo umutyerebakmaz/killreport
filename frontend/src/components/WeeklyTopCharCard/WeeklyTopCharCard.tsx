@@ -21,7 +21,7 @@ export default function WeeklyTopCharCard() {
       {/* Header */}
       <div className="flex items-center gap-2 p-4 border-b border-white/10">
         <CalendarDaysIcon className="w-4 h-4 text-accent-link shrink-0" />
-        <h3 className="text-sm font-semibold text-white">Weekly Top 10</h3>
+        <h3 className="text-sm font-medium text-white">Weekly Top 10</h3>
       </div>
 
       {/* Pilots List */}
@@ -54,7 +54,7 @@ export default function WeeklyTopCharCard() {
                       size={40}
                     />
                     {char?.securityStatus != null && (
-                      <div className="absolute bottom-0 left-0 px-1 py-0 text-xs font-semibold bg-black/70 backdrop-blur-sm">
+                      <div className="absolute bottom-0 left-0 px-1 py-0 text-xs font-medium bg-black/70 backdrop-blur-sm">
                         <span className={secColor}>
                           {char.securityStatus.toFixed(1)}
                         </span>
@@ -94,7 +94,7 @@ export default function WeeklyTopCharCard() {
                       red looks like a pre-existing inconsistency rather than
                       destroyed's meaning. Left alone rather than guessed. */}
                   <div className="shrink-0">
-                    <span className="text-xs font-semibold text-red-400 tabular-nums">
+                    <span className="text-xs font-medium text-red-400 tabular-nums">
                       {pilot.killCount}
                     </span>
                   </div>

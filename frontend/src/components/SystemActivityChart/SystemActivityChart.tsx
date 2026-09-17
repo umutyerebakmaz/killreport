@@ -83,7 +83,7 @@ export default function SystemActivityChart({
   return (
     <div className="p-6 border bg-white/5 border-white/10">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold tracking-wide text-gray-300 uppercase">
+        <h3 className="text-sm font-medium tracking-wide text-gray-300 uppercase">
           Kill activity
         </h3>
         <div className="flex gap-2">

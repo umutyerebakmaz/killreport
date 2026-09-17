@@ -102,7 +102,7 @@ export default function SovereigntyTab({ systemId }: SovereigntyTabProps) {
 
       {campaigns.length > 0 && (
         <div className="p-6 border bg-white/5 border-white/10">
-          <h3 className="mb-4 text-sm font-semibold tracking-wide text-gray-300 uppercase">
+          <h3 className="mb-4 text-sm font-medium tracking-wide text-gray-300 uppercase">
             Active campaigns
           </h3>
           <ul className="space-y-3">

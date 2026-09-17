@@ -50,7 +50,7 @@ export default function NotificationBell() {
           >
             <div className="overflow-hidden float">
               <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-                <span className="font-semibold text-white">
+                <span className="font-medium text-white">
                   Sovereignty Alerts
                 </span>
                 {recent.length > 0 && (
