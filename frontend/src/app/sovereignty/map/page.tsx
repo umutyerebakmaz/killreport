@@ -30,7 +30,7 @@ function MapContent() {
   if (loading)
     return <Loader fullHeight size="lg" text="Loading territory map..." />;
   if (error)
-    return <div className="p-8 text-red-400">Error: {error.message}</div>;
+    return <div className="p-8 text-danger">Error: {error.message}</div>;
 
   return (
     <>

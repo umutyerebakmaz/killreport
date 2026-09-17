@@ -12,7 +12,7 @@ export interface ToastAlert {
 const TYPE_STYLE: Record<string, string> = {
   campaign_started: 'border-orange-400/40',
   campaign_ended: 'border-cyan-400/40',
-  territory_change: 'border-yellow-400/40',
+  territory_change: 'border-caution/40',
 };
 
 const TYPE_LABEL: Record<string, string> = {

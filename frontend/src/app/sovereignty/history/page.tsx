@@ -23,6 +23,8 @@ const OUTCOME_LABELS: Record<string, string> = {
   abandoned: 'Abandoned',
 };
 
+// defender (cyan) / attacker (red) pair — not the danger meaning, same as
+// IskWarBar and ScoreBar.
 const OUTCOME_STYLES: Record<string, string> = {
   defender_won: 'text-cyan-400',
   attacker_won: 'text-red-400',
@@ -68,7 +70,7 @@ function HistoryContent() {
 
   if (loading) return <Loader fullHeight size="lg" text="Loading history..." />;
   if (error)
-    return <div className="p-8 text-red-400">Error: {error.message}</div>;
+    return <div className="p-8 text-danger">Error: {error.message}</div>;
 
   const stats = data?.sovereigntyOutcomeStats;
   const defenders = data?.topDefenders ?? [];
@@ -222,6 +224,7 @@ function HistoryContent() {
                   <td className="td-cell text-right text-gray-300 whitespace-nowrap">
                     {c.durationHours != null ? `${c.durationHours}h` : '—'}
                   </td>
+                  {/* war-intensity stat, not the danger meaning */}
                   <td className="td-cell text-right whitespace-nowrap">
                     {c.iskDestroyed > 0 ? (
                       <span className="text-red-400">

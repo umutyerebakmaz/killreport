@@ -25,7 +25,7 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
 
   // Delta rengi belirle
   const deltaColor =
-    memberDelta7d && memberDelta7d >= 0 ? 'text-green-400' : 'text-red-400';
+    memberDelta7d && memberDelta7d >= 0 ? 'text-success' : 'text-danger';
 
   // Tooltip içeriği
   const tooltipContent =

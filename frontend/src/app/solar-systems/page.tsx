@@ -120,7 +120,7 @@ function SolarSystemsContent() {
   };
 
   if (error)
-    return <div className="p-8 text-red-500">Error: {error.message}</div>;
+    return <div className="p-8 text-danger">Error: {error.message}</div>;
 
   const systems = data?.solarSystems.items || [];
   const pageInfo = data?.solarSystems.pageInfo;

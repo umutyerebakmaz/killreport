@@ -45,7 +45,7 @@
   }
 
   .button-danger {
-    @apply border text-red-400 bg-red-600/20 border-red-500/30 hover:bg-red-600/30;
+    @apply border text-danger bg-danger/20 border-danger/30 hover:bg-danger/30;
   }
 
   /*

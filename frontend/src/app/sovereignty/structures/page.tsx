@@ -45,14 +45,12 @@ function TimerCountdown({ target }: { target?: string | null }) {
   // First (pre-hydration) render falls back to coarse text; the effect then ticks.
   if (now === null)
     return (
-      <span className="text-yellow-400">
-        {formatRelativeTime(target, true)}
-      </span>
+      <span className="text-caution">{formatRelativeTime(target, true)}</span>
     );
   const ms = new Date(target).getTime() - now;
   if (ms <= 0) return <span className="text-orange-400">open now</span>;
   return (
-    <span className="text-yellow-400 tabular-nums">{formatCountdown(ms)}</span>
+    <span className="text-caution tabular-nums">{formatCountdown(ms)}</span>
   );
 }
 
@@ -85,7 +83,7 @@ function StructuresContent() {
   if (loading)
     return <Loader fullHeight size="lg" text="Loading structures..." />;
   if (error)
-    return <div className="p-8 text-red-400">Error: {error.message}</div>;
+    return <div className="p-8 text-danger">Error: {error.message}</div>;
 
   const timers = data?.sovereigntyUpcomingTimers ?? [];
   const structures = data?.sovereigntyStructures ?? [];

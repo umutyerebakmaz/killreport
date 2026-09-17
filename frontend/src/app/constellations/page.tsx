@@ -68,7 +68,7 @@ function ConstellationsContent() {
   };
 
   if (error)
-    return <div className="p-8 text-red-500">Error: {error.message}</div>;
+    return <div className="p-8 text-danger">Error: {error.message}</div>;
 
   const constellations = data?.constellations.items || [];
   const pageInfo = data?.constellations.pageInfo;

@@ -57,7 +57,7 @@ function RegionsContent() {
   }, [currentPage, orderBy, searchTerm]);
 
   if (error)
-    return <div className="p-8 text-red-500">Error: {error.message}</div>;
+    return <div className="p-8 text-danger">Error: {error.message}</div>;
 
   const regions = data?.regions.items || [];
   const pageInfo = data?.regions.pageInfo;

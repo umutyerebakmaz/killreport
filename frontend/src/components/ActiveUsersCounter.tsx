@@ -44,8 +44,8 @@ export default function ActiveUsersCounter() {
       <div className="flex items-center gap-2 text-sm text-ink-muted cursor-help">
         {isConnected && (
           <div className="relative flex size-2">
-            <span className="absolute inline-flex w-full h-full bg-green-400 rounded-full opacity-75 animate-ping"></span>
-            <span className="relative inline-flex bg-green-500 rounded-full size-2"></span>
+            <span className="absolute inline-flex w-full h-full bg-success rounded-full opacity-75 animate-ping"></span>
+            <span className="relative inline-flex bg-success rounded-full size-2"></span>
           </div>
         )}
         <UsersIcon className="size-4" />

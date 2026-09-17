@@ -13,7 +13,7 @@ function HotspotsContent() {
   if (loading)
     return <Loader fullHeight size="lg" text="Loading hot zones..." />;
   if (error)
-    return <div className="p-8 text-red-400">Error: {error.message}</div>;
+    return <div className="p-8 text-danger">Error: {error.message}</div>;
 
   const hotspots = data?.conflictHotspots ?? [];
 
@@ -66,6 +66,7 @@ function HotspotsContent() {
                   <td className="td-cell text-right text-gray-300 whitespace-nowrap">
                     {h.activeCampaigns}
                   </td>
+                  {/* war-intensity stats, not the danger meaning */}
                   <td className="td-cell text-right whitespace-nowrap">
                     {h.warKills > 0 ? (
                       <span className="text-red-400">{h.warKills}</span>

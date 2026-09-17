@@ -320,7 +320,7 @@ function KillmailsContent() {
   if (error) {
     return (
       <div>
-        <div className="p-8 text-red-500">Error: {error.message}</div>
+        <div className="p-8 text-danger">Error: {error.message}</div>
       </div>
     );
   }

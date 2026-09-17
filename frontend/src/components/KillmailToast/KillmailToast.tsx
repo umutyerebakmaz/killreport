@@ -67,6 +67,8 @@ function KillmailToastItem({
         transitionDelay: `${index * 50}ms`,
       }}
     >
+      {/* destroyed's meaning, but red-500 — a step outside this sweep's
+          red/green/yellow-400 scope */}
       <div className="relative flex items-start gap-3 p-3 border shadow-xl bg-gray-900/95 backdrop-blur-md border-red-500/30 hover:border-red-500/50 transition-colors min-w-[320px] max-w-95">
         {/* Ship Image */}
         <div className="relative shrink-0">
@@ -83,7 +85,7 @@ function KillmailToastItem({
               <span className="text-2xl">💀</span>
             </div>
           )}
-          {/* Kill indicator */}
+          {/* Kill indicator — destroyed's meaning, but red-500, same as above */}
           <div className="absolute w-3 h-3 bg-red-500 rounded-full -top-1 -right-1 animate-pulse" />
         </div>
 

@@ -12,7 +12,7 @@ export default function MemberDeltaBadge({
 }: MemberDeltaBadgeProps) {
   // Delta rengi belirle
   const deltaColor =
-    memberDelta && memberDelta >= 0 ? 'text-green-400' : 'text-red-400';
+    memberDelta && memberDelta >= 0 ? 'text-success' : 'text-danger';
   // Tooltip içeriği
   const tooltipContent =
     memberDelta !== null

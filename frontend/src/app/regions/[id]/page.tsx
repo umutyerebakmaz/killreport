@@ -101,7 +101,7 @@ export default function RegionDetailPage({ params }: RegionDetailPageProps) {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg text-red-600">Error: {error.message}</div>
+        <div className="text-lg text-danger">Error: {error.message}</div>
       </div>
     );
   }

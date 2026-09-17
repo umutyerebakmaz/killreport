@@ -39,7 +39,9 @@ interface ChangelogData {
 const getCommitType = (message: string) => {
   const lowerMsg = message.toLowerCase();
   if (lowerMsg.startsWith('feat:') || lowerMsg.includes('feature'))
-    return { type: 'feature', color: 'text-green-400', bg: 'bg-green-500/10' };
+    return { type: 'feature', color: 'text-success', bg: 'bg-success/10' };
+  // 'fix' is a commit-type label here, categorical like docs/refactor/chore
+  // below — not an error state, so it stays raw.
   if (lowerMsg.startsWith('fix:') || lowerMsg.includes('fix'))
     return { type: 'fix', color: 'text-red-400', bg: 'bg-red-500/10' };
   if (lowerMsg.startsWith('docs:') || lowerMsg.includes('documentation'))

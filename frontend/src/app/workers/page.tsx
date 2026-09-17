@@ -80,7 +80,7 @@ export default function WorkersPage() {
     return (
       <div className="flex items-center justify-center min-h-100">
         <div className="text-center">
-          <p className="text-red-500">Error connecting to SSE stream</p>
+          <p className="text-danger">Error connecting to SSE stream</p>
           <p className="mt-2 text-sm text-ink-muted">{error.message}</p>
           <button
             onClick={() => window.location.reload()}
@@ -142,7 +142,7 @@ export default function WorkersPage() {
           <div className="flex items-center gap-2 px-3 py-2 bg-gray-800 border border-gray-700">
             <div
               className={`w-3 h-3 rounded-full ${
-                isConnected ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'
+                isConnected ? 'bg-success animate-pulse' : 'bg-caution'
               }`}
             ></div>
             <span className="text-sm text-gray-300">
@@ -166,12 +166,12 @@ export default function WorkersPage() {
           <div className="flex items-center gap-3">
             <div
               className={`w-4 h-4 rounded-full ${
-                workerStatus?.healthy ? 'bg-green-500' : 'bg-red-500'
+                workerStatus?.healthy ? 'bg-success' : 'bg-danger'
               } animate-pulse`}
             ></div>
             <span
               className={`text-lg font-medium ${
-                workerStatus?.healthy ? 'text-green-500' : 'text-red-500'
+                workerStatus?.healthy ? 'text-success' : 'text-danger'
               }`}
             >
               {workerStatus?.healthy ? 'Healthy' : 'Unhealthy'}
@@ -224,8 +224,8 @@ export default function WorkersPage() {
               <div
                 className={`w-4 h-4 rounded-full ${
                   workerStatus.redis.connected
-                    ? 'bg-green-500 animate-pulse'
-                    : 'bg-red-500'
+                    ? 'bg-success animate-pulse'
+                    : 'bg-danger'
                 }`}
               ></div>
               <h2 className="text-lg font-medium text-white">
@@ -234,7 +234,7 @@ export default function WorkersPage() {
             </div>
             <span
               className={`text-sm font-medium ${
-                workerStatus.redis.connected ? 'text-green-400' : 'text-red-400'
+                workerStatus.redis.connected ? 'text-success' : 'text-danger'
               }`}
             >
               {workerStatus.redis.connected ? 'Connected' : 'Disconnected'}
@@ -384,12 +384,12 @@ function StandaloneWorkerSection({ workers }: any) {
                   <div className="flex items-center gap-2">
                     <div
                       className={`w-3 h-3 rounded-full ${
-                        worker.running ? 'bg-green-500' : 'bg-ink-faint'
+                        worker.running ? 'bg-success' : 'bg-ink-faint'
                       }`}
                     ></div>
                     <span
                       className={`text-xs md:text-sm font-medium ${
-                        worker.running ? 'text-green-400' : 'text-ink-faint'
+                        worker.running ? 'text-success' : 'text-ink-faint'
                       }`}
                     >
                       {worker.running ? 'Running' : 'Stopped'}
@@ -462,12 +462,12 @@ function QueueSection({ title, subtitle, queues }: any) {
                   <div className="flex items-center gap-2">
                     <div
                       className={`w-3 h-3 rounded-full ${
-                        queue.active ? 'bg-green-500' : 'bg-ink-faint'
+                        queue.active ? 'bg-success' : 'bg-ink-faint'
                       }`}
                     ></div>
                     <span
                       className={`text-xs md:text-sm font-medium ${
-                        queue.active ? 'text-green-400' : 'text-ink-faint'
+                        queue.active ? 'text-success' : 'text-ink-faint'
                       }`}
                     >
                       {queue.active ? 'Active' : 'Inactive'}
@@ -507,7 +507,7 @@ function QueueSection({ title, subtitle, queues }: any) {
                   <span
                     className={`inline-flex items-center px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium ${
                       queue.messageCount > 0
-                        ? 'bg-yellow-500/20 text-yellow-400'
+                        ? 'bg-caution/20 text-caution'
                         : 'bg-gray-800 text-ink-muted'
                     }`}
                   >
@@ -518,7 +518,7 @@ function QueueSection({ title, subtitle, queues }: any) {
                   <span
                     className={`inline-flex items-center px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium ${
                       queue.consumerCount > 0
-                        ? 'bg-green-500/20 text-green-400'
+                        ? 'bg-success/20 text-success'
                         : 'bg-gray-800 text-ink-muted'
                     }`}
                   >

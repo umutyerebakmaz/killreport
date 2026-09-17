@@ -44,7 +44,7 @@ export default function KillmailDetailPage({
   if (error || !data?.killmail) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl text-red-400">
+        <div className="text-xl text-danger">
           Error: {error?.message || 'Killmail not found'}
         </div>
       </div>

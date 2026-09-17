@@ -74,7 +74,7 @@ function AuthSuccessContent() {
                 <div className="absolute inset-0 rounded-full bg-red-500/20 animate-ping"></div>
                 <div className="relative flex items-center justify-center w-20 h-20 border-2 border-red-500 rounded-full shadow-lg bg-linear-to-br from-red-500/20 to-red-600/20 shadow-red-500/50">
                   <svg
-                    className="w-10 h-10 text-red-400"
+                    className="w-10 h-10 text-danger"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -136,7 +136,7 @@ function AuthSuccessContent() {
               <div className="absolute inset-0 rounded-full bg-green-500/20 animate-ping"></div>
               <div className="relative flex items-center justify-center w-20 h-20 border-2 border-green-500 rounded-full shadow-lg bg-linear-to-br from-green-500/20 to-emerald-600/20 shadow-green-500/50">
                 <svg
-                  className="w-10 h-10 text-green-400 animate-[scale-in_0.5s_ease-out]"
+                  className="w-10 h-10 text-success animate-[scale-in_0.5s_ease-out]"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"

@@ -18,9 +18,9 @@ const EVENT_LABELS: Record<string, string> = {
 };
 
 const CHANGE_STYLES: Record<string, string> = {
-  captured: 'text-green-400',
-  lost: 'text-red-400',
-  transferred: 'text-yellow-400',
+  captured: 'text-success',
+  lost: 'text-danger',
+  transferred: 'text-caution',
   faction_change: 'text-ink-muted',
 };
 
@@ -44,7 +44,7 @@ function SovereigntyContent() {
   if (loading)
     return <Loader fullHeight size="lg" text="Loading sovereignty data..." />;
   if (error)
-    return <div className="p-8 text-red-400">Error: {error.message}</div>;
+    return <div className="p-8 text-danger">Error: {error.message}</div>;
 
   const overview = data?.sovereigntyOverview;
   const rankings = data?.allianceTerritoryRankings ?? [];
@@ -149,6 +149,8 @@ function SovereigntyContent() {
                     {r.ihubCount}
                   </td>
                   <td className="td-cell text-right whitespace-nowrap">
+                    {/* attacking/defending pair — red stays beside the cyan
+                        defending column, not the danger meaning */}
                     {r.campaignsAttacking > 0 ? (
                       <span className="text-red-400">
                         {r.campaignsAttacking}
@@ -190,6 +192,7 @@ function SovereigntyContent() {
                   name={a.allianceName}
                   ticker={a.allianceTicker}
                 />
+                {/* attacking/defending pair, same as above — not danger */}
                 <span className="text-red-400">{a.campaignsAttacking} atk</span>
               </li>
             ))}
@@ -335,6 +338,8 @@ function SovereigntyContent() {
                           attackers={c.attackersScore}
                         />
                       </td>
+                      {/* war-intensity stats, not the danger meaning — same
+                          bucket as the ISK-lost column below */}
                       <td className="td-cell text-right whitespace-nowrap">
                         {c.warKills > 0 ? (
                           <span className="text-red-400">{c.warKills}</span>
