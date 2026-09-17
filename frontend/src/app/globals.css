@@ -78,6 +78,13 @@
      hues taken down to the lightness the Tailwind 700s sat at. */
   --color-destroyed-fill: var(--color-red-700);
   --color-dropped-fill: #008425;
+
+  /* EVE sets 1.5 at every size; Tailwind's scale runs 1.33 at xs and 1.43
+     at sm. The two smallest sizes are where the difference is visible. */
+  --text-xs--line-height: 1.5;
+  --text-sm--line-height: 1.5;
+  --text-base--line-height: 1.5;
+  --text-lg--line-height: 1.5;
 }
 
 html,
@@ -122,7 +129,7 @@ main:has(> [data-full-bleed]) {
 }
 
 body {
-  font-weight: 400;
+  font-weight: 300;
 }
 
 .alliance-name,
