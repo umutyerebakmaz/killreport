@@ -7,6 +7,7 @@ import { LeaderboardPeriod, useTopPilotsQuery } from '@/generated/graphql';
 import { getSecurityStatusColor } from '@/utils/securityStatus';
 import { CalendarDaysIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
+import EveImage from '../ui/EveImage';
 
 export default function WeeklyTopCharCard() {
   const { data, loading } = useTopPilotsQuery({
@@ -46,16 +47,11 @@ export default function WeeklyTopCharCard() {
 
                   {/* Portrait */}
                   <div className="relative shrink-0">
-                    <img
-                      src={
-                        char
-                          ? `https://images.evetech.net/characters/${char.id}/portrait?size=128`
-                          : `https://images.evetech.net/characters/0/portrait?size=128`
-                      }
-                      alt={char?.name ?? 'Unknown'}
-                      width={40}
-                      height={40}
-                      loading="lazy"
+                    <EveImage
+                      kind="character"
+                      id={char?.id ?? 0}
+                      name={char?.name ?? 'Unknown'}
+                      size={40}
                     />
                     {char?.securityStatus != null && (
                       <div className="absolute bottom-0 left-0 px-1 py-0 text-xs font-semibold bg-black/70 backdrop-blur-sm">

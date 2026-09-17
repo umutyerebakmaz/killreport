@@ -4,6 +4,7 @@ import { Loader } from '@/components/Loader/Loader';
 import Card from '@/components/ui/Card';
 import RankNumber from '@/components/ui/RankNumber';
 import { ReactNode } from 'react';
+import EveImage from '../ui/EveImage';
 
 export interface TopFaction {
   id: number;
@@ -69,12 +70,11 @@ export default function TopFactionsCard({
                   Imperial Navy logo.
                 */}
                 <div className="relative shrink-0">
-                  <img
-                    src={`https://images.evetech.net/corporations/${faction.id}/logo?size=128`}
-                    alt={faction.name}
-                    width={64}
-                    height={64}
-                    loading="lazy"
+                  <EveImage
+                    kind="corporation"
+                    id={faction.id}
+                    name={faction.name}
+                    size={64}
                   />
                 </div>
 

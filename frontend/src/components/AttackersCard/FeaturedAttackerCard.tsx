@@ -28,13 +28,12 @@ export default function FeaturedAttackerCard({
       {attacker.character?.id && (
         <div className="relative mb-3">
           <Tooltip content={`Character: ${attacker.character?.name}`}>
-            <img
-              src={`https://images.evetech.net/characters/${attacker.character?.id}/portrait?size=256`}
-              alt={attacker.character?.name || 'Character'}
-              width={256}
-              height={256}
+            <EveImage
+              kind="character"
+              id={attacker.character.id}
+              name={attacker.character.name || 'Character'}
+              size={256}
               className="w-full"
-              loading="lazy"
             />
           </Tooltip>
           {/* Logos Container - Bottom Right */}
@@ -42,12 +41,11 @@ export default function FeaturedAttackerCard({
             {/* Corporation Logo */}
             {attacker.corporation?.id && (
               <Tooltip content={`Corporation: ${attacker.corporation?.name}`}>
-                <img
-                  src={`https://images.evetech.net/corporations/${attacker.corporation?.id}/logo?size=64`}
-                  alt={attacker.corporation?.name || 'Corporation'}
-                  width={32}
-                  height={32}
-                  loading="lazy"
+                <EveImage
+                  kind="corporation"
+                  id={attacker.corporation.id}
+                  name={attacker.corporation.name || 'Corporation'}
+                  size={32}
                 />
               </Tooltip>
             )}
@@ -55,12 +53,11 @@ export default function FeaturedAttackerCard({
             {/* Alliance Logo */}
             {attacker.alliance?.id && (
               <Tooltip content={`Alliance: ${attacker.alliance?.name}`}>
-                <img
-                  src={`https://images.evetech.net/alliances/${attacker.alliance?.id}/logo?size=64`}
-                  alt={attacker.alliance?.name || 'Alliance'}
-                  width={32}
-                  height={32}
-                  loading="lazy"
+                <EveImage
+                  kind="alliance"
+                  id={attacker.alliance.id}
+                  name={attacker.alliance.name || 'Alliance'}
+                  size={32}
                 />
               </Tooltip>
             )}

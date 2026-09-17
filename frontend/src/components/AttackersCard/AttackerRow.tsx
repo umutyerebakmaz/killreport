@@ -47,20 +47,18 @@ export default function AttackerRow({
          */}
         <div className="relative shrink-0">
           {attacker.character?.id ? (
-            <img
-              src={`https://images.evetech.net/characters/${attacker.character?.id}/portrait?size=128`}
-              alt={attacker.character?.name || 'Character'}
-              width={64}
-              height={64}
-              loading="lazy"
+            <EveImage
+              kind="character"
+              id={attacker.character.id}
+              name={attacker.character.name || 'Character'}
+              size={64}
             />
           ) : attacker.corporation?.id ? (
-            <img
-              src={`https://images.evetech.net/corporations/${attacker.corporation?.id}/logo?size=128`}
-              alt={attacker.corporation?.name || 'Corporation'}
-              width={64}
-              height={64}
-              loading="lazy"
+            <EveImage
+              kind="corporation"
+              id={attacker.corporation.id}
+              name={attacker.corporation.name || 'Corporation'}
+              size={64}
             />
           ) : attacker.shipType?.id ? (
             /* An NPC with neither a character nor a corporation: its ship is

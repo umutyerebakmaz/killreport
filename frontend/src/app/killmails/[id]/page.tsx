@@ -77,7 +77,7 @@ export default function KillmailDetailPage({
            * contents is unchanged — p-2 + gap-2 + p-2 spends the same budget,
            * with 8px of it turned into ground.
            */}
-          <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             {/* Victim summary — first, so the page reads from who to what */}
             <div className="p-2 card lg:col-span-1">
               <div className="space-y-3">

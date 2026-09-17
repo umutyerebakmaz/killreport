@@ -171,19 +171,16 @@ export default function KillmailRow({
         <div className="flex items-center gap-3">
           {/* Alliance logo if exists, otherwise corporation logo */}
           {(km.victim?.alliance?.id || km.victim?.corporation?.id) && (
-            <img
-              src={
-                km.victim.alliance?.id
-                  ? `https://images.evetech.net/alliances/${km.victim.alliance.id}/logo?size=128`
-                  : `https://images.evetech.net/corporations/${km.victim?.corporation?.id}/logo?size=128`
-              }
-              alt={
+            <EveImage
+              kind={km.victim.alliance?.id ? 'alliance' : 'corporation'}
+              id={km.victim.alliance?.id ?? km.victim?.corporation?.id ?? 0}
+              name={
                 km.victim.alliance?.name ||
                 km.victim?.corporation?.name ||
                 'Logo'
               }
+              size={64}
               className="size-16"
-              loading="lazy"
             />
           )}
           <div className="flex-1 min-w-0 leading-tight">
@@ -250,19 +247,18 @@ export default function KillmailRow({
           <div className="flex items-center gap-3">
             {/* Alliance logo if exists, otherwise corporation logo */}
             {(km.finalBlow.alliance?.id || km.finalBlow.corporation?.id) && (
-              <img
-                src={
-                  km.finalBlow.alliance?.id
-                    ? `https://images.evetech.net/alliances/${km.finalBlow.alliance.id}/logo?size=128`
-                    : `https://images.evetech.net/corporations/${km.finalBlow.corporation?.id}/logo?size=128`
+              <EveImage
+                kind={km.finalBlow.alliance?.id ? 'alliance' : 'corporation'}
+                id={
+                  km.finalBlow.alliance?.id ?? km.finalBlow.corporation?.id ?? 0
                 }
-                alt={
+                name={
                   km.finalBlow.alliance?.name ||
                   km.finalBlow.corporation?.name ||
                   'Logo'
                 }
+                size={64}
                 className="size-16"
-                loading="lazy"
               />
             )}
             <div className="flex-1 min-w-0 leading-tight">

@@ -150,19 +150,16 @@ export default function KillmailCard({
 
         <div className="flex items-center gap-2">
           {(km.victim?.alliance?.id || km.victim?.corporation?.id) && (
-            <img
-              src={
-                km.victim.alliance?.id
-                  ? `https://images.evetech.net/alliances/${km.victim.alliance.id}/logo?size=128`
-                  : `https://images.evetech.net/corporations/${km.victim.corporation?.id}/logo?size=128`
-              }
-              alt={
+            <EveImage
+              kind={km.victim.alliance?.id ? 'alliance' : 'corporation'}
+              id={km.victim.alliance?.id ?? km.victim.corporation?.id ?? 0}
+              name={
                 km.victim.alliance?.name ||
                 km.victim.corporation?.name ||
                 'Logo'
               }
+              size={40}
               className="size-10 shrink-0"
-              loading="lazy"
             />
           )}
           <div className="flex-1 min-w-0">

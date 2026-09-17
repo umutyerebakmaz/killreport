@@ -27,6 +27,7 @@ import { useTabList } from '@/hooks/useTabList';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { use, useCallback, useEffect, useMemo, useState } from 'react';
+import EveImage from '@/components/ui/EveImage';
 
 interface CorporationDetailPageProps {
   params: Promise<{ id: string }>;
@@ -331,11 +332,11 @@ export default function CorporationDetailPage({
         {/* Logo and Corporation Name */}
         <div className="flex flex-row items-center justify-between">
           <div className="flex items-center justify-center gap-6">
-            <img
-              src={`https://images.evetech.net/corporations/${corporation.id}/logo?size=128`}
-              alt={corporation.name}
-              width={128}
-              height={128}
+            <EveImage
+              kind="corporation"
+              id={corporation.id}
+              name={corporation.name}
+              size={128}
               className="shadow-md"
             />
             <div className="flex-1">
