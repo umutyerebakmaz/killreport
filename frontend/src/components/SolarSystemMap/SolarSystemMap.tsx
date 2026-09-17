@@ -2,6 +2,7 @@
 
 import { solarSystemMapUrl } from '@/utils/solarSystemMapUrl';
 import { useState } from 'react';
+import Image from 'next/image';
 
 export interface SolarSystemMapProps {
   systemId: number;
@@ -30,14 +31,32 @@ export default function SolarSystemMap({
   const [failedId, setFailedId] = useState<number | null>(null);
   if (failedId === systemId) return null;
 
-  return (
-    <img
-      src={solarSystemMapUrl(systemId)}
-      alt={`${systemName} map`}
+  const src = solarSystemMapUrl(systemId);
+  const alt = `${systemName} map`;
+  const onError = () => setFailedId(systemId);
+
+  /* No `size` means the caller sizes the box — `.map-card-map` is
+     `absolute inset-0 size-full`. That is `fill`, which is next/image's name
+     for the same arrangement and the only form it has without a pixel box.
+     Both branches spell `alt` out: behind a spread, jsx-a11y cannot see it. */
+  return size === undefined ? (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      className={className}
+      onError={onError}
+      unoptimized
+    />
+  ) : (
+    <Image
+      src={src}
+      alt={alt}
       width={size}
       height={size}
       className={className}
-      onError={() => setFailedId(systemId)}
+      onError={onError}
+      unoptimized
     />
   );
 }

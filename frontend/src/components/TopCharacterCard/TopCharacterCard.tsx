@@ -7,6 +7,7 @@ import Tooltip from '@/components/Tooltip/Tooltip';
 import { getSecurityStatusColor } from '@/utils/securityStatus';
 import Link from 'next/link';
 import { ReactNode } from 'react';
+import EveImage from '../ui/EveImage';
 
 export interface TopCharacter {
   id: number;
@@ -75,12 +76,11 @@ export default function TopCharacterCard({
 
                   {/* Portrait */}
                   <div className="relative shrink-0">
-                    <img
-                      src={`https://images.evetech.net/characters/${character.id}/portrait?size=128`}
-                      alt={character.name}
-                      width={64}
-                      height={64}
-                      loading="lazy"
+                    <EveImage
+                      kind="character"
+                      id={character.id}
+                      name={character.name}
+                      size={64}
                     />
                     {character.securityStatus != null && (
                       <div className="absolute bottom-0 left-0 px-1 py-0 text-xs font-semibold bg-black/70 backdrop-blur-sm">

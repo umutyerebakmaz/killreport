@@ -2,6 +2,7 @@
 
 import { constellationMapUrl } from '@/utils/constellationMapUrl';
 import { useState } from 'react';
+import Image from 'next/image';
 
 export interface ConstellationMapProps {
   constellationId: number;
@@ -33,14 +34,32 @@ export default function ConstellationMap({
   const [failedId, setFailedId] = useState<number | null>(null);
   if (failedId === constellationId) return null;
 
-  return (
-    <img
-      src={constellationMapUrl(constellationId)}
-      alt={`${constellationName} map`}
+  const src = constellationMapUrl(constellationId);
+  const alt = `${constellationName} map`;
+  const onError = () => setFailedId(constellationId);
+
+  /* No `size` means the caller sizes the box — `.map-card-map` is
+     `absolute inset-0 size-full`. That is `fill`, which is next/image's name
+     for the same arrangement and the only form it has without a pixel box.
+     Both branches spell `alt` out: behind a spread, jsx-a11y cannot see it. */
+  return size === undefined ? (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      className={className}
+      onError={onError}
+      unoptimized
+    />
+  ) : (
+    <Image
+      src={src}
+      alt={alt}
       width={size}
       height={size}
       className={className}
-      onError={() => setFailedId(constellationId)}
+      onError={onError}
+      unoptimized
     />
   );
 }

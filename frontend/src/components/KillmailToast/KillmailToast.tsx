@@ -4,6 +4,7 @@ import { formatTimeAgo } from '@/utils/date';
 import { formatISK } from '@/utils/formatISK';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
+import EveImage from '../ui/EveImage';
 
 interface KillmailToast {
   id: string;
@@ -52,18 +53,6 @@ function KillmailToastItem({
     setTimeout(onDismiss, 300);
   };
 
-  // Ship image URL from EVE image server
-  const shipImageUrl = toast.victimShipTypeId
-    ? `https://images.evetech.net/types/${toast.victimShipTypeId}/render?size=128`
-    : null;
-
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const target = e.target as HTMLImageElement;
-    if (target.src.includes('/render?') && toast.victimShipTypeId) {
-      target.src = `https://images.evetech.net/types/${toast.victimShipTypeId}/icon?size=128`;
-    }
-  };
-
   return (
     <div
       className={`
@@ -81,12 +70,13 @@ function KillmailToastItem({
       <div className="relative flex items-start gap-3 p-3 border shadow-xl bg-gray-900/95 backdrop-blur-md border-red-500/30 hover:border-red-500/50 transition-colors min-w-[320px] max-w-95">
         {/* Ship Image */}
         <div className="relative shrink-0">
-          {shipImageUrl ? (
-            <img
-              src={shipImageUrl}
-              alt={toast.victimShipName || 'Ship'}
+          {toast.victimShipTypeId ? (
+            <EveImage
+              kind="ship"
+              id={toast.victimShipTypeId}
+              name={toast.victimShipName || 'Ship'}
+              size={56}
               className="object-cover bg-gray-800 border border-gray-700 w-14 h-14"
-              onError={handleImageError}
             />
           ) : (
             <div className="flex items-center justify-center bg-gray-800 border border-gray-700 w-14 h-14">

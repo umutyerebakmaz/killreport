@@ -1,6 +1,6 @@
 import Tooltip from '@/components/Tooltip/Tooltip';
-import Image from 'next/image';
 import Link from 'next/link';
+import EveImage from '../ui/EveImage';
 
 export interface SovereigntyHolder {
   ownerType: string;
@@ -43,10 +43,7 @@ export default function SovereigntyLogo({
   // id with the same blank placeholder for every one of them, but
   // /corporations/{factionId} serves the faction's own emblem — checked against
   // all 27 factions in the database, 27 distinct images, no placeholder.
-  const logo =
-    holder.ownerType === 'ALLIANCE'
-      ? `https://images.evetech.net/alliances/${holder.ownerId}/logo?size=${size * 2}`
-      : `https://images.evetech.net/corporations/${holder.ownerId}/logo?size=${size * 2}`;
+  const kind = holder.ownerType === 'ALLIANCE' ? 'alliance' : 'corporation';
 
   const label = [
     holder.ownerName ?? String(holder.ownerId),
@@ -59,13 +56,12 @@ export default function SovereigntyLogo({
     .join(' ');
 
   const image = (
-    <Image
-      src={logo}
-      alt={holder.ownerName ?? 'Sovereignty holder'}
-      width={size}
-      height={size}
+    <EveImage
+      kind={kind}
+      id={holder.ownerId}
+      name={holder.ownerName ?? 'Sovereignty holder'}
+      size={size}
       style={{ width: size, height: size }}
-      unoptimized
     />
   );
 

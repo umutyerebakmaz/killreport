@@ -3,11 +3,12 @@
 import type { KillmailQuery } from '@/generated/graphql';
 import { useTabList } from '@/hooks/useTabList';
 import { formatISK } from '@/utils/formatISK';
-import { isBlueprint } from '@/utils/itemImageUrl';
+import { isBlueprint } from '@/utils/itemType';
 import { getShipTier } from '@/utils/shipTier';
 import { useState, useSyncExternalStore } from 'react';
 import RadioGroup from '../RadioGroup/RadioGroup';
 import ShipTierBadge from '../ShipTierBadge/ShipTierBadge';
+import EveImage from '../ui/EveImage';
 import SummaryRow from '../ui/SummaryRow';
 import FittingSection from './FittingSection';
 import { FittingScope, FittingView } from './types';
@@ -209,18 +210,13 @@ export default function KillmailSummaryCard({
                     />
                   </div>
                 )}
-                <img
-                  src={`https://images.evetech.net/types/${victim.shipType.id}/render?size=128`}
-                  alt={victim.shipType.name}
+                <EveImage
+                  kind="ship"
+                  id={victim.shipType.id}
+                  name={victim.shipType.name}
+                  size={64}
                   className="border size-16 border-amber-900/80"
-                  loading="lazy"
-                  decoding="async"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    if (target.src.includes('/render?')) {
-                      target.src = `https://images.evetech.net/types/${victim.shipType.id}/icon?size=128`;
-                    }
-                  }}
+                  priority
                 />
               </div>
               <div className="flex-1 min-w-0">
