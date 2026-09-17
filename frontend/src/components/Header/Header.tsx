@@ -6,7 +6,7 @@ import {
   DialogPanel,
   PopoverGroup,
 } from '@headlessui/react';
-import { Bars3Icon, XMarkIcon, HomeIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import React, { useCallback, useState } from 'react';
 import ActiveUsersCounter from '../ActiveUsersCounter';
@@ -20,6 +20,7 @@ import {
   MobileNavLink,
   MobileNavSubLink,
 } from './MobileNav';
+import Logo from '../ui/Logo';
 import { NavLink } from './NavLink';
 import { NavPopover, NavPopoverLink } from './NavPopover';
 
@@ -67,10 +68,17 @@ export default function Header() {
         <div className="flex mr-8 2xl:mr-12 min-[1800px]:mr-24">
           <Link
             href="/"
-            className="-m-1.5 p-1.5 text-gray-200 transition-colors hover:text-white focus:outline-none focus-visible:text-white"
+            className="flex items-center gap-2.5 -m-1.5 p-1.5 text-gray-200 transition-colors hover:text-white focus:outline-none focus-visible:text-white"
           >
-            <span className="sr-only">KillReport</span>
-            <HomeIcon aria-hidden="true" className="size-7" />
+            <Logo className="size-7 shrink-0" />
+            {/* The wordmark is the link's accessible name at every width and
+                its visible name only from 2xl. The nav needs ~1750px laid out
+                at full size and the word costs about a hundred of them, so
+                below that the mark carries the corner alone — which is what
+                the HomeIcon it replaced did, with none of the meaning. */}
+            <span className="text-lg font-medium tracking-wider whitespace-nowrap sr-only 2xl:not-sr-only">
+              KILLREPORT
+            </span>
           </Link>
         </div>
 
@@ -198,13 +206,17 @@ export default function Header() {
           className="fixed inset-y-0 right-0 z-50 w-full p-6 overflow-y-auto transition duration-300 ease-out float sm:max-w-sm data-closed:translate-x-full data-leave:duration-200 data-leave:ease-in"
         >
           <div className="flex items-center justify-between">
+            {/* The drawer is a column with room to spare, so the wordmark
+                shows at every width here. */}
             <Link
               href="/"
               onClick={closeMobileMenu}
-              className="-m-1.5 p-1.5 text-gray-200 transition-colors hover:text-white focus:outline-none focus-visible:text-white"
+              className="flex items-center gap-2.5 -m-1.5 p-1.5 text-gray-200 transition-colors hover:text-white focus:outline-none focus-visible:text-white"
             >
-              <span className="sr-only">KillReport</span>
-              <HomeIcon aria-hidden="true" className="size-7" />
+              <Logo className="size-7 shrink-0" />
+              <span className="text-lg font-medium tracking-wider">
+                KILLREPORT
+              </span>
             </Link>
             <button
               onClick={closeMobileMenu}
