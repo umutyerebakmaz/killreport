@@ -9,12 +9,15 @@ import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import Link from 'next/link';
 import { ReactNode } from 'react';
 
-const MOBILE_NAV_LINK =
-  'block px-3 py-2 -mx-3 font-medium text-white text-base/7 hover:bg-white/5';
-const MOBILE_NAV_SUB_LINK =
-  'block py-2 pl-6 pr-3 font-medium text-white text-sm/7 hover:bg-white/5';
-const MOBILE_NAV_DISCLOSURE_BUTTON =
-  'group flex w-full items-center justify-between py-2 pr-3.5 pl-3 text-base/7 font-medium text-white hover:bg-white/5 focus:outline-none focus-visible:outline-1 focus-visible:outline-accent';
+// No rings in the drawer either, for the reason the desktop nav gives in
+// NavPopover.tsx: keyboard focus shows itself the way hover already does, so a
+// row reached with Tab looks like a row reached with the pointer. The
+// disclosure button had an accent ring rather than the browser's white one,
+// which was still a second vocabulary for the same thing.
+const MOBILE_NAV_FOCUS = 'focus:outline-none focus-visible:bg-white/5';
+const MOBILE_NAV_LINK = `block px-3 py-2 -mx-3 font-medium text-white text-base/7 hover:bg-white/5 ${MOBILE_NAV_FOCUS}`;
+const MOBILE_NAV_SUB_LINK = `block py-2 pl-6 pr-3 font-medium text-white text-sm/7 hover:bg-white/5 ${MOBILE_NAV_FOCUS}`;
+const MOBILE_NAV_DISCLOSURE_BUTTON = `group flex w-full items-center justify-between py-2 pr-3.5 pl-3 text-base/7 font-medium text-white hover:bg-white/5 ${MOBILE_NAV_FOCUS}`;
 
 // A real height transition: the row goes from 0fr to 1fr, so the group opens
 // downwards at the speed the links appear. Sliding the rows into a box that

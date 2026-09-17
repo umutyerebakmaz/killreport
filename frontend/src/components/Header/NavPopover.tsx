@@ -138,13 +138,18 @@ export function NavPopoverLink({
   label: string;
   description: string;
 }) {
+  // The row is what lights up, but the link inside it is what takes focus, so
+  // `has-[a:focus-visible]` is how the row hears about it — the link is not an
+  // ancestor and `group-*` only reads the element carrying `group`. Keyboard
+  // and pointer then land on the same highlight instead of on a ring the row
+  // would draw around a word rather than around itself.
   return (
-    <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
+    <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50 has-[a:focus-visible]:bg-cyan-900/50">
       <div className="flex-auto">
         <CloseButton
           as={Link}
           href={href}
-          className="block font-medium text-white"
+          className="block font-medium text-white focus:outline-none"
         >
           {label}
           <span className="absolute inset-0" />

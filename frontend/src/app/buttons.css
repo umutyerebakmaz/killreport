@@ -14,18 +14,14 @@
      one, since a label has no :disabled of its own. */
   .button {
     @apply inline-flex items-center justify-center gap-x-1.5 px-4 py-2.5 text-sm font-medium
-      cursor-pointer transition-colors focus:outline-none focus-visible:outline-1
-      focus-visible:outline-accent disabled:opacity-50 disabled:cursor-not-allowed;
+      cursor-pointer transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
-  /* A <label> wrapping an input has no :focus-visible or :disabled of its own,
-     so the structural states are read through the input it contains. These sit
-     on .button rather than on an appearance because they are the same whatever
-     the button looks like. */
-  .button:has(:focus-visible) {
-    @apply outline-1 outline-accent;
-  }
-
+  /* A <label> wrapping an input has no :disabled of its own, so that state is
+     read through the input it contains. It sits on .button rather than on an
+     appearance because it is the same whatever the button looks like. The
+     matching :focus-visible rule is gone with every other focus ring — see the
+     block in globals.css. */
   .button:has(:disabled) {
     @apply opacity-50 cursor-not-allowed;
   }

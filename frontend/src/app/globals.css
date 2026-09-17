@@ -123,6 +123,28 @@ html {
 }
 
 /*
+ * No focus ring, anywhere. Asked for directly, and it has to be a global rule
+ * rather than a class per element: what kept coming back was the browser's own
+ * ring on elements nobody had styled, and there is always one more of those —
+ * NotificationBell's button was the last one hiding in the header.
+ *
+ * `:focus-visible` is the one the browser draws. The `focus:outline-none`
+ * utilities left scattered around cover the plain `:focus` case, which is what
+ * a pointer produces.
+ *
+ * What this costs, stated rather than discovered later: outside the header
+ * nothing marks focus at all now. A button, an input, a checkbox or a select
+ * reached with Tab looks exactly like one that was not, so the app is hard to
+ * drive without a pointer. The header is the exception — `.nav-item` opens its
+ * accent line on `:focus-visible`, and the drawer rows and popover rows light
+ * up the way hover does. Giving the rest of the controls that same treatment
+ * is the way back, and it is design work rather than a revert.
+ */
+:focus-visible {
+  outline: none;
+}
+
+/*
  * The full-bleed escape hatch, for the map.
  *
  * `main` is `mx-auto max-w-480` — 120rem — so past 1920px it centres and leaves

@@ -67,7 +67,7 @@ export default function Header() {
         <div className="flex mr-8 2xl:mr-12 min-[1800px]:mr-24">
           <Link
             href="/"
-            className="-m-1.5 p-1.5 text-gray-200 transition-colors hover:text-white"
+            className="-m-1.5 p-1.5 text-gray-200 transition-colors hover:text-white focus:outline-none focus-visible:text-white"
           >
             <span className="sr-only">KillReport</span>
             <HomeIcon aria-hidden="true" className="size-7" />
@@ -201,7 +201,7 @@ export default function Header() {
             <Link
               href="/"
               onClick={closeMobileMenu}
-              className="-m-1.5 p-1.5 text-gray-200 transition-colors hover:text-white"
+              className="-m-1.5 p-1.5 text-gray-200 transition-colors hover:text-white focus:outline-none focus-visible:text-white"
             >
               <span className="sr-only">KillReport</span>
               <HomeIcon aria-hidden="true" className="size-7" />

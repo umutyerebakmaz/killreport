@@ -31,7 +31,7 @@ export default function NotificationBell() {
         >
           <PopoverButton
             onClick={() => unread > 0 && markAllRead()}
-            className="relative flex items-center text-gray-300 hover:text-white"
+            className="relative flex items-center text-gray-300 transition-colors hover:text-white focus:outline-none focus-visible:text-white"
             aria-label="Sovereignty alerts"
           >
             <BellIcon className="w-6 h-6" />
