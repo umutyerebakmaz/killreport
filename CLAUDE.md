@@ -249,7 +249,14 @@ first one's processes.
 - **Frontend:** `PORT` in the real environment — the `next` CLI resolves
   `-p` flag > `PORT` > 3000, so `yarn kill` uses `${PORT:-3000}`. Reading it
   from `.env.local` would be wrong: Next loads env files only after the CLI has
-  already resolved the port.
+  already resolved the port. `yarn dev` passes the **same expression** as `-p`,
+  and that is load-bearing: with neither `-p` nor `PORT` given, `next dev`
+  treats its port as a suggestion and silently moves to the next free one
+  (`server/lib/start-server.js`, `port += 1`, ten times over), guarded by
+  `allowRetry = portSource === 'default'` in `cli/next-dev.js`. A server that
+  drifted to 3001 is one `yarn kill` can never reach again, because the script
+  only ever knows one port. With `-p` Next fails on EADDRINUSE instead, the way
+  the backend already does.
 
 Never kill by process name. `pkill -f 'next.*dev'` and `pkill node` reach every
 project on the machine, not just this one.
@@ -266,6 +273,22 @@ looking for the process by name, which is the one thing the rule above forbids:
 - **macOS: use `lsof`, not `fuser`.** BSD fuser has no `-k` and no `-s`. It
   answers `Unknown option: k` and exits 0. macOS lsof never reads `/proc`, so
   the truncation bug cannot reach it.
+
+Two more ways the same silence appeared, both fixed in `kill-port.sh`:
+
+- **A suspended process cannot act on SIGTERM.** Ctrl+Z stops the whole
+  foreground process group — nodemon, yarn and the server alike — and a stopped
+  process keeps its listening socket. A bare `kill` queues a signal nobody is
+  running to receive, so the script must send `SIGCONT` after it, then wait for
+  the socket to close and `kill -9` whatever is left.
+- **`lsof -ti tcp:3000` is not "who is listening on 3000".** It matches 3000 at
+  either end of a socket, so with the app open in a browser it also returns the
+  tab's process — Chrome's client socket is `[::1]:55578->[::1]:3000`. Ask with
+  `-sTCP:LISTEN`. fuser matches the local port only and needs no equivalent.
+
+`kill $pids` returning 0 means the signal was sent, never that anything acted on
+it, so the script waits for the port to actually free and exits **1** if it
+could not. Only "nothing was listening" exits 0 without doing anything.
 
 Checking one platform is how this gets broken: the move to `fuser` (087e0214)
 and the move back (#215) were each correct on the machine they were tested on.
