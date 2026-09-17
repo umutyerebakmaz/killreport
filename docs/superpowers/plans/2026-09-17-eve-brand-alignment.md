@@ -508,6 +508,10 @@ git commit -m "fix(frontend): put dark ink on the accent fill, which white canno
 
 EVE her yerde 1.5 satır yüksekliği ve 300 ağırlıklı gövde kullanıyor.
 
+> **Step 1 geri alındı.** Satır yüksekliği sabitlemesi, dal gözden geçirilirken
+> kullanıcının kararıyla kaldırıldı — `text-xs` ve `text-sm` Tailwind'in kendi
+> ölçeğine döndü. Step 2'deki 300 ağırlığı yerinde duruyor.
+
 **Files:**
 
 - Modify: `frontend/src/app/globals.css` (`@theme` ve `body`)
@@ -609,6 +613,11 @@ git commit -m "feat(frontend): drop headings to 500, the weight EVE leads with"
 
 EVE 59 öğede `uppercase` + `2.4px` harf aralığı kullanıyor. KillReport'taki
 karşılığı tablo başlıkları ve kart başlıkları.
+
+> **Bu görev bütünüyle geri alındı.** Dal gözden geçirilirken kullanıcının
+> kararıyla hem `uppercase` hem `tracking-[0.15em]` kaldırıldı; `.th-cell` ve
+> `.card-header` main'deki harf düzenine döndü. Aşağıdaki adımlar ne yapıldığının
+> kaydı olarak duruyor, uygulanacak iş değil.
 
 **Files:**
 

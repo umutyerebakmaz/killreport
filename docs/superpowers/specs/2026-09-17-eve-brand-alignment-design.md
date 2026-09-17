@@ -247,12 +247,12 @@ EVE'ninki **5.00**. Bu da bir düzeltme.
 
 Toptan hizalamanın en görünür parçası bu.
 
-|                  | Bugün                         | EVE     | Sonuç                  |
-| ---------------- | ----------------------------- | ------- | ---------------------- |
-| Gövde            | 400                           | **300** | `body` 300'e iner      |
-| Başlık / ad      | 600 (215 yerde)               | **500** | 500'e iner             |
-| Kontrol          | 500                           | 500     | değişmiyor             |
-| Satır yüksekliği | Tailwind'in ölçeği (1.43–1.5) | **1.5** | ölçek 1.5'e sabitlenir |
+|                  | Bugün                         | EVE     | Sonuç                                    |
+| ---------------- | ----------------------------- | ------- | ---------------------------------------- |
+| Gövde            | 400                           | **300** | `body` 300'e iner                        |
+| Başlık / ad      | 600 (215 yerde)               | **500** | 500'e iner                               |
+| Kontrol          | 500                           | 500     | değişmiyor                               |
+| Satır yüksekliği | Tailwind'in ölçeği (1.43–1.5) | **1.5** | ~~ölçek 1.5'e sabitlenir~~ — geri alındı |
 
 `font-semibold` 215 yerde yazılı. Bunların hepsini elle değiştirmek yerine
 `@theme`'de `--font-weight-semibold: 500` demek mümkün — ama o zaman sınıf adı
@@ -263,6 +263,13 @@ yalan söyler. Bu yüzden **mekanik bir tarama** olarak yapılır: `font-semibol
 sadece `.tag` büyük harf. EVE'nin kullandığı yerlerin karşılığı bizde
 `.th-cell` (tablo başlıkları) ve `.card-header` başlıkları. İkisi de büyük
 harfe ve `0.15em` aralığa geçer.
+
+**Geri alındı — iki karar dalda kalmadı.** Satır yüksekliği sabitlemesi
+(`--text-{xs,sm,base,lg}--line-height: 1.5`) ve başlıkların büyük harf +
+`0.15em` aralığı, dal gözden geçirilirken kullanıcının kararıyla kaldırıldı:
+ikisi birlikte sayfayı olması gerekenden açık gösteriyordu. Satır yüksekliği
+Tailwind'in kendi ölçeğine, `.th-cell` ve `.card-header` normal harf düzenine
+döndü. Bu bölümün geri kalanı — gövde 300, başlık 500 — yerinde duruyor.
 
 ### 6. Ölçü — **istisna 2: 4px tabanında kalıyor**
 
@@ -315,8 +322,8 @@ markasını uygulamanın kimliği yapmak hizalama değil, taklit olur. CCP'nin
 | ------------------------------ | -------------------------------------------------------------------- |
 | `frontend/src/app/globals.css` | `@theme` — zeminler, aksan, `accent-ink`, sinyaller, gri, ağırlıklar |
 | `frontend/src/app/buttons.css` | `.button-primary` ve `[aria-pressed]` mürekkebi, `.badge` token adı  |
-| `frontend/src/app/tables.css`  | `.th-cell` büyük harf + aralık                                       |
-| `frontend/src/app/cards.css`   | `.card-header` büyük harf + aralık                                   |
+| `frontend/src/app/tables.css`  | ~~`.th-cell` büyük harf + aralık~~ — geri alındı                     |
+| `frontend/src/app/cards.css`   | ~~`.card-header` büyük harf + aralık~~ — geri alındı                 |
 | `frontend/src/**/*.tsx`        | `font-semibold` → `font-medium` taraması (ayrı commit)               |
 | Design system artifact         | token'lar, Rogan, logo, EVE bölümü                                   |
 
