@@ -122,18 +122,6 @@ export default function TopEntitySidebar({
                     name: pilot.character?.name || 'Unknown',
                     killCount: pilot.killCount,
                     securityStatus: pilot.character?.securityStatus,
-                    corporation: pilot.character?.corporation
-                      ? {
-                          id: pilot.character.corporation.id,
-                          name: pilot.character.corporation.name,
-                        }
-                      : null,
-                    alliance: pilot.character?.alliance
-                      ? {
-                          id: pilot.character.alliance.id,
-                          name: pilot.character.alliance.name,
-                        }
-                      : null,
                   })) || []
                 }
                 loading={pilotsLoading}
@@ -151,7 +139,6 @@ export default function TopEntitySidebar({
                   corporations?.topCorporations?.map((corp) => ({
                     id: corp.corporation?.id || 0,
                     name: corp.corporation?.name || 'Unknown',
-                    ticker: corp.corporation?.ticker,
                     killCount: corp.killCount,
                   })) || []
                 }
@@ -170,7 +157,6 @@ export default function TopEntitySidebar({
                   alliances?.topAlliances?.map((alliance) => ({
                     id: alliance.alliance?.id || 0,
                     name: alliance.alliance?.name || 'Unknown',
-                    ticker: alliance.alliance?.ticker,
                     killCount: alliance.killCount,
                   })) || []
                 }

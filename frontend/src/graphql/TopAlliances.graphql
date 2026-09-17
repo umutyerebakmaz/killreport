@@ -5,7 +5,6 @@ query TopAlliances($filter: TopFilter) {
     alliance {
       id
       name
-      ticker
     }
   }
 }

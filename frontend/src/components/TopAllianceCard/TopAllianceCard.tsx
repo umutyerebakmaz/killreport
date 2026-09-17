@@ -11,7 +11,6 @@ import EveImage from '../ui/EveImage';
 export interface TopAlliance {
   id: number;
   name: string;
-  ticker?: string | null;
   killCount: number;
 }
 

@@ -14,14 +14,6 @@ export interface TopCharacter {
   name: string;
   killCount: number;
   securityStatus?: number | null;
-  corporation?: {
-    id: number;
-    name: string;
-  } | null;
-  alliance?: {
-    id: number;
-    name: string;
-  } | null;
 }
 
 export interface TopCharacterCardProps {
