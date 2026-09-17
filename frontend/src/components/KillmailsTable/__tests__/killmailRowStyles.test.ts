@@ -26,7 +26,7 @@ describe('getKillmailRowStyles', () => {
   describe('uninvolved rows', () => {
     it('uses the theme surfaces when no entity is given', () => {
       expect(getKillmailRowStyles({ killmail: killmail() })).toEqual({
-        totalValueColor: 'text-orange-400',
+        totalValueColor: 'text-isk',
         rowBgColor: 'bg-surface',
         rowHoverColor: 'hover:bg-surface-inset',
       });
@@ -41,7 +41,7 @@ describe('getKillmailRowStyles', () => {
       expect(
         getKillmailRowStyles({ killmail: km, characterId: CHARACTER }),
       ).toEqual({
-        totalValueColor: 'text-orange-400',
+        totalValueColor: 'text-isk',
         rowBgColor: 'bg-surface',
         rowHoverColor: 'hover:bg-surface-inset',
       });
