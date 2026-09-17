@@ -53,7 +53,7 @@ export default function CharacterCard({ character }: CharacterCardProps) {
           </Link>
 
           <div className="flex flex-col items-center w-full gap-2 min-h-11">
-            {/* Corporation */}
+            {/* Corporation — green-400 is the affiliation-label colour here, not dropped's */}
             <div className="h-5">
               {character.corporation && (
                 <Tooltip content="Corporation" position="top">
@@ -70,7 +70,7 @@ export default function CharacterCard({ character }: CharacterCardProps) {
               )}
             </div>
 
-            {/* Alliance */}
+            {/* Alliance name, not isk's — same affiliation-label colour scheme as Corporation above */}
             <div className="h-5">
               {character.alliance && (
                 <Tooltip content="Alliance" position="top">

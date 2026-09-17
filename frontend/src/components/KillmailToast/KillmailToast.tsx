@@ -101,7 +101,7 @@ function KillmailToastItem({
         <div className="flex-1 min-w-0">
           {/* Victim */}
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-red-400 truncate">
+            <span className="text-sm font-semibold text-destroyed truncate">
               {toast.victimName || 'Unknown Pilot'}
             </span>
           </div>
@@ -130,6 +130,7 @@ function KillmailToastItem({
           {/* Value & Time */}
           <div className="flex items-center gap-2 mt-1">
             {toast.totalValue && (
+              // isk's meaning, but yellow-500 — a step outside this sweep's red/green/yellow-400 scope
               <span className="text-xs font-semibold text-yellow-500 tabular-nums">
                 {formatISK(toast.totalValue)}
               </span>

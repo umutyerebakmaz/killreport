@@ -62,6 +62,7 @@ export default function CorporationsTable({
                   </Link>
                 </div>
               </td>
+              {/* corp.ticker, not isk's — a ticker label, same as the other ticker sites */}
               <td className="px-6 py-4 text-sm text-yellow-400 whitespace-nowrap">
                 [{corp.ticker}]
               </td>

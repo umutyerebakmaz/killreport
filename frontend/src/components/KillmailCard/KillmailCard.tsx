@@ -122,7 +122,7 @@ export default function KillmailCard({
             </div>
           </Tooltip>
           {km.totalValue && (
-            <div className="text-lg font-bold text-yellow-400 tabular-nums">
+            <div className="text-lg font-bold text-isk tabular-nums">
               {formatISK(km.totalValue)}
             </div>
           )}

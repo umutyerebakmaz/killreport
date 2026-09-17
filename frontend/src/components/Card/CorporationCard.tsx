@@ -87,7 +87,7 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
             <div className="corporation-ticker">[{corporation.ticker}]</div>
           </Tooltip>
 
-          {/* Alliance */}
+          {/* Alliance name, not isk's — the affiliation-label colour, same as CharacterCard's */}
           <div className="flex flex-col items-center w-full gap-2 min-h-5">
             <div className="h-5">
               {corporation.alliance && (

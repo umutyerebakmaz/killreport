@@ -93,7 +93,10 @@ export default function WeeklyTopCharCard() {
                     )}
                   </div>
 
-                  {/* Kill Count */}
+                  {/* Kill Count — a tally, not a killmail's damage; every sibling
+                      Top*Card renders the same label in text-ink-muted, so this
+                      red looks like a pre-existing inconsistency rather than
+                      destroyed's meaning. Left alone rather than guessed. */}
                   <div className="shrink-0">
                     <span className="text-xs font-semibold text-red-400 tabular-nums">
                       {pilot.killCount}

@@ -105,7 +105,7 @@ export default function KillmailRow({
                 {km.victim?.shipType?.group?.name}
               </div>
             )}
-            <div className="text-base text-red-400">
+            <div className="text-base text-destroyed">
               {km.victim?.damageTaken?.toLocaleString() || 0}
             </div>
           </div>
@@ -333,6 +333,7 @@ export default function KillmailRow({
       <td className="td-cell">
         <div className="flex items-center justify-center gap-2">
           {isSolo ? (
+            // SOLO badge's green-600, not dropped's green-400 — a different step, untouched by this sweep
             <span className="px-2 py-0.5 font-medium text-green-600 rounded bg-green-600/10">
               SOLO
             </span>
@@ -342,7 +343,7 @@ export default function KillmailRow({
             </span>
           )}
           {isNpcAttacker && (
-            <span className="px-2 py-0.5 font-medium text-red-400 rounded bg-red-400/10">
+            <span className="px-2 py-0.5 font-medium text-destroyed rounded bg-destroyed/10">
               NPC
             </span>
           )}
