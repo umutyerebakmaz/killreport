@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import EveImage from './EveImage';
@@ -85,6 +85,27 @@ describe('EveImage', () => {
     const img = screen.getByAltText('Rifter');
     expect(img).toHaveClass('object-contain');
     expect(img).not.toHaveClass('object-cover');
+  });
+
+  it('reports when the image has loaded', async () => {
+    let loaded = false;
+    render(
+      <EveImage
+        kind="alliance"
+        id={99000001}
+        name="Alliance"
+        size={128}
+        onLoad={() => {
+          loaded = true;
+        }}
+      />,
+    );
+
+    /* next/image reports the load from inside a promise — it decodes first —
+       so the assertion has to wait a tick rather than read straight after. */
+    fireEvent.load(screen.getByAltText('Alliance'));
+
+    await waitFor(() => expect(loaded).toBe(true));
   });
 
   it('draws a fill image without width and height', () => {

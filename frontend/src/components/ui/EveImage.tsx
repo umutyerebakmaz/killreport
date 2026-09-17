@@ -21,6 +21,8 @@ export type EveImageProps = {
   className?: string;
   /** The fit screen counter-rotates its slot icons; nothing else sets this. */
   style?: CSSProperties;
+  /** The three entity cards fade their image in once it has arrived. */
+  onLoad?: () => void;
   /**
    * `ship` only: the class to draw with once the render has 404'd and the
    * icon has taken its place. KillmailCard is the one caller that needs it —
@@ -51,6 +53,7 @@ export default function EveImage({
   name,
   className,
   style,
+  onLoad,
   fallbackClassName,
   priority,
   singleton,
@@ -94,6 +97,7 @@ export default function EveImage({
         className={drawnClassName}
         style={style}
         priority={priority}
+        onLoad={onLoad}
         onError={onError}
         unoptimized
       />
@@ -109,6 +113,7 @@ export default function EveImage({
       className={drawnClassName}
       style={style}
       priority={priority}
+      onLoad={onLoad}
       onError={onError}
       unoptimized
     />
