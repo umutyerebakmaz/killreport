@@ -60,7 +60,7 @@ describe('getKillmailRowStyles', () => {
           characterId: CHARACTER,
         }),
       ).toEqual({
-        totalValueColor: 'text-red-500',
+        totalValueColor: 'text-destroyed',
         rowBgColor: 'bg-red-500/15',
         rowHoverColor: 'hover:bg-red-500/20',
       });
@@ -74,7 +74,7 @@ describe('getKillmailRowStyles', () => {
       expect(
         getKillmailRowStyles({ killmail: km, corporationId: CORPORATION }),
       ).toEqual({
-        totalValueColor: 'text-red-500',
+        totalValueColor: 'text-destroyed',
         rowBgColor: 'bg-red-500/20',
         rowHoverColor: 'hover:bg-red-500/30',
       });
@@ -88,7 +88,7 @@ describe('getKillmailRowStyles', () => {
       expect(
         getKillmailRowStyles({ killmail: km, allianceId: ALLIANCE }),
       ).toEqual({
-        totalValueColor: 'text-red-500',
+        totalValueColor: 'text-destroyed',
         rowBgColor: 'bg-red-500/20',
         rowHoverColor: 'hover:bg-red-500/30',
       });
@@ -133,6 +133,6 @@ describe('getKillmailRowStyles', () => {
 
     expect(
       getKillmailRowStyles({ killmail: km, characterId: CHARACTER }),
-    ).toMatchObject({ totalValueColor: 'text-red-500' });
+    ).toMatchObject({ totalValueColor: 'text-destroyed' });
   });
 });

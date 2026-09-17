@@ -94,7 +94,7 @@ export default function Paginator({
       </div>
       {/* Page Info */}
       {currentPage && (
-        <span className="px-4 py-2.5 text-sm font-medium text-ink-faint border bg-gray-900/50 border-gray-700/50">
+        <span className="px-4 py-2.5 text-sm font-medium text-ink-faint border bg-surface/50 border-white/10">
           {totalPages
             ? `Page ${currentPage} of ${totalPages}`
             : `Page ${currentPage}`}

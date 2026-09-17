@@ -24,7 +24,8 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
     corporation.metrics?.memberCountGrowthRate7d ?? null;
 
   // Delta rengi belirle (currently unused — see MemberDeltaBadge for the live
-  // version of this same pattern, also reverted: this Card is bg-surface).
+  // version of this same pattern; this Card is also bg-surface, where EVE's
+  // red measures 3.93:1, accepted per the spec).
   const deltaColor =
     memberDelta7d && memberDelta7d >= 0 ? 'text-success' : 'text-red-400';
 
@@ -57,7 +58,7 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
         <div className="flex flex-col items-center gap-4">
           <div className="relative w-32 h-32">
             {!imageLoaded && (
-              <div className="absolute inset-0 animate-pulse bg-gray-800/50">
+              <div className="absolute inset-0 animate-pulse bg-surface-inset/50">
                 <div className="flex items-center justify-center w-full h-full">
                   <BuildingOffice2Icon className="w-12 h-12 text-gray-700" />
                 </div>

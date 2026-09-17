@@ -139,7 +139,7 @@ export default function WorkersPage() {
       <h1 className="sr-only">Worker Status Monitor</h1>
       <div className="flex items-center justify-end mb-8">
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 px-3 py-2 bg-gray-800 border border-gray-700">
+          <div className="flex items-center gap-2 px-3 py-2 bg-surface-inset border border-white/10">
             <div
               className={`w-3 h-3 rounded-full ${
                 isConnected ? 'bg-success animate-pulse' : 'bg-caution'
@@ -169,12 +169,12 @@ export default function WorkersPage() {
                 workerStatus?.healthy ? 'bg-success' : 'bg-danger'
               } animate-pulse`}
             ></div>
-            {/* This panel is bg-surface, where danger measures 3.93:1 — under
-                the 4.5 floor this text needs (18px/500 isn't large-bold).
-                Dot above keeps the token: 3:1 is enough for a non-text mark. */}
+            {/* This panel is bg-surface, where EVE's red measures 3.93:1 —
+                under the 4.5 floor this text needs (18px/500 isn't
+                large-bold) — accepted per the spec's contrast trade-off. */}
             <span
               className={`text-lg font-medium ${
-                workerStatus?.healthy ? 'text-success' : 'text-red-500'
+                workerStatus?.healthy ? 'text-success' : 'text-danger'
               }`}
             >
               {workerStatus?.healthy ? 'Healthy' : 'Unhealthy'}
@@ -235,7 +235,7 @@ export default function WorkersPage() {
                 Redis Cache Status
               </h2>
             </div>
-            {/* bg-surface again — same floor problem as System Health above */}
+            {/* bg-surface again — same 3.93:1 floor as System Health above */}
             <span
               className={`text-sm font-medium ${
                 workerStatus.redis.connected ? 'text-success' : 'text-red-400'
@@ -323,7 +323,7 @@ export default function WorkersPage() {
       )}
 
       {queues.length === 0 && standaloneWorkers.length === 0 && (
-        <div className="p-12 text-center border border-white/5 bg-gray-900/50">
+        <div className="p-12 text-center border border-white/5 bg-surface/50">
           <p className="text-ink-muted">No workers found</p>
         </div>
       )}
@@ -512,7 +512,7 @@ function QueueSection({ title, subtitle, queues }: any) {
                     className={`inline-flex items-center px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium ${
                       queue.messageCount > 0
                         ? 'bg-caution/20 text-caution'
-                        : 'bg-gray-800 text-ink-muted'
+                        : 'bg-surface-inset text-ink-muted'
                     }`}
                   >
                     {queue.messageCount.toLocaleString()}
@@ -523,7 +523,7 @@ function QueueSection({ title, subtitle, queues }: any) {
                     className={`inline-flex items-center px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium ${
                       queue.consumerCount > 0
                         ? 'bg-success/20 text-success'
-                        : 'bg-gray-800 text-ink-muted'
+                        : 'bg-surface-inset text-ink-muted'
                     }`}
                   >
                     {queue.consumerCount}

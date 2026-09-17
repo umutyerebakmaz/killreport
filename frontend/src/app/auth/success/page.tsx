@@ -67,7 +67,7 @@ function AuthSuccessContent() {
             <div className="rounded-full w-96 h-96 bg-red-500/10 blur-3xl animate-pulse"></div>
           </div>
 
-          <div className="relative p-8 border shadow-2xl bg-gray-800/90 backdrop-blur-xl rounded-2xl border-red-500/20">
+          <div className="relative p-8 border shadow-2xl bg-surface-inset/90 backdrop-blur-xl rounded-2xl border-red-500/20">
             <div className="text-center">
               {/* Error icon with animation */}
               <div className="relative inline-flex items-center justify-center w-20 h-20 mb-6">
@@ -129,7 +129,7 @@ function AuthSuccessContent() {
           <div className="rounded-full w-96 h-96 bg-green-500/10 blur-3xl animate-pulse"></div>
         </div>
 
-        <div className="relative p-8 border shadow-2xl bg-gray-800/90 backdrop-blur-xl rounded-2xl border-green-500/20">
+        <div className="relative p-8 border shadow-2xl bg-surface-inset/90 backdrop-blur-xl rounded-2xl border-green-500/20">
           <div className="text-center">
             {/* Success icon with animation */}
             <div className="relative inline-flex items-center justify-center w-20 h-20 mb-6">
@@ -156,7 +156,7 @@ function AuthSuccessContent() {
             </h1>
 
             {/* Character info card with enhanced design */}
-            <div className="p-5 mb-6 border shadow-inner bg-linear-to-br from-gray-900/60 to-gray-900/40 rounded-xl border-gray-700/50">
+            <div className="p-5 mb-6 border shadow-inner bg-linear-to-br from-surface/60 to-surface/40 rounded-xl border-white/10">
               <p className="mb-2 text-sm font-medium text-ink-muted">
                 Welcome back,
               </p>

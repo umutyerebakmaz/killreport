@@ -44,7 +44,7 @@ export function getKillmailRowStyles({
   // Entity is victim (loss) - use red colors
   if (isVictim) {
     return {
-      totalValueColor: 'text-red-500',
+      totalValueColor: 'text-destroyed',
       rowBgColor: characterId ? 'bg-red-500/15' : 'bg-red-500/20',
       rowHoverColor: characterId
         ? 'hover:bg-red-500/20'

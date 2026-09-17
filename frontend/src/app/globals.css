@@ -36,11 +36,18 @@
   --color-accent-ink: #111418;
   --color-accent-link: #5ccbcb;
 
-  /* Ink — EVE's own greys, --pfg-dark-chalice and --sf-disabled-color.
-     ink-muted measures 5.00:1 on surface-inset where the Tailwind grey it
-     replaces measured 4.17:1. */
+  /* Ink — ink-muted is EVE's own grey, --pfg-dark-chalice; it measures 5.00:1
+     on surface-inset where the Tailwind grey it replaced measured 4.17:1.
+     ink-faint is derived, not taken — see its own comment below. */
   --color-ink-muted: #b0b0b0;
-  --color-ink-faint: #636363;
+  /* NOT EVE's value taken literally. #636363 is --sf-disabled-color, the
+     colour EVE uses for disabled controls — but this token sits on ~114 sites
+     of live content (empty states, timestamps, counts, the Paginator's page
+     label), none of them disabled. Taking it as-is measured 2.35:1 on surface
+     and 1.81:1 on surface-inset, under even the 3:1 non-text floor. #999999 is
+     a derived neutral step between EVE's two greys: 4.96:1 on surface, 3.81:1
+     on surface-inset, 6.68:1 on ground. */
+  --color-ink-faint: #999999;
 
   /* Meaning, all three EVE's own. Damage uses `destroyed` too.
      CONTRAST, taken deliberately: destroyed measures 3.93:1 on surface and
