@@ -20,7 +20,8 @@ import {
   MobileNavLink,
   MobileNavSubLink,
 } from './MobileNav';
-import { NAV_ITEM, NavPopover, NavPopoverLink } from './NavPopover';
+import { NavLink } from './NavLink';
+import { NavPopover, NavPopoverLink } from './NavPopover';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -84,7 +85,10 @@ export default function Header() {
           </button>
         </div>
         <PopoverGroup className="hidden xl:flex xl:gap-x-4 2xl:gap-x-6 min-[1800px]:gap-x-8">
-          <NavPopover label="UNIVERSE">
+          <NavPopover
+            label="UNIVERSE"
+            match={['/map', '/regions', '/constellations', '/solar-systems']}
+          >
             <NavPopoverLink
               href="/map"
               label="MAP"
@@ -106,7 +110,7 @@ export default function Header() {
               description="8,000+ Solar Systems with security ratings and statistics"
             />
           </NavPopover>
-          <NavPopover label="KILLMAILS">
+          <NavPopover label="KILLMAILS" match={['/killmails']}>
             <NavPopoverLink
               href="/killmails?page=1&regionId=10000070"
               label="POCHVEN"
@@ -118,19 +122,11 @@ export default function Header() {
               description="Explore wormhole space killmails and statistics"
             />
           </NavPopover>
-          <Link href="/alliances" className={NAV_ITEM}>
-            ALLIANCES
-          </Link>
-          <Link href="/corporations" className={NAV_ITEM}>
-            CORPORATIONS
-          </Link>
-          <Link href="/characters" className={NAV_ITEM}>
-            CHARACTERS
-          </Link>
-          <Link href="/leaderboards" className={NAV_ITEM}>
-            LEADERBOARDS
-          </Link>
-          <NavPopover label="SOVEREIGNTY">
+          <NavLink href="/alliances">ALLIANCES</NavLink>
+          <NavLink href="/corporations">CORPORATIONS</NavLink>
+          <NavLink href="/characters">CHARACTERS</NavLink>
+          <NavLink href="/leaderboards">LEADERBOARDS</NavLink>
+          <NavPopover label="SOVEREIGNTY" match={['/sovereignty']}>
             <NavPopoverLink
               href="/sovereignty"
               label="OVERVIEW"
@@ -157,9 +153,7 @@ export default function Header() {
               description="Territory map colored by controlling alliance"
             />
           </NavPopover>
-          <Link href="/workers" className={NAV_ITEM}>
-            WORKERS
-          </Link>
+          <NavLink href="/workers">WORKERS</NavLink>
         </PopoverGroup>
 
         <div className="hidden xl:flex xl:flex-1 xl:justify-end xl:items-center xl:gap-4 2xl:gap-6 min-[1800px]:gap-8">

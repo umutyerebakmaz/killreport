@@ -149,6 +149,65 @@ body {
   font-weight: 300;
 }
 
+/*
+ * The nav's hover line, taken from eveonline.com's own top navigation — its
+ * `NavItem_bar`, a 1px rule sitting above the label that grows from the left
+ * in 150ms. The colour needs no translation: EVE draws that line in #5ccbcb,
+ * which is the value --color-accent already holds.
+ *
+ * A pseudo-element rather than the real <span> EVE ships, so `NAV_ITEM` in
+ * NavPopover.tsx carries the whole effect and neither the plain links nor the
+ * popover buttons gain any markup. The buttons inherit it because
+ * NAV_POPOVER_BUTTON is built from NAV_ITEM.
+ *
+ * One deliberate departure: EVE declares the transition inside its :hover
+ * rule, so the line grows on the way in and vanishes without animating on the
+ * way out. Ours is on the base rule, which is what lets it retract while the
+ * pointer sweeps along the row.
+ *
+ * `top` is negative rather than the line being a border-top on the item
+ * itself: the item is a flex row in the popover case, and a border there would
+ * move the label down by a pixel only on the items that have one.
+ */
+.nav-item {
+  position: relative;
+}
+
+.nav-item::before {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background-color: var(--color-accent);
+  transition: width 150ms ease-in-out;
+}
+
+/* Keyboard gets the line too. EVE's nav does not do this, but ours is walked
+   with Tab — NAV_POPOVER_BUTTON already draws a focus-visible ring. */
+.nav-item:hover::before,
+.nav-item:focus-visible::before {
+  width: 100%;
+}
+
+/* The page you are on keeps its line. `aria-current` carries it on the plain
+   links, because that attribute is already what a screen reader reads there
+   and a second class would only be one more thing to keep in step. The popover
+   buttons use `data-current` instead — see the comment on that attribute in
+   NavPopover.tsx. Only the line says so: the label stays white, so the accent
+   appears once in the nav rather than twice. */
+.nav-item[aria-current='page']::before,
+.nav-item[data-current]::before {
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-item::before {
+    transition: none;
+  }
+}
+
 .alliance-name,
 .corporation-name,
 .character-name,
