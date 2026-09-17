@@ -235,7 +235,7 @@ export default function AllianceGrowthChart({
       {/* Custom legend */}
       <div className="flex items-center justify-end gap-4 mb-2">
         <div className="flex items-center gap-1.5">
-          <span className="inline-block w-6 h-0.5 bg-accent-link" />
+          <span className="inline-block w-6 h-0.5 bg-cyan-400" />
           <span className="text-xs text-ink-muted">Members</span>
         </div>
         <div className="flex items-center gap-1.5">

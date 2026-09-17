@@ -19,7 +19,7 @@ export function IskWarBar({
   return (
     <div className="max-w-md">
       <div className="flex justify-between mb-1 text-xs">
-        <span className="text-accent-link">
+        <span className="text-cyan-400">
           Defender lost {formatISK(defenderLost)}
         </span>
         <span className="text-red-400">
@@ -27,7 +27,7 @@ export function IskWarBar({
         </span>
       </div>
       <div className="flex h-2 overflow-hidden rounded bg-surface-inset">
-        <div className="bg-accent-hover" style={{ width: `${dPct}%` }} />
+        <div className="bg-cyan-500" style={{ width: `${dPct}%` }} />
         <div className="bg-red-500" style={{ width: `${100 - dPct}%` }} />
       </div>
     </div>

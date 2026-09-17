@@ -17,11 +17,11 @@ export function ScoreBar({
   return (
     <div className="w-40">
       <div className="flex h-2 overflow-hidden rounded bg-surface-inset">
-        <div className="bg-accent-hover" style={{ width: `${dPct}%` }} />
+        <div className="bg-cyan-500" style={{ width: `${dPct}%` }} />
         <div className="bg-red-500" style={{ width: `${100 - dPct}%` }} />
       </div>
       <div className="flex justify-between mt-1 text-xs">
-        <span className="text-accent-link">{Math.round(d * 100)}% def</span>
+        <span className="text-cyan-400">{Math.round(d * 100)}% def</span>
         <span className="text-red-400">{Math.round(a * 100)}% atk</span>
       </div>
     </div>
