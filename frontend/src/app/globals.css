@@ -1,7 +1,5 @@
 @import 'tailwindcss';
 
-@import './fonts.css';
-
 @import './buttons.css';
 @import './inputs.css';
 @import './tables.css';
@@ -9,12 +7,13 @@
 @import './map.css';
 
 @theme {
-  /* Typography — unchanged. Shentox is EVE Online's own web font and the app
-     was already shipping it. eveonline.com names Rogan after it in the stack,
-     but nothing on that page is drawn with Rogan: Shentox answers everything,
-     so adding it here would load a face that is never reached. It lives in
-     the design system instead (spec, decision 8). */
-  --font-sans: 'Shentox', ui-sans-serif, system-ui, sans-serif;
+  /* Roboto Condensed, loaded and self-hosted by next/font in layout.tsx,
+     which is also where the reasoning for it lives. It replaced Shentox, EVE
+     Online's own face: that licence was Emtype's and CCP's, never ours. The
+     map's labels read their family from `utils/map/labelStyle.ts`, which has
+     to name the same face — see the comment there. */
+  --font-sans:
+    var(--font-roboto-condensed), ui-sans-serif, system-ui, sans-serif;
 
   /* Depth — three steps in the page. The first two are EVE's own
      (eveonline.com's page ground, and --pfg-background-dark); the third is

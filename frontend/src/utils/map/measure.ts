@@ -69,12 +69,12 @@ export function createLabelMeasurer(
 }
 
 /**
- * Waits for the real Shentox face before anything is measured against it.
+ * Waits for the real label face before anything is measured against it.
  *
- * Shentox is a webfont, loaded asynchronously by `@font-face` in
- * `app/fonts.css`. Measuring before the face is ready measures the `sans-serif`
- * fallback, and every collision box for the session is then built on the wrong
- * advances. `document.fonts.ready` alone is not enough: it can resolve before
+ * It is a webfont, self-hosted and loaded asynchronously by `next/font` in
+ * `app/layout.tsx`. Measuring before the face is ready measures the
+ * `sans-serif` fallback, and every collision box for the session is then built
+ * on the wrong advances. `document.fonts.ready` alone is not enough: it can resolve before
  * anything has ever requested the font. `load()` is what actually requests it,
  * one call per face this module is about to measure, taken from
  * `LABEL_TIER_STYLE` rather than a second hardcoded list.
