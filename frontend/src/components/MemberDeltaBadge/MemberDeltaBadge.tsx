@@ -11,8 +11,10 @@ export default function MemberDeltaBadge({
   memberGrowthRate,
 }: MemberDeltaBadgeProps) {
   // Delta rengi belirle
+  // Every caller renders this inside a .card (bg-surface), where danger
+  // measures 3.93:1 — under the 4.5 floor this text needs. Stays raw.
   const deltaColor =
-    memberDelta && memberDelta >= 0 ? 'text-success' : 'text-danger';
+    memberDelta && memberDelta >= 0 ? 'text-success' : 'text-red-400';
   // Tooltip içeriği
   const tooltipContent =
     memberDelta !== null

@@ -21,7 +21,8 @@ export default function AdjacentSystemsTab({
 
   if (error) {
     return (
-      <div className="p-6 border bg-white/5 border-white/10 text-red-400">
+      // tab-shell ground, not a card surface — see OverviewTab.tsx
+      <div className="p-6 border bg-white/5 border-white/10 text-danger">
         Could not load adjacent systems: {error.message}
       </div>
     );

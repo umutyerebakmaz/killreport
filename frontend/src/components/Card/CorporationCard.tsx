@@ -23,9 +23,10 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
   const memberGrowthRate7d =
     corporation.metrics?.memberCountGrowthRate7d ?? null;
 
-  // Delta rengi belirle
+  // Delta rengi belirle (currently unused — see MemberDeltaBadge for the live
+  // version of this same pattern, also reverted: this Card is bg-surface).
   const deltaColor =
-    memberDelta7d && memberDelta7d >= 0 ? 'text-success' : 'text-danger';
+    memberDelta7d && memberDelta7d >= 0 ? 'text-success' : 'text-red-400';
 
   // Tooltip içeriği
   const tooltipContent =

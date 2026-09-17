@@ -169,9 +169,12 @@ export default function WorkersPage() {
                 workerStatus?.healthy ? 'bg-success' : 'bg-danger'
               } animate-pulse`}
             ></div>
+            {/* This panel is bg-surface, where danger measures 3.93:1 — under
+                the 4.5 floor this text needs (18px/500 isn't large-bold).
+                Dot above keeps the token: 3:1 is enough for a non-text mark. */}
             <span
               className={`text-lg font-medium ${
-                workerStatus?.healthy ? 'text-success' : 'text-danger'
+                workerStatus?.healthy ? 'text-success' : 'text-red-500'
               }`}
             >
               {workerStatus?.healthy ? 'Healthy' : 'Unhealthy'}
@@ -232,9 +235,10 @@ export default function WorkersPage() {
                 Redis Cache Status
               </h2>
             </div>
+            {/* bg-surface again — same floor problem as System Health above */}
             <span
               className={`text-sm font-medium ${
-                workerStatus.redis.connected ? 'text-success' : 'text-danger'
+                workerStatus.redis.connected ? 'text-success' : 'text-red-400'
               }`}
             >
               {workerStatus.redis.connected ? 'Connected' : 'Disconnected'}

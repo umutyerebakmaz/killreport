@@ -181,7 +181,10 @@ export default function ChangelogPage() {
     return (
       <div className="container mx-auto">
         <div className="p-6 mt-8 border bg-surface border-white/10">
-          <h2 className="mb-2 text-xl font-bold text-red-400">
+          {/* danger measures 3.93:1 on surface — under the 4.5 body-text floor, over the
+              3.0 large-text one. It reads here because this heading is 20px bold. Shrink
+              it or lighten it and the pair stops passing. */}
+          <h2 className="mb-2 text-xl font-bold text-danger">
             Failed to load changelog
           </h2>
           <p className="text-ink-muted">{error}</p>

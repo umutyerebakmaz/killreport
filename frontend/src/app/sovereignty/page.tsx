@@ -17,9 +17,12 @@ const EVENT_LABELS: Record<string, string> = {
   station_freeport: 'Station Freeport',
 };
 
+// Rendered inside .tr-row (bg-surface), where danger measures 3.93:1 — under
+// the 4.5 floor this cell's font-medium text needs. 'lost' stays raw; captured
+// and transferred weren't flagged as a surface risk.
 const CHANGE_STYLES: Record<string, string> = {
   captured: 'text-success',
-  lost: 'text-danger',
+  lost: 'text-red-400',
   transferred: 'text-caution',
   faction_change: 'text-ink-muted',
 };
