@@ -90,16 +90,6 @@
      hues taken down to the lightness the Tailwind 700s sat at. */
   --color-destroyed-fill: var(--color-red-700);
   --color-dropped-fill: #008425;
-
-  /* EVE sets 1.5 at every size. Tailwind's scale runs 1.33 at xs and 1.43 at
-     sm, so those two are where this actually changes anything; setting
-     --text-base--line-height is a no-op, Tailwind v4's base is already 1.5.
-     --text-lg is a tightening, down from Tailwind's 1.555. text-xl and
-     text-2xl are untouched and keep Tailwind's own leading. */
-  --text-xs--line-height: 1.5;
-  --text-sm--line-height: 1.5;
-  --text-base--line-height: 1.5;
-  --text-lg--line-height: 1.5;
 }
 
 html,
