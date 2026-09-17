@@ -80,8 +80,8 @@ export default function WorkersPage() {
     return (
       <div className="flex items-center justify-center min-h-100">
         <div className="text-center">
-          <p className="text-red-500">Error connecting to SSE stream</p>
-          <p className="mt-2 text-sm text-gray-400">{error.message}</p>
+          <p className="text-danger">Error connecting to SSE stream</p>
+          <p className="mt-2 text-sm text-ink-muted">{error.message}</p>
           <button
             onClick={() => window.location.reload()}
             className="button button-primary mt-4"
@@ -139,10 +139,10 @@ export default function WorkersPage() {
       <h1 className="sr-only">Worker Status Monitor</h1>
       <div className="flex items-center justify-end mb-8">
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 px-3 py-2 bg-gray-800 border border-gray-700">
+          <div className="flex items-center gap-2 px-3 py-2 bg-surface-inset border border-white/10">
             <div
               className={`w-3 h-3 rounded-full ${
-                isConnected ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'
+                isConnected ? 'bg-success animate-pulse' : 'bg-caution'
               }`}
             ></div>
             <span className="text-sm text-gray-300">
@@ -155,8 +155,8 @@ export default function WorkersPage() {
       <div className="p-6 mb-6 border border-white/5 bg-surface">
         <div className="flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-center">
           <div>
-            <h2 className="text-lg font-semibold text-white">System Health</h2>
-            <p className="text-sm text-gray-400">
+            <h2 className="text-lg font-medium text-white">System Health</h2>
+            <p className="text-sm text-ink-muted">
               Last updated:{' '}
               {workerStatus?.timestamp
                 ? new Date(workerStatus.timestamp).toLocaleString()
@@ -166,12 +166,15 @@ export default function WorkersPage() {
           <div className="flex items-center gap-3">
             <div
               className={`w-4 h-4 rounded-full ${
-                workerStatus?.healthy ? 'bg-green-500' : 'bg-red-500'
+                workerStatus?.healthy ? 'bg-success' : 'bg-danger'
               } animate-pulse`}
             ></div>
+            {/* This panel is bg-surface, where EVE's red measures 3.93:1 —
+                under the 4.5 floor this text needs (18px/500 isn't
+                large-bold) — accepted per the spec's contrast trade-off. */}
             <span
-              className={`text-lg font-semibold ${
-                workerStatus?.healthy ? 'text-green-500' : 'text-red-500'
+              className={`text-lg font-medium ${
+                workerStatus?.healthy ? 'text-success' : 'text-danger'
               }`}
             >
               {workerStatus?.healthy ? 'Healthy' : 'Unhealthy'}
@@ -224,17 +227,18 @@ export default function WorkersPage() {
               <div
                 className={`w-4 h-4 rounded-full ${
                   workerStatus.redis.connected
-                    ? 'bg-green-500 animate-pulse'
-                    : 'bg-red-500'
+                    ? 'bg-success animate-pulse'
+                    : 'bg-danger'
                 }`}
               ></div>
-              <h2 className="text-lg font-semibold text-white">
+              <h2 className="text-lg font-medium text-white">
                 Redis Cache Status
               </h2>
             </div>
+            {/* bg-surface again — same 3.93:1 floor as System Health above */}
             <span
-              className={`text-sm font-semibold ${
-                workerStatus.redis.connected ? 'text-green-400' : 'text-red-400'
+              className={`text-sm font-medium ${
+                workerStatus.redis.connected ? 'text-success' : 'text-red-400'
               }`}
             >
               {workerStatus.redis.connected ? 'Connected' : 'Disconnected'}
@@ -319,8 +323,8 @@ export default function WorkersPage() {
       )}
 
       {queues.length === 0 && standaloneWorkers.length === 0 && (
-        <div className="p-12 text-center border border-white/5 bg-gray-900/50">
-          <p className="text-gray-400">No workers found</p>
+        <div className="p-12 text-center border border-white/5 bg-surface/50">
+          <p className="text-ink-muted">No workers found</p>
         </div>
       )}
     </div>
@@ -342,7 +346,7 @@ function StatCard({ label, value, color }: any) {
 
   return (
     <div className={`p-4 border  ${colorClasses[color]}`}>
-      <div className="text-sm font-medium text-gray-400">{label}</div>
+      <div className="text-sm font-medium text-ink-muted">{label}</div>
       <div className="mt-1 text-3xl font-bold">
         {typeof value === 'string' ? value : value.toLocaleString()}
       </div>
@@ -354,8 +358,8 @@ function StandaloneWorkerSection({ workers }: any) {
   return (
     <div className="mb-6">
       <div className="mb-4">
-        <h2 className="text-xl font-semibold text-white">Standalone Workers</h2>
-        <p className="mt-1 text-sm text-gray-400">
+        <h2 className="text-xl font-medium text-white">Standalone Workers</h2>
+        <p className="mt-1 text-sm text-ink-muted">
           Long-running processes (not RabbitMQ-based)
         </p>
       </div>
@@ -363,33 +367,33 @@ function StandaloneWorkerSection({ workers }: any) {
         <table className="w-full min-w-max">
           <thead className="bg-surface-inset">
             <tr>
-              <th className="px-2 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase md:px-4">
+              <th className="px-2 py-3 text-xs font-medium tracking-wider text-left text-ink-muted uppercase md:px-4">
                 Status
               </th>
-              <th className="px-2 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase md:px-4">
+              <th className="px-2 py-3 text-xs font-medium tracking-wider text-left text-ink-muted uppercase md:px-4">
                 Worker Name
               </th>
-              <th className="px-2 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase md:px-4">
+              <th className="px-2 py-3 text-xs font-medium tracking-wider text-left text-ink-muted uppercase md:px-4">
                 Description
               </th>
-              <th className="px-2 py-3 text-xs font-semibold tracking-wider text-center text-gray-400 uppercase md:px-4">
+              <th className="px-2 py-3 text-xs font-medium tracking-wider text-center text-ink-muted uppercase md:px-4">
                 Process ID
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-800">
+          <tbody className="divide-y divide-white/10">
             {workers.map((worker: any) => (
               <tr key={worker.name} className="tr-row">
                 <td className="px-2 py-4 md:px-4">
                   <div className="flex items-center gap-2">
                     <div
                       className={`w-3 h-3 rounded-full ${
-                        worker.running ? 'bg-green-500' : 'bg-gray-500'
+                        worker.running ? 'bg-success' : 'bg-ink-faint'
                       }`}
                     ></div>
                     <span
                       className={`text-xs md:text-sm font-medium ${
-                        worker.running ? 'text-green-400' : 'text-gray-500'
+                        worker.running ? 'text-success' : 'text-ink-faint'
                       }`}
                     >
                       {worker.running ? 'Running' : 'Stopped'}
@@ -402,17 +406,17 @@ function StandaloneWorkerSection({ workers }: any) {
                   </div>
                 </td>
                 <td className="px-2 py-4 md:px-4">
-                  <span className="text-xs text-gray-400 md:text-sm">
+                  <span className="text-xs text-ink-muted md:text-sm">
                     {worker.description}
                   </span>
                 </td>
                 <td className="px-2 py-4 text-center md:px-4">
                   {worker.pid ? (
-                    <span className="inline-flex items-center px-2 py-1 font-mono text-xs font-semibold text-blue-400 rounded-full md:px-3 md:text-sm bg-blue-500/20">
+                    <span className="inline-flex items-center px-2 py-1 font-mono text-xs font-medium text-blue-400 rounded-full md:px-3 md:text-sm bg-blue-500/20">
                       {worker.pid}
                     </span>
                   ) : (
-                    <span className="text-xs text-gray-500 md:text-sm">-</span>
+                    <span className="text-xs text-ink-faint md:text-sm">-</span>
                   )}
                 </td>
               </tr>
@@ -428,29 +432,29 @@ function QueueSection({ title, subtitle, queues }: any) {
   return (
     <div className="mb-6">
       <div className="mb-4">
-        <h2 className="text-xl font-semibold text-white">{title}</h2>
-        {subtitle && <p className="mt-1 text-sm text-gray-400">{subtitle}</p>}
+        <h2 className="text-xl font-medium text-white">{title}</h2>
+        {subtitle && <p className="mt-1 text-sm text-ink-muted">{subtitle}</p>}
       </div>
       <div className="overflow-x-auto border border-white/5">
         <table className="w-full min-w-max">
           <thead className="bg-surface-inset">
             <tr>
-              <th className="px-2 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase md:px-4">
+              <th className="px-2 py-3 text-xs font-medium tracking-wider text-left text-ink-muted uppercase md:px-4">
                 Queue Status
               </th>
-              <th className="px-2 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase md:px-4">
+              <th className="px-2 py-3 text-xs font-medium tracking-wider text-left text-ink-muted uppercase md:px-4">
                 Worker Process
               </th>
-              <th className="px-2 py-3 text-xs font-semibold tracking-wider text-left text-gray-400 uppercase md:px-4">
+              <th className="px-2 py-3 text-xs font-medium tracking-wider text-left text-ink-muted uppercase md:px-4">
                 Queue Name
               </th>
-              <th className="px-2 py-3 text-xs font-semibold tracking-wider text-center text-gray-400 uppercase md:px-4">
+              <th className="px-2 py-3 text-xs font-medium tracking-wider text-center text-ink-muted uppercase md:px-4">
                 Pending Jobs
               </th>
-              <th className="px-2 py-3 text-xs font-semibold tracking-wider text-center text-gray-400 uppercase md:px-4">
+              <th className="px-2 py-3 text-xs font-medium tracking-wider text-center text-ink-muted uppercase md:px-4">
                 Consumers
               </th>
-              <th className="px-2 py-3 text-xs font-semibold tracking-wider text-center text-gray-400 uppercase md:px-4">
+              <th className="px-2 py-3 text-xs font-medium tracking-wider text-center text-ink-muted uppercase md:px-4">
                 PID
               </th>
             </tr>
@@ -462,12 +466,12 @@ function QueueSection({ title, subtitle, queues }: any) {
                   <div className="flex items-center gap-2">
                     <div
                       className={`w-3 h-3 rounded-full ${
-                        queue.active ? 'bg-green-500' : 'bg-gray-500'
+                        queue.active ? 'bg-success' : 'bg-ink-faint'
                       }`}
                     ></div>
                     <span
                       className={`text-xs md:text-sm font-medium ${
-                        queue.active ? 'text-green-400' : 'text-gray-500'
+                        queue.active ? 'text-success' : 'text-ink-faint'
                       }`}
                     >
                       {queue.active ? 'Active' : 'Inactive'}
@@ -483,14 +487,14 @@ function QueueSection({ title, subtitle, queues }: any) {
                     ></div>
                     <span
                       className={`text-xs md:text-sm font-medium ${
-                        queue.workerRunning ? 'text-blue-400' : 'text-gray-500'
+                        queue.workerRunning ? 'text-blue-400' : 'text-ink-faint'
                       }`}
                     >
                       {queue.workerRunning ? 'Running' : 'Stopped'}
                     </span>
                   </div>
                   {queue.workerName && (
-                    <div className="mt-0.5 text-xs font-mono text-gray-500">
+                    <div className="mt-0.5 text-xs font-mono text-ink-faint">
                       {queue.workerName}
                     </div>
                   )}
@@ -499,16 +503,16 @@ function QueueSection({ title, subtitle, queues }: any) {
                   <div className="text-xs font-medium text-gray-300 md:text-sm">
                     {formatQueueName(queue.name)}
                   </div>
-                  <div className="mt-0.5 text-xs font-mono text-gray-500">
+                  <div className="mt-0.5 text-xs font-mono text-ink-faint">
                     {queue.name}
                   </div>
                 </td>
                 <td className="px-2 py-4 text-center md:px-4">
                   <span
-                    className={`inline-flex items-center px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-semibold ${
+                    className={`inline-flex items-center px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium ${
                       queue.messageCount > 0
-                        ? 'bg-yellow-500/20 text-yellow-400'
-                        : 'bg-gray-800 text-gray-400'
+                        ? 'bg-caution/20 text-caution'
+                        : 'bg-surface-inset text-ink-muted'
                     }`}
                   >
                     {queue.messageCount.toLocaleString()}
@@ -516,10 +520,10 @@ function QueueSection({ title, subtitle, queues }: any) {
                 </td>
                 <td className="px-2 py-4 text-center md:px-4">
                   <span
-                    className={`inline-flex items-center px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-semibold ${
+                    className={`inline-flex items-center px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium ${
                       queue.consumerCount > 0
-                        ? 'bg-green-500/20 text-green-400'
-                        : 'bg-gray-800 text-gray-400'
+                        ? 'bg-success/20 text-success'
+                        : 'bg-surface-inset text-ink-muted'
                     }`}
                   >
                     {queue.consumerCount}
@@ -527,11 +531,11 @@ function QueueSection({ title, subtitle, queues }: any) {
                 </td>
                 <td className="px-2 py-4 text-center md:px-4">
                   {queue.workerPid ? (
-                    <span className="inline-flex items-center px-2 py-1 font-mono text-xs font-semibold text-blue-400 rounded-full md:px-3 md:text-sm bg-blue-500/20">
+                    <span className="inline-flex items-center px-2 py-1 font-mono text-xs font-medium text-blue-400 rounded-full md:px-3 md:text-sm bg-blue-500/20">
                       {queue.workerPid}
                     </span>
                   ) : (
-                    <span className="text-xs text-gray-500 md:text-sm">-</span>
+                    <span className="text-xs text-ink-faint md:text-sm">-</span>
                   )}
                 </td>
               </tr>

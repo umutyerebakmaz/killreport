@@ -69,17 +69,29 @@ export const LABEL_TIER_STYLE: Record<LabelTier, LabelTierStyle> = {
  * family with no fallback, so the loader cannot use the stack and used to spell
  * the face out a second time.
  */
-export const LABEL_FONT_NAME = 'Shentox';
-
-/** The stack the measurer and the elements are set from. */
-export const LABEL_FONT_FAMILY = `${LABEL_FONT_NAME}, sans-serif`;
+export const LABEL_FONT_NAME = 'Roboto Condensed';
 
 /**
- * Shentox's ascender and descender together are about 1.2 em, so a collision
- * box at the font size alone would clip a descender out of the test and let two
- * names touch.
+ * The stack the measurer and the elements are set from.
+ *
+ * The family is quoted because it has a space in it. CSS accepts an unquoted
+ * multi-word family, but the DOM normalises it back with quotes, so an element
+ * set from an unquoted stack no longer reads back equal to the string it was
+ * given — which is what the label layer's spec compares.
  */
-export const LABEL_LINE_HEIGHT_RATIO = 1.15;
+export const LABEL_FONT_FAMILY = `"${LABEL_FONT_NAME}", sans-serif`;
+
+/**
+ * A collision box at the font size alone would clip a descender out of the test
+ * and let two names touch, so the box is the face's own bounding box instead.
+ *
+ * 1.2, measured: Roboto Condensed reports an ascender and descender summing to
+ * 1.17 em. It was 1.15 for Shentox, which is under that — the number moved with
+ * the face because it describes the face. Re-measure it if the family changes
+ * again: `measureText` on a canvas, `fontBoundingBoxAscent + descent` over the
+ * size.
+ */
+export const LABEL_LINE_HEIGHT_RATIO = 1.2;
 
 /** The collision box's height, and the minimum lift above a mark. */
 export function labelLineHeight(tier: LabelTier): number {

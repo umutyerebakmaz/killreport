@@ -73,14 +73,14 @@ export default function AttackerRow({
           ) : (
             /* Not even a ship: the same placeholder the two slots below use. */
             <div className="flex items-center justify-center shadow-md size-16">
-              <QuestionMarkCircleIcon className="text-gray-400 size-8" />
+              <QuestionMarkCircleIcon className="text-ink-muted size-8" />
             </div>
           )}
 
           {/* Security Status - Bottom Left */}
           {attacker.securityStatus !== null &&
             attacker.securityStatus !== undefined && (
-              <div className="absolute bottom-0 left-0 px-1.5 py-0.5 text-xs font-semibold bg-black/70 backdrop-blur-sm">
+              <div className="absolute bottom-0 left-0 px-1.5 py-0.5 text-xs font-medium bg-black/70 backdrop-blur-sm">
                 <span
                   className={
                     attacker.securityStatus >= 0
@@ -115,7 +115,7 @@ export default function AttackerRow({
                 />
               ) : (
                 <div className="flex items-center justify-center shadow-md size-8">
-                  <QuestionMarkCircleIcon className="text-gray-400 size-4" />
+                  <QuestionMarkCircleIcon className="text-ink-muted size-4" />
                 </div>
               )}
             </div>
@@ -139,7 +139,7 @@ export default function AttackerRow({
               />
             ) : (
               <div className="flex items-center justify-center shadow-md size-8 bg-surface-inset">
-                <QuestionMarkCircleIcon className="text-gray-400 size-4" />
+                <QuestionMarkCircleIcon className="text-ink-muted size-4" />
               </div>
             )}
           </Tooltip>
@@ -166,7 +166,7 @@ export default function AttackerRow({
               <Tooltip content="Show Character Info">
                 <Link
                   href={`/characters/${attacker.character?.id}`}
-                  className="font-medium text-gray-400 hover:text-cyan-400"
+                  className="font-medium text-ink-muted hover:text-accent-link"
                   prefetch={false}
                 >
                   {attacker.character?.name || 'Unknown'}
@@ -192,7 +192,7 @@ export default function AttackerRow({
               <Tooltip content="Show Alliance Info">
                 <Link
                   href={`/alliances/${attacker.alliance.id}`}
-                  className="text-sm text-gray-400 hover:text-cyan-400"
+                  className="text-sm text-ink-muted hover:text-accent-link"
                   prefetch={false}
                 >
                   {attacker.alliance.name || 'Unknown'}
@@ -202,7 +202,7 @@ export default function AttackerRow({
               <Tooltip content="Show Corporation Info">
                 <Link
                   href={`/corporations/${attacker.corporation.id}`}
-                  className="text-sm text-gray-400 hover:text-cyan-400"
+                  className="text-sm text-ink-muted hover:text-accent-link"
                   prefetch={false}
                 >
                   {attacker.corporation.name || 'Unknown'}
@@ -223,7 +223,7 @@ export default function AttackerRow({
                 <span className="text-destroyed">
                   {attacker.damageDone.toLocaleString()}
                 </span>
-                <span className="text-gray-400">{damagePercentage}%</span>
+                <span className="text-ink-muted">{damagePercentage}%</span>
               </>
             )}
 

@@ -41,8 +41,11 @@ export default function OverviewTab({
 
       <div className="lg:col-span-2">
         {error ? (
-          // A failing tab query takes down only that tab.
-          <div className="p-6 text-red-400 border bg-white/5 border-white/10">
+          // A failing tab query takes down only that tab. Ground here is the
+          // tab shell's — bg-white/5 over #101010 is #1c1c1c, not a card
+          // surface — where danger measures 4.74:1 and passes. Same ground in
+          // the other four SolarSystemDetail tabs.
+          <div className="p-6 text-danger border bg-white/5 border-white/10">
             Could not load kill activity: {error.message}
           </div>
         ) : (

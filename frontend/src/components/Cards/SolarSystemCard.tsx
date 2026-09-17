@@ -94,7 +94,7 @@ export default function SolarSystemCard({
                   </Link>
                 </Tooltip>
               ) : (
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-ink-faint">
                   Unknown Constellation
                 </span>
               )}
@@ -115,7 +115,7 @@ export default function SolarSystemCard({
                   </Link>
                 </Tooltip>
               ) : (
-                <span className="text-sm text-gray-500">Unknown Region</span>
+                <span className="text-sm text-ink-faint">Unknown Region</span>
               )}
             </div>
           )}
@@ -127,12 +127,12 @@ export default function SolarSystemCard({
         <div className="pt-3 mt-3 border-t border-white/10">
           <div className="flex items-center justify-between text-sm">
             <Tooltip content="Kill statistics in last hour">
-              <span className="text-gray-400">
+              <span className="text-ink-muted">
                 {formatKillStats(system.latestActivity)}
               </span>
             </Tooltip>
             <Tooltip content="Last update time">
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-ink-faint">
                 {formatTimeAgo(system.latestActivity.timestamp)}
               </span>
             </Tooltip>

@@ -4,7 +4,7 @@ interface EveStatusProps {
 
 export default function EveStatus({ players }: EveStatusProps) {
   return (
-    <div className="flex items-center gap-2 text-green-500 cursor-pointer">
+    <div className="flex items-center gap-2 text-success cursor-pointer">
       {/* Online players icon */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -12,7 +12,7 @@ export default function EveStatus({ players }: EveStatusProps) {
         viewBox="0 0 24 24"
         strokeWidth={1.5}
         stroke="currentColor"
-        className="w-5 h-5 text-green-400"
+        className="w-5 h-5 text-success"
       >
         <path
           strokeLinecap="round"

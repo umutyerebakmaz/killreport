@@ -45,7 +45,7 @@ export default function KillmailRow({
           content={formatKillmailDateTime(km.killmailTime)}
           position="top"
         >
-          <div className="text-gray-400">
+          <div className="text-ink-muted">
             {formatKillmailTime(km.killmailTime)}
           </div>
           {km.totalValue && (
@@ -55,7 +55,7 @@ export default function KillmailRow({
           )}
         </Tooltip>
         {km.isWarRelated && (
-          <span className="inline-block mt-1 px-1.5 py-0.5 text-xs font-semibold text-orange-400 border bg-orange-400/10 border-orange-400/20">
+          <span className="inline-block mt-1 px-1.5 py-0.5 text-xs font-medium text-orange-400 border bg-orange-400/10 border-orange-400/20">
             WAR KILL
           </span>
         )}
@@ -96,11 +96,11 @@ export default function KillmailRow({
               {km.victim?.shipType?.name || 'Unknown Ship'}
             </div>
             {km.victim?.shipType?.group && (
-              <div className="text-base text-gray-500">
+              <div className="text-base text-ink-faint">
                 {km.victim?.shipType?.group?.name}
               </div>
             )}
-            <div className="text-base text-red-400">
+            <div className="text-base text-destroyed">
               {km.victim?.damageTaken?.toLocaleString() || 0}
             </div>
           </div>
@@ -193,7 +193,7 @@ export default function KillmailRow({
                 >
                   <Link
                     href={`/characters/${km.victim.character.id}`}
-                    className="block font-medium text-gray-400 truncate transition-colors hover:text-blue-400"
+                    className="block font-medium text-ink-muted truncate transition-colors hover:text-blue-400"
                     prefetch={false}
                   >
                     {km.victim.character.name}
@@ -212,7 +212,7 @@ export default function KillmailRow({
                 >
                   <Link
                     href={`/corporations/${km.victim.corporation?.id}`}
-                    className="block text-base text-gray-400 truncate transition-colors hover:text-blue-400"
+                    className="block text-base text-ink-muted truncate transition-colors hover:text-blue-400"
                     prefetch={false}
                   >
                     {km.victim.corporation?.name}
@@ -221,7 +221,7 @@ export default function KillmailRow({
               </div>
             )}
             {km.victim?.alliance && (
-              <div className="min-w-0 text-base text-gray-500">
+              <div className="min-w-0 text-base text-ink-faint">
                 <Tooltip
                   content="Show Alliance Info"
                   position="top"
@@ -271,7 +271,7 @@ export default function KillmailRow({
                   >
                     <Link
                       href={`/characters/${km.finalBlow.character.id}`}
-                      className="block font-medium text-gray-400 truncate transition-colors hover:text-blue-400"
+                      className="block font-medium text-ink-muted truncate transition-colors hover:text-blue-400"
                       prefetch={false}
                     >
                       {km.finalBlow.character.name}
@@ -282,7 +282,7 @@ export default function KillmailRow({
                 )}
               </div>
               {km.finalBlow.corporation && (
-                <div className="min-w-0 text-base text-gray-400">
+                <div className="min-w-0 text-base text-ink-muted">
                   <Tooltip
                     content="Show Corporation Info"
                     position="top"
@@ -290,7 +290,7 @@ export default function KillmailRow({
                   >
                     <Link
                       href={`/corporations/${km.finalBlow.corporation.id}`}
-                      className="block text-gray-400 truncate transition-colors hover:text-blue-400"
+                      className="block text-ink-muted truncate transition-colors hover:text-blue-400"
                       prefetch={false}
                     >
                       {km.finalBlow.corporation.name}
@@ -299,7 +299,7 @@ export default function KillmailRow({
                 </div>
               )}
               {km.finalBlow.alliance && (
-                <div className="min-w-0 text-base text-gray-500">
+                <div className="min-w-0 text-base text-ink-faint">
                   <Tooltip
                     content="Show Alliance Info"
                     position="top"
@@ -324,6 +324,7 @@ export default function KillmailRow({
       <td className="td-cell">
         <div className="flex items-center justify-center gap-2">
           {isSolo ? (
+            // SOLO badge's green-600, not dropped's green-400 — a different step, untouched by this sweep
             <span className="px-2 py-0.5 font-medium text-green-600 rounded bg-green-600/10">
               SOLO
             </span>
@@ -333,7 +334,7 @@ export default function KillmailRow({
             </span>
           )}
           {isNpcAttacker && (
-            <span className="px-2 py-0.5 font-medium text-red-400 rounded bg-red-400/10">
+            <span className="px-2 py-0.5 font-medium text-destroyed rounded bg-destroyed/10">
               NPC
             </span>
           )}

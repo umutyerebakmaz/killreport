@@ -32,12 +32,12 @@ export default function ConstellationCard({
             <Link
               href={`/constellations/${constellation.id}`}
               prefetch={false}
-              className="font-medium text-gray-200 transition-colors hover:text-cyan-400"
+              className="font-medium text-gray-200 transition-colors hover:text-accent-link"
             >
               {constellation.name}
             </Link>
           </Tooltip>
-          <div className="text-base text-gray-500">
+          <div className="text-base text-ink-faint">
             {constellation.solarSystemCount}{' '}
             {constellation.solarSystemCount === 1 ? 'system' : 'systems'}
           </div>

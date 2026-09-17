@@ -42,9 +42,9 @@ export default function TopTargetsCard({
 }: TopTargetsCardProps) {
   const header = (
     <div className="flex items-center justify-between gap-3">
-      <h3 className="text-lg font-semibold text-white">{title}</h3>
+      <h3 className="text-lg font-medium text-white">{title}</h3>
       {subtitle && (
-        <span className="text-xs text-gray-500 shrink-0">{subtitle}</span>
+        <span className="text-sm text-ink-muted shrink-0">{subtitle}</span>
       )}
     </div>
   );
@@ -62,7 +62,7 @@ export default function TopTargetsCard({
   return (
     <Card header={header}>
       {targets.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 py-12 text-gray-500">
+        <div className="flex flex-col items-center justify-center gap-3 py-12 text-ink-faint">
           <p className="text-sm font-medium text-center">{emptyText}</p>
         </div>
       ) : (
@@ -79,7 +79,7 @@ export default function TopTargetsCard({
                     kind={targetType}
                     id={target.id}
                     name={target.name}
-                    size={64}
+                    size={32}
                   />
                 </div>
 
@@ -91,7 +91,7 @@ export default function TopTargetsCard({
                   >
                     <Link
                       href={`${linkPrefix}/${target.id}?tab=killmails`}
-                      className="block min-w-0 font-medium text-gray-400 truncate hover:text-blue-400"
+                      className="block min-w-0 font-medium text-ink-muted truncate hover:text-blue-400"
                       prefetch={false}
                     >
                       {target.name}
@@ -99,7 +99,7 @@ export default function TopTargetsCard({
                   </Tooltip>
 
                   {/* Kill Count */}
-                  <span className="text-lg font-semibold text-gray-400 tabular-nums whitespace-nowrap shrink-0">
+                  <span className="text-base font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">
                     {target.count}
                   </span>
                 </div>

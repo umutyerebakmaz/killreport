@@ -66,7 +66,7 @@ function CharactersContent() {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl text-red-400">
+        <div className="text-xl text-danger">
           Error: {error.message || 'Character not found'}
         </div>
       </div>

@@ -14,13 +14,13 @@ export function AllianceLink({
   name?: string | null;
   ticker?: string | null;
 }) {
-  if (!id) return <span className="text-gray-500">Unknown</span>;
+  if (!id) return <span className="text-ink-faint">Unknown</span>;
   return (
     <span>
       <Link
         href={`/alliances/${id}`}
         prefetch={false}
-        className="text-gray-400 hover:text-blue-400"
+        className="text-ink-muted hover:text-blue-400"
       >
         {name ?? `#${id}`}
       </Link>

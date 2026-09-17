@@ -29,9 +29,9 @@ export default function TopFactionsCard({
 }: TopFactionsCardProps) {
   const header = (
     <div className="flex items-center justify-between gap-3">
-      <h3 className="text-lg font-semibold text-white">{title}</h3>
+      <h3 className="text-lg font-medium text-white">{title}</h3>
       {subtitle && (
-        <span className="text-xs text-gray-500 shrink-0">{subtitle}</span>
+        <span className="text-sm text-ink-muted shrink-0">{subtitle}</span>
       )}
     </div>
   );
@@ -49,7 +49,7 @@ export default function TopFactionsCard({
   return (
     <Card header={header}>
       {factions.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 py-12 text-gray-500">
+        <div className="flex flex-col items-center justify-center gap-3 py-12 text-ink-faint">
           <p className="text-sm font-medium text-center">{emptyText}</p>
         </div>
       ) : (
@@ -74,7 +74,7 @@ export default function TopFactionsCard({
                     kind="corporation"
                     id={faction.id}
                     name={faction.name}
-                    size={64}
+                    size={32}
                   />
                 </div>
 
@@ -82,7 +82,7 @@ export default function TopFactionsCard({
                   <span className="block min-w-0 font-medium text-orange-400 truncate">
                     {faction.name}
                   </span>
-                  <span className="text-lg font-semibold text-gray-400 tabular-nums whitespace-nowrap shrink-0">
+                  <span className="text-base font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">
                     {faction.killCount}
                   </span>
                 </div>

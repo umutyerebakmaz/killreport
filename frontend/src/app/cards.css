@@ -45,9 +45,27 @@
      the root element had no background, so the header read as a separate
      thing sitting on the page. */
   /* A ground of its own, one step up from the card, so the heading reads as
-     the card's own title rather than as its first row. */
+     the card's own title rather than as its first row.
+
+     py-2.5 around a text-lg line box is 20 + 28 = 48, and that number is
+     chosen against the content below it rather than picked for the heading
+     alone. It was py-3, which came to 52: close enough to .card-band's 56 to
+     read as a misalignment rather than as a step, and the only height in the
+     card that the 8px grid did not contain.
+
+     What 48 sits against depends on the row, and there are two kinds:
+
+     - A row built around a 64px image is 80 — py-2 plus the image. That is a
+       killmails .td-cell and the leaderboards' pilot list, and against those
+       48 is 1:1.667, within a hair of the golden ratio, both on the grid at 6
+       and 10 units.
+     - The Top* cards' rows came down to 48 when their portraits went to 32,
+       so there the header and the row are the same height. That is deliberate
+       rather than a collision: with one name per row and nothing stacked under
+       it, the ground and the border say which is the heading, and matching
+       heights are what a table's header row does. */
   .card-header {
-    @apply px-4 py-3 border-b bg-surface-inset border-white/10;
+    @apply px-4 py-2.5 border-b bg-surface-inset border-white/10;
   }
 
   .card-body {
@@ -61,9 +79,17 @@
 
      The min-height is what makes four leaderboard columns line their lists up
      with each other, including the one whose strip holds only a date range and
-     no buttons at all. */
+     no buttons at all.
+
+     12, not 14, so the band and the header are one height and the card has a
+     single chrome step instead of two that differ by 4px. It costs the
+     alignment nothing: the tallest thing in here is a .button-icon, p-2 around
+     a size-4 glyph, which with the band's own py-2 already comes to exactly
+     48. min-h-14 was padding that out by 8px. The column that holds only a
+     date range measures 46 and is still carried up to 48 by the minimum, which
+     is the whole reason the minimum exists. */
   .card-band {
-    @apply flex items-center gap-2 px-4 py-2 border-b min-h-14 border-white/10;
+    @apply flex items-center gap-2 px-4 py-2 border-b min-h-12 border-white/10;
   }
 
   /* One entry in a card's list. This string existed in six copies — the five
@@ -77,15 +103,21 @@
 
   /*
    * The floating layer: the nav popover, the notification panel, the mobile
-   * drawer, FilterDialog, Tooltip and the filter autocompletes. Glass is the
-   * layer signal — 80% of the surface plus a blur, so what is behind stays
-   * legible as behind rather than as gone.
+   * drawer, FilterDialog, Tooltip and the filter autocompletes. Its own
+   * ground, `popover`, darker than any of the three page steps — being darker
+   * than what it covers is the layer signal.
+   *
+   * It was glass before: surface at 80% plus a blur. The blur made what sat
+   * behind readable as behind, but it also meant the panel had no colour of
+   * its own — ~#262626 over the page ground, #2b2b2c over a card, so two
+   * popovers open on the same screen did not match. Opaque settles that, and
+   * it is the darker ground that now says the panel is above the page.
    *
    * Square, and no longer rounded: the panels that opened over the page were
    * sharp while the dialog alone was not, and the app is flat.
    */
   .float {
-    @apply border bg-surface/80 backdrop-blur-md border-white/10;
+    @apply border bg-popover border-white/10;
   }
 
   /* A list row that carries a <button> tag but is not visually a button.
@@ -132,7 +164,7 @@
   }
 
   .map-card-name {
-    @apply font-semibold text-gray-100 truncate group-hover:text-cyan-400;
+    @apply font-medium text-gray-100 truncate group-hover:text-accent-link;
   }
 
   /* A region's constellations over its solar systems, e.g. 7/12; a

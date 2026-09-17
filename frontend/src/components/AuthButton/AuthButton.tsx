@@ -42,7 +42,7 @@ export default function AuthButton() {
   if (user) {
     return (
       <div className="flex items-center gap-3">
-        <span className="text-sm font-semibold text-white">
+        <span className="text-sm font-medium text-white">
           {user.characterName}
         </span>
         <button onClick={logout} className="button button-danger">

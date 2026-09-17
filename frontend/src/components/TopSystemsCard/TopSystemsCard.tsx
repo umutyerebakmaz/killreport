@@ -33,9 +33,9 @@ export default function TopSystemsCard({
 }: TopSystemsCardProps) {
   const header = (
     <div className="flex items-center justify-between gap-3">
-      <h3 className="text-lg font-semibold text-white">{title}</h3>
+      <h3 className="text-lg font-medium text-white">{title}</h3>
       {subtitle && (
-        <span className="text-xs text-gray-500 shrink-0">{subtitle}</span>
+        <span className="text-sm text-ink-muted shrink-0">{subtitle}</span>
       )}
     </div>
   );
@@ -53,7 +53,7 @@ export default function TopSystemsCard({
   return (
     <Card header={header}>
       {systems.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 py-12 text-gray-500">
+        <div className="flex flex-col items-center justify-center gap-3 py-12 text-ink-faint">
           <p className="text-sm font-medium text-center">{emptyText}</p>
         </div>
       ) : (
@@ -66,7 +66,7 @@ export default function TopSystemsCard({
                 <SolarSystemMap
                   systemId={system.id}
                   systemName={system.name}
-                  size={64}
+                  size={32}
                   className="shrink-0"
                 />
 
@@ -82,13 +82,13 @@ export default function TopSystemsCard({
                       </Link>
                     </div>
                     {system.regionName && (
-                      <span className="block text-xs text-gray-500 truncate">
+                      <span className="block text-xs text-ink-faint truncate">
                         {system.regionName}
                       </span>
                     )}
                   </div>
 
-                  <span className="text-lg font-semibold text-gray-400 tabular-nums whitespace-nowrap shrink-0">
+                  <span className="text-base font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">
                     {system.killCount}
                   </span>
                 </div>

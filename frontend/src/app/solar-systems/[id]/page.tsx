@@ -117,7 +117,7 @@ export default function SolarSystemDetailPage({
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg text-red-600">Error: {error.message}</div>
+        <div className="text-lg text-danger">Error: {error.message}</div>
       </div>
     );
   }
@@ -190,7 +190,7 @@ export default function SolarSystemDetailPage({
               <div className="flex flex-wrap items-center gap-3">
                 <h1 className="text-4xl font-bold text-white">{system.name}</h1>
                 {counts.sovereigntyStructures > 0 && (
-                  <span className="px-2 py-0.5 text-xs font-semibold text-amber-400 bg-amber-400/10 border border-amber-400/20">
+                  <span className="px-2 py-0.5 text-xs font-medium text-amber-400 bg-amber-400/10 border border-amber-400/20">
                     SOVEREIGNTY
                   </span>
                 )}
@@ -203,7 +203,7 @@ export default function SolarSystemDetailPage({
               </div>
               <div className="flex flex-wrap items-center gap-6 mt-4 text-sm">
                 {system.constellation && (
-                  <div className="flex items-center gap-2 text-gray-400">
+                  <div className="flex items-center gap-2 text-ink-muted">
                     <ConstellationMap
                       constellationId={system.constellation.id}
                       constellationName={system.constellation.name}
@@ -214,14 +214,14 @@ export default function SolarSystemDetailPage({
                     <Link
                       href={`/constellations/${system.constellation.id}`}
                       prefetch={false}
-                      className="transition-colors text-gray-400 hover:text-blue-400"
+                      className="transition-colors text-ink-muted hover:text-blue-400"
                     >
                       {system.constellation.name}
                     </Link>
                   </div>
                 )}
                 {system.constellation?.region && (
-                  <div className="flex items-center gap-2 text-gray-400">
+                  <div className="flex items-center gap-2 text-ink-muted">
                     <RegionMap
                       regionId={system.constellation.region.id}
                       regionName={system.constellation.region.name}
@@ -232,7 +232,7 @@ export default function SolarSystemDetailPage({
                     <Link
                       href={`/regions/${system.constellation.region.id}`}
                       prefetch={false}
-                      className="transition-colors text-gray-400 hover:text-blue-400"
+                      className="transition-colors text-ink-muted hover:text-blue-400"
                     >
                       {system.constellation.region.name}
                     </Link>
@@ -244,7 +244,7 @@ export default function SolarSystemDetailPage({
 
           {/* Kill Statistics Card */}
           {system.latestActivity ? (
-            <div className="flex flex-col items-end space-y-2 text-xs text-gray-400">
+            <div className="flex flex-col items-end space-y-2 text-xs text-ink-muted">
               <span>
                 {system.latestActivity.ship_kills.toLocaleString()} ships,{' '}
                 {system.latestActivity.pod_kills.toLocaleString()} pods,{' '}
@@ -253,7 +253,7 @@ export default function SolarSystemDetailPage({
               <span>{formatTimeAgo(system.latestActivity.timestamp)}</span>
             </div>
           ) : (
-            <p className="text-sm text-gray-500">No recent activity</p>
+            <p className="text-sm text-ink-faint">No recent activity</p>
           )}
         </div>
 
@@ -290,7 +290,7 @@ export default function SolarSystemDetailPage({
               >
                 {TAB_LABELS[tab]}
                 {count !== null && (
-                  <span className="ml-1.5 text-xs text-gray-500">
+                  <span className="ml-1.5 text-xs text-ink-faint">
                     ({count})
                   </span>
                 )}

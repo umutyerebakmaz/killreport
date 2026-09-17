@@ -30,7 +30,7 @@ function AuthCallbackContent() {
     <div className="flex items-center justify-center h-screen bg-black">
       <div className="text-center">
         <Loader className="w-12 h-12 mx-auto mb-4 text-amber-500" />
-        <p className="text-gray-400">Processing authentication...</p>
+        <p className="text-ink-muted">Processing authentication...</p>
       </div>
     </div>
   );

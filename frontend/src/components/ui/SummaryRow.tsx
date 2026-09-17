@@ -22,7 +22,7 @@ export interface SummaryRowProps {
 export default function SummaryRow({ label, children }: SummaryRowProps) {
   return (
     <div className="flex items-baseline justify-between gap-4">
-      <span className="text-gray-400">{label}</span>
+      <span className="text-ink-muted">{label}</span>
       <span className="text-right text-gray-100">{children}</span>
     </div>
   );

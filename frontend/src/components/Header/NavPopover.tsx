@@ -8,21 +8,32 @@ import {
 } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ReactNode, useRef } from 'react';
+
+import { isNavActive } from '@/utils/navActive';
 
 // The desktop nav needs ~1750px to lay out at full size, so it only appears at
 // xl and scales up in three steps instead of switching on at lg and overflowing.
+// `nav-item` (globals.css) is the accent line that sweeps in above the label on
+// hover, copied from eveonline.com's nav. It rides on this constant rather than
+// on each call site so the popover buttons below get it from NAV_POPOVER_BUTTON.
+//
+// That line is also why every ring is gone from here. `nav-item` opens on
+// `:focus-visible` as well as on hover, so keyboard focus is already shown —
+// and shown in the nav's own language rather than as a rectangle around the
+// word. Without `focus:outline-none` the browser draws its default ring on top
+// of it, which on a dark page is the white one. There is no `focus-visible`
+// rule to take away with it: `:focus-visible` is a subset of `:focus`, so the
+// one declaration covers pointer and keyboard alike.
 export const NAV_ITEM =
-  'font-semibold text-white text-sm min-[1800px]:text-base';
-// The ring is kept for keyboard focus and taken away for pointer focus: the
-// browser draws its own on a plain `:focus`, and the menu hands focus back to
-// the button every time it closes, so a pointer left one sitting on the nav.
-const NAV_POPOVER_BUTTON = `group flex items-center gap-x-1 focus:outline-none focus-visible:outline-1 focus-visible:outline-accent ${NAV_ITEM}`;
+  'nav-item font-medium text-white text-sm min-[1800px]:text-base focus:outline-none';
+const NAV_POPOVER_BUTTON = `group flex items-center gap-x-1 ${NAV_ITEM}`;
 
 // Matches the drawer's chevron, which turns over the same 200ms. `data-open`
 // is on the button, so the icon reads it through the button's `group`.
 const NAV_POPOVER_CHEVRON =
-  'flex-none text-gray-500 size-5 transition-transform duration-200 group-data-open:rotate-180';
+  'flex-none text-ink-faint size-5 transition-transform duration-200 group-data-open:rotate-180';
 
 // The panel carries no background of its own — it is the hit area, and the
 // 12px offset below the button is `pt-3` rather than `mt-3` so the pointer
@@ -48,15 +59,23 @@ const NAV_POPOVER_SURFACE = 'overflow-hidden float p-4';
  *
  * The notification bell deliberately does not do any of this — its button
  * marks alerts read, which a pointer sweeping past it must not trigger.
+ *
+ * `match` is the set of routes the menu owns, and it has to be given: the
+ * children are `CloseButton as={Link}` elements whose hrefs are not readable
+ * from here without walking the tree, and a menu that quietly never lights up
+ * is a harder thing to notice than a missing argument.
  */
 export function NavPopover({
   label,
+  match,
   children,
 }: {
   label: string;
+  match: readonly string[];
   children: ReactNode;
 }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const pathname = usePathname();
 
   return (
     <Popover>
@@ -81,7 +100,15 @@ export function NavPopover({
             buttonRef.current?.blur();
           }}
         >
-          <PopoverButton ref={buttonRef} className={NAV_POPOVER_BUTTON}>
+          {/* `data-current` rather than `aria-current`: the button is not the
+              page you are on, it is the section that holds it, and announcing
+              it as the current page would be a lie to a screen reader. The
+              link inside the panel carries the honest one. */}
+          <PopoverButton
+            ref={buttonRef}
+            className={NAV_POPOVER_BUTTON}
+            data-current={isNavActive(pathname, match) || undefined}
+          >
             {label}
             <ChevronDownIcon
               aria-hidden="true"
@@ -111,18 +138,23 @@ export function NavPopoverLink({
   label: string;
   description: string;
 }) {
+  // The row is what lights up, but the link inside it is what takes focus, so
+  // `has-[a:focus-visible]` is how the row hears about it — the link is not an
+  // ancestor and `group-*` only reads the element carrying `group`. Keyboard
+  // and pointer then land on the same highlight instead of on a ring the row
+  // would draw around a word rather than around itself.
   return (
-    <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50">
+    <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-cyan-900/50 has-[a:focus-visible]:bg-cyan-900/50">
       <div className="flex-auto">
         <CloseButton
           as={Link}
           href={href}
-          className="block font-semibold text-white"
+          className="block font-medium text-white focus:outline-none"
         >
           {label}
           <span className="absolute inset-0" />
         </CloseButton>
-        <p className="mt-1 text-gray-400">{description}</p>
+        <p className="mt-1 text-ink-muted">{description}</p>
       </div>
     </div>
   );

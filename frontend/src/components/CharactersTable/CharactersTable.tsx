@@ -23,7 +23,7 @@ export default function CharactersTable({
 
   if (characters.length === 0) {
     return (
-      <div className="py-12 text-center text-gray-400">No character found</div>
+      <div className="py-12 text-center text-ink-muted">No character found</div>
     );
   }
 
@@ -49,7 +49,7 @@ export default function CharactersTable({
                   <Link
                     href={`/characters/${char.id}`}
                     prefetch={false}
-                    className="text-gray-400 hover:text-blue-400"
+                    className="text-ink-muted hover:text-blue-400"
                   >
                     {char.name}
                   </Link>

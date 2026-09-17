@@ -44,7 +44,7 @@ export function getKillmailRowStyles({
   // Entity is victim (loss) - use red colors
   if (isVictim) {
     return {
-      totalValueColor: 'text-red-500',
+      totalValueColor: 'text-destroyed',
       rowBgColor: characterId ? 'bg-red-500/15' : 'bg-red-500/20',
       rowHoverColor: characterId
         ? 'hover:bg-red-500/20'
@@ -74,7 +74,12 @@ export function getKillmailRowStyles({
   // ground now, so the lift is gone: a row rests on surface and hovers to
   // surface-inset, on every page.
   return {
-    totalValueColor: 'text-orange-400',
+    // text-isk, the token every other ISK figure in the app is drawn in —
+    // KillmailCard, KillmailSummaryCard, KillmailToast and the killmail page.
+    // This row was the one place still on text-orange-400, a colour the theme
+    // does not otherwise use for money. It reads better too: 7.59:1 on
+    // surface against orange-400's 6.03:1.
+    totalValueColor: 'text-isk',
     rowBgColor: 'bg-surface',
     rowHoverColor: 'hover:bg-surface-inset',
   };

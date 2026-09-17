@@ -39,7 +39,9 @@ interface ChangelogData {
 const getCommitType = (message: string) => {
   const lowerMsg = message.toLowerCase();
   if (lowerMsg.startsWith('feat:') || lowerMsg.includes('feature'))
-    return { type: 'feature', color: 'text-green-400', bg: 'bg-green-500/10' };
+    return { type: 'feature', color: 'text-success', bg: 'bg-success/10' };
+  // 'fix' is a commit-type label here, categorical like docs/refactor/chore
+  // below — not an error state, so it stays raw.
   if (lowerMsg.startsWith('fix:') || lowerMsg.includes('fix'))
     return { type: 'fix', color: 'text-red-400', bg: 'bg-red-500/10' };
   if (lowerMsg.startsWith('docs:') || lowerMsg.includes('documentation'))
@@ -54,7 +56,7 @@ const getCommitType = (message: string) => {
       color: 'text-purple-400',
       bg: 'bg-purple-500/10',
     };
-  return { type: 'chore', color: 'text-gray-400', bg: 'bg-gray-500/10' };
+  return { type: 'chore', color: 'text-ink-muted', bg: 'bg-ink-faint/10' };
 };
 
 const formatDate = (dateString: string) => {
@@ -179,10 +181,13 @@ export default function ChangelogPage() {
     return (
       <div className="container mx-auto">
         <div className="p-6 mt-8 border bg-surface border-white/10">
-          <h2 className="mb-2 text-xl font-bold text-red-400">
+          {/* danger measures 3.93:1 on surface — under the 4.5 body-text floor, over the
+              3.0 large-text one. It reads here because this heading is 20px bold. Shrink
+              it or lighten it and the pair stops passing. */}
+          <h2 className="mb-2 text-xl font-bold text-danger">
             Failed to load changelog
           </h2>
-          <p className="text-gray-400">{error}</p>
+          <p className="text-ink-muted">{error}</p>
         </div>
       </div>
     );
@@ -194,14 +199,14 @@ export default function ChangelogPage() {
 
       {/* Recent Commits */}
       <section className="mb-16">
-        <h2 className="flex items-center gap-2 mb-6 text-2xl font-semibold text-white">
+        <h2 className="flex items-center gap-2 mb-6 text-2xl font-medium text-white">
           <ClockIcon className="w-6 h-6 text-blue-400" />
           Recent Updates
         </h2>
 
         {!data?.commits || data.commits.length === 0 ? (
           <div className="p-8 text-center border border-white/10 bg-surface">
-            <p className="text-gray-400">No recent commits available</p>
+            <p className="text-ink-muted">No recent commits available</p>
           </div>
         ) : (
           <div className="space-y-8">
@@ -210,7 +215,7 @@ export default function ChangelogPage() {
                 <div key={dateGroup}>
                   {/* Date Header */}
                   <div className="mb-3">
-                    <h3 className="text-lg font-semibold text-gray-300">
+                    <h3 className="text-lg font-medium text-gray-300">
                       {dateGroup}
                     </h3>
                   </div>
@@ -230,7 +235,7 @@ export default function ChangelogPage() {
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
                                 <span
-                                  className={`px-2 py-0.5 ${commitInfo.bg} ${commitInfo.color} text-xs font-semibold uppercase`}
+                                  className={`px-2 py-0.5 ${commitInfo.bg} ${commitInfo.color} text-xs font-medium uppercase`}
                                 >
                                   {commitInfo.type}
                                 </span>
@@ -238,7 +243,7 @@ export default function ChangelogPage() {
                                   href={commit.html_url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="font-mono text-xs text-gray-500 hover:text-gray-400"
+                                  className="font-mono text-xs text-ink-faint hover:text-ink-muted"
                                 >
                                   {commit.sha.substring(0, 7)}
                                 </a>
@@ -251,7 +256,7 @@ export default function ChangelogPage() {
                               >
                                 {firstLine}
                               </a>
-                              <div className="flex items-center gap-3 text-xs text-gray-400">
+                              <div className="flex items-center gap-3 text-xs text-ink-muted">
                                 <span className="flex items-center gap-1">
                                   <UserIcon className="w-3 h-3" />
                                   {commit.commit.author.name}
@@ -282,7 +287,7 @@ export default function ChangelogPage() {
       {/* Releases Section */}
       {data?.releases && data.releases.length > 0 && (
         <section className="mb-16">
-          <h2 className="flex items-center gap-2 mb-6 text-2xl font-semibold text-white">
+          <h2 className="flex items-center gap-2 mb-6 text-2xl font-medium text-white">
             <CodeBracketIcon className="w-6 h-6 text-green-400" />
             Releases
           </h2>
@@ -295,10 +300,10 @@ export default function ChangelogPage() {
               >
                 <div className="mb-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="px-3 py-1 text-sm font-semibold text-green-400 bg-green-500/20">
+                    <span className="px-3 py-1 text-sm font-medium text-green-400 bg-green-500/20">
                       {release.tag_name}
                     </span>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-ink-faint">
                       {formatDate(release.published_at)}
                     </span>
                   </div>
@@ -322,7 +327,7 @@ export default function ChangelogPage() {
       )}
 
       {/* Footer Note */}
-      <p className="mt-12 text-sm text-center text-gray-400">
+      <p className="mt-12 text-sm text-center text-ink-muted">
         Data is fetched from{' '}
         <a
           href="https://github.com/umutyerebakmaz/killreport"

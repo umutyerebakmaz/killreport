@@ -201,7 +201,7 @@ export default function AllianceGrowthChart({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-40 text-sm text-gray-500">
+      <div className="flex items-center justify-center h-40 text-sm text-ink-faint">
         Loading growth data...
       </div>
     );
@@ -209,7 +209,7 @@ export default function AllianceGrowthChart({
 
   if (!snapshots || snapshots.length === 0) {
     return (
-      <div className="flex items-center justify-center h-40 text-sm text-gray-500">
+      <div className="flex items-center justify-center h-40 text-sm text-ink-faint">
         No snapshot data available.
       </div>
     );
@@ -218,7 +218,7 @@ export default function AllianceGrowthChart({
   return (
     <div className="mt-6">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-lg font-semibold text-white">Growth Chart</h3>
+        <h3 className="text-lg font-medium text-white">Growth Chart</h3>
         <div className="flex gap-1">
           {(Object.keys(RANGE_LABELS) as RangeType[]).map((r) => (
             <button
@@ -236,11 +236,11 @@ export default function AllianceGrowthChart({
       <div className="flex items-center justify-end gap-4 mb-2">
         <div className="flex items-center gap-1.5">
           <span className="inline-block w-6 h-0.5 bg-cyan-400" />
-          <span className="text-xs text-gray-400">Members</span>
+          <span className="text-xs text-ink-muted">Members</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="inline-block w-6 h-0.5 bg-amber-400" />
-          <span className="text-xs text-gray-400">Corporations</span>
+          <span className="text-xs text-ink-muted">Corporations</span>
         </div>
       </div>
       <ReactECharts

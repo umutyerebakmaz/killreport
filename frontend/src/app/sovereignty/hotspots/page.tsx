@@ -13,7 +13,7 @@ function HotspotsContent() {
   if (loading)
     return <Loader fullHeight size="lg" text="Loading hot zones..." />;
   if (error)
-    return <div className="p-8 text-red-400">Error: {error.message}</div>;
+    return <div className="p-8 text-danger">Error: {error.message}</div>;
 
   const hotspots = data?.conflictHotspots ?? [];
 
@@ -32,7 +32,7 @@ function HotspotsContent() {
       {/* Treemap */}
       <section className="mt-6">
         <ConflictTreemap hotspots={hotspots} />
-        <p className="mt-2 text-xs text-gray-500">
+        <p className="mt-2 text-xs text-ink-faint">
           Rectangle size = intensity (active campaigns ×3 + war kills); redder =
           more war kills.
         </p>
@@ -58,7 +58,7 @@ function HotspotsContent() {
                     <Link
                       href={`/regions/${h.regionId}`}
                       prefetch={false}
-                      className="text-gray-400 hover:text-blue-400"
+                      className="text-ink-muted hover:text-blue-400"
                     >
                       {h.regionName ?? `#${h.regionId}`}
                     </Link>
@@ -66,6 +66,7 @@ function HotspotsContent() {
                   <td className="td-cell text-right text-gray-300 whitespace-nowrap">
                     {h.activeCampaigns}
                   </td>
+                  {/* war-intensity stats, not the danger meaning */}
                   <td className="td-cell text-right whitespace-nowrap">
                     {h.warKills > 0 ? (
                       <span className="text-red-400">{h.warKills}</span>
@@ -82,7 +83,7 @@ function HotspotsContent() {
                       <span className="text-gray-600">—</span>
                     )}
                   </td>
-                  <td className="td-cell font-semibold text-right text-white whitespace-nowrap">
+                  <td className="td-cell font-medium text-right text-white whitespace-nowrap">
                     {h.intensityScore}
                   </td>
                 </tr>
@@ -91,7 +92,7 @@ function HotspotsContent() {
                 <tr>
                   <td
                     colSpan={5}
-                    className="px-4 py-8 text-center text-gray-500"
+                    className="px-4 py-8 text-center text-ink-faint"
                   >
                     No active conflicts right now.
                   </td>

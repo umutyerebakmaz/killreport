@@ -6,7 +6,7 @@ import Card from '@/components/ui/Card';
 import RankNumber from '@/components/ui/RankNumber';
 import Tooltip from '@/components/Tooltip/Tooltip';
 import { LeaderboardPeriod, useTopPilotsQuery } from '@/generated/graphql';
-import { getSecurityStatusColor } from '@/utils/securityStatus';
+import { getSecurityStatusBorderColor } from '@/utils/securityStatus';
 import {
   CalendarDaysIcon,
   ChevronLeftIcon,
@@ -66,7 +66,7 @@ function PilotList({
     );
   if (pilots.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-12 text-gray-500">
+      <div className="flex flex-col items-center justify-center gap-3 py-12 text-ink-faint">
         <TrophyIcon className="w-10 h-10 opacity-30" />
         <p className="text-sm font-medium text-center">{emptyText}</p>
       </div>
@@ -76,87 +76,51 @@ function PilotList({
     <div className="flex flex-col divide-y divide-white/5">
       {pilots.map((pilot) => {
         const char = pilot.character;
-        const secColor = getSecurityStatusColor(char?.securityStatus);
+        const secBorder = getSecurityStatusBorderColor(char?.securityStatus);
         return (
-          <div key={pilot.rank} className="card-row">
+          <div key={pilot.rank} className={`card-row border-l-4 ${secBorder}`}>
             <div className="flex items-center gap-3">
               {/* Rank */}
               <RankNumber rank={pilot.rank} />
 
               {/* Portrait */}
-              <div className="relative shrink-0">
-                <EveImage
-                  kind="character"
-                  id={char?.id ?? 0}
-                  name={char?.name ?? 'Unknown'}
-                  size={64}
-                  className="shadow-md"
-                />
-                {char?.securityStatus != null && (
-                  <div className="absolute bottom-0 left-0 px-1.5 py-0.5 text-xs font-semibold bg-black/70 backdrop-blur-sm">
-                    <span className={secColor}>
-                      {char.securityStatus.toFixed(1)}
-                    </span>
-                  </div>
-                )}
-              </div>
+              <EveImage
+                kind="character"
+                id={char?.id ?? 0}
+                name={char?.name ?? 'Unknown'}
+                size={32}
+                className="shrink-0 shadow-md"
+              />
 
               {/* Info */}
               <div className="flex justify-between w-full min-w-0">
-                <div className="flex flex-col min-w-0 overflow-hidden">
+                <div className="min-w-0 overflow-hidden">
                   {char ? (
                     <Tooltip
                       content="Show Character Info"
-                      className="w-full! min-w-0 overflow-hidden"
+                      className="min-w-0 overflow-hidden"
                     >
                       <Link
                         href={`/characters/${char.id}?tab=killmails`}
-                        className="block font-medium text-gray-400 truncate hover:text-blue-400"
+                        className="block font-medium text-ink-muted truncate hover:text-blue-400"
                         prefetch={false}
                       >
                         {char.name}
                       </Link>
                     </Tooltip>
                   ) : (
-                    <span className="italic font-medium text-gray-500">
+                    <span className="italic font-medium text-ink-faint">
                       Unknown Pilot
                     </span>
-                  )}
-                  {char?.corporation && (
-                    <Tooltip
-                      content="Show Corporation Info"
-                      className="w-full! min-w-0 overflow-hidden"
-                    >
-                      <Link
-                        href={`/corporations/${char.corporation.id}?tab=killmails`}
-                        className="block text-sm text-gray-400 truncate hover:text-blue-400"
-                        prefetch={false}
-                      >
-                        {char.corporation.name}
-                      </Link>
-                    </Tooltip>
-                  )}
-                  {char?.alliance && (
-                    <Tooltip
-                      content="Show Alliance Info"
-                      className="w-full! min-w-0 overflow-hidden"
-                    >
-                      <Link
-                        href={`/alliances/${char.alliance.id}?tab=killmails`}
-                        className="block text-sm text-gray-400 truncate hover:text-blue-400"
-                        prefetch={false}
-                      >
-                        {char.alliance.name}
-                      </Link>
-                    </Tooltip>
                   )}
                 </div>
 
                 {/* Kill count + logos */}
-                <div className="flex flex-col items-end justify-between pl-2 gap-y-1 shrink-0">
-                  <span className="text-lg font-semibold text-gray-400 tabular-nums whitespace-nowrap">
-                    {pilot.killCount.toLocaleString()}
-                  </span>
+                {/* Stacked, this column was 64 tall — the count over two 32px
+                    crests — and it, not the portrait, is what held the row at
+                    80. Laid out in one line it is 32, the same as the portrait
+                    beside it, and the row comes to 48 like the Top* cards. */}
+                <div className="flex items-center pl-2 gap-2 shrink-0">
                   <div className="flex">
                     {char?.corporation && (
                       <Tooltip
@@ -181,6 +145,9 @@ function PilotList({
                       </Tooltip>
                     )}
                   </div>
+                  <span className="text-base font-medium text-ink-muted tabular-nums whitespace-nowrap">
+                    {pilot.killCount.toLocaleString()}
+                  </span>
                 </div>
               </div>
             </div>
@@ -232,7 +199,7 @@ function DailyLeaderboard() {
       header={
         <div className="flex items-center gap-2">
           <TrophyIcon className="w-5 h-5 text-yellow-400 shrink-0" />
-          <h2 className="text-lg font-semibold text-white">Daily Top 100</h2>
+          <h2 className="text-lg font-medium text-white">Daily Top 100</h2>
         </div>
       }
     >
@@ -251,7 +218,7 @@ function DailyLeaderboard() {
           className="input-boxed px-2 py-1.5 text-xs flex-1 min-w-0"
           aria-label="Leaderboard date"
         />
-        <span className="hidden text-xs text-gray-400 sm:block shrink-0">
+        <span className="hidden text-xs text-ink-muted sm:block shrink-0">
           {displayDate}
         </span>
         <button
@@ -313,7 +280,7 @@ function WeeklyLeaderboard() {
       header={
         <div className="flex items-center gap-2">
           <CalendarDaysIcon className="w-5 h-5 text-gray-300 shrink-0" />
-          <h2 className="text-lg font-semibold text-white">Weekly Top 100</h2>
+          <h2 className="text-lg font-medium text-white">Weekly Top 100</h2>
         </div>
       }
     >
@@ -373,14 +340,14 @@ function Last90DaysLeaderboard() {
       header={
         <div className="flex items-center gap-2">
           <ClockIcon className="w-5 h-5 text-gray-300 shrink-0" />
-          <h2 className="text-lg font-semibold text-white">Last 90 Days</h2>
+          <h2 className="text-lg font-medium text-white">Last 90 Days</h2>
         </div>
       }
     >
       {/* No stepper to show: this range is fixed. The band still carries it so
           this column's list starts level with the other three. */}
       <div className="card-band">
-        <span className="text-xs font-medium text-gray-400">{rangeLabel}</span>
+        <span className="text-xs font-medium text-ink-muted">{rangeLabel}</span>
       </div>
 
       <PilotList
@@ -438,7 +405,7 @@ function MonthlyLeaderboard() {
       header={
         <div className="flex items-center gap-2">
           <CalendarDaysIcon className="w-5 h-5 text-purple-400 shrink-0" />
-          <h2 className="text-lg font-semibold text-white">Monthly Top 100</h2>
+          <h2 className="text-lg font-medium text-white">Monthly Top 100</h2>
         </div>
       }
     >
@@ -478,7 +445,7 @@ function LeaderboardsContent() {
       <h1 className="sr-only">Leaderboards</h1>
 
       {/* Notice */}
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-ink-faint">
         Updated every 5 minutes. Ranked by kill count only.
       </p>
 

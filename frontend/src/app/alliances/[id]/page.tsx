@@ -252,7 +252,7 @@ export default function AllianceDetailPage({
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg text-red-600">Error: {error.message}</div>
+        <div className="text-lg text-danger">Error: {error.message}</div>
       </div>
     );
   }
@@ -397,13 +397,13 @@ export default function AllianceDetailPage({
             <h2 className="mb-4 text-2xl font-bold">Attributes</h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <span className="text-gray-400">Executor</span>
-                <span className="ml-2 font-semibold">
+                <span className="text-ink-muted">Executor</span>
+                <span className="ml-2 font-medium">
                   {alliance.executor ? (
                     <Link
                       href={`/corporations/${alliance.executor.id}`}
                       prefetch={false}
-                      className="text-gray-400 hover:text-blue-400"
+                      className="text-ink-muted hover:text-blue-400"
                     >
                       {alliance.executor.name}
                     </Link>
@@ -413,17 +413,17 @@ export default function AllianceDetailPage({
                 </span>
               </div>
               <div>
-                <span className="text-gray-400">Short Name</span>
-                <span className="ml-2 font-semibold">{alliance.ticker}</span>
+                <span className="text-ink-muted">Short Name</span>
+                <span className="ml-2 font-medium">{alliance.ticker}</span>
               </div>
               <div>
-                <span className="text-gray-400">Created By Corporation</span>
-                <span className="ml-2 font-semibold">
+                <span className="text-ink-muted">Created By Corporation</span>
+                <span className="ml-2 font-medium">
                   {alliance.createdByCorporation ? (
                     <Link
                       href={`/corporations/${alliance.createdByCorporation.id}`}
                       prefetch={false}
-                      className="text-gray-400 hover:text-blue-400"
+                      className="text-ink-muted hover:text-blue-400"
                     >
                       {alliance.createdByCorporation.name}
                     </Link>
@@ -433,13 +433,13 @@ export default function AllianceDetailPage({
                 </span>
               </div>
               <div>
-                <span className="text-gray-400">Created By</span>
-                <span className="ml-2 font-semibold">
+                <span className="text-ink-muted">Created By</span>
+                <span className="ml-2 font-medium">
                   {alliance.createdBy ? (
                     <Link
                       href={`/characters/${alliance.createdBy.id}`}
                       prefetch={false}
-                      className="text-gray-400 hover:text-blue-400"
+                      className="text-ink-muted hover:text-blue-400"
                     >
                       {alliance.createdBy.name}
                     </Link>
@@ -449,8 +449,8 @@ export default function AllianceDetailPage({
                 </span>
               </div>
               <div>
-                <span className="text-gray-400">Start Date:</span>
-                <span className="ml-2 font-semibold">
+                <span className="text-ink-muted">Start Date:</span>
+                <span className="ml-2 font-medium">
                   {new Date(alliance.date_founded).toLocaleDateString()}
                 </span>
               </div>
@@ -595,7 +595,7 @@ export default function AllianceDetailPage({
             <div className="sm:flex-auto">
               <h2 className="sr-only">Member Corporations</h2>
               {corporationsPageInfo?.totalCount !== undefined && (
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-ink-muted">
                   Total: {corporationsPageInfo.totalCount.toLocaleString()}{' '}
                   corporations
                 </p>

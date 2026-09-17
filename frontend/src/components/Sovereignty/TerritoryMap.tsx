@@ -222,7 +222,7 @@ export function TerritoryMap({ points }: { points: MapPoint[] }) {
 
   if (points.length === 0) {
     return (
-      <div className="flex items-center justify-center text-gray-500 border h-96 border-white/10">
+      <div className="flex items-center justify-center text-ink-faint border h-96 border-white/10">
         No sov-held systems to map.
       </div>
     );

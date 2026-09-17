@@ -1,7 +1,5 @@
 @import 'tailwindcss';
 
-@import './fonts.css';
-
 @import './buttons.css';
 @import './inputs.css';
 @import './tables.css';
@@ -9,33 +7,100 @@
 @import './map.css';
 
 @theme {
-  /* Typography */
-  --font-sans: 'Shentox', ui-sans-serif, system-ui, sans-serif;
+  /* Roboto Condensed, loaded and self-hosted by next/font in layout.tsx,
+     which is also where the reasoning for it lives. It replaced Shentox, EVE
+     Online's own face: that licence was Emtype's and CCP's, never ours. The
+     map's labels read their family from `utils/map/labelStyle.ts`, which has
+     to name the same face — see the comment there. */
+  --font-sans:
+    var(--font-roboto-condensed), ui-sans-serif, system-ui, sans-serif;
 
-  /* Depth — three steps, no more. Four grounds are in use today
-     (bg-white/5, neutral-900, neutral-800, stone-900) and nothing says
-     which one means what. */
-  --color-ground: var(--color-gray-950); /* the page */
-  --color-surface: var(--color-gray-900); /* cards, tables, panels */
-  --color-surface-inset: var(--color-gray-800); /* a box inside a card */
+  /* Depth — three steps in the page. The first two are EVE's own
+     (eveonline.com's page ground, and --pfg-background-dark); the third is
+     derived, because a marketing site has no third step to copy. The step
+     from ground to surface is 1.35:1, up from 1.13:1 when these were
+     Tailwind greys — and with no shadows anywhere, that step IS the depth. */
+  --color-ground: #101010; /* the page */
+  --color-surface: #2b2b2c; /* cards, tables, panels */
+  --color-surface-inset: #3d3d3e; /* a box inside a card */
 
-  /* Accent — the primary action fill. It sits in three separate
-     pockets today: cyan, indigo and blue. */
-  --color-accent: var(--color-cyan-600);
+  /* Not a fourth step in that ramp — the ground of what floats OVER the page:
+     .float, and through it every popover, the notification panel, the mobile
+     drawer, FilterDialog, Tooltip and the filter autocompletes. It is darker
+     than all three, which is what separates the layer from the page rather
+     than placing it on top of the same ramp. Opaque on purpose: .float used
+     to be surface at 80% with a blur, so its real colour moved with whatever
+     sat behind it — ~#262626 over the page, #2b2b2c over a card. Being darker
+     also buys contrast back: ink-faint 4.96:1 → 5.65:1, ink-muted 5.00 → 7.42,
+     and destroyed clears the 4.5 body-text floor here (4.54:1) where it does
+     not on surface. */
+  --color-popover: #212121;
 
-  /* Meaning. Damage uses `destroyed` too — a separate --color-damage would
-     be a second name for the same value. */
+  /* Accent — EVE's own, from --sf-terms-button-color. It is a LIGHT accent,
+     so what sits ON the fill is dark ink: white on it measures 1.93:1, and
+     accent-ink is the ink EVE's own "Play Free" button uses (9.55:1).
+     accent-hover is derived at +0.06 oklch L — EVE's button does not change
+     its fill on hover at all, but every other control in this app does, and
+     a primary button that alone ignores the pointer reads as broken. It also
+     serves as an ink hover, not only a fill's pointer state — see the
+     corporation URL link at corporations/[id]/page.tsx:497. */
+  --color-accent: #5ccbcb;
+  --color-accent-hover: #71dfdf;
+  --color-accent-ink: #111418;
+  /* accent-link shares accent's value on purpose: it is the ink for inline
+     links rather than a fill, so either can move without dragging the other —
+     the same reasoning the danger/success/caution trio below relies on. */
+  --color-accent-link: #5ccbcb;
+
+  /* Ink — ink-muted is EVE's own grey, --pfg-dark-chalice; it measures 5.00:1
+     on surface-inset where the Tailwind grey it replaced measured 4.17:1.
+     ink-faint is derived, not taken — see its own comment below. */
+  --color-ink-muted: #b0b0b0;
+  /* NOT EVE's value taken literally. #636363 is --sf-disabled-color, the
+     colour EVE uses for disabled controls — but this token sits on ~114 sites
+     of live content (empty states, timestamps, counts, the Paginator's page
+     label), none of them disabled. Taking it as-is measured 2.35:1 on surface
+     and 1.81:1 on surface-inset, under even the 3:1 non-text floor. #999999 is
+     a derived neutral step between EVE's two greys: 4.96:1 on surface, 3.81:1
+     on surface-inset, 6.68:1 on ground. */
+  --color-ink-faint: #999999;
+
+  /* EVE's red, as the project's red. red-400 IS eveonline.com's value exactly —
+     it is the step this app writes — and the deeper three keep Tailwind's
+     lightness intervals at EVE's hue and chroma so the ramp still steps evenly.
+     Overriding the palette is deliberate and was asked for: a token layer alone
+     would have left the security band, the attacker half of a war bar and the
+     category swatches on Tailwind's red. CONTRAST, accepted knowingly:
+     red-400 measures 3.93:1 on surface and 3.02:1 on surface-inset, under the
+     4.5 body-text floor. The deeper steps are fills and borders, never text. */
+  --color-red-400: #fe3743;
+  --color-red-500: #e50e2e;
+  --color-red-600: #cf0019;
+  --color-red-700: #b50000;
+
+  /* Meaning, all three EVE's own. Damage uses `destroyed` too.
+     CONTRAST, taken deliberately: destroyed measures 3.93:1 on surface and
+     3.02:1 on surface-inset, under the 4.5:1 body-text floor. That is EVE's
+     red as EVE ships it. #ff6467 measures 4.90:1 if it has to come back. */
   --color-destroyed: var(--color-red-400);
-  --color-dropped: var(--color-green-400);
-  --color-isk: var(--color-yellow-400);
+  --color-dropped: #37ba5b;
+  --color-isk: #e7b815;
+
+  /* The same three hues under the names the rest of the app needs. Two tokens
+     sharing a value is not waste: destroyed and danger are the same red today
+     and say different things, so either can move without dragging the other.
+     CONTRAST: danger measures 5.29:1 on ground, where nearly every error
+     message in this app sits, but 3.93:1 on surface. Page-level error states
+     only; see the spec. */
+  --color-danger: var(--color-destroyed);
+  --color-success: var(--color-dropped);
+  --color-caution: var(--color-isk);
 
   /* The same two meanings as a ground rather than as ink, and deliberately
-     a deeper step: 400 reads on a dark surface because it is light, and a
-     light hue behind a whole row washes it out. These are the tones the
-     fitting rows already used; they are named here so the pair travels
-     together, not to change them. */
+     a deeper step: a light hue behind a whole row washes it out. EVE's two
+     hues taken down to the lightness the Tailwind 700s sat at. */
   --color-destroyed-fill: var(--color-red-700);
-  --color-dropped-fill: var(--color-green-700);
+  --color-dropped-fill: #008425;
 }
 
 html,
@@ -54,6 +119,28 @@ body {
  */
 html {
   color-scheme: dark;
+}
+
+/*
+ * No focus ring, anywhere. Asked for directly, and it has to be a global rule
+ * rather than a class per element: what kept coming back was the browser's own
+ * ring on elements nobody had styled, and there is always one more of those —
+ * NotificationBell's button was the last one hiding in the header.
+ *
+ * `:focus-visible` is the one the browser draws. The `focus:outline-none`
+ * utilities left scattered around cover the plain `:focus` case, which is what
+ * a pointer produces.
+ *
+ * What this costs, stated rather than discovered later: outside the header
+ * nothing marks focus at all now. A button, an input, a checkbox or a select
+ * reached with Tab looks exactly like one that was not, so the app is hard to
+ * drive without a pointer. The header is the exception — `.nav-item` opens its
+ * accent line on `:focus-visible`, and the drawer rows and popover rows light
+ * up the way hover does. Giving the rest of the controls that same treatment
+ * is the way back, and it is design work rather than a revert.
+ */
+:focus-visible {
+  outline: none;
 }
 
 /*
@@ -80,7 +167,66 @@ main:has(> [data-full-bleed]) {
 }
 
 body {
-  font-weight: 400;
+  font-weight: 300;
+}
+
+/*
+ * The nav's hover line, taken from eveonline.com's own top navigation — its
+ * `NavItem_bar`, a 1px rule sitting above the label that grows from the left
+ * in 150ms. The colour needs no translation: EVE draws that line in #5ccbcb,
+ * which is the value --color-accent already holds.
+ *
+ * A pseudo-element rather than the real <span> EVE ships, so `NAV_ITEM` in
+ * NavPopover.tsx carries the whole effect and neither the plain links nor the
+ * popover buttons gain any markup. The buttons inherit it because
+ * NAV_POPOVER_BUTTON is built from NAV_ITEM.
+ *
+ * One deliberate departure: EVE declares the transition inside its :hover
+ * rule, so the line grows on the way in and vanishes without animating on the
+ * way out. Ours is on the base rule, which is what lets it retract while the
+ * pointer sweeps along the row.
+ *
+ * `top` is negative rather than the line being a border-top on the item
+ * itself: the item is a flex row in the popover case, and a border there would
+ * move the label down by a pixel only on the items that have one.
+ */
+.nav-item {
+  position: relative;
+}
+
+.nav-item::before {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background-color: var(--color-accent);
+  transition: width 150ms ease-in-out;
+}
+
+/* Keyboard gets the line too. EVE's nav does not do this, but ours is walked
+   with Tab — NAV_POPOVER_BUTTON already draws a focus-visible ring. */
+.nav-item:hover::before,
+.nav-item:focus-visible::before {
+  width: 100%;
+}
+
+/* The page you are on keeps its line. `aria-current` carries it on the plain
+   links, because that attribute is already what a screen reader reads there
+   and a second class would only be one more thing to keep in step. The popover
+   buttons use `data-current` instead — see the comment on that attribute in
+   NavPopover.tsx. Only the line says so: the label stays white, so the accent
+   appears once in the nav rather than twice. */
+.nav-item[aria-current='page']::before,
+.nav-item[data-current]::before {
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-item::before {
+    transition: none;
+  }
 }
 
 .alliance-name,
@@ -88,7 +234,7 @@ body {
 .character-name,
 .constellation-name,
 .system-name {
-  @apply flex items-center justify-center h-12 font-semibold text-center text-gray-200 text-base hover:text-cyan-400 line-clamp-2;
+  @apply flex items-center justify-center h-12 font-medium text-center text-gray-200 text-base hover:text-accent-link line-clamp-2;
 }
 
 .alliance-ticker {
@@ -125,11 +271,13 @@ body {
 
 .animate-slide-in-row {
   animation: slide-in-row 0.6s ease-out forwards;
+  /* EVE's red (destroyed, #fe3743), not Tailwind v3's red-500 — this flash
+     sits directly behind destroyed's own figures. */
   background: linear-gradient(
     90deg,
-    rgba(239, 68, 68, 0.2) 0%,
-    rgba(239, 68, 68, 0.08) 50%,
-    rgba(239, 68, 68, 0) 100%
+    rgba(254, 55, 67, 0.2) 0%,
+    rgba(254, 55, 67, 0.08) 50%,
+    rgba(254, 55, 67, 0) 100%
   );
 }
 

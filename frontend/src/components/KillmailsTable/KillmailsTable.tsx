@@ -37,7 +37,7 @@ export default function KillmailsTable({
 
   if (killmails.length === 0) {
     return (
-      <div className="py-12 text-center text-gray-400">No killmails found</div>
+      <div className="py-12 text-center text-ink-muted">No killmails found</div>
     );
   }
 
@@ -52,14 +52,14 @@ export default function KillmailsTable({
             {/* Date Header. items-baseline, not items-center: the count is
                 text-sm next to a text-xl date, and centring the two boxes
                 leaves the smaller one floating off the date's baseline. */}
-            <h2 className="flex items-baseline gap-2 text-xl font-semibold">
+            <h2 className="flex items-baseline gap-2 text-xl font-medium">
               <span className="text-gray-200">{date}</span>
-              <span className="text-sm font-normal text-gray-400">
+              <span className="text-sm font-normal text-ink-muted">
                 ({dayCount.toLocaleString()}{' '}
                 {dayCount === 1 ? 'killmail' : 'killmails'})
               </span>
               {index === 0 && totalCount !== undefined && totalCount > 0 && (
-                <span className="ml-auto text-sm font-normal text-gray-400">
+                <span className="ml-auto text-sm font-normal text-ink-muted">
                   Total: {totalCount.toLocaleString()} killmails
                 </span>
               )}

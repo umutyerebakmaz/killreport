@@ -44,7 +44,7 @@ export default function KillmailDetailPage({
   if (error || !data?.killmail) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl text-red-400">
+        <div className="text-xl text-danger">
           Error: {error?.message || 'Killmail not found'}
         </div>
       </div>
@@ -151,7 +151,7 @@ export default function KillmailDetailPage({
                         <a
                           href={`/characters/${victim.character?.id}`}
                           title={victim.character?.name || 'Character'}
-                          className="block w-full text-gray-400 truncate transition-colors hover:text-cyan-400"
+                          className="block w-full text-ink-muted truncate transition-colors hover:text-accent-link"
                         >
                           {victim.character?.name}
                         </a>
@@ -162,7 +162,7 @@ export default function KillmailDetailPage({
                           <a
                             href={`/corporations/${victim.corporation?.id}`}
                             title={victim.corporation?.name || 'Corporation'}
-                            className="block w-full text-gray-400 truncate transition-colors hover:text-cyan-400"
+                            className="block w-full text-ink-muted truncate transition-colors hover:text-accent-link"
                           >
                             {victim.corporation?.name}
                           </a>
@@ -174,7 +174,7 @@ export default function KillmailDetailPage({
                           <a
                             href={`/alliances/${victim.alliance?.id}`}
                             title={victim.alliance?.name || 'Alliance'}
-                            className="block w-full text-gray-400 truncate transition-colors hover:text-cyan-400"
+                            className="block w-full text-ink-muted truncate transition-colors hover:text-accent-link"
                           >
                             {victim.alliance?.name}
                           </a>
@@ -187,7 +187,7 @@ export default function KillmailDetailPage({
                 <SummaryRow label="Ship">
                   {victim?.shipType?.name}
                   {victim?.shipType?.group && (
-                    <span className="text-gray-500">
+                    <span className="text-ink-faint">
                       {' '}
                       ({victim.shipType.group.name})
                     </span>
@@ -214,7 +214,7 @@ export default function KillmailDetailPage({
                       </span>
                     )}
                   {km.solarSystem?.constellation?.region && (
-                    <span className="text-gray-500">
+                    <span className="text-ink-faint">
                       {' '}
                       / {km.solarSystem.constellation.region.name}
                     </span>

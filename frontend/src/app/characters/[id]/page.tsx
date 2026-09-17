@@ -166,7 +166,7 @@ export default function CharacterDetailPage({
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg text-red-600">Error: {error.message}</div>
+        <div className="text-lg text-danger">Error: {error.message}</div>
       </div>
     );
   }
@@ -273,7 +273,7 @@ export default function CharacterDetailPage({
                 <div className="mt-2">
                   <EveHtmlRenderer
                     html={character.title}
-                    className="text-sm font-semibold"
+                    className="text-sm font-medium"
                   />
                 </div>
               </div>
@@ -316,14 +316,14 @@ export default function CharacterDetailPage({
 
             {/* Age */}
             <div>
-              <span className="text-sm text-gray-400">{age}</span>
+              <span className="text-sm text-ink-muted">{age}</span>
             </div>
 
             {/* Security Status */}
             {character.securityStatus && (
               <div>
                 <span
-                  className={`text-sm font-semibold ${getSecurityStatusColor(character.securityStatus)}`}
+                  className={`text-sm font-medium ${getSecurityStatusColor(character.securityStatus)}`}
                 >
                   {character.securityStatus.toFixed(1)}
                 </span>
@@ -371,7 +371,7 @@ export default function CharacterDetailPage({
                   </div>
                 </div>
               )}
-              <div className="flex flex-col items-end justify-end col-start-2 col-end-3 text-xs text-gray-500 justify-self-end">
+              <div className="flex flex-col items-end justify-end col-start-2 col-end-3 text-xs text-ink-faint justify-self-end">
                 <div>{updatedAt}</div>
                 <div>{updatedAtHuman} ago</div>
               </div>
@@ -478,7 +478,7 @@ export default function CharacterDetailPage({
             className="p-6 bg-white/5 border-white/10"
           >
             <h2 className="mb-4 text-2xl font-bold">Statistics</h2>
-            <p className="text-gray-400">Statistics coming soon...</p>
+            <p className="text-ink-muted">Statistics coming soon...</p>
           </div>
         )}
       </div>

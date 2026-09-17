@@ -66,11 +66,11 @@ export const Loader: React.FC<LoaderProps> = ({
         ) : (
           // Fallback spinner
           <div
-            className={`${sizeClasses[size]} border-cyan-500 rounded-full animate-spin border-t-transparent`}
+            className={`${sizeClasses[size]} border-accent-hover rounded-full animate-spin border-t-transparent`}
           />
         )}
         {text && (
-          <span className={`${textSizeClasses[size]} text-gray-400`}>
+          <span className={`${textSizeClasses[size]} text-ink-muted`}>
             {text}
           </span>
         )}

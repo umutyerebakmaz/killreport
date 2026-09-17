@@ -5,7 +5,6 @@ query TopCorporations($filter: TopFilter) {
     corporation {
       id
       name
-      ticker
     }
   }
 }

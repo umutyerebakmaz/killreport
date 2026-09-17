@@ -20,10 +20,10 @@ import { useEffect, useRef, useState } from 'react';
 // inside an icon that small blur into a smudge. The labels carry the alphabet,
 // the icon carries the direction.
 const ASC = (
-  <BarsArrowUpIcon aria-hidden="true" className="size-4 text-gray-400" />
+  <BarsArrowUpIcon aria-hidden="true" className="size-4 text-ink-muted" />
 );
 const DESC = (
-  <BarsArrowDownIcon aria-hidden="true" className="size-4 text-gray-400" />
+  <BarsArrowDownIcon aria-hidden="true" className="size-4 text-ink-muted" />
 );
 
 const ORDER_BY_OPTIONS = [
@@ -223,10 +223,10 @@ export default function ConstellationFilterForm({
                             />
                           </div>
                           <div className="flex-auto min-w-0 text-left">
-                            <div className="font-semibold text-white truncate">
+                            <div className="font-medium text-white truncate">
                               {item.name}
                             </div>
-                            <div className="text-sm text-gray-400">
+                            <div className="text-sm text-ink-muted">
                               {item.constellationCount} constellations ·{' '}
                               {item.solarSystemCount} systems
                             </div>
@@ -242,7 +242,7 @@ export default function ConstellationFilterForm({
                 !regionLoading &&
                 regionsData?.regions?.items?.length === 0 && (
                   <div className="absolute z-50 w-full mt-3 overflow-hidden transition float">
-                    <div className="p-4 text-sm text-gray-400">
+                    <div className="p-4 text-sm text-ink-muted">
                       No regions found for &quot;{debouncedRegionSearch}&quot;
                     </div>
                   </div>
@@ -253,7 +253,7 @@ export default function ConstellationFilterForm({
           {region && (
             <div className="mt-3">
               <span className="chip">
-                <span className="font-semibold truncate">
+                <span className="font-medium truncate">
                   {region.name || `Region ${region.id}`}
                 </span>
                 <button

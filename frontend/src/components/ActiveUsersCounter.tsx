@@ -30,8 +30,8 @@ export default function ActiveUsersCounter() {
     <Tooltip
       content={
         <div className="min-w-70">
-          <div className="mb-1 font-semibold">Real-time Active Users</div>
-          <div className="text-gray-400">
+          <div className="mb-1 font-medium">Real-time Active Users</div>
+          <div className="text-ink-muted">
             Live count of visitors currently browsing the site. Updates every 3
             seconds via WebSocket. Includes authenticated users and anonymous
             visitors active in the last 5 minutes.
@@ -41,11 +41,11 @@ export default function ActiveUsersCounter() {
       position="bottom"
       wrapText={true}
     >
-      <div className="flex items-center gap-2 text-sm text-gray-400 cursor-help">
+      <div className="flex items-center gap-2 text-sm text-ink-muted cursor-help">
         {isConnected && (
           <div className="relative flex size-2">
-            <span className="absolute inline-flex w-full h-full bg-green-400 rounded-full opacity-75 animate-ping"></span>
-            <span className="relative inline-flex bg-green-500 rounded-full size-2"></span>
+            <span className="absolute inline-flex w-full h-full bg-success rounded-full opacity-75 animate-ping"></span>
+            <span className="relative inline-flex bg-success rounded-full size-2"></span>
           </div>
         )}
         <UsersIcon className="size-4" />

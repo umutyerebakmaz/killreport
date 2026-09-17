@@ -67,14 +67,14 @@ function AuthSuccessContent() {
             <div className="rounded-full w-96 h-96 bg-red-500/10 blur-3xl animate-pulse"></div>
           </div>
 
-          <div className="relative p-8 border shadow-2xl bg-gray-800/90 backdrop-blur-xl rounded-2xl border-red-500/20">
+          <div className="relative p-8 border shadow-2xl bg-surface-inset/90 backdrop-blur-xl rounded-2xl border-red-500/20">
             <div className="text-center">
               {/* Error icon with animation */}
               <div className="relative inline-flex items-center justify-center w-20 h-20 mb-6">
                 <div className="absolute inset-0 rounded-full bg-red-500/20 animate-ping"></div>
                 <div className="relative flex items-center justify-center w-20 h-20 border-2 border-red-500 rounded-full shadow-lg bg-linear-to-br from-red-500/20 to-red-600/20 shadow-red-500/50">
                   <svg
-                    className="w-10 h-10 text-red-400"
+                    className="w-10 h-10 text-danger"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -129,14 +129,14 @@ function AuthSuccessContent() {
           <div className="rounded-full w-96 h-96 bg-green-500/10 blur-3xl animate-pulse"></div>
         </div>
 
-        <div className="relative p-8 border shadow-2xl bg-gray-800/90 backdrop-blur-xl rounded-2xl border-green-500/20">
+        <div className="relative p-8 border shadow-2xl bg-surface-inset/90 backdrop-blur-xl rounded-2xl border-green-500/20">
           <div className="text-center">
             {/* Success icon with animation */}
             <div className="relative inline-flex items-center justify-center w-20 h-20 mb-6">
               <div className="absolute inset-0 rounded-full bg-green-500/20 animate-ping"></div>
               <div className="relative flex items-center justify-center w-20 h-20 border-2 border-green-500 rounded-full shadow-lg bg-linear-to-br from-green-500/20 to-emerald-600/20 shadow-green-500/50">
                 <svg
-                  className="w-10 h-10 text-green-400 animate-[scale-in_0.5s_ease-out]"
+                  className="w-10 h-10 text-success animate-[scale-in_0.5s_ease-out]"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -156,14 +156,14 @@ function AuthSuccessContent() {
             </h1>
 
             {/* Character info card with enhanced design */}
-            <div className="p-5 mb-6 border shadow-inner bg-linear-to-br from-gray-900/60 to-gray-900/40 rounded-xl border-gray-700/50">
-              <p className="mb-2 text-sm font-medium text-gray-400">
+            <div className="p-5 mb-6 border shadow-inner bg-linear-to-br from-surface/60 to-surface/40 rounded-xl border-white/10">
+              <p className="mb-2 text-sm font-medium text-ink-muted">
                 Welcome back,
               </p>
               <p className="mb-2 text-2xl font-bold text-transparent bg-clip-text bg-linear-to-r from-amber-400 via-amber-500 to-amber-600">
                 {searchParams.get('character_name')}
               </p>
-              <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+              <div className="flex items-center justify-center gap-2 text-xs text-ink-faint">
                 <svg
                   className="w-3 h-3"
                   fill="currentColor"
@@ -181,7 +181,7 @@ function AuthSuccessContent() {
 
             {isLoading ? (
               <div className="space-y-4">
-                <p className="text-sm font-medium text-gray-400">
+                <p className="text-sm font-medium text-ink-muted">
                   Redirecting to killmails...
                 </p>
                 <div className="flex items-center justify-center space-x-2">
@@ -225,7 +225,7 @@ function AuthSuccessContent() {
 
         {/* Additional security info */}
         <div className="mt-6 text-center">
-          <div className="inline-flex items-center gap-2 text-xs text-gray-500">
+          <div className="inline-flex items-center gap-2 text-xs text-ink-faint">
             <svg
               className="w-3.5 h-3.5 text-green-500"
               fill="currentColor"

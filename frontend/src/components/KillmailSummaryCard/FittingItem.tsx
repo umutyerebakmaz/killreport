@@ -122,12 +122,12 @@ export default function FittingItem({
             {/* The per-unit figure only earns its place when there is more
                 than one: at a count of 1 it repeats the total word for
                 word. */}
-            <div className="text-gray-400">
+            <div className="text-ink-muted">
               Est. {full(price * totalQty)} ISK
               {totalQty > 1 && ` (${full(price)} ISK per unit)`}
             </div>
             {volume !== null && (
-              <div className="text-gray-400">
+              <div className="text-ink-muted">
                 {full(volume * totalQty)} m³
                 {totalQty > 1 && ` (${full(volume)} m³ per unit)`}
               </div>
@@ -151,7 +151,7 @@ export default function FittingItem({
               is a different colour on every tile, and anything translucent
               lets the art through and makes the digits swim. */}
           {totalQty > 1 && (
-            <span className="absolute bottom-0 right-0 px-1 text-xs font-semibold text-white bg-black">
+            <span className="absolute bottom-0 right-0 px-1 text-xs font-medium text-white bg-black">
               {totalQty}
             </span>
           )}

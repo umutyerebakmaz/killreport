@@ -4,7 +4,7 @@ import { Loader } from '@/components/Loader/Loader';
 import Card from '@/components/ui/Card';
 import RankNumber from '@/components/ui/RankNumber';
 import Tooltip from '@/components/Tooltip/Tooltip';
-import { getSecurityStatusColor } from '@/utils/securityStatus';
+import { getSecurityStatusBorderColor } from '@/utils/securityStatus';
 import Link from 'next/link';
 import { ReactNode } from 'react';
 import EveImage from '../ui/EveImage';
@@ -14,14 +14,6 @@ export interface TopCharacter {
   name: string;
   killCount: number;
   securityStatus?: number | null;
-  corporation?: {
-    id: number;
-    name: string;
-  } | null;
-  alliance?: {
-    id: number;
-    name: string;
-  } | null;
 }
 
 export interface TopCharacterCardProps {
@@ -41,9 +33,9 @@ export default function TopCharacterCard({
 }: TopCharacterCardProps) {
   const header = (
     <div className="flex items-center justify-between gap-3">
-      <h3 className="text-lg font-semibold text-white">{title}</h3>
+      <h3 className="text-lg font-medium text-white">{title}</h3>
       {subtitle && (
-        <span className="text-xs text-gray-500 shrink-0">{subtitle}</span>
+        <span className="text-sm text-ink-muted shrink-0">{subtitle}</span>
       )}
     </div>
   );
@@ -61,83 +53,58 @@ export default function TopCharacterCard({
   return (
     <Card header={header}>
       {characters.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 py-12 text-gray-500">
+        <div className="flex flex-col items-center justify-center gap-3 py-12 text-ink-faint">
           <p className="text-sm font-medium text-center">{emptyText}</p>
         </div>
       ) : (
         <div className="flex flex-col divide-y divide-white/5">
           {characters.map((character, index) => {
-            const secColor = getSecurityStatusColor(character.securityStatus);
+            const secBorder = getSecurityStatusBorderColor(
+              character.securityStatus,
+            );
             return (
-              <div key={character.id} className="card-row">
+              // Every row takes a stripe, an unresolved security status
+              // included, so the 4px never changes the indent from one row to
+              // the next. The stripe is the only place the status appears in
+              // this list now — the figure that sat after the name was read as
+              // noise. A band is four points wide, so the exact value is on
+              // the character's own page.
+              <div
+                key={character.id}
+                className={`card-row border-l-4 ${secBorder}`}
+              >
                 <div className="flex items-center gap-3">
                   {/* Rank */}
                   <RankNumber rank={index + 1} />
 
                   {/* Portrait */}
-                  <div className="relative shrink-0">
-                    <EveImage
-                      kind="character"
-                      id={character.id}
-                      name={character.name}
-                      size={64}
-                    />
-                    {character.securityStatus != null && (
-                      <div className="absolute bottom-0 left-0 px-1 py-0 text-xs font-semibold bg-black/70 backdrop-blur-sm">
-                        <span className={secColor}>
-                          {character.securityStatus.toFixed(1)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
+                  <EveImage
+                    kind="character"
+                    id={character.id}
+                    name={character.name}
+                    size={32}
+                    className="shrink-0"
+                  />
 
                   {/* Info */}
                   <div className="flex items-center justify-between flex-1 min-w-0 gap-2">
-                    <div className="flex flex-col min-w-0 gap-0.5 leading-tight">
+                    <div className="min-w-0 leading-tight">
                       <Tooltip
                         content="Show character info"
-                        className="w-full! min-w-0"
+                        className="min-w-0"
                       >
                         <Link
                           href={`/characters/${character.id}?tab=killmails`}
-                          className="block min-w-0 font-medium leading-tight text-gray-400 truncate hover:text-blue-400"
+                          className="block min-w-0 font-medium leading-tight text-ink-muted truncate hover:text-blue-400"
                           prefetch={false}
                         >
                           {character.name}
                         </Link>
                       </Tooltip>
-                      {character.corporation && (
-                        <Tooltip
-                          content="Show corporation info"
-                          className="w-full! min-w-0"
-                        >
-                          <Link
-                            href={`/corporations/${character.corporation.id}?tab=killmails`}
-                            className="block text-sm leading-tight text-gray-500 truncate hover:text-blue-400"
-                            prefetch={false}
-                          >
-                            {character.corporation.name}
-                          </Link>
-                        </Tooltip>
-                      )}
-                      {character.alliance && (
-                        <Tooltip
-                          content="Show alliance info"
-                          className="w-full! min-w-0"
-                        >
-                          <Link
-                            href={`/alliances/${character.alliance.id}?tab=killmails`}
-                            className="block text-sm leading-tight text-gray-500 truncate hover:text-blue-400"
-                            prefetch={false}
-                          >
-                            {character.alliance.name}
-                          </Link>
-                        </Tooltip>
-                      )}
                     </div>
 
                     {/* Kill Count */}
-                    <span className="text-lg font-semibold text-gray-400 tabular-nums whitespace-nowrap shrink-0">
+                    <span className="text-base font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">
                       {character.killCount}
                     </span>
                   </div>
