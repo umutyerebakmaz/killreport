@@ -1,6 +1,7 @@
 import { isBlueprint } from '@/utils/itemType';
 import Tooltip from '../Tooltip/Tooltip';
 import EveImage from '../ui/EveImage';
+import Image from 'next/image';
 
 interface SlotProps {
   slots: any[];
@@ -107,10 +108,13 @@ export default function Slot({
                     <Tooltip content={`Empty ${slotTypeName} Slot`}>
                       <div className="w-12 h-12 shrink-0">
                         <div className="border border-white/10 bg-white/5">
-                          <img
+                          <Image
                             src={slotIcon}
                             alt={`${slotTypeName} Slot`}
+                            width={48}
+                            height={48}
                             className="z-10 w-12 h-12"
+                            unoptimized
                           />
                         </div>
                       </div>

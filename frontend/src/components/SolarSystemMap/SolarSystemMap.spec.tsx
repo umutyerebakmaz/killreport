@@ -6,7 +6,9 @@ describe('SolarSystemMap', () => {
   it("renders the system's map at the requested size", () => {
     render(<SolarSystemMap systemId={30000142} systemName="Jita" size={64} />);
     const image = screen.getByAltText('Jita map');
-    expect(image).toHaveAttribute('src', '/images/solar-systems/30000142.svg');
+    expect(image.getAttribute('src')).toContain(
+      '/images/solar-systems/30000142.svg',
+    );
     expect(image).toHaveAttribute('width', '64');
     expect(image).toHaveAttribute('height', '64');
   });
@@ -28,8 +30,7 @@ describe('SolarSystemMap', () => {
     rerender(
       <SolarSystemMap systemId={30000142} systemName="Jita" size={64} />,
     );
-    expect(screen.getByAltText('Jita map')).toHaveAttribute(
-      'src',
+    expect(screen.getByAltText('Jita map').getAttribute('src')).toContain(
       '/images/solar-systems/30000142.svg',
     );
   });

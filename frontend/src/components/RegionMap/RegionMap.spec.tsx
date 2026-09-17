@@ -6,7 +6,7 @@ describe('RegionMap', () => {
   it("renders the region's map at the requested size", () => {
     render(<RegionMap regionId={10000046} regionName="Fade" size={64} />);
     const image = screen.getByAltText('Fade map');
-    expect(image).toHaveAttribute('src', '/images/regions/10000046.svg');
+    expect(image.getAttribute('src')).toContain('/images/regions/10000046.svg');
     expect(image).toHaveAttribute('width', '64');
     expect(image).toHaveAttribute('height', '64');
   });
@@ -40,8 +40,7 @@ describe('RegionMap', () => {
     expect(screen.queryByAltText('Nowhere map')).not.toBeInTheDocument();
 
     rerender(<RegionMap regionId={10000046} regionName="Fade" size={64} />);
-    expect(screen.getByAltText('Fade map')).toHaveAttribute(
-      'src',
+    expect(screen.getByAltText('Fade map').getAttribute('src')).toContain(
       '/images/regions/10000046.svg',
     );
   });

@@ -4,6 +4,7 @@ import { useCharacterQuery } from '@/generated/graphql';
 import ChevronRightIcon from '@heroicons/react/24/outline/ChevronRightIcon';
 import Link from 'next/link';
 import EveImage from '../ui/EveImage';
+import Image from 'next/image';
 
 const navigation = {
   explore: [
@@ -255,10 +256,13 @@ export default function Footer() {
             rel="noopener noreferrer"
             href="https://www.eveonline.com/partners"
           >
-            <img
+            <Image
               src="/images/eve-online-partner.png"
-              style={{ width: '300px' }}
               alt="Eve Online Partnership Program"
+              width={1440}
+              height={201}
+              className="w-75 h-auto"
+              unoptimized
             />
           </a>
         </div>
