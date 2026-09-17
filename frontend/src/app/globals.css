@@ -189,11 +189,13 @@ body {
 
 .animate-slide-in-row {
   animation: slide-in-row 0.6s ease-out forwards;
+  /* EVE's red (destroyed, #fe3743), not Tailwind v3's red-500 — this flash
+     sits directly behind destroyed's own figures. */
   background: linear-gradient(
     90deg,
-    rgba(239, 68, 68, 0.2) 0%,
-    rgba(239, 68, 68, 0.08) 50%,
-    rgba(239, 68, 68, 0) 100%
+    rgba(254, 55, 67, 0.2) 0%,
+    rgba(254, 55, 67, 0.08) 50%,
+    rgba(254, 55, 67, 0) 100%
   );
 }
 

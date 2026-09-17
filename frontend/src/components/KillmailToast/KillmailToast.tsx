@@ -122,8 +122,7 @@ function KillmailToastItem({
           {/* Value & Time */}
           <div className="flex items-center gap-2 mt-1">
             {toast.totalValue && (
-              // isk's meaning, but yellow-500 — a step outside this sweep's red/green/yellow-400 scope
-              <span className="text-xs font-medium text-yellow-500 tabular-nums">
+              <span className="text-xs font-medium text-isk tabular-nums">
                 {formatISK(toast.totalValue)}
               </span>
             )}

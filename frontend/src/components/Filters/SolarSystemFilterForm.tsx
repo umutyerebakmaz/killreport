@@ -26,7 +26,7 @@ import { useEffect, useRef, useState } from 'react';
 // row: white is the brightest mark in the palette and would pull more attention
 // than the bands it sits above.
 const SECURITY_OPTIONS = [
-  { value: 'all', label: 'All Security', swatch: 'bg-ink-faint' },
+  { value: 'all', label: 'All Security', swatch: 'bg-gray-500' },
   { value: 'highsec', label: 'High Sec', swatch: 'bg-green-500' },
   { value: 'lowsec', label: 'Low Sec', swatch: 'bg-yellow-500' },
   { value: 'nullsec', label: 'Null Sec', swatch: 'bg-red-500' },
