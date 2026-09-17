@@ -9,52 +9,75 @@
 @import './map.css';
 
 @theme {
-  /* Typography */
+  /* Typography — unchanged. Shentox is EVE Online's own web font and the app
+     was already shipping it. eveonline.com names Rogan after it in the stack,
+     but nothing on that page is drawn with Rogan: Shentox answers everything,
+     so adding it here would load a face that is never reached. It lives in
+     the design system instead (spec, decision 8). */
   --font-sans: 'Shentox', ui-sans-serif, system-ui, sans-serif;
 
-  /* Depth — three steps, no more. Four grounds are in use today
-     (bg-white/5, neutral-900, neutral-800, stone-900) and nothing says
-     which one means what. */
-  --color-ground: var(--color-gray-950); /* the page */
-  --color-surface: var(--color-gray-900); /* cards, tables, panels */
-  --color-surface-inset: var(--color-gray-800); /* a box inside a card */
+  /* Depth — three steps, no more. The first two are EVE's own
+     (eveonline.com's page ground, and --pfg-background-dark); the third is
+     derived, because a marketing site has no third step to copy. The step
+     from ground to surface is 1.35:1, up from 1.13:1 when these were
+     Tailwind greys — and with no shadows anywhere, that step IS the depth. */
+  --color-ground: #101010; /* the page */
+  --color-surface: #2b2b2c; /* cards, tables, panels */
+  --color-surface-inset: #3d3d3e; /* a box inside a card */
 
-  /* Accent — the primary action fill. It sits in three separate
-     pockets today: cyan, indigo and blue. */
-  --color-accent: var(--color-cyan-600);
+  /* Accent — EVE's own, from --sf-terms-button-color. It is a LIGHT accent,
+     so what sits ON the fill is dark ink: white on it measures 1.93:1, and
+     accent-ink is the ink EVE's own "Play Free" button uses (9.55:1).
+     accent-hover is derived at +0.06 oklch L — EVE's button does not change
+     its fill on hover at all, but every other control in this app does, and
+     a primary button that alone ignores the pointer reads as broken. */
+  --color-accent: #5ccbcb;
+  --color-accent-hover: #71dfdf;
+  --color-accent-ink: #111418;
+  --color-accent-link: #5ccbcb;
 
-  /* The accent's neighbours, named so a sweep has something to sweep to.
-     accent-link is an entity name under the pointer; accent-hover is the
-     pointer state of an accent fill; accent-ink is what sits ON the fill. */
-  --color-accent-link: var(--color-cyan-400);
-  --color-accent-hover: var(--color-cyan-500);
-  --color-accent-ink: var(--color-cyan-700);
+  /* Ink — EVE's own greys, --pfg-dark-chalice and --sf-disabled-color.
+     ink-muted measures 5.00:1 on surface-inset where the Tailwind grey it
+     replaces measured 4.17:1. */
+  --color-ink-muted: #b0b0b0;
+  --color-ink-faint: #636363;
 
-  /* Ink. The two greys the app writes most — 251 and 115 times — as raw
-     palette steps. */
-  --color-ink-muted: var(--color-gray-400);
-  --color-ink-faint: var(--color-gray-500);
+  /* Meaning, all three EVE's own. Damage uses `destroyed` too.
+     CONTRAST, taken deliberately: destroyed measures 3.93:1 on surface and
+     3.02:1 on surface-inset, under the 4.5:1 body-text floor. That is EVE's
+     red as EVE ships it. #ff6467 measures 4.90:1 if it has to come back. */
+  /* EVE's red, as the project's red. red-400 IS eveonline.com's value exactly —
+     it is the step this app writes — and the deeper three keep Tailwind's
+     lightness intervals at EVE's hue and chroma so the ramp still steps evenly.
+     Overriding the palette is deliberate and was asked for: a token layer alone
+     would have left the security band, the attacker half of a war bar and the
+     category swatches on Tailwind's red. CONTRAST, accepted knowingly:
+     red-400 measures 3.93:1 on surface and 3.02:1 on surface-inset, under the
+     4.5 body-text floor. The deeper steps are fills and borders, never text. */
+  --color-red-400: #fe3743;
+  --color-red-500: #e50e2e;
+  --color-red-600: #cf0019;
+  --color-red-700: #b50000;
 
-  /* Meaning. Damage uses `destroyed` too — a separate --color-damage would
-     be a second name for the same value. */
   --color-destroyed: var(--color-red-400);
-  --color-dropped: var(--color-green-400);
-  --color-isk: var(--color-yellow-400);
+  --color-dropped: #37ba5b;
+  --color-isk: #e7b815;
 
-  /* The other meanings red, green and yellow carry here. Same values as the
-     three above for now; named separately because they say different things
-     and either can move without dragging the other. */
-  --color-danger: var(--color-red-400);
-  --color-success: var(--color-green-400);
-  --color-caution: var(--color-yellow-400);
+  /* The same three hues under the names the rest of the app needs. Two tokens
+     sharing a value is not waste: destroyed and danger are the same red today
+     and say different things, so either can move without dragging the other.
+     CONTRAST: danger measures 5.29:1 on ground, where nearly every error
+     message in this app sits, but 3.93:1 on surface. Page-level error states
+     only; see the spec. */
+  --color-danger: var(--color-destroyed);
+  --color-success: var(--color-dropped);
+  --color-caution: var(--color-isk);
 
   /* The same two meanings as a ground rather than as ink, and deliberately
-     a deeper step: 400 reads on a dark surface because it is light, and a
-     light hue behind a whole row washes it out. These are the tones the
-     fitting rows already used; they are named here so the pair travels
-     together, not to change them. */
+     a deeper step: a light hue behind a whole row washes it out. EVE's two
+     hues taken down to the lightness the Tailwind 700s sat at. */
   --color-destroyed-fill: var(--color-red-700);
-  --color-dropped-fill: var(--color-green-700);
+  --color-dropped-fill: #008425;
 }
 
 html,
