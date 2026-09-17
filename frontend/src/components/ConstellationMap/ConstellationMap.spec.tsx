@@ -12,7 +12,9 @@ describe('ConstellationMap', () => {
       />,
     );
     const image = screen.getByAltText('Kimotoro map');
-    expect(image).toHaveAttribute('src', '/images/constellations/20000020.svg');
+    expect(image.getAttribute('src')).toContain(
+      '/images/constellations/20000020.svg',
+    );
     expect(image).toHaveAttribute('width', '64');
     expect(image).toHaveAttribute('height', '64');
   });
@@ -62,8 +64,7 @@ describe('ConstellationMap', () => {
         size={64}
       />,
     );
-    expect(screen.getByAltText('Kimotoro map')).toHaveAttribute(
-      'src',
+    expect(screen.getByAltText('Kimotoro map').getAttribute('src')).toContain(
       '/images/constellations/20000020.svg',
     );
   });

@@ -2,12 +2,12 @@ import Tooltip from '@/components/Tooltip/Tooltip';
 import Card from '@/components/ui/Card';
 import { AlliancesQuery } from '@/generated/graphql';
 import { UsersIcon } from '@heroicons/react/24/outline';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import MemberDeltaBadge from '../MemberDeltaBadge/MemberDeltaBadge';
 import TotalCorporationBadge from '../TotalCorporationMember/TotalCorporationBadge';
 import TotalMemberBadge from '../TotalMemberBadge/TotalMemberBadge';
+import EveImage from '../ui/EveImage';
 
 // useAlliancesQuery'nin döndüğü Alliance type'ını extract et
 type Alliance = AlliancesQuery['alliances']['items'][number];
@@ -43,16 +43,15 @@ export default function AllianceCard({ alliance }: AllianceCardProps) {
                 </div>
               </div>
             )}
-            <Image
-              src={`https://images.evetech.net/alliances/${alliance.id}/logo?size=128`}
-              alt={alliance.name}
-              width={128}
-              height={128}
+            <EveImage
+              kind="alliance"
+              id={alliance.id}
+              name={alliance.name}
+              size={128}
               className={`transition-opacity duration-300 ${
                 imageLoaded ? 'opacity-100' : 'opacity-0'
               }`}
               onLoad={() => setImageLoaded(true)}
-              unoptimized
             />
           </div>
           <Tooltip content="Show Alliance Info">

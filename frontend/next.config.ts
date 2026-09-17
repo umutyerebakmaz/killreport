@@ -8,19 +8,6 @@ const nextConfig: NextConfig = {
   // default and production builds are unaffected.
   distDir: process.env.NEXT_DIST_DIR || '.next',
 
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'images.evetech.net',
-        pathname: '/**',
-      },
-    ],
-    // `search` is deliberately unset. The docs' example pins it to '' — no
-    // query string — and every URL we build carries one (`?size=128`), so
-    // pinning it would reject all of them.
-  },
-
   experimental: {
     // RSC isteklerini azalt
     staleTimes: {

@@ -3,6 +3,8 @@
 import { useCharacterQuery } from '@/generated/graphql';
 import ChevronRightIcon from '@heroicons/react/24/outline/ChevronRightIcon';
 import Link from 'next/link';
+import EveImage from '../ui/EveImage';
+import Image from 'next/image';
 
 const navigation = {
   explore: [
@@ -190,9 +192,11 @@ export default function Footer() {
             <div className="mt-6 space-y-4">
               <div className="p-4 border bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border-cyan-500/30">
                 <div className="flex items-start gap-4 mb-4">
-                  <img
-                    src={`https://images.evetech.net/characters/${characterId}/portrait?size=128`}
-                    alt="General XAN"
+                  <EveImage
+                    kind="character"
+                    id={characterId}
+                    name="General XAN"
+                    size={64}
                     className="w-16 h-16"
                   />
                   <div className="flex-1">
@@ -252,10 +256,13 @@ export default function Footer() {
             rel="noopener noreferrer"
             href="https://www.eveonline.com/partners"
           >
-            <img
+            <Image
               src="/images/eve-online-partner.png"
-              style={{ width: '300px' }}
               alt="Eve Online Partnership Program"
+              width={1440}
+              height={201}
+              className="w-75 h-auto"
+              unoptimized
             />
           </a>
         </div>

@@ -8,16 +8,7 @@ import { formatKillmailDate, formatKillmailDateTime } from '@/utils/date';
 import { formatISK } from '@/utils/formatISK';
 import { getShipTier } from '@/utils/shipTier';
 import Link from 'next/link';
-import { useState } from 'react';
-
-/**
- * Renders are square and so is the card, so `object-cover` has nothing to crop.
- * 512 is twice the 256px the card renders at, which is what a retina screen
- * wants; 1024 exists but costs two and a half times the bytes for a shelf of
- * twenty.
- */
-const RENDER_SIZE = 512;
-const ICON_SIZE = 128;
+import EveImage from '../ui/EveImage';
 
 export interface KillmailCardData {
   id: string;
@@ -65,11 +56,6 @@ export default function KillmailCard({
   const shipTier = getShipTier(km.victim?.shipType?.dogmaAttributes);
   const shipTypeId = km.victim?.shipType?.id;
 
-  // A type without a render falls back to its icon, which is transparent and
-  // small — stretching that across the card looks broken, so the fallback is
-  // centred at its own size instead of covering.
-  const [usingIcon, setUsingIcon] = useState(false);
-
   return (
     <Link
       href={`/killmails/${km.id}`}
@@ -77,16 +63,13 @@ export default function KillmailCard({
       prefetch={false}
     >
       {shipTypeId && (
-        <img
-          src={`https://images.evetech.net/types/${shipTypeId}/${
-            usingIcon ? `icon?size=${ICON_SIZE}` : `render?size=${RENDER_SIZE}`
-          }`}
-          alt={km.victim?.shipType?.name || 'Ship'}
-          className={`absolute inset-0 size-full transition-transform duration-300 group-hover:scale-105 ${
-            usingIcon ? 'object-contain p-10' : 'object-cover'
-          }`}
-          loading="lazy"
-          onError={() => setUsingIcon(true)}
+        <EveImage
+          kind="ship"
+          id={shipTypeId}
+          name={km.victim?.shipType?.name || 'Ship'}
+          fill
+          className="absolute inset-0 object-cover transition-transform duration-300 size-full group-hover:scale-105"
+          fallbackClassName="absolute inset-0 object-contain p-10 transition-transform duration-300 size-full group-hover:scale-105"
         />
       )}
 
@@ -167,19 +150,16 @@ export default function KillmailCard({
 
         <div className="flex items-center gap-2">
           {(km.victim?.alliance?.id || km.victim?.corporation?.id) && (
-            <img
-              src={
-                km.victim.alliance?.id
-                  ? `https://images.evetech.net/alliances/${km.victim.alliance.id}/logo?size=128`
-                  : `https://images.evetech.net/corporations/${km.victim.corporation?.id}/logo?size=128`
-              }
-              alt={
+            <EveImage
+              kind={km.victim.alliance?.id ? 'alliance' : 'corporation'}
+              id={km.victim.alliance?.id ?? km.victim.corporation?.id ?? 0}
+              name={
                 km.victim.alliance?.name ||
                 km.victim.corporation?.name ||
                 'Logo'
               }
+              size={40}
               className="size-10 shrink-0"
-              loading="lazy"
             />
           )}
           <div className="flex-1 min-w-0">

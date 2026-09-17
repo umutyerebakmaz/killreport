@@ -2,6 +2,7 @@ import { AllianceCorporationsQuery } from '@/generated/graphql';
 import Link from 'next/link';
 import Loader from '../Loader';
 import TotalMemberBadge from '../TotalMemberBadge/TotalMemberBadge';
+import EveImage from '../ui/EveImage';
 
 // Extract the Killmail type from the GraphQL query result
 export type Corporation = NonNullable<
@@ -47,11 +48,11 @@ export default function CorporationsTable({
             <tr key={corp.id} className="tr-row">
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center gap-3">
-                  <img
-                    src={`https://images.evetech.net/Corporation/${corp.id}_64.png`}
-                    alt={corp.name}
-                    width={32}
-                    height={32}
+                  <EveImage
+                    kind="corporation"
+                    id={corp.id}
+                    name={corp.name}
+                    size={32}
                   />
                   <Link
                     href={`/corporations/${corp.id}`}

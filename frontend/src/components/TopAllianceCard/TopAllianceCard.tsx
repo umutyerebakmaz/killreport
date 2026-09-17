@@ -6,6 +6,7 @@ import RankNumber from '@/components/ui/RankNumber';
 import Tooltip from '@/components/Tooltip/Tooltip';
 import Link from 'next/link';
 import { ReactNode } from 'react';
+import EveImage from '../ui/EveImage';
 
 export interface TopAlliance {
   id: number;
@@ -65,12 +66,11 @@ export default function TopAllianceCard({
 
                   {/* Logo */}
                   <div className="relative shrink-0">
-                    <img
-                      src={`https://images.evetech.net/alliances/${alliance.id}/logo?size=128`}
-                      alt={alliance.name}
-                      width={64}
-                      height={64}
-                      loading="lazy"
+                    <EveImage
+                      kind="alliance"
+                      id={alliance.id}
+                      name={alliance.name}
+                      size={64}
                     />
                   </div>
 

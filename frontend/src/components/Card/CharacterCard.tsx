@@ -3,9 +3,9 @@ import Card from '@/components/ui/Card';
 import { CharactersQuery } from '@/generated/graphql';
 import { getSecurityStatusColor } from '@/utils/securityStatus';
 import { ShieldCheckIcon, UserIcon } from '@heroicons/react/24/outline';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
+import EveImage from '../ui/EveImage';
 
 // useCharactersQuery'nin döndüğü Character type'ını extract et
 type Character = CharactersQuery['characters']['items'][number];
@@ -32,16 +32,15 @@ export default function CharacterCard({ character }: CharacterCardProps) {
                 </div>
               </div>
             )}
-            <Image
-              src={`https://images.evetech.net/characters/${character.id}/portrait?size=128`}
-              alt={character.name}
-              width={96}
-              height={96}
+            <EveImage
+              kind="character"
+              id={character.id}
+              name={character.name}
+              size={96}
               className={`transition-opacity duration-300 ${
                 imageLoaded ? 'opacity-100' : 'opacity-0'
               }`}
               onLoad={() => setImageLoaded(true)}
-              unoptimized
             />
           </div>
           <Link
