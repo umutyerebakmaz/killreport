@@ -42,11 +42,15 @@
   /*
    * Type identical to a .card-header's title, tracking included: the two sit
    * side by side on /killmails, so any difference between them reads as an
-   * accident rather than as a hierarchy. The padding follows from the type —
-   * py-3 around a text-lg line box is 24 + 28 = 52, the height .card-header
-   * lands on. It was py-3.5 back when this was text-base.
+   * accident rather than as a hierarchy. The padding follows the same rule —
+   * py-2.5 around a text-lg line box is 20 + 28 = 48, the height .card-header
+   * lands on, and the reasoning for that number lives there. It was py-3, and
+   * py-3.5 before that when this was text-base.
+   *
+   * A .td-cell below it is 80, so the ratio the header keeps against its own
+   * column is the one a card keeps against its rows.
    */
   .th-cell {
-    @apply px-4 py-3 text-lg font-medium text-white;
+    @apply px-4 py-2.5 text-lg font-medium text-white;
   }
 }

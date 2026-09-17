@@ -45,9 +45,18 @@
      the root element had no background, so the header read as a separate
      thing sitting on the page. */
   /* A ground of its own, one step up from the card, so the heading reads as
-     the card's own title rather than as its first row. */
+     the card's own title rather than as its first row.
+
+     py-2.5 around a text-lg line box is 20 + 28 = 48, and that number is
+     chosen against the content below it rather than picked for the heading
+     alone. A .card-row and a killmails .td-cell are both 80 — py-2 around a
+     size-16 image — so 48 puts the card's chrome and its content at 1:1.667,
+     within a hair of the golden ratio, with both on the 8px grid at 6 and 10
+     units. It was py-3, which came to 52: close enough to .card-band's 56 to
+     read as a misalignment rather than as a step, and the only height in the
+     card that the grid did not contain. */
   .card-header {
-    @apply px-4 py-3 border-b bg-surface-inset border-white/10;
+    @apply px-4 py-2.5 border-b bg-surface-inset border-white/10;
   }
 
   .card-body {
@@ -61,9 +70,17 @@
 
      The min-height is what makes four leaderboard columns line their lists up
      with each other, including the one whose strip holds only a date range and
-     no buttons at all. */
+     no buttons at all.
+
+     12, not 14, so the band and the header are one height and the card has a
+     single chrome step instead of two that differ by 4px. It costs the
+     alignment nothing: the tallest thing in here is a .button-icon, p-2 around
+     a size-4 glyph, which with the band's own py-2 already comes to exactly
+     48. min-h-14 was padding that out by 8px. The column that holds only a
+     date range measures 46 and is still carried up to 48 by the minimum, which
+     is the whole reason the minimum exists. */
   .card-band {
-    @apply flex items-center gap-2 px-4 py-2 border-b min-h-14 border-white/10;
+    @apply flex items-center gap-2 px-4 py-2 border-b min-h-12 border-white/10;
   }
 
   /* One entry in a card's list. This string existed in six copies — the five
