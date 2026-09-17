@@ -19,8 +19,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         // Not pure black: with no shadows, the only thing telling a surface it
-        // sits above the page is being a shade lighter than it. On black, a
-        // gray-900 card barely separated.
+        // sits above the page is being a shade lighter than it. The ground is
+        // EVE Online's own #101010, and `surface` clears it by 1.35:1 — on
+        // black that step was 1.13 and a card barely separated.
         className="flex flex-col font-sans antialiased text-white bg-ground"
         suppressHydrationWarning
       >

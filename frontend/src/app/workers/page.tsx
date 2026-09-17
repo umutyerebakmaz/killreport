@@ -381,7 +381,7 @@ function StandaloneWorkerSection({ workers }: any) {
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-800">
+          <tbody className="divide-y divide-white/10">
             {workers.map((worker: any) => (
               <tr key={worker.name} className="tr-row">
                 <td className="px-2 py-4 md:px-4">
