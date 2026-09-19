@@ -546,7 +546,9 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
           alliance_id: corpInfo.alliance_id || null,
           ceo_id: corpInfo.ceo_id,
           creator_id: corpInfo.creator_id,
-          date_founded: new Date(corpInfo.date_founded),
+          date_founded: corpInfo.date_founded
+            ? new Date(corpInfo.date_founded)
+            : null,
           member_count: corpInfo.member_count,
           tax_rate: corpInfo.tax_rate || 0,
         },
