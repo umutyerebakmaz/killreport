@@ -12,8 +12,6 @@ import { Rectangle, Texture } from 'pixi.js';
 
 export interface LogoAtlas {
   textureByOwner: Map<number, Texture>;
-  /** Owners drawn with the shared default emblem; they keep their tint. */
-  tintedOwners: Set<number>;
   destroy(): void;
 }
 
@@ -35,8 +33,9 @@ async function fetchBytes(url: string): Promise<ArrayBuffer | null> {
  * "This alliance has no logo" cannot be read off the HTTP status — the server
  * answers 200 with EVE's default alliance emblem — so the default is fetched
  * once and every response is compared to it byte for byte. The 22 owners that
- * match share a single cell, and their sprites keep their colour so that one
- * emblem can still stand for 22 different alliances.
+ * match share a single cell rather than holding 22 copies of one image; what
+ * still tells them apart on the map is the coloured disc drawn under the
+ * emblem, which is per owner.
  *
  * Returns null when nothing could be drawn at all, which the caller reads as
  * "stay on dots".
@@ -59,19 +58,12 @@ export async function buildLogoAtlas(
   );
 
   const bytesByOwner = new Map<number, ArrayBuffer>();
-  const missing = new Set<number>();
   for (const { owner, bytes } of downloads) {
-    if (!bytes) {
-      missing.add(owner.ownerId);
-      continue;
-    }
+    if (!bytes) continue;
     // A failed default download leaves nothing to compare against, so every
-    // logo is taken at face value: the 22 then draw the emblem untinted,
-    // which is the wrong reading but never a blank map.
-    if (fallbackBytes && sameBytes(bytes, fallbackBytes)) {
-      missing.add(owner.ownerId);
-      continue;
-    }
+    // logo is taken at face value: the 22 then get a cell each holding the
+    // same emblem, which wastes texture but never blanks the map.
+    if (fallbackBytes && sameBytes(bytes, fallbackBytes)) continue;
     bytesByOwner.set(owner.ownerId, bytes);
   }
 
@@ -122,7 +114,6 @@ export async function buildLogoAtlas(
 
   return {
     textureByOwner,
-    tintedOwners: missing,
     destroy: () => {
       for (const frame of frames.values()) frame.destroy();
       base.destroy(true);

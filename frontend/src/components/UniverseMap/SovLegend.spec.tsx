@@ -35,6 +35,28 @@ describe('SovLegend', () => {
     expect(screen.getByText('500')).toBeInTheDocument();
   });
 
+  it('shows each owner as its logo on a disc of its own colour', () => {
+    // The same reading as the canvas: the colour is behind the crest, not a
+    // swatch beside it, so the list and the map say the same thing.
+    const { container } = render(<SovLegend owners={owners} />);
+
+    const disc = container.querySelector('[data-testid="sov-legend-disc-1"]');
+    expect(disc).not.toBeNull();
+    expect((disc as HTMLElement).style.backgroundColor).not.toBe('');
+    expect(screen.getByAltText('A')).toBeInTheDocument();
+  });
+
+  it('asks the corporation path for a faction crest', () => {
+    // Same trap the atlas hits: a faction down the alliance path answers 200
+    // with the default alliance emblem.
+    render(<SovLegend owners={owners} />);
+
+    expect(screen.getByAltText('C')).toHaveAttribute(
+      'src',
+      expect.stringContaining('/corporations/3/'),
+    );
+  });
+
   it('lists every owner rather than a top slice with a tail', () => {
     // The panel is as tall as the map and scrolls, so there is nowhere for a
     // cap to help: an owner left out of a list that has room for it is just

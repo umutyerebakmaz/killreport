@@ -16,49 +16,27 @@ export const LOGO_ATLAS_COLUMNS = 10;
 /**
  * The smallest a logo is drawn, in pixels of radius.
  *
- * Five times the 8 px this started at, by the user's call on 2026-09-20: at
- * 8 px a crest was a smudge, and the logo is the layer's answer to "which
- * holding", so it has to be legible rather than merely present. The cost is
- * overlap — SOV_LOGO_ZOOM opens the logos where held systems are 16 px apart,
- * and an 80 px mark at that distance sits on its neighbours. Past the approach
- * the system's own disc overtakes this, which is why it is a floor, not a size.
+ * 20 px — half of the 40 the first pass at this used, by the user's call on
+ * 2026-09-20 once they saw it on the map. Still well over the 8 px it started
+ * at: a crest has to be legible, and the disc behind it has to be a mark
+ * rather than a blob. Past the approach the system's own disc overtakes this,
+ * which is why it is a floor and not a size.
  */
-export const LOGO_MIN_RADIUS_PX = 40;
+export const LOGO_MIN_RADIUS_PX = 20;
 
 /**
- * The owner's circle, as a multiple of the logo's own radius.
+ * How much wider than the logo the owner's disc is drawn, in screen pixels.
  *
- * √2 is what makes the circle CIRCUMSCRIBE the logo rather than cut it: a
- * square of half-side r has its corners at r√2, so a smaller factor would
- * clip the crest and a larger one would leave the ring floating away from it.
+ * A few pixels, deliberately: the disc is a backing for the crest, not a ring
+ * around it. A square logo's corners reach r√2 and so technically overhang a
+ * disc this size — which is fine, because an EVE crest is artwork centred in a
+ * transparent square and its corners are empty.
  */
-export const RING_RADIUS_FACTOR = Math.SQRT2;
+export const DISC_PADDING_PX = 4;
 
-/** The ring's stroke on screen, at the floor size. It thickens with the mark. */
-export const RING_BORDER_PX = 2;
-
-/** The ring texture's radius, as DOT_TEXTURE_RADIUS is the dot's. */
-export const RING_TEXTURE_RADIUS = 64;
-
-/** The circle drawn around a logo of this radius. */
-export function ringRadiusPx(logoRadiusPx: number): number {
-  return logoRadiusPx * RING_RADIUS_FACTOR;
-}
-
-/**
- * How thick to stroke the ring IN THE TEXTURE so it lands on RING_BORDER_PX
- * once the sprite is counter-scaled.
- *
- * The sprite is drawn at `ringRadiusPx(LOGO_MIN_RADIUS_PX)` from a texture of
- * RING_TEXTURE_RADIUS, so the texture is minified by that ratio and the stroke
- * has to be divided by it. Written down here rather than in `createScene`
- * because it is arithmetic over these constants, and a number typed into the
- * scene would drift the moment one of them moves.
- */
-export function ringStrokeTexturePx(): number {
-  return (
-    (RING_BORDER_PX * RING_TEXTURE_RADIUS) / ringRadiusPx(LOGO_MIN_RADIUS_PX)
-  );
+/** The owner's disc, for a logo of this radius. */
+export function discRadiusPx(logoRadiusPx: number): number {
+  return logoRadiusPx + DISC_PADDING_PX;
 }
 
 /**
