@@ -794,12 +794,49 @@ export type MapNode = {
   z: Scalars['Float']['output'];
 };
 
+/** Bir sistemi tutan şeyin türü. Satırda alliance varsa sahip odur; corporation yalnızca alliance yokken sahiptir. */
+export enum MapOwnerKind {
+  Alliance = 'ALLIANCE',
+  Corporation = 'CORPORATION',
+  Faction = 'FACTION'
+}
+
 /** Çizilebilir bir sahne. Abyssal, Proving ve GPMR-01 burada yok: içlerinde sıfır gezegen, ay ve istasyon var. */
 export enum MapScope {
   NewEden = 'NEW_EDEN',
   Pochven = 'POCHVEN',
   Wormhole = 'WORMHOLE'
 }
+
+/**
+ * Sahnede toprağı olan tek bir sahip. `systems` içinde adı tekrarlanmıyor;
+ * iki liste `ownerId` üzerinden birleşiyor.
+ */
+export type MapSovOwner = {
+  __typename?: 'MapSovOwner';
+  kind: MapOwnerKind;
+  name: Scalars['String']['output'];
+  ownerId: Scalars['Int']['output'];
+  systemCount: Scalars['Int']['output'];
+  /** Faction'da null: factions tablosunda ticker sütunu yok. */
+  ticker?: Maybe<Scalars['String']['output']>;
+};
+
+/** Tek bir sahiplik çifti. NEW_EDEN'da 5.383 satır. */
+export type MapSovSystem = {
+  __typename?: 'MapSovSystem';
+  ownerId: Scalars['Int']['output'];
+  systemId: Scalars['Int']['output'];
+};
+
+export type MapSovereignty = {
+  __typename?: 'MapSovereignty';
+  owners: Array<MapSovOwner>;
+  scope: MapScope;
+  systems: Array<MapSovSystem>;
+  /** Anlık görüntünün tazeliği, ISO. Hiç satır yoksa null. */
+  updatedAt?: Maybe<Scalars['String']['output']>;
+};
 
 /**
  * Bir sistemin popup'ının gösterdiği her şey, tek sorguda.
@@ -1092,6 +1129,15 @@ export type Query = {
    */
   mapLabels: Array<MapLabel>;
   /**
+   * Sahnenin sovereignty katmanı. Servis Redis'te 900 s tutuyor.
+   *
+   * Response cache'e **bilerek** alınmadı: `PUBLIC_CACHE_QUERIES`'e eklenirse
+   * TTL'i `TTL_PER_SCHEMA_COORDINATE`'a da girmek zorunda kalır, ve servisin
+   * kendi Redis anahtarı zaten işi görürken ikinci katman yalnızca bayatlığı
+   * ikiye katlar.
+   */
+  mapSovereignty: MapSovereignty;
+  /**
    * Popup'ın okuduğu tek sorgu. Önbellek sistem başına 300 s — içindeki en kısa
    * ömürlü parça saat başı değişen aktivite.
    */
@@ -1383,6 +1429,11 @@ export type QueryMapGeometryArgs = {
 
 export type QueryMapLabelsArgs = {
   kind: MapLabelKind;
+  scope?: MapScope;
+};
+
+
+export type QueryMapSovereigntyArgs = {
   scope?: MapScope;
 };
 
