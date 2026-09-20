@@ -1,12 +1,22 @@
 import type { MapNode } from '@/generated/graphql';
 import { securityTint } from '@/utils/map/colors';
+import type { MapColorLayer, MapLayerData } from '@/utils/map/layers';
 import { spriteScale, systemFloorPx, systemRadiusPx } from '@/utils/map/marks';
-import { Sprite } from 'pixi.js';
+import { LOGO_MIN_RADIUS_PX, LOGO_TEXTURE_RADIUS } from '@/utils/map/sovLogos';
+import { Sprite, type Texture } from 'pixi.js';
 import { DOT_TEXTURE_RADIUS, type MapScene } from './createScene';
+import type { LogoAtlas } from './logoAtlas';
 
 export interface SystemSprites {
   sprites: Sprite[];
   radii: number[];
+  /**
+   * Per sprite, whether it is currently showing a logo. Two marks with two
+   * texture radii and two floors share one pass, so the pass has to know which
+   * of them it is looking at — and a system with no owner stays a dot even at
+   * a zoom where its neighbours are logos.
+   */
+  logos: boolean[];
 }
 
 /**
@@ -30,6 +40,7 @@ export function buildSystems(
 
   const sprites: Sprite[] = [];
   const radii: number[] = [];
+  const logos: boolean[] = [];
 
   for (const node of nodes) {
     const sprite = new Sprite(scene.dot);
@@ -38,10 +49,11 @@ export function buildSystems(
     sprite.tint = securityTint(node.securityStatus);
     sprites.push(sprite);
     radii.push(node.radius);
+    logos.push(false);
     scene.systems.addChild(sprite);
   }
 
-  const built = { sprites, radii };
+  const built = { sprites, radii, logos };
   scaleSystems(built, cameraScale);
   return built;
 }
@@ -57,18 +69,86 @@ export function buildSystems(
  * would be 5,241 logarithms for an answer that cannot change between them.
  */
 export function scaleSystems(
-  { sprites, radii }: SystemSprites,
+  { sprites, radii, logos }: SystemSprites,
   cameraScale: number,
 ): void {
   const floorPx = systemFloorPx(Math.log2(cameraScale));
 
   for (let i = 0; i < sprites.length; i++) {
+    // A logo is a mark, not a body: it has a floor of its own (the 16 px the
+    // threshold was measured for) and a texture twice the dot's. Past the
+    // approach the system's own radius overtakes both, so the logo grows with
+    // the disc rather than sitting in the middle of it.
+    const textureRadius = logos[i] ? LOGO_TEXTURE_RADIUS : DOT_TEXTURE_RADIUS;
+    const floor = logos[i] ? Math.max(floorPx, LOGO_MIN_RADIUS_PX) : floorPx;
+
     sprites[i].scale.set(
       spriteScale(
-        systemRadiusPx(radii[i], cameraScale, floorPx),
-        DOT_TEXTURE_RADIUS,
+        systemRadiusPx(radii[i], cameraScale, floor),
+        textureRadius,
         cameraScale,
       ),
     );
   }
+}
+
+/**
+ * The layer's colour on every sprite. One pass, run on a layer change and not
+ * on a camera move: nothing here depends on the zoom.
+ */
+export function applyLayer(
+  { sprites }: SystemSprites,
+  nodes: MapNode[],
+  layer: MapColorLayer,
+  data: MapLayerData,
+): void {
+  for (let i = 0; i < sprites.length; i++) {
+    sprites[i].tint = layer.tint(nodes[i], data);
+  }
+}
+
+/**
+ * Dots to logos and back, at the one threshold.
+ *
+ * Called after `applyLayer`, never instead of it: the layer writes the colour
+ * and this whitens only the sprites that ended up showing a logo of their own.
+ * The owners drawing the shared default emblem keep their colour — the emblem
+ * is identical for all of them, so the tint is the only thing left that says
+ * which alliance a system belongs to.
+ *
+ * A system with no owner, an owner with no cell, and the whole of the map
+ * before the atlas has arrived all stay dots.
+ */
+export function applyLogos(
+  built: SystemSprites,
+  nodes: MapNode[],
+  dot: Texture,
+  atlas: LogoAtlas | null,
+  on: boolean,
+  ownerBySystem: Map<number, number>,
+  cameraScale: number,
+): void {
+  const { sprites, logos } = built;
+
+  for (let i = 0; i < sprites.length; i++) {
+    const ownerId = ownerBySystem.get(nodes[i].systemId);
+    const logo =
+      on && atlas && ownerId !== undefined
+        ? atlas.textureByOwner.get(ownerId)
+        : undefined;
+
+    if (logo && ownerId !== undefined) {
+      sprites[i].texture = logo;
+      logos[i] = true;
+      if (!atlas!.tintedOwners.has(ownerId)) sprites[i].tint = 0xffffff;
+    } else {
+      sprites[i].texture = dot;
+      logos[i] = false;
+    }
+  }
+
+  // The texture radius just changed under half the sprites, so the
+  // counter-scale has to run before the next frame draws them at the other
+  // mark's size.
+  scaleSystems(built, cameraScale);
 }
