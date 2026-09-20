@@ -1,6 +1,6 @@
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 
 const QUEUE_NAME = 'esi_user_killmails_queue';
 
@@ -98,15 +98,8 @@ async function queueUserESIKillmails() {
     logger.info(`Found ${users.length} user(s) to sync`);
     logger.info(`Adding to queue: ${QUEUE_NAME}`);
 
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    // Assert queue with priority support
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      arguments: {
-        'x-max-priority': 10,
-      },
-    });
 
     // Queue each user
     for (const user of users) {

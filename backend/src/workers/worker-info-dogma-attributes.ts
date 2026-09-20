@@ -6,7 +6,8 @@
 import { DogmaAttributeService } from '@services/dogma';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
+import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'esi_dogma_attribute_info_queue';
 const PREFETCH_COUNT = 50; // Process 50 attributes concurrently (max ESI rate limit)
@@ -25,14 +26,10 @@ async function dogmaAttributeInfoWorker() {
   logger.info(`📦 Queue: ${QUEUE_NAME}`);
   logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
+  await ensureAllQueuesExist();
   while (!isShuttingDown) {
     try {
       const channel = await getRabbitMQChannel();
-
-      await channel.assertQueue(QUEUE_NAME, {
-        durable: true,
-        arguments: { 'x-max-priority': 10 },
-      });
 
       channel.prefetch(PREFETCH_COUNT);
 
@@ -144,21 +141,16 @@ async function dogmaAttributeInfoWorker() {
                 `📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`,
               );
             }
-          } catch (error: any) {
+          } catch (error) {
             totalErrors++;
             totalProcessed++;
-
-            if (error.message?.includes('404')) {
-              logger.warn(
-                `  ! [${totalProcessed}] Attribute ${message.entityId} (404)`,
-              );
-              channel.ack(msg);
-            } else {
-              logger.error(
-                `  × [${totalProcessed}] Attribute ${message.entityId}: ${error.message}`,
-              );
-              channel.nack(msg, false, true);
-            }
+            // 404, the 420 backoff and the attempt count all live in the
+            // shared path now; this worker only says which message it was.
+            await handleWorkerError(channel, msg, QUEUE_NAME, error, {
+              warn: (m) => logger.warn(`  ${m} (attribute ${attributeId})`),
+              error: (m, e) =>
+                logger.error(`  ${m} (attribute ${attributeId})`, e),
+            });
 
             if (totalProcessed % 100 === 0) {
               logger.info(

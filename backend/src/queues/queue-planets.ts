@@ -15,10 +15,9 @@
 
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import {
   TOPOLOGY_QUEUES,
-  assertTopologyQueue,
   envelope,
   publishTopology,
 } from './topology-messages';
@@ -76,8 +75,8 @@ async function queuePlanets() {
       beltsByPlanet.set(b.planet_id, list);
     }
 
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-    await assertTopologyQueue(channel, QUEUE_NAME);
 
     for (const row of rows) {
       publishTopology(channel, QUEUE_NAME, {

@@ -4,8 +4,9 @@ import { KillmailService } from '@services/killmail';
 import { insertKillmailFilter } from '@services/killmail-filters-realtime';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import { getCharacterKillmailsFromZKill } from '@services/zkillboard';
+import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'zkillboard_character_queue';
 const PREFETCH_COUNT = 2; // Process 2 users at a time (rate limit consideration)
@@ -28,15 +29,8 @@ async function killmailWorker() {
   logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent users\n`);
 
   try {
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    // Configure queue
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true, // Survive RabbitMQ restarts
-      arguments: {
-        'x-max-priority': 10, // Enable priority queue (0-10)
-      },
-    });
 
     // Set prefetch count (how many messages to process concurrently)
     channel.prefetch(PREFETCH_COUNT);
@@ -50,8 +44,10 @@ async function killmailWorker() {
       async (msg) => {
         if (!msg) return;
 
+        let message: QueueMessage | undefined;
+
         try {
-          const message: QueueMessage = JSON.parse(msg.content.toString());
+          message = JSON.parse(msg.content.toString()) as QueueMessage;
 
           logger.info(`\n${'━'.repeat(60)}`);
           logger.info(
@@ -66,10 +62,17 @@ async function killmailWorker() {
           channel.ack(msg);
           logger.info(`✅ Completed: ${message.characterName}\n`);
         } catch (error) {
-          logger.error(`❌ Failed to process message:`, error);
-
-          // Reject and requeue message (will retry later)
-          channel.nack(msg, false, true);
+          // A malformed message throws here too - JSON.parse is inside the
+          // try, so it settles through the same shared path rather than
+          // escaping the consumer callback unhandled and unsettled.
+          // 404, the 420 backoff and the attempt count all live in the
+          // shared path now; this worker only says which message it was.
+          await handleWorkerError(channel, msg, QUEUE_NAME, error, {
+            warn: (m) =>
+              logger.warn(`  ${m} (character ${message?.characterId})`),
+            error: (m, e) =>
+              logger.error(`  ${m} (character ${message?.characterId})`, e),
+          });
         }
       },
       { noAck: false }, // Manual acknowledgment

@@ -24,12 +24,6 @@ export const allianceMutations: MutationResolvers = {
       const channel = await getRabbitMQChannel();
       const QUEUE_NAME = 'esi_alliance_info_queue';
 
-      // Ensure queue exists
-      await channel.assertQueue(QUEUE_NAME, {
-        durable: true,
-        arguments: { 'x-max-priority': 10 },
-      });
-
       let publishedCount = 0;
       for (const id of allianceIds) {
         const message = {

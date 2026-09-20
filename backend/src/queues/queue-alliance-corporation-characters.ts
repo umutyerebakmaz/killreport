@@ -12,7 +12,7 @@
 
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 
 const QUEUE_NAME = 'esi_character_info_queue';
 const BATCH_SIZE = 100;
@@ -109,13 +109,8 @@ async function queueAllianceCorporationCharacters() {
     logger.info('━'.repeat(70));
 
     // Connect to RabbitMQ
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    // Assert queue exists
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      arguments: { 'x-max-priority': 10 },
-    });
 
     logger.info('Connected to RabbitMQ');
     logger.info(`Queue: ${QUEUE_NAME}`);

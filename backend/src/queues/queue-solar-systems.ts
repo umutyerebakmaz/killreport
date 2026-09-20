@@ -1,5 +1,5 @@
 import logger from '@services/logger';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import { SolarSystemService } from '@services/solar-system/solar-system.service';
 
 const QUEUE_NAME = 'esi_solar_systems_queue';
@@ -18,16 +18,8 @@ async function queueSolarSystems() {
     logger.info(`Found ${solarSystemIds.length} solar systems`);
     logger.info('Adding to queue...');
 
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    // Ensure queue exists
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      // Every other queue in the repo is declared with this, and server.ts's
-      // ensureAllQueuesExist() creates them all that way. Omitting it makes
-      // assertQueue fail with 406 PRECONDITION_FAILED.
-      arguments: { 'x-max-priority': 10 },
-    });
 
     // Add to queue in batches
     for (let i = 0; i < solarSystemIds.length; i += BATCH_SIZE) {

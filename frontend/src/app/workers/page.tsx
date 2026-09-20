@@ -9,6 +9,7 @@ interface QueueInfo {
   messageCount: number;
   consumerCount: number;
   active: boolean;
+  health: 'OK' | 'STALLED';
   workerRunning: boolean;
   workerPid?: number | null;
   workerName?: string | null;
@@ -461,7 +462,10 @@ function QueueSection({ title, subtitle, queues }: any) {
           </thead>
           <tbody className="divide-y divide-white/5">
             {queues.map((queue: QueueInfo) => (
-              <tr key={queue.name} className="tr-row">
+              <tr
+                key={queue.name}
+                className={`tr-row ${queue.health === 'STALLED' ? 'bg-danger/10' : ''}`}
+              >
                 <td className="px-2 py-4 md:px-4">
                   <div className="flex items-center gap-2">
                     <div
@@ -517,6 +521,23 @@ function QueueSection({ title, subtitle, queues }: any) {
                   >
                     {queue.messageCount.toLocaleString()}
                   </span>
+                  {queue.health === 'STALLED' && (
+                    <span
+                      className="ml-2 text-xs text-danger"
+                      title="Messages waiting, no consumer"
+                    >
+                      stalled
+                    </span>
+                  )}
+                  {queue.name === 'killreport.parking' &&
+                    queue.messageCount > 0 && (
+                      <span
+                        className="ml-2 text-xs text-danger"
+                        title="Messages that gave up after 5 attempts"
+                      >
+                        parked
+                      </span>
+                    )}
                 </td>
                 <td className="px-2 py-4 text-center md:px-4">
                   <span

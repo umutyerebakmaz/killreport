@@ -5,8 +5,9 @@
 
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import { TypeService } from '@services/type';
+import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'esi_type_dogma_queue';
 const PREFETCH_COUNT = 10; // Process 10 types concurrently (ESI rate limit friendly)
@@ -23,12 +24,8 @@ async function typeDogmaWorker() {
   logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
   try {
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      arguments: { 'x-max-priority': 10 },
-    });
 
     channel.prefetch(PREFETCH_COUNT);
 
@@ -225,14 +222,16 @@ async function typeDogmaWorker() {
           logger.info(
             `✓ [${totalProcessed}] [${typeId}] ${typeName}: ${insertedAttributeCount}/${dogmaAttributes.length} attrs, ${insertedEffectCount}/${dogmaEffects.length} effects`,
           );
-        } catch (error: any) {
-          logger.error(
-            `❌ Error processing type ${typeId || 'unknown'}:`,
-            error.message || error,
-          );
-          channel.nack(msg, false, false); // Don't requeue
+        } catch (error) {
           totalErrors++;
           totalProcessed++;
+          // 404, the 420 backoff and the attempt count all live in the
+          // shared path now; this worker only says which message it was.
+          await handleWorkerError(channel, msg, QUEUE_NAME, error, {
+            warn: (m) => logger.warn(`  ${m} (type ${typeId ?? 'unknown'})`),
+            error: (m, e) =>
+              logger.error(`  ${m} (type ${typeId ?? 'unknown'})`, e),
+          });
         }
       },
       { noAck: false },

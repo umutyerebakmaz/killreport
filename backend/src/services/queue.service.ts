@@ -34,24 +34,6 @@ export class QueueService {
     return this.channel;
   }
 
-  async assertQueue(
-    queueName: string,
-    options: QueueOptions = {},
-  ): Promise<void> {
-    const { durable = true, maxPriority = 10 } = options;
-
-    const channel = await this.getChannel();
-
-    await channel.assertQueue(queueName, {
-      durable,
-      arguments: {
-        'x-max-priority': maxPriority,
-      },
-    });
-
-    logger.debug(`Queue asserted: ${queueName}`);
-  }
-
   async sendToQueue<T>(
     queueName: string,
     data: T,
@@ -62,7 +44,11 @@ export class QueueService {
     try {
       const channel = await this.getChannel();
 
-      await this.assertQueue(queueName);
+      // No assertQueue here. This class has no callers today, but if one
+      // arrives it must not re-declare the queue: declaration lives in
+      // ensureAllQueuesExist() alone, and a caller of sendToQueue is
+      // responsible for having called it at its own startup, the same as
+      // any other publisher.
 
       const message: QueueMessage<T> = {
         data,

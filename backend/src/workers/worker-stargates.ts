@@ -6,8 +6,9 @@
  * destination_system_id now has a foreign key (ON DELETE SET NULL). If this
  * worker runs concurrently with worker-solar-systems, the destination system row
  * may not exist yet and Prisma throws P2003; handleWorkerError treats that as
- * retryable and republishes with an incremented attempts counter. Running the
- * system queue to completion first avoids it entirely.
+ * retryable and nacks it back through killreport.wait, with the broker's
+ * x-death header counting the delivery rather than a field in the message.
+ * Running the system queue to completion first avoids it entirely.
  *
  * destination_stargate_id deliberately has NO foreign key: the destination gate
  * row is created by this same worker, so it would produce a frequently triggered
@@ -19,14 +20,13 @@
 import { config } from '@config/config';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import { UniverseService } from '@services/universe/universe.service';
 import {
-  assertTopologyQueue,
-  handleWorkerError,
   parseTopologyMessage,
   type StargateMessage,
 } from '../queues/topology-messages';
+import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'esi_stargates_queue';
 // Concurrency, not a rate limit - esiRateLimiter owns the dispatch ceiling.
@@ -50,9 +50,8 @@ async function stargatesWorker() {
   );
 
   try {
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    await assertTopologyQueue(channel, QUEUE_NAME);
 
     channel.prefetch(PREFETCH_COUNT);
 
@@ -171,25 +170,23 @@ async function stargatesWorker() {
                   create: { id: stargateId, solar_system_id: solarSystemId },
                 });
                 channel.ack(msg);
-              } catch (writeError: any) {
-                await handleWorkerError(
-                  channel,
-                  msg,
-                  payload,
-                  QUEUE_NAME,
-                  writeError,
-                  logger,
-                );
+              } catch (writeError) {
+                // 404, the 420 backoff and the attempt count all live in the
+                // shared path now; this worker only says which message it was.
+                await handleWorkerError(channel, msg, QUEUE_NAME, writeError, {
+                  warn: (m) => logger.warn(`  ${m} (stargate ${stargateId})`),
+                  error: (m, e) =>
+                    logger.error(`  ${m} (stargate ${stargateId})`, e),
+                });
               }
             } else {
-              await handleWorkerError(
-                channel,
-                msg,
-                payload,
-                QUEUE_NAME,
-                error,
-                logger,
-              );
+              // 404, the 420 backoff and the attempt count all live in the
+              // shared path now; this worker only says which message it was.
+              await handleWorkerError(channel, msg, QUEUE_NAME, error, {
+                warn: (m) => logger.warn(`  ${m} (stargate ${stargateId})`),
+                error: (m, e) =>
+                  logger.error(`  ${m} (stargate ${stargateId})`, e),
+              });
             }
           }
         } finally {

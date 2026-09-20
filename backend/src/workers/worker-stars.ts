@@ -8,9 +8,10 @@
  * worker-solar-systems out of the system response's star_id.
  *
  * stars.solar_system_id is UNIQUE - one star per system. A second star for the
- * same system raises P2002, which is not retryable and ends up in the DLQ after
- * five attempts. That is deliberate: ESI reporting two stars for one system is a
- * real data fault and should be visible, not silently absorbed.
+ * same system raises P2002, which nacks and requeues like any other failure and
+ * parks in killreport.parking on the fifth delivery (counted from the broker's
+ * x-death header). That is deliberate: ESI reporting two stars for one system
+ * is a real data fault and should be visible, not silently absorbed.
  *
  * Usage: yarn worker:stars
  */
@@ -18,14 +19,13 @@
 import { config } from '@config/config';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import { UniverseService } from '@services/universe/universe.service';
 import {
-  assertTopologyQueue,
-  handleWorkerError,
   parseTopologyMessage,
   type StarMessage,
 } from '../queues/topology-messages';
+import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'esi_stars_queue';
 // Concurrency, not a rate limit - esiRateLimiter owns the dispatch ceiling.
@@ -49,9 +49,8 @@ async function starsWorker() {
   );
 
   try {
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    await assertTopologyQueue(channel, QUEUE_NAME);
 
     channel.prefetch(PREFETCH_COUNT);
 
@@ -166,25 +165,21 @@ async function starsWorker() {
                   create: { id: starId, solar_system_id: solarSystemId },
                 });
                 channel.ack(msg);
-              } catch (writeError: any) {
-                await handleWorkerError(
-                  channel,
-                  msg,
-                  payload,
-                  QUEUE_NAME,
-                  writeError,
-                  logger,
-                );
+              } catch (writeError) {
+                // 404, the 420 backoff and the attempt count all live in the
+                // shared path now; this worker only says which message it was.
+                await handleWorkerError(channel, msg, QUEUE_NAME, writeError, {
+                  warn: (m) => logger.warn(`  ${m} (star ${starId})`),
+                  error: (m, e) => logger.error(`  ${m} (star ${starId})`, e),
+                });
               }
             } else {
-              await handleWorkerError(
-                channel,
-                msg,
-                payload,
-                QUEUE_NAME,
-                error,
-                logger,
-              );
+              // 404, the 420 backoff and the attempt count all live in the
+              // shared path now; this worker only says which message it was.
+              await handleWorkerError(channel, msg, QUEUE_NAME, error, {
+                warn: (m) => logger.warn(`  ${m} (star ${starId})`),
+                error: (m, e) => logger.error(`  ${m} (star ${starId})`, e),
+              });
             }
           }
         } finally {

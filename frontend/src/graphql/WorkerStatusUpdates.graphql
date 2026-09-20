@@ -14,6 +14,7 @@ subscription WorkerStatusUpdates {
       messageCount
       consumerCount
       active
+      health
     }
   }
 }

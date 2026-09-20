@@ -17,7 +17,7 @@
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { getQueueStats } from '@services/rabbitmq';
-import { TOPOLOGY_QUEUES } from '../queues/topology-messages';
+import { RETRY_TOPOLOGY } from '@services/queue-names';
 
 interface CheckRow {
   check: string;
@@ -91,15 +91,21 @@ async function doctorTopology() {
   logger.info(`  stargates: ${stargates}       -> yarn queue:stargates`);
   logger.info(`  stations: ${stations}        -> yarn queue:stations`);
 
-  // A DLQ nobody looks at is silent data loss, which is why it is in this report.
-  const dlq = await getQueueStats(TOPOLOGY_QUEUES.dlq);
+  // A parking queue nobody looks at is silent data loss, which is why it is in
+  // this report. `esi_topology_dlq` is retired (backend/docs/ops/rabbitmq.md);
+  // every worker in this chain now parks a message on `killreport.parking`
+  // after MAX_ATTEMPTS deliveries (backend/src/workers/worker-error.ts), the
+  // same queue every other worker in the app shares - this count is not
+  // topology-only.
+  const parking = await getQueueStats(RETRY_TOPOLOGY.parking);
   logger.info(
-    `\nDead letter queue (${TOPOLOGY_QUEUES.dlq}): ` +
-      `${dlq.exists ? `${dlq.messageCount} messages` : 'not declared yet'}`,
+    `\nShared parking queue (${RETRY_TOPOLOGY.parking}): ` +
+      `${parking.exists ? `${parking.messageCount} messages` : 'not declared yet'}`,
   );
-  if (dlq.messageCount > 0) {
+  if (parking.messageCount > 0) {
     logger.warn(
-      '⚠️  Messages gave up after 5 attempts. Inspect them before re-running the scan.',
+      '⚠️  Messages parked after repeated failures, from this chain or any other worker. ' +
+        'Inspect them (see backend/docs/ops/rabbitmq.md) before re-running the scan.',
     );
   }
 

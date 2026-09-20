@@ -19,14 +19,14 @@
 import { config } from '@config/config';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import { SolarSystemService } from '@services/solar-system/solar-system.service';
 import {
   TOPOLOGY_QUEUES,
-  assertTopologyQueue,
   envelope,
   publishTopology,
 } from '../queues/topology-messages';
+import { handleWorkerError } from './worker-error';
 import type amqp from 'amqplib';
 
 const QUEUE_NAME = 'esi_solar_systems_queue';
@@ -140,15 +140,8 @@ async function startWorker() {
   );
 
   try {
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    await assertTopologyQueue(channel, QUEUE_NAME);
-    // Declare the downstream queues too, so a fresh environment does not lose
-    // the first publish of a run.
-    await assertTopologyQueue(channel, TOPOLOGY_QUEUES.stars);
-    await assertTopologyQueue(channel, TOPOLOGY_QUEUES.stargates);
-    await assertTopologyQueue(channel, TOPOLOGY_QUEUES.stations);
-    await assertTopologyQueue(channel, TOPOLOGY_QUEUES.planets);
 
     channel.prefetch(PREFETCH_COUNT);
 
@@ -230,26 +223,15 @@ async function startWorker() {
               );
             }
             channel.ack(msg);
-          } catch (error: any) {
+          } catch (error) {
             errors++;
-            if (error.response?.status === 404) {
-              // A dead ID. Ack it: requeueing would loop forever and there is no
-              // row to write without a name.
-              logger.warn(`⚠️  Solar system ${systemId} not found (404)`);
-              channel.ack(msg);
-            } else if (error.response?.status === 420) {
-              logger.warn('🛑 Error limited (420)! Waiting 60 seconds...');
-              await sleep(60000);
-              channel.nack(msg, false, true); // requeue
-            } else {
-              // The root scan is re-runnable and its message is a bare integer
-              // with no attempts counter, so requeue rather than dead-letter.
-              logger.error(
-                `❌ Error processing solar system ${systemId}:`,
-                error.message,
-              );
-              channel.nack(msg, false, true);
-            }
+            // 404, the 420 backoff and the attempt count all live in the
+            // shared path now; this worker only says which message it was.
+            await handleWorkerError(channel, msg, QUEUE_NAME, error, {
+              warn: (m) => logger.warn(`  ${m} (solar system ${systemId})`),
+              error: (m, e) =>
+                logger.error(`  ${m} (solar system ${systemId})`, e),
+            });
           }
         } finally {
           inFlight--;
@@ -270,10 +252,6 @@ async function startWorker() {
     logger.error('❌ Failed to start solar system worker:', error);
     process.exit(1);
   }
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 startWorker();
