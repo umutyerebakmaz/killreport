@@ -793,12 +793,49 @@ export type MapNode = {
   z: Scalars['Float']['output'];
 };
 
+/** Bir sistemi tutan şeyin türü. Satırda alliance varsa sahip odur; corporation yalnızca alliance yokken sahiptir. */
+export enum MapOwnerKind {
+  Alliance = 'ALLIANCE',
+  Corporation = 'CORPORATION',
+  Faction = 'FACTION'
+}
+
 /** Çizilebilir bir sahne. Abyssal, Proving ve GPMR-01 burada yok: içlerinde sıfır gezegen, ay ve istasyon var. */
 export enum MapScope {
   NewEden = 'NEW_EDEN',
   Pochven = 'POCHVEN',
   Wormhole = 'WORMHOLE'
 }
+
+/**
+ * Sahnede toprağı olan tek bir sahip. `systems` içinde adı tekrarlanmıyor;
+ * iki liste `ownerId` üzerinden birleşiyor.
+ */
+export type MapSovOwner = {
+  __typename?: 'MapSovOwner';
+  kind: MapOwnerKind;
+  name: Scalars['String']['output'];
+  ownerId: Scalars['Int']['output'];
+  systemCount: Scalars['Int']['output'];
+  /** Faction'da null: factions tablosunda ticker sütunu yok. */
+  ticker?: Maybe<Scalars['String']['output']>;
+};
+
+/** Tek bir sahiplik çifti. NEW_EDEN'da 5.383 satır. */
+export type MapSovSystem = {
+  __typename?: 'MapSovSystem';
+  ownerId: Scalars['Int']['output'];
+  systemId: Scalars['Int']['output'];
+};
+
+export type MapSovereignty = {
+  __typename?: 'MapSovereignty';
+  owners: Array<MapSovOwner>;
+  scope: MapScope;
+  systems: Array<MapSovSystem>;
+  /** Anlık görüntünün tazeliği, ISO. Hiç satır yoksa null. */
+  updatedAt?: Maybe<Scalars['String']['output']>;
+};
 
 /**
  * Bir sistemin popup'ının gösterdiği her şey, tek sorguda.
@@ -1091,6 +1128,15 @@ export type Query = {
    */
   mapLabels: Array<MapLabel>;
   /**
+   * Sahnenin sovereignty katmanı. Servis Redis'te 900 s tutuyor.
+   *
+   * Response cache'e **bilerek** alınmadı: `PUBLIC_CACHE_QUERIES`'e eklenirse
+   * TTL'i `TTL_PER_SCHEMA_COORDINATE`'a da girmek zorunda kalır, ve servisin
+   * kendi Redis anahtarı zaten işi görürken ikinci katman yalnızca bayatlığı
+   * ikiye katlar.
+   */
+  mapSovereignty: MapSovereignty;
+  /**
    * Popup'ın okuduğu tek sorgu. Önbellek sistem başına 300 s — içindeki en kısa
    * ömürlü parça saat başı değişen aktivite.
    */
@@ -1382,6 +1428,11 @@ export type QueryMapGeometryArgs = {
 
 export type QueryMapLabelsArgs = {
   kind: MapLabelKind;
+  scope?: MapScope;
+};
+
+
+export type QueryMapSovereigntyArgs = {
   scope?: MapScope;
 };
 
@@ -2453,7 +2504,11 @@ export type ResolversTypes = {
   MapLabel: ResolverTypeWrapper<MapLabel>;
   MapLabelKind: MapLabelKind;
   MapNode: ResolverTypeWrapper<MapNode>;
+  MapOwnerKind: MapOwnerKind;
   MapScope: MapScope;
+  MapSovOwner: ResolverTypeWrapper<MapSovOwner>;
+  MapSovSystem: ResolverTypeWrapper<MapSovSystem>;
+  MapSovereignty: ResolverTypeWrapper<MapSovereignty>;
   MapSystemDetails: ResolverTypeWrapper<MapSystemDetails>;
   Moon: ResolverTypeWrapper<Moon>;
   MostValuableScope: MostValuableScope;
@@ -2608,6 +2663,9 @@ export type ResolversParentTypes = {
   MapGeometry: MapGeometry;
   MapLabel: MapLabel;
   MapNode: MapNode;
+  MapSovOwner: MapSovOwner;
+  MapSovSystem: MapSovSystem;
+  MapSovereignty: MapSovereignty;
   MapSystemDetails: MapSystemDetails;
   Moon: Moon;
   Mutation: Record<PropertyKey, never>;
@@ -3157,6 +3215,26 @@ export type MapNodeResolvers<ContextType = any, ParentType extends ResolversPare
   z?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
 };
 
+export type MapSovOwnerResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapSovOwner'] = ResolversParentTypes['MapSovOwner']> = {
+  kind?: Resolver<ResolversTypes['MapOwnerKind'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  ownerId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  systemCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  ticker?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
+export type MapSovSystemResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapSovSystem'] = ResolversParentTypes['MapSovSystem']> = {
+  ownerId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  systemId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type MapSovereigntyResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapSovereignty'] = ResolversParentTypes['MapSovereignty']> = {
+  owners?: Resolver<Array<ResolversTypes['MapSovOwner']>, ParentType, ContextType>;
+  scope?: Resolver<ResolversTypes['MapScope'], ParentType, ContextType>;
+  systems?: Resolver<Array<ResolversTypes['MapSovSystem']>, ParentType, ContextType>;
+  updatedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
 export type MapSystemDetailsResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapSystemDetails'] = ResolversParentTypes['MapSystemDetails']> = {
   constellationName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   gateCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -3278,6 +3356,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   mapCelestials?: Resolver<Array<ResolversTypes['MapCelestial']>, ParentType, ContextType, RequireFields<QueryMapCelestialsArgs, 'systemIds'>>;
   mapGeometry?: Resolver<ResolversTypes['MapGeometry'], ParentType, ContextType, RequireFields<QueryMapGeometryArgs, 'scope'>>;
   mapLabels?: Resolver<Array<ResolversTypes['MapLabel']>, ParentType, ContextType, RequireFields<QueryMapLabelsArgs, 'kind' | 'scope'>>;
+  mapSovereignty?: Resolver<ResolversTypes['MapSovereignty'], ParentType, ContextType, RequireFields<QueryMapSovereigntyArgs, 'scope'>>;
   mapSystemDetails?: Resolver<Maybe<ResolversTypes['MapSystemDetails']>, ParentType, ContextType, RequireFields<QueryMapSystemDetailsArgs, 'systemId'>>;
   me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   mostAggressiveAlliances?: Resolver<Array<ResolversTypes['AllianceActivityRank']>, ParentType, ContextType, Partial<QueryMostAggressiveAlliancesArgs>>;
@@ -3840,6 +3919,9 @@ export type Resolvers<ContextType = any> = {
   MapGeometry?: MapGeometryResolvers<ContextType>;
   MapLabel?: MapLabelResolvers<ContextType>;
   MapNode?: MapNodeResolvers<ContextType>;
+  MapSovOwner?: MapSovOwnerResolvers<ContextType>;
+  MapSovSystem?: MapSovSystemResolvers<ContextType>;
+  MapSovereignty?: MapSovereigntyResolvers<ContextType>;
   MapSystemDetails?: MapSystemDetailsResolvers<ContextType>;
   Moon?: MoonResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;

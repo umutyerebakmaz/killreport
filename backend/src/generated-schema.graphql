@@ -736,12 +736,50 @@ type MapNode {
 }
 
 """
+Bir sistemi tutan şeyin türü. Satırda alliance varsa sahip odur; corporation yalnızca alliance yokken sahiptir.
+"""
+enum MapOwnerKind {
+  ALLIANCE
+  CORPORATION
+  FACTION
+}
+
+"""
 Çizilebilir bir sahne. Abyssal, Proving ve GPMR-01 burada yok: içlerinde sıfır gezegen, ay ve istasyon var.
 """
 enum MapScope {
   NEW_EDEN
   POCHVEN
   WORMHOLE
+}
+
+"""
+Sahnede toprağı olan tek bir sahip. `systems` içinde adı tekrarlanmıyor;
+iki liste `ownerId` üzerinden birleşiyor.
+"""
+type MapSovOwner {
+  kind: MapOwnerKind!
+  name: String!
+  ownerId: Int!
+  systemCount: Int!
+
+  """Faction'da null: factions tablosunda ticker sütunu yok."""
+  ticker: String
+}
+
+"""Tek bir sahiplik çifti. NEW_EDEN'da 5.383 satır."""
+type MapSovSystem {
+  ownerId: Int!
+  systemId: Int!
+}
+
+type MapSovereignty {
+  owners: [MapSovOwner!]!
+  scope: MapScope!
+  systems: [MapSovSystem!]!
+
+  """Anlık görüntünün tazeliği, ISO. Hiç satır yoksa null."""
+  updatedAt: String
 }
 
 """
@@ -967,6 +1005,16 @@ type Query {
   86400 s tutuyor, API'den görünen tazelik response cache'in STATIC_GAME_DATA'sı.
   """
   mapLabels(kind: MapLabelKind!, scope: MapScope! = NEW_EDEN): [MapLabel!]!
+
+  """
+  Sahnenin sovereignty katmanı. Servis Redis'te 900 s tutuyor.
+  
+  Response cache'e **bilerek** alınmadı: `PUBLIC_CACHE_QUERIES`'e eklenirse
+  TTL'i `TTL_PER_SCHEMA_COORDINATE`'a da girmek zorunda kalır, ve servisin
+  kendi Redis anahtarı zaten işi görürken ikinci katman yalnızca bayatlığı
+  ikiye katlar.
+  """
+  mapSovereignty(scope: MapScope! = NEW_EDEN): MapSovereignty!
 
   """
   Popup'ın okuduğu tek sorgu. Önbellek sistem başına 300 s — içindeki en kısa

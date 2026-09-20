@@ -1,15 +1,18 @@
 import {
   MapCelestialKind,
   MapLabelKind,
+  MapOwnerKind,
   QueryResolvers,
 } from '@generated-types';
 import {
   getMapCelestials,
   getMapGeometry,
   getMapLabels,
+  getMapSovereignty,
   getMapSystemDetails,
   type MapCelestialKind as ServiceCelestialKind,
   type MapLabelKind as ServiceLabelKind,
+  type MapOwnerKind as ServiceOwnerKind,
 } from '@services/universe';
 
 /**
@@ -37,6 +40,16 @@ const CELESTIAL_KIND: Record<ServiceCelestialKind, MapCelestialKind> = {
 const LABEL_KIND: Record<ServiceLabelKind, MapLabelKind> = {
   REGION: MapLabelKind.Region,
   CONSTELLATION: MapLabelKind.Constellation,
+};
+
+/**
+ * Third of the same shape as CELESTIAL_KIND and LABEL_KIND: the service speaks
+ * string literals, the schema an enum, and a Record converts without a cast.
+ */
+const OWNER_KIND: Record<ServiceOwnerKind, MapOwnerKind> = {
+  ALLIANCE: MapOwnerKind.Alliance,
+  FACTION: MapOwnerKind.Faction,
+  CORPORATION: MapOwnerKind.Corporation,
 };
 
 /**
@@ -68,4 +81,16 @@ export const universeMapQueries: QueryResolvers = {
   // type, field for field, and there is no enum field to re-stamp the way
   // mapGeometry's scope is.
   mapSystemDetails: (_, { systemId }) => getMapSystemDetails(systemId),
+
+  mapSovereignty: async (_, { scope }) => {
+    const sovereignty = await getMapSovereignty(scope);
+    return {
+      ...sovereignty,
+      scope,
+      owners: sovereignty.owners.map((owner) => ({
+        ...owner,
+        kind: OWNER_KIND[owner.kind],
+      })),
+    };
+  },
 };
