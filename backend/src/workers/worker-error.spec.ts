@@ -48,6 +48,12 @@ describe('handleWorkerError', () => {
       error,
       logger,
     );
+
+    // The timer is the behaviour in this branch: without the await on
+    // sleep(), the function would fall straight through to nack, and the
+    // assertions below would pass whether or not the wait happened.
+    expect(channel.nack).not.toHaveBeenCalled();
+
     await vi.advanceTimersByTimeAsync(60_000);
     await done;
     vi.useRealTimers();
@@ -59,12 +65,26 @@ describe('handleWorkerError', () => {
     expect(channel.publish).not.toHaveBeenCalled();
   });
 
-  it('acks a 404 rather than retrying something that will never exist', async () => {
+  it('acks a 404 detected from the error message', async () => {
     await handleWorkerError(
       channel,
       message(),
       'esi_type_info_queue',
       new Error('Request failed with status code 404'),
+      logger,
+    );
+
+    expect(channel.ack).toHaveBeenCalledOnce();
+    expect(channel.nack).not.toHaveBeenCalled();
+    expect(channel.publish).not.toHaveBeenCalled();
+  });
+
+  it('acks a 404 detected from response.status, regardless of the message text', async () => {
+    await handleWorkerError(
+      channel,
+      message(),
+      'esi_type_info_queue',
+      { message: 'Not Found', response: { status: 404 } },
       logger,
     );
 
@@ -87,15 +107,30 @@ describe('handleWorkerError', () => {
     expect(channel.publish).not.toHaveBeenCalled();
   });
 
-  it('parks the message once it has used every attempt', async () => {
+  it('parks on exactly the MAX_ATTEMPTS-th delivery, not the one before it', async () => {
+    // deathCount MAX_ATTEMPTS - 2 is the (MAX_ATTEMPTS - 1)th delivery: still
+    // under the limit, so it retries rather than parking.
     await handleWorkerError(
       channel,
-      message(MAX_ATTEMPTS),
+      message(MAX_ATTEMPTS - 2),
       'esi_type_info_queue',
       new Error('ESI 500'),
       logger,
     );
+    expect(channel.nack).toHaveBeenCalledWith(expect.anything(), false, false);
+    expect(channel.publish).not.toHaveBeenCalled();
 
+    vi.clearAllMocks();
+
+    // deathCount MAX_ATTEMPTS - 1 is the MAX_ATTEMPTS-th delivery: this is
+    // the one that parks. A message gets MAX_ATTEMPTS deliveries in total.
+    await handleWorkerError(
+      channel,
+      message(MAX_ATTEMPTS - 1),
+      'esi_type_info_queue',
+      new Error('ESI 500'),
+      logger,
+    );
     expect(channel.publish).toHaveBeenCalledWith(
       '',
       RETRY_TOPOLOGY.parking,
@@ -106,8 +141,30 @@ describe('handleWorkerError', () => {
     expect(channel.nack).not.toHaveBeenCalled();
   });
 
+  it('forwards x-death on the parked message so an operator can read its origin', async () => {
+    // backend/docs/ops/rabbitmq.md has an operator open a parked message and
+    // read its origin queue, failure reason and hop count out of x-death —
+    // that only works if parking preserves the header instead of dropping it.
+    const msg = message(MAX_ATTEMPTS - 1);
+
+    await handleWorkerError(
+      channel,
+      msg,
+      'esi_type_info_queue',
+      new Error('ESI 500'),
+      logger,
+    );
+
+    expect(channel.publish).toHaveBeenCalledWith(
+      '',
+      RETRY_TOPOLOGY.parking,
+      expect.any(Buffer),
+      expect.objectContaining({ headers: msg.properties.headers }),
+    );
+  });
+
   it('settles the message exactly once on every path', async () => {
-    for (const deaths of [0, 1, MAX_ATTEMPTS]) {
+    for (const deaths of [0, 1, MAX_ATTEMPTS - 1]) {
       vi.clearAllMocks();
       await handleWorkerError(
         channel,

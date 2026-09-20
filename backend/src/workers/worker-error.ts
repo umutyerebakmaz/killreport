@@ -2,10 +2,14 @@ import { RETRY_TOPOLOGY } from '@services/queue-names';
 import type amqp from 'amqplib';
 
 /**
- * How many times a message may fail before it is parked.
+ * How many times a message may be delivered before it is parked.
  *
  * Five, unchanged from the topology chain's own constant — this generalises
- * that path rather than replacing its policy.
+ * that path rather than replacing its policy. A message gets `MAX_ATTEMPTS`
+ * deliveries in total: deliveries 1 through 4 retry, delivery 5 parks. That
+ * is what makes "gave up after 5 attempts" — the `/workers` tooltip and
+ * `backend/docs/ops/rabbitmq.md` both say it — literally true rather than an
+ * off-by-one.
  */
 export const MAX_ATTEMPTS = 5;
 
@@ -42,7 +46,18 @@ function isErrorLimited(error: unknown): boolean {
   return status === 420;
 }
 
+/**
+ * True for a 404, whether it arrives as a status code on the error's
+ * `response` or only as text in its `message`. Axios attaches
+ * `response.status`; some workers instead throw a plain `Error` whose
+ * message happens to mention the code. Checking the status first means
+ * this does not rest on a particular message string once the next task
+ * moves ~25 workers, not all of them Axios-shaped, onto this function.
+ */
 function isNotFound(error: unknown): boolean {
+  const status = (error as { response?: { status?: number } })?.response
+    ?.status;
+  if (status === 404) return true;
   return String((error as { message?: string })?.message ?? '').includes('404');
 }
 
@@ -80,24 +95,27 @@ export async function handleWorkerError(
   }
 
   const attempts = deathCount(msg);
+  const attemptNumber = attempts + 1;
 
-  if (attempts >= MAX_ATTEMPTS) {
+  if (attemptNumber >= MAX_ATTEMPTS) {
     logger.error(
       `☠️  ${queueName}: giving up after ${MAX_ATTEMPTS} attempts, parking`,
       error,
     );
     // The default exchange with the queue's own name as the routing key: no
     // binding needed, and the origin stays readable in the message's own
-    // x-death header.
+    // x-death header — which is why that header rides along on the parking
+    // publish rather than being dropped.
     channel.publish('', RETRY_TOPOLOGY.parking, msg.content, {
       persistent: true,
+      headers: msg.properties.headers,
     });
     channel.ack(msg);
     return;
   }
 
   logger.error(
-    `❌ ${queueName}: attempt ${attempts + 1}/${MAX_ATTEMPTS} failed`,
+    `❌ ${queueName}: attempt ${attemptNumber}/${MAX_ATTEMPTS} failed`,
     error,
   );
   // requeue: false is the whole mechanism — it sends the message to
