@@ -52,24 +52,24 @@ messages currently sitting in `esi_user_killmails_queue`.
 
 ## 🚀 Applying the policy
 
-> **Ship this with the release that introduces the shared failure path, not
-> ahead of it.** Today, `backend/src/queues/topology-messages.ts` is the only
-> `handleWorkerError` in the codebase, and it does not use this topology at
-> all — it counts attempts in its own message payload and dead-letters to
-> `esi_topology_dlq`. Several other workers already call `nack(msg, false,
-false)` on failure. Right now, with no policy applied, that nack has nowhere
-> to send the message and RabbitMQ discards it silently — a real bug, but a
-> bounded one: the message is gone once, not looping.
+> **This policy ships in the same release as the shared failure path
+> (`backend/src/workers/worker-error.ts`) — apply it together, not ahead of
+> it.** Every worker in the app now routes through `handleWorkerError()`,
+> and `nack(msg, false, false)` only recovers anything once the queue it
+> failed in actually has `x-dead-letter-exchange` set — which is what this
+> policy attaches.
 >
-> Applying this policy on its own, **before** the generalised failure path
-> (`backend/src/workers/worker-error.ts`, Task 8, not built yet) ships,
-> changes that failure mode rather than fixing it: those same `nack(msg,
-false, false)` calls now route origin → `killreport.dlx` → `killreport.wait`
-> (30 s TTL) → `killreport.retry` → origin, and nothing ever parks the message
-> — because the death-count check that parks it after `MAX_ATTEMPTS` is part
-> of the code that doesn't exist yet. The result is an unbounded loop, once
-> every 30 seconds, forever, instead of a silent drop. Apply this policy in
-> the same deploy as `worker-error.ts`, not before it.
+> Applying this policy to a deployment whose workers do **not** yet carry
+> `worker-error.ts` does not fix anything early — it changes the failure mode
+> for the worse. Without the policy, an old-code `nack(msg, false, false)`
+> has nowhere to send the message and RabbitMQ discards it silently: a real
+> bug, but a bounded one — the message is gone once, not looping. With the
+> policy applied but the death-count check that parks a message after
+> `MAX_ATTEMPTS` still absent from the running code, that same nack instead
+> loops origin → `killreport.dlx` → `killreport.wait` (30 s TTL) →
+> `killreport.retry` → origin, forever, once every 30 seconds, and nothing
+> ever parks it. Do not apply this policy ahead of a release that carries
+> `worker-error.ts` — see "Deployment order" below for the order once it does.
 
 Primary form, on a box with `rabbitmqctl` (the production droplet):
 
@@ -153,28 +153,62 @@ it is the pattern doing exactly what it is asked to do — match by prefix, not
 by an enumerated list. The `comm` check above is what actually proves
 coverage; the bare count is a sanity check, not the verification.
 
+None of this proves the policy does anything, though. A queue can carry
+`x-dead-letter-exchange: killreport.dlx` and still drop every message it
+dead-letters, silently, if `killreport.dlx` itself does not exist on the
+broker — see "Deployment order" below for when that exchange is created.
+Coverage of the queues and existence of the exchanges are two different
+checks; verify both:
+
+```bash
+sudo rabbitmqctl list_exchanges | grep killreport
+```
+
+Expect two lines, `killreport.dlx` and `killreport.retry`.
+
 ---
 
-## 🔄 Deployment order — apply the policy first
+## 🔄 Deployment order — exchanges, then the policy, then the workers
 
 This assumes the release being deployed carries the shared failure path
 (`worker-error.ts`) — see the warning above if it does not.
 
-**Apply the policy before restarting any worker.** This order is load-bearing:
+`killreport.dlx` and `killreport.retry` are declared by
+`ensureAllQueuesExist()` in
+[`../../src/services/rabbitmq.ts`](../../src/services/rabbitmq.ts), which
+runs when the **API server** starts — not by `set_policy`, and not by
+`pm2 restart all` on its own until that restart includes the API process.
+Applying the policy before those exchanges exist leaves every matching queue
+with a `dead-letter-exchange` that names something the broker doesn't have
+yet, and RabbitMQ drops anything dead-lettered into a missing exchange with
+no error and no log — the same silent-discard failure mode this whole policy
+exists to close, reopened for the gap between the two steps.
 
-1. Apply the policy (above). Existing queues gain `x-dead-letter-exchange`
+On a broker that has run this app before, both exchanges already exist from
+the last time the API server started, so this only matters for a fresh
+broker or a staging box where the API server has never come up. This order
+is load-bearing regardless:
+
+1. Confirm the exchanges exist:
+   ```bash
+   sudo rabbitmqctl list_exchanges | grep killreport
+   ```
+   Expect `killreport.dlx` and `killreport.retry`. If neither appears, start
+   the API server first so `ensureAllQueuesExist()` runs, then re-check.
+2. Apply the policy (above). Existing queues gain `x-dead-letter-exchange`
    immediately, with no restart needed — a policy change takes effect on
    already-open queues.
-2. Only then restart the workers:
+3. Only then restart the workers:
    ```bash
    pm2 restart all
    ```
 
-Reversed, a worker that nacks a message **before** the policy exists has
-nowhere to send it: `nack(msg, false, false)` with no dead-letter exchange
-configured on the queue simply discards the message. There is no error, no
-log line, no retry — the message is gone. The dead letter policy has to exist
-before the first failure it is meant to catch, not after.
+Reversed — restarting workers before the policy exists — a worker that nacks
+a message **before** the policy is attached has nowhere to send it:
+`nack(msg, false, false)` with no dead-letter exchange configured on the
+queue simply discards the message. There is no error, no log line, no retry
+— the message is gone. The dead letter policy has to exist before the first
+failure it is meant to catch, not after.
 
 ---
 
@@ -194,18 +228,30 @@ To read why a specific message parked, use the management UI, since
 2. "Get messages" → set "Requeue" to **no** only if you intend to remove it
    from the view for inspection purposes elsewhere; to just look, leave
    messages in place and use a small count (e.g. 1) with requeue **yes**.
-3. Expand the message's **Headers** → `x-death` is an array of dead-letter
-   events, most recent first. The fields that matter:
-   - `queue` — the queue the message was in when RabbitMQ dead-lettered it.
-     This is its origin, and it is where a replay has to go back to.
-   - `reason` — `rejected` for the `nack(msg, false, false)` path this
-     project uses.
-   - `count` — how many times this exact hop has happened. A message is
-     parked here when this count (read via `deathCount()` in
-     `backend/src/workers/worker-error.ts`) reaches `MAX_ATTEMPTS`. This is
-     now the only `handleWorkerError` in the codebase — see "Retired:
-     `esi_topology_dlq`" below.
-   - `time` — when that hop happened.
+3. Expand the message's **Headers**. `x-death` is an array of dead-letter
+   events, most recently updated first — for a parked message that head
+   entry is always the `killreport.wait` hop (`reason: "expired"`, from the
+   30 s TTL), not the queue that originally failed it. The header that names
+   the origin is a separate top-level one RabbitMQ maintains alongside
+   `x-death`:
+   - `x-first-death-queue` — the queue the message was in the **first** time
+     RabbitMQ dead-lettered it. This is its origin, and it is where a replay
+     has to go back to. **Do not read `x-death[0].queue` for this** — for the
+     reason above it names `killreport.wait`, and publishing there is not a
+     replay: 30 seconds later its TTL dead-letters the message to
+     `killreport.retry` with routing key `killreport.wait`, for which that
+     direct exchange has no binding, so it is dropped, unroutable and silent.
+   - `x-death[].reason` — `rejected` for the origin-queue hop
+     (`nack(msg, false, false)`), `expired` for the wait-queue hop.
+   - `x-death[].count` — how many times that hop has happened. A message
+     parks on its 5th delivery, but the header itself reads `MAX_ATTEMPTS - 1`
+     (4) at that point: parking forwards the header unchanged rather than
+     incrementing it, so "5th delivery" is correct and the raw header value
+     is one less. Read via `deathCount()` in
+     `backend/src/workers/worker-error.ts`, which is now the only
+     `handleWorkerError` in the codebase — see "Retired: `esi_topology_dlq`"
+     below.
+   - `x-death[].time` — when that hop happened.
 
 ---
 
@@ -246,28 +292,27 @@ sudo rabbitmqctl delete_queue esi_topology_dlq --if-empty
 
 ## 🔧 Replaying a parked message by hand
 
-This section describes the intended behaviour once the shared failure path
-(`worker-error.ts`) ships. Parking is not a queue to drain automatically. A
-message that reached `killreport.parking` will have failed `MAX_ATTEMPTS`
-times against whatever queue's worker is named in its `x-death[0].queue` —
-five attempts, roughly two and a half minutes apart given the wait queue's 30
-second TTL and RabbitMQ's own redelivery. That is enough attempts to rule out
-a transient blip. Replaying it without reading why it failed just runs the
-same five attempts again and parks it a second time, and now there are two
-identical messages competing for the same investigation.
+Parking is not a queue to drain automatically. A message that reached
+`killreport.parking` will have failed `MAX_ATTEMPTS` times against whatever
+queue's worker is named in its `x-first-death-queue` header — five attempts,
+roughly two and a half minutes apart given the wait queue's 30 second TTL and
+RabbitMQ's own redelivery. That is enough attempts to rule out a transient
+blip. Replaying it without reading why it failed just runs the same five
+attempts again and parks it a second time, and now there are two identical
+messages competing for the same investigation.
 
 Before replaying:
 
-1. Read the message body and its `x-death` header (above) to identify the
-   origin queue and, from worker logs around the failure times, the actual
-   error — a 404 that should never have nacked in the first place, a genuinely
-   malformed payload, a bug in that worker, an ESI outage that has since
-   ended.
+1. Read the message body and its `x-first-death-queue` header (above) to
+   identify the origin queue and, from worker logs around the failure times,
+   the actual error — a 404 that should never have nacked in the first place,
+   a genuinely malformed payload, a bug in that worker, an ESI outage that
+   has since ended.
 2. Fix the cause if there is one to fix (a code bug, a bad row in the source
    table the queue script read from). Replaying into an unfixed bug just
    produces the same failure a sixth time.
-3. Only then republish it to the queue named in `x-death[0].queue`, by hand,
-   through the management UI:
+3. Only then republish it to the queue named in `x-first-death-queue`, by
+   hand, through the management UI:
    - On `killreport.parking`'s "Get messages" panel, copy the message payload,
      then use requeue **no** to remove that one message from parking.
    - Go to the origin queue's page (`/#/queues/%2F/<queue-name>`) → "Publish

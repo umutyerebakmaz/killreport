@@ -91,8 +91,8 @@ const QS = ['esi_solar_systems_queue','esi_stars_queue','esi_planets_queue',
 worker in the app, not just this chain, and it holds the diagnostic trail of
 everything that has ever given up — purging it destroys other workers'
 evidence along with this chain's. If a previous run already parked messages
-from this chain (their `x-death[0].queue` will name one of the six queues
-above), read and clear those individually instead, the way
+from this chain (their `x-first-death-queue` header will name one of the six
+queues above), read and clear those individually instead, the way
 [`rabbitmq.md`](./rabbitmq.md) describes under "Inspecting the parking queue"
 and "Replaying a parked message by hand" — a targeted delete of the messages
 you've identified as stale, not a bulk purge of the whole queue.
@@ -264,9 +264,11 @@ queues only what is still missing.
 **Messages in `killreport.parking`.** Something failed `MAX_ATTEMPTS` (5)
 times. Its depth is in the `doctor:topology` output, but that queue is shared
 by every worker in the app — a nonzero depth does not by itself mean this
-chain failed. Each message's `x-death[0].queue` header names its origin
-queue, so check that before assuming it is one of the six celestial queues.
-Inspect before re-running the scan: see
+chain failed. Each message's `x-first-death-queue` header names its origin
+queue, so check that before assuming it is one of the six celestial queues —
+not `x-death[0].queue`: `x-death` lists hops most-recently-updated first, and
+for a parked message that head entry is always the `killreport.wait` hop, not
+the origin. Inspect before re-running the scan: see
 [`rabbitmq.md`](./rabbitmq.md), "Inspecting the parking queue", for reading a
 message's body and its `x-death` header (via the management UI) without
 consuming it or disturbing messages that belong to a different worker's
