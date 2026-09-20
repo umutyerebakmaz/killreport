@@ -1,5 +1,6 @@
 import { config } from '@config/config';
 import amqp from 'amqplib';
+import { ALL_QUEUES } from './queue-names';
 
 let channel: amqp.Channel | null = null;
 let connection: amqp.Connection | null = null;
@@ -9,40 +10,6 @@ let monitoringConnection: amqp.Connection | null = null;
 let monitoringChannel: amqp.Channel | null = null;
 let lastConnectionAttempt = 0;
 const CONNECTION_RETRY_DELAY = 2000; // 2 seconds between retry attempts (frontend polls every 5s)
-
-// All queues used in the system
-const ALL_QUEUES = [
-  // ESI Info Workers (entity enrichment)
-  'esi_alliance_info_queue',
-  'esi_character_info_queue',
-  'esi_corporation_info_queue',
-  'esi_type_info_queue',
-  'esi_category_info_queue',
-  'esi_item_group_info_queue',
-
-  // ESI Sync Workers
-  'esi_alliance_corporations_queue',
-
-  // ESI Universe Workers
-  'esi_regions_queue',
-  'esi_constellations_queue',
-  'esi_solar_systems_queue',
-
-  // ESI Universe Topology Chain (celestial queues + dead letter queue)
-  'esi_stars_queue',
-  'esi_planets_queue',
-  'esi_moons_queue',
-  'esi_asteroid_belts_queue',
-  'esi_stargates_queue',
-  'esi_stations_queue',
-  'esi_topology_dlq',
-
-  // zKillboard Workers
-  'zkillboard_character_queue',
-
-  // Maintenance & Backfill Workers
-  'backfill_killmail_values_queue',
-];
 
 export async function getRabbitMQChannel(): Promise<amqp.Channel> {
   if (channel) {
@@ -241,40 +208,6 @@ export async function getAllQueueStats(): Promise<
     active: boolean;
   }>
 > {
-  const queues = [
-    // ESI Info Workers (entity enrichment)
-    'esi_alliance_info_queue',
-    'esi_character_info_queue',
-    'esi_corporation_info_queue',
-    'esi_type_info_queue',
-    'esi_category_info_queue',
-    'esi_item_group_info_queue',
-    'esi_type_price_queue',
-
-    // ESI Sync Workers
-    'esi_alliance_corporations_queue',
-
-    // ESI Universe Workers
-    'esi_regions_queue',
-    'esi_constellations_queue',
-    'esi_solar_systems_queue',
-
-    // ESI Universe Topology Chain (celestial queues + dead letter queue)
-    'esi_stars_queue',
-    'esi_planets_queue',
-    'esi_moons_queue',
-    'esi_asteroid_belts_queue',
-    'esi_stargates_queue',
-    'esi_stations_queue',
-    'esi_topology_dlq',
-
-    // zKillboard Workers
-    'zkillboard_character_queue',
-
-    // Maintenance & Backfill Workers
-    'backfill_killmail_values_queue',
-  ];
-
   const results: Array<{
     name: string;
     messageCount: number;
@@ -285,7 +218,7 @@ export async function getAllQueueStats(): Promise<
   let hasConnectionError = false;
 
   // Check each queue sequentially to avoid connection issues
-  for (const queueName of queues) {
+  for (const queueName of ALL_QUEUES) {
     try {
       const { messageCount, consumerCount, exists } =
         await getQueueStats(queueName);
