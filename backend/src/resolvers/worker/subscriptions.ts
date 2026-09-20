@@ -1,12 +1,26 @@
-import { SubscriptionResolvers } from '@generated-types';
+import { SubscriptionResolvers, QueueHealth } from '@generated-types';
 import prisma from '@services/prisma';
 import { getAllQueueStats } from '@services/rabbitmq';
+import {
+  queueHealth,
+  type QueueHealth as ServiceQueueHealth,
+} from '@services/queue-health';
 import { CacheManager } from '@utils/cache-manager';
 import {
   checkWorkerProcess,
   QUEUE_WORKER_MAP,
   STANDALONE_WORKERS,
 } from './helpers';
+
+/**
+ * The service speaks a string-literal union and the schema speaks a string
+ * enum; TypeScript's string enums are nominal. An exhaustive Record converts
+ * without a cast — add a state to the service and this stops compiling.
+ */
+const QUEUE_HEALTH: Record<ServiceQueueHealth, QueueHealth> = {
+  OK: QueueHealth.Ok,
+  STALLED: QueueHealth.Stalled,
+};
 
 /**
  * Get database size in MB
@@ -66,6 +80,7 @@ export const workerSubscriptions: SubscriptionResolvers = {
               workerRunning,
               workerPid,
               workerName,
+              health: QUEUE_HEALTH[queueHealth(queue)],
             };
           }),
         );

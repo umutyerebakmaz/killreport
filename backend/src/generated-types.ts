@@ -1631,12 +1631,23 @@ export type QueryUserArgs = {
   id: Scalars['ID']['input'];
 };
 
+/** Bir kuyruğun sayılarından okunabilen durumu. */
+export enum QueueHealth {
+  Ok = 'OK',
+  Stalled = 'STALLED'
+}
+
 export type QueueStatus = {
   __typename?: 'QueueStatus';
   /** Is there at least one active consumer */
   active: Scalars['Boolean']['output'];
   /** Number of active consumers processing from this queue */
   consumerCount: Scalars['Int']['output'];
+  /**
+   * Kuyruğun kendi sayılarından çıkan durumu. STALLED = mesaj var, tüketici yok.
+   * `killreport.wait` ve `killreport.parking` muaf: işleri mesaj tutmak.
+   */
+  health: QueueHealth;
   /** Number of messages waiting to be processed */
   messageCount: Scalars['Int']['output'];
   /** Name of the queue */
@@ -2556,6 +2567,7 @@ export type ResolversTypes = {
   Planet: ResolverTypeWrapper<Planet>;
   Position: ResolverTypeWrapper<Position>;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
+  QueueHealth: QueueHealth;
   QueueStatus: ResolverTypeWrapper<QueueStatus>;
   Race: ResolverTypeWrapper<Race>;
   RedisMetrics: ResolverTypeWrapper<RedisMetrics>;
@@ -3455,6 +3467,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
 export type QueueStatusResolvers<ContextType = any, ParentType extends ResolversParentTypes['QueueStatus'] = ResolversParentTypes['QueueStatus']> = {
   active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   consumerCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  health?: Resolver<ResolversTypes['QueueHealth'], ParentType, ContextType>;
   messageCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   workerName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

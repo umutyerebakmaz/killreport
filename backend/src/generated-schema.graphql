@@ -1175,12 +1175,24 @@ type Query {
   workerStatus: WorkerStatus!
 }
 
+"""Bir kuyruğun sayılarından okunabilen durumu."""
+enum QueueHealth {
+  OK
+  STALLED
+}
+
 type QueueStatus {
   """Is there at least one active consumer"""
   active: Boolean!
 
   """Number of active consumers processing from this queue"""
   consumerCount: Int!
+
+  """
+  Kuyruğun kendi sayılarından çıkan durumu. STALLED = mesaj var, tüketici yok.
+  `killreport.wait` ve `killreport.parking` muaf: işleri mesaj tutmak.
+  """
+  health: QueueHealth!
 
   """Number of messages waiting to be processed"""
   messageCount: Int!
