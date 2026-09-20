@@ -58,7 +58,7 @@ export default function SovLegend({ owners }: { owners: readonly Owner[] }) {
     // `max-h-full` still hands it back on a viewport too short for it.
     <div
       className={`float flex w-56 max-w-full flex-col text-xs ${
-        open ? 'h-120 max-h-full min-h-0' : ''
+        open ? 'h-240 max-h-full min-h-0' : ''
       }`}
     >
       <button
