@@ -27,12 +27,16 @@ export const LOGO_MIN_RADIUS_PX = 20;
 /**
  * How much wider than the logo the owner's disc is drawn, in screen pixels.
  *
- * A few pixels, deliberately: the disc is a backing for the crest, not a ring
- * around it. A square logo's corners reach r√2 and so technically overhang a
- * disc this size — which is fine, because an EVE crest is artwork centred in a
- * transparent square and its corners are empty.
+ * Two, down from four on 2026-09-20 once it was on screen: what this margin
+ * shows is a rim of the owner's colour around the crest, and four read as a
+ * border drawn around the mark rather than as the mark's own ground.
+ *
+ * The disc is a backing for the crest, not a ring around it. A square logo's
+ * corners reach r√2 and so technically overhang a disc this size — which is
+ * fine, because an EVE crest is artwork centred in a transparent square and
+ * its corners are empty.
  */
-export const DISC_PADDING_PX = 4;
+export const DISC_PADDING_PX = 2;
 
 /** The owner's disc, for a logo of this radius. */
 export function discRadiusPx(logoRadiusPx: number): number {
