@@ -40,6 +40,24 @@
     @apply text-ink-muted hover:not-aria-selected:bg-white/5 hover:not-aria-selected:text-white;
   }
 
+  /*
+   * A bordered control with no ground of its own.
+   *
+   * Ghost declares no border and secondary declares a fill; this is the pair
+   * that was missing, and a floating panel is where the gap shows. In the
+   * map's system popup the stat boxes are `bg-white/5` over `--color-popover`
+   * — about #2c2c2c, against secondary's #2b2b2c — so a secondary chip beside
+   * them was the SAME surface as a box that does nothing, and only the hover
+   * said which of the two could be clicked.
+   *
+   * Hover is the neutral `.menu-row` and `.button-ghost` already use rather
+   * than surface-inset: there is no ground here to deepen, so the fill arrives
+   * on the pointer instead of getting darker under it.
+   */
+  .button-outline {
+    @apply border text-ink-muted border-white/10 hover:bg-white/5 hover:text-white hover:border-white/20;
+  }
+
   .button-danger {
     @apply border text-danger bg-danger/20 border-danger/30 hover:bg-danger/30;
   }

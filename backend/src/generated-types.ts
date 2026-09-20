@@ -848,14 +848,10 @@ export type MapSovereignty = {
 export type MapSystemDetails = {
   __typename?: 'MapSystemDetails';
   constellationName: Scalars['String']['output'];
-  /**
-   * `stargates` tablosundan gerçek sayı. `mapGeometry.edges`'ten saymak EKSİK
-   * sayar: orada bir kenarın iki ucu da scope içinde olmak zorunda, yani scope
-   * dışına çıkan kapı hiç görünmez.
-   */
-  gateCount: Scalars['Int']['output'];
   name: Scalars['String']['output'];
   npcKills?: Maybe<Scalars['Int']['output']>;
+  /** Sistemi tutan taraf. Talep edilmemiş uzayda null, yani New Eden'in çoğunda. */
+  owner?: Maybe<MapSystemOwner>;
   podKills?: Maybe<Scalars['Int']['output']>;
   regionName: Scalars['String']['output'];
   /** İki ondalığa KESİLMİŞ, MapNode.securityStatus ile aynı: yuvarlama 14 sistemi highsec'e taşıyor. */
@@ -866,7 +862,48 @@ export type MapSystemDetails = {
   shipKills?: Maybe<Scalars['Int']['output']>;
   /** Anlık görüntünün saati, ISO. Dört sayı null ise bu da null. */
   snapshotAt?: Maybe<Scalars['String']['output']>;
+  /**
+   * `stargates` tablosundan gerçek liste. `mapGeometry.edges`'ten türetmek EKSİK
+   * kalır: orada bir kenarın iki ucu da scope içinde olmak zorunda, yani scope
+   * dışına çıkan kapı hiç görünmez. Sayı ayrıca taşınmıyor — listenin uzunluğu
+   * zaten o, ve tek sayının iki kaynağı zamanla ayrışır.
+   */
+  stargates: Array<MapSystemStargate>;
   systemId: Scalars['Int']['output'];
+};
+
+/**
+ * Tek bir sistemin sahibi. `mapSovereignty` ile AYNI COALESCE kuralından çıkıyor:
+ * SQL parçaları `map-sovereignty.service`'ten paylaşılıyor, yani popup altındaki
+ * rengin anlattığı sahiple çelişemiyor.
+ */
+export type MapSystemOwner = {
+  __typename?: 'MapSystemOwner';
+  kind: MapOwnerKind;
+  name: Scalars['String']['output'];
+  ownerId: Scalars['Int']['output'];
+  /** Faction'da null: factions tablosunda ticker sütunu yok. */
+  ticker?: Maybe<Scalars['String']['output']>;
+};
+
+/**
+ * Sistemden çıkan tek bir geçit ve açıldığı yer.
+ *
+ * Ad olarak HEDEF sistemin adı taşınıyor, geçidin kendi adı değil: veritabanındaki
+ * ad zaten `Stargate (Perimeter)`, ve başlığı Stargates olan bir listede sekiz
+ * satırın sekizinde "Stargate" sözcüğünü tekrarlamanın bilgisi yok.
+ */
+export type MapSystemStargate = {
+  __typename?: 'MapSystemStargate';
+  destinationName: Scalars['String']['output'];
+  /**
+   * Hedefin güvenlik durumu, `MapSystemDetails.securityStatus` ile AYNI kuralla
+   * iki ondalığa KESİLMİŞ. Nullable, çünkü sütun nullable — ölçüldü 2026-09-20:
+   * 13.978 hedefin hepsinde dolu, yani bugün hiç null dönmüyor.
+   */
+  destinationSecurityStatus?: Maybe<Scalars['Float']['output']>;
+  destinationSystemId: Scalars['Int']['output'];
+  stargateId: Scalars['Int']['output'];
 };
 
 export type Moon = {
@@ -2510,6 +2547,8 @@ export type ResolversTypes = {
   MapSovSystem: ResolverTypeWrapper<MapSovSystem>;
   MapSovereignty: ResolverTypeWrapper<MapSovereignty>;
   MapSystemDetails: ResolverTypeWrapper<MapSystemDetails>;
+  MapSystemOwner: ResolverTypeWrapper<MapSystemOwner>;
+  MapSystemStargate: ResolverTypeWrapper<MapSystemStargate>;
   Moon: ResolverTypeWrapper<Moon>;
   MostValuableScope: MostValuableScope;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
@@ -2667,6 +2706,8 @@ export type ResolversParentTypes = {
   MapSovSystem: MapSovSystem;
   MapSovereignty: MapSovereignty;
   MapSystemDetails: MapSystemDetails;
+  MapSystemOwner: MapSystemOwner;
+  MapSystemStargate: MapSystemStargate;
   Moon: Moon;
   Mutation: Record<PropertyKey, never>;
   PageInfo: PageInfo;
@@ -3237,16 +3278,31 @@ export type MapSovereigntyResolvers<ContextType = any, ParentType extends Resolv
 
 export type MapSystemDetailsResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapSystemDetails'] = ResolversParentTypes['MapSystemDetails']> = {
   constellationName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  gateCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   npcKills?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  owner?: Resolver<Maybe<ResolversTypes['MapSystemOwner']>, ParentType, ContextType>;
   podKills?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   regionName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   securityStatus?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   shipJumps?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   shipKills?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   snapshotAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  stargates?: Resolver<Array<ResolversTypes['MapSystemStargate']>, ParentType, ContextType>;
   systemId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type MapSystemOwnerResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapSystemOwner'] = ResolversParentTypes['MapSystemOwner']> = {
+  kind?: Resolver<ResolversTypes['MapOwnerKind'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  ownerId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  ticker?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
+export type MapSystemStargateResolvers<ContextType = any, ParentType extends ResolversParentTypes['MapSystemStargate'] = ResolversParentTypes['MapSystemStargate']> = {
+  destinationName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  destinationSecurityStatus?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  destinationSystemId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  stargateId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
 export type MoonResolvers<ContextType = any, ParentType extends ResolversParentTypes['Moon'] = ResolversParentTypes['Moon']> = {
@@ -3923,6 +3979,8 @@ export type Resolvers<ContextType = any> = {
   MapSovSystem?: MapSovSystemResolvers<ContextType>;
   MapSovereignty?: MapSovereigntyResolvers<ContextType>;
   MapSystemDetails?: MapSystemDetailsResolvers<ContextType>;
+  MapSystemOwner?: MapSystemOwnerResolvers<ContextType>;
+  MapSystemStargate?: MapSystemStargateResolvers<ContextType>;
   Moon?: MoonResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;

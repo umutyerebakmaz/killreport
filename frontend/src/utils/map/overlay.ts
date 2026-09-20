@@ -71,3 +71,61 @@ export function clampOverlay({
     top: clampAxis(top, overlayHeight, viewportHeight),
   };
 }
+
+/**
+ * The popup's height, in pixels, before it is placed.
+ *
+ * `clampOverlay` has to know how tall the panel is to flip it at the bottom
+ * edge, and it is asked BEFORE the browser has laid anything out — so the
+ * height is computed rather than measured. A constant did the job while the
+ * panel was a fixed six lines; the stargate list made it vary between a
+ * wormhole with no gates and Jita with seven.
+ *
+ * Measured against the rendered panel on 2026-09-20. Being a few pixels out
+ * only moves where the panel flips to the other side of the system, never
+ * whether it stays on screen — the clamp is what guarantees that. So the
+ * numbers round UP where they are unsure, which flips a little early rather
+ * than a little late.
+ */
+export const POPUP_BASE_HEIGHT_PX = 161;
+
+/** The owner's crest and name, shown only when the system is held. */
+export const POPUP_OWNER_LINE_PX = 30;
+
+/** The "Stargates" heading and its `mt-3`, present only with chips under it. */
+export const POPUP_STARGATE_HEADING_PX = 28;
+
+/** One row of destination chips, including the gap above it. */
+export const POPUP_STARGATE_ROW_PX = 30;
+
+/**
+ * How many chips a row holds.
+ *
+ * Exact, not an estimate: the chips sit in a two-column grid, so the count is
+ * a property of the layout rather than of how long the names happen to be.
+ * It was a guess while they wrapped — "T5ZI-S" and "New Caldari" do not cost
+ * the same — and the grid is what settled it. Move `grid-cols-2` in
+ * `SystemPopup` and this number moves with it.
+ */
+export const STARGATE_CHIPS_PER_ROW = 2;
+
+export function popupHeightPx({
+  stargateCount,
+  hasOwner,
+}: {
+  stargateCount: number;
+  hasOwner: boolean;
+}): number {
+  return (
+    POPUP_BASE_HEIGHT_PX +
+    (hasOwner ? POPUP_OWNER_LINE_PX : 0) +
+    // A system with no stargates draws no heading either — there is nothing
+    // for it to head, and "Stargates" over an empty space reads as a failure
+    // to load rather than as a wormhole.
+    (stargateCount === 0
+      ? 0
+      : POPUP_STARGATE_HEADING_PX +
+        Math.ceil(stargateCount / STARGATE_CHIPS_PER_ROW) *
+          POPUP_STARGATE_ROW_PX)
+  );
+}
