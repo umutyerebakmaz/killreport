@@ -40,10 +40,16 @@ export function deathCount(msg: amqp.ConsumeMessage): number {
   return typeof count === 'number' ? count : 0;
 }
 
+/**
+ * True for HTTP 420 (ESI's own error-limit status) or 429 (the generic rate
+ * limit status, used by zKillboard and any plain-HTTP caller). Both mean the
+ * same thing: the caller is being throttled, not that the message is bad. See
+ * the wait-and-requeue branch below.
+ */
 function isErrorLimited(error: unknown): boolean {
   const status = (error as { response?: { status?: number } })?.response
     ?.status;
-  return status === 420;
+  return status === 420 || status === 429;
 }
 
 /**
@@ -78,10 +84,10 @@ export async function handleWorkerError(
   error: unknown,
   logger: WorkerLogger,
 ): Promise<void> {
-  // 420: ESI error limited. Wait, requeue untouched, burn no attempt — being
+  // 420/429: error limited. Wait, requeue untouched, burn no attempt — being
   // rate limited is not a defect in the message.
   if (isErrorLimited(error)) {
-    logger.warn('🛑 Error limited (420)! Waiting 60 seconds...');
+    logger.warn('🛑 Error limited (420/429)! Waiting 60 seconds...');
     await sleep(60_000);
     channel.nack(msg, false, true);
     return;

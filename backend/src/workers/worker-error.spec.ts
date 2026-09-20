@@ -65,6 +65,33 @@ describe('handleWorkerError', () => {
     expect(channel.publish).not.toHaveBeenCalled();
   });
 
+  it('waits and requeues on 429 without burning an attempt', async () => {
+    vi.useFakeTimers();
+    const error = { response: { status: 429 } };
+    const done = handleWorkerError(
+      channel,
+      message(4),
+      'esi_type_info_queue',
+      error,
+      logger,
+    );
+
+    // Same shape as the 420 assertion above: without the await on sleep(),
+    // this would fall straight through to nack, and the assertions below
+    // would pass whether or not the wait happened.
+    expect(channel.nack).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(60_000);
+    await done;
+    vi.useRealTimers();
+
+    // requeue: true — back to the head of its own queue, no DLX hop, so the
+    // attempt counter does not move. 429 is the same signal as 420 with a
+    // different number.
+    expect(channel.nack).toHaveBeenCalledWith(expect.anything(), false, true);
+    expect(channel.publish).not.toHaveBeenCalled();
+  });
+
   it('acks a 404 detected from the error message', async () => {
     await handleWorkerError(
       channel,

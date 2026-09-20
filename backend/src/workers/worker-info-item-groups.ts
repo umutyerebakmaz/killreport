@@ -79,10 +79,14 @@ async function itemGroupInfoWorker() {
           if (msg) lastMessageTime = Date.now();
           if (!msg) return;
 
-          const message = JSON.parse(msg.content.toString());
-          const itemGroupId = message.entityId;
+          let itemGroupId: number | undefined;
 
           try {
+            const message: { entityId: number } = JSON.parse(
+              msg.content.toString(),
+            );
+            itemGroupId = message.entityId;
+
             // Check if already exists
             const existing = await prismaWorker.itemGroup.findUnique({
               where: { id: itemGroupId },
@@ -132,6 +136,9 @@ async function itemGroupInfoWorker() {
             }
           } catch (error) {
             totalErrors++;
+            // A malformed message throws here too - JSON.parse is inside the
+            // try, so it settles through the same shared path rather than
+            // escaping the consumer callback unhandled and unsettled.
             // 404, the 420 backoff and the attempt count all live in the
             // shared path now; this worker only says which message it was.
             await handleWorkerError(channel, msg, QUEUE_NAME, error, {

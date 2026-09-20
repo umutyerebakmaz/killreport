@@ -8,7 +8,9 @@
  * link out of the /universe/systems/{id}/ nesting. Nothing else can recover it.
  *
  * Single write: nothing depends on a belt row, and a second write would be pure
- * cost. A lost message is covered by the DLQ and by re-running the root scan.
+ * cost. A message that keeps failing parks in killreport.parking after five
+ * deliveries, counted from the broker's own x-death header; re-running the
+ * root scan covers anything parked or otherwise lost.
  *
  * Usage: yarn worker:asteroid-belts
  */

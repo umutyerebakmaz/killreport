@@ -62,9 +62,11 @@ async function killmailWorker() {
         async (msg) => {
           if (!msg) return;
 
-          const message: QueueMessage = JSON.parse(msg.content.toString());
+          let message: QueueMessage | undefined;
 
           try {
+            message = JSON.parse(msg.content.toString()) as QueueMessage;
+
             logger.info(`\n${'━'.repeat(60)}`);
             logger.info(
               `👤 Processing: ${message.characterName} (ID: ${message.characterId})`,
@@ -78,13 +80,16 @@ async function killmailWorker() {
             channel.ack(msg);
             logger.info(`✅ Completed: ${message.characterName}\n`);
           } catch (error) {
+            // A malformed message throws here too - JSON.parse is inside the
+            // try, so it settles through the same shared path rather than
+            // escaping the consumer callback unhandled and unsettled.
             // 404, the 420 backoff and the attempt count all live in the
             // shared path now; this worker only says which message it was.
             await handleWorkerError(channel, msg, QUEUE_NAME, error, {
               warn: (m) =>
-                logger.warn(`  ${m} (character ${message.characterId})`),
+                logger.warn(`  ${m} (character ${message?.characterId})`),
               error: (m, e) =>
-                logger.error(`  ${m} (character ${message.characterId})`, e),
+                logger.error(`  ${m} (character ${message?.characterId})`, e),
             });
           }
         },

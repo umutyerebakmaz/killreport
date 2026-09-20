@@ -6,8 +6,9 @@
  * destination_system_id now has a foreign key (ON DELETE SET NULL). If this
  * worker runs concurrently with worker-solar-systems, the destination system row
  * may not exist yet and Prisma throws P2003; handleWorkerError treats that as
- * retryable and republishes with an incremented attempts counter. Running the
- * system queue to completion first avoids it entirely.
+ * retryable and nacks it back through killreport.wait, with the broker's
+ * x-death header counting the delivery rather than a field in the message.
+ * Running the system queue to completion first avoids it entirely.
  *
  * destination_stargate_id deliberately has NO foreign key: the destination gate
  * row is created by this same worker, so it would produce a frequently triggered

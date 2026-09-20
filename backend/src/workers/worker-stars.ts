@@ -8,9 +8,10 @@
  * worker-solar-systems out of the system response's star_id.
  *
  * stars.solar_system_id is UNIQUE - one star per system. A second star for the
- * same system raises P2002, which is not retryable and ends up in the DLQ after
- * five attempts. That is deliberate: ESI reporting two stars for one system is a
- * real data fault and should be visible, not silently absorbed.
+ * same system raises P2002, which nacks and requeues like any other failure and
+ * parks in killreport.parking on the fifth delivery (counted from the broker's
+ * x-death header). That is deliberate: ESI reporting two stars for one system
+ * is a real data fault and should be visible, not silently absorbed.
  *
  * Usage: yarn worker:stars
  */
