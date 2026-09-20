@@ -64,7 +64,8 @@ vi.mock('@/generated/graphql', () => ({
           securityStatus: 0.94,
           constellationName: 'Kimotoro',
           regionName: 'The Forge',
-          gateCount: 7,
+          owner: null,
+          stargates: [],
           shipKills: 4,
           podKills: 8,
           npcKills: 77,
@@ -546,7 +547,7 @@ describe('UniverseMap', () => {
       clickAt(host, at.x, at.y);
 
       expect(
-        await screen.findByText('Kimotoro · The Forge'),
+        await screen.findByText('· Kimotoro · The Forge'),
       ).toBeInTheDocument();
       // The id the popup asked about is the proof the hit test agreed with the
       // projection: a flipped z axis would have missed the node entirely.
@@ -566,7 +567,7 @@ describe('UniverseMap', () => {
       clickAt(name, 5, 5);
 
       expect(
-        await screen.findByText('Kimotoro · The Forge'),
+        await screen.findByText('· Kimotoro · The Forge'),
       ).toBeInTheDocument();
       expect(detailsQueries).toContain(30000142);
     });
@@ -579,11 +580,11 @@ describe('UniverseMap', () => {
       const at = jitaOnScreen();
 
       clickAt(host, at.x, at.y);
-      const line = await screen.findByText('Kimotoro · The Forge');
+      const line = await screen.findByText('· Kimotoro · The Forge');
 
       clickAt(line, at.x + 200, at.y + 200);
 
-      expect(screen.getByText('Kimotoro · The Forge')).toBeInTheDocument();
+      expect(screen.getByText('· Kimotoro · The Forge')).toBeInTheDocument();
     });
 
     it('scrolls the legend rather than zooming the map under it', async () => {
@@ -611,14 +612,14 @@ describe('UniverseMap', () => {
       const at = jitaOnScreen();
 
       clickAt(host, at.x, at.y);
-      await screen.findByText('Kimotoro · The Forge');
+      await screen.findByText('· Kimotoro · The Forge');
 
       // 200 px away is far outside the 6 px pick radius.
       clickAt(host, at.x + 200, at.y + 200);
 
       await waitFor(() =>
         expect(
-          screen.queryByText('Kimotoro · The Forge'),
+          screen.queryByText('· Kimotoro · The Forge'),
         ).not.toBeInTheDocument(),
       );
     });
@@ -653,7 +654,7 @@ describe('UniverseMap', () => {
       });
 
       expect(
-        screen.queryByText('Kimotoro · The Forge'),
+        screen.queryByText('· Kimotoro · The Forge'),
       ).not.toBeInTheDocument();
     });
   });
@@ -730,7 +731,7 @@ describe('UniverseMap', () => {
       await mountedWith('focus=30000142');
 
       expect(
-        await screen.findByText('Kimotoro · The Forge'),
+        await screen.findByText('· Kimotoro · The Forge'),
       ).toBeInTheDocument();
       expect(detailsQueries).toContain(30000142);
     });
@@ -745,7 +746,7 @@ describe('UniverseMap', () => {
 
       expectCamera(fitCamera(FORGE_BOUNDS, VIEWPORT.width, VIEWPORT.height));
       expect(
-        screen.queryByText('Kimotoro · The Forge'),
+        screen.queryByText('· Kimotoro · The Forge'),
       ).not.toBeInTheDocument();
     });
 
@@ -761,7 +762,7 @@ describe('UniverseMap', () => {
 
       expectCamera({ x: 0, z: 0, zoom: -48 });
       expect(
-        await screen.findByText('Kimotoro · The Forge'),
+        await screen.findByText('· Kimotoro · The Forge'),
       ).toBeInTheDocument();
     });
 
@@ -774,7 +775,7 @@ describe('UniverseMap', () => {
         fitCamera(LINKED.mapGeometry.bounds, VIEWPORT.width, VIEWPORT.height),
       );
       expect(
-        screen.queryByText('Kimotoro · The Forge'),
+        screen.queryByText('· Kimotoro · The Forge'),
       ).not.toBeInTheDocument();
     });
   });

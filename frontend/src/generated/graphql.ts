@@ -849,14 +849,10 @@ export type MapSovereignty = {
 export type MapSystemDetails = {
   __typename?: 'MapSystemDetails';
   constellationName: Scalars['String']['output'];
-  /**
-   * `stargates` tablosundan gerçek sayı. `mapGeometry.edges`'ten saymak EKSİK
-   * sayar: orada bir kenarın iki ucu da scope içinde olmak zorunda, yani scope
-   * dışına çıkan kapı hiç görünmez.
-   */
-  gateCount: Scalars['Int']['output'];
   name: Scalars['String']['output'];
   npcKills?: Maybe<Scalars['Int']['output']>;
+  /** Sistemi tutan taraf. Talep edilmemiş uzayda null, yani New Eden'in çoğunda. */
+  owner?: Maybe<MapSystemOwner>;
   podKills?: Maybe<Scalars['Int']['output']>;
   regionName: Scalars['String']['output'];
   /** İki ondalığa KESİLMİŞ, MapNode.securityStatus ile aynı: yuvarlama 14 sistemi highsec'e taşıyor. */
@@ -867,7 +863,48 @@ export type MapSystemDetails = {
   shipKills?: Maybe<Scalars['Int']['output']>;
   /** Anlık görüntünün saati, ISO. Dört sayı null ise bu da null. */
   snapshotAt?: Maybe<Scalars['String']['output']>;
+  /**
+   * `stargates` tablosundan gerçek liste. `mapGeometry.edges`'ten türetmek EKSİK
+   * kalır: orada bir kenarın iki ucu da scope içinde olmak zorunda, yani scope
+   * dışına çıkan kapı hiç görünmez. Sayı ayrıca taşınmıyor — listenin uzunluğu
+   * zaten o, ve tek sayının iki kaynağı zamanla ayrışır.
+   */
+  stargates: Array<MapSystemStargate>;
   systemId: Scalars['Int']['output'];
+};
+
+/**
+ * Tek bir sistemin sahibi. `mapSovereignty` ile AYNI COALESCE kuralından çıkıyor:
+ * SQL parçaları `map-sovereignty.service`'ten paylaşılıyor, yani popup altındaki
+ * rengin anlattığı sahiple çelişemiyor.
+ */
+export type MapSystemOwner = {
+  __typename?: 'MapSystemOwner';
+  kind: MapOwnerKind;
+  name: Scalars['String']['output'];
+  ownerId: Scalars['Int']['output'];
+  /** Faction'da null: factions tablosunda ticker sütunu yok. */
+  ticker?: Maybe<Scalars['String']['output']>;
+};
+
+/**
+ * Sistemden çıkan tek bir geçit ve açıldığı yer.
+ *
+ * Ad olarak HEDEF sistemin adı taşınıyor, geçidin kendi adı değil: veritabanındaki
+ * ad zaten `Stargate (Perimeter)`, ve başlığı Stargates olan bir listede sekiz
+ * satırın sekizinde "Stargate" sözcüğünü tekrarlamanın bilgisi yok.
+ */
+export type MapSystemStargate = {
+  __typename?: 'MapSystemStargate';
+  destinationName: Scalars['String']['output'];
+  /**
+   * Hedefin güvenlik durumu, `MapSystemDetails.securityStatus` ile AYNI kuralla
+   * iki ondalığa KESİLMİŞ. Nullable, çünkü sütun nullable — ölçüldü 2026-09-20:
+   * 13.978 hedefin hepsinde dolu, yani bugün hiç null dönmüyor.
+   */
+  destinationSecurityStatus?: Maybe<Scalars['Float']['output']>;
+  destinationSystemId: Scalars['Int']['output'];
+  stargateId: Scalars['Int']['output'];
 };
 
 export type Moon = {
@@ -2655,7 +2692,7 @@ export type MapSystemDetailsQueryVariables = Exact<{
 }>;
 
 
-export type MapSystemDetailsQuery = { __typename?: 'Query', mapSystemDetails?: { __typename?: 'MapSystemDetails', systemId: number, name: string, securityStatus?: number | null, constellationName: string, regionName: string, gateCount: number, shipKills?: number | null, podKills?: number | null, npcKills?: number | null, shipJumps?: number | null, snapshotAt?: string | null } | null };
+export type MapSystemDetailsQuery = { __typename?: 'Query', mapSystemDetails?: { __typename?: 'MapSystemDetails', systemId: number, name: string, securityStatus?: number | null, constellationName: string, regionName: string, shipKills?: number | null, podKills?: number | null, npcKills?: number | null, shipJumps?: number | null, snapshotAt?: string | null, owner?: { __typename?: 'MapSystemOwner', ownerId: number, kind: MapOwnerKind, name: string, ticker?: string | null } | null, stargates: Array<{ __typename?: 'MapSystemStargate', stargateId: number, destinationSystemId: number, destinationName: string, destinationSecurityStatus?: number | null }> } | null };
 
 export type MostValuableKillmailsQueryVariables = Exact<{
   scope: MostValuableScope;
@@ -6054,7 +6091,18 @@ export const MapSystemDetailsDocument = gql`
     securityStatus
     constellationName
     regionName
-    gateCount
+    owner {
+      ownerId
+      kind
+      name
+      ticker
+    }
+    stargates {
+      stargateId
+      destinationSystemId
+      destinationName
+      destinationSecurityStatus
+    }
     shipKills
     podKills
     npcKills

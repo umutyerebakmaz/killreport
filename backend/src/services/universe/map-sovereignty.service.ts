@@ -60,10 +60,14 @@ export function sovCacheKey(scope: MapScope): string {
  * that alliance even though it also names the holding corporation. Measured
  * 2026-09-20: every alliance row carries a corporation id too, so reading the
  * corporation first would relabel all 2,712 of them.
+ *
+ * Exported because `map-system.service` resolves one system's owner and has to
+ * reach the same verdict the layer drew. Both fragments name the alias `m`, so
+ * a query using them must call `sovereignty_map_current` that.
  */
-const OWNER_ID = Prisma.sql`COALESCE(m.alliance_id, m.corporation_id, m.faction_id)`;
+export const OWNER_ID = Prisma.sql`COALESCE(m.alliance_id, m.corporation_id, m.faction_id)`;
 
-const OWNER_KIND = Prisma.sql`CASE
+export const OWNER_KIND = Prisma.sql`CASE
   WHEN m.alliance_id IS NOT NULL THEN 'ALLIANCE'
   WHEN m.corporation_id IS NOT NULL THEN 'CORPORATION'
   ELSE 'FACTION'

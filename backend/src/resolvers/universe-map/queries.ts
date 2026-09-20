@@ -77,10 +77,20 @@ export const universeMapQueries: QueryResolvers = {
     return labels.map((l) => ({ ...l, kind: LABEL_KIND[l.kind] }));
   },
 
-  // No conversion and no kind mapping: the service's shape is the schema's
-  // type, field for field, and there is no enum field to re-stamp the way
-  // mapGeometry's scope is.
-  mapSystemDetails: (_, { systemId }) => getMapSystemDetails(systemId),
+  // The owner's kind is the one enum field here, and it arrives as the
+  // service's string literal — same nominal-enum asymmetry as above, so the
+  // same Record. Everything else is the schema's type field for field.
+  mapSystemDetails: async (_, { systemId }) => {
+    const details = await getMapSystemDetails(systemId);
+    if (!details) return null;
+    return {
+      ...details,
+      owner: details.owner && {
+        ...details.owner,
+        kind: OWNER_KIND[details.owner.kind],
+      },
+    };
+  },
 
   mapSovereignty: async (_, { scope }) => {
     const sovereignty = await getMapSovereignty(scope);
