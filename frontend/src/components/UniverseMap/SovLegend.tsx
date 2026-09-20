@@ -9,7 +9,11 @@ type Owner = MapSovereigntyQuery['mapSovereignty']['owners'][number];
 /** The neutral the canvas draws an owner the dictionary does not name. */
 const NEUTRAL = `#${SOV_UNOWNED_TINT.toString(16).padStart(6, '0')}`;
 
-/** The crest's drawn size in the list, square. */
+/**
+ * The crest's drawn size in the list, square. The disc around it is `size-5`
+ * — 20 px — which leaves exactly the 1 px rim of owner colour the map's own
+ * disc shows. Move one and the other has to move with it.
+ */
 const CREST_PX = 18;
 
 /**
@@ -47,7 +51,7 @@ export default function SovLegend({ owners }: { owners: readonly Owner[] }) {
         <div key={owner.ownerId} className="flex items-center gap-x-2">
           <span
             data-testid={`sov-legend-disc-${owner.ownerId}`}
-            className="flex size-6 shrink-0 items-center justify-center rounded-full"
+            className="flex size-5 shrink-0 items-center justify-center rounded-full"
             // The dictionary hex, not a class: 101 colours cannot be Tailwind
             // classes, and this is the same value the canvas tints with.
             style={{ backgroundColor: SOV_COLORS[owner.ownerId] ?? NEUTRAL }}
