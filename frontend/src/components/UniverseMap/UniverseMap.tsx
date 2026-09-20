@@ -783,7 +783,13 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
           pans the galaxy. Same mechanism SystemPopup uses. */}
       <div
         data-map-overlay
-        className="absolute top-3 bottom-3 left-3 z-10 flex max-h-full flex-col gap-y-2"
+        // Height comes from the content, not from the viewport: `bottom-3`
+        // here stretched the panel to the full height whatever was in it, and
+        // `items-start` keeps the switch its own width instead of the
+        // legend's. The two caps are what stop a 98-row list and a 49-
+        // character alliance name from growing the document itself — past
+        // them the legend scrolls and the names truncate.
+        className="absolute top-3 left-3 z-10 flex max-h-[calc(100%-1.5rem)] max-w-[calc(100%-1.5rem)] flex-col items-start gap-y-2"
       >
         <MapLayerSwitch value={layerId} onChange={setLayerId} />
         {layer.legend.kind === 'owners' && <SovLegend owners={sovOwners} />}

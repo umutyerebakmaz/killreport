@@ -50,7 +50,9 @@ export default function SovLegend({ owners }: { owners: readonly Owner[] }) {
   }
 
   return (
-    <div className="float flex min-h-0 flex-col text-xs">
+    // A fixed width, because the rows `truncate`: with the width left to the
+    // content, the longest alliance name sets it and nothing ever truncates.
+    <div className="float flex w-56 min-h-0 max-w-full flex-col text-xs">
       <button
         type="button"
         onClick={() => setOpen((was) => !was)}
