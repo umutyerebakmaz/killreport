@@ -792,15 +792,13 @@ satırı bugün bu yüzden donuyor; buraya taşınmıyor.
 """
 type MapSystemDetails {
   constellationName: String!
-
-  """
-  `stargates` tablosundan gerçek sayı. `mapGeometry.edges`'ten saymak EKSİK
-  sayar: orada bir kenarın iki ucu da scope içinde olmak zorunda, yani scope
-  dışına çıkan kapı hiç görünmez.
-  """
-  gateCount: Int!
   name: String!
   npcKills: Int
+
+  """
+  Sistemi tutan taraf. Talep edilmemiş uzayda null, yani New Eden'in çoğunda.
+  """
+  owner: MapSystemOwner
   podKills: Int
   regionName: String!
 
@@ -819,7 +817,49 @@ type MapSystemDetails {
 
   """Anlık görüntünün saati, ISO. Dört sayı null ise bu da null."""
   snapshotAt: String
+
+  """
+  `stargates` tablosundan gerçek liste. `mapGeometry.edges`'ten türetmek EKSİK
+  kalır: orada bir kenarın iki ucu da scope içinde olmak zorunda, yani scope
+  dışına çıkan kapı hiç görünmez. Sayı ayrıca taşınmıyor — listenin uzunluğu
+  zaten o, ve tek sayının iki kaynağı zamanla ayrışır.
+  """
+  stargates: [MapSystemStargate!]!
   systemId: Int!
+}
+
+"""
+Tek bir sistemin sahibi. `mapSovereignty` ile AYNI COALESCE kuralından çıkıyor:
+SQL parçaları `map-sovereignty.service`'ten paylaşılıyor, yani popup altındaki
+rengin anlattığı sahiple çelişemiyor.
+"""
+type MapSystemOwner {
+  kind: MapOwnerKind!
+  name: String!
+  ownerId: Int!
+
+  """Faction'da null: factions tablosunda ticker sütunu yok."""
+  ticker: String
+}
+
+"""
+Sistemden çıkan tek bir geçit ve açıldığı yer.
+
+Ad olarak HEDEF sistemin adı taşınıyor, geçidin kendi adı değil: veritabanındaki
+ad zaten `Stargate (Perimeter)`, ve başlığı Stargates olan bir listede sekiz
+satırın sekizinde "Stargate" sözcüğünü tekrarlamanın bilgisi yok.
+"""
+type MapSystemStargate {
+  destinationName: String!
+
+  """
+  Hedefin güvenlik durumu, `MapSystemDetails.securityStatus` ile AYNI kuralla
+  iki ondalığa KESİLMİŞ. Nullable, çünkü sütun nullable — ölçüldü 2026-09-20:
+  13.978 hedefin hepsinde dolu, yani bugün hiç null dönmüyor.
+  """
+  destinationSecurityStatus: Float
+  destinationSystemId: Int!
+  stargateId: Int!
 }
 
 type Moon {

@@ -13,11 +13,47 @@ type DetailsResult = {
 const useMapSystemDetailsQuery = vi.fn<() => DetailsResult>();
 vi.mock('@/generated/graphql', () => ({
   useMapSystemDetailsQuery: () => useMapSystemDetailsQuery(),
+  // The component branches on the enum, so the mock has to carry it.
+  MapOwnerKind: {
+    Alliance: 'ALLIANCE',
+    Faction: 'FACTION',
+    Corporation: 'CORPORATION',
+  },
 }));
 
 import SystemPopup from './SystemPopup';
 
 const VIEWPORT = { viewportWidth: 800, viewportHeight: 600 };
+
+/** Jita's real neighbours, three of the seven, in the SQL's name order. */
+const GATES = [
+  {
+    stargateId: 50013928,
+    destinationSystemId: 30000138,
+    destinationName: 'Ikuchi',
+    destinationSecurityStatus: 0.94,
+  },
+  {
+    stargateId: 50001248,
+    destinationSystemId: 30000140,
+    destinationName: 'Maurasi',
+    destinationSecurityStatus: 0.9,
+  },
+  {
+    stargateId: 50001249,
+    destinationSystemId: 30000144,
+    destinationName: 'Perimeter',
+    destinationSecurityStatus: 0.95,
+  },
+];
+
+/** Jita's real holder: highsec is faction space, so the popup shows a crest. */
+const CONCORD = {
+  ownerId: 500006,
+  kind: 'FACTION',
+  name: 'CONCORD Assembly',
+  ticker: null,
+};
 
 /** Jita's real row, as the query returns it. */
 function details(over: Record<string, unknown> = {}) {
@@ -27,7 +63,8 @@ function details(over: Record<string, unknown> = {}) {
     securityStatus: 0.94,
     constellationName: 'Kimotoro',
     regionName: 'The Forge',
-    gateCount: 7,
+    owner: CONCORD,
+    stargates: GATES,
     shipKills: 4,
     podKills: 8,
     npcKills: 77,
@@ -63,18 +100,89 @@ beforeEach(() => {
 });
 
 describe('SystemPopup', () => {
-  it('shows the header, the four hourly numbers and the gate count', () => {
+  it('shows the header and the four hourly numbers', () => {
     loaded();
     renderPopup();
 
     expect(screen.getByText('Jita')).toBeInTheDocument();
-    expect(screen.getByText('0.9')).toBeInTheDocument();
-    expect(screen.getByText('Kimotoro · The Forge')).toBeInTheDocument();
+    expect(screen.getByTestId('popup-security')).toHaveTextContent('0.9');
+    // The address is one line now, so the constellation and the region are
+    // read out of the same element the system name sits in.
+    expect(screen.getByText('· Kimotoro · The Forge')).toBeInTheDocument();
     expect(screen.getByText('4')).toBeInTheDocument();
     expect(screen.getByText('8')).toBeInTheDocument();
     expect(screen.getByText('77')).toBeInTheDocument();
     expect(screen.getByText('1,745')).toBeInTheDocument();
-    expect(screen.getByText('7')).toBeInTheDocument();
+  });
+
+  it('shows the owner named, and its crest on a disc of its own colour', () => {
+    loaded();
+    renderPopup();
+
+    expect(screen.getByText('CONCORD Assembly')).toBeInTheDocument();
+    // #d8dde3 is CONCORD's entry in SOV_COLORS — the same value the canvas
+    // tints the system's mark with, which is the point of showing it here.
+    expect(screen.getByTestId('popup-owner-disc-500006')).toHaveStyle({
+      backgroundColor: '#d8dde3',
+    });
+  });
+
+  it('shows no crest and no owner line in unclaimed space', () => {
+    loaded({ owner: null });
+    renderPopup();
+
+    expect(screen.queryByText('CONCORD Assembly')).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId('popup-owner-disc-500006'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('lists the destinations under a Stargates heading, not a count', () => {
+    loaded();
+    renderPopup();
+
+    expect(screen.getByText('Stargates')).toBeInTheDocument();
+    expect(screen.getByText('Ikuchi')).toBeInTheDocument();
+    expect(screen.getByText('Maurasi')).toBeInTheDocument();
+    expect(screen.getByText('Perimeter')).toBeInTheDocument();
+  });
+
+  it("puts each destination's security status beside its name", () => {
+    loaded({
+      stargates: [
+        {
+          stargateId: 1,
+          destinationSystemId: 30000141,
+          destinationName: 'Tama',
+          destinationSecurityStatus: 0.3,
+        },
+      ],
+    });
+    renderPopup();
+
+    const chip = screen.getByRole('link', { name: /Tama/ });
+    expect(chip).toHaveTextContent('Tama0.3');
+    // Lowsec's yellow, the same ramp the panel's own status uses — the value
+    // is carried by the colour as much as by the digit.
+    expect(chip.querySelector('.text-yellow-400')).not.toBeNull();
+  });
+
+  it('keeps a destination on the map rather than sending it to the page', () => {
+    loaded();
+    renderPopup();
+
+    expect(screen.getByRole('link', { name: /Perimeter/ })).toHaveAttribute(
+      'href',
+      '/map?focus=30000144',
+    );
+  });
+
+  it('drops the whole section for a system with no stargates', () => {
+    // A wormhole: no gates at all, so a heading would head nothing.
+    loaded({ stargates: [] });
+    renderPopup();
+
+    expect(screen.queryByText('Stargates')).not.toBeInTheDocument();
   });
 
   it('says what the time line covers by sitting under the four boxes', () => {
@@ -112,18 +220,17 @@ describe('SystemPopup', () => {
 
     expect(screen.getAllByText('—')).toHaveLength(4);
     expect(screen.queryByText(/last 1 hour/)).not.toBeInTheDocument();
-    // The gate count is topology and survives a missing snapshot.
-    expect(screen.getByText('7')).toBeInTheDocument();
+    // The stargates are topology and survive a missing snapshot.
+    expect(screen.getByText('Perimeter')).toBeInTheDocument();
   });
 
   it('links to the system page', () => {
     loaded();
     renderPopup();
 
-    expect(screen.getByRole('link')).toHaveAttribute(
-      'href',
-      '/solar-systems/30000142',
-    );
+    expect(
+      screen.getByRole('link', { name: /Open the system/ }),
+    ).toHaveAttribute('href', '/solar-systems/30000142');
   });
 
   it('closes on Escape', () => {

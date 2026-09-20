@@ -16,6 +16,31 @@ import {
   SYSTEM_DETAILS_CACHE_TTL_SECONDS,
 } from './map-system.service';
 
+/**
+ * The stargate array as `json_agg` hands it over: already camelCase, because
+ * the SQL builds the objects with the field names the popup reads.
+ */
+const JITA_GATES = [
+  {
+    stargateId: 50001248,
+    destinationSystemId: 30000138,
+    destinationName: 'Ikuchi',
+    destinationSecurityStatus: 0.94,
+  },
+  {
+    stargateId: 50001255,
+    destinationSystemId: 30000140,
+    destinationName: 'Maurasi',
+    destinationSecurityStatus: 0.9,
+  },
+  {
+    stargateId: 50001257,
+    destinationSystemId: 30000144,
+    destinationName: 'Perimeter',
+    destinationSecurityStatus: 0.95,
+  },
+];
+
 /** One row shaped the way the SQL returns it, with Jita's real values. */
 function jitaRow(over: Record<string, unknown> = {}) {
   return {
@@ -24,8 +49,11 @@ function jitaRow(over: Record<string, unknown> = {}) {
     security_status: 0.94,
     constellation_name: 'Kimotoro',
     region_name: 'The Forge',
-    // COUNT(*) comes back from $queryRaw as a BigInt.
-    gate_count: 7n,
+    owner_id: null,
+    owner_kind: null,
+    owner_name: null,
+    owner_ticker: null,
+    stargates: JITA_GATES,
     ship_kills: 4,
     pod_kills: 8,
     npc_kills: 77,
@@ -33,6 +61,19 @@ function jitaRow(over: Record<string, unknown> = {}) {
     snapshot_at: new Date('2026-09-14T09:00:00.000Z'),
     ...over,
   };
+}
+
+/** The same row in 1DQ1-A: held by an alliance rather than by nobody. */
+function ownedRow(over: Record<string, unknown> = {}) {
+  return jitaRow({
+    system_id: 30004759,
+    name: '1DQ1-A',
+    owner_id: 1354830081,
+    owner_kind: 'ALLIANCE',
+    owner_name: 'Goonswarm Federation',
+    owner_ticker: 'CONDI',
+    ...over,
+  });
 }
 
 beforeEach(() => {
@@ -58,7 +99,8 @@ describe('getMapSystemDetails', () => {
       securityStatus: 0.94,
       constellationName: 'Kimotoro',
       regionName: 'The Forge',
-      gateCount: 7,
+      owner: null,
+      stargates: JITA_GATES,
       shipKills: 4,
       podKills: 8,
       npcKills: 77,
@@ -67,13 +109,52 @@ describe('getMapSystemDetails', () => {
     });
   });
 
-  it('converts the BigInt gate count, which JSON.stringify would throw on', async () => {
+  it('folds the four owner columns into one nullable owner', async () => {
+    prisma.$queryRaw.mockResolvedValue([ownedRow()]);
+
+    expect((await getMapSystemDetails(30004759))?.owner).toEqual({
+      ownerId: 1354830081,
+      kind: 'ALLIANCE',
+      name: 'Goonswarm Federation',
+      ticker: 'CONDI',
+    });
+  });
+
+  it('leaves the owner null in unclaimed space', async () => {
+    // Jita has no sovereignty row at all, so the LATERAL contributes nulls.
     prisma.$queryRaw.mockResolvedValue([jitaRow()]);
+    expect((await getMapSystemDetails(30000142))?.owner).toBeNull();
+  });
+
+  it('names an owner the entity tables have not caught up with', async () => {
+    // Same rule as the legend's: a blank name reads as a bug, a #id reads as
+    // the gap it is.
+    prisma.$queryRaw.mockResolvedValue([ownedRow({ owner_name: null })]);
+    expect((await getMapSystemDetails(30004759))?.owner?.name).toBe(
+      '#1354830081',
+    );
+  });
+
+  it('keeps a faction ticker null rather than inventing one', async () => {
+    prisma.$queryRaw.mockResolvedValue([
+      ownedRow({
+        owner_id: 500001,
+        owner_kind: 'FACTION',
+        owner_name: 'Caldari State',
+        owner_ticker: null,
+      }),
+    ]);
+    expect((await getMapSystemDetails(30004759))?.owner?.ticker).toBeNull();
+  });
+
+  it('passes the stargates through, and an empty list stays a list', async () => {
+    prisma.$queryRaw.mockResolvedValue([jitaRow({ stargates: [] })]);
 
     const details = await getMapSystemDetails(30000142);
 
-    expect(typeof details?.gateCount).toBe('number');
-    // The cache write is where a surviving BigInt would actually blow up.
+    // Not null: a system with nowhere to go is an empty list, the same way the
+    // grouping DataLoaders return [] rather than null.
+    expect(details?.stargates).toEqual([]);
     expect(redis.setex).toHaveBeenCalledOnce();
   });
 

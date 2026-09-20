@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
-import { clampOverlay } from './overlay';
+import {
+  clampOverlay,
+  popupHeightPx,
+  POPUP_BASE_HEIGHT_PX,
+  POPUP_OWNER_LINE_PX,
+  POPUP_STARGATE_HEADING_PX,
+  POPUP_STARGATE_ROW_PX,
+  STARGATE_CHIPS_PER_ROW,
+} from './overlay';
 
 const VIEWPORT = { viewportWidth: 800, viewportHeight: 600 };
 const SIZE = { overlayWidth: 200, overlayHeight: 100 };
@@ -78,5 +86,53 @@ describe('clampOverlay, above the anchor', () => {
   it('still clamps sideways', () => {
     expect(above(790, 300).left).toBe(600);
     expect(above(10, 300).left).toBe(0);
+  });
+});
+
+describe('popupHeightPx', () => {
+  it('is the bare panel for a system with no owner and no gates', () => {
+    // A wormhole: nothing holds it and nothing leads out of it by gate.
+    expect(popupHeightPx({ stargateCount: 0, hasOwner: false })).toBe(
+      POPUP_BASE_HEIGHT_PX,
+    );
+  });
+
+  it('adds the owner line only when the system is held', () => {
+    expect(popupHeightPx({ stargateCount: 0, hasOwner: true })).toBe(
+      POPUP_BASE_HEIGHT_PX + POPUP_OWNER_LINE_PX,
+    );
+  });
+
+  it('adds the heading once and a row per chipful of destinations', () => {
+    // Jita's seven, the busiest list the data holds short of the eight-gate
+    // maximum measured on 2026-09-20. Four rows at two chips a row.
+    expect(popupHeightPx({ stargateCount: 7, hasOwner: true })).toBe(
+      POPUP_BASE_HEIGHT_PX +
+        POPUP_OWNER_LINE_PX +
+        POPUP_STARGATE_HEADING_PX +
+        4 * POPUP_STARGATE_ROW_PX,
+    );
+  });
+
+  it('keeps a part-full row whole', () => {
+    // The chips wrap, so one gate past a full row still costs a whole row.
+    const full = popupHeightPx({
+      stargateCount: STARGATE_CHIPS_PER_ROW,
+      hasOwner: false,
+    });
+    const oneMore = popupHeightPx({
+      stargateCount: STARGATE_CHIPS_PER_ROW + 1,
+      hasOwner: false,
+    });
+    expect(oneMore - full).toBe(POPUP_STARGATE_ROW_PX);
+  });
+
+  it('does not grow inside a row', () => {
+    const one = popupHeightPx({ stargateCount: 1, hasOwner: false });
+    const two = popupHeightPx({
+      stargateCount: STARGATE_CHIPS_PER_ROW,
+      hasOwner: false,
+    });
+    expect(two).toBe(one);
   });
 });

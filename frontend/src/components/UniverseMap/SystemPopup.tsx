@@ -1,9 +1,16 @@
 'use client';
 
-import { useMapSystemDetailsQuery } from '@/generated/graphql';
+import EveImage from '@/components/ui/EveImage';
+import {
+  MapOwnerKind,
+  useMapSystemDetailsQuery,
+  type MapSystemDetailsQuery,
+} from '@/generated/graphql';
 import { formatTimeAgo } from '@/utils/date';
-import { clampOverlay } from '@/utils/map/overlay';
+import { clampOverlay, popupHeightPx } from '@/utils/map/overlay';
+import { SOV_COLORS, SOV_UNOWNED_TINT } from '@/utils/map/sovColors';
 import { formatSecurityStatus, getSecurityColor } from '@/utils/security';
+import { ArrowRightEndOnRectangleIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { useEffect } from 'react';
 
@@ -11,7 +18,102 @@ import { useEffect } from 'react';
 const POPUP_GAP_PX = 12;
 
 const POPUP_WIDTH_PX = 280;
-const POPUP_HEIGHT_PX = 230;
+
+/** The neutral the canvas draws an owner the colour dictionary does not name. */
+const NEUTRAL = `#${SOV_UNOWNED_TINT.toString(16).padStart(6, '0')}`;
+
+/**
+ * The crest's drawn size, square, on a 26 px disc.
+ *
+ * Bigger than the legend's 18 on 20, and deliberately: the legend is a list of
+ * up to 98 rows where the crest is a lookup key, and this is the one owner the
+ * reader is actually asking about. What the two share is the 1 px rim of owner
+ * colour around the artwork — that ratio is the mark, not the size.
+ */
+const CREST_PX = 24;
+const CREST_DISC_PX = CREST_PX + 2;
+
+type Details = NonNullable<MapSystemDetailsQuery['mapSystemDetails']>;
+type Owner = NonNullable<Details['owner']>;
+type Stargate = Details['stargates'][number];
+
+/**
+ * The owner's crest on a disc of its colour — the same mark the map draws past
+ * `SOV_LOGO_ZOOM` and the same one the legend lists, so the popup identifies
+ * the system's holder with the mark the reader has already learned rather than
+ * with a second vocabulary.
+ */
+function OwnerCrest({ owner }: { owner: Owner }) {
+  return (
+    <span
+      data-testid={`popup-owner-disc-${owner.ownerId}`}
+      className="flex items-center justify-center rounded-full shrink-0"
+      // The dictionary hex, not a class: 101 colours cannot be Tailwind
+      // classes, and this is the same value the canvas tints with. The size
+      // joins it inline so the disc and the crest cannot drift apart.
+      style={{
+        backgroundColor: SOV_COLORS[owner.ownerId] ?? NEUTRAL,
+        width: CREST_DISC_PX,
+        height: CREST_DISC_PX,
+      }}
+    >
+      {/* A faction's crest is served from the CORPORATION path; down the
+          alliance path it answers 200 with the default emblem. */}
+      <EveImage
+        kind={owner.kind === MapOwnerKind.Alliance ? 'alliance' : 'corporation'}
+        id={owner.ownerId}
+        name={owner.name}
+        size={CREST_PX}
+      />
+    </span>
+  );
+}
+
+/**
+ * One way out of the system, as a chip.
+ *
+ * The DESTINATION's name, not the gate's: every row in `stargates` is called
+ * `Stargate (Perimeter)`, so under a heading that already says Stargates the
+ * word carries nothing and the parenthesis is the whole message.
+ *
+ * The link is `/map?focus=` rather than the system page, because the reader is
+ * on the map and the thing they asked for is one jump away on it. `useMapCamera`
+ * has carried `focus` in the URL since phase 1, so this needs no new plumbing.
+ *
+ * `button-outline`: bordered, but with no ground of its own. Secondary was
+ * here first and had to go — its `bg-surface` (#2b2b2c) landed within a
+ * rounding step of the stat boxes' `bg-white/5` over the panel (≈#2c2c2c), so
+ * the one thing in the panel that can be clicked looked exactly like the four
+ * things that cannot, and the hover was carrying the whole affordance alone.
+ */
+function StargateChip({ gate }: { gate: Stargate }) {
+  return (
+    <Link
+      href={`/map?focus=${gate.destinationSystemId}`}
+      // `justify-start` overrides `.button`'s centring, and `min-w-0` is what
+      // lets the name truncate: a grid item's min-width is `auto`, so without
+      // it "Nourvukaiken" widens its own cell and the two columns stop
+      // matching — which is the whole point of the grid.
+      className="button button-outline button-sm justify-start min-w-0"
+    >
+      <ArrowRightEndOnRectangleIcon className="size-3.5 shrink-0" />
+      <span className="truncate">{gate.destinationName}</span>
+      {/* The destination's own security status, coloured the way the panel's
+          own is — so a reader can see which of the ways out is the dangerous
+          one without leaving the popup. `ml-auto` pins it to the right edge of
+          every chip, so the numbers form a column the eye can run down instead
+          of landing wherever each name happens to end.
+
+          It keeps its colour on hover, where `button-outline` takes the label
+          to white: the colour IS the value here, not decoration. */}
+      <span
+        className={`ml-auto shrink-0 font-normal ${getSecurityColor(gate.destinationSecurityStatus)}`}
+      >
+        {formatSecurityStatus(gate.destinationSecurityStatus)}
+      </span>
+    </Link>
+  );
+}
 
 /**
  * One hourly number.
@@ -101,21 +203,28 @@ export default function SystemPopup({
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [onClose]);
 
+  const details = data?.mapSystemDetails;
+
   // `anchorRadius` is the disc's own size, not a constant: the dots grow with
   // the camera and reach tens of pixels at the interior zooms, where a fixed
   // offset would put the panel back over the system. See clampOverlay for the
   // placement itself.
+  //
+  // The height is computed rather than measured, because the flip at the
+  // bottom edge is decided before the browser has laid the panel out — and the
+  // panel stopped being a fixed height when the gate count became a gate list.
   const { left, top } = clampOverlay({
     anchorX: screenX,
     anchorY: screenY,
     overlayWidth: POPUP_WIDTH_PX,
-    overlayHeight: POPUP_HEIGHT_PX,
+    overlayHeight: popupHeightPx({
+      stargateCount: details?.stargates.length ?? 0,
+      hasOwner: Boolean(details?.owner),
+    }),
     viewportWidth,
     viewportHeight,
     offset: anchorRadius + POPUP_GAP_PX,
   });
-
-  const details = data?.mapSystemDetails;
 
   return (
     <div
@@ -136,20 +245,48 @@ export default function SystemPopup({
         </div>
       ) : (
         <>
+          {/* One line for the whole address: the system, then the two
+              containers it sits in, reading outwards. One size and one grey
+              across all three — the system name was near-white and a size
+              above its own containers, which made the loudest thing on the
+              panel the one word the reader had just clicked on. Weight is the
+              only mark it keeps.
+
+              `min-w-0` with `truncate` is what keeps a long region from pushing
+              the security status off the panel — the address gives way, the
+              number does not. */}
           <div className="flex items-baseline justify-between gap-x-3">
-            <span className="text-sm font-medium text-gray-100">
-              {details.name}
+            <span className="min-w-0 text-xs truncate text-ink-muted">
+              <span className="font-medium">{details.name}</span>
+              {' · '}
+              {details.constellationName} · {details.regionName}
             </span>
+            {/* The line's one size, so nothing on it is ragged. What sets the
+                security status apart is its colour, which is the whole point
+                of the value. */}
             <span
-              className={`text-sm font-medium ${getSecurityColor(details.securityStatus)}`}
+              // Named, because the value is not unique on the panel: a highsec
+              // system's neighbours read the same number, and Jita and Maurasi
+              // are both 0.9.
+              data-testid="popup-security"
+              className={`text-xs font-medium shrink-0 ${getSecurityColor(details.securityStatus)}`}
             >
               {formatSecurityStatus(details.securityStatus)}
             </span>
           </div>
 
-          <div className="mt-0.5 text-xs text-ink-muted">
-            {details.constellationName} · {details.regionName}
-          </div>
+          {/* Under the address, because who holds a system changes and where it
+              is does not. The name is beside the crest rather than left to it:
+              the mark says "these systems are one holding" without saying
+              whose. items-center, since a disc has no baseline to sit on. */}
+          {details.owner && (
+            <div className="flex items-center mt-1 gap-x-2">
+              <OwnerCrest owner={details.owner} />
+              <span className="text-xs truncate text-ink-muted">
+                {details.owner.name}
+              </span>
+            </div>
+          )}
 
           <div className="grid grid-cols-4 gap-2 mt-3">
             <Box label="Ship" value={details.shipKills ?? null} />
@@ -158,24 +295,45 @@ export default function SystemPopup({
             <Box label="Jumps" value={details.shipJumps ?? null} />
           </div>
 
-          {/* Directly under the four boxes it describes, and above Gates, which
-              is topology rather than an hourly measurement. The position is
-              what scopes the line, so the line itself stays short. */}
+          {/* Directly under the four boxes it describes, and above Stargates,
+              which is topology rather than an hourly measurement. The position
+              is what scopes the line, so the line itself stays short. */}
           {details.snapshotAt && (
             <div className="mt-1 text-[11px] font-light text-ink-faint">
               last 1 hour · ESI · {formatTimeAgo(details.snapshotAt)}
             </div>
           )}
 
-          <div className="grid grid-cols-4 mt-3">
-            <Box label="Gates" value={details.gateCount} />
-          </div>
+          {/* Nothing at all when there is none: a heading over an empty space
+              reads as a failed load rather than as a wormhole, and the count
+              is not carried separately — the list's length is the count. */}
+          {details.stargates.length > 0 && (
+            <div className="mt-3">
+              <div className="text-[10px] tracking-wide text-ink-muted uppercase">
+                Stargates
+              </div>
+              {/* A two-column grid rather than a wrapping row: wrapping sized
+                  every chip to its own name, so "T5ZI-S" and "New Caldari" sat
+                  side by side at different widths and the count per row moved
+                  with the system. Two equal columns, then down — which is also
+                  what makes `STARGATE_CHIPS_PER_ROW` exact rather than an
+                  estimate. An odd last chip keeps its column's width and
+                  leaves the other half empty. */}
+              <div className="grid grid-cols-2 gap-1 mt-1">
+                {details.stargates.map((gate) => (
+                  <StargateChip key={gate.stargateId} gate={gate} />
+                ))}
+              </div>
+            </div>
+          )}
 
+          {/* The one thing the panel is FOR, so the vocabulary's primary, and
+              full width because there is nothing to sit beside it. */}
           <Link
             href={`/solar-systems/${details.systemId}`}
-            className="inline-block mt-3 text-xs text-gray-300 hover:text-white"
+            className="mt-3 button button-primary button-sm button-block"
           >
-            Open the system →
+            Open the system
           </Link>
         </>
       )}
