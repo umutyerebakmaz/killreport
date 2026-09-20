@@ -6,6 +6,7 @@ import {
 } from '@/utils/map/colors';
 import { splitDashed } from '@/utils/map/dash';
 import type { EdgeSegment } from '@/utils/map/edges';
+import type { EdgeGroup } from '@/utils/map/layers';
 import type { MapOrigin } from '@/utils/map/origin';
 import type { Graphics } from 'pixi.js';
 
@@ -55,6 +56,34 @@ export function drawEdges(
   const { solid, dashed } = splitDashed(segments);
   strokeAll(target, solid, GATE_TINT, GATE_ALPHA);
   strokeAll(target, dashed, GATE_TINT, GATE_ALPHA);
+}
+
+/**
+ * The galaxy mesh when the layer colours it.
+ *
+ * `drawEdges` stays as it is for the local mesh and this takes over the galaxy
+ * one: the two differ only in how many styles the path is laid down in, and a
+ * one-group call here is `drawEdges` exactly.
+ *
+ * Each group is laid down twice for the same reason `drawEdges` is — the
+ * solid pieces and the dashes a region crossing was cut into share every part
+ * of their style but the dashing — and `strokeAll` returns early on an empty
+ * list, so a group with no crossings costs one call and no path.
+ */
+export function drawEdgeGroups(
+  target: Graphics,
+  groups: EdgeGroup[],
+  origin: MapOrigin,
+): void {
+  target.clear();
+  target.position.set(origin.x, origin.z);
+
+  for (const group of groups) {
+    const colour = group.tint ?? GATE_TINT;
+    const { solid, dashed } = splitDashed(group.segments);
+    strokeAll(target, solid, colour, GATE_ALPHA);
+    strokeAll(target, dashed, colour, GATE_ALPHA);
+  }
 }
 
 /**

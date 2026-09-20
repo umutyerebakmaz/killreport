@@ -21,6 +21,21 @@ export const MAX_VISIBLE_LABELS = 300;
  */
 export const LABEL_DOT_GAP_PX = 7;
 
+/**
+ * Extra lift for a system name while the sovereignty logos are on screen.
+ *
+ * The clearance term below is measured from the DOT — `systemFloorPx` tops out
+ * at 6 px — while a logo is drawn at LOGO_MIN_RADIUS_PX plus its disc, so a
+ * name that clears the dot still lands on the crest. This does not close that
+ * gap arithmetically, but 12 is where it lands in practice: the clearance the
+ * dot already buys is 2.7-6 px over the zooms the logos are drawn at, and a
+ * logo reaches LOGO_MIN_RADIUS_PX plus its disc, so this is the difference.
+ * Settled by looking on 2026-09-20 rather than derived, which is why it is a
+ * constant and not an expression — the arithmetic version belongs in the
+ * clearance term itself, measured from the mark actually drawn.
+ */
+export const LABEL_LOGO_LIFT_PX = 12;
+
 export interface LabelBounds {
   minX: number;
   maxX: number;
@@ -114,6 +129,7 @@ export function labelCandidates({
   transform,
   width,
   height,
+  logos = false,
 }: {
   tiers: LabelTier[];
   regions: LabelSource[];
@@ -123,6 +139,8 @@ export function labelCandidates({
   transform: CameraTransform;
   width: number;
   height: number;
+  /** Whether the sovereignty layer is drawing logos in place of the dots. */
+  logos?: boolean;
 }): LabelCandidate[] {
   const byTier: Record<LabelTier, LabelSource[]> = {
     region: regions,
@@ -158,7 +176,11 @@ export function labelCandidates({
               halfHeight +
                 systemRadiusPx(source.radius, transform.scaleX, floorPx) +
                 LABEL_DOT_GAP_PX,
-            );
+            ) +
+            // Only where there is a mark to clear. A centroid tier has nothing
+            // drawn at it, so a logo elsewhere on the map is no reason to move
+            // a region's name.
+            (logos && source.radius !== undefined ? LABEL_LOGO_LIFT_PX : 0);
 
       const textWidth = measure(tier, source.name);
       const halfWidth = textWidth / 2;

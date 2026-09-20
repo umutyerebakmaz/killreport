@@ -794,12 +794,49 @@ export type MapNode = {
   z: Scalars['Float']['output'];
 };
 
+/** Bir sistemi tutan şeyin türü. Satırda alliance varsa sahip odur; corporation yalnızca alliance yokken sahiptir. */
+export enum MapOwnerKind {
+  Alliance = 'ALLIANCE',
+  Corporation = 'CORPORATION',
+  Faction = 'FACTION'
+}
+
 /** Çizilebilir bir sahne. Abyssal, Proving ve GPMR-01 burada yok: içlerinde sıfır gezegen, ay ve istasyon var. */
 export enum MapScope {
   NewEden = 'NEW_EDEN',
   Pochven = 'POCHVEN',
   Wormhole = 'WORMHOLE'
 }
+
+/**
+ * Sahnede toprağı olan tek bir sahip. `systems` içinde adı tekrarlanmıyor;
+ * iki liste `ownerId` üzerinden birleşiyor.
+ */
+export type MapSovOwner = {
+  __typename?: 'MapSovOwner';
+  kind: MapOwnerKind;
+  name: Scalars['String']['output'];
+  ownerId: Scalars['Int']['output'];
+  systemCount: Scalars['Int']['output'];
+  /** Faction'da null: factions tablosunda ticker sütunu yok. */
+  ticker?: Maybe<Scalars['String']['output']>;
+};
+
+/** Tek bir sahiplik çifti. NEW_EDEN'da 5.383 satır. */
+export type MapSovSystem = {
+  __typename?: 'MapSovSystem';
+  ownerId: Scalars['Int']['output'];
+  systemId: Scalars['Int']['output'];
+};
+
+export type MapSovereignty = {
+  __typename?: 'MapSovereignty';
+  owners: Array<MapSovOwner>;
+  scope: MapScope;
+  systems: Array<MapSovSystem>;
+  /** Anlık görüntünün tazeliği, ISO. Hiç satır yoksa null. */
+  updatedAt?: Maybe<Scalars['String']['output']>;
+};
 
 /**
  * Bir sistemin popup'ının gösterdiği her şey, tek sorguda.
@@ -1092,6 +1129,15 @@ export type Query = {
    */
   mapLabels: Array<MapLabel>;
   /**
+   * Sahnenin sovereignty katmanı. Servis Redis'te 900 s tutuyor.
+   *
+   * Response cache'e **bilerek** alınmadı: `PUBLIC_CACHE_QUERIES`'e eklenirse
+   * TTL'i `TTL_PER_SCHEMA_COORDINATE`'a da girmek zorunda kalır, ve servisin
+   * kendi Redis anahtarı zaten işi görürken ikinci katman yalnızca bayatlığı
+   * ikiye katlar.
+   */
+  mapSovereignty: MapSovereignty;
+  /**
    * Popup'ın okuduğu tek sorgu. Önbellek sistem başına 300 s — içindeki en kısa
    * ömürlü parça saat başı değişen aktivite.
    */
@@ -1383,6 +1429,11 @@ export type QueryMapGeometryArgs = {
 
 export type QueryMapLabelsArgs = {
   kind: MapLabelKind;
+  scope?: MapScope;
+};
+
+
+export type QueryMapSovereigntyArgs = {
   scope?: MapScope;
 };
 
@@ -2591,6 +2642,13 @@ export type MapLabelsQueryVariables = Exact<{
 
 
 export type MapLabelsQuery = { __typename?: 'Query', mapLabels: Array<{ __typename?: 'MapLabel', id: number, name: string, kind: MapLabelKind, x: number, z: number, systemId?: number | null, bounds?: { __typename?: 'MapBounds', minX: number, maxX: number, minZ: number, maxZ: number } | null }> };
+
+export type MapSovereigntyQueryVariables = Exact<{
+  scope: MapScope;
+}>;
+
+
+export type MapSovereigntyQuery = { __typename?: 'Query', mapSovereignty: { __typename?: 'MapSovereignty', scope: MapScope, updatedAt?: string | null, owners: Array<{ __typename?: 'MapSovOwner', ownerId: number, kind: MapOwnerKind, name: string, ticker?: string | null, systemCount: number }>, systems: Array<{ __typename?: 'MapSovSystem', systemId: number, ownerId: number }> } };
 
 export type MapSystemDetailsQueryVariables = Exact<{
   systemId: Scalars['Int']['input'];
@@ -5933,6 +5991,61 @@ export type MapLabelsQueryHookResult = ReturnType<typeof useMapLabelsQuery>;
 export type MapLabelsLazyQueryHookResult = ReturnType<typeof useMapLabelsLazyQuery>;
 export type MapLabelsSuspenseQueryHookResult = ReturnType<typeof useMapLabelsSuspenseQuery>;
 export type MapLabelsQueryResult = Apollo.QueryResult<MapLabelsQuery, MapLabelsQueryVariables>;
+export const MapSovereigntyDocument = gql`
+    query MapSovereignty($scope: MapScope!) {
+  mapSovereignty(scope: $scope) {
+    scope
+    updatedAt
+    owners {
+      ownerId
+      kind
+      name
+      ticker
+      systemCount
+    }
+    systems {
+      systemId
+      ownerId
+    }
+  }
+}
+    `;
+
+/**
+ * __useMapSovereigntyQuery__
+ *
+ * To run a query within a React component, call `useMapSovereigntyQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMapSovereigntyQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMapSovereigntyQuery({
+ *   variables: {
+ *      scope: // value for 'scope'
+ *   },
+ * });
+ */
+export function useMapSovereigntyQuery(baseOptions: Apollo.QueryHookOptions<MapSovereigntyQuery, MapSovereigntyQueryVariables> & ({ variables: MapSovereigntyQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MapSovereigntyQuery, MapSovereigntyQueryVariables>(MapSovereigntyDocument, options);
+      }
+export function useMapSovereigntyLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MapSovereigntyQuery, MapSovereigntyQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MapSovereigntyQuery, MapSovereigntyQueryVariables>(MapSovereigntyDocument, options);
+        }
+// @ts-ignore
+export function useMapSovereigntySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MapSovereigntyQuery, MapSovereigntyQueryVariables>): Apollo.UseSuspenseQueryResult<MapSovereigntyQuery, MapSovereigntyQueryVariables>;
+export function useMapSovereigntySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MapSovereigntyQuery, MapSovereigntyQueryVariables>): Apollo.UseSuspenseQueryResult<MapSovereigntyQuery | undefined, MapSovereigntyQueryVariables>;
+export function useMapSovereigntySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MapSovereigntyQuery, MapSovereigntyQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MapSovereigntyQuery, MapSovereigntyQueryVariables>(MapSovereigntyDocument, options);
+        }
+export type MapSovereigntyQueryHookResult = ReturnType<typeof useMapSovereigntyQuery>;
+export type MapSovereigntyLazyQueryHookResult = ReturnType<typeof useMapSovereigntyLazyQuery>;
+export type MapSovereigntySuspenseQueryHookResult = ReturnType<typeof useMapSovereigntySuspenseQuery>;
+export type MapSovereigntyQueryResult = Apollo.QueryResult<MapSovereigntyQuery, MapSovereigntyQueryVariables>;
 export const MapSystemDetailsDocument = gql`
     query MapSystemDetails($systemId: Int!) {
   mapSystemDetails(systemId: $systemId) {
