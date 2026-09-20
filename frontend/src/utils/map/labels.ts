@@ -27,10 +27,10 @@ export const LABEL_DOT_GAP_PX = 7;
  * The clearance term below is measured from the DOT — `systemFloorPx` tops out
  * at 6 px — while a logo is drawn at LOGO_MIN_RADIUS_PX plus its disc, so a
  * name that clears the dot still lands on the crest. This does not close that
- * gap; it is the nudge the user asked for on 2026-09-20, tuned by looking.
- * Raising it is one number.
+ * gap arithmetically: full clearance would be about 12 px here, and 5 is where
+ * the user left it on 2026-09-20, tuned by looking. Raising it is one number.
  */
-export const LABEL_LOGO_LIFT_PX = 2;
+export const LABEL_LOGO_LIFT_PX = 5;
 
 export interface LabelBounds {
   minX: number;
