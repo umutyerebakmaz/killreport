@@ -17,7 +17,7 @@ Hepsi 2026-09-20'de `backend/src` üzerinde sayıldı.
 
 |                                                       | sayı                               |
 | ----------------------------------------------------- | ---------------------------------- |
-| kullanılan farklı kuyruk adı                          | 24                                 |
+| kullanılan farklı kuyruk adı                          | 25                                 |
 | `ALL_QUEUES`'te beyan edilen (`services/rabbitmq.ts`) | 19                                 |
 | `ensureAllQueuesExist()` dışında beyan edilen         | 6                                  |
 | sınırsız requeue — `nack(msg, false, true)`           | 17 (15 dosya)                      |
@@ -48,7 +48,7 @@ kaynağa indiriyor; aksi hâlde beyan açığı kapansa bile izleme açığı ka
 
 ### Neyin eksikliği var
 
-**Bir mesaj başarısız olduğunda gidecek yeri yok.** 24 kuyruk var, dead letter
+**Bir mesaj başarısız olduğunda gidecek yeri yok.** 25 kuyruk adı var, dead letter
 hedefi bir tane — ve o da yalnızca altı topology worker'ının elle publish
 ettiği `esi_topology_dlq`. Kalan kuyruklarda başarısızlık iki biçimde bitiyor:
 17 yol mesajı sonsuza kadar yeniden deniyor, ki bu `services/rate-limiter.ts`
@@ -202,7 +202,7 @@ rabbitmqctl set_policy killreport-dlx "^(esi_|zkillboard_|backfill_|alliance_)" 
   '{"dead-letter-exchange":"killreport.dlx"}' --apply-to queues
 ```
 
-Desen mevcut 24 adın hepsini kapsamalı; spec'in uygulama planı deseni
+Desen mevcut 25 adın hepsini kapsamalı; spec'in uygulama planı deseni
 `ALL_QUEUES`'e karşı doğrulamayı bir görev olarak taşıyacak.
 
 ### Gecikmenin biçimi
@@ -276,7 +276,7 @@ veriyi gördükten sonra yapılacak iş.
 
 ## 8. Kabul kriterleri
 
-- [ ] `ALL_QUEUES` 24 adın hepsini kapsıyor ve `getAllQueueStats()` onu okuyor;
+- [ ] `ALL_QUEUES` kodda geçen 25 adın hepsini kapsıyor ve `getAllQueueStats()` onu okuyor;
       `ensureAllQueuesExist()` dışında `assertQueue` çağrısı kalmıyor
 - [ ] `killreport-dlx` poliçesi mevcut her kuyruğa DLX takıyor; hiçbir kuyruk
       silinmiyor, hiçbir mesaj kaybolmuyor

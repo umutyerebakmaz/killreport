@@ -399,6 +399,8 @@ git commit -m "feat(workers): mark a stalled queue on the workers page"
 
 - [ ] **Step 1: Listeyi çıkar ve altı adı ekle**
 
+Sonuç 25 ad: kodda geçen 24 `*_queue` adı, artı `esi_topology_dlq` (Task 11 onu emekli edince 24 kalır).
+
 ```ts
 // backend/src/services/queue-names.ts
 
@@ -626,7 +628,7 @@ export async function ensureAllQueuesExist(): Promise<void> {
     // queue's name as its routing key (sendToQueue publishes to the default
     // exchange with the queue name as the key), and RabbitMQ preserves that
     // key across a dead-letter hop. Fanout ignores the key, so one wait queue
-    // catches all 24 without a binding per queue; the key survives the wait,
+    // catches them all without a binding per queue; the key survives the wait,
     // so the direct retry exchange sends the message back to exactly the
     // queue it failed in. A direct dlx would route on the origin queue's name,
     // the wait queue is bound under no such name, and every failure would be
@@ -788,7 +790,8 @@ komutla:
    ```bash
    sudo rabbitmqctl list_queues name policy | grep -c killreport-dlx
    ```
-   The count must equal the length of `ALL_QUEUES`.
+   The count must equal the length of `ALL_QUEUES` (25 before Task 11 retires
+   `esi_topology_dlq`, 24 after).
 4. **Deployment order, which is load-bearing.** Apply the policy FIRST, then
    restart the workers. A worker that nacks before the DLX exists drops the
    message on the floor.
