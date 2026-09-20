@@ -5,6 +5,7 @@ import { systemFloorPx, systemRadiusPx } from './marks';
 import {
   labelCandidates,
   LABEL_DOT_GAP_PX,
+  LABEL_LOGO_LIFT_PX,
   MAX_VISIBLE_LABELS,
   placeLabels,
   type LabelCandidate,
@@ -585,6 +586,67 @@ describe('the lift', () => {
     });
 
     expect(c.halfWidth).toBe(50);
+  });
+});
+
+describe('the logo lift', () => {
+  const radius = 4e15;
+
+  function jita(logos: boolean) {
+    const [c] = labelCandidates({
+      tiers: ['system'],
+      regions: [],
+      constellations: [],
+      systems: [{ id: 30000142, name: 'Jita', x: 0, z: 0, radius }],
+      measure,
+      transform,
+      width: W,
+      height: H,
+      logos,
+    });
+    return c;
+  }
+
+  it('steps a system name up while a logo is drawn under it', () => {
+    // Up is a SMALLER screen y.
+    expect(jita(false).screenY - jita(true).screenY).toBeCloseTo(
+      LABEL_LOGO_LIFT_PX,
+      6,
+    );
+  });
+
+  it('leaves a name with no mark under it where it was', () => {
+    // A centroid tier has nothing drawn at it, so a logo elsewhere on the map
+    // is no reason to move a region's name.
+    const constellation = (logos: boolean) =>
+      labelCandidates({
+        tiers: ['constellation'],
+        regions: [],
+        constellations: [{ id: 1, name: 'Kimotoro', x: 0, z: 0 }],
+        systems: [],
+        measure,
+        transform,
+        width: W,
+        height: H,
+        logos,
+      })[0];
+
+    expect(constellation(true).screenY).toBe(constellation(false).screenY);
+  });
+
+  it('is off by default, so the security layer is untouched', () => {
+    const [c] = labelCandidates({
+      tiers: ['system'],
+      regions: [],
+      constellations: [],
+      systems: [{ id: 30000142, name: 'Jita', x: 0, z: 0, radius }],
+      measure,
+      transform,
+      width: W,
+      height: H,
+    });
+
+    expect(c.screenY).toBe(jita(false).screenY);
   });
 });
 

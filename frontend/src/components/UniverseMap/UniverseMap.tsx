@@ -484,6 +484,9 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       transform,
       width: size.width,
       height: size.height,
+      // A logo is a much taller mark than the dot the clearance is measured
+      // from, so the names step up while one is drawn under them.
+      logos: showLogos,
     });
 
     const placed = placeLabels(candidates, stickyLabels.current);
@@ -499,6 +502,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     labelSystems,
     regionSources,
     constellationSources,
+    showLogos,
   ]);
 
   // The galaxy: 5,241 sprites and the full 6,959-segment mesh, built once per
