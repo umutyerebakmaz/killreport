@@ -15,7 +15,7 @@ processes and the schedules; this covers the broker.
 
 ---
 
-## 📖 Why a policy and not a queue argument
+## ⚠️ Why a policy and not a queue argument
 
 `ensureAllQueuesExist()` declares every application queue with
 `arguments: { 'x-max-priority': 10 }`. Queue arguments take part in RabbitMQ's
@@ -50,7 +50,26 @@ messages currently sitting in `esi_user_killmails_queue`.
 
 ---
 
-## 📖 Applying the policy
+## 🚀 Applying the policy
+
+> **Ship this with the release that introduces the shared failure path, not
+> ahead of it.** Today, `backend/src/queues/topology-messages.ts` is the only
+> `handleWorkerError` in the codebase, and it does not use this topology at
+> all — it counts attempts in its own message payload and dead-letters to
+> `esi_topology_dlq`. Several other workers already call `nack(msg, false,
+false)` on failure. Right now, with no policy applied, that nack has nowhere
+> to send the message and RabbitMQ discards it silently — a real bug, but a
+> bounded one: the message is gone once, not looping.
+>
+> Applying this policy on its own, **before** the generalised failure path
+> (`backend/src/workers/worker-error.ts`, Task 8, not built yet) ships,
+> changes that failure mode rather than fixing it: those same `nack(msg,
+false, false)` calls now route origin → `killreport.dlx` → `killreport.wait`
+> (30 s TTL) → `killreport.retry` → origin, and nothing ever parks the message
+> — because the death-count check that parks it after `MAX_ATTEMPTS` is part
+> of the code that doesn't exist yet. The result is an unbounded loop, once
+> every 30 seconds, forever, instead of a silent drop. Apply this policy in
+> the same deploy as `worker-error.ts`, not before it.
 
 Primary form, on a box with `rabbitmqctl` (the production droplet):
 
@@ -84,7 +103,7 @@ droplet has `rabbitmqctl`, the HTTP form exists for environments that do not
 
 ---
 
-## 📖 Checking it covers every queue
+## 🔍 Checking it covers every queue
 
 The pattern is matched against **queue names**, not against `queue-names.ts`
 directly, so coverage has to be verified against the real list rather than
@@ -135,7 +154,10 @@ coverage; the bare count is a sanity check, not the verification.
 
 ---
 
-## 📖 Deployment order — apply the policy first
+## 🔄 Deployment order — apply the policy first
+
+This assumes the release being deployed carries the shared failure path
+(`worker-error.ts`) — see the warning above if it does not.
 
 **Apply the policy before restarting any worker.** This order is load-bearing:
 
@@ -155,7 +177,7 @@ before the first failure it is meant to catch, not after.
 
 ---
 
-## 📖 Inspecting the parking queue
+## 📊 Inspecting the parking queue
 
 Depth, from the CLI:
 
@@ -177,23 +199,32 @@ To read why a specific message parked, use the management UI, since
      This is its origin, and it is where a replay has to go back to.
    - `reason` — `rejected` for the `nack(msg, false, false)` path this
      project uses.
-   - `count` — how many times this exact hop has happened. `handleWorkerError`
-     parks a message once `deathCount()` (read from this same header) reaches
-     `MAX_ATTEMPTS`.
+   - `count` — how many times this exact hop has happened. Once the shared
+     failure path lands (`backend/src/workers/worker-error.ts`, Task 8 — not
+     built as of this writing), a message will be parked here when this count
+     (read via that file's `deathCount()`) reaches `MAX_ATTEMPTS`. The only
+     `handleWorkerError` that exists in the codebase today is a different,
+     unrelated function in `backend/src/queues/topology-messages.ts`: it
+     counts attempts inside the message payload rather than reading
+     `x-death`, and it dead-letters to `esi_topology_dlq`, not to
+     `killreport.parking`. Don't confuse the two — until `worker-error.ts`
+     ships, nothing in this topology actually parks a message; see the
+     warning under "Applying the policy" above.
    - `time` — when that hop happened.
 
 ---
 
-## 📖 Replaying a parked message by hand
+## 🔧 Replaying a parked message by hand
 
-Parking is not a queue to drain automatically. A message that reached
-`killreport.parking` failed `MAX_ATTEMPTS` times against whatever queue's
-worker is named in its `x-death[0].queue` — five attempts, roughly two and a
-half minutes apart given the wait queue's 30 second TTL and RabbitMQ's own
-redelivery. That is enough attempts to rule out a transient blip. Replaying it
-without reading why it failed just runs the same five attempts again and parks
-it a second time, and now there are two identical messages competing for the
-same investigation.
+This section describes the intended behaviour once the shared failure path
+(`worker-error.ts`) ships. Parking is not a queue to drain automatically. A
+message that reached `killreport.parking` will have failed `MAX_ATTEMPTS`
+times against whatever queue's worker is named in its `x-death[0].queue` —
+five attempts, roughly two and a half minutes apart given the wait queue's 30
+second TTL and RabbitMQ's own redelivery. That is enough attempts to rule out
+a transient blip. Replaying it without reading why it failed just runs the
+same five attempts again and parks it a second time, and now there are two
+identical messages competing for the same investigation.
 
 Before replaying:
 
@@ -218,7 +249,7 @@ are not self-healing.
 
 ---
 
-## 📖 Removing the policy — rollback
+## 🛡️ Removing the policy — rollback
 
 ```bash
 sudo rabbitmqctl clear_policy killreport-dlx
@@ -242,7 +273,7 @@ soon as whatever prompted the rollback is understood.
 
 ---
 
-## 🔗 Related Documentation
+## 📚 Related Documentation
 
 - [PM2 Process Management](./pm2.md) — the workers this policy protects
 - [Crontab Configuration](./crontab.md) — the other scheduling mechanism
