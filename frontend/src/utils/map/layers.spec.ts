@@ -1,8 +1,10 @@
 import type { MapNode } from '@/generated/graphql';
 import { describe, expect, it } from 'vitest';
 import { securityTint } from './colors';
+import type { EdgeSegment } from './edges';
 import {
   buildSovIndex,
+  groupSegmentsByTint,
   MAP_LAYERS,
   SOV_LOGO_ZOOM,
   type MapLayerData,
@@ -123,5 +125,46 @@ describe('buildSovIndex', () => {
     });
     expect(index.ownerBySystem.get(3)).toBe(UNCOLOURED);
     expect(index.tintByOwner.has(UNCOLOURED)).toBe(false);
+  });
+});
+
+function segment(from: number, to: number): EdgeSegment {
+  return {
+    from: [0, 0],
+    to: [1, 1],
+    regions: [10000001, 10000001],
+    constellations: [20000001, 20000001],
+    systems: [from, to],
+  };
+}
+
+describe('groupSegmentsByTint', () => {
+  it('puts every segment in one neutral group for the security layer', () => {
+    const groups = groupSegmentsByTint(
+      [segment(1, 2), segment(1, 3)],
+      MAP_LAYERS.security,
+      DATA,
+    );
+    expect(groups).toHaveLength(1);
+    expect(groups[0].tint).toBeNull();
+    expect(groups[0].segments).toHaveLength(2);
+  });
+
+  it('splits the sov layer into one group per colour, neutral first', () => {
+    // Neutral first is draw order: the borders go down before the territories,
+    // so a coloured line is never covered by the grey it separates.
+    const groups = groupSegmentsByTint(
+      [segment(1, 3), segment(1, 2), segment(2, 1)],
+      MAP_LAYERS.sovereignty,
+      DATA,
+    );
+    expect(groups.map((g) => g.tint)).toEqual([null, sovTint(OWNED)]);
+    expect(groups[0].segments).toHaveLength(1);
+    expect(groups[1].segments).toHaveLength(2);
+  });
+
+  it('emits no empty group', () => {
+    const groups = groupSegmentsByTint([], MAP_LAYERS.sovereignty, DATA);
+    expect(groups).toEqual([]);
   });
 });

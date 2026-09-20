@@ -1,5 +1,6 @@
 import type { MapEdge, MapNode } from '@/generated/graphql';
 import { securityTint } from './colors';
+import type { EdgeSegment } from './edges';
 import { SOV_UNOWNED_TINT, sovTint } from './sovColors';
 
 /**
@@ -114,3 +115,46 @@ export const MAP_LAYERS: Record<MapLayerId, MapColorLayer> = {
     legend: { kind: 'owners', max: 10 },
   },
 };
+
+export interface EdgeGroup {
+  /** null is the neutral grey the security layer draws everything in. */
+  tint: number | null;
+  segments: EdgeSegment[];
+}
+
+/**
+ * The mesh, split into one path per colour.
+ *
+ * Pure and here rather than in the scene, because it is the whole of the
+ * decision: `scene/edges.ts` only lays the paths down. Worst case is 101
+ * colours plus the neutral group, each averaging ~70 segments, and it is a
+ * build-once cost — `pixelLine: true` keeps the geometry valid at every zoom,
+ * so this runs on a layer change and never on a wheel tick.
+ *
+ * The neutral group is emitted first so the borders are under the territories.
+ */
+export function groupSegmentsByTint(
+  segments: EdgeSegment[],
+  layer: MapColorLayer,
+  data: MapLayerData,
+): EdgeGroup[] {
+  const byTint = new Map<number | null, EdgeSegment[]>();
+
+  for (const segment of segments) {
+    const tint = layer.edgeTint(
+      { from: segment.systems[0], to: segment.systems[1] },
+      data,
+    );
+    const group = byTint.get(tint);
+    if (group) group.push(segment);
+    else byTint.set(tint, [segment]);
+  }
+
+  const groups: EdgeGroup[] = [];
+  const neutral = byTint.get(null);
+  if (neutral) groups.push({ tint: null, segments: neutral });
+  for (const [tint, group] of byTint) {
+    if (tint !== null) groups.push({ tint, segments: group });
+  }
+  return groups;
+}
