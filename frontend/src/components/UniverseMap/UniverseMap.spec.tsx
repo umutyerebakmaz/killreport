@@ -11,6 +11,8 @@ vi.mock('next/navigation', () => ({
 }));
 
 let labelQueries: { kind: string; skip: boolean }[] = [];
+/** Whether the sovereignty query was skipped — it is, until the layer opens. */
+let sovQueries: { skip: boolean }[] = [];
 /** Which system the popup asked about, which is what picking is judged on. */
 let detailsQueries: number[] = [];
 
@@ -31,7 +33,18 @@ vi.mock('@/generated/graphql', () => ({
     Gate: 'GATE',
   },
   MapLabelKind: { Region: 'REGION', Constellation: 'CONSTELLATION' },
+  MapOwnerKind: {
+    Alliance: 'ALLIANCE',
+    Faction: 'FACTION',
+    Corporation: 'CORPORATION',
+  },
   useMapGeometryQuery: () => useMapGeometryQuery(),
+  // The layer switch starts on `security`, so the hook is always skipped in
+  // these tests; it still has to exist, because the module is mocked whole.
+  useMapSovereigntyQuery: (options: { skip?: boolean }) => {
+    sovQueries.push({ skip: !!options.skip });
+    return { data: undefined };
+  },
   useMapCelestialsQuery: () => ({ data: { mapCelestials: [] } }),
   useMapLabelsQuery: (options: {
     variables: { kind: string };
@@ -76,10 +89,14 @@ vi.mock('./scene/createScene', () => ({
 vi.mock('./scene/systems', () => ({
   buildSystems: vi.fn(),
   scaleSystems: vi.fn(),
+  applyLayer: vi.fn(),
+  applyLogos: vi.fn(),
 }));
+vi.mock('./scene/logoAtlas', () => ({ buildLogoAtlas: vi.fn() }));
 const drawHighlight = vi.fn();
 vi.mock('./scene/edges', () => ({
   drawEdges: vi.fn(),
+  drawEdgeGroups: vi.fn(),
   drawHighlight: (...args: unknown[]) => drawHighlight(...args),
 }));
 vi.mock('./scene/celestials', () => ({
@@ -203,6 +220,7 @@ beforeEach(() => {
   createScene.mockResolvedValue(scene);
   searchParams = new URLSearchParams('');
   labelQueries = [];
+  sovQueries = [];
   detailsQueries = [];
   drawHighlight.mockClear();
 });

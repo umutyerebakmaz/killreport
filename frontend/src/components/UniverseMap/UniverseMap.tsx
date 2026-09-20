@@ -22,6 +22,12 @@ import {
 } from '@/utils/map/edges';
 import { framingFor } from '@/utils/map/framing';
 import { labelCandidates, placeLabels } from '@/utils/map/labels';
+import {
+  groupSegmentsByTint,
+  MAP_LAYERS,
+  type MapLayerData,
+  type MapLayerId,
+} from '@/utils/map/layers';
 import { layerVisibility, lodBucket, visibleLabelTiers } from '@/utils/map/lod';
 import { createLabelMeasurer, whenLabelFontsReady } from '@/utils/map/measure';
 import { boundsCenter, nearestNode, originFor } from '@/utils/map/origin';
@@ -44,8 +50,11 @@ import {
   type CelestialSprites,
 } from './scene/celestials';
 import { createScene, type MapScene } from './scene/createScene';
-import { drawEdges, drawHighlight } from './scene/edges';
+import { drawEdgeGroups, drawEdges, drawHighlight } from './scene/edges';
+import { buildLogoAtlas, type LogoAtlas } from './scene/logoAtlas';
 import {
+  applyLayer,
+  applyLogos,
   buildSystems,
   scaleSystems,
   type SystemSprites,
@@ -56,6 +65,12 @@ import { useMapCamera } from './useMapCamera';
 import { useMapCelestials } from './useMapCelestials';
 import { useMapLabels } from './useMapLabels';
 import { useMapPointer, type MapPick } from './useMapPointer';
+import { useMapSovereignty } from './useMapSovereignty';
+import MapLayerSwitch from './MapLayerSwitch';
+import SovLegend from './SovLegend';
+
+/** Stable empty lookup, so a map with no sovereignty data allocates nothing. */
+const EMPTY_OWNERS = new Map<number, number>();
 
 function MapMessage({ children }: { children: React.ReactNode }) {
   return (
@@ -67,6 +82,10 @@ function MapMessage({ children }: { children: React.ReactNode }) {
 
 export default function UniverseMap({ scope }: { scope: MapScope }) {
   const [webgl] = useState(isWebgl2Available);
+  // The layer lives in component state, not the URL: `scope`, the camera and
+  // `?focus=` are all in the URL because they are what a shared link has to
+  // carry, and which colouring the sender happened to be looking at is not.
+  const [layerId, setLayerId] = useState<MapLayerId>('security');
   const [size, setSize] = useState({ width: 0, height: 0 });
   // The host div is held in state, not a ref, because the scene is built from
   // it: it renders behind the loading, error and empty-scene returns below, so
@@ -106,6 +125,12 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // The hovered system is held as a full PickTarget: the tip follows the
   // cursor, so its position is refreshed by the next hover anyway.
   const [hovered, setHovered] = useState<PickTarget | null>(null);
+
+  // The logo atlas: a long-lived GPU object, so a ref for the same reason the
+  // scene is one. `atlasReady` is the render-visible signal that stands in for
+  // "the ref now points at something".
+  const atlas = useRef<LogoAtlas | null>(null);
+  const [atlasReady, setAtlasReady] = useState(false);
 
   // The area — a region or a constellation — whose name the pointer is resting
   // on, or null. A hover, so it is never anything to dismiss: the map returns
@@ -192,6 +217,25 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   const celestials = useMapCelestials(celestialSystemIds);
 
   const { regions, constellations } = useMapLabels(scope, camera?.zoom ?? null);
+
+  const layer = MAP_LAYERS[layerId];
+  const { index: sovIndex, owners: sovOwners } = useMapSovereignty(
+    scope,
+    layerId === 'sovereignty',
+  );
+
+  // One object for both the marks and the mesh, so the two can never be
+  // reading different sovereignty.
+  const layerData = useMemo<MapLayerData>(
+    () => ({ sovereignty: sovIndex }),
+    [sovIndex],
+  );
+
+  // A boolean, not the zoom: this is what the logo pass keys on, so the
+  // threshold fires once on the way in and once on the way out instead of on
+  // every wheel tick — 5,241 texture writes a tick is exactly what the spec's
+  // "eşik geçişi yalnızca bir kez" line is about.
+  const showLogos = camera ? layer.usesLogos(camera.zoom) : false;
 
   // Hoisted out of the label effect below: it would otherwise re-map all
   // 5,241 nodes into LabelSource objects on every camera change (every
@@ -338,6 +382,9 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       setFontsReady(false);
       systemSprites.current = null;
       celestialSprites.current = null;
+      atlas.current?.destroy();
+      atlas.current = null;
+      setAtlasReady(false);
     };
   }, [webgl, host]);
 
@@ -487,12 +534,67 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       geometry.nodes,
       cameraScale.current,
     );
-    drawEdges(
+  }, [sceneReady, geometry, galaxyMesh]);
+
+  // The galaxy mesh, coloured by the layer. Its own effect and not part of the
+  // build above: a layer change must not rebuild 5,241 sprites, and the mesh
+  // has to be redrawn for a change the sprites would not notice — two systems
+  // changing hands recolours the gate between them.
+  //
+  // Still build-once with respect to the camera: `pixelLine: true` keeps the
+  // stroke one pixel at every scale, so no zoom touches this.
+  useEffect(() => {
+    if (!scene.current || !galaxyMesh) return;
+    drawEdgeGroups(
       scene.current.edgesGalaxy,
-      galaxyMesh.segments,
+      groupSegmentsByTint(galaxyMesh.segments, layer, layerData),
       galaxyMesh.origin,
     );
-  }, [sceneReady, geometry, galaxyMesh]);
+  }, [sceneReady, galaxyMesh, layer, layerData]);
+
+  // Built the first time the logos are actually wanted, and once per session.
+  // Someone who looks at the galaxy from far out downloads none of the 80
+  // images; someone who zooms in downloads them once and keeps them across
+  // every later crossing of the threshold.
+  useEffect(() => {
+    if (!showLogos || atlas.current || sovOwners.length === 0) return;
+    let live = true;
+
+    buildLogoAtlas(
+      sovOwners.map((owner) => ({ ownerId: owner.ownerId, kind: owner.kind })),
+    ).then((built) => {
+      if (!live) {
+        built?.destroy();
+        return;
+      }
+      atlas.current = built;
+      setAtlasReady(built !== null);
+    });
+
+    return () => {
+      live = false;
+    };
+  }, [showLogos, sovOwners]);
+
+  // The marks. Both passes in one effect and in this order on purpose: the
+  // layer writes every tint, then the logo pass whitens only the sprites that
+  // ended up showing a logo of their own. Split in two, a layer-data change
+  // would rewrite the tints without the second pass running, and every logo
+  // would be multiplied by its owner's colour.
+  useEffect(() => {
+    if (!scene.current || !geometry || !systemSprites.current) return;
+
+    applyLayer(systemSprites.current, geometry.nodes, layer, layerData);
+    applyLogos(
+      systemSprites.current,
+      geometry.nodes,
+      scene.current.dot,
+      atlas.current,
+      showLogos,
+      sovIndex?.ownerBySystem ?? EMPTY_OWNERS,
+      cameraScale.current,
+    );
+  }, [sceneReady, geometry, layer, layerData, showLogos, atlasReady, sovIndex]);
 
   // What the pointer is resting on, at whichever tier it found something.
   //
@@ -670,6 +772,16 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
         hovered ? 'cursor-pointer' : ''
       }`}
     >
+      {/* Over the canvas, out of the pointer's way: the map's own pan and zoom
+          listeners are on the host, so anything drawn here has to stop its
+          events from reaching them — hence the wrapper's own pointer-events. */}
+      <div className="absolute top-3 left-3 z-10 flex flex-col gap-y-2">
+        <MapLayerSwitch value={layerId} onChange={setLayerId} />
+        {layer.legend.kind === 'owners' && (
+          <SovLegend owners={sovOwners} max={layer.legend.max} />
+        )}
+      </div>
+
       {/* No tip over the selected system: the popup already says its name, and
           larger. */}
       {hovered && camera && hovered.node.systemId !== selected && (

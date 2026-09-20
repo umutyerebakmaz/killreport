@@ -2643,6 +2643,13 @@ export type MapLabelsQueryVariables = Exact<{
 
 export type MapLabelsQuery = { __typename?: 'Query', mapLabels: Array<{ __typename?: 'MapLabel', id: number, name: string, kind: MapLabelKind, x: number, z: number, systemId?: number | null, bounds?: { __typename?: 'MapBounds', minX: number, maxX: number, minZ: number, maxZ: number } | null }> };
 
+export type MapSovereigntyQueryVariables = Exact<{
+  scope: MapScope;
+}>;
+
+
+export type MapSovereigntyQuery = { __typename?: 'Query', mapSovereignty: { __typename?: 'MapSovereignty', scope: MapScope, updatedAt?: string | null, owners: Array<{ __typename?: 'MapSovOwner', ownerId: number, kind: MapOwnerKind, name: string, ticker?: string | null, systemCount: number }>, systems: Array<{ __typename?: 'MapSovSystem', systemId: number, ownerId: number }> } };
+
 export type MapSystemDetailsQueryVariables = Exact<{
   systemId: Scalars['Int']['input'];
 }>;
@@ -5984,6 +5991,61 @@ export type MapLabelsQueryHookResult = ReturnType<typeof useMapLabelsQuery>;
 export type MapLabelsLazyQueryHookResult = ReturnType<typeof useMapLabelsLazyQuery>;
 export type MapLabelsSuspenseQueryHookResult = ReturnType<typeof useMapLabelsSuspenseQuery>;
 export type MapLabelsQueryResult = Apollo.QueryResult<MapLabelsQuery, MapLabelsQueryVariables>;
+export const MapSovereigntyDocument = gql`
+    query MapSovereignty($scope: MapScope!) {
+  mapSovereignty(scope: $scope) {
+    scope
+    updatedAt
+    owners {
+      ownerId
+      kind
+      name
+      ticker
+      systemCount
+    }
+    systems {
+      systemId
+      ownerId
+    }
+  }
+}
+    `;
+
+/**
+ * __useMapSovereigntyQuery__
+ *
+ * To run a query within a React component, call `useMapSovereigntyQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMapSovereigntyQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMapSovereigntyQuery({
+ *   variables: {
+ *      scope: // value for 'scope'
+ *   },
+ * });
+ */
+export function useMapSovereigntyQuery(baseOptions: Apollo.QueryHookOptions<MapSovereigntyQuery, MapSovereigntyQueryVariables> & ({ variables: MapSovereigntyQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MapSovereigntyQuery, MapSovereigntyQueryVariables>(MapSovereigntyDocument, options);
+      }
+export function useMapSovereigntyLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MapSovereigntyQuery, MapSovereigntyQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MapSovereigntyQuery, MapSovereigntyQueryVariables>(MapSovereigntyDocument, options);
+        }
+// @ts-ignore
+export function useMapSovereigntySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MapSovereigntyQuery, MapSovereigntyQueryVariables>): Apollo.UseSuspenseQueryResult<MapSovereigntyQuery, MapSovereigntyQueryVariables>;
+export function useMapSovereigntySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MapSovereigntyQuery, MapSovereigntyQueryVariables>): Apollo.UseSuspenseQueryResult<MapSovereigntyQuery | undefined, MapSovereigntyQueryVariables>;
+export function useMapSovereigntySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MapSovereigntyQuery, MapSovereigntyQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MapSovereigntyQuery, MapSovereigntyQueryVariables>(MapSovereigntyDocument, options);
+        }
+export type MapSovereigntyQueryHookResult = ReturnType<typeof useMapSovereigntyQuery>;
+export type MapSovereigntyLazyQueryHookResult = ReturnType<typeof useMapSovereigntyLazyQuery>;
+export type MapSovereigntySuspenseQueryHookResult = ReturnType<typeof useMapSovereigntySuspenseQuery>;
+export type MapSovereigntyQueryResult = Apollo.QueryResult<MapSovereigntyQuery, MapSovereigntyQueryVariables>;
 export const MapSystemDetailsDocument = gql`
     query MapSystemDetails($systemId: Int!) {
   mapSystemDetails(systemId: $systemId) {
