@@ -16,13 +16,13 @@ export const LOGO_ATLAS_COLUMNS = 10;
 /**
  * The smallest a logo is drawn, in pixels of radius.
  *
- * 20 px — half of the 40 the first pass at this used, by the user's call on
- * 2026-09-20 once they saw it on the map. Still well over the 8 px it started
- * at: a crest has to be legible, and the disc behind it has to be a mark
- * rather than a blob. Past the approach the system's own disc overtakes this,
- * which is why it is a floor and not a size.
+ * Tuned by looking, on 2026-09-20: 8 to start with, 40 when the user asked for
+ * five times that, then 20, and 16 here — a 32 px mark. A crest has to be
+ * legible, and the disc behind it has to read as a mark rather than a blob.
+ * Past the approach the system's own disc overtakes this, which is why it is a
+ * floor and not a size.
  */
-export const LOGO_MIN_RADIUS_PX = 20;
+export const LOGO_MIN_RADIUS_PX = 16;
 
 /**
  * How much wider than the logo the owner's disc is drawn, in screen pixels.
