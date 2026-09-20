@@ -55,15 +55,17 @@ export default function SovLegend({ owners }: { owners: readonly Owner[] }) {
         type="button"
         onClick={() => setOpen((was) => !was)}
         aria-expanded={open}
-        // No focus ring: this app shows focus the way hover looks.
-        className="flex shrink-0 items-center gap-x-2 px-3 py-2 text-ink-muted transition-colors hover:text-gray-100"
+        // The app's button vocabulary, as the layer switch above it wears.
+        // No `aria-pressed`: this opens a panel, it is not a segment of a
+        // group, and buttons.css reserves the selected fill for that.
+        className="button button-ghost button-sm button-block shrink-0 gap-x-2"
       >
         {open ? (
           <ChevronDownIcon className="size-4" />
         ) : (
           <ChevronRightIcon className="size-4" />
         )}
-        <span className="flex-1 text-left text-gray-100">Sovereignty</span>
+        <span className="flex-1 text-left">Sovereignty</span>
         <span className="tabular-nums">{owners.length}</span>
       </button>
 
@@ -100,9 +102,7 @@ export default function SovLegend({ owners }: { owners: readonly Owner[] }) {
                   size={CREST_PX}
                 />
               </span>
-              <span className="flex-1 truncate text-gray-100">
-                {owner.name}
-              </span>
+              <span className="flex-1 truncate text-ink">{owner.name}</span>
               <span className="text-ink-muted tabular-nums">
                 {owner.systemCount}
               </span>
