@@ -60,7 +60,7 @@ so the ordering is structural and needs no checking code.
 ## Message contracts
 
 Defined in [`topology-messages.ts`](../../src/queues/topology-messages.ts). Every
-message carries the common envelope `{ queuedAt, source, attempts? }`.
+message carries the common envelope `{ queuedAt, source }`.
 
 `esi_solar_systems_queue` is the exception and stays a **plain integer**. It is a
 root scan fed by an ESI list endpoint, so there is no parent to carry.
@@ -89,37 +89,53 @@ write would be pure cost on `moons`, the largest table in the topology.
 
 ## Errors and retries
 
-| Case                                       | Behaviour                                                                                                                |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| **404**                                    | The ID is dead at ESI. Write the row from the message (`name: null`) and ack - the topology fact is still authoritative. |
-| **420 / error limit**                      | Wait 60 s, `nack(requeue)`. No attempt is burned.                                                                        |
-| **Foreign key violation** (Prisma `P2003`) | Retryable: the parent row has not arrived yet. Increment `attempts` and republish.                                       |
-| **Other** (5xx, timeout, unexpected)       | Increment `attempts` and republish.                                                                                      |
-| **`attempts` > 5**                         | Publish to `esi_topology_dlq` and ack. Never silently discarded.                                                         |
+| Case                                                                                                                                      | Behaviour                                                                                                                                                                              |
+| ----------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **404**                                                                                                                                   | The ID is dead at ESI. Write the row from the message (`name: null`) and ack - the topology fact is still authoritative.                                                               |
+| **420 / 429 (error limit)**                                                                                                               | Wait 60 s, `nack(msg, false, true)` (requeue, untouched). No delivery is burned.                                                                                                       |
+| **Any other error** (5xx, timeout, unexpected - including a foreign key violation while the parent row has not arrived yet)               | `nack(msg, false, false)`. RabbitMQ routes it `killreport.dlx` → `killreport.wait` (30 s TTL) → `killreport.retry` back to this queue, incrementing the broker's own `x-death` header. |
+| **5th delivery** (`x-death` count reaches `MAX_ATTEMPTS - 1`, i.e. 4 — parking forwards the header unchanged rather than incrementing it) | Published onto `killreport.parking` and acked. Never silently discarded.                                                                                                               |
 
-The shared implementation is `handleWorkerError()` in `topology-messages.ts`. It
-replaces the `channel.nack(msg, false, false)` every worker used to copy, which
-discarded the message outright.
+The shared implementation is `handleWorkerError()` in
+[`worker-error.ts`](../../src/workers/worker-error.ts) - the same function
+every other worker in the app uses, not a topology-specific one. It replaced
+an earlier topology-only `handleWorkerError()` that lived in
+`topology-messages.ts`, counted attempts inside the message payload, and
+dead-lettered to a now-retired queue, `esi_topology_dlq` (see
+[`../ops/rabbitmq.md`](../ops/rabbitmq.md), "Retired: `esi_topology_dlq`").
+Both replaced the plain `channel.nack(msg, false, false)` every worker
+originally used on its own, which discarded the message outright with no
+retry and no record.
 
-`attempts` is carried in the envelope and incremented by **republishing** rather
-than requeueing, because a requeue cannot change the message body.
+The attempt count is no longer carried in the envelope. `deathCount()` in
+`worker-error.ts` reads it straight from the broker's `x-death` header, which
+RabbitMQ writes on every dead-letter hop for free - the message body never
+has to carry its own retry counter.
 
-### Why the DLQ is not an x-dead-letter-exchange
+### Why parking is a policy, not a queue argument
 
-Setting `x-dead-letter-exchange` means changing a queue's arguments. Those
-arguments must match what `ensureAllQueuesExist()` already declared
-(`x-max-priority: 10`), and a mismatch fails with
-`406 PRECONDITION_FAILED` - the error that left three workers unable to start in
-PR #135. The DLQ is therefore written by an explicit publish.
+Setting `x-dead-letter-exchange` directly on a queue means changing that
+queue's arguments. Those arguments must match what `ensureAllQueuesExist()`
+already declared (`x-max-priority: 10`), and a mismatch fails with
+`406 PRECONDITION_FAILED` - the error that left three workers unable to start
+in PR #135. The dead-letter exchange these queues use is therefore attached
+by a RabbitMQ **policy** (`killreport-dlx`, matched against queue names at
+runtime, not part of a queue's declared arguments) rather than by a queue
+argument, so it applies to every existing queue with no redeclaration. See
+[`../ops/rabbitmq.md`](../ops/rabbitmq.md) for how the policy is applied and
+why.
 
 ## Queue registration
 
-All seven queues - the six celestial ones plus `esi_topology_dlq` - are listed in
-[`rabbitmq.ts`](../../src/services/rabbitmq.ts), in **both** lists:
-
-- `ALL_QUEUES` drives `ensureAllQueuesExist()` at server startup.
-- The separate list inside `getAllQueueStats()` is what the `workerStatus` query
-  reads. Registering only the first opens the queues without reporting them.
+All six celestial queues are listed once, in `ALL_QUEUES` in
+[`queue-names.ts`](../../src/services/queue-names.ts) - the single source of
+truth both `ensureAllQueuesExist()` (declares every queue at server startup)
+and `getAllQueueStats()` (what the `workerStatus` query reads) draw from.
+There used to be a second, separately-hardcoded list inside
+`getAllQueueStats()` that could drift from `ALL_QUEUES`; that risk is why
+`queue-names.ts` exists at all. `esi_topology_dlq` was a seventh queue here
+until it was retired - see
+[`../ops/rabbitmq.md`](../ops/rabbitmq.md), "Retired: `esi_topology_dlq`".
 
 Check depths with:
 
@@ -138,8 +154,8 @@ Check depths with:
 ## What "done" means
 
 The root scan finishing is **no longer** "the system queue is empty". Moon and
-belt rows are born one hop later, so the ingest is complete only when **all seven
-queues are empty at once**. Watch `workerStatus`, not just
+belt rows are born one hop later, so the ingest is complete only when **all six
+celestial queues are empty at once**. Watch `workerStatus`, not just
 `esi_solar_systems_queue`.
 
 ## Running it
@@ -204,5 +220,6 @@ yarn doctor:topology
 ```
 
 That prints orphaned cross-pipeline references, the `name IS NULL` count per
-table with the repair command for each, and the depth of the dead letter queue -
-which is silent data loss if nobody looks at it.
+table with the repair command for each, and the depth of the shared parking
+queue (`killreport.parking`, not topology-only) - which is silent data loss if
+nobody looks at it.

@@ -1632,12 +1632,23 @@ export type QueryUserArgs = {
   id: Scalars['ID']['input'];
 };
 
+/** Bir kuyruğun sayılarından okunabilen durumu. */
+export enum QueueHealth {
+  Ok = 'OK',
+  Stalled = 'STALLED'
+}
+
 export type QueueStatus = {
   __typename?: 'QueueStatus';
   /** Is there at least one active consumer */
   active: Scalars['Boolean']['output'];
   /** Number of active consumers processing from this queue */
   consumerCount: Scalars['Int']['output'];
+  /**
+   * Kuyruğun kendi sayılarından çıkan durumu. STALLED = mesaj var, tüketici yok.
+   * `killreport.wait` ve `killreport.parking` muaf: işleri mesaj tutmak.
+   */
+  health: QueueHealth;
   /** Number of messages waiting to be processed */
   messageCount: Scalars['Int']['output'];
   /** Name of the queue */
@@ -2972,17 +2983,17 @@ export type TopSystemsQuery = { __typename?: 'Query', topSystems: Array<{ __type
 export type WorkerStatusSubscriptionSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type WorkerStatusSubscriptionSubscription = { __typename?: 'Subscription', workerStatusUpdates: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, databaseSizeMB: number, redis?: { __typename?: 'RedisMetrics', connected: boolean, memoryUsage: string, totalKeys: number, connectedClients: number, totalCommandsProcessed: number, commandsPerSecond: number, uptimeInSeconds: number } | null, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean, workerRunning: boolean, workerPid?: number | null, workerName?: string | null }>, standaloneWorkers: Array<{ __typename?: 'StandaloneWorkerStatus', name: string, running: boolean, pid?: number | null, description: string }> } };
+export type WorkerStatusSubscriptionSubscription = { __typename?: 'Subscription', workerStatusUpdates: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, databaseSizeMB: number, redis?: { __typename?: 'RedisMetrics', connected: boolean, memoryUsage: string, totalKeys: number, connectedClients: number, totalCommandsProcessed: number, commandsPerSecond: number, uptimeInSeconds: number } | null, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean, health: QueueHealth, workerRunning: boolean, workerPid?: number | null, workerName?: string | null }>, standaloneWorkers: Array<{ __typename?: 'StandaloneWorkerStatus', name: string, running: boolean, pid?: number | null, description: string }> } };
 
 export type WorkerStatusUpdatesSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type WorkerStatusUpdatesSubscription = { __typename?: 'Subscription', workerStatusUpdates: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, databaseSizeMB: number, redis?: { __typename?: 'RedisMetrics', memoryUsage: string, totalKeys: number, connectedClients: number, uptimeInSeconds: number } | null, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean }> } };
+export type WorkerStatusUpdatesSubscription = { __typename?: 'Subscription', workerStatusUpdates: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, databaseSizeMB: number, redis?: { __typename?: 'RedisMetrics', memoryUsage: string, totalKeys: number, connectedClients: number, uptimeInSeconds: number } | null, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean, health: QueueHealth }> } };
 
 export type WorkerStatusQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type WorkerStatusQuery = { __typename?: 'Query', workerStatus: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean }> } };
+export type WorkerStatusQuery = { __typename?: 'Query', workerStatus: { __typename?: 'WorkerStatus', timestamp: string, healthy: boolean, queues: Array<{ __typename?: 'QueueStatus', name: string, messageCount: number, consumerCount: number, active: boolean, health: QueueHealth }> } };
 
 
 export const AllianceDocument = gql`
@@ -8455,6 +8466,7 @@ export const WorkerStatusSubscriptionDocument = gql`
       messageCount
       consumerCount
       active
+      health
       workerRunning
       workerPid
       workerName
@@ -8507,6 +8519,7 @@ export const WorkerStatusUpdatesDocument = gql`
       messageCount
       consumerCount
       active
+      health
     }
   }
 }
@@ -8543,6 +8556,7 @@ export const WorkerStatusDocument = gql`
       messageCount
       consumerCount
       active
+      health
     }
   }
 }

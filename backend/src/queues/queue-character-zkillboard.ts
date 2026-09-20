@@ -1,5 +1,5 @@
 import logger from '@services/logger';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 
 const QUEUE_NAME = 'zkillboard_character_queue';
 
@@ -25,6 +25,7 @@ async function queueCharacter() {
   logger.info(`Character: ${characterName} (${characterId})`);
 
   try {
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
 
     const message = {

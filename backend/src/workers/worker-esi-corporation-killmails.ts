@@ -6,7 +6,8 @@ import { KillmailService } from '@services/killmail/killmail.service';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { pubsub } from '@services/pubsub';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
+import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'esi_corporation_killmails_queue';
 const PREFETCH_COUNT = 1; // Process 1 corporation at a time to avoid rate limiting
@@ -49,15 +50,8 @@ export async function esiCorporationKillmailWorker() {
   );
 
   try {
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    // Assert queue
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      arguments: {
-        'x-max-priority': 10,
-      },
-    });
 
     // Set prefetch to limit concurrent processing
     channel.prefetch(PREFETCH_COUNT);
@@ -76,10 +70,12 @@ export async function esiCorporationKillmailWorker() {
 
         logger.info('📨 Received message from queue!');
 
+        let message: CorporationKillmailMessage | undefined;
+
         try {
-          const message: CorporationKillmailMessage = JSON.parse(
+          message = JSON.parse(
             msg.content.toString(),
-          );
+          ) as CorporationKillmailMessage;
 
           logger.info(`\n${'━'.repeat(70)}`);
           logger.info(
@@ -164,23 +160,18 @@ export async function esiCorporationKillmailWorker() {
           // Acknowledge message
           channel.ack(msg);
           logger.info(`✅ Completed: ${message.corporationName}\n`);
-        } catch (error: any) {
-          logger.error(`❌ Failed to process message:`, error.message);
-
-          // Only requeue if it's a transient error (network, database, etc.)
-          // Don't requeue auth errors or permission errors
-          if (
-            error.message.includes('Token') ||
-            error.message.includes('403') ||
-            error.message.includes('401') ||
-            error.message.includes('Forbidden')
-          ) {
-            logger.error(`  ⏭️  Skipping - authentication/permission error`);
-            channel.ack(msg); // Don't retry auth/permission errors
-          } else {
-            logger.error(`  🔄 Requeuing for retry...`);
-            channel.nack(msg, false, true); // Requeue for transient errors
-          }
+        } catch (error) {
+          // A malformed message throws here too - JSON.parse is inside the
+          // try, so it settles through the same shared path rather than
+          // escaping the consumer callback unhandled and unsettled.
+          // 404, the 420 backoff and the attempt count all live in the
+          // shared path now; this worker only says which message it was.
+          await handleWorkerError(channel, msg, QUEUE_NAME, error, {
+            warn: (m) =>
+              logger.warn(`  ${m} (corporation ${message?.corporationId})`),
+            error: (m, e) =>
+              logger.error(`  ${m} (corporation ${message?.corporationId})`, e),
+          });
         }
       },
       { noAck: false },

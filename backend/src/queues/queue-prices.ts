@@ -1,6 +1,6 @@
 import logger from '@services/logger';
 import prisma from '@services/prisma';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 
 const QUEUE_NAME = 'esi_type_price_queue';
 const BATCH_SIZE = 100;
@@ -37,13 +37,8 @@ async function queuePrices() {
     logger.info(`Total unique types to queue: ${typeIds.length}`);
     logger.info(`Adding to queue: ${QUEUE_NAME}`);
 
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    // Ensure queue exists
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      arguments: { 'x-max-priority': 10 },
-    });
 
     // Add to queue in batches with proper message format
     for (let i = 0; i < typeIds.length; i += BATCH_SIZE) {

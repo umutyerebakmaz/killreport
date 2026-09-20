@@ -1,6 +1,6 @@
 import { ItemGroupService } from '@services/item-group';
 import logger from '@services/logger';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 
 const QUEUE_NAME = 'esi_item_group_info_queue';
 const BATCH_SIZE = 100;
@@ -19,13 +19,8 @@ async function queueItemGroups() {
     logger.info(`Found ${itemGroupIds.length} item groups`);
     logger.info(`Adding to queue: ${QUEUE_NAME}`);
 
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    // Ensure queue exists
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      arguments: { 'x-max-priority': 10 },
-    });
 
     // Add to queue in batches with proper message format
     for (let i = 0; i < itemGroupIds.length; i += BATCH_SIZE) {

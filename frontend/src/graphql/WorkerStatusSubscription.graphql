@@ -17,6 +17,7 @@ subscription WorkerStatusSubscription {
       messageCount
       consumerCount
       active
+      health
       workerRunning
       workerPid
       workerName

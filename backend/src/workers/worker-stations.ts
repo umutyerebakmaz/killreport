@@ -14,14 +14,13 @@
 import { config } from '@config/config';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import { UniverseService } from '@services/universe/universe.service';
 import {
-  assertTopologyQueue,
-  handleWorkerError,
   parseTopologyMessage,
   type StationMessage,
 } from '../queues/topology-messages';
+import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'esi_stations_queue';
 // Concurrency, not a rate limit - esiRateLimiter owns the dispatch ceiling.
@@ -45,9 +44,8 @@ async function stationsWorker() {
   );
 
   try {
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    await assertTopologyQueue(channel, QUEUE_NAME);
 
     channel.prefetch(PREFETCH_COUNT);
 
@@ -173,25 +171,23 @@ async function stationsWorker() {
                   },
                 });
                 channel.ack(msg);
-              } catch (writeError: any) {
-                await handleWorkerError(
-                  channel,
-                  msg,
-                  payload,
-                  QUEUE_NAME,
-                  writeError,
-                  logger,
-                );
+              } catch (writeError) {
+                // 404, the 420 backoff and the attempt count all live in the
+                // shared path now; this worker only says which message it was.
+                await handleWorkerError(channel, msg, QUEUE_NAME, writeError, {
+                  warn: (m) => logger.warn(`  ${m} (station ${stationId})`),
+                  error: (m, e) =>
+                    logger.error(`  ${m} (station ${stationId})`, e),
+                });
               }
             } else {
-              await handleWorkerError(
-                channel,
-                msg,
-                payload,
-                QUEUE_NAME,
-                error,
-                logger,
-              );
+              // 404, the 420 backoff and the attempt count all live in the
+              // shared path now; this worker only says which message it was.
+              await handleWorkerError(channel, msg, QUEUE_NAME, error, {
+                warn: (m) => logger.warn(`  ${m} (station ${stationId})`),
+                error: (m, e) =>
+                  logger.error(`  ${m} (station ${stationId})`, e),
+              });
             }
           }
         } finally {

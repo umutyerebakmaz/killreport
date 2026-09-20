@@ -1,5 +1,6 @@
 import { config } from '@config/config';
 import amqp from 'amqplib';
+import { ALL_QUEUES, RETRY_TOPOLOGY, TOPOLOGY_QUEUES } from './queue-names';
 
 let channel: amqp.Channel | null = null;
 let connection: amqp.Connection | null = null;
@@ -9,40 +10,6 @@ let monitoringConnection: amqp.Connection | null = null;
 let monitoringChannel: amqp.Channel | null = null;
 let lastConnectionAttempt = 0;
 const CONNECTION_RETRY_DELAY = 2000; // 2 seconds between retry attempts (frontend polls every 5s)
-
-// All queues used in the system
-const ALL_QUEUES = [
-  // ESI Info Workers (entity enrichment)
-  'esi_alliance_info_queue',
-  'esi_character_info_queue',
-  'esi_corporation_info_queue',
-  'esi_type_info_queue',
-  'esi_category_info_queue',
-  'esi_item_group_info_queue',
-
-  // ESI Sync Workers
-  'esi_alliance_corporations_queue',
-
-  // ESI Universe Workers
-  'esi_regions_queue',
-  'esi_constellations_queue',
-  'esi_solar_systems_queue',
-
-  // ESI Universe Topology Chain (celestial queues + dead letter queue)
-  'esi_stars_queue',
-  'esi_planets_queue',
-  'esi_moons_queue',
-  'esi_asteroid_belts_queue',
-  'esi_stargates_queue',
-  'esi_stations_queue',
-  'esi_topology_dlq',
-
-  // zKillboard Workers
-  'zkillboard_character_queue',
-
-  // Maintenance & Backfill Workers
-  'backfill_killmail_values_queue',
-];
 
 export async function getRabbitMQChannel(): Promise<amqp.Channel> {
   if (channel) {
@@ -133,7 +100,11 @@ async function getMonitoringChannel(): Promise<amqp.Channel | null> {
 export async function publishToQueue(queueName: string, message: string) {
   try {
     const ch = await getRabbitMQChannel();
-    await ch.assertQueue(queueName, { durable: true });
+    // No assertQueue here. It passed `{ durable: true }` with NO
+    // x-max-priority, which disagrees with ensureAllQueuesExist()'s
+    // declaration — it only ever worked because the server declares every
+    // queue correctly at startup, before this runs. Reverse that order once
+    // and it is a 406. Declaration lives in ensureAllQueuesExist() alone.
     ch.sendToQueue(queueName, Buffer.from(message), { persistent: true });
   } catch (error) {
     console.error('Failed to publish message to queue', error);
@@ -150,11 +121,48 @@ export async function ensureAllQueuesExist(): Promise<void> {
 
     console.log('📋 Ensuring all RabbitMQ queues exist...');
 
+    // The dead letter exchange is a FANOUT and the retry exchange is a
+    // DIRECT, and the pair is the whole trick. A message carries its origin
+    // queue's name as its routing key (sendToQueue publishes to the default
+    // exchange with the queue name as the key), and RabbitMQ preserves that
+    // key across a dead-letter hop. Fanout ignores the key, so one wait queue
+    // catches them all without a binding per queue; the key survives the wait,
+    // so the direct retry exchange sends the message back to exactly the
+    // queue it failed in. A direct dlx would route on the origin queue's name,
+    // the wait queue is bound under no such name, and every failure would be
+    // dropped on its first attempt.
+    await ch.assertExchange(RETRY_TOPOLOGY.dlx, 'fanout', { durable: true });
+    await ch.assertExchange(RETRY_TOPOLOGY.retry, 'direct', { durable: true });
+
+    // The wait queue has no consumer: the TTL is the delay, and expiry
+    // dead-letters the message on to the retry exchange, which routes it back
+    // to the queue it came from.
+    await ch.assertQueue(RETRY_TOPOLOGY.wait, {
+      durable: true,
+      arguments: {
+        'x-max-priority': 10,
+        'x-message-ttl': RETRY_TOPOLOGY.waitTtlMs,
+        'x-dead-letter-exchange': RETRY_TOPOLOGY.retry,
+      },
+    });
+
+    await ch.assertQueue(RETRY_TOPOLOGY.parking, {
+      durable: true,
+      arguments: { 'x-max-priority': 10 },
+    });
+
+    // Empty routing key, which is what a fanout binding takes: it binds the
+    // wait queue to everything the dead letter exchange receives.
+    await ch.bindQueue(RETRY_TOPOLOGY.wait, RETRY_TOPOLOGY.dlx, '');
+
     for (const queueName of ALL_QUEUES) {
       await ch.assertQueue(queueName, {
         durable: true,
         arguments: { 'x-max-priority': 10 },
       });
+      // Every application queue binds to the retry exchange under its own
+      // name, so an expired message returns to exactly where it failed.
+      await ch.bindQueue(queueName, RETRY_TOPOLOGY.retry, queueName);
     }
 
     console.log(`✅ All ${ALL_QUEUES.length} queues verified in RabbitMQ`);
@@ -241,40 +249,6 @@ export async function getAllQueueStats(): Promise<
     active: boolean;
   }>
 > {
-  const queues = [
-    // ESI Info Workers (entity enrichment)
-    'esi_alliance_info_queue',
-    'esi_character_info_queue',
-    'esi_corporation_info_queue',
-    'esi_type_info_queue',
-    'esi_category_info_queue',
-    'esi_item_group_info_queue',
-    'esi_type_price_queue',
-
-    // ESI Sync Workers
-    'esi_alliance_corporations_queue',
-
-    // ESI Universe Workers
-    'esi_regions_queue',
-    'esi_constellations_queue',
-    'esi_solar_systems_queue',
-
-    // ESI Universe Topology Chain (celestial queues + dead letter queue)
-    'esi_stars_queue',
-    'esi_planets_queue',
-    'esi_moons_queue',
-    'esi_asteroid_belts_queue',
-    'esi_stargates_queue',
-    'esi_stations_queue',
-    'esi_topology_dlq',
-
-    // zKillboard Workers
-    'zkillboard_character_queue',
-
-    // Maintenance & Backfill Workers
-    'backfill_killmail_values_queue',
-  ];
-
   const results: Array<{
     name: string;
     messageCount: number;
@@ -285,7 +259,7 @@ export async function getAllQueueStats(): Promise<
   let hasConnectionError = false;
 
   // Check each queue sequentially to avoid connection issues
-  for (const queueName of queues) {
+  for (const queueName of [...ALL_QUEUES, ...TOPOLOGY_QUEUES]) {
     try {
       const { messageCount, consumerCount, exists } =
         await getQueueStats(queueName);

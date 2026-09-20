@@ -124,14 +124,6 @@ export class UserKillmailCron {
 
       const channel = await getRabbitMQChannel();
 
-      // Assert queue with priority support
-      await channel.assertQueue(QUEUE_NAME, {
-        durable: true,
-        arguments: {
-          'x-max-priority': 10,
-        },
-      });
-
       // Queue each user
       let queuedCount = 0;
       for (const user of users) {

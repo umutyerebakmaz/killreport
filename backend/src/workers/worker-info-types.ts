@@ -5,8 +5,9 @@
 
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import { TypeService } from '@services/type';
+import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'esi_type_info_queue';
 const PREFETCH_COUNT = 10; // Process 10 types concurrently
@@ -25,14 +26,10 @@ async function typeInfoWorker() {
   logger.info(`📦 Queue: ${QUEUE_NAME}`);
   logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
+  await ensureAllQueuesExist();
   while (!isShuttingDown) {
     try {
       const channel = await getRabbitMQChannel();
-
-      await channel.assertQueue(QUEUE_NAME, {
-        durable: true,
-        arguments: { 'x-max-priority': 10 },
-      });
 
       channel.prefetch(PREFETCH_COUNT);
 
@@ -138,21 +135,15 @@ async function typeInfoWorker() {
                 `📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`,
               );
             }
-          } catch (error: any) {
+          } catch (error) {
             totalErrors++;
             totalProcessed++;
-
-            if (error.message?.includes('404')) {
-              logger.warn(
-                `  ! [${totalProcessed}] Type ${message.entityId} (404)`,
-              );
-              channel.ack(msg);
-            } else {
-              logger.error(
-                `  × [${totalProcessed}] Type ${message.entityId}: ${error.message}`,
-              );
-              channel.nack(msg, false, true);
-            }
+            // 404, the 420 backoff and the attempt count all live in the
+            // shared path now; this worker only says which message it was.
+            await handleWorkerError(channel, msg, QUEUE_NAME, error, {
+              warn: (m) => logger.warn(`  ${m} (type ${typeId})`),
+              error: (m, e) => logger.error(`  ${m} (type ${typeId})`, e),
+            });
 
             if (totalProcessed % 100 === 0) {
               logger.info(

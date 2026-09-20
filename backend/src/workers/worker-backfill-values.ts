@@ -18,7 +18,8 @@
 import { calculateKillmailValues } from '@helpers/calculate-killmail-values';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
+import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'backfill_killmail_values_queue';
 const PREFETCH_COUNT = 10; // Process 10 killmails at a time
@@ -44,12 +45,8 @@ async function backfillValuesWorker() {
   let lastMessageTime = Date.now();
 
   try {
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      arguments: { 'x-max-priority': 10 },
-    });
 
     channel.prefetch(PREFETCH_COUNT);
 
@@ -205,14 +202,15 @@ async function backfillValuesWorker() {
               `Updated: ${totalUpdated} | Skipped: ${totalSkipped} | Errors: ${totalErrors}`,
           );
         }
-      } catch (error: any) {
+      } catch (error) {
         totalErrors++;
         totalProcessed++;
-        logger.error(
-          `❌ [${totalProcessed}] Killmail ${killmailId} failed:`,
-          error.message,
-        );
-        channel.ack(msg); // Ack to avoid reprocessing
+        // 404, the 420 backoff and the attempt count all live in the
+        // shared path now; this worker only says which message it was.
+        await handleWorkerError(channel, msg, QUEUE_NAME, error, {
+          warn: (m) => logger.warn(`  ${m} (killmail ${killmailId})`),
+          error: (m, e) => logger.error(`  ${m} (killmail ${killmailId})`, e),
+        });
       }
     });
 

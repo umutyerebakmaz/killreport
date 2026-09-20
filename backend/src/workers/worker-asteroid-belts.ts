@@ -8,7 +8,9 @@
  * link out of the /universe/systems/{id}/ nesting. Nothing else can recover it.
  *
  * Single write: nothing depends on a belt row, and a second write would be pure
- * cost. A lost message is covered by the DLQ and by re-running the root scan.
+ * cost. A message that keeps failing parks in killreport.parking after five
+ * deliveries, counted from the broker's own x-death header; re-running the
+ * root scan covers anything parked or otherwise lost.
  *
  * Usage: yarn worker:asteroid-belts
  */
@@ -16,14 +18,13 @@
 import { config } from '@config/config';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import { UniverseService } from '@services/universe/universe.service';
 import {
-  assertTopologyQueue,
-  handleWorkerError,
   parseTopologyMessage,
   type AsteroidBeltMessage,
 } from '../queues/topology-messages';
+import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'esi_asteroid_belts_queue';
 // Concurrency, not a rate limit - esiRateLimiter owns the dispatch ceiling.
@@ -47,9 +48,8 @@ async function asteroidBeltsWorker() {
   );
 
   try {
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    await assertTopologyQueue(channel, QUEUE_NAME);
 
     channel.prefetch(PREFETCH_COUNT);
 
@@ -178,25 +178,23 @@ async function asteroidBeltsWorker() {
                   },
                 });
                 channel.ack(msg);
-              } catch (writeError: any) {
-                await handleWorkerError(
-                  channel,
-                  msg,
-                  payload,
-                  QUEUE_NAME,
-                  writeError,
-                  logger,
-                );
+              } catch (writeError) {
+                // 404, the 420 backoff and the attempt count all live in the
+                // shared path now; this worker only says which message it was.
+                await handleWorkerError(channel, msg, QUEUE_NAME, writeError, {
+                  warn: (m) => logger.warn(`  ${m} (asteroid belt ${beltId})`),
+                  error: (m, e) =>
+                    logger.error(`  ${m} (asteroid belt ${beltId})`, e),
+                });
               }
             } else {
-              await handleWorkerError(
-                channel,
-                msg,
-                payload,
-                QUEUE_NAME,
-                error,
-                logger,
-              );
+              // 404, the 420 backoff and the attempt count all live in the
+              // shared path now; this worker only says which message it was.
+              await handleWorkerError(channel, msg, QUEUE_NAME, error, {
+                warn: (m) => logger.warn(`  ${m} (asteroid belt ${beltId})`),
+                error: (m, e) =>
+                  logger.error(`  ${m} (asteroid belt ${beltId})`, e),
+              });
             }
           }
         } finally {

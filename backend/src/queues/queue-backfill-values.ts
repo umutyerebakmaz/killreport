@@ -13,7 +13,7 @@
 
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 
 const QUEUE_NAME = 'backfill_killmail_values_queue';
 const BATCH_SIZE = 500; // Process in batches of 500
@@ -100,13 +100,8 @@ async function queueBackfillValues() {
     logger.info(`⚙️  Batch size: ${BATCH_SIZE}`);
     logger.info('');
 
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    // Ensure queue exists with priority support
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      arguments: { 'x-max-priority': 10 },
-    });
 
     logger.info('⏳ Fetching killmail IDs...');
 

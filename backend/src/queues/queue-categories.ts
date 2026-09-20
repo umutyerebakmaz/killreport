@@ -1,6 +1,6 @@
 import { CategoryService } from '@services/category';
 import logger from '@services/logger';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 
 const QUEUE_NAME = 'esi_category_info_queue';
 const BATCH_SIZE = 50;
@@ -19,13 +19,8 @@ async function queueCategories() {
     logger.info(`Found ${categoryIds.length} categories`);
     logger.info(`Adding to queue: ${QUEUE_NAME}`);
 
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    // Ensure queue exists
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      arguments: { 'x-max-priority': 10 },
-    });
 
     // Add to queue in batches with proper message format
     for (let i = 0; i < categoryIds.length; i += BATCH_SIZE) {

@@ -1,5 +1,5 @@
 import logger from '@services/logger';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import { TypeService } from '@services/type';
 
 const QUEUE_NAME = 'esi_type_info_queue';
@@ -19,13 +19,8 @@ async function queueTypes() {
     logger.info(`Found ${typeIds.length} types`);
     logger.info(`Adding to queue: ${QUEUE_NAME}`);
 
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    // Ensure queue exists
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      arguments: { 'x-max-priority': 10 },
-    });
 
     // Add to queue in batches with proper message format
     for (let i = 0; i < typeIds.length; i += BATCH_SIZE) {

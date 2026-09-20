@@ -1,5 +1,5 @@
 import logger from '@services/logger';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 
 const QUEUE_NAME = 'zkillboard_character_queue';
 
@@ -32,6 +32,7 @@ async function queueSpecificCharacters() {
   logger.info('Queueing specific characters for killmail sync...');
 
   try {
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
     let successCount = 0;
     let errorCount = 0;
