@@ -1,5 +1,6 @@
 import { MapOwnerKind } from '@/generated/graphql';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import SovLegend from './SovLegend';
 
@@ -72,6 +73,27 @@ describe('SovLegend', () => {
     const { container } = render(<SovLegend owners={owners} />);
     const list = container.querySelector('[data-testid="sov-legend-list"]');
     expect(list?.className).toContain('overflow-y-auto');
+  });
+
+  it('collapses to its header and opens again', async () => {
+    // A list this tall is also a wall in front of the galaxy, which is the
+    // thing being read. The count stays visible so the collapsed header is
+    // worth reopening.
+    render(<SovLegend owners={owners} />);
+
+    const toggle = screen.getByRole('button', { name: /sovereignty/i });
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText('A')).toBeInTheDocument();
+
+    await userEvent.click(toggle);
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByText('A')).not.toBeInTheDocument();
+    expect(screen.getByText(String(owners.length))).toBeInTheDocument();
+
+    await userEvent.click(toggle);
+
+    expect(screen.getByText('A')).toBeInTheDocument();
   });
 
   it('says so rather than drawing an empty box while the data loads', () => {
