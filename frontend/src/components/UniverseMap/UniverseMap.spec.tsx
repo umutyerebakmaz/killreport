@@ -586,6 +586,26 @@ describe('UniverseMap', () => {
       expect(screen.getByText('Kimotoro · The Forge')).toBeInTheDocument();
     });
 
+    it('scrolls the legend rather than zooming the map under it', async () => {
+      // The wheel listener is on the host and the panel is a child of it, so
+      // without `data-map-overlay` every scroll of the owner list would zoom
+      // the galaxy instead.
+      const host = await mounted();
+
+      const panel = host.querySelector('[data-map-overlay]');
+      expect(panel).not.toBeNull();
+
+      const event = new WheelEvent('wheel', {
+        deltaY: -120,
+        bubbles: true,
+        cancelable: true,
+      });
+      panel!.dispatchEvent(event);
+
+      // Not prevented: the browser is left to scroll the list.
+      expect(event.defaultPrevented).toBe(false);
+    });
+
     it('closes the popup when the click lands on empty space', async () => {
       const host = await mounted();
       const at = jitaOnScreen();

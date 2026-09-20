@@ -2,7 +2,12 @@ import type { MapNode } from '@/generated/graphql';
 import { securityTint } from '@/utils/map/colors';
 import type { MapColorLayer, MapLayerData } from '@/utils/map/layers';
 import { spriteScale, systemFloorPx, systemRadiusPx } from '@/utils/map/marks';
-import { LOGO_MIN_RADIUS_PX, LOGO_TEXTURE_RADIUS } from '@/utils/map/sovLogos';
+import {
+  LOGO_MIN_RADIUS_PX,
+  LOGO_TEXTURE_RADIUS,
+  RING_TEXTURE_RADIUS,
+  ringRadiusPx,
+} from '@/utils/map/sovLogos';
 import { Sprite, type Texture } from 'pixi.js';
 import { DOT_TEXTURE_RADIUS, type MapScene } from './createScene';
 import type { LogoAtlas } from './logoAtlas';
@@ -17,6 +22,13 @@ export interface SystemSprites {
    * a zoom where its neighbours are logos.
    */
   logos: boolean[];
+  /**
+   * The owner circle behind each mark, one per system and hidden until its
+   * system is showing a logo. Built with the sprites rather than on demand:
+   * making 5,228 of them at the moment the threshold is crossed would put the
+   * allocation in the middle of the zoom it is meant to be invisible to.
+   */
+  rings: Sprite[];
 }
 
 /**
@@ -37,10 +49,12 @@ export function buildSystems(
   cameraScale: number,
 ): SystemSprites {
   scene.systems.removeChildren();
+  scene.rings.removeChildren();
 
   const sprites: Sprite[] = [];
   const radii: number[] = [];
   const logos: boolean[] = [];
+  const rings: Sprite[] = [];
 
   for (const node of nodes) {
     const sprite = new Sprite(scene.dot);
@@ -51,9 +65,16 @@ export function buildSystems(
     radii.push(node.radius);
     logos.push(false);
     scene.systems.addChild(sprite);
+
+    const ring = new Sprite(scene.ring);
+    ring.anchor.set(0.5);
+    ring.position.set(node.x, node.z);
+    ring.visible = false;
+    rings.push(ring);
+    scene.rings.addChild(ring);
   }
 
-  const built = { sprites, radii, logos };
+  const built = { sprites, radii, logos, rings };
   scaleSystems(built, cameraScale);
   return built;
 }
@@ -69,26 +90,29 @@ export function buildSystems(
  * would be 5,241 logarithms for an answer that cannot change between them.
  */
 export function scaleSystems(
-  { sprites, radii, logos }: SystemSprites,
+  { sprites, radii, logos, rings }: SystemSprites,
   cameraScale: number,
 ): void {
   const floorPx = systemFloorPx(Math.log2(cameraScale));
 
   for (let i = 0; i < sprites.length; i++) {
-    // A logo is a mark, not a body: it has a floor of its own (the 16 px the
-    // threshold was measured for) and a texture twice the dot's. Past the
-    // approach the system's own radius overtakes both, so the logo grows with
-    // the disc rather than sitting in the middle of it.
+    // A logo is a mark, not a body: it has a floor of its own and a texture
+    // twice the dot's. Past the approach the system's own radius overtakes
+    // both, so the logo grows with the disc rather than sitting in the middle
+    // of it.
     const textureRadius = logos[i] ? LOGO_TEXTURE_RADIUS : DOT_TEXTURE_RADIUS;
     const floor = logos[i] ? Math.max(floorPx, LOGO_MIN_RADIUS_PX) : floorPx;
+    const radiusPx = systemRadiusPx(radii[i], cameraScale, floor);
 
-    sprites[i].scale.set(
-      spriteScale(
-        systemRadiusPx(radii[i], cameraScale, floor),
-        textureRadius,
-        cameraScale,
-      ),
-    );
+    sprites[i].scale.set(spriteScale(radiusPx, textureRadius, cameraScale));
+
+    // The circle is sized from the logo it encloses, not from the system: the
+    // two have to move together or the ring drifts off the crest.
+    if (logos[i]) {
+      rings[i].scale.set(
+        spriteScale(ringRadiusPx(radiusPx), RING_TEXTURE_RADIUS, cameraScale),
+      );
+    }
   }
 }
 
@@ -128,7 +152,7 @@ export function applyLogos(
   ownerBySystem: Map<number, number>,
   cameraScale: number,
 ): void {
-  const { sprites, logos } = built;
+  const { sprites, logos, rings } = built;
 
   for (let i = 0; i < sprites.length; i++) {
     const ownerId = ownerBySystem.get(nodes[i].systemId);
@@ -138,12 +162,20 @@ export function applyLogos(
         : undefined;
 
     if (logo && ownerId !== undefined) {
+      // Read before the whitening below: what the layer wrote IS the owner's
+      // colour, so the ring inherits the same decision rather than resolving
+      // the dictionary a second time — including the neutral an owner with no
+      // entry was given.
+      rings[i].tint = sprites[i].tint;
+      rings[i].visible = true;
+
       sprites[i].texture = logo;
       logos[i] = true;
       if (!atlas!.tintedOwners.has(ownerId)) sprites[i].tint = 0xffffff;
     } else {
       sprites[i].texture = dot;
       logos[i] = false;
+      rings[i].visible = false;
     }
   }
 

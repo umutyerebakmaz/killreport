@@ -6,15 +6,18 @@ import { SOV_UNOWNED_TINT, sovTint } from './sovColors';
 /**
  * Where a system's mark becomes its owner's logo.
  *
- * Measured, not chosen. `pixels = metres * 2 ** zoom` (camera.ts), and the
- * nearest-neighbour distances of held systems were measured against production
- * on 2026-09-19: p10 1.29e15 m, median 3.47e15 m, p90 6.40e15 m. -46.2 is
- * where the p10 pair reaches 16 px — so at this zoom 90% of held systems have
- * room for a 16 px mark. It lands between CONSTELLATION_LABEL_ZOOM (-47.64)
- * and SYSTEM_LABEL_ZOOM (-45.73): logos arrive after constellation names and
- * just before system names.
+ * -46.95 by the user's call on 2026-09-20, replacing the measured -46.2. The
+ * measurement said where the marks stop colliding — `pixels = metres * 2 **
+ * zoom` (camera.ts), and the nearest-neighbour distances of held systems on
+ * 2026-09-19 were p10 1.29e15 m, median 3.47e15 m, p90 6.40e15 m, so -46.2 is
+ * where the p10 pair reaches 16 px. This opens the logos EARLIER than that and
+ * draws them five times larger, so they overlap by design: reading the
+ * territory from far out was worth more than keeping the marks apart.
+ *
+ * Still inside the label ladder, now just under CONSTELLATION_LABEL_ZOOM
+ * (-47.64) to SYSTEM_LABEL_ZOOM (-45.73).
  */
-export const SOV_LOGO_ZOOM = -46.2;
+export const SOV_LOGO_ZOOM = -46.95;
 
 export type MapLayerId = 'security' | 'sovereignty';
 
@@ -36,8 +39,11 @@ export interface MapLayerData {
   sovereignty: SovIndex | null;
 }
 
-/** What the legend under the switch draws. */
-export type LegendSpec = { kind: 'security' } | { kind: 'owners'; max: number };
+/**
+ * What the legend under the switch draws. No row cap: the panel is as tall as
+ * the map and scrolls, so the owner legend lists every owner.
+ */
+export type LegendSpec = { kind: 'security' } | { kind: 'owners' };
 
 export interface MapColorLayer {
   id: MapLayerId;
@@ -112,7 +118,7 @@ export const MAP_LAYERS: Record<MapLayerId, MapColorLayer> = {
       return sov.tintByOwner.get(from) ?? null;
     },
     usesLogos: (zoom) => zoom >= SOV_LOGO_ZOOM,
-    legend: { kind: 'owners', max: 10 },
+    legend: { kind: 'owners' },
   },
 };
 

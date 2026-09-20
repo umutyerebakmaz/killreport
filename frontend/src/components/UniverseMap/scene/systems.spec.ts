@@ -7,7 +7,12 @@ import {
 } from '@/utils/map/layers';
 import { spriteScale, SYSTEM_MAX_FLOOR_PX } from '@/utils/map/marks';
 import { SOV_COLORS, SOV_UNOWNED_TINT, sovTint } from '@/utils/map/sovColors';
-import { LOGO_MIN_RADIUS_PX, LOGO_TEXTURE_RADIUS } from '@/utils/map/sovLogos';
+import {
+  LOGO_MIN_RADIUS_PX,
+  LOGO_TEXTURE_RADIUS,
+  RING_TEXTURE_RADIUS,
+  ringRadiusPx,
+} from '@/utils/map/sovLogos';
 import { Container, Texture } from 'pixi.js';
 import { describe, expect, it } from 'vitest';
 import { DOT_TEXTURE_RADIUS, type MapScene } from './createScene';
@@ -24,9 +29,11 @@ function fakeScene(): MapScene {
     edgesGalaxy: null as unknown as MapScene['edgesGalaxy'],
     edgesHighlight: null as unknown as MapScene['edgesHighlight'],
     edgesLocal: null as unknown as MapScene['edgesLocal'],
+    rings: new Container(),
     systems: new Container(),
     celestials: new Container(),
     dot: Texture.EMPTY,
+    ring: Texture.EMPTY,
     destroy: () => {},
   };
 }
@@ -136,6 +143,66 @@ describe('applyLogos', () => {
     );
   });
 
+  it('circles a logo in its owner colour', () => {
+    const scene = fakeScene();
+    const built = buildSystems(scene, NODES, 1);
+    applyLayer(built, NODES, MAP_LAYERS.sovereignty, DATA);
+    applyLogos(built, NODES, scene.dot, ATLAS, true, ownerBySystem, 1);
+
+    // The ring carries the colour the layer decided, which is what lets the
+    // logo itself be drawn white.
+    expect(built.rings[0].visible).toBe(true);
+    expect(built.rings[0].tint).toBe(sovTint(WITH_LOGO));
+    expect(built.sprites[0].tint).toBe(0xffffff);
+  });
+
+  it('leaves no circle around a system that is not showing a logo', () => {
+    const scene = fakeScene();
+    const built = buildSystems(scene, NODES, 1);
+    applyLayer(built, NODES, MAP_LAYERS.sovereignty, DATA);
+    applyLogos(built, NODES, scene.dot, ATLAS, true, ownerBySystem, 1);
+
+    expect(built.rings[2].visible).toBe(false);
+  });
+
+  it('circles an uncoloured owner in the neutral it was drawn in', () => {
+    // An owner with no dictionary entry is drawn SOV_UNOWNED_TINT, and the
+    // ring has to agree with the mark rather than invent a colour.
+    const scene = fakeScene();
+    const built = buildSystems(scene, NODES, 1);
+    const data: MapLayerData = {
+      sovereignty: buildSovIndex({ systems: [{ systemId: 1, ownerId: 1 }] }),
+    };
+    const atlas = {
+      textureByOwner: new Map([[1, OWN_LOGO_TEXTURE]]),
+      tintedOwners: new Set<number>(),
+      destroy: () => {},
+    };
+
+    applyLayer(built, NODES, MAP_LAYERS.sovereignty, data);
+    applyLogos(
+      built,
+      NODES,
+      scene.dot,
+      atlas,
+      true,
+      data.sovereignty!.ownerBySystem,
+      1,
+    );
+
+    expect(built.rings[0].tint).toBe(SOV_UNOWNED_TINT);
+  });
+
+  it('sizes the circle to circumscribe the logo it holds', () => {
+    const scene = fakeScene();
+    const built = buildSystems(scene, NODES, 1);
+    applyLogos(built, NODES, scene.dot, ATLAS, true, ownerBySystem, 1);
+
+    expect(built.rings[0].scale.x).toBeCloseTo(
+      spriteScale(ringRadiusPx(LOGO_MIN_RADIUS_PX), RING_TEXTURE_RADIUS, 1),
+    );
+  });
+
   it('puts every dot back when the threshold is crossed downward', () => {
     const scene = fakeScene();
     const built = buildSystems(scene, NODES, 1);
@@ -144,6 +211,7 @@ describe('applyLogos', () => {
 
     expect(built.sprites[0].texture).toBe(scene.dot);
     expect(built.logos.every((on) => on === false)).toBe(true);
+    expect(built.rings.every((ring) => ring.visible === false)).toBe(true);
   });
 
   it('draws dots when the atlas has not arrived yet', () => {

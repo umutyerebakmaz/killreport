@@ -7,16 +7,15 @@ type Owner = MapSovereigntyQuery['mapSovereignty']['owners'][number];
 
 /**
  * Not a continuous ramp: the colours stand for owners, and an owner is a name
- * rather than a value on a scale. The biggest holders get a row each and the
- * tail is summed into one, because 101 rows is a list and a legend is a key.
+ * rather than a value on a scale.
+ *
+ * Every owner gets a row. The cap and its "N others" tail were dropped on
+ * 2026-09-20: the panel is as tall as the map and scrolls, so there is nowhere
+ * for a cap to help — an owner left out of a list with room for it is just
+ * missing, and the ones past the top ten are exactly the ones whose colour a
+ * reader cannot place from memory.
  */
-export default function SovLegend({
-  owners,
-  max,
-}: {
-  owners: readonly Owner[];
-  max: number;
-}) {
+export default function SovLegend({ owners }: { owners: readonly Owner[] }) {
   if (owners.length === 0) {
     return (
       <div className="float px-3 py-2 text-xs text-ink-muted">
@@ -25,13 +24,15 @@ export default function SovLegend({
     );
   }
 
-  const shown = owners.slice(0, max);
-  const rest = owners.slice(max);
-  const restSystems = rest.reduce((sum, owner) => sum + owner.systemCount, 0);
-
   return (
-    <div className="float flex flex-col px-3 py-2 gap-y-1 text-xs">
-      {shown.map((owner) => (
+    <div
+      data-testid="sov-legend-list"
+      // `min-h-0` is what makes the scroll work: a flex child's default
+      // min-height is its content, so without it the panel grows past the
+      // column instead of overflowing inside it.
+      className="float flex min-h-0 flex-col gap-y-1 overflow-y-auto px-3 py-2 text-xs"
+    >
+      {owners.map((owner) => (
         <div key={owner.ownerId} className="flex items-center gap-x-2">
           <span
             className="size-2 shrink-0 rounded-full"
@@ -45,16 +46,6 @@ export default function SovLegend({
           </span>
         </div>
       ))}
-
-      {rest.length > 0 && (
-        <div className="flex items-center gap-x-2">
-          <span className="size-2 shrink-0 rounded-full bg-[#475569]" />
-          <span className="flex-1 text-ink-muted">
-            {rest.length} other{rest.length === 1 ? '' : 's'}
-          </span>
-          <span className="text-ink-muted tabular-nums">{restSystems}</span>
-        </div>
-      )}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { RING_TEXTURE_RADIUS, ringStrokeTexturePx } from '@/utils/map/sovLogos';
 import { Application, Container, Graphics, Texture } from 'pixi.js';
 
 /** The texture is drawn once at this radius; every mark counter-scales from it. */
@@ -20,9 +21,12 @@ export interface MapScene {
   edgesGalaxy: Graphics;
   edgesHighlight: Graphics;
   edgesLocal: Graphics;
+  /** The owner circles drawn around the sovereignty logos, under them. */
+  rings: Container;
   systems: Container;
   celestials: Container;
   dot: Texture;
+  ring: Texture;
   destroy(): void;
 }
 
@@ -75,9 +79,21 @@ export async function createScene(host: HTMLElement): Promise<MapScene> {
   const edgesGalaxy = new Graphics();
   const edgesHighlight = new Graphics();
   const edgesLocal = new Graphics();
+  const rings = new Container();
   const systems = new Container();
   const celestials = new Container();
-  world.addChild(edgesGalaxy, edgesHighlight, edgesLocal, systems, celestials);
+  // The rings go under the systems for the same reason the gates do: the mark
+  // is the thing being read, and nothing the layer draws around it may cover
+  // it. They never actually overlap — the circle circumscribes the logo — but
+  // the order says which one wins if the sizes ever drift.
+  world.addChild(
+    edgesGalaxy,
+    edgesHighlight,
+    edgesLocal,
+    rings,
+    systems,
+    celestials,
+  );
 
   // A 64 px disc minified to the 1.5 px floor is a 21x reduction, and a single
   // mip level sampled that far down is what aliasing looks like: deck.gl's
@@ -95,15 +111,33 @@ export async function createScene(host: HTMLElement): Promise<MapScene> {
   // a reference afterwards.
   source.destroy(true);
 
+  // The owner circle. Stroked at a radius short of its own half-width so the
+  // stroke's outer edge lands on the texture edge — drawn at RING_TEXTURE_RADIUS
+  // the stroke would straddle it, and `generateTexture` measures the bounds of
+  // what it is given, so the texture would come out wider than the radius the
+  // counter-scale divides by and every ring would be drawn a little small.
+  const strokePx = ringStrokeTexturePx();
+  const ringSource = new Graphics()
+    .circle(0, 0, RING_TEXTURE_RADIUS - strokePx / 2)
+    .stroke({ width: strokePx, color: 0xffffff });
+  const ring = app.renderer.generateTexture({
+    target: ringSource,
+    antialias: true,
+    textureSourceOptions: { autoGenerateMipmaps: true },
+  });
+  ringSource.destroy(true);
+
   return {
     app,
     world,
     edgesGalaxy,
     edgesHighlight,
     edgesLocal,
+    rings,
     systems,
     celestials,
     dot,
+    ring,
     // `app.destroy`'s texture pass only reaches textures a sprite in the
     // display tree still references. A scene torn down before any sprite is
     // built — an unmount racing `createScene`'s own init — never attaches
@@ -111,6 +145,7 @@ export async function createScene(host: HTMLElement): Promise<MapScene> {
     // for a walk that will not find it.
     destroy: () => {
       dot.destroy(true);
+      ring.destroy(true);
       app.destroy(true, { children: true, texture: true });
     },
   };

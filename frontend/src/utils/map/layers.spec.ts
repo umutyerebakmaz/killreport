@@ -103,9 +103,9 @@ describe('the sovereignty layer', () => {
   });
 
   it('opens the logos at the measured zoom and not below it', () => {
-    // -46.2 is where 90% of held systems are more than 16 px from their
-    // nearest neighbour, measured 2026-09-19.
-    expect(SOV_LOGO_ZOOM).toBe(-46.2);
+    // Chosen, not measured: -46.2 was where the marks stop colliding, and
+    // this opens them earlier on purpose so the territory reads from far out.
+    expect(SOV_LOGO_ZOOM).toBe(-46.95);
     expect(layer.usesLogos(SOV_LOGO_ZOOM)).toBe(true);
     expect(layer.usesLogos(SOV_LOGO_ZOOM + 1)).toBe(true);
     expect(layer.usesLogos(SOV_LOGO_ZOOM - 0.01)).toBe(false);

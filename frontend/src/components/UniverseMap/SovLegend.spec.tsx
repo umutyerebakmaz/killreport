@@ -29,24 +29,31 @@ const owners = [
 
 describe('SovLegend', () => {
   it('lists the biggest holders with their system counts', () => {
-    render(<SovLegend owners={owners} max={2} />);
+    render(<SovLegend owners={owners} />);
 
     expect(screen.getByText('A')).toBeInTheDocument();
     expect(screen.getByText('500')).toBeInTheDocument();
   });
 
-  it('collects everything past the cap into one row', () => {
-    // A legend with 101 rows is a list, not a legend; the tail is one line
-    // that says how much of the map it covers.
-    render(<SovLegend owners={owners} max={2} />);
+  it('lists every owner rather than a top slice with a tail', () => {
+    // The panel is as tall as the map and scrolls, so there is nowhere for a
+    // cap to help: an owner left out of a list that has room for it is just
+    // missing.
+    render(<SovLegend owners={owners} />);
 
-    expect(screen.queryByText('C')).not.toBeInTheDocument();
-    expect(screen.getByText('1 other')).toBeInTheDocument();
+    expect(screen.getByText('C')).toBeInTheDocument();
     expect(screen.getByText('100')).toBeInTheDocument();
+    expect(screen.queryByText(/other/)).not.toBeInTheDocument();
+  });
+
+  it('scrolls what does not fit instead of growing past the map', () => {
+    const { container } = render(<SovLegend owners={owners} />);
+    const list = container.querySelector('[data-testid="sov-legend-list"]');
+    expect(list?.className).toContain('overflow-y-auto');
   });
 
   it('says so rather than drawing an empty box while the data loads', () => {
-    render(<SovLegend owners={[]} max={2} />);
+    render(<SovLegend owners={[]} />);
     expect(screen.getByText('Loading sovereignty...')).toBeInTheDocument();
   });
 });

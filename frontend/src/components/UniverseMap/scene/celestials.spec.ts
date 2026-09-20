@@ -23,9 +23,11 @@ function fakeScene(): MapScene {
     edgesGalaxy: null as unknown as MapScene['edgesGalaxy'],
     edgesHighlight: null as unknown as MapScene['edgesHighlight'],
     edgesLocal: null as unknown as MapScene['edgesLocal'],
+    rings: new Container(),
     systems: new Container(),
     celestials: new Container(),
     dot: Texture.EMPTY,
+    ring: Texture.EMPTY,
     destroy: () => {},
   };
 }

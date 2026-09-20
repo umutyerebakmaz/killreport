@@ -772,14 +772,17 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
         hovered ? 'cursor-pointer' : ''
       }`}
     >
-      {/* Over the canvas, out of the pointer's way: the map's own pan and zoom
-          listeners are on the host, so anything drawn here has to stop its
-          events from reaching them — hence the wrapper's own pointer-events. */}
-      <div className="absolute top-3 left-3 z-10 flex flex-col gap-y-2">
+      {/* Over the canvas and out of the pointer's way. `data-map-overlay` is
+          not decoration: the pan and zoom listeners are on the host and this
+          is a child of it, so without the mark a wheel over the legend zooms
+          the map instead of scrolling the list, and dragging its scrollbar
+          pans the galaxy. Same mechanism SystemPopup uses. */}
+      <div
+        data-map-overlay
+        className="absolute top-3 bottom-3 left-3 z-10 flex max-h-full flex-col gap-y-2"
+      >
         <MapLayerSwitch value={layerId} onChange={setLayerId} />
-        {layer.legend.kind === 'owners' && (
-          <SovLegend owners={sovOwners} max={layer.legend.max} />
-        )}
+        {layer.legend.kind === 'owners' && <SovLegend owners={sovOwners} />}
       </div>
 
       {/* No tip over the selected system: the popup already says its name, and
