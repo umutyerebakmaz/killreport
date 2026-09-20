@@ -39,7 +39,6 @@ export const ALL_QUEUES: readonly string[] = [
   'esi_asteroid_belts_queue',
   'esi_stargates_queue',
   'esi_stations_queue',
-  'esi_topology_dlq',
 
   // Killmail workers
   'esi_corporation_killmails_queue',

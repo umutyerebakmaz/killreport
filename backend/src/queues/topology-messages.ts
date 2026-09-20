@@ -20,19 +20,14 @@ export const TOPOLOGY_QUEUES = {
   planets: 'esi_planets_queue',
   moons: 'esi_moons_queue',
   asteroidBelts: 'esi_asteroid_belts_queue',
-  dlq: 'esi_topology_dlq',
 } as const;
 
 export type TopologyQueueName =
   (typeof TOPOLOGY_QUEUES)[keyof typeof TOPOLOGY_QUEUES];
 
-/** A message is dead-lettered rather than retried once attempts exceeds this. */
-export const MAX_ATTEMPTS = 5;
-
 export interface Envelope {
   queuedAt: string; // ISO 8601
   source: string; // 'worker-solar-systems' | 'queue-planets' | ...
-  attempts?: number; // absent means 0
 }
 
 export interface StarMessage extends Envelope {
@@ -107,79 +102,4 @@ export function parseTopologyMessage<T extends Envelope>(
   } catch {
     return null;
   }
-}
-
-/** Prisma throws P2003 when a foreign key constraint fails. */
-export function isForeignKeyViolation(error: any): boolean {
-  return error?.code === 'P2003';
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-/**
- * The shared failure path for every topology worker.
- *
- * The old workers called nack(msg, false, false) on an unexpected error, which
- * discards the message outright. That was survivable while worker-solar-systems
- * had already written a skeleton row. In the chain design the row does not exist
- * yet, so a discarded message is a celestial object that never gets created.
- *
- * Returns nothing; it always settles the message (ack or nack) itself.
- */
-export async function handleWorkerError(
-  channel: amqp.Channel,
-  msg: amqp.ConsumeMessage,
-  payload: TopologyMessage,
-  queueName: string,
-  error: any,
-  logger: { warn: (m: string) => void; error: (m: string, e?: any) => void },
-): Promise<void> {
-  // 420: ESI error limited. Keep the existing behaviour - wait a minute, requeue
-  // untouched, do not burn an attempt.
-  if (error?.response?.status === 420) {
-    logger.warn('🛑 Error limited (420)! Waiting 60 seconds...');
-    await sleep(60000);
-    channel.nack(msg, false, true);
-    return;
-  }
-
-  const attempts = (payload.attempts ?? 0) + 1;
-
-  if (attempts > MAX_ATTEMPTS) {
-    logger.error(
-      `☠️  ${queueName}: giving up after ${MAX_ATTEMPTS} attempts, dead-lettering`,
-      error?.message,
-    );
-    // The DLQ is written by an explicit publish, NOT x-dead-letter-exchange.
-    // It is declared, like every other queue, by ensureAllQueuesExist() at
-    // this process's startup - re-asserting it here would risk exactly the
-    // 406 PRECONDITION_FAILED that took down three workers in PR #135 if its
-    // arguments ever drift from that declaration.
-    publishTopology(channel, TOPOLOGY_QUEUES.dlq, {
-      ...payload,
-      attempts,
-      source: `${payload.source} -> ${queueName}`,
-    });
-    channel.ack(msg);
-    return;
-  }
-
-  if (isForeignKeyViolation(error)) {
-    logger.warn(
-      `↩️  ${queueName}: parent row not written yet (P2003), retry ${attempts}/${MAX_ATTEMPTS}`,
-    );
-  } else {
-    logger.error(
-      `❌ ${queueName}: retry ${attempts}/${MAX_ATTEMPTS} - ${error?.message}`,
-      error?.message,
-    );
-  }
-
-  // Republish rather than nack(requeue): requeueing cannot carry the incremented
-  // attempts counter, so the message would retry forever. The queue was
-  // already declared by ensureAllQueuesExist() at startup.
-  publishTopology(channel, queueName, { ...payload, attempts });
-  channel.ack(msg);
 }

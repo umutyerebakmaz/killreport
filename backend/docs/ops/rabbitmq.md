@@ -118,9 +118,10 @@ console.log(ALL_QUEUES.join('\n'));
 "
 ```
 
-That prints 25 names today (24 once Task 11 retires `esi_topology_dlq`), and
-every one of them begins with `esi_`, `zkillboard_`, or `backfill_` — so
-`^(esi_|zkillboard_|backfill_|alliance_)` matches all 25 with room to spare.
+That prints 24 names today (25 before Task 11 retired `esi_topology_dlq` — see
+"Retired: `esi_topology_dlq`" below), and every one of them begins with
+`esi_`, `zkillboard_`, or `backfill_` — so
+`^(esi_|zkillboard_|backfill_|alliance_)` matches all 24 with room to spare.
 The `alliance_` branch matches nothing in `ALL_QUEUES` (every alliance queue is
 named `esi_alliance_*`); it is there on purpose to also cover `alliance_queue`,
 an orphaned queue that exists on the broker with no reference anywhere in the
@@ -199,18 +200,47 @@ To read why a specific message parked, use the management UI, since
      This is its origin, and it is where a replay has to go back to.
    - `reason` — `rejected` for the `nack(msg, false, false)` path this
      project uses.
-   - `count` — how many times this exact hop has happened. Once the shared
-     failure path lands (`backend/src/workers/worker-error.ts`, Task 8 — not
-     built as of this writing), a message will be parked here when this count
-     (read via that file's `deathCount()`) reaches `MAX_ATTEMPTS`. The only
-     `handleWorkerError` that exists in the codebase today is a different,
-     unrelated function in `backend/src/queues/topology-messages.ts`: it
-     counts attempts inside the message payload rather than reading
-     `x-death`, and it dead-letters to `esi_topology_dlq`, not to
-     `killreport.parking`. Don't confuse the two — until `worker-error.ts`
-     ships, nothing in this topology actually parks a message; see the
-     warning under "Applying the policy" above.
+   - `count` — how many times this exact hop has happened. A message is
+     parked here when this count (read via `deathCount()` in
+     `backend/src/workers/worker-error.ts`) reaches `MAX_ATTEMPTS`. This is
+     now the only `handleWorkerError` in the codebase — see "Retired:
+     `esi_topology_dlq`" below.
    - `time` — when that hop happened.
+
+---
+
+## 🪦 Retired: `esi_topology_dlq`
+
+`esi_topology_dlq` was the topology chain's own dead-letter queue, written by
+an explicit publish from a `handleWorkerError` that lived in
+`backend/src/queues/topology-messages.ts` and counted attempts inside the
+message payload rather than reading `x-death`. That function, `MAX_ATTEMPTS`
+and the payload's `attempts` field were removed once every topology worker
+moved to the shared failure path in `backend/src/workers/worker-error.ts`
+(the same one every other worker in the app uses). New failures from the star,
+stargate, station, planet, moon and asteroid belt workers now park on
+`killreport.parking` instead, alongside every other worker's parked messages —
+see "Inspecting the parking queue" above.
+
+`esi_topology_dlq` is no longer declared in `ALL_QUEUES`
+(`backend/src/services/queue-names.ts`), so `ensureAllQueuesExist()` stops
+asserting it and `doctor:topology` no longer reports its depth. The queue
+itself is **left in place on the broker** — it may still hold messages from
+before this change, and no step of this retirement drains, purges, or deletes
+it. Checking it, draining it, and deleting it are a separate operator
+decision:
+
+```bash
+sudo rabbitmqctl list_queues name messages | grep esi_topology_dlq
+```
+
+If that shows messages, read them the same way as a parked message (above)
+before deciding whether to replay or discard them, then delete the queue by
+hand once it is empty and no longer needed:
+
+```bash
+sudo rabbitmqctl delete_queue esi_topology_dlq --if-empty
+```
 
 ---
 
@@ -286,6 +316,6 @@ soon as whatever prompted the rollback is understood.
 
 ---
 
-**Last Updated:** September 20, 2026
+**Last Updated:** September 21, 2026
 **RabbitMQ Version:** 3.9.x
 **Policy Name:** `killreport-dlx`
