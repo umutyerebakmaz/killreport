@@ -772,7 +772,13 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       // the canvas belongs to the scene, which is a ref no render may read,
       // and `cursor` inherits anyway — so the class here reaches the canvas
       // filling it and the labels above it alike.
-      className={`relative w-full h-full bg-ground ${
+      //
+      // `overflow-hidden` because a map is a viewport: everything in here is
+      // absolutely positioned and meant to stay inside, and anything that does
+      // not — a panel, a popup near an edge, the inline canvas's own baseline
+      // gap — silently grows the PAGE's scrollable area instead of being cut
+      // off. `.map-labels` already clips itself; the host did not.
+      className={`relative w-full h-full overflow-hidden bg-ground ${
         hovered ? 'cursor-pointer' : ''
       }`}
     >
