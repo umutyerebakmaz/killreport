@@ -92,6 +92,70 @@ describe('handleWorkerError', () => {
     expect(channel.publish).not.toHaveBeenCalled();
   });
 
+  it('waits and requeues on a 420 detected from the error message', async () => {
+    vi.useFakeTimers();
+    // The shape thrown by zkillboard.ts / killmail.service.ts /
+    // character.service.ts: a fetch() caller with no `response.status`,
+    // the code only in the message text.
+    const error = new Error('zKillboard API error: 420');
+    const done = handleWorkerError(
+      channel,
+      message(4),
+      'esi_type_info_queue',
+      error,
+      logger,
+    );
+
+    // Same shape as the response.status assertion above: without the await
+    // on sleep(), this would fall straight through to nack, and the
+    // assertions below would pass whether or not the wait happened.
+    expect(channel.nack).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(60_000);
+    await done;
+    vi.useRealTimers();
+
+    expect(channel.nack).toHaveBeenCalledWith(expect.anything(), false, true);
+    expect(channel.publish).not.toHaveBeenCalled();
+  });
+
+  it('waits and requeues on a 429 detected from the error message', async () => {
+    vi.useFakeTimers();
+    const error = new Error(
+      'Failed to fetch character killmails: 429 - Too Many Requests',
+    );
+    const done = handleWorkerError(
+      channel,
+      message(4),
+      'esi_type_info_queue',
+      error,
+      logger,
+    );
+
+    expect(channel.nack).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(60_000);
+    await done;
+    vi.useRealTimers();
+
+    expect(channel.nack).toHaveBeenCalledWith(expect.anything(), false, true);
+    expect(channel.publish).not.toHaveBeenCalled();
+  });
+
+  it('does not treat a status-like substring as a rate limit (word boundary)', async () => {
+    // A message containing "1420" or "4291" must not match \b(420|429)\b.
+    await handleWorkerError(
+      channel,
+      message(1),
+      'esi_type_info_queue',
+      new Error('ESI error 1420 while fetching type'),
+      logger,
+    );
+
+    // Falls through to the ordinary failure path: nack without requeue.
+    expect(channel.nack).toHaveBeenCalledWith(expect.anything(), false, false);
+  });
+
   it('acks a 404 detected from the error message', async () => {
     await handleWorkerError(
       channel,

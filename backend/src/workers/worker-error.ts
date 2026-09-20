@@ -45,11 +45,23 @@ export function deathCount(msg: amqp.ConsumeMessage): number {
  * limit status, used by zKillboard and any plain-HTTP caller). Both mean the
  * same thing: the caller is being throttled, not that the message is bad. See
  * the wait-and-requeue branch below.
+ *
+ * Checking the status first means this does not rest on a particular message
+ * string once the next task moves ~25 workers, not all of them Axios-shaped,
+ * onto this function — same reasoning as `isNotFound` below. `zkillboard.ts`,
+ * `killmail.service.ts` and `character.service.ts` all use `fetch` and throw
+ * a plain `Error` carrying the status only in its message text, so without
+ * the fallback a 420/429 from any of those four workers reads as an ordinary
+ * message defect and burns an attempt instead of waiting. The word-boundary
+ * match keeps a message containing e.g. "1420" from matching.
  */
 function isErrorLimited(error: unknown): boolean {
   const status = (error as { response?: { status?: number } })?.response
     ?.status;
-  return status === 420 || status === 429;
+  if (status === 420 || status === 429) return true;
+  return /\b(420|429)\b/.test(
+    String((error as { message?: string })?.message ?? ''),
+  );
 }
 
 /**
