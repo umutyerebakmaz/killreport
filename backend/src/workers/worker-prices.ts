@@ -9,7 +9,7 @@
 import logger from '@services/logger';
 import { MarketService } from '@services/market/market.service';
 import prismaWorker from '@services/prisma-worker';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 
 const QUEUE_NAME = 'esi_type_price_queue';
 const PREFETCH_COUNT = 10; // Process 10 types concurrently
@@ -26,12 +26,8 @@ async function priceWorker() {
   logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
   try {
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      arguments: { 'x-max-priority': 10 },
-    });
 
     channel.prefetch(PREFETCH_COUNT);
 

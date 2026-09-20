@@ -5,7 +5,7 @@
 
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import { TypeService } from '@services/type';
 
 const QUEUE_NAME = 'esi_type_dogma_queue';
@@ -23,12 +23,8 @@ async function typeDogmaWorker() {
   logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
   try {
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      arguments: { 'x-max-priority': 10 },
-    });
 
     channel.prefetch(PREFETCH_COUNT);
 

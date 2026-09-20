@@ -6,7 +6,7 @@
 import { DogmaAttributeService } from '@services/dogma';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 
 const QUEUE_NAME = 'esi_dogma_attribute_info_queue';
 const PREFETCH_COUNT = 50; // Process 50 attributes concurrently (max ESI rate limit)
@@ -25,14 +25,10 @@ async function dogmaAttributeInfoWorker() {
   logger.info(`📦 Queue: ${QUEUE_NAME}`);
   logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
+  await ensureAllQueuesExist();
   while (!isShuttingDown) {
     try {
       const channel = await getRabbitMQChannel();
-
-      await channel.assertQueue(QUEUE_NAME, {
-        durable: true,
-        arguments: { 'x-max-priority': 10 },
-      });
 
       channel.prefetch(PREFETCH_COUNT);
 

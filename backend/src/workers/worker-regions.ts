@@ -1,7 +1,7 @@
 import axios from 'axios';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 
 const ESI_BASE_URL = 'https://esi.evetech.net/latest';
 const QUEUE_NAME = 'esi_regions_queue';
@@ -100,6 +100,7 @@ function printCompletionSummary(
  */
 async function startWorker() {
   try {
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
 
     let processedCount = 0;
@@ -111,15 +112,6 @@ async function startWorker() {
     logger.info('==========================');
     logger.info(`📡 Listening to queue: ${QUEUE_NAME}`);
     logger.info(`⏱️  Rate limit: ${1000 / RATE_LIMIT_DELAY} requests/second\n`);
-
-    // Ensure queue exists
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      // Every other queue in the repo is declared with this, and server.ts's
-      // ensureAllQueuesExist() creates them all that way. Omitting it makes
-      // assertQueue fail with 406 PRECONDITION_FAILED.
-      arguments: { 'x-max-priority': 10 },
-    });
 
     // Check initial queue status
     const queueInfo = await channel.checkQueue(QUEUE_NAME);

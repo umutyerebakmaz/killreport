@@ -1,6 +1,6 @@
 import { ConstellationService } from '@services/constellation';
 import logger from '@services/logger';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 
 const QUEUE_NAME = 'esi_constellations_queue';
 const BATCH_SIZE = 100;
@@ -19,16 +19,8 @@ async function queueConstellations() {
     logger.info(`Found ${constellationIds.length} constellations`);
     logger.info('Adding to queue...');
 
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    // Ensure queue exists
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      // Every other queue in the repo is declared with this, and server.ts's
-      // ensureAllQueuesExist() creates them all that way. Omitting it makes
-      // assertQueue fail with 406 PRECONDITION_FAILED.
-      arguments: { 'x-max-priority': 10 },
-    });
 
     // Add to queue in batches
     for (let i = 0; i < constellationIds.length; i += BATCH_SIZE) {

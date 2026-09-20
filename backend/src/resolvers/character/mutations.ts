@@ -42,10 +42,6 @@ export const characterMutations: MutationResolvers = {
 
       // Queue the character for refresh
       const channel = await getRabbitMQChannel();
-      await channel.assertQueue('esi_character_info_queue', {
-        durable: true,
-        arguments: { 'x-max-priority': 10 },
-      });
 
       const message = {
         entityId: characterId,

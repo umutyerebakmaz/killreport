@@ -18,10 +18,9 @@
 import { config } from '@config/config';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import { UniverseService } from '@services/universe/universe.service';
 import {
-  assertTopologyQueue,
   handleWorkerError,
   parseTopologyMessage,
   type StarMessage,
@@ -49,9 +48,8 @@ async function starsWorker() {
   );
 
   try {
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    await assertTopologyQueue(channel, QUEUE_NAME);
 
     channel.prefetch(PREFETCH_COUNT);
 

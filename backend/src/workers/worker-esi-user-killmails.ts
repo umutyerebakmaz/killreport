@@ -4,7 +4,7 @@ import { KillmailService } from '@services/killmail/killmail.service';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { pubsub } from '@services/pubsub';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 
 const QUEUE_NAME = 'esi_user_killmails_queue';
 const PREFETCH_COUNT = 1; // Process 1 user at a time to avoid rate limiting
@@ -45,6 +45,7 @@ interface UserKillmailMessage {
  * Or: Start with server process via ENABLE_USER_KILLMAIL_WORKER=true
  */
 export async function esiUserKillmailWorker() {
+  await ensureAllQueuesExist();
   while (!isShuttingDown) {
     logger.info('🔄 ESI User Killmail Worker Started');
     logger.info(`📦 Queue: ${QUEUE_NAME}`);
@@ -53,14 +54,6 @@ export async function esiUserKillmailWorker() {
 
     try {
       const channel = await getRabbitMQChannel();
-
-      // Assert queue
-      await channel.assertQueue(QUEUE_NAME, {
-        durable: true,
-        arguments: {
-          'x-max-priority': 10,
-        },
-      });
 
       // Set prefetch to limit concurrent processing
       channel.prefetch(PREFETCH_COUNT);

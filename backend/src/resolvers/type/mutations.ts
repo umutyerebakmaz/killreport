@@ -23,11 +23,6 @@ export const typeMutations: MutationResolvers = {
       const channel = await getRabbitMQChannel();
       const QUEUE_NAME = 'esi_type_info_queue';
 
-      await channel.assertQueue(QUEUE_NAME, {
-        durable: true,
-        arguments: { 'x-max-priority': 10 },
-      });
-
       let publishedCount = 0;
       for (const id of typeIds) {
         const message = {
@@ -64,11 +59,6 @@ export const typeMutations: MutationResolvers = {
 
       const channel = await getRabbitMQChannel();
       const QUEUE_NAME = 'esi_type_dogma_queue';
-
-      await channel.assertQueue(QUEUE_NAME, {
-        durable: true,
-        arguments: { 'x-max-priority': 10 },
-      });
 
       let typeIds: number[];
 

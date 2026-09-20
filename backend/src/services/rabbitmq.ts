@@ -100,7 +100,11 @@ async function getMonitoringChannel(): Promise<amqp.Channel | null> {
 export async function publishToQueue(queueName: string, message: string) {
   try {
     const ch = await getRabbitMQChannel();
-    await ch.assertQueue(queueName, { durable: true });
+    // No assertQueue here. It passed `{ durable: true }` with NO
+    // x-max-priority, which disagrees with ensureAllQueuesExist()'s
+    // declaration — it only ever worked because the server declares every
+    // queue correctly at startup, before this runs. Reverse that order once
+    // and it is a 406. Declaration lives in ensureAllQueuesExist() alone.
     ch.sendToQueue(queueName, Buffer.from(message), { persistent: true });
   } catch (error) {
     console.error('Failed to publish message to queue', error);

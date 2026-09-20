@@ -24,10 +24,6 @@ export const regionMutations: MutationResolvers = {
       const channel = await getRabbitMQChannel();
       const QUEUE_NAME = 'esi_regions_queue';
 
-      await channel.assertQueue(QUEUE_NAME, {
-        durable: true,
-      });
-
       let publishedCount = 0;
       for (const id of regionIds) {
         channel.sendToQueue(QUEUE_NAME, Buffer.from(id.toString()), {

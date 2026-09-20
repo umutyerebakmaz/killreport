@@ -4,7 +4,7 @@ import { KillmailService } from '@services/killmail';
 import { insertKillmailFilter } from '@services/killmail-filters-realtime';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import { getCharacterKillmailsFromZKill } from '@services/zkillboard';
 
 const QUEUE_NAME = 'zkillboard_character_queue';
@@ -28,15 +28,8 @@ async function killmailWorker() {
   logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent users\n`);
 
   try {
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    // Configure queue
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true, // Survive RabbitMQ restarts
-      arguments: {
-        'x-max-priority': 10, // Enable priority queue (0-10)
-      },
-    });
 
     // Set prefetch count (how many messages to process concurrently)
     channel.prefetch(PREFETCH_COUNT);

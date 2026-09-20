@@ -1,6 +1,6 @@
 import { AllianceService } from '@services/alliance';
 import logger from '@services/logger';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import '@config/config';
 
 const QUEUE_NAME = 'esi_alliance_info_queue';
@@ -20,13 +20,8 @@ async function queueAlliances() {
     logger.info(`Found ${allianceIds.length} alliances`);
     logger.info(`Adding to queue: ${QUEUE_NAME}`);
 
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    // Ensure queue exists
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      arguments: { 'x-max-priority': 10 },
-    });
 
     // Add to queue in batches with proper message format
     for (let i = 0; i < allianceIds.length; i += BATCH_SIZE) {

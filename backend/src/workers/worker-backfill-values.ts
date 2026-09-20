@@ -18,7 +18,7 @@
 import { calculateKillmailValues } from '@helpers/calculate-killmail-values';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 
 const QUEUE_NAME = 'backfill_killmail_values_queue';
 const PREFETCH_COUNT = 10; // Process 10 killmails at a time
@@ -44,12 +44,8 @@ async function backfillValuesWorker() {
   let lastMessageTime = Date.now();
 
   try {
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    await channel.assertQueue(QUEUE_NAME, {
-      durable: true,
-      arguments: { 'x-max-priority': 10 },
-    });
 
     channel.prefetch(PREFETCH_COUNT);
 

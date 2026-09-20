@@ -260,7 +260,7 @@ useServer(
 const port = config.app.port;
 const USE_REDIS = config.redis.usePubSub;
 
-server.listen(port, () => {
+server.listen(port, async () => {
   logger.info('='.repeat(80));
   logger.info(`🚀 KillReport GraphQL Server`);
   logger.info('='.repeat(80));
@@ -282,13 +282,16 @@ server.listen(port, () => {
   logger.info('  yarn worker:user-killmails # User killmail sync worker');
   logger.info('='.repeat(80));
 
+  // Ensure all RabbitMQ queues exist before anything in this process
+  // publishes or consumes - userKillmailCron below is the first publisher.
+  try {
+    await ensureAllQueuesExist();
+  } catch (error) {
+    logger.error('Failed to ensure RabbitMQ queues:', error);
+  }
+
   // Start background cron job
   userKillmailCron.start().catch((error) => {
     logger.error('Failed to start user killmail cron:', error);
-  });
-
-  // Ensure all RabbitMQ queues exist
-  ensureAllQueuesExist().catch((error) => {
-    logger.error('Failed to ensure RabbitMQ queues:', error);
   });
 });

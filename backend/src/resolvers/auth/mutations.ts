@@ -84,13 +84,6 @@ export const authMutations: MutationResolvers = {
         if (shouldQueueChar) {
           const CHAR_QUEUE_NAME = 'esi_user_killmails_queue';
 
-          await channel.assertQueue(CHAR_QUEUE_NAME, {
-            durable: true,
-            arguments: {
-              'x-max-priority': 10,
-            },
-          });
-
           const charMessage = {
             userId: user.id,
             characterId: user.character_id,
@@ -132,13 +125,6 @@ export const authMutations: MutationResolvers = {
 
           if (shouldQueueCorp) {
             const CORP_QUEUE_NAME = 'esi_corporation_killmails_queue';
-
-            await channel.assertQueue(CORP_QUEUE_NAME, {
-              durable: true,
-              arguments: {
-                'x-max-priority': 10,
-              },
-            });
 
             // Fetch corporation name
             let corporationName = `Corporation ${corporationId}`;

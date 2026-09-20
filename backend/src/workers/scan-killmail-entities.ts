@@ -4,7 +4,7 @@
  */
 
 import prismaWorker from '@services/prisma-worker';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 
 const CHARACTER_QUEUE = 'esi_character_info_queue';
 const CORPORATION_QUEUE = 'esi_corporation_info_queue';
@@ -38,21 +38,15 @@ async function scanAndQueueEntities() {
   console.log('━'.repeat(70));
 
   try {
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
 
-    // Create all queues
     const queues = [
       CHARACTER_QUEUE,
       CORPORATION_QUEUE,
       ALLIANCE_QUEUE,
       TYPE_QUEUE,
     ];
-    for (const queue of queues) {
-      await channel.assertQueue(queue, {
-        durable: true,
-        arguments: { 'x-max-priority': 10 },
-      });
-    }
 
     console.log('✅ Connected to RabbitMQ');
     console.log('📦 Queues ready:\n');

@@ -86,20 +86,6 @@ export function envelope(source: string): Envelope {
   return { queuedAt: new Date().toISOString(), source };
 }
 
-/**
- * x-max-priority is mandatory: server.ts's ensureAllQueuesExist() declares every
- * queue with it, and omitting it fails with 406 PRECONDITION_FAILED.
- */
-export async function assertTopologyQueue(
-  channel: amqp.Channel,
-  queueName: string,
-): Promise<void> {
-  await channel.assertQueue(queueName, {
-    durable: true,
-    arguments: { 'x-max-priority': 10 },
-  });
-}
-
 export function publishTopology(
   channel: amqp.Channel,
   queueName: string,
@@ -167,10 +153,10 @@ export async function handleWorkerError(
       error?.message,
     );
     // The DLQ is written by an explicit publish, NOT x-dead-letter-exchange.
-    // Changing a queue's arguments would collide with the x-max-priority: 10
-    // declaration ensureAllQueuesExist() already made and produce the
-    // 406 PRECONDITION_FAILED that took down three workers in PR #135.
-    await assertTopologyQueue(channel, TOPOLOGY_QUEUES.dlq);
+    // It is declared, like every other queue, by ensureAllQueuesExist() at
+    // this process's startup - re-asserting it here would risk exactly the
+    // 406 PRECONDITION_FAILED that took down three workers in PR #135 if its
+    // arguments ever drift from that declaration.
     publishTopology(channel, TOPOLOGY_QUEUES.dlq, {
       ...payload,
       attempts,
@@ -192,8 +178,8 @@ export async function handleWorkerError(
   }
 
   // Republish rather than nack(requeue): requeueing cannot carry the incremented
-  // attempts counter, so the message would retry forever.
-  await assertTopologyQueue(channel, queueName);
+  // attempts counter, so the message would retry forever. The queue was
+  // already declared by ensureAllQueuesExist() at startup.
   publishTopology(channel, queueName, { ...payload, attempts });
   channel.ack(msg);
 }

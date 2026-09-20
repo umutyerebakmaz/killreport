@@ -22,11 +22,6 @@ export const dogmaAttributeMutations: MutationResolvers = {
       const channel = await getRabbitMQChannel();
       const QUEUE_NAME = 'esi_dogma_attribute_info_queue';
 
-      await channel.assertQueue(QUEUE_NAME, {
-        durable: true,
-        arguments: { 'x-max-priority': 10 },
-      });
-
       // Queue all attribute IDs
       for (const attributeId of attributeIds) {
         const message = {

@@ -19,11 +19,10 @@
 import { config } from '@config/config';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import { SolarSystemService } from '@services/solar-system/solar-system.service';
 import {
   TOPOLOGY_QUEUES,
-  assertTopologyQueue,
   envelope,
   publishTopology,
 } from '../queues/topology-messages';
@@ -140,15 +139,8 @@ async function startWorker() {
   );
 
   try {
+    await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    await assertTopologyQueue(channel, QUEUE_NAME);
-    // Declare the downstream queues too, so a fresh environment does not lose
-    // the first publish of a run.
-    await assertTopologyQueue(channel, TOPOLOGY_QUEUES.stars);
-    await assertTopologyQueue(channel, TOPOLOGY_QUEUES.stargates);
-    await assertTopologyQueue(channel, TOPOLOGY_QUEUES.stations);
-    await assertTopologyQueue(channel, TOPOLOGY_QUEUES.planets);
 
     channel.prefetch(PREFETCH_COUNT);
 
