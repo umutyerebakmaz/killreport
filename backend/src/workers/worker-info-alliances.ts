@@ -6,6 +6,7 @@ import { AllianceService } from '@services/alliance';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
+import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'esi_alliance_info_queue';
 const PREFETCH_COUNT = 3; // Process 3 alliances concurrently
@@ -134,21 +135,16 @@ async function allianceInfoWorker() {
 
             channel.ack(msg);
             totalProcessed++;
-          } catch (error: any) {
+          } catch (error) {
             totalErrors++;
             totalProcessed++;
-
-            if (error.message?.includes('404')) {
-              logger.warn(
-                `  ! [${totalProcessed}] Alliance ${message.entityId} (404)`,
-              );
-              channel.ack(msg);
-            } else {
-              logger.error(
-                `  × [${totalProcessed}] Alliance ${message.entityId}: ${error.message}`,
-              );
-              channel.nack(msg, false, true);
-            }
+            // 404, the 420 backoff and the attempt count all live in the
+            // shared path now; this worker only says which message it was.
+            await handleWorkerError(channel, msg, QUEUE_NAME, error, {
+              warn: (m) => logger.warn(`  ${m} (alliance ${allianceId})`),
+              error: (m, e) =>
+                logger.error(`  ${m} (alliance ${allianceId})`, e),
+            });
           }
         },
         { noAck: false },
