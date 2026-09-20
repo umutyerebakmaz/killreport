@@ -7,6 +7,7 @@ import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { pubsub } from '@services/pubsub';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
+import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'esi_corporation_killmails_queue';
 const PREFETCH_COUNT = 1; // Process 1 corporation at a time to avoid rate limiting
@@ -69,11 +70,11 @@ export async function esiCorporationKillmailWorker() {
 
         logger.info('📨 Received message from queue!');
 
-        try {
-          const message: CorporationKillmailMessage = JSON.parse(
-            msg.content.toString(),
-          );
+        const message: CorporationKillmailMessage = JSON.parse(
+          msg.content.toString(),
+        );
 
+        try {
           logger.info(`\n${'━'.repeat(70)}`);
           logger.info(
             `🏢 Processing: ${message.corporationName} (ID: ${message.corporationId})`,
@@ -157,23 +158,15 @@ export async function esiCorporationKillmailWorker() {
           // Acknowledge message
           channel.ack(msg);
           logger.info(`✅ Completed: ${message.corporationName}\n`);
-        } catch (error: any) {
-          logger.error(`❌ Failed to process message:`, error.message);
-
-          // Only requeue if it's a transient error (network, database, etc.)
-          // Don't requeue auth errors or permission errors
-          if (
-            error.message.includes('Token') ||
-            error.message.includes('403') ||
-            error.message.includes('401') ||
-            error.message.includes('Forbidden')
-          ) {
-            logger.error(`  ⏭️  Skipping - authentication/permission error`);
-            channel.ack(msg); // Don't retry auth/permission errors
-          } else {
-            logger.error(`  🔄 Requeuing for retry...`);
-            channel.nack(msg, false, true); // Requeue for transient errors
-          }
+        } catch (error) {
+          // 404, the 420 backoff and the attempt count all live in the
+          // shared path now; this worker only says which message it was.
+          await handleWorkerError(channel, msg, QUEUE_NAME, error, {
+            warn: (m) =>
+              logger.warn(`  ${m} (corporation ${message.corporationId})`),
+            error: (m, e) =>
+              logger.error(`  ${m} (corporation ${message.corporationId})`, e),
+          });
         }
       },
       { noAck: false },

@@ -6,6 +6,7 @@ import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import { getCharacterKillmailsFromZKill } from '@services/zkillboard';
+import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'zkillboard_character_queue';
 const PREFETCH_COUNT = 1; // Process 1 user at a time (strict zKillboard rate limit: 10s between same endpoint)
@@ -61,9 +62,9 @@ async function killmailWorker() {
         async (msg) => {
           if (!msg) return;
 
-          try {
-            const message: QueueMessage = JSON.parse(msg.content.toString());
+          const message: QueueMessage = JSON.parse(msg.content.toString());
 
+          try {
             logger.info(`\n${'━'.repeat(60)}`);
             logger.info(
               `👤 Processing: ${message.characterName} (ID: ${message.characterId})`,
@@ -77,10 +78,14 @@ async function killmailWorker() {
             channel.ack(msg);
             logger.info(`✅ Completed: ${message.characterName}\n`);
           } catch (error) {
-            logger.error(`❌ Failed to process message:`, error);
-
-            // Reject and requeue message (will retry later)
-            channel.nack(msg, false, true);
+            // 404, the 420 backoff and the attempt count all live in the
+            // shared path now; this worker only says which message it was.
+            await handleWorkerError(channel, msg, QUEUE_NAME, error, {
+              warn: (m) =>
+                logger.warn(`  ${m} (character ${message.characterId})`),
+              error: (m, e) =>
+                logger.error(`  ${m} (character ${message.characterId})`, e),
+            });
           }
         },
         { noAck: false }, // Manual acknowledgment

@@ -5,6 +5,7 @@ import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { pubsub } from '@services/pubsub';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
+import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'esi_user_killmails_queue';
 const PREFETCH_COUNT = 1; // Process 1 user at a time to avoid rate limiting
@@ -85,11 +86,11 @@ export async function esiUserKillmailWorker() {
 
           logger.info('📨 Received message from queue!');
 
-          try {
-            const message: UserKillmailMessage = JSON.parse(
-              msg.content.toString(),
-            );
+          const message: UserKillmailMessage = JSON.parse(
+            msg.content.toString(),
+          );
 
+          try {
             logger.info(`\n${'━'.repeat(70)}`);
             logger.info(
               `👤 Processing: ${message.characterName} (ID: ${message.characterId})`,
@@ -176,34 +177,15 @@ export async function esiUserKillmailWorker() {
               `⏸️  Waiting 10 seconds before next user to prevent rate limiting...\n`,
             );
             await new Promise((resolve) => setTimeout(resolve, 10000));
-          } catch (error: any) {
-            logger.error(`❌ Failed to process message:`, error.message);
-
-            // Handle rate limit errors - don't requeue to prevent infinite loop
-            if (
-              error.message.includes('429') ||
-              error.message.includes('Rate limit')
-            ) {
-              logger.warn(
-                `  ⏭️  Skipping user due to rate limit - will retry on next cron cycle`,
-              );
-              channel.ack(msg); // Acknowledge to prevent infinite retry loop
-              return;
-            }
-
-            // Only requeue if it's a transient error (network, database, etc.)
-            // Don't requeue auth errors
-            if (
-              error.message.includes('Token') ||
-              error.message.includes('403') ||
-              error.message.includes('401')
-            ) {
-              logger.error(`  ⏭️  Skipping user - authentication error`);
-              channel.ack(msg); // Don't retry auth errors
-            } else {
-              logger.error(`  🔄 Requeuing for retry...`);
-              channel.nack(msg, false, true); // Requeue for transient errors
-            }
+          } catch (error) {
+            // 404, the 420 backoff and the attempt count all live in the
+            // shared path now; this worker only says which message it was.
+            await handleWorkerError(channel, msg, QUEUE_NAME, error, {
+              warn: (m) =>
+                logger.warn(`  ${m} (character ${message.characterId})`),
+              error: (m, e) =>
+                logger.error(`  ${m} (character ${message.characterId})`, e),
+            });
           }
         },
         { noAck: false },

@@ -2,6 +2,7 @@ import axios from 'axios';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
+import { handleWorkerError } from './worker-error';
 
 const ESI_BASE_URL = 'https://esi.evetech.net/latest';
 const QUEUE_NAME = 'esi_constellations_queue';
@@ -23,62 +24,46 @@ async function constellationExists(constellationId: number): Promise<boolean> {
  * Returns true if processed, false if skipped
  */
 async function processConstellation(constellationId: number): Promise<boolean> {
-  try {
-    // Fetch constellation information from ESI
-    const response = await axios.get(
-      `${ESI_BASE_URL}/universe/constellations/${constellationId}/`,
+  // Fetch constellation information from ESI
+  const response = await axios.get(
+    `${ESI_BASE_URL}/universe/constellations/${constellationId}/`,
+  );
+  const data = response.data;
+
+  // Check rate limit headers
+  const errorLimitRemain = response.headers['x-esi-error-limit-remain'];
+  if (errorLimitRemain && parseInt(errorLimitRemain) < 20) {
+    logger.warn(
+      `⚠️  Error limit low (${errorLimitRemain}/100), slowing down...`,
     );
-    const data = response.data;
-
-    // Check rate limit headers
-    const errorLimitRemain = response.headers['x-esi-error-limit-remain'];
-    if (errorLimitRemain && parseInt(errorLimitRemain) < 20) {
-      logger.warn(
-        `⚠️  Error limit low (${errorLimitRemain}/100), slowing down...`,
-      );
-      await sleep(2000); // Wait 2 seconds
-    }
-
-    // Save to database using Prisma
-    await prismaWorker.constellation.upsert({
-      where: { id: constellationId },
-      update: {
-        name: data.name,
-        region_id: data.region_id || null,
-        position_x: data.position?.x || null,
-        position_y: data.position?.y || null,
-        position_z: data.position?.z || null,
-      },
-      create: {
-        id: constellationId,
-        name: data.name,
-        region_id: data.region_id || null,
-        position_x: data.position?.x || null,
-        position_y: data.position?.y || null,
-        position_z: data.position?.z || null,
-      },
-    });
-
-    logger.debug(`✅ Saved constellation ${constellationId} - ${data.name}`);
-
-    // Short wait for rate limiting - sadece başarılı ESI çağrılarında bekle
-    await sleep(RATE_LIMIT_DELAY);
-    return true;
-  } catch (error: any) {
-    if (error.response?.status === 404) {
-      logger.warn(`⚠️  Constellation ${constellationId} not found (404)`);
-    } else if (error.response?.status === 420) {
-      logger.warn(`🛑 Error limited (420)! Waiting 60 seconds...`);
-      await sleep(60000);
-      throw error; // Requeue the message
-    } else {
-      logger.error(
-        `❌ Error processing constellation ${constellationId}:`,
-        error.message,
-      );
-    }
-    throw error;
+    await sleep(2000); // Wait 2 seconds
   }
+
+  // Save to database using Prisma
+  await prismaWorker.constellation.upsert({
+    where: { id: constellationId },
+    update: {
+      name: data.name,
+      region_id: data.region_id || null,
+      position_x: data.position?.x || null,
+      position_y: data.position?.y || null,
+      position_z: data.position?.z || null,
+    },
+    create: {
+      id: constellationId,
+      name: data.name,
+      region_id: data.region_id || null,
+      position_x: data.position?.x || null,
+      position_y: data.position?.y || null,
+      position_z: data.position?.z || null,
+    },
+  });
+
+  logger.debug(`✅ Saved constellation ${constellationId} - ${data.name}`);
+
+  // Short wait for rate limiting - sadece başarılı ESI çağrılarında bekle
+  await sleep(RATE_LIMIT_DELAY);
+  return true;
 } /**
  * Prints completion summary when queue is empty
  */
@@ -185,7 +170,14 @@ async function startWorker() {
           }
         } catch (error) {
           errorCount++;
-          channel.nack(msg, false, false);
+          // 404, the 420 backoff and the attempt count all live in the
+          // shared path now; this worker only says which message it was.
+          await handleWorkerError(channel, msg, QUEUE_NAME, error, {
+            warn: (m) =>
+              logger.warn(`  ${m} (constellation ${constellationId})`),
+            error: (m, e) =>
+              logger.error(`  ${m} (constellation ${constellationId})`, e),
+          });
         }
       },
       { noAck: false },

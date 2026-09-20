@@ -2,6 +2,7 @@ import axios from 'axios';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
+import { handleWorkerError } from './worker-error';
 
 const ESI_BASE_URL = 'https://esi.evetech.net/latest';
 const QUEUE_NAME = 'esi_regions_queue';
@@ -23,53 +24,40 @@ async function regionExists(regionId: number): Promise<boolean> {
  * Returns true if processed, false if skipped
  */
 async function processRegion(regionId: number): Promise<boolean> {
-  try {
-    // Fetch region information from ESI
-    const response = await axios.get(
-      `${ESI_BASE_URL}/universe/regions/${regionId}/`,
+  // Fetch region information from ESI
+  const response = await axios.get(
+    `${ESI_BASE_URL}/universe/regions/${regionId}/`,
+  );
+  const data = response.data;
+
+  // Check rate limit headers
+  const errorLimitRemain = response.headers['x-esi-error-limit-remain'];
+  if (errorLimitRemain && parseInt(errorLimitRemain) < 20) {
+    logger.warn(
+      `⚠️  Error limit low (${errorLimitRemain}/100), slowing down...`,
     );
-    const data = response.data;
-
-    // Check rate limit headers
-    const errorLimitRemain = response.headers['x-esi-error-limit-remain'];
-    if (errorLimitRemain && parseInt(errorLimitRemain) < 20) {
-      logger.warn(
-        `⚠️  Error limit low (${errorLimitRemain}/100), slowing down...`,
-      );
-      await sleep(2000); // Wait 2 seconds
-    }
-
-    // Save to database using Prisma
-    await prismaWorker.region.upsert({
-      where: { id: regionId },
-      update: {
-        name: data.name,
-        description: data.description || null,
-      },
-      create: {
-        id: regionId,
-        name: data.name,
-        description: data.description || null,
-      },
-    });
-
-    logger.debug(`✅ Saved region ${regionId} - ${data.name}`);
-
-    // Short wait for rate limiting - sadece başarılı ESI çağrılarında bekle
-    await sleep(RATE_LIMIT_DELAY);
-    return true;
-  } catch (error: any) {
-    if (error.response?.status === 404) {
-      logger.warn(`⚠️  Region ${regionId} not found (404)`);
-    } else if (error.response?.status === 420) {
-      logger.warn(`🛑 Error limited (420)! Waiting 60 seconds...`);
-      await sleep(60000);
-      throw error; // Requeue the message
-    } else {
-      logger.error(`❌ Error processing region ${regionId}:`, error.message);
-    }
-    throw error;
+    await sleep(2000); // Wait 2 seconds
   }
+
+  // Save to database using Prisma
+  await prismaWorker.region.upsert({
+    where: { id: regionId },
+    update: {
+      name: data.name,
+      description: data.description || null,
+    },
+    create: {
+      id: regionId,
+      name: data.name,
+      description: data.description || null,
+    },
+  });
+
+  logger.debug(`✅ Saved region ${regionId} - ${data.name}`);
+
+  // Short wait for rate limiting - sadece başarılı ESI çağrılarında bekle
+  await sleep(RATE_LIMIT_DELAY);
+  return true;
 }
 
 /**
@@ -178,7 +166,12 @@ async function startWorker() {
           }
         } catch (error) {
           errorCount++;
-          channel.nack(msg, false, false);
+          // 404, the 420 backoff and the attempt count all live in the
+          // shared path now; this worker only says which message it was.
+          await handleWorkerError(channel, msg, QUEUE_NAME, error, {
+            warn: (m) => logger.warn(`  ${m} (region ${regionId})`),
+            error: (m, e) => logger.error(`  ${m} (region ${regionId})`, e),
+          });
         }
       },
       { noAck: false },

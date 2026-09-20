@@ -2,6 +2,7 @@ import { ItemGroupService } from '@services/item-group';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
+import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'esi_item_group_info_queue';
 const PREFETCH_COUNT = 10; // 10 concurrent ESI requests
@@ -78,10 +79,10 @@ async function itemGroupInfoWorker() {
           if (msg) lastMessageTime = Date.now();
           if (!msg) return;
 
-          try {
-            const message = JSON.parse(msg.content.toString());
-            const itemGroupId = message.entityId;
+          const message = JSON.parse(msg.content.toString());
+          const itemGroupId = message.entityId;
 
+          try {
             // Check if already exists
             const existing = await prismaWorker.itemGroup.findUnique({
               where: { id: itemGroupId },
@@ -129,20 +130,15 @@ async function itemGroupInfoWorker() {
                 `\n📊 Progress: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)\n`,
               );
             }
-          } catch (error: any) {
+          } catch (error) {
             totalErrors++;
-            logger.error(`  ❌ Error processing message:`, error.message);
-
-            // ESI 404 hatası alınırsa (item group bulunamadı), mesajı sil
-            if (error.response?.status === 404) {
-              logger.warn(
-                '  ⚠️  Item group not found in ESI, removing from queue',
-              );
-              channel.ack(msg);
-            } else {
-              // Diğer hatalar için requeue et
-              channel.nack(msg, false, true);
-            }
+            // 404, the 420 backoff and the attempt count all live in the
+            // shared path now; this worker only says which message it was.
+            await handleWorkerError(channel, msg, QUEUE_NAME, error, {
+              warn: (m) => logger.warn(`  ${m} (item group ${itemGroupId})`),
+              error: (m, e) =>
+                logger.error(`  ${m} (item group ${itemGroupId})`, e),
+            });
           }
         },
         { noAck: false },

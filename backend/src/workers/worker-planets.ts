@@ -28,11 +28,11 @@ import { UniverseService } from '@services/universe/universe.service';
 import {
   TOPOLOGY_QUEUES,
   envelope,
-  handleWorkerError,
   parseTopologyMessage,
   publishTopology,
   type PlanetMessage,
 } from '../queues/topology-messages';
+import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'esi_planets_queue';
 const SOURCE = 'worker-planets';
@@ -209,14 +209,12 @@ async function planetsWorker() {
               logger.warn(`⚠️  Planet ${planetId} not found (404)`);
               channel.ack(msg);
             } else {
-              await handleWorkerError(
-                channel,
-                msg,
-                payload,
-                QUEUE_NAME,
-                error,
-                logger,
-              );
+              // 404, the 420 backoff and the attempt count all live in the
+              // shared path now; this worker only says which message it was.
+              await handleWorkerError(channel, msg, QUEUE_NAME, error, {
+                warn: (m) => logger.warn(`  ${m} (planet ${planetId})`),
+                error: (m, e) => logger.error(`  ${m} (planet ${planetId})`, e),
+              });
             }
           }
         } finally {

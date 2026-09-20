@@ -7,6 +7,7 @@ import { CharacterService } from '@services/character';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
+import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'esi_character_info_queue';
 const PREFETCH_COUNT = 5; // Process 5 characters concurrently (ESI rate limit protection)
@@ -147,25 +148,16 @@ async function characterInfoWorker() {
                 `📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`,
               );
             }
-          } catch (error: any) {
+          } catch (error) {
             totalErrors++;
             totalProcessed++;
-
-            // 404 = deleted character, don't requeue
-            if (error.message?.includes('404')) {
-              logger.warn(
-                `  ! [${totalProcessed}] Character ${message.entityId} (404 - Deleted)`,
-              );
-              channel.ack(msg);
-            } else {
-              // Other errors: requeue
-              logger.error(
-                `  × [${totalProcessed}] Character ${message.entityId} ERROR:`,
-              );
-              logger.error(`     Message: ${error.message}`);
-              logger.error(`     Stack: ${error.stack?.split('\n')[0]}`);
-              channel.nack(msg, false, true);
-            }
+            // 404, the 420 backoff and the attempt count all live in the
+            // shared path now; this worker only says which message it was.
+            await handleWorkerError(channel, msg, QUEUE_NAME, error, {
+              warn: (m) => logger.warn(`  ${m} (character ${characterId})`),
+              error: (m, e) =>
+                logger.error(`  ${m} (character ${characterId})`, e),
+            });
 
             if (totalProcessed % 50 === 0) {
               logger.info(

@@ -21,10 +21,10 @@ import prismaWorker from '@services/prisma-worker';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import { UniverseService } from '@services/universe/universe.service';
 import {
-  handleWorkerError,
   parseTopologyMessage,
   type StarMessage,
 } from '../queues/topology-messages';
+import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'esi_stars_queue';
 // Concurrency, not a rate limit - esiRateLimiter owns the dispatch ceiling.
@@ -164,25 +164,21 @@ async function starsWorker() {
                   create: { id: starId, solar_system_id: solarSystemId },
                 });
                 channel.ack(msg);
-              } catch (writeError: any) {
-                await handleWorkerError(
-                  channel,
-                  msg,
-                  payload,
-                  QUEUE_NAME,
-                  writeError,
-                  logger,
-                );
+              } catch (writeError) {
+                // 404, the 420 backoff and the attempt count all live in the
+                // shared path now; this worker only says which message it was.
+                await handleWorkerError(channel, msg, QUEUE_NAME, writeError, {
+                  warn: (m) => logger.warn(`  ${m} (star ${starId})`),
+                  error: (m, e) => logger.error(`  ${m} (star ${starId})`, e),
+                });
               }
             } else {
-              await handleWorkerError(
-                channel,
-                msg,
-                payload,
-                QUEUE_NAME,
-                error,
-                logger,
-              );
+              // 404, the 420 backoff and the attempt count all live in the
+              // shared path now; this worker only says which message it was.
+              await handleWorkerError(channel, msg, QUEUE_NAME, error, {
+                warn: (m) => logger.warn(`  ${m} (star ${starId})`),
+                error: (m, e) => logger.error(`  ${m} (star ${starId})`, e),
+              });
             }
           }
         } finally {

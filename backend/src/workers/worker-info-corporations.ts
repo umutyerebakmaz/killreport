@@ -7,6 +7,7 @@ import { CorporationService } from '@services/corporation';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
+import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'esi_corporation_info_queue';
 const PREFETCH_COUNT = 25; // Process up to 25 corporations concurrently (ESI throughput is capped at 50/sec by esiRateLimiter)
@@ -147,39 +148,16 @@ async function corporationInfoWorker() {
 
             channel.ack(msg);
             totalProcessed++;
-          } catch (error: any) {
+          } catch (error) {
             totalErrors++;
             totalProcessed++;
-
-            const errorMsg = error.message || String(error);
-
-            // 404: Corporation doesn't exist (NPC corp or deleted) - skip it
-            if (errorMsg.includes('404')) {
-              logger.warn(
-                `  ! [${totalProcessed}] Corporation ${message.entityId} (404 - not found)`,
-              );
-              channel.ack(msg);
-            }
-            // 5xx: Server errors (504 Gateway Timeout, 502 Bad Gateway, 503 Service Unavailable)
-            // These are temporary ESI issues - retry after delay
-            else if (
-              errorMsg.includes('504') ||
-              errorMsg.includes('502') ||
-              errorMsg.includes('503')
-            ) {
-              logger.warn(
-                `  ⏳ [${totalProcessed}] Corporation ${message.entityId}: ${errorMsg} - retrying in 5s...`,
-              );
-              await new Promise((resolve) => setTimeout(resolve, 5000));
-              channel.nack(msg, false, true); // Requeue
-            }
-            // Other errors: log and requeue (might be transient)
-            else {
-              logger.error(
-                `  × [${totalProcessed}] Corporation ${message.entityId}: ${errorMsg}`,
-              );
-              channel.nack(msg, false, true);
-            }
+            // 404, the 420 backoff and the attempt count all live in the
+            // shared path now; this worker only says which message it was.
+            await handleWorkerError(channel, msg, QUEUE_NAME, error, {
+              warn: (m) => logger.warn(`  ${m} (corporation ${corporationId})`),
+              error: (m, e) =>
+                logger.error(`  ${m} (corporation ${corporationId})`, e),
+            });
           }
         },
         { noAck: false },

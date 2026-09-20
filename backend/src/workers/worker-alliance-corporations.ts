@@ -14,6 +14,7 @@ import { AllianceService } from '@services/alliance';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
+import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'esi_alliance_corporations_queue';
 const CORPORATION_QUEUE = 'esi_corporation_info_queue';
@@ -148,13 +149,13 @@ async function allianceCorporationWorker() {
           } catch (error) {
             totalErrors++;
             totalProcessed++;
-
-            logger.error(
-              `  ❌ [${totalProcessed}][${allianceId}] Error: ${error instanceof Error ? error.message : error}`,
-            );
-
-            // Nack and requeue for retry
-            channel.nack(msg, false, true);
+            // 404, the 420 backoff and the attempt count all live in the
+            // shared path now; this worker only says which message it was.
+            await handleWorkerError(channel, msg, QUEUE_NAME, error, {
+              warn: (m) => logger.warn(`  ${m} (alliance ${allianceId})`),
+              error: (m, e) =>
+                logger.error(`  ${m} (alliance ${allianceId})`, e),
+            });
           }
         },
         { noAck: false },
