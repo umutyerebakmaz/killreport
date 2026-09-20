@@ -27,10 +27,14 @@ export const LABEL_DOT_GAP_PX = 7;
  * The clearance term below is measured from the DOT — `systemFloorPx` tops out
  * at 6 px — while a logo is drawn at LOGO_MIN_RADIUS_PX plus its disc, so a
  * name that clears the dot still lands on the crest. This does not close that
- * gap arithmetically: full clearance would be about 12 px here, and 8 is where
- * the user left it on 2026-09-20, tuned by looking. Raising it is one number.
+ * gap arithmetically, but 12 is where it lands in practice: the clearance the
+ * dot already buys is 2.7-6 px over the zooms the logos are drawn at, and a
+ * logo reaches LOGO_MIN_RADIUS_PX plus its disc, so this is the difference.
+ * Settled by looking on 2026-09-20 rather than derived, which is why it is a
+ * constant and not an expression — the arithmetic version belongs in the
+ * clearance term itself, measured from the mark actually drawn.
  */
-export const LABEL_LOGO_LIFT_PX = 8;
+export const LABEL_LOGO_LIFT_PX = 12;
 
 export interface LabelBounds {
   minX: number;
