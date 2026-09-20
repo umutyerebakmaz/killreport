@@ -11,6 +11,8 @@ vi.mock('next/navigation', () => ({
 }));
 
 let labelQueries: { kind: string; skip: boolean }[] = [];
+/** Whether the sovereignty query was skipped — it is, until the layer opens. */
+let sovQueries: { skip: boolean }[] = [];
 /** Which system the popup asked about, which is what picking is judged on. */
 let detailsQueries: number[] = [];
 
@@ -31,7 +33,18 @@ vi.mock('@/generated/graphql', () => ({
     Gate: 'GATE',
   },
   MapLabelKind: { Region: 'REGION', Constellation: 'CONSTELLATION' },
+  MapOwnerKind: {
+    Alliance: 'ALLIANCE',
+    Faction: 'FACTION',
+    Corporation: 'CORPORATION',
+  },
   useMapGeometryQuery: () => useMapGeometryQuery(),
+  // The layer switch starts on `security`, so the hook is always skipped in
+  // these tests; it still has to exist, because the module is mocked whole.
+  useMapSovereigntyQuery: (options: { skip?: boolean }) => {
+    sovQueries.push({ skip: !!options.skip });
+    return { data: undefined };
+  },
   useMapCelestialsQuery: () => ({ data: { mapCelestials: [] } }),
   useMapLabelsQuery: (options: {
     variables: { kind: string };
@@ -76,10 +89,14 @@ vi.mock('./scene/createScene', () => ({
 vi.mock('./scene/systems', () => ({
   buildSystems: vi.fn(),
   scaleSystems: vi.fn(),
+  applyLayer: vi.fn(),
+  applyLogos: vi.fn(),
 }));
+vi.mock('./scene/logoAtlas', () => ({ buildLogoAtlas: vi.fn() }));
 const drawHighlight = vi.fn();
 vi.mock('./scene/edges', () => ({
   drawEdges: vi.fn(),
+  drawEdgeGroups: vi.fn(),
   drawHighlight: (...args: unknown[]) => drawHighlight(...args),
 }));
 vi.mock('./scene/celestials', () => ({
@@ -203,6 +220,7 @@ beforeEach(() => {
   createScene.mockResolvedValue(scene);
   searchParams = new URLSearchParams('');
   labelQueries = [];
+  sovQueries = [];
   detailsQueries = [];
   drawHighlight.mockClear();
 });
@@ -566,6 +584,26 @@ describe('UniverseMap', () => {
       clickAt(line, at.x + 200, at.y + 200);
 
       expect(screen.getByText('Kimotoro · The Forge')).toBeInTheDocument();
+    });
+
+    it('scrolls the legend rather than zooming the map under it', async () => {
+      // The wheel listener is on the host and the panel is a child of it, so
+      // without `data-map-overlay` every scroll of the owner list would zoom
+      // the galaxy instead.
+      const host = await mounted();
+
+      const panel = host.querySelector('[data-map-overlay]');
+      expect(panel).not.toBeNull();
+
+      const event = new WheelEvent('wheel', {
+        deltaY: -120,
+        bubbles: true,
+        cancelable: true,
+      });
+      panel!.dispatchEvent(event);
+
+      // Not prevented: the browser is left to scroll the list.
+      expect(event.defaultPrevented).toBe(false);
     });
 
     it('closes the popup when the click lands on empty space', async () => {

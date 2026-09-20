@@ -20,6 +20,8 @@ export interface MapScene {
   edgesGalaxy: Graphics;
   edgesHighlight: Graphics;
   edgesLocal: Graphics;
+  /** The owner discs the sovereignty logos are drawn on, under them. */
+  discs: Container;
   systems: Container;
   celestials: Container;
   dot: Texture;
@@ -75,9 +77,20 @@ export async function createScene(host: HTMLElement): Promise<MapScene> {
   const edgesGalaxy = new Graphics();
   const edgesHighlight = new Graphics();
   const edgesLocal = new Graphics();
+  const discs = new Container();
   const systems = new Container();
   const celestials = new Container();
-  world.addChild(edgesGalaxy, edgesHighlight, edgesLocal, systems, celestials);
+  // The discs are UNDER the systems, and that is the whole of the effect: a
+  // logo is drawn on top of its owner's colour, so the colour is read from
+  // behind the crest rather than from a tint multiplied into it.
+  world.addChild(
+    edgesGalaxy,
+    edgesHighlight,
+    edgesLocal,
+    discs,
+    systems,
+    celestials,
+  );
 
   // A 64 px disc minified to the 1.5 px floor is a 21x reduction, and a single
   // mip level sampled that far down is what aliasing looks like: deck.gl's
@@ -101,6 +114,7 @@ export async function createScene(host: HTMLElement): Promise<MapScene> {
     edgesGalaxy,
     edgesHighlight,
     edgesLocal,
+    discs,
     systems,
     celestials,
     dot,

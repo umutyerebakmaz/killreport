@@ -1,0 +1,22 @@
+# Adı PUBLIC_CACHE_QUERIES'te **yok** ve bu bilerek: servisin kendi 900 s'lik
+# Redis anahtarı zaten işi görüyor, response cache ikinci bir katman olarak
+# yalnızca bayatlığı ikiye katlardı. Listeye eklenirse TTL'i
+# TTL_PER_SCHEMA_COORDINATE'a da girmek zorunlu — yoksa 120 s'lik
+# DEFAULT_PUBLIC'e ve token başına bir oturum anahtarına düşer.
+query MapSovereignty($scope: MapScope!) {
+  mapSovereignty(scope: $scope) {
+    scope
+    updatedAt
+    owners {
+      ownerId
+      kind
+      name
+      ticker
+      systemCount
+    }
+    systems {
+      systemId
+      ownerId
+    }
+  }
+}

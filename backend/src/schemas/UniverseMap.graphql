@@ -131,6 +131,40 @@ type MapSystemDetails {
   snapshotAt: String
 }
 
+"Bir sistemi tutan şeyin türü. Satırda alliance varsa sahip odur; corporation yalnızca alliance yokken sahiptir."
+enum MapOwnerKind {
+  ALLIANCE
+  FACTION
+  CORPORATION
+}
+
+"""
+Sahnede toprağı olan tek bir sahip. `systems` içinde adı tekrarlanmıyor;
+iki liste `ownerId` üzerinden birleşiyor.
+"""
+type MapSovOwner {
+  ownerId: Int!
+  kind: MapOwnerKind!
+  name: String!
+  "Faction'da null: factions tablosunda ticker sütunu yok."
+  ticker: String
+  systemCount: Int!
+}
+
+"Tek bir sahiplik çifti. NEW_EDEN'da 5.383 satır."
+type MapSovSystem {
+  systemId: Int!
+  ownerId: Int!
+}
+
+type MapSovereignty {
+  scope: MapScope!
+  owners: [MapSovOwner!]!
+  systems: [MapSovSystem!]!
+  "Anlık görüntünün tazeliği, ISO. Hiç satır yoksa null."
+  updatedAt: String
+}
+
 extend type Query {
   """
   Statik evren verisi. Servis Redis'te 86400 s tutuyor, ama API'den görünen
@@ -157,4 +191,14 @@ extend type Query {
   ömürlü parça saat başı değişen aktivite.
   """
   mapSystemDetails(systemId: Int!): MapSystemDetails
+
+  """
+  Sahnenin sovereignty katmanı. Servis Redis'te 900 s tutuyor.
+
+  Response cache'e **bilerek** alınmadı: `PUBLIC_CACHE_QUERIES`'e eklenirse
+  TTL'i `TTL_PER_SCHEMA_COORDINATE`'a da girmek zorunda kalır, ve servisin
+  kendi Redis anahtarı zaten işi görürken ikinci katman yalnızca bayatlığı
+  ikiye katlar.
+  """
+  mapSovereignty(scope: MapScope! = NEW_EDEN): MapSovereignty!
 }
