@@ -18,15 +18,15 @@ Hepsi 2026-09-20'de `backend/src` üzerinde sayıldı.
 |                                                       | sayı                               |
 | ----------------------------------------------------- | ---------------------------------- |
 | kullanılan farklı kuyruk adı                          | 24                                 |
-| `ALL_QUEUES`'te beyan edilen (`services/rabbitmq.ts`) | 21                                 |
-| `ensureAllQueuesExist()` dışında beyan edilen         | 5                                  |
+| `ALL_QUEUES`'te beyan edilen (`services/rabbitmq.ts`) | 19                                 |
+| `ensureAllQueuesExist()` dışında beyan edilen         | 6                                  |
 | sınırsız requeue — `nack(msg, false, true)`           | 17 (15 dosya)                      |
 | sessiz discard — `nack(msg, false, false)`            | 4                                  |
 | dead letter hedefi                                    | 1 (`esi_topology_dlq`)             |
 | publisher confirm                                     | 0                                  |
 | `src/workers/` altındaki dosya                        | 42, bunların 25'i kuyruk tüketiyor |
 
-Tek beyan noktasının dışında kalan beş ad:
+Tek beyan noktasının dışında kalan altı ad:
 
 ```
 esi_corporation_killmails_queue
@@ -34,7 +34,17 @@ esi_user_killmails_queue
 esi_dogma_attribute_info_queue
 esi_dogma_effect_info_queue
 esi_type_dogma_queue
+esi_type_price_queue
 ```
+
+**İki liste var, tek liste değil.** `services/rabbitmq.ts` kuyruk adlarını iki
+ayrı yerde elle sayıyor: `ALL_QUEUES` (19 ad, `ensureAllQueuesExist()` bunu
+beyan ediyor) ve `getAllQueueStats()` içindeki kendi `queues` dizisi (20 ad,
+izleme bunu okuyor). Aradaki tek fark `esi_type_price_queue`: izleniyor ama
+beyan edilmiyor. Yani bir kuyruk bugün üç durumdan birinde olabiliyor — beyan
+edilip izlenen, izlenip beyan edilmeyen, ya da hiçbiri. Dilim 2 iki listeyi tek
+kaynağa indiriyor; aksi hâlde beyan açığı kapansa bile izleme açığı kalır ve
+`/workers` sayfası var olmayan bir tamlık iddia eder.
 
 ### Neyin eksikliği var
 
@@ -145,9 +155,16 @@ zaten var ve zaten canlı.
 
 ## 4. Dilim 2 — Beyan açığı
 
-Beş ad `services/rabbitmq.ts`'deki `ALL_QUEUES`'e giriyor. Kendi publisher'ında
-ya da worker'ında duran `assertQueue` çağrıları siliniyor;
-`ensureAllQueuesExist()` yine tek beyan noktası oluyor.
+Altı ad `services/rabbitmq.ts`'deki `ALL_QUEUES`'e giriyor, ve
+`getAllQueueStats()` kendi kopya dizisini bırakıp `ALL_QUEUES`'i okuyor — tek
+liste, iki tüketici. Kendi publisher'ında ya da worker'ında duran `assertQueue`
+çağrıları siliniyor; `ensureAllQueuesExist()` yine tek beyan noktası oluyor.
+
+`publishToQueue()` (`services/rabbitmq.ts:133`) da bir beyan noktası:
+`assertQueue(queueName, { durable: true })` çağırıyor, **`x-max-priority`
+olmadan**. Bugün patlamamasının tek sebebi `ensureAllQueuesExist()`'in sunucu
+açılışında aynı kuyruğu önce doğru argümanlarla beyan etmiş olması; sıranın
+değiştiği gün 406 verir. Bu çağrı da kalkıyor.
 
 Topoloji değişmiyor, argüman değişmiyor, dolayısıyla 406 riski yok. Bu dilim
 kendi başına çıkabilir ve canlı bir tehlikeyi kapatır.
@@ -259,8 +276,8 @@ veriyi gördükten sonra yapılacak iş.
 
 ## 8. Kabul kriterleri
 
-- [ ] `ALL_QUEUES` 24 adın hepsini kapsıyor; `ensureAllQueuesExist()` dışında
-      farklı argümanlarla beyan edilen kuyruk kalmıyor
+- [ ] `ALL_QUEUES` 24 adın hepsini kapsıyor ve `getAllQueueStats()` onu okuyor;
+      `ensureAllQueuesExist()` dışında `assertQueue` çağrısı kalmıyor
 - [ ] `killreport-dlx` poliçesi mevcut her kuyruğa DLX takıyor; hiçbir kuyruk
       silinmiyor, hiçbir mesaj kaybolmuyor
 - [ ] `killreport.wait` ve `killreport.parking` `x-max-priority: 10` ile beyan
