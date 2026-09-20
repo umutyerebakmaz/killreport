@@ -621,10 +621,17 @@ export async function ensureAllQueuesExist(): Promise<void> {
 
     console.log('📋 Ensuring all RabbitMQ queues exist...');
 
-    // Direct exchanges, and the routing key is the origin queue's own name —
-    // which is what lets one wait queue serve all 24 without knowing any of
-    // them. RabbitMQ writes that key itself when it dead-letters a message.
-    await ch.assertExchange(RETRY_TOPOLOGY.dlx, 'direct', { durable: true });
+    // The dead letter exchange is a FANOUT and the retry exchange is a
+    // DIRECT, and the pair is the whole trick. A message carries its origin
+    // queue's name as its routing key (sendToQueue publishes to the default
+    // exchange with the queue name as the key), and RabbitMQ preserves that
+    // key across a dead-letter hop. Fanout ignores the key, so one wait queue
+    // catches all 24 without a binding per queue; the key survives the wait,
+    // so the direct retry exchange sends the message back to exactly the
+    // queue it failed in. A direct dlx would route on the origin queue's name,
+    // the wait queue is bound under no such name, and every failure would be
+    // dropped on its first attempt.
+    await ch.assertExchange(RETRY_TOPOLOGY.dlx, 'fanout', { durable: true });
     await ch.assertExchange(RETRY_TOPOLOGY.retry, 'direct', { durable: true });
 
     // The wait queue has no consumer: the TTL is the delay, and expiry
@@ -644,6 +651,8 @@ export async function ensureAllQueuesExist(): Promise<void> {
       arguments: { 'x-max-priority': 10 },
     });
 
+    // Empty routing key, which is what a fanout binding takes: it binds the
+    // wait queue to everything the dead letter exchange receives.
     await ch.bindQueue(RETRY_TOPOLOGY.wait, RETRY_TOPOLOGY.dlx, '');
 
     for (const queueName of ALL_QUEUES) {
@@ -664,20 +673,11 @@ export async function ensureAllQueuesExist(): Promise<void> {
 }
 ```
 
-**Dikkat:** `bindQueue(wait, dlx, '')` boş routing key ile bağlanıyor çünkü
-direct exchange'te gelen anahtar köken kuyruk adı olacak — wait kuyruğunun
-hepsini yakalaması gerekiyor. Bu **çalışmaz**: direct exchange boş anahtarla
-bağlı bir kuyruğa yalnızca boş anahtarlı mesaj yollar. Doğrusu, `dlx`'i
-`fanout` yapmak:
-
-```ts
-await ch.assertExchange(RETRY_TOPOLOGY.dlx, 'fanout', { durable: true });
-```
-
-`fanout` routing key'i yok saydığı için her kuyruktan gelen her mesaj wait'e
-düşer, ve RabbitMQ'nun mesaja yazdığı orijinal routing key (köken kuyruk adı)
-korunur — böylece `retry` direct exchange'i onu doğru kuyruğa geri gönderir.
-`bindQueue(wait, dlx, '')` fanout'ta doğru ve yeterli.
+**Doğrulanacak nokta:** iki exchange'in türü farklı ve bu bilerek —
+`killreport.dlx` **fanout**, `killreport.retry` **direct**. İkisini de direct
+yapmak sessizce bozar: wait kuyruğu köken kuyruk adıyla bağlı olmadığı için
+hiçbir mesaj ona ulaşmaz ve her başarısızlık ilk denemede kaybolur. Task 9'un
+uçtan uca turu bunun çalıştığını gösteren şey.
 
 - [ ] **Step 3: `getAllQueueStats` topoloji kuyruklarını da okusun**
 
