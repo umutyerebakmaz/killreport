@@ -67,14 +67,14 @@ psql "$DB" -c "TRUNCATE stars, planets, moons, asteroid_belts, stargates, statio
 
 Then purge the queues. Skipping this is the classic mistake: messages published
 against the old rows will try to write children of planets that no longer exist,
-fail with `P2003` five times each, and pile up in the dead letter queue.
+fail with `P2003` repeatedly, and eventually park in `killreport.parking`.
 
 ```bash
 npx tsx -e "
 import { getRabbitMQChannel } from './src/services/rabbitmq';
 const QS = ['esi_solar_systems_queue','esi_stars_queue','esi_planets_queue',
             'esi_moons_queue','esi_asteroid_belts_queue','esi_stargates_queue',
-            'esi_stations_queue','esi_topology_dlq'];
+            'esi_stations_queue'];
 (async () => {
   const ch = await getRabbitMQChannel();
   for (const q of QS) {
@@ -86,6 +86,19 @@ const QS = ['esi_solar_systems_queue','esi_stars_queue','esi_planets_queue',
 })();
 "
 ```
+
+**Do not add `killreport.parking` to that list.** It is shared by every
+worker in the app, not just this chain, and it holds the diagnostic trail of
+everything that has ever given up — purging it destroys other workers'
+evidence along with this chain's. If a previous run already parked messages
+from this chain (their `x-death[0].queue` will name one of the six queues
+above), read and clear those individually instead, the way
+[`rabbitmq.md`](./rabbitmq.md) describes under "Inspecting the parking queue"
+and "Replaying a parked message by hand" — a targeted delete of the messages
+you've identified as stale, not a bulk purge of the whole queue.
+`esi_topology_dlq`, the queue this list used to purge instead of parking, is
+retired: nothing publishes to it anymore, so there is nothing there for a
+fresh run to clean up (see `rabbitmq.md`, "Retired: `esi_topology_dlq`").
 
 ---
 
@@ -192,7 +205,7 @@ psql "$DB" -c "SELECT
 ### What "done" means
 
 Not "the system queue is empty". Moon and belt rows are born one hop later, so
-the ingest is finished only when **all seven queues are empty at once**.
+the ingest is finished only when **all six celestial queues are empty at once**.
 
 ### Expected totals
 
@@ -224,7 +237,9 @@ yarn doctor:topology
 ```
 
 It reports orphaned cross-pipeline references, the `name IS NULL` count per table
-with the repair command for each, and the depth of the dead letter queue.
+with the repair command for each, and the depth of the shared parking queue
+(`killreport.parking`) — shared with every other worker in the app, not
+topology-only.
 
 A clean report has every count at zero, except `stations.owner_corporation_id`,
 which was 2,535 on 2026-09-02: those are station owners the **corporation**
@@ -246,30 +261,31 @@ Each reads `WHERE name IS NULL` out of the database and publishes the same JSON
 contract its worker consumes, so run the matching worker afterwards. A re-run
 queues only what is still missing.
 
-**Messages in `esi_topology_dlq`.** Something failed five times. Inspect before
-re-running the scan — the depth is in the `doctor:topology` output. Read one
-without consuming it:
+**Messages in `killreport.parking`.** Something failed `MAX_ATTEMPTS` (5)
+times. Its depth is in the `doctor:topology` output, but that queue is shared
+by every worker in the app — a nonzero depth does not by itself mean this
+chain failed. Each message's `x-death[0].queue` header names its origin
+queue, so check that before assuming it is one of the six celestial queues.
+Inspect before re-running the scan: see
+[`rabbitmq.md`](./rabbitmq.md), "Inspecting the parking queue", for reading a
+message's body and its `x-death` header (via the management UI) without
+consuming it or disturbing messages that belong to a different worker's
+investigation. `esi_topology_dlq`, which this chain dead-lettered to before
+this queue existed, is retired and no longer receives anything — see
+`rabbitmq.md`, "Retired: `esi_topology_dlq`".
 
-```bash
-npx tsx -e "
-import { getRabbitMQChannel } from './src/services/rabbitmq';
-(async () => {
-  const ch = await getRabbitMQChannel();
-  const m = await ch.get('esi_topology_dlq', { noAck: false });
-  if (m) { console.log(m.content.toString()); ch.nack(m, false, true); }
-  else console.log('empty');
-  process.exit(0);
-})();
-"
-```
+**`attempt n/5 failed` in the logs, with a Prisma `P2003` error attached.** A
+child arrived before its parent. Expected only if you ran `worker-stargates`
+alongside `worker-solar-systems`. It resolves itself on retry; finish the
+system queue first to avoid it. (The shared failure path no longer logs a
+foreign-key-specific message like the old "parent row not written yet" text —
+every non-404, non-error-limited failure logs the same generic
+`attempt n/MAX_ATTEMPTS failed`, with the underlying error, including its
+Prisma code, attached as the second log argument.)
 
-**`retry n/5 - parent row not written yet (P2003)` in the logs.** A child arrived
-before its parent. Expected only if you ran `worker-stargates` alongside
-`worker-solar-systems`. It resolves itself; finish the system queue first to
-avoid it.
-
-**HTTP 420.** ESI error limiting. The worker waits 60 seconds and requeues on its
-own. If it keeps happening, you have too many workers running — drop to two.
+**HTTP 420 (or 429).** ESI error limiting (420) or a generic rate limit (429).
+The worker waits 60 seconds and requeues on its own. If it keeps happening,
+you have too many workers running — drop to two.
 
 **`406 PRECONDITION_FAILED` on startup.** A queue was declared without
 `arguments: { 'x-max-priority': 10 }`. Every declaration in the repo passes it and

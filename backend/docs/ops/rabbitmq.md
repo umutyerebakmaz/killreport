@@ -3,7 +3,7 @@
 This documents how to attach the retry topology (`killreport.dlx`,
 `killreport.retry`, `killreport.wait`, `killreport.parking`) — declared in code
 by `ensureAllQueuesExist()` in
-[`../../src/services/rabbitmq.ts`](../../src/services/rabbitmq.ts) — to the 25
+[`../../src/services/rabbitmq.ts`](../../src/services/rabbitmq.ts) — to the 24
 application queues listed in
 [`../../src/services/queue-names.ts`](../../src/services/queue-names.ts).
 
@@ -24,7 +24,7 @@ processes and the schedules; this covers the broker.
 broker refuses it.
 
 Adding `x-dead-letter-exchange` directly to that `assertQueue` call would
-change the declared arguments for every one of the 25 queues that already
+change the declared arguments for every one of the 24 queues that already
 exist. The next time the server starts and re-declares them, the broker sees a
 queue that already exists with `x-max-priority: 10` only, and a declaration
 that now also asks for `x-dead-letter-exchange`, and refuses it:
@@ -148,7 +148,7 @@ Treat that count as a floor, not an exact match: on a broker that has
 accumulated queues from an earlier naming scheme (this project has had at
 least one rename — see `alliance_queue` above, and possibly others left over
 from before `queue-names.ts` became the single list), the same pattern matches
-those too and inflates the number past 25. That is not a bug in the pattern;
+those too and inflates the number past 24. That is not a bug in the pattern;
 it is the pattern doing exactly what it is asked to do — match by prefix, not
 by an enumerated list. The `comm` check above is what actually proves
 coverage; the bare count is a sanity check, not the verification.
