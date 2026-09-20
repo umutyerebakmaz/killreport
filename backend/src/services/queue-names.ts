@@ -51,3 +51,27 @@ export const ALL_QUEUES: readonly string[] = [
   // Maintenance and backfill workers
   'backfill_killmail_values_queue',
 ];
+
+/**
+ * The retry topology every application queue is wired into: a fanout dead
+ * letter exchange, a wait queue that holds a message for `waitTtlMs` before
+ * its TTL expiry dead-letters it onward, a direct retry exchange that routes
+ * it back to the queue it came from (by routing key, which is the origin
+ * queue's name), and a parking queue for messages that gave up for good.
+ */
+export const RETRY_TOPOLOGY = {
+  dlx: 'killreport.dlx',
+  retry: 'killreport.retry',
+  wait: 'killreport.wait',
+  parking: 'killreport.parking',
+  waitTtlMs: 30000,
+} as const;
+
+/**
+ * The two queues the retry topology owns. They are declared like every other
+ * queue but they are not application queues — nothing consumes them.
+ */
+export const TOPOLOGY_QUEUES: readonly string[] = [
+  RETRY_TOPOLOGY.wait,
+  RETRY_TOPOLOGY.parking,
+];

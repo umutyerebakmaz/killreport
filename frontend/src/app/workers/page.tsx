@@ -529,6 +529,15 @@ function QueueSection({ title, subtitle, queues }: any) {
                       stalled
                     </span>
                   )}
+                  {queue.name === 'killreport.parking' &&
+                    queue.messageCount > 0 && (
+                      <span
+                        className="ml-2 text-xs text-danger"
+                        title="Messages that gave up after 5 attempts"
+                      >
+                        parked
+                      </span>
+                    )}
                 </td>
                 <td className="px-2 py-4 text-center md:px-4">
                   <span

@@ -1,3 +1,5 @@
+import { RETRY_TOPOLOGY } from './queue-names';
+
 /**
  * What a queue's numbers say about it.
  *
@@ -19,8 +21,8 @@ export interface QueueNumbers {
  * working state rather than a fault.
  */
 export const HOLDING_QUEUES: readonly string[] = [
-  'killreport.wait',
-  'killreport.parking',
+  RETRY_TOPOLOGY.wait,
+  RETRY_TOPOLOGY.parking,
 ];
 
 /**
