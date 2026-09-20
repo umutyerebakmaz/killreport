@@ -50,9 +50,17 @@ export default function SovLegend({ owners }: { owners: readonly Owner[] }) {
   }
 
   return (
-    // A fixed width, because the rows `truncate`: with the width left to the
-    // content, the longest alliance name sets it and nothing ever truncates.
-    <div className="float flex w-56 min-h-0 max-w-full flex-col text-xs">
+    // Fixed in both directions while it is open, and auto only when there is
+    // nothing under the header to size. The width is fixed because the rows
+    // `truncate`: left to the content, the longest alliance name sets it and
+    // nothing ever truncates. The height is fixed so the panel is the same
+    // shape whoever holds sovereignty — 98 owners today, 30 after a war — and
+    // `max-h-full` still hands it back on a viewport too short for it.
+    <div
+      className={`float flex w-56 max-w-full flex-col text-xs ${
+        open ? 'h-96 max-h-full min-h-0' : ''
+      }`}
+    >
       <button
         type="button"
         onClick={() => setOpen((was) => !was)}
@@ -77,7 +85,7 @@ export default function SovLegend({ owners }: { owners: readonly Owner[] }) {
           // `min-h-0` is what makes the scroll work: a flex child's default
           // min-height is its content, so without it the panel grows past the
           // column instead of overflowing inside it.
-          className="flex min-h-0 flex-col gap-y-1 overflow-y-auto px-3 pb-2"
+          className="flex min-h-0 flex-1 flex-col gap-y-1 overflow-y-auto px-3 pb-2"
         >
           {owners.map((owner) => (
             <div key={owner.ownerId} className="flex items-center gap-x-2">
