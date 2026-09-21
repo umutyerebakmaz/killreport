@@ -12,9 +12,12 @@ extend type Query {
 
 extend type Mutation {
   """
-  Eve Online SSO login için authorization URL'i oluşturur
+  Eve Online SSO login için authorization URL'i oluşturur.
+
+  `returnTo` login'e basılan sayfanın göreli yoludur; SSO dönüşünde kullanıcı
+  oraya bırakılır. Site dışına çıkan her değer `/` olarak kabul edilir.
   """
-  login: AuthUrl!
+  login(returnTo: String): AuthUrl!
 
   """
   Oturum çerezini kullanarak taze bir EVE access token alır
@@ -52,7 +55,8 @@ type AuthUrl {
   url: String!
 
   """
-  CSRF koruması için state parametresi
+  CSRF koruması için state parametresi. Sunucuda saklanır ve callback'te tek
+  kullanımlık olarak harcanır.
   """
   state: String!
 }

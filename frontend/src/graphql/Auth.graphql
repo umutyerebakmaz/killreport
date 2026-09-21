@@ -1,3 +1,10 @@
+mutation Login($returnTo: String) {
+  login(returnTo: $returnTo) {
+    url
+    state
+  }
+}
+
 mutation RefreshSession {
   refreshSession {
     accessToken
