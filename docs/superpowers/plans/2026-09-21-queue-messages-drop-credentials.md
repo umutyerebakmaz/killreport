@@ -809,7 +809,16 @@ yarn workspace backend build && yarn workspace backend test
 cd backend && grep -rn "accessToken\|refreshToken" src/queues src/workers src/services/user-killmail-cron.ts
 ```
 
-Beklenen: hiçbir çıktı yok. (`src/resolvers/auth/mutations.ts` hâlâ `AuthPayload` için token döndürüyor — orası kapsam dışı ve bu grep'e dahil değil.)
+Beklenen: yalnızca iki worker'daki `UserSyncContext.accessToken` alanı ve onu
+`loadUserCredentials`'tan alıp ESI'ye taşıyan yerel kullanımlar. Bunlar kalması
+gereken şey. Aranan asıl garanti, yayınlanan hiçbir gövdede token olmaması:
+
+```bash
+cd backend && grep -rn -B4 "sendToQueue" src/queues src/workers src/services/user-killmail-cron.ts src/resolvers/auth/mutations.ts | grep -i token
+```
+
+Bu ikincisi boş dönmeli. (`src/resolvers/auth/mutations.ts` hâlâ `AuthPayload`
+için token döndürüyor — orası kapsam dışı ve `sendToQueue`'ya girmiyor.)
 
 - [ ] **Step 4: Biçim ve commit**
 
