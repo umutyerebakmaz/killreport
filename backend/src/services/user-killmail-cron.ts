@@ -1,5 +1,6 @@
 import prisma from './prisma';
-import { getRabbitMQChannel } from './rabbitmq';
+import { skipReason } from './queue-health';
+import { getQueueStats, getRabbitMQChannel } from './rabbitmq';
 
 const QUEUE_NAME = 'esi_user_killmails_queue';
 const SYNC_INTERVAL_MINUTES = 10; // Sync every 10 minutes
@@ -84,6 +85,17 @@ export class UserKillmailCron {
         `🕐 [${new Date().toLocaleString('en-EN')}] Running background sync...`,
       );
       console.log('─'.repeat(70));
+
+      // Ask the broker before adding to it. getQueueStats uses its own
+      // monitoring channel and answers zeros when the queue is missing or the
+      // broker is unreachable, which reads as "no consumer" and holds off —
+      // an unreadable broker is not a reason to publish blindly.
+      const reason = skipReason(await getQueueStats(QUEUE_NAME));
+      if (reason) {
+        console.log(`   ⏭️  Skipping sync - ${reason}`);
+        console.log('─'.repeat(70));
+        return;
+      }
 
       // Get all users with valid tokens (not expired, with 5 minute buffer)
       const fiveMinutesFromNow = new Date(Date.now() + 5 * 60 * 1000);
