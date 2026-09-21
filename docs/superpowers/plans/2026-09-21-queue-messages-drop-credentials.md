@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- **Ön koşul:** #237 (`b0f5048d`) `main`'e birleşmiş olmalı. Bu plan `services/user-killmail-cron.ts`'in #237 sonrası hâline dokunuyor ve satır atıfları ona göre. Dal `main`'den açılır.
+- **Ön koşul:** #237 `main`'e birleşti (`bc323bf2`). Satır atıfları o birleşmeden sonraki `main`'e göre. Dal `main`'den açılır.
 - **Yarn, asla npm.** `yarn workspace backend test`, `yarn workspace backend build`.
 - **Generated dosyalara dokunulmaz:** `src/generated-types.ts`, `src/generated-schema.graphql`. Bu planda hiçbir `.graphql` değişmiyor, yani codegen çalıştırılmıyor.
 - **İki Prisma istemcisi:** worker ve queue script'leri `@services/prisma-worker`, resolver ve API `@services/prisma`. `user-credentials.ts` yalnızca worker'lardan çağrılıyor, yani `prisma-worker` kullanır.
@@ -697,14 +697,14 @@ git commit -m "refactor(workers): corporation sync reads its credentials from th
 
 **Files:**
 
-- Modify: `backend/src/services/user-killmail-cron.ts` — `interface UserKillmailMessage` (`7-16`), `select` (`140-149`), mesaj kurulumu ve publish (`169-184`)
+- Modify: `backend/src/services/user-killmail-cron.ts` — `interface UserKillmailMessage` (`8-17`), `select` (`117-126`), mesaj kurulumu ve publish (`146-161`)
 - Modify: `backend/src/queues/queue-user-esi-killmails.ts` — `interface` (`7-16`), `select` (`73-85`), mesaj kurulumu (`110-127`)
 - Modify: `backend/src/queues/queue-corporation-esi-killmails.ts` — `interface` (`7-18`), `select` (`80-91`), corporation adı sorgusu (`116-135`), mesaj kurulumu (`137-157`)
 
 **Interfaces:**
 
 - Consumes: `buildSyncMessage` (Task 2).
-- Produces: davranış değişikliği yok; `skipReason` (#237) olduğu gibi kalır.
+- Produces: davranış değişikliği yok; `skipReason` (#237, `services/queue-health.ts`) olduğu gibi kalır.
 
 - [ ] **Step 1: Cron'u daralt**
 
@@ -745,7 +745,7 @@ const message = buildSyncMessage(user.id, fullSync);
 yarn workspace backend build && yarn workspace backend test
 ```
 
-Beklenen: temiz; `user-killmail-cron.spec.ts` (#237) hâlâ PASS — `skipReason` bu taskta değişmiyor.
+Beklenen: temiz; `queue-health.spec.ts` hâlâ PASS — `skipReason` bu taskta değişmiyor.
 
 - [ ] **Step 4: Biçim**
 

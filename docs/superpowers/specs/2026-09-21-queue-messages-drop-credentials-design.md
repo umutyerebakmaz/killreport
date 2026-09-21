@@ -15,11 +15,11 @@ olması.
 
 ## 1. Bugünkü durum, ölçülmüş
 
-Hepsi 2026-09-21'de `backend/src` üzerinde sayıldı. Satır atıfları #237
-(`b0f5048d`) birleştikten sonraki hâle göre: bu iş onun doğrudan devamı ve aynı
+Hepsi 2026-09-21'de `backend/src` üzerinde sayıldı. Satır atıfları #237 (`bc323bf2`)
+birleştikten sonraki `main`'e göre: bu iş onun doğrudan devamı ve aynı
 dosyaya dokunuyor.
 
-İki kuyruk aynı mesaj şeklini paylaşıyor (`services/user-killmail-cron.ts:7-16`,
+İki kuyruk aynı mesaj şeklini paylaşıyor (`services/user-killmail-cron.ts:8-17`,
 `queues/queue-corporation-esi-killmails.ts:7-18`):
 
 ```ts
@@ -35,7 +35,7 @@ Beş publish noktası, dört dosya:
 
 | Nereden                                     | Kuyruk                            | Satır     |
 | ------------------------------------------- | --------------------------------- | --------- |
-| `services/user-killmail-cron.ts`            | `esi_user_killmails_queue`        | `173-174` |
+| `services/user-killmail-cron.ts`            | `esi_user_killmails_queue`        | `150-151` |
 | `queues/queue-user-esi-killmails.ts`        | `esi_user_killmails_queue`        | `114-115` |
 | `resolvers/auth/mutations.ts` (login)       | `esi_user_killmails_queue`        | `91-92`   |
 | `queues/queue-corporation-esi-killmails.ts` | `esi_corporation_killmails_queue` | `143-144` |
@@ -197,7 +197,7 @@ kullanıcıyı sync dışına atmaya devam eder.
 Vitest, `backend/src/services/user-credentials.spec.ts`:
 
 - `needsRefresh` — saf fonksiyon, sınır durumlarıyla: beş dakikadan uzak, tam
-  beş dakika, geçmiş. Mock yok. #237 ile gelen `services/user-killmail-cron.spec.ts`'deki biçim.
+  beş dakika, geçmiş. Mock yok. #237 ile gelen `services/queue-health.spec.ts`'teki `skipReason` biçimi.
 - `loadUserCredentials` — `prismaWorker` ve `eve-sso` mock'lanarak dört yol:
   kullanıcı yok, refresh token yok, token geçerli (yenileme çağrılmamalı),
   token süresi dolmuş (yenilenmeli, yeni değer veritabanına yazılmalı).
