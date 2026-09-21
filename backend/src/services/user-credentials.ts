@@ -47,6 +47,21 @@ export function needsRefresh(expiresAt: Date, now: Date): boolean {
  * retry, because no number of attempts fixes a user who has to log in again.
  * Routing them through `handleWorkerError` would requeue work that can never
  * succeed, which is the contract #234 set up.
+ *
+ * Two things this function does not do. Concurrent refresh is not serialised:
+ * if two workers hit the same user while its token is expiring, both call
+ * `refreshAccessToken` with the same rotating refresh token, and the loser
+ * gets `invalid_grant` back and acks its message with `refresh-failed`. Not a
+ * regression — the per-message code this replaced raced the same way — and
+ * rare today because only the character worker runs under PM2
+ * (`ecosystem.config.js`); putting the corporation worker under PM2 too is
+ * what would make a row lock or a short Redis lock worth adding. And a
+ * persist failure after a successful refresh is unrecoverable: the
+ * `prismaWorker.user.update` below sits inside the same `try` as the refresh
+ * call, so a transient database error there returns `refresh-failed` while
+ * EVE has already rotated the token and the stored `refresh_token` is the
+ * consumed one — every later refresh fails until the user logs in again. A
+ * narrow window, and the same shape as the code it replaced.
  */
 export async function loadUserCredentials(
   userId: number,

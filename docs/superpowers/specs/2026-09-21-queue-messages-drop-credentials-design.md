@@ -219,20 +219,37 @@ kontrol. Regresyonun geri sızması tam olarak bu yoldan olur.
 Yeni worker eski mesajı da işleyebilir — eski mesajda `userId` zaten var, fazla
 alanları görmezden gelir. Tersi doğru değil: eski worker yeni mesajı alırsa
 `accessToken` bulamaz ve kullanıcıyı ack'leyip atar
-(`worker-esi-user-killmails.ts:102-108`). PM2 hepsini birlikte yeniden başlatıyor
-olsa bile sıranın yazılı olması gerekiyor.
+(`worker-esi-user-killmails.ts:102-108`). `pm2 reload all` sıralama üzerinde
+kontrol vermez, yani bu an gerçekten yaşanabilir. Character tarafında bedeli
+yok: atlanan senkronizasyon `services/user-killmail-cron.ts`'in on dakikalık
+tick'iyle kendini onarıyor. Corporation kuyruğunun eşdeğer bir cron'u yok —
+atlanan bir corporation senkronizasyonu kullanıcının bir sonraki girişini ya
+da elle çalıştırılan `yarn queue:corporation-killmails`'i bekler.
 
-**Temizlik, yayına aldıktan sonra.** Üç kuyruk purge edilir:
+**Temizlik, yayına aldıktan sonra.** İki sync kuyruğu purge edilir:
 
 ```bash
 rabbitmqctl purge_queue esi_user_killmails_queue
 rabbitmqctl purge_queue esi_corporation_killmails_queue
-rabbitmqctl purge_queue killreport.parking
 ```
 
-Kaybedilen tek şey "şu kullanıcıyı senkronize et" isteği; cron on dakika içinde
-yenisini yayınlıyor. `package.json`'daki `rabbitmq:purge` bu iş için
-kullanılmaz — o **bütün** kuyrukları boşaltıyor.
+Bu iki kuyrukta duran her mesaj zaten bir "şu kullanıcıyı senkronize et"
+isteği; kaybedilen tek şey bu istek, cron on dakika içinde yenisini
+yayınlıyor. `package.json`'daki `rabbitmq:purge` bu iş için kullanılmaz — o
+**bütün** kuyrukları boşaltıyor.
+
+**`killreport.parking` bu purge'e dahil değil.** O kuyruk uygulamadaki her
+worker'ın paylaştığı ortak terminal kuyruk — `worker-error.ts`'teki
+`MAX_ATTEMPTS` denemesinden sonra her worker oraya publish ediyor, mesajın
+kökeni `x-death` header'ında taşınıyor, ve `doctor-topology.ts` nonzero bir
+derinliği insan incelemesi gerektiren bir şey olarak raporluyor
+(`backend/src/workers/doctor-topology.ts:94-108`). Körlemesine purge etmek ay,
+yıldız, asteroid kuşağı ve diğer bütün worker'ların kalıcı olarak başarısız
+mesajlarının kanıtını da siler. `backend/docs/ops/rabbitmq.md` parked
+mesajları nasıl okuyacağını ve `x-first-death-queue` header'ıyla kökenini nasıl
+teşhis edeceğini zaten anlatıyor; yalnızca bu iki sync kuyruğundan geldiği
+doğrulanan mesajlar kaldırılmalı. Derinliğin tamamının zaten sync
+mesajlarından ibaret olduğu biliniyorsa, purge etmek sorun değil.
 
 Purge, veri kaybı değil ama geri alınamaz bir adım: PR birleştikten ve worker'lar
 yeni sürümle ayağa kalktıktan sonra, elle çalıştırılır. Adım
