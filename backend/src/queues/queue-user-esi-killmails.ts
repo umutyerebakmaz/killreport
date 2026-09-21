@@ -1,19 +1,9 @@
+import { buildSyncMessage } from '@services/killmail-sync-message';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 
 const QUEUE_NAME = 'esi_user_killmails_queue';
-
-interface UserKillmailMessage {
-  userId: number;
-  characterId: number;
-  characterName: string;
-  accessToken: string;
-  refreshToken: string;
-  expiresAt: string;
-  queuedAt: string;
-  lastKillmailId?: number; // For incremental sync optimization
-}
 
 /**
  * Queue logged-in users for ESI killmail sync (no zKillboard dependency)
@@ -74,11 +64,8 @@ async function queueUserESIKillmails() {
         id: true,
         character_id: true,
         character_name: true,
-        access_token: true,
-        refresh_token: true,
         expires_at: true,
         last_killmail_sync_at: true,
-        last_killmail_id: true, // For incremental sync optimization
       },
     });
 
@@ -107,30 +94,14 @@ async function queueUserESIKillmails() {
         ? ` (last sync: ${user.last_killmail_sync_at.toLocaleString('tr-TR')})`
         : ' (never synced)';
 
-      const message: UserKillmailMessage = {
-        userId: user.id,
-        characterId: user.character_id,
-        characterName: user.character_name,
-        accessToken: user.access_token,
-        refreshToken: user.refresh_token!,
-        expiresAt: user.expires_at.toISOString(),
-        queuedAt: new Date().toISOString(),
-        // If --full flag is used, don't include lastKillmailId (forces full sync)
-        lastKillmailId: fullSync
-          ? undefined
-          : (user.last_killmail_id ?? undefined),
-      };
+      const message = buildSyncMessage(user.id, fullSync);
 
       channel.sendToQueue(QUEUE_NAME, Buffer.from(JSON.stringify(message)), {
         persistent: true,
         priority: 5, // Medium priority,
       });
 
-      const syncMode = fullSync
-        ? ' [FULL SYNC]'
-        : user.last_killmail_id
-          ? ' [INCREMENTAL]'
-          : ' [FIRST SYNC]';
+      const syncMode = fullSync ? ' [FULL SYNC]' : ' [INCREMENTAL]';
       logger.debug(
         `Queued: ${user.character_name} (ID: ${user.character_id})${lastSyncInfo}${syncMode}`,
       );
