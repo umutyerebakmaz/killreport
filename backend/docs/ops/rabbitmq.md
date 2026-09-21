@@ -421,3 +421,31 @@ soon as whatever prompted the rollback is understood.
 **Last Updated:** September 21, 2026
 **RabbitMQ Version:** 3.9.x
 **Policy Name:** `killreport-dlx`
+
+---
+
+## Sync mesajları artık kimlik bilgisi taşımıyor
+
+`esi_user_killmails_queue` ve `esi_corporation_killmails_queue` mesajları
+kullanıcının EVE SSO access ve refresh token'ını taşıyordu. Broker bunları
+`persistent: true` ile diske yazıyordu ve `killreport.parking` bir kopyayı
+süresiz saklıyordu, çünkü o kuyruğu hiçbir şey tüketmiyor. Mesaj artık yalnızca
+`{ userId, fullSync?, queuedAt }`; token'ı worker `loadUserCredentials` ile
+veritabanından okuyor.
+
+**Yayına alma sırası tek yönlü: önce worker'lar, sonra publisher'lar.** Yeni
+worker eski mesajı da işleyebilir — `userId` eski mesajda da var, fazla alanları
+görmezden gelir. Tersi doğru değil: eski worker yeni mesajda `accessToken`
+bulamaz ve kullanıcıyı ack'leyip atar.
+
+Yayına aldıktan sonra, bir kez, elle:
+
+```bash
+rabbitmqctl purge_queue esi_user_killmails_queue
+rabbitmqctl purge_queue esi_corporation_killmails_queue
+rabbitmqctl purge_queue killreport.parking
+```
+
+Kaybedilen tek şey "şu kullanıcıyı senkronize et" isteği; cron on dakika içinde
+yenisini yayınlıyor. `yarn rabbitmq:purge` bu iş için **kullanılmaz** — o bütün
+kuyrukları boşaltıyor.
