@@ -28,7 +28,7 @@ export interface UserSyncRow {
 }
 
 export type UserCredentials =
-  | { ok: true; user: UserSyncRow; accessToken: string }
+  | { ok: true; user: UserSyncRow; accessToken: string; expiresAt: Date }
   | { ok: false; reason: 'not-found' | 'no-refresh-token' | 'refresh-failed' };
 
 /**
@@ -101,22 +101,28 @@ export async function loadUserCredentials(
   const { access_token, refresh_token, expires_at, ...user } = row;
 
   if (!needsRefresh(expires_at, new Date())) {
-    return { ok: true, user, accessToken: access_token };
+    return { ok: true, user, accessToken: access_token, expiresAt: expires_at };
   }
 
   try {
     const fresh = await refreshAccessToken(refresh_token);
+    const freshExpiresAt = new Date(Date.now() + fresh.expires_in * 1000);
 
     await client.user.update({
       where: { id: userId },
       data: {
         access_token: fresh.access_token,
         refresh_token: fresh.refresh_token ?? refresh_token,
-        expires_at: new Date(Date.now() + fresh.expires_in * 1000),
+        expires_at: freshExpiresAt,
       },
     });
 
-    return { ok: true, user, accessToken: fresh.access_token };
+    return {
+      ok: true,
+      user,
+      accessToken: fresh.access_token,
+      expiresAt: freshExpiresAt,
+    };
   } catch (error) {
     logger.error(`Token refresh failed for user ${userId}`, { error });
     return { ok: false, reason: 'refresh-failed' };

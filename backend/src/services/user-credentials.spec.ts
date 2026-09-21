@@ -91,6 +91,7 @@ describe('loadUserCredentials', () => {
       ok: true,
       user: ROW,
       accessToken: 'current-access',
+      expiresAt: new Date('2026-09-21T13:00:00Z'),
     });
     expect(refreshAccessToken).not.toHaveBeenCalled();
     expect(prismaMock.user.update).not.toHaveBeenCalled();
@@ -113,6 +114,7 @@ describe('loadUserCredentials', () => {
       ok: true,
       user: ROW,
       accessToken: 'fresh-access',
+      expiresAt: new Date('2026-09-21T13:18:00Z'),
     });
     expect(refreshAccessToken).toHaveBeenCalledWith('current-refresh');
     expect(prismaMock.user.update).toHaveBeenCalledWith({

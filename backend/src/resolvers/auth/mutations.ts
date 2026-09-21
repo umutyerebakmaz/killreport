@@ -1,18 +1,23 @@
+import { config } from '@config/config';
 import { MutationResolvers } from '@generated-types';
-import { CharacterService } from '@services/character/character.service';
-import {
-  exchangeCodeForToken,
-  getAuthUrl,
-  refreshAccessToken,
-  verifyToken,
-} from '@services/eve-sso';
-import { buildSyncMessage } from '@services/killmail-sync-message';
+import { getAuthUrl } from '@services/eve-sso';
 import prisma from '@services/prisma';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import {
+  clearSessionCookie,
+  serializeSessionCookie,
+} from '@services/session-cookie';
+import {
+  resolveSession,
+  revokeSessionById,
+  revokeSessionByToken,
+} from '@services/session-store';
+import { loadUserCredentials } from '@services/user-credentials';
 import { randomUUID } from 'crypto';
+import { GraphQLError } from 'graphql';
+
 /**
  * Auth Mutation Resolvers
- * Handles authentication operations (login, token exchange, logout)
+ * Handles authentication operations (login, session renewal, logout)
  */
 export const authMutations: MutationResolvers = {
   login: async () => {
@@ -25,181 +30,66 @@ export const authMutations: MutationResolvers = {
     } as any;
   },
 
-  authenticateWithCode: async (_parent: any, { code, state }: any) => {
-    try {
-      // Exchange authorization code for token
-      const tokenData = await exchangeCodeForToken(code);
-
-      // Verify token and get character info
-      const character = await verifyToken(tokenData.access_token);
-
-      // Calculate token expiry time
-      const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
-
-      // Fetch character info from ESI to get corporation_id
-      let corporationId: number | null = null;
-      try {
-        const characterInfo = await CharacterService.getCharacterInfo(
-          character.characterId,
-        );
-        corporationId = characterInfo.corporation_id;
-      } catch (error) {
-        console.warn(
-          '⚠️  Failed to fetch corporation_id for character:',
-          error,
-        );
-      }
-
-      // Find or create user in database
-      const user = await prisma.user.upsert({
-        where: { character_id: character.characterId },
-        update: {
-          character_name: character.characterName,
-          access_token: tokenData.access_token,
-          refresh_token: tokenData.refresh_token,
-          expires_at: expiresAt,
-          corporation_id: corporationId, // Update corporation_id
-        },
-        create: {
-          character_id: character.characterId,
-          character_name: character.characterName,
-          character_owner_hash: character.characterOwnerHash,
-          access_token: tokenData.access_token,
-          refresh_token: tokenData.refresh_token,
-          expires_at: expiresAt,
-          corporation_id: corporationId, // Save corporation_id
-        },
+  refreshSession: async (_parent, _args, context: any) => {
+    const session = await resolveSession(context.sessionToken);
+    if (!session) {
+      throw new GraphQLError('Not authenticated', {
+        extensions: { code: 'UNAUTHENTICATED' },
       });
-
-      // 🚀 Queue user for killmail sync after successful login
-      // Only queue if user hasn't been synced recently (within 15 minutes)
-      try {
-        const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
-        const channel = await getRabbitMQChannel();
-
-        // 1. Queue CHARACTER killmails
-        const shouldQueueChar =
-          !user.last_killmail_sync_at ||
-          user.last_killmail_sync_at < fifteenMinutesAgo;
-
-        if (shouldQueueChar) {
-          const CHAR_QUEUE_NAME = 'esi_user_killmails_queue';
-
-          const charMessage = buildSyncMessage(user.id);
-
-          channel.sendToQueue(
-            CHAR_QUEUE_NAME,
-            Buffer.from(JSON.stringify(charMessage)),
-            {
-              persistent: true,
-              priority: 8, // High priority for new logins
-            },
-          );
-
-          console.log(
-            `✅ Queued character killmail sync for ${user.character_name}`,
-          );
-        } else {
-          const timeSinceSync = user.last_killmail_sync_at
-            ? Math.floor(
-                (Date.now() - user.last_killmail_sync_at.getTime()) / 1000 / 60,
-              )
-            : 'unknown';
-          console.log(
-            `⏭️  Skipped character queue for ${user.character_name} (synced ${timeSinceSync} minutes ago)`,
-          );
-        }
-
-        // 2. Queue CORPORATION killmails (if user has corporation_id)
-        if (corporationId) {
-          const shouldQueueCorp =
-            !user.last_corp_killmail_sync_at ||
-            user.last_corp_killmail_sync_at < fifteenMinutesAgo;
-
-          if (shouldQueueCorp) {
-            const CORP_QUEUE_NAME = 'esi_corporation_killmails_queue';
-
-            const corpMessage = buildSyncMessage(user.id);
-
-            channel.sendToQueue(
-              CORP_QUEUE_NAME,
-              Buffer.from(JSON.stringify(corpMessage)),
-              {
-                persistent: true,
-                priority: 7, // Slightly lower priority than character
-              },
-            );
-
-            console.log(
-              `✅ Queued corporation killmail sync for ${corporationId}`,
-            );
-            console.log(`   ⚠️  Note: Requires Director/CEO role to succeed`);
-          }
-        }
-      } catch (queueError) {
-        // Log error but don't fail the login
-        console.error(
-          '⚠️  Failed to queue user for killmail sync:',
-          queueError,
-        );
-      }
-
-      return {
-        accessToken: tokenData.access_token,
-        refreshToken: tokenData.refresh_token,
-        expiresIn: tokenData.expires_in,
-        user: {
-          id: user.character_id.toString(),
-          name: user.character_name,
-          email: user.email || '',
-          createdAt: user.created_at.toISOString(),
-        },
-      } as any;
-    } catch (error) {
-      console.error('Authentication error:', error);
-      throw new Error('Authentication failed');
     }
+
+    const credentials = await loadUserCredentials(session.userId, prisma);
+    if (!credentials.ok) {
+      throw new GraphQLError('Not authenticated', {
+        extensions: { code: 'UNAUTHENTICATED' },
+      });
+    }
+
+    // The value does not change; only its lifetime, so the browser's copy
+    // slides in step with the row.
+    context.setCookies.push(
+      serializeSessionCookie(context.sessionToken, {
+        secure: config.app.isProduction,
+      }),
+    );
+
+    const { user, accessToken } = credentials;
+
+    return {
+      accessToken,
+      expiresIn: Math.max(
+        0,
+        Math.floor((credentials.expiresAt.getTime() - Date.now()) / 1000),
+      ),
+      user: {
+        id: user.character_id.toString(),
+        name: user.character_name,
+        email: '',
+        createdAt: new Date().toISOString(),
+      },
+    } as any;
   },
 
-  refreshToken: async (_parent: any, { refreshToken }: any) => {
-    try {
-      // Get new access token with refresh token
-      const tokenData = await refreshAccessToken(refreshToken);
-
-      // Verify new token and get character info
-      const character = await verifyToken(tokenData.access_token);
-
-      // Calculate token expiry time
-      const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
-
-      // Update user in database
-      const user = await prisma.user.update({
-        where: { character_id: character.characterId },
-        data: {
-          access_token: tokenData.access_token,
-          refresh_token: tokenData.refresh_token,
-          expires_at: expiresAt,
-        },
-      });
-
-      if (!user) {
-        throw new Error('User not found');
-      }
-
-      return {
-        accessToken: tokenData.access_token,
-        refreshToken: tokenData.refresh_token,
-        expiresIn: tokenData.expires_in,
-        user: {
-          id: user.character_id.toString(),
-          name: user.character_name,
-          email: user.email || '',
-          createdAt: user.created_at.toISOString(),
-        },
-      } as any;
-    } catch (error) {
-      console.error('Token refresh error:', error);
-      throw new Error('Token refresh failed');
+  logout: async (_parent, _args, context: any) => {
+    if (context.sessionToken) {
+      await revokeSessionByToken(context.sessionToken);
     }
+
+    context.setCookies.push(
+      clearSessionCookie({ secure: config.app.isProduction }),
+    );
+
+    return true;
+  },
+
+  revokeSession: async (_parent, { id }: { id: string }, context: any) => {
+    const session = await resolveSession(context.sessionToken);
+    if (!session) {
+      throw new GraphQLError('Not authenticated', {
+        extensions: { code: 'UNAUTHENTICATED' },
+      });
+    }
+
+    return revokeSessionById(id, session.userId);
   },
 };
