@@ -1,20 +1,10 @@
+import { buildSyncMessage } from '@services/killmail-sync-message';
 import prisma from './prisma';
 import { skipReason } from './queue-health';
 import { getQueueStats, getRabbitMQChannel } from './rabbitmq';
 
 const QUEUE_NAME = 'esi_user_killmails_queue';
 const SYNC_INTERVAL_MINUTES = 10; // Sync every 10 minutes
-
-interface UserKillmailMessage {
-  userId: number;
-  characterId: number;
-  characterName: string;
-  accessToken: string;
-  refreshToken: string;
-  expiresAt: string;
-  queuedAt: string;
-  lastKillmailId?: number; // For incremental sync optimization
-}
 
 /**
  * Background cron service for automatic user killmail syncing
@@ -118,11 +108,8 @@ export class UserKillmailCron {
           id: true,
           character_id: true,
           character_name: true,
-          access_token: true,
-          refresh_token: true,
           expires_at: true,
           last_killmail_sync_at: true,
-          last_killmail_id: true, // For incremental sync optimization
         },
       });
 
@@ -143,16 +130,7 @@ export class UserKillmailCron {
           ? ` (last: ${Math.floor((Date.now() - user.last_killmail_sync_at.getTime()) / 1000 / 60)}m ago)`
           : ' (never)';
 
-        const message: UserKillmailMessage = {
-          userId: user.id,
-          characterId: user.character_id,
-          characterName: user.character_name,
-          accessToken: user.access_token,
-          refreshToken: user.refresh_token!,
-          expiresAt: user.expires_at.toISOString(),
-          queuedAt: new Date().toISOString(),
-          lastKillmailId: user.last_killmail_id ?? undefined, // For incremental sync
-        };
+        const message = buildSyncMessage(user.id);
 
         channel.sendToQueue(QUEUE_NAME, Buffer.from(JSON.stringify(message)), {
           persistent: true,

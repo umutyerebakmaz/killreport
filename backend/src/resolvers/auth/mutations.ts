@@ -6,6 +6,7 @@ import {
   refreshAccessToken,
   verifyToken,
 } from '@services/eve-sso';
+import { buildSyncMessage } from '@services/killmail-sync-message';
 import prisma from '@services/prisma';
 import { getRabbitMQChannel } from '@services/rabbitmq';
 import { randomUUID } from 'crypto';
@@ -84,15 +85,7 @@ export const authMutations: MutationResolvers = {
         if (shouldQueueChar) {
           const CHAR_QUEUE_NAME = 'esi_user_killmails_queue';
 
-          const charMessage = {
-            userId: user.id,
-            characterId: user.character_id,
-            characterName: user.character_name,
-            accessToken: tokenData.access_token,
-            refreshToken: tokenData.refresh_token,
-            expiresAt: expiresAt.toISOString(),
-            queuedAt: new Date().toISOString(),
-          };
+          const charMessage = buildSyncMessage(user.id);
 
           channel.sendToQueue(
             CHAR_QUEUE_NAME,
@@ -126,29 +119,7 @@ export const authMutations: MutationResolvers = {
           if (shouldQueueCorp) {
             const CORP_QUEUE_NAME = 'esi_corporation_killmails_queue';
 
-            // Fetch corporation name
-            let corporationName = `Corporation ${corporationId}`;
-            try {
-              const corp = await prisma.corporation.findUnique({
-                where: { id: corporationId },
-                select: { name: true },
-              });
-              if (corp) corporationName = corp.name;
-            } catch (err) {
-              // Ignore, use default name
-            }
-
-            const corpMessage = {
-              userId: user.id,
-              characterId: user.character_id,
-              characterName: user.character_name,
-              corporationId,
-              corporationName,
-              accessToken: tokenData.access_token,
-              refreshToken: tokenData.refresh_token,
-              expiresAt: expiresAt.toISOString(),
-              queuedAt: new Date().toISOString(),
-            };
+            const corpMessage = buildSyncMessage(user.id);
 
             channel.sendToQueue(
               CORP_QUEUE_NAME,
@@ -160,7 +131,7 @@ export const authMutations: MutationResolvers = {
             );
 
             console.log(
-              `✅ Queued corporation killmail sync for ${corporationName}`,
+              `✅ Queued corporation killmail sync for ${corporationId}`,
             );
             console.log(`   ⚠️  Note: Requires Director/CEO role to succeed`);
           }

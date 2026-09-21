@@ -421,3 +421,49 @@ soon as whatever prompted the rollback is understood.
 **Last Updated:** September 21, 2026
 **RabbitMQ Version:** 3.9.x
 **Policy Name:** `killreport-dlx`
+
+---
+
+## Sync mesajları artık kimlik bilgisi taşımıyor
+
+`esi_user_killmails_queue` ve `esi_corporation_killmails_queue` mesajları
+kullanıcının EVE SSO access ve refresh token'ını taşıyordu. Broker bunları
+`persistent: true` ile diske yazıyordu ve `killreport.parking` bir kopyayı
+süresiz saklıyordu, çünkü o kuyruğu hiçbir şey tüketmiyor. Mesaj artık yalnızca
+`{ userId, fullSync?, queuedAt }`; token'ı worker `loadUserCredentials` ile
+veritabanından okuyor.
+
+**Yayına alma sırası tek yönlü: önce worker'lar, sonra publisher'lar.** Yeni
+worker eski mesajı da işleyebilir — `userId` eski mesajda da var, fazla alanları
+görmezden gelir. Tersi doğru değil: eski worker yeni mesajda `accessToken`
+bulamaz ve kullanıcıyı ack'leyip atar. `pm2 reload all` sıralama üzerinde
+kontrol vermez, yani bu geçiş anı gerçekten yaşanabilir. Character tarafında
+bunun bedeli yok: atlanan senkronizasyon `services/user-killmail-cron.ts`'in on
+dakikalık tick'iyle kendini onarıyor. Corporation kuyruğunun eşdeğer bir
+cron'u yok — atlanan bir corporation senkronizasyonu kullanıcının bir sonraki
+girişini ya da elle çalıştırılan `yarn queue:corporation-killmails`'i bekler.
+
+Yayına aldıktan sonra, bir kez, elle, yalnızca iki sync kuyruğu için:
+
+```bash
+rabbitmqctl purge_queue esi_user_killmails_queue
+rabbitmqctl purge_queue esi_corporation_killmails_queue
+```
+
+Bu iki kuyrukta duran her mesaj zaten bir "şu kullanıcıyı senkronize et"
+isteği; kaybedilen tek şey bu istek, cron on dakika içinde yenisini
+yayınlıyor. `yarn rabbitmq:purge` bu iş için **kullanılmaz** — o bütün
+kuyrukları boşaltıyor.
+
+**`killreport.parking`'i bu purge'e katma.** O kuyruk uygulamadaki her
+worker'ın paylaştığı ortak terminal kuyruk: `worker-error.ts`'teki
+`MAX_ATTEMPTS` denemesinden sonra her worker oraya publish ediyor ve mesajın
+kökeni `x-death` header'ında taşınıyor — ay, yıldız, asteroid kuşağı ve diğer
+bütün worker'ların kalıcı olarak başarısız mesajları da orada duruyor.
+`doctor:topology` bu kuyruğun derinliğini raporluyor, çünkü nonzero bir
+derinlik önce insan incelemesi gerektirir. Körlemesine purge etmek bu kanıtın
+tamamını siler, yalnızca bu iki kuyruktan gelenleri değil. Önce "Inspecting
+the parking queue" bölümünde anlatıldığı gibi mesajları oku,
+`x-first-death-queue` header'ıyla kökenini teşhis et; yalnızca bu iki sync
+kuyruğundan geldiği doğrulanan mesajları kaldır. Derinliğin tamamının zaten
+sync mesajlarından ibaret olduğu biliniyorsa, purge etmek sorun değil.
