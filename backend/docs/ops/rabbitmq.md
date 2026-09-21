@@ -101,6 +101,18 @@ Both forms declare the same policy; the CLI form is authoritative because the
 droplet has `rabbitmqctl`, the HTTP form exists for environments that do not
 (sandboxes, CI, a container without `sudo`).
 
+`yarn rabbitmq:policy` in `backend/package.json` is the CLI form without the
+`sudo`, for a development machine where `rabbitmqctl` runs as your own user —
+a Homebrew install does. It sets the same policy, so which one applied it is
+not something the broker records or cares about.
+
+The policy is stored in the broker's own schema database, never in git. A
+second development machine that pulls the branch therefore starts with no
+policy at all, even though every line of code that depends on one is present;
+`rabbitmqctl list_policies` returning nothing there is an unconfigured broker,
+not a broken checkout. Each broker needs this run once, and it survives
+restarts afterwards.
+
 ---
 
 ## 🔍 Checking it covers every queue
