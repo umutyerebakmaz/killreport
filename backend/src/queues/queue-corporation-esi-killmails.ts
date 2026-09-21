@@ -1,21 +1,9 @@
+import { buildSyncMessage } from '@services/killmail-sync-message';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 
 const QUEUE_NAME = 'esi_corporation_killmails_queue';
-
-interface CorporationKillmailMessage {
-  userId: number;
-  characterId: number;
-  characterName: string;
-  corporationId: number;
-  corporationName: string;
-  accessToken: string;
-  refreshToken: string;
-  expiresAt: string;
-  queuedAt: string;
-  lastKillmailId?: number; // For incremental sync optimization
-}
 
 /**
  * Queue logged-in users for Corporation ESI killmail sync
@@ -82,11 +70,8 @@ async function queueCorporationESIKillmails() {
         character_id: true,
         character_name: true,
         corporation_id: true,
-        access_token: true,
-        refresh_token: true,
         expires_at: true,
         last_corp_killmail_sync_at: true,
-        last_corp_killmail_id: true, // For incremental sync optimization
       },
     });
 
@@ -113,55 +98,22 @@ async function queueCorporationESIKillmails() {
     await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
 
-    // Fetch corporation names
-    const corpIds = [
-      ...new Set(users.map((u) => u.corporation_id).filter(Boolean)),
-    ] as number[];
-    const corporations = await prismaWorker.corporation.findMany({
-      where: { id: { in: corpIds } },
-      select: { id: true, name: true },
-    });
-
-    const corpMap = new Map(corporations.map((c) => [c.id, c.name]));
-
     // Queue each user
     for (const user of users) {
       const lastSyncInfo = user.last_corp_killmail_sync_at
         ? ` (last sync: ${user.last_corp_killmail_sync_at.toLocaleString('tr-TR')})`
         : ' (never synced)';
 
-      const corporationName =
-        corpMap.get(user.corporation_id!) ||
-        `Corporation ${user.corporation_id}`;
-
-      const message: CorporationKillmailMessage = {
-        userId: user.id,
-        characterId: user.character_id,
-        characterName: user.character_name,
-        corporationId: user.corporation_id!,
-        corporationName,
-        accessToken: user.access_token,
-        refreshToken: user.refresh_token!,
-        expiresAt: user.expires_at.toISOString(),
-        queuedAt: new Date().toISOString(),
-        // If --full flag is used, don't include lastKillmailId (forces full sync)
-        lastKillmailId: fullSync
-          ? undefined
-          : (user.last_corp_killmail_id ?? undefined),
-      };
+      const message = buildSyncMessage(user.id, fullSync);
 
       channel.sendToQueue(QUEUE_NAME, Buffer.from(JSON.stringify(message)), {
         persistent: true,
         priority: 5, // Medium priority,
       });
 
-      const syncMode = fullSync
-        ? ' [FULL SYNC]'
-        : user.last_corp_killmail_id
-          ? ' [INCREMENTAL]'
-          : ' [FIRST SYNC]';
+      const syncMode = fullSync ? ' [FULL SYNC]' : ' [INCREMENTAL]';
       logger.debug(
-        `Queued: ${user.character_name} @ ${corporationName} (Corp ID: ${user.corporation_id})${lastSyncInfo}${syncMode}`,
+        `Queued: ${user.character_name} (Corp ID: ${user.corporation_id})${lastSyncInfo}${syncMode}`,
       );
     }
 
