@@ -63,6 +63,11 @@ beşinci denemeden sonra `msg.content`'i olduğu gibi, yine `persistent: true` i
 mesaj, içindeki refresh token'la birlikte, biri elle silene kadar durur.
 
 **c. Eskime, sessizce kullanıcıyı atıyor.** EVE SSO refresh token'ı döndürüyor.
+**Düzeltme:** resmî dokümana göre rotasyon bugün açık değil, native
+uygulamalar için ileride gelmesi planlanıyor; şu anki metin yalnızca dönen
+refresh token'ın "gönderilenle aynı olmayabileceğini" söylüyor. Yani bu madde
+bugün var olan bir arızayı değil, rotasyon açıldığında ortaya çıkacak bir
+kırılmanın önceden kapatılmasını anlatıyor.
 Worker yenilediğinde yeniyi veritabanına yazıyor, ama kuyrukta bekleyen diğer
 kopyalar hâlâ eski snapshot'ı taşıyor. O kopya işlendiğinde `refreshAccessToken`
 başarısız oluyor ve worker kullanıcıyı "requires re-login" diyip ack'leyip
