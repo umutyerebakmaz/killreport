@@ -75,5 +75,6 @@ describe('clearSessionCookie', () => {
     expect(header).toContain('Max-Age=0');
     expect(header).toContain('Path=/');
     expect(header).toContain('HttpOnly');
+    expect(header).toContain('SameSite=Lax');
   });
 });
