@@ -2,27 +2,25 @@ import { calculateKillmailValues } from '@helpers/calculate-killmail-values';
 import { CorporationService } from '@services/corporation/corporation.service';
 import { updateDailyAggregatesRealtime } from '@services/kill-stats-realtime';
 import { insertKillmailFilter } from '@services/killmail-filters-realtime';
+import { type KillmailSyncMessage } from '@services/killmail-sync-message';
 import { KillmailService } from '@services/killmail/killmail.service';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { pubsub } from '@services/pubsub';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
+import { loadUserCredentials } from '@services/user-credentials';
 import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'esi_corporation_killmails_queue';
 const PREFETCH_COUNT = 1; // Process 1 corporation at a time to avoid rate limiting
 
-interface CorporationKillmailMessage {
+/** What one corporation sync needs, resolved from the database up front. */
+interface CorporationSyncContext {
   userId: number;
-  characterId: number;
   characterName: string;
   corporationId: number;
   corporationName: string;
   accessToken: string;
-  refreshToken: string;
-  expiresAt: string;
-  queuedAt: string;
-  lastKillmailId?: number; // For incremental sync optimization
 }
 
 /**
@@ -70,96 +68,74 @@ export async function esiCorporationKillmailWorker() {
 
         logger.info('📨 Received message from queue!');
 
-        let message: CorporationKillmailMessage | undefined;
+        let message: KillmailSyncMessage | undefined;
 
         try {
-          message = JSON.parse(
-            msg.content.toString(),
-          ) as CorporationKillmailMessage;
+          message = JSON.parse(msg.content.toString()) as KillmailSyncMessage;
 
           logger.info(`\n${'━'.repeat(70)}`);
-          logger.info(
-            `🏢 Processing: ${message.corporationName} (ID: ${message.corporationId})`,
-          );
-          logger.info(
-            `👤 User: ${message.characterName} (ID: ${message.characterId})`,
-          );
           logger.info(`🆔 User ID: ${message.userId}`);
           logger.info(`📅 Queued at: ${message.queuedAt}`);
           logger.info('━'.repeat(70));
 
-          // Validate token exists
-          if (!message.accessToken || !message.refreshToken) {
+          const credentials = await loadUserCredentials(message.userId);
+
+          if (!credentials.ok) {
+            // None of these is retryable: the user has to log in again
+            // before any attempt can succeed. Ack and move on.
             logger.error(
-              `  ❌ No valid tokens available for user ${message.characterName}`,
+              `  ❌ ${credentials.reason} for user ${message.userId}`,
             );
-            logger.error(`  ⏭️  Skipping - requires re-login via SSO`);
-            channel.ack(msg); // Acknowledge to remove from queue (don't retry)
+            logger.error(`  ⏭️  Skipping user - requires re-login via SSO`);
+            channel.ack(msg);
             return;
           }
 
-          // Check if token is expired or will expire soon (5 min buffer)
-          const tokenExpiresAt = new Date(message.expiresAt);
-          const fiveMinutesFromNow = new Date(Date.now() + 5 * 60 * 1000);
+          const { user, accessToken } = credentials;
 
-          if (tokenExpiresAt <= fiveMinutesFromNow) {
-            logger.info(`  ⚠️  Token expired or expiring soon, refreshing...`);
-            logger.info(`     Expires at: ${tokenExpiresAt.toISOString()}`);
-            logger.info(`     Current time: ${new Date().toISOString()}`);
-
-            try {
-              const { refreshAccessToken } =
-                await import('../services/eve-sso.js');
-              const newTokenData = await refreshAccessToken(
-                message.refreshToken,
-              );
-
-              const newExpiresAt = new Date(
-                Date.now() + newTokenData.expires_in * 1000,
-              );
-
-              // Update token in database
-              await prismaWorker.user.update({
-                where: { id: message.userId },
-                data: {
-                  access_token: newTokenData.access_token,
-                  refresh_token:
-                    newTokenData.refresh_token || message.refreshToken,
-                  expires_at: newExpiresAt,
-                },
-              });
-
-              // Update message with new token and expiry
-              message.accessToken = newTokenData.access_token;
-              message.refreshToken =
-                newTokenData.refresh_token || message.refreshToken;
-              message.expiresAt = newExpiresAt.toISOString();
-
-              logger.info(`  ✅ Token refreshed successfully`);
-              logger.info(`     New expiry: ${newExpiresAt.toISOString()}`);
-            } catch (error: any) {
-              logger.error(`  ❌ Failed to refresh token:`, error.message);
-              logger.error(
-                `  ⏭️  Skipping - refresh token invalid, requires re-login`,
-              );
-              channel.ack(msg); // Acknowledge to remove from queue (don't retry)
-              return;
-            }
-          } else {
-            logger.info(
-              `  ✅ Token is valid (expires: ${tokenExpiresAt.toISOString()})`,
+          if (!user.corporation_id) {
+            // The publishers filter these out, but the filter is a shortcut,
+            // not the rule: a user can leave a corporation between publish
+            // and consume.
+            logger.warn(
+              `  ⏭️  ${user.character_name} has no corporation, skipping`,
             );
+            channel.ack(msg);
+            return;
           }
 
-          // Token is now guaranteed to be valid - proceed with ESI sync
+          const corporation = await prismaWorker.corporation.findUnique({
+            where: { id: user.corporation_id },
+            select: { name: true },
+          });
+          const corporationName =
+            corporation?.name ?? `Corporation ${user.corporation_id}`;
+
+          logger.info(
+            `🏢 Processing: ${corporationName} (ID: ${user.corporation_id})`,
+          );
+          logger.info(
+            `👤 User: ${user.character_name} (ID: ${user.character_id})`,
+          );
+
+          const lastKillmailId = message.fullSync
+            ? undefined
+            : (user.last_corp_killmail_id ?? undefined);
+
           await syncCorporationKillmailsFromESI(
-            message,
-            message.lastKillmailId,
+            {
+              userId: user.id,
+              characterName: user.character_name,
+              corporationId: user.corporation_id,
+              corporationName,
+              accessToken,
+            },
+            lastKillmailId,
           );
 
           // Acknowledge message
           channel.ack(msg);
-          logger.info(`✅ Completed: ${message.corporationName}\n`);
+          logger.info(`✅ Completed: ${corporationName}\n`);
         } catch (error) {
           // A malformed message throws here too - JSON.parse is inside the
           // try, so it settles through the same shared path rather than
@@ -167,10 +143,9 @@ export async function esiCorporationKillmailWorker() {
           // 404, the 420 backoff and the attempt count all live in the
           // shared path now; this worker only says which message it was.
           await handleWorkerError(channel, msg, QUEUE_NAME, error, {
-            warn: (m) =>
-              logger.warn(`  ${m} (corporation ${message?.corporationId})`),
+            warn: (m) => logger.warn(`  ${m} (user ${message?.userId})`),
             error: (m, e) =>
-              logger.error(`  ${m} (corporation ${message?.corporationId})`, e),
+              logger.error(`  ${m} (user ${message?.userId})`, e),
           });
         }
       },
@@ -189,13 +164,13 @@ export async function esiCorporationKillmailWorker() {
  * Fetch corporation killmails from ESI
  */
 async function syncCorporationKillmailsFromESI(
-  message: CorporationKillmailMessage,
+  ctx: CorporationSyncContext,
   lastKillmailId?: number,
 ): Promise<void> {
   try {
     if (lastKillmailId) {
       logger.info(
-        `  📡 [${message.corporationName}] Fetching NEW corporation killmails from ESI (incremental sync)...`,
+        `  📡 [${ctx.corporationName}] Fetching NEW corporation killmails from ESI (incremental sync)...`,
       );
       logger.info(`     🔍 Will stop at killmail ID: ${lastKillmailId}`);
       logger.info(
@@ -203,7 +178,7 @@ async function syncCorporationKillmailsFromESI(
       );
     } else {
       logger.info(
-        `  📡 [${message.corporationName}] Fetching corporation killmails from ESI (full sync)...`,
+        `  📡 [${ctx.corporationName}] Fetching corporation killmails from ESI (full sync)...`,
       );
       logger.info(`     📄 Max pages: 50 (2,500 killmails max - 50 per page)`);
     }
@@ -211,8 +186,8 @@ async function syncCorporationKillmailsFromESI(
     // Fetch killmail list from ESI (max 50 pages = 2500 killmails, 50 per page)
     // ESI returns killmails in reverse chronological order (newest first)
     const killmailList = await CorporationService.getCorporationKillmails(
-      message.corporationId,
-      message.accessToken,
+      ctx.corporationId,
+      ctx.accessToken,
       50, // Max pages (50 killmails per page)
       lastKillmailId, // Stop when we hit this ID (incremental sync)
     );
@@ -435,7 +410,7 @@ async function syncCorporationKillmailsFromESI(
         ...killmailList.map((km) => km.killmail_id),
       );
       await prismaWorker.user.update({
-        where: { id: message.userId },
+        where: { id: ctx.userId },
         data: {
           last_corp_killmail_sync_at: new Date(),
           last_corp_killmail_id: latestKillmailId,
@@ -447,7 +422,7 @@ async function syncCorporationKillmailsFromESI(
     } else {
       // Even if no killmails, update sync timestamp to avoid repeated empty checks
       await prismaWorker.user.update({
-        where: { id: message.userId },
+        where: { id: ctx.userId },
         data: {
           last_corp_killmail_sync_at: new Date(),
         },
@@ -458,7 +433,7 @@ async function syncCorporationKillmailsFromESI(
     }
   } catch (error: any) {
     logger.error(
-      `  ❌ ESI sync failed for ${message.corporationName}:`,
+      `  ❌ ESI sync failed for ${ctx.corporationName}:`,
       error.message,
     );
     throw error;
