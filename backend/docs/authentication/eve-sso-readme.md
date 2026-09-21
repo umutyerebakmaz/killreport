@@ -42,11 +42,27 @@ EVE_CALLBACK_URL=http://localhost:4000/auth/callback
 
 ### 4. Database Migration
 
-Run the migration to create the User model:
+Apply pending migrations:
 
 ```bash
-yarn prisma:migrate
+npx prisma migrate deploy
 ```
+
+`prisma migrate dev` (and `yarn prisma:migrate`, which is an alias for it) is
+never used in this repository, because it would read the drift below as an
+invitation to drop tables.
+
+> **Dağıtım notu:** `sessions` tablosu `prisma/migrations/20260921180433_add_sessions`
+> migration'ıyla geliyor; bu migration commit edilmiş ama **henüz
+> uygulanmamış**. `backend/` dizininden `npx prisma migrate deploy` ile
+> uygulanır — bu komut yalnızca bekleyen migration'ları uygular, hiçbir şeyi
+> silmez. `npx prisma migrate dev` bu repoda asla kullanılmamalı: `killmail_filters`,
+> `character_kill_stats`, `corporation_kill_stats`, `alliance_kill_stats` ve
+> `refresh_log` tabloları veritabanında bilerek var ama `prisma/schema/`
+> içinde bilerek yok, bu yüzden Prisma bunları drift olarak okur ve silmeyi
+> teklif eder. Migration uygulanana kadar her oturum yolu başarısız olur: hem
+> `refreshSession` hem de callback var olmayan bir tabloya çarpar, yani kimse
+> giriş yapamaz. Önce migration, sonra kod.
 
 ### 5. Start the Server
 
