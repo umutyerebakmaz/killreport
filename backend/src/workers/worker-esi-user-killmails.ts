@@ -1,10 +1,12 @@
 import { calculateKillmailValues } from '@helpers/calculate-killmail-values';
 import { CharacterService } from '@services/character/character.service';
+import { type KillmailSyncMessage } from '@services/killmail-sync-message';
 import { KillmailService } from '@services/killmail/killmail.service';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { pubsub } from '@services/pubsub';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
+import { loadUserCredentials } from '@services/user-credentials';
 import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'esi_user_killmails_queue';
@@ -18,15 +20,12 @@ const KILLMAIL_DETAIL_DELAY_MS = 250; // 250ms delay after EACH killmail detail 
 let isShuttingDown = false;
 let emptyCheckInterval: NodeJS.Timeout | null = null;
 
-interface UserKillmailMessage {
+/** What one character sync needs, resolved from the database up front. */
+interface UserSyncContext {
   userId: number;
   characterId: number;
   characterName: string;
   accessToken: string;
-  refreshToken: string;
-  expiresAt: string;
-  queuedAt: string;
-  lastKillmailId?: number; // For incremental sync optimization
 }
 
 /**
@@ -86,90 +85,52 @@ export async function esiUserKillmailWorker() {
 
           logger.info('📨 Received message from queue!');
 
-          let message: UserKillmailMessage | undefined;
+          let message: KillmailSyncMessage | undefined;
 
           try {
-            message = JSON.parse(msg.content.toString()) as UserKillmailMessage;
+            message = JSON.parse(msg.content.toString()) as KillmailSyncMessage;
 
             logger.info(`\n${'━'.repeat(70)}`);
-            logger.info(
-              `👤 Processing: ${message.characterName} (ID: ${message.characterId})`,
-            );
             logger.info(`🆔 User ID: ${message.userId}`);
             logger.info(`📅 Queued at: ${message.queuedAt}`);
             logger.info('━'.repeat(70));
 
-            // Validate token exists
-            if (!message.accessToken || !message.refreshToken) {
+            const credentials = await loadUserCredentials(message.userId);
+
+            if (!credentials.ok) {
+              // None of these is retryable: the user has to log in again
+              // before any attempt can succeed. Ack and move on.
               logger.error(
-                `  ❌ No valid tokens available for user ${message.characterName}`,
+                `  ❌ ${credentials.reason} for user ${message.userId}`,
               );
               logger.error(`  ⏭️  Skipping user - requires re-login via SSO`);
-              channel.ack(msg); // Acknowledge to remove from queue (don't retry)
+              channel.ack(msg);
               return;
             }
 
-            // Check if token is expired or will expire soon (5 min buffer)
-            const tokenExpiresAt = new Date(message.expiresAt);
-            const fiveMinutesFromNow = new Date(Date.now() + 5 * 60 * 1000);
+            const { user, accessToken } = credentials;
 
-            if (tokenExpiresAt <= fiveMinutesFromNow) {
-              logger.info(
-                `  ⚠️  Token expired or expiring soon, refreshing...`,
-              );
-              logger.info(`     Expires at: ${tokenExpiresAt.toISOString()}`);
-              logger.info(`     Current time: ${new Date().toISOString()}`);
+            logger.info(
+              `👤 Processing: ${user.character_name} (ID: ${user.character_id})`,
+            );
 
-              try {
-                const { refreshAccessToken } =
-                  await import('../services/eve-sso.js');
-                const newTokenData = await refreshAccessToken(
-                  message.refreshToken,
-                );
+            const lastKillmailId = message.fullSync
+              ? undefined
+              : (user.last_killmail_id ?? undefined);
 
-                const newExpiresAt = new Date(
-                  Date.now() + newTokenData.expires_in * 1000,
-                );
-
-                // Update token in database
-                await prismaWorker.user.update({
-                  where: { id: message.userId },
-                  data: {
-                    access_token: newTokenData.access_token,
-                    refresh_token:
-                      newTokenData.refresh_token || message.refreshToken,
-                    expires_at: newExpiresAt,
-                  },
-                });
-
-                // Update message with new token and expiry
-                message.accessToken = newTokenData.access_token;
-                message.refreshToken =
-                  newTokenData.refresh_token || message.refreshToken;
-                message.expiresAt = newExpiresAt.toISOString();
-
-                logger.info(`  ✅ Token refreshed successfully`);
-                logger.info(`     New expiry: ${newExpiresAt.toISOString()}`);
-              } catch (error: any) {
-                logger.error(`  ❌ Failed to refresh token:`, error.message);
-                logger.error(
-                  `  ⏭️  Skipping user - refresh token invalid, requires re-login`,
-                );
-                channel.ack(msg); // Acknowledge to remove from queue (don't retry)
-                return;
-              }
-            } else {
-              logger.info(
-                `  ✅ Token is valid (expires: ${tokenExpiresAt.toISOString()})`,
-              );
-            }
-
-            // Token is now guaranteed to be valid - proceed with ESI sync
-            await syncUserKillmailsFromESI(message, message.lastKillmailId);
+            await syncUserKillmailsFromESI(
+              {
+                userId: user.id,
+                characterId: user.character_id,
+                characterName: user.character_name,
+                accessToken,
+              },
+              lastKillmailId,
+            );
 
             // Acknowledge message
             channel.ack(msg);
-            logger.info(`✅ Completed: ${message.characterName}\n`);
+            logger.info(`✅ Completed: ${user.character_name}\n`);
 
             // Add delay between users to prevent rate limiting
             // This is critical when multiple users are queued
@@ -184,10 +145,9 @@ export async function esiUserKillmailWorker() {
             // 404, the 420 backoff and the attempt count all live in the
             // shared path now; this worker only says which message it was.
             await handleWorkerError(channel, msg, QUEUE_NAME, error, {
-              warn: (m) =>
-                logger.warn(`  ${m} (character ${message?.characterId})`),
+              warn: (m) => logger.warn(`  ${m} (user ${message?.userId})`),
               error: (m, e) =>
-                logger.error(`  ${m} (character ${message?.characterId})`, e),
+                logger.error(`  ${m} (user ${message?.userId})`, e),
             });
           }
         },
@@ -215,13 +175,13 @@ export async function esiUserKillmailWorker() {
  * Fetch killmails from ESI for a single user
  */
 async function syncUserKillmailsFromESI(
-  message: UserKillmailMessage,
+  ctx: UserSyncContext,
   lastKillmailId?: number,
 ): Promise<void> {
   try {
     if (lastKillmailId) {
       logger.info(
-        `  📡 [${message.characterName}] Fetching NEW killmails from ESI (incremental sync)...`,
+        `  📡 [${ctx.characterName}] Fetching NEW killmails from ESI (incremental sync)...`,
       );
       logger.info(`     🔍 Will stop at killmail ID: ${lastKillmailId}`);
       logger.info(
@@ -229,7 +189,7 @@ async function syncUserKillmailsFromESI(
       );
     } else {
       logger.info(
-        `  📡 [${message.characterName}] Fetching killmails from ESI (full sync)...`,
+        `  📡 [${ctx.characterName}] Fetching killmails from ESI (full sync)...`,
       );
       logger.info(`     📄 Max pages: 50 (2,500 killmails max - 50 per page)`);
     }
@@ -237,8 +197,8 @@ async function syncUserKillmailsFromESI(
     // Fetch killmail list from ESI (max 50 pages = 2500 killmails, 50 per page)
     // ESI returns killmails in reverse chronological order (newest first)
     const killmailList = await CharacterService.getCharacterKillmails(
-      message.characterId,
-      message.accessToken,
+      ctx.characterId,
+      ctx.accessToken,
       50, // Max pages (50 killmails per page)
       lastKillmailId, // Stop when we hit this ID (incremental sync)
     );
@@ -431,7 +391,7 @@ async function syncUserKillmailsFromESI(
         ...killmailList.map((km) => km.killmail_id),
       );
       await prismaWorker.user.update({
-        where: { id: message.userId },
+        where: { id: ctx.userId },
         data: {
           last_killmail_sync_at: new Date(),
           last_killmail_id: latestKillmailId,
@@ -443,7 +403,7 @@ async function syncUserKillmailsFromESI(
     } else {
       // Even if no killmails, update sync timestamp to avoid repeated empty checks
       await prismaWorker.user.update({
-        where: { id: message.userId },
+        where: { id: ctx.userId },
         data: {
           last_killmail_sync_at: new Date(),
         },
@@ -452,7 +412,7 @@ async function syncUserKillmailsFromESI(
     }
   } catch (error: any) {
     logger.error(
-      `  ❌ ESI sync failed for ${message.characterName}:`,
+      `  ❌ ESI sync failed for ${ctx.characterName}:`,
       error.message,
     );
     throw error;
