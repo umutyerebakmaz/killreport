@@ -24,6 +24,8 @@ const ROW = {
   corporation_id: 98000001,
   last_killmail_id: 1234,
   last_corp_killmail_id: null,
+  email: 'pilot@example.com',
+  created_at: new Date('2026-01-01T00:00:00Z'),
 };
 
 function userRow(overrides: Record<string, unknown> = {}) {

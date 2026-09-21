@@ -141,6 +141,16 @@ export function useAuth() {
   }, [refreshToken, scheduleTokenRefresh]);
 
   useEffect(() => {
+    // One-time cleanup for browsers that logged in before the EVE refresh
+    // token was removed from the client: it used to live in localStorage
+    // indefinitely, which is the exact thing this branch removes it to fix.
+    // Safe to delete this block once it has been deployed for a while.
+    try {
+      localStorage.removeItem('eve_refresh_token');
+    } catch {
+      // localStorage unavailable (e.g. private browsing) - nothing to clean up.
+    }
+
     checkAuth();
 
     // Auth değişikliklerini dinle

@@ -64,8 +64,8 @@ export const authMutations: MutationResolvers = {
       user: {
         id: user.character_id.toString(),
         name: user.character_name,
-        email: '',
-        createdAt: new Date().toISOString(),
+        email: user.email || '',
+        createdAt: user.created_at.toISOString(),
       },
     } as any;
   },

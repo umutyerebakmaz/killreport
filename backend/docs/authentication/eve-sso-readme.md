@@ -162,6 +162,23 @@ The Bearer path is otherwise unchanged: the access token still goes up as
 it with `verifyToken` against EVE's own JWKS, and the WebSocket
 `connectionParams` bridge used for subscriptions is untouched.
 
+### 6. Oturumu Kapatma (Logout)
+
+```graphql
+mutation {
+  logout
+}
+```
+
+> **Not:** `logout`, `sessions` tablosundaki satırı `revoked_at` alanını
+> doldurarak iptal eder ve `kr_session` çerezini temizler — ama Bearer akışına
+> bilerek dokunmaz. Tarayıcıda hâlâ duran EVE erişim tokenı kendi süresi
+> dolana kadar (yaklaşık yirmi dakika) çalışmaya devam eder, ve
+> `users.access_token` / `users.refresh_token` alanları da olduğu gibi
+> bırakılır — arka plan worker'ları o karakteri senkronize etmeye devam eder.
+> Yani `logout` tarayıcının oturumunu kapatır; EVE hesabına bağlı erişimi
+> anında iptal etmez.
+
 ## Architecture
 
 ### File Structure

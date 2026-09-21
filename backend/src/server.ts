@@ -193,7 +193,9 @@ const yoga = createYoga<ServerContext>({
   },
 }); /**
  * Create HTTP server with routing
- * NOTE: CORS is handled by Nginx reverse proxy, not here!
+ * NOTE: CORS is handled above, in the Yoga `cors` config — it is load-bearing
+ * for the session cookie, which needs an explicit origin allowlist plus
+ * `credentials: true` rather than Nginx's `Access-Control-Allow-Origin: *`.
  */
 const server = createServer(async (req, res) => {
   // Route: EVE SSO callback

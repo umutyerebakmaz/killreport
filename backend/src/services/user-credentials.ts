@@ -25,6 +25,8 @@ export interface UserSyncRow {
   corporation_id: number | null;
   last_killmail_id: number | null;
   last_corp_killmail_id: number | null;
+  email: string | null;
+  created_at: Date;
 }
 
 export type UserCredentials =
@@ -89,6 +91,8 @@ export async function loadUserCredentials(
       corporation_id: true,
       last_killmail_id: true,
       last_corp_killmail_id: true,
+      email: true,
+      created_at: true,
       access_token: true,
       refresh_token: true,
       expires_at: true,
