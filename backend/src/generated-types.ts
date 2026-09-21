@@ -186,8 +186,6 @@ export type AuthPayload = {
   accessToken: Scalars['String']['output'];
   /** Token geçerlilik süresi (saniye) */
   expiresIn: Scalars['Int']['output'];
-  /** Token yenilemek için kullanılan refresh token */
-  refreshToken?: Maybe<Scalars['String']['output']>;
   /** Authenticated kullanıcı bilgileri */
   user: User;
 };
@@ -932,8 +930,6 @@ export enum MostValuableScope {
 export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
-  /** Authorization code ile authentication yapar ve token döner */
-  authenticateWithCode: AuthPayload;
   /** Clear all killmail caches (use after large data updates) */
   clearAllKillmailCaches: CacheOperation;
   /** Clear cache for a specific alliance */
@@ -947,9 +943,13 @@ export type Mutation = {
   createUser: CreateUserPayload;
   /** Eve Online SSO login için authorization URL'i oluşturur */
   login: AuthUrl;
+  /** Bu oturumu kapatır ve çerezi siler */
+  logout: Scalars['Boolean']['output'];
   refreshCharacter: RefreshCharacterResult;
-  /** Refresh token kullanarak yeni access token alır */
-  refreshToken: AuthPayload;
+  /** Oturum çerezini kullanarak taze bir EVE access token alır */
+  refreshSession: AuthPayload;
+  /** Kullanıcının başka bir oturumunu kapatır */
+  revokeSession: Scalars['Boolean']['output'];
   startAllianceSync: StartAllianceSyncPayload;
   startCategorySync: StartCategorySyncPayload;
   startConstellationSync: StartConstellationSyncPayload;
@@ -965,12 +965,6 @@ export type Mutation = {
    */
   syncMyKillmails: SyncMyKillmailsPayload;
   updateUser: UpdateUserPayload;
-};
-
-
-export type MutationAuthenticateWithCodeArgs = {
-  code: Scalars['String']['input'];
-  state: Scalars['String']['input'];
 };
 
 
@@ -1004,8 +998,8 @@ export type MutationRefreshCharacterArgs = {
 };
 
 
-export type MutationRefreshTokenArgs = {
-  refreshToken: Scalars['String']['input'];
+export type MutationRevokeSessionArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -1189,6 +1183,8 @@ export type Query = {
    * Scope is matched against the victim's hull, never an attacker's.
    */
   mostValuableKillmails: Array<Killmail>;
+  /** Kullanıcının açık oturumları */
+  mySessions: Array<Session>;
   race?: Maybe<Race>;
   races: Array<Race>;
   /** Most recently detected territory ownership changes. */
@@ -1733,6 +1729,18 @@ export type RegionsResponse = {
   __typename?: 'RegionsResponse';
   items: Array<Region>;
   pageInfo: PageInfo;
+};
+
+export type Session = {
+  __typename?: 'Session';
+  createdAt: Scalars['String']['output'];
+  /** Bu isteği taşıyan çerezin oturumu mu */
+  current: Scalars['Boolean']['output'];
+  expiresAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  ip?: Maybe<Scalars['String']['output']>;
+  lastSeenAt: Scalars['String']['output'];
+  userAgent?: Maybe<Scalars['String']['output']>;
 };
 
 export type ShipTopKill = {
@@ -2577,6 +2585,7 @@ export type ResolversTypes = {
   RegionFilter: RegionFilter;
   RegionOrderBy: RegionOrderBy;
   RegionsResponse: ResolverTypeWrapper<RegionsResponse>;
+  Session: ResolverTypeWrapper<Session>;
   ShipTopKill: ResolverTypeWrapper<ShipTopKill>;
   SlotGroup: ResolverTypeWrapper<SlotGroup>;
   SolarSystem: ResolverTypeWrapper<SolarSystem>;
@@ -2734,6 +2743,7 @@ export type ResolversParentTypes = {
   RegionCampaignCount: RegionCampaignCount;
   RegionFilter: RegionFilter;
   RegionsResponse: RegionsResponse;
+  Session: Session;
   ShipTopKill: ShipTopKill;
   SlotGroup: SlotGroup;
   SolarSystem: SolarSystem;
@@ -2913,7 +2923,6 @@ export type AttackerResolvers<ContextType = any, ParentType extends ResolversPar
 export type AuthPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['AuthPayload'] = ResolversParentTypes['AuthPayload']> = {
   accessToken?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   expiresIn?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  refreshToken?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
 };
 
@@ -3328,7 +3337,6 @@ export type MoonResolvers<ContextType = any, ParentType extends ResolversParentT
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   _empty?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  authenticateWithCode?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationAuthenticateWithCodeArgs, 'code' | 'state'>>;
   clearAllKillmailCaches?: Resolver<ResolversTypes['CacheOperation'], ParentType, ContextType>;
   clearAllianceCache?: Resolver<ResolversTypes['CacheOperation'], ParentType, ContextType, RequireFields<MutationClearAllianceCacheArgs, 'allianceId'>>;
   clearCharacterCache?: Resolver<ResolversTypes['CacheOperation'], ParentType, ContextType, RequireFields<MutationClearCharacterCacheArgs, 'characterId'>>;
@@ -3336,8 +3344,10 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   clearKillmailCache?: Resolver<ResolversTypes['CacheOperation'], ParentType, ContextType, RequireFields<MutationClearKillmailCacheArgs, 'killmailId'>>;
   createUser?: Resolver<ResolversTypes['CreateUserPayload'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   login?: Resolver<ResolversTypes['AuthUrl'], ParentType, ContextType>;
+  logout?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   refreshCharacter?: Resolver<ResolversTypes['RefreshCharacterResult'], ParentType, ContextType, RequireFields<MutationRefreshCharacterArgs, 'characterId'>>;
-  refreshToken?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationRefreshTokenArgs, 'refreshToken'>>;
+  refreshSession?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType>;
+  revokeSession?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRevokeSessionArgs, 'id'>>;
   startAllianceSync?: Resolver<ResolversTypes['StartAllianceSyncPayload'], ParentType, ContextType, RequireFields<MutationStartAllianceSyncArgs, 'input'>>;
   startCategorySync?: Resolver<ResolversTypes['StartCategorySyncPayload'], ParentType, ContextType, RequireFields<MutationStartCategorySyncArgs, 'input'>>;
   startConstellationSync?: Resolver<ResolversTypes['StartConstellationSyncPayload'], ParentType, ContextType, RequireFields<MutationStartConstellationSyncArgs, 'input'>>;
@@ -3430,6 +3440,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   mostAggressiveAlliances?: Resolver<Array<ResolversTypes['AllianceActivityRank']>, ParentType, ContextType, Partial<QueryMostAggressiveAlliancesArgs>>;
   mostDefensiveAlliances?: Resolver<Array<ResolversTypes['AllianceActivityRank']>, ParentType, ContextType, Partial<QueryMostDefensiveAlliancesArgs>>;
   mostValuableKillmails?: Resolver<Array<ResolversTypes['Killmail']>, ParentType, ContextType, RequireFields<QueryMostValuableKillmailsArgs, 'days' | 'limit' | 'scope'>>;
+  mySessions?: Resolver<Array<ResolversTypes['Session']>, ParentType, ContextType>;
   race?: Resolver<Maybe<ResolversTypes['Race']>, ParentType, ContextType, RequireFields<QueryRaceArgs, 'id'>>;
   races?: Resolver<Array<ResolversTypes['Race']>, ParentType, ContextType>;
   recentTerritoryChanges?: Resolver<Array<ResolversTypes['TerritoryChange']>, ParentType, ContextType, Partial<QueryRecentTerritoryChangesArgs>>;
@@ -3517,6 +3528,16 @@ export type RegionCampaignCountResolvers<ContextType = any, ParentType extends R
 export type RegionsResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['RegionsResponse'] = ResolversParentTypes['RegionsResponse']> = {
   items?: Resolver<Array<ResolversTypes['Region']>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+};
+
+export type SessionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Session'] = ResolversParentTypes['Session']> = {
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  current?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  expiresAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  ip?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  lastSeenAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  userAgent?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
 export type ShipTopKillResolvers<ContextType = any, ParentType extends ResolversParentTypes['ShipTopKill'] = ResolversParentTypes['ShipTopKill']> = {
@@ -4007,6 +4028,7 @@ export type Resolvers<ContextType = any> = {
   Region?: RegionResolvers<ContextType>;
   RegionCampaignCount?: RegionCampaignCountResolvers<ContextType>;
   RegionsResponse?: RegionsResponseResolvers<ContextType>;
+  Session?: SessionResolvers<ContextType>;
   ShipTopKill?: ShipTopKillResolvers<ContextType>;
   SlotGroup?: SlotGroupResolvers<ContextType>;
   SolarSystem?: SolarSystemResolvers<ContextType>;

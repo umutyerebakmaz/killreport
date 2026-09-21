@@ -1,7 +1,6 @@
-mutation RefreshToken($refreshToken: String!) {
-  refreshToken(refreshToken: $refreshToken) {
+mutation RefreshSession {
+  refreshSession {
     accessToken
-    refreshToken
     expiresIn
     user {
       id
@@ -10,4 +9,24 @@ mutation RefreshToken($refreshToken: String!) {
       createdAt
     }
   }
+}
+
+mutation Logout {
+  logout
+}
+
+query MySessions {
+  mySessions {
+    id
+    createdAt
+    lastSeenAt
+    expiresAt
+    userAgent
+    ip
+    current
+  }
+}
+
+mutation RevokeSession($id: ID!) {
+  revokeSession(id: $id)
 }

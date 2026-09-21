@@ -55,9 +55,10 @@ export default function PrivacyPage() {
                 Authentication Data
               </h3>
               <p className="text-sm text-gray-300 ml-4">
-                We store authentication tokens (access and refresh tokens)
-                locally in your browser to maintain your login session. These
-                are necessary for your account security.
+                We store your access token locally in your browser to maintain
+                your login session, and an HttpOnly session cookie on your
+                device that your browser sends automatically and JavaScript
+                cannot read. These are necessary for your account security.
               </p>
             </div>
 
@@ -194,16 +195,23 @@ export default function PrivacyPage() {
                   Your ESI authentication token
                 </li>
                 <li>
-                  <span className="text-accent-link">eve_refresh_token</span> -
-                  Token for automatic session renewal
-                </li>
-                <li>
                   <span className="text-accent-link">eve_token_expiry</span> -
                   When your token expires
                 </li>
                 <li>
                   <span className="text-accent-link">eve_user</span> - Your
                   cached character profile data
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-medium text-white mb-2 text-sm">Cookies</h3>
+              <ul className="ml-4 space-y-2 text-sm text-gray-300 list-disc list-inside">
+                <li>
+                  <span className="text-accent-link">kr_session</span> - An
+                  HttpOnly cookie JavaScript cannot read. It renews your session
+                  and is deleted when you log out.
                 </li>
               </ul>
             </div>

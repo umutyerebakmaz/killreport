@@ -3,6 +3,11 @@ extend type Query {
   Mevcut authenticated kullanıcının bilgilerini döner
   """
   me: User
+
+  """
+  Kullanıcının açık oturumları
+  """
+  mySessions: [Session!]!
 }
 
 extend type Mutation {
@@ -12,14 +17,32 @@ extend type Mutation {
   login: AuthUrl!
 
   """
-  Authorization code ile authentication yapar ve token döner
+  Oturum çerezini kullanarak taze bir EVE access token alır
   """
-  authenticateWithCode(code: String!, state: String!): AuthPayload!
+  refreshSession: AuthPayload!
 
   """
-  Refresh token kullanarak yeni access token alır
+  Bu oturumu kapatır ve çerezi siler
   """
-  refreshToken(refreshToken: String!): AuthPayload!
+  logout: Boolean!
+
+  """
+  Kullanıcının başka bir oturumunu kapatır
+  """
+  revokeSession(id: ID!): Boolean!
+}
+
+type Session {
+  id: ID!
+  createdAt: String!
+  lastSeenAt: String!
+  expiresAt: String!
+  userAgent: String
+  ip: String
+  """
+  Bu isteği taşıyan çerezin oturumu mu
+  """
+  current: Boolean!
 }
 
 type AuthUrl {
@@ -39,11 +62,6 @@ type AuthPayload {
   JWT access token
   """
   accessToken: String!
-
-  """
-  Token yenilemek için kullanılan refresh token
-  """
-  refreshToken: String
 
   """
   Token geçerlilik süresi (saniye)

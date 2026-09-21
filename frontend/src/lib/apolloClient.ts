@@ -26,31 +26,24 @@ function newSessionId(): string {
 // Token refresh helper
 async function refreshAccessToken(): Promise<string | null> {
   try {
-    const refreshToken = localStorage.getItem('eve_refresh_token');
-    if (!refreshToken) {
-      console.log('No refresh token available');
-      return null;
-    }
-
     console.log('🔄 Apollo: Refreshing access token...');
     const response = await fetch(
       process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql',
       {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           query: `
-                        mutation RefreshToken($refreshToken: String!) {
-                            refreshToken(refreshToken: $refreshToken) {
+                        mutation RefreshSession {
+                            refreshSession {
                                 accessToken
-                                refreshToken
                                 expiresIn
                             }
                         }
                     `,
-          variables: { refreshToken },
         }),
       },
     );
@@ -62,13 +55,10 @@ async function refreshAccessToken(): Promise<string | null> {
       return null;
     }
 
-    const data = result.data.refreshToken;
+    const data = result.data.refreshSession;
 
     // Update tokens
     localStorage.setItem('eve_access_token', data.accessToken);
-    if (data.refreshToken) {
-      localStorage.setItem('eve_refresh_token', data.refreshToken);
-    }
     const expiryTime = Date.now() + data.expiresIn * 1000;
     localStorage.setItem('eve_token_expiry', expiryTime.toString());
 
@@ -89,7 +79,7 @@ export function createApolloClient() {
   // HTTP Link for queries and mutations
   const httpLink = new HttpLink({
     uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql',
-    credentials: 'same-origin',
+    credentials: 'include',
   });
 
   // WebSocket Link for subscriptions (graphql-ws) - only available on client-side.
@@ -179,7 +169,6 @@ export function createApolloClient() {
                     // Refresh failed, logout user
                     console.log('❌ Token refresh failed, logging out...');
                     localStorage.removeItem('eve_access_token');
-                    localStorage.removeItem('eve_refresh_token');
                     localStorage.removeItem('eve_token_expiry');
                     localStorage.removeItem('eve_user');
                     window.dispatchEvent(new Event('auth-change'));

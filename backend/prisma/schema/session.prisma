@@ -1,0 +1,18 @@
+// Tarayıcı oturumu. Çerez ham değeri taşır, burada yalnızca SHA-256 özeti
+// durur: veritabanı sızarsa oradaki değerlerle hiçbir oturum açılamaz.
+model Session {
+  id           String    @id @default(uuid())
+  token_hash   String    @unique
+  user_id      Int
+  user         User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  created_at   DateTime  @default(now())
+  last_seen_at DateTime  @default(now())
+  expires_at   DateTime
+  user_agent   String?
+  ip           String?
+  revoked_at   DateTime?
+
+  @@index([user_id])
+  @@index([expires_at])
+  @@map("sessions")
+}

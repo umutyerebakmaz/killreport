@@ -132,6 +132,10 @@ export const TTL_PER_SCHEMA_COORDINATE: Record<string, number> = {
   // hourly activity snapshot. Query.solarSystem's 365 days over the same
   // numbers is exactly the bug this query exists to avoid.
   'Query.mapSystemDetails': CACHE_TTL.LIVE_SYSTEM_DATA,
+
+  // Per-user, never cached: a shared bucket would serve one user's data to another.
+  'Query.me': 0,
+  'Query.mySessions': 0,
 };
 
 /**

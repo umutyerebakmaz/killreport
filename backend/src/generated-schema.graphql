@@ -146,9 +146,6 @@ type AuthPayload {
   """Token geçerlilik süresi (saniye)"""
   expiresIn: Int!
 
-  """Token yenilemek için kullanılan refresh token"""
-  refreshToken: String
-
   """Authenticated kullanıcı bilgileri"""
   user: User!
 }
@@ -893,9 +890,6 @@ enum MostValuableScope {
 type Mutation {
   _empty: String
 
-  """Authorization code ile authentication yapar ve token döner"""
-  authenticateWithCode(code: String!, state: String!): AuthPayload!
-
   """Clear all killmail caches (use after large data updates)"""
   clearAllKillmailCaches: CacheOperation!
 
@@ -914,10 +908,16 @@ type Mutation {
 
   """Eve Online SSO login için authorization URL'i oluşturur"""
   login: AuthUrl!
+
+  """Bu oturumu kapatır ve çerezi siler"""
+  logout: Boolean!
   refreshCharacter(characterId: Int!): RefreshCharacterResult!
 
-  """Refresh token kullanarak yeni access token alır"""
-  refreshToken(refreshToken: String!): AuthPayload!
+  """Oturum çerezini kullanarak taze bir EVE access token alır"""
+  refreshSession: AuthPayload!
+
+  """Kullanıcının başka bir oturumunu kapatır"""
+  revokeSession(id: ID!): Boolean!
   startAllianceSync(input: StartAllianceSyncInput!): StartAllianceSyncPayload!
   startCategorySync(input: StartCategorySyncInput!): StartCategorySyncPayload!
   startConstellationSync(input: StartConstellationSyncInput!): StartConstellationSyncPayload!
@@ -1092,6 +1092,9 @@ type Query {
     regionId: Int
     scope: MostValuableScope!
   ): [Killmail!]!
+
+  """Kullanıcının açık oturumları"""
+  mySessions: [Session!]!
   race(id: Int!): Race
   races: [Race!]!
 
@@ -1284,6 +1287,18 @@ enum RegionOrderBy {
 type RegionsResponse {
   items: [Region!]!
   pageInfo: PageInfo!
+}
+
+type Session {
+  createdAt: String!
+
+  """Bu isteği taşıyan çerezin oturumu mu"""
+  current: Boolean!
+  expiresAt: String!
+  id: ID!
+  ip: String
+  lastSeenAt: String!
+  userAgent: String
 }
 
 type ShipTopKill {

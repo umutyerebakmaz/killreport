@@ -1,62 +1,70 @@
 'use client';
 
 import Loader from '@/components/Loader';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 
 function AuthSuccessContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [characterName, setCharacterName] = useState<string | null>(null);
+  const [characterId, setCharacterId] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = searchParams.get('token');
-    const refreshToken = searchParams.get('refresh_token');
-    const expiresIn = searchParams.get('expires_in');
-    const characterName = searchParams.get('character_name');
-    const characterId = searchParams.get('character_id');
+    const run = async () => {
+      try {
+        const response = await fetch(
+          process.env.NEXT_PUBLIC_GRAPHQL_URL ||
+            'http://localhost:4000/graphql',
+          {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: `
+                mutation RefreshSession {
+                  refreshSession {
+                    accessToken
+                    expiresIn
+                    user { id name }
+                  }
+                }
+              `,
+            }),
+          },
+        );
 
-    if (!token) {
-      setError('No token received from authentication');
-      setIsLoading(false);
-      return;
-    }
+        const result = await response.json();
+        if (result.errors) throw new Error(result.errors[0].message);
 
-    try {
-      // Token'ları localStorage'a kaydet
-      localStorage.setItem('eve_access_token', token);
-      if (refreshToken) {
-        localStorage.setItem('eve_refresh_token', refreshToken);
-      }
-      if (expiresIn) {
-        const expiryTime = Date.now() + parseInt(expiresIn) * 1000;
-        localStorage.setItem('eve_token_expiry', expiryTime.toString());
-      }
+        const data = result.data.refreshSession;
+        localStorage.setItem('eve_access_token', data.accessToken);
+        localStorage.setItem(
+          'eve_token_expiry',
+          (Date.now() + data.expiresIn * 1000).toString(),
+        );
+        localStorage.setItem(
+          'eve_user',
+          JSON.stringify({
+            characterId: data.user.id,
+            characterName: data.user.name,
+          }),
+        );
 
-      // Kullanıcı bilgilerini kaydet
-      if (characterName && characterId) {
-        const userData = {
-          characterId,
-          characterName,
-        };
-        localStorage.setItem('eve_user', JSON.stringify(userData));
-      }
+        setCharacterName(data.user.name);
+        setCharacterId(data.user.id);
 
-      // Dispatch custom event for auth state update
-      window.dispatchEvent(new Event('auth-change'));
-
-      // Ana sayfaya yönlendir
-      setTimeout(() => {
+        window.dispatchEvent(new Event('auth-change'));
+        setTimeout(() => router.push('/'), 500);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Authentication failed');
         setIsLoading(false);
-        router.push('/killmails');
-      }, 1500);
-    } catch (err) {
-      console.error('Error saving auth data:', err);
-      setError('Failed to save authentication data');
-      setIsLoading(false);
-    }
-  }, [searchParams, router]);
+      }
+    };
+
+    run();
+  }, [router]);
 
   if (error) {
     return (
@@ -161,7 +169,7 @@ function AuthSuccessContent() {
                 Welcome back,
               </p>
               <p className="mb-2 text-2xl font-bold text-transparent bg-clip-text bg-linear-to-r from-amber-400 via-amber-500 to-amber-600">
-                {searchParams.get('character_name')}
+                {characterName}
               </p>
               <div className="flex items-center justify-center gap-2 text-xs text-ink-faint">
                 <svg
@@ -175,7 +183,7 @@ function AuthSuccessContent() {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span>ID: {searchParams.get('character_id')}</span>
+                <span>ID: {characterId}</span>
               </div>
             </div>
 
