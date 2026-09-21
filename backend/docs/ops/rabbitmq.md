@@ -224,6 +224,51 @@ failure it is meant to catch, not after.
 
 ---
 
+## ♻️ Retry belongs to the broker, not to a publisher
+
+A publisher must not re-send work that failed. Since #234 the broker holds it:
+[`../../src/workers/worker-error.ts`](../../src/workers/worker-error.ts) waits
+60 seconds on a 420/429 and requeues the same message, and everything else
+nacks into `killreport.dlx` for the 30-second round trip. The message is never
+dropped, so nothing outside the broker has to remember it.
+
+That is a reversal, and the reversal is the hazard. Before #234, `cdd4de02`
+(2026-01-26) acked a rate-limited message away on purpose --- "will retry on
+next cron cycle" --- which made the scheduled publisher the only retry there
+was. A publisher written against that contract is correct to re-send blindly,
+and stays silently wrong once the broker starts keeping the message: both
+layers retry, and the queue fills with copies of one unit of work.
+
+`services/user-killmail-cron.ts` is where this surfaced. It ticks every ten
+minutes and its only guard was `users.last_killmail_sync_at`, a column written
+in one place --- the worker, after a _successful_ ESI fetch. A worker that is
+down or rate-limited never advances it, so every tick published another copy.
+It reached 207 messages for a single user, all of them the same request, and
+each 429 guaranteed the next one.
+
+It now calls `getQueueStats()` first and holds off when the queue has messages
+ready or no consumer at all. Two things make that cheap: `getQueueStats` reads
+through its own monitoring channel, so a 404 cannot close the publishing
+channel the way a bare `checkQueue` would, and it answers zeros when the broker
+is unreachable --- which reads as "no consumer" and holds off. An unreadable
+broker is not a reason to publish blindly.
+
+It is not airtight, and the gap is worth knowing rather than discovering.
+`messageCount` counts ready messages only, so a message a worker is holding
+through its 60-second rate-limit wait is unacked and invisible. A tick landing
+in that window still publishes one duplicate --- and the next tick, seeing it
+ready, holds off. Bounded at one, where it used to be unbounded. Closing it
+completely needs a per-user marker in the database, which was considered and
+declined: it costs a migration and introduces a flag that stays set if a worker
+dies mid-message.
+
+The rule generalises past this one file. **Any scheduled publisher needs a
+reason to believe its previous message is gone before it sends another.** For a
+queue on the retry topology that reason is the broker's own count, not a
+timestamp a consumer writes only when it succeeds.
+
+---
+
 ## 📊 Inspecting the parking queue
 
 Depth, from the CLI:
