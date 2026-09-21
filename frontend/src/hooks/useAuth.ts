@@ -205,6 +205,14 @@ export function useAuth() {
       // token is not in localStorage yet. `isLoading` stays true across the
       // exchange so the button shows its loader instead of flashing LOGIN at a
       // user who has just logged in.
+      //
+      // The session is an external system and this effect is the one-shot
+      // synchronisation with it - the use the rule's own documentation allows.
+      // Nothing here sets state synchronously: every `setState` inside
+      // `refreshToken` runs in a promise callback, after a network round trip.
+      // The rule cannot see that, because it follows the call into
+      // `refreshToken` and stops at the first `setState` it finds.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       refreshToken()
         .then((ok) => {
           if (!ok) reportLoginError();
