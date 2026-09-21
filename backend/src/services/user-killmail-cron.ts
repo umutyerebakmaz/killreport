@@ -1,5 +1,5 @@
 import prisma from './prisma';
-import { getRabbitMQChannel } from './rabbitmq';
+import { getQueueStats, getRabbitMQChannel } from './rabbitmq';
 
 const QUEUE_NAME = 'esi_user_killmails_queue';
 const SYNC_INTERVAL_MINUTES = 10; // Sync every 10 minutes
@@ -13,6 +13,30 @@ interface UserKillmailMessage {
   expiresAt: string;
   queuedAt: string;
   lastKillmailId?: number; // For incremental sync optimization
+}
+
+/**
+ * Why this tick must not publish, or null when it may.
+ *
+ * Retry belongs to the broker since #234 (`workers/worker-error.ts`): a 429
+ * sleeps 60 seconds and requeues the same message rather than acking it away,
+ * which is what cdd4de02 did back when the next cron tick was the only retry
+ * there was. Nobody took the retry role back off the cron afterwards, so both
+ * layers ran at once and the queue filled with copies of one user's sync.
+ *
+ * `messageCount` counts ready messages only. A message the worker is holding
+ * through that 60-second wait is unacked and invisible here, so a tick landing
+ * in the window can still publish one duplicate — bounded by the next tick,
+ * which sees it ready and holds off.
+ */
+export function skipReason(stats: {
+  messageCount: number;
+  consumerCount: number;
+}): string | null {
+  if (stats.consumerCount === 0) return 'no worker is consuming the queue';
+  if (stats.messageCount > 0)
+    return `${stats.messageCount} message(s) still pending`;
+  return null;
 }
 
 /**
@@ -84,6 +108,17 @@ export class UserKillmailCron {
         `🕐 [${new Date().toLocaleString('en-EN')}] Running background sync...`,
       );
       console.log('─'.repeat(70));
+
+      // Ask the broker before adding to it. getQueueStats uses its own
+      // monitoring channel and answers zeros when the queue is missing or the
+      // broker is unreachable, which reads as "no consumer" and holds off —
+      // an unreadable broker is not a reason to publish blindly.
+      const reason = skipReason(await getQueueStats(QUEUE_NAME));
+      if (reason) {
+        console.log(`   ⏭️  Skipping sync - ${reason}`);
+        console.log('─'.repeat(70));
+        return;
+      }
 
       // Get all users with valid tokens (not expired, with 5 minute buffer)
       const fiveMinutesFromNow = new Date(Date.now() + 5 * 60 * 1000);
