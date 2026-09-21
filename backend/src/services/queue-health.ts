@@ -38,3 +38,24 @@ export function queueHealth(queue: QueueNumbers): QueueHealth {
   if (queue.messageCount > 0 && queue.consumerCount === 0) return 'STALLED';
   return 'OK';
 }
+
+/**
+ * Why a publisher must not add to this queue right now, or null when it may.
+ *
+ * Retry belongs to the broker since #234 (`workers/worker-error.ts`): a 429
+ * sleeps 60 seconds and requeues the same message rather than acking it away,
+ * which is what cdd4de02 did back when the next cron tick was the only retry
+ * there was. Nobody took the retry role back off the publisher afterwards, so
+ * both layers ran at once and the queue filled with copies of one user's sync.
+ *
+ * `messageCount` counts ready messages only. A message the worker is holding
+ * through that 60-second wait is unacked and invisible here, so a tick landing
+ * in the window can still publish one duplicate — bounded by the next tick,
+ * which sees it ready and holds off.
+ */
+export function skipReason(stats: Omit<QueueNumbers, 'name'>): string | null {
+  if (stats.consumerCount === 0) return 'no worker is consuming the queue';
+  if (stats.messageCount > 0)
+    return `${stats.messageCount} message(s) still pending`;
+  return null;
+}
