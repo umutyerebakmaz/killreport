@@ -95,7 +95,10 @@ export async function esiUserKillmailWorker() {
             logger.info(`📅 Queued at: ${message.queuedAt}`);
             logger.info('━'.repeat(70));
 
-            const credentials = await loadUserCredentials(message.userId);
+            const credentials = await loadUserCredentials(
+              message.userId,
+              prismaWorker,
+            );
 
             if (!credentials.ok) {
               // None of these is retryable: the user has to log in again

@@ -1,6 +1,5 @@
 import { refreshAccessToken } from '@services/eve-sso';
 import logger from '@services/logger';
-import prismaWorker from '@services/prisma-worker';
 
 /**
  * Tokens live in `users` and nowhere else.
@@ -33,6 +32,20 @@ export type UserCredentials =
   | { ok: false; reason: 'not-found' | 'no-refresh-token' | 'refresh-failed' };
 
 /**
+ * The two Prisma clients are not interchangeable: workers use
+ * `@services/prisma-worker` and the API uses `@services/prisma`, because
+ * DigitalOcean PostgreSQL allows 22 connections and sharing one pool exhausts
+ * it. Both call this function, so the caller passes its own client rather than
+ * the module picking one.
+ */
+export interface CredentialClient {
+  user: {
+    findUnique: (args: any) => Promise<any>;
+    update: (args: any) => Promise<any>;
+  };
+}
+
+/**
  * True when the token is gone or close enough to gone that the ESI calls
  * following this check would run out mid-sync.
  */
@@ -57,7 +70,7 @@ export function needsRefresh(expiresAt: Date, now: Date): boolean {
  * (`ecosystem.config.js`); putting the corporation worker under PM2 too is
  * what would make a row lock or a short Redis lock worth adding. And a
  * persist failure after a successful refresh is unrecoverable: the
- * `prismaWorker.user.update` below sits inside the same `try` as the refresh
+ * `client.user.update` below sits inside the same `try` as the refresh
  * call, so a transient database error there returns `refresh-failed` while
  * EVE has already rotated the token and the stored `refresh_token` is the
  * consumed one — every later refresh fails until the user logs in again. A
@@ -65,8 +78,9 @@ export function needsRefresh(expiresAt: Date, now: Date): boolean {
  */
 export async function loadUserCredentials(
   userId: number,
+  client: CredentialClient,
 ): Promise<UserCredentials> {
-  const row = await prismaWorker.user.findUnique({
+  const row = await client.user.findUnique({
     where: { id: userId },
     select: {
       id: true,
@@ -93,7 +107,7 @@ export async function loadUserCredentials(
   try {
     const fresh = await refreshAccessToken(refresh_token);
 
-    await prismaWorker.user.update({
+    await client.user.update({
       where: { id: userId },
       data: {
         access_token: fresh.access_token,
