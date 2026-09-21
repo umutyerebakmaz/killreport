@@ -193,7 +193,10 @@ export type AuthPayload = {
 
 export type AuthUrl = {
   __typename?: 'AuthUrl';
-  /** CSRF koruması için state parametresi */
+  /**
+   * CSRF koruması için state parametresi. Sunucuda saklanır ve callback'te tek
+   * kullanımlık olarak harcanır.
+   */
   state: Scalars['String']['output'];
   /** Eve Online SSO authorization URL'i */
   url: Scalars['String']['output'];
@@ -942,7 +945,12 @@ export type Mutation = {
   /** Clear cache for a specific killmail */
   clearKillmailCache: CacheOperation;
   createUser: CreateUserPayload;
-  /** Eve Online SSO login için authorization URL'i oluşturur */
+  /**
+   * Eve Online SSO login için authorization URL'i oluşturur.
+   *
+   * `returnTo` login'e basılan sayfanın göreli yoludur; SSO dönüşünde kullanıcı
+   * oraya bırakılır. Site dışına çıkan her değer `/` olarak kabul edilir.
+   */
   login: AuthUrl;
   /** Bu oturumu kapatır ve çerezi siler */
   logout: Scalars['Boolean']['output'];
@@ -991,6 +999,11 @@ export type MutationClearKillmailCacheArgs = {
 
 export type MutationCreateUserArgs = {
   input: CreateUserInput;
+};
+
+
+export type MutationLoginArgs = {
+  returnTo?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -2500,6 +2513,13 @@ export type ActiveUsersCountQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type ActiveUsersCountQuery = { __typename?: 'Query', activeUsersCount: number };
 
+export type LoginMutationVariables = Exact<{
+  returnTo?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'AuthUrl', url: string, state: string } };
+
 export type RefreshSessionMutationVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -3709,6 +3729,40 @@ export type ActiveUsersCountQueryHookResult = ReturnType<typeof useActiveUsersCo
 export type ActiveUsersCountLazyQueryHookResult = ReturnType<typeof useActiveUsersCountLazyQuery>;
 export type ActiveUsersCountSuspenseQueryHookResult = ReturnType<typeof useActiveUsersCountSuspenseQuery>;
 export type ActiveUsersCountQueryResult = Apollo.QueryResult<ActiveUsersCountQuery, ActiveUsersCountQueryVariables>;
+export const LoginDocument = gql`
+    mutation Login($returnTo: String) {
+  login(returnTo: $returnTo) {
+    url
+    state
+  }
+}
+    `;
+export type LoginMutationFn = Apollo.MutationFunction<LoginMutation, LoginMutationVariables>;
+
+/**
+ * __useLoginMutation__
+ *
+ * To run a mutation, you first call `useLoginMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useLoginMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [loginMutation, { data, loading, error }] = useLoginMutation({
+ *   variables: {
+ *      returnTo: // value for 'returnTo'
+ *   },
+ * });
+ */
+export function useLoginMutation(baseOptions?: Apollo.MutationHookOptions<LoginMutation, LoginMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<LoginMutation, LoginMutationVariables>(LoginDocument, options);
+      }
+export type LoginMutationHookResult = ReturnType<typeof useLoginMutation>;
+export type LoginMutationResult = Apollo.MutationResult<LoginMutation>;
+export type LoginMutationOptions = Apollo.BaseMutationOptions<LoginMutation, LoginMutationVariables>;
 export const RefreshSessionDocument = gql`
     mutation RefreshSession {
   refreshSession {

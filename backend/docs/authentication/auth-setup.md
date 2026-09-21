@@ -17,21 +17,28 @@ sequenceDiagram
     participant E as EVE SSO
     participant DB as PostgreSQL
 
+    participant R as Redis
+
     U->>F: clicks LOGIN
-    F->>B: mutation login
+    F->>B: mutation login(returnTo: "/killmails")
+    B->>R: store returnTo under auth:state:{state}
     B-->>F: EVE SSO URL
     F->>E: redirect
 
     U->>E: signs in with EVE credentials
-    E->>B: redirect to /auth/callback?code=...
+    E->>B: redirect to /auth/callback?code=...&state=...
 
+    B->>R: MULTI GET+DEL auth:state:{state}
+    R-->>B: "/killmails" (or nothing → refuse)
     B->>E: exchange code for token
     E-->>B: access + refresh token
     B->>DB: create or update user
-    B-->>F: redirect to /auth/success with token
+    B-->>F: Set-Cookie kr_session,<br/>redirect to /killmails?login=1
 
-    F->>F: save token to localStorage,<br/>update auth state
-    F-->>U: redirect home
+    F->>B: mutation refreshSession (cookie)
+    B-->>F: access token
+    F->>F: save token to localStorage,<br/>strip ?login=1, update auth state
+    F-->>U: stays on /killmails, logged in
 
     Note over F,B: every later request carries<br/>Authorization: Bearer <token>,<br/>which the backend verifies and<br/>attaches to the GraphQL context
 ```
@@ -64,7 +71,10 @@ sequenceDiagram
 
 **Pages**:
 
-- `/auth/success`: Token handler and redirect page
+- `/auth/callback`: only reached when the registered EVE callback URL points at
+  the frontend domain; forwards `code` and `state` to the backend and renders
+  nothing. There is no success page — the round trip ends on the page the user
+  pressed LOGIN on.
 
 **Components**:
 
@@ -124,24 +134,30 @@ yarn dev
 // 1. User clicks LOGIN
 <AuthButton />; // calls handleLogin()
 
-// 2. Get SSO URL from backend
-const { data } = await loginMutation();
+// 2. Get SSO URL from backend, remembering where we are
+const { data } = await loginMutation({
+  variables: { returnTo: window.location.pathname + window.location.search },
+});
 window.location.href = data.login.url;
 
 // 3. User logs in at Eve SSO
-// Eve redirects to: http://localhost:4000/auth/callback?code=xxx
+// Eve redirects to: http://localhost:4000/auth/callback?code=xxx&state=yyy
 
-// 4. Backend exchanges code for token
+// 4. Backend spends the state, then exchanges the code
+const returnTo = await consumeAuthState(state); // null → refuse, no exchange
 const tokenData = await exchangeCodeForToken(code);
 const character = await verifyToken(tokenData.access_token);
 
-// 5. Backend redirects to frontend with token
+// 5. Backend sets the session cookie and sends the browser back where it was.
+// Nothing sensitive is in the URL.
 res.writeHead(302, {
-  Location: `http://localhost:3000/auth/success?token=xxx&...`,
+  "Set-Cookie": serializeSessionCookie(sessionToken, { secure: isProduction }),
+  Location: `http://localhost:3000/killmails?login=1`,
 });
 
-// 6. Frontend saves token
-localStorage.setItem("eve_access_token", token);
+// 6. useAuth sees ?login=1, removes it from the address bar and swaps the
+// cookie for an access token
+localStorage.setItem("eve_access_token", accessToken);
 window.dispatchEvent(new Event("auth-change"));
 ```
 

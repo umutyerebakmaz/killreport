@@ -151,7 +151,10 @@ type AuthPayload {
 }
 
 type AuthUrl {
-  """CSRF koruması için state parametresi"""
+  """
+  CSRF koruması için state parametresi. Sunucuda saklanır ve callback'te tek
+  kullanımlık olarak harcanır.
+  """
   state: String!
 
   """Eve Online SSO authorization URL'i"""
@@ -906,8 +909,13 @@ type Mutation {
   clearKillmailCache(killmailId: Int!): CacheOperation!
   createUser(input: CreateUserInput!): CreateUserPayload!
 
-  """Eve Online SSO login için authorization URL'i oluşturur"""
-  login: AuthUrl!
+  """
+  Eve Online SSO login için authorization URL'i oluşturur.
+  
+  `returnTo` login'e basılan sayfanın göreli yoludur; SSO dönüşünde kullanıcı
+  oraya bırakılır. Site dışına çıkan her değer `/` olarak kabul edilir.
+  """
+  login(returnTo: String): AuthUrl!
 
   """Bu oturumu kapatır ve çerezi siler"""
   logout: Boolean!

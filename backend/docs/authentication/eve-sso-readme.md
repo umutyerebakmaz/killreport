@@ -78,7 +78,7 @@ The server will run at `http://localhost:4000/graphql`.
 
 ```graphql
 mutation {
-  login {
+  login(returnTo: "/killmails?page=2") {
     url
     state
   }
@@ -87,15 +87,29 @@ mutation {
 
 This returns an Eve Online SSO URL. Redirect the user to this URL.
 
+`returnTo` is the site-relative path to come back to at the end of the round
+trip — normally the page the user pressed LOGIN on. It is stored server side
+under the `state` and never travels through EVE, so it cannot be tampered with
+in flight. Anything that is not a site-relative path (an absolute URL, a
+protocol-relative `//host`, an `/auth/*` route) is reduced to `/` by
+`sanitizeReturnTo` in `backend/src/services/auth-state-store.ts`.
+
 ### 2. Authentication
 
 After the user logs in through Eve SSO, the browser is redirected to the
 callback URL with a `code` parameter. The frontend never sees this exchange:
-`backend/src/handlers/auth-callback.handler.ts` exchanges the code for an EVE
-token, verifies it against EVE's JWKS, upserts the user, creates a row in
-`sessions`, sets an `HttpOnly` `kr_session` cookie, and redirects the browser
-to `/auth/success` **with no query string at all** — no code, no tokens, no
-character id ever appear in the URL, the browser's history, or an access log.
+`backend/src/handlers/auth-callback.handler.ts` spends the `state`, exchanges
+the code for an EVE token, verifies it against EVE's JWKS, upserts the user,
+creates a row in `sessions`, sets an `HttpOnly` `kr_session` cookie, and
+redirects the browser back to `returnTo` carrying nothing but `?login=1` — no
+code, no tokens, no character id ever appear in the URL, the browser's history,
+or an access log.
+
+There is no interstitial page. The round trip used to end on `/auth/success`,
+which drew a success card for half a second before pushing to the home page;
+that page is gone, and so is the JSON error body the failure path used to
+render in the browser. A failure redirects to `${returnTo}?login=error`
+instead, which the header reports beside the LOGIN button.
 
 ### 3. Authenticated Requests
 
@@ -121,7 +135,9 @@ query {
 ### 5. Session Renewal
 
 The frontend never handles a refresh token — there isn't one in the browser.
-`/auth/success` calls the argument-less `refreshSession` mutation with
+`useAuth` sees the `?login=1` marker, takes it out of the address bar with
+`history.replaceState`, and calls the argument-less `refreshSession` mutation
+with
 `credentials: 'include'`, so the `kr_session` cookie travels with it instead of
 anything in the request body:
 
@@ -202,13 +218,17 @@ backend/
 
 ### SSO Flow
 
-1. **Login**: `AuthButton` calls the `login` mutation → gets an EVE SSO URL.
+1. **Login**: `AuthButton` calls the `login` mutation with the current path as
+   `returnTo` → gets an EVE SSO URL.
 2. **Authorization**: EVE redirects to `/auth/callback`, handled by
-   `backend/src/handlers/auth-callback.handler.ts` — it exchanges the code,
-   verifies the token against EVE's JWKS, upserts the user, creates a row in
-   `sessions`, sets the `kr_session` cookie, and redirects to `/auth/success`
-   with no query string.
-3. **Session Renewal**: The page calls the argument-less `refreshSession`
+   `backend/src/handlers/auth-callback.handler.ts` — it spends the `state`
+   through `consumeAuthState`, exchanges the code, verifies the token against
+   EVE's JWKS, upserts the user, creates a row in `sessions`, sets the
+   `kr_session` cookie, and redirects to the stored `returnTo` with `?login=1`.
+   An unknown, expired or already-spent state is refused before the code is
+   exchanged.
+3. **Session Renewal**: `useAuth` sees `?login=1`, removes it from the address
+   bar and calls the argument-less `refreshSession`
    mutation with `credentials: 'include'`; the server reads the cookie,
    resolves the session, slides its 30-day lifetime, refreshes the EVE token
    if it is inside the five-minute buffer, and returns a fresh access token.
@@ -222,7 +242,15 @@ backend/
 
 ## Security Notes
 
-- **State Parameter**: A unique state is generated for each login request for CSRF protection
+- **State Parameter**: A unique state is generated for each login request and
+  stored in Redis under `auth:state:{state}` for 10 minutes, with the return
+  path as its value. The callback spends it with a `MULTI` carrying `GET` and
+  `DEL` (not `GETDEL`, which only exists from Redis 6.2), so a state is
+  single-use: a callback URL replayed from history or a log cannot mint a
+  second session, and a callback this server never started is refused. Before
+  the store existed the state was minted and read back but never written down,
+  so any non-empty value was accepted — the CSRF protection this line describes
+  was not actually in force.
 - **Token Verification**: JWT tokens are verified using Eve Online's JWKS endpoint
 - **HTTPS**: Always use HTTPS in production
 - **Secret Key**: Never commit or make `EVE_CLIENT_SECRET` public

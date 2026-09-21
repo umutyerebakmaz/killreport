@@ -192,7 +192,10 @@ export type AuthPayload = {
 
 export type AuthUrl = {
   __typename?: 'AuthUrl';
-  /** CSRF koruması için state parametresi */
+  /**
+   * CSRF koruması için state parametresi. Sunucuda saklanır ve callback'te tek
+   * kullanımlık olarak harcanır.
+   */
   state: Scalars['String']['output'];
   /** Eve Online SSO authorization URL'i */
   url: Scalars['String']['output'];
@@ -941,7 +944,12 @@ export type Mutation = {
   /** Clear cache for a specific killmail */
   clearKillmailCache: CacheOperation;
   createUser: CreateUserPayload;
-  /** Eve Online SSO login için authorization URL'i oluşturur */
+  /**
+   * Eve Online SSO login için authorization URL'i oluşturur.
+   *
+   * `returnTo` login'e basılan sayfanın göreli yoludur; SSO dönüşünde kullanıcı
+   * oraya bırakılır. Site dışına çıkan her değer `/` olarak kabul edilir.
+   */
   login: AuthUrl;
   /** Bu oturumu kapatır ve çerezi siler */
   logout: Scalars['Boolean']['output'];
@@ -990,6 +998,11 @@ export type MutationClearKillmailCacheArgs = {
 
 export type MutationCreateUserArgs = {
   input: CreateUserInput;
+};
+
+
+export type MutationLoginArgs = {
+  returnTo?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -3343,7 +3356,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   clearCorporationCache?: Resolver<ResolversTypes['CacheOperation'], ParentType, ContextType, RequireFields<MutationClearCorporationCacheArgs, 'corporationId'>>;
   clearKillmailCache?: Resolver<ResolversTypes['CacheOperation'], ParentType, ContextType, RequireFields<MutationClearKillmailCacheArgs, 'killmailId'>>;
   createUser?: Resolver<ResolversTypes['CreateUserPayload'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
-  login?: Resolver<ResolversTypes['AuthUrl'], ParentType, ContextType>;
+  login?: Resolver<ResolversTypes['AuthUrl'], ParentType, ContextType, Partial<MutationLoginArgs>>;
   logout?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   refreshCharacter?: Resolver<ResolversTypes['RefreshCharacterResult'], ParentType, ContextType, RequireFields<MutationRefreshCharacterArgs, 'characterId'>>;
   refreshSession?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType>;
