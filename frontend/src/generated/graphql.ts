@@ -187,8 +187,6 @@ export type AuthPayload = {
   accessToken: Scalars['String']['output'];
   /** Token geçerlilik süresi (saniye) */
   expiresIn: Scalars['Int']['output'];
-  /** Token yenilemek için kullanılan refresh token */
-  refreshToken?: Maybe<Scalars['String']['output']>;
   /** Authenticated kullanıcı bilgileri */
   user: User;
 };
@@ -933,8 +931,6 @@ export enum MostValuableScope {
 export type Mutation = {
   __typename?: 'Mutation';
   _empty?: Maybe<Scalars['String']['output']>;
-  /** Authorization code ile authentication yapar ve token döner */
-  authenticateWithCode: AuthPayload;
   /** Clear all killmail caches (use after large data updates) */
   clearAllKillmailCaches: CacheOperation;
   /** Clear cache for a specific alliance */
@@ -948,9 +944,13 @@ export type Mutation = {
   createUser: CreateUserPayload;
   /** Eve Online SSO login için authorization URL'i oluşturur */
   login: AuthUrl;
+  /** Bu oturumu kapatır ve çerezi siler */
+  logout: Scalars['Boolean']['output'];
   refreshCharacter: RefreshCharacterResult;
-  /** Refresh token kullanarak yeni access token alır */
-  refreshToken: AuthPayload;
+  /** Oturum çerezini kullanarak taze bir EVE access token alır */
+  refreshSession: AuthPayload;
+  /** Kullanıcının başka bir oturumunu kapatır */
+  revokeSession: Scalars['Boolean']['output'];
   startAllianceSync: StartAllianceSyncPayload;
   startCategorySync: StartCategorySyncPayload;
   startConstellationSync: StartConstellationSyncPayload;
@@ -966,12 +966,6 @@ export type Mutation = {
    */
   syncMyKillmails: SyncMyKillmailsPayload;
   updateUser: UpdateUserPayload;
-};
-
-
-export type MutationAuthenticateWithCodeArgs = {
-  code: Scalars['String']['input'];
-  state: Scalars['String']['input'];
 };
 
 
@@ -1005,8 +999,8 @@ export type MutationRefreshCharacterArgs = {
 };
 
 
-export type MutationRefreshTokenArgs = {
-  refreshToken: Scalars['String']['input'];
+export type MutationRevokeSessionArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -1190,6 +1184,8 @@ export type Query = {
    * Scope is matched against the victim's hull, never an attacker's.
    */
   mostValuableKillmails: Array<Killmail>;
+  /** Kullanıcının açık oturumları */
+  mySessions: Array<Session>;
   race?: Maybe<Race>;
   races: Array<Race>;
   /** Most recently detected territory ownership changes. */
@@ -1734,6 +1730,18 @@ export type RegionsResponse = {
   __typename?: 'RegionsResponse';
   items: Array<Region>;
   pageInfo: PageInfo;
+};
+
+export type Session = {
+  __typename?: 'Session';
+  createdAt: Scalars['String']['output'];
+  /** Bu isteği taşıyan çerezin oturumu mu */
+  current: Scalars['Boolean']['output'];
+  expiresAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  ip?: Maybe<Scalars['String']['output']>;
+  lastSeenAt: Scalars['String']['output'];
+  userAgent?: Maybe<Scalars['String']['output']>;
 };
 
 export type ShipTopKill = {
@@ -2492,12 +2500,27 @@ export type ActiveUsersCountQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type ActiveUsersCountQuery = { __typename?: 'Query', activeUsersCount: number };
 
-export type RefreshTokenMutationVariables = Exact<{
-  refreshToken: Scalars['String']['input'];
+export type RefreshSessionMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type RefreshSessionMutation = { __typename?: 'Mutation', refreshSession: { __typename?: 'AuthPayload', accessToken: string, expiresIn: number, user: { __typename?: 'User', id: string, name: string, email: string, createdAt: string } } };
+
+export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type LogoutMutation = { __typename?: 'Mutation', logout: boolean };
+
+export type MySessionsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MySessionsQuery = { __typename?: 'Query', mySessions: Array<{ __typename?: 'Session', id: string, createdAt: string, lastSeenAt: string, expiresAt: string, userAgent?: string | null, ip?: string | null, current: boolean }> };
+
+export type RevokeSessionMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
 }>;
 
 
-export type RefreshTokenMutation = { __typename?: 'Mutation', refreshToken: { __typename?: 'AuthPayload', accessToken: string, refreshToken?: string | null, expiresIn: number, user: { __typename?: 'User', id: string, name: string, email: string, createdAt: string } } };
+export type RevokeSessionMutation = { __typename?: 'Mutation', revokeSession: boolean };
 
 export type CharacterQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -3686,11 +3709,10 @@ export type ActiveUsersCountQueryHookResult = ReturnType<typeof useActiveUsersCo
 export type ActiveUsersCountLazyQueryHookResult = ReturnType<typeof useActiveUsersCountLazyQuery>;
 export type ActiveUsersCountSuspenseQueryHookResult = ReturnType<typeof useActiveUsersCountSuspenseQuery>;
 export type ActiveUsersCountQueryResult = Apollo.QueryResult<ActiveUsersCountQuery, ActiveUsersCountQueryVariables>;
-export const RefreshTokenDocument = gql`
-    mutation RefreshToken($refreshToken: String!) {
-  refreshToken(refreshToken: $refreshToken) {
+export const RefreshSessionDocument = gql`
+    mutation RefreshSession {
+  refreshSession {
     accessToken
-    refreshToken
     expiresIn
     user {
       id
@@ -3701,32 +3723,140 @@ export const RefreshTokenDocument = gql`
   }
 }
     `;
-export type RefreshTokenMutationFn = Apollo.MutationFunction<RefreshTokenMutation, RefreshTokenMutationVariables>;
+export type RefreshSessionMutationFn = Apollo.MutationFunction<RefreshSessionMutation, RefreshSessionMutationVariables>;
 
 /**
- * __useRefreshTokenMutation__
+ * __useRefreshSessionMutation__
  *
- * To run a mutation, you first call `useRefreshTokenMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useRefreshTokenMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useRefreshSessionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRefreshSessionMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [refreshTokenMutation, { data, loading, error }] = useRefreshTokenMutation({
+ * const [refreshSessionMutation, { data, loading, error }] = useRefreshSessionMutation({
  *   variables: {
- *      refreshToken: // value for 'refreshToken'
  *   },
  * });
  */
-export function useRefreshTokenMutation(baseOptions?: Apollo.MutationHookOptions<RefreshTokenMutation, RefreshTokenMutationVariables>) {
+export function useRefreshSessionMutation(baseOptions?: Apollo.MutationHookOptions<RefreshSessionMutation, RefreshSessionMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<RefreshTokenMutation, RefreshTokenMutationVariables>(RefreshTokenDocument, options);
+        return Apollo.useMutation<RefreshSessionMutation, RefreshSessionMutationVariables>(RefreshSessionDocument, options);
       }
-export type RefreshTokenMutationHookResult = ReturnType<typeof useRefreshTokenMutation>;
-export type RefreshTokenMutationResult = Apollo.MutationResult<RefreshTokenMutation>;
-export type RefreshTokenMutationOptions = Apollo.BaseMutationOptions<RefreshTokenMutation, RefreshTokenMutationVariables>;
+export type RefreshSessionMutationHookResult = ReturnType<typeof useRefreshSessionMutation>;
+export type RefreshSessionMutationResult = Apollo.MutationResult<RefreshSessionMutation>;
+export type RefreshSessionMutationOptions = Apollo.BaseMutationOptions<RefreshSessionMutation, RefreshSessionMutationVariables>;
+export const LogoutDocument = gql`
+    mutation Logout {
+  logout
+}
+    `;
+export type LogoutMutationFn = Apollo.MutationFunction<LogoutMutation, LogoutMutationVariables>;
+
+/**
+ * __useLogoutMutation__
+ *
+ * To run a mutation, you first call `useLogoutMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useLogoutMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [logoutMutation, { data, loading, error }] = useLogoutMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useLogoutMutation(baseOptions?: Apollo.MutationHookOptions<LogoutMutation, LogoutMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<LogoutMutation, LogoutMutationVariables>(LogoutDocument, options);
+      }
+export type LogoutMutationHookResult = ReturnType<typeof useLogoutMutation>;
+export type LogoutMutationResult = Apollo.MutationResult<LogoutMutation>;
+export type LogoutMutationOptions = Apollo.BaseMutationOptions<LogoutMutation, LogoutMutationVariables>;
+export const MySessionsDocument = gql`
+    query MySessions {
+  mySessions {
+    id
+    createdAt
+    lastSeenAt
+    expiresAt
+    userAgent
+    ip
+    current
+  }
+}
+    `;
+
+/**
+ * __useMySessionsQuery__
+ *
+ * To run a query within a React component, call `useMySessionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMySessionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMySessionsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMySessionsQuery(baseOptions?: Apollo.QueryHookOptions<MySessionsQuery, MySessionsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MySessionsQuery, MySessionsQueryVariables>(MySessionsDocument, options);
+      }
+export function useMySessionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MySessionsQuery, MySessionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MySessionsQuery, MySessionsQueryVariables>(MySessionsDocument, options);
+        }
+// @ts-ignore
+export function useMySessionsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MySessionsQuery, MySessionsQueryVariables>): Apollo.UseSuspenseQueryResult<MySessionsQuery, MySessionsQueryVariables>;
+export function useMySessionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MySessionsQuery, MySessionsQueryVariables>): Apollo.UseSuspenseQueryResult<MySessionsQuery | undefined, MySessionsQueryVariables>;
+export function useMySessionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MySessionsQuery, MySessionsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MySessionsQuery, MySessionsQueryVariables>(MySessionsDocument, options);
+        }
+export type MySessionsQueryHookResult = ReturnType<typeof useMySessionsQuery>;
+export type MySessionsLazyQueryHookResult = ReturnType<typeof useMySessionsLazyQuery>;
+export type MySessionsSuspenseQueryHookResult = ReturnType<typeof useMySessionsSuspenseQuery>;
+export type MySessionsQueryResult = Apollo.QueryResult<MySessionsQuery, MySessionsQueryVariables>;
+export const RevokeSessionDocument = gql`
+    mutation RevokeSession($id: ID!) {
+  revokeSession(id: $id)
+}
+    `;
+export type RevokeSessionMutationFn = Apollo.MutationFunction<RevokeSessionMutation, RevokeSessionMutationVariables>;
+
+/**
+ * __useRevokeSessionMutation__
+ *
+ * To run a mutation, you first call `useRevokeSessionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRevokeSessionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [revokeSessionMutation, { data, loading, error }] = useRevokeSessionMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useRevokeSessionMutation(baseOptions?: Apollo.MutationHookOptions<RevokeSessionMutation, RevokeSessionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RevokeSessionMutation, RevokeSessionMutationVariables>(RevokeSessionDocument, options);
+      }
+export type RevokeSessionMutationHookResult = ReturnType<typeof useRevokeSessionMutation>;
+export type RevokeSessionMutationResult = Apollo.MutationResult<RevokeSessionMutation>;
+export type RevokeSessionMutationOptions = Apollo.BaseMutationOptions<RevokeSessionMutation, RevokeSessionMutationVariables>;
 export const CharacterDocument = gql`
     query Character($id: Int!) {
   character(id: $id) {
