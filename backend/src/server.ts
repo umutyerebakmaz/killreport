@@ -10,6 +10,7 @@ import { WebSocketServer } from 'ws';
 import { VerifiedCharacter } from '@app-types/context';
 import { REDIS_CONFIG } from '@config/cache';
 import { config } from '@config/config';
+import { createCookiesPlugin } from '@plugins/cookies.plugin';
 import { createDepthLimitPlugin } from '@plugins/depth-limit.plugin';
 import { createDisableIntrospectionPlugin } from '@plugins/disable-introspection.plugin';
 import { createRateLimitPlugin } from '@plugins/rate-limit.plugin';
@@ -19,6 +20,10 @@ import { createDataLoaders } from '@services/dataloaders';
 import { verifyToken } from '@services/eve-sso';
 import logger from '@services/logger';
 import { ensureAllQueuesExist } from '@services/rabbitmq';
+import {
+  SESSION_COOKIE_NAME,
+  parseCookieHeader,
+} from '@services/session-cookie';
 import { userKillmailCron } from '@services/user-killmail-cron';
 import { handleAuthCallback } from './handlers/auth-callback.handler';
 import { resolvers } from './resolvers';
@@ -29,6 +34,10 @@ import { resolvers } from './resolvers';
 interface ServerContext extends ReturnType<typeof createDataLoaders> {
   user?: VerifiedCharacter;
   token?: string;
+  /** Raw value of the kr_session cookie on this request, if any. */
+  sessionToken?: string;
+  /** Set-Cookie headers a resolver wants on the response. */
+  setCookies: string[];
 }
 
 /**
@@ -57,37 +66,33 @@ const yoga = createYoga<ServerContext>({
   maskedErrors: config.app.isProduction, // Mask errors in production
 
   // CORS configuration
-  cors: config.app.isProduction
-    ? {
-        origin: [
+  //
+  // `origin: '*'` with `credentials: true` is invalid for a credentialed
+  // request: a browser refuses a response whose Access-Control-Allow-Origin
+  // is `*` when the request carried credentials (e.g. the session cookie).
+  // Both environments now use an explicit allowlist.
+  cors: {
+    origin: config.app.isProduction
+      ? [
           'https://killreport.com',
           'https://www.killreport.com',
           'https://api.killreport.com',
-        ],
-        credentials: true,
-        methods: ['GET', 'POST', 'OPTIONS'],
-        allowedHeaders: [
-          'Content-Type',
-          'Authorization',
-          'Cache-Control',
-          'Accept',
-          'x-session-id',
-        ],
-      }
-    : {
-        origin: '*', // Development: allow all origins
-        credentials: true,
-        methods: ['GET', 'POST', 'OPTIONS'],
-        allowedHeaders: [
-          'Content-Type',
-          'Authorization',
-          'Cache-Control',
-          'Accept',
-          'x-session-id',
-        ],
-      },
+        ]
+      : ['http://localhost:3000', config.eveSso.frontendUrl],
+    credentials: true,
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Cache-Control',
+      'Accept',
+      'x-session-id',
+    ],
+  },
 
   plugins: [
+    // Emits Set-Cookie for anything a resolver queued on context.setCookies.
+    createCookiesPlugin(),
     // The topology schema is recursive (Stargate -> destination -> stargate,
     // Planet -> moons -> planet). The deepest query the app issues is 7 levels.
     createDepthLimitPlugin(12),
@@ -127,6 +132,10 @@ const yoga = createYoga<ServerContext>({
     // Create fresh DataLoader instances per request
     const dataLoaders = createDataLoaders();
 
+    const cookies = parseCookieHeader(request?.headers.get('cookie'));
+    const sessionToken = cookies[SESSION_COOKIE_NAME];
+    const setCookies: string[] = [];
+
     const authorization = request?.headers.get('authorization');
 
     // Generate or extract session ID for tracking
@@ -162,6 +171,8 @@ const yoga = createYoga<ServerContext>({
         return {
           user: character,
           token,
+          sessionToken,
+          setCookies,
           ...dataLoaders,
         };
       } catch (error) {
@@ -175,6 +186,8 @@ const yoga = createYoga<ServerContext>({
 
     logger.debug('⚠️  No token provided');
     return {
+      sessionToken,
+      setCookies,
       ...dataLoaders,
     };
   },
