@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { useResponseCache, redisCache, logger } = vi.hoisted(() => ({
@@ -81,15 +82,31 @@ describe('session', () => {
     expect(session(request('KillmailDetail'))).toBe('public');
   });
 
-  it('keys private operations on the first eight characters of the bearer token', () => {
+  it('keys private operations on a hash of the whole bearer token', () => {
     const { session } = pluginOptions();
+    const expected = createHash('sha256')
+      .update('abcdefghijklmnop')
+      .digest('hex');
 
     expect(
       session(request('Me', { authorization: bearer('abcdefghijklmnop') })),
-    ).toBe('abcdefgh');
+    ).toBe(expected);
     expect(
       session(request('Me', { Authorization: bearer('abcdefghijklmnop') })),
-    ).toBe('abcdefgh');
+    ).toBe(expected);
+  });
+
+  it('produces different keys for different tokens, so one user cannot see the other cached response', () => {
+    const { session } = pluginOptions();
+
+    const keyA = session(
+      request('Me', { authorization: bearer('token-belonging-to-user-a') }),
+    );
+    const keyB = session(
+      request('Me', { authorization: bearer('token-belonging-to-user-b') }),
+    );
+
+    expect(keyA).not.toBe(keyB);
   });
 
   it('falls back to anonymous without a bearer token or without an operation name', () => {

@@ -12,7 +12,6 @@ const { prismaMock, refreshAccessToken, loggerMock } = vi.hoisted(() => ({
   loggerMock: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 
-vi.mock('@services/prisma-worker', () => ({ default: prismaMock }));
 vi.mock('@services/eve-sso', () => ({ refreshAccessToken }));
 vi.mock('@services/logger', () => ({ default: loggerMock }));
 
@@ -25,6 +24,8 @@ const ROW = {
   corporation_id: 98000001,
   last_killmail_id: 1234,
   last_corp_killmail_id: null,
+  email: 'pilot@example.com',
+  created_at: new Date('2026-01-01T00:00:00Z'),
 };
 
 function userRow(overrides: Record<string, unknown> = {}) {
@@ -62,7 +63,7 @@ describe('loadUserCredentials', () => {
   it('reports not-found for a user that no longer exists', async () => {
     prismaMock.user.findUnique.mockResolvedValue(null);
 
-    expect(await loadUserCredentials(7)).toEqual({
+    expect(await loadUserCredentials(7, prismaMock)).toEqual({
       ok: false,
       reason: 'not-found',
     });
@@ -74,7 +75,7 @@ describe('loadUserCredentials', () => {
       userRow({ refresh_token: null }),
     );
 
-    expect(await loadUserCredentials(7)).toEqual({
+    expect(await loadUserCredentials(7, prismaMock)).toEqual({
       ok: false,
       reason: 'no-refresh-token',
     });
@@ -86,12 +87,13 @@ describe('loadUserCredentials', () => {
     vi.setSystemTime(new Date('2026-09-21T12:00:00Z'));
     prismaMock.user.findUnique.mockResolvedValue(userRow());
 
-    const result = await loadUserCredentials(7);
+    const result = await loadUserCredentials(7, prismaMock);
 
     expect(result).toEqual({
       ok: true,
       user: ROW,
       accessToken: 'current-access',
+      expiresAt: new Date('2026-09-21T13:00:00Z'),
     });
     expect(refreshAccessToken).not.toHaveBeenCalled();
     expect(prismaMock.user.update).not.toHaveBeenCalled();
@@ -108,12 +110,13 @@ describe('loadUserCredentials', () => {
       refresh_token: 'fresh-refresh',
     });
 
-    const result = await loadUserCredentials(7);
+    const result = await loadUserCredentials(7, prismaMock);
 
     expect(result).toEqual({
       ok: true,
       user: ROW,
       accessToken: 'fresh-access',
+      expiresAt: new Date('2026-09-21T13:18:00Z'),
     });
     expect(refreshAccessToken).toHaveBeenCalledWith('current-refresh');
     expect(prismaMock.user.update).toHaveBeenCalledWith({
@@ -136,7 +139,7 @@ describe('loadUserCredentials', () => {
       expires_in: 1200,
     });
 
-    await loadUserCredentials(7);
+    await loadUserCredentials(7, prismaMock);
 
     expect(prismaMock.user.update).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -151,7 +154,7 @@ describe('loadUserCredentials', () => {
     prismaMock.user.findUnique.mockResolvedValue(userRow());
     refreshAccessToken.mockRejectedValue(new Error('invalid_grant'));
 
-    expect(await loadUserCredentials(7)).toEqual({
+    expect(await loadUserCredentials(7, prismaMock)).toEqual({
       ok: false,
       reason: 'refresh-failed',
     });

@@ -11,6 +11,7 @@ import {
   PUBLIC_CACHE_QUERIES,
   TTL_PER_SCHEMA_COORDINATE,
 } from '@config/cache';
+import { createHash } from 'node:crypto';
 
 /**
  * Extract operation name from request
@@ -44,7 +45,11 @@ export function createResponseCachePlugin() {
         req?.request?.headers?.get('Authorization');
 
       if (typeof auth === 'string' && auth.startsWith('Bearer ')) {
-        return auth.slice(7, 15); // First 8 chars of token
+        // Hash the whole token rather than a prefix of it. Every EVE access
+        // token is a JWT whose header serialises identically, so the first
+        // few characters are the same for every logged-in user — keying on
+        // a prefix put all authenticated users in one cache bucket.
+        return createHash('sha256').update(auth.slice(7)).digest('hex');
       }
 
       return 'anonymous';

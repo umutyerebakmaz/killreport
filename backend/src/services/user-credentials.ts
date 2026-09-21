@@ -1,6 +1,5 @@
 import { refreshAccessToken } from '@services/eve-sso';
 import logger from '@services/logger';
-import prismaWorker from '@services/prisma-worker';
 
 /**
  * Tokens live in `users` and nowhere else.
@@ -26,11 +25,27 @@ export interface UserSyncRow {
   corporation_id: number | null;
   last_killmail_id: number | null;
   last_corp_killmail_id: number | null;
+  email: string | null;
+  created_at: Date;
 }
 
 export type UserCredentials =
-  | { ok: true; user: UserSyncRow; accessToken: string }
+  | { ok: true; user: UserSyncRow; accessToken: string; expiresAt: Date }
   | { ok: false; reason: 'not-found' | 'no-refresh-token' | 'refresh-failed' };
+
+/**
+ * The two Prisma clients are not interchangeable: workers use
+ * `@services/prisma-worker` and the API uses `@services/prisma`, because
+ * DigitalOcean PostgreSQL allows 22 connections and sharing one pool exhausts
+ * it. Both call this function, so the caller passes its own client rather than
+ * the module picking one.
+ */
+export interface CredentialClient {
+  user: {
+    findUnique: (args: any) => Promise<any>;
+    update: (args: any) => Promise<any>;
+  };
+}
 
 /**
  * True when the token is gone or close enough to gone that the ESI calls
@@ -57,7 +72,7 @@ export function needsRefresh(expiresAt: Date, now: Date): boolean {
  * (`ecosystem.config.js`); putting the corporation worker under PM2 too is
  * what would make a row lock or a short Redis lock worth adding. And a
  * persist failure after a successful refresh is unrecoverable: the
- * `prismaWorker.user.update` below sits inside the same `try` as the refresh
+ * `client.user.update` below sits inside the same `try` as the refresh
  * call, so a transient database error there returns `refresh-failed` while
  * EVE has already rotated the token and the stored `refresh_token` is the
  * consumed one — every later refresh fails until the user logs in again. A
@@ -65,8 +80,9 @@ export function needsRefresh(expiresAt: Date, now: Date): boolean {
  */
 export async function loadUserCredentials(
   userId: number,
+  client: CredentialClient,
 ): Promise<UserCredentials> {
-  const row = await prismaWorker.user.findUnique({
+  const row = await client.user.findUnique({
     where: { id: userId },
     select: {
       id: true,
@@ -75,6 +91,8 @@ export async function loadUserCredentials(
       corporation_id: true,
       last_killmail_id: true,
       last_corp_killmail_id: true,
+      email: true,
+      created_at: true,
       access_token: true,
       refresh_token: true,
       expires_at: true,
@@ -87,22 +105,28 @@ export async function loadUserCredentials(
   const { access_token, refresh_token, expires_at, ...user } = row;
 
   if (!needsRefresh(expires_at, new Date())) {
-    return { ok: true, user, accessToken: access_token };
+    return { ok: true, user, accessToken: access_token, expiresAt: expires_at };
   }
 
   try {
     const fresh = await refreshAccessToken(refresh_token);
+    const freshExpiresAt = new Date(Date.now() + fresh.expires_in * 1000);
 
-    await prismaWorker.user.update({
+    await client.user.update({
       where: { id: userId },
       data: {
         access_token: fresh.access_token,
         refresh_token: fresh.refresh_token ?? refresh_token,
-        expires_at: new Date(Date.now() + fresh.expires_in * 1000),
+        expires_at: freshExpiresAt,
       },
     });
 
-    return { ok: true, user, accessToken: fresh.access_token };
+    return {
+      ok: true,
+      user,
+      accessToken: fresh.access_token,
+      expiresAt: freshExpiresAt,
+    };
   } catch (error) {
     logger.error(`Token refresh failed for user ${userId}`, { error });
     return { ok: false, reason: 'refresh-failed' };

@@ -97,7 +97,7 @@ https://killreport.com/auth/callback
 1. Open `https://killreport.com` in browser
 2. Click "Login" button
 3. Select your character in EVE SSO
-4. Callback should succeed and redirect to `/killmails` page
+4. Callback should succeed and redirect to `/` page
 
 ### 9. Check Logs (If Error)
 

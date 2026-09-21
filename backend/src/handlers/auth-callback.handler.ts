@@ -7,6 +7,8 @@ import { IncomingMessage, ServerResponse } from 'http';
 import { exchangeCodeForToken, verifyToken } from '@services/eve-sso';
 import logger from '@services/logger';
 import prisma from '@services/prisma';
+import { createSession } from '@services/session-store';
+import { serializeSessionCookie } from '@services/session-cookie';
 
 /**
  * Handle EVE SSO callback after user authorizes
@@ -65,19 +67,26 @@ export async function handleAuthCallback(
 
     logger.debug(`User ${user.character_name} saved to database`);
 
-    // Build redirect URL with auth data
-    const params = new URLSearchParams({
-      token: tokenData.access_token,
-      refresh_token: tokenData.refresh_token || '',
-      expires_in: tokenData.expires_in.toString(),
-      character_name: character.characterName,
-      character_id: character.characterId.toString(),
+    // The redirect used to carry the token pair in its query string, which
+    // wrote a refresh token into whatever serves the frontend, its access log
+    // and the user's browser history. Nothing travels in the URL now: the
+    // browser leaves with a cookie and asks for an access token separately.
+    const forwarded = req.headers['x-forwarded-for'];
+    const ip = Array.isArray(forwarded)
+      ? forwarded[0]
+      : (forwarded?.split(',')[0].trim() ?? null);
+
+    const sessionToken = await createSession(user.id, {
+      userAgent: req.headers['user-agent'] ?? null,
+      ip,
     });
 
-    const redirectUrl = `${config.eveSso.frontendUrl}/auth/success?${params.toString()}`;
-
-    // Redirect to frontend
-    res.writeHead(302, { Location: redirectUrl });
+    res.writeHead(302, {
+      'Set-Cookie': serializeSessionCookie(sessionToken, {
+        secure: config.app.isProduction,
+      }),
+      Location: `${config.eveSso.frontendUrl}/auth/success`,
+    });
     res.end();
   } catch (error) {
     logger.error('Auth callback error:', error);

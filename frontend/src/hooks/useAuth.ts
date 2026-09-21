@@ -15,27 +15,20 @@ export function useAuth() {
   // Token refresh function
   const refreshToken = useCallback(async () => {
     try {
-      const refreshToken = localStorage.getItem('eve_refresh_token');
-      if (!refreshToken) {
-        console.log('No refresh token available');
-        logout();
-        return false;
-      }
-
       console.log('🔄 Refreshing access token...');
       const response = await fetch(
         process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql',
         {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             query: `
-                            mutation RefreshToken($refreshToken: String!) {
-                                refreshToken(refreshToken: $refreshToken) {
+                            mutation RefreshSession {
+                                refreshSession {
                                     accessToken
-                                    refreshToken
                                     expiresIn
                                     user {
                                         id
@@ -44,7 +37,6 @@ export function useAuth() {
                                 }
                             }
                         `,
-            variables: { refreshToken },
           }),
         },
       );
@@ -57,13 +49,10 @@ export function useAuth() {
         return false;
       }
 
-      const data = result.data.refreshToken;
+      const data = result.data.refreshSession;
 
       // Update tokens
       localStorage.setItem('eve_access_token', data.accessToken);
-      if (data.refreshToken) {
-        localStorage.setItem('eve_refresh_token', data.refreshToken);
-      }
       const expiryTime = Date.now() + data.expiresIn * 1000;
       localStorage.setItem('eve_token_expiry', expiryTime.toString());
 
@@ -152,6 +141,16 @@ export function useAuth() {
   }, [refreshToken, scheduleTokenRefresh]);
 
   useEffect(() => {
+    // One-time cleanup for browsers that logged in before the EVE refresh
+    // token was removed from the client: it used to live in localStorage
+    // indefinitely, which is the exact thing this branch removes it to fix.
+    // Safe to delete this block once it has been deployed for a while.
+    try {
+      localStorage.removeItem('eve_refresh_token');
+    } catch {
+      // localStorage unavailable (e.g. private browsing) - nothing to clean up.
+    }
+
     checkAuth();
 
     // Auth değişikliklerini dinle
@@ -170,15 +169,36 @@ export function useAuth() {
     };
   }, [checkAuth]);
 
-  const logout = () => {
+  const logout = async () => {
     // Clear refresh timer
     if (refreshTimerRef.current) {
       clearTimeout(refreshTimerRef.current);
       refreshTimerRef.current = null;
     }
 
+    try {
+      await fetch(
+        process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql',
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: `
+                            mutation Logout {
+                                logout
+                            }
+                        `,
+          }),
+        },
+      );
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+
     localStorage.removeItem('eve_access_token');
-    localStorage.removeItem('eve_refresh_token');
     localStorage.removeItem('eve_token_expiry');
     localStorage.removeItem('eve_user');
     setUser(null);
