@@ -1,6 +1,5 @@
 'use client';
 
-import Loader from '@/components/Loader';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect } from 'react';
 
@@ -8,8 +7,13 @@ import { Suspense, useEffect } from 'react';
  * EVE SSO Callback Handler
  *
  * Bu sayfa EVE SSO'dan gelen callback'i yakalayıp backend'e yönlendirir.
- * Production'da EVE Developer Application callback URL'i bu sayfaya işaret etmelidir:
- * https://yourdomain.com/auth/callback
+ * Production'da EVE Developer Application callback URL'i bu sayfaya işaret
+ * ediyorsa (frontend domain'i) devreye girer; `EVE_CALLBACK_URL` doğrudan
+ * backend'i gösterdiğinde buraya hiç uğranmaz.
+ *
+ * Hiçbir şey çizmez. Bir yönlendirmenin görünür bir duraklaması olmamalı:
+ * kullanıcı EVE'den çıkıp basmış olduğu sayfada belirir, arada bir kart ya da
+ * spinner görmez.
  */
 function AuthCallbackContent() {
   const searchParams = useSearchParams();
@@ -19,32 +23,20 @@ function AuthCallbackContent() {
     const state = searchParams.get('state');
 
     if (code && state) {
-      // Backend'e yönlendir - backend token exchange yapıp /auth/success'e redirect edecek
+      // Backend'e yönlendir - backend token exchange yapıp kullanıcıyı login'e
+      // basılan sayfaya geri gönderecek.
       const backendUrl =
         process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000';
       window.location.href = `${backendUrl}/auth/callback?code=${code}&state=${state}`;
     }
   }, [searchParams]);
 
-  return (
-    <div className="flex items-center justify-center h-screen bg-black">
-      <div className="text-center">
-        <Loader className="w-12 h-12 mx-auto mb-4 text-amber-500" />
-        <p className="text-ink-muted">Processing authentication...</p>
-      </div>
-    </div>
-  );
+  return null;
 }
 
 export default function AuthCallbackPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex items-center justify-center h-screen bg-black">
-          <Loader className="w-12 h-12 text-amber-500" />
-        </div>
-      }
-    >
+    <Suspense fallback={null}>
       <AuthCallbackContent />
     </Suspense>
   );

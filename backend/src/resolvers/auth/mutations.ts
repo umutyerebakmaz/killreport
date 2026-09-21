@@ -1,5 +1,6 @@
 import { config } from '@config/config';
 import { MutationResolvers } from '@generated-types';
+import { createAuthState, sanitizeReturnTo } from '@services/auth-state-store';
 import { getAuthUrl } from '@services/eve-sso';
 import prisma from '@services/prisma';
 import {
@@ -12,7 +13,6 @@ import {
   revokeSessionByToken,
 } from '@services/session-store';
 import { loadUserCredentials } from '@services/user-credentials';
-import { randomUUID } from 'crypto';
 import { GraphQLError } from 'graphql';
 
 /**
@@ -20,8 +20,11 @@ import { GraphQLError } from 'graphql';
  * Handles authentication operations (login, session renewal, logout)
  */
 export const authMutations: MutationResolvers = {
-  login: async () => {
-    const state = randomUUID();
+  login: async (_parent, args) => {
+    // The state is minted by the store, not here, so that every value handed
+    // to EVE is one the callback can later recognise. It doubles as the memory
+    // of where the user was when they pressed LOGIN.
+    const state = await createAuthState(sanitizeReturnTo(args.returnTo));
     const url = await getAuthUrl(state);
 
     return {

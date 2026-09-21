@@ -4,11 +4,29 @@
 
 import { config } from '@config/config';
 import { IncomingMessage, ServerResponse } from 'http';
+import { consumeAuthState } from '@services/auth-state-store';
 import { exchangeCodeForToken, verifyToken } from '@services/eve-sso';
 import logger from '@services/logger';
 import prisma from '@services/prisma';
 import { createSession } from '@services/session-store';
 import { serializeSessionCookie } from '@services/session-cookie';
+
+/**
+ * Where the browser goes next.
+ *
+ * Both outcomes end in a redirect to a real page of the application. There is
+ * no interstitial: an "Authentication Successful!" card the user reads for half
+ * a second is half a second of a page that is not the site, and the error case
+ * used to be worse still - a raw JSON body rendered in the browser.
+ *
+ * `returnTo` has already been through `sanitizeReturnTo`, so resolving it
+ * against the frontend origin cannot leave the site.
+ */
+function frontendLocation(returnTo: string, login: '1' | 'error'): string {
+  const target = new URL(returnTo, config.eveSso.frontendUrl);
+  target.searchParams.set('login', login);
+  return target.toString();
+}
 
 /**
  * Handle EVE SSO callback after user authorizes
@@ -21,17 +39,35 @@ export async function handleAuthCallback(
   const code = url.searchParams.get('code');
   const state = url.searchParams.get('state');
 
-  if (!code || !state) {
-    res.writeHead(400, { 'Content-Type': 'application/json' });
-    res.end(
-      JSON.stringify({
-        error: 'Missing code or state parameter',
-      }),
-    );
-    return;
-  }
+  // Everything below runs inside the try. This handler is the `await`ed body of
+  // the HTTP server's request listener, so anything it lets escape becomes an
+  // unhandled rejection and takes the whole process with it - one malformed
+  // callback would stop the API for everyone.
+  let returnTo = '/';
 
   try {
+    // The state is spent first, before a code is exchanged for anything. A
+    // state the store has never issued - or has already seen once - means this
+    // callback did not start here, and the rest of the handler has no business
+    // running.
+    const stored = await consumeAuthState(state);
+
+    if (stored === null) {
+      logger.warn('Auth callback rejected: unknown, expired or replayed state');
+      res.writeHead(302, { Location: frontendLocation('/', 'error') });
+      res.end();
+      return;
+    }
+
+    returnTo = stored;
+
+    if (!code) {
+      logger.warn('Auth callback rejected: missing code parameter');
+      res.writeHead(302, { Location: frontendLocation(returnTo, 'error') });
+      res.end();
+      return;
+    }
+
     // Exchange authorization code for access token
     logger.debug('Exchanging code for token...');
     const tokenData = await exchangeCodeForToken(code);
@@ -85,21 +121,13 @@ export async function handleAuthCallback(
       'Set-Cookie': serializeSessionCookie(sessionToken, {
         secure: config.app.isProduction,
       }),
-      Location: `${config.eveSso.frontendUrl}/auth/success`,
+      Location: frontendLocation(returnTo, '1'),
     });
     res.end();
   } catch (error) {
     logger.error('Auth callback error:', error);
 
-    const errorMessage =
-      error instanceof Error ? error.message : 'Unknown error';
-
-    res.writeHead(500, { 'Content-Type': 'application/json' });
-    res.end(
-      JSON.stringify({
-        error: 'Authentication failed',
-        message: errorMessage,
-      }),
-    );
+    res.writeHead(302, { Location: frontendLocation(returnTo, 'error') });
+    res.end();
   }
 }
