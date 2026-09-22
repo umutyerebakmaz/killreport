@@ -102,13 +102,15 @@ npx prisma migrate deploy
 yarn dev
 ```
 
-> **Never run `prisma migrate dev`, and never `yarn prisma:migrate`, which is an
-> alias for it.** Five tables — `killmail_filters`, the three `*_kill_stats`
-> tables and `refresh_log` — are created by hand-written SQL and are deliberately
-> absent from `prisma/schema/`. Prisma reads them as drift and offers to drop
-> them, which at last count was 72,790 rows. `migrate deploy` applies pending
-> migrations and never drops anything. Creating a migration has its own procedure,
-> written out in [`CLAUDE.md`](../CLAUDE.md#database-migrations).
+> **Never run `prisma migrate dev`.** A `PreToolUse` hook in
+> `.claude/settings.json` denies it, and the `prisma:migrate` script that used
+> to alias it has been removed. Five tables — `killmail_filters`, the three
+> `*_kill_stats` tables and `refresh_log` — are created by hand-written SQL and
+> are deliberately absent from `prisma/schema/`. Prisma reads them as drift and
+> offers to drop them, which at last count was 72,790 rows. `migrate deploy`
+> applies pending migrations and never drops anything. Creating a migration has
+> its own procedure, written out in
+> [`CLAUDE.md`](../CLAUDE.md#database-migrations).
 
 The API alone does not ingest data. Background workers are separate processes —
 see the [worker documentation](../backend/docs/workers/worker-documentation.md).
