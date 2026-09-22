@@ -1,8 +1,7 @@
-import { calculateKillmailValues } from '@helpers/calculate-killmail-values';
+import { saveKillmail } from '@services/killmail-writer';
 import { KillmailService } from '@services/killmail';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { pubsub } from '@services/pubsub';
 import { getCharacterKillmailsFromZKill } from '@services/zkillboard';
 
 const MAX_PAGES = 50; // Configurable
@@ -61,87 +60,17 @@ async function syncCharacterKillmails() {
       const zkill = zkillmails[i];
 
       try {
-        // Check if already exists
-        const existing = await prismaWorker.killmail.findUnique({
-          where: { killmail_id: zkill.killmail_id },
-        });
-
-        if (existing) {
-          skippedCount++;
-          if (i % 100 === 0) {
-            logger.debug(
-              `  ⏭️  [${i + 1}/${zkillmails.length}] Already exists, skipping...`,
-            );
-          }
-          continue;
-        }
-
         // Fetch full details from ESI
         const details = await KillmailService.getKillmailDetail(
           zkill.killmail_id,
           zkill.zkb.hash,
         );
 
-        // ⚡ Calculate value fields before saving
-        const values = await calculateKillmailValues({
-          victim: { ship_type_id: details.victim.ship_type_id },
-          items:
-            details.victim.items?.map((item) => ({
-              item_type_id: item.item_type_id,
-              quantity_destroyed: item.quantity_destroyed,
-              quantity_dropped: item.quantity_dropped,
-              singleton: item.singleton,
-            })) || [],
-        });
-
-        // Save to database with items
-        const savedKillmail = await prismaWorker.killmail.create({
-          data: {
-            killmail_id: zkill.killmail_id,
-            killmail_hash: zkill.zkb.hash,
-            killmail_time: new Date(details.killmail_time),
-            solar_system_id: details.solar_system_id,
-            total_value: values.totalValue,
-            destroyed_value: values.destroyedValue,
-            dropped_value: values.droppedValue,
-            attacker_count: details.attackers.length,
-            victim: {
-              create: {
-                character_id: details.victim.character_id || null,
-                corporation_id: details.victim.corporation_id,
-                alliance_id: details.victim.alliance_id || null,
-                ship_type_id: details.victim.ship_type_id,
-                damage_taken: details.victim.damage_taken,
-              },
-            },
-            attackers: {
-              create: details.attackers.map((attacker) => ({
-                character_id: attacker.character_id || null,
-                corporation_id: attacker.corporation_id || null,
-                alliance_id: attacker.alliance_id || null,
-                ship_type_id: attacker.ship_type_id || null,
-                weapon_type_id: attacker.weapon_type_id || null,
-                damage_done: attacker.damage_done,
-                final_blow: attacker.final_blow,
-                security_status: attacker.security_status,
-              })),
-            },
-            items: {
-              create: (details.victim.items || []).map((item) => ({
-                item_type_id: item.item_type_id,
-                flag: item.flag,
-                quantity_dropped: item.quantity_dropped || null,
-                quantity_destroyed: item.quantity_destroyed || null,
-                singleton: item.singleton,
-              })),
-            },
-          },
-        });
-
-        // Publish new killmail event to subscribers (only ID - resolver will fetch full data)
-        await pubsub.publish('NEW_KILLMAIL', {
-          killmailId: savedKillmail.killmail_id,
-        });
+        const isNew = await saveKillmail(details, zkill.zkb.hash);
+        if (!isNew) {
+          skippedCount++;
+          continue;
+        }
 
         processedCount++;
 
