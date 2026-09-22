@@ -1,5 +1,5 @@
-import { saveKillmail } from '@services/killmail-writer';
-import { KillmailService } from '@services/killmail';
+import { publishKillmailDetails } from '../queues/publish-killmail-details';
+import { getRabbitMQChannel } from '@services/rabbitmq';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { getCharacterKillmailsFromZKill } from '@services/zkillboard';
@@ -36,9 +36,6 @@ async function syncCharacterKillmails() {
   logger.info(`📄 Max Pages: ${maxPages} (${maxPages * 200} killmails max)\n`);
 
   const startTime = Date.now();
-  let processedCount = 0;
-  let skippedCount = 0;
-  let errorCount = 0;
 
   try {
     // Fetch killmails from zKillboard
@@ -53,80 +50,36 @@ async function syncCharacterKillmails() {
       process.exit(0);
     }
 
-    logger.info(`\n💾 Processing ${zkillmails.length} killmails...\n`);
+    logger.info(`\n📋 Listing ${zkillmails.length} killmails...\n`);
 
-    // Process each killmail
-    for (let i = 0; i < zkillmails.length; i++) {
-      const zkill = zkillmails[i];
-
-      try {
-        // Ask before fetching. saveKillmail answers the same question, but
-        // only after the ESI detail call has already been paid for — and a
-        // re-sync of an already-stored character is almost entirely
-        // duplicates. zKillboard hands back up to 200,000 ids here.
-        const existing = await prismaWorker.killmail.findUnique({
-          where: { killmail_id: zkill.killmail_id },
-          select: { killmail_id: true },
-        });
-
-        if (existing) {
-          skippedCount++;
-          if (i % 100 === 0) {
-            logger.debug(
-              `  ⏭️  [${i + 1}/${zkillmails.length}] Already exists, skipping...`,
-            );
-          }
-          continue;
-        }
-
-        // Fetch full details from ESI
-        const details = await KillmailService.getKillmailDetail(
-          zkill.killmail_id,
-          zkill.zkb.hash,
-        );
-
-        // Hand-run historical backfill: no NEW_KILLMAIL, for the same reason
-        // worker-zkillboard-sync passes false. `yarn sync:character <id> 999`
-        // would otherwise push a character's whole history into every open
-        // killmails page as if it had just happened.
-        const isNew = await saveKillmail(details, zkill.zkb.hash, {
-          publish: false,
-        });
-        if (!isNew) {
-          skippedCount++;
-          continue;
-        }
-
-        processedCount++;
-
-        if (i % 10 === 0) {
-          logger.debug(
-            `  ✅ [${i + 1}/${zkillmails.length}] Saved killmail ${zkill.killmail_id}`,
-          );
-        }
-
-        // Rate limit: ~100ms per killmail
-        await sleep(100);
-      } catch (error: any) {
-        errorCount++;
-        logger.error(
-          `  ❌ [${i + 1}/${zkillmails.length}] Error:`,
-          error.message,
-        );
-      }
-    }
+    const queued = await publishKillmailDetails(
+      zkillmails.map((z) => ({
+        killmail_id: z.killmail_id,
+        killmail_hash: z.zkb.hash,
+      })),
+      // Hand-run historical backfill: quiet, and behind anything live.
+      { announce: false, priority: 1 },
+    );
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
 
     logger.info('\n' + '='.repeat(60));
     logger.info('🎉 SYNC COMPLETED!');
     logger.info('='.repeat(60));
-    logger.info(`✅ Processed: ${processedCount}`);
-    logger.info(`⏭️  Skipped (already exists): ${skippedCount}`);
-    logger.info(`❌ Errors: ${errorCount}`);
-    logger.info(`📊 Total: ${processedCount + skippedCount + errorCount}`);
+    logger.info(`📤 Queued for detail fetch: ${queued}`);
+    logger.info(`⏭️  Already stored: ${zkillmails.length - queued}`);
+    logger.info(`📊 Listed: ${zkillmails.length}`);
     logger.info(`⏱️  Duration: ${duration}s`);
     logger.info('='.repeat(60) + '\n');
+    logger.info('Now run the worker to write them:');
+    logger.info('  yarn worker:killmail-detail\n');
+
+    // Close the channel before exiting. sendToQueue buffers, and
+    // process.exit does not flush it — the messages would be counted here and
+    // never reach the broker. Every script under src/queues/ closes for the
+    // same reason.
+    const channel = await getRabbitMQChannel();
+    await channel.close();
 
     await prismaWorker.$disconnect();
     process.exit(0);
@@ -135,10 +88,6 @@ async function syncCharacterKillmails() {
     await prismaWorker.$disconnect();
     process.exit(1);
   }
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 syncCharacterKillmails();
