@@ -5,10 +5,7 @@
  * Usage: ts-node src/workers/fetch-single-killmail.ts <killmail_id> <killmail_hash>
  * Example: ts-node src/workers/fetch-single-killmail.ts 131757087 abc123...
  */
-import { calculateKillmailValues } from '@helpers/calculate-killmail-values';
-import { updateDailyAggregatesRealtime } from '@services/kill-stats-realtime';
-import { toAggregateInput, toFilterInput } from '@services/killmail-derived';
-import { insertKillmailFilter } from '@services/killmail-filters-realtime';
+import { saveKillmail } from '@services/killmail-writer';
 import { KillmailService } from '@services/killmail';
 import prismaWorker from '@services/prisma-worker';
 
@@ -18,18 +15,7 @@ async function fetchSingleKillmail(killmailId: number, killmailHash: string) {
   console.log(`${'='.repeat(60)}\n`);
 
   try {
-    // 1. Check if already exists
-    const existing = await prismaWorker.killmail.findUnique({
-      where: { killmail_id: killmailId },
-    });
-
-    if (existing) {
-      console.log(`⚠️  Killmail ${killmailId} already exists in database`);
-      console.log(`   Created at: ${existing.created_at}`);
-      return;
-    }
-
-    // 2. Fetch from ESI
+    // 1. Fetch from ESI
     console.log(`📡 Fetching from ESI...`);
     const detail = await KillmailService.getKillmailDetail(
       killmailId,
@@ -43,91 +29,14 @@ async function fetchSingleKillmail(killmailId: number, killmailHash: string) {
     console.log(`   Attackers: ${detail.attackers.length}`);
     console.log(`   Items: ${detail.victim.items?.length || 0}`);
 
-    // 3. Save to database
+    // 2. Save to database
     console.log(`\n💾 Saving to database...`);
+    const isNew = await saveKillmail(detail, killmailHash);
 
-    // ⚡ Calculate value fields before saving
-    const values = await calculateKillmailValues({
-      victim: { ship_type_id: detail.victim.ship_type_id },
-      items:
-        detail.victim.items?.map((item) => ({
-          item_type_id: item.item_type_id,
-          quantity_destroyed: item.quantity_destroyed,
-          quantity_dropped: item.quantity_dropped,
-          singleton: item.singleton,
-        })) || [],
-    });
-
-    await prismaWorker.$transaction(async (tx) => {
-      // Create main killmail record with cached values
-      await tx.killmail.create({
-        data: {
-          killmail_id: killmailId,
-          killmail_hash: killmailHash,
-          killmail_time: new Date(detail.killmail_time),
-          solar_system_id: detail.solar_system_id,
-          total_value: values.totalValue,
-          destroyed_value: values.destroyedValue,
-          dropped_value: values.droppedValue,
-          attacker_count: detail.attackers.length,
-        },
-      });
-
-      // Create victim record
-      await tx.victim.create({
-        data: {
-          killmail_id: killmailId,
-          character_id: detail.victim.character_id,
-          corporation_id: detail.victim.corporation_id,
-          alliance_id: detail.victim.alliance_id,
-          faction_id: detail.victim.faction_id,
-          ship_type_id: detail.victim.ship_type_id,
-          damage_taken: detail.victim.damage_taken,
-          position_x: detail.victim.position?.x,
-          position_y: detail.victim.position?.y,
-          position_z: detail.victim.position?.z,
-        },
-      });
-
-      // Create attacker records
-      if (detail.attackers.length > 0) {
-        await tx.attacker.createMany({
-          data: detail.attackers.map((attacker) => ({
-            killmail_id: killmailId,
-            character_id: attacker.character_id,
-            corporation_id: attacker.corporation_id,
-            alliance_id: attacker.alliance_id,
-            faction_id: attacker.faction_id,
-            ship_type_id: attacker.ship_type_id,
-            weapon_type_id: attacker.weapon_type_id,
-            damage_done: attacker.damage_done,
-            final_blow: attacker.final_blow,
-            security_status: attacker.security_status,
-          })),
-        });
-      }
-
-      // Create item records
-      if (detail.victim.items && detail.victim.items.length > 0) {
-        await tx.killmailItem.createMany({
-          data: detail.victim.items.map((item) => ({
-            killmail_id: killmailId,
-            item_type_id: item.item_type_id,
-            flag: item.flag,
-            quantity_dropped: item.quantity_dropped,
-            quantity_destroyed: item.quantity_destroyed,
-            singleton: item.singleton,
-          })),
-        });
-      }
-
-      // The leaderboard aggregates, in the same transaction as the killmail.
-      // A killmail this script writes is skipped as a duplicate by every
-      // other writer afterwards, so missing them here is permanent (#245).
-      await updateDailyAggregatesRealtime(tx, toAggregateInput(detail));
-    });
-
-    await insertKillmailFilter(toFilterInput(detail));
+    if (!isNew) {
+      console.log(`⚠️  Killmail ${killmailId} already exists in database`);
+      return;
+    }
 
     console.log(`✅ Successfully saved killmail ${killmailId}`);
     console.log(`\n${'='.repeat(60)}`);

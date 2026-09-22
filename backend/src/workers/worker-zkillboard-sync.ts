@@ -1,7 +1,5 @@
-import { calculateKillmailValues } from '@helpers/calculate-killmail-values';
-import { updateDailyAggregatesRealtime } from '@services/kill-stats-realtime';
 import { KillmailService } from '@services/killmail';
-import { insertKillmailFilter } from '@services/killmail-filters-realtime';
+import { saveKillmail } from '@services/killmail-writer';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
@@ -201,136 +199,16 @@ async function syncUserKillmails(message: QueueMessage): Promise<void> {
           zkillPkg.zkb.hash,
         );
 
-        // ⚡ Calculate value fields before saving
-        const values = await calculateKillmailValues({
-          victim: { ship_type_id: detail.victim.ship_type_id },
-          items:
-            detail.victim.items?.map((item) => ({
-              item_type_id: item.item_type_id,
-              quantity_destroyed: item.quantity_destroyed,
-              quantity_dropped: item.quantity_dropped,
-              singleton: item.singleton,
-            })) || [],
+        // Toplu geçmiş taraması: abonelere tarihî killmail "yeni" diye
+        // gönderilmez. Bu worker zaten hiç yayın yapmıyordu; sessizliği
+        // koruyoruz, ama artık bilerek.
+        const isNew = await saveKillmail(detail, zkillPkg.zkb.hash, {
+          publish: false,
         });
-
-        // Try to create killmail with all related data
-        try {
-          await prismaWorker.$transaction(async (tx) => {
-            // 1. Create main killmail record with cached values
-            await tx.killmail.create({
-              data: {
-                killmail_id: zkillPkg.killmail_id,
-                killmail_hash: zkillPkg.zkb.hash,
-                killmail_time: new Date(detail.killmail_time),
-                solar_system_id: detail.solar_system_id,
-                total_value: values.totalValue,
-                destroyed_value: values.destroyedValue,
-                dropped_value: values.droppedValue,
-                attacker_count: detail.attackers.length,
-              },
-            });
-
-            // 2. Create victim record
-            await tx.victim.create({
-              data: {
-                killmail_id: zkillPkg.killmail_id,
-                character_id: detail.victim.character_id,
-                corporation_id: detail.victim.corporation_id,
-                alliance_id: detail.victim.alliance_id,
-                faction_id: detail.victim.faction_id,
-                ship_type_id: detail.victim.ship_type_id,
-                damage_taken: detail.victim.damage_taken,
-                position_x: detail.victim.position?.x,
-                position_y: detail.victim.position?.y,
-                position_z: detail.victim.position?.z,
-              },
-            });
-
-            // 3. Create attacker records (bulk insert)
-            if (detail.attackers.length > 0) {
-              await tx.attacker.createMany({
-                data: detail.attackers.map((attacker) => ({
-                  killmail_id: zkillPkg.killmail_id,
-                  character_id: attacker.character_id,
-                  corporation_id: attacker.corporation_id,
-                  alliance_id: attacker.alliance_id,
-                  faction_id: attacker.faction_id,
-                  ship_type_id: attacker.ship_type_id,
-                  weapon_type_id: attacker.weapon_type_id,
-                  damage_done: attacker.damage_done,
-                  final_blow: attacker.final_blow,
-                  security_status: attacker.security_status,
-                })),
-              });
-
-              // ⚡ Update daily aggregates in real-time
-              await updateDailyAggregatesRealtime(tx, {
-                killmail_time: new Date(detail.killmail_time),
-                character_ids: detail.attackers.map(
-                  (a) => a.character_id || null,
-                ),
-                corporation_ids: detail.attackers.map(
-                  (a) => a.corporation_id || null,
-                ),
-                alliance_ids: detail.attackers.map(
-                  (a) => a.alliance_id || null,
-                ),
-              });
-            }
-
-            // 4. Create item records (bulk insert)
-            if (detail.victim.items && detail.victim.items.length > 0) {
-              await tx.killmailItem.createMany({
-                data: detail.victim.items.map((item) => ({
-                  killmail_id: zkillPkg.killmail_id,
-                  item_type_id: item.item_type_id,
-                  flag: item.flag,
-                  quantity_dropped: item.quantity_dropped,
-                  quantity_destroyed: item.quantity_destroyed,
-                  singleton: item.singleton,
-                })),
-              });
-            }
-          });
-
+        if (isNew) {
           savedCount++;
-
-          // ⚡ Insert into killmail_filters for fast GIN queries
-          insertKillmailFilter({
-            killmail_id: BigInt(zkillPkg.killmail_id),
-            killmail_time: new Date(detail.killmail_time),
-            solar_system_id: detail.solar_system_id,
-            attacker_count: detail.attackers.length,
-            victim_ship_type_id: detail.victim.ship_type_id || null,
-            victim_character_id: detail.victim.character_id || null,
-            victim_corporation_id: detail.victim.corporation_id || null,
-            victim_alliance_id: detail.victim.alliance_id || null,
-            attacker_ship_type_ids: detail.attackers.map(
-              (a) => a.ship_type_id || null,
-            ),
-            attacker_character_ids: detail.attackers.map(
-              (a) => a.character_id || null,
-            ),
-            attacker_corporation_ids: detail.attackers.map(
-              (a) => a.corporation_id || null,
-            ),
-            attacker_alliance_ids: detail.attackers.map(
-              (a) => a.alliance_id || null,
-            ),
-          }).catch((error) => {
-            logger.error(
-              `Failed to insert killmail_filters for ${zkillPkg.killmail_id}:`,
-              error,
-            );
-          });
-        } catch (createError: any) {
-          // If duplicate (P2002), it's already in database - skip it
-          if (createError.code === 'P2002') {
-            skippedCount++;
-          } else {
-            // Other errors should be counted as errors
-            throw createError;
-          }
+        } else {
+          skippedCount++;
         }
       } catch (error) {
         errorCount++;
