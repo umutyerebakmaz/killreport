@@ -1,3 +1,4 @@
+import type amqp from 'amqplib';
 import { calculateKillmailValues } from '@helpers/calculate-killmail-values';
 import { CorporationService } from '@services/corporation/corporation.service';
 import { updateDailyAggregatesRealtime } from '@services/kill-stats-realtime';
@@ -9,7 +10,7 @@ import prismaWorker from '@services/prisma-worker';
 import { pubsub } from '@services/pubsub';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import { loadUserCredentials } from '@services/user-credentials';
-import { handleWorkerError } from './worker-error';
+import { handleWorkerError, isForbidden } from './worker-error';
 
 const QUEUE_NAME = 'esi_corporation_killmails_queue';
 const PREFETCH_COUNT = 1; // Process 1 corporation at a time to avoid rate limiting
@@ -140,6 +141,15 @@ export async function esiCorporationKillmailWorker() {
           channel.ack(msg);
           logger.info(`✅ Completed: ${corporationName}\n`);
         } catch (error) {
+          // 403 is this worker's own case and is settled before the shared
+          // path sees it; everything else falls through unchanged.
+          if (
+            message !== undefined &&
+            (await settleForbidden(channel, msg, message.userId, error))
+          ) {
+            return;
+          }
+
           // A malformed message throws here too - JSON.parse is inside the
           // try, so it settles through the same shared path rather than
           // escaping the consumer callback unhandled and unsettled.
@@ -161,6 +171,54 @@ export async function esiCorporationKillmailWorker() {
     logger.error('💥 Worker failed to start:', error);
     process.exit(1);
   }
+}
+
+/**
+ * Settle a permission failure here rather than through the retry path.
+ *
+ * ESI answers 403 when the user is not a Director or CEO of the corporation,
+ * or logged in without `esi-killmails.read_corporation_killmails.v1`. No
+ * number of attempts changes either, and `killmail-sync-cron.ts` re-selects
+ * anyone whose `last_corp_killmail_sync_at` is stale — so left to the shared
+ * path the same user is queued every tick, burns all five attempts and parks,
+ * every ten minutes for as long as they hold an account.
+ *
+ * Writing the timestamp is what ends that: it is a record that the attempt
+ * happened, not a claim that killmails were read, and it drops the user out of
+ * the publisher's selection for the next fifteen minutes. That leaves one
+ * empty ESI call per user per fifteen minutes, and the user starts syncing on
+ * their own the moment they gain the role — no second column to clear.
+ *
+ * Returns true when the message has been settled here. If the stamp cannot be
+ * written the message is left alone and reported false, because acking it
+ * without the row would drop the work while the loop it prevents stays.
+ */
+export async function settleForbidden(
+  channel: amqp.Channel,
+  msg: amqp.ConsumeMessage,
+  userId: number,
+  error: unknown,
+): Promise<boolean> {
+  if (!isForbidden(error)) return false;
+
+  try {
+    await prismaWorker.user.update({
+      where: { id: userId },
+      data: { last_corp_killmail_sync_at: new Date() },
+    });
+  } catch (stampError) {
+    logger.error(
+      `  ! could not record the 403 for user ${userId}; leaving the message to the retry path`,
+      stampError,
+    );
+    return false;
+  }
+
+  logger.warn(
+    `  ! user ${userId}: ESI returned 403 - not a Director/CEO, or missing esi-killmails.read_corporation_killmails.v1. Skipping.`,
+  );
+  channel.ack(msg);
+  return true;
 }
 
 /**
