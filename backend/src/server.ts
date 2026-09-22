@@ -21,10 +21,13 @@ import { verifyToken } from '@services/eve-sso';
 import logger from '@services/logger';
 import { ensureAllQueuesExist } from '@services/rabbitmq';
 import {
+  corporationKillmailCron,
+  userKillmailCron,
+} from '@services/killmail-sync-cron';
+import {
   SESSION_COOKIE_NAME,
   parseCookieHeader,
 } from '@services/session-cookie';
-import { userKillmailCron } from '@services/user-killmail-cron';
 import { handleAuthCallback } from './handlers/auth-callback.handler';
 import { resolvers } from './resolvers';
 
@@ -293,20 +296,26 @@ server.listen(port, async () => {
   logger.info(`⏱️  Response Time:      Enabled (warn: 1s, error: 5s)`);
   logger.info('─'.repeat(80));
   logger.info('Available Workers:');
-  logger.info('  yarn worker:redisq         # RedisQ stream worker');
-  logger.info('  yarn worker:user-killmails # User killmail sync worker');
+  logger.info('  yarn worker:redisq                # RedisQ stream worker');
+  logger.info('  yarn worker:user-killmails        # User killmail sync');
+  logger.info(
+    '  yarn worker:corporation-killmails # Corporation killmail sync',
+  );
   logger.info('='.repeat(80));
 
   // Ensure all RabbitMQ queues exist before anything in this process
-  // publishes or consumes - userKillmailCron below is the first publisher.
+  // publishes or consumes - the crons below are the first publishers.
   try {
     await ensureAllQueuesExist();
   } catch (error) {
     logger.error('Failed to ensure RabbitMQ queues:', error);
   }
 
-  // Start background cron job
-  userKillmailCron.start().catch((error) => {
-    logger.error('Failed to start user killmail cron:', error);
-  });
+  // Start the background publishers. Each holds off on its own queue's
+  // numbers, so a stopped worker on one does not stop the other.
+  for (const cron of [userKillmailCron, corporationKillmailCron]) {
+    cron.start().catch((error) => {
+      logger.error(`Failed to start ${cron.getStatus().job} cron:`, error);
+    });
+  }
 });
