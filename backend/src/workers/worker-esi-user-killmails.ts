@@ -1,6 +1,9 @@
 import { calculateKillmailValues } from '@helpers/calculate-killmail-values';
 import { CharacterService } from '@services/character/character.service';
+import { toAggregateInput, toFilterInput } from '@services/killmail-derived';
+import { insertKillmailFilter } from '@services/killmail-filters-realtime';
 import { type KillmailSyncMessage } from '@services/killmail-sync-message';
+import { updateDailyAggregatesRealtime } from '@services/kill-stats-realtime';
 import { KillmailService } from '@services/killmail/killmail.service';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
@@ -335,7 +338,17 @@ async function syncUserKillmailsFromESI(
                   })),
                 });
               }
+
+              // 5. Daily leaderboard aggregates, in the same transaction as
+              // the killmail. Nothing recomputes these later: a killmail this
+              // worker writes first is skipped as a duplicate by every other
+              // writer, so a miss here is permanent.
+              await updateDailyAggregatesRealtime(tx, toAggregateInput(detail));
             });
+
+            // The pre-computed filter row, after the transaction — the same
+            // order the corporation worker uses.
+            await insertKillmailFilter(toFilterInput(detail));
 
             try {
               await pubsub.publish('NEW_KILLMAIL', {

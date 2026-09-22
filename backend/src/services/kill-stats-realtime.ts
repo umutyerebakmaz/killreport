@@ -25,7 +25,7 @@ type PrismaTransaction = Parameters<
   Parameters<typeof prismaWorker.$transaction>[0]
 >[0];
 
-interface KillmailAggregateData {
+export interface KillmailAggregateData {
   killmail_time: Date;
   character_ids: (number | null)[];
   corporation_ids: (number | null)[];
