@@ -200,6 +200,26 @@ module.exports = {
       time: true,
     },
 
+    // Killmail Detail Worker - one message per killmail, source-agnostic
+    {
+      name: 'worker-killmail-detail',
+      cwd: '/var/www/killreport/backend',
+      script: 'yarn',
+      args: 'worker:killmail-detail',
+      instances: 1,
+      exec_mode: 'fork',
+      env: {
+        NODE_ENV: 'production',
+        LOG_LEVEL: 'debug',
+      },
+      max_memory_restart: '512M',
+      autorestart: true,
+      restart_delay: 5000,
+      error_file: '/var/www/killreport/logs/worker-killmail-detail-error.log',
+      out_file: '/var/www/killreport/logs/worker-killmail-detail-out.log',
+      time: true,
+    },
+
     // Queue Characters - Monthly (1st of every month at 00:00 UTC)
     {
       name: 'queue-characters',
