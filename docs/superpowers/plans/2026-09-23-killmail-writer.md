@@ -853,9 +853,9 @@ npx prettier --write backend/src/workers/fetch-single-killmail.ts backend/src/wo
 git add backend/src/workers/fetch-single-killmail.ts backend/src/workers/sync-character-killmails.ts
 git commit -m "refactor(workers): point the two hand-run scripts at the shared writer
 
-sync-character-killmails wrote no attacker rows at all; going through the
-writer closes that too. Killmails it wrote earlier stay broken and need
-re-fetching, which is its own job."
+sync-character-killmails gains the leaderboard aggregates and the filter row,
+which it never wrote. It keeps its pre-ESI duplicate check — the writer answers
+the same question, but only after the detail fetch has been paid for."
 ```
 
 ---

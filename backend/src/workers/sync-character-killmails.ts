@@ -60,13 +60,38 @@ async function syncCharacterKillmails() {
       const zkill = zkillmails[i];
 
       try {
+        // Ask before fetching. saveKillmail answers the same question, but
+        // only after the ESI detail call has already been paid for — and a
+        // re-sync of an already-stored character is almost entirely
+        // duplicates. zKillboard hands back up to 200,000 ids here.
+        const existing = await prismaWorker.killmail.findUnique({
+          where: { killmail_id: zkill.killmail_id },
+          select: { killmail_id: true },
+        });
+
+        if (existing) {
+          skippedCount++;
+          if (i % 100 === 0) {
+            logger.debug(
+              `  ⏭️  [${i + 1}/${zkillmails.length}] Already exists, skipping...`,
+            );
+          }
+          continue;
+        }
+
         // Fetch full details from ESI
         const details = await KillmailService.getKillmailDetail(
           zkill.killmail_id,
           zkill.zkb.hash,
         );
 
-        const isNew = await saveKillmail(details, zkill.zkb.hash);
+        // Hand-run historical backfill: no NEW_KILLMAIL, for the same reason
+        // worker-zkillboard-sync passes false. `yarn sync:character <id> 999`
+        // would otherwise push a character's whole history into every open
+        // killmails page as if it had just happened.
+        const isNew = await saveKillmail(details, zkill.zkb.hash, {
+          publish: false,
+        });
         if (!isNew) {
           skippedCount++;
           continue;

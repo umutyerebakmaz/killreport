@@ -258,13 +258,48 @@ describe('the publish option', () => {
   });
 });
 
-describe('a filter row that could not be written', () => {
-  it('still reports the killmail as saved', async () => {
-    // insertKillmailFilter kendi hatasını loglayıp yutuyor; yazıcı bunu
-    // göremez. Kabul edilen davranış: killmail yazıldı, filtre satırı eksik
-    // kaldı ve repair:killmail-derived onu bulur.
-    insertKillmailFilter.mockResolvedValueOnce(undefined);
+describe('the filter row and the announcement', () => {
+  it('writes the filter row before NEW_KILLMAIL goes out', async () => {
+    // Awaiting the filter insert is the whole reason it is not
+    // fire-and-forget: a subscriber that queries on the event must find the
+    // row. Ordering is the contract, so ordering is what this asserts.
+    const order: string[] = [];
+    insertKillmailFilter.mockImplementationOnce(async () => {
+      order.push('filter');
+    });
+    publish.mockImplementationOnce(async () => {
+      order.push('publish');
+    });
+
+    await saveKillmail(detail(), HASH);
+
+    expect(order).toEqual(['filter', 'publish']);
+  });
+
+  it('still reports the killmail as saved when the filter row is lost', async () => {
+    // insertKillmailFilter logs and swallows its own failures, so the writer
+    // cannot see one. Accepted outcome: the killmail is written, the filter
+    // row is missing, and repair:killmail-derived finds it later.
+    insertKillmailFilter.mockImplementationOnce(async () => {
+      /* the service swallowed an error in here */
+    });
 
     await expect(saveKillmail(detail(), HASH)).resolves.toBe(true);
+  });
+});
+
+describe('a detail whose attackers key is missing entirely', () => {
+  it('refuses it the same way as an empty list, not with a TypeError', async () => {
+    // The user worker used to read `detail.attackers?.length || 0`, so someone
+    // once met a payload without the key. Without the optional chain the guard
+    // throws "Cannot read properties of undefined" instead of saying why.
+    const withoutAttackers = {
+      ...detail(),
+      attackers: undefined,
+    } as unknown as KillmailDetail;
+
+    await expect(saveKillmail(withoutAttackers, HASH)).rejects.toThrow(
+      /no attackers/i,
+    );
   });
 });

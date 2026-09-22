@@ -34,7 +34,7 @@ export async function saveKillmail(
   // attacker_count: 0 ile yazar ve agregatların kimseyi saymamasına yol açar —
   // yani "kaydedildi ama hiçbir yerde görünmüyor" durumu, #245'te uğraştığımız
   // sessiz bozukluğun aynısı. Kaynağın onu yeniden çekmesi gerekir.
-  if (detail.attackers.length === 0) {
+  if (!detail.attackers?.length) {
     throw new Error(
       `killmail ${detail.killmail_id} has no attackers; refusing to write it`,
     );
