@@ -1,6 +1,5 @@
 import { CharacterService } from '@services/character/character.service';
 import { type KillmailSyncMessage } from '@services/killmail-sync-message';
-import { KillmailService } from '@services/killmail/killmail.service';
 import { lastStoredKillmailId } from '@services/killmail-cursor';
 import { publishKillmailDetails } from '../queues/publish-killmail-details';
 import logger from '@services/logger';
@@ -216,11 +215,11 @@ async function syncUserKillmailsFromESI(
       `  📤 Queued ${queued}/${killmailList.length} killmail(s) for detail fetch`,
     );
 
-    // Bu kullanıcının en son ne zaman ele alındığı — imleç değil. İmleç artık
-    // killmail_filters'tan türetiliyor (`lastStoredKillmailId`); burada yazılan
-    // bir imleç "kuyruğa kondu" demek olurdu ve parking'e düşen bir killmail'in
-    // üzerinden geçerdi. Bu damgaya bakan şey killmail-sync-cron'un 15
-    // dakikalık penceresi.
+    // Bu kullanıcının en son ne zaman ele alındığı — imleç değil. İmleç
+    // `lastStoredKillmailId` ile killmail_filters'tan türetiliyor; oradaki
+    // uyarıyı oku, kendi kendini onarmıyor. Bu damgaya bakan şey
+    // killmail-sync-cron'un 15 dakikalık penceresi, ve null olması "hiç sync
+    // olmadı" demek: cron onu tam sync olarak yayınlıyor.
     await prismaWorker.user.update({
       where: { id: ctx.userId },
       data: { last_killmail_sync_at: new Date() },

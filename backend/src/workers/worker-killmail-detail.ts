@@ -12,11 +12,15 @@ import { handleWorkerError } from './worker-error';
 const QUEUE_NAME = KILLMAIL_DETAIL_QUEUE;
 
 /**
- * Kaç mesajın aynı anda elde tutulacağı. Gerçek ESI tavanı `esiRateLimiter`
- * tarafından tutulur (50 req/sn); bu sayı yalnızca unacked mesaj sayısıdır ve
- * bu worker'ın yazma yolu tek killmail'lik küçük bir transaction.
+ * Kaç mesajın aynı anda elde tutulacağı.
+ *
+ * `ESI_PREFETCH` bilerek okunmuyor. O knob ESI hız tavanı için var ve
+ * `config.ts`'te varsayılanı 100; bu worker'ı sınırlayan şey ESI değil,
+ * worker'ların 2 bağlantılık Prisma havuzu (`prisma-worker.ts`). Prefetch
+ * kadar mesaj aynı anda yazmaya kalkar, 100 eşzamanlı yazma o havuzda
+ * 10 saniyelik bağlantı zaman aşımına düşer.
  */
-const PREFETCH_COUNT = Number(process.env.ESI_PREFETCH ?? 10);
+const PREFETCH_COUNT = 10;
 
 /**
  * Tek mesaj: public detay ucundan çek, yazıcıya ver.

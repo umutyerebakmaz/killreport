@@ -1,3 +1,4 @@
+import { KILLMAIL_DETAIL_QUEUE } from '@services/killmail-detail-message';
 import { buildSyncMessage } from '@services/killmail-sync-message';
 import logger from '@services/logger';
 import prisma from './prisma';
@@ -39,6 +40,17 @@ export interface SyncJob {
   requiresCorporation: boolean;
   /** Background work yields to anything a person is waiting on. */
   priority: number;
+  /**
+   * İşin gerçekte biriktiği kuyruk.
+   *
+   * Liste aşaması kendi kuyruğunu saniyeler içinde boşaltıyor — tek yaptığı
+   * ESI'den listeyi alıp yayınlamak. Backlog `esi_killmail_detail_queue`'da
+   * oluşuyor, ve orası tıkalıyken yayına devam etmek her turda ESI listesini
+   * yeniden çekip henüz yazılmamış her killmail'i yeniden yayınlamak demek:
+   * kuyruk kopyalarla sınırsız büyür. #237'nin back-pressure kontrolü bu
+   * yüzden iki kuyruğa birden bakar.
+   */
+  downstreamQueue: string;
 }
 
 export const USER_SYNC_JOB: SyncJob = {
@@ -47,6 +59,7 @@ export const USER_SYNC_JOB: SyncJob = {
   sinceField: 'last_killmail_sync_at',
   requiresCorporation: false,
   priority: 3,
+  downstreamQueue: KILLMAIL_DETAIL_QUEUE,
 };
 
 export const CORPORATION_SYNC_JOB: SyncJob = {
@@ -55,6 +68,7 @@ export const CORPORATION_SYNC_JOB: SyncJob = {
   sinceField: 'last_corp_killmail_sync_at',
   requiresCorporation: true,
   priority: 3,
+  downstreamQueue: KILLMAIL_DETAIL_QUEUE,
 };
 
 /**
@@ -112,10 +126,12 @@ export class KillmailSyncCron {
       // monitoring channel and answers zeros when the queue is missing or the
       // broker is unreachable, which reads as "no consumer" and holds off —
       // an unreadable broker is not a reason to publish blindly.
-      const reason = skipReason(await getQueueStats(this.job.queue));
-      if (reason) {
-        logger.debug(`⏭️  ${this.job.label}: skipping - ${reason}`);
-        return;
+      for (const queue of [this.job.queue, this.job.downstreamQueue]) {
+        const reason = skipReason(await getQueueStats(queue));
+        if (reason) {
+          logger.debug(`⏭️  ${this.job.label}: skipping - ${queue}: ${reason}`);
+          return;
+        }
       }
 
       const users = await this.usersDue();
@@ -126,9 +142,16 @@ export class KillmailSyncCron {
 
       const channel = await getRabbitMQChannel();
       for (const user of users) {
+        // Hiç sync olmamış kullanıcı tam sync alır. Artımlı imleç
+        // `killmail_filters` üzerinden MAX(killmail_id) ve o tabloyu her
+        // yazıcı besliyor — RedisQ bütün EVE'i yazıyor. Yani yeni bir
+        // kullanıcının veritabanında zaten bir killmail'i olur, ESI listesi
+        // onun üzerinde ilk sırada durur ve geçmişi hiç çekilmez.
+        const neverSynced = user[this.job.sinceField] === null;
+
         channel.sendToQueue(
           this.job.queue,
-          Buffer.from(JSON.stringify(buildSyncMessage(user.id))),
+          Buffer.from(JSON.stringify(buildSyncMessage(user.id, neverSynced))),
           { persistent: true, priority: this.job.priority },
         );
         logger.debug(

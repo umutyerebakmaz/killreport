@@ -18,6 +18,16 @@ export interface PublishOptions {
 }
 
 /**
+ * Tek sorguda sorulacak id sayısı.
+ *
+ * `yarn sync:character <id> 999` ~199.800 killmail listeliyor ve PostgreSQL'in
+ * genişletilmiş protokolü bind parametrelerini 65.535'te kesiyor; Prisma bunu
+ * kendiliğinden parçalamıyor. Tek `IN (…)` ile sorulursa sorgu reddedilir ve
+ * script hiçbir şey kuyruğa koymadan ölür.
+ */
+const LOOKUP_CHUNK = 5_000;
+
+/**
  * Liste aşamasının kuyruğa koyma adımı.
  *
  * Veritabanında olan id'ler **yayınlanmaz**: CLAUDE.md'nin enrichment kalıbı —
@@ -32,11 +42,15 @@ export async function publishKillmailDetails(
 ): Promise<number> {
   if (refs.length === 0) return 0;
 
-  const known = await prismaWorker.killmail.findMany({
-    where: { killmail_id: { in: refs.map((r) => r.killmail_id) } },
-    select: { killmail_id: true },
-  });
-  const stored = new Set(known.map((k) => k.killmail_id));
+  const stored = new Set<number>();
+  for (let i = 0; i < refs.length; i += LOOKUP_CHUNK) {
+    const chunk = refs.slice(i, i + LOOKUP_CHUNK);
+    const known = await prismaWorker.killmail.findMany({
+      where: { killmail_id: { in: chunk.map((r) => r.killmail_id) } },
+      select: { killmail_id: true },
+    });
+    for (const row of known) stored.add(row.killmail_id);
+  }
 
   const missing = refs.filter((r) => !stored.has(r.killmail_id));
   if (missing.length === 0) return 0;

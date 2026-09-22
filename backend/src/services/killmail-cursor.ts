@@ -9,8 +9,19 @@ import prismaWorker from '@services/prisma-worker';
  * kondu" demektir, ve parking'e düşen bir killmail'in üzerinden geçilmiş olur
  * — bir daha hiç denenmez.
  *
- * Buradan okunduğunda "sync'lendi" yeniden "yazıldı" anlamına gelir: düşen bir
- * mesaj bir sonraki turda yeniden listelenir.
+ * Buradan okunduğunda "sync'lendi" yeniden "yazıldı" anlamına gelir.
+ *
+ * **Kendi kendini onarmaz.** Bu bir `MAX()` ve ESI liste ucu birebir id
+ * eşleşmesinde duruyor; max'ın *altında* kalan bir boşluk — parking'e düşmüş
+ * bir killmail — bir daha listelenmez. Yerine geçtiği kolon da aynı şeyi
+ * yapıyordu. Böyle bir killmail'in kaydı `killreport.parking` kuyruğudur.
+ *
+ * **Bu tablo bu sync'in defteri değil.** Her yazıcı onu besliyor ve RedisQ
+ * bütün EVE akışını yazıyor, yani buradaki max "bu varlığın EVE'deki en yeni
+ * killmail'i" demek — "bu sync'in yazdığı en yeni killmail" değil. Hiç sync
+ * olmamış bir kullanıcıda ikisi çakışır ve liste ilk sayfanın ilk satırında
+ * durur; bu yüzden ilk sync `killmail-sync-cron.ts`'te tam sync olarak
+ * yayınlanır.
  *
  * `killmail_filters` seçilir çünkü aradığımız indeksler orada: attacker
  * dizileri GIN'li, victim kolonları btree'li. Ölçüldü (2026-09-23, 108.890

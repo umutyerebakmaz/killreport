@@ -147,6 +147,12 @@ describe('overlapping runs', () => {
     const cron = new KillmailSyncCron(CORPORATION_SYNC_JOB);
 
     const first = cron.runOnce();
+    // Wait for the first run to actually reach the query it will hang on,
+    // rather than assuming how many awaits precede it.
+    await vi.waitFor(() =>
+      expect(prismaMock.user.findMany).toHaveBeenCalledTimes(1),
+    );
+
     await cron.runOnce();
 
     expect(prismaMock.user.findMany).toHaveBeenCalledTimes(1);
@@ -177,5 +183,79 @@ describe('the two jobs', () => {
     expect(CORPORATION_SYNC_JOB.queue).toBe('esi_corporation_killmails_queue');
     expect(USER_SYNC_JOB.sinceField).toBe('last_killmail_sync_at');
     expect(CORPORATION_SYNC_JOB.sinceField).toBe('last_corp_killmail_sync_at');
+  });
+});
+
+describe('a user who has never been synced', () => {
+  it('is queued for a full sync, not an incremental one', async () => {
+    // The incremental cursor is MAX(killmail_id) over killmail_filters, and
+    // that table is written by every source — RedisQ stores the whole of EVE.
+    // So a brand new user usually already has one killmail there, the ESI list
+    // stops on it at index 0, and their history is never backfilled.
+    prismaMock.user.findMany.mockResolvedValue([
+      { ...user(1), last_killmail_sync_at: null },
+    ]);
+
+    await new KillmailSyncCron(USER_SYNC_JOB).runOnce();
+
+    const body = JSON.parse(channel.sendToQueue.mock.calls[0][1].toString());
+    expect(body.fullSync).toBe(true);
+  });
+
+  it('leaves an already-synced user incremental', async () => {
+    prismaMock.user.findMany.mockResolvedValue([
+      { ...user(1), last_killmail_sync_at: new Date('2026-09-01T00:00:00Z') },
+    ]);
+
+    await new KillmailSyncCron(USER_SYNC_JOB).runOnce();
+
+    const body = JSON.parse(channel.sendToQueue.mock.calls[0][1].toString());
+    expect(body.fullSync).toBeUndefined();
+  });
+
+  it('reads the corporation job’s own timestamp', async () => {
+    prismaMock.user.findMany.mockResolvedValue([
+      {
+        ...user(1),
+        last_killmail_sync_at: new Date('2026-09-01T00:00:00Z'),
+        last_corp_killmail_sync_at: null,
+      },
+    ]);
+
+    await new KillmailSyncCron(CORPORATION_SYNC_JOB).runOnce();
+
+    const body = JSON.parse(channel.sendToQueue.mock.calls[0][1].toString());
+    expect(body.fullSync).toBe(true);
+  });
+});
+
+describe('the queue the work actually lands in', () => {
+  it('holds off when the detail queue has no consumer', async () => {
+    // The list stages drain their own queue in seconds now; the backlog lives
+    // in esi_killmail_detail_queue. Publishing against a stalled detail queue
+    // re-lists from ESI and re-publishes everything not yet written.
+    getQueueStats.mockImplementation(async (queue: string) =>
+      queue === 'esi_killmail_detail_queue'
+        ? { messageCount: 0, consumerCount: 0 }
+        : HEALTHY,
+    );
+    prismaMock.user.findMany.mockResolvedValue([user(1)]);
+
+    await new KillmailSyncCron(USER_SYNC_JOB).runOnce();
+
+    expect(channel.sendToQueue).not.toHaveBeenCalled();
+    expect(prismaMock.user.findMany).not.toHaveBeenCalled();
+  });
+
+  it('holds off when the detail queue is still full', async () => {
+    getQueueStats.mockImplementation(async (queue: string) =>
+      queue === 'esi_killmail_detail_queue'
+        ? { messageCount: 4000, consumerCount: 1 }
+        : HEALTHY,
+    );
+
+    await new KillmailSyncCron(USER_SYNC_JOB).runOnce();
+
+    expect(channel.sendToQueue).not.toHaveBeenCalled();
   });
 });

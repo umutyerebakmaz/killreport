@@ -180,9 +180,21 @@ WHERE attacker_character_ids @> ARRAY[$1]::int[] OR victim_character_id = $1;
 GIN indeksi ve `idx_kmfilters_victim_char` üzerinden bitmap index scan. Tick
 başına kullanıcı başına bir kez çalışır.
 
-Böylece "sync'lendi" yeniden "yazıldı" anlamına gelir: düşen bir detay mesajı bir
-sonraki turda yeniden listelenir ve yeniden denenir. Kendi kendini onaran bir
-imleç, tutulan bir defterden daha az yalan söyler.
+Böylece "sync'lendi" yeniden "yazıldı" anlamına gelir.
+
+**Düzeltme (2026-09-23, dal incelemesi):** ilk yazımda bu bölüm imlecin kendi
+kendini onardığını söylüyordu — "düşen bir mesaj bir sonraki turda yeniden
+listelenir". Yanlış. `MAX()` ve ESI liste ucunun birebir id eşleşmesi, max'ın
+**altında** kalan bir boşluğu kalıcı olarak atlar; yerine geçtiği kolon da aynı
+şeyi yapıyordu. Parking kuyruğu böyle bir killmail'in tek kaydıdır.
+
+Daha ciddisi: `killmail_filters` bu sync'in defteri değil, **her** yazıcı onu
+besliyor ve RedisQ bütün EVE akışını yazıyor. Yani buradaki max "bu varlığın
+EVE'deki en yeni killmail'i" demek. Hiç sync olmamış bir kullanıcıda RedisQ'nun
+yakaladığı tek bir killmail imleci bugüne çeker, ESI listesi ilk sayfanın ilk
+satırında durur ve kullanıcının geçmişi hiç çekilmez — sessizce, `Queued 0/0`
+diye. Bu yüzden `killmail-sync-cron` ilgili zaman damgası `null` olan
+kullanıcıyı **tam sync** olarak yayınlar.
 
 Korporasyon tarafı aynı sorguyu `attacker_corporation_ids` üzerinden kullanır.
 

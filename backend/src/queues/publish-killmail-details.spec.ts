@@ -124,3 +124,50 @@ describe('an empty list', () => {
     expect(getRabbitMQChannel).not.toHaveBeenCalled();
   });
 });
+
+describe('a list bigger than one query can carry', () => {
+  it('chunks the lookup so PostgreSQL never sees more parameters than it accepts', async () => {
+    // `yarn sync:character <id> 999` lists ~199,800 killmails, and the
+    // extended protocol caps bind parameters at 65,535. One IN (…) with the
+    // whole list is rejected and the script dies having queued nothing.
+    const many = Array.from({ length: 12_000 }, (_, i) => ({
+      killmail_id: i + 1,
+      killmail_hash: `h${i}`,
+    }));
+    prismaMock.killmail.findMany.mockResolvedValue([]);
+
+    const published = await publishKillmailDetails(many, {
+      announce: false,
+      priority: 1,
+    });
+
+    expect(published).toBe(12_000);
+    for (const [args] of prismaMock.killmail.findMany.mock.calls) {
+      expect(args.where.killmail_id.in.length).toBeLessThanOrEqual(5_000);
+    }
+    expect(prismaMock.killmail.findMany.mock.calls.length).toBeGreaterThan(1);
+  });
+
+  it('still drops the stored ones when the lookup is chunked', async () => {
+    const many = Array.from({ length: 7_000 }, (_, i) => ({
+      killmail_id: i + 1,
+      killmail_hash: `h${i}`,
+    }));
+    // Every id in the second chunk is already stored.
+    prismaMock.killmail.findMany.mockImplementation(async ({ where }) => {
+      const ids: number[] = where.killmail_id.in;
+      return ids
+        .filter((id) => id > 5_000)
+        .map((killmail_id) => ({
+          killmail_id,
+        }));
+    });
+
+    const published = await publishKillmailDetails(many, {
+      announce: false,
+      priority: 1,
+    });
+
+    expect(published).toBe(5_000);
+  });
+});

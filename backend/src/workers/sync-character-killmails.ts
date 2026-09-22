@@ -1,5 +1,5 @@
 import { publishKillmailDetails } from '../queues/publish-killmail-details';
-import { getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { getCharacterKillmailsFromZKill } from '@services/zkillboard';
@@ -51,6 +51,12 @@ async function syncCharacterKillmails() {
     }
 
     logger.info(`\n📋 Listing ${zkillmails.length} killmails...\n`);
+
+    // Publish etmeden önce kuyruğun var olduğundan emin ol. sendToQueue
+    // default exchange'e yazar; kuyruk yoksa broker mesajı hatasız düşürür ve
+    // script "10 kuyruğa kondu" der. src/queues/ altındaki her script aynı
+    // sebeple assert eder.
+    await ensureAllQueuesExist();
 
     const queued = await publishKillmailDetails(
       zkillmails.map((z) => ({
