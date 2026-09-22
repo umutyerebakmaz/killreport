@@ -1,7 +1,7 @@
 # Çeken kaynaklar killmail'i kuyruğa koysun — tasarım
 
 **Tarih:** 2026-09-23
-**Durum:** inceleme bekliyor
+**Durum:** onaylandı (2026-09-23)
 **İlgili:** #244 (ikinci yarı), #248 (tek yazıcı, birinci yarı),
 `docs/superpowers/specs/2026-09-22-killmail-writer-design.md`
 
@@ -255,15 +255,24 @@ listeler çünkü `ALL_QUEUES`'tan okur.
 
 ---
 
-## 8. İnceleme için açık sorular
+## 8. İncelemede kapanan kararlar
 
-1. Detay worker'ının `PREFETCH_COUNT`'u kaç olsun? Öneri 10 — `esiRateLimiter`
-   gerçek tavanı zaten tutuyor, ve bu worker'ın yazma yolu tek killmail'lik
-   küçük bir transaction (`worker-regions`'ın `prefetch(1)` gerekçesi burada
-   yok).
-2. Toplu backfill'in mesajları canlı sync'lerle aynı kuyruğu paylaşıyor.
-   Öncelik alanıyla ayırmak (backfill 1, canlı 5) yeter mi, yoksa 200.000
-   mesajlık bir backfill canlı akışı bekletir mi? Alternatif ayrı bir kuyruk,
-   ama o da "bir domain bir kuyruk" kuralından sapma olur.
-3. `last_killmail_id` kolonları yazılmaz hâle geliyor. Şimdilik kalsınlar mı,
-   yoksa bu işin sonunda bir migration ile kaldırılsınlar mı?
+2026-09-23'te üçü de karara bağlandı; spec onaylandı.
+
+1. **Detay worker'ının prefetch'i 10.** Gerçek tavanı `esiRateLimiter` tutuyor
+   (50 req/sn, 20 ms minimum aralık); prefetch yalnızca worker'ın aynı anda
+   elinde tuttuğu mesaj sayısı. `worker-regions`'ın `prefetch(1)` gerekçesi
+   büyük bir transaction'dı ve bu worker'ın yazma yolu tek killmail'lik küçük
+   bir transaction. `ESI_PREFETCH` ile ayarlanabilir kalır.
+2. **Toplu backfill ile canlı sync aynı kuyruğu, farklı önceliklerle
+   paylaşır** — backfill 1, canlı 5. Kuyruk zaten `x-max-priority: 10` ile
+   tanımlı ve RabbitMQ bekleyenler arasında yükseği önce verir, yani 200.000
+   mesajlık bir backfill canlı akışı bekletmez. Ayrı kuyruk "bir domain bir
+   kuyruk" kuralından sapma olurdu. Tek sınır: öncelik yalnızca **kuyrukta
+   bekleyen** mesajlar arasında iş görür, worker'ın elindeki unacked mesajları
+   etkilemez — prefetch 10 ile bu en fazla on mesajlık bir gecikmedir.
+3. **`last_killmail_id` / `last_corp_killmail_id` kalır.** Yazılmaz hâle
+   gelirler ama silinmeleri migration ister, ve CLAUDE.md'nin migration
+   prosedürü kendi satır sayımı disiplinine sahip; onu bir refactor PR'ının
+   içine sıkıştırmak tam olarak o dosyanın "ayrı iş" dediği şeydir. Değerleri
+   tarihî kayıt olarak durur.
