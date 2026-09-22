@@ -115,3 +115,156 @@ describe('already stored', () => {
     expect(publish).not.toHaveBeenCalled();
   });
 });
+
+describe('the existence check', () => {
+  it('asks about the killmail row, which is the unique key that would throw', async () => {
+    await saveKillmail(detail(), HASH);
+
+    expect(prismaMock.killmail.findUnique).toHaveBeenCalledWith({
+      where: { killmail_id: 128431979 },
+      select: { killmail_id: true },
+    });
+  });
+});
+
+describe('writing a new killmail', () => {
+  it('writes the killmail, victim and attackers in one transaction', async () => {
+    const saved = await saveKillmail(detail(), HASH);
+
+    expect(saved).toBe(true);
+    expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
+    expect(txMock.killmail.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        killmail_id: 128431979,
+        killmail_hash: HASH,
+        killmail_time: new Date('2026-09-19T14:03:22Z'),
+        solar_system_id: 30002187,
+        total_value: 1000,
+        destroyed_value: 600,
+        dropped_value: 400,
+        attacker_count: 1,
+      }),
+    });
+    expect(txMock.victim.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        killmail_id: 128431979,
+        character_id: 95465499,
+        corporation_id: 98000001,
+        alliance_id: 99005338,
+        ship_type_id: 670,
+        damage_taken: 1200,
+      }),
+    });
+    expect(txMock.attacker.createMany).toHaveBeenCalledWith(
+      expect.objectContaining({ skipDuplicates: true }),
+    );
+  });
+
+  it('updates the daily aggregates inside that transaction', async () => {
+    await saveKillmail(detail(), HASH);
+
+    expect(updateDailyAggregatesRealtime).toHaveBeenCalledWith(
+      txMock,
+      expect.objectContaining({
+        killmail_time: new Date('2026-09-19T14:03:22Z'),
+        character_ids: [90000001],
+      }),
+    );
+  });
+
+  it('writes the filter row after the transaction, awaited', async () => {
+    await saveKillmail(detail(), HASH);
+
+    expect(insertKillmailFilter).toHaveBeenCalledWith(
+      expect.objectContaining({ killmail_id: 128431979n, attacker_count: 1 }),
+    );
+  });
+});
+
+describe('a second writer that got there first', () => {
+  it('turns P2002 into false rather than throwing', async () => {
+    prismaMock.$transaction.mockRejectedValueOnce(
+      Object.assign(new Error('Unique constraint failed'), { code: 'P2002' }),
+    );
+
+    await expect(saveKillmail(detail(), HASH)).resolves.toBe(false);
+    expect(publish).not.toHaveBeenCalled();
+  });
+
+  it('rethrows anything else so the shared failure path can route it', async () => {
+    prismaMock.$transaction.mockRejectedValueOnce(new Error('pool timeout'));
+
+    await expect(saveKillmail(detail(), HASH)).rejects.toThrow('pool timeout');
+  });
+});
+
+describe('data ESI really sends', () => {
+  it('skips items with a null item_type_id instead of failing the write', async () => {
+    const saved = await saveKillmail(
+      detail({
+        victim: {
+          character_id: 95465499,
+          corporation_id: 98000001,
+          ship_type_id: 670,
+          damage_taken: 1200,
+          items: [
+            { item_type_id: 34, flag: 5, singleton: 0, quantity_dropped: 3 },
+            {
+              item_type_id: null as unknown as number,
+              flag: 5,
+              singleton: 0,
+            },
+          ],
+        },
+      }),
+      HASH,
+    );
+
+    expect(saved).toBe(true);
+    expect(txMock.killmailItem.createMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: [expect.objectContaining({ item_type_id: 34 })],
+      }),
+    );
+  });
+
+  it('refuses a killmail with no attackers', async () => {
+    // attacker_count 0 yazmak ve kimseyi saymamak, sessizce yanlış bir
+    // killmail üretir; kaynağın onu yeniden çekmesi gerekir.
+    await expect(saveKillmail(detail({ attackers: [] }), HASH)).rejects.toThrow(
+      /no attackers/i,
+    );
+
+    expect(prismaMock.$transaction).not.toHaveBeenCalled();
+  });
+});
+
+describe('the publish option', () => {
+  it('publishes by default', async () => {
+    await saveKillmail(detail(), HASH);
+
+    expect(publish).toHaveBeenCalledWith('NEW_KILLMAIL', {
+      killmailId: 128431979,
+    });
+  });
+
+  it('stays quiet when the caller is backfilling', async () => {
+    await saveKillmail(detail(), HASH, { publish: false });
+
+    expect(publish).not.toHaveBeenCalled();
+    // Yazma yolu aynen işler; sessiz olan yalnızca duyuru.
+    expect(txMock.killmail.create).toHaveBeenCalled();
+    expect(insertKillmailFilter).toHaveBeenCalled();
+  });
+});
+
+describe('a filter row that could not be written', () => {
+  it('still reports the killmail as saved', async () => {
+    // insertKillmailFilter kendi hatasını loglayıp yutuyor; yazıcı bunu
+    // göremez. Kabul edilen davranış: killmail yazıldı, filtre satırı eksik
+    // kaldı ve repair:killmail-derived onu bulur.
+    insertKillmailFilter.mockResolvedValueOnce(undefined);
+
+    await expect(saveKillmail(detail(), HASH)).resolves.toBe(true);
+  });
+});
