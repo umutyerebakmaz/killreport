@@ -48,9 +48,10 @@ Apply pending migrations:
 npx prisma migrate deploy
 ```
 
-`prisma migrate dev` (and `yarn prisma:migrate`, which is an alias for it) is
-never used in this repository, because it would read the drift below as an
-invitation to drop tables.
+`prisma migrate dev` is never used in this repository, because it would read
+the drift below as an invitation to drop tables. The `prisma:migrate` script
+that aliased it has been removed, and a `PreToolUse` hook denies the command
+itself.
 
 > **Dağıtım notu:** `sessions` tablosu `prisma/migrations/20260921180433_add_sessions`
 > migration'ıyla geliyor; bu migration commit edilmiş ama **henüz
