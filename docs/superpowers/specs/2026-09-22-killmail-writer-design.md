@@ -26,7 +26,7 @@ yarısı — kendi spec'ini alacak; gerekçesi bölüm 8'de.
 | `worker-esi-user-killmails.ts:284`        | ✓     | ✓           | ✓       | ✓      | ✓      | ·              |
 | `worker-zkillboard-sync.ts:220`           | ✓     | ✓           | ✓       | ✓      | **·**  | ·              |
 | `fetch-single-killmail.ts:63`             | ✓     | ✓           | ✓       | ✓      | **·**  | ·              |
-| `sync-character-killmails.ts:98`          | ✓     | **kısmi**   | **·**   | **·**  | ✓      | ·              |
+| `sync-character-killmails.ts:98`          | ✓     | ✓           | **·**   | **·**  | ✓      | ·              |
 | `worker-killmails.ts:193`                 | —     | —           | —       | —      | —      | —              |
 
 Son satır **ölü kod**: `zkillboard_character_queue`'yu tüketiyor ama
@@ -34,8 +34,12 @@ Son satır **ölü kod**: `zkillboard_character_queue`'yu tüketiyor ama
 import edilmiyor. Aynı kuyruğun gerçek tüketicisi `worker-zkillboard-sync.ts`.
 Sadece üç doküman ona link veriyor.
 
-`sync-character-killmails.ts:98` "kısmi" çünkü attacker satırı hiç yazmıyor —
-yazdığı killmail, derived write'lardan bağımsız olarak da eksik.
+**Düzeltme (2026-09-23):** bu satır ilk yazımda "kısmi" işaretlenmiş ve
+`sync-character-killmails`'in attacker satırı yazmadığı söylenmişti. Yanlış:
+attacker'ları Prisma'nın iç içe `attackers: { create: ... }` yazımıyla yazıyor
+(`:117`), `attacker.createMany` ile değil, ve tabloyu üreten arama yalnızca
+ikinci biçimi tanıyordu. Gerçekten eksik olanlar agregat ve filtre satırı.
+Veritabanında attacker'sız killmail bulunmaması da bununla tutarlı.
 
 **Ayrışma sessiz kalıyor.** `killmail.create` unique key'e takıldığı için bir
 killmail'e **ilk ulaşan** yazıcı kazanıyor; diğer yollar onu duplicate diye
@@ -145,15 +149,15 @@ hata yutmaz — tek istisnası, 1. adımla yarışan eşzamanlı bir yazıcıdan
 
 ## 4. Çağıranların uyarlanması
 
-| Yol                                | Ne kaybeder                             | Ne kazanır                              |
-| ---------------------------------- | --------------------------------------- | --------------------------------------- |
-| `worker-redisq-stream`             | kendi `saveKillmail`'i (modüle taşınır) | mapper'lar, await'lenen filtre yazımı   |
-| `worker-esi-corporation-killmails` | ~120 satır transaction                  | varlık ön-kontrolü                      |
-| `worker-esi-user-killmails`        | ~120 satır transaction                  | varlık ön-kontrolü                      |
-| `worker-zkillboard-sync`           | ~120 satır transaction                  | `NEW_KILLMAIL` (bölüm 5)                |
-| `fetch-single-killmail`            | ~60 satır transaction                   | agregat + filtre + pubsub               |
-| `sync-character-killmails`         | kendi kısmi yazımı                      | **attacker satırları**, agregat, filtre |
-| `worker-killmails`                 | dosya silinir                           | —                                       |
+| Yol                                | Ne kaybeder                             | Ne kazanır                            |
+| ---------------------------------- | --------------------------------------- | ------------------------------------- |
+| `worker-redisq-stream`             | kendi `saveKillmail`'i (modüle taşınır) | mapper'lar, await'lenen filtre yazımı |
+| `worker-esi-corporation-killmails` | ~120 satır transaction                  | varlık ön-kontrolü                    |
+| `worker-esi-user-killmails`        | ~120 satır transaction                  | varlık ön-kontrolü                    |
+| `worker-zkillboard-sync`           | ~120 satır transaction                  | `NEW_KILLMAIL` (bölüm 5)              |
+| `fetch-single-killmail`            | ~60 satır transaction                   | agregat + filtre + pubsub             |
+| `sync-character-killmails`         | kendi yazım yolu                        | agregat, filtre                       |
+| `worker-killmails`                 | dosya silinir                           | —                                     |
 
 `sync-character-killmails`'in kazandığı şey dikkate değer: bugünkü asıl kusuru
 attacker yazmaması ve bu, yazıcıyı çağırır çağırmaz düzeliyor.
@@ -199,11 +203,12 @@ sonrası canlı akışın sessizleşmesi gerçek bir arıza olurdu. Seçenek 1'd
 
 ## 6. Yan bulgu: attacker'sız killmail'ler
 
-`sync-character-killmails` bugüne kadar attacker satırı olmayan killmail yazmış
-olabilir. Bunlar yazıcıya geçişle **ileriye dönük** düzelir, ama zaten yazılmış
-olanlar düzelmez: #246'nın onarım script'i böyle bir killmail'i onarmayı reddeder
+Bu bölüm `sync-character-killmails`'in attacker yazmadığı varsayımıyla
+yazılmıştı; 2026-09-23'te o varsayımın yanlış olduğu görüldü (bölüm 1'deki
+düzeltme). Yine de kontrol ayakta kalmalı: attacker satırı olmayan bir killmail
+hangi yoldan gelirse gelsin, #246'nın onarım script'i onu onarmayı reddeder
 (boş attacker dizisiyle filtre satırı yazmak "onarıldı" gibi görünüp yanlış
-olurdu).
+olurdu), ve yazıcı böyle bir killmail'i baştan yazmayı reddeder.
 
 Ölçüm sorgusu:
 

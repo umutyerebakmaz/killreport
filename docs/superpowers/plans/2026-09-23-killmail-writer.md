@@ -811,8 +811,10 @@ bury it in history."
 - Consumes: `saveKillmail` (Görev 1).
 - Produces: yok.
 
-`sync-character-killmails` bugün attacker satırı **yazmıyor**; yazıcıya geçmesi
-o kusuru da kapatıyor.
+**Düzeltme (2026-09-23):** `sync-character-killmails` attacker satırlarını
+Prisma'nın iç içe `attackers: { create: ... }` yazımıyla yazıyor; "yazmıyor"
+iddiası yalnızca `attacker.createMany` biçimini tanıyan bir aramadan geldi.
+Yazıcıya geçmesiyle kazandıkları agregat ve filtre satırı.
 
 - [ ] **Step 1: `fetch-single-killmail`'i geçir**
 
