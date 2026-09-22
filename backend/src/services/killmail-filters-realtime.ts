@@ -23,7 +23,15 @@
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 
-interface KillmailFilterData {
+/**
+ * Either the worker client or an open transaction. The repair script
+ * (`workers/repair-killmail-derived.ts`) passes its transaction so the filter
+ * row and the aggregate increment commit together; a row written without its
+ * increment, or the other way round, is what makes a re-run double count.
+ */
+type FilterWriteClient = Pick<typeof prismaWorker, '$executeRaw'>;
+
+export interface KillmailFilterData {
   killmail_id: bigint;
   killmail_time: Date;
   solar_system_id: number | null;
@@ -43,6 +51,7 @@ interface KillmailFilterData {
  */
 export async function insertKillmailFilter(
   data: KillmailFilterData,
+  client: FilterWriteClient = prismaWorker,
 ): Promise<void> {
   try {
     // Remove nulls and get unique IDs for arrays
@@ -67,7 +76,7 @@ export async function insertKillmailFilter(
       ),
     ];
 
-    await prismaWorker.$executeRaw`
+    await client.$executeRaw`
       WITH data_row AS (
         SELECT
           ${data.killmail_id}::bigint as killmail_id,

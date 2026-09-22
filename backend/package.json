@@ -88,6 +88,7 @@
     "doctor:topology": "tsx src/workers/doctor-topology.ts",
     "worker:user-killmails": "tsx src/workers/worker-esi-user-killmails.ts",
     "worker:corporation-killmails": "tsx src/workers/worker-esi-corporation-killmails.ts",
+    "repair:killmail-derived": "tsx src/workers/repair-killmail-derived.ts",
     "worker:zkillboard": "tsx src/workers/worker-zkillboard-sync.ts",
     "worker:redisq": "tsx src/workers/worker-redisq-stream.ts",
     "worker:races": "tsx src/workers/worker-races.ts",
