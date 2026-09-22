@@ -41,6 +41,26 @@ export function deathCount(msg: amqp.ConsumeMessage): number {
 }
 
 /**
+ * The first line of an error's message, which is where a status belongs.
+ *
+ * The status detectors below fall back to the message text because four
+ * services — `zkillboard.ts`, `killmail.service.ts`, `character.service.ts`
+ * and `corporation.service.ts` — use `fetch` and throw a plain `Error` that
+ * carries the status only there. Every one of them puts it on the first line.
+ *
+ * A Prisma failure, by contrast, embeds `file.ts:LINE:COL` and a numbered code
+ * frame in its message, so matching the whole text meant a database error
+ * raised at or near line 404, 420 or 429 of a worker file was classified as an
+ * HTTP one — and an unrelated edit that shifts line numbers was enough to
+ * trigger it. A false rate limit requeues without burning an attempt, so the
+ * message loops forever and never reaches parking; a false 404 acks the
+ * message and drops the work. Both are silent (#235).
+ */
+function messageHead(error: unknown): string {
+  return String((error as { message?: string })?.message ?? '').split('\n')[0];
+}
+
+/**
  * True for HTTP 420 (ESI's own error-limit status) or 429 (the generic rate
  * limit status, used by zKillboard and any plain-HTTP caller). Both mean the
  * same thing: the caller is being throttled, not that the message is bad. See
@@ -49,34 +69,38 @@ export function deathCount(msg: amqp.ConsumeMessage): number {
  * Checking the status first means this does not rest on a particular message
  * string once the next task moves ~25 workers, not all of them Axios-shaped,
  * onto this function — same reasoning as `isNotFound` below. `zkillboard.ts`,
- * `killmail.service.ts` and `character.service.ts` all use `fetch` and throw
- * a plain `Error` carrying the status only in its message text, so without
- * the fallback a 420/429 from any of those four workers reads as an ordinary
- * message defect and burns an attempt instead of waiting. The word-boundary
- * match keeps a message containing e.g. "1420" from matching.
+ * `killmail.service.ts`, `character.service.ts` and `corporation.service.ts`
+ * all use `fetch` and throw a plain `Error` carrying the status only in its
+ * message text, so without the fallback a 420/429 from any of those workers
+ * reads as an ordinary message defect and burns an attempt instead of waiting.
+ * The word boundary keeps "1420" from matching, and `messageHead` keeps
+ * anything below the first line — a Prisma code frame — out of it entirely.
  */
 function isErrorLimited(error: unknown): boolean {
   const status = (error as { response?: { status?: number } })?.response
     ?.status;
   if (status === 420 || status === 429) return true;
-  return /\b(420|429)\b/.test(
-    String((error as { message?: string })?.message ?? ''),
-  );
+  return /\b(420|429)\b/.test(messageHead(error));
 }
 
 /**
  * True for a 404, whether it arrives as a status code on the error's
- * `response` or only as text in its `message`. Axios attaches
- * `response.status`; some workers instead throw a plain `Error` whose
- * message happens to mention the code. Checking the status first means
- * this does not rest on a particular message string once the next task
- * moves ~25 workers, not all of them Axios-shaped, onto this function.
+ * `response` or only on the first line of its `message`. Axios attaches
+ * `response.status`; some workers instead throw a plain `Error` whose message
+ * carries the code. Checking the status first means this does not rest on a
+ * particular message string once the next task moves ~25 workers, not all of
+ * them Axios-shaped, onto this function.
+ *
+ * This branch acks, so a false positive drops the work rather than retrying
+ * it. That is why the text match is a word-boundary one against `messageHead`
+ * and not the `includes('404')` it started as: that version matched "4040",
+ * an id, and any line of a Prisma code frame.
  */
 function isNotFound(error: unknown): boolean {
   const status = (error as { response?: { status?: number } })?.response
     ?.status;
   if (status === 404) return true;
-  return String((error as { message?: string })?.message ?? '').includes('404');
+  return /\b404\b/.test(messageHead(error));
 }
 
 /**
@@ -96,7 +120,7 @@ export function isForbidden(error: unknown): boolean {
   const status = (error as { response?: { status?: number } })?.response
     ?.status;
   if (status === 403) return true;
-  return /\b403\b/.test(String((error as { message?: string })?.message ?? ''));
+  return /\b403\b/.test(messageHead(error));
 }
 
 /**
