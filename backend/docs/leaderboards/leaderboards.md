@@ -100,12 +100,16 @@ Inconsistency is impossible: either everything is saved or nothing is saved.
 
 **Workers that use this:**
 
-| Worker                                | Source                               |
+All of them through `services/killmail-writer.ts`, which owns the transaction:
+
+| Source                                | Feed                                 |
 | ------------------------------------- | ------------------------------------ |
-| `worker-killmails.ts`                 | RabbitMQ queue (ZKillboard sync)     |
 | `worker-redisq-stream.ts`             | ZKillboard RedisQ stream (live feed) |
-| `worker-zkillboard-sync.ts`           | Historical killmail backfill         |
+| `worker-esi-user-killmails.ts`        | ESI character killmail sync          |
 | `worker-esi-corporation-killmails.ts` | ESI corporation killmail sync        |
+| `worker-zkillboard-sync.ts`           | Historical killmail backfill         |
+| `sync-character-killmails.ts`         | Hand-run character backfill          |
+| `fetch-single-killmail.ts`            | Hand-run single killmail             |
 
 **Functions used:**
 

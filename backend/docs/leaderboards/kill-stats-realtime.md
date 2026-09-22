@@ -35,23 +35,20 @@ await updateDailyAggregatesRealtime(tx, {
 - Overhead: <5ms per killmail
 - Zero latency for leaderboards ⚡
 
-**Integrated in** — every path that writes a killmail must call this, because
-nothing recomputes the aggregates later. A killmail saved without it is skipped
-as a duplicate by every other writer afterwards, so the miss is permanent:
+**Called from one place.** Every path that saves a killmail goes through
+[`services/killmail-writer.ts`](../../src/services/killmail-writer.ts), and the
+writer makes this call inside the same transaction as the killmail row. Sources
+— the RedisQ stream, the two ESI syncs, the zKillboard backfill and the two
+hand-run scripts — find killmails; the writer writes them.
 
-- [`worker-redisq-stream.ts`](../../src/workers/worker-redisq-stream.ts) - Real-time zKillboard stream
-- [`worker-killmails.ts`](../../src/workers/worker-killmails.ts) - Character killmail sync
-- [`worker-zkillboard-sync.ts`](../../src/workers/worker-zkillboard-sync.ts) - Bulk zKillboard sync
-- [`worker-esi-corporation-killmails.ts`](../../src/workers/worker-esi-corporation-killmails.ts) - Corp killmail sync
-- [`worker-esi-user-killmails.ts`](../../src/workers/worker-esi-user-killmails.ts) - User ESI sync (added in #245; it had been missing since the worker was written)
-- [`fetch-single-killmail.ts`](../../src/workers/fetch-single-killmail.ts) - Hand-run single killmail
+That indirection is the point. While each source wrote killmails its own way,
+two of them never made this call at all, and nothing recomputes the aggregates
+later: a killmail saved without them is skipped as a duplicate by every other
+writer afterwards, so the miss is permanent. That is what #245 was, and #244 is
+why it cannot recur.
 
-The input for this call and for `killmail_filters` is mapped in one place,
-[`killmail-derived.ts`](../../src/services/killmail-derived.ts), so a new
-writer cannot map it slightly differently.
-[`sync-character-killmails.ts`](../../src/workers/sync-character-killmails.ts)
-is still outside all of this and writes no attacker rows either; it is covered
-by #244.
+The input for this call and for `killmail_filters` is built by
+[`killmail-derived.ts`](../../src/services/killmail-derived.ts).
 
 **Repairing a miss**: `yarn repair:killmail-derived` reports killmails with no
 `killmail_filters` row and, with `--apply`, writes that row and the increments
