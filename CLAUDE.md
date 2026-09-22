@@ -26,8 +26,10 @@ accepting a Prisma data-loss prompt, no dropping or truncating a table to get
 past an error. If the only way forward appears to involve losing data, stop and
 ask.
 
-**Never run `prisma migrate dev`** — including through `yarn prisma:migrate`,
-which is an alias for it. See _Database migrations_.
+**Never run `prisma migrate dev`.** A `PreToolUse` hook in
+`.claude/settings.json` denies it, together with `migrate reset` and
+`db push --force-reset`. The `prisma:migrate` script that used to alias it
+was removed on 2026-09-22. See _Database migrations_.
 
 **Yarn only, never npm.** Yarn workspaces are configured in the root
 `package.json`; npm writes a conflicting `package-lock.json` and breaks workspace
@@ -147,8 +149,8 @@ Worthwhile, but its own piece of work — do not fold it into an unrelated chang
 
 **Correction:** the schema is a **directory** (`prisma/schema/`, one model per
 file, camelCase filenames), not the single `prisma/schema.prisma` the old guide
-described. The old guide also recommended `yarn prisma:migrate`, which is the
-dangerous command.
+described. The old guide also recommended `yarn prisma:migrate`, which was an
+alias for the dangerous command; that script no longer exists.
 
 ### Prisma naming
 

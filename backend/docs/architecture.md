@@ -82,7 +82,7 @@ sudo systemctl status rabbitmq-server
 ### 2. Run Database Migrations
 
 ```bash
-yarn prisma:migrate
+npx prisma migrate deploy
 ```
 
 ### 3. Start Server (Terminal 1)
