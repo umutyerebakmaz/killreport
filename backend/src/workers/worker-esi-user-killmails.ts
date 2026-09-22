@@ -1,7 +1,7 @@
 import { CharacterService } from '@services/character/character.service';
-import { saveKillmail } from '@services/killmail-writer';
 import { type KillmailSyncMessage } from '@services/killmail-sync-message';
-import { KillmailService } from '@services/killmail/killmail.service';
+import { lastStoredKillmailId } from '@services/killmail-cursor';
+import { publishKillmailDetails } from '../queues/publish-killmail-details';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
@@ -10,10 +10,6 @@ import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'esi_user_killmails_queue';
 const PREFETCH_COUNT = 1; // Process 1 user at a time to avoid rate limiting
-const BATCH_SIZE = 3; // Process killmails in batches of 3 (reduced for safety)
-const BATCH_DELAY_MS = 500; // 500ms delay between batches
-const PAGE_FETCH_DELAY_MS = 2000; // 2 second delay after fetching killmail list
-const KILLMAIL_DETAIL_DELAY_MS = 250; // 250ms delay after EACH killmail detail fetch (max ~4 req/sec)
 
 // Shutdown flag and interval tracking
 let isShuttingDown = false;
@@ -118,7 +114,9 @@ export async function esiUserKillmailWorker() {
 
             const lastKillmailId = message.fullSync
               ? undefined
-              : (user.last_killmail_id ?? undefined);
+              : await lastStoredKillmailId({
+                  characterId: user.character_id,
+                });
 
             await syncUserKillmailsFromESI(
               {
@@ -205,112 +203,27 @@ async function syncUserKillmailsFromESI(
       lastKillmailId, // Stop when we hit this ID (incremental sync)
     );
 
-    // Add delay after fetching killmail list to prevent rate limiting on detail fetches
-    logger.debug(
-      `  ⏸️  Waiting ${PAGE_FETCH_DELAY_MS}ms before processing killmails...`,
+    const queued = await publishKillmailDetails(
+      killmailList.map((km) => ({
+        killmail_id: km.killmail_id,
+        killmail_hash: km.killmail_hash,
+      })),
+      { announce: true, priority: 5 },
     );
-    await new Promise((resolve) => setTimeout(resolve, PAGE_FETCH_DELAY_MS));
-
-    let savedCount = 0;
-    let skippedCount = 0;
-    let errorCount = 0;
 
     logger.info(
-      `  💾 Processing killmails in batches of ${BATCH_SIZE} (${BATCH_DELAY_MS}ms delay)...\n`,
+      `  📤 Queued ${queued}/${killmailList.length} killmail(s) for detail fetch`,
     );
 
-    // Helper function for delay
-    const sleep = (ms: number) =>
-      new Promise((resolve) => setTimeout(resolve, ms));
-
-    // Process killmails in batches to avoid rate limiting
-    for (
-      let batchStart = 0;
-      batchStart < killmailList.length;
-      batchStart += BATCH_SIZE
-    ) {
-      const batch = killmailList.slice(batchStart, batchStart + BATCH_SIZE);
-      const batchNum = Math.floor(batchStart / BATCH_SIZE) + 1;
-      const totalBatches = Math.ceil(killmailList.length / BATCH_SIZE);
-
-      logger.debug(
-        `     📦 Batch ${batchNum}/${totalBatches}: Processing ${batch.length} killmails...`,
-      );
-
-      // Process batch sequentially (not parallel to respect rate limits)
-      for (const km of batch) {
-        try {
-          // Fetch full details from ESI (public endpoint, no token needed)
-          const detail = await KillmailService.getKillmailDetail(
-            km.killmail_id,
-            km.killmail_hash,
-          );
-
-          // Add delay after EACH detail fetch to prevent rate limiting
-          // This is critical when multiple workers or batches run concurrently
-          await sleep(KILLMAIL_DETAIL_DELAY_MS);
-
-          const isNew = await saveKillmail(detail, km.killmail_hash);
-          if (isNew) {
-            savedCount++;
-          } else {
-            skippedCount++;
-          }
-        } catch (error: any) {
-          errorCount++;
-          logger.error(
-            `     ❌ Failed to process killmail ${km.killmail_id}:`,
-            error.message,
-          );
-        }
-      }
-
-      // Delay between batches to respect rate limits
-      if (batchStart + BATCH_SIZE < killmailList.length) {
-        logger.debug(
-          `     ⏸️  Batch ${batchNum} done (Saved: ${savedCount}, Skipped: ${skippedCount}) - waiting ${BATCH_DELAY_MS}ms...`,
-        );
-        await sleep(BATCH_DELAY_MS);
-      }
-    }
-
-    // Final summary
-    logger.info(
-      `\n  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
-    );
-    logger.info(`  ✅ Saved: ${savedCount} new killmails`);
-    logger.info(`  ⏭️  Skipped: ${skippedCount} (already in database)`);
-    logger.info(`  ❌ Errors: ${errorCount}`);
-    logger.info(`  📊 Total processed: ${killmailList.length}`);
-    logger.info(
-      `  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`,
-    );
-
-    // Update user's last sync info for incremental syncs
-    if (killmailList.length > 0) {
-      const latestKillmailId = Math.max(
-        ...killmailList.map((km) => km.killmail_id),
-      );
-      await prismaWorker.user.update({
-        where: { id: ctx.userId },
-        data: {
-          last_killmail_sync_at: new Date(),
-          last_killmail_id: latestKillmailId,
-        },
-      });
-      logger.info(
-        `  💾 Updated last sync info (latest killmail ID: ${latestKillmailId})`,
-      );
-    } else {
-      // Even if no killmails, update sync timestamp to avoid repeated empty checks
-      await prismaWorker.user.update({
-        where: { id: ctx.userId },
-        data: {
-          last_killmail_sync_at: new Date(),
-        },
-      });
-      logger.info(`  💾 Updated last sync timestamp (no killmails found)`);
-    }
+    // Bu kullanıcının en son ne zaman ele alındığı — imleç değil. İmleç
+    // `lastStoredKillmailId` ile killmail_filters'tan türetiliyor; oradaki
+    // uyarıyı oku, kendi kendini onarmıyor. Bu damgaya bakan şey
+    // killmail-sync-cron'un 15 dakikalık penceresi, ve null olması "hiç sync
+    // olmadı" demek: cron onu tam sync olarak yayınlıyor.
+    await prismaWorker.user.update({
+      where: { id: ctx.userId },
+      data: { last_killmail_sync_at: new Date() },
+    });
   } catch (error: any) {
     logger.error(
       `  ❌ ESI sync failed for ${ctx.characterName}:`,

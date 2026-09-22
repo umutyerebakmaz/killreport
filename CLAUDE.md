@@ -454,6 +454,7 @@ Established ESI queues and their consumers:
 | `esi_alliance_corporations_queue` | `worker:alliance-corporations` |
 | `esi_solar_systems_queue`         | `worker:solar-systems`         |
 | `zkillboard_character_queue`      | `worker:zkillboard`            |
+| `esi_killmail_detail_queue`       | `worker:killmail-detail`       |
 
 ### Entity enrichment
 

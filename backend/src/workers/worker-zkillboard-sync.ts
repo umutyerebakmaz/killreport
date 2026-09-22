@@ -1,5 +1,4 @@
-import { KillmailService } from '@services/killmail';
-import { saveKillmail } from '@services/killmail-writer';
+import { publishKillmailDetails } from '../queues/publish-killmail-details';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
@@ -174,53 +173,18 @@ async function syncUserKillmails(message: QueueMessage): Promise<void> {
 
     logger.info(`  📥 Found ${zkillPackages.length} killmails`);
 
-    // Fetch details and save to database
-    let savedCount = 0;
-    let skippedCount = 0;
-    let errorCount = 0;
-
-    logger.info(`  💾 Processing killmails...`);
-
-    for (const zkillPkg of zkillPackages) {
-      try {
-        // Progress indicator every 50 killmails
-        if (
-          (savedCount + skippedCount + errorCount) % 50 === 0 &&
-          savedCount + skippedCount + errorCount > 0
-        ) {
-          logger.debug(
-            `     📊 Progress: ${savedCount + skippedCount + errorCount}/${zkillPackages.length} (Saved: ${savedCount}, Skipped: ${skippedCount}, Errors: ${errorCount})`,
-          );
-        }
-
-        // Fetch killmail details from ESI
-        const detail = await KillmailService.getKillmailDetail(
-          zkillPkg.killmail_id,
-          zkillPkg.zkb.hash,
-        );
-
-        // Toplu geçmiş taraması: abonelere tarihî killmail "yeni" diye
-        // gönderilmez. Bu worker zaten hiç yayın yapmıyordu; sessizliği
-        // koruyoruz, ama artık bilerek.
-        const isNew = await saveKillmail(detail, zkillPkg.zkb.hash, {
-          publish: false,
-        });
-        if (isNew) {
-          savedCount++;
-        } else {
-          skippedCount++;
-        }
-      } catch (error) {
-        errorCount++;
-        logger.error(
-          `  ❌ Failed to process killmail ${zkillPkg.killmail_id}:`,
-          error,
-        );
-      }
-    }
+    // Liste aşaması: detayı çekmez, eksik olanları kuyruğa koyar.
+    const queued = await publishKillmailDetails(
+      zkillPackages.map((p) => ({
+        killmail_id: p.killmail_id,
+        killmail_hash: p.zkb.hash,
+      })),
+      // Bulk history: quiet, and behind anything live.
+      { announce: false, priority: 1 },
+    );
 
     logger.info(
-      `  ✅ Saved: ${savedCount}, Skipped: ${skippedCount}, Errors: ${errorCount}`,
+      `  📤 Queued ${queued}/${zkillPackages.length} killmail(s) for detail fetch`,
     );
   } catch (error) {
     logger.error(`  ❌ Sync failed:`, error);

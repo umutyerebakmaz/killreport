@@ -1,8 +1,8 @@
 import type amqp from 'amqplib';
 import { CorporationService } from '@services/corporation/corporation.service';
-import { saveKillmail } from '@services/killmail-writer';
 import { type KillmailSyncMessage } from '@services/killmail-sync-message';
-import { KillmailService } from '@services/killmail/killmail.service';
+import { lastStoredKillmailId } from '@services/killmail-cursor';
+import { publishKillmailDetails } from '../queues/publish-killmail-details';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
@@ -121,7 +121,9 @@ export async function esiCorporationKillmailWorker() {
 
           const lastKillmailId = message.fullSync
             ? undefined
-            : (user.last_corp_killmail_id ?? undefined);
+            : await lastStoredKillmailId({
+                corporationId: user.corporation_id,
+              });
 
           await syncCorporationKillmailsFromESI(
             {
@@ -266,91 +268,27 @@ async function syncCorporationKillmailsFromESI(
       return;
     }
 
-    let savedCount = 0;
-    let skippedCount = 0;
-    let errorCount = 0;
-
-    logger.info(`  💾 Processing killmails...\n`);
-
-    // Process each killmail
-    for (let i = 0; i < killmailList.length; i++) {
-      const km = killmailList[i];
-
-      try {
-        // Progress indicator every 10 killmails for better visibility
-        if (i > 0 && i % 10 === 0) {
-          logger.info(
-            `     📊 Progress: ${i}/${killmailList.length} (Saved: ${savedCount}, Skipped: ${skippedCount}, Errors: ${errorCount})`,
-          );
-        }
-
-        // Log first 3 killmails being processed
-        if (i < 3) {
-          logger.info(
-            `     🔍 Processing killmail #${i + 1}: ID ${km.killmail_id}`,
-          );
-        }
-
-        // Fetch full details from ESI (public endpoint, no token needed)
-        const detail = await KillmailService.getKillmailDetail(
-          km.killmail_id,
-          km.killmail_hash,
-        );
-
-        const isNew = await saveKillmail(detail, km.killmail_hash);
-        if (isNew) {
-          savedCount++;
-        } else {
-          skippedCount++;
-        }
-      } catch (error: any) {
-        errorCount++;
-        logger.error(
-          `     ❌ Failed to process killmail ${km.killmail_id}:`,
-          error.message,
-        );
-      }
-    }
-
-    // Final summary
-    logger.info(
-      `\n  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
-    );
-    logger.info(`  ✅ Saved: ${savedCount} new killmails`);
-    logger.info(`  ⏭️  Skipped: ${skippedCount} (already in database)`);
-    logger.info(`  ❌ Errors: ${errorCount}`);
-    logger.info(`  📊 Total processed: ${killmailList.length}`);
-    logger.info(
-      `  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`,
+    const queued = await publishKillmailDetails(
+      killmailList.map((km) => ({
+        killmail_id: km.killmail_id,
+        killmail_hash: km.killmail_hash,
+      })),
+      { announce: true, priority: 5 },
     );
 
-    // Update user's last corporation sync info for incremental syncs
-    if (killmailList.length > 0) {
-      const latestKillmailId = Math.max(
-        ...killmailList.map((km) => km.killmail_id),
-      );
-      await prismaWorker.user.update({
-        where: { id: ctx.userId },
-        data: {
-          last_corp_killmail_sync_at: new Date(),
-          last_corp_killmail_id: latestKillmailId,
-        },
-      });
-      logger.info(
-        `  💾 Updated last corporation sync info (latest killmail ID: ${latestKillmailId})`,
-      );
-    } else {
-      // Even if no killmails, update sync timestamp to avoid repeated empty checks
-      await prismaWorker.user.update({
-        where: { id: ctx.userId },
-        data: {
-          last_corp_killmail_sync_at: new Date(),
-        },
-      });
-      logger.info(
-        `  💾 Updated last corporation sync timestamp (no killmails found)`,
-      );
-    }
+    logger.info(
+      `  📤 Queued ${queued}/${killmailList.length} killmail(s) for detail fetch`,
+    );
+
+    // Bu kullanıcının en son ne zaman ele alındığı — imleç değil. İmleç
+    // `lastStoredKillmailId` ile killmail_filters'tan türetiliyor; oradaki
+    // uyarıyı oku, kendi kendini onarmıyor. Bu damgaya bakan şey
+    // killmail-sync-cron'un 15 dakikalık penceresi, ve null olması "hiç sync
+    // olmadı" demek: cron onu tam sync olarak yayınlıyor.
+    await prismaWorker.user.update({
+      where: { id: ctx.userId },
+      data: { last_corp_killmail_sync_at: new Date() },
+    });
   } catch (error: any) {
     logger.error(
       `  ❌ ESI sync failed for ${ctx.corporationName}:`,
