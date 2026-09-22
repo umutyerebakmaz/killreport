@@ -80,6 +80,26 @@ function isNotFound(error: unknown): boolean {
 }
 
 /**
+ * True for a 403, detected the same two ways as the statuses above.
+ *
+ * This function only recognises the status; it deliberately routes nothing.
+ * Whether a 403 is permanent depends on the caller: for a token-authenticated
+ * endpoint it means this user may not read this resource and retrying cannot
+ * change that, while elsewhere it can be a transient authorisation failure
+ * worth another attempt. `handleWorkerError` therefore keeps treating a 403 as
+ * an ordinary message defect, and the one worker that knows better —
+ * `worker-esi-corporation-killmails`, where 403 means "not a Director" — acts
+ * on it before handing the error over. The detection is shared so that the
+ * status-then-message shape lives in one place; the policy is not.
+ */
+export function isForbidden(error: unknown): boolean {
+  const status = (error as { response?: { status?: number } })?.response
+    ?.status;
+  if (status === 403) return true;
+  return /\b403\b/.test(String((error as { message?: string })?.message ?? ''));
+}
+
+/**
  * The failure path every worker shares.
  *
  * It replaces ~25 copies of the same try/catch, of which 17 called

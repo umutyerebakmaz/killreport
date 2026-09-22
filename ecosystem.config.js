@@ -178,6 +178,28 @@ module.exports = {
       time: true,
     },
 
+    // Corporation Killmail Worker - ESI Direct (prefetch: 1)
+    // Fed by the same cron as the user queue, from inside the API server.
+    {
+      name: 'worker-corporation-killmails',
+      cwd: '/var/www/killreport/backend',
+      script: 'yarn',
+      args: 'worker:corporation-killmails',
+      instances: 1,
+      exec_mode: 'fork',
+      env: {
+        NODE_ENV: 'production',
+        LOG_LEVEL: 'debug',
+      },
+      max_memory_restart: '512M',
+      autorestart: true,
+      restart_delay: 5000,
+      error_file:
+        '/var/www/killreport/logs/worker-corporation-killmails-error.log',
+      out_file: '/var/www/killreport/logs/worker-corporation-killmails-out.log',
+      time: true,
+    },
+
     // Queue Characters - Monthly (1st of every month at 00:00 UTC)
     {
       name: 'queue-characters',
