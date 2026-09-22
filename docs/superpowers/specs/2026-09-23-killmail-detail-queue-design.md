@@ -5,7 +5,7 @@
 **İlgili:** #244 (ikinci yarı), #248 (tek yazıcı, birinci yarı),
 `docs/superpowers/specs/2026-09-22-killmail-writer-design.md`
 
-#248 killmail'i yazan tek bir yer bıraktı: `services/killmail-writer.ts`. Bu spec
+PR #248 killmail'i yazan tek bir yer bıraktı: `services/killmail-writer.ts`. Bu spec
 onu **besleyen** yolu değiştiriyor. Bugün bir sync mesajı bir kullanıcıyı
 adlandırıyor ve worker o tek mesajın içinde 2.500 killmail'e kadar işi uçtan uca
 yapıyor. Bundan sonra killmail'i **bulmak** ile **yazmak** iki aşama olacak:
