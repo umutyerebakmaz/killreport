@@ -318,11 +318,47 @@ a forced or full re-sync.
 
 ---
 
+### 12. worker-killmail-detail
+
+```bash
+pm2 start ecosystem.config.js --only worker-killmail-detail
+pm2 logs worker-killmail-detail
+```
+
+| Property          | Value                                                   |
+| ----------------- | ------------------------------------------------------- |
+| **Command**       | `yarn worker:killmail-detail`                           |
+| **Description**   | Fetches one killmail's detail from ESI and writes it    |
+| **Queue**         | `esi_killmail_detail_queue`                             |
+| **Concurrency**   | 10 (prefetch, `ESI_PREFETCH`)                           |
+| **Memory Limit**  | 512 MB                                                  |
+| **Restart Delay** | 5 seconds                                               |
+| **Log**           | `/var/www/killreport/logs/worker-killmail-detail-*.log` |
+
+**What it does:**
+
+- Consumes one message per killmail: `{ killmailId, killmailHash, announce }`
+- Fetches `GET /killmails/{id}/{hash}/` — a public endpoint, so this worker
+  holds no credentials at all
+- Calls `services/killmail-writer.ts`, which owns the write
+- `announce: false` on bulk backfills keeps historical killmails out of the
+  live subscription feed
+
+**Fed by:** the four list stages — `worker-esi-user-killmails`,
+`worker-esi-corporation-killmails`, `worker-zkillboard-sync` and the hand-run
+`yarn sync:character`. It is source-agnostic: it never learns which of them
+found the killmail.
+
+**Priorities:** live syncs publish at 5, bulk backfills at 1, so a 200,000
+killmail history walk waits behind anything a person is waiting on.
+
+---
+
 ## ⏰ Scheduled Tasks (PM2 Cron Mode)
 
 These jobs run automatically at specific times and close when complete.
 
-### 12. queue-characters
+### 13. queue-characters
 
 ```bash
 pm2 start ecosystem.config.js --only queue-characters
@@ -354,7 +390,7 @@ pm2 logs queue-characters
 
 ---
 
-### 13. queue-alliances
+### 14. queue-alliances
 
 ```bash
 pm2 start ecosystem.config.js --only queue-alliances
@@ -386,7 +422,7 @@ pm2 logs queue-alliances
 
 ---
 
-### 14. queue-alliance-corporations
+### 15. queue-alliance-corporations
 
 ```bash
 pm2 start ecosystem.config.js --only queue-alliance-corporations
@@ -418,7 +454,7 @@ pm2 logs queue-alliance-corporations
 
 ---
 
-### 15. queue-character-corporations
+### 16. queue-character-corporations
 
 ```bash
 pm2 start ecosystem.config.js --only queue-character-corporations
@@ -446,7 +482,7 @@ pm2 logs queue-character-corporations
 
 ---
 
-### 16. snapshot-alliances
+### 17. snapshot-alliances
 
 ```bash
 pm2 start ecosystem.config.js --only snapshot-alliances
@@ -473,7 +509,7 @@ pm2 logs snapshot-alliances
 
 ---
 
-### 17. snapshot-corporations
+### 18. snapshot-corporations
 
 ```bash
 pm2 start ecosystem.config.js --only snapshot-corporations
@@ -622,7 +658,7 @@ pm2 plus
 | `killreport-backend`  | `yarn start` | 4000 | 1GB    | GraphQL API |
 | `killreport-frontend` | `yarn start` | 3000 | 1GB    | Next.js UI  |
 
-### Continuously Active Workers (9)
+### Continuously Active Workers (10)
 
 | PM2 Name                       | Command                             | Queue                             | Concurrency | Description                  |
 | ------------------------------ | ----------------------------------- | --------------------------------- | ----------- | ---------------------------- |
@@ -635,6 +671,7 @@ pm2 plus
 | `worker-zkillboard`            | `yarn worker:zkillboard`            | `zkillboard_character_queue`      | 1           | zKillboard sync              |
 | `worker-user-killmails`        | `yarn worker:user-killmails`        | `esi_user_killmails_queue`        | 1           | User ESI sync                |
 | `worker-corporation-killmails` | `yarn worker:corporation-killmails` | `esi_corporation_killmails_queue` | 1           | Corporation ESI sync         |
+| `worker-killmail-detail`       | `yarn worker:killmail-detail`       | `esi_killmail_detail_queue`       | 10          | Killmail detail fetch        |
 
 ### Scheduled Tasks (5)
 
