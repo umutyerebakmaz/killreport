@@ -2,6 +2,7 @@ import type amqp from 'amqplib';
 import { calculateKillmailValues } from '@helpers/calculate-killmail-values';
 import { CorporationService } from '@services/corporation/corporation.service';
 import { updateDailyAggregatesRealtime } from '@services/kill-stats-realtime';
+import { toAggregateInput, toFilterInput } from '@services/killmail-derived';
 import { insertKillmailFilter } from '@services/killmail-filters-realtime';
 import { type KillmailSyncMessage } from '@services/killmail-sync-message';
 import { KillmailService } from '@services/killmail/killmail.service';
@@ -360,18 +361,7 @@ async function syncCorporationKillmailsFromESI(
               });
 
               // ⚡ Update daily aggregates in real-time
-              await updateDailyAggregatesRealtime(tx, {
-                killmail_time: new Date(detail.killmail_time),
-                character_ids: detail.attackers.map(
-                  (a) => a.character_id || null,
-                ),
-                corporation_ids: detail.attackers.map(
-                  (a) => a.corporation_id || null,
-                ),
-                alliance_ids: detail.attackers.map(
-                  (a) => a.alliance_id || null,
-                ),
-              });
+              await updateDailyAggregatesRealtime(tx, toAggregateInput(detail));
             }
 
             // 4. Create item records (if any)
@@ -390,33 +380,7 @@ async function syncCorporationKillmailsFromESI(
           });
 
           // ⚡ Insert into killmail_filters for fast GIN queries
-          insertKillmailFilter({
-            killmail_id: BigInt(km.killmail_id),
-            killmail_time: new Date(detail.killmail_time),
-            solar_system_id: detail.solar_system_id,
-            attacker_count: detail.attackers.length,
-            victim_ship_type_id: detail.victim.ship_type_id || null,
-            victim_character_id: detail.victim.character_id || null,
-            victim_corporation_id: detail.victim.corporation_id || null,
-            victim_alliance_id: detail.victim.alliance_id || null,
-            attacker_ship_type_ids: detail.attackers.map(
-              (a) => a.ship_type_id || null,
-            ),
-            attacker_character_ids: detail.attackers.map(
-              (a) => a.character_id || null,
-            ),
-            attacker_corporation_ids: detail.attackers.map(
-              (a) => a.corporation_id || null,
-            ),
-            attacker_alliance_ids: detail.attackers.map(
-              (a) => a.alliance_id || null,
-            ),
-          }).catch((error) => {
-            logger.error(
-              `Failed to insert killmail_filters for ${km.killmail_id}:`,
-              error,
-            );
-          });
+          await insertKillmailFilter(toFilterInput(detail));
 
           // Publish GraphQL subscription event for real-time updates
           try {

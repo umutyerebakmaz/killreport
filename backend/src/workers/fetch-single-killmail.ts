@@ -6,6 +6,9 @@
  * Example: ts-node src/workers/fetch-single-killmail.ts 131757087 abc123...
  */
 import { calculateKillmailValues } from '@helpers/calculate-killmail-values';
+import { updateDailyAggregatesRealtime } from '@services/kill-stats-realtime';
+import { toAggregateInput, toFilterInput } from '@services/killmail-derived';
+import { insertKillmailFilter } from '@services/killmail-filters-realtime';
 import { KillmailService } from '@services/killmail';
 import prismaWorker from '@services/prisma-worker';
 
@@ -117,7 +120,14 @@ async function fetchSingleKillmail(killmailId: number, killmailHash: string) {
           })),
         });
       }
+
+      // The leaderboard aggregates, in the same transaction as the killmail.
+      // A killmail this script writes is skipped as a duplicate by every
+      // other writer afterwards, so missing them here is permanent (#245).
+      await updateDailyAggregatesRealtime(tx, toAggregateInput(detail));
     });
+
+    await insertKillmailFilter(toFilterInput(detail));
 
     console.log(`✅ Successfully saved killmail ${killmailId}`);
     console.log(`\n${'='.repeat(60)}`);
