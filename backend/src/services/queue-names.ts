@@ -43,6 +43,7 @@ export const ALL_QUEUES: readonly string[] = [
   // Killmail workers
   'esi_corporation_killmails_queue',
   'esi_user_killmails_queue',
+  'esi_killmail_detail_queue',
 
   // zKillboard workers
   'zkillboard_character_queue',
