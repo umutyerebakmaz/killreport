@@ -1,7 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type amqp from 'amqplib';
 import { RETRY_TOPOLOGY } from '@services/queue-names';
-import { deathCount, handleWorkerError, MAX_ATTEMPTS } from './worker-error';
+import {
+  deathCount,
+  handleWorkerError,
+  isForbidden,
+  MAX_ATTEMPTS,
+} from './worker-error';
 
 const channel = {
   nack: vi.fn(),
@@ -271,5 +276,27 @@ describe('handleWorkerError', () => {
       // worker that stops consuming once prefetch fills.
       expect(settled).toBe(1);
     }
+  });
+});
+
+describe('isForbidden', () => {
+  it('is true for a 403 on the errors response', () => {
+    expect(isForbidden({ response: { status: 403 } })).toBe(true);
+  });
+
+  it('is true for a 403 that only appears in the message text', () => {
+    expect(isForbidden(new Error('ESI returned 403 Forbidden'))).toBe(true);
+  });
+
+  it('does not treat a status-like substring as a 403 (word boundary)', () => {
+    expect(isForbidden(new Error('corporation 4030 has no killmails'))).toBe(
+      false,
+    );
+  });
+
+  it('is false for the other statuses this module already routes', () => {
+    expect(isForbidden({ response: { status: 404 } })).toBe(false);
+    expect(isForbidden({ response: { status: 420 } })).toBe(false);
+    expect(isForbidden(new Error('boom'))).toBe(false);
   });
 });

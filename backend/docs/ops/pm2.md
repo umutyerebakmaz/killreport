@@ -266,7 +266,7 @@ pm2 logs worker-user-killmails
 | ----------------- | ------------------------------------------------------ |
 | **Command**       | `yarn worker:user-killmails`                           |
 | **Description**   | Fetches killmails of logged-in users from ESI          |
-| **Queue**         | `user_killmail_queue`                                  |
+| **Queue**         | `esi_user_killmails_queue`                             |
 | **Concurrency**   | 1 (prefetch)                                           |
 | **Memory Limit**  | 512 MB                                                 |
 | **Restart Delay** | 5 seconds                                              |
@@ -283,11 +283,46 @@ pm2 logs worker-user-killmails
 
 ---
 
+### 11. worker-corporation-killmails
+
+```bash
+pm2 start ecosystem.config.js --only worker-corporation-killmails
+pm2 logs worker-corporation-killmails
+```
+
+| Property          | Value                                                         |
+| ----------------- | ------------------------------------------------------------- |
+| **Command**       | `yarn worker:corporation-killmails`                           |
+| **Description**   | Fetches corporation killmails of logged-in users from ESI     |
+| **Queue**         | `esi_corporation_killmails_queue`                             |
+| **Concurrency**   | 1 (prefetch)                                                  |
+| **Memory Limit**  | 512 MB                                                        |
+| **Restart Delay** | 5 seconds                                                     |
+| **Log**           | `/var/www/killreport/logs/worker-corporation-killmails-*.log` |
+
+**What it does:**
+
+- Uses the user's ESI token to read their corporation's killmails
+- Incremental sync from `last_corp_killmail_id`
+- Updates `last_corp_killmail_sync_at` timestamp
+- Requires Director or CEO role plus the
+  `esi-killmails.read_corporation_killmails.v1` scope. ESI answers 403 without
+  them; the worker records the attempt and skips the user rather than retrying,
+  so a member without the role costs one call per fifteen minutes.
+
+**ESI Endpoint:** `GET /corporations/{corporation_id}/killmails/recent/`
+
+**Fed by:** `killmail-sync-cron.ts` inside the API server, every 10 minutes —
+not by PM2. The hand-run `yarn queue:corporation-killmails` is still there for
+a forced or full re-sync.
+
+---
+
 ## ⏰ Scheduled Tasks (PM2 Cron Mode)
 
 These jobs run automatically at specific times and close when complete.
 
-### 11. queue-characters
+### 12. queue-characters
 
 ```bash
 pm2 start ecosystem.config.js --only queue-characters
@@ -319,7 +354,7 @@ pm2 logs queue-characters
 
 ---
 
-### 12. queue-alliances
+### 13. queue-alliances
 
 ```bash
 pm2 start ecosystem.config.js --only queue-alliances
@@ -351,7 +386,7 @@ pm2 logs queue-alliances
 
 ---
 
-### 13. queue-alliance-corporations
+### 14. queue-alliance-corporations
 
 ```bash
 pm2 start ecosystem.config.js --only queue-alliance-corporations
@@ -383,7 +418,7 @@ pm2 logs queue-alliance-corporations
 
 ---
 
-### 14. queue-character-corporations
+### 15. queue-character-corporations
 
 ```bash
 pm2 start ecosystem.config.js --only queue-character-corporations
@@ -411,7 +446,7 @@ pm2 logs queue-character-corporations
 
 ---
 
-### 15. snapshot-alliances
+### 16. snapshot-alliances
 
 ```bash
 pm2 start ecosystem.config.js --only snapshot-alliances
@@ -438,7 +473,7 @@ pm2 logs snapshot-alliances
 
 ---
 
-### 16. snapshot-corporations
+### 17. snapshot-corporations
 
 ```bash
 pm2 start ecosystem.config.js --only snapshot-corporations
@@ -464,7 +499,7 @@ pm2 logs snapshot-corporations
 
 ---
 
-### 17. update-alliance-counts
+### 18. update-alliance-counts
 
 ```bash
 pm2 start ecosystem.config.js --only update-alliance-counts
@@ -587,7 +622,7 @@ pm2 plus
 | `killreport-backend`  | `yarn start` | 4000 | 1GB    | GraphQL API |
 | `killreport-frontend` | `yarn start` | 3000 | 1GB    | Next.js UI  |
 
-### Continuously Active Workers (8)
+### Continuously Active Workers (9)
 
 | PM2 Name                       | Command                             | Queue                             | Concurrency | Description                  |
 | ------------------------------ | ----------------------------------- | --------------------------------- | ----------- | ---------------------------- |
@@ -598,7 +633,8 @@ pm2 plus
 | `worker-alliance-corporations` | `yarn worker:alliance-corporations` | `esi_alliance_corporations_queue` | 5           | Corp discovery               |
 | `worker-types`                 | `yarn worker:info:types`            | `esi_type_info_queue`             | 10          | Item/ship info               |
 | `worker-zkillboard`            | `yarn worker:zkillboard`            | `zkillboard_character_queue`      | 1           | zKillboard sync              |
-| `worker-user-killmails`        | `yarn worker:user-killmails`        | `user_killmail_queue`             | 1           | User ESI sync                |
+| `worker-user-killmails`        | `yarn worker:user-killmails`        | `esi_user_killmails_queue`        | 1           | User ESI sync                |
+| `worker-corporation-killmails` | `yarn worker:corporation-killmails` | `esi_corporation_killmails_queue` | 1           | Corporation ESI sync         |
 
 ### Scheduled Tasks (5)
 
