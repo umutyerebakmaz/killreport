@@ -1,7 +1,7 @@
 # Killmail'i tek bir yazıcı kaydetsin — tasarım
 
 **Tarih:** 2026-09-22
-**Durum:** inceleme bekliyor
+**Durum:** onaylandı (2026-09-23)
 **İlgili:** #244 (bu spec), #245 (user sync'in eksik derived write'ları, #246'da
 kapandı), #243 (corporation sync zamanlaması)
 
@@ -188,9 +188,12 @@ Yani bugünkü yayınlamama hâli muhtemelen bir ihmal, ama sonucu kazara doğru
 3. **Yayın çağıranda kalır** — yazıcı hiç yayınlamaz. En küçük değişiklik, ama
    "kaydedildi ama duyurulmadı" ayrışması aynen sürer.
 
-**Önerim 1.** Seçenek 2 zarif ama eşiği ileride kimse hatırlamaz ve kesinti
-sonrası sessizlik gerçek bir arıza olur. Seçenek 1'de karar çağıranda, kodda
-görünür, ve varsayılanı doğru taraf.
+**Karar (2026-09-23, inceleme): seçenek 1.** İmza
+`saveKillmail(detail, hash, { publish = true })` olur; `worker-zkillboard-sync`
+ve `--full` sync'ler `false` geçer, geri kalan her yol varsayılanı kullanır.
+Seçenek 2 zarifti ama eşiği altı ay sonra kimse hatırlamaz ve uzun bir kesinti
+sonrası canlı akışın sessizleşmesi gerçek bir arıza olurdu. Seçenek 1'de karar
+çağıranda, kodda görünür, ve varsayılanı doğru taraf.
 
 ---
 
@@ -251,10 +254,17 @@ yayıncı veritabanında olanı eleyerek mi kuyruğa koyar.
 
 ---
 
-## 9. İnceleme için açık sorular
+## 9. İncelemede kapanan kararlar
 
-1. Bölüm 5: `publish` seçeneği mi, yaş eşiği mi, yoksa yayın çağıranda mı kalsın?
-2. `worker-killmails.ts` bu PR'da silinsin mi, yoksa ayrı bir temizlik PR'ı mı
-   olsun?
-3. Çeken kaynaklarda "detaydan önce varlık kontrolü" iyileştirmesi bu kapsama
-   dahil edilsin mi, yoksa yolu açık bırakıp ayrı mı alınsın?
+2026-09-23'te üçü de karara bağlandı; spec onaylandı.
+
+1. **Yayın:** `publish` seçeneği, varsayılanı `true`. Gerekçesi bölüm 5'te.
+2. **Ölü worker:** `worker-killmails.ts` bu iş içinde silinir, ayrı bir temizlik
+   PR'ı beklemez. Zaten aynı kuyruğun hiç başlamayan ikinci tüketicisi; geçiş
+   sırasında onu uyarlamak ya da atlamak, olmayan bir şey için karar vermek
+   olurdu. Ona link veren üç doküman aynı değişiklikte düzelir.
+3. **Varlık ön-kontrolü:** kapsam dışı, yolu açık. Yazıcı `false` döndüğü için
+   çağıranlar istedikleri anda detay çağrısından önce sorabilir hâle geliyor,
+   ama her çağıranın sorgu sırasını bu geçişte değiştirmek diff'i ikiye katlar
+   ve iki değişiklik birbirini gizler. Boşa giden detay çağrıları asıl olarak
+   `--full` sync'lerde görünüyor; detay kuyruğu spec'inin doğal konusu.
