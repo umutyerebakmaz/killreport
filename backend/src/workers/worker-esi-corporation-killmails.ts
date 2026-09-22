@@ -1,14 +1,10 @@
 import type amqp from 'amqplib';
-import { calculateKillmailValues } from '@helpers/calculate-killmail-values';
 import { CorporationService } from '@services/corporation/corporation.service';
-import { updateDailyAggregatesRealtime } from '@services/kill-stats-realtime';
-import { toAggregateInput, toFilterInput } from '@services/killmail-derived';
-import { insertKillmailFilter } from '@services/killmail-filters-realtime';
+import { saveKillmail } from '@services/killmail-writer';
 import { type KillmailSyncMessage } from '@services/killmail-sync-message';
 import { KillmailService } from '@services/killmail/killmail.service';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { pubsub } from '@services/pubsub';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import { loadUserCredentials } from '@services/user-credentials';
 import { handleWorkerError, isForbidden } from './worker-error';
@@ -301,112 +297,11 @@ async function syncCorporationKillmailsFromESI(
           km.killmail_hash,
         );
 
-        // ⚡ Calculate value fields before saving
-        const values = await calculateKillmailValues({
-          victim: { ship_type_id: detail.victim.ship_type_id },
-          items:
-            detail.victim.items?.map((item) => ({
-              item_type_id: item.item_type_id,
-              quantity_destroyed: item.quantity_destroyed,
-              quantity_dropped: item.quantity_dropped,
-              singleton: item.singleton,
-            })) || [],
-        });
-
-        // Save to database in a transaction
-        try {
-          await prismaWorker.$transaction(async (tx) => {
-            // 1. Create killmail record with cached values
-            await tx.killmail.create({
-              data: {
-                killmail_id: km.killmail_id,
-                killmail_hash: km.killmail_hash,
-                killmail_time: new Date(detail.killmail_time),
-                solar_system_id: detail.solar_system_id,
-                total_value: values.totalValue,
-                destroyed_value: values.destroyedValue,
-                dropped_value: values.droppedValue,
-                attacker_count: detail.attackers.length,
-              },
-            });
-
-            // 2. Create victim record
-            await tx.victim.create({
-              data: {
-                killmail_id: km.killmail_id,
-                character_id: detail.victim.character_id || null,
-                corporation_id: detail.victim.corporation_id,
-                alliance_id: detail.victim.alliance_id || null,
-                faction_id: detail.victim.faction_id || null,
-                ship_type_id: detail.victim.ship_type_id,
-                damage_taken: detail.victim.damage_taken,
-              },
-            });
-
-            // 3. Create attacker records
-            if (detail.attackers && detail.attackers.length > 0) {
-              await tx.attacker.createMany({
-                data: detail.attackers.map((attacker) => ({
-                  killmail_id: km.killmail_id,
-                  character_id: attacker.character_id || null,
-                  corporation_id: attacker.corporation_id || null,
-                  alliance_id: attacker.alliance_id || null,
-                  faction_id: attacker.faction_id || null,
-                  ship_type_id: attacker.ship_type_id || null,
-                  weapon_type_id: attacker.weapon_type_id || null,
-                  damage_done: attacker.damage_done,
-                  final_blow: attacker.final_blow,
-                  security_status: attacker.security_status || 0,
-                })),
-              });
-
-              // ⚡ Update daily aggregates in real-time
-              await updateDailyAggregatesRealtime(tx, toAggregateInput(detail));
-            }
-
-            // 4. Create item records (if any)
-            if (detail.victim.items && detail.victim.items.length > 0) {
-              await tx.killmailItem.createMany({
-                data: detail.victim.items.map((item) => ({
-                  killmail_id: km.killmail_id,
-                  item_type_id: item.item_type_id,
-                  flag: item.flag,
-                  quantity_dropped: item.quantity_dropped || null,
-                  quantity_destroyed: item.quantity_destroyed || null,
-                  singleton: item.singleton,
-                })),
-              });
-            }
-          });
-
-          // ⚡ Insert into killmail_filters for fast GIN queries
-          await insertKillmailFilter(toFilterInput(detail));
-
-          // Publish GraphQL subscription event for real-time updates
-          try {
-            await pubsub.publish('NEW_KILLMAIL', {
-              killmailId: km.killmail_id,
-            });
-          } catch (pubsubError) {
-            // Don't fail the entire operation if pubsub fails
-            logger.error(
-              `     ⚠️  Failed to publish subscription event:`,
-              pubsubError,
-            );
-          }
-
+        const isNew = await saveKillmail(detail, km.killmail_hash);
+        if (isNew) {
           savedCount++;
-        } catch (createError: any) {
-          // Handle duplicate killmails (already exists in database)
-          if (createError.code === 'P2002') {
-            skippedCount++;
-            // Log first few skipped killmails
-            if (skippedCount <= 3) {
-              logger.info(`     ⏭️  Skipped (duplicate): ${km.killmail_id}`);
-            }
-          } else {
-            throw createError;
-          }
+        } else {
+          skippedCount++;
         }
       } catch (error: any) {
         errorCount++;

@@ -37,12 +37,11 @@ await updateDailyAggregatesRealtime(tx, {
 - Overhead: <5ms per killmail
 - Zero latency for leaderboards ⚡
 
-**Integrated in**:
-
-- [`worker-redisq-stream.ts`](../../src/workers/worker-redisq-stream.ts) - Real-time zKillboard stream
-- [`worker-killmails.ts`](../../src/workers/worker-killmails.ts) - Character killmail sync
-- [`worker-zkillboard-sync.ts`](../../src/workers/worker-zkillboard-sync.ts) - Bulk zKillboard sync
-- [`worker-esi-corporation-killmails.ts`](../../src/workers/worker-esi-corporation-killmails.ts) - Corp killmail sync
+**Called from one place**:
+[`services/killmail-writer.ts`](../../src/services/killmail-writer.ts), inside
+the same transaction as the killmail row. Every source — the RedisQ stream, the
+two ESI syncs, the zKillboard backfill and the two hand-run scripts — goes
+through it.
 
 #### Layer 2: Periodic Refresh (FALLBACK) — not implemented
 

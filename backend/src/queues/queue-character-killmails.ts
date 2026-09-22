@@ -25,7 +25,7 @@ async function queueSpecificCharacters() {
     logger.info('  yarn queue:character 95465499');
     logger.info('  yarn queue:character 95465499 123456789 987654321');
     logger.info('Then start the worker:');
-    logger.info('  yarn worker:killmails');
+    logger.info('  yarn worker:zkillboard');
     process.exit(1);
   }
 
@@ -66,7 +66,7 @@ async function queueSpecificCharacters() {
       logger.warn(`Skipped ${errorCount} invalid ID(s)`);
     }
     logger.info('Now run the worker to process them:');
-    logger.info('  yarn worker:killmails');
+    logger.info('  yarn worker:zkillboard');
 
     await channel.close();
     process.exit(0);
