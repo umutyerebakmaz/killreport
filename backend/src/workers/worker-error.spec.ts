@@ -300,3 +300,102 @@ describe('isForbidden', () => {
     expect(isForbidden(new Error('boom'))).toBe(false);
   });
 });
+
+/**
+ * A Prisma failure carries the call site and a numbered code frame in its
+ * message. Matching a status anywhere in that text means an unrelated edit
+ * that shifts a worker's line numbers can reclassify a database error as an
+ * HTTP one (#235).
+ */
+function prismaError(line: number): Error {
+  return new Error(
+    [
+      'Invalid `prismaWorker.user.update()` invocation in',
+      `/root/killreport/backend/src/workers/worker-esi-user-killmails.ts:${line}:35`,
+      '',
+      `  ${line - 2} });`,
+      `  ${line - 1}`,
+      `→ ${line} await prismaWorker.user.update({`,
+      'An operation failed because it depends on one or more records that were required but not found.',
+    ].join('\n'),
+  );
+}
+
+describe('a status that only appears past the first line', () => {
+  it('does not read a Prisma code frame at line 420 as a rate limit', async () => {
+    await handleWorkerError(
+      channel,
+      message(),
+      'esi_user_killmails_queue',
+      prismaError(420),
+      logger,
+    );
+
+    // The rate limit branch requeues without burning an attempt, so a false
+    // positive here loops the message forever and it never reaches parking.
+    expect(channel.nack).toHaveBeenCalledWith(message(), false, false);
+  });
+
+  it('does not read a Prisma code frame at line 429 as a rate limit', async () => {
+    await handleWorkerError(
+      channel,
+      message(),
+      'esi_user_killmails_queue',
+      prismaError(429),
+      logger,
+    );
+
+    expect(channel.nack).toHaveBeenCalledWith(message(), false, false);
+  });
+
+  it('does not read a Prisma code frame at line 404 as a missing record', async () => {
+    await handleWorkerError(
+      channel,
+      message(),
+      'esi_user_killmails_queue',
+      prismaError(404),
+      logger,
+    );
+
+    // The 404 branch acks: a false positive drops the work silently.
+    expect(channel.ack).not.toHaveBeenCalled();
+    expect(channel.nack).toHaveBeenCalledWith(message(), false, false);
+  });
+
+  it('does not read a Prisma code frame at line 403 as forbidden', () => {
+    expect(isForbidden(prismaError(403))).toBe(false);
+  });
+
+  it('still reads the status line these services actually throw', async () => {
+    // zkillboard.ts, killmail.service.ts, character.service.ts and
+    // corporation.service.ts all use fetch and put the status in the first
+    // line of a plain Error.
+    vi.useFakeTimers();
+    const done = handleWorkerError(
+      channel,
+      message(),
+      'zkillboard_character_queue',
+      new Error('zKillboard request failed: 429 Too Many Requests'),
+      logger,
+    );
+    await vi.advanceTimersByTimeAsync(60_000);
+    await done;
+    vi.useRealTimers();
+
+    expect(channel.nack).toHaveBeenCalledWith(message(), false, true);
+  });
+});
+
+describe('a status embedded in a longer number', () => {
+  it('does not treat 4040 as a 404', async () => {
+    await handleWorkerError(
+      channel,
+      message(),
+      'esi_type_info_queue',
+      new Error('type 4040 could not be saved'),
+      logger,
+    );
+
+    expect(channel.ack).not.toHaveBeenCalled();
+  });
+});
