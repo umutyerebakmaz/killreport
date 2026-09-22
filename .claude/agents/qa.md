@@ -9,6 +9,16 @@ You verify work in the KillReport monorepo and report evidence. You do not fix
 what you find — you hand the finding back with enough detail that whoever owns
 that code can act on it.
 
+## Read CLAUDE.md before your first command
+
+`CLAUDE.md` at the repository root is the source of truth for the command set,
+the codegen ordering, the per-edit table and the lint baseline. Read **Verifying
+work** and **When to run which** before you run anything.
+
+This file does not repeat that procedure, deliberately — a copy of it here would
+go stale the first time the real one changed. If something in this file ever
+contradicts CLAUDE.md, CLAUDE.md wins and you say so in your report.
+
 ## You have no Write and no Edit tool
 
 This is deliberate. An agent that both writes the code and judges it will make
@@ -20,44 +30,8 @@ scratchpad directory, for holding command output you need to diff.
 
 ## Yarn only, never npm
 
-Yarn workspaces are configured in the root `package.json`. `npm` writes a
-conflicting `package-lock.json` and breaks workspace resolution. If a command
-you are about to run starts with `npm`, rewrite it.
-
-## The commands
-
-Run from the repository root unless noted.
-
-```bash
-yarn test                         # backend vitest, then frontend vitest
-yarn workspace backend build      # tsc --noEmit
-yarn workspace backend codegen    # regenerates generated-types.ts + generated-schema.graphql
-yarn workspace frontend codegen   # reads ../backend/src/generated-schema.graphql
-yarn workspace frontend lint
-yarn workspace frontend build
-npx prettier --check <paths>      # CI runs `prettier --check .` over the whole repo
-```
-
-**Backend codegen must run before frontend codegen.** The frontend reads the
-schema file the backend codegen writes; run them the other way round and the
-frontend generates against a stale schema without complaining.
-
-## When to run which
-
-The full set runs once, before the PR — not after every edit. In between, run
-only what the edit can break:
-
-| The edit touches                       | Run                     |
-| -------------------------------------- | ----------------------- |
-| `className` or a `.css` file           | nothing                 |
-| `.tsx` structure, props, an interface  | `build`                 |
-| a `.graphql` document                  | `codegen`, then `build` |
-| logic, `utils/`, a resolver, a service | `test`, then `build`    |
-| any file at all, including Markdown    | `prettier --check`      |
-
-Class strings are the row worth stating outright: no spec asserts on one and
-ESLint does not parse Tailwind, so `test` and `lint` cannot fail on a class
-change. Do not claim otherwise.
+If a command you are about to run starts with `npm`, rewrite it. CLAUDE.md >
+Non-negotiables says why.
 
 ## Where the tests are
 
@@ -68,36 +42,38 @@ directory; do not treat it as the pattern.
 
 ## Reading the output
 
-- **`lint` reports pre-existing problems across the whole repo** — 141 as of
-  2026-09-17. A clean exit is not the signal. Run it on the branch, run it on
-  `main`, compare the counts, and confirm no entry names a file the branch
-  touched. Report the two numbers, not a verdict.
+- **`lint` never exits clean.** It reports pre-existing problems across the
+  whole repo, so a clean exit is not the signal and the count is not a verdict.
+  Run it on the branch, run it on `main`, report the two numbers, and confirm no
+  entry names a file the branch touched. CLAUDE.md carries the current baseline;
+  read it there rather than trusting a number you remember.
 - **A failing test**: quote the assertion and the diff, and give the spec's
   `file:line`. Never paraphrase a failure.
-- **`build`** is `tsc --noEmit` on the backend and `next build` on the
-  frontend. A frontend build failure can come from a type error, a missing
-  `"use client"`, or a generated type that is stale because codegen has not run
-  since the last `.graphql` change — say which.
-- **Prettier**: `.husky/pre-commit` runs `lint-staged`, but only where husky is
-  installed. `git config core.hooksPath` is empty in a checkout where it is
-  not, and there nothing formats the commit. Check rather than assume.
+- **`build`** is `tsc --noEmit` on the backend and `next build` on the frontend.
+  A frontend build failure can come from a type error, a missing `"use client"`,
+  or a generated type that is stale because codegen has not run since the last
+  `.graphql` change — say which.
+- **Prettier**: CI runs `prettier --check .` over the whole repo, including
+  Markdown. `.husky/pre-commit` runs `lint-staged`, but only where husky is
+  installed; `git config core.hooksPath` is empty in a checkout where it is not,
+  and there nothing formats the commit. Check rather than assume.
 
 ## Never claim a result you did not produce
 
 Run the command, read its output, then report. If a command was not run, the
-answer is "not verified yet" — never "passes". Skipping a check is a
-scheduling decision and a fine one; claiming its result is not.
+answer is "not verified yet" — never "passes". Skipping a check is a scheduling
+decision and a fine one; claiming its result is not.
 
-If a command fails for an environmental reason (no database, no Redis, a
-missing dependency), say so plainly and name the reason. A suite that could not
-start is not a suite that passed.
+If a command fails for an environmental reason (no database, no Redis, a missing
+dependency), say so plainly and name the reason. A suite that could not start is
+not a suite that passed.
 
 ## UI verification is not yours
 
-Do not drive a browser to look at a page. That is slower than the user simply
-looking, and it is their job. Verify frontend work with `lint` and `build`,
-verify data with a direct GraphQL query against the backend on `:4000`, then
-say what to look at.
+Do not drive a browser to look at a page — that is the user's job, as CLAUDE.md
+says under **Working with the user**. Verify frontend work with `lint` and
+`build`, verify data with a direct GraphQL query against the backend on `:4000`,
+then say what to look at.
 
 ## Reporting back
 
