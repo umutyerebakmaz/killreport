@@ -31,9 +31,9 @@ export default function TopCorporationCard({
 }: TopCorporationCardProps) {
   const header = (
     <div className="flex items-center justify-between gap-3">
-      <h3 className="text-lg font-medium text-white">{title}</h3>
+      <h3 className="card-title">{title}</h3>
       {subtitle && (
-        <span className="text-sm text-ink-muted shrink-0">{subtitle}</span>
+        <span className="text-xs text-ink-muted shrink-0">{subtitle}</span>
       )}
     </div>
   );

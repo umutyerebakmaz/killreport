@@ -198,7 +198,7 @@ export default function KillmailSummaryCard({
         {victim?.shipType && scope !== 'dropped' && (
           <div className="card col-span-full">
             <div className="card-header">
-              <h3 className="text-lg font-medium text-white">Ship</h3>
+              <h3 className="card-title">Ship</h3>
             </div>
             <div className="flex items-center gap-3 px-2 py-2 transition-colors hover:bg-destroyed-fill/50 bg-destroyed-fill/40">
               <div className="relative shrink-0">

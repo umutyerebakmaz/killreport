@@ -40,17 +40,16 @@
   }
 
   /*
-   * Type identical to a .card-header's title, tracking included: the two sit
-   * side by side on /killmails, so any difference between them reads as an
-   * accident rather than as a hierarchy. The padding follows the same rule —
-   * py-2.5 around a text-lg line box is 20 + 28 = 48, the height .card-header
-   * lands on, and the reasoning for that number lives there. It was py-3, and
-   * py-3.5 before that when this was text-base.
+   * The workers page's header, which read better than the text-lg title this
+   * replaced: small muted capitals label the columns instead of competing
+   * with the rows for attention. The type is .card-title's, so a table header
+   * and a card header sitting side by side on /killmails still match.
    *
-   * A .td-cell below it is 80, so the ratio the header keeps against its own
-   * column is the one a card keeps against its rows.
+   * py-4 around a text-xs line box is 32 + 16 = 48, the height .card-header
+   * holds, so the header keeps the same ratio against an 80px .td-cell that
+   * a card keeps against its rows.
    */
   .th-cell {
-    @apply px-4 py-2.5 text-lg font-medium text-white;
+    @apply px-4 py-4 text-xs font-medium tracking-wider uppercase text-ink-muted;
   }
 }

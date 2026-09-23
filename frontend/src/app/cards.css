@@ -47,11 +47,12 @@
   /* A ground of its own, one step up from the card, so the heading reads as
      the card's own title rather than as its first row.
 
-     py-2.5 around a text-lg line box is 20 + 28 = 48, and that number is
-     chosen against the content below it rather than picked for the heading
-     alone. It was py-3, which came to 52: close enough to .card-band's 56 to
-     read as a misalignment rather than as a step, and the only height in the
-     card that the 8px grid did not contain.
+     48 is a floor rather than padding around one line: the title is text-xs
+     now, but a header can also hold a text-sm subtitle or a size-4 icon, and
+     padding would give each of those its own height. A column flex centres
+     whatever is inside and still stretches it to the full width, so a
+     justify-between header keeps its two ends. min-h-12 is also .card-band's,
+     so the header and the band stay one height.
 
      What 48 sits against depends on the row, and there are two kinds:
 
@@ -65,7 +66,14 @@
        it, the ground and the border say which is the heading, and matching
        heights are what a table's header row does. */
   .card-header {
-    @apply px-4 py-2.5 border-b bg-surface-inset border-white/10;
+    @apply flex flex-col justify-center px-4 border-b min-h-12 bg-surface-inset border-white/10;
+  }
+
+  /* The heading inside a .card-header, typed like a .th-cell: the workers
+     page's table header, carried to every card and table so they read as one
+     family. */
+  .card-title {
+    @apply text-xs font-medium tracking-wider uppercase text-ink-muted;
   }
 
   .card-body {

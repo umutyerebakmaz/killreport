@@ -123,10 +123,8 @@ export default function AttackersCard({
 
   return (
     <div>
-      <div className="flex justify-end card-header">
-        <span className="text-lg font-medium text-white">
-          {killmail.attackerCount} ATTACKERS
-        </span>
+      <div className="items-end card-header">
+        <span className="card-title">{killmail.attackerCount} ATTACKERS</span>
       </div>
 
       {/* All Attackers */}

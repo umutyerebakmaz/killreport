@@ -58,14 +58,14 @@ export default function AdjacentSystemsTab({
   return (
     <div className="overflow-x-auto border bg-white/5 border-white/10">
       <table className="w-full text-sm">
-        <thead className="text-xs tracking-wide text-ink-muted uppercase border-b border-white/10">
+        <thead className="bg-surface-inset">
           <tr>
-            <th className="px-4 py-3 text-left">System</th>
-            <th className="px-4 py-3 text-left">Security</th>
-            <th className="px-4 py-3 text-left">Constellation</th>
-            <th className="px-4 py-3 text-left">Region</th>
-            <th className="px-4 py-3 text-right">Ship kills</th>
-            <th className="px-4 py-3 text-right">Pod kills</th>
+            <th className="text-left th-cell">System</th>
+            <th className="text-left th-cell">Security</th>
+            <th className="text-left th-cell">Constellation</th>
+            <th className="text-left th-cell">Region</th>
+            <th className="text-right th-cell">Ship kills</th>
+            <th className="text-right th-cell">Pod kills</th>
           </tr>
         </thead>
         <tbody>
