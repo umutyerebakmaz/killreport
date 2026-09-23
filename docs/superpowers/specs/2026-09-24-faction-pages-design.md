@@ -43,8 +43,6 @@ olacak: **Attributes**, **Killmails**, **Members** sekmeleri.
 
 - `killmail_filters`'ta faction kolonu yok. `KillmailFilter` girdisinde
   `factionId` yok.
-- `topFactions` (`backend/src/resolvers/leaderboard/queries.ts:435-489`) faction
-  bilgisini ham `attackers` tablosunu `killmail_filters`'a join'leyerek alıyor.
 - `TopFactionsCard.tsx:82` satırları link değil, düz `span`.
 - `frontend/src/app/factions/` yok.
 
@@ -116,7 +114,8 @@ Faction'ı olmayan killmail'in dizisi `'{}'` olur; `insertKillmailFilter` yeni
 satırlara da boş dizi yazıyor, iki yol aynı sonucu verir.
 
 500021 (ESI'nin "Unknown" yer tutucusu) diziye olduğu gibi yazılır. Kolon ham
-veriyi tutar; ayıklamak okuyanın işidir (`topFactions`'taki `<> 500021`).
+veriyi tutar; ayıklamak okuyanın işidir (4.2'deki `factionTopFactionTargets`,
+`topFactions`'ın bugün yaptığı gibi `<> 500021` ile ayıklar).
 
 **`factions`:**
 
@@ -260,29 +259,6 @@ servise delege eder; `resolvers/index.ts`'e bağlanır.
 - `CorporationFilter`'a `factionId: Int`; `corporations` resolver'ında
   `allianceId` ile aynı biçimde `where`'e girer.
 
-### 4.5 `topFactions` geçişi
-
-`leaderboard/queries.ts`'deki sorgu `attackers` join'i yerine yeni diziyi
-okur:
-
-```sql
-SELECT f.faction_id, COUNT(*)::BIGINT AS kill_count
-FROM   killmail_filters kf,
-       unnest(kf.attacker_faction_ids) AS f(faction_id)
-WHERE  <mevcut zaman ve lokasyon koşulları>
-  AND  f.faction_id <> 500021
-GROUP  BY f.faction_id
-ORDER  BY kill_count DESC
-LIMIT  ${limit}
-```
-
-Dizi killmail başına tekil tutulduğu için `COUNT(*)` bugünkü
-`COUNT(DISTINCT kf.killmail_id)` ile aynı sayıyı verir. Cache anahtarı ve TTL
-değişmez.
-
-Sorgu resolver'da kalır. Mevcut resolver'ları servise taşımak CLAUDE.md'ye göre
-ayrı bir iştir.
-
 ---
 
 ## 5. Frontend
@@ -342,7 +318,8 @@ members) ve `frontend/src/graphql/FactionStats.graphql` (beş kart).
 - Growth ve War History sekmeleri.
 - ENTITIES menüsünün kendisi (ayrı PR).
 - `TopCorporationCard.tsx:84`'teki `?=tab=killmails` yazım hatası (ayrı küçük PR).
-- `topFactions`'ı ve diğer resolver'ları servise taşımak.
+- `topFactions` sorgusu. Bugünkü `attackers` join'iyle çalışmaya devam eder;
+  yeni kolonları kullanmaya geçirilmez, servise de taşınmaz.
 - Elle yönetilen beş tabloyu Prisma şemasına almak.
 - `alliances.faction_id` (bugün hiçbir yerde okunmuyor).
 
@@ -359,8 +336,6 @@ members) ve `frontend/src/graphql/FactionStats.graphql` (beş kart).
   ve `filter`'ın hepsini içerir; hit'te SQL'e gidilmez; `BigInt` → `Number`;
   TTL filtreye göre seçilir.
 - `filters-materialized.spec.ts` (yeni): `factionId` dalı doğru koşulu üretir.
-- `leaderboard/queries.spec.ts`: `topFactions` `attackers`'a join atmaz,
-  `unnest(attacker_faction_ids)` kullanır, 500021'i dışarıda bırakır.
 - `TopFactionsCard.spec.tsx` (yeni): satır `/factions/${id}?tab=killmails`'e
   link verir.
 
@@ -374,8 +349,6 @@ members) ve `frontend/src/graphql/FactionStats.graphql` (beş kart).
    - `victim_faction_id` dolu `kf` satırları = `victims.faction_id` dolu satır
      sayısı (12.014).
    - `attacker_faction_ids IS NULL` olan satır kalmaz.
-3. `topFactions` eşitliği: geçişten önce TODAY, LAST_7_DAYS ve ALL_TIME için
-   çıktı kaydedilir, geçişten sonra tekrar alınır; sayılar birebir aynı.
 
 ### 7.3 API
 
