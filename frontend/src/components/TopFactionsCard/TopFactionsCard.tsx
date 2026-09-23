@@ -79,7 +79,7 @@ export default function TopFactionsCard({
                 </div>
 
                 <div className="flex items-center justify-between flex-1 min-w-0 gap-2">
-                  <span className="block min-w-0 font-medium text-orange-400 truncate">
+                  <span className="block min-w-0 font-medium text-ink-muted truncate">
                     {faction.name}
                   </span>
                   <span className="text-base font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">

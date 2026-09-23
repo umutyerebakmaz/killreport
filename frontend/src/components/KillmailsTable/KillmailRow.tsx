@@ -154,7 +154,7 @@ export default function KillmailRow({
                 <Tooltip content="Show Region Info" position="top">
                   <Link
                     href={`/regions/${km.solarSystem.constellation.region.id}`}
-                    className="transition-colors hover:text-blue-300"
+                    className="transition-colors hover:text-accent-link"
                     prefetch={false}
                   >
                     {km.solarSystem.constellation.region.name}

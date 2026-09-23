@@ -4,6 +4,7 @@ import { Loader } from '@/components/Loader/Loader';
 import RegionMap from '@/components/RegionMap/RegionMap';
 import Card from '@/components/ui/Card';
 import RankNumber from '@/components/ui/RankNumber';
+import Tooltip from '@/components/Tooltip/Tooltip';
 import Link from 'next/link';
 import { ReactNode } from 'react';
 
@@ -68,12 +69,18 @@ export default function TopRegionsCard({
                 />
 
                 <div className="flex items-center justify-between flex-1 min-w-0 gap-2">
-                  <Link
-                    href={`/regions/${region.id}`}
-                    className="block min-w-0 font-medium text-orange-400 truncate hover:underline"
+                  <Tooltip
+                    content="Show region info"
+                    className="w-full! min-w-0"
                   >
-                    {region.name}
-                  </Link>
+                    <Link
+                      href={`/regions/${region.id}`}
+                      className="block min-w-0 font-medium text-ink-muted truncate hover:text-accent-link"
+                      prefetch={false}
+                    >
+                      {region.name}
+                    </Link>
+                  </Tooltip>
                   <span className="text-base font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">
                     {region.killCount}
                   </span>

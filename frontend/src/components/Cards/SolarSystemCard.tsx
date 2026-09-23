@@ -109,7 +109,7 @@ export default function SolarSystemCard({
                   <Link
                     href={`/regions/${system.constellation.region.id}?tab=killmails`}
                     prefetch={false}
-                    className="text-base text-blue-400 transition-colors hover:text-blue-300"
+                    className="text-base text-blue-400 transition-colors hover:text-accent-link"
                   >
                     {system.constellation.region.name}
                   </Link>
