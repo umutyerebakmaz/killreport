@@ -1,0 +1,49 @@
+name: Renovate merge
+
+# Merges Renovate's automerge pull requests under the repository owner's name.
+#
+# When Renovate merges by itself, the squash commit on main is authored by
+# renovate[bot], and every such commit lists the bot among the repository's
+# contributors. renovate.json therefore sets automergeType to "pr-comment":
+# Renovate still decides which updates may merge, still waits for the branch to
+# go green, and then only posts the comment below instead of merging. This job
+# answers that comment and merges with the owner's token and address.
+#
+# The subject and body are given explicitly. GitHub's default squash message
+# would add a Co-authored-by trailer for renovate[bot], which counts it as a
+# contributor all the same.
+#
+# Nothing from the pull request is checked out or executed, which is what makes
+# holding a write token in an issue_comment job safe.
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+
+jobs:
+  merge:
+    name: Merge
+    if: >-
+      github.event.issue.pull_request &&
+      github.event.issue.user.login == 'renovate[bot]' &&
+      github.event.comment.user.login == 'renovate[bot]' &&
+      github.event.comment.body == 'renovate: ready to merge'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Squash-merge as the owner
+        env:
+          # Fine-grained token for this repository only:
+          # Contents read/write, Pull requests read/write.
+          GH_TOKEN: ${{ secrets.RENOVATE_MERGE_TOKEN }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          PR_TITLE: ${{ github.event.issue.title }}
+        run: >-
+          gh pr merge "$PR_NUMBER"
+          --repo "$GITHUB_REPOSITORY"
+          --squash
+          --author-email umutyerebakmaz@users.noreply.github.com
+          --subject "$PR_TITLE (#$PR_NUMBER)"
+          --body "Merged for Renovate by the renovate-merge workflow."
