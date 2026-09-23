@@ -200,9 +200,16 @@ output before claiming anything passes.
 
 ### When to run which
 
-The full set runs **once, before opening the PR** — not after every edit. CI
-runs all of it on every PR anyway, so a local full pass per edit is the same
-work a third time. In between, run only what the edit can actually break:
+CI runs the full set on every PR, so locally run only what the edit can
+actually break — per edit and before the PR alike. The full set runs locally
+only for a **serious** change: logic in a resolver, service, worker or queue,
+a `.graphql` or Prisma schema, a migration, a dependency bump, or build and
+tooling config. Anything lighter — class strings, CSS, copy, Markdown — goes
+to the PR on the table's row alone and CI is the full pass.
+
+When the full set does run, hand it to the `qa` agent in the background
+rather than running it in the main session, and keep working while it goes.
+Migrations and `$queryRaw` column questions go to the `database` agent.
 
 | The edit touches                       | What can break                  | Run                     |
 | -------------------------------------- | ------------------------------- | ----------------------- |
@@ -223,8 +230,9 @@ whatever you edited before opening the PR. `.husky/pre-commit` calls
 installed — `git config core.hooksPath` is empty in a checkout where it is
 not, and there the commit is formatted by nobody.
 
-The cost of batching is honesty about it. **Until the full set has run, say
-"not verified yet" rather than "passes".** Skipping a command is a scheduling
+The cost of skipping is honesty about it. **Until a check has run, say "not
+verified yet" rather than "passes"** — for a light change that means naming
+CI as the pass that will run it. Skipping a command is a scheduling
 decision; claiming its result without running it is not.
 
 `lint` reports pre-existing problems across the repo — 141 as of 2026-09-17.
