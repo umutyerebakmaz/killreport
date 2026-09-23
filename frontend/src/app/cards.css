@@ -47,7 +47,7 @@
   /* A ground of its own, one step up from the card, so the heading reads as
      the card's own title rather than as its first row.
 
-     48 is a floor rather than padding around one line: the title is text-sm
+     48 is a floor rather than padding around one line: the title is text-base
      now, but a header can also hold a text-sm subtitle or a size-4 icon, and
      padding would give each of those its own height. A column flex centres
      whatever is inside and still stretches it to the full width, so a
@@ -73,7 +73,7 @@
      page's table header, carried to every card and table so they read as one
      family. */
   .card-title {
-    @apply text-sm font-medium tracking-wider uppercase text-ink-muted;
+    @apply text-base font-medium tracking-wider uppercase text-ink-muted;
   }
 
   .card-body {
