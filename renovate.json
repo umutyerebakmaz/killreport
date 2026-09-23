@@ -9,8 +9,8 @@
   "rangeStrategy": "bump",
   "postUpdateOptions": ["yarnDedupeHighest"],
   "osvVulnerabilityAlerts": true,
-  "automergeStrategy": "squash",
-  "platformAutomerge": true,
+  "automergeType": "pr-comment",
+  "automergeComment": "renovate: ready to merge",
   "rebaseWhen": "conflicted",
   "dependencyDashboard": true,
   "lockFileMaintenance": {
