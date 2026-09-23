@@ -5,6 +5,7 @@ import SecurityStatus from '@/components/SecurityStatus/SecurityStatus';
 import SolarSystemMap from '@/components/SolarSystemMap/SolarSystemMap';
 import Card from '@/components/ui/Card';
 import RankNumber from '@/components/ui/RankNumber';
+import Tooltip from '@/components/Tooltip/Tooltip';
 import Link from 'next/link';
 import { ReactNode } from 'react';
 
@@ -74,12 +75,18 @@ export default function TopSystemsCard({
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 min-w-0">
                       <SecurityStatus securityStatus={system.securityStatus} />
-                      <Link
-                        href={`/solar-systems/${system.id}`}
-                        className="block min-w-0 font-medium text-orange-400 truncate hover:underline"
+                      <Tooltip
+                        content="Show system info"
+                        className="w-full! min-w-0"
                       >
-                        {system.name}
-                      </Link>
+                        <Link
+                          href={`/solar-systems/${system.id}`}
+                          className="block min-w-0 font-medium text-ink-muted truncate hover:text-accent-link"
+                          prefetch={false}
+                        >
+                          {system.name}
+                        </Link>
+                      </Tooltip>
                     </div>
                     {system.regionName && (
                       <span className="block text-xs text-ink-faint truncate">

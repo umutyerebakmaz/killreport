@@ -58,7 +58,7 @@ export default function CharacterCard({ character }: CharacterCardProps) {
                 <Tooltip content="Corporation" position="top">
                   <Link
                     href={`/corporations/${character.corporation.id}`}
-                    className="flex items-center gap-2 hover:text-blue-400"
+                    className="flex items-center gap-2 hover:text-accent-link"
                     prefetch={false}
                   >
                     <span className="text-base text-green-400 line-clamp-1">
@@ -75,7 +75,7 @@ export default function CharacterCard({ character }: CharacterCardProps) {
                 <Tooltip content="Alliance" position="top">
                   <Link
                     href={`/alliances/${character.alliance.id}`}
-                    className="flex items-center gap-2 hover:text-blue-400"
+                    className="flex items-center gap-2 hover:text-accent-link"
                     prefetch={false}
                   >
                     <span className="text-base text-yellow-400 line-clamp-1">

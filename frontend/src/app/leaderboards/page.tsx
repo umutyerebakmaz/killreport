@@ -102,7 +102,7 @@ function PilotList({
                     >
                       <Link
                         href={`/characters/${char.id}?tab=killmails`}
-                        className="block font-medium text-ink-muted truncate hover:text-blue-400"
+                        className="block font-medium text-ink-muted truncate hover:text-accent-link"
                         prefetch={false}
                       >
                         {char.name}

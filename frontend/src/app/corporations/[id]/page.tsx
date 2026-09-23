@@ -427,7 +427,7 @@ export default function CorporationDetailPage({
                     <Link
                       href={`/characters/${corporation.ceo.id}`}
                       prefetch={false}
-                      className="text-ink-muted hover:text-blue-400"
+                      className="text-ink-muted hover:text-accent-link"
                     >
                       {corporation.ceo.name}
                     </Link>
@@ -443,7 +443,7 @@ export default function CorporationDetailPage({
                     <Link
                       href={`/characters/${corporation.creator.id}`}
                       prefetch={false}
-                      className="text-ink-muted hover:text-blue-400"
+                      className="text-ink-muted hover:text-accent-link"
                     >
                       {corporation.creator.name}
                     </Link>
@@ -477,7 +477,7 @@ export default function CorporationDetailPage({
                     <Link
                       href={`/alliances/${corporation.alliance.id}`}
                       prefetch={false}
-                      className="text-ink-muted hover:text-blue-400"
+                      className="text-ink-muted hover:text-accent-link"
                     >
                       [{corporation.alliance.ticker}]{' '}
                       {corporation.alliance.name}

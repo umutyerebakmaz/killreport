@@ -214,7 +214,7 @@ export default function SolarSystemDetailPage({
                     <Link
                       href={`/constellations/${system.constellation.id}`}
                       prefetch={false}
-                      className="transition-colors text-ink-muted hover:text-blue-400"
+                      className="transition-colors text-ink-muted hover:text-accent-link"
                     >
                       {system.constellation.name}
                     </Link>
@@ -232,7 +232,7 @@ export default function SolarSystemDetailPage({
                     <Link
                       href={`/regions/${system.constellation.region.id}`}
                       prefetch={false}
-                      className="transition-colors text-ink-muted hover:text-blue-400"
+                      className="transition-colors text-ink-muted hover:text-accent-link"
                     >
                       {system.constellation.region.name}
                     </Link>

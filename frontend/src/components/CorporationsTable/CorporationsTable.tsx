@@ -57,7 +57,7 @@ export default function CorporationsTable({
                   <Link
                     href={`/corporations/${corp.id}`}
                     prefetch={false}
-                    className="text-ink-muted hover:text-blue-400"
+                    className="text-ink-muted hover:text-accent-link"
                   >
                     {corp.name}
                   </Link>
@@ -75,7 +75,7 @@ export default function CorporationsTable({
                   <Link
                     href={`/characters/${corp.ceo.id}`}
                     prefetch={false}
-                    className="text-ink-muted hover:text-blue-400"
+                    className="text-ink-muted hover:text-accent-link"
                   >
                     {corp.ceo.name}
                   </Link>

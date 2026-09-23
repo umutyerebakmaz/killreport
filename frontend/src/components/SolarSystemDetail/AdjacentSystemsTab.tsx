@@ -87,7 +87,7 @@ export default function AdjacentSystemsTab({
                     <Link
                       href={`/solar-systems/${system.id}`}
                       prefetch={false}
-                      className="text-ink-muted hover:text-blue-400"
+                      className="text-ink-muted hover:text-accent-link"
                     >
                       {system.name}
                     </Link>

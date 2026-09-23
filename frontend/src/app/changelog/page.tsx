@@ -252,7 +252,7 @@ export default function ChangelogPage() {
                                 href={commit.html_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="block mb-2 text-gray-200 transition-colors hover:text-blue-400"
+                                className="block mb-2 text-gray-200 transition-colors hover:text-accent-link"
                               >
                                 {firstLine}
                               </a>
@@ -316,7 +316,7 @@ export default function ChangelogPage() {
                   href={release.html_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-blue-400 transition-colors hover:text-blue-300"
+                  className="text-sm text-accent-link transition-colors hover:text-accent-hover"
                 >
                   View on GitHub →
                 </a>
@@ -333,7 +333,7 @@ export default function ChangelogPage() {
           href="https://github.com/umutyerebakmaz/killreport"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-400 hover:text-blue-300"
+          className="text-accent-link hover:text-accent-hover"
         >
           GitHub repository
         </a>{' '}

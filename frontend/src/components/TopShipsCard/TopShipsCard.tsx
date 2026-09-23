@@ -4,7 +4,6 @@ import { Loader } from '@/components/Loader/Loader';
 import Card from '@/components/ui/Card';
 import RankNumber from '@/components/ui/RankNumber';
 import ShipTierBadge from '@/components/ShipTierBadge/ShipTierBadge';
-import Tooltip from '@/components/Tooltip/Tooltip';
 import { getShipTier } from '@/utils/shipTier';
 import { ReactNode } from 'react';
 import EveImage from '../ui/EveImage';
@@ -86,14 +85,9 @@ export default function TopShipsCard({
 
                   {/* Info */}
                   <div className="flex items-center justify-between flex-1 min-w-0 gap-2">
-                    <Tooltip
-                      content={`View ship details`}
-                      className="w-full! min-w-0"
-                    >
-                      <span className="block min-w-0 font-medium text-orange-400 truncate">
-                        {ship.name}
-                      </span>
-                    </Tooltip>
+                    <span className="block min-w-0 font-medium text-ink-muted truncate">
+                      {ship.name}
+                    </span>
 
                     {/* Kill Count */}
                     <span className="text-base font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">
