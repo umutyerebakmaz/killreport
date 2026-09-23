@@ -368,18 +368,10 @@ function StandaloneWorkerSection({ workers }: any) {
         <table className="w-full min-w-max">
           <thead className="bg-surface-inset">
             <tr>
-              <th className="px-2 py-3 text-xs font-medium tracking-wider text-left text-ink-muted uppercase md:px-4">
-                Status
-              </th>
-              <th className="px-2 py-3 text-xs font-medium tracking-wider text-left text-ink-muted uppercase md:px-4">
-                Worker Name
-              </th>
-              <th className="px-2 py-3 text-xs font-medium tracking-wider text-left text-ink-muted uppercase md:px-4">
-                Description
-              </th>
-              <th className="px-2 py-3 text-xs font-medium tracking-wider text-center text-ink-muted uppercase md:px-4">
-                Process ID
-              </th>
+              <th className="text-left th-cell">Status</th>
+              <th className="text-left th-cell">Worker Name</th>
+              <th className="text-left th-cell">Description</th>
+              <th className="text-center th-cell">Process ID</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/10">
@@ -440,24 +432,12 @@ function QueueSection({ title, subtitle, queues }: any) {
         <table className="w-full min-w-max">
           <thead className="bg-surface-inset">
             <tr>
-              <th className="px-2 py-3 text-xs font-medium tracking-wider text-left text-ink-muted uppercase md:px-4">
-                Queue Status
-              </th>
-              <th className="px-2 py-3 text-xs font-medium tracking-wider text-left text-ink-muted uppercase md:px-4">
-                Worker Process
-              </th>
-              <th className="px-2 py-3 text-xs font-medium tracking-wider text-left text-ink-muted uppercase md:px-4">
-                Queue Name
-              </th>
-              <th className="px-2 py-3 text-xs font-medium tracking-wider text-center text-ink-muted uppercase md:px-4">
-                Pending Jobs
-              </th>
-              <th className="px-2 py-3 text-xs font-medium tracking-wider text-center text-ink-muted uppercase md:px-4">
-                Consumers
-              </th>
-              <th className="px-2 py-3 text-xs font-medium tracking-wider text-center text-ink-muted uppercase md:px-4">
-                PID
-              </th>
+              <th className="text-left th-cell">Queue Status</th>
+              <th className="text-left th-cell">Worker Process</th>
+              <th className="text-left th-cell">Queue Name</th>
+              <th className="text-center th-cell">Pending Jobs</th>
+              <th className="text-center th-cell">Consumers</th>
+              <th className="text-center th-cell">PID</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">

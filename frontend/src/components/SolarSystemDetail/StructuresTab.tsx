@@ -38,15 +38,15 @@ export default function StructuresTab({ systemId }: StructuresTabProps) {
   return (
     <div className="overflow-x-auto border bg-white/5 border-white/10">
       <table className="w-full text-sm">
-        <thead className="text-xs tracking-wide text-ink-muted uppercase border-b border-white/10">
+        <thead className="bg-surface-inset">
           <tr>
-            <th className="px-4 py-3 text-left">Station</th>
-            <th className="px-4 py-3 text-left">Type</th>
-            <th className="px-4 py-3 text-left">Owner</th>
-            <th className="px-4 py-3 text-right">Reprocessing</th>
-            <th className="px-4 py-3 text-right">Station take</th>
-            <th className="px-4 py-3 text-right">Office rent</th>
-            <th className="px-4 py-3 text-left">Services</th>
+            <th className="text-left th-cell">Station</th>
+            <th className="text-left th-cell">Type</th>
+            <th className="text-left th-cell">Owner</th>
+            <th className="text-right th-cell">Reprocessing</th>
+            <th className="text-right th-cell">Station take</th>
+            <th className="text-right th-cell">Office rent</th>
+            <th className="text-left th-cell">Services</th>
           </tr>
         </thead>
         <tbody>

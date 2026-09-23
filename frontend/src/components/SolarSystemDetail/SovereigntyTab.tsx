@@ -42,13 +42,13 @@ export default function SovereigntyTab({ systemId }: SovereigntyTabProps) {
       {structures.length > 0 && (
         <div className="overflow-x-auto border bg-white/5 border-white/10">
           <table className="w-full text-sm">
-            <thead className="text-xs tracking-wide text-ink-muted uppercase border-b border-white/10">
+            <thead className="bg-surface-inset">
               <tr>
-                <th className="px-4 py-3 text-left">Structure</th>
-                <th className="px-4 py-3 text-left">Owner</th>
-                <th className="px-4 py-3 text-right">ADM</th>
-                <th className="px-4 py-3 text-left">Vulnerable from</th>
-                <th className="px-4 py-3 text-left">Vulnerable to</th>
+                <th className="text-left th-cell">Structure</th>
+                <th className="text-left th-cell">Owner</th>
+                <th className="text-right th-cell">ADM</th>
+                <th className="text-left th-cell">Vulnerable from</th>
+                <th className="text-left th-cell">Vulnerable to</th>
               </tr>
             </thead>
             <tbody>

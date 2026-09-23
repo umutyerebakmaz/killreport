@@ -180,9 +180,7 @@ function SovereigntyContent() {
       {/* Activity leaderboards + hottest regions */}
       <section className="grid grid-cols-1 gap-4 mt-10 lg:grid-cols-3">
         <div className="border border-white/10 bg-surface">
-          <h3 className="px-4 py-3 text-lg font-medium text-white border-b border-white/10">
-            Most Aggressive
-          </h3>
+          <h3 className="card-header card-title">Most Aggressive</h3>
           <ul className="divide-y divide-white/5">
             {aggressive.map((a) => (
               <li
@@ -207,9 +205,7 @@ function SovereigntyContent() {
         </div>
 
         <div className="border border-white/10 bg-surface">
-          <h3 className="px-4 py-3 text-lg font-medium text-white border-b border-white/10">
-            Most Defensive
-          </h3>
+          <h3 className="card-header card-title">Most Defensive</h3>
           <ul className="divide-y divide-white/5">
             {defensive.map((d) => (
               <li
@@ -235,9 +231,7 @@ function SovereigntyContent() {
         </div>
 
         <div className="border border-white/10 bg-surface">
-          <h3 className="px-4 py-3 text-lg font-medium text-white border-b border-white/10">
-            Hottest Regions Right Now
-          </h3>
+          <h3 className="card-header card-title">Hottest Regions Right Now</h3>
           <ul className="px-4 py-2 space-y-2">
             {hotRegions.map((r) => (
               <li key={r.regionId} className="text-sm">

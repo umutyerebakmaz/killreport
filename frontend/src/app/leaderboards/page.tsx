@@ -198,8 +198,8 @@ function DailyLeaderboard() {
       className="flex-1 min-w-0"
       header={
         <div className="flex items-center gap-2">
-          <TrophyIcon className="w-5 h-5 text-yellow-400 shrink-0" />
-          <h2 className="text-lg font-medium text-white">Daily Top 100</h2>
+          <TrophyIcon className="size-4 text-yellow-400 shrink-0" />
+          <h2 className="card-title">Daily Top 100</h2>
         </div>
       }
     >
@@ -279,8 +279,8 @@ function WeeklyLeaderboard() {
       className="flex-1 min-w-0"
       header={
         <div className="flex items-center gap-2">
-          <CalendarDaysIcon className="w-5 h-5 text-gray-300 shrink-0" />
-          <h2 className="text-lg font-medium text-white">Weekly Top 100</h2>
+          <CalendarDaysIcon className="size-4 text-gray-300 shrink-0" />
+          <h2 className="card-title">Weekly Top 100</h2>
         </div>
       }
     >
@@ -339,8 +339,8 @@ function Last90DaysLeaderboard() {
       className="flex-1 min-w-0"
       header={
         <div className="flex items-center gap-2">
-          <ClockIcon className="w-5 h-5 text-gray-300 shrink-0" />
-          <h2 className="text-lg font-medium text-white">Last 90 Days</h2>
+          <ClockIcon className="size-4 text-gray-300 shrink-0" />
+          <h2 className="card-title">Last 90 Days</h2>
         </div>
       }
     >
@@ -404,8 +404,8 @@ function MonthlyLeaderboard() {
       className="flex-1 min-w-0"
       header={
         <div className="flex items-center gap-2">
-          <CalendarDaysIcon className="w-5 h-5 text-purple-400 shrink-0" />
-          <h2 className="text-lg font-medium text-white">Monthly Top 100</h2>
+          <CalendarDaysIcon className="size-4 text-purple-400 shrink-0" />
+          <h2 className="card-title">Monthly Top 100</h2>
         </div>
       }
     >

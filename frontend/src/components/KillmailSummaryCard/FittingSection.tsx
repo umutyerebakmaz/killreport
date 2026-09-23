@@ -121,7 +121,7 @@ export default function FittingSection({
   return (
     <div className="card">
       <div className="card-header">
-        <h3 className="text-lg font-medium text-white">{title}</h3>
+        <h3 className="card-title">{title}</h3>
       </div>
       <div className={listClass}>
         {groupedModules.map((item, index) => (
