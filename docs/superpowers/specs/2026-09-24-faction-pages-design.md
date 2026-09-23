@@ -1,7 +1,7 @@
 # Faction sayfaları — tasarım
 
 **Tarih:** 2026-09-24
-**Durum:** incelemede
+**Durum:** onaylandı (2026-09-24)
 **İlgili:** `TopFactionsCard` (killmail sayfası sağ kenar çubuğu), ENTITIES menüsü
 (ayrı PR, bu spec'in dışında)
 
