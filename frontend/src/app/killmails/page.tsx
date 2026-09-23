@@ -335,8 +335,10 @@ function KillmailsContent() {
 
       <h1 className="sr-only">Killmails</h1>
 
-      {/* Filters */}
-      <div>
+      <MostValuableCarousel />
+
+      {/* Filters, directly above the table. */}
+      <div className="mt-8">
         <KillmailFilterForm
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}
@@ -357,12 +359,8 @@ function KillmailsContent() {
         />
       </div>
 
-      <div className="mt-8">
-        <MostValuableCarousel />
-      </div>
-
       {/* 2-column grid layout */}
-      <div className="grid grid-cols-1 gap-6 mt-8 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-6 mt-2 lg:grid-cols-4">
         {/* Left side - Killmails Table (takes 3 columns) */}
         <div className="lg:col-span-3">
           <KillmailsTable

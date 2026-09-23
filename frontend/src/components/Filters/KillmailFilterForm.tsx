@@ -628,7 +628,7 @@ export default function KillmailFilterForm({
   ].filter(Boolean).length;
 
   return (
-    <form onSubmit={handleSubmit} id="killmail-filters" className="mb-6">
+    <form onSubmit={handleSubmit} id="killmail-filters">
       <FilterBar
         onOpenFilters={() => setIsOpen(true)}
         activeFilterCount={activeFilterCount}

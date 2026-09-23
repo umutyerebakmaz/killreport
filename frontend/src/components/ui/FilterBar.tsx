@@ -43,6 +43,9 @@ export interface FilterBarProps {
 /**
  * The row above every list: search, Filters, Clear, sort. Identical on all
  * pages, whether or not the page has advanced filters behind the button.
+ *
+ * The controls sit at the right edge. A page with a search box is unaffected,
+ * since the box grows to fill the row.
  */
 export default function FilterBar({
   search,
@@ -56,7 +59,7 @@ export default function FilterBar({
   const hasBadge = activeFilterCount > 0;
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center justify-end gap-3">
       {search}
       {controls}
 
