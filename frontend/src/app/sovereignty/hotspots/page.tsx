@@ -58,7 +58,7 @@ function HotspotsContent() {
                     <Link
                       href={`/regions/${h.regionId}`}
                       prefetch={false}
-                      className="text-ink-muted hover:text-blue-400"
+                      className="text-ink-muted hover:text-accent-link"
                     >
                       {h.regionName ?? `#${h.regionId}`}
                     </Link>

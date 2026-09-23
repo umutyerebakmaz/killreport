@@ -95,7 +95,7 @@ export default function TopCharacterCard({
                       >
                         <Link
                           href={`/characters/${character.id}?tab=killmails`}
-                          className="block min-w-0 font-medium leading-tight text-ink-muted truncate hover:text-blue-400"
+                          className="block min-w-0 font-medium leading-tight text-ink-muted truncate hover:text-accent-link"
                           prefetch={false}
                         >
                           {character.name}

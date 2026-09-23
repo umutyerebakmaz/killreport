@@ -49,7 +49,7 @@ export default function CharactersTable({
                   <Link
                     href={`/characters/${char.id}`}
                     prefetch={false}
-                    className="text-ink-muted hover:text-blue-400"
+                    className="text-ink-muted hover:text-accent-link"
                   >
                     {char.name}
                   </Link>

@@ -193,7 +193,7 @@ export default function KillmailRow({
                 >
                   <Link
                     href={`/characters/${km.victim.character.id}`}
-                    className="block font-medium text-ink-muted truncate transition-colors hover:text-blue-400"
+                    className="block font-medium text-ink-muted truncate transition-colors hover:text-accent-link"
                     prefetch={false}
                   >
                     {km.victim.character.name}
@@ -212,7 +212,7 @@ export default function KillmailRow({
                 >
                   <Link
                     href={`/corporations/${km.victim.corporation?.id}`}
-                    className="block text-base text-ink-muted truncate transition-colors hover:text-blue-400"
+                    className="block text-base text-ink-muted truncate transition-colors hover:text-accent-link"
                     prefetch={false}
                   >
                     {km.victim.corporation?.name}
@@ -229,7 +229,7 @@ export default function KillmailRow({
                 >
                   <Link
                     href={`/alliances/${km.victim.alliance.id}`}
-                    className="block truncate transition-colors hover:text-blue-400"
+                    className="block truncate transition-colors hover:text-accent-link"
                     prefetch={false}
                   >
                     {km.victim.alliance.name}
@@ -271,7 +271,7 @@ export default function KillmailRow({
                   >
                     <Link
                       href={`/characters/${km.finalBlow.character.id}`}
-                      className="block font-medium text-ink-muted truncate transition-colors hover:text-blue-400"
+                      className="block font-medium text-ink-muted truncate transition-colors hover:text-accent-link"
                       prefetch={false}
                     >
                       {km.finalBlow.character.name}
@@ -290,7 +290,7 @@ export default function KillmailRow({
                   >
                     <Link
                       href={`/corporations/${km.finalBlow.corporation.id}`}
-                      className="block text-ink-muted truncate transition-colors hover:text-blue-400"
+                      className="block text-ink-muted truncate transition-colors hover:text-accent-link"
                       prefetch={false}
                     >
                       {km.finalBlow.corporation.name}
@@ -307,7 +307,7 @@ export default function KillmailRow({
                   >
                     <Link
                       href={`/alliances/${km.finalBlow.alliance.id}`}
-                      className="block truncate transition-colors hover:text-blue-400"
+                      className="block truncate transition-colors hover:text-accent-link"
                       prefetch={false}
                     >
                       {km.finalBlow.alliance.name}

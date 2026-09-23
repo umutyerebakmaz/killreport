@@ -95,7 +95,7 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
                 <Tooltip content="Alliance" position="top">
                   <Link
                     href={`/alliances/${corporation.alliance.id}`}
-                    className="flex items-center gap-2 hover:text-blue-400"
+                    className="flex items-center gap-2 hover:text-accent-link"
                     prefetch={false}
                   >
                     <span className="text-base text-yellow-400 line-clamp-1">

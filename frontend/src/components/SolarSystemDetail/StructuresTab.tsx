@@ -72,7 +72,7 @@ export default function StructuresTab({ systemId }: StructuresTabProps) {
                   <Link
                     href={`/corporations/${station.ownerCorporation.id}`}
                     prefetch={false}
-                    className="text-ink-muted hover:text-blue-400"
+                    className="text-ink-muted hover:text-accent-link"
                   >
                     {station.ownerCorporation.name}
                   </Link>

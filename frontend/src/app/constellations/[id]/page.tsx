@@ -179,7 +179,7 @@ export default function ConstellationDetailPage({
                   <Link
                     href={`/regions/${constellation.region.id}`}
                     prefetch={false}
-                    className="transition-colors text-ink-muted hover:text-blue-400"
+                    className="transition-colors text-ink-muted hover:text-accent-link"
                   >
                     {constellation.region.name}
                   </Link>

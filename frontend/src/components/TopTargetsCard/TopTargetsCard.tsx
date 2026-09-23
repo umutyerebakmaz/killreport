@@ -91,7 +91,7 @@ export default function TopTargetsCard({
                   >
                     <Link
                       href={`${linkPrefix}/${target.id}?tab=killmails`}
-                      className="block min-w-0 font-medium text-ink-muted truncate hover:text-blue-400"
+                      className="block min-w-0 font-medium text-ink-muted truncate hover:text-accent-link"
                       prefetch={false}
                     >
                       {target.name}

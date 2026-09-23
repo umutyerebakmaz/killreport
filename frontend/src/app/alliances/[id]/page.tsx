@@ -403,7 +403,7 @@ export default function AllianceDetailPage({
                     <Link
                       href={`/corporations/${alliance.executor.id}`}
                       prefetch={false}
-                      className="text-ink-muted hover:text-blue-400"
+                      className="text-ink-muted hover:text-accent-link"
                     >
                       {alliance.executor.name}
                     </Link>
@@ -423,7 +423,7 @@ export default function AllianceDetailPage({
                     <Link
                       href={`/corporations/${alliance.createdByCorporation.id}`}
                       prefetch={false}
-                      className="text-ink-muted hover:text-blue-400"
+                      className="text-ink-muted hover:text-accent-link"
                     >
                       {alliance.createdByCorporation.name}
                     </Link>
@@ -439,7 +439,7 @@ export default function AllianceDetailPage({
                     <Link
                       href={`/characters/${alliance.createdBy.id}`}
                       prefetch={false}
-                      className="text-ink-muted hover:text-blue-400"
+                      className="text-ink-muted hover:text-accent-link"
                     >
                       {alliance.createdBy.name}
                     </Link>
