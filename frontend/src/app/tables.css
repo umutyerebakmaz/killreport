@@ -45,11 +45,11 @@
    * with the rows for attention. The type is .card-title's, so a table header
    * and a card header sitting side by side on /killmails still match.
    *
-   * py-4 around a text-xs line box is 32 + 16 = 48, the height .card-header
+   * py-3.5 around a text-sm line box is 28 + 20 = 48, the height .card-header
    * holds, so the header keeps the same ratio against an 80px .td-cell that
    * a card keeps against its rows.
    */
   .th-cell {
-    @apply px-4 py-4 text-xs font-medium tracking-wider uppercase text-ink-muted;
+    @apply px-4 py-3.5 text-sm font-medium tracking-wider uppercase text-ink-muted;
   }
 }
