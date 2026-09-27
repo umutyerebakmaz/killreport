@@ -124,6 +124,9 @@ export const allianceFields: AllianceResolvers = {
     }, 0);
   },
 
+  sovereigntySystemCount: (parent, _args, context) =>
+    context.loaders.sovereigntySystemCountByAlliance.load(parent.id),
+
   metrics: async (parent, _args, context) => {
     const now = new Date();
     const date1d = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000);

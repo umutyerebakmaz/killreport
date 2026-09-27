@@ -6,6 +6,7 @@ import KillmailsTable from '@/components/KillmailsTable';
 import { Loader } from '@/components/Loader/Loader';
 import MemberDeltaBadge from '@/components/MemberDeltaBadge/MemberDeltaBadge';
 import Paginator from '@/components/Paginator/Paginator';
+import SovSystemBadge from '@/components/SovSystemBadge/SovSystemBadge';
 import TopCharacterCard from '@/components/TopCharacterCard/TopCharacterCard';
 import TopShipsCard from '@/components/TopShipsCard';
 import TopTargetsCard from '@/components/TopTargetsCard';
@@ -360,6 +361,8 @@ export default function AllianceDetailPage({
               memberDelta={memberDelta7d}
               memberGrowthRate={memberGrowthRate7d}
             />
+            {/* sovereignty systems */}
+            <SovSystemBadge count={alliance.sovereigntySystemCount} />
           </div>
         </div>
       </div>

@@ -37,6 +37,7 @@ export type Alliance = {
   metrics?: Maybe<AllianceMetrics>;
   name: Scalars['String']['output'];
   snapshots: Array<AllianceSnapshot>;
+  sovereigntySystemCount: Scalars['Int']['output'];
   ticker: Scalars['String']['output'];
   topAllianceTargets: Array<AllianceTopTarget>;
   topCorporationTargets: Array<CorporationTopTarget>;
@@ -2483,7 +2484,7 @@ export type AllianceQueryVariables = Exact<{
 }>;
 
 
-export type AllianceQuery = { __typename?: 'Query', alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, memberCount: number, corporationCount: number, metrics?: { __typename?: 'AllianceMetrics', memberCountDelta7d?: number | null, corporationCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null, corporationCountGrowthRate7d?: number | null } | null, executor?: { __typename?: 'Corporation', id: number, name: string } | null, createdByCorporation?: { __typename?: 'Corporation', id: number, name: string } | null, createdBy?: { __typename?: 'Character', id: number, name: string } | null } | null };
+export type AllianceQuery = { __typename?: 'Query', alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, memberCount: number, corporationCount: number, sovereigntySystemCount: number, metrics?: { __typename?: 'AllianceMetrics', memberCountDelta7d?: number | null, corporationCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null, corporationCountGrowthRate7d?: number | null } | null, executor?: { __typename?: 'Corporation', id: number, name: string } | null, createdByCorporation?: { __typename?: 'Corporation', id: number, name: string } | null, createdBy?: { __typename?: 'Character', id: number, name: string } | null } | null };
 
 export type AllianceGrowthQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -2552,7 +2553,7 @@ export type AlliancesQueryVariables = Exact<{
 }>;
 
 
-export type AlliancesQuery = { __typename?: 'Query', alliances: { __typename?: 'AlliancesResponse', items: Array<{ __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, memberCount: number, corporationCount: number, metrics?: { __typename?: 'AllianceMetrics', memberCountDelta7d?: number | null, corporationCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null } | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type AlliancesQuery = { __typename?: 'Query', alliances: { __typename?: 'AlliancesResponse', items: Array<{ __typename?: 'Alliance', id: number, name: string, ticker: string, date_founded: string, memberCount: number, corporationCount: number, sovereigntySystemCount: number, metrics?: { __typename?: 'AllianceMetrics', memberCountDelta7d?: number | null, corporationCountDelta7d?: number | null, memberCountGrowthRate7d?: number | null } | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type ActiveUsersUpdatesSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -3165,6 +3166,7 @@ export const AllianceDocument = gql`
     date_founded
     memberCount
     corporationCount
+    sovereigntySystemCount
     metrics {
       memberCountDelta7d
       corporationCountDelta7d
@@ -3724,6 +3726,7 @@ export const AlliancesDocument = gql`
       date_founded
       memberCount
       corporationCount
+      sovereigntySystemCount
       metrics {
         memberCountDelta7d
         corporationCountDelta7d

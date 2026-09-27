@@ -7,6 +7,7 @@ query Alliances($filter: AllianceFilter) {
       date_founded
       memberCount
       corporationCount
+      sovereigntySystemCount
       metrics {
         memberCountDelta7d
         corporationCountDelta7d

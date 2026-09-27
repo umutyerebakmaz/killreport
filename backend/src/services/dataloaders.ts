@@ -428,6 +428,7 @@ export interface DataLoaderContext {
     >;
     constellationSovereignty: DataLoader<number, SovereigntyHolderRow | null>;
     regionSovereignty: DataLoader<number, SovereigntyHolderRow | null>;
+    sovereigntySystemCountByAlliance: DataLoader<number, number>;
     corporationSnapshot: DataLoader<{ corporationId: number; date: Date }, any>;
     allianceSnapshot: DataLoader<{ allianceId: number; date: Date }, any>;
     typeDogmaAttributes: DataLoader<number, any[]>;
@@ -470,6 +471,8 @@ export const createDataLoaders = (): DataLoaderContext => ({
     regionStats: createRegionStatsLoader(),
     constellationSovereignty: createConstellationSovereigntyLoader(),
     regionSovereignty: createRegionSovereigntyLoader(),
+    sovereigntySystemCountByAlliance:
+      createSovereigntySystemCountByAllianceLoader(),
     corporationSnapshot: createCorporationSnapshotLoader(),
     allianceSnapshot: createAllianceSnapshotLoader(),
     typeDogmaAttributes: createTypeDogmaAttributesLoader(),
@@ -1069,6 +1072,34 @@ export const createRegionSovereigntyLoader = () => {
       return resolveSovereigntyHolders(regionIds, groupOf);
     },
   );
+};
+
+/**
+ * Sovereignty System Count by Alliance DataLoader
+ *
+ * One grouped count over sovereignty_map_current for a page of alliances.
+ * An alliance holding nothing is absent from the result, so it counts 0.
+ */
+export const createSovereigntySystemCountByAllianceLoader = () => {
+  return new DataLoader<number, number>(async (allianceIds) => {
+    console.log(
+      `🔄 DataLoader: Batching ${allianceIds.length} alliance sovereignty counts`,
+    );
+
+    const rows = await prisma.sovereigntyMapCurrent.groupBy({
+      by: ['alliance_id'],
+      where: { alliance_id: { in: [...allianceIds] } },
+      _count: { _all: true },
+    });
+
+    const countOf = new Map<number, number>();
+    for (const row of rows) {
+      if (row.alliance_id !== null)
+        countOf.set(row.alliance_id, row._count._all);
+    }
+
+    return allianceIds.map((id) => countOf.get(id) ?? 0);
+  });
 };
 
 /**

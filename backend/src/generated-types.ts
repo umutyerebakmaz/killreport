@@ -36,6 +36,7 @@ export type Alliance = {
   metrics?: Maybe<AllianceMetrics>;
   name: Scalars['String']['output'];
   snapshots: Array<AllianceSnapshot>;
+  sovereigntySystemCount: Scalars['Int']['output'];
   ticker: Scalars['String']['output'];
   topAllianceTargets: Array<AllianceTopTarget>;
   topCorporationTargets: Array<CorporationTopTarget>;
@@ -2894,6 +2895,7 @@ export type AllianceResolvers<ContextType = any, ParentType extends ResolversPar
   metrics?: Resolver<Maybe<ResolversTypes['AllianceMetrics']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   snapshots?: Resolver<Array<ResolversTypes['AllianceSnapshot']>, ParentType, ContextType, Partial<AllianceSnapshotsArgs>>;
+  sovereigntySystemCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   ticker?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   topAllianceTargets?: Resolver<Array<ResolversTypes['AllianceTopTarget']>, ParentType, ContextType, Partial<AllianceTopAllianceTargetsArgs>>;
   topCorporationTargets?: Resolver<Array<ResolversTypes['CorporationTopTarget']>, ParentType, ContextType, Partial<AllianceTopCorporationTargetsArgs>>;

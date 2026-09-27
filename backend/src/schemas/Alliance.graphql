@@ -10,6 +10,7 @@ type Alliance {
   corporations: [Corporation!]!
   corporationCount: Int!
   memberCount: Int!
+  sovereigntySystemCount: Int!
   metrics: AllianceMetrics
   snapshots(days: Int): [AllianceSnapshot!]!
   topAllianceTargets(filter: TopTargetFilter): [AllianceTopTarget!]!

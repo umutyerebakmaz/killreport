@@ -5,6 +5,7 @@ import { UsersIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { useState } from 'react';
 import MemberDeltaBadge from '../MemberDeltaBadge/MemberDeltaBadge';
+import SovSystemBadge from '../SovSystemBadge/SovSystemBadge';
 import TotalCorporationBadge from '../TotalCorporationMember/TotalCorporationBadge';
 import TotalMemberBadge from '../TotalMemberBadge/TotalMemberBadge';
 import EveImage from '../ui/EveImage';
@@ -78,6 +79,8 @@ export default function AllianceCard({ alliance }: AllianceCardProps) {
               memberDelta={memberDelta7d}
               memberGrowthRate={memberGrowthRate7d}
             />
+            {/* sovereignty systems */}
+            <SovSystemBadge count={alliance.sovereigntySystemCount} />
           </div>
 
           {/* Founded date section */}
