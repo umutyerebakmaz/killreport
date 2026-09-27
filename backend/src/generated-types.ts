@@ -397,6 +397,7 @@ export type CorporationFilter = {
   allianceId?: InputMaybe<Scalars['Int']['input']>;
   dateFoundedFrom?: InputMaybe<Scalars['String']['input']>;
   dateFoundedTo?: InputMaybe<Scalars['String']['input']>;
+  factionId?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   orderBy?: InputMaybe<CorporationOrderBy>;
@@ -663,6 +664,7 @@ export type KillmailFilter = {
   constellationId?: InputMaybe<Scalars['Int']['input']>;
   corporationId?: InputMaybe<Scalars['Int']['input']>;
   endDate?: InputMaybe<Scalars['String']['input']>;
+  factionId?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   maxAttackers?: InputMaybe<Scalars['Int']['input']>;
   maxValue?: InputMaybe<Scalars['Float']['input']>;

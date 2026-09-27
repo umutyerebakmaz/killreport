@@ -330,6 +330,7 @@ input CorporationFilter {
   allianceId: Int
   dateFoundedFrom: String
   dateFoundedTo: String
+  factionId: Int
   limit: Int
   name: String
   orderBy: CorporationOrderBy
@@ -584,6 +585,7 @@ input KillmailFilter {
   constellationId: Int
   corporationId: Int
   endDate: String
+  factionId: Int
   limit: Int
   maxAttackers: Int
   maxValue: Float
