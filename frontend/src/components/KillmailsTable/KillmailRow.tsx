@@ -141,11 +141,11 @@ export default function KillmailRow({
                 )}
             </div>
             {km.solarSystem?.constellation && (
-              <div className="text-base text-purple-500">
+              <div className="text-base text-ink-faint">
                 <Tooltip content="Show Constellation Info" position="top">
                   <Link
                     href={`/constellations/${km.solarSystem.constellation?.id}`}
-                    className="transition-colors hover:text-purple-400"
+                    className="transition-colors hover:text-accent-link"
                     prefetch={false}
                   >
                     {km.solarSystem.constellation.name}
@@ -154,7 +154,7 @@ export default function KillmailRow({
               </div>
             )}
             {km.solarSystem?.constellation?.region && (
-              <div className="text-base text-blue-400">
+              <div className="text-base text-ink-faint">
                 <Tooltip content="Show Region Info" position="top">
                   <Link
                     href={`/regions/${km.solarSystem.constellation.region.id}`}
