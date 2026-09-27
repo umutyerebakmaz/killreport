@@ -331,12 +331,12 @@ export default function KillmailRow({
             </span>
           ) : (
             // Two parts inside one border: the icon on solid purple, the
-            // count on the tinted ground the badge always had.
+            // count on no ground of its own, so the border alone frames it.
             <span className="inline-flex items-stretch font-medium border border-purple-400 tabular-nums">
               <span className="flex items-center px-1.5 text-white bg-purple-400">
                 <UserIcon aria-hidden="true" className="size-4" />
               </span>
-              <span className="px-2 py-0.5 text-purple-400 bg-purple-400/10">
+              <span className="px-2 py-0.5 text-purple-400">
                 {km.attackerCount}
                 <span className="sr-only">attackers</span>
               </span>
