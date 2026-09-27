@@ -17,6 +17,8 @@ export const factionQueries: QueryResolvers = {
 
   factions: async () => {
     const factions = await prisma.faction.findMany({
+      // 500021 is ESI's placeholder faction, literally named "Unknown".
+      where: { id: { not: 500021 } },
       orderBy: { name: 'asc' },
     });
     // Relations and counters are filled in by factionFields.
