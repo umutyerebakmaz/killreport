@@ -38,22 +38,18 @@ export default function ActiveUsersCounter() {
   return (
     <Tooltip
       content={
-        <div className="min-w-70">
-          <div className="mb-1 font-medium">Real-time Active Users</div>
-          <div className="text-ink-muted">
-            Live count of visitors currently browsing the site. Updates every 3
-            seconds via WebSocket. Includes authenticated users and anonymous
-            visitors active in the last 5 minutes.
+        <div className="space-y-1">
+          <div>
+            <span className="font-medium">Active</span>
+            <span className="text-ink-muted"> · on KillReport now</span>
           </div>
-          <div className="mt-3 mb-1 font-medium">Tranquility</div>
-          <div className="text-ink-muted">
-            Players online on the EVE Online server right now, as ESI reports
-            it.
+          <div>
+            <span className="font-medium">In game</span>
+            <span className="text-ink-muted"> · online on Tranquility</span>
           </div>
         </div>
       }
       position="bottom"
-      wrapText={true}
     >
       <div className="flex items-center gap-2 text-sm text-ink-muted cursor-help">
         {isConnected && (
