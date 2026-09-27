@@ -172,8 +172,7 @@ body {
 
 /*
  * The nav's hover line, taken from eveonline.com's own top navigation — its
- * `NavItem_bar`, a 1px rule sitting above the label that grows from the left
- * in 150ms. The colour needs no translation: EVE draws that line in #5ccbcb,
+ * `NavItem_bar`, a 1px rule that grows from the left in 150ms. The colour needs no translation: EVE draws that line in #5ccbcb,
  * which is the value --color-accent already holds.
  *
  * A pseudo-element rather than the real <span> EVE ships, so `NAV_ITEM` in
@@ -181,14 +180,17 @@ body {
  * popover buttons gain any markup. The buttons inherit it because
  * NAV_POPOVER_BUTTON is built from NAV_ITEM.
  *
- * One deliberate departure: EVE declares the transition inside its :hover
+ * Two deliberate departures. EVE draws the line above the label; ours sits
+ * below it, as an underline. And EVE declares the transition inside its :hover
  * rule, so the line grows on the way in and vanishes without animating on the
  * way out. Ours is on the base rule, which is what lets it retract while the
  * pointer sweeps along the row.
  *
- * `top` is negative rather than the line being a border-top on the item
+ * `bottom` is negative rather than the line being a border-bottom on the item
  * itself: the item is a flex row in the popover case, and a border there would
- * move the label down by a pixel only on the items that have one.
+ * move the label up by a pixel only on the items that have one. The 7px lands
+ * inside the popover panel's 12px `pt-3` gap, so an open menu does not cover
+ * it.
  */
 .nav-item {
   position: relative;
@@ -197,7 +199,7 @@ body {
 .nav-item::before {
   content: '';
   position: absolute;
-  top: -7px;
+  bottom: -7px;
   left: 0;
   width: 0;
   height: 1px;
