@@ -323,7 +323,7 @@ export default function KillmailRow({
 
       {/* Attackers Column */}
       <td className="td-cell">
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center gap-2">
           {isSolo ? (
             // The attacker count's two-part badge in SOLO's green-600 (not
             // dropped's green-400, a different step), with one figure where
