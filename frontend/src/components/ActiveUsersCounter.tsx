@@ -6,8 +6,19 @@ import { useEffect, useState } from 'react';
 import Tooltip from './Tooltip/Tooltip';
 
 export default function ActiveUsersCounter() {
-  const [count, setCount] = useState<number>(0);
   const [isConnected, setIsConnected] = useState(false);
+
+  // Tranquility's player count rides on this readout rather than on one of
+  // its own. It came from Header.tsx, which fetched it once on mount and
+  // nothing more; this does the same, and a failed request leaves the dash.
+  const [players, setPlayers] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch('https://esi.evetech.net/latest/status/?datasource=tranquility')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((status) => setPlayers(status?.players ?? null))
+      .catch(() => setPlayers(null));
+  }, []);
 
   const { data, error } = useActiveUsersUpdatesSubscription({
     onData: () => {
@@ -15,11 +26,9 @@ export default function ActiveUsersCounter() {
     },
   });
 
-  useEffect(() => {
-    if (data?.activeUsersUpdates) {
-      setCount(data.activeUsersUpdates.count);
-    }
-  }, [data]);
+  // Apollo keeps the last event's data until the next arrives, so the count
+  // is read from it directly rather than copied into state by an effect.
+  const count = data?.activeUsersUpdates?.count ?? 0;
 
   if (error) {
     console.error('Active users subscription error:', error);
@@ -36,6 +45,11 @@ export default function ActiveUsersCounter() {
             seconds via WebSocket. Includes authenticated users and anonymous
             visitors active in the last 5 minutes.
           </div>
+          <div className="mt-3 mb-1 font-medium">Tranquility</div>
+          <div className="text-ink-muted">
+            Players online on the EVE Online server right now, as ESI reports
+            it.
+          </div>
         </div>
       }
       position="bottom"
@@ -51,6 +65,11 @@ export default function ActiveUsersCounter() {
         <UsersIcon className="size-4" />
         <span className="font-medium text-white">{count}</span>
         <span className="hidden sm:inline">active</span>
+        <span aria-hidden="true">·</span>
+        <span className="font-medium text-white">
+          {players?.toLocaleString() ?? '-'}
+        </span>
+        <span className="hidden sm:inline">in game</span>
       </div>
     </Tooltip>
   );

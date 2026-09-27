@@ -8,11 +8,10 @@ import {
 } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import ActiveUsersCounter from '../ActiveUsersCounter';
 import AuthButton from '../AuthButton/AuthButton';
 import NotificationBell from '../Notifications/NotificationBell';
-import EveStatus from '../EveStatus/EveStatus';
 import EveTime from '../EveTime/EveTime';
 import Tooltip from '../Tooltip/Tooltip';
 import {
@@ -28,26 +27,6 @@ import { NavPopover, NavPopoverLink } from './NavPopover';
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
-  const [status, setStatus] = useState<{ players?: number } | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Sunucu durumu verisini çek
-  React.useEffect(() => {
-    fetch('https://esi.evetech.net/latest/status/?datasource=tranquility')
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch server status');
-        return res.json();
-      })
-      .then((data) => {
-        setStatus(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
-  }, []);
 
   // The page's own colour at 90%, not `surface`. The header is not a panel
   // sitting on the page — it IS the page's top edge, held in place while the
@@ -123,14 +102,6 @@ export default function Header() {
             {/* Status readouts are the first thing to go when width is tight. */}
             <div className="hidden min-[1800px]:flex min-[1800px]:items-center min-[1800px]:gap-6">
               <ActiveUsersCounter />
-              <Tooltip
-                content={`Tranquility ${
-                  status?.players?.toLocaleString() ?? '-'
-                } online players`}
-                position="bottom"
-              >
-                <EveStatus players={status?.players} />
-              </Tooltip>
             </div>
             <div className="hidden 2xl:block">
               <Tooltip
