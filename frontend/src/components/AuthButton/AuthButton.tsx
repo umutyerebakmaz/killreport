@@ -1,12 +1,24 @@
 'use client';
 
 import { useAuth } from '@/hooks/useAuth';
-import { useLoginMutation } from '@/generated/graphql';
+import { useCharacterQuery, useLoginMutation } from '@/generated/graphql';
 import Loader from '@/components/Loader';
+import { UserMenu } from '@/components/Header/UserMenu';
+import EveImage from '@/components/ui/EveImage';
 
-export default function AuthButton() {
+export default function AuthButton({
+  variant = 'header',
+}: {
+  variant?: 'header' | 'drawer';
+}) {
   const { user, isLoading, loginError, reportLoginError, logout } = useAuth();
   const [loginMutation, { loading: loginLoading }] = useLoginMutation();
+  // The corporation and alliance the menu prints under the name. The same
+  // query the character page runs, so the two share one cache entry.
+  const { data: characterData } = useCharacterQuery({
+    variables: { id: Number(user?.characterId) },
+    skip: !user || variant !== 'header',
+  });
 
   const handleLogin = async () => {
     try {
@@ -38,12 +50,33 @@ export default function AuthButton() {
   }
 
   if (user) {
+    if (variant === 'header') {
+      return (
+        <UserMenu
+          user={user}
+          corporation={characterData?.character?.corporation}
+          alliance={characterData?.character?.alliance}
+          onLogout={logout}
+        />
+      );
+    }
+
+    // The drawer is already a menu, so a second one inside it would only be a
+    // click in the way: the name and the action sit in plain view.
     return (
-      <div className="flex items-center gap-3">
-        <span className="text-sm font-medium text-white">
-          {user.characterName}
-        </span>
-        <button onClick={logout} className="button button-danger">
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <EveImage
+            kind="character"
+            id={Number(user.characterId)}
+            name={user.characterName}
+            size={32}
+          />
+          <span className="text-sm font-medium text-white">
+            {user.characterName}
+          </span>
+        </div>
+        <button onClick={logout} className="w-full button button-danger">
           LOGOUT
         </button>
       </div>

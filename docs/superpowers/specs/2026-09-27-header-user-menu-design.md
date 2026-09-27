@@ -1,0 +1,150 @@
+# Header kullanıcı menüsü — tasarım
+
+Tarih: 2026-09-27 · Branch: `feat/header-user-menu`
+
+## Amaç
+
+Header'ın en sağındaki giriş yapmış kullanıcı alanı bugün karakter adını düz
+metin olarak ve yanında kırmızı bir `LOGOUT` butonu gösteriyor
+(`frontend/src/components/AuthButton/AuthButton.tsx:40-50`). Bunun yerine:
+
+- Header'ın en sağında karakterin **kare** portresi, **32px**, çerçevesiz.
+- Portrenin üzerine gelince ya da tıklanınca bir dropdown menü açılır; içinde **Logout** vardır.
+
+Giriş yapmamış durum (`LOGIN` butonu, hata mesajı) ve yükleniyor durumu
+(`Loader`) değişmez.
+
+## Kapsam dışı
+
+- Header'ın sağ tarafındaki readout'lar (TQ oyuncu sayısı, EVE saati, aktif
+  kullanıcılar) ve `Header.tsx` içindeki ESI status `fetch`'i. Bunlar header
+  sadeleştirmesinin 3. adımı ve ayrı tasarlanacak.
+- Menüye Logout dışında satır (ör. `/characters/{id}`). Kullanıcı kararı:
+  yalnızca Logout.
+- `mySessions` / `revokeSession` için bir "oturumlar" sayfası. Menüye bağlanacak
+  bir sayfa bugün yok; ileride olursa menüye bir satır eklenir.
+- `useAuth` içindeki mantık. Yalnızca `user` ve `logout` okunur.
+
+## Tasarım
+
+### Bileşen
+
+`AuthButton` giriş yapmış dalda yeni bir `UserMenu` bileşeni render eder:
+`frontend/src/components/Header/UserMenu.tsx`. Header'a ait olduğu için
+`NavPopover`, `NavLink`, `MobileNav` ile aynı klasörde durur.
+
+`PopoverGroup`'taki nav dropdown'larıyla (`NavPopover.tsx`) **aynı yapı**:
+Headless UI `Popover`, `PopoverButton`, `PopoverPanel`, `CloseButton`.
+
+- `(hover: hover)` olan cihazda imleç gelince açılır, dokunmatik cihazda
+  yalnızca tıklamayla (`NavPopover`'ın touch koruması).
+- İmleç `relative` sarmalayıcıdan çıkınca `close()` ve butondan `blur()`.
+- Panel `absolute`, 12px boşluk panelin `pt-3`'ü, yüzey `overflow-hidden float
+p-4`.
+- Satır `NavPopoverLink`'in `p-4`'ü ve tüm satırı kaplayan `absolute inset-0`
+  tıklama alanı; açıklama yerine solda bir ikon.
+
+Diğer fark: panel `left-0` değil `right-0`, çünkü portre header'ın son öğesi;
+soldan açılsa sayfanın dışına taşar. Genişlik `w-72` (288px): yüzeyin `p-4`'ünden
+sonra içeride tam 256px kalır.
+
+Üzerine gelmek yalnızca satırı gösterir; oturumu kapatmak yine bir tıklama
+ister.
+
+Tarihçe: ilk uygulama `Menu` + `anchor`, ikincisi `NotificationBell` gibi
+yalnızca tıklamayla açılan bir `Popover` idi. Kullanıcı kararıyla header'ın tek
+dropdown davranışı olan `NavPopover` yapısına geçildi.
+
+### Avatar (PopoverButton)
+
+- 32px, çerçevesiz: buton `size-8`, içinde `EveImage kind="character"
+size={32}` — portre 64px çekilir (`eveImageUrl.ts` `fetchSize`).
+- Kare: `rounded` yok. Uygulama düz ve köşesiz (`buttons.css:7`).
+- Çerçeve yok. Accent çerçeve denendi, kullanıcı kararıyla kaldırıldı.
+- Hover ve klavye odağı nav'ın kendi çizgisini alır: buton `nav-item`
+  (`globals.css`), portrenin 7px altında 1px accent çizgi 0'dan %100'e açılır.
+  Outline/ring yok.
+- `aria-label`: `"Account menu for {characterName}"`.
+- Karakter adı header'da görünmez; paneldeki portrenin üstünde durur.
+
+### Dropdown (PopoverPanel)
+
+- Üstte, bir `div` içinde karakter portresi, **256px**. Retina kuralı
+  (`eveImageUrl.ts` `fetchSize`): çizilen boyutun iki katı çekilir, yani 512 —
+  hem tam 2× hem sunucunun verdiği en büyük boyut. Portre panelin iç genişliğini
+  boşluksuz doldurur.
+- Portrenin sol alt köşesinde, üstte karakter adı (`font-medium text-white`),
+  altında **yan yana** corporation logosu + adı ve alliance logosu + adı
+  (`text-sm text-gray-200`, `gap-3`). İkisi portreden genişse her biri kendi
+  içinde `…` ile kısalır. Her biri detay sayfasına link
+  (`/corporations/{id}`, `/alliances/{id}`): `CloseButton as={Link}`, paneli
+  kapatarak gider; hover ve klavye odağında `text-accent-link`, `aria-label`
+  yalnızca adı okutur. Logolar 20px çizilir, 64px çekilir (2× ve 2'nin
+  kuvvetine yuvarlanmış). Alliance'ı olmayan karakterde yalnızca corporation
+  görünür; sorgu cevap verene kadar yalnızca ad görünür.
+- Yazının her portrede okunması için alt bant karartılır: map kartlarının
+  `from-black/95 via-black/70 to-transparent` scrim'i, onların `h-24`'üyle.
+- Corporation ve alliance `useAuth`'ta yok. `AuthButton`, karakter sayfasının ve
+  footer'ın kullandığı `Character` sorgusunu (`frontend/src/graphql/Character.graphql`)
+  çalıştırır, `UserMenu`'ye prop olarak verir; yeni doküman ve codegen yok, cache
+  karakter sayfasıyla ortak. Sorgu yalnızca header varyantında ve giriş
+  yapılmışken çalışır.
+- Altında tek satır: `ArrowRightStartOnRectangleIcon` (heroicons 20/solid,
+  `text-ink-muted`) + etiket **`LOGOUT`**, `gap-x-3`. Açıklama satırı yok;
+  `Signed in as {characterName}` denendi, kullanıcı kararıyla kaldırıldı.
+  Tıklanınca panel kapanır ve `onLogout` çağrılır.
+- Hover ve klavye odağı **kırmızı ton** alır:
+  `hover:bg-danger/20 has-[button:focus-visible]:bg-danger/20`. Nav popover
+  satırlarının `hover:bg-cyan-900/50` accent'inin karşılığı, ama oturumu kapatan
+  bir eylem olduğu için `danger` token'ından (`globals.css:95`,
+  `.button-danger`'ın da kullandığı `bg-danger/20`).
+- Açılış/kapanış geçişi `NavPopover`'daki gibi: açılış anında, kapanış 150ms
+  fade.
+
+### Header yüksekliği
+
+Header satırı 40px (`.button`: `py-2.5` + `text-sm/5`), `nav`'ın `p-6`'sı ile
+toplam **88px**. 32px portre satırdan kısa; header giriş yapınca/çıkınca
+değişmez, negatif margin gerekmez. `items-center` (`Header.tsx:64`, `:114`)
+portreyi logo, nav ve bell ile aynı orta çizgiye koyar.
+
+Değerlendirilip bırakılan: 64px portre + `-my-3` (header 88px kalıyordu, portre
+padding'e taşıyordu) ve `py-6` → `py-3` + `min-h-16`. Kullanıcı kararıyla 32px.
+
+### Mobil çekmece
+
+`AuthButton` mobil çekmecede de render ediliyor (`Header.tsx`, `DialogPanel`
+içindeki son blok). Orada dropdown gereksiz — çekmece zaten bir menü. Giriş
+yapmış kullanıcı için çekmecede tek satır: header'daki gibi 32px,
+çerçevesiz kare avatar + karakter adı, altında
+tam genişlikte `button button-danger` `LOGOUT` — menüdeki kırmızı tonla aynı
+dil.
+
+Bunu sağlamak için `AuthButton`'a `variant: 'header' | 'drawer'` prop'u eklenir;
+varsayılan `'header'`. Giriş yapmamış ve yükleniyor dalları iki varyantta aynı.
+
+## Testler
+
+`frontend/src/components/Header/UserMenu.spec.tsx` (Vitest + Testing Library,
+mevcut `NavPopover.spec.tsx` gibi):
+
+- Avatar `images.evetech.net/characters/{id}/portrait?size=64` ister ve
+  `aria-label` karakter adını içerir.
+- Tıklanınca açılır ve `LOGOUT` görünür.
+- Paneldeki portre 256px çizilir, `?size=512` ister.
+- Ad, corporation ve alliance portrenin üstünde; logolar `?size=64` ister.
+- Alliance'ı olmayan karakterde alliance satırı yok.
+- Corporation ve alliance `/corporations/{id}` ve `/alliances/{id}`'ye link.
+- Hover yapabilen cihazda üzerine gelince açılır, yapamayanda açılmaz.
+- İmleç ayrılınca kapanır.
+- `LOGOUT` `onLogout`'u bir kez çağırır ve paneli kapatır.
+
+`UserMenu`, `useAuth`'u doğrudan çağırmaz; `user` ve `onLogout` prop olarak
+gelir, böylece test hook'u mock'lamadan yazılır.
+
+## Doğrulama
+
+`.tsx` yapı + mantık değişikliği: `yarn workspace frontend test`, ardından
+typecheck/`build:check` ve `lint` (lint sayısı `main` ile karşılaştırılır),
+`npx prettier --check` değişen dosyalara. Görsel kontrol kullanıcıda: giriş
+yapmış ve yapmamış halde header yüksekliği, avatar, menü, mobil çekmece.

@@ -170,7 +170,7 @@ export default function Header() {
               </div>
               <div className="py-6">
                 <div className="px-3">
-                  <AuthButton />
+                  <AuthButton variant="drawer" />
                 </div>
               </div>
             </div>
