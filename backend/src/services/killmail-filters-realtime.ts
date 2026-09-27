@@ -40,10 +40,12 @@ export interface KillmailFilterData {
   victim_character_id: number | null;
   victim_corporation_id: number | null;
   victim_alliance_id: number | null;
+  victim_faction_id: number | null;
   attacker_ship_type_ids: (number | null)[];
   attacker_character_ids: (number | null)[];
   attacker_corporation_ids: (number | null)[];
   attacker_alliance_ids: (number | null)[];
+  attacker_faction_ids: (number | null)[];
 }
 
 /**
@@ -75,6 +77,11 @@ export async function insertKillmailFilter(
         data.attacker_alliance_ids.filter((id): id is number => id !== null),
       ),
     ];
+    const factionIds = [
+      ...new Set(
+        data.attacker_faction_ids.filter((id): id is number => id !== null),
+      ),
+    ];
 
     await client.$executeRaw`
       WITH data_row AS (
@@ -87,10 +94,12 @@ export async function insertKillmailFilter(
           ${data.victim_character_id}::int as victim_character_id,
           ${data.victim_corporation_id}::int as victim_corporation_id,
           ${data.victim_alliance_id}::int as victim_alliance_id,
+          ${data.victim_faction_id}::int as victim_faction_id,
           ${shipIds}::int[] as attacker_ship_type_ids,
           ${charIds}::int[] as attacker_character_ids,
           ${corpIds}::int[] as attacker_corporation_ids,
-          ${allianceIds}::int[] as attacker_alliance_ids
+          ${allianceIds}::int[] as attacker_alliance_ids,
+          ${factionIds}::int[] as attacker_faction_ids
       )
       INSERT INTO killmail_filters (
         killmail_id,
@@ -103,10 +112,12 @@ export async function insertKillmailFilter(
         victim_character_id,
         victim_corporation_id,
         victim_alliance_id,
+        victim_faction_id,
         attacker_ship_type_ids,
         attacker_character_ids,
         attacker_corporation_ids,
         attacker_alliance_ids,
+        attacker_faction_ids,
         security_status,
         security_class,
         victim_ship_group_id,
@@ -123,10 +134,12 @@ export async function insertKillmailFilter(
         d.victim_character_id,
         d.victim_corporation_id,
         d.victim_alliance_id,
+        d.victim_faction_id,
         d.attacker_ship_type_ids,
         d.attacker_character_ids,
         d.attacker_corporation_ids,
         d.attacker_alliance_ids,
+        d.attacker_faction_ids,
         ss.security_status,
         ss.security_class,
         t.group_id,
