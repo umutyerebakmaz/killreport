@@ -116,7 +116,8 @@ async function allianceInfoWorker() {
                 name: allianceInfo.name,
                 ticker: allianceInfo.ticker,
                 executor_corporation_id: allianceInfo.executor_corporation_id,
-                faction_id: allianceInfo.faction_id,
+                // ESI omits the key when there is none; undefined would leave the old value
+                faction_id: allianceInfo.faction_id ?? null,
                 // date_founded, creator_* değişmez
               },
             });

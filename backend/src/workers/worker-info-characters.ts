@@ -119,11 +119,12 @@ async function characterInfoWorker() {
               update: {
                 // Güncellenebilir alanlar
                 corporation_id: charInfo.corporation_id,
-                alliance_id: charInfo.alliance_id, // ESI'den gelen değer direkt
+                // ESI omits the key when there is none; undefined would leave the old value
+                alliance_id: charInfo.alliance_id ?? null,
                 security_status: charInfo.security_status,
                 description: charInfo.description,
                 title: charInfo.title,
-                faction_id: charInfo.faction_id,
+                faction_id: charInfo.faction_id ?? null,
                 // name, birthday, bloodline_id, race_id, gender değişmez
               },
             });
