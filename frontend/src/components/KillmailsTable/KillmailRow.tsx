@@ -4,7 +4,7 @@ import SecurityStatus from '@/components/SecurityStatus/SecurityStatus';
 import ShipTierBadge from '@/components/ShipTierBadge/ShipTierBadge';
 import SolarSystemMap from '@/components/SolarSystemMap/SolarSystemMap';
 import Tooltip from '@/components/Tooltip/Tooltip';
-import { UserIcon, UsersIcon } from '@heroicons/react/16/solid';
+import { CpuChipIcon, UserIcon, UsersIcon } from '@heroicons/react/16/solid';
 import { formatKillmailDateTime, formatKillmailTime } from '@/utils/date';
 import { formatISK } from '@/utils/formatISK';
 import { getShipTier } from '@/utils/shipTier';
@@ -349,8 +349,13 @@ export default function KillmailRow({
             </span>
           )}
           {isNpcAttacker && (
-            <span className="px-2 py-0.5 font-medium text-destroyed bg-destroyed/10">
-              NPC
+            // The same two-part shape, in destroyed red: not a fight between
+            // players. A chip, because the attacker is the game itself.
+            <span className="inline-flex items-stretch font-medium border border-destroyed">
+              <span className="flex items-center px-1.5 text-ground bg-destroyed">
+                <CpuChipIcon aria-hidden="true" className="size-4" />
+              </span>
+              <span className="px-2 py-0.5 text-destroyed">NPC</span>
             </span>
           )}
         </div>
