@@ -126,7 +126,9 @@ async function corporationInfoWorker() {
                 ticker: corpInfo.ticker,
                 member_count: corpInfo.member_count,
                 ceo_id: corpInfo.ceo_id,
-                alliance_id: corpInfo.alliance_id, // ESI'den gelen değer direkt
+                // ESI omits the key when there is none; undefined would leave the old value
+                alliance_id: corpInfo.alliance_id ?? null,
+                faction_id: corpInfo.faction_id ?? null,
                 tax_rate: corpInfo.tax_rate,
                 description: corpInfo.description,
                 url: corpInfo.url,
