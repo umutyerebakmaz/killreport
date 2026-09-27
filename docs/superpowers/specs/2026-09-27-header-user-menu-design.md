@@ -33,47 +33,50 @@ Giriş yapmamış durum (`LOGIN` butonu, hata mesajı) ve yükleniyor durumu
 `frontend/src/components/Header/UserMenu.tsx`. Header'a ait olduğu için
 `NavPopover`, `NavLink`, `MobileNav` ile aynı klasörde durur.
 
-Headless UI'ın **`Menu`** bileşeni (`Menu`, `MenuButton`, `MenuItems`,
-`MenuItem`) kullanılır, `Popover` değil. Sebep: içerik bir eylem listesi, ve
-`Menu` ok tuşlarıyla gezinme, `role="menu"` / `menuitem` ve Escape ile kapanmayı
-kendisi veriyor. `@headlessui/react` zaten bağımlılık; yeni paket yok.
+Header'daki diğer dropdown'larla **aynı mimari**: Headless UI `Popover`,
+`PopoverButton`, `PopoverPanel`, `CloseButton` — `NotificationBell` ve
+`NavPopover` gibi. `relative` bir sarmalayıcının içinde `absolute right-0`
+panel, 12px'lik boşluk panelin `pt-3`'ü (imleç butondan menüye inerken panelin
+içinde kalır), imleç sarmalayıcıdan çıkınca `close()`.
 
-`NavPopover`'dan farklı olarak **hover ile açılmaz**, yalnızca tıklamayla. Menüde
-oturumu kapatan bir eylem var; imlecin üzerinden geçmesiyle açılması istenmez
-(NotificationBell'in hover'da açılmama gerekçesiyle aynı,
-`NavPopover.tsx:55-56`).
+İlk uygulama `Menu` / `MenuItems` + `anchor` kullanıyordu (ok tuşları,
+`role="menu"`). Tek satırlık bir menüde bu neredeyse hiçbir şey kazandırmıyor;
+header'da iki ayrı dropdown mimarisi olmasının bedeli daha büyük, `Popover`'a
+çevrildi.
 
-### Avatar (MenuButton)
+`NavPopover`'dan farklı olarak **hover ile açılmaz**, yalnızca tıklamayla —
+`NotificationBell` gibi. Menüde oturumu kapatan bir eylem var; imlecin
+üzerinden geçmesiyle açılması istenmez (`NavPopover.tsx:55-56`).
+
+### Avatar (PopoverButton)
 
 - Kutu 64px, 1px çerçeve dahil: buton `size-16 border`, içinde
   `EveImage kind="character" size={62}` — portre 128px çekilir
   (`eveImageUrl.ts` `fetchSize`). Çerçeve kutunun dışına eklenseydi 66px olur,
   `-my-3` ile satıra 42px katkı verir ve header 2px büyürdü.
 - Kare: `rounded` yok. Uygulama düz ve köşesiz (`buttons.css:7`).
-- Çerçeve: `border border-white/10`, hover'da `border-white/25` — `.map-card`
-  ile aynı dil (`cards.css`). Focus hover'ın aynısı:
+- Çerçeve: `border border-white/10`, hover'da ve açıkken `border-white/25` —
+  `.map-card` ile aynı dil (`cards.css`). Focus hover'ın aynısı:
   `focus-visible:border-white/25`, outline/ring yok.
 - `aria-label`: `"Account menu for {characterName}"`.
 - Karakter adı artık header'da görünmez; menünün başlığında durur.
 
-### Dropdown (MenuItems)
+### Dropdown (PopoverPanel)
 
-- Avatarın sağ kenarına hizalı, altında 12px boşluk:
-  `anchor="bottom end"` ve `[--anchor-gap:12px]`. Yüzey `.float`, genişlik
-  `w-56`.
+- `absolute right-0 pt-3 w-56`, içinde `overflow-hidden float` yüzey —
+  `NotificationBell`'in paneliyle aynı.
 - İçerik yukarıdan aşağı:
   1. **Başlık** — karakter adı (`text-sm font-medium text-white`), altında
-     `border-b border-white/10`. Tıklanamaz, `MenuItem` değildir.
-  2. **Logout** — `MenuItem` içinde `button.menu-row`, sol tarafta
+     `border-b border-white/10`. Tıklanamaz.
+  2. **Logout** — `CloseButton.menu-row`, sol tarafta
      `ArrowRightStartOnRectangleIcon` (heroicons 20/solid), metin `Logout`.
-     Menüdeki tek eylem budur.
-- Hover ve klavye odağı **kırmızı ton** alır: `data-focus:bg-danger/20`. Nav
-  popover satırlarının `hover:bg-cyan-900/50` accent'inin karşılığı, ama
-  oturumu kapatan bir eylem olduğu için `danger` token'ından
-  (`globals.css:95`, `.button-danger`'ın da kullandığı `bg-danger/20`).
-  Headless UI `MenuItem`'ı hem imleçle hem ok tuşlarıyla `data-focus` verir, iki
-  yol aynı görünür. Utilities katmanı `.menu-row`'un (components katmanı)
-  nötr `hover:bg-white/5`'ini ezer.
+     Menüdeki tek eylem budur; tıklanınca panel kapanır ve `onLogout` çağrılır.
+- Hover ve klavye odağı **kırmızı ton** alır:
+  `hover:bg-danger/20 focus-visible:bg-danger/20`. Nav popover satırlarının
+  `hover:bg-cyan-900/50` accent'inin karşılığı, ama oturumu kapatan bir eylem
+  olduğu için `danger` token'ından (`globals.css:95`, `.button-danger`'ın da
+  kullandığı `bg-danger/20`). Utilities katmanı `.menu-row`'un (components
+  katmanı) nötr `hover:bg-white/5`'ini ezer.
 - Açılış/kapanış geçişi NotificationBell'deki gibi: açılış anında,
   kapanış 150ms fade.
 
@@ -83,7 +86,7 @@ Bugün header satırı 40px (`.button`: `py-2.5` + `text-sm/5`), `nav`'ın `p-6`
 ile toplam **88px**. 64px avatar bu satıra konursa header **112px**'e çıkar ve
 giriş yapınca/çıkınca 24px zıplar.
 
-Çözüm: `nav`'ın `p-6`'sı **değişmez**; avatar butonu `-my-3` alır. Negatif
+Çözüm: `nav`'ın `p-6`'sı **değişmez**; avatarın `relative` sarmalayıcısı `-my-3` alır. Negatif
 margin elemanın kutusunu küçültmez, yalnızca satırda kapladığı yeri: avatar 64px
 çizilir ama satır yüksekliğine 64 − 24 = 40px katkı verir — LOGIN butonuyla aynı.
 Header giriş durumundan bağımsız olarak **88px** kalır, avatar dikey padding'in
@@ -94,8 +97,9 @@ Avatar header'da **dikey olarak ortalıdır**: `nav` ve sağ kapsayıcı
 12 + 64 + 12 = 88px. Orta çizgisi logo, nav etiketleri ve bell ile aynıdır. Diğer
 öğelerin (logo, nav, bell) konumu hiç değişmez.
 
-`MenuItems`'ın `anchor`'ı butonun gerçek kutusunu ölçer; margin konumlandırmayı
-etkilemez, 12px'lik `--anchor-gap` avatarın alt kenarından sayılır.
+Margin butonda değil sarmalayıcıda, çünkü panel sarmalayıcıya göre
+konumlanır: margin butonda olsaydı sarmalayıcı 40px ölçülür ve panel avatarın
+alt kenarının 12px yukarısından açılıp portrenin üstüne binerdi.
 
 Değerlendirilip bırakılan: `py-6` → `py-3` + `min-h-16`. Header yine 88px
 kalıyordu ama logo ve nav da kenara yaklaşıyordu; değişiklik avatarla sınırlı

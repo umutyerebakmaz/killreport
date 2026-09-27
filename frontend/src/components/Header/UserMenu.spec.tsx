@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -15,6 +15,8 @@ function renderUserMenu() {
   };
 }
 
+const logoutButton = () => screen.queryByRole('button', { name: /logout/i });
+
 describe('UserMenu', () => {
   it('draws the character portrait', () => {
     renderUserMenu();
@@ -26,36 +28,31 @@ describe('UserMenu', () => {
 
   it('is closed until clicked, then shows the name and Logout', async () => {
     const { button } = renderUserMenu();
-    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(logoutButton()).not.toBeInTheDocument();
 
     await userEvent.click(button);
 
-    expect(screen.getByRole('menu')).toHaveTextContent('Umut Yerebakmaz');
-    expect(
-      screen.getByRole('menuitem', { name: /logout/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Umut Yerebakmaz')).toBeInTheDocument();
+    expect(logoutButton()).toBeInTheDocument();
   });
 
   it('does not open on hover', async () => {
     const { button } = renderUserMenu();
     await userEvent.hover(button);
-    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(logoutButton()).not.toBeInTheDocument();
+  });
+
+  it('closes when the pointer leaves', async () => {
+    const { button } = renderUserMenu();
+    await userEvent.click(button);
+    await userEvent.unhover(button);
+    await waitFor(() => expect(logoutButton()).not.toBeInTheDocument());
   });
 
   it('calls onLogout once when Logout is chosen', async () => {
     const { button, onLogout } = renderUserMenu();
     await userEvent.click(button);
-    await userEvent.click(screen.getByRole('menuitem', { name: /logout/i }));
+    await userEvent.click(logoutButton()!);
     expect(onLogout).toHaveBeenCalledTimes(1);
-  });
-
-  it('marks the Logout row focused from the keyboard', async () => {
-    const { button } = renderUserMenu();
-    button.focus();
-    await userEvent.keyboard('{Enter}');
-    await userEvent.keyboard('{ArrowDown}');
-    expect(screen.getByRole('menuitem', { name: /logout/i })).toHaveAttribute(
-      'data-focus',
-    );
   });
 });
