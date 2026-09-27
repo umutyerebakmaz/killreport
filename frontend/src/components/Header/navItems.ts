@@ -2,6 +2,9 @@
  * The site nav, once. The desktop bar and the mobile drawer both render from
  * this list, so a destination added here appears in both — the drawer used to
  * be a hand-written copy of the bar and could fall behind it.
+ *
+ * WORKERS is not here: it is an operations page, and the footer's Resources
+ * column already links it.
  */
 
 export type NavLinkItem = { label: string; href: string };
@@ -58,6 +61,11 @@ export const NAV: readonly NavEntry[] = [
     match: ['/killmails'],
     items: [
       {
+        href: '/killmails',
+        label: 'ALL KILLMAILS',
+        description: 'The latest losses across New Eden, with every filter',
+      },
+      {
         href: '/killmails?page=1&regionId=10000070',
         label: 'POCHVEN',
         description:
@@ -70,9 +78,33 @@ export const NAV: readonly NavEntry[] = [
       },
     ],
   },
-  { label: 'ALLIANCES', href: '/alliances' },
-  { label: 'CORPORATIONS', href: '/corporations' },
-  { label: 'CHARACTERS', href: '/characters' },
+  {
+    label: 'ENTITIES',
+    match: ['/factions', '/alliances', '/corporations', '/characters'],
+    items: [
+      {
+        href: '/factions',
+        label: 'FACTIONS',
+        description:
+          'The empires and pirate factions, their militias and space',
+      },
+      {
+        href: '/alliances',
+        label: 'ALLIANCES',
+        description: 'Player alliances by size, growth and sovereignty',
+      },
+      {
+        href: '/corporations',
+        label: 'CORPORATIONS',
+        description: 'Player corporations, their members and their kills',
+      },
+      {
+        href: '/characters',
+        label: 'CHARACTERS',
+        description: 'Pilots and the killmails they appear on',
+      },
+    ],
+  },
   { label: 'LEADERBOARDS', href: '/leaderboards' },
   {
     label: 'SOVEREIGNTY',
@@ -105,5 +137,4 @@ export const NAV: readonly NavEntry[] = [
       },
     ],
   },
-  { label: 'WORKERS', href: '/workers' },
 ];
