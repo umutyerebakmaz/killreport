@@ -21,6 +21,7 @@ import {
   MobileNavSubLink,
 } from './MobileNav';
 import Logo from '../ui/Logo';
+import { NAV, isNavGroup } from './navItems';
 import { NavLink } from './NavLink';
 import { NavPopover, NavPopoverLink } from './NavPopover';
 
@@ -93,75 +94,28 @@ export default function Header() {
           </button>
         </div>
         <PopoverGroup className="hidden xl:flex xl:gap-x-4 2xl:gap-x-6 min-[1800px]:gap-x-8">
-          <NavPopover
-            label="UNIVERSE"
-            match={['/map', '/regions', '/constellations', '/solar-systems']}
-          >
-            <NavPopoverLink
-              href="/map"
-              label="MAP"
-              description="Every gate-connected system in New Eden, in one continuous zoom"
-            />
-            <NavPopoverLink
-              href="/regions"
-              label="REGIONS"
-              description="64 Regions across New Eden - High, Low, Null, and Wormhole space"
-            />
-            <NavPopoverLink
-              href="/constellations"
-              label="CONSTELLATIONS"
-              description="1,090+ Constellations connecting solar systems"
-            />
-            <NavPopoverLink
-              href="/solar-systems"
-              label="SOLAR SYSTEMS"
-              description="8,000+ Solar Systems with security ratings and statistics"
-            />
-          </NavPopover>
-          <NavPopover label="KILLMAILS" match={['/killmails']}>
-            <NavPopoverLink
-              href="/killmails?page=1&regionId=10000070"
-              label="POCHVEN"
-              description="Explore Pochven triglavian space killmails and statistics"
-            />
-            <NavPopoverLink
-              href="/killmails?page=1&securitySpace=wormhole"
-              label="WORMHOLES"
-              description="Explore wormhole space killmails and statistics"
-            />
-          </NavPopover>
-          <NavLink href="/alliances">ALLIANCES</NavLink>
-          <NavLink href="/corporations">CORPORATIONS</NavLink>
-          <NavLink href="/characters">CHARACTERS</NavLink>
-          <NavLink href="/leaderboards">LEADERBOARDS</NavLink>
-          <NavPopover label="SOVEREIGNTY" match={['/sovereignty']}>
-            <NavPopoverLink
-              href="/sovereignty"
-              label="OVERVIEW"
-              description="Null-sec territory control, rankings, and active wars"
-            />
-            <NavPopoverLink
-              href="/sovereignty/structures"
-              label="STRUCTURES &amp; TIMERS"
-              description="IHub/TCU inventory and upcoming vulnerability windows"
-            />
-            <NavPopoverLink
-              href="/sovereignty/history"
-              label="HISTORY"
-              description="Resolved campaigns, outcomes, and top defenders"
-            />
-            <NavPopoverLink
-              href="/sovereignty/hotspots"
-              label="HOT ZONES"
-              description="Regions ranked by conflict intensity"
-            />
-            <NavPopoverLink
-              href="/sovereignty/map"
-              label="MAP"
-              description="Territory map colored by controlling alliance"
-            />
-          </NavPopover>
-          <NavLink href="/workers">WORKERS</NavLink>
+          {NAV.map((entry) =>
+            isNavGroup(entry) ? (
+              <NavPopover
+                key={entry.label}
+                label={entry.label}
+                match={entry.match}
+              >
+                {entry.items.map((item) => (
+                  <NavPopoverLink
+                    key={item.href}
+                    href={item.href}
+                    label={item.label}
+                    description={item.description}
+                  />
+                ))}
+              </NavPopover>
+            ) : (
+              <NavLink key={entry.href} href={entry.href}>
+                {entry.label}
+              </NavLink>
+            ),
+          )}
         </PopoverGroup>
 
         <div className="hidden xl:flex xl:flex-1 xl:justify-end xl:items-center xl:gap-4 2xl:gap-6 min-[1800px]:gap-8">
@@ -229,96 +183,29 @@ export default function Header() {
           <div className="flow-root mt-6">
             <div className="-my-6 divide-y divide-white/5">
               <div className="py-6 space-y-2">
-                <MobileNavDisclosure label="UNIVERSE">
-                  <MobileNavSubLink href="/map" onNavigate={closeMobileMenu}>
-                    MAP
-                  </MobileNavSubLink>
-                  <MobileNavSubLink
-                    href="/regions"
-                    onNavigate={closeMobileMenu}
-                  >
-                    REGIONS
-                  </MobileNavSubLink>
-                  <MobileNavSubLink
-                    href="/constellations"
-                    onNavigate={closeMobileMenu}
-                  >
-                    CONSTELLATIONS
-                  </MobileNavSubLink>
-                  <MobileNavSubLink
-                    href="/solar-systems"
-                    onNavigate={closeMobileMenu}
-                  >
-                    SOLAR SYSTEMS
-                  </MobileNavSubLink>
-                </MobileNavDisclosure>
-                <MobileNavDisclosure label="KILLMAILS">
-                  <MobileNavSubLink
-                    href="/killmails?page=1&regionId=10000070"
-                    onNavigate={closeMobileMenu}
-                  >
-                    POCHVEN
-                  </MobileNavSubLink>
-                  <MobileNavSubLink
-                    href="/killmails?page=1&securitySpace=wormhole"
-                    onNavigate={closeMobileMenu}
-                  >
-                    WORMHOLES
-                  </MobileNavSubLink>
-                </MobileNavDisclosure>
-                <MobileNavLink href="/alliances" onNavigate={closeMobileMenu}>
-                  ALLIANCES
-                </MobileNavLink>
-                <MobileNavLink
-                  href="/corporations"
-                  onNavigate={closeMobileMenu}
-                >
-                  CORPORATIONS
-                </MobileNavLink>
-                <MobileNavLink href="/characters" onNavigate={closeMobileMenu}>
-                  CHARACTERS
-                </MobileNavLink>
-                <MobileNavLink
-                  href="/leaderboards"
-                  onNavigate={closeMobileMenu}
-                >
-                  LEADERBOARDS
-                </MobileNavLink>
-                <MobileNavDisclosure label="SOVEREIGNTY">
-                  <MobileNavSubLink
-                    href="/sovereignty"
-                    onNavigate={closeMobileMenu}
-                  >
-                    OVERVIEW
-                  </MobileNavSubLink>
-                  <MobileNavSubLink
-                    href="/sovereignty/structures"
-                    onNavigate={closeMobileMenu}
-                  >
-                    STRUCTURES &amp; TIMERS
-                  </MobileNavSubLink>
-                  <MobileNavSubLink
-                    href="/sovereignty/history"
-                    onNavigate={closeMobileMenu}
-                  >
-                    HISTORY
-                  </MobileNavSubLink>
-                  <MobileNavSubLink
-                    href="/sovereignty/hotspots"
-                    onNavigate={closeMobileMenu}
-                  >
-                    HOT ZONES
-                  </MobileNavSubLink>
-                  <MobileNavSubLink
-                    href="/sovereignty/map"
-                    onNavigate={closeMobileMenu}
-                  >
-                    MAP
-                  </MobileNavSubLink>
-                </MobileNavDisclosure>
-                <MobileNavLink href="/workers" onNavigate={closeMobileMenu}>
-                  WORKERS
-                </MobileNavLink>
+                {NAV.map((entry) =>
+                  isNavGroup(entry) ? (
+                    <MobileNavDisclosure key={entry.label} label={entry.label}>
+                      {entry.items.map((item) => (
+                        <MobileNavSubLink
+                          key={item.href}
+                          href={item.href}
+                          onNavigate={closeMobileMenu}
+                        >
+                          {item.label}
+                        </MobileNavSubLink>
+                      ))}
+                    </MobileNavDisclosure>
+                  ) : (
+                    <MobileNavLink
+                      key={entry.href}
+                      href={entry.href}
+                      onNavigate={closeMobileMenu}
+                    >
+                      {entry.label}
+                    </MobileNavLink>
+                  ),
+                )}
               </div>
               <div className="py-6">
                 <div className="px-3">
