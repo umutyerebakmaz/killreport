@@ -1,0 +1,31 @@
+# Faction statistics - independent top-level queries, like AllianceStats.
+# A killmail belongs to a faction by the faction ids ESI recorded on it.
+
+extend type Query {
+  # Top 10 pilots by kills made while flying for the faction
+  factionTopCharacters(
+    factionId: Int!
+    filter: TopTargetFilter
+  ): [CharacterTopTarget!]!
+
+  # Top 10 corporations by killmails their pilots made for the faction
+  factionTopCorporations(
+    factionId: Int!
+    filter: TopTargetFilter
+  ): [CorporationTopTarget!]!
+
+  # Top 10 ship types the faction's pilots flew on kills
+  factionTopShips(factionId: Int!, filter: TopTargetFilter): [ShipTopKill!]!
+
+  # Top 10 other factions the faction killed (itself and Unknown excluded)
+  factionTopFactionTargets(
+    factionId: Int!
+    filter: TopTargetFilter
+  ): [FactionTopTarget!]!
+
+  # Top 10 victim ship types on the faction's kills
+  factionTopShipTargets(
+    factionId: Int!
+    filter: TopTargetFilter
+  ): [ShipTopKill!]!
+}

@@ -4,6 +4,14 @@ type Faction {
   description: String
   corporationId: Int
   militiaCorporationId: Int
+  solarSystem: SolarSystem
+  stationCount: Int
+  stationSystemCount: Int
+  corporation: Corporation
+  militiaCorporation: Corporation
+  memberCorporationCount: Int!
+  memberCharacterCount: Int!
+  sovereigntySystemCount: Int!
 }
 
 extend type Query {

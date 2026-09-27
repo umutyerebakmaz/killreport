@@ -11,12 +11,15 @@ export const factionQueries: QueryResolvers = {
       where: { id: Number(id) },
     });
     if (!faction) return null;
-    return faction;
+    // Relations and counters are filled in by factionFields.
+    return faction as any;
   },
 
   factions: async () => {
-    return prisma.faction.findMany({
+    const factions = await prisma.faction.findMany({
       orderBy: { name: 'asc' },
     });
+    // Relations and counters are filled in by factionFields.
+    return factions as any[];
   },
 };
