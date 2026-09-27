@@ -9,6 +9,7 @@ import { formatKillmailDateTime, formatKillmailTime } from '@/utils/date';
 import { formatISK } from '@/utils/formatISK';
 import { getShipTier } from '@/utils/shipTier';
 import Link from 'next/link';
+import type { ComponentType, ReactNode, SVGProps } from 'react';
 import { attackerBadge } from './attackerBadge';
 import { getKillmailRowStyles } from './killmailRowStyles';
 import { KillmailRowProps } from './types';
@@ -327,44 +328,76 @@ export default function KillmailRow({
       <td className="td-cell">
         <div className="flex items-center gap-2">
           {leadingBadge === 'solo' ? (
-            // The attacker count's two-part badge in SOLO's green-600 (not
-            // dropped's green-400, a different step), with one figure where
-            // the count has two.
-            <span className="inline-flex items-stretch font-medium border border-green-600">
-              <span className="flex items-center px-1.5 text-ground bg-green-600">
-                <UserIcon aria-hidden="true" className="size-4" />
-              </span>
-              <span className="px-2 py-0.5 text-green-600">SOLO</span>
-            </span>
+            <CellBadge tone="solo" icon={UserIcon}>
+              SOLO
+            </CellBadge>
           ) : leadingBadge === 'count' ? (
-            // Two parts inside one border: the icon cut out of solid purple in
-            // the page's own dark, as button-primary sets dark ink on accent; the
-            // count on no ground of its own, so the border alone frames it.
-            <span className="inline-flex items-stretch font-medium border border-purple-400 tabular-nums">
-              <span className="flex items-center px-1.5 text-ground bg-purple-400">
-                <UsersIcon aria-hidden="true" className="size-4" />
-              </span>
-              <span className="px-2 py-0.5 text-purple-400">
-                {km.attackerCount}
-                <span className="sr-only">attackers</span>
-              </span>
-            </span>
+            <CellBadge tone="count" icon={UsersIcon}>
+              {km.attackerCount}
+              <span className="sr-only">attackers</span>
+            </CellBadge>
           ) : null}
           {isNpcAttacker && (
-            // The same two-part shape in EVE's red: not a fight between players.
-            // Fill and border take destroyed-fill, the deeper step globals.css
-            // keeps for grounds, since destroyed itself glares as a solid
-            // block; the label stays destroyed, the step meant for text. A
-            // chip, because the attacker is the game itself.
-            <span className="inline-flex items-stretch font-medium border border-destroyed-fill">
-              <span className="flex items-center px-1.5 text-ground bg-destroyed-fill">
-                <CpuChipIcon aria-hidden="true" className="size-4" />
-              </span>
-              <span className="px-2 py-0.5 text-destroyed">NPC</span>
-            </span>
+            <CellBadge tone="npc" icon={CpuChipIcon}>
+              NPC
+            </CellBadge>
           )}
         </div>
       </td>
     </tr>
+  );
+}
+
+/*
+ * Each tone spelled out whole so Tailwind sees every class.
+ *
+ * solo: SOLO's green-600, not dropped's green-400, a different step.
+ * count: purple, with tabular figures so the counts line up down the column.
+ * npc: EVE's red. Fill and border take destroyed-fill, the deeper step
+ * globals.css keeps for grounds, since destroyed itself glares as a solid
+ * block; the label stays destroyed, the step meant for text.
+ */
+const CELL_BADGE_TONES = {
+  solo: {
+    frame: 'border-green-600',
+    icon: 'bg-green-600',
+    label: 'text-green-600',
+  },
+  count: {
+    frame: 'border-purple-400 tabular-nums',
+    icon: 'bg-purple-400',
+    label: 'text-purple-400',
+  },
+  npc: {
+    frame: 'border-destroyed-fill',
+    icon: 'bg-destroyed-fill',
+    label: 'text-destroyed',
+  },
+} as const;
+
+/**
+ * The attackers cell's badge: two parts inside one border, the icon cut out
+ * of a solid fill in the page's own dark (as button-primary sets dark ink on
+ * accent), the label on no ground of its own so the border alone frames it.
+ */
+function CellBadge({
+  tone,
+  icon: Icon,
+  children,
+}: {
+  tone: keyof typeof CELL_BADGE_TONES;
+  icon: ComponentType<SVGProps<SVGSVGElement>>;
+  children: ReactNode;
+}) {
+  const t = CELL_BADGE_TONES[tone];
+  return (
+    <span
+      className={`inline-flex items-stretch text-xs/4.5 font-medium border ${t.frame}`}
+    >
+      <span className={`flex items-center px-1 text-ground ${t.icon}`}>
+        <Icon aria-hidden="true" className="size-3" />
+      </span>
+      <span className={`px-1.5 py-px ${t.label}`}>{children}</span>
+    </span>
   );
 }
