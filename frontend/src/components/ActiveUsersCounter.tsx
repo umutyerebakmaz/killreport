@@ -39,14 +39,8 @@ export default function ActiveUsersCounter() {
     <Tooltip
       content={
         <div className="space-y-1">
-          <div>
-            <span className="font-medium">Active</span>
-            <span className="text-ink-muted"> · on KillReport now</span>
-          </div>
-          <div>
-            <span className="font-medium">In game</span>
-            <span className="text-ink-muted"> · online on Tranquility</span>
-          </div>
+          <div>Active on KillReport now</div>
+          <div>Online on Tranquility</div>
         </div>
       }
       position="bottom"
