@@ -9,6 +9,7 @@ import { formatKillmailDateTime, formatKillmailTime } from '@/utils/date';
 import { formatISK } from '@/utils/formatISK';
 import { getShipTier } from '@/utils/shipTier';
 import Link from 'next/link';
+import { attackerBadge } from './attackerBadge';
 import { getKillmailRowStyles } from './killmailRowStyles';
 import { KillmailRowProps } from './types';
 import EveImage from '../ui/EveImage';
@@ -31,6 +32,7 @@ export default function KillmailRow({
   // Use backend-computed fields
   const isSolo = km.solo;
   const isNpcAttacker = km.npc;
+  const leadingBadge = attackerBadge({ solo: isSolo, npc: isNpcAttacker });
   const shipTier = getShipTier(km.victim?.shipType?.dogmaAttributes);
 
   return (
@@ -324,7 +326,7 @@ export default function KillmailRow({
       {/* Attackers Column */}
       <td className="td-cell">
         <div className="flex items-center gap-2">
-          {isSolo ? (
+          {leadingBadge === 'solo' ? (
             // The attacker count's two-part badge in SOLO's green-600 (not
             // dropped's green-400, a different step), with one figure where
             // the count has two.
@@ -334,7 +336,7 @@ export default function KillmailRow({
               </span>
               <span className="px-2 py-0.5 text-green-600">SOLO</span>
             </span>
-          ) : (
+          ) : leadingBadge === 'count' ? (
             // Two parts inside one border: the icon cut out of solid purple in
             // the page's own dark, as button-primary sets dark ink on accent; the
             // count on no ground of its own, so the border alone frames it.
@@ -347,7 +349,7 @@ export default function KillmailRow({
                 <span className="sr-only">attackers</span>
               </span>
             </span>
-          )}
+          ) : null}
           {isNpcAttacker && (
             // The same two-part shape in EVE's red: not a fight between players.
             // Fill and border take destroyed-fill, the deeper step globals.css
