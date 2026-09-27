@@ -91,18 +91,27 @@ export function UserMenu({
                   name={user.characterName}
                   size={256}
                 />
-                {/* The bottom band is darkened so the name reads over any
-                    portrait — the map cards' scrim, taller for three lines. */}
-                <div className="absolute inset-x-0 bottom-0 h-32 pointer-events-none bg-linear-to-t from-black/95 via-black/70 to-transparent" />
+                {/* The bottom band is darkened so the text reads over any
+                    portrait: the map cards' scrim, at their height. */}
+                <div className="absolute inset-x-0 bottom-0 h-24 pointer-events-none bg-linear-to-t from-black/95 via-black/70 to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-3 space-y-1.5">
                   <p className="font-medium text-white truncate">
                     {user.characterName}
                   </p>
-                  {corporation && (
-                    <MembershipLine kind="corporation" entity={corporation} />
-                  )}
-                  {alliance && (
-                    <MembershipLine kind="alliance" entity={alliance} />
+                  {/* Side by side, each truncating on its own when the pair
+                      is wider than the portrait. */}
+                  {(corporation || alliance) && (
+                    <div className="flex items-center gap-3">
+                      {corporation && (
+                        <MembershipLine
+                          kind="corporation"
+                          entity={corporation}
+                        />
+                      )}
+                      {alliance && (
+                        <MembershipLine kind="alliance" entity={alliance} />
+                      )}
+                    </div>
                   )}
                 </div>
               </div>

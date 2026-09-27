@@ -74,12 +74,13 @@ size={32}` — portre 64px çekilir (`eveImageUrl.ts` `fetchSize`).
   hem tam 2× hem sunucunun verdiği en büyük boyut. Portre panelin iç genişliğini
   boşluksuz doldurur.
 - Portrenin sol alt köşesinde, üstte karakter adı (`font-medium text-white`),
-  altında corporation logosu + adı, altında alliance logosu + adı
-  (`text-sm text-gray-200`). Logolar 20px çizilir, 64px çekilir (2× ve 2'nin
-  kuvvetine yuvarlanmış). Alliance'ı olmayan karakterde alliance satırı yok;
-  corporation/alliance sorgu cevap verene kadar yalnızca ad görünür.
+  altında **yan yana** corporation logosu + adı ve alliance logosu + adı
+  (`text-sm text-gray-200`, `gap-3`). İkisi portreden genişse her biri kendi
+  içinde `…` ile kısalır. Logolar 20px çizilir, 64px çekilir (2× ve 2'nin
+  kuvvetine yuvarlanmış). Alliance'ı olmayan karakterde yalnızca corporation
+  görünür; sorgu cevap verene kadar yalnızca ad görünür.
 - Yazının her portrede okunması için alt bant karartılır: map kartlarının
-  `from-black/95 via-black/70 to-transparent` scrim'i, üç satır için `h-32`.
+  `from-black/95 via-black/70 to-transparent` scrim'i, onların `h-24`'üyle.
 - Corporation ve alliance `useAuth`'ta yok. `AuthButton`, karakter sayfasının ve
   footer'ın kullandığı `Character` sorgusunu (`frontend/src/graphql/Character.graphql`)
   çalıştırır, `UserMenu`'ye prop olarak verir; yeni doküman ve codegen yok, cache
