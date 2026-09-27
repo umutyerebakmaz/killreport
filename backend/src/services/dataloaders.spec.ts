@@ -40,8 +40,14 @@ const { prismaMock, MODELS } = vi.hoisted(() => {
     'faction',
   ] as const;
   const prismaMock = Object.fromEntries(
-    MODELS.map((name) => [name, { findMany: vi.fn() }]),
-  ) as Record<(typeof MODELS)[number], { findMany: ReturnType<typeof vi.fn> }>;
+    MODELS.map((name) => [name, { findMany: vi.fn(), groupBy: vi.fn() }]),
+  ) as Record<
+    (typeof MODELS)[number],
+    {
+      findMany: ReturnType<typeof vi.fn>;
+      groupBy: ReturnType<typeof vi.fn>;
+    }
+  >;
   return { prismaMock, MODELS };
 });
 
@@ -644,6 +650,40 @@ describe('regionSovereignty loader', () => {
   });
 });
 
+describe('sovereigntySystemCountByAlliance loader', () => {
+  const groupBy = () => prismaMock.sovereigntyMapCurrent.groupBy;
+
+  beforeEach(() => {
+    groupBy().mockResolvedValue([
+      { alliance_id: 99000001, _count: { _all: 42 } },
+      { alliance_id: 99000002, _count: { _all: 3 } },
+    ]);
+  });
+
+  it('counts each alliance from one grouped query', async () => {
+    const loader = loaders.createSovereigntySystemCountByAllianceLoader();
+
+    const counts = await Promise.all([
+      loader.load(99000001),
+      loader.load(99000002),
+    ]);
+
+    expect(counts).toEqual([42, 3]);
+    expect(groupBy()).toHaveBeenCalledTimes(1);
+    expect(groupBy()).toHaveBeenCalledWith({
+      by: ['alliance_id'],
+      where: { alliance_id: { in: [99000001, 99000002] } },
+      _count: { _all: true },
+    });
+  });
+
+  it('is 0, not null, for an alliance that holds no sovereignty', async () => {
+    const loader = loaders.createSovereigntySystemCountByAllianceLoader();
+
+    expect(await loader.load(99000003)).toBe(0);
+  });
+});
+
 describe('createDataLoaders', () => {
   it('builds every loader the resolvers expect', () => {
     const { loaders: ctx } = loaders.createDataLoaders();
@@ -676,6 +716,7 @@ describe('createDataLoaders', () => {
         'region',
         'regionSovereignty',
         'regionStats',
+        'sovereigntySystemCountByAlliance',
         'solarSystem',
         'solarSystemsByConstellation',
         'starBySystem',

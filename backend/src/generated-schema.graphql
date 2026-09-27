@@ -16,6 +16,7 @@ type Alliance {
   metrics: AllianceMetrics
   name: String!
   snapshots(days: Int): [AllianceSnapshot!]!
+  sovereigntySystemCount: Int!
   ticker: String!
   topAllianceTargets(filter: TopTargetFilter): [AllianceTopTarget!]!
   topCorporationTargets(filter: TopTargetFilter): [CorporationTopTarget!]!
