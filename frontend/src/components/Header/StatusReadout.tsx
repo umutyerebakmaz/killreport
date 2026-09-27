@@ -3,9 +3,14 @@
 import { useActiveUsersUpdatesSubscription } from '@/generated/graphql';
 import { UsersIcon } from '@heroicons/react/24/solid';
 import { useEffect, useState } from 'react';
-import Tooltip from './Tooltip/Tooltip';
+import EveTime from '../EveTime/EveTime';
+import Tooltip from '../Tooltip/Tooltip';
 
-export default function ActiveUsersCounter() {
+/**
+ * The header's status line: visitors on the site, players on Tranquility and
+ * EVE time, one readout in one type style, each part with its own tooltip.
+ */
+export default function StatusReadout() {
   const [isConnected, setIsConnected] = useState(false);
 
   // Tranquility's player count rides on this readout rather than on one of
@@ -57,6 +62,12 @@ export default function ActiveUsersCounter() {
             {players?.toLocaleString() ?? '-'}
           </span>
           <span className="hidden sm:inline">in game</span>
+        </div>
+      </Tooltip>
+      <span aria-hidden="true">·</span>
+      <Tooltip content="EVE time (UTC)" position="bottom">
+        <div className="cursor-help">
+          <EveTime />
         </div>
       </Tooltip>
     </div>

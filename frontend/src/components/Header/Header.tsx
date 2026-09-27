@@ -9,11 +9,8 @@ import {
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { useCallback, useState } from 'react';
-import ActiveUsersCounter from '../ActiveUsersCounter';
 import AuthButton from '../AuthButton/AuthButton';
 import NotificationBell from '../Notifications/NotificationBell';
-import EveTime from '../EveTime/EveTime';
-import Tooltip from '../Tooltip/Tooltip';
 import {
   MobileNavDisclosure,
   MobileNavLink,
@@ -23,6 +20,7 @@ import Logo from '../ui/Logo';
 import { NAV, isNavGroup } from './navItems';
 import { NavLink } from './NavLink';
 import { NavPopover, NavPopoverLink } from './NavPopover';
+import StatusReadout from './StatusReadout';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -100,16 +98,8 @@ export default function Header() {
         <div className="hidden xl:flex xl:flex-1 xl:justify-end xl:items-center xl:gap-4 2xl:gap-6 min-[1800px]:gap-8">
           <div className="flex items-center gap-4 min-[1800px]:gap-6">
             {/* Status readouts are the first thing to go when width is tight. */}
-            <div className="hidden min-[1800px]:flex min-[1800px]:items-center min-[1800px]:gap-6">
-              <ActiveUsersCounter />
-            </div>
-            <div className="hidden 2xl:block">
-              <Tooltip
-                content="Current Eve Online ingame time"
-                position="bottom"
-              >
-                <EveTime />
-              </Tooltip>
+            <div className="hidden min-[1800px]:block">
+              <StatusReadout />
             </div>
             <NotificationBell />
           </div>
