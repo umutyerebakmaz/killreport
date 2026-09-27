@@ -4,7 +4,7 @@ import SecurityStatus from '@/components/SecurityStatus/SecurityStatus';
 import ShipTierBadge from '@/components/ShipTierBadge/ShipTierBadge';
 import SolarSystemMap from '@/components/SolarSystemMap/SolarSystemMap';
 import Tooltip from '@/components/Tooltip/Tooltip';
-import { UsersIcon } from '@heroicons/react/16/solid';
+import { UserIcon, UsersIcon } from '@heroicons/react/16/solid';
 import { formatKillmailDateTime, formatKillmailTime } from '@/utils/date';
 import { formatISK } from '@/utils/formatISK';
 import { getShipTier } from '@/utils/shipTier';
@@ -325,9 +325,14 @@ export default function KillmailRow({
       <td className="td-cell">
         <div className="flex items-center justify-center gap-2">
           {isSolo ? (
-            // SOLO badge's green-600, not dropped's green-400 — a different step, untouched by this sweep
-            <span className="px-2 py-0.5 font-medium text-green-600 rounded bg-green-600/10">
-              SOLO
+            // The attacker count's two-part badge in SOLO's green-600 (not
+            // dropped's green-400, a different step), with one figure where
+            // the count has two.
+            <span className="inline-flex items-stretch font-medium border border-green-600">
+              <span className="flex items-center px-1.5 text-ground bg-green-600">
+                <UserIcon aria-hidden="true" className="size-4" />
+              </span>
+              <span className="px-2 py-0.5 text-green-600">SOLO</span>
             </span>
           ) : (
             // Two parts inside one border: the icon cut out of solid purple in
