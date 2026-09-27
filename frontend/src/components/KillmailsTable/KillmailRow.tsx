@@ -4,6 +4,7 @@ import SecurityStatus from '@/components/SecurityStatus/SecurityStatus';
 import ShipTierBadge from '@/components/ShipTierBadge/ShipTierBadge';
 import SolarSystemMap from '@/components/SolarSystemMap/SolarSystemMap';
 import Tooltip from '@/components/Tooltip/Tooltip';
+import { UserIcon } from '@heroicons/react/16/solid';
 import { formatKillmailDateTime, formatKillmailTime } from '@/utils/date';
 import { formatISK } from '@/utils/formatISK';
 import { getShipTier } from '@/utils/shipTier';
@@ -329,8 +330,10 @@ export default function KillmailRow({
               SOLO
             </span>
           ) : (
-            <span className="px-2 py-0.5 font-medium text-purple-400  bg-purple-400/10">
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 font-medium text-purple-400 bg-purple-400/10 tabular-nums">
+              <UserIcon aria-hidden="true" className="size-4" />
               {km.attackerCount}
+              <span className="sr-only">attackers</span>
             </span>
           )}
           {isNpcAttacker && (
