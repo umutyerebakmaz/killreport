@@ -92,6 +92,29 @@ describe('UserMenu', () => {
     );
   });
 
+  it('links the corporation and alliance to their pages', async () => {
+    const user = userEvent.setup();
+    render(
+      <UserMenu
+        user={character}
+        corporation={{ id: 98000001, name: 'Test Corp' }}
+        alliance={{ id: 99000001, name: 'Test Alliance' }}
+        onLogout={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: /account menu/i }));
+
+    expect(screen.getByRole('link', { name: 'Test Corp' })).toHaveAttribute(
+      'href',
+      '/corporations/98000001',
+    );
+    expect(screen.getByRole('link', { name: 'Test Alliance' })).toHaveAttribute(
+      'href',
+      '/alliances/99000001',
+    );
+  });
+
   it('leaves out the alliance line for a character without one', async () => {
     const user = userEvent.setup();
     render(

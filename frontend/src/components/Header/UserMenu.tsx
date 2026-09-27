@@ -7,6 +7,7 @@ import {
   PopoverPanel,
 } from '@headlessui/react';
 import { ArrowRightStartOnRectangleIcon } from '@heroicons/react/20/solid';
+import Link from 'next/link';
 import { useRef } from 'react';
 
 import EveImage from '@/components/ui/EveImage';
@@ -139,7 +140,11 @@ export function UserMenu({
   );
 }
 
-/** A 20px logo — fetched at 64, twice and rounded up — and the name beside it. */
+/**
+ * A 20px logo — fetched at 64, twice and rounded up — and the name beside it,
+ * linking to the entity's page. `CloseButton` shuts the panel on the way, and
+ * `Link` keeps the navigation client-side, as in NavPopoverLink.
+ */
 function MembershipLine({
   kind,
   entity,
@@ -148,7 +153,14 @@ function MembershipLine({
   entity: { id: number; name: string };
 }) {
   return (
-    <div className="flex items-center min-w-0 gap-2 text-sm text-gray-200">
+    <CloseButton
+      as={Link}
+      href={`/${kind === 'corporation' ? 'corporations' : 'alliances'}/${entity.id}`}
+      // The logo's alt text is the same name, so without this the link
+      // would be announced twice over.
+      aria-label={entity.name}
+      className="flex items-center min-w-0 gap-2 text-sm text-gray-200 transition-colors hover:text-accent-link focus:outline-none focus-visible:text-accent-link"
+    >
       <EveImage
         kind={kind}
         id={entity.id}
@@ -157,6 +169,6 @@ function MembershipLine({
         className="flex-none"
       />
       <span className="truncate">{entity.name}</span>
-    </div>
+    </CloseButton>
   );
 }

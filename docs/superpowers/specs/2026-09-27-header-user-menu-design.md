@@ -76,7 +76,10 @@ size={32}` — portre 64px çekilir (`eveImageUrl.ts` `fetchSize`).
 - Portrenin sol alt köşesinde, üstte karakter adı (`font-medium text-white`),
   altında **yan yana** corporation logosu + adı ve alliance logosu + adı
   (`text-sm text-gray-200`, `gap-3`). İkisi portreden genişse her biri kendi
-  içinde `…` ile kısalır. Logolar 20px çizilir, 64px çekilir (2× ve 2'nin
+  içinde `…` ile kısalır. Her biri detay sayfasına link
+  (`/corporations/{id}`, `/alliances/{id}`): `CloseButton as={Link}`, paneli
+  kapatarak gider; hover ve klavye odağında `text-accent-link`, `aria-label`
+  yalnızca adı okutur. Logolar 20px çizilir, 64px çekilir (2× ve 2'nin
   kuvvetine yuvarlanmış). Alliance'ı olmayan karakterde yalnızca corporation
   görünür; sorgu cevap verene kadar yalnızca ad görünür.
 - Yazının her portrede okunması için alt bant karartılır: map kartlarının
@@ -131,6 +134,7 @@ mevcut `NavPopover.spec.tsx` gibi):
 - Paneldeki portre 256px çizilir, `?size=512` ister.
 - Ad, corporation ve alliance portrenin üstünde; logolar `?size=64` ister.
 - Alliance'ı olmayan karakterde alliance satırı yok.
+- Corporation ve alliance `/corporations/{id}` ve `/alliances/{id}`'ye link.
 - Hover yapabilen cihazda üzerine gelince açılır, yapamayanda açılmaz.
 - İmleç ayrılınca kapanır.
 - `LOGOUT` `onLogout`'u bir kez çağırır ve paneli kapatır.
